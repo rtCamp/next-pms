@@ -6,6 +6,8 @@ class TimesheetOverride(Timesheet):
         return
 
     def validate_time_logs(self):
+        if not self.get("time_logs"):
+            return
         for data in self.get("time_logs"):
             self.validate_overlap(data)
             self.set_project(data)
