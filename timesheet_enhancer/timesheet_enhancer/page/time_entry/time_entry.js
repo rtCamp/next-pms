@@ -221,8 +221,7 @@ class TimeEntry {
     });
   }
   init_fields() {
-    // Remove error css class on the init of fields
-    this.employee.$wrapper.removeClass("has-error");
+    // Remove error css class on the init of field
     this.project.$wrapper.removeClass("has-error");
     this.hour.$wrapper.removeClass("has-error");
     this.date.$wrapper.removeClass("has-error");
@@ -246,10 +245,6 @@ class TimeEntry {
     if (!this.data.employee_name) {
       missing_fields.push("Employee Name");
       this.employee_name.$wrapper.addClass("has-error");
-    }
-    if (!this.data.project) {
-      missing_fields.push("Project");
-      this.project.$wrapper.addClass("has-error");
     }
     if (!this.data.activity) {
       missing_fields.push("activity");
