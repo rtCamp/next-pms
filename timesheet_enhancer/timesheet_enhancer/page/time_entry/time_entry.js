@@ -305,7 +305,9 @@ class TimeEntry {
     this.date.set_value(frappe.datetime.nowdate());
     this.hour.set_value(0);
     this.description.set_value("");
+    this.get_employee_from_session_user();
   }
+  fetch_time_log() {}
   add_column(name, section, is_full_width = false) {
     let col = $(
       `<div class="form-column col-sm-${
