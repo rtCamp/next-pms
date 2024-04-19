@@ -42,12 +42,6 @@ class TimeEntry {
       "__column2",
       this.main_section.find(".__section1 > .section-body"),
     );
-    this.add_section("__section2");
-    this.add_column(
-      "__description",
-      this.main_section.find(".__section2 > .section-body"),
-      true,
-    );
   }
   add_fields() {
     let col1 = this.main_section.find(
@@ -55,9 +49,6 @@ class TimeEntry {
     );
     let col2 = this.main_section.find(
       " .__section1 > .section-body >.__column2",
-    );
-    let description = this.main_section.find(
-      " .__section2 > .section-body > .__description",
     );
     this.employee = frappe.ui.form.make_control({
       df: {
@@ -157,7 +148,7 @@ class TimeEntry {
           this.data.task = this.task.get_value();
         },
       },
-      parent: col2.find("form"),
+      parent: col1.find("form"),
       render_input: true,
     });
 
@@ -172,7 +163,7 @@ class TimeEntry {
           this.data.date = this.date.get_value();
         },
       },
-      parent: col2.find("form"),
+      parent: col1.find("form"),
       render_input: true,
     });
 
@@ -186,7 +177,7 @@ class TimeEntry {
           this.data.hour = this.hour.get_value();
         },
       },
-      parent: col2.find("form"),
+      parent: col1.find("form"),
       render_input: true,
     });
 
@@ -195,12 +186,11 @@ class TimeEntry {
         label: __("Description"),
         fieldtype: "Text",
         fieldname: "description",
-        max_height: 200,
         onchange: () => {
           this.data.description = this.description.get_value();
         },
       },
-      parent: description.find("form"),
+      parent: col2.find("form"),
       render_input: true,
     });
   }
@@ -222,12 +212,11 @@ class TimeEntry {
   }
   init_fields() {
     // Remove error css class on the init of field
-    this.project.$wrapper.removeClass("has-error");
+    this.employee.$wrapper.removeClass("has-error");
     this.hour.$wrapper.removeClass("has-error");
     this.date.$wrapper.removeClass("has-error");
-    this.task.$wrapper.removeClass("has-error");
     this.activity.$wrapper.removeClass("has-error");
-
+    this.description.$input.css("height", "450px");
     //  Limit the date picker to allow only current and past 3 days
     const today = frappe.datetime.nowdate();
     this.date.datepicker.update({
