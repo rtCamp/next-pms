@@ -340,9 +340,9 @@ class TimeEntry {
               options: "Timesheet Detail",
               fields: r.message.fields,
               read_only: true,
+              is_web_form: true,
               onchange: () => {},
             },
-
             parent: time_log.find("form"),
             render_input: true,
           });
