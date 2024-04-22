@@ -38,27 +38,28 @@ class TimeEntry {
         </div>`,
     );
     this.add_section("__section1");
+    this.add_column(
+      "__time_log",
+      this.main_section.find(".__section1 > .section-body"),
+      true,
+    );
+
+    this.add_section("__section2");
     this.left_column = this.add_column(
       "__column1",
-      this.main_section.find(".__section1 > .section-body"),
+      this.main_section.find(".__section2 > .section-body"),
     );
     this.add_column(
       "__column2",
-      this.main_section.find(".__section1 > .section-body"),
-    );
-    this.add_section("__section2");
-    this.add_column(
-      "__time_log",
       this.main_section.find(".__section2 > .section-body"),
-      true,
     );
   }
   add_fields() {
     let col1 = this.main_section.find(
-      " .__section1 > .section-body > .__column1",
+      " .__section2 > .section-body > .__column1",
     );
     let col2 = this.main_section.find(
-      " .__section1 > .section-body >.__column2",
+      " .__section2 > .section-body >.__column2",
     );
 
     this.employee = frappe.ui.form.make_control({
@@ -312,7 +313,7 @@ class TimeEntry {
   }
   get_time_log_docfield() {
     let time_log = this.main_section.find(
-      ".__section2 > .section-body > .__time_log",
+      ".__section1 > .section-body > .__time_log",
     );
     frappe.call({
       method:
