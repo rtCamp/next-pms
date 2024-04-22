@@ -26,7 +26,6 @@ class TimeEntry {
     this.init_fields();
   }
   prepare_dom() {
-    this.page.set_indicator("Not Saved", "orange");
     this.page.set_primary_action("Save", () => {
       frappe.run_serially([() => this.validate(), () => this.save()]);
     });
@@ -115,6 +114,7 @@ class TimeEntry {
         reqd: 0,
         onchange: () => {
           this.data.project = this.project.get_value();
+          this.update_status_indicator();
         },
       },
       parent: col1.find("form"),
@@ -130,6 +130,7 @@ class TimeEntry {
         reqd: 1,
         onchange: () => {
           this.data.activity = this.activity.get_value();
+          this.update_status_indicator();
         },
       },
       parent: col1.find("form"),
@@ -155,6 +156,7 @@ class TimeEntry {
         },
         onchange: () => {
           this.data.task = this.task.get_value();
+          this.update_status_indicator();
         },
       },
       parent: col1.find("form"),
@@ -185,6 +187,7 @@ class TimeEntry {
         reqd: 1,
         onchange: () => {
           this.data.hour = this.hour.get_value();
+          this.update_status_indicator();
         },
       },
       parent: col1.find("form"),
@@ -198,6 +201,7 @@ class TimeEntry {
         fieldname: "description",
         onchange: () => {
           this.data.description = this.description.get_value();
+          this.update_status_indicator();
         },
       },
       parent: col2.find("form"),
@@ -349,6 +353,25 @@ class TimeEntry {
         }
       },
     });
+  }
+  is_dirty() {
+    if (
+      this.description.value ||
+      this.hour.value ||
+      this.project.value ||
+      this.task.value ||
+      this.activity.value
+    ) {
+      return true;
+    }
+    return false;
+  }
+  update_status_indicator() {
+    if (this.is_dirty()) {
+      this.page.set_indicator("Not Saved", "orange");
+    } else {
+      this.page.set_indicator("", "");
+    }
   }
   add_column(name, section, is_full_width = false) {
     let col = $(
