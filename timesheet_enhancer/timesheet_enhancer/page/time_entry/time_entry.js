@@ -264,11 +264,11 @@ class TimeEntry {
       frappe.throw(msg);
     }
   }
-  save() {
-    let doc = {
-      doctype: "Timesheet",
-      employee: this.data.employee,
-      time_logs: [
+  async save() {
+    let time_logs = this.time_log.get_value();
+
+    if (time_logs.length == 0) {
+      time_logs = [
         {
           description: this.data.description,
           hours: this.data.hour,
@@ -278,26 +278,36 @@ class TimeEntry {
           from_time: this.data.date,
           to_time: this.data.date,
         },
-      ],
+      ];
+    } else {
+      time_logs.push({
+        description: this.data.description,
+        hours: this.data.hour,
+        project: this.data.project,
+        task: this.data.task,
+        activity_type: this.data.activity,
+        from_time: this.data.date,
+        to_time: this.data.date,
+      });
+    }
+
+    let doc = {
+      doctype: "Timesheet",
+      employee: this.data.employee,
+      time_logs: time_logs,
     };
     frappe.call({
-      method: "frappe.client.save",
+      method:
+        "timesheet_enhancer.timesheet_enhancer.page.time_entry.time_entry.save",
       args: {
         doc: doc,
+        date: this.data.date,
       },
       freeze: true,
       callback: function (r) {
         if (r.message) {
-          const doc_name = r.message.name;
           frappe.msgprint({
-            message: __(
-              `Timesheet created ${frappe.utils.get_form_link(
-                "Timesheet",
-                doc_name,
-                true,
-                doc_name,
-              )}`,
-            ),
+            message: r.message,
             indicator: "green",
           });
           frappe.timeentry.refresh();
