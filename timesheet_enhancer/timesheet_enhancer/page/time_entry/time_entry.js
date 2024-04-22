@@ -12,14 +12,18 @@ class TimeEntry {
     this.wrapper = $(wrapper);
     this.page = wrapper.page;
     this.main_section = this.page.main;
-    this.data = {};
+    this.data = {
+      date: frappe.datetime.nowdate(),
+      employee: "",
+    };
     this.init_components();
+    this.get_time_log_docfield();
   }
-  init_components() {
+  async init_components() {
     this.prepare_dom();
     this.add_fields();
+    await this.get_employee_from_session_user();
     this.init_fields();
-    this.get_employee_from_session_user();
   }
   prepare_dom() {
     this.page.set_indicator("Not Saved", "orange");
@@ -42,6 +46,12 @@ class TimeEntry {
       "__column2",
       this.main_section.find(".__section1 > .section-body"),
     );
+    this.add_section("__section2");
+    this.add_column(
+      "__time_log",
+      this.main_section.find(".__section2 > .section-body"),
+      true,
+    );
   }
   add_fields() {
     let col1 = this.main_section.find(
@@ -50,6 +60,7 @@ class TimeEntry {
     let col2 = this.main_section.find(
       " .__section1 > .section-body >.__column2",
     );
+
     this.employee = frappe.ui.form.make_control({
       df: {
         label: __("Employee"),
@@ -58,11 +69,8 @@ class TimeEntry {
         options: "Employee",
         reqd: 1,
         onchange: () => {
-          if (!this.employee.get_value()) {
-            this.employee_name.set_value("");
-            return;
-          }
           this.data.employee = this.employee.get_value();
+          this.get_time_log_docfield();
           if (this.data.employee_name) {
             return;
           }
@@ -161,6 +169,7 @@ class TimeEntry {
         reqd: 1,
         onchange: () => {
           this.data.date = this.date.get_value();
+          this.get_time_log_docfield();
         },
       },
       parent: col1.find("form"),
@@ -194,21 +203,15 @@ class TimeEntry {
       render_input: true,
     });
   }
-  get_employee_from_session_user() {
-    frappe.call({
-      method: "frappe.client.get_value",
-      args: {
-        doctype: "Employee",
-        fieldname: ["name", "employee_name"],
-        filters: { user_id: frappe.session.user },
-      },
-      callback: (r) => {
-        if (r.message) {
-          this.employee.set_value(r.message.name);
-          this.employee_name.set_value(r.message.employee_name);
-        }
-      },
-    });
+  async get_employee_from_session_user() {
+    const data = await frappe.db.get_value(
+      "Employee",
+      { user_id: frappe.session.user },
+      ["name", "employee_name"],
+    );
+    this.data.employee = data.message.name;
+    this.employee.set_value(data.message.name);
+    this.employee_name.set_value(data.message.employee_name);
   }
   init_fields() {
     // Remove error css class on the init of field
@@ -307,7 +310,45 @@ class TimeEntry {
     this.description.set_value("");
     this.get_employee_from_session_user();
   }
-  fetch_time_log() {}
+  get_time_log_docfield() {
+    let time_log = this.main_section.find(
+      ".__section2 > .section-body > .__time_log",
+    );
+    frappe.call({
+      method:
+        "timesheet_enhancer.timesheet_enhancer.page.time_entry.time_entry.get_time_log_docfield_and_data",
+      freeze: true,
+      args: {
+        employee: this.data.employee || this.employee.get_value(),
+        date: this.data.date,
+      },
+      callback: (r) => {
+        if (r.message) {
+          if (this.time_log) {
+            this.time_log.df.data = r.message.data;
+            this.time_log.fields = r.message.fields;
+            this.time_log.refresh();
+            return;
+          }
+          this.time_log = frappe.ui.form.make_control({
+            df: {
+              label: __("Time Log"),
+              fieldtype: "Table",
+              data: r.message.data,
+              fieldname: "time_logs",
+              options: "Timesheet Detail",
+              fields: r.message.fields,
+              read_only: true,
+              onchange: () => {},
+            },
+
+            parent: time_log.find("form"),
+            render_input: true,
+          });
+        }
+      },
+    });
+  }
   add_column(name, section, is_full_width = false) {
     let col = $(
       `<div class="form-column col-sm-${
