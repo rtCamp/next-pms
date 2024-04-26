@@ -1,0 +1,13 @@
+{
+  "name": "timesheet_enhancer",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:rtCamp/timesheet-enhancer.git",
+  "author": "rtCamp",
+  "license": "MIT",
+  "private":true,
+  "scripts": {
+		"dev": "cd timesheet && yarn dev",
+		"build": "cd timesheet && yarn build"
+	}
+}
