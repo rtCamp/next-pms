@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build --base=/assets/timesheet_enhancer/timesheet/ && yarn copy-html-entry",
+    "build": "yarn install && vite build --base=/assets/timesheet_enhancer/timesheet/ && yarn copy-html-entry",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "copy-html-entry": "cp ../timesheet_enhancer/public/timesheet/index.html ../timesheet_enhancer/www/timesheet/index.html"
