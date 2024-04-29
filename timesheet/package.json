@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
+    "dev": "vite dev ",
     "build": "yarn install && vite build --base=/assets/timesheet_enhancer/timesheet/ && yarn copy-html-entry",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
@@ -17,6 +17,7 @@
     "lucide-react": "^0.373.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-router-dom": "^6.23.0",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7"
   },
