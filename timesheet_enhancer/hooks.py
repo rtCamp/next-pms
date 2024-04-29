@@ -6,6 +6,12 @@ app_email = "sys@rtcamp.com"
 app_license = "mit"
 # required_apps = []
 
+website_route_rules = [
+    {
+        "from_route": "/timesheet/<path:app_path>",
+        "to_route": "/timesheet",
+    },
+]
 # Includes in <head>
 # ------------------
 

@@ -1,7 +1,6 @@
 import { useFrappeAuth } from "frappe-react-sdk";
 import { FC, PropsWithChildren } from "react";
 import { createContext } from "react";
-import { useNavigate } from "react-router-dom";
 interface UserContextProps {
   isLoading: boolean;
   currentUser: string;
@@ -17,12 +16,11 @@ export const UserContext = createContext<UserContextProps>({
 });
 
 export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
-  const navigate = useNavigate();
   const { logout, currentUser, updateCurrentUser, isLoading } = useFrappeAuth();
   const handleLogout = async () => {
     return logout()
       .then(() => {
-        navigate("/login?redirect-to=/timesheet");
+        window.location.replace("/login?redirect-to=/timesheet");
         window.location.reload();
       });
   };
