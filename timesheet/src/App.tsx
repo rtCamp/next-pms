@@ -9,10 +9,11 @@ import { UserProvider } from "@/provider/UserProvider";
 import Router from "@/Router";
 
 import "./App.css";
+import "../app/globals.css";
 function App() {
   const router = createBrowserRouter(createRoutesFromElements(Router()));
   return (
-    <FrappeProvider url="http://careers.localhost">
+    <FrappeProvider url="https://erp-stage.rt.gw">
       <UserProvider>
         <RouterProvider router={router} />
       </UserProvider>

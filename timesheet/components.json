@@ -6,8 +6,8 @@
   "tailwind": {
     "config": "tailwind.config.js",
     "css": "app/globals.css",
-    "baseColor": "neutral",
-    "cssVariables": true,
+    "baseColor": "slate",
+    "cssVariables": false,
     "prefix": ""
   },
   "aliases": {
