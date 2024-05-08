@@ -13,7 +13,7 @@ import "../app/globals.css";
 function App() {
   const router = createBrowserRouter(createRoutesFromElements(Router()));
   return (
-    <FrappeProvider url="https://erp-stage.rt.gw">
+    <FrappeProvider url={process.env.BASE_URL}>
       <UserProvider>
         <RouterProvider router={router} />
       </UserProvider>
