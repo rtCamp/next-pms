@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { FrappeProvider } from "frappe-react-sdk";
 import {
   RouterProvider,
@@ -7,13 +6,14 @@ import {
 } from "react-router-dom";
 import { UserProvider } from "@/provider/UserProvider";
 import Router from "@/Router";
-
+import { Header } from "@/components/timesheet/Header";
 import "../app/globals.css";
 function App() {
   const router = createBrowserRouter(createRoutesFromElements(Router()));
   return (
-    <FrappeProvider url={import.meta.env.VITE_BASE_URL ?? ""} >
+    <FrappeProvider url={import.meta.env.VITE_ASE_URL ?? ""}>
       <UserProvider>
+        <Header />
         <RouterProvider router={router} />
       </UserProvider>
     </FrappeProvider>
