@@ -1,41 +1,36 @@
 import * as React from "react";
-import { useContext, useRef } from "react";
+
 import {
   NavigationMenu,
   NavigationMenuContent,
-  NavigationMenuIndicator,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
-  NavigationMenuViewport,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { UserContext } from "@/provider/UserProvider";
 import { cn, getCookie } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 export function Header() {
-//   const { currentUser, isLoading, logout } = useContext(UserContext);
   const { alt, src } = get_user_avatar();
   return (
     <div className=" border border-gray-300 rounded-r-md rounded-b-md p-2 ">
       <NavigationMenu>
         <NavigationMenuList className="w-screen justify-between px-4">
-          <NavigationMenuItem >
+          <NavigationMenuItem>
             <NavigationMenuLink className={navigationMenuTriggerStyle()}>
               Home
             </NavigationMenuLink>
           </NavigationMenuItem>
-          <NavigationMenuItem >
+          <NavigationMenuItem>
             <NavigationMenuTrigger className="hover:border-none data-[state=open]:bg-transparent hover:bg-transparent">
               <Avatar>
                 <AvatarImage src={decodeURIComponent(src)} alt={alt} />
                 <AvatarFallback>{alt}</AvatarFallback>
               </Avatar>
             </NavigationMenuTrigger>
-            <NavigationMenuContent >
+            <NavigationMenuContent>
               <ul className="grid w-[200px] text-black text-left">
                 <ListItem
                   key="Switch to desk"
@@ -65,7 +60,7 @@ const ListItem = React.forwardRef<
 >(({ className, title, children, ...props }, ref) => {
   return (
     <li>
-      <NavigationMenuLink asChild >
+      <NavigationMenuLink asChild>
         <a
           ref={ref}
           className={cn(
