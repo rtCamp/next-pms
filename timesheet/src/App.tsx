@@ -8,12 +8,11 @@ import {
 import { UserProvider } from "@/provider/UserProvider";
 import Router from "@/Router";
 
-import "./App.css";
 import "../app/globals.css";
 function App() {
   const router = createBrowserRouter(createRoutesFromElements(Router()));
   return (
-    <FrappeProvider url={process.env.BASE_URL}>
+    <FrappeProvider url={import.meta.env.VITE_BASE_URL ?? ""} >
       <UserProvider>
         <RouterProvider router={router} />
       </UserProvider>
