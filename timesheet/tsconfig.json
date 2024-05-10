@@ -3,7 +3,7 @@
     "target": "ESNext",
     "types": ["vite/client"],
     "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": false,
+    "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
@@ -14,13 +14,15 @@
     "isolatedModules": true,
     "jsx":  "react-jsx",
     "incremental": true,
-    "baseUrl": ".",
+    "rootDirs": [
+      "src"
+    ],
     "paths": {
       "@/*": [
         "./src/*"
       ]
     }
   },
-  "include": ["**/*.tsx","**/*.ts"],
+  "include": ["src/**/*.tsx","src/**/*.ts"],
   "exclude": ["node_modules"]
 }

@@ -4,10 +4,10 @@ import {
   createBrowserRouter,
   createRoutesFromElements,
 } from "react-router-dom";
-import { UserProvider } from "@/provider/UserProvider";
+import { UserProvider } from "@/app/provider/UserProvider";
 import Router from "@/Router";
-import {Header} from "@/components/timesheet/Header";
-import "../app/globals.css";
+import {Header} from "@/app/components/layout/Header";
+import "./app/globals.css"
 function App() {
   const router = createBrowserRouter(createRoutesFromElements(Router()),{ basename: '/timesheet' });
   return (

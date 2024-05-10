@@ -10,7 +10,7 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { cn, getCookie } from "@/lib/utils";
+import { cn, getCookie } from "@/app/lib/utils";
 
 export function Header() {
   const { alt, src } = get_user_avatar();

@@ -1,6 +1,6 @@
 import { Route } from "react-router-dom";
-import { ProtectedRoute } from "@/lib/ProtectedRoute";
-import Timesheet from "@/pages/Timesheet";
+import { ProtectedRoute } from "@/app/lib/ProtectedRoute";
+import Timesheet from "@/app/pages/Timesheet";
 export default function Router() {
   return (
     <>
