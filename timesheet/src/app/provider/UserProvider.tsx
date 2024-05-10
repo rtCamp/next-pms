@@ -3,13 +3,13 @@ import { FC, PropsWithChildren } from "react";
 import { createContext } from "react";
 interface UserContextProps {
   isLoading: boolean;
-  currentUser: string;
+  currentUser: string|null;
   logout: () => Promise<void>;
   updateCurrentUser: VoidFunction;
 }
 
 export const UserContext = createContext<UserContextProps>({
-  currentUser: "",
+  currentUser: null,
   isLoading: false,
   logout: () => Promise.resolve(),
   updateCurrentUser: () => {},
@@ -31,7 +31,7 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
         isLoading,
         updateCurrentUser,
         logout: handleLogout,
-        currentUser: currentUser ?? "",
+        currentUser: currentUser ?? null,
       }}
     >
       {children}
