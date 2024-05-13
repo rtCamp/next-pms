@@ -1,27 +1,21 @@
 import {
   Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-export function TimesheetContent({ data }: { data: any }) {
+import { TimesheetTableBody } from "./TableBody";
+export function TimesheetTable({ data }: { data: any }) {
   const dates = data?.dates;
   const tasks = data?.tasks;
-  console.log(tasks)
   return (
     <div>
       <Table className="w-[900px] md:w-full">
-        <TableCaption>A list of your recent invoices.</TableCaption>
         <TableHeader>
           <TableRow className="flex bg-muted/40 hover:bg-muted/40 border-t">
             <TableHead
               key="Heading"
-              className="flex w-full font-bold items-center text-justify"
+              className="flex w-full max-w-96 font-bold items-center  border-r"
             >
               Tasks
             </TableHead>
@@ -30,28 +24,22 @@ export function TimesheetContent({ data }: { data: any }) {
               return (
                 <TableHead
                   key={date}
-                  className="flex w-full justify-center flex-col items-start max-w-20 font-bold text-justify px-0"
+                  className="flex w-full  justify-center flex-col text-center max-w-20 font-bold  px-0 hover:cursor-pointer border-r"
                 >
                   <div>{day}</div>
                   <div>{formattedDate}</div>
                 </TableHead>
               );
             })}
+            <TableHead
+              key="Heading"
+              className="flex w-full  justify-center flex-col  text-center max-w-20 font-bold  px-0"
+            >
+              Total
+            </TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
-          {/* {invoices.map((invoice) => (
-            <TableRow key={invoice.invoice}>
-              <TableCell className="font-medium">{invoice.invoice}</TableCell>
-              <TableCell>{invoice.paymentStatus}</TableCell>
-              <TableCell>{invoice.paymentMethod}</TableCell>
-              <TableCell className="text-right">
-                {invoice.totalAmount}
-              </TableCell>
-            </TableRow>
-          ))} */}
-        </TableBody>
-        <TableFooter></TableFooter>
+        <TimesheetTableBody tasks={tasks} dates={dates} />
       </Table>
     </div>
   );

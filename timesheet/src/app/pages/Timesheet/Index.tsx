@@ -5,7 +5,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { getTimesheet } from "@/app/api/timesheet";
-import { TimesheetContent } from "@/app/pages/Timesheet/TimesheetContent";
+import { TimesheetTable } from "@/app/pages/Timesheet/TimesheetTable";
 import { getEmployee } from "@/app/api";
 import { getTodayDate } from "@/app/lib/utils";
 function Timesheet() {
@@ -30,8 +30,8 @@ function Timesheet() {
               <AccordionTrigger className="bg-background hover:no-underline focus:outline-none hover:border-transparent focus:outline-offset-0 focus:outline-0">
                 {key}
               </AccordionTrigger>
-              <AccordionContent>
-                <TimesheetContent data={value} />
+              <AccordionContent className="pb-0">
+                <TimesheetTable data={value} />
               </AccordionContent>
             </AccordionItem>
           ))}
