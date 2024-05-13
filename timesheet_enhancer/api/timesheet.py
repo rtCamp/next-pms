@@ -34,13 +34,13 @@ def get_timesheet(dates: list, employee: str):
             continue
         timesheet = frappe.get_doc("Timesheet", name)
         for log in timesheet.time_logs:
-            subject = frappe.get_value("Task", log.task, "subject")
+            subject, task_name = frappe.get_value("Task", log.task, ["subject", "name"])
             if not subject:
                 continue
             if subject not in data:
-                data[subject] = []
+                data[subject] = {"name": task_name, "data": []}
 
-            data[subject].append(log.as_dict())
+            data[subject]["data"].append(log.as_dict())
     return data
 
 
