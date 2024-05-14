@@ -11,9 +11,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn, getCookie } from "@/app/lib/utils";
-import { getEmployee } from "@/app/api";
 export function Header() {
-  getEmployee();
   const { alt, src } = get_user_avatar();
   return (
     <div className=" border border-gray-300 rounded-r-md rounded-b-md p-2 ">
