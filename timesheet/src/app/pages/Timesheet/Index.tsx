@@ -4,19 +4,23 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { getTimesheet } from "@/app/api/timesheet";
+import { useFetchTimesheet } from "@/app/api/timesheet";
 import { TimesheetTable } from "@/app/pages/Timesheet/TimesheetTable";
-import { getEmployee } from "@/app/api";
-import { getTodayDate } from "@/app/lib/utils";
+import { getTodayDate, useEmployeeData } from "@/app/lib/utils";
+import { ScreenLoader } from "@/app/components/Loader";
 function Timesheet() {
-  const employee = getEmployee();
-
-  const data = getTimesheet({
+  const employee = useEmployeeData();
+  if (!employee) {
+    return <ScreenLoader isFullPage={true} />;
+  }
+  const { isLoading, data, error } = useFetchTimesheet({
     employee: employee,
     start_date: getTodayDate(),
     max_weeks: 4,
   });
-
+  if (!data || isLoading) {
+    return <ScreenLoader isFullPage={true} />;
+  }
   return (
     <div>
       <Accordion type="single" collapsible className="w-full">
