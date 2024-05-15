@@ -22,12 +22,9 @@ interface TaskData {
   name: string;
   description: string;
 }
-interface TimesheetProp {
-  timesheetName: string;
-  timesheetParent: string;
-  timesheetTask: string;
-  timesheetDate: string;
-  timesheetAction: string;
+interface TimesheetProp extends TaskData {
+  date: string;
+  isUpdate: boolean;
 }
 
 export function TimesheetTableBody({
@@ -38,11 +35,13 @@ export function TimesheetTableBody({
   dates: Array<string>;
 }) {
   const defaultTimesheetState = {
-    timesheetName: "",
-    timesheetParent: "",
-    timesheetTask: "",
-    timesheetDate: "",
-    timesheetAction: "add-task",
+    name: "",
+    parent: "",
+    task: "",
+    date: "",
+    description: "",
+    hours: 0,
+    isUpdate: false,
   };
   const [tooltip, setTooltip] = useState({
     visible: false,
@@ -57,6 +56,7 @@ export function TimesheetTableBody({
   const updateTimesheet = (timesheet: TimesheetProp) => {
     setTimesheet(timesheet);
   };
+
   const resetTimesheet = () => {
     setTimesheet(defaultTimesheetState);
   };
@@ -84,13 +84,16 @@ export function TimesheetTableBody({
                     <TaskCell
                       openDialog={() => setIsDialogOpen(true)}
                       tooltipEvent={setTooltip}
+                      name={taskDateData?.name ?? ""}
+                      parent={taskDateData?.parent ?? ""}
+                      task={taskData?.name ?? ""}
                       taskDateData={taskDateData}
-                      task={taskData}
+                      description={taskData?.description ?? ""}
+                      hours={taskDateData?.hours ?? 0}
                       date={date}
-                      disabled={false}
+                      isCellDisabled={false}
                       timesheet={timesheet}
                       updateTimesheet={updateTimesheet}
-                      resetTimesheet={resetTimesheet}
                     />
                   );
                 })}
@@ -111,7 +114,13 @@ export function TimesheetTableBody({
           </TableRow>
         )}
       </TableBody>
-      <TimesheetDialog isOpen={isDialogOpen} />
+      <TimesheetDialog
+        isOpen={isDialogOpen}
+        timesheet={timesheet}
+        closeDialog={() => {
+          setIsDialogOpen(false);
+        }}
+      />
     </>
   );
 }
@@ -119,18 +128,25 @@ export function TimesheetTableBody({
 function TaskCell({
   taskDateData,
   date,
+  name,
+  parent,
+  description,
+  hours,
   task,
-  disabled,
+  isCellDisabled,
   timesheet,
   openDialog,
   tooltipEvent,
   updateTimesheet,
-  resetTimesheet,
 }: {
   taskDateData: TaskData;
   date: string;
   task: any;
-  disabled: boolean;
+  name: string;
+  parent: string;
+  description: string;
+  hours: number;
+  isCellDisabled: boolean;
   openDialog: () => void;
   tooltipEvent: React.Dispatch<
     React.SetStateAction<{
@@ -142,13 +158,9 @@ function TaskCell({
   >;
   timesheet: TimesheetProp;
   updateTimesheet: (timesheet: TimesheetProp) => void;
-  resetTimesheet: () => void;
 }) {
-  const hours = taskDateData?.hours ?? "-";
-  const description = taskDateData?.description ?? "";
   const openTooltip = (e: any, content: string) => {
     const rect = e.target.getBoundingClientRect();
-    console.log(rect);
     tooltipEvent({
       visible: true,
       content: content,
@@ -166,7 +178,19 @@ function TaskCell({
   };
   return (
     <TableCell
-      onClick={openDialog}
+      onClick={() => {
+        const isUpdate = name ? true : false;
+        updateTimesheet({
+          name,
+          parent,
+          task,
+          date,
+          description,
+          hours,
+          isUpdate,
+        });
+        openDialog();
+      }}
       onMouseOver={(e) => {
         openTooltip(e, description);
       }}
@@ -174,19 +198,30 @@ function TaskCell({
       key={date}
       className={cn(
         "flex w-full justify-center flex-col  max-w-20  p-0 text-center hover:cursor-pointer border-r ",
-        `${disabled ? "text-muted-foreground bg-muted " : ""}`
+        `${isCellDisabled ? "text-muted-foreground bg-muted " : ""}`
       )}
     >
-      {hours}
+      {hours ? hours : "-"}
     </TableCell>
   );
 }
 
-function TimesheetDialog({ isOpen }: { isOpen: boolean }) {
+function TimesheetDialog({
+  isOpen,
+  timesheet,
+  closeDialog,
+}: {
+  isOpen: boolean;
+  timesheet: TimesheetProp;
+  closeDialog: () => void;
+}) {
   return (
     <Dialog open={isOpen}>
-      <DialogTrigger className="bg-transparent p-0 border-0 h-full focus:outline-0 focus:outline-none focus:outline-offset-0"></DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent
+        className="sm:max-w-md timesheet-dialog"
+        isCloseButton={true}
+        closeAction={closeDialog}
+      >
         <DialogTitle>Share link</DialogTitle>
         <DialogDescription>
           Anyone who has this link will be able to view this.
