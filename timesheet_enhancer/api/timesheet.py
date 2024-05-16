@@ -35,7 +35,7 @@ def save(
         throw(_("Timesheet name is required for update"))
     if is_update:
         update_timesheet_detail(name, parent, hours, description, task)
-        return
+        return True
 
     if not is_update:
         employee = get_employee_from_user()
@@ -48,13 +48,15 @@ def save(
             },
             "name",
         )
-        if not parent:
-            create_timesheet_detail(date, hours, description, task, employee)
-            return
-        existing_log = frappe.db.get_value(
-            "Timesheet Detail", {"parent": parent, "task": task}, "name"
-        )
-        update_timesheet_detail(existing_log, parent, hours, description, task)
+        if parent:
+            existing_log = frappe.db.get_value(
+                "Timesheet Detail", {"parent": parent, "task": task}, "name"
+            )
+            if existing_log:
+                update_timesheet_detail(existing_log, parent, hours, description, task)
+                return True
+        create_timesheet_detail(date, hours, description, task, employee, parent)
+        return True
 
 
 def update_timesheet_detail(
@@ -72,9 +74,17 @@ def update_timesheet_detail(
 
 
 def create_timesheet_detail(
-    date: str, hours: float, description: str, task: str, employee
+    date: str,
+    hours: float,
+    description: str,
+    task: str,
+    employee: str,
+    parent: str = None,
 ):
-    timehseet = frappe.get_doc({"doctype": "Timesheet", "employee": employee})
+    if not parent:
+        timehseet = frappe.get_doc({"doctype": "Timesheet", "employee": employee})
+    else:
+        timehseet = frappe.get_doc("Timesheet", parent)
     timehseet.append(
         "time_logs",
         {
