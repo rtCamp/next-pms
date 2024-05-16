@@ -4,28 +4,10 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { cn } from "@/app/lib/utils";
-import React, { MouseEvent, useState } from "react";
-
-interface TaskData {
-  parent: string;
-  task: string;
-  hours: number;
-  name: string;
-  description: string;
-}
-interface TimesheetProp extends TaskData {
-  date: string;
-  isUpdate: boolean;
-}
+import React, { useState } from "react";
+import { TimesheetProp, TaskData } from "@/app/types/timesheet";
+import { TimesheetDialog } from "./components/Dialog";
 
 export function TimesheetTableBody({
   tasks,
@@ -203,31 +185,6 @@ function TaskCell({
     >
       {hours ? hours : "-"}
     </TableCell>
-  );
-}
-
-function TimesheetDialog({
-  isOpen,
-  timesheet,
-  closeDialog,
-}: {
-  isOpen: boolean;
-  timesheet: TimesheetProp;
-  closeDialog: () => void;
-}) {
-  return (
-    <Dialog open={isOpen}>
-      <DialogContent
-        className="sm:max-w-md timesheet-dialog"
-        isCloseButton={true}
-        closeAction={closeDialog}
-      >
-        <DialogTitle>Share link</DialogTitle>
-        <DialogDescription>
-          Anyone who has this link will be able to view this.
-        </DialogDescription>
-      </DialogContent>
-    </Dialog>
   );
 }
 
