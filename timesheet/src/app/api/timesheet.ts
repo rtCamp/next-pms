@@ -26,3 +26,23 @@ export const useFetchTimesheet = ({ employee, start_date, max_weeks }: Timesheet
     return res;
 
 }
+
+export const useFetchTask = () => {
+ 
+    const {isLoading,data,error}= useFrappeGetCall<{message:[string,string]}>("frappe.client.get_list", {
+        doctype: "Task",
+        fields:["name","subject"] 
+    }, "tasks",  {
+        dedupingInterval: 1000 * 60 * 5, // 5 minutes - do not refetch if the data is fresh
+    });
+    if(data){
+        return {"data":data.message,"isLoading":isLoading};
+    }
+    if (isLoading) { 
+        return {"data":null,"isLoading":isLoading};
+    }
+    if (error) {
+        // return error;
+    }
+
+}
