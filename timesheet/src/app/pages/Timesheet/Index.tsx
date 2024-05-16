@@ -8,7 +8,25 @@ import { useFetchTimesheet } from "@/app/api/timesheet";
 import { TimesheetTable } from "@/app/pages/Timesheet/TimesheetTable";
 import { getTodayDate, useEmployeeData } from "@/app/lib/utils";
 import { ScreenLoader } from "@/app/components/Loader";
+import { TimesheetDialog } from "./components/Dialog";
+import { useState } from "react";
+import { TimesheetProp } from "@/app/types/timesheet";
+
 function Timesheet() {
+  const defaultTimesheetState = {
+    name: "",
+    parent: "",
+    task: "",
+    date: "",
+    description: "",
+    hours: 0,
+    isUpdate: false,
+  };
+  const [timesheet, setTimesheet] = useState<TimesheetProp>(
+    defaultTimesheetState
+  );
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   const employee = useEmployeeData();
   if (!employee) {
     return <ScreenLoader isFullPage={true} />;
@@ -21,6 +39,10 @@ function Timesheet() {
   if (!data || isLoading) {
     return <ScreenLoader isFullPage={true} />;
   }
+
+  const updateTimesheet = (timesheet: TimesheetProp) => {
+    setTimesheet(timesheet);
+  };
   return (
     <div>
       <Accordion type="single" collapsible className="w-full">
@@ -35,11 +57,24 @@ function Timesheet() {
                 {key}
               </AccordionTrigger>
               <AccordionContent className="pb-0">
-                <TimesheetTable data={value} />
+                <TimesheetTable
+                  data={value}
+                  openDialog={() => setIsDialogOpen(true)}
+                  updateTimesheetData={updateTimesheet}
+                />
               </AccordionContent>
             </AccordionItem>
           ))}
       </Accordion>
+      {isDialogOpen && (
+        <TimesheetDialog
+          isOpen={isDialogOpen}
+          timesheet={timesheet}
+          closeDialog={() => {
+            setIsDialogOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }

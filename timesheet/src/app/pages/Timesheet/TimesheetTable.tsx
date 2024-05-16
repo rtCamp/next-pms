@@ -1,11 +1,15 @@
-import {
-  Table,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TimesheetTableBody } from "./TableBody";
-export function TimesheetTable({ data }: { data: any }) {
+import { TimesheetProp } from "@/app/types/timesheet";
+export function TimesheetTable({
+  data,
+  openDialog,
+  updateTimesheetData,
+}: {
+  data: any;
+  openDialog: () => void;
+  updateTimesheetData: (timesheet: TimesheetProp) => void;
+}) {
   const dates = data?.dates;
   const tasks = data?.tasks;
   return (
@@ -39,7 +43,12 @@ export function TimesheetTable({ data }: { data: any }) {
             </TableHead>
           </TableRow>
         </TableHeader>
-        <TimesheetTableBody tasks={tasks} dates={dates} />
+        <TimesheetTableBody
+          updateTimesheetData={updateTimesheetData}
+          openDialog={openDialog}
+          tasks={tasks}
+          dates={dates}
+        />
       </Table>
     </div>
   );

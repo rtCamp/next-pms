@@ -7,41 +7,25 @@ import {
 import { cn } from "@/app/lib/utils";
 import React, { useState } from "react";
 import { TimesheetProp, TaskData } from "@/app/types/timesheet";
-import { TimesheetDialog } from "./components/Dialog";
 
 export function TimesheetTableBody({
   tasks,
   dates,
+  updateTimesheetData,
+  openDialog,
 }: {
   tasks: Object;
   dates: Array<string>;
+  updateTimesheetData: (timesheet: TimesheetProp) => void;
+  openDialog: () => void;
 }) {
-  const defaultTimesheetState = {
-    name: "",
-    parent: "",
-    task: "",
-    date: "",
-    description: "",
-    hours: 0,
-    isUpdate: false,
-  };
   const [tooltip, setTooltip] = useState({
     visible: false,
     content: "",
     x: 0,
     y: 0,
   });
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [timesheet, setTimesheet] = useState<TimesheetProp>(
-    defaultTimesheetState
-  );
-  const updateTimesheet = (timesheet: TimesheetProp) => {
-    setTimesheet(timesheet);
-  };
 
-  const resetTimesheet = () => {
-    setTimesheet(defaultTimesheetState);
-  };
   return (
     <>
       <TableBody>
@@ -64,18 +48,16 @@ export function TimesheetTableBody({
                   }
                   return (
                     <TaskCell
-                      openDialog={() => setIsDialogOpen(true)}
+                      openDialog={openDialog}
                       tooltipEvent={setTooltip}
                       name={taskDateData?.name ?? ""}
                       parent={taskDateData?.parent ?? ""}
                       task={taskData?.name ?? ""}
-                      taskDateData={taskDateData}
-                      description={taskData?.description ?? ""}
+                      description={taskDateData?.description ?? ""}
                       hours={taskDateData?.hours ?? 0}
                       date={date}
                       isCellDisabled={false}
-                      timesheet={timesheet}
-                      updateTimesheet={updateTimesheet}
+                      updateTimesheet={updateTimesheetData}
                     />
                   );
                 })}
@@ -96,19 +78,11 @@ export function TimesheetTableBody({
           </TableRow>
         )}
       </TableBody>
-      <TimesheetDialog
-        isOpen={isDialogOpen}
-        timesheet={timesheet}
-        closeDialog={() => {
-          setIsDialogOpen(false);
-        }}
-      />
     </>
   );
 }
 
 function TaskCell({
-  taskDateData,
   date,
   name,
   parent,
@@ -116,12 +90,10 @@ function TaskCell({
   hours,
   task,
   isCellDisabled,
-  timesheet,
   openDialog,
   tooltipEvent,
   updateTimesheet,
 }: {
-  taskDateData: TaskData;
   date: string;
   task: any;
   name: string;
@@ -138,7 +110,6 @@ function TaskCell({
       y: number;
     }>
   >;
-  timesheet: TimesheetProp;
   updateTimesheet: (timesheet: TimesheetProp) => void;
 }) {
   const openTooltip = (e: any, content: string) => {
