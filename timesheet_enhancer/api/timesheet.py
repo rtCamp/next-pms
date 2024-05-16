@@ -1,5 +1,8 @@
 import frappe
+from frappe import _, throw
 from frappe.utils import add_days, getdate, nowdate
+
+from timesheet_enhancer.api.utils import get_employee_from_user
 
 now = nowdate()
 
@@ -16,6 +19,73 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
         start_date = week_dates["start_date"]
 
     return data
+
+
+@frappe.whitelist()
+def save(
+    date: str,
+    description: str,
+    task: str,
+    name: str = None,
+    hours: float = 0,
+    parent: str = None,
+    is_update: bool = False,
+):
+    if is_update and not name:
+        throw(_("Timesheet name is required for update"))
+    if is_update:
+        update_timesheet_detail(name, parent, hours, description, task)
+        return
+
+    if not is_update:
+        employee = get_employee_from_user()
+        parent = frappe.db.get_value(
+            "Timesheet",
+            {
+                "employee": employee,
+                "start_date": [">=", getdate(date)],
+                "end_date": ["<=", getdate(date)],
+            },
+            "name",
+        )
+        if not parent:
+            create_timesheet_detail(date, hours, description, task, employee)
+            return
+        existing_log = frappe.db.get_value(
+            "Timesheet Detail", {"parent": parent, "task": task}, "name"
+        )
+        update_timesheet_detail(existing_log, parent, hours, description, task)
+
+
+def update_timesheet_detail(
+    name: str, parent: str, hours: float, description: str, task: str
+):
+    parent_doc = frappe.get_doc("Timesheet", parent)
+    for log in parent_doc.time_logs:
+        if log.name != name:
+            continue
+        if log.task != task:
+            throw(_("No matching task found for update."))
+        log.hours = hours
+        log.description = description
+    parent_doc.save()
+
+
+def create_timesheet_detail(
+    date: str, hours: float, description: str, task: str, employee
+):
+    timehseet = frappe.get_doc({"doctype": "Timesheet", "employee": employee})
+    timehseet.append(
+        "time_logs",
+        {
+            "task": task,
+            "hours": hours,
+            "description": description,
+            "from_time": date,
+            "to_time": date,
+        },
+    )
+    timehseet.save()
 
 
 def get_timesheet(dates: list, employee: str):
