@@ -53,10 +53,12 @@ export function TimesheetDialog({
   isOpen,
   timesheet,
   closeDialog,
+  setFetchAgain,
 }: {
   isOpen: boolean;
   timesheet: TimesheetProp;
-  closeDialog: () => void;
+    closeDialog: () => void;
+    setFetchAgain: React.Dispatch<React.SetStateAction<boolean>>
 }) {
   const [isComboOpen, setIsComboOpen] = useState(false);
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
@@ -99,6 +101,7 @@ export function TimesheetDialog({
       .then((res) => {
         if (res.message) {
           closeDialog();
+          setFetchAgain(true);
         }
       })
       .catch((err) => {

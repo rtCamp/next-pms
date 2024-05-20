@@ -12,6 +12,7 @@ import { useContext, useEffect, useState } from "react";
 import { TimesheetProp } from "@/app/types/timesheet";
 import { TimesheetHoverCard } from "./components/HoverCard";
 import { FrappeContext, FrappeConfig } from "frappe-react-sdk";
+import { set } from "date-fns";
 function Timesheet() {
   const { call } = useContext(FrappeContext) as FrappeConfig;
   const defaultTimesheetState = {
@@ -30,6 +31,7 @@ function Timesheet() {
     y: 0,
   };
   const [isFetching, setIsFetching] = useState(false);
+  const [isFetchAgain, setFetchAgain] = useState(false);
   const [employee, setEmployee] = useState<string>("");
   const [data, setData] = useState<any>(null);
   const [tooltip, setTooltip] = useState(toolTipState);
@@ -68,7 +70,16 @@ function Timesheet() {
       setIsFetching(false);
     })();
   }, []);
-
+  useEffect(() => {
+    (async () => {
+      if (!isFetchAgain) return;
+      setIsFetching(true);
+      const employee = await fetchEmployee();
+      fetchData(employee);
+      setIsFetching(false);
+      setFetchAgain(false);
+    })();
+  }, [isFetchAgain]);
   const updateTimesheet = (timesheet: TimesheetProp) => {
     setTimesheet(timesheet);
   };
@@ -105,6 +116,7 @@ function Timesheet() {
         <TimesheetDialog
           isOpen={isDialogOpen}
           timesheet={timesheet}
+          setFetchAgain={setFetchAgain}
           closeDialog={() => {
             setIsDialogOpen(false);
           }}
