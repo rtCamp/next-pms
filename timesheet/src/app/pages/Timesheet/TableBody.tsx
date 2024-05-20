@@ -30,7 +30,7 @@ export function TimesheetTableBody({
 }) {
   return (
     <>
-      <TableBody>
+      <TableBody className="[&_tr:last-child]:border-b">
         {Object.keys(tasks).length > 0 ? (
           Object.entries(tasks).map(([task, taskData]: [string, any]) => {
             let totalHours = 0;

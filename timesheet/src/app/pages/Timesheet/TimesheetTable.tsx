@@ -1,6 +1,13 @@
-import { Table, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableHead,
+  TableHeader,
+  TableRow,
+  TableFooter,
+} from "@/components/ui/table";
 import { TimesheetTableBody } from "./TableBody";
 import { TimesheetProp } from "@/app/types/timesheet";
+import { Button } from "@/components/ui/button";
 export function TimesheetTable({
   data,
   openDialog,
@@ -8,8 +15,8 @@ export function TimesheetTable({
   updateTimesheetData,
 }: {
   data: any;
-    openDialog: () => void;
-    tooltipEvent: React.Dispatch<
+  openDialog: () => void;
+  tooltipEvent: React.Dispatch<
     React.SetStateAction<{
       visible: boolean;
       content: string;
@@ -59,6 +66,15 @@ export function TimesheetTable({
           tooltipEvent={tooltipEvent}
           dates={dates}
         />
+        <TableFooter className="block p-3">
+          <Button
+            onClick={() => {
+              openDialog();
+            }}
+          >
+            Add Time
+          </Button>
+        </TableFooter>
       </Table>
     </div>
   );
