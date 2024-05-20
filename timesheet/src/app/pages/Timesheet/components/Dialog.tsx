@@ -57,8 +57,8 @@ export function TimesheetDialog({
 }: {
   isOpen: boolean;
   timesheet: TimesheetProp;
-    closeDialog: () => void;
-    setFetchAgain: React.Dispatch<React.SetStateAction<boolean>>
+  closeDialog: () => void;
+  setFetchAgain: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const [isComboOpen, setIsComboOpen] = useState(false);
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
@@ -97,6 +97,7 @@ export function TimesheetDialog({
   }
 
   function onSubmit(values: z.infer<typeof FormSchema>) {
+   
     call(values)
       .then((res) => {
         if (res.message) {
@@ -118,9 +119,6 @@ export function TimesheetDialog({
       >
         <DialogHeader>
           <DialogTitle>Add Time</DialogTitle>
-          <DialogDescription>
-            Anyone who has this link will be able to view this.
-          </DialogDescription>
         </DialogHeader>
         <div>
           <Form {...form}>
@@ -249,9 +247,14 @@ export function TimesheetDialog({
                           <Calendar
                             mode="single"
                             selected={field.value}
-                            onSelect={(e) => {
-                              console.log(e);
-                              // field.onChange(event.target.value);
+                            onSelect={(date) => {
+                              const d = date?.toLocaleDateString("sv-SE", {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
+                              });
+
+                              field.onChange(d);
                             }}
                             initialFocus
                           />
