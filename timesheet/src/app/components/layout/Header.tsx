@@ -9,13 +9,16 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
+import { UserContext } from "@/app/provider/UserProvider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn, getCookie } from "@/app/lib/utils";
+import { useContext } from "react";
 export function Header() {
   const { alt, src } = get_user_avatar();
+  const { logout } = useContext(UserContext);
   return (
     <div className=" border border-gray-300 rounded-r-md rounded-b-md p-2 ">
-      <NavigationMenu>
+      <NavigationMenu viewPortClassName="left-auto right-0">
         <NavigationMenuList className="w-screen justify-between px-4">
           <NavigationMenuItem>
             <NavigationMenuLink className={navigationMenuTriggerStyle()}>
@@ -23,14 +26,14 @@ export function Header() {
             </NavigationMenuLink>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <NavigationMenuTrigger className="hover:border-none data-[state=open]:bg-transparent hover:bg-transparent">
+            <NavigationMenuTrigger className=" data-[state=open]:bg-transparent hover:bg-transparent">
               <Avatar>
                 <AvatarImage src={decodeURIComponent(src)} alt={alt} />
                 <AvatarFallback>{alt}</AvatarFallback>
               </Avatar>
             </NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <ul className="grid w-[200px] text-black text-left">
+            <NavigationMenuContent className="right-0 left-auto">
+              <ul className=" w-[200px] text-black text-left right-0 left-auto">
                 <ListItem
                   key="Switch to desk"
                   title="Switch to desk"
@@ -41,8 +44,10 @@ export function Header() {
                 <ListItem
                   key="Logout"
                   title="Logout"
-                  href="/?cmd=web_logout"
-                  className="relative"
+                  onClick={() => {
+                    logout();
+                  }}
+                  className="relative hover:cursor-pointer"
                 ></ListItem>
               </ul>
             </NavigationMenuContent>
