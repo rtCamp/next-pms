@@ -1,13 +1,13 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import proxyOptions from "./proxyOptions";
+// import proxyOptions from "./proxyOptions";
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    proxy: proxyOptions,
+    // proxy: proxyOptions,
   },
   build: {
     outDir: "../timesheet_enhancer/public/timesheet",
