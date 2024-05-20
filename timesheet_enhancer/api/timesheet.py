@@ -13,7 +13,7 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
     for i in range(max_week):
         current_week = True if i == 0 else False
 
-        week_dates = get_week_dates(start_date, current_week=current_week)
+        week_dates = get_week_dates(employee, start_date, current_week=current_week)
         data[week_dates["key"]] = week_dates
         data[week_dates["key"]]["tasks"] = get_timesheet(week_dates["dates"], employee)
         start_date = week_dates["start_date"]
@@ -101,7 +101,8 @@ def create_timesheet_detail(
 def get_timesheet(dates: list, employee: str):
     data = {}
 
-    for date in dates:
+    for element in dates:
+        date = element["date"]
         name = frappe.db.exists(
             "Timesheet",
             {
@@ -124,7 +125,9 @@ def get_timesheet(dates: list, employee: str):
     return data
 
 
-def get_week_dates(date=now, current_week: bool = False):
+def get_week_dates(employee: str, date=now, current_week: bool = False):
+    from hrms.hr.utils import get_holiday_dates_for_employee
+
     dates = []
     data = {}
 
@@ -143,8 +146,12 @@ def get_week_dates(date=now, current_week: bool = False):
     )
 
     data = {"start_date": start_date, "end_date": end_date, "key": key}
+    holidays = get_holiday_dates_for_employee(employee, start_date, end_date)
     while start_date <= end_date:
-        dates.append(start_date)
+        if str(start_date) in holidays:
+            dates.append({"date": start_date, "is_holiday": True})
+        else:
+            dates.append({"date": start_date, "is_holiday": False})
         start_date = add_days(start_date, 1)
     data["dates"] = dates
     return data
