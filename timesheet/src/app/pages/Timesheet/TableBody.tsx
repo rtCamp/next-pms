@@ -1,30 +1,19 @@
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
 import { cn } from "@/app/lib/utils";
-import React, { useState } from "react";
-import { TimesheetProp, TaskData } from "@/app/types/timesheet";
-
+import { TimesheetProp } from "@/app/types/timesheet";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 export function TimesheetTableBody({
   tasks,
   dates,
-  tooltipEvent,
   updateTimesheetData,
   openDialog,
 }: {
   tasks: Object;
   dates: Array<string>;
-  tooltipEvent: React.Dispatch<
-    React.SetStateAction<{
-      visible: boolean;
-      content: string;
-      x: number;
-      y: number;
-    }>
-  >;
   updateTimesheetData: (timesheet: TimesheetProp) => void;
   openDialog: () => void;
 }) {
@@ -50,7 +39,6 @@ export function TimesheetTableBody({
                   return (
                     <TaskCell
                       openDialog={openDialog}
-                      tooltipEvent={tooltipEvent}
                       name={taskDateData?.name ?? ""}
                       parent={taskDateData?.parent ?? ""}
                       task={taskData?.name ?? ""}
@@ -92,7 +80,6 @@ function TaskCell({
   task,
   isCellDisabled,
   openDialog,
-  tooltipEvent,
   updateTimesheet,
 }: {
   date: string;
@@ -103,33 +90,8 @@ function TaskCell({
   hours: number;
   isCellDisabled: boolean;
   openDialog: () => void;
-  tooltipEvent: React.Dispatch<
-    React.SetStateAction<{
-      visible: boolean;
-      content: string;
-      x: number;
-      y: number;
-    }>
-  >;
   updateTimesheet: (timesheet: TimesheetProp) => void;
 }) {
-  const openTooltip = (e: any, content: string) => {
-    const rect = e.target.getBoundingClientRect();
-    tooltipEvent({
-      visible: true,
-      content: content,
-      x: rect.x + window.scrollX,
-      y: rect.y,
-    });
-  };
-  const closeTooltip = () => {
-    tooltipEvent({
-      visible: false,
-      content: "",
-      x: 0,
-      y: 0,
-    });
-  };
   return (
     <TableCell
       onClick={() => {
@@ -145,17 +107,20 @@ function TaskCell({
         });
         openDialog();
       }}
-      onMouseOver={(e) => {
-        openTooltip(e, description);
-      }}
-      onMouseOut={closeTooltip}
       key={date}
       className={cn(
         "flex w-full justify-center flex-col  max-w-20  p-0 text-center hover:cursor-pointer border-r ",
         `${isCellDisabled ? "text-muted-foreground bg-muted " : ""}`
       )}
     >
-      {hours ? hours : "-"}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="h-full flex justify-center items-center">
+            {hours ? hours : "-"}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>{description}</TooltipContent>
+      </Tooltip>
     </TableCell>
   );
 }
