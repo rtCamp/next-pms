@@ -8,6 +8,8 @@ import { UserProvider } from "@/app/provider/UserProvider";
 import Router from "@/Router";
 import "./app/globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ScreenLoader } from "@/app/components/Loader";
+import {Suspense} from "react";
 function App() {
   const router = createBrowserRouter(createRoutesFromElements(Router()), {
     basename: "/timesheet",
@@ -17,7 +19,9 @@ function App() {
     <FrappeProvider url={import.meta.env.VITE_BASE_URL ?? ""}>
       <UserProvider>
         <TooltipProvider>
-          <RouterProvider router={router} />
+          <Suspense fallback={<ScreenLoader isFullPage={true} />}>
+            <RouterProvider router={router} />
+          </Suspense>
         </TooltipProvider>
       </UserProvider>
     </FrappeProvider>
