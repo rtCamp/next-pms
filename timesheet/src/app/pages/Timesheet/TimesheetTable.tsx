@@ -4,10 +4,19 @@ import { TimesheetProp } from "@/app/types/timesheet";
 export function TimesheetTable({
   data,
   openDialog,
+  tooltipEvent,
   updateTimesheetData,
 }: {
   data: any;
-  openDialog: () => void;
+    openDialog: () => void;
+    tooltipEvent: React.Dispatch<
+    React.SetStateAction<{
+      visible: boolean;
+      content: string;
+      x: number;
+      y: number;
+    }>
+  >;
   updateTimesheetData: (timesheet: TimesheetProp) => void;
 }) {
   const dates = data?.dates;
@@ -47,6 +56,7 @@ export function TimesheetTable({
           updateTimesheetData={updateTimesheetData}
           openDialog={openDialog}
           tasks={tasks}
+          tooltipEvent={tooltipEvent}
           dates={dates}
         />
       </Table>

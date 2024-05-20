@@ -11,7 +11,7 @@ import { ScreenLoader } from "@/app/components/Loader";
 import { TimesheetDialog } from "./components/Dialog";
 import { useState } from "react";
 import { TimesheetProp } from "@/app/types/timesheet";
-
+import { TimesheetHoverCard } from "./components/HoverCard";
 function Timesheet() {
   const defaultTimesheetState = {
     name: "",
@@ -22,6 +22,13 @@ function Timesheet() {
     hours: 0,
     isUpdate: false,
   };
+  const toolTipState = {
+    visible: false,
+    content: "",
+    x: 0,
+    y: 0,
+  }
+  const [tooltip, setTooltip] = useState(toolTipState);
   const [timesheet, setTimesheet] = useState<TimesheetProp>(
     defaultTimesheetState
   );
@@ -45,6 +52,7 @@ function Timesheet() {
   };
   return (
     <div>
+      <TimesheetHoverCard tooltip={tooltip} />
       <Accordion type="single" collapsible className="w-full">
         {data &&
           Object.entries(data?.message).map(([key, value]: [string, any]) => (
@@ -61,6 +69,7 @@ function Timesheet() {
                   data={value}
                   openDialog={() => setIsDialogOpen(true)}
                   updateTimesheetData={updateTimesheet}
+                  tooltipEvent={setTooltip}
                 />
               </AccordionContent>
             </AccordionItem>

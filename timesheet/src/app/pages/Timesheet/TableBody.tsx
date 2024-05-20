@@ -11,25 +11,27 @@ import { TimesheetProp, TaskData } from "@/app/types/timesheet";
 export function TimesheetTableBody({
   tasks,
   dates,
+  tooltipEvent,
   updateTimesheetData,
   openDialog,
 }: {
   tasks: Object;
   dates: Array<string>;
+  tooltipEvent: React.Dispatch<
+    React.SetStateAction<{
+      visible: boolean;
+      content: string;
+      x: number;
+      y: number;
+    }>
+  >;
   updateTimesheetData: (timesheet: TimesheetProp) => void;
   openDialog: () => void;
 }) {
-  const [tooltip, setTooltip] = useState({
-    visible: false,
-    content: "",
-    x: 0,
-    y: 0,
-  });
-
   return (
     <>
       <TableBody>
-        <TimesheetHoverCard tooltip={tooltip} />
+        {/* <TimesheetHoverCard tooltip={tooltip} /> */}
         {Object.keys(tasks).length > 0 ? (
           Object.entries(tasks).map(([task, taskData]: [string, any]) => {
             let totalHours = 0;
@@ -49,7 +51,7 @@ export function TimesheetTableBody({
                   return (
                     <TaskCell
                       openDialog={openDialog}
-                      tooltipEvent={setTooltip}
+                      tooltipEvent={tooltipEvent}
                       name={taskDateData?.name ?? ""}
                       parent={taskDateData?.parent ?? ""}
                       task={taskData?.name ?? ""}
@@ -159,16 +161,6 @@ function TaskCell({
   );
 }
 
-function TimesheetHoverCard({ tooltip }: { tooltip: any }) {
-  return (
-    <HoverCard open={tooltip.visible}>
-      <HoverCardTrigger></HoverCardTrigger>
-      <HoverCardContent className="relative" style={{ left: tooltip.x }}>
-        {tooltip.content}
-      </HoverCardContent>
-    </HoverCard>
-  );
-}
 
 function getDateFromDateAndTime(dateTimeString: string) {
   // Split the date and time parts exa: '2024-05-08 00:00:00'
