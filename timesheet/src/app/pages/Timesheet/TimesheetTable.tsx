@@ -5,9 +5,10 @@ import {
   TableRow,
   TableFooter,
 } from "@/components/ui/table";
-import { TimesheetProp } from "@/app/types/timesheet";
+import { TimesheetProp, Dateprops } from "@/app/types/timesheet";
 import { Button } from "@/components/ui/button";
 import { TimesheetTableBody } from "./TableBody";
+
 export function TimesheetTable({
   data,
   openDialog,
@@ -18,6 +19,7 @@ export function TimesheetTable({
   updateTimesheetData: (timesheet: TimesheetProp) => void;
 }) {
   const dates = data?.dates;
+  console.log(dates);
   const tasks = data?.tasks;
   return (
     <div>
@@ -30,11 +32,11 @@ export function TimesheetTable({
             >
               Tasks
             </TableHead>
-            {dates.map((date: string) => {
-              const { date: formattedDate, day } = formatDate(date);
+            {dates.map((iter: Dateprops) => {
+              const { date: formattedDate, day } = formatDate(iter.date);
               return (
                 <TableHead
-                  key={date}
+                  key={iter.date}
                   className="flex w-full  justify-center flex-col text-center max-w-20 font-bold  px-0 hover:cursor-pointer border-r"
                 >
                   <div>{day}</div>

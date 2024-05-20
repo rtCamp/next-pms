@@ -1,6 +1,6 @@
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "@/app/lib/utils";
-import { TimesheetProp } from "@/app/types/timesheet";
+import { TimesheetProp, Dateprops } from "@/app/types/timesheet";
 import {
   Tooltip,
   TooltipContent,
@@ -13,7 +13,7 @@ export function TimesheetTableBody({
   openDialog,
 }: {
   tasks: Object;
-  dates: Array<string>;
+  dates: Array<Dateprops>;
   updateTimesheetData: (timesheet: TimesheetProp) => void;
   openDialog: () => void;
 }) {
@@ -28,10 +28,10 @@ export function TimesheetTableBody({
                 <TableCell className=" flex w-full max-w-96  items-center text-justify font-medium hover:cursor-pointer border-r ">
                   {task}
                 </TableCell>
-                {dates.map((date: string) => {
+                {dates.map((iter: Dateprops) => {
                   const taskDateData = taskData.data.find(
                     (data: any) =>
-                      getDateFromDateAndTime(data.from_time) === date
+                      getDateFromDateAndTime(data.from_time) === iter.date
                   );
                   if (taskDateData && taskDateData.hours) {
                     totalHours += taskDateData.hours;
@@ -44,8 +44,8 @@ export function TimesheetTableBody({
                       task={taskData?.name ?? ""}
                       description={taskDateData?.description ?? ""}
                       hours={taskDateData?.hours ?? 0}
-                      date={date}
-                      isCellDisabled={false}
+                      date={iter.date}
+                      isCellDisabled={iter.is_holiday}
                       updateTimesheet={updateTimesheetData}
                     />
                   );
@@ -109,18 +109,28 @@ function TaskCell({
       }}
       key={date}
       className={cn(
-        "flex w-full justify-center flex-col  max-w-20  p-0 text-center hover:cursor-pointer border-r ",
-        `${isCellDisabled ? "text-muted-foreground bg-muted " : ""}`
+        "flex w-full justify-center flex-col  max-w-20  p-0 text-center  border-r ",
+        `${
+          isCellDisabled
+            ? "text-muted-foreground bg-muted hover:cursor-not-allowed "
+            : "hover:cursor-pointer"
+        }`
       )}
     >
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="h-full flex justify-center items-center">
-            {hours ? hours : "-"}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>{description}</TooltipContent>
-      </Tooltip>
+      {hours ? (
+        <>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="h-full flex justify-center items-center">
+                {hours}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>{description}</TooltipContent>
+          </Tooltip>
+        </>
+      ) : (
+        "-"
+      )}
     </TableCell>
   );
 }
