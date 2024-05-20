@@ -4,15 +4,16 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { useFetchTimesheet } from "@/app/api/timesheet";
 import { TimesheetTable } from "@/app/pages/Timesheet/TimesheetTable";
-import { getTodayDate, useEmployeeData } from "@/app/lib/utils";
+import { getTodayDate } from "@/app/lib/utils";
 import { ScreenLoader } from "@/app/components/Loader";
 import { TimesheetDialog } from "./components/Dialog";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { TimesheetProp } from "@/app/types/timesheet";
 import { TimesheetHoverCard } from "./components/HoverCard";
+import { FrappeContext, FrappeConfig } from "frappe-react-sdk";
 function Timesheet() {
+  const { call } = useContext(FrappeContext) as FrappeConfig;
   const defaultTimesheetState = {
     name: "",
     parent: "",
@@ -27,29 +28,54 @@ function Timesheet() {
     content: "",
     x: 0,
     y: 0,
-  }
+  };
+  const [isFetching, setIsFetching] = useState(false);
+  const [employee, setEmployee] = useState<string>("");
+  const [data, setData] = useState<any>(null);
   const [tooltip, setTooltip] = useState(toolTipState);
   const [timesheet, setTimesheet] = useState<TimesheetProp>(
     defaultTimesheetState
   );
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const employee = useEmployeeData();
-  if (!employee) {
-    return <ScreenLoader isFullPage={true} />;
+  async function fetchEmployee() {
+    if (!employee) {
+      const res = await call.get(
+        "timesheet_enhancer.api.utils.get_employee_from_user"
+      );
+      setEmployee(res.message);
+      return res.message;
+    }
+    return employee;
   }
-  const { isLoading, data, error } = useFetchTimesheet({
-    employee: employee,
-    start_date: getTodayDate(),
-    max_weeks: 4,
-  });
-  if (!data || isLoading) {
-    return <ScreenLoader isFullPage={true} />;
+
+  function fetchData(employee: string) {
+    call
+      .post("timesheet_enhancer.api.timesheet.get_timesheet_data", {
+        employee: employee,
+        start_date: getTodayDate(),
+        max_weeks: 4,
+      })
+      .then((res) => {
+        setData(res);
+      });
   }
+  useEffect(() => {
+    (async () => {
+      setIsFetching(true);
+      const employee = await fetchEmployee();
+      fetchData(employee);
+      setIsFetching(false);
+    })();
+  }, []);
 
   const updateTimesheet = (timesheet: TimesheetProp) => {
     setTimesheet(timesheet);
   };
+
+  if (isFetching) {
+    return <ScreenLoader isFullPage={true} />;
+  }
   return (
     <div>
       <TimesheetHoverCard tooltip={tooltip} />

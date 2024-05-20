@@ -31,7 +31,6 @@ export function TimesheetTableBody({
   return (
     <>
       <TableBody>
-        {/* <TimesheetHoverCard tooltip={tooltip} /> */}
         {Object.keys(tasks).length > 0 ? (
           Object.entries(tasks).map(([task, taskData]: [string, any]) => {
             let totalHours = 0;
@@ -160,7 +159,6 @@ function TaskCell({
     </TableCell>
   );
 }
-
 
 function getDateFromDateAndTime(dateTimeString: string) {
   // Split the date and time parts exa: '2024-05-08 00:00:00'
