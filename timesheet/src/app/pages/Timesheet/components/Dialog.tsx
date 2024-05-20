@@ -3,7 +3,6 @@ import {
   Dialog,
   CustomDialogContent,
   DialogFooter,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -13,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
-import { useFrappePostCall } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import {
   Command,
   CommandEmpty,
@@ -31,7 +30,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -39,7 +37,6 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { TimesheetProp } from "@/app/types/timesheet";
-import { useFetchTask } from "@/app/api/timesheet";
 import { ScreenLoader } from "@/app/components/Loader";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -49,7 +46,7 @@ interface Task {
   name: string;
   subject: string;
 }
-export function TimesheetDialog({
+export default function TimesheetDialog({
   isOpen,
   timesheet,
   closeDialog,
@@ -62,7 +59,6 @@ export function TimesheetDialog({
 }) {
   const [isComboOpen, setIsComboOpen] = useState(false);
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
-  const tasks: any = useFetchTask();
   const FormSchema = z.object({
     task: z.string({
       required_error: "Please select a task.",
@@ -92,12 +88,26 @@ export function TimesheetDialog({
       is_update: timesheet.isUpdate,
     },
   });
-  if (tasks?.isLoading) {
+  const {
+    isLoading,
+    data: tasks,
+    error,
+  } = useFrappeGetCall<{ message: [Task] }>(
+    "frappe.client.get_list",
+    {
+      doctype: "Task",
+      fields: ["name", "subject"],
+    },
+    "tasks",
+    {
+      dedupingInterval: 1000 * 60 * 5,
+    }
+  );
+  if (isLoading) {
     return <ScreenLoader isFullPage={false} />;
   }
 
   function onSubmit(values: z.infer<typeof FormSchema>) {
-   
     call(values)
       .then((res) => {
         if (res.message) {
@@ -143,7 +153,7 @@ export function TimesheetDialog({
                             disabled={timesheet.task ? true : false}
                           >
                             {field.value
-                              ? tasks.data.find(
+                              ? tasks?.message.find(
                                   (task: Task) => task.name === field.value
                                 )?.subject
                               : "Select Task"}
@@ -157,7 +167,7 @@ export function TimesheetDialog({
                           <CommandEmpty>No task found.</CommandEmpty>
                           <CommandGroup>
                             <CommandList>
-                              {tasks?.data.map((task: Task) => (
+                              {tasks?.message.map((task: Task) => (
                                 <CommandItem
                                   className="hover:cursor-pointer"
                                   key={task.name}

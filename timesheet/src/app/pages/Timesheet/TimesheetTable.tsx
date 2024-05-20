@@ -5,25 +5,16 @@ import {
   TableRow,
   TableFooter,
 } from "@/components/ui/table";
-import { TimesheetTableBody } from "./TableBody";
 import { TimesheetProp } from "@/app/types/timesheet";
 import { Button } from "@/components/ui/button";
+import { TimesheetTableBody } from "./TableBody";
 export function TimesheetTable({
   data,
   openDialog,
-  tooltipEvent,
   updateTimesheetData,
 }: {
   data: any;
   openDialog: () => void;
-  tooltipEvent: React.Dispatch<
-    React.SetStateAction<{
-      visible: boolean;
-      content: string;
-      x: number;
-      y: number;
-    }>
-  >;
   updateTimesheetData: (timesheet: TimesheetProp) => void;
 }) {
   const dates = data?.dates;
@@ -63,7 +54,6 @@ export function TimesheetTable({
           updateTimesheetData={updateTimesheetData}
           openDialog={openDialog}
           tasks={tasks}
-          tooltipEvent={tooltipEvent}
           dates={dates}
         />
         <TableFooter className="block p-3">

@@ -4,15 +4,15 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { TimesheetTable } from "@/app/pages/Timesheet/TimesheetTable";
 import { getTodayDate } from "@/app/lib/utils";
 import { ScreenLoader } from "@/app/components/Loader";
-import { TimesheetDialog } from "./components/Dialog";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, lazy } from "react";
 import { TimesheetProp } from "@/app/types/timesheet";
-import { TimesheetHoverCard } from "./components/HoverCard";
 import { FrappeContext, FrappeConfig } from "frappe-react-sdk";
-import { set } from "date-fns";
+import { TimesheetTable } from "@/app/pages/Timesheet/TimesheetTable";
+
+const TimesheetDialog = lazy(() => import("./components/Dialog"));
+
 function Timesheet() {
   const { call } = useContext(FrappeContext) as FrappeConfig;
   const defaultTimesheetState = {
@@ -24,17 +24,10 @@ function Timesheet() {
     hours: 0,
     isUpdate: false,
   };
-  const toolTipState = {
-    visible: false,
-    content: "",
-    x: 0,
-    y: 0,
-  };
   const [isFetching, setIsFetching] = useState(false);
   const [isFetchAgain, setFetchAgain] = useState(false);
   const [employee, setEmployee] = useState<string>("");
   const [data, setData] = useState<any>(null);
-  const [tooltip, setTooltip] = useState(toolTipState);
   const [timesheet, setTimesheet] = useState<TimesheetProp>(
     defaultTimesheetState
   );
@@ -83,13 +76,14 @@ function Timesheet() {
   const updateTimesheet = (timesheet: TimesheetProp) => {
     setTimesheet(timesheet);
   };
-
+  const resetTimesheet = () => {
+    setTimesheet(defaultTimesheetState);
+  };
   if (isFetching) {
     return <ScreenLoader isFullPage={true} />;
   }
   return (
     <div>
-      <TimesheetHoverCard tooltip={tooltip} />
       <Accordion type="single" collapsible className="w-full">
         {data &&
           Object.entries(data?.message).map(([key, value]: [string, any]) => (
@@ -106,7 +100,6 @@ function Timesheet() {
                   data={value}
                   openDialog={() => setIsDialogOpen(true)}
                   updateTimesheetData={updateTimesheet}
-                  tooltipEvent={setTooltip}
                 />
               </AccordionContent>
             </AccordionItem>
@@ -118,6 +111,7 @@ function Timesheet() {
           timesheet={timesheet}
           setFetchAgain={setFetchAgain}
           closeDialog={() => {
+            resetTimesheet();
             setIsDialogOpen(false);
           }}
         />
