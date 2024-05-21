@@ -9,7 +9,7 @@ import {
 import { cn } from "@/app/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
@@ -133,70 +133,7 @@ export default function TimesheetDialog({
         <div>
           <Form {...form}>
             <form className="space-y-8" onSubmit={form.handleSubmit(onSubmit)}>
-              <FormField
-                name="task"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <div>
-                      <FormLabel>Task</FormLabel>
-                      <sup className="text-destructive text-sm align-sub">
-                        *
-                      </sup>
-                    </div>
-                    <Popover open={isComboOpen} onOpenChange={setIsComboOpen}>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            className="max-w-max"
-                            disabled={timesheet.task ? true : false}
-                          >
-                            {field.value
-                              ? tasks?.message.find(
-                                  (task: Task) => task.name === field.value
-                                )?.subject
-                              : "Select Task"}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent>
-                        <Command>
-                          <CommandInput placeholder="Search framework..." />
-                          <CommandEmpty>No task found.</CommandEmpty>
-                          <CommandGroup>
-                            <CommandList>
-                              {tasks?.message.map((task: Task) => (
-                                <CommandItem
-                                  className="hover:cursor-pointer"
-                                  key={task.name}
-                                  value={task.subject}
-                                  onSelect={(value) => {
-                                    form.setValue("task", task.name);
-                                    setIsComboOpen(false);
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      field.value === task.name
-                                        ? "opacity-100"
-                                        : "opacity-0"
-                                    )}
-                                  />
-                                  {task.subject}
-                                </CommandItem>
-                              ))}
-                            </CommandList>
-                          </CommandGroup>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              
               <div className="flex gap-2.5">
                 <FormField
                   name="hours"
@@ -276,6 +213,70 @@ export default function TimesheetDialog({
                 />
               </div>
               <FormField
+                name="task"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <div>
+                      <FormLabel>Task</FormLabel>
+                      <sup className="text-destructive text-sm align-sub">
+                        *
+                      </sup>
+                    </div>
+                    <Popover open={isComboOpen} onOpenChange={setIsComboOpen}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            className="max-w-full px-1 justify-between"
+                            disabled={timesheet.task ? true : false}
+                          >
+                            {field.value
+                              ? tasks?.message.find(
+                                  (task: Task) => task.name === field.value
+                                )?.subject
+                              : <div className="flex justify-center items-center"><Search className="ml-2 h-4 w-4 shrink-0 opacity-50"/> <p className="ml-2 shrink-0 opacity-50">Select Task...</p> </div>}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent>
+                        <Command>
+                          <CommandInput placeholder="Search task..." />
+                          <CommandEmpty>No task found.</CommandEmpty>
+                          <CommandGroup>
+                            <CommandList>
+                              {tasks?.message.map((task: Task) => (
+                                <CommandItem
+                                  className="hover:cursor-pointer"
+                                  key={task.name}
+                                  value={task.subject}
+                                  onSelect={(value) => {
+                                    form.setValue("task", task.name);
+                                    setIsComboOpen(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      field.value === task.name
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                  {task.subject}
+                                </CommandItem>
+                              ))}
+                            </CommandList>
+                          </CommandGroup>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
                 name="description"
                 render={({ field }) => (
                   <FormItem className="flex flex-col ">
@@ -287,7 +288,7 @@ export default function TimesheetDialog({
                     </div>
                     <FormControl>
                       <Textarea
-                        placeholder="Add task description"
+                        placeholder="Explain your progress..."
                         {...field}
                         required
                         onChange={(event) => {
@@ -309,3 +310,4 @@ export default function TimesheetDialog({
     </Dialog>
   );
 }
+

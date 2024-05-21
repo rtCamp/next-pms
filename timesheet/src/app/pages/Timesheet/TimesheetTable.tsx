@@ -19,7 +19,6 @@ export function TimesheetTable({
   updateTimesheetData: (timesheet: TimesheetProp) => void;
 }) {
   const dates = data?.dates;
-  console.log(dates);
   const tasks = data?.tasks;
   return (
     <div>
@@ -45,7 +44,7 @@ export function TimesheetTable({
               );
             })}
             <TableHead
-              key="Heading"
+              key="Total"
               className="flex w-full  justify-center flex-col  text-center max-w-20 font-bold  px-0"
             >
               Total

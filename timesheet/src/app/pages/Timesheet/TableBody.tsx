@@ -51,7 +51,7 @@ export function TimesheetTableBody({
                   );
                 })}
                 <TableCell
-                  key="totlaHours"
+                  key="TotlaHour"
                   className="flex w-full justify-center flex-col font-bold max-w-20 px-0 text-center hover:cursor-pointer hover:p-[3px] hover:border"
                 >
                   {totalHours}
