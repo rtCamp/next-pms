@@ -1,6 +1,5 @@
 import { type ClassValue,clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { useFrappeGetCall } from 'frappe-react-sdk'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -29,14 +28,3 @@ export function getTodayDate() {
 
 }
 
-export const useEmployeeData = () => { 
-    let employee = getCookie("employee");
-    if (!employee) {
-      const { data } = useFrappeGetCall("timesheet_enhancer.api.utils.get_employee_from_user");
-      if (data) {
-        setCookie("employee", data?.message, 30);
-        return data?.message;
-      }
-    }
-    return employee;
-}

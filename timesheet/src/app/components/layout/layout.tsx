@@ -1,6 +1,11 @@
 import React from "react";
 import { Header } from "@/app/components/layout/Header";
+import { AppDispatch } from "@/app/state/store";
+import {  useDispatch } from "react-redux";
+import { fetchEmployee } from "@/app/state/employee";
 export function Layout({ children }: { children: React.ReactNode }) {
+  const dispatch = useDispatch<AppDispatch>();
+  dispatch(fetchEmployee());
   return (
     <div>
       <Header />

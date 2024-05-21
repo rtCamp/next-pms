@@ -10,11 +10,13 @@ import { useContext, useEffect, useState, lazy } from "react";
 import { TimesheetProp } from "@/app/types/timesheet";
 import { FrappeContext, FrappeConfig } from "frappe-react-sdk";
 import { TimesheetTable } from "@/app/pages/Timesheet/TimesheetTable";
-
+import { RootState } from "@/app/state/store";
+import { useSelector } from "react-redux";
 const TimesheetDialog = lazy(() => import("./components/Dialog"));
 
 function Timesheet() {
   const { call } = useContext(FrappeContext) as FrappeConfig;
+  const  employee  = useSelector((state: RootState) => state.employee);
   const defaultTimesheetState = {
     name: "",
     parent: "",
@@ -26,23 +28,11 @@ function Timesheet() {
   };
   const [isFetching, setIsFetching] = useState(false);
   const [isFetchAgain, setFetchAgain] = useState(false);
-  const [employee, setEmployee] = useState<string>("");
   const [data, setData] = useState<any>(null);
   const [timesheet, setTimesheet] = useState<TimesheetProp>(
     defaultTimesheetState
   );
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  async function fetchEmployee() {
-    if (!employee) {
-      const res = await call.get(
-        "timesheet_enhancer.api.utils.get_employee_from_user"
-      );
-      setEmployee(res.message);
-      return res.message;
-    }
-    return employee;
-  }
 
   function fetchData(employee: string) {
     call
@@ -58,8 +48,7 @@ function Timesheet() {
   useEffect(() => {
     (async () => {
       setIsFetching(true);
-      const employee = await fetchEmployee();
-      fetchData(employee);
+      fetchData(employee.value);
       setIsFetching(false);
     })();
   }, []);
@@ -67,8 +56,7 @@ function Timesheet() {
     (async () => {
       if (!isFetchAgain) return;
       setIsFetching(true);
-      const employee = await fetchEmployee();
-      fetchData(employee);
+      fetchData(employee.value);
       setIsFetching(false);
       setFetchAgain(false);
     })();
