@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { cn } from "@/app/lib/utils";
+import { cn, parseFrappeErrorMsg } from "@/app/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Check, ChevronsUpDown, Search } from "lucide-react";
@@ -41,6 +41,7 @@ import { ScreenLoader } from "@/app/components/Loader";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Task {
   name: string;
@@ -58,6 +59,7 @@ export default function TimesheetDialog({
   setFetchAgain: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const [isComboOpen, setIsComboOpen] = useState(false);
+  const { toast } = useToast();
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
   const FormSchema = z.object({
     task: z.string({
@@ -110,12 +112,19 @@ export default function TimesheetDialog({
   function onSubmit(values: z.infer<typeof FormSchema>) {
     call(values)
       .then((res) => {
-        if (res.message) {
-          closeDialog();
-          setFetchAgain(true);
-        }
+        closeDialog();
+        setFetchAgain(true);
+        toast({
+          variant: "success",
+          title: res.message,
+        });
       })
       .catch((err) => {
+        const error = parseFrappeErrorMsg(err._server_messages);
+        toast({
+          variant: "destructive",
+          title: error.message ?? error,
+        });
         console.error(err);
       });
   }
@@ -133,7 +142,6 @@ export default function TimesheetDialog({
         <div>
           <Form {...form}>
             <form className="space-y-8" onSubmit={form.handleSubmit(onSubmit)}>
-              
               <div className="flex gap-2.5">
                 <FormField
                   name="hours"
@@ -231,11 +239,18 @@ export default function TimesheetDialog({
                             className="max-w-full px-1 justify-between"
                             disabled={timesheet.task ? true : false}
                           >
-                            {field.value
-                              ? tasks?.message.find(
-                                  (task: Task) => task.name === field.value
-                                )?.subject
-                              : <div className="flex justify-center items-center"><Search className="ml-2 h-4 w-4 shrink-0 opacity-50"/> <p className="ml-2 shrink-0 opacity-50">Select Task...</p> </div>}
+                            {field.value ? (
+                              tasks?.message.find(
+                                (task: Task) => task.name === field.value
+                              )?.subject
+                            ) : (
+                              <div className="flex justify-center items-center">
+                                <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />{" "}
+                                <p className="ml-2 shrink-0 opacity-50">
+                                  Select Task...
+                                </p>{" "}
+                              </div>
+                            )}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </FormControl>
@@ -310,4 +325,3 @@ export default function TimesheetDialog({
     </Dialog>
   );
 }
-

@@ -12,11 +12,15 @@ import { FrappeContext, FrappeConfig } from "frappe-react-sdk";
 import { TimesheetTable } from "@/app/pages/Timesheet/TimesheetTable";
 import { RootState } from "@/app/state/store";
 import { useSelector } from "react-redux";
-const TimesheetDialog = lazy(() => import("./components/Dialog"));
+import { useToast } from "@/components/ui/use-toast";
+import { parseFrappeErrorMsg } from "@/app/lib/utils";
+import TimesheetDialog from "./components/Dialog";
 
 function Timesheet() {
+  const { toast } = useToast();
   const { call } = useContext(FrappeContext) as FrappeConfig;
-  const  employee  = useSelector((state: RootState) => state.employee);
+  const employee = useSelector((state: RootState) => state.employee);
+
   const defaultTimesheetState = {
     name: "",
     parent: "",
@@ -43,15 +47,25 @@ function Timesheet() {
       })
       .then((res) => {
         setData(res);
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err._server_messages);
+        setIsFetching(false);
+        toast({
+          variant: "destructive",
+          title: "Error! Something went wrong.",
+          description: error.message ?? error,
+        });
       });
   }
   useEffect(() => {
     (async () => {
+      if (!employee.value) return;
       setIsFetching(true);
       fetchData(employee.value);
       setIsFetching(false);
     })();
-  }, []);
+  }, [employee.value]);
   useEffect(() => {
     (async () => {
       if (!isFetchAgain) return;

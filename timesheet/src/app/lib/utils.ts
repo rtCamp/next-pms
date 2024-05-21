@@ -28,3 +28,15 @@ export function getTodayDate() {
 
 }
 
+export function parseFrappeErrorMsg(StringError: string) {
+  try {
+    const jsonMsgArray = JSON.parse(StringError);
+    if (jsonMsgArray.length > 0) {
+      const jsonObjectStr = jsonMsgArray[0];
+      return JSON.parse(jsonObjectStr);
+    }
+  } catch (e) { 
+    return "Error parsing json."
+  }
+  
+}

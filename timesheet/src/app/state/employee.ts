@@ -13,7 +13,7 @@ const employeeSlice = createSlice({
     initialState,
     reducers: {},
     extraReducers: (builder) => { 
-        builder.addCase(fetchEmployee.fulfilled, (state, action:PayloadAction<string>) => {
+        builder.addCase(fetchEmployee.fulfilled, (state, action: PayloadAction<string>) => {
             state.value = action.payload;
         });
     }
@@ -23,13 +23,12 @@ export const fetchEmployee = createAsyncThunk(
     'employee/fetchEmployee',
     async () => {
         const { call } = useContext(FrappeContext) as FrappeConfig;
-        const res = await call.get(
-            "timesheet_enhancer.api.utils.get_employee_from_user"
-          );
-          
-        return res.message as string;
+        const res = await call.get("timesheet_enhancer.api.utils.get_employee_from_user");
+        return res?.message as string;
     }
 
 )
 
 export default employeeSlice.reducer;
+
+
