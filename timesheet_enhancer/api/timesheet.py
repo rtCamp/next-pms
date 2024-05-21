@@ -9,6 +9,8 @@ now = nowdate()
 
 @frappe.whitelist()
 def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
+    if not employee:
+        throw(_("Employee not found."))
     data = {}
     for i in range(max_week):
         current_week = True if i == 0 else False
@@ -35,28 +37,27 @@ def save(
         throw(_("Timesheet name is required for update"))
     if is_update:
         update_timesheet_detail(name, parent, hours, description, task)
-        return True
+        return _("Timesheet updated successfully.")
 
-    if not is_update:
-        employee = get_employee_from_user()
-        parent = frappe.db.get_value(
-            "Timesheet",
-            {
-                "employee": employee,
-                "start_date": [">=", getdate(date)],
-                "end_date": ["<=", getdate(date)],
-            },
-            "name",
+    employee = get_employee_from_user()
+    parent = frappe.db.get_value(
+        "Timesheet",
+        {
+            "employee": employee,
+            "start_date": [">=", getdate(date)],
+            "end_date": ["<=", getdate(date)],
+        },
+        "name",
+    )
+    if parent:
+        existing_log = frappe.db.get_value(
+            "Timesheet Detail", {"parent": parent, "task": task}, "name"
         )
-        if parent:
-            existing_log = frappe.db.get_value(
-                "Timesheet Detail", {"parent": parent, "task": task}, "name"
-            )
-            if existing_log:
-                update_timesheet_detail(existing_log, parent, hours, description, task)
-                return True
-        create_timesheet_detail(date, hours, description, task, employee, parent)
-        return True
+        if existing_log:
+            update_timesheet_detail(existing_log, parent, hours, description, task)
+            return _("Timesheet updated successfully.")
+    create_timesheet_detail(date, hours, description, task, employee, parent)
+    return  _("New Timesheet created successfully.")
 
 
 def update_timesheet_detail(
