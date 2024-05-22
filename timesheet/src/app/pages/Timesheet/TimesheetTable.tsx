@@ -12,10 +12,12 @@ import { TimesheetTableBody } from "./TableBody";
 export function TimesheetTable({
   data,
   openDialog,
+  openApprovalDialog,
   updateTimesheetData,
 }: {
   data: any;
   openDialog: () => void;
+  openApprovalDialog: () => void;
   updateTimesheetData: (timesheet: TimesheetProp) => void;
 }) {
   const dates = data?.dates;
@@ -57,13 +59,20 @@ export function TimesheetTable({
           tasks={tasks}
           dates={dates}
         />
-        <TableFooter className="block p-3">
+        <TableFooter className="flex p-3 gap-x-4">
           <Button
             onClick={() => {
               openDialog();
             }}
           >
             Add Time
+          </Button>
+          <Button
+            onClick={() => {
+              openApprovalDialog();
+            }}
+          >
+            Submit
           </Button>
         </TableFooter>
       </Table>

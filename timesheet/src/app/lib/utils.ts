@@ -40,3 +40,14 @@ export function parseFrappeErrorMsg(StringError: string) {
   }
   
 }
+export function floatToTime(float: number) {
+  // Extract hours and minutes from the float
+  let hours = Math.floor(float);
+  let minutes = Math.round((float % 1) * 60);
+
+  // Format hours and minutes to always be two digits
+  let formattedHours = String(hours).padStart(2, '0');
+  let formattedMinutes = String(minutes).padStart(2, '0');
+
+  return `${formattedHours}:${formattedMinutes}`;
+}

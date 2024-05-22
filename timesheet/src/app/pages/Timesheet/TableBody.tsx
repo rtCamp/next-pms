@@ -1,5 +1,5 @@
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
-import { cn } from "@/app/lib/utils";
+import { cn ,floatToTime} from "@/app/lib/utils";
 import { TimesheetProp, Dateprops } from "@/app/types/timesheet";
 import {
   Tooltip,
@@ -54,7 +54,7 @@ export function TimesheetTableBody({
                   key="TotlaHour"
                   className="flex w-full justify-center flex-col font-bold max-w-20 px-0 text-center hover:cursor-pointer hover:p-[3px] hover:border"
                 >
-                  {totalHours}
+                  {floatToTime(totalHours)}
                 </TableCell>
               </TableRow>
             );
@@ -122,7 +122,7 @@ function TaskCell({
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="h-full flex justify-center items-center">
-                {hours}
+                {floatToTime(hours)}
               </div>
             </TooltipTrigger>
             <TooltipContent>{description}</TooltipContent>

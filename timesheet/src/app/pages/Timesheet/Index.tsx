@@ -6,15 +6,17 @@ import {
 } from "@/components/ui/accordion";
 import { getTodayDate } from "@/app/lib/utils";
 import { ScreenLoader } from "@/app/components/Loader";
-import { useContext, useEffect, useState, lazy } from "react";
+import { useContext, useEffect, useState } from "react";
 import { TimesheetProp } from "@/app/types/timesheet";
 import { FrappeContext, FrappeConfig } from "frappe-react-sdk";
 import { TimesheetTable } from "@/app/pages/Timesheet/TimesheetTable";
 import { RootState } from "@/app/state/store";
 import { useSelector } from "react-redux";
 import { useToast } from "@/components/ui/use-toast";
-import { parseFrappeErrorMsg } from "@/app/lib/utils";
+import { parseFrappeErrorMsg,floatToTime } from "@/app/lib/utils";
 import TimesheetDialog from "./components/Dialog";
+import { CircleCheck } from "lucide-react";
+import ApprovalDialog from "./components/ApprovalDialog";
 
 function Timesheet() {
   const { toast } = useToast();
@@ -37,6 +39,7 @@ function Timesheet() {
     defaultTimesheetState
   );
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAprrovalDialogOpen, setIsAprrovalDialogOpen] = useState(false);
 
   function fetchData(employee: string) {
     call
@@ -60,12 +63,11 @@ function Timesheet() {
   }
   useEffect(() => {
     (async () => {
-      if (!employee.value) return;
       setIsFetching(true);
       fetchData(employee.value);
       setIsFetching(false);
     })();
-  }, [employee.value]);
+  }, []);
   useEffect(() => {
     (async () => {
       if (!isFetchAgain) return;
@@ -95,13 +97,30 @@ function Timesheet() {
               className="border-r border-t border-l"
             >
               <AccordionTrigger className="bg-background hover:no-underline focus:outline-none hover:border-transparent focus:outline-offset-0 focus:outline-0">
-                {key}
+                <div className="flex w-full justify-between items-center text-xs sm:text-sm md:text-base">
+                  <div className="flex gap-x-2 md:gap-x-4 items-center">
+                    <p>{key}</p>
+                    <p className="text-muted-foreground ">
+                    {floatToTime(value?.total_hours)}h
+                    </p>
+                  </div>
+                  <div
+                    className=" flex text-muted-foreground/70 gap-x-2 text-sm pr-2 items-center"
+                    onClick={() => {
+                      console.log("yeah");
+                    }}
+                  >
+                    <CircleCheck size={16} stroke="hsl(var(--success))" />
+                    <p>NOT SUBMITTED</p>
+                  </div>
+                </div>
               </AccordionTrigger>
               <AccordionContent className="pb-0">
                 <TimesheetTable
                   data={value}
                   openDialog={() => setIsDialogOpen(true)}
                   updateTimesheetData={updateTimesheet}
+                  openApprovalDialog={() => setIsAprrovalDialogOpen(true)}
                 />
               </AccordionContent>
             </AccordionItem>
@@ -115,6 +134,15 @@ function Timesheet() {
           closeDialog={() => {
             resetTimesheet();
             setIsDialogOpen(false);
+          }}
+        />
+      )}
+
+      {isAprrovalDialogOpen && (
+        <ApprovalDialog
+          isOpen={isAprrovalDialogOpen}
+          closeDialog={() => {
+            setIsAprrovalDialogOpen(false);
           }}
         />
       )}
