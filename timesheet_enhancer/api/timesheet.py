@@ -1,6 +1,6 @@
 import frappe
 from frappe import _, throw
-from frappe.utils import add_days, getdate, nowdate,get_first_day,get_last_day,cstr
+from frappe.utils import add_days, get_first_day, get_last_day, getdate, nowdate
 
 from timesheet_enhancer.api.utils import get_employee_from_user
 
@@ -24,23 +24,34 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
 
     return data
 
+
 @frappe.whitelist()
-def get_employee_holidays_and_leave_dates(employee:str):
+def get_employee_holidays_and_leave_dates(employee: str):
     from hrms.hr.utils import get_holiday_dates_for_employee
+
     start_date = get_first_day(nowdate())
     end_date = get_last_day(nowdate())
 
-    dates = get_holiday_dates_for_employee(employee,start_date,end_date)
-    
-    leave_applications = frappe.get_list("Leave Application",filters={"employee":employee,"status":["IN",["Open","Approved"]]},fields=["from_date","to_date"])
-    
+    dates = get_holiday_dates_for_employee(employee, start_date, end_date)
+
+    leave_applications = frappe.get_list(
+        "Leave Application",
+        filters={
+            "employee": employee,
+            "status": ["IN", ["Open", "Approved"]],
+            "half_day": False,
+        },
+        fields=["from_date", "to_date"],
+    )
+
     leaves_dates = []
     for entry in leave_applications:
-        leaves_dates.append(entry['from_date'])
-        leaves_dates.append(entry['to_date'])
+        leaves_dates.append(entry["from_date"])
+        leaves_dates.append(entry["to_date"])
 
     dates.extend(leaves_dates)
     return list(set(dates))
+
 
 @frappe.whitelist()
 def save(
