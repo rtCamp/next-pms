@@ -40,8 +40,10 @@ import { TimesheetProp } from "@/app/types/timesheet";
 import { ScreenLoader } from "@/app/components/Loader";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/state/store";
 
 interface Task {
   name: string;
@@ -58,9 +60,16 @@ export default function TimesheetDialog({
   closeDialog: () => void;
   setFetchAgain: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
+  const employee = useSelector((state: RootState) => state.employee);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [isComboOpen, setIsComboOpen] = useState(false);
   const { toast } = useToast();
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
+
+  useEffect(() => {
+    setSelectedDate(new Date(timesheet.date));
+  }, []);
+
   const FormSchema = z.object({
     task: z.string({
       required_error: "Please select a task.",
@@ -105,7 +114,21 @@ export default function TimesheetDialog({
       dedupingInterval: 1000 * 60 * 5,
     }
   );
-  if (isLoading) {
+
+  const {
+    isLoading: isDateLoading,
+    data: leaveAndHolidayDates,
+    error: dateError,
+  } = useFrappeGetCall<{ message: string[] }>(
+    "timesheet_enhancer.api.timesheet.get_employee_holidays_and_leave_dates",
+    { employee: employee.value },
+    "leavesAndHoliday",
+    {
+      dedupingInterval: 1000 * 60 * 5,
+    }
+  );
+
+  if (isLoading || isDateLoading) {
     return <ScreenLoader isFullPage={false} />;
   }
 
@@ -201,14 +224,19 @@ export default function TimesheetDialog({
                         <PopoverContent className="w-auto p-0">
                           <Calendar
                             mode="single"
-                            selected={field.value}
+                            selected={selectedDate}
+                            disableNavigation
+                            disabled={convertStringsToDates(
+                              leaveAndHolidayDates?.message
+                            )}
                             onSelect={(date) => {
                               const d = date?.toLocaleDateString("sv-SE", {
                                 day: "2-digit",
                                 month: "2-digit",
                                 year: "numeric",
                               });
-
+                              if (!d) return;
+                              setSelectedDate(new Date(d));
                               field.onChange(d);
                             }}
                             initialFocus
@@ -324,4 +352,9 @@ export default function TimesheetDialog({
       </CustomDialogContent>
     </Dialog>
   );
+}
+
+function convertStringsToDates(dateStrings: string[] | undefined) {
+  if (!dateStrings) return [];
+  return dateStrings.map((dateString: string) => new Date(dateString));
 }

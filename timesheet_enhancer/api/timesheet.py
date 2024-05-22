@@ -1,6 +1,6 @@
 import frappe
 from frappe import _, throw
-from frappe.utils import add_days, getdate, nowdate
+from frappe.utils import add_days, getdate, nowdate,get_first_day,get_last_day,cstr
 
 from timesheet_enhancer.api.utils import get_employee_from_user
 
@@ -10,18 +10,37 @@ now = nowdate()
 @frappe.whitelist()
 def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
     if not employee:
-        throw(_("Employee not found."))
+        employee = get_employee_from_user()
     data = {}
     for i in range(max_week):
         current_week = True if i == 0 else False
 
         week_dates = get_week_dates(employee, start_date, current_week=current_week)
         data[week_dates["key"]] = week_dates
-        data[week_dates["key"]]["tasks"] = get_timesheet(week_dates["dates"], employee)
+        tasks, total_hours = get_timesheet(week_dates["dates"], employee)
+        data[week_dates["key"]]["total_hours"] = total_hours
+        data[week_dates["key"]]["tasks"] = tasks
         start_date = week_dates["start_date"]
 
     return data
 
+@frappe.whitelist()
+def get_employee_holidays_and_leave_dates(employee:str):
+    from hrms.hr.utils import get_holiday_dates_for_employee
+    start_date = get_first_day(nowdate())
+    end_date = get_last_day(nowdate())
+
+    dates = get_holiday_dates_for_employee(employee,start_date,end_date)
+    
+    leave_applications = frappe.get_list("Leave Application",filters={"employee":employee,"status":["IN",["Open","Approved"]]},fields=["from_date","to_date"])
+    
+    leaves_dates = []
+    for entry in leave_applications:
+        leaves_dates.append(entry['from_date'])
+        leaves_dates.append(entry['to_date'])
+
+    dates.extend(leaves_dates)
+    return list(set(dates))
 
 @frappe.whitelist()
 def save(
@@ -57,7 +76,7 @@ def save(
             update_timesheet_detail(existing_log, parent, hours, description, task)
             return _("Timesheet updated successfully.")
     create_timesheet_detail(date, hours, description, task, employee, parent)
-    return  _("New Timesheet created successfully.")
+    return _("New Timesheet created successfully.")
 
 
 def update_timesheet_detail(
@@ -101,7 +120,7 @@ def create_timesheet_detail(
 
 def get_timesheet(dates: list, employee: str):
     data = {}
-
+    total_hours = 0
     for element in dates:
         date = element["date"]
         name = frappe.db.exists(
@@ -115,6 +134,7 @@ def get_timesheet(dates: list, employee: str):
         if not name:
             continue
         timesheet = frappe.get_doc("Timesheet", name)
+        total_hours += timesheet.total_hours
         for log in timesheet.time_logs:
             subject, task_name = frappe.get_value("Task", log.task, ["subject", "name"])
             if not subject:
@@ -123,7 +143,7 @@ def get_timesheet(dates: list, employee: str):
                 data[subject] = {"name": task_name, "data": []}
 
             data[subject]["data"].append(log.as_dict())
-    return data
+    return [data, total_hours]
 
 
 def get_week_dates(employee: str, date=now, current_week: bool = False):
