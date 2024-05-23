@@ -94,6 +94,34 @@ def save(
     return _("New Timesheet created successfully.")
 
 
+@frappe.whitelist()
+def submit_for_approval(start_date: str, end_date: str, notes: str):
+    from frappe.model.workflow import apply_workflow
+
+    employee = get_employee_from_user()
+    timesheets = frappe.get_list(
+        "Timesheet",
+        filters={
+            "employee": employee,
+            "start_date": [">=", start_date],
+            "end_date": ["<=", end_date],
+            "docstatus": 0,
+        },
+    )
+    # TODO: Need to update later
+    wf = frappe.db.exists("Workflow", {"document_type": "Timesheet", "is_active": True})
+    action = frappe.db.get_value(
+        "Workflow Transition",
+        {"parent": wf, "next_state": "Waiting Approval"},
+        "action",
+    )
+    for timesheet in timesheets:
+        doc = frappe.get_doc("Timesheet", timesheet["name"])
+        doc.note = notes
+        doc.save()
+        apply_workflow(doc, action)
+
+
 def update_timesheet_detail(
     name: str, parent: str, hours: float, description: str, task: str
 ):

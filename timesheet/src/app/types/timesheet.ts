@@ -14,3 +14,8 @@ export interface Dateprops{
   date: string;
   is_holiday: boolean;
 }
+
+export interface dateRangeProps{
+  start_date: string;
+  end_date: string;
+}

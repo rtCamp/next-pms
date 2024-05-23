@@ -7,7 +7,7 @@ import {
 import { getTodayDate } from "@/app/lib/utils";
 import { ScreenLoader } from "@/app/components/Loader";
 import { useContext, useEffect, useState } from "react";
-import { TimesheetProp } from "@/app/types/timesheet";
+import { TimesheetProp ,dateRangeProps} from "@/app/types/timesheet";
 import { FrappeContext, FrappeConfig } from "frappe-react-sdk";
 import { TimesheetTable } from "@/app/pages/Timesheet/TimesheetTable";
 import { RootState } from "@/app/state/store";
@@ -32,6 +32,7 @@ function Timesheet() {
     hours: 0,
     isUpdate: false,
   };
+  const [dateRange, setDateRange] = useState<dateRangeProps>({start_date: "", end_date: ""});
   const [isFetching, setIsFetching] = useState(false);
   const [isFetchAgain, setFetchAgain] = useState(false);
   const [data, setData] = useState<any>(null);
@@ -119,6 +120,7 @@ function Timesheet() {
                 <TimesheetTable
                   data={value}
                   openDialog={() => setIsDialogOpen(true)}
+                  setDateRange={setDateRange}
                   updateTimesheetData={updateTimesheet}
                   openApprovalDialog={() => setIsAprrovalDialogOpen(true)}
                 />
@@ -141,6 +143,7 @@ function Timesheet() {
       {isAprrovalDialogOpen && (
         <ApprovalDialog
           isOpen={isAprrovalDialogOpen}
+          dateRange={dateRange}
           closeDialog={() => {
             setIsAprrovalDialogOpen(false);
           }}

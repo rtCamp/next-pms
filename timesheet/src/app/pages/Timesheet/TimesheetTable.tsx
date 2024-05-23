@@ -8,24 +8,30 @@ import {
 import { TimesheetProp, Dateprops } from "@/app/types/timesheet";
 import { Button } from "@/components/ui/button";
 import { TimesheetTableBody } from "./TableBody";
+import { useRef } from 'react';
+import { dateRangeProps } from "@/app/types/timesheet";
 
 export function TimesheetTable({
   data,
   openDialog,
   openApprovalDialog,
+  setDateRange,
   updateTimesheetData,
 }: {
   data: any;
   openDialog: () => void;
   openApprovalDialog: () => void;
-  updateTimesheetData: (timesheet: TimesheetProp) => void;
+    updateTimesheetData: (timesheet: TimesheetProp) => void;
+    setDateRange: React.Dispatch<React.SetStateAction<dateRangeProps>>;
 }) {
   const dates = data?.dates;
   const tasks = data?.tasks;
   const leaves = data?.leaves;
+  const tableRef = useRef();
+  
   return (
     <div>
-      <Table className="w-[900px] md:w-full">
+      <Table className="w-[900px] md:w-full" ref={tableRef} data-start-date={ data?.start_date} data-end-date={ data?.end_date}>
         <TableHeader>
           <TableRow className="flex bg-muted/40 hover:bg-muted/40 border-t">
             <TableHead
@@ -71,6 +77,12 @@ export function TimesheetTable({
           </Button>
           <Button
             onClick={() => {
+              setDateRange({
+                // @ts-ignore
+                start_date: tableRef?.current?.getAttribute("data-start-date"),
+                // @ts-ignore
+                end_date: tableRef?.current?.getAttribute("data-end-date"),
+              })
               openApprovalDialog();
             }}
           >
