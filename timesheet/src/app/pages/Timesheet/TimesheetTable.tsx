@@ -22,6 +22,7 @@ export function TimesheetTable({
 }) {
   const dates = data?.dates;
   const tasks = data?.tasks;
+  const leaves = data?.leaves;
   return (
     <div>
       <Table className="w-[900px] md:w-full">
@@ -58,6 +59,7 @@ export function TimesheetTable({
           openDialog={openDialog}
           tasks={tasks}
           dates={dates}
+          leaves={leaves}
         />
         <TableFooter className="flex p-3 gap-x-4">
           <Button

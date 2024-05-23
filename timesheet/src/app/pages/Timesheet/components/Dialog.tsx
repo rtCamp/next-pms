@@ -44,6 +44,7 @@ import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/state/store";
+import { Matcher } from "react-day-picker";
 
 interface Task {
   name: string;
@@ -207,6 +208,7 @@ export default function TimesheetDialog({
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
+                            disabled={timesheet.date ? true : false}
                             variant={"outline"}
                             className={cn(
                               "w-auto justify-start text-left font-normal",
@@ -355,6 +357,32 @@ export default function TimesheetDialog({
 }
 
 function convertStringsToDates(dateStrings: string[] | undefined) {
-  if (!dateStrings) return [];
-  return dateStrings.map((dateString: string) => new Date(dateString));
+  let dates: Date[] = [];
+  if (dateStrings) {
+    dates = dateStrings.map((dateString: string) => new Date(dateString));
+  }
+
+  const today = new Date();
+
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  const dayOfMonth = today.getDate();
+
+  // Calculate the first day of the current week (Sunday)
+  const dayOfWeek = today.getDay(); // 0 (Sunday) to 6 (Saturday)
+  const firstDayOfCurrentWeek = new Date(year, month, dayOfMonth - dayOfWeek);
+
+  // Loop from the start of the month to the day before the first day of the current week
+  for (let day = 1; day < firstDayOfCurrentWeek.getDate(); day++) {
+    dates.push(new Date(year, month, day));
+  }
+
+  // Calculate the last day of the current month
+  const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+
+  // Loop from tomorrow to the last day of the month
+  for (let day = dayOfMonth + 1; day <= lastDayOfMonth; day++) {
+    dates.push(new Date(year, month, day));
+  }
+  return dates;
 }

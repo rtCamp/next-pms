@@ -1,5 +1,5 @@
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
-import { cn ,floatToTime} from "@/app/lib/utils";
+import { cn, floatToTime,getTodayDate } from "@/app/lib/utils";
 import { TimesheetProp, Dateprops } from "@/app/types/timesheet";
 import {
   Tooltip,
@@ -9,17 +9,20 @@ import {
 export function TimesheetTableBody({
   tasks,
   dates,
+  leaves,
   updateTimesheetData,
   openDialog,
 }: {
   tasks: Object;
   dates: Array<Dateprops>;
+  leaves: any;
   updateTimesheetData: (timesheet: TimesheetProp) => void;
   openDialog: () => void;
 }) {
   return (
     <>
       <TableBody className="[&_tr:last-child]:border-b">
+        {leaves.length > 0 && <LeaveRow dates={dates} leaves={leaves} />}
         {Object.keys(tasks).length > 0 ? (
           Object.entries(tasks).map(([task, taskData]: [string, any]) => {
             let totalHours = 0;
@@ -36,6 +39,9 @@ export function TimesheetTableBody({
                   if (taskDateData && taskDateData.hours) {
                     totalHours += taskDateData.hours;
                   }
+                  const leaveData = leaves.find((data: any) => {
+                    return iter.date >= data.from_date && iter.date <= data.to_date;
+                  });
                   return (
                     <TaskCell
                       openDialog={openDialog}
@@ -45,7 +51,7 @@ export function TimesheetTableBody({
                       description={taskDateData?.description ?? ""}
                       hours={taskDateData?.hours ?? 0}
                       date={iter.date}
-                      isCellDisabled={iter.is_holiday}
+                      isCellDisabled={iter.is_holiday || (leaveData && !leaveData.half_day) || getTodayDate() < iter.date  || isDateNotInCurrentWeek(iter.date)}
                       updateTimesheet={updateTimesheetData}
                     />
                   );
@@ -135,8 +141,79 @@ function TaskCell({
   );
 }
 
+
+function LeaveRow({ dates, leaves }: { dates: Array<Dateprops>; leaves: any }) {
+  let totalHours = 0;
+  return (
+    <TableRow key={1} className="flex">
+      <TableCell className=" flex w-full max-w-96  items-center text-justify font-medium hover:cursor-pointer border-r ">
+        Time Off
+      </TableCell>
+      {dates.map((iter: Dateprops) => {
+        const leaveData = leaves.find((data: any) => {
+          return iter.date >= data.from_date && iter.date <= data.to_date;
+        });
+        if (leaveData) {
+          totalHours += leaveData?.half_day ? 4 : 8;
+          return (
+            <TaskCell
+              openDialog={() => {}}
+              name={""}
+              parent={""}
+              task={""}
+              description={leaveData?.description}
+              hours={leaveData?.half_day ? 4 : 8}
+              date={iter.date}
+              isCellDisabled={true}
+              updateTimesheet={() => {}}
+            />
+          );
+        } else {
+          return (
+            <TaskCell
+              openDialog={() => {}}
+              name={""}
+              parent={""}
+              task={""}
+              description={""}
+              hours={0}
+              date={iter.date}
+              isCellDisabled={true}
+              updateTimesheet={() => {}}
+            />
+          );
+        }
+      })}
+      <TableCell
+        key="TotlaHour"
+        className="flex w-full justify-center flex-col font-bold max-w-20 px-0 text-center hover:cursor-pointer hover:p-[3px] hover:border"
+      >
+        {floatToTime(totalHours)}
+      </TableCell>
+    </TableRow>
+  );
+}
+
 function getDateFromDateAndTime(dateTimeString: string) {
   // Split the date and time parts exa: '2024-05-08 00:00:00'
   const parts = dateTimeString.split(" ");
   return parts[0];
+}
+
+function isDateNotInCurrentWeek(dateStr:string) {
+  const givenDate = new Date(dateStr);
+  const today = new Date();
+
+  // Calculate the start and end of the current week
+  const dayOfWeek = today.getDay(); // 0 (Sunday) to 6 (Saturday)
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - dayOfWeek);
+  startOfWeek.setHours(0, 0, 0, 0); // Set to start of day
+
+  const endOfWeek = new Date(today);
+  endOfWeek.setDate(today.getDate() + (6 - dayOfWeek));
+  endOfWeek.setHours(23, 59, 59, 999); // Set to end of day
+
+  // Check if the given date is outside the current week
+  return givenDate < startOfWeek || givenDate > endOfWeek;
 }
