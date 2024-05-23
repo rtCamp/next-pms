@@ -2,7 +2,7 @@ import frappe
 from frappe import _, throw
 from frappe.utils import add_days, get_first_day, get_last_day, getdate, nowdate
 
-from timesheet_enhancer.api.utils import get_employee_from_user
+from timesheet_enhancer.api.utils import get_employee_from_user, get_leaves_for_employee
 
 now = nowdate()
 
@@ -20,6 +20,10 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
         tasks, total_hours = get_timesheet(week_dates["dates"], employee)
         data[week_dates["key"]]["total_hours"] = total_hours
         data[week_dates["key"]]["tasks"] = tasks
+        leaves = get_leaves_for_employee(
+            week_dates["start_date"], week_dates["end_date"], employee
+        )
+        data[week_dates["key"]]["leaves"] = leaves
         start_date = week_dates["start_date"]
 
     return data
@@ -63,13 +67,13 @@ def save(
     parent: str = None,
     is_update: bool = False,
 ):
+    employee = get_employee_from_user()
     if is_update and not name:
         throw(_("Timesheet name is required for update"))
     if is_update:
         update_timesheet_detail(name, parent, hours, description, task)
         return _("Timesheet updated successfully.")
 
-    employee = get_employee_from_user()
     parent = frappe.db.get_value(
         "Timesheet",
         {

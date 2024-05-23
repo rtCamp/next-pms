@@ -1,4 +1,5 @@
 def validate(doc, method=None):
+
     pass
     # TODO: Will be implemented later
     # from frappe.utils import add_days, getdate
@@ -17,8 +18,47 @@ def validate(doc, method=None):
     #         throw(_(f"You can't save time entry for {totime}"))
 
 
+def validate_dates(doc):
+    """Validate if time entry is made for holidays or leave days."""
+    import frappe
+    from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
+    from frappe.utils import date_diff
+
+    from timesheet_enhancer.api.utils import get_leaves_for_employee
+
+    if date_diff(doc.end_date, doc.start_date) > 0:
+        frappe.throw(frappe._("Timesheet should not exceed more than one day."))
+
+    holiday_list = get_holiday_list_for_employee(doc.employee)
+    is_holiday = frappe.db.exists(
+        "Holiday", {"holiday_date": doc.start_date, "parent": holiday_list}
+    )
+    leaves = get_leaves_for_employee(
+        str(doc.start_date), str(doc.end_date), doc.employee
+    )
+    if is_holiday:
+        frappe.throw(
+            frappe._("You can't save time entry for {0} as it is holiday.").format(
+                doc.start_date
+            )
+        )
+
+    if not leaves:
+        return
+
+    leave = leaves[0]
+    if not leave.get("half_day"):
+        frappe.throw(
+            frappe._("You can't save time entry for {0} as You alreay.").format(
+                doc.start_date
+            )
+        )
+
+
 def before_save(doc, method=None):
     from frappe.utils import get_datetime
+
+    validate_dates(doc)
 
     if not doc.get("time_logs"):
         return
