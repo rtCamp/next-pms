@@ -1,7 +1,7 @@
 import { Route } from "react-router-dom";
 import { lazy } from "react";
 import { ProtectedRoute } from "@/app/lib/ProtectedRoute";
-const Timesheet = lazy(() => import("@/app/pages/Timesheet/Index"));
+const Timesheet = lazy(() => import("@/app/pages/Timesheet"));
 export default function Router() {
   return (
     <>

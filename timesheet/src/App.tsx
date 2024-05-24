@@ -22,12 +22,17 @@ function App() {
     <FrappeProvider
       url={import.meta.env.VITE_BASE_URL ?? ""}
       socketPort={import.meta.env.VITE_SOCKET_PORT}
-      enableSocket={import.meta.env.VITE_ENABLE_SOCKET ?? true}
+      enableSocket={
+        import.meta.env.VITE_ENABLE_SOCKET === "true" ? true : false
+      }
       siteName={getSiteName()}
     >
+      {/* Provides user Auth functions. */}
       <UserProvider>
+        {/* Redux store. */}
         <Provider store={store}>
           <TooltipProvider>
+            {/* Within routes component  are lazy loaded, therefore suspense is required. */}
             <Suspense fallback={<ScreenLoader isFullPage={true} />}>
               <RouterProvider router={router} />
             </Suspense>
