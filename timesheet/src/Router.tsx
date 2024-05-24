@@ -1,10 +1,11 @@
 import { Route } from "react-router-dom";
+import { lazy } from "react";
 import { ProtectedRoute } from "@/app/lib/ProtectedRoute";
-import Timesheet from "@/app/pages/Timesheet";
+const Timesheet = lazy(() => import("@/app/pages/Timesheet"));
 export default function Router() {
   return (
     <>
-      <Route path="/" element={<ProtectedRoute />}>
+      <Route element={<ProtectedRoute />}>
         <Route path="/" element={<Timesheet />} />
       </Route>
     </>

@@ -1,16 +1,20 @@
 import { useContext } from "react";
-import { useNavigate, Outlet } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import { UserContext } from "@/app/provider/UserProvider";
-
+import { Layout } from "@/app/components/layout/layout";
+import { ScreenLoader } from "@/app/components/Loader";
 export const ProtectedRoute = () => {
-  const navigate = useNavigate();
   const { currentUser, isLoading } = useContext(UserContext);
   if (isLoading) {
-    // TODO: Add a loading spinner
+    return <ScreenLoader isFullPage={true} />;
   } else if (!currentUser || currentUser === "Guest") {
-    navigate("/login?redirect-to=/timesheet");
-    window.location.reload();
-    return null;
+    window.location.replace("/login?redirect-to=/timesheet");
   }
-  return <Outlet />;
+  if (!isLoading && currentUser && currentUser !== "Guest") {
+    return (
+      <Layout>
+        <Outlet />
+      </Layout>
+    );
+  }
 };
