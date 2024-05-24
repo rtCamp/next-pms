@@ -1,5 +1,5 @@
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
-import { cn, floatToTime, getTodayDate } from "@/app/lib/utils";
+import { cn, floatToTime, getTodayDate,getDateFromDateAndTime } from "@/app/lib/utils";
 import { Dateprops } from "@/app/types/timesheet";
 import {
   Tooltip,
@@ -198,11 +198,6 @@ function LeaveRow({ dates, leaves }: { dates: Array<Dateprops>; leaves: any }) {
   );
 }
 
-function getDateFromDateAndTime(dateTimeString: string) {
-  // Split the date and time parts exa: '2024-05-08 00:00:00'
-  const parts = dateTimeString.split(" ");
-  return parts[0];
-}
 
 function isDateNotInCurrentWeek(dateStr: string) {
   const givenDate = new Date(dateStr);

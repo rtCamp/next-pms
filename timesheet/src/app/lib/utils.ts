@@ -55,3 +55,9 @@ export const getSiteName = () => {
   // @ts-ignore
     return window.frappe?.boot?.sitename ?? import.meta.env.VITE_SITE_NAME
 }
+
+export function getDateFromDateAndTime(dateTimeString: string) {
+  // Split the date and time parts exa: '2024-05-08 00:00:00'
+  const parts = dateTimeString.split(" ");
+  return parts[0];
+}

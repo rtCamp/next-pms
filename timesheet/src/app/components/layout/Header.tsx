@@ -1,5 +1,4 @@
-import * as React from "react";
-
+import { forwardRef } from "react";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -13,6 +12,7 @@ import { UserContext } from "@/app/provider/UserProvider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn, getCookie } from "@/app/lib/utils";
 import { useContext } from "react";
+
 export function Header() {
   const { alt, src } = get_user_avatar();
   const { logout } = useContext(UserContext);
@@ -44,9 +44,7 @@ export function Header() {
                 <ListItem
                   key="Logout"
                   title="Logout"
-                  onClick={() => {
-                    logout();
-                  }}
+                  onClick={logout}
                   className="relative hover:cursor-pointer"
                 ></ListItem>
               </ul>
@@ -58,7 +56,7 @@ export function Header() {
   );
 }
 
-const ListItem = React.forwardRef<
+const ListItem = forwardRef<
   React.ElementRef<"a">,
   React.ComponentPropsWithoutRef<"a">
 >(({ className, title, children, ...props }, ref) => {
