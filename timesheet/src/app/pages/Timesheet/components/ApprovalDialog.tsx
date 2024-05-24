@@ -8,27 +8,19 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { DialogProps } from "@/app/types/timesheet";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { dateRangeProps } from "@/app/types/timesheet";
 import { useToast } from "@/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/app/lib/utils";
-import {  useFrappePostCall } from "frappe-react-sdk";
-export default function ApprovalDialog({
-  isOpen,
-  dateRange,
-  closeDialog,
-}: {
-  isOpen: boolean;
-  dateRange: dateRangeProps;
-  closeDialog: () => void;
-}) {
+import { useFrappePostCall } from "frappe-react-sdk";
+
+export default function ApprovalDialog({ dialogState, dispatch }: DialogProps) {
   const { call } = useFrappePostCall(
     "timesheet_enhancer.api.timesheet.submit_for_approval"
   );
@@ -42,10 +34,14 @@ export default function ApprovalDialog({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       note: "",
-      start_date: dateRange.start_date,
-      end_date: dateRange.end_date,
+      start_date: dialogState.dateRange.start_date,
+      end_date: dialogState.dateRange.end_date,
     },
   });
+
+  function closeDialog() {
+    dispatch({ type: "SetApprovalDialog", payload: false });
+  }
   function onSubmit(values: z.infer<typeof FormSchema>) {
     call({
       start_date: values.start_date,
@@ -58,7 +54,7 @@ export default function ApprovalDialog({
           title: "Success!",
           description: "Timesheet submitted for approval.",
         });
-        closeDialog();
+        dispatch({ type: "SetApprovalDialog", payload: false });
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(
@@ -67,12 +63,12 @@ export default function ApprovalDialog({
         toast({
           variant: "destructive",
           title: "Error! Something went wrong.",
-          description: err._error_message ?? error.message ,
+          description: err._error_message ?? error.message,
         });
       });
   }
   return (
-    <Dialog open={isOpen}>
+    <Dialog open={dialogState.isAprrovalDialogOpen}>
       <CustomDialogContent
         className="sm:max-w-md timesheet-dialog"
         isCloseButton={true}

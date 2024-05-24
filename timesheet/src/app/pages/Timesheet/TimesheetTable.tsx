@@ -5,33 +5,34 @@ import {
   TableRow,
   TableFooter,
 } from "@/components/ui/table";
-import { TimesheetProp, Dateprops } from "@/app/types/timesheet";
+import { Dateprops } from "@/app/types/timesheet";
 import { Button } from "@/components/ui/button";
 import { TimesheetTableBody } from "./TableBody";
-import { useRef } from 'react';
-import { dateRangeProps } from "@/app/types/timesheet";
+import { useRef } from "react";
 
 export function TimesheetTable({
   data,
-  openDialog,
-  openApprovalDialog,
-  setDateRange,
-  updateTimesheetData,
+  dispatch,
 }: {
   data: any;
-  openDialog: () => void;
-  openApprovalDialog: () => void;
-    updateTimesheetData: (timesheet: TimesheetProp) => void;
-    setDateRange: React.Dispatch<React.SetStateAction<dateRangeProps>>;
+  dispatch: React.Dispatch<{
+    type: string;
+    payload: any;
+  }>;
 }) {
   const dates = data?.dates;
   const tasks = data?.tasks;
   const leaves = data?.leaves;
   const tableRef = useRef();
-  
+
   return (
     <div>
-      <Table className="w-[900px] md:w-full" ref={tableRef} data-start-date={ data?.start_date} data-end-date={ data?.end_date}>
+      <Table
+        className="w-[900px] md:w-full"
+        ref={tableRef}
+        data-start-date={data?.start_date}
+        data-end-date={data?.end_date}
+      >
         <TableHeader>
           <TableRow className="flex bg-muted/40 hover:bg-muted/40 border-t">
             <TableHead
@@ -61,8 +62,7 @@ export function TimesheetTable({
           </TableRow>
         </TableHeader>
         <TimesheetTableBody
-          updateTimesheetData={updateTimesheetData}
-          openDialog={openDialog}
+          dispatch={dispatch}
           tasks={tasks}
           dates={dates}
           leaves={leaves}
@@ -70,20 +70,25 @@ export function TimesheetTable({
         <TableFooter className="flex p-3 gap-x-4">
           <Button
             onClick={() => {
-              openDialog();
+              dispatch({ type: "SetDialog", payload: true });
             }}
           >
             Add Time
           </Button>
           <Button
             onClick={() => {
-              setDateRange({
-                // @ts-ignore
-                start_date: tableRef?.current?.getAttribute("data-start-date"),
-                // @ts-ignore
-                end_date: tableRef?.current?.getAttribute("data-end-date"),
-              })
-              openApprovalDialog();
+              dispatch({
+                type: "SetDateRange",
+                payload: {
+                  start_date:
+                    // @ts-ignore
+                    tableRef?.current?.getAttribute("data-start-date"),
+                  // @ts-ignore
+                  end_date: tableRef?.current?.getAttribute("data-end-date"),
+                },
+              });
+
+              dispatch({ type: "SetApprovalDialog", payload: true });
             }}
           >
             Submit

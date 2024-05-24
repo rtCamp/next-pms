@@ -1,24 +1,28 @@
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
-import { cn, floatToTime,getTodayDate } from "@/app/lib/utils";
-import { TimesheetProp, Dateprops } from "@/app/types/timesheet";
+import { cn, floatToTime, getTodayDate } from "@/app/lib/utils";
+import { Dateprops } from "@/app/types/timesheet";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+
+interface TimesheetTableBodyProps {
+  tasks: Object;
+  dates: Array<Dateprops>;
+  leaves: any;
+  dispatch: React.Dispatch<{
+    type: string;
+    payload: any;
+  }>;
+}
+
 export function TimesheetTableBody({
   tasks,
   dates,
   leaves,
-  updateTimesheetData,
-  openDialog,
-}: {
-  tasks: Object;
-  dates: Array<Dateprops>;
-  leaves: any;
-  updateTimesheetData: (timesheet: TimesheetProp) => void;
-  openDialog: () => void;
-}) {
+  dispatch,
+}: TimesheetTableBodyProps) {
   return (
     <>
       <TableBody className="[&_tr:last-child]:border-b">
@@ -40,19 +44,25 @@ export function TimesheetTableBody({
                     totalHours += taskDateData.hours;
                   }
                   const leaveData = leaves.find((data: any) => {
-                    return iter.date >= data.from_date && iter.date <= data.to_date;
+                    return (
+                      iter.date >= data.from_date && iter.date <= data.to_date
+                    );
                   });
                   return (
                     <TaskCell
-                      openDialog={openDialog}
+                      dispatch={dispatch}
                       name={taskDateData?.name ?? ""}
                       parent={taskDateData?.parent ?? ""}
                       task={taskData?.name ?? ""}
                       description={taskDateData?.description ?? ""}
                       hours={taskDateData?.hours ?? 0}
                       date={iter.date}
-                      isCellDisabled={iter.is_holiday || (leaveData && !leaveData.half_day) || getTodayDate() < iter.date  || isDateNotInCurrentWeek(iter.date)}
-                      updateTimesheet={updateTimesheetData}
+                      isCellDisabled={
+                        iter.is_holiday ||
+                        (leaveData && !leaveData.half_day) ||
+                        getTodayDate() < iter.date ||
+                        isDateNotInCurrentWeek(iter.date)
+                      }
                     />
                   );
                 })}
@@ -85,8 +95,7 @@ function TaskCell({
   hours,
   task,
   isCellDisabled,
-  openDialog,
-  updateTimesheet,
+  dispatch,
 }: {
   date: string;
   task: any;
@@ -95,23 +104,21 @@ function TaskCell({
   description: string;
   hours: number;
   isCellDisabled: boolean;
-  openDialog: () => void;
-  updateTimesheet: (timesheet: TimesheetProp) => void;
+  dispatch: React.Dispatch<{
+    type: string;
+    payload: any;
+  }>;
 }) {
   return (
     <TableCell
       onClick={() => {
         const isUpdate = name ? true : false;
-        updateTimesheet({
-          name,
-          parent,
-          task,
-          date,
-          description,
-          hours,
-          isUpdate,
+
+        dispatch({
+          type: "SetTimesheet",
+          payload: { name, parent, task, date, description, hours, isUpdate },
         });
-        openDialog();
+        dispatch({ type: "SetDialog", payload: true });
       }}
       key={date}
       className={cn(
@@ -141,7 +148,6 @@ function TaskCell({
   );
 }
 
-
 function LeaveRow({ dates, leaves }: { dates: Array<Dateprops>; leaves: any }) {
   let totalHours = 0;
   return (
@@ -157,7 +163,7 @@ function LeaveRow({ dates, leaves }: { dates: Array<Dateprops>; leaves: any }) {
           totalHours += leaveData?.half_day ? 4 : 8;
           return (
             <TaskCell
-              openDialog={() => {}}
+              dispatch={() => {}}
               name={""}
               parent={""}
               task={""}
@@ -165,13 +171,12 @@ function LeaveRow({ dates, leaves }: { dates: Array<Dateprops>; leaves: any }) {
               hours={leaveData?.half_day ? 4 : 8}
               date={iter.date}
               isCellDisabled={true}
-              updateTimesheet={() => {}}
             />
           );
         } else {
           return (
             <TaskCell
-              openDialog={() => {}}
+              dispatch={() => {}}
               name={""}
               parent={""}
               task={""}
@@ -179,7 +184,6 @@ function LeaveRow({ dates, leaves }: { dates: Array<Dateprops>; leaves: any }) {
               hours={0}
               date={iter.date}
               isCellDisabled={true}
-              updateTimesheet={() => {}}
             />
           );
         }
@@ -200,7 +204,7 @@ function getDateFromDateAndTime(dateTimeString: string) {
   return parts[0];
 }
 
-function isDateNotInCurrentWeek(dateStr:string) {
+function isDateNotInCurrentWeek(dateStr: string) {
   const givenDate = new Date(dateStr);
   const today = new Date();
 

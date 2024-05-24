@@ -36,7 +36,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { TimesheetProp } from "@/app/types/timesheet";
+import { DialogProps } from "@/app/types/timesheet";
 import { ScreenLoader } from "@/app/components/Loader";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -44,23 +44,17 @@ import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/state/store";
-import { Matcher } from "react-day-picker";
+import { getInitialState } from "@/app/reducer/timesheet";
 
 interface Task {
   name: string;
   subject: string;
 }
+
 export default function TimesheetDialog({
-  isOpen,
-  timesheet,
-  closeDialog,
-  setFetchAgain,
-}: {
-  isOpen: boolean;
-  timesheet: TimesheetProp;
-  closeDialog: () => void;
-  setFetchAgain: React.Dispatch<React.SetStateAction<boolean>>;
-}) {
+  dialogState,
+  dispatch,
+}: DialogProps) {
   const employee = useSelector((state: RootState) => state.employee);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [isComboOpen, setIsComboOpen] = useState(false);
@@ -68,7 +62,7 @@ export default function TimesheetDialog({
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
 
   useEffect(() => {
-    setSelectedDate(new Date(timesheet.date));
+    setSelectedDate(new Date(dialogState.timesheet.date));
   }, []);
 
   const FormSchema = z.object({
@@ -91,13 +85,13 @@ export default function TimesheetDialog({
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      name: timesheet.name,
-      task: timesheet.task,
-      hours: timesheet.hours,
-      description: timesheet.description,
-      date: timesheet.date,
-      parent: timesheet.parent,
-      is_update: timesheet.isUpdate,
+      name: dialogState.timesheet.name,
+      task: dialogState.timesheet.task,
+      hours: dialogState.timesheet.hours,
+      description: dialogState.timesheet.description,
+      date: dialogState.timesheet.date,
+      parent: dialogState.timesheet.parent,
+      is_update: dialogState.timesheet.isUpdate,
     },
   });
   const {
@@ -132,12 +126,16 @@ export default function TimesheetDialog({
   if (isLoading || isDateLoading) {
     return <ScreenLoader isFullPage={false} />;
   }
-
+  function closeDialog() {
+    dispatch({ type: "SetTimesheet", payload: getInitialState.timesheet });
+    dispatch({ type: "SetDialog", payload: false });
+  }
   function onSubmit(values: z.infer<typeof FormSchema>) {
     call(values)
       .then((res) => {
-        closeDialog();
-        setFetchAgain(true);
+        dispatch({ type: "SetDialog", payload: false });
+        dispatch({ type: "SetFetchAgain", payload: true });
+
         toast({
           variant: "success",
           title: res.message,
@@ -149,12 +147,11 @@ export default function TimesheetDialog({
           variant: "destructive",
           title: error.message ?? error,
         });
-        console.error(err);
       });
   }
 
   return (
-    <Dialog open={isOpen}>
+    <Dialog open={dialogState.isDialogOpen}>
       <CustomDialogContent
         className="sm:max-w-md timesheet-dialog"
         isCloseButton={true}
@@ -182,7 +179,7 @@ export default function TimesheetDialog({
                           className="w-auto "
                           type="number"
                           placeholder="Hours"
-                          defaultValue={timesheet.hours}
+                          defaultValue={dialogState.timesheet.hours}
                           min={0}
                           max={8}
                           onChange={(event) => {
@@ -208,7 +205,7 @@ export default function TimesheetDialog({
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
-                            disabled={timesheet.date ? true : false}
+                            disabled={dialogState.timesheet.date ? true : false}
                             variant={"outline"}
                             className={cn(
                               "w-auto justify-start text-left font-normal",
@@ -267,7 +264,7 @@ export default function TimesheetDialog({
                             variant="outline"
                             role="combobox"
                             className="max-w-full px-1 justify-between"
-                            disabled={timesheet.task ? true : false}
+                            disabled={dialogState.timesheet.task ? true : false}
                           >
                             {field.value ? (
                               tasks?.message.find(
