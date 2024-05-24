@@ -51,3 +51,7 @@ export function floatToTime(float: number) {
 
   return `${formattedHours}:${formattedMinutes}`;
 }
+export const getSiteName = () => {
+  // @ts-ignore
+    return window.frappe?.boot?.sitename ?? import.meta.env.VITE_SITE_NAME
+}
