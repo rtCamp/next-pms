@@ -1,21 +1,14 @@
-export interface TaskData {
-  parent: string;
-  task: string;
-  hours: number;
-  name: string;
-  description: string;
-}
-export interface TimesheetProp extends TaskData {
-  date: string;
-  isUpdate: boolean;
-}
+import { TimesheetStateProps } from "@/app/reducer/timesheet";
 
 export interface Dateprops{
   date: string;
   is_holiday: boolean;
 }
 
-export interface dateRangeProps{
-  start_date: string;
-  end_date: string;
+export interface DialogProps{
+  dialogState: TimesheetStateProps;
+  dispatch: React.Dispatch<{
+    type: string;
+    payload: any;
+  }>
 }
