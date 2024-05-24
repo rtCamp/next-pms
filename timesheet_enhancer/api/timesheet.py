@@ -9,6 +9,7 @@ now = nowdate()
 
 @frappe.whitelist()
 def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
+    """Get timesheet data for the given employee for the given number of weeks."""
     if not employee:
         employee = get_employee_from_user()
     data = {}
@@ -31,6 +32,7 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
 
 @frappe.whitelist()
 def get_employee_holidays_and_leave_dates(employee: str):
+    """Returns the list of holidays and leaves dates after combining for the given employee."""
     from hrms.hr.utils import get_holiday_dates_for_employee
 
     start_date = get_first_day(nowdate())
@@ -67,6 +69,7 @@ def save(
     parent: str = None,
     is_update: bool = False,
 ):
+    """Updates/create time entry in Timesheet Detail child table."""
     employee = get_employee_from_user()
     if is_update and not name:
         throw(_("Timesheet name is required for update"))
@@ -162,6 +165,26 @@ def create_timesheet_detail(
 
 
 def get_timesheet(dates: list, employee: str):
+    """Return the time entry from Timesheet Detail child table based on the list of dates and for the given employee.
+    example:
+        {
+            "Task 1": {
+                "name": "TS-00001",
+                "data": [
+                    {
+                        "task": "Task 1",
+                        "name": "TS-00001",
+                        "hours": 8,
+                        "description": "Task 1 description",
+                        "from_time": "2021-08-01",
+                        "to_time": "2021-08-01",
+                    },
+                    ...
+                ]
+            },
+            ...
+        }
+    """
     data = {}
     total_hours = 0
     for element in dates:
@@ -190,6 +213,20 @@ def get_timesheet(dates: list, employee: str):
 
 
 def get_week_dates(employee: str, date=now, current_week: bool = False):
+    """Returns the dates map with dates and other details.
+    example:
+        {
+            "start_date": "2021-08-01",
+            "end_date": "2021-08-07",
+            "key": "Aug 01 - Aug 07",
+            "dates": [
+                {"date": "2021-08-01", "is_holiday": False},
+                {"date": "2021-08-02", "is_holiday": False},
+                {"date": "2021-08-03", "is_holiday": True},
+                ...
+            ]
+        }
+    """
     from hrms.hr.utils import get_holiday_dates_for_employee
 
     dates = []

@@ -62,6 +62,7 @@ def before_save(doc, method=None):
 
     if not doc.get("time_logs"):
         return
+    #  Update the from_time and to_time to have only date part and time part as 00:00:00
     for key, data in enumerate(doc.get("time_logs")):
         from_time = get_datetime(data.from_time).replace(
             hour=0, minute=0, second=0, microsecond=0
