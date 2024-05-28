@@ -1,5 +1,6 @@
 import frappe
 
+from .timesheet import get_timesheet_data
 from .utils import get_week_dates, weekly_working_hours_for_employee
 
 
@@ -53,3 +54,15 @@ def get_weekly_compact_view_data(date: str):
         f'{week["start_date"].strftime("%b %d")} - {week["end_date"].strftime("%b %d")}'
     )
     return res
+
+
+@frappe.whitelist()
+def get_weekly_team_view_data(date: str):
+    employees = frappe.get_list("Employee", fields=["name", "image", "employee_name"])
+    data = {}
+
+    data["summary"] = get_weekly_compact_view_data(date)
+    data["data"] = []
+    for employee in employees:
+        data["data"].append(get_timesheet_data(employee.name, date, 1))
+    return data
