@@ -1,8 +1,13 @@
 import frappe
 from frappe import _, throw
 from frappe.utils import add_days, get_first_day, get_last_day, getdate, nowdate
+from hrms.hr.utils import get_holiday_dates_for_employee
 
-from timesheet_enhancer.api.utils import get_employee_from_user, get_leaves_for_employee
+from timesheet_enhancer.api.utils import (
+    get_employee_from_user,
+    get_leaves_for_employee,
+    get_week_dates,
+)
 
 now = nowdate()
 
@@ -10,13 +15,14 @@ now = nowdate()
 @frappe.whitelist()
 def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
     """Get timesheet data for the given employee for the given number of weeks."""
+
     if not employee:
         employee = get_employee_from_user()
     data = {}
     for i in range(max_week):
         current_week = True if i == 0 else False
 
-        week_dates = get_week_dates(employee, start_date, current_week=current_week)
+        week_dates = get_week_dates(start_date, current_week=current_week)
         data[week_dates["key"]] = week_dates
         tasks, total_hours = get_timesheet(week_dates["dates"], employee)
         data[week_dates["key"]]["total_hours"] = total_hours
@@ -25,7 +31,10 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
             week_dates["start_date"], week_dates["end_date"], employee
         )
         data[week_dates["key"]]["leaves"] = leaves
-        start_date = week_dates["start_date"]
+        data[week_dates["key"]]["holidays"] = get_holiday_dates_for_employee(
+            employee, week_dates["start_date"], week_dates["end_date"]
+        )
+        start_date = add_days(getdate(week_dates["start_date"]), -1)
 
     return data
 
@@ -187,8 +196,8 @@ def get_timesheet(dates: list, employee: str):
     """
     data = {}
     total_hours = 0
-    for element in dates:
-        date = element["date"]
+    for date in dates:
+        date = date
         name = frappe.db.exists(
             "Timesheet",
             {
@@ -210,49 +219,3 @@ def get_timesheet(dates: list, employee: str):
 
             data[subject]["data"].append(log.as_dict())
     return [data, total_hours]
-
-
-def get_week_dates(employee: str, date=now, current_week: bool = False):
-    """Returns the dates map with dates and other details.
-    example:
-        {
-            "start_date": "2021-08-01",
-            "end_date": "2021-08-07",
-            "key": "Aug 01 - Aug 07",
-            "dates": [
-                {"date": "2021-08-01", "is_holiday": False},
-                {"date": "2021-08-02", "is_holiday": False},
-                {"date": "2021-08-03", "is_holiday": True},
-                ...
-            ]
-        }
-    """
-    from hrms.hr.utils import get_holiday_dates_for_employee
-
-    dates = []
-    data = {}
-
-    today = getdate(date)
-    today_weekday = today.weekday()
-
-    start_date = (
-        add_days(today, -7) if not current_week else add_days(today, -today_weekday)
-    )
-    end_date = add_days(start_date, 6)
-
-    key = (
-        f'{start_date.strftime("%b %d")} - {end_date.strftime("%b %d")}'
-        if not current_week
-        else "This Week"
-    )
-
-    data = {"start_date": start_date, "end_date": end_date, "key": key}
-    holidays = get_holiday_dates_for_employee(employee, start_date, end_date)
-    while start_date <= end_date:
-        if str(start_date) in holidays:
-            dates.append({"date": start_date, "is_holiday": True})
-        else:
-            dates.append({"date": start_date, "is_holiday": False})
-        start_date = add_days(start_date, 1)
-    data["dates"] = dates
-    return data
