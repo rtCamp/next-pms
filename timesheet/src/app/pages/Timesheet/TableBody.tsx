@@ -1,6 +1,6 @@
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { cn, floatToTime, getTodayDate,getDateFromDateAndTime } from "@/app/lib/utils";
-import { Dateprops } from "@/app/types/timesheet";
+
 import {
   Tooltip,
   TooltipContent,
@@ -9,7 +9,8 @@ import {
 
 interface TimesheetTableBodyProps {
   tasks: Object;
-  dates: Array<Dateprops>;
+  dates: Array<string>;
+  holidays: Array<string>;
   leaves: any;
   dispatch: React.Dispatch<{
     type: string;
@@ -21,6 +22,7 @@ export function TimesheetTableBody({
   tasks,
   dates,
   leaves,
+  holidays,
   dispatch,
 }: TimesheetTableBodyProps) {
   return (
@@ -35,17 +37,19 @@ export function TimesheetTableBody({
                 <TableCell className=" flex w-full max-w-96  items-center text-justify font-medium hover:cursor-pointer border-r ">
                   {task}
                 </TableCell>
-                {dates.map((iter: Dateprops) => {
+                {dates.map((date: string) => {
+                  const isHoliday = holidays.includes(date);
+
                   const taskDateData = taskData.data.find(
                     (data: any) =>
-                      getDateFromDateAndTime(data.from_time) === iter.date
+                      getDateFromDateAndTime(data.from_time) === date
                   );
                   if (taskDateData && taskDateData.hours) {
                     totalHours += taskDateData.hours;
                   }
                   const leaveData = leaves.find((data: any) => {
                     return (
-                      iter.date >= data.from_date && iter.date <= data.to_date
+                      date >= data.from_date && date <= data.to_date
                     );
                   });
                   return (
@@ -56,12 +60,12 @@ export function TimesheetTableBody({
                       task={taskData?.name ?? ""}
                       description={taskDateData?.description ?? ""}
                       hours={taskDateData?.hours ?? 0}
-                      date={iter.date}
+                      date={date}
                       isCellDisabled={
-                        iter.is_holiday ||
                         (leaveData && !leaveData.half_day) ||
-                        getTodayDate() < iter.date ||
-                        isDateNotInCurrentWeek(iter.date)
+                        getTodayDate() < date ||
+                        isHoliday ||
+                        isDateNotInCurrentWeek(date)
                       }
                     />
                   );
@@ -148,16 +152,16 @@ function TaskCell({
   );
 }
 
-function LeaveRow({ dates, leaves }: { dates: Array<Dateprops>; leaves: any }) {
+function LeaveRow({ dates, leaves }: { dates: Array<string>; leaves: any }) {
   let totalHours = 0;
   return (
     <TableRow key={1} className="flex">
       <TableCell className=" flex w-full max-w-96  items-center text-justify font-medium hover:cursor-pointer border-r ">
         Time Off
       </TableCell>
-      {dates.map((iter: Dateprops) => {
+      {dates.map((date: string) => {
         const leaveData = leaves.find((data: any) => {
-          return iter.date >= data.from_date && iter.date <= data.to_date;
+          return date >= data.from_date && date <= data.to_date;
         });
         if (leaveData) {
           totalHours += leaveData?.half_day ? 4 : 8;
@@ -169,7 +173,7 @@ function LeaveRow({ dates, leaves }: { dates: Array<Dateprops>; leaves: any }) {
               task={""}
               description={leaveData?.description}
               hours={leaveData?.half_day ? 4 : 8}
-              date={iter.date}
+              date={date}
               isCellDisabled={true}
             />
           );
@@ -182,7 +186,7 @@ function LeaveRow({ dates, leaves }: { dates: Array<Dateprops>; leaves: any }) {
               task={""}
               description={""}
               hours={0}
-              date={iter.date}
+              date={date}
               isCellDisabled={true}
             />
           );

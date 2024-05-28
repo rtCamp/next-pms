@@ -23,6 +23,7 @@ export function TimesheetTable({
   const dates = data?.dates;
   const tasks = data?.tasks;
   const leaves = data?.leaves;
+  const holidays = data?.holidays;
   const tableRef = useRef();
 
   return (
@@ -41,11 +42,11 @@ export function TimesheetTable({
             >
               Tasks
             </TableHead>
-            {dates.map((iter: Dateprops) => {
-              const { date: formattedDate, day } = formatDate(iter.date);
+            {dates.map((date: string) => {
+              const { date: formattedDate, day } = formatDate(date);
               return (
                 <TableHead
-                  key={iter.date}
+                  key={date}
                   className="flex w-full  justify-center flex-col text-center max-w-20 font-bold  px-0 hover:cursor-pointer border-r"
                 >
                   <div>{day}</div>
@@ -64,6 +65,7 @@ export function TimesheetTable({
         <TimesheetTableBody
           dispatch={dispatch}
           tasks={tasks}
+          holidays={holidays}
           dates={dates}
           leaves={leaves}
         />
