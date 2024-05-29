@@ -1,5 +1,3 @@
-import { useFrappeGetCall } from "frappe-react-sdk";
-import { ScreenLoader } from "@/app/components/Loader";
 import { getTodayDate } from "@/app/lib/utils";
 import { useState } from "react";
 import {
@@ -16,7 +14,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { FrappeContext, FrappeConfig } from "frappe-react-sdk";
 import { useContext, useEffect } from "react";
 
-export default function CopmactView() {
+export default function CompactView() {
   const { call } = useContext(FrappeContext) as FrappeConfig;
 
   const [WeekDate, setWeekDate] = useState(getTodayDate());
