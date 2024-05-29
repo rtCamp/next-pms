@@ -1,12 +1,16 @@
 import { Route } from "react-router-dom";
 import { lazy } from "react";
-import { ProtectedRoute } from "@/app/lib/ProtectedRoute";
+import { AuthenticatedRoute, OnlyPMRoute } from "@/app/lib/ProtectedRoute";
 const Timesheet = lazy(() => import("@/app/pages/Timesheet"));
+const CopmactView = lazy(() => import("@/app/pages/Team/CompactView"));
 export default function Router() {
   return (
     <>
-      <Route element={<ProtectedRoute />}>
+      <Route element={<AuthenticatedRoute />}>
         <Route path="/" element={<Timesheet />} />
+        <Route element={<OnlyPMRoute />}>
+          <Route path="/teams/compact" element={<CopmactView />} />
+        </Route>
       </Route>
     </>
   );
