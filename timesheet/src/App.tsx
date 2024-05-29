@@ -6,7 +6,6 @@ import {
 } from "react-router-dom";
 import { UserProvider } from "@/app/provider/UserProvider";
 import Router from "@/Router";
-import "./index.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ScreenLoader } from "@/app/components/Loader";
 import { Suspense } from "react";
