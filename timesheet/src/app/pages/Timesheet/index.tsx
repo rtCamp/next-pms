@@ -17,12 +17,12 @@ import TimesheetDialog from "./components/Dialog";
 import { CircleCheck } from "lucide-react";
 import ApprovalDialog from "./components/ApprovalDialog";
 import { getInitialState, reducer } from "@/app/reducer/timesheet";
+import { TaskCellClickProps } from "@/app/types/timesheet";
 
 function Timesheet() {
   const { toast } = useToast();
   const { call } = useContext(FrappeContext) as FrappeConfig;
   const employee = useSelector((state: RootState) => state.employee);
-
   const [state, dispatch] = useReducer(reducer, getInitialState);
 
   function fetchData(employee: string) {
@@ -62,6 +62,40 @@ function Timesheet() {
     })();
   }, [state.isFetchAgain]);
 
+  const onTaskCellClick = ({
+    date,
+    name,
+    parent,
+    task,
+    description,
+    hours,
+  }: TaskCellClickProps) => {
+    const isUpdate = name ? true : false;
+    dispatch({
+      type: "SetTimesheet",
+      payload: { name, parent, task, date, description, hours, isUpdate },
+    });
+    dispatch({ type: "SetDialog", payload: true });
+  };
+
+  const onAddTimeClick = () => {
+    dispatch({ type: "SetDialog", payload: true });
+  };
+
+  const onApproveTimeClick = (tableRef: any) => {
+    dispatch({
+      type: "SetDateRange",
+      payload: {
+        start_date:
+          // @ts-ignore
+          tableRef?.current?.getAttribute("data-start-date"),
+        // @ts-ignore
+        end_date: tableRef?.current?.getAttribute("data-end-date"),
+      },
+    });
+    dispatch({ type: "SetApprovalDialog", payload: true });
+  };
+
   if (state.isFetching) {
     return <ScreenLoader isFullPage={true} />;
   }
@@ -96,7 +130,12 @@ function Timesheet() {
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="pb-0">
-                  <TimesheetTable data={value} dispatch={dispatch} />
+                  <TimesheetTable
+                    data={value}
+                    onTaskCellClick={onTaskCellClick}
+                    onAddTimeClick={onAddTimeClick}
+                    onApproveTimeClick={onApproveTimeClick}
+                  />
                 </AccordionContent>
               </AccordionItem>
             )

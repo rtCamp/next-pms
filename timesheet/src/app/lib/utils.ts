@@ -61,3 +61,30 @@ export function getDateFromDateAndTime(dateTimeString: string) {
   const parts = dateTimeString.split(" ");
   return parts[0];
 }
+
+export function isDateNotInCurrentWeek(dateStr: string) {
+  const givenDate = new Date(dateStr);
+  const today = new Date();
+
+  // Calculate the start and end of the current week
+  const dayOfWeek = today.getDay(); // 0 (Sunday) to 6 (Saturday)
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - dayOfWeek);
+  startOfWeek.setHours(0, 0, 0, 0); // Set to start of day
+
+  const endOfWeek = new Date(today);
+  endOfWeek.setDate(today.getDate() + (6 - dayOfWeek));
+  endOfWeek.setHours(23, 59, 59, 999); // Set to end of day
+
+  // Check if the given date is outside the current week
+  return givenDate < startOfWeek || givenDate > endOfWeek;
+}
+
+export function formatDate(dateString: string) {
+  const date = new Date(dateString);
+
+  const month = date.toLocaleString("default", { month: "short" });
+  const dayOfMonth = date.getDate();
+  const dayOfWeek = date.toLocaleString("default", { weekday: "short" });
+  return { date: `${month} ${dayOfMonth}`, day: dayOfWeek };
+}
