@@ -14,6 +14,14 @@ def get_employee_from_user(user: str = None):
     return employee
 
 
+@frappe.whitelist()
+def get_current_user_roles(user: str = None):
+    if not user:
+        user = frappe.session.user
+    roles = frappe.get_roles(user)
+    return roles
+
+
 def get_leaves_for_employee(from_date: str, to_date: str, employee: str):
     leave_application = frappe.qb.DocType("Leave Application")
     filtered_data = (
