@@ -1,4 +1,4 @@
-import { getTodayDate } from "@/app/lib/utils";
+import { getTodayDate,getFormatedDate } from "@/app/lib/utils";
 import { useState } from "react";
 import {
   Table,
@@ -31,18 +31,14 @@ export default function CompactView() {
   const handleprevWeek = () => {
     const date = new Date(WeekDate);
     date.setDate(date.getDate() - 7);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    setWeekDate(`${year}-${month}-${day}`);
+    const stringDate = getFormatedDate(date);
+    setWeekDate(stringDate);
   };
   const handlenextWeek = () => {
     const date = new Date(WeekDate);
     date.setDate(date.getDate() + 7);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    setWeekDate(`${year}-${month}-${day}`);
+    const stringDate = getFormatedDate(date);
+    setWeekDate(stringDate);
   };
   useEffect(() => {
     fetchData();
@@ -105,10 +101,14 @@ export default function CompactView() {
                         });
                         if (timesheet) {
                           hours = timesheet.total_hours;
-                        }
-                        if (leaveData) {
+                        } else if (leaveData) {
                           isOnLeave = true;
                           hours = leaveData?.half_day ? 4 : 8;
+                        }
+                        if (timesheet && leaveData) {
+                          isOnLeave = true;
+                          const leaveHour =leaveData?.half_day ? 4 : 8
+                          hours = timesheet?.total_hours + leaveHour
                         }
 
                         return (

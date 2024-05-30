@@ -1,4 +1,4 @@
-import { type ClassValue,clsx } from "clsx";
+import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -9,7 +9,7 @@ export function getCookie(name: string) {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
   if (parts.length === 2) return parts.pop()?.split(";").shift();
-  return null; 
+  return null;
 }
 
 export function setCookie(name: string, value: string, days: number) {
@@ -18,14 +18,18 @@ export function setCookie(name: string, value: string, days: number) {
   document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`;
 }
 
+export function getFormatedDate(date: string | Date) {
+  if (typeof date == "string") {
+    date = new Date(date);
+  }
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 export function getTodayDate() {
   const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0'); 
-  const day = String(today.getDate()).padStart(2, '0');
-
-  return  `${year}-${month}-${day}`;
-
+  return getFormatedDate(today);
 }
 
 export function parseFrappeErrorMsg(StringError: string) {
@@ -35,10 +39,10 @@ export function parseFrappeErrorMsg(StringError: string) {
       const jsonObjectStr = jsonMsgArray[0];
       return JSON.parse(jsonObjectStr);
     }
-  } catch (e) { 
+  } catch (e) {
     return "Error parsing json."
   }
-  
+
 }
 export function floatToTime(float: number) {
   // Extract hours and minutes from the float
@@ -53,7 +57,7 @@ export function floatToTime(float: number) {
 }
 export const getSiteName = () => {
   // @ts-ignore
-    return window.frappe?.boot?.sitename ?? import.meta.env.VITE_SITE_NAME
+  return window.frappe?.boot?.sitename ?? import.meta.env.VITE_SITE_NAME
 }
 
 export function getDateFromDateAndTime(dateTimeString: string) {
