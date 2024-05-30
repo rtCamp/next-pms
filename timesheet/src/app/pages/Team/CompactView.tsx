@@ -46,9 +46,6 @@ export default function CompactView() {
   };
   useEffect(() => {
     fetchData();
-  }, []);
-  useEffect(() => {
-    fetchData();
   }, [WeekDate]);
 
   return (
