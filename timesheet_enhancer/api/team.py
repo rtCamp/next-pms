@@ -53,16 +53,16 @@ def get_weekly_compact_view_data(date: str):
     res["key"] = (
         f'{week["start_date"].strftime("%b %d")} - {week["end_date"].strftime("%b %d")}'
     )
+    res["employees"] = employees
     return res
 
 
 @frappe.whitelist()
 def get_weekly_team_view_data(date: str):
-    employees = frappe.get_list("Employee", fields=["name", "image", "employee_name"])
     data = {}
 
     data["summary"] = get_weekly_compact_view_data(date)
     data["data"] = []
-    for employee in employees:
+    for employee in data["summary"]["employees"]:
         data["data"].append(get_timesheet_data(employee.name, date, 1))
     return data

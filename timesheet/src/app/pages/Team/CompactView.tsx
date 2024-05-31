@@ -50,8 +50,8 @@ export default function CompactView() {
         <Table>
           <TableHeader className="[&_tr]:border">
             <TableRow>
-              <TableHead className="border-r ">Employee</TableHead>
-              <TableHead className="px-0 flex flex-col h-14">
+              <TableHead className="border-r  w-5/12 ">Employee</TableHead>
+              <TableHead className="px-0 flex flex-col h-14 w-full ">
                 <div className="flex justify-between">
                   <ChevronLeft
                     className="hover:cursor-pointer"
@@ -69,7 +69,7 @@ export default function CompactView() {
                     return (
                       <TableHead
                         key={date}
-                        className="flex w-full h-8 justify-center flex-col text-center font-bold  px-0 [&:not(:last-child)]:border-r"
+                        className="flex w-full h-8 max-w-20 justify-center flex-col text-center font-bold  px-0 [&:not(:last-child)]:border-r"
                       >
                         <div>{formattedDate}</div>
                       </TableHead>
@@ -82,8 +82,8 @@ export default function CompactView() {
           <TableBody className="border">
             {data.data.map((row: any) => {
               return (
-                <TableRow key={1}>
-                  <TableCell className="border-r w-4/12">
+                <TableRow key={row.name}>
+                  <TableCell className="border-r w-6/12">
                     {row.employee_name}
                   </TableCell>
                   <TableCell className="p-0">
@@ -114,7 +114,7 @@ export default function CompactView() {
                         return (
                           <TableCell
                             className={cn(
-                              "flex w-full flex-col text-center  px-0  [&:not(:last-child)]:border-r",
+                              "flex w-full flex-col text-center max-w-20 px-0  [&:not(:last-child)]:border-r",
                               `${
                                 isHoliday
                                   ? "text-muted-foreground bg-muted hover:cursor-not-allowed "
@@ -124,7 +124,7 @@ export default function CompactView() {
                               } `
                             )}
                           >
-                            {!isHoliday ? floatToTime(hours) : ""}
+                            {!isHoliday && hours ? floatToTime(hours) : "-"}
                           </TableCell>
                         );
                       })}
