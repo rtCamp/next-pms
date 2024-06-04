@@ -1,4 +1,11 @@
-import { getTodayDate,getFormatedDate } from "@/app/lib/utils";
+import {
+  getTodayDate,
+  getFormatedDate,
+  cn,
+  floatToTime,
+  formatDate,
+  addDays,
+} from "@/app/lib/utils";
 import { useState } from "react";
 import {
   Table,
@@ -8,8 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, floatToTime } from "@/app/lib/utils";
-import { formatDate } from "@/app/lib/utils";
+
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { FrappeContext, FrappeConfig } from "frappe-react-sdk";
 import { useContext, useEffect } from "react";
@@ -29,16 +35,12 @@ export default function CompactView() {
       });
   }
   const handleprevWeek = () => {
-    const date = new Date(WeekDate);
-    date.setDate(date.getDate() - 7);
-    const stringDate = getFormatedDate(date);
-    setWeekDate(stringDate);
+    const date = addDays(WeekDate, -7);
+    setWeekDate(date);
   };
   const handlenextWeek = () => {
-    const date = new Date(WeekDate);
-    date.setDate(date.getDate() + 7);
-    const stringDate = getFormatedDate(date);
-    setWeekDate(stringDate);
+    const date = addDays(WeekDate, 7);
+    setWeekDate(date);
   };
   useEffect(() => {
     fetchData();
@@ -107,8 +109,8 @@ export default function CompactView() {
                         }
                         if (timesheet && leaveData) {
                           isOnLeave = true;
-                          const leaveHour =leaveData?.half_day ? 4 : 8
-                          hours = timesheet?.total_hours + leaveHour
+                          const leaveHour = leaveData?.half_day ? 4 : 8;
+                          hours = timesheet?.total_hours + leaveHour;
                         }
 
                         return (

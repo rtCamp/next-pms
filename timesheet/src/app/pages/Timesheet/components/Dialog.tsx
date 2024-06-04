@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { cn, parseFrappeErrorMsg } from "@/app/lib/utils";
+import { cn, parseFrappeErrorMsg, getFormatedDate } from "@/app/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Check, ChevronsUpDown, Search } from "lucide-react";
@@ -56,13 +56,17 @@ export default function TimesheetDialog({
   dispatch,
 }: DialogProps) {
   const employee = useSelector((state: RootState) => state.employee);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedDate, setSelectedDate] = useState<string>(
+    getFormatedDate(new Date())
+  );
   const [isComboOpen, setIsComboOpen] = useState(false);
   const { toast } = useToast();
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
 
   useEffect(() => {
-    setSelectedDate(new Date(dialogState.timesheet.date));
+    if (!dialogState.timesheet.date) return;
+    const date = getFormatedDate(dialogState.timesheet.date);
+    setSelectedDate(date);
   }, []);
 
   const FormSchema = z.object({
@@ -70,9 +74,12 @@ export default function TimesheetDialog({
       required_error: "Please select a task.",
     }),
     name: z.string({}),
-    hours: z.number({
-      required_error: "Please enter hours.",
-    }),
+    hours: z
+      .number({
+        required_error: "Please enter hours.",
+      })
+      .max(8, "Hours should be less than 8.")
+      .min(0, "Hours should be greater than 0."),
     date: z.string({
       required_error: "Please enter date.",
     }),
@@ -160,6 +167,7 @@ export default function TimesheetDialog({
         <DialogHeader>
           <DialogTitle>Add Time</DialogTitle>
         </DialogHeader>
+        <hr />
         <div>
           <Form {...form}>
             <form className="space-y-8" onSubmit={form.handleSubmit(onSubmit)}>
@@ -175,17 +183,42 @@ export default function TimesheetDialog({
                         </sup>
                       </div>
                       <FormControl>
-                        <Input
-                          className="w-auto "
-                          type="number"
-                          placeholder="Hours"
-                          defaultValue={dialogState.timesheet.hours}
-                          min={0}
-                          max={8}
-                          onChange={(event) => {
-                            field.onChange(parseInt(event.target.value));
-                          }}
-                        />
+                        <div className="flex justify-between gap-1">
+                          <Button
+                            type="button"
+                            onClick={() => {
+                              if (field.value === 0) return;
+                              form.setValue("hours", field.value - 0.5);
+                            }}
+                          >
+                            -
+                          </Button>
+                          <Input
+                            className=""
+                            type="text"
+                            placeholder="Hours"
+                            value={field.value}
+                            defaultValue={dialogState.timesheet.hours}
+                            onChange={(event) => {
+                              if (!event.target.value) {
+                                field.onChange(0);
+                                return;
+                              }
+                              const time = parseFloat(event.target.value);
+                              if (time > 8 || time < 0) return;
+                              field.onChange(time);
+                            }}
+                          />
+                          <Button
+                            type="button"
+                            onClick={() => {
+                              if (field.value === 8) return;
+                              form.setValue("hours", field.value + 0.5);
+                            }}
+                          >
+                            +
+                          </Button>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -216,26 +249,22 @@ export default function TimesheetDialog({
                             {field.value ? (
                               field.value
                             ) : (
-                              <span>Pick a date</span>
+                              <span>{selectedDate}</span>
                             )}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
                           <Calendar
                             mode="single"
-                            selected={selectedDate}
+                            selected={new Date(selectedDate)}
                             disableNavigation
                             disabled={convertStringsToDates(
                               leaveAndHolidayDates?.message
                             )}
                             onSelect={(date) => {
-                              const d = date?.toLocaleDateString("sv-SE", {
-                                day: "2-digit",
-                                month: "2-digit",
-                                year: "numeric",
-                              });
-                              if (!d) return;
-                              setSelectedDate(new Date(d));
+                              if (!date) return;
+                              const d = getFormatedDate(date);
+                              setSelectedDate(d);
                               field.onChange(d);
                             }}
                             initialFocus

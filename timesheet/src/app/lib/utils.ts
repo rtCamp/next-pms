@@ -92,3 +92,11 @@ export function formatDate(dateString: string) {
   const dayOfWeek = date.toLocaleString("default", { weekday: "short" });
   return { date: `${month} ${dayOfMonth}`, day: dayOfWeek };
 }
+
+export function addDays(dateString:string,days:number) {
+  const date = new Date(dateString);
+  const daysNum = date.getDate() + days;
+  date.setDate(daysNum);
+  return getFormatedDate(date);
+  
+}
