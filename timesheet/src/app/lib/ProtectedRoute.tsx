@@ -11,7 +11,7 @@ import { setRole } from "@/app/state/roles";
 import { useNavigate } from "react-router-dom";
 
 export const AuthenticatedRoute = () => {
-  const { currentUser, isLoading } = useContext(UserContext);
+  const { currentUser, isLoading, logout } = useContext(UserContext);
   const { call } = useContext(FrappeContext) as FrappeConfig;
   const roles = useSelector((state: RootState) => state.roles);
   const dispatch = useDispatch();
@@ -38,11 +38,12 @@ export const AuthenticatedRoute = () => {
 };
 
 export const OnlyPMRoute = () => {
+  const { logout } = useContext(UserContext);
   const roles = useSelector((state: RootState) => state.roles);
   const navigate = useNavigate();
 
   if (!roles.value.includes("Projects Manager")) {
-    navigate(-1);
+    logout();
   }
   return <Outlet />;
 };
