@@ -21,13 +21,11 @@ interface TimesheetTableProps {
     description,
     hours,
   }: TaskCellClickProps) => void;
-  onAddTimeClick?: () => void;
   onApproveTimeClick?: (tableRef: any) => void;
 }
 export function TimesheetTable({
   data,
   onTaskCellClick,
-  onAddTimeClick,
   onApproveTimeClick,
 }: TimesheetTableProps) {
   const dates = data?.dates;
@@ -81,8 +79,8 @@ export function TimesheetTable({
           onTaskCellClick={onTaskCellClick}
         />
         <TableFooter className="flex p-3 gap-x-4">
-          <Button onClick={onAddTimeClick}>Add Time</Button>
           <Button
+            variant="outline"
             onClick={() => {
               if (onApproveTimeClick) onApproveTimeClick(tableRef);
             }}

@@ -20,7 +20,7 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
         employee = get_employee_from_user()
     data = {}
     for i in range(max_week):
-        current_week = True if i == 0 else False
+        current_week = True if start_date == now else False
 
         week_dates = get_week_dates(start_date, current_week=current_week)
         data[week_dates["key"]] = week_dates
