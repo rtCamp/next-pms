@@ -13,6 +13,7 @@ import { formatDate } from "@/app/lib/utils";
 
 interface TimesheetTableProps {
   data: any;
+  isHeading?: boolean;
   onTaskCellClick: ({
     date,
     name,
@@ -25,6 +26,7 @@ interface TimesheetTableProps {
 }
 export function TimesheetTable({
   data,
+  isHeading = true,
   onTaskCellClick,
   onApproveTimeClick,
 }: TimesheetTableProps) {
@@ -43,34 +45,37 @@ export function TimesheetTable({
         data-start-date={data?.start_date}
         data-end-date={data?.end_date}
       >
-        <TableHeader>
-          <TableRow className="flex bg-muted/40 hover:bg-muted/40 border-t">
-            <TableHead
-              key="Heading"
-              className="flex w-full max-w-96 font-bold items-center  border-r"
-            >
-              Tasks
-            </TableHead>
-            {dates.map((date: string) => {
-              const { date: formattedDate, day } = formatDate(date);
-              return (
-                <TableHead
-                  key={date}
-                  className="flex w-full  justify-center flex-col text-center max-w-20 font-bold  px-0 hover:cursor-pointer border-r"
-                >
-                  <div>{day}</div>
-                  <div>{formattedDate}</div>
-                </TableHead>
-              );
-            })}
-            <TableHead
-              key="Total"
-              className="flex w-full  justify-center flex-col  text-center max-w-20 font-bold  px-0"
-            >
-              Total
-            </TableHead>
-          </TableRow>
-        </TableHeader>
+        {isHeading && (
+          <TableHeader>
+            <TableRow className="flex bg-muted/40 hover:bg-muted/40 border-t">
+              <TableHead
+                key="Heading"
+                className="flex w-full max-w-96 font-bold items-center  border-r"
+              >
+                Tasks
+              </TableHead>
+              {dates.map((date: string) => {
+                const { date: formattedDate, day } = formatDate(date);
+                return (
+                  <TableHead
+                    key={date}
+                    className="flex w-full  justify-center flex-col text-center max-w-20 font-bold  px-0 hover:cursor-pointer border-r"
+                  >
+                    <div>{day}</div>
+                    <div>{formattedDate}</div>
+                  </TableHead>
+                );
+              })}
+              <TableHead
+                key="Total"
+                className="flex w-full  justify-center flex-col  text-center max-w-20 font-bold  px-0"
+              >
+                Total
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+        )}
+
         <TimesheetTableBody
           tasks={tasks}
           holidays={holidays}

@@ -7,10 +7,7 @@ import {
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -27,11 +24,40 @@ import { parseFrappeErrorMsg, floatToTime, cn } from "@/app/lib/utils";
 
 import { getInitialState, reducer } from "@/app/reducer/timesheet";
 
+interface TeamViewProps {
+  summary: {
+    start_date: string;
+    end_date: string;
+    key: string;
+    dates: string[];
+    data: rowProps[];
+  };
+  data: object;
+}
+interface rowProps {
+  name: string;
+  image: string;
+  employee_name: string;
+  holidays: string[];
+  timesheets: object[];
+  leaves: object[];
+}
 export default function TeamView() {
+  const initValue = {
+    summary: {
+      start_date: "",
+      end_date: "",
+      key: "",
+      dates: [],
+      data: [],
+    },
+    data: {},
+  };
+
   const { toast } = useToast();
   const { call } = useContext(FrappeContext) as FrappeConfig;
   const [WeekDate, setWeekDate] = useState(getTodayDate());
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<TeamViewProps>(initValue);
   const [state, dispatch] = useReducer(reducer, getInitialState);
 
   function fetchData() {
@@ -55,9 +81,10 @@ export default function TeamView() {
   useEffect(() => {
     fetchData();
   }, [WeekDate]);
-  const dates = data?.summary?.dates;
+
   const summary = data?.summary;
-console.log(data)
+  const dates = data?.summary?.dates;
+
   return (
     <>
       <Card>
@@ -86,17 +113,21 @@ console.log(data)
           </tr>
         </CardHeader>
         <CardContent className="p-0">
-          <Accordion type="single" collapsible className="w-full">
+          <Accordion type="multiple" className="w-full">
             {summary &&
-              summary.data.map((row: any) => {
+              summary.data.map((row: rowProps) => {
                 let total = 0;
+                let result = Object.entries(data.data).find(
+                  ([key, value]) => key === row.name
+                );
+                result = result ? result[1] : {};
                 return (
                   <AccordionItem key={row.name} value={row.name}>
                     <AccordionTrigger className="bg-background hover:no-underline focus:outline-none hover:border-transparent focus:outline-offset-0 focus:outline-0 p-0 font-normal">
                       <tr className="flex w-full">
                         <td className=" flex w-full max-w-96  p-2 text-center items-center gap-x-2">
-                          <Avatar>
-                            <AvatarImage src={row.image} />
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={row.image} alt="User Image" />
                             <AvatarFallback>
                               {row.employee_name[0]}
                             </AvatarFallback>
@@ -108,15 +139,17 @@ console.log(data)
 
                           const isHoliday = row.holidays.includes(date);
                           let isOnLeave = false;
-                          const timesheet = row.timesheets.find(
+                          const timesheet: any = row.timesheets.find(
                             (data: any) => data.start_date == date
                           );
 
-                          const leaveData = row.leaves.find((data: any) => {
-                            return (
-                              date >= data.from_date && date <= data.to_date
-                            );
-                          });
+                          const leaveData: any = row.leaves.find(
+                            (data: any) => {
+                              return (
+                                date >= data.from_date && date <= data.to_date
+                              );
+                            }
+                          );
                           if (timesheet) {
                             hours = timesheet.total_hours;
                           } else if (leaveData) {
@@ -155,12 +188,12 @@ console.log(data)
                       </tr>
                     </AccordionTrigger>
                     <AccordionContent className="pb-0">
-                      {/* <TimesheetTable
-                        data={value}
-                        onTaskCellClick={onTaskCellClick}
-                        onAddTimeClick={onAddTimeClick}
-                        onApproveTimeClick={onApproveTimeClick}
-                      /> */}
+                      <TimesheetTable
+                        data={result}
+                        isHeading={false}
+                        onTaskCellClick={() => {}}
+                        onApproveTimeClick={() => {}}
+                      />
                     </AccordionContent>
                   </AccordionItem>
                 );

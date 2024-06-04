@@ -38,9 +38,9 @@ function Timesheet() {
       .then((res) => {
         if (append) {
           dispatch({ type: "AppendData", payload: res.message });
-          return;
+        } else {
+          dispatch({ type: "SetData", payload: res.message });
         }
-        dispatch({ type: "SetData", payload: res.message });
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err._server_messages);
@@ -65,25 +65,19 @@ function Timesheet() {
     dispatch({ type: "SetWeekDate", payload: addDays(data.start_date, -1) });
   };
   useEffect(() => {
-    (async () => {
-      init();
-    })();
+    init();
   }, []);
 
   useEffect(() => {
-    (async () => {
-      if (!state.isFetchAgain) return;
-      dispatch({ type: "SetFetching", payload: true });
-      fetchData(employee.value);
-      dispatch({ type: "SetFetching", payload: false });
-      dispatch({ type: "SetFetchAgain", payload: false });
-    })();
+    if (!state.isFetchAgain) return;
+    dispatch({ type: "SetFetching", payload: true });
+    fetchData(employee.value);
+    dispatch({ type: "SetFetching", payload: false });
+    dispatch({ type: "SetFetchAgain", payload: false });
   }, [state.isFetchAgain]);
 
   useEffect(() => {
-    (async () => {
-      init(true);
-    })();
+    init(true);
   }, [state.weekDate]);
 
   const onTaskCellClick = ({
@@ -131,9 +125,7 @@ function Timesheet() {
       <Card>
         <Tabs defaultValue="timesheet" className="">
           <TabsList className="justify-start w-full bg-background py-0">
-            <TabsTrigger value="timesheet">
-              Timesheet
-            </TabsTrigger>
+            <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
           </TabsList>
           <hr />
 

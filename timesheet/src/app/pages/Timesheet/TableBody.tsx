@@ -85,7 +85,7 @@ export function TimesheetTableBody({
           })
         ) : (
           <TableRow className="flex">
-            <TableCell className=" flex w-full font-bold items-center  justify-center text-justify font-medium">
+            <TableCell className=" flex w-full font-bold items-center  justify-center text-justify font-medium border-t">
               No tasks found
             </TableCell>
           </TableRow>

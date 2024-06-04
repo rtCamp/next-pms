@@ -62,7 +62,10 @@ def get_weekly_team_view_data(date: str):
     data = {}
 
     data["summary"] = get_weekly_compact_view_data(date)
-    data["data"] = []
+    data["data"] = {}
     for employee in data["summary"]["employees"]:
-        data["data"].append(get_timesheet_data(employee.name, date, 1))
+        data["data"][employee.name] = next(
+            iter(get_timesheet_data(employee.name, date, 1).values())
+        )
+
     return data
