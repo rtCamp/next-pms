@@ -8,7 +8,6 @@ import { FrappeContext, FrappeConfig } from "frappe-react-sdk";
 import { RootState } from "@/app/state/store";
 import { useSelector } from "react-redux";
 import { setRole } from "@/app/state/roles";
-import { useNavigate } from "react-router-dom";
 
 export const AuthenticatedRoute = () => {
   const { currentUser, isLoading, logout } = useContext(UserContext);
@@ -40,7 +39,6 @@ export const AuthenticatedRoute = () => {
 export const OnlyPMRoute = () => {
   const { logout } = useContext(UserContext);
   const roles = useSelector((state: RootState) => state.roles);
-  const navigate = useNavigate();
 
   if (!roles.value.includes("Projects Manager")) {
     logout();
