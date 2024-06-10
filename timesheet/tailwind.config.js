@@ -18,6 +18,9 @@ export const theme = {
   extend: {
     colors: {
       border: "hsl(var(--border))",
+      borderLine: "hsl(var(--border-line))",
+      heading: "hsl(var(--heading))",
+      secondaryText: "hsl(var(--secondary-text))",
       input: "hsl(var(--input))",
       ring: "hsl(var(--ring))",
       background: "hsl(var(--background))",
@@ -50,10 +53,11 @@ export const theme = {
         DEFAULT: "hsl(var(--card))",
         foreground: "hsl(var(--card-foreground))",
       },
-      success: {
-        DEFAULT: "hsl(var(--success))",
-        foreground: "hsl(var(--success-foreground))",
-      },
+      success: "hsl(var(--success))",
+      warning: "hsl(var(--warning))",
+      error: "hsl(var(--error))",
+      gradientPrimary: "hsl(var(--gradient-primary))",
+      gradientSecondary: "hsl(var(--gradient-secondary))",
     },
     borderRadius: {
       lg: "var(--radius)",
