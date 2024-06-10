@@ -12,45 +12,52 @@ import { UserContext } from "@/app/provider/UserProvider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn, getCookie } from "@/app/lib/utils";
 import { useContext } from "react";
+import { Icon } from "../Icon";
 
 export function Header() {
   const { alt, src } = get_user_avatar();
   const { logout } = useContext(UserContext);
   return (
-    <div className=" border border-gray-300 rounded-r-md rounded-b-md p-2 ">
-      <NavigationMenu viewPortClassName="left-auto right-0">
-        <NavigationMenuList className="w-screen justify-between px-4">
-          <NavigationMenuItem>
-            <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-              Home
-            </NavigationMenuLink>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <NavigationMenuTrigger className=" data-[state=open]:bg-transparent hover:bg-transparent">
-              <Avatar>
-                <AvatarImage src={decodeURIComponent(src)} alt={alt} />
-                <AvatarFallback>{alt}</AvatarFallback>
-              </Avatar>
-            </NavigationMenuTrigger>
-            <NavigationMenuContent className="right-0 left-auto">
-              <ul className=" w-[200px] text-black text-left right-0 left-auto">
-                <ListItem
-                  key="Switch to desk"
-                  title="Switch to desk"
-                  href="/desk"
-                  className="relative"
-                ></ListItem>
+    <div className="">
+      <NavigationMenu
+        viewPortClassName="w-full"
+        className="max-w-full  w-full justify-start"
+      >
+        <div className="w-full">
+          <NavigationMenuList className="justify-between">
+            <NavigationMenuItem>
+              <div className="flex gap-x-2 items-center">
+                <Icon name="rtCamp" />
+                <p className="text-[18px] leading-7 font-bold">Timesheet Entry</p>
+              </div>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavigationMenuTrigger className=" p-0 data-[state=open]:bg-transparent hover:bg-transparent">
+                <Avatar className="h-[35px] w-[35px]">
+                  <AvatarImage src={decodeURIComponent(src)} alt={alt} />
+                  <AvatarFallback>{alt}</AvatarFallback>
+                </Avatar>
+              </NavigationMenuTrigger>
+              <NavigationMenuContent className="right-0 left-auto ">
+                <ul className=" w-[200px] text-black text-left right-0 ">
+                  <ListItem
+                    key="Switch to desk"
+                    title="Switch to desk"
+                    href="/desk"
+                    className="relative"
+                  ></ListItem>
 
-                <ListItem
-                  key="Logout"
-                  title="Logout"
-                  onClick={logout}
-                  className="relative hover:cursor-pointer"
-                ></ListItem>
-              </ul>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
-        </NavigationMenuList>
+                  <ListItem
+                    key="Logout"
+                    title="Logout"
+                    onClick={logout}
+                    className="relative hover:cursor-pointer"
+                  ></ListItem>
+                </ul>
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </div>
       </NavigationMenu>
     </div>
   );
