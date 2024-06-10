@@ -7,11 +7,14 @@ import { useDispatch } from "react-redux";
 import { RootState } from "@/app/state/store";
 import { useSelector } from "react-redux";
 import { FrappeConfig, FrappeContext } from "frappe-react-sdk";
+import { useToast } from "@/components/ui/use-toast";
+import { parseFrappeErrorMsg } from "@/app/lib/utils";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const employee = useSelector((state: RootState) => state.employee);
   const dispatch = useDispatch<AppDispatch>();
   const { call } = useContext(FrappeContext) as FrappeConfig;
+  const { toast } = useToast();
   useEffect(() => {
     (async () => {
       call
@@ -20,7 +23,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
           dispatch(setEmployee(res?.message));
         })
         .catch((err) => {
-          console.error(err);
+          const error = parseFrappeErrorMsg(err._server_messages);
+          toast({
+            variant: "destructive",
+            title: "Error! Something went wrong.",
+            description: error.message ?? error,
+          });
         });
     })();
   }, []);
