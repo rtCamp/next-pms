@@ -6,7 +6,7 @@ import {
   TableFooter,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { TimesheetTableBody } from "./TableBody";
+import { TimesheetTableBody } from "./components/TableBody";
 import { useRef } from "react";
 import { TaskCellClickProps } from "@/app/types/timesheet";
 import { formatDate } from "@/app/lib/utils";

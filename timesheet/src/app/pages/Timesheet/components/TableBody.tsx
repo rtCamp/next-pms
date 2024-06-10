@@ -39,8 +39,11 @@ export function TimesheetTableBody({
           Object.entries(tasks).map(([task, taskData]: [string, any]) => {
             let totalHours = 0;
             return (
-              <TableRow key={task} className="flex">
-                <TableCell className=" flex w-full max-w-96  items-center text-justify font-medium hover:cursor-pointer border-r ">
+              <TableRow
+                key={task}
+                className="flex border-borderLine bg-[#F4F4F5] border-b-[1px]"
+              >
+                <TableCell className=" w-full max-w-md text-justify font-medium hover:cursor-pointer !px-2 py-4 truncate">
                   {task}
                 </TableCell>
                 {dates.map((date: string) => {
@@ -76,7 +79,7 @@ export function TimesheetTableBody({
                 })}
                 <TableCell
                   key="TotlaHour"
-                  className="flex w-full justify-center flex-col font-bold max-w-20 px-0 text-center hover:cursor-pointer hover:p-[3px] hover:border"
+                  className="flex w-full justify-center flex-col font-bold max-w-24 px-0 text-center hover:cursor-pointer "
                 >
                   {floatToTime(totalHours)}
                 </TableCell>

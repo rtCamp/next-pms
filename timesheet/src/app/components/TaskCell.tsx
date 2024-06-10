@@ -43,10 +43,10 @@ export function TaskCell({
       onClick={onClick}
       key={date}
       className={cn(
-        "flex w-full justify-center flex-col  max-w-20  p-0 text-center  border-r ",
+        "flex w-full justify-center flex-col max-w-[90px] p-0",
         `${
           isCellDisabled
-            ? "text-muted-foreground bg-muted hover:cursor-not-allowed "
+            ? "text-muted-foreground hover:cursor-not-allowed "
             : "hover:cursor-pointer"
         }`
       )}
@@ -55,7 +55,7 @@ export function TaskCell({
         <>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="h-full flex justify-center items-center">
+              <div className="h-full flex  items-center">
                 {floatToTime(hours)}
               </div>
             </TooltipTrigger>

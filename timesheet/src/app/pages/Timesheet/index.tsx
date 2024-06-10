@@ -1,18 +1,12 @@
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { addDays } from "@/app/lib/utils";
 import { ScreenLoader } from "@/app/components/Loader";
 import { useContext, useEffect, useReducer } from "react";
 import { FrappeContext, FrappeConfig } from "frappe-react-sdk";
-import { TimesheetTable } from "@/app/pages/Timesheet/TimesheetTable";
+import { TimesheetTable } from "@/app/pages/Timesheet/components/Table";
 import { RootState } from "@/app/state/store";
 import { useSelector } from "react-redux";
 import { useToast } from "@/components/ui/use-toast";
-import { parseFrappeErrorMsg, floatToTime } from "@/app/lib/utils";
+import { parseFrappeErrorMsg, } from "@/app/lib/utils";
 import TimesheetDialog from "./components/Dialog";
 import { CircleCheck } from "lucide-react";
 import ApprovalDialog from "./components/ApprovalDialog";
@@ -20,7 +14,7 @@ import { getInitialState, reducer } from "@/app/reducer/timesheet";
 import { TaskCellClickProps } from "@/app/types/timesheet";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardFooter } from "@/components/ui/card";
+import { Icon } from "@/app/components/Icon";
 
 function Timesheet() {
   const { toast } = useToast();
@@ -115,71 +109,53 @@ function Timesheet() {
   };
 
   if (state.isFetching) {
-    return <ScreenLoader isFullPage={true} />;
+    return <ScreenLoader isFullPage={true} />
   }
   return (
     <div>
-      <div className="flex justify-end pb-4">
-        <Button onClick={onAddTimeClick}>Add Time</Button>
-      </div>
-      <Card>
-        <Tabs defaultValue="timesheet" className="">
-          <TabsList className="justify-start w-full bg-background py-0">
+      <Tabs defaultValue="timesheet">
+        <div className="flex gap-x-2.5">
+          <TabsList className="justify-start w-full  py-0">
             <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
           </TabsList>
-          <hr />
-
-          <TabsContent value="timesheet">
-            <Accordion type="multiple" className="w-full">
-              {state.data &&
-                Object.entries(state.data).map(
-                  ([key, value]: [string, any]) => (
-                    <AccordionItem
-                      key={key}
-                      value={key}
-                      className="first:border-t"
-                    >
-                      <AccordionTrigger className="bg-background hover:no-underline focus:outline-none hover:border-transparent focus:outline-offset-0 focus:outline-0">
-                        <div className="flex w-full justify-between items-center text-xs sm:text-sm md:text-base">
-                          <div className="flex gap-x-2 md:gap-x-4 items-center">
-                            <p>{key}</p>
-                            <p className="text-muted-foreground ">
-                              {floatToTime(value?.total_hours)}h
-                            </p>
-                          </div>
-                          <div
-                            className=" flex text-muted-foreground/70 gap-x-2 text-sm pr-2 items-center"
-                            onClick={() => {
-                              console.log("yeah");
-                            }}
-                          >
-                            <CircleCheck
-                              size={16}
-                              stroke="hsl(var(--success))"
-                            />
-                            <p>NOT SUBMITTED</p>
-                          </div>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="pb-0">
-                        <TimesheetTable
-                          data={value}
-                          onTaskCellClick={onTaskCellClick}
-                          onApproveTimeClick={onApproveTimeClick}
-                        />
-                      </AccordionContent>
-                    </AccordionItem>
-                  )
-                )}
-            </Accordion>
-          </TabsContent>
-        </Tabs>
-        <CardFooter className="p-4">
-          <Button variant="outline" onClick={updateWeekDate}>
-            Load More
+          <Button variant="gradient" onClick={onAddTimeClick}>
+            Add Time
           </Button>
-        </CardFooter>
-      </Card>
+        </div>
+        <TabsContent value="timesheet">
+          {state.data &&
+            Object.entries(state.data).map(([key, value]: [string, any]) => {
+              return (
+                <div>
+                  <div className="flex w-full h-12 justify-between items-center border-b border-borderLine mt-5">
+                    <div className="flex gap-x-2 md:gap-x-4 items-center font-bold">
+                      <p>{key}</p>
+                    </div>
+                    <div
+                      className=" flex text-muted-foreground/70 gap-x-2 text-sm pr-2 items-center"
+                      onClick={() => {
+                        console.log("yeah");
+                      }}
+                    >
+                      <CircleCheck size={16} />
+                      <p>Not Submitted</p>
+                    </div>
+                  </div>
+                   {/* @ts-ignore */}
+                  <TimesheetTable data={value} />
+                </div>
+              );
+            })}
+        </TabsContent>
+      </Tabs>
+      <Button
+        variant="outlineSecondary"
+        onClick={updateWeekDate}
+        className="flex gap-x-2 my-6"
+      >
+        <Icon name="arrow-down" />
+        <p> Load More</p>
+      </Button>
 
       {state.isDialogOpen && (
         <TimesheetDialog dialogState={state} dispatch={dispatch} />

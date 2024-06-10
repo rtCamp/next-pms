@@ -24,8 +24,8 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
 
         week_dates = get_week_dates(start_date, current_week=current_week)
         data[week_dates["key"]] = week_dates
-        tasks, total_hours = get_timesheet(week_dates["dates"], employee)
-        data[week_dates["key"]]["total_hours"] = total_hours
+        tasks, hours = get_timesheet(week_dates["dates"], employee)
+        data[week_dates["key"]]["hours"] = hours
         data[week_dates["key"]]["tasks"] = tasks
         leaves = get_leaves_for_employee(
             week_dates["start_date"], week_dates["end_date"], employee
@@ -195,7 +195,7 @@ def get_timesheet(dates: list, employee: str):
         }
     """
     data = {}
-    total_hours = 0
+    hours = []
     for date in dates:
         date = date
         name = frappe.db.exists(
@@ -207,9 +207,11 @@ def get_timesheet(dates: list, employee: str):
             },
         )
         if not name:
+            hours.append({"date": date, "hours": 0})
             continue
         timesheet = frappe.get_doc("Timesheet", name)
-        total_hours += timesheet.total_hours
+        # total_hours += timesheet.total_hours
+        hours.append({"date": date, "hours": timesheet.total_hours})
         for log in timesheet.time_logs:
             subject, task_name = frappe.get_value("Task", log.task, ["subject", "name"])
             if not subject:
@@ -218,4 +220,4 @@ def get_timesheet(dates: list, employee: str):
                 data[subject] = {"name": task_name, "data": []}
 
             data[subject]["data"].append(log.as_dict())
-    return [data, total_hours]
+    return [data, hours]

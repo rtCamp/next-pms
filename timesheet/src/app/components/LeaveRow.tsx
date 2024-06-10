@@ -10,8 +10,8 @@ export function LeaveRow({
 }) {
   let totalHours = 0;
   return (
-    <TableRow key={1} className="flex">
-      <TableCell className=" flex w-full max-w-96  items-center text-justify font-medium hover:cursor-pointer border-r ">
+    <TableRow key={1} className="flex border-borderLine border-b-[1px] bg-[#F4F4F5]">
+      <TableCell className=" flex w-full max-w-96  text-justify font-medium hover:cursor-pointer !px-2 py-4">
         Time Off
       </TableCell>
       {dates.map((date: string) => {
@@ -37,7 +37,7 @@ export function LeaveRow({
       })}
       <TableCell
         key="TotlaHour"
-        className="flex w-full justify-center flex-col font-bold max-w-20 px-0 text-center hover:cursor-pointer hover:p-[3px] hover:border"
+        className="flex w-full justify-center flex-col font-bold max-w-24 px-0 text-center hover:cursor-pointer  "
       >
         {floatToTime(totalHours)}
       </TableCell>
