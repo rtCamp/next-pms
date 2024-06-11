@@ -13,7 +13,7 @@ export interface TimesheetStateProps {
     isFetching: boolean;
     isFetchAgain: boolean;
     data: object;
-    isDialogOpen: boolean;
+    isAddTimeDialogOpen: boolean;
     isAprrovalDialogOpen: boolean;
     weekDate: string;
 }
@@ -32,7 +32,7 @@ export const getInitialState = {
     isFetching: false,
     isFetchAgain: false,
     data: {},
-    isDialogOpen: false,
+    isAddTimeDialogOpen: false,
     isAprrovalDialogOpen: false,
     weekDate: getTodayDate()
 }
@@ -46,9 +46,9 @@ export const reducer = (state: TimesheetStateProps, { type, payload }: { type: s
 
 const actionMap = new Map([
 
-    ["SetDialog", (state: TimesheetStateProps, payload: any) => ({
+    ["SetAddTimeDialog", (state: TimesheetStateProps, payload: any) => ({
         ...state,
-        isDialogOpen: payload,
+        isAddTimeDialogOpen: payload,
     })],
     ["SetApprovalDialog", (state: TimesheetStateProps, payload: any) => ({
         ...state,

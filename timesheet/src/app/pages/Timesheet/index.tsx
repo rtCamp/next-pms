@@ -1,4 +1,4 @@
-import { addDays } from "@/app/lib/utils";
+import { addDays, getTodayDate } from "@/app/lib/utils";
 import { ScreenLoader } from "@/app/components/Loader";
 import { useContext, useEffect, useReducer } from "react";
 import { FrappeContext, FrappeConfig } from "frappe-react-sdk";
@@ -6,8 +6,7 @@ import { TimesheetTable } from "@/app/pages/Timesheet/components/Table";
 import { RootState } from "@/app/state/store";
 import { useSelector } from "react-redux";
 import { useToast } from "@/components/ui/use-toast";
-import { parseFrappeErrorMsg, } from "@/app/lib/utils";
-import TimesheetDialog from "./components/Dialog";
+import { parseFrappeErrorMsg } from "@/app/lib/utils";
 import { CircleCheck } from "lucide-react";
 import ApprovalDialog from "./components/ApprovalDialog";
 import { getInitialState, reducer } from "@/app/reducer/timesheet";
@@ -15,6 +14,7 @@ import { TaskCellClickProps } from "@/app/types/timesheet";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Icon } from "@/app/components/Icon";
+import { AddTimeDialog } from "./components/AddTimeDialog";
 
 function Timesheet() {
   const { toast } = useToast();
@@ -87,11 +87,23 @@ function Timesheet() {
       type: "SetTimesheet",
       payload: { name, parent, task, date, description, hours, isUpdate },
     });
-    dispatch({ type: "SetDialog", payload: true });
+    dispatch({ type: "SetAddTimeDialog", payload: true });
   };
 
   const onAddTimeClick = () => {
-    dispatch({ type: "SetDialog", payload: true });
+    dispatch({
+      type: "SetTimesheet",
+      payload: {
+        date: getTodayDate(),
+        isUpdate: false,
+        hours: 0,
+        description: "",
+        name: "",
+        parent: "",
+        task: "",
+      },
+    });
+    dispatch({ type: "SetAddTimeDialog", payload: true });
   };
 
   const onApproveTimeClick = (tableRef: any) => {
@@ -109,7 +121,7 @@ function Timesheet() {
   };
 
   if (state.isFetching) {
-    return <ScreenLoader isFullPage={true} />
+    return <ScreenLoader isFullPage={true} />;
   }
   return (
     <div>
@@ -127,7 +139,7 @@ function Timesheet() {
             Object.entries(state.data).map(([key, value]: [string, any]) => {
               return (
                 <div>
-                  <div className="flex w-full h-12 justify-between items-center border-b border-borderLine mt-5">
+                  <div className="flex w-full h-12 justify-between items-center border-b mt-5">
                     <div className="flex gap-x-2 md:gap-x-4 items-center font-bold">
                       <p>{key}</p>
                     </div>
@@ -141,7 +153,7 @@ function Timesheet() {
                       <p>Not Submitted</p>
                     </div>
                   </div>
-                   {/* @ts-ignore */}
+                  {/* @ts-ignore */}
                   <TimesheetTable data={value} />
                 </div>
               );
@@ -154,16 +166,14 @@ function Timesheet() {
         className="flex gap-x-2 my-6"
       >
         <Icon name="arrow-down" />
-        <p> Load More</p>
+        <p className=" font-medium"> Load More</p>
       </Button>
 
-      {state.isDialogOpen && (
-        <TimesheetDialog dialogState={state} dispatch={dispatch} />
-      )}
+      <AddTimeDialog state={state} dispatch={dispatch} />
 
-      {state.isAprrovalDialogOpen && (
+      {/* {state.isAprrovalDialogOpen && (
         <ApprovalDialog dialogState={state} dispatch={dispatch} />
-      )}
+      )} */}
     </div>
   );
 }

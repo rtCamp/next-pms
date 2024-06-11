@@ -1,4 +1,5 @@
 /** @type {import('tailwindcss').Config} */
+
 export const darkMode = ["class"];
 export const content = [
   "./pages/**/*.{ts,tsx}",
@@ -18,7 +19,6 @@ export const theme = {
   extend: {
     colors: {
       border: "hsl(var(--border))",
-      borderLine: "hsl(var(--border-line))",
       heading: "hsl(var(--heading))",
       secondaryText: "hsl(var(--secondary-text))",
       input: "hsl(var(--input))",
@@ -55,7 +55,6 @@ export const theme = {
       },
       success: "hsl(var(--success))",
       warning: "hsl(var(--warning))",
-      error: "hsl(var(--error))",
       gradientPrimary: "hsl(var(--gradient-primary))",
       gradientSecondary: "hsl(var(--gradient-secondary))",
     },
@@ -77,6 +76,9 @@ export const theme = {
     animation: {
       "accordion-down": "accordion-down 0.2s ease-out",
       "accordion-up": "accordion-up 0.2s ease-out",
+    },
+    fontFamily: {
+      sans: ["Manrope", "inter"],
     },
   },
 };

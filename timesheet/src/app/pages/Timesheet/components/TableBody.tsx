@@ -41,10 +41,13 @@ export function TimesheetTableBody({
             return (
               <TableRow
                 key={task}
-                className="flex border-borderLine bg-[#F4F4F5] border-b-[1px]"
+                className="flex  bg-[#F4F4F5] border-b-[1px]"
               >
                 <TableCell className=" w-full max-w-md text-justify font-medium hover:cursor-pointer !px-2 py-4 truncate">
-                  {task}
+                  <p>{task}</p>
+                  <p className="text-secondaryText text-xs">
+                    {taskData.project}
+                  </p>
                 </TableCell>
                 {dates.map((date: string) => {
                   const isHoliday = holidays.includes(date);
@@ -78,7 +81,7 @@ export function TimesheetTableBody({
                   );
                 })}
                 <TableCell
-                  key="TotlaHour"
+                  key={"TotlaHour" + task}
                   className="flex w-full justify-center flex-col font-bold max-w-24 px-0 text-center hover:cursor-pointer "
                 >
                   {floatToTime(totalHours)}
@@ -87,6 +90,27 @@ export function TimesheetTableBody({
             );
           })
         ) : (
+          //   <TableRow key="1" className="flex  bg-[#F4F4F5] border-b-[1px]">
+          //     <TableCell className=" w-full max-w-md text-justify font-medium hover:cursor-pointer !px-2 py-4 truncate"></TableCell>
+          //   {dates.map((date: string) => {
+          //     return (
+          //       <TaskCell
+          //         onCellClick={onTaskCellClick}
+          //         name=""
+          //         parent=""
+          //         task=""
+          //         description=""
+          //         hours={0}
+          //         date={date}
+          //         isCellDisabled={false}
+          //       />
+          //     );
+          //   })}
+          //       <TableCell
+          //         key="TotlaHour"
+          //         className="flex w-full justify-center flex-col font-bold max-w-24 px-0 text-center hover:cursor-pointer "
+          //       ></TableCell>
+          // </TableRow>
           <TableRow className="flex">
             <TableCell className=" flex w-full font-bold items-center  justify-center text-justify font-medium border-t">
               No tasks found

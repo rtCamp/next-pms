@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -22,10 +23,10 @@
     --muted: 0 0% 96.1%;
     --muted-foreground: 0 0% 45.1%;
 
-    --accent: 0 0% 96.1%;
+    --accent:240 6% 90%;
     --accent-foreground: 0 0% 9%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 79% 63%;
     --destructive-foreground: 0 0% 98%;
 
     --border: 0 0% 89.8%;
@@ -33,7 +34,6 @@
     --ring: 0 0% 3.9%;
 
     --radius: 0.5rem;
-    --border-line: 240, 6%, 90%;
 
     --heading: 240 10% 4%;
     --secondary-text: 240 4% 46%;
@@ -41,7 +41,6 @@
     /* Base color for alert */
     --success: 145 63% 42%;
     --warning: 28 87% 62%;
-    --error: 0 79% 63%;
     --gradient-primary : 333 49% 45%;
     --gradient-secondary : 360 59% 56%;
   }
@@ -90,9 +89,9 @@
 }
 
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  /* font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
-  font-weight: 400;
+  font-weight: 400; */
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);

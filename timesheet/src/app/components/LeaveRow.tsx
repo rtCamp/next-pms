@@ -10,9 +10,9 @@ export function LeaveRow({
 }) {
   let totalHours = 0;
   return (
-    <TableRow key={1} className="flex border-borderLine border-b-[1px] bg-[#F4F4F5]">
-      <TableCell className=" flex w-full max-w-96  text-justify font-medium hover:cursor-pointer !px-2 py-4">
-        Time Off
+    <TableRow key={1} className="flex  border-b-[1px] bg-[#F4F4F5]">
+      <TableCell className=" flex w-full max-w-md text-justify font-medium hover:cursor-pointer !px-2 py-4">
+        TIME OFF
       </TableCell>
       {dates.map((date: string) => {
         let hour = 0;

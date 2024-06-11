@@ -36,7 +36,7 @@ export function TimesheetTable({
         <TableRow className="flex h-16">
           <TableHead
             key="Heading"
-            className="flex w-full max-w-96 font-medium items-center h-16 text-heading "
+            className="flex w-full max-w-md font-medium items-center h-16 text-heading !px-2 "
           >
             Tasks
           </TableHead>
@@ -48,7 +48,7 @@ export function TimesheetTable({
 
             let classname = "";
             if (val.hours < 8) {
-              classname = "bg-error";
+              classname = "bg-destructive";
             } else if (val.hours == 8) {
               classname = "bg-success";
             } else {
@@ -58,7 +58,7 @@ export function TimesheetTable({
               classname = "";
             }
             return (
-              <div className="flex w-full  h-16  text-[#09090B]  flex-col  max-w-[90px]  px-0 ">
+              <div className="flex w-full  h-16  text-[#09090B]  flex-col max-w-20  px-0 ">
                 <TableHead
                   key={date}
                   className="h-full flex flex-col justify-center"
