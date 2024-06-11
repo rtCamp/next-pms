@@ -98,7 +98,8 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
     if (!state.timesheet.date) return;
     const date = getFormatedDate(state.timesheet.date);
     setSelectedDate(date);
-  }, []);
+    form.setValue("date", date);
+  }, [state.timesheet.date]);
 
   const {
     isLoading: isTaskLoading,
@@ -137,9 +138,10 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
     dispatch({ type: "SetAddTimeDialog", payload: false });
   };
   function onSubmit(values: z.infer<typeof FormSchema>) {
+    console.log(values);
     call(values)
       .then((res) => {
-        dispatch({ type: "SetAddTimeDialog", payload: false });
+        closeDialog();
         dispatch({ type: "SetFetchAgain", payload: true });
 
         toast({
@@ -219,21 +221,21 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
                         </div>
                         <Popover open={isDatePickerOpen}>
                           <PopoverTrigger asChild>
-                          <Button
-                            type="button"
-                            variant={"outline"}
-                            onClick={handleDatePickerState}
-                            className={cn(
-                              "w-full  justify-between text-left font-normal !mt-0  text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              field.value
-                            ) : (
-                              <span>{selectedDate}</span>
-                            )}
-                            <Icon name="calendar" />
-                          </Button>
+                            <Button
+                              type="button"
+                              variant={"outline"}
+                              onClick={handleDatePickerState}
+                              className={cn(
+                                "w-full  justify-between text-left font-normal !mt-0  text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                field.value
+                              ) : (
+                                <span>{selectedDate}</span>
+                              )}
+                              <Icon name="calendar" />
+                            </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0">
                             <Calendar
