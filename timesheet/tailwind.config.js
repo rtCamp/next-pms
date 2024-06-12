@@ -45,6 +45,10 @@ export const theme = {
         DEFAULT: "hsl(var(--accent))",
         foreground: "hsl(var(--accent-foreground))",
       },
+      "accent-secondary": {
+        DEFAULT: "hsl(var(--accent-secondary))",
+        foreground: "hsl(var(--accent-secondary-foreground))",
+      },
       popover: {
         DEFAULT: "hsl(var(--popover))",
         foreground: "hsl(var(--popover-foreground))",
@@ -53,10 +57,14 @@ export const theme = {
         DEFAULT: "hsl(var(--card))",
         foreground: "hsl(var(--card-foreground))",
       },
-      success: "hsl(var(--success))",
-      warning: "hsl(var(--warning))",
-      gradientPrimary: "hsl(var(--gradient-primary))",
-      gradientSecondary: "hsl(var(--gradient-secondary))",
+      success: {
+        DEFAULT: "hsl(var(--success))",
+        foreground: "hsl(var(--success-foreground))",
+      },
+      warning: {
+        DEFAULT: "hsl(var(--warning))",
+        foreground: "hsl(var(--warning-foreground))",
+      },
     },
     borderRadius: {
       lg: "var(--radius)",
