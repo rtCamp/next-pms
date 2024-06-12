@@ -12,8 +12,8 @@ import { UserContext } from "@/app/provider/UserProvider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn, getCookie } from "@/app/lib/utils";
 import { useContext } from "react";
-import { Icon } from "../Icon";
-
+import { RtCamp } from "../Icon";
+import { Typography } from "../Typography";
 export function Header() {
   const { alt, src } = get_user_avatar();
   const { logout } = useContext(UserContext);
@@ -27,8 +27,8 @@ export function Header() {
           <NavigationMenuList className="justify-between">
             <NavigationMenuItem>
               <div className="flex gap-x-2 items-center">
-                <Icon name="rtCamp" />
-                <p className="text-[18px] leading-7 font-bold">Timesheet Entry</p>
+                <RtCamp />
+                <Typography variant="h5">Timesheet Entry</Typography>
               </div>
             </NavigationMenuItem>
             <NavigationMenuItem>

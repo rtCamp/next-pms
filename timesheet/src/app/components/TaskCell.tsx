@@ -6,7 +6,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
+import { CirclePlus } from "@/app/components/Icon";
 interface TaskCellProps {
   date: string;
   task?: any;
@@ -15,6 +15,8 @@ interface TaskCellProps {
   description: string;
   hours: number;
   isCellDisabled?: boolean;
+  showAdd?: boolean;
+  classname?: string;
   onCellClick: ({
     date,
     name,
@@ -22,6 +24,7 @@ interface TaskCellProps {
     task,
     description,
     hours,
+    
   }: TaskCellClickProps) => void;
 }
 
@@ -32,7 +35,9 @@ export function TaskCell({
   task = "",
   description,
   hours,
-  isCellDisabled,
+  isCellDisabled=false,
+  showAdd = false,
+  classname="",
   onCellClick,
 }: TaskCellProps) {
   const onClick = () => {
@@ -48,7 +53,7 @@ export function TaskCell({
           isCellDisabled
             ? "text-muted-foreground hover:cursor-not-allowed "
             : "hover:cursor-pointer"
-        }`
+        } ${classname}`
       )}
     >
       {hours ? (
@@ -62,6 +67,10 @@ export function TaskCell({
             <TooltipContent>{description}</TooltipContent>
           </Tooltip>
         </>
+      ) : showAdd && !isCellDisabled ? (
+        <div className="flex bg-background h-full w-14 items-center justify-center">
+          <CirclePlus />
+        </div>
       ) : (
         "-"
       )}
