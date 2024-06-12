@@ -13,9 +13,9 @@ import { getInitialState, reducer } from "@/app/reducer/timesheet";
 import { TaskCellClickProps } from "@/app/types/timesheet";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Icon } from "@/app/components/Icon";
+import { ArrowDown } from "@/app/components/Icon";
 import { AddTimeDialog } from "./components/AddTimeDialog";
-
+import { Typography } from "@/app/components/Typography";
 function Timesheet() {
   const { toast } = useToast();
   const { call } = useContext(FrappeContext) as FrappeConfig;
@@ -58,9 +58,6 @@ function Timesheet() {
     const data = stateData[Object.keys(stateData).pop()];
     dispatch({ type: "SetWeekDate", payload: addDays(data.start_date, -1) });
   };
-  useEffect(() => {
-    init();
-  }, []);
 
   useEffect(() => {
     if (!state.isFetchAgain) return;
@@ -83,6 +80,7 @@ function Timesheet() {
     hours,
   }: TaskCellClickProps) => {
     const isUpdate = name ? true : false;
+    console.log(date, name, parent, task, description, hours);
     dispatch({
       type: "SetTimesheet",
       payload: { name, parent, task, date, description, hours, isUpdate },
@@ -127,10 +125,10 @@ function Timesheet() {
     <div>
       <Tabs defaultValue="timesheet">
         <div className="flex gap-x-2.5">
-          <TabsList className="justify-start w-full  py-0">
+          <TabsList className="justify-start w-full  py-0 bg-primary">
             <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
           </TabsList>
-          <Button variant="gradient" onClick={onAddTimeClick}>
+          <Button variant="accent" onClick={onAddTimeClick}>
             Add Time
           </Button>
         </div>
@@ -140,37 +138,52 @@ function Timesheet() {
               return (
                 <div>
                   <div className="flex w-full h-12 justify-between items-center border-b mt-5">
-                    <div className="flex gap-x-2 md:gap-x-4 items-center font-bold">
-                      <p>{key}</p>
+                    <div className="flex gap-x-2 md:gap-x-4 items-center">
+                      <Typography variant="p" className="!font-bold">
+                        {key}
+                      </Typography>
                     </div>
                     <div
-                      className=" flex text-muted-foreground/70 gap-x-2 text-sm pr-2 items-center"
+                      className=" flex gap-x-2 text-sm pr-2 items-center"
                       onClick={() => {
                         console.log("yeah");
                       }}
                     >
-                      <CircleCheck size={16} />
-                      <p>Not Submitted</p>
+                      <CircleCheck
+                        size={16}
+                        className="text-muted-foreground/70 "
+                      />
+                      <Typography
+                        variant="muted"
+                        className="text-muted-foreground/70"
+                      >
+                        Not Submitted
+                      </Typography>
                     </div>
                   </div>
-                  {/* @ts-ignore */}
-                  <TimesheetTable data={value} />
+                  <TimesheetTable
+                    data={value}
+                    onTaskCellClick={onTaskCellClick}
+                  />
                 </div>
               );
             })}
         </TabsContent>
       </Tabs>
       <Button
-        variant="outlineSecondary"
+        variant="accent-outline"
         onClick={updateWeekDate}
         className="flex gap-x-2 my-6"
       >
-        <Icon name="arrow-down" />
-        <p className=" font-medium"> Load More</p>
+        <ArrowDown />
+        <Typography variant="p" className="!font-medium">
+          Load More
+        </Typography>
       </Button>
-
+      
+      {state.isAddTimeDialogOpen && (
       <AddTimeDialog state={state} dispatch={dispatch} />
-
+      )}
       {/* {state.isAprrovalDialogOpen && (
         <ApprovalDialog dialogState={state} dispatch={dispatch} />
       )} */}

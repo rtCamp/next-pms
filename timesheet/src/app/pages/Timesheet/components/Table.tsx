@@ -33,10 +33,10 @@ export function TimesheetTable({
   return (
     <Table className="[&_th]:px-0 [&_td]:px-0 ">
       <TableHeader>
-        <TableRow className="flex h-16">
+        <TableRow className="flex h-16 ">
           <TableHead
             key="Heading"
-            className="flex w-full max-w-md font-medium items-center h-16 text-heading !px-2 "
+            className="flex w-full max-w-sm font-medium items-center h-16 text-heading !px-2 "
           >
             Tasks
           </TableHead>
@@ -66,11 +66,11 @@ export function TimesheetTable({
                   <div
                     className={cn(
                       `font-semibold ${
-                        getTodayDate() < date || isHoliday
-                          ? "text-secondaryText"
+                        isHoliday
+                          ? "text-secondary/30"
                           : isToday
-                          ? "text-gradientPrimary"
-                          : "text-heading"
+                          ? "text-accent"
+                          : "text-secondary"
                       }`
                     )}
                   >
@@ -79,7 +79,11 @@ export function TimesheetTable({
                   <div
                     className={cn(
                       ` ${
-                        isToday ? "text-gradientPrimary" : "text-secondaryText"
+                        isToday
+                          ? "text-accent"
+                          : isHoliday
+                          ? "text-secondary/20"
+                          : "text-secondary/50"
                       } text-xs font-medium `
                     )}
                   >
@@ -87,7 +91,7 @@ export function TimesheetTable({
                   </div>
                 </TableHead>
 
-                <span className={cn(`w-6/12 h-1 ${classname}`)}></span>
+                <span className={cn(`w-6/12 h-[3px] ${classname}`)}></span>
               </div>
             );
           })}
@@ -104,6 +108,7 @@ export function TimesheetTable({
         holidays={holidays}
         dates={dates}
         leaves={leaves}
+        hours={hours}
         onTaskCellClick={onTaskCellClick}
       />
     </Table>

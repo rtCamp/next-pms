@@ -34,7 +34,6 @@ import {
 } from "@/components/ui/command";
 import { DialogProps } from "@/app/types/timesheet";
 import { Separator } from "@/components/ui/separator";
-import { Icon } from "@/app/components/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getFormatedDate, cn, parseFrappeErrorMsg } from "@/app/lib/utils";
@@ -45,6 +44,7 @@ import { Check, ChevronDown } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { getInitialState } from "@/app/reducer/timesheet";
+import { Clock2, Calendar as CalIcon } from "@/app/components/Icon";
 
 interface Task {
   name: string;
@@ -53,9 +53,12 @@ interface Task {
 
 export function AddTimeDialog({ state, dispatch }: DialogProps) {
   const employee = useSelector((state: RootState) => state.employee);
+  const roles = useSelector((state: RootState) => state.roles);
+  const isManager = roles.value.includes("Projects Manager");
   const [selectedDate, setSelectedDate] = useState<string>(
     getFormatedDate(new Date())
   );
+  const [isOpen, setIsOpen] = useState(state.isAddTimeDialogOpen);
   const [isComboOpen, setIsComboOpen] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const { toast } = useToast();
@@ -66,12 +69,10 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
       required_error: "Please select a task.",
     }),
     name: z.string({}),
-    hours: z
-      .number({
-        required_error: "Please enter hours.",
-      })
-      .max(8, "Hours should be less than 8.")
-      .min(0, "Hours should be greater than 0."),
+    hours:  z.string()
+    .refine((value) => !isNaN(parseFloat(value)) && /^\d+(\.\d)?$/.test(value), {
+      message: "Hours must be a number with at most one decimal place",
+    }),
     date: z.string({
       required_error: "Please enter date.",
     }),
@@ -81,25 +82,28 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
     parent: z.string({}),
     is_update: z.boolean({}),
   });
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       name: state.timesheet.name,
       task: state.timesheet.task,
-      hours: state.timesheet.hours,
+      hours: state.timesheet.hours.toString(),
       description: state.timesheet.description,
       date: state.timesheet.date,
       parent: state.timesheet.parent,
       is_update: state.timesheet.isUpdate,
     },
+    mode: "onChange",
   });
-
   useEffect(() => {
     if (!state.timesheet.date) return;
     const date = getFormatedDate(state.timesheet.date);
     setSelectedDate(date);
     form.setValue("date", date);
   }, [state.timesheet.date]);
+
+  
 
   const {
     isLoading: isTaskLoading,
@@ -135,7 +139,10 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
   };
   const closeDialog = () => {
     dispatch({ type: "SetTimesheet", payload: getInitialState.timesheet });
-    dispatch({ type: "SetAddTimeDialog", payload: false });
+    setIsOpen(false);
+    setTimeout(() => {
+      dispatch({ type: "SetAddTimeDialog", payload: false });
+    }, 500);
   };
   function onSubmit(values: z.infer<typeof FormSchema>) {
     console.log(values);
@@ -143,7 +150,6 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
       .then((res) => {
         closeDialog();
         dispatch({ type: "SetFetchAgain", payload: true });
-
         toast({
           variant: "success",
           title: res.message,
@@ -158,13 +164,13 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
       });
   }
   return (
-    <Sheet open={state.isAddTimeDialogOpen} onOpenChange={closeDialog}>
+    <Sheet open={isOpen} onOpenChange={closeDialog}>
       {isTaskLoading || isDateLoading ? (
-        <ScreenLoader isFullPage={false} />
+        <></>
       ) : (
         <SheetContent className="sm:max-w-xl px-11 py-6">
           <SheetHeader>
-            <SheetTitle>Add Time</SheetTitle>
+            <SheetTitle className="font-bold">Add Time</SheetTitle>
           </SheetHeader>
           <Separator className="my-6" />
           <div>
@@ -187,22 +193,9 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
                               className="px-4"
                               type="text"
                               placeholder="Hours"
-                              value={field.value}
-                              defaultValue={state.timesheet.hours}
-                              onChange={(event) => {
-                                if (!event.target.value) {
-                                  field.onChange(0);
-                                  return;
-                                }
-                                const time = parseFloat(event.target.value);
-                                if (time > 8 || time < 0) return;
-                                field.onChange(time);
-                              }}
+                              {...field}
                             />
-                            <Icon
-                              name="clock-2"
-                              className="absolute right-0   my-3 mr-4 h-4 w-4 text-muted-foreground"
-                            />
+                            <Clock2 className="absolute right-0   my-3 mr-4 h-4 w-4 text-muted-foreground" />
                           </div>
                         </FormControl>
                         <FormMessage />
@@ -234,7 +227,7 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
                               ) : (
                                 <span>{selectedDate}</span>
                               )}
-                              <Icon name="calendar" />
+                              <CalIcon />
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0">
@@ -242,9 +235,13 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
                               mode="single"
                               selected={new Date(selectedDate)}
                               disableNavigation
-                              disabled={convertStringsToDates(
-                                leaveAndHolidayDates?.message
-                              )}
+                              disabled={
+                                !isManager
+                                  ? convertStringsToDates(
+                                      leaveAndHolidayDates?.message
+                                    )
+                                  : []
+                              }
                               onSelect={(date) => {
                                 if (!date) return;
                                 const d = getFormatedDate(date);
@@ -277,7 +274,7 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
                             <Button
                               variant="outline"
                               role="combobox"
-                              className="max-w-full px-1 justify-between !mt-0"
+                              className="max-w-full px-1 justify-between !mt-0 truncate"
                               disabled={state.timesheet.task ? true : false}
                             >
                               {field.value ? (
@@ -303,7 +300,7 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
                               <CommandList>
                                 {tasks?.message.map((task: Task) => (
                                   <CommandItem
-                                    className="hover:cursor-pointer truncate"
+                                    className="hover:cursor-pointer truncate aria-selected:bg-primary aria-selected:text-primary-forground"
                                     key={task.name}
                                     value={task.subject}
                                     onSelect={() => {
@@ -359,7 +356,7 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
                 />
 
                 <SheetFooter className="py-6 sm:justify-start gap-x-6">
-                  <Button variant="gradient" type="submit">
+                  <Button variant="accent" type="submit">
                     Add Time
                   </Button>
                   <Button variant="ghost" type="button" onClick={closeDialog}>

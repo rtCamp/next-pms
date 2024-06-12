@@ -8,12 +8,14 @@ import {
 import { TaskCellClickProps } from "@/app/types/timesheet";
 import { TaskCell } from "@/app/components/TaskCell";
 import { LeaveRow } from "@/app/components/LeaveRow";
+import { Typography } from "@/app/components/Typography";
 
 interface TimesheetTableBodyProps {
   tasks: Object;
   dates: Array<string>;
   holidays: Array<string>;
   leaves: any;
+  hours: any;
   onTaskCellClick: ({
     date,
     name,
@@ -29,11 +31,41 @@ export function TimesheetTableBody({
   dates,
   leaves,
   holidays,
+  hours,
   onTaskCellClick,
 }: TimesheetTableBodyProps) {
+  let total = 0;
   return (
     <>
       <TableBody className="[&_tr:last-child]:border-b">
+        {Object.keys(tasks).length > 0 && (
+          <TableRow className="flex  bg-primary border-b-[1px] hover:bg-primary/60">
+            <TableCell className=" w-full max-w-sm text-justify font-medium hover:cursor-not-allowed !px-2 py-4"></TableCell>
+            {hours.map((hour: any, index: number) => {
+              total += hour.hours;
+              return (
+                <TaskCell
+                  classname="text-foreground  hover:cursor-not-allowed"
+                  onCellClick={() => {}}
+                  name={""}
+                  parent={""}
+                  task={""}
+                  description={`Total working hours for the day is ${floatToTime(
+                    hour.hours
+                  )}`}
+                  hours={hour.hours}
+                  date={hour.date}
+                />
+              );
+            })}
+            <TableCell
+              key={"Total"}
+              className="flex w-full justify-center flex-col font-bold max-w-24 px-0 text-center  hover:cursor-not-allowed "
+            >
+              {floatToTime(total)}
+            </TableCell>
+          </TableRow>
+        )}
         {leaves.length > 0 && <LeaveRow dates={dates} leaves={leaves} />}
         {Object.keys(tasks).length > 0 ? (
           Object.entries(tasks).map(([task, taskData]: [string, any]) => {
@@ -41,13 +73,21 @@ export function TimesheetTableBody({
             return (
               <TableRow
                 key={task}
-                className="flex  bg-[#F4F4F5] border-b-[1px]"
+                className="flex  bg-primary border-b-[1px] hover:bg-primary/60"
               >
-                <TableCell className=" w-full max-w-md text-justify font-medium hover:cursor-pointer !px-2 py-4 truncate">
-                  <p>{task}</p>
-                  <p className="text-secondaryText text-xs">
+                <TableCell className=" w-full max-w-sm text-justify font-medium hover:cursor-pointer !px-2 py-4">
+                  <Typography
+                    variant="p"
+                    className="truncate sm:text-sm !font-medium"
+                  >
+                    {task}
+                  </Typography>
+                  <Typography
+                    variant="muted"
+                    className="truncate !font-medium text-[13px]"
+                  >
                     {taskData.project}
-                  </p>
+                  </Typography>
                 </TableCell>
                 {dates.map((date: string) => {
                   const isHoliday = holidays.includes(date);
@@ -69,7 +109,7 @@ export function TimesheetTableBody({
                     isDateNotInCurrentWeek(date);
                   return (
                     <TaskCell
-                      onCellClick={onTaskCellClick}
+                      onCellClick={!isCellDisabled ? onTaskCellClick : () => {}}
                       name={taskDateData?.name ?? ""}
                       parent={taskDateData?.parent ?? ""}
                       task={taskData?.name ?? ""}
@@ -81,39 +121,49 @@ export function TimesheetTableBody({
                   );
                 })}
                 <TableCell
-                  key={"TotlaHour" + task}
+                  key={"TotalHour" + task}
                   className="flex w-full justify-center flex-col font-bold max-w-24 px-0 text-center hover:cursor-pointer "
                 >
-                  {floatToTime(totalHours)}
+                  {totalHours > 0 ? floatToTime(totalHours) : "-"}
                 </TableCell>
               </TableRow>
             );
           })
         ) : (
-          //   <TableRow key="1" className="flex  bg-[#F4F4F5] border-b-[1px]">
-          //     <TableCell className=" w-full max-w-md text-justify font-medium hover:cursor-pointer !px-2 py-4 truncate"></TableCell>
-          //   {dates.map((date: string) => {
-          //     return (
-          //       <TaskCell
-          //         onCellClick={onTaskCellClick}
-          //         name=""
-          //         parent=""
-          //         task=""
-          //         description=""
-          //         hours={0}
-          //         date={date}
-          //         isCellDisabled={false}
-          //       />
-          //     );
-          //   })}
-          //       <TableCell
-          //         key="TotlaHour"
-          //         className="flex w-full justify-center flex-col font-bold max-w-24 px-0 text-center hover:cursor-pointer "
-          //       ></TableCell>
-          // </TableRow>
-          <TableRow className="flex">
-            <TableCell className=" flex w-full font-bold items-center  justify-center text-justify font-medium border-t">
-              No tasks found
+          <TableRow
+            key={"no-task"}
+            className="flex  bg-primary border-b-[1px] hover:bg-primary/60"
+          >
+            <TableCell className=" w-full max-w-sm text-justify font-medium hover:cursor-pointer !px-2 py-4">
+              <Typography
+                variant="p"
+                className="sm:text-sm !font-medium text-destructive"
+              >
+                No Tasks Found
+              </Typography>
+            </TableCell>
+            {dates.map((date: string, index: number) => {
+              const showAdd = index == 0 ? true : false;
+              const hour = hours.find((item: any) => item.date === date);
+              return (
+                <TaskCell
+                  onCellClick={!hour.disabled ? onTaskCellClick : () => {}}
+                  name=""
+                  parent=""
+                  task=""
+                  description=""
+                  hours={0}
+                  date={date}
+                  isCellDisabled={hour.disabled}
+                  showAdd={showAdd}
+                />
+              );
+            })}
+            <TableCell
+              key={"TotlaHour-empty"}
+              className="flex w-full justify-center flex-col font-bold max-w-24 px-0 text-center hover:cursor-pointer "
+            >
+              -
             </TableCell>
           </TableRow>
         )}
