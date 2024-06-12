@@ -1,6 +1,14 @@
 import frappe
 from frappe import _, throw
-from frappe.utils import add_days, get_first_day, get_last_day, getdate, nowdate
+from frappe.utils import (
+    add_days,
+    get_first_day,
+    get_first_day_of_week,
+    get_last_day,
+    get_last_day_of_week,
+    getdate,
+    nowdate,
+)
 from hrms.hr.utils import get_holiday_dates_for_employee
 
 from timesheet_enhancer.api.utils import (
@@ -195,8 +203,19 @@ def get_timesheet(dates: list, employee: str):
         }
     """
     data = {}
-    hours = []
+    week = []
+    isManager = "Projects Manager" in frappe.get_roles(frappe.session.user)
     for date in dates:
+        disabled = True
+        start_date = get_first_day_of_week(now)
+        end_date = get_last_day_of_week(now)
+
+        if isManager:
+            disabled = False
+        else:
+            if getdate(date) >= start_date and getdate(date) <= end_date:
+                disabled = False
+
         date = date
         name = frappe.db.exists(
             "Timesheet",
@@ -207,11 +226,13 @@ def get_timesheet(dates: list, employee: str):
             },
         )
         if not name:
-            hours.append({"date": date, "hours": 0})
+            week.append({"date": date, "hours": 0, "disabled": disabled})
             continue
         timesheet = frappe.get_doc("Timesheet", name)
         # total_hours += timesheet.total_hours
-        hours.append({"date": date, "hours": timesheet.total_hours})
+        week.append(
+            {"date": date, "hours": timesheet.total_hours, "disabled": disabled}
+        )
         for log in timesheet.time_logs:
             subject, task_name, project_name = frappe.get_value(
                 "Task", log.task, ["subject", "name", "project.project_name"]
@@ -222,4 +243,4 @@ def get_timesheet(dates: list, employee: str):
                 data[subject] = {"name": task_name, "data": [], "project": project_name}
 
             data[subject]["data"].append(log.as_dict())
-    return [data, hours]
+    return [data, week]
