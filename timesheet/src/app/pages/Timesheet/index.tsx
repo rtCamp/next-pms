@@ -124,8 +124,8 @@ function Timesheet() {
   return (
     <div>
       <Tabs defaultValue="timesheet">
-        <div className="flex gap-x-2.5">
-          <TabsList className="justify-start w-full  py-0 bg-primary">
+        <div className="flex gap-x-2.5 sticky top-16 z-10">
+          <TabsList className="justify-start w-full  py-0 bg-primary ">
             <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
           </TabsList>
           <Button variant="accent" onClick={onAddTimeClick}>
@@ -180,9 +180,9 @@ function Timesheet() {
           Load More
         </Typography>
       </Button>
-      
+
       {state.isAddTimeDialogOpen && (
-      <AddTimeDialog state={state} dispatch={dispatch} />
+        <AddTimeDialog state={state} dispatch={dispatch} />
       )}
       {/* {state.isAprrovalDialogOpen && (
         <ApprovalDialog dialogState={state} dispatch={dispatch} />

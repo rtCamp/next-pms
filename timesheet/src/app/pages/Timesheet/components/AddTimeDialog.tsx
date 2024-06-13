@@ -69,10 +69,14 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
       required_error: "Please select a task.",
     }),
     name: z.string({}),
-    hours:  z.string()
-    .refine((value) => !isNaN(parseFloat(value)) && /^\d+(\.\d)?$/.test(value), {
-      message: "Hours must be a number with at most one decimal place",
-    }),
+    hours: z
+      .string()
+      .refine(
+        (value) => !isNaN(parseFloat(value)) && /^\d+(\.\d)?$/.test(value),
+        {
+          message: "Hours must be a number with at most one decimal place",
+        }
+      ),
     date: z.string({
       required_error: "Please enter date.",
     }),
@@ -102,8 +106,6 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
     setSelectedDate(date);
     form.setValue("date", date);
   }, [state.timesheet.date]);
-
-  
 
   const {
     isLoading: isTaskLoading,
@@ -299,7 +301,7 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
                             <CommandGroup>
                               <CommandList>
                                 {tasks?.message.map((task: Task) => (
-                                  <CommandItem
+                                  <CommandItem 
                                     className="hover:cursor-pointer truncate aria-selected:bg-primary aria-selected:text-primary-forground"
                                     key={task.name}
                                     value={task.subject}
