@@ -1,10 +1,14 @@
 import { configureStore } from '@reduxjs/toolkit';
 import employeeReducer from "./employee"
+import projectReducer from "./project"
+import departmentReducer from "./department"
 import roleReducer from "./roles"
 export const store = configureStore({
     reducer: {
         employee: employeeReducer,
-        roles   : roleReducer
+        roles: roleReducer,
+        projects: projectReducer,
+        departments: departmentReducer
 
     }
 });
