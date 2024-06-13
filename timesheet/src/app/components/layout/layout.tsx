@@ -38,7 +38,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div>
       <div className="max-w-[1334px] mx-auto md:pr-5 md:pl-5 pl-2 pr-3 xl:pr-0 xl:pl-0 pt-4">
-        <Header />
+      <Header />
         <div className="grid grid-cols-[20%_auto] gap-x-5 pt-4 ">
           <Sidebar />
           {employee.value && children}

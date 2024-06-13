@@ -18,7 +18,7 @@ export function Header() {
   const { alt, src } = get_user_avatar();
   const { logout } = useContext(UserContext);
   return (
-    <div className="">
+    <div className="sticky w-full top-0 z-10 transition-all duration-500 bg-transparent backdrop-blur-md ">
       <NavigationMenu
         viewPortClassName="w-full"
         className="max-w-full  w-full justify-start"
@@ -32,8 +32,8 @@ export function Header() {
               </div>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <NavigationMenuTrigger className=" p-0 data-[state=open]:bg-transparent hover:bg-transparent">
-                <Avatar className="h-[35px] w-[35px]">
+              <NavigationMenuTrigger className=" p-0 data-[state=open]:bg-transparent bg-transparent hover:bg-transparent">
+                <Avatar className="h-[35px] w-[35px] ">
                   <AvatarImage src={decodeURIComponent(src)} alt={alt} />
                   <AvatarFallback>{alt}</AvatarFallback>
                 </Avatar>
