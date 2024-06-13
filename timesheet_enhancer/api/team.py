@@ -1,20 +1,25 @@
 import frappe
+from frappe.utils.data import add_days, nowdate
 
 from .timesheet import get_timesheet_data
 from .utils import get_week_dates, weekly_working_hours_for_employee
 
+now = nowdate()
+
 
 @frappe.whitelist()
-def get_weekly_compact_view_data(date: str):
+def get_weekly_compact_view_data(date: str, max_week: int = 2):
     """Fetch the weekly data for employee based on reports to.
     example:
         {
         "start_date": "2024-05-20",
         "end_date": "2024-05-26",
-        "key": "May 20 - May 26",
+
         "dates": [
-            "2024-05-20",
-            ...
+            {
+                "key": "May 20 - May 26",
+                "dates":["2024-05-20",..]
+            }
         ],
         "data": [
             {
@@ -39,21 +44,38 @@ def get_weekly_compact_view_data(date: str):
         ]
         }
     """
-    employees = frappe.get_list("Employee", fields=["name", "image", "employee_name"])
-    week = get_week_dates(date=date, current_week=True)
-
-    res = {**week}
+    dates = []
     data = []
-    for employee in employees:
-        weekly_data = weekly_working_hours_for_employee(
-            employee.name, week["start_date"], week["end_date"]
-        )
-        data.append({**employee, **weekly_data})
-    res["data"] = data
-    res["key"] = (
-        f'{week["start_date"].strftime("%b %d")} - {week["end_date"].strftime("%b %d")}'
+
+    for i in range(max_week):
+        current_week = True if date == now else False
+        week = get_week_dates(date=date, current_week=current_week)
+        if i == 0:
+            end_date = week["end_date"]
+        start_date = week["start_date"]
+        date = add_days(start_date, -1)
+        dates.append({"key": week["key"], "dates": week["dates"]})
+    dates.reverse()
+    res = {"start_date": start_date, "end_date": end_date, "dates": dates}
+
+    employees = frappe.get_list(
+        "Employee", fields=["name", "image", "employee_name", "department"]
     )
-    res["employees"] = employees
+
+    for employee in employees:
+        empData = {"timesheet": [], "leaves": [], "holidays": []}
+        for i in dates:
+            start_date = i["dates"][0]
+            end_date = i["dates"][-1]
+            weekly_data = weekly_working_hours_for_employee(
+                employee.name, start_date, end_date
+            )
+            empData["timesheet"].extend(weekly_data["timesheets"])
+            empData["leaves"].extend(weekly_data["leaves"])
+            empData["holidays"].extend(weekly_data["holidays"])
+        data.append({**employee, **empData})
+    res["data"] = data
+
     return res
 
 
