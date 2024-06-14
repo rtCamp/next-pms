@@ -45,7 +45,7 @@ export function Sidebar() {
     },
   ];
   return (
-    <div className="border-[1px]  h-[650px] sticky top-16 h-[calc(100vh-4rem)] transition-all duration-500">
+    <div className="border-[1px]  h-[650px]  h-[calc(100vh-4rem)] transition-all duration-500">
       <div className=" p-2.5">
         {routes.map((route) => {
           if (route.isSeparator)

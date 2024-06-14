@@ -18,7 +18,7 @@ export function Header() {
   const { alt, src } = get_user_avatar();
   const { logout } = useContext(UserContext);
   return (
-    <div className="sticky w-full top-0 z-10 transition-all duration-500 bg-transparent backdrop-blur-md ">
+    <div className="w-full ">
       <NavigationMenu
         viewPortClassName="w-full"
         className="max-w-full  w-full justify-start"

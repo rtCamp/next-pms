@@ -46,15 +46,17 @@ export function MultiCombo({
         : item.filter((l) => l.value !== data.value)
     );
   };
-  useEffect(() => {
-    const values = selectedValues.map(({ value }) => value);
-    parentCallback && parentCallback(values);
-  }, [selectedValues]);
 
   useEffect(() => {
     setData(comboData);
   }, []);
 
+  useEffect(() => {
+    if (!openCombobox) {
+      const values = selectedValues.map(({ value }) => value);
+      parentCallback && parentCallback(values);
+    }
+  }, [openCombobox]);
   return (
     <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
       <PopoverTrigger asChild>
