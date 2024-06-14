@@ -124,7 +124,7 @@ function Timesheet() {
   return (
     <div>
       <Tabs defaultValue="timesheet">
-        <div className="flex gap-x-2.5 sticky top-16 z-10">
+        <div className="flex gap-x-2.5 z-10">
           <TabsList className="justify-start w-full  py-0 bg-primary ">
             <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
           </TabsList>
@@ -132,7 +132,7 @@ function Timesheet() {
             Add Time
           </Button>
         </div>
-        <TabsContent value="timesheet">
+        <TabsContent value="timesheet" className="overflow-auto h-dvh no-scrollbar">
           {state.data &&
             Object.entries(state.data).map(([key, value]: [string, any]) => {
               return (
@@ -168,18 +168,18 @@ function Timesheet() {
                 </div>
               );
             })}
+          <Button
+            variant="accent-outline"
+            onClick={updateWeekDate}
+            className="flex gap-x-2 my-6"
+          >
+            <ArrowDown />
+            <Typography variant="p" className="!font-medium">
+              Load More
+            </Typography>
+          </Button>
         </TabsContent>
       </Tabs>
-      <Button
-        variant="accent-outline"
-        onClick={updateWeekDate}
-        className="flex gap-x-2 my-6"
-      >
-        <ArrowDown />
-        <Typography variant="p" className="!font-medium">
-          Load More
-        </Typography>
-      </Button>
 
       {state.isAddTimeDialogOpen && (
         <AddTimeDialog state={state} dispatch={dispatch} />

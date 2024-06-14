@@ -3,12 +3,14 @@ import employeeReducer from "./employee"
 import projectReducer from "./project"
 import departmentReducer from "./department"
 import roleReducer from "./roles"
+import employeeListReducer from "./employeeList"
 export const store = configureStore({
     reducer: {
         employee: employeeReducer,
         roles: roleReducer,
         projects: projectReducer,
-        departments: departmentReducer
+        departments: departmentReducer,
+        employeeList: employeeListReducer
 
     }
 });

@@ -17,8 +17,8 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { MultiCombo } from "@/app/components/MultiCombo";
-
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Typography } from "@/app/components/Typography";
+import { ChevronLeft, ChevronRight, Type } from "lucide-react";
 import {
   FrappeContext,
   FrappeConfig,
@@ -30,17 +30,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/app/state/store";
 import { setProject } from "@/app/state/project";
 import { setDepartment } from "@/app/state/department";
+import { setEmployeeWeekList } from "@/app/state/employeeList";
 import { Button } from "@/components/ui/button";
-import { Typography } from "@/app/components/Typography";
 import { Cell } from "./components/Cell";
-type DateObj = {
-  key: string;
-  dates: string[];
-};
+import { debounce} from "lodash";
 
 export default function CompactView() {
   const projects = useSelector((state: RootState) => state.projects);
   const departments = useSelector((state: RootState) => state.departments);
+  const employeeList = useSelector((state: RootState) => state.employeeList);
   const dispatch = useDispatch();
 
   const { call } = useContext(FrappeContext) as FrappeConfig;
@@ -50,7 +48,9 @@ export default function CompactView() {
   const [WeekDate, setWeekDate] = useState(getTodayDate());
   const [data, setData] = useState<any>(null);
   const [isFetching, setIsFetching] = useState(false);
-
+  const [prevHeading, setPrevHeading] = useState<string>("");
+  const [curentHeading, setCurrentHeading] = useState<string>("");
+  const [employeeName, setEmployeeName] = useState<string>("");
   const {
     data: weekData,
     isLoading,
@@ -93,31 +93,41 @@ export default function CompactView() {
   }, []);
 
   useEffect(() => {
-    if (WeekDate == getTodayDate()) return;
+    if (weekData && !isLoading) {
+      setData(weekData?.message);
+      dispatch(setEmployeeWeekList(weekData?.message));
+    }
+  }, [weekData, isLoading]);
+
+  useEffect(() => {
+    if (WeekDate == getTodayDate() && !data) return;
     mutate({ date: WeekDate });
   }, [WeekDate]);
 
   useEffect(() => {
-    if (weekData && !isLoading) {
-      setData(weekData?.message);
-    }
-  }, [weekData, isLoading]);
+    if (!data) return;
+    const dates = data.dates;
+    setPrevHeading(dates[0]?.key);
+    setCurrentHeading(dates[1]?.key);
+  }, [data]);
 
   const handleprevWeek = () => {
-    const date = addDays(WeekDate, -7);
+    const date = addDays(WeekDate, -14);
     setWeekDate(date);
   };
   const handlenextWeek = () => {
-    const date = addDays(WeekDate, 7);
+    const date = addDays(WeekDate, 14);
     setWeekDate(date);
   };
-
+  const onEmployeeNameInputChange = debounce((e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log(e.target.value);
+  }, 1000);
   if (isFetching || isLoading || !weekData) {
     return <div>Loading...</div>;
   }
   const dates = data?.dates;
   const res = data?.data;
-
+  console.log(selectedProject);
   return (
     <div>
       <div id="header" className="grid grid-cols-11 w-full">
@@ -139,7 +149,7 @@ export default function CompactView() {
             parentCallback={setSelectedProject}
           />
         </div>
-        <div className="flex items-center col-span-4">
+        <div className="flex items-center col-span-4 text-center w-full">
           <Button
             variant="outline"
             onClick={handleprevWeek}
@@ -147,8 +157,11 @@ export default function CompactView() {
           >
             <ChevronLeft size={16} className="hover:cursor-pointer" />
           </Button>
+          <Typography variant="p" className="!font-semibold w-full">
+            {prevHeading}
+          </Typography>
         </div>
-        <div className="flex flex-row-reverse items-center col-span-4">
+        <div className="flex flex-row-reverse items-center col-span-4  text-center w-full">
           <Button
             variant="outline"
             onClick={handlenextWeek}
@@ -156,6 +169,9 @@ export default function CompactView() {
           >
             <ChevronRight size={16} className="hover:cursor-pointer" />
           </Button>
+          <Typography variant="p" className="!font-semibold w-full">
+            {curentHeading}
+          </Typography>
         </div>
       </div>
       <div className="mt-4">
@@ -163,7 +179,7 @@ export default function CompactView() {
           <TableHeader>
             <TableRow className="grid grid-cols-11 w-full border-t">
               <TableHead className=" flex items-center col-span-3">
-                <Input placeholder="Employee name..." className="" />
+                <Input placeholder="Employee name..." className="" onInput={onEmployeeNameInputChange} />
               </TableHead>
               {dates?.map((item: any) => {
                 const dateMap = item?.dates;
@@ -200,9 +216,10 @@ export default function CompactView() {
             {res?.map((row: any) => {
               return (
                 <TableRow className="grid  grid-flow-row-dense grid-cols-11">
-                  <TableCell className="p-2 col-span-3 flex items-center">
-                    {" "}
-                    {row.employee_name}
+                  <TableCell className="p-2 col-span-3 px-3 flex items-center hover:text-accent hover:underline">
+                    <Typography variant="p" className="sm:text-sm !font-medium">
+                      {row.employee_name}
+                    </Typography>
                   </TableCell>
                   {dates?.map((item: any) => {
                     return <Cell item={item} row={row} />;

@@ -31,6 +31,7 @@
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
     "frappe-react-sdk": "^1.6.0",
+    "lodash": "^4.17.21",
     "lucide-react": "^0.373.0",
     "react": "^18.2.0",
     "react-day-picker": "^8.10.1",
@@ -43,6 +44,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/lodash": "^4.17.5",
     "@types/node": "^20.12.7",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",

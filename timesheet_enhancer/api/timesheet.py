@@ -1,4 +1,5 @@
 import frappe
+from erpnext.setup.doctype.employee.employee import is_holiday
 from frappe import _, throw
 from frappe.utils import (
     add_days,
@@ -210,7 +211,7 @@ def get_timesheet(dates: list, employee: str):
         start_date = get_first_day_of_week(now)
         end_date = get_last_day_of_week(now)
 
-        if isManager:
+        if isManager and not is_holiday(employee, getdate(date), raise_exception=False):
             disabled = False
         else:
             if getdate(date) >= start_date and getdate(date) <= end_date:

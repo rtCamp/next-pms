@@ -1,13 +1,12 @@
 import { TableCell, TableRow } from "@/components/ui/table";
 import { floatToTime } from "@/app/lib/utils";
 import { Typography } from "@/app/components/Typography";
-import { CirclePlus } from "@/app/components/Icon";
+import { CirclePlus, Pencil } from "@/app/components/Icon";
 import { useEffect, useState } from "react";
-import { PencilLine } from "lucide-react";
 
 export function Cell({ item, row }: { item: any; row: any }) {
   const [data, setData] = useState<any>([]);
-  const [isHovered, setIsHovered] = useState(false);
+
   const dateMap = item?.dates;
   const key = item.key;
   useEffect(() => {
@@ -46,13 +45,11 @@ export function Cell({ item, row }: { item: any; row: any }) {
   }, []);
 
   return (
-    <TableCell key={item.key} className="px-0 py-0 col-span-4">
-      <TableRow
+    <div key={item.key} className="px-0 py-0 col-span-4">
+      <div
         className={`flex h-full !border-b-0 w-full ${
           item.key != "This Week" ? "bg-primary" : ""
         }`}
-        // onMouseEnter={() => setIsHovered(true)}
-        // onMouseLeave={() => setIsHovered(false)}
       >
         {data.map((item: any) => {
           let css = "bg-background";
@@ -65,27 +62,31 @@ export function Cell({ item, row }: { item: any; row: any }) {
           } else {
             css = item.bgClass;
           }
-          return (
-            <TableCell
-              className={`w-full max-w-14 flex items-center p-0 hover:cursor-pointer px-2 py-3 flex items-center justify-center ${css}`}
-            >
-              {item.isNew ? (
-                <CirclePlus stroke="#AB3A6C" />
-              ) : (
-                <Typography
-                  variant="p"
-                  className={`!text-[15px]  !font-semibold `}
-                >
-                  {!item.isHoliday && item.hour != 0
-                    ? floatToTime(item.hour)
-                    : ""}
-                </Typography>
-              )}
-              {/* {isHovered && !item.isNew && <PencilLine />} */}
-            </TableCell>
-          );
+          return <InnerCell key={item.date} item={item} css={css} />;
         })}
-      </TableRow>
+      </div>
+    </div>
+  );
+}
+
+function InnerCell({ item, css }: { item: any; css: string }) {
+  const [isHovered, setIsHovered] = useState(false);
+  return (
+    <TableCell
+      className={`w-full max-w-14 flex items-center ${!item.isNew ?"hover:py-1 hover:items-start hover:flex-col" :""}  hover:cursor-pointer px-2 py-3 flex items-center justify-center ${css}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {item.isNew ? (
+        <CirclePlus stroke="#AB3A6C"  />
+      ) : (
+        <>
+          <Typography variant="p" className={`!text-[15px]  !font-semibold  ${isHovered?"text-primary-foreground/50":""}`}>
+            {!item.isHoliday && item.hour != 0 ? floatToTime(item.hour) : ""}
+          </Typography>
+          {isHovered && !item.isNew && <Pencil className="self-center" />}
+        </>
+      )}
     </TableCell>
   );
 }

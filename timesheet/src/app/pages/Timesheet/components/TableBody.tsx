@@ -55,6 +55,7 @@ export function TimesheetTableBody({
                   )}`}
                   hours={hour.hours}
                   date={hour.date}
+                  isCellDisabled={true}
                 />
               );
             })}
