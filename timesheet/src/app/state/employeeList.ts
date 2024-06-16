@@ -1,26 +1,52 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+import { getTodayDate } from "@/app/lib/utils";
+import { set } from "lodash";
 
 interface EmployeeListState {
     start_date: string;
     end_date: string;
     dates: Array<{ key: string, dates: Array<string> }>
     data: Array<any>;
-    filters?: {
-        project?: Array<string>;
-        department?: Array<string>;
-        employeeName?: string;
-    };
+    isFetching: boolean;
+    weekDate: string;
+    selectedDepartment: Array<string>;
+    selectedProject: Array<string>;
+    prevHeading: string;
+    curentHeading: string;
+    employeeName: string;
+    isAddTimeDialogOpen: boolean;
+    dialogInput: DialogInput
 }
 
+interface DialogInput {
+    employee: string
+    task: string
+    hours: string
+    description: string
+    date: string
+    is_update: boolean
+}
 const initialState: EmployeeListState = {
     start_date: '',
     end_date: '',
     dates: [],
     data: [],
-    filters: {
-        project: [],
-        department: [],
-        employeeName: ''
+    isFetching: false,
+    weekDate: getTodayDate(),
+    selectedDepartment: [],
+    selectedProject: [],
+    prevHeading: "",
+    curentHeading: "",
+    employeeName: "",
+    isAddTimeDialogOpen: false,
+    dialogInput: {
+        employee: "",
+        task: "",
+        hours: "",
+        description: "",
+        date: "",
+        is_update: false
+
     }
 };
 
@@ -29,15 +55,37 @@ const employeeListSlice = createSlice({
     initialState,
     reducers: {
         setEmployeeWeekList: (state, action: PayloadAction<EmployeeListState>) => {
-            return { ...state, ...action.payload };
+            return { ...state, ...action.payload }
         },
-        setFilters: (state, action: PayloadAction<{ project?: Array<string>, department?: Array<string>, employeeName?: string }>) => {
-            return { ...state, filters: action.payload };
+        setDialogInput: (state, action: PayloadAction<DialogInput>) => {
+            return { ...state, dialogInput: action.payload };
+        },
+        setFetching: (state, action: PayloadAction<boolean>) => {
+            return { ...state, isFetching: action.payload };
+        },
+        setWeekDate: (state, action: PayloadAction<string>) => {
+            return { ...state, weekDate: action.payload };
+        },
+        setDepartment: (state, action: PayloadAction<Array<string>>) => {
+            return { ...state, selectedDepartment: action.payload };
+        },
+        setProject: (state, action: PayloadAction<Array<string>>) => {
+            return { ...state, selectedProject: action.payload };
+        },
+        setEmployeeName: (state, action: PayloadAction<string>) => {
+            return { ...state, employeeName: action.payload };
+        },
+        setHeading: (state, action: PayloadAction<{ curentHeading: string, prevHeading: string }>) => {
+            return { ...state, curentHeading: action.payload.curentHeading, prevHeading: action.payload.prevHeading };
+        },
+        setIsAddTimeDialogOpen: (state, action: PayloadAction<boolean>) => {
+            return { ...state, isAddTimeDialogOpen: action.payload };
         }
+
 
     },
 
 });
 
-export const { setEmployeeWeekList, setFilters } = employeeListSlice.actions;
+export const { setEmployeeWeekList, setDialogInput, setFetching, setDepartment, setEmployeeName, setHeading, setIsAddTimeDialogOpen, setProject, setWeekDate } = employeeListSlice.actions;
 export default employeeListSlice.reducer;
