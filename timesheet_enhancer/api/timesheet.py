@@ -86,9 +86,11 @@ def save(
     hours: float = 0,
     parent: str = None,
     is_update: bool = False,
+    employee: str = None,
 ):
     """Updates/create time entry in Timesheet Detail child table."""
-    employee = get_employee_from_user()
+    if not employee:
+        employee = get_employee_from_user()
     if is_update and not name:
         throw(_("Timesheet name is required for update"))
     if is_update:
