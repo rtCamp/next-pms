@@ -100,12 +100,6 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
     },
     mode: "onChange",
   });
-  useEffect(() => {
-    if (!state.timesheet.date) return;
-    const date = getFormatedDate(state.timesheet.date);
-    setSelectedDate(date);
-    form.setValue("date", date);
-  }, [state.timesheet.date]);
 
   const {
     isLoading: isTaskLoading,
@@ -118,9 +112,6 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
       fields: ["name", "subject"],
     },
     "tasks",
-    {
-      dedupingInterval: 1000 * 60 * 5,
-    }
   );
 
   const {
@@ -134,7 +125,14 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
     {
       dedupingInterval: 1000 * 60 * 5,
     }
-  );
+    );
+  
+  useEffect(() => {
+    if (!state.timesheet.date) return;
+    const date = getFormatedDate(state.timesheet.date);
+    setSelectedDate(date);
+    form.setValue("date", date);
+  }, [state.timesheet.date]);
 
   const handleDatePickerState = () => {
     setIsDatePickerOpen(!isDatePickerOpen);
@@ -147,7 +145,7 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
     }, 500);
   };
   function onSubmit(values: z.infer<typeof FormSchema>) {
-    console.log(values);
+
     call(values)
       .then((res) => {
         closeDialog();

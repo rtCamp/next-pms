@@ -184,8 +184,8 @@ export function Calendar({ ...props }) {
 export function CirclePlus({ ...props }) {
   return (
     <svg
-      width="17"
-      height="17"
+      width={props.width ?? "17"}
+      height={props.height ?? "17"}
       viewBox="0 0 17 17"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

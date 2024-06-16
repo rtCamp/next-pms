@@ -3,12 +3,19 @@ import { floatToTime } from "@/app/lib/utils";
 import { Typography } from "@/app/components/Typography";
 import { CirclePlus, Pencil } from "@/app/components/Icon";
 import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import {
+  setDialogInput,
+  setIsAddTimeDialogOpen,
+} from "@/app/state/employeeList";
 
 export function Cell({ item, row }: { item: any; row: any }) {
   const [data, setData] = useState<any>([]);
-  
+  const dispatch = useDispatch();
+
   const dateMap = item?.dates;
   const key = item.key;
+
   useEffect(() => {
     let dateArray = [];
     let isNew = false;
@@ -42,11 +49,23 @@ export function Cell({ item, row }: { item: any; row: any }) {
       }
     }
     setData(dateArray);
-  }, [row,item]);
+  }, [row, item]);
 
+  const onCellClick = (isNew: boolean, employee: string, date: string) => {
+    const data = {
+      employee,
+      task: "",
+      hours: "",
+      description: "",
+      date: date,
+      is_update: isNew ? false : true,
+    };
+    dispatch(setDialogInput(data));
+    dispatch(setIsAddTimeDialogOpen(true));
+  };
   return (
-    <div key={item.key} className="px-0 py-0 col-span-4">
-      <div
+    <TableCell key={item.key} className="px-0 py-0 col-span-4">
+      <TableRow
         className={`flex h-full !border-b-0 w-full ${
           item.key != "This Week" ? "bg-primary" : ""
         }`}
@@ -62,26 +81,49 @@ export function Cell({ item, row }: { item: any; row: any }) {
           } else {
             css = item.bgClass;
           }
-          return <InnerCell key={item.date} item={item} css={css} />;
+          return (
+            <InnerCell
+              key={item.date}
+              item={item}
+              css={css}
+              cellClick={() => onCellClick(item.isNew, row.name, item.date)}
+            />
+          );
         })}
-      </div>
-    </div>
+      </TableRow>
+    </TableCell>
   );
 }
 
-function InnerCell({ item, css }: { item: any; css: string }) {
+function InnerCell({
+  item,
+  css,
+  cellClick,
+}: {
+  item: any;
+  css: string;
+  cellClick: any;
+}) {
   const [isHovered, setIsHovered] = useState(false);
   return (
     <TableCell
-      className={`w-14 max-w-14 flex items-center ${!item.isNew ?"hover:py-1 hover:items-start hover:flex-col" :""}  hover:cursor-pointer px-2 py-3 flex items-center justify-center ${css}`}
+      className={`w-14 h-full  flex items-center ${
+        !item.isNew ? "hover:py-1 hover:items-start hover:flex-col" : ""
+      }  hover:cursor-pointer px-2 py-3 flex items-center justify-center ${css}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={cellClick}
     >
       {item.isNew ? (
-        <CirclePlus stroke="#AB3A6C"  />
+        <CirclePlus stroke="#AB3A6C" width={16} height={16} />
       ) : (
         <>
-          <Typography variant="p" className={`!text-[15px]  !font-semibold  ${isHovered?"text-primary-foreground/50":""}`}>
+          <Typography
+            variant="p"
+            className={`!text-[15px]  !font-semibold  ${
+              isHovered ? "text-primary-foreground/50" : ""
+            }`}
+          >
             {!item.isHoliday && item.hour != 0 ? floatToTime(item.hour) : ""}
           </Typography>
           {isHovered && !item.isNew && <Pencil className="self-center" />}

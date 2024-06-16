@@ -22,21 +22,29 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/app/state/store";
 import { setProject } from "@/app/state/project";
 import { setDepartment } from "@/app/state/department";
-import { setEmployeeWeekList } from "@/app/state/employeeList";
+import {
+  setEmployeeWeekList,
+  setDepartment as setDepartmentState,
+  setDialogInput,
+  setEmployeeName,
+  setFetching,
+  setHeading,
+  setIsAddTimeDialogOpen,
+  setProject as setProjectState,
+  setWeekDate,
+} from "@/app/state/employeeList";
 import { Button } from "@/components/ui/button";
 import { Cell } from "./components/Cell";
 import { debounce } from "lodash";
-import { getInitialState, reducer } from "@/app/reducer/employeeList";
+import { AddTimeDialog } from "./components/AddTimeDialog";
 
 export default function CompactView() {
   const { call } = useContext(FrappeContext) as FrappeConfig;
 
   const projects = useSelector((state: RootState) => state.projects);
   const departments = useSelector((state: RootState) => state.departments);
-  const employeeList = useSelector((state: RootState) => state.employeeList);
+  const state = useSelector((state: RootState) => state.employeeList);
   const dispatch = useDispatch();
-
-  const [state, stateDispatch] = useReducer(reducer, getInitialState);
 
   const {
     data: weekData,
@@ -57,7 +65,7 @@ export default function CompactView() {
   );
 
   useEffect(() => {
-    stateDispatch({ type: "SetFetching", payload: true });
+    dispatch(setFetching(true));
 
     if (projects.value.length === 0) {
       call
@@ -80,8 +88,7 @@ export default function CompactView() {
           dispatch(setDepartment(res.message));
         });
     }
-
-    stateDispatch({ type: "SetFetching", payload: false });
+    dispatch(setFetching(false));
   }, []);
 
   useEffect(() => {
@@ -91,7 +98,7 @@ export default function CompactView() {
   }, [weekData, isLoading]);
 
   useEffect(() => {
-    if (state.weekDate == getTodayDate() && !employeeList) return;
+    if (state.weekDate == getTodayDate() && !state) return;
     mutate({
       date: state.weekDate,
       employee_name: state.employeeName,
@@ -106,39 +113,40 @@ export default function CompactView() {
   ]);
 
   useEffect(() => {
-    if (!employeeList) return;
-    const dates = employeeList.dates;
-    stateDispatch({
-      type: "SetHeading",
-      payload: { curentHeading: dates[1]?.key, prevHeading: dates[0]?.key },
-    });
-  }, [employeeList]);
+    if (!state.dates) return;
+    const dates = state.dates;
+    dispatch(
+      setHeading({ curentHeading: dates[1]?.key, prevHeading: dates[0]?.key })
+    );
+  }, [state.dates]);
 
   const handleprevWeek = () => {
     const date = addDays(state.weekDate, -14);
-    stateDispatch({ type: "SetWeekDate", payload: date });
+    dispatch(setWeekDate(date));
   };
   const handlenextWeek = () => {
     const date = addDays(state.weekDate, 14);
-    stateDispatch({ type: "SetWeekDate", payload: date });
+    dispatch(setWeekDate(date));
   };
   const setSelectedDepartment = (data: any) => {
-    stateDispatch({ type: "SetDepartment", payload: data });
+    dispatch(setDepartmentState(data));
   };
   const setSelectedProject = (data: any) => {
-    stateDispatch({ type: "SetProject", payload: data });
+    dispatch(setProjectState(data));
   };
   const onEmployeeNameInputChange = debounce(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      stateDispatch({ type: "SetEmployeeName", payload: e.target.value });
+      dispatch(setEmployeeName(e.target.value));
     },
     1000
   );
+
+
   if (state.isFetching || isLoading || !weekData) {
     return <div>Loading...</div>;
   }
-  const dates = employeeList?.dates;
-  const res = employeeList?.data;
+  const dates = state?.dates;
+  const res = state?.data;
 
   return (
     <div>
@@ -248,6 +256,7 @@ export default function CompactView() {
           </TableBody>
         </Table>
       </div>
+      {state.isAddTimeDialogOpen && <AddTimeDialog />}
     </div>
   );
 }
