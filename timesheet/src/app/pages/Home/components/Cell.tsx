@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 
 export function Cell({ item, row }: { item: any; row: any }) {
   const [data, setData] = useState<any>([]);
-
+  
   const dateMap = item?.dates;
   const key = item.key;
   useEffect(() => {
@@ -42,7 +42,7 @@ export function Cell({ item, row }: { item: any; row: any }) {
       }
     }
     setData(dateArray);
-  }, []);
+  }, [row,item]);
 
   return (
     <div key={item.key} className="px-0 py-0 col-span-4">
@@ -73,7 +73,7 @@ function InnerCell({ item, css }: { item: any; css: string }) {
   const [isHovered, setIsHovered] = useState(false);
   return (
     <TableCell
-      className={`w-full max-w-14 flex items-center ${!item.isNew ?"hover:py-1 hover:items-start hover:flex-col" :""}  hover:cursor-pointer px-2 py-3 flex items-center justify-center ${css}`}
+      className={`w-14 max-w-14 flex items-center ${!item.isNew ?"hover:py-1 hover:items-start hover:flex-col" :""}  hover:cursor-pointer px-2 py-3 flex items-center justify-center ${css}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >

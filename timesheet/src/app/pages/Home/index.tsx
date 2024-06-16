@@ -1,12 +1,5 @@
-import {
-  getTodayDate,
-  getFormatedDate,
-  cn,
-  floatToTime,
-  formatDate,
-  addDays,
-} from "@/app/lib/utils";
-import { useState } from "react";
+import { getTodayDate, formatDate, addDays } from "@/app/lib/utils";
+import { useReducer } from "react";
 import {
   Table,
   TableBody,
@@ -18,11 +11,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { MultiCombo } from "@/app/components/MultiCombo";
 import { Typography } from "@/app/components/Typography";
-import { ChevronLeft, ChevronRight, Type } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   FrappeContext,
   FrappeConfig,
-  useFrappeGetDocList,
   useFrappeGetCall,
 } from "frappe-react-sdk";
 import { useContext, useEffect } from "react";
@@ -33,24 +25,19 @@ import { setDepartment } from "@/app/state/department";
 import { setEmployeeWeekList } from "@/app/state/employeeList";
 import { Button } from "@/components/ui/button";
 import { Cell } from "./components/Cell";
-import { debounce} from "lodash";
+import { debounce } from "lodash";
+import { getInitialState, reducer } from "@/app/reducer/employeeList";
 
 export default function CompactView() {
+  const { call } = useContext(FrappeContext) as FrappeConfig;
+
   const projects = useSelector((state: RootState) => state.projects);
   const departments = useSelector((state: RootState) => state.departments);
   const employeeList = useSelector((state: RootState) => state.employeeList);
   const dispatch = useDispatch();
 
-  const { call } = useContext(FrappeContext) as FrappeConfig;
+  const [state, stateDispatch] = useReducer(reducer, getInitialState);
 
-  const [selectedDepartment, setSelectedDepartment] = useState([]);
-  const [selectedProject, setSelectedProject] = useState([]);
-  const [WeekDate, setWeekDate] = useState(getTodayDate());
-  const [data, setData] = useState<any>(null);
-  const [isFetching, setIsFetching] = useState(false);
-  const [prevHeading, setPrevHeading] = useState<string>("");
-  const [curentHeading, setCurrentHeading] = useState<string>("");
-  const [employeeName, setEmployeeName] = useState<string>("");
   const {
     data: weekData,
     isLoading,
@@ -58,7 +45,10 @@ export default function CompactView() {
   } = useFrappeGetCall(
     "timesheet_enhancer.api.team.get_weekly_compact_view_data",
     {
-      date: WeekDate,
+      date: state.weekDate,
+      employee_name: state.employeeName,
+      department: state.selectedDepartment,
+      project: state.selectedProject,
     },
     "weekData",
     {
@@ -67,7 +57,7 @@ export default function CompactView() {
   );
 
   useEffect(() => {
-    setIsFetching(true);
+    stateDispatch({ type: "SetFetching", payload: true });
 
     if (projects.value.length === 0) {
       call
@@ -84,60 +74,83 @@ export default function CompactView() {
         .get("frappe.client.get_list", {
           doctype: "Department",
           fields: ["name", "department_name"],
+          filters: { is_group: false },
         })
         .then((res) => {
           dispatch(setDepartment(res.message));
         });
     }
-    setIsFetching(false);
+
+    stateDispatch({ type: "SetFetching", payload: false });
   }, []);
 
   useEffect(() => {
     if (weekData && !isLoading) {
-      setData(weekData?.message);
       dispatch(setEmployeeWeekList(weekData?.message));
     }
   }, [weekData, isLoading]);
 
   useEffect(() => {
-    if (WeekDate == getTodayDate() && !data) return;
-    mutate({ date: WeekDate });
-  }, [WeekDate]);
+    if (state.weekDate == getTodayDate() && !employeeList) return;
+    mutate({
+      date: state.weekDate,
+      employee_name: state.employeeName,
+      department: state.selectedDepartment,
+      project: state.selectedProject,
+    });
+  }, [
+    state.weekDate,
+    state.employeeName,
+    state.selectedDepartment,
+    state.selectedProject,
+  ]);
 
   useEffect(() => {
-    if (!data) return;
-    const dates = data.dates;
-    setPrevHeading(dates[0]?.key);
-    setCurrentHeading(dates[1]?.key);
-  }, [data]);
+    if (!employeeList) return;
+    const dates = employeeList.dates;
+    stateDispatch({
+      type: "SetHeading",
+      payload: { curentHeading: dates[1]?.key, prevHeading: dates[0]?.key },
+    });
+  }, [employeeList]);
 
   const handleprevWeek = () => {
-    const date = addDays(WeekDate, -14);
-    setWeekDate(date);
+    const date = addDays(state.weekDate, -14);
+    stateDispatch({ type: "SetWeekDate", payload: date });
   };
   const handlenextWeek = () => {
-    const date = addDays(WeekDate, 14);
-    setWeekDate(date);
+    const date = addDays(state.weekDate, 14);
+    stateDispatch({ type: "SetWeekDate", payload: date });
   };
-  const onEmployeeNameInputChange = debounce((e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(e.target.value);
-  }, 1000);
-  if (isFetching || isLoading || !weekData) {
+  const setSelectedDepartment = (data: any) => {
+    stateDispatch({ type: "SetDepartment", payload: data });
+  };
+  const setSelectedProject = (data: any) => {
+    stateDispatch({ type: "SetProject", payload: data });
+  };
+  const onEmployeeNameInputChange = debounce(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      stateDispatch({ type: "SetEmployeeName", payload: e.target.value });
+    },
+    1000
+  );
+  if (state.isFetching || isLoading || !weekData) {
     return <div>Loading...</div>;
   }
-  const dates = data?.dates;
-  const res = data?.data;
-  console.log(selectedProject);
+  const dates = employeeList?.dates;
+  const res = employeeList?.data;
+
   return (
     <div>
       <div id="header" className="grid grid-cols-11 w-full">
-        <div className="flex gap-2 pr-2 col-span-3">
+        <div className="flex gap-2 pr-2 col-span-3 flex-wrap">
           <MultiCombo
             comboData={departments.value.map((item) => ({
               value: item.name,
               label: item.department_name,
             }))}
             buttonLabel="Departments"
+            buttonClass="w-fit"
             parentCallback={setSelectedDepartment}
           />
           <MultiCombo
@@ -146,6 +159,7 @@ export default function CompactView() {
               label: item.project_name,
             }))}
             buttonLabel="Projects"
+            buttonClass="w-fit"
             parentCallback={setSelectedProject}
           />
         </div>
@@ -158,7 +172,7 @@ export default function CompactView() {
             <ChevronLeft size={16} className="hover:cursor-pointer" />
           </Button>
           <Typography variant="p" className="!font-semibold w-full">
-            {prevHeading}
+            {state.prevHeading}
           </Typography>
         </div>
         <div className="flex flex-row-reverse items-center col-span-4  text-center w-full">
@@ -170,7 +184,7 @@ export default function CompactView() {
             <ChevronRight size={16} className="hover:cursor-pointer" />
           </Button>
           <Typography variant="p" className="!font-semibold w-full">
-            {curentHeading}
+            {state.curentHeading}
           </Typography>
         </div>
       </div>
@@ -179,7 +193,11 @@ export default function CompactView() {
           <TableHeader>
             <TableRow className="grid grid-cols-11 w-full border-t">
               <TableHead className=" flex items-center col-span-3">
-                <Input placeholder="Employee name..." className="" onInput={onEmployeeNameInputChange} />
+                <Input
+                  placeholder="Employee name..."
+                  className=""
+                  onInput={onEmployeeNameInputChange}
+                />
               </TableHead>
               {dates?.map((item: any) => {
                 const dateMap = item?.dates;
@@ -195,7 +213,7 @@ export default function CompactView() {
                         return (
                           <TableCell
                             key={formattedDate}
-                            className="p-0  w-full max-w-14 flex items-center px-2 py-3"
+                            className="p-0  w-14 max-w-14 flex items-center px-2 py-3"
                           >
                             <Typography
                               variant="p"

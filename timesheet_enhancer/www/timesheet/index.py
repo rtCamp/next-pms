@@ -29,11 +29,11 @@ def get_context(context):
     boot["server_script_enabled"] = enabled
 
     if "Projects Manager" in frappe.get_roles():
-        projects = frappe.get_list(
-            "Project", fields=["name as value", "project_name as label"]
-        )
+        projects = frappe.get_list("Project", fields=["name", "project_name"])
         departments = frappe.get_list(
-            "Department", fields=["name as value", "department_name as label"]
+            "Department",
+            fields=["name", "department_name "],
+            filters={"is_group": False},
         )
         boot["projects"] = projects
         boot["departments"] = departments

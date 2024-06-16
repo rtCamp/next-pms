@@ -1,3 +1,5 @@
+import json
+
 import frappe
 from frappe.utils.data import add_days, nowdate
 
@@ -8,7 +10,9 @@ now = nowdate()
 
 
 @frappe.whitelist()
-def get_weekly_compact_view_data(date: str, max_week: int = 2):
+def get_weekly_compact_view_data(
+    date: str, max_week: int = 2, employee_name=None, department=None, project=None
+):
     """Fetch the weekly data for employee based on reports to.
     example:
         {
@@ -58,9 +62,7 @@ def get_weekly_compact_view_data(date: str, max_week: int = 2):
     dates.reverse()
     res = {"start_date": start_date, "end_date": end_date, "dates": dates}
 
-    employees = frappe.get_list(
-        "Employee", fields=["name", "image", "employee_name", "department"]
-    )
+    employees = filter_employees(employee_name, department, project)
 
     for employee in employees:
         empData = {"timesheet": [], "leaves": [], "holidays": []}
@@ -91,3 +93,36 @@ def get_weekly_team_view_data(date: str):
         )
 
     return data
+
+
+def filter_employees(employee_name=None, department=None, project=None):
+    from frappe.query_builder import DocType
+
+    fields = ["name", "image", "employee_name", "department"]
+    employee_ids = None
+    filters = {}
+    if isinstance(department, str):
+        department = json.loads(department)
+
+    if isinstance(project, str):
+        project = json.loads(project)
+
+    if employee_name:
+        filters["employee_name"] = ["like", f"%{employee_name}%"]
+
+    if len(department) > 0:
+        filters["department"] = ["in", department]
+
+    if len(project) > 0:
+        project_teams = DocType("Project Team")
+        employee_ids = (
+            frappe.qb.from_(project_teams)
+            .select(project_teams.employee)
+            .distinct()
+            .where(project_teams.parent.isin(project))
+            .where(project_teams.parenttype == "Project")
+        ).run(as_dict=True)
+        employee_ids = [emp.get("employee") for emp in employee_ids]
+        filters["name"] = ["in", employee_ids]
+
+    return frappe.get_list("Employee", fields=fields, filters=filters)
