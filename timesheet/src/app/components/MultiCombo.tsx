@@ -39,13 +39,6 @@ export function MultiCombo({
   const [selectedValues, setSelectedValues] = useState<
     Array<MultiComboStateProps>
   >([]);
-  const toggleData = (data: MultiComboStateProps) => {
-    setSelectedValues((item) =>
-      !item.includes(data)
-        ? [...item, data]
-        : item.filter((l) => l.value !== data.value)
-    );
-  };
 
   useEffect(() => {
     setData(comboData);
@@ -57,6 +50,18 @@ export function MultiCombo({
       parentCallback && parentCallback(values);
     }
   }, [openCombobox]);
+
+  const toggleData = (data: MultiComboStateProps) => {
+    setSelectedValues((item) =>
+      !item.includes(data)
+        ? [...item, data]
+        : item.filter((l) => l.value !== data.value)
+    );
+  };
+  const clearFilter = () => {
+    setSelectedValues([]);
+    setOpenCombobox(false);
+  }
   return (
     <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
       <PopoverTrigger asChild>
@@ -110,6 +115,10 @@ export function MultiCombo({
             </CommandGroup>
           </CommandList>
         </Command>
+
+        <Button className="w-full" onClick={clearFilter}>
+          Clear Filters
+        </Button>
       </PopoverContent>
     </Popover>
   );
