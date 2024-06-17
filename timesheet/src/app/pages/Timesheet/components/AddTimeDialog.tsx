@@ -45,7 +45,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { getInitialState } from "@/app/reducer/timesheet";
 import { Clock2, Calendar as CalIcon } from "@/app/components/Icon";
-
+import { ScrollArea } from "@/components/ui/scroll-area";
 interface Task {
   name: string;
   subject: string;
@@ -106,12 +106,14 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
     data: tasks,
     error: taskError,
   } = useFrappeGetCall<{ message: [Task] }>(
-    "frappe.client.get_list",
+    "timesheet_enhancer.api.utils.get_task_for_employee",
     {
-      doctype: "Task",
-      fields: ["name", "subject"],
+      employee: employee.value,
     },
-    "tasks"
+    "tasks",
+    {
+      shouldRetryOnError: false,
+    }
   );
 
   const {
@@ -274,7 +276,11 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
                           *
                         </sup>
                       </div>
-                      <Popover open={isComboOpen} onOpenChange={setIsComboOpen}>
+                      <Popover
+                        open={isComboOpen}
+                        onOpenChange={setIsComboOpen}
+                        modal={true}
+                      >
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button
@@ -301,29 +307,31 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
                         <PopoverContent className="w-96">
                           <Command>
                             <CommandInput placeholder="Search Tasks..." />
-                            <CommandEmpty>No task found.</CommandEmpty>
-                            <CommandGroup>
-                              <CommandList>
-                                {tasks?.message.map((task: Task) => (
-                                  <CommandItem
-                                    className="hover:cursor-pointer truncate aria-selected:bg-primary aria-selected:text-primary-forground"
-                                    key={task.name}
-                                    value={task.name}
-                                    onSelect={onTaskSelect}
-                                  >
-                                    <Check
-                                      className={cn(
-                                        "mr-2 h-4 w-4",
-                                        field.value === task.name
-                                          ? "opacity-100"
-                                          : "opacity-0"
-                                      )}
-                                    />
-                                    {task.subject}
-                                  </CommandItem>
-                                ))}
-                              </CommandList>
-                            </CommandGroup>
+                            <ScrollArea>
+                              <CommandEmpty>No task found.</CommandEmpty>
+                              <CommandGroup>
+                                <CommandList>
+                                  {tasks?.message.map((task: Task) => (
+                                    <CommandItem
+                                      className="hover:cursor-pointer truncate aria-selected:bg-primary aria-selected:text-primary-forground"
+                                      key={task.name}
+                                      value={task.name}
+                                      onSelect={onTaskSelect}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          field.value === task.name
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                        )}
+                                      />
+                                      {task.subject}
+                                    </CommandItem>
+                                  ))}
+                                </CommandList>
+                              </CommandGroup>
+                            </ScrollArea>
                           </Command>
                         </PopoverContent>
                       </Popover>

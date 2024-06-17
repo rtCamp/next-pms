@@ -38,42 +38,42 @@ import { Input } from "@/components/ui/input";
 import { Clock2, Calendar as CalIcon } from "@/app/components/Icon";
 import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
 import {
   setDialogInput,
   setIsAddTimeDialogOpen,
-  setIsFetchAgain
+  setIsFetchAgain,
 } from "@/app/state/employeeList";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { z } from "zod";
-
 import { useForm } from "react-hook-form";
 import { cn, getFormatedDate, parseFrappeErrorMsg } from "@/app/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
-
+import { Task } from "@/app/types/type";
+import { reducer, initialState } from "@/app/reducer/home/addtime";
+import { useReducer } from "react";
 interface EmployeeProps {
   name: string;
   employee_name: string;
   image: string;
 }
-interface Task {
-  name: string;
-  subject: string;
-}
+
 export function AddTimeDialog() {
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
   const state = useSelector((state: RootState) => state.employeeList);
-  const dialogInput = state.dialogInput;
-  const [isOpen, setIsOpen] = useState(state.isAddTimeDialogOpen);
-  const [isEmployeeBoxOpen, setIsEmployeeBoxOpen] = useState(false);
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-  const [isTaskBoxOpen, setIsTaskBoxOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<string>(
-    getFormatedDate(new Date())
-  );
+  const [localState, localDispatch] = useReducer(reducer, initialState);
+
   const { toast } = useToast();
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    const date = getFormatedDate(state.dialogInput.date);
+    localDispatch({ type: "setSelectedDate", payload: date });
+    localDispatch({ type: "setIsOpen", payload: state.isAddTimeDialogOpen });
+  }, []);
 
   const FormSchema = z.object({
     task: z.string({
@@ -101,12 +101,12 @@ export function AddTimeDialog() {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      task: dialogInput.task,
-      hours: dialogInput.hours,
-      description: dialogInput.description,
-      date: dialogInput.date,
-      employee: dialogInput.employee,
-      is_update: dialogInput.is_update,
+      task: state.dialogInput.task,
+      hours: state.dialogInput.hours,
+      description: state.dialogInput.description,
+      date: state.dialogInput.date,
+      employee: state.dialogInput.employee,
+      is_update: state.dialogInput.is_update,
     },
     mode: "onBlur",
   });
@@ -130,10 +130,7 @@ export function AddTimeDialog() {
     },
     "tasks"
   );
-  useEffect(() => {
-    const date = getFormatedDate(dialogInput.date);
-    setSelectedDate(date);
-  }, []);
+
   const closeDialog = () => {
     const data = {
       isNew: false,
@@ -145,14 +142,16 @@ export function AddTimeDialog() {
       is_update: false,
     };
     dispatch(setDialogInput(data));
-    setIsOpen(false);
+    localDispatch({ type: "setIsOpen", payload: false });
     setTimeout(() => {
       dispatch(setIsAddTimeDialogOpen(false));
     }, 500);
   };
+
   const onEmployeeSelect = (employee: string) => {
     form.setValue("employee", employee);
-    setIsEmployeeBoxOpen(false);
+
+    localDispatch({ type: "setIsEmployeeBoxOpen", payload: false });
   };
   const onDateSelect = (
     day: Date | undefined,
@@ -162,35 +161,36 @@ export function AddTimeDialog() {
   ) => {
     if (!day) return;
     const formatedDate = getFormatedDate(day);
-    setSelectedDate(formatedDate);
+
+    localDispatch({ type: "setSelectedDate", payload: formatedDate });
     form.setValue("date", formatedDate);
-    setIsDatePickerOpen(false);
+    localDispatch({ type: "setIsDatePickerOpen", payload: false });
   };
   const onTaskSelect = (task: string) => {
     form.setValue("task", task);
-    setIsTaskBoxOpen(false);
+    localDispatch({ type: "setIsTaskBoxOpen", payload: false });
   };
+
   const onSubmit = (values: z.infer<typeof FormSchema>) => {
     call(values)
-    .then((res) => {
-      closeDialog();
-      dispatch(setIsFetchAgain(true));
-      toast({
-        variant: "success",
-        title: res.message,
+      .then((res) => {
+        closeDialog();
+        dispatch(setIsFetchAgain(true));
+        toast({
+          variant: "success",
+          title: res.message,
+        });
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          title: error,
+        });
       });
-    })
-    .catch((err) => {
-      const error = parseFrappeErrorMsg(err);
-      toast({
-        variant: "destructive",
-        title: error,
-      });
-      console.log(err);
-    });
   };
   return (
-    <Sheet open={isOpen} onOpenChange={closeDialog}>
+    <Sheet open={localState.isOpen} onOpenChange={closeDialog}>
       <SheetContent className="sm:max-w-xl px-11 py-6">
         {isLoading || isTaskLoading ? (
           <ScreenLoader />
@@ -215,8 +215,14 @@ export function AddTimeDialog() {
                             </sup>
                           </FormLabel>
                           <Popover
-                            open={isEmployeeBoxOpen}
-                            onOpenChange={setIsEmployeeBoxOpen}
+                            open={localState.isEmployeeBoxOpen}
+                            onOpenChange={() =>
+                              localDispatch({
+                                type: "setIsEmployeeBoxOpen",
+                                payload: !localState.isEmployeeBoxOpen,
+                              })
+                            }
+                            modal={true}
                           >
                             <PopoverTrigger asChild>
                               <FormControl>
@@ -272,49 +278,53 @@ export function AddTimeDialog() {
                             <PopoverContent className="w-96">
                               <Command>
                                 <CommandInput placeholder="Search Employee..." />
-                                <CommandEmpty>No employee found.</CommandEmpty>
-                                <CommandGroup>
-                                  <CommandList>
-                                    {employees.message.map(
-                                      (employee: EmployeeProps) => (
-                                        <CommandItem
-                                          className="hover:cursor-pointer truncate aria-selected:bg-primary aria-selected:text-primary-forground"
-                                          key={employee.name}
-                                          value={employee.name}
-                                          onSelect={onEmployeeSelect}
-                                        >
-                                          <Check
-                                            className={cn(
-                                              "mr-2 h-4 w-4",
-                                              field.value === employee.name
-                                                ? "opacity-100"
-                                                : "opacity-0"
-                                            )}
-                                          />
-                                          <div className="flex gap-x-3">
-                                            <Avatar className="h-[24px] w-[24px]">
-                                              <AvatarFallback>
-                                                {employee.employee_name[0]}
-                                              </AvatarFallback>
-                                              <AvatarImage
-                                                src={decodeURIComponent(
-                                                  employee.image
-                                                )}
-                                                alt="Employee Image"
-                                              />
-                                            </Avatar>
-                                            <Typography
-                                              variant="p"
-                                              className="sm:text-sm"
-                                            >
-                                              {employee.employee_name}
-                                            </Typography>
-                                          </div>
-                                        </CommandItem>
-                                      )
-                                    )}
-                                  </CommandList>
-                                </CommandGroup>
+                                <ScrollArea>
+                                  <CommandEmpty>
+                                    No employee found.
+                                  </CommandEmpty>
+                                  <CommandGroup>
+                                    <CommandList>
+                                      {employees.message.map(
+                                        (employee: EmployeeProps) => (
+                                          <CommandItem
+                                            className="hover:cursor-pointer truncate aria-selected:bg-primary aria-selected:text-primary-forground"
+                                            key={employee.name}
+                                            value={employee.name}
+                                            onSelect={onEmployeeSelect}
+                                          >
+                                            <Check
+                                              className={cn(
+                                                "mr-2 h-4 w-4",
+                                                field.value === employee.name
+                                                  ? "opacity-100"
+                                                  : "opacity-0"
+                                              )}
+                                            />
+                                            <div className="flex gap-x-3">
+                                              <Avatar className="h-[24px] w-[24px]">
+                                                <AvatarFallback>
+                                                  {employee.employee_name[0]}
+                                                </AvatarFallback>
+                                                <AvatarImage
+                                                  src={decodeURIComponent(
+                                                    employee.image
+                                                  )}
+                                                  alt="Employee Image"
+                                                />
+                                              </Avatar>
+                                              <Typography
+                                                variant="p"
+                                                className="sm:text-sm"
+                                              >
+                                                {employee.employee_name}
+                                              </Typography>
+                                            </div>
+                                          </CommandItem>
+                                        )
+                                      )}
+                                    </CommandList>
+                                  </CommandGroup>
+                                </ScrollArea>
                               </Command>
                             </PopoverContent>
                           </Popover>
@@ -363,8 +373,13 @@ export function AddTimeDialog() {
                             </sup>
                           </FormLabel>
                           <Popover
-                            open={isDatePickerOpen}
-                            onOpenChange={setIsDatePickerOpen}
+                            open={localState.isDatePickerOpen}
+                            onOpenChange={() =>
+                              localDispatch({
+                                type: "setIsDatePickerOpen",
+                                payload: !localState.isDatePickerOpen,
+                              })
+                            }
                           >
                             <PopoverTrigger asChild>
                               <Button
@@ -377,7 +392,7 @@ export function AddTimeDialog() {
                                 {field.value ? (
                                   field.value
                                 ) : (
-                                  <span>{selectedDate}</span>
+                                  <span>{localState.selectedDate}</span>
                                 )}
                                 <CalIcon stroke="#AB3A6C" />
                               </Button>
@@ -386,7 +401,7 @@ export function AddTimeDialog() {
                               <Calendar
                                 mode="single"
                                 disableNavigation
-                                selected={new Date(selectedDate)}
+                                selected={new Date(localState.selectedDate)}
                                 onSelect={onDateSelect}
                               />
                             </PopoverContent>
@@ -408,20 +423,29 @@ export function AddTimeDialog() {
                         </sup>
                       </FormLabel>
                       <Popover
-                        open={isTaskBoxOpen}
-                        onOpenChange={setIsTaskBoxOpen}
+                        open={localState.isTaskBoxOpen}
+                        onOpenChange={() =>
+                          localDispatch({
+                            type: "setIsTaskBoxOpen",
+                            payload: !localState.isTaskBoxOpen,
+                          })
+                        }
+                        modal={true}
                       >
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button
                               variant="outline"
                               role="combobox"
-                              className="max-w-full px-2 justify-between !mt-0"
+                              className="px-2 justify-between !mt-0"
                             >
                               {field.value ? (
-                                <Typography variant="p" className="sm:text-sm truncate">
+                                <Typography
+                                  variant="p"
+                                  className="sm:text-sm truncate"
+                                >
                                   {
-                                    tasks?.message.find(
+                                    tasks.message.find(
                                       (task: Task) => task.name === field.value
                                     )?.subject
                                   }
@@ -440,29 +464,36 @@ export function AddTimeDialog() {
                         <PopoverContent className="w-96">
                           <Command>
                             <CommandInput placeholder="Search Tasks..." />
-                            <CommandEmpty>No task found.</CommandEmpty>
-                            <CommandGroup>
-                              <CommandList>
-                                {tasks?.message.map((task: Task) => (
-                                  <CommandItem
-                                    className="hover:cursor-pointer truncate aria-selected:bg-primary aria-selected:text-primary-forground"
-                                    key={task.name}
-                                    value={task.name}
-                                    onSelect={onTaskSelect}
-                                  >
-                                    <Check
-                                      className={cn(
-                                        "mr-2 h-4 w-4",
-                                        field.value === task.name
-                                          ? "opacity-100"
-                                          : "opacity-0"
-                                      )}
-                                    />
-                                    {task.subject}
-                                  </CommandItem>
-                                ))}
-                              </CommandList>
-                            </CommandGroup>
+                            <ScrollArea>
+                              <CommandEmpty>No task found.</CommandEmpty>
+                              <CommandGroup>
+                                <CommandList>
+                                  {tasks.message.map((task: Task) => (
+                                    <CommandItem
+                                      className="hover:cursor-pointer aria-selected:bg-primary aria-selected:text-primary-forground"
+                                      key={task.name}
+                                      value={task.name}
+                                      onSelect={onTaskSelect}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          field.value === task.name
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                        )}
+                                      />
+                                      <Typography
+                                        variant="p"
+                                        className="sm:text-sm truncate w-full"
+                                      >
+                                        {task.subject}
+                                      </Typography>
+                                    </CommandItem>
+                                  ))}
+                                </CommandList>
+                              </CommandGroup>
+                            </ScrollArea>
                           </Command>
                         </PopoverContent>
                       </Popover>
