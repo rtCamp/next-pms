@@ -89,3 +89,26 @@ def get_week_dates(date, current_week: bool = False):
         start_date = add_days(start_date, 1)
     data["dates"] = dates
     return data
+
+
+@frappe.whitelist()
+def get_task_for_employee(employee: str = None):
+    if not employee:
+        employee = get_employee_from_user()
+    project_team = frappe.qb.DocType("Project Team")
+    projects = (
+        frappe.qb.from_(project_team)
+        .select("parent")
+        .where(project_team.employee == employee)
+        .run(as_dict=True)
+    )
+    project_list = [project["parent"] for project in projects]
+    project_task = frappe.get_list(
+        "Task", filters={"project": ["in", project_list]}, fields=["name", "subject"]
+    )
+    names = [task["name"] for task in project_task]
+    tasks = frappe.get_list(
+        "Task", filters={"name": ["NOT IN", names]}, fields=["name", "subject"]
+    )
+
+    return project_task.extend(tasks)
