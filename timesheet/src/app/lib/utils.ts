@@ -1,4 +1,5 @@
 import { type ClassValue, clsx } from "clsx";
+import { error } from "console";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -32,15 +33,19 @@ export function getTodayDate() {
   return getFormatedDate(today);
 }
 
-export function parseFrappeErrorMsg(StringError: string) {
+export function parseFrappeErrorMsg(error: any) {
   try {
-    const jsonMsgArray = JSON.parse(StringError);
-    if (jsonMsgArray.length > 0) {
-      const jsonObjectStr = jsonMsgArray[0];
-      return JSON.parse(jsonObjectStr);
+    const e = error._server_messages ?? error._debug_message;
+    if (error._server_messages) {
+      const jsonMsgArray = JSON.parse(error._server_messages);
+      if (jsonMsgArray.length > 0) {
+        const jsonObjectStr = jsonMsgArray[0];
+        const e = JSON.parse(jsonObjectStr);
+        return e.message;
+      }
     }
   } catch (e) {
-    return "Error parsing json."
+    return "Something went wrong! Please try again later."
   }
 
 }
@@ -93,10 +98,10 @@ export function formatDate(dateString: string) {
   return { date: `${month} ${dayOfMonth}`, day: dayOfWeek };
 }
 
-export function addDays(dateString:string,days:number) {
+export function addDays(dateString: string, days: number) {
   const date = new Date(dateString);
   const daysNum = date.getDate() + days;
   date.setDate(daysNum);
   return getFormatedDate(date);
-  
+
 }

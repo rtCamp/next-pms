@@ -25,11 +25,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
           dispatch(setEmployee(res?.message));
         })
         .catch((err) => {
-          const error = parseFrappeErrorMsg(err._server_messages);
+          const error = parseFrappeErrorMsg(err);
           toast({
             variant: "destructive",
             title: "Error! Something went wrong.",
-            description: error.message ?? error,
+            description: error,
           });
         });
     })();

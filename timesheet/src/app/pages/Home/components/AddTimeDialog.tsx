@@ -38,18 +38,19 @@ import { Input } from "@/components/ui/input";
 import { Clock2, Calendar as CalIcon } from "@/app/components/Icon";
 import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
-
 import {
   setDialogInput,
   setIsAddTimeDialogOpen,
+  setIsFetchAgain
 } from "@/app/state/employeeList";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
-import { useFrappeGetCall } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { z } from "zod";
 
 import { useForm } from "react-hook-form";
-import { cn, getFormatedDate } from "@/app/lib/utils";
+import { cn, getFormatedDate, parseFrappeErrorMsg } from "@/app/lib/utils";
+import { useToast } from "@/components/ui/use-toast";
 
 interface EmployeeProps {
   name: string;
@@ -61,6 +62,7 @@ interface Task {
   subject: string;
 }
 export function AddTimeDialog() {
+  const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
   const state = useSelector((state: RootState) => state.employeeList);
   const dialogInput = state.dialogInput;
   const [isOpen, setIsOpen] = useState(state.isAddTimeDialogOpen);
@@ -70,6 +72,7 @@ export function AddTimeDialog() {
   const [selectedDate, setSelectedDate] = useState<string>(
     getFormatedDate(new Date())
   );
+  const { toast } = useToast();
   const dispatch = useDispatch();
 
   const FormSchema = z.object({
@@ -168,7 +171,23 @@ export function AddTimeDialog() {
     setIsTaskBoxOpen(false);
   };
   const onSubmit = (values: z.infer<typeof FormSchema>) => {
-    console.log(values);
+    call(values)
+    .then((res) => {
+      closeDialog();
+      dispatch(setIsFetchAgain(true));
+      toast({
+        variant: "success",
+        title: res.message,
+      });
+    })
+    .catch((err) => {
+      const error = parseFrappeErrorMsg(err);
+      toast({
+        variant: "destructive",
+        title: error,
+      });
+      console.log(err);
+    });
   };
   return (
     <Sheet open={isOpen} onOpenChange={closeDialog}>

@@ -69,12 +69,12 @@ export default function TeamView() {
         setData(res.message);
       })
       .catch((err) => {
-        const error = parseFrappeErrorMsg(err._server_messages);
+        const error = parseFrappeErrorMsg(err);
         dispatch({ type: "SetFetching", payload: false });
         toast({
           variant: "destructive",
           title: "Error! Something went wrong.",
-          description: error.message ?? error,
+          description: error,
         });
       });
   }

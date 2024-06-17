@@ -1,6 +1,5 @@
 import {
   Dialog,
-  CustomDialogContent,
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
@@ -57,13 +56,11 @@ export default function ApprovalDialog({ dialogState, dispatch }: DialogProps) {
         dispatch({ type: "SetApprovalDialog", payload: false });
       })
       .catch((err) => {
-        const error = parseFrappeErrorMsg(
-          err._server_messages ?? err._debug_message
-        );
+        const error = parseFrappeErrorMsg(err);
         toast({
           variant: "destructive",
           title: "Error! Something went wrong.",
-          description: err._error_message ?? error.message,
+          description: err,
         });
       });
   }

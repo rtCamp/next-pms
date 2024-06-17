@@ -168,10 +168,10 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
         });
       })
       .catch((err) => {
-        const error = parseFrappeErrorMsg(err._server_messages);
+        const error = parseFrappeErrorMsg(err);
         toast({
           variant: "destructive",
-          title: error.message ?? error,
+          title: error.message,
         });
       });
   }

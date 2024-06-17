@@ -92,7 +92,7 @@ def save(
     if not employee:
         employee = get_employee_from_user()
     if is_update and not name:
-        throw(_("Timesheet name is required for update"))
+        throw(_("Timesheet is required for update"))
     if is_update:
         update_timesheet_detail(name, parent, hours, description, task)
         return _("Timesheet updated successfully.")

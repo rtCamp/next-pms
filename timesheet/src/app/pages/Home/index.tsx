@@ -110,6 +110,7 @@ export default function CompactView() {
     state.employeeName,
     state.selectedDepartment,
     state.selectedProject,
+    state.isFetchAgain
   ]);
 
   useEffect(() => {
@@ -119,7 +120,7 @@ export default function CompactView() {
       setHeading({ curentHeading: dates[1]?.key, prevHeading: dates[0]?.key })
     );
   }, [state.dates]);
-
+  
   const handleprevWeek = () => {
     const date = addDays(state.weekDate, -14);
     dispatch(setWeekDate(date));
