@@ -1,6 +1,7 @@
-import { Task } from "@/app/types/type";
+import {Task} from "@/app/types/type";
 import { getFormatedDate } from "@/app/lib/utils";
 export interface AddTimeProps {
+    dialogInput: DialogInput;
     isEmployeeBoxOpen: boolean;
     isDatePickerOpen: boolean;
     isTaskBoxOpen: boolean;
@@ -10,10 +11,25 @@ export interface AddTimeProps {
     isOpen: boolean;
 
 }
-
+interface DialogInput {
+    employee: string
+    task: string
+    hours: string
+    description: string
+    date: string
+    is_update: boolean
+}
 
 export const initialState: AddTimeProps = {
+    dialogInput: {
+        employee: "",
+        task: "",
+        hours: "",
+        description: "",
+        date: "",
+        is_update: false
 
+    },
     isEmployeeBoxOpen: false,
     isDatePickerOpen: false,
     isTaskBoxOpen: false,
@@ -57,4 +73,9 @@ const actionMap = new Map([
         ...state,
         selectedDate: payload,
     })],
+    ["setDialogInput", (state: AddTimeProps, payload: DialogInput) => ({
+        ...state,
+        dialogInput: payload,
+    })],
+
 ]);

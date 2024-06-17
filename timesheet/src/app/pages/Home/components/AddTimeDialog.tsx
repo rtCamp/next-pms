@@ -73,6 +73,7 @@ export function AddTimeDialog() {
     const date = getFormatedDate(state.dialogInput.date);
     localDispatch({ type: "setSelectedDate", payload: date });
     localDispatch({ type: "setIsOpen", payload: state.isAddTimeDialogOpen });
+    localDispatch({ type: "setDialogInput", payload: state.dialogInput });
   }, []);
 
   const FormSchema = z.object({
@@ -122,15 +123,22 @@ export function AddTimeDialog() {
     "employees"
   );
 
-  const { data: tasks, isLoading: isTaskLoading } = useFrappeGetCall(
-    "frappe.client.get_list",
+  const {
+    data: tasks,
+    isLoading: isTaskLoading,
+    mutate,
+  } = useFrappeGetCall(
+    "timesheet_enhancer.api.utils.get_task_for_employee",
     {
-      doctype: "Task",
-      fields: ["name", "subject"],
+      employee: localState.dialogInput.employee,
     },
     "tasks"
   );
-
+  useEffect(() => {
+    mutate({
+      employee: localState.dialogInput.employee,
+    });
+  }, [localState.dialogInput.employee]);
   const closeDialog = () => {
     const data = {
       isNew: false,
@@ -150,7 +158,10 @@ export function AddTimeDialog() {
 
   const onEmployeeSelect = (employee: string) => {
     form.setValue("employee", employee);
-
+    localDispatch({
+      type: "setDialogInput",
+      payload: { ...localState.dialogInput, employee: employee },
+    });
     localDispatch({ type: "setIsEmployeeBoxOpen", payload: false });
   };
   const onDateSelect = (
@@ -445,7 +456,7 @@ export function AddTimeDialog() {
                                   className="sm:text-sm truncate"
                                 >
                                   {
-                                    tasks.message.find(
+                                    tasks?.message.find(
                                       (task: Task) => task.name === field.value
                                     )?.subject
                                   }
@@ -468,7 +479,7 @@ export function AddTimeDialog() {
                               <CommandEmpty>No task found.</CommandEmpty>
                               <CommandGroup>
                                 <CommandList>
-                                  {tasks.message.map((task: Task) => (
+                                  {tasks?.message?.map((task: Task) => (
                                     <CommandItem
                                       className="hover:cursor-pointer aria-selected:bg-primary aria-selected:text-primary-forground"
                                       key={task.name}
@@ -485,9 +496,19 @@ export function AddTimeDialog() {
                                       />
                                       <Typography
                                         variant="p"
-                                        className="sm:text-sm truncate w-full"
+                                        className={`sm:text-sm truncate w-full ${
+                                          task.status === "Completed"
+                                            ? "text-muted-foreground/60"
+                                            : ""
+                                        }`}
                                       >
                                         {task.subject}
+                                        <Typography
+                                          variant="p"
+                                          className="text-muted-foreground sm:text-[12px] truncate"
+                                        >
+                                          {task.project_name}
+                                        </Typography>
                                       </Typography>
                                     </CommandItem>
                                   ))}

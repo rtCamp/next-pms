@@ -104,11 +104,15 @@ def get_task_for_employee(employee: str = None):
     )
     project_list = [project["parent"] for project in projects]
     project_task = frappe.get_list(
-        "Task", filters={"project": ["in", project_list]}, fields=["name", "subject"]
+        "Task",
+        filters={"project": ["in", project_list]},
+        fields=["name", "subject", "status", "project.project_name"],
     )
     names = [task["name"] for task in project_task]
     tasks = frappe.get_list(
-        "Task", filters={"name": ["NOT IN", names]}, fields=["name", "subject"]
+        "Task",
+        filters={"name": ["NOT IN", names]},
+        fields=["name", "subject", "status", "project.project_name"],
     )
 
-    return project_task.extend(tasks)
+    return project_task + tasks

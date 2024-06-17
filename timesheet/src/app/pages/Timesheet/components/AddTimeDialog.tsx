@@ -46,10 +46,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { getInitialState } from "@/app/reducer/timesheet";
 import { Clock2, Calendar as CalIcon } from "@/app/components/Icon";
 import { ScrollArea } from "@/components/ui/scroll-area";
-interface Task {
-  name: string;
-  subject: string;
-}
+import { Typography } from "@/app/components/Typography";
+import { Task } from "@/app/types/type";
 
 export function AddTimeDialog({ state, dispatch }: DialogProps) {
   const employee = useSelector((state: RootState) => state.employee);
@@ -326,7 +324,22 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
                                             : "opacity-0"
                                         )}
                                       />
-                                      {task.subject}
+                                         <Typography
+                                        variant="p"
+                                        className={`sm:text-sm truncate w-full ${
+                                          task.status === "Completed"
+                                            ? "text-muted-foreground/60"
+                                            : ""
+                                        }`}
+                                      >
+                                        {task.subject}
+                                        <Typography
+                                          variant="p"
+                                          className="text-muted-foreground sm:text-[12px] truncate"
+                                        >
+                                          {task.project_name}
+                                        </Typography>
+                                      </Typography>
                                     </CommandItem>
                                   ))}
                                 </CommandList>
