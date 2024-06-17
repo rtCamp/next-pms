@@ -111,12 +111,12 @@ function InnerCell({
     <TableCell
       className={`w-14 h-full  flex items-center ${
         !item.isNew ? "hover:py-1 hover:items-start hover:flex-col" : ""
-      }  hover:cursor-pointer px-2 py-3 flex items-center justify-center ${css}`}
+      }  hover:cursor-pointer px-2 py-3 flex items-center justify-center ${css} ${isHovered|| item.hour ==0 ?"hover:items-center hover:bg-background"  : ""} `}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={cellClick}
     >
-      {item.isNew ? (
+      {item.isNew || (isHovered && item.hour == 0) ? (
         <CirclePlus stroke="#AB3A6C" width={17} height={17} />
       ) : (
         <>
@@ -128,7 +128,9 @@ function InnerCell({
           >
             {!item.isHoliday && item.hour != 0 ? floatToTime(item.hour) : ""}
           </Typography>
-          {isHovered && !item.isNew && <Pencil className="self-center" />}
+          {isHovered && !item.isNew && item.hour != 0 && (
+            <Pencil className="self-center" />
+          )}
         </>
       )}
     </TableCell>
