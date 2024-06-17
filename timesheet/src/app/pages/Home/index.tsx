@@ -37,7 +37,7 @@ import { Button } from "@/components/ui/button";
 import { Cell } from "./components/Cell";
 import { debounce } from "lodash";
 import { AddTimeDialog } from "./components/AddTimeDialog";
-
+import { ScrollArea } from "@/components/ui/scroll-area";
 export default function CompactView() {
   const { call } = useContext(FrappeContext) as FrappeConfig;
 
@@ -196,7 +196,7 @@ export default function CompactView() {
           </Typography>
         </div>
       </div>
-      <div className="mt-4">
+      <ScrollArea className="mt-4" style={{ height: "calc(100vh - 9rem)" }}>
         <Table>
           <TableHeader>
             <TableRow className="grid grid-cols-11 w-full border-t">
@@ -255,7 +255,7 @@ export default function CompactView() {
             })}
           </TableBody>
         </Table>
-      </div>
+      </ScrollArea>
       {state.isAddTimeDialogOpen && <AddTimeDialog />}
     </div>
   );

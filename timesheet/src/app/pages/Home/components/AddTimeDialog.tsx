@@ -44,12 +44,12 @@ import {
   setIsAddTimeDialogOpen,
 } from "@/app/state/employeeList";
 import { useDispatch, useSelector } from "react-redux";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { z } from "zod";
 
 import { useForm } from "react-hook-form";
-import { cn } from "@/app/lib/utils";
+import { cn, getFormatedDate } from "@/app/lib/utils";
 
 interface EmployeeProps {
   name: string;
@@ -64,6 +64,12 @@ export function AddTimeDialog() {
   const state = useSelector((state: RootState) => state.employeeList);
   const dialogInput = state.dialogInput;
   const [isOpen, setIsOpen] = useState(state.isAddTimeDialogOpen);
+  const [isEmployeeBoxOpen, setIsEmployeeBoxOpen] = useState(false);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [isTaskBoxOpen, setIsTaskBoxOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string>(
+    getFormatedDate(new Date())
+  );
   const dispatch = useDispatch();
 
   const FormSchema = z.object({
@@ -99,7 +105,7 @@ export function AddTimeDialog() {
       employee: dialogInput.employee,
       is_update: dialogInput.is_update,
     },
-    mode: "onChange",
+    mode: "onBlur",
   });
   const { data: employees, isLoading } = useFrappeGetCall(
     "frappe.client.get_list",
@@ -121,6 +127,10 @@ export function AddTimeDialog() {
     },
     "tasks"
   );
+  useEffect(() => {
+    const date = getFormatedDate(dialogInput.date);
+    setSelectedDate(date);
+  }, []);
   const closeDialog = () => {
     const data = {
       isNew: false,
@@ -137,8 +147,29 @@ export function AddTimeDialog() {
       dispatch(setIsAddTimeDialogOpen(false));
     }, 500);
   };
-  const onSubmit = (values: z.infer<typeof FormSchema>) => {};
-  console.log(typeof employees);
+  const onEmployeeSelect = (employee: string) => {
+    form.setValue("employee", employee);
+    setIsEmployeeBoxOpen(false);
+  };
+  const onDateSelect = (
+    day: Date | undefined,
+    selectedDay: Date,
+    activeModifiers: any,
+    e: React.MouseEvent<Element, globalThis.MouseEvent>
+  ) => {
+    if (!day) return;
+    const formatedDate = getFormatedDate(day);
+    setSelectedDate(formatedDate);
+    form.setValue("date", formatedDate);
+    setIsDatePickerOpen(false);
+  };
+  const onTaskSelect = (task: string) => {
+    form.setValue("task", task);
+    setIsTaskBoxOpen(false);
+  };
+  const onSubmit = (values: z.infer<typeof FormSchema>) => {
+    console.log(values);
+  };
   return (
     <Sheet open={isOpen} onOpenChange={closeDialog}>
       <SheetContent className="sm:max-w-xl px-11 py-6">
@@ -164,7 +195,10 @@ export function AddTimeDialog() {
                               *
                             </sup>
                           </FormLabel>
-                          <Popover>
+                          <Popover
+                            open={isEmployeeBoxOpen}
+                            onOpenChange={setIsEmployeeBoxOpen}
+                          >
                             <PopoverTrigger asChild>
                               <FormControl>
                                 <Button
@@ -227,7 +261,8 @@ export function AddTimeDialog() {
                                         <CommandItem
                                           className="hover:cursor-pointer truncate aria-selected:bg-primary aria-selected:text-primary-forground"
                                           key={employee.name}
-                                          value={employee.employee_name}
+                                          value={employee.name}
+                                          onSelect={onEmployeeSelect}
                                         >
                                           <Check
                                             className={cn(
@@ -308,7 +343,10 @@ export function AddTimeDialog() {
                               *
                             </sup>
                           </FormLabel>
-                          <Popover>
+                          <Popover
+                            open={isDatePickerOpen}
+                            onOpenChange={setIsDatePickerOpen}
+                          >
                             <PopoverTrigger asChild>
                               <Button
                                 type="button"
@@ -317,12 +355,21 @@ export function AddTimeDialog() {
                                   "w-full  justify-between text-left font-normal !mt-0  text-muted-foreground"
                                 )}
                               >
-                                {field.value ? field.value : <span>f</span>}
+                                {field.value ? (
+                                  field.value
+                                ) : (
+                                  <span>{selectedDate}</span>
+                                )}
                                 <CalIcon stroke="#AB3A6C" />
                               </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0">
-                              <Calendar mode="single" disableNavigation />
+                              <Calendar
+                                mode="single"
+                                disableNavigation
+                                selected={new Date(selectedDate)}
+                                onSelect={onDateSelect}
+                              />
                             </PopoverContent>
                           </Popover>
                           <FormMessage />
@@ -341,18 +388,25 @@ export function AddTimeDialog() {
                           *
                         </sup>
                       </FormLabel>
-                      <Popover>
+                      <Popover
+                        open={isTaskBoxOpen}
+                        onOpenChange={setIsTaskBoxOpen}
+                      >
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button
                               variant="outline"
                               role="combobox"
-                              className="max-w-full px-1 justify-between !mt-0 truncate"
+                              className="max-w-full px-2 justify-between !mt-0"
                             >
                               {field.value ? (
-                                tasks?.message.find(
-                                  (task: Task) => task.name === field.value
-                                )?.subject
+                                <Typography variant="p" className="sm:text-sm truncate">
+                                  {
+                                    tasks?.message.find(
+                                      (task: Task) => task.name === field.value
+                                    )?.subject
+                                  }
+                                </Typography>
                               ) : (
                                 <div className="flex justify-center items-center">
                                   <p className="ml-2 shrink-0 opacity-50">
@@ -374,7 +428,8 @@ export function AddTimeDialog() {
                                   <CommandItem
                                     className="hover:cursor-pointer truncate aria-selected:bg-primary aria-selected:text-primary-forground"
                                     key={task.name}
-                                    value={task.subject}
+                                    value={task.name}
+                                    onSelect={onTaskSelect}
                                   >
                                     <Check
                                       className={cn(
@@ -413,9 +468,7 @@ export function AddTimeDialog() {
                           className="!mt-0"
                           rows={4}
                           required
-                          onChange={(event) => {
-                            field.onChange(event.target.value);
-                          }}
+                          onChange={field.onChange}
                         />
                       </FormControl>
                       <FormMessage />
@@ -426,7 +479,7 @@ export function AddTimeDialog() {
                   <Button variant="accent" type="submit">
                     Add Time
                   </Button>
-                  <Button variant="ghost" type="button">
+                  <Button variant="ghost" type="button" onClick={closeDialog}>
                     Cancel
                   </Button>
                 </SheetFooter>

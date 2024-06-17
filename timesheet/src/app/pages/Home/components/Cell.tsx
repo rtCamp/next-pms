@@ -86,7 +86,9 @@ export function Cell({ item, row }: { item: any; row: any }) {
               key={item.date}
               item={item}
               css={css}
-              cellClick={() => onCellClick(item.isNew, row.name, item.date)}
+              cellClick={() =>
+                item.isNew ? onCellClick(item.isNew, row.name, item.date) : null
+              }
             />
           );
         })}
@@ -115,7 +117,7 @@ function InnerCell({
       onClick={cellClick}
     >
       {item.isNew ? (
-        <CirclePlus stroke="#AB3A6C" width={16} height={16} />
+        <CirclePlus stroke="#AB3A6C" width={17} height={17} />
       ) : (
         <>
           <Typography

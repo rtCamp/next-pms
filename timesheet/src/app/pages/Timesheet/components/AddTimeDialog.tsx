@@ -98,7 +98,7 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
       parent: state.timesheet.parent,
       is_update: state.timesheet.isUpdate,
     },
-    mode: "onChange",
+    mode: "onBlur",
   });
 
   const {
@@ -111,7 +111,7 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
       doctype: "Task",
       fields: ["name", "subject"],
     },
-    "tasks",
+    "tasks"
   );
 
   const {
@@ -121,12 +121,9 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
   } = useFrappeGetCall<{ message: string[] }>(
     "timesheet_enhancer.api.timesheet.get_employee_holidays_and_leave_dates",
     { employee: employee.value },
-    "leavesAndHoliday",
-    {
-      dedupingInterval: 1000 * 60 * 5,
-    }
-    );
-  
+    "leavesAndHoliday"
+  );
+
   useEffect(() => {
     if (!state.timesheet.date) return;
     const date = getFormatedDate(state.timesheet.date);
@@ -144,8 +141,23 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
       dispatch({ type: "SetAddTimeDialog", payload: false });
     }, 500);
   };
+  const onTaskSelect = (task: string) => {
+    form.setValue("task", task);
+    setIsComboOpen(false);
+  };
+  const onDateSelect = (
+    day: Date | undefined,
+    selectedDay: Date,
+    activeModifiers: any,
+    e: React.MouseEvent<Element, globalThis.MouseEvent>
+  ) => {
+    if (!day) return;
+    const d = getFormatedDate(day);
+    setSelectedDate(d);
+    form.setValue("date", d);
+    handleDatePickerState();
+  };
   function onSubmit(values: z.infer<typeof FormSchema>) {
-
     call(values)
       .then((res) => {
         closeDialog();
@@ -242,13 +254,7 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
                                     )
                                   : []
                               }
-                              onSelect={(date) => {
-                                if (!date) return;
-                                const d = getFormatedDate(date);
-                                setSelectedDate(d);
-                                field.onChange(d);
-                                handleDatePickerState();
-                              }}
+                              onSelect={onDateSelect}
                               initialFocus
                             />
                           </PopoverContent>
@@ -299,14 +305,11 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
                             <CommandGroup>
                               <CommandList>
                                 {tasks?.message.map((task: Task) => (
-                                  <CommandItem 
+                                  <CommandItem
                                     className="hover:cursor-pointer truncate aria-selected:bg-primary aria-selected:text-primary-forground"
                                     key={task.name}
-                                    value={task.subject}
-                                    onSelect={() => {
-                                      form.setValue("task", task.name);
-                                      setIsComboOpen(false);
-                                    }}
+                                    value={task.name}
+                                    onSelect={onTaskSelect}
                                   >
                                     <Check
                                       className={cn(
@@ -345,9 +348,7 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
                           className="!mt-0"
                           rows={4}
                           required
-                          onChange={(event) => {
-                            field.onChange(event.target.value);
-                          }}
+                          onChange={field.onChange}
                         />
                       </FormControl>
                       <FormMessage />
