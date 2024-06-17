@@ -16,6 +16,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowDown } from "@/app/components/Icon";
 import { AddTimeDialog } from "./components/AddTimeDialog";
 import { Typography } from "@/app/components/Typography";
+import { ScrollArea } from "@/components/ui/scroll-area"
+
 function Timesheet() {
   const { toast } = useToast();
   const { call } = useContext(FrappeContext) as FrappeConfig;
@@ -132,7 +134,8 @@ function Timesheet() {
             Add Time
           </Button>
         </div>
-        <TabsContent value="timesheet" className="overflow-auto h-dvh no-scrollbar">
+        <ScrollArea  style={{ height: "calc(100vh - 8rem)" }}>
+        <TabsContent value="timesheet">
           {state.data &&
             Object.entries(state.data).map(([key, value]: [string, any]) => {
               return (
@@ -178,7 +181,8 @@ function Timesheet() {
               Load More
             </Typography>
           </Button>
-        </TabsContent>
+          </TabsContent>
+          </ScrollArea>
       </Tabs>
 
       {state.isAddTimeDialogOpen && (
