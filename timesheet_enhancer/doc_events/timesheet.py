@@ -56,6 +56,7 @@ def validate_dates(doc):
 
 
 def before_save(doc, method=None):
+    from frappe import get_value
     from frappe.utils import get_datetime
 
     validate_dates(doc)
@@ -72,3 +73,6 @@ def before_save(doc, method=None):
         )
         doc.time_logs[key].from_time = from_time
         doc.time_logs[key].to_time = to_time
+        doc.time_logs[key].project = get_value(
+            "Task", {"name": doc.time_logs[key].task}, "project"
+        )

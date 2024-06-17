@@ -1,5 +1,4 @@
 import { getTodayDate, formatDate, addDays } from "@/app/lib/utils";
-import { useReducer } from "react";
 import {
   Table,
   TableBody,
@@ -25,11 +24,9 @@ import { setDepartment } from "@/app/state/department";
 import {
   setEmployeeWeekList,
   setDepartment as setDepartmentState,
-  setDialogInput,
   setEmployeeName,
   setFetching,
   setHeading,
-  setIsAddTimeDialogOpen,
   setProject as setProjectState,
   setWeekDate,
 } from "@/app/state/employeeList";
@@ -38,6 +35,8 @@ import { Cell } from "./components/Cell";
 import { debounce } from "lodash";
 import { AddTimeDialog } from "./components/AddTimeDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+
+import { EditTimeDialog } from "./components/EditTimeDialog";
 export default function CompactView() {
   const { call } = useContext(FrappeContext) as FrappeConfig;
 
@@ -110,7 +109,7 @@ export default function CompactView() {
     state.employeeName,
     state.selectedDepartment,
     state.selectedProject,
-    state.isFetchAgain
+    state.isFetchAgain,
   ]);
 
   useEffect(() => {
@@ -120,7 +119,7 @@ export default function CompactView() {
       setHeading({ curentHeading: dates[1]?.key, prevHeading: dates[0]?.key })
     );
   }, [state.dates]);
-  
+
   const handleprevWeek = () => {
     const date = addDays(state.weekDate, -14);
     dispatch(setWeekDate(date));
@@ -141,7 +140,6 @@ export default function CompactView() {
     },
     1000
   );
-
 
   if (state.isFetching || isLoading || !weekData) {
     return <div>Loading...</div>;
@@ -258,6 +256,7 @@ export default function CompactView() {
         </Table>
       </ScrollArea>
       {state.isAddTimeDialogOpen && <AddTimeDialog />}
+      {state.isEditTimeDialogOpen && <EditTimeDialog />}
     </div>
   );
 }

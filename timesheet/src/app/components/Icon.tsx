@@ -218,3 +218,23 @@ export function Pencil({ ...props }) {
     </svg>
   );
 }
+
+export function Trash({ ...props }) {
+  return (
+    <svg
+      width="16"
+      height="17"
+      viewBox="0 0 16 17"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <path
+        d="M2 4.50001H14M12.6667 4.50001V13.8333C12.6667 14.5 12 15.1667 11.3333 15.1667H4.66667C4 15.1667 3.33333 14.5 3.33333 13.8333V4.50001M5.33333 4.50001V3.16668C5.33333 2.50001 6 1.83334 6.66667 1.83334H9.33333C10 1.83334 10.6667 2.50001 10.6667 3.16668V4.50001M6.66667 7.83334V11.8333M9.33333 7.83334V11.8333"
+        stroke={props.stroke || "#09090B"}
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  );
+}

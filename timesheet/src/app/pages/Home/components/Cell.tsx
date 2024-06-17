@@ -7,6 +7,7 @@ import { useDispatch } from "react-redux";
 import {
   setDialogInput,
   setIsAddTimeDialogOpen,
+  setIsEditTimeDialogOpen,
 } from "@/app/state/employeeList";
 
 export function Cell({ item, row }: { item: any; row: any }) {
@@ -39,6 +40,8 @@ export function Cell({ item, row }: { item: any; row: any }) {
         bgClass = "bg-warning/25";
       } else if (!timesheet && !leaveData) {
         bgClass = "bg-tansparent";
+      } else if (hour == 0) {
+        bgClass = "bg-tansparent";
       }
 
       if (!isNew && (hour == 0 || (!timesheet && !leaveData))) {
@@ -51,7 +54,7 @@ export function Cell({ item, row }: { item: any; row: any }) {
     setData(dateArray);
   }, [row, item]);
 
-  const onCellClick = (isNew: boolean, employee: string, date: string) => {
+  const onCellClick = (isNew: boolean, employee: string, date: string,hour:number) => {
     const data = {
       employee,
       task: "",
@@ -60,8 +63,14 @@ export function Cell({ item, row }: { item: any; row: any }) {
       date: date,
       is_update: isNew ? false : true,
     };
+
     dispatch(setDialogInput(data));
-    dispatch(setIsAddTimeDialogOpen(true));
+    if (isNew || hour == 0) {
+      dispatch(setIsAddTimeDialogOpen(true));
+    } else {
+      
+      dispatch(setIsEditTimeDialogOpen(true));
+    }
   };
   return (
     <TableCell key={item.key} className="px-0 py-0 col-span-4">
@@ -76,9 +85,7 @@ export function Cell({ item, row }: { item: any; row: any }) {
               key={item.date}
               item={item}
               css={item.bgClass}
-              cellClick={() =>
-                item.isNew ? onCellClick(item.isNew, row.name, item.date) : null
-              }
+              cellClick={() => onCellClick(item.isNew, row.name, item.date,item.hour)}
             />
           );
         })}

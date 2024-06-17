@@ -15,6 +15,7 @@ interface EmployeeListState {
     curentHeading: string;
     employeeName: string;
     isAddTimeDialogOpen: boolean;
+    isEditTimeDialogOpen: boolean;
     isFetchAgain: boolean;
     dialogInput: DialogInput
 }
@@ -40,6 +41,7 @@ const initialState: EmployeeListState = {
     curentHeading: "",
     employeeName: "",
     isAddTimeDialogOpen: false,
+    isEditTimeDialogOpen: false,
     isFetchAgain: false,
     dialogInput: {
         employee: "",
@@ -85,11 +87,14 @@ const employeeListSlice = createSlice({
         },
         setIsFetchAgain: (state, action: PayloadAction<boolean>) => { 
             return { ...state, isFetchAgain: action.payload };
+        },
+        setIsEditTimeDialogOpen: (state, action: PayloadAction<boolean>) => { 
+            return { ...state, isEditTimeDialogOpen: action.payload };
         }
 
     },
 
 });
 
-export const { setEmployeeWeekList, setDialogInput, setFetching, setDepartment, setEmployeeName, setHeading, setIsAddTimeDialogOpen, setProject, setWeekDate ,setIsFetchAgain} = employeeListSlice.actions;
+export const { setEmployeeWeekList, setDialogInput, setFetching, setDepartment, setEmployeeName, setHeading, setIsAddTimeDialogOpen, setProject, setWeekDate ,setIsFetchAgain,setIsEditTimeDialogOpen} = employeeListSlice.actions;
 export default employeeListSlice.reducer;

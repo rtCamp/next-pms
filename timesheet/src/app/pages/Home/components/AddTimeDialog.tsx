@@ -46,20 +46,15 @@ import {
   setIsFetchAgain,
 } from "@/app/state/employeeList";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { cn, getFormatedDate, parseFrappeErrorMsg } from "@/app/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
-import { Task } from "@/app/types/type";
+import { Task ,EmployeeProps} from "@/app/types/type";
 import { reducer, initialState } from "@/app/reducer/home/addtime";
 import { useReducer } from "react";
-interface EmployeeProps {
-  name: string;
-  employee_name: string;
-  image: string;
-}
 
 export function AddTimeDialog() {
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
@@ -135,9 +130,7 @@ export function AddTimeDialog() {
     "tasks"
   );
   useEffect(() => {
-    mutate({
-      employee: localState.dialogInput.employee,
-    });
+    mutate();
   }, [localState.dialogInput.employee]);
   const closeDialog = () => {
     const data = {

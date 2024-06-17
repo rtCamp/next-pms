@@ -247,3 +247,44 @@ def get_timesheet(dates: list, employee: str):
 
             data[subject]["data"].append(log.as_dict())
     return [data, week]
+
+
+@frappe.whitelist()
+def get_timesheet_detail_for_employee(employee: str, date: str):
+    """Get timesheet data for the given employee for the given date."""
+
+    timesheet = frappe.db.get_value(
+        "Timesheet",
+        {
+            "employee": employee,
+            "start_date": getdate(date),
+            "end_date": getdate(date),
+        },
+        "name",
+    )
+    if not timesheet:
+        frappe.throw(_("No timesheet found for the given date."))
+
+    timesheet_detail = frappe.qb.DocType("Timesheet Detail")
+    project = frappe.qb.DocType("Project")
+    task = frappe.qb.DocType("Task")
+    res = (
+        frappe.qb.from_(timesheet_detail)
+        .left_join(project)
+        .on(project.name == timesheet_detail.project)
+        .inner_join(task)
+        .on(task.name == timesheet_detail.task)
+        .select(
+            project.project_name,
+            timesheet_detail.name,
+            project.name.as_("project"),
+            project.department,
+            timesheet_detail.hours,
+            task.subject.as_("task_subject"),
+            task.name.as_("task_name"),
+            timesheet_detail.parent,
+            timesheet_detail.description,
+        )
+        .where(timesheet_detail.parent == timesheet)
+    ).run(as_dict=True)
+    return res
