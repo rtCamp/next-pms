@@ -71,21 +71,11 @@ export function Cell({ item, row }: { item: any; row: any }) {
         }`}
       >
         {data.map((item: any) => {
-          let css = "bg-background";
-          if (item.isNew) {
-            if (item.key == "This Week") {
-              css = "bg-primary";
-            } else {
-              css = "bg-background";
-            }
-          } else {
-            css = item.bgClass;
-          }
           return (
             <InnerCell
               key={item.date}
               item={item}
-              css={css}
+              css={item.bgClass}
               cellClick={() =>
                 item.isNew ? onCellClick(item.isNew, row.name, item.date) : null
               }
@@ -111,12 +101,16 @@ function InnerCell({
     <TableCell
       className={`w-14 h-full  flex items-center ${
         !item.isNew ? "hover:py-1 hover:items-start hover:flex-col" : ""
-      }  hover:cursor-pointer px-2 py-3 flex items-center justify-center ${css} ${isHovered|| item.hour ==0 ?"hover:items-center hover:bg-background"  : ""} `}
+      }  hover:cursor-pointer px-2 py-3 flex items-center justify-center ${css} ${
+        isHovered || item.hour == 0
+          ? "hover:items-center hover:bg-background"
+          : ""
+      } `}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={cellClick}
     >
-      {item.isNew || (isHovered && item.hour == 0) ? (
+      {isHovered && (item.isNew || item.hour == 0) ? (
         <CirclePlus stroke="#AB3A6C" width={17} height={17} />
       ) : (
         <>
