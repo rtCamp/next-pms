@@ -118,6 +118,20 @@ def save(
 
 
 @frappe.whitelist()
+def delete(parent: str, name: str):
+    """Delete single time entry from timesheet doctype."""
+    parent_doc = frappe.get_doc("Timesheet", parent)
+    for log in parent_doc.time_logs:
+        if log.name == name:
+            parent_doc.remove(log)
+    if not parent_doc.time_logs:
+        parent_doc.delete()
+    else:
+        parent_doc.save()
+    return _("Timesheet deleted successfully.")
+
+
+@frappe.whitelist()
 def submit_for_approval(start_date: str, end_date: str, notes: str):
     from frappe.model.workflow import apply_workflow
 

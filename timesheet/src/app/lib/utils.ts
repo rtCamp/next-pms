@@ -35,12 +35,12 @@ export function getTodayDate() {
 
 export function parseFrappeErrorMsg(error: any) {
   try {
-    if (error.exception) {
-      return error.exception;
-    }
+    // if (error.exception) {
+    //   return error.exception;
+    // }
     const e = error._server_messages ?? error._debug_message;
-    if (error._server_messages) {
-      const jsonMsgArray = JSON.parse(error._server_messages);
+    if (e) {
+      const jsonMsgArray = JSON.parse(e);
       if (jsonMsgArray.length > 0) {
         const jsonObjectStr = jsonMsgArray[0];
         const e = JSON.parse(jsonObjectStr);
