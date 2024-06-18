@@ -9,7 +9,10 @@ import { reducer, initialState } from "@/app/reducer/home/edittime";
 import { useEffect, useReducer, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/app/state/store";
-import { setIsEditTimeDialogOpen ,setIsFetchAgain} from "@/app/state/employeeList";
+import {
+  setIsEditTimeDialogOpen,
+  setIsFetchAgain,
+} from "@/app/state/employeeList";
 import { Separator } from "@/components/ui/separator";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { cn, getFormatedDate, parseFrappeErrorMsg } from "@/app/lib/utils";
@@ -43,7 +46,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { debounce } from "lodash";
+import { debounce, get } from "lodash";
 import { useToast } from "@/components/ui/use-toast";
 
 interface timesheetProps {
@@ -58,12 +61,46 @@ interface timesheetProps {
   description: string;
 }
 export function EditTimeDialog() {
-  const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
+  const { call: saveTime } = useFrappePostCall(
+    "timesheet_enhancer.api.timesheet.save"
+  );
+  const { call: deleteTime } = useFrappePostCall(
+    "timesheet_enhancer.api.timesheet.delete"
+  );
+  const { call: getTimesheet } = useFrappePostCall(
+    "timesheet_enhancer.api.timesheet.get_timesheet_detail_for_employee"
+  );
   const [localState, localDispatch] = useReducer(reducer, initialState);
   const state = useSelector((state: RootState) => state.employeeList);
   const dispatch = useDispatch();
   const { toast } = useToast();
 
+  function fetch(employee: string, date: string) {
+    if (!employee || !date) return;
+    getTimesheet({
+      employee: employee,
+      date: date,
+    })
+      .then((res) => {
+        localDispatch({ type: "setData", payload: res.message });
+      })
+      .catch((err) => {
+        const errorMsg = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          title: errorMsg,
+        });
+      });
+  }
+  useEffect(() => {
+    const date = getFormatedDate(state.dialogInput.date);
+    localDispatch({ type: "setSelectedDate", payload: date });
+    localDispatch({ type: "setDialogInput", payload: state.dialogInput });
+    localDispatch({ type: "setIsOpen", payload: state.isEditTimeDialogOpen });
+  }, []);
+  useEffect(() => {
+    fetch(localState.dialogInput.employee, localState.selectedDate);
+  }, [localState.isOpen]);
   const { data: employees, isLoading: isEmployeeLoading } = useFrappeGetCall(
     "frappe.client.get_list",
     {
@@ -76,28 +113,8 @@ export function EditTimeDialog() {
     "employees"
   );
 
-  const {
-    data: timesheet,
-    isLoading: isTimesheetLoading,
-    mutate,
-  } = useFrappeGetCall(
-    "timesheet_enhancer.api.timesheet.get_timesheet_detail_for_employee",
-    {
-      employee: localState.dialogInput.employee,
-      date: localState.dialogInput.date ?? state.dialogInput.date,
-    },
-    "timesheet"
-  );
-
   useEffect(() => {
-    const date = getFormatedDate(state.dialogInput.date);
-    localDispatch({ type: "setSelectedDate", payload: date });
-    localDispatch({ type: "setDialogInput", payload: state.dialogInput });
-    localDispatch({ type: "setIsOpen", payload: state.isEditTimeDialogOpen });
-  }, []);
-
-  useEffect(() => {
-    mutate();
+    fetch(localState.dialogInput.employee, localState.dialogInput.date);
   }, [localState.dialogInput.employee, localState.dialogInput.date]);
 
   const onEmployeeSelect = (employee: string) => {
@@ -118,6 +135,23 @@ export function EditTimeDialog() {
     localDispatch({ type: "setSelectedDate", payload: formatedDate });
     localDispatch({ type: "setIsDatePickerOpen", payload: false });
   };
+  const onDeleteTime = (parent: string, name: string) => {
+    deleteTime({ parent: parent, name: name })
+      .then((res) => {
+        toast({
+          variant: "success",
+          title: res.message,
+        });
+        fetch(localState.dialogInput.employee, localState.dialogInput.date);
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          title: error,
+        });
+      });
+  };
   const onTaskTimeChange = debounce(
     (
       parent: string,
@@ -137,9 +171,8 @@ export function EditTimeDialog() {
         task: task,
         is_update: true,
       };
-      call(data)
+      saveTime(data)
         .then((res) => {
-          console.log(res);
           toast({
             variant: "success",
             title: res.message,
@@ -160,13 +193,13 @@ export function EditTimeDialog() {
     setTimeout(() => {
       dispatch(setIsFetchAgain(true));
       dispatch(setIsEditTimeDialogOpen(false));
-
     }, 500);
   };
+
   return (
     <Sheet open={localState.isOpen} onOpenChange={closeDialog}>
       <SheetContent className="sm:max-w-[676px] px-11 py-6">
-        {isEmployeeLoading || isTimesheetLoading ? (
+        {isEmployeeLoading || !localState.data ? (
           <></>
         ) : (
           <>
@@ -338,7 +371,7 @@ export function EditTimeDialog() {
                 </TableRow>
               </TableHeader>
               <TableBody className="bg-primary [&_td]:p-2">
-                {timesheet?.message?.map((item: timesheetProps) => {
+                {localState?.data?.map((item: timesheetProps) => {
                   return (
                     <TableRow>
                       <TableCell>
@@ -353,12 +386,12 @@ export function EditTimeDialog() {
                           className="truncate max-w-72 sm:text-sm"
                         >
                           {item.task_subject}
-                          <Typography
-                            variant="p"
-                            className="text-muted-foreground truncate sm:text-[13px]"
-                          >
-                            {item.project_name}
-                          </Typography>
+                        </Typography>
+                        <Typography
+                          variant="p"
+                          className="text-muted-foreground truncate !text-[13px]"
+                        >
+                          {item.project_name}
                         </Typography>
                       </TableCell>
                       <TableCell>
@@ -367,7 +400,10 @@ export function EditTimeDialog() {
                         </Typography>
                       </TableCell>
                       <TableCell>
-                        <Trash />
+                        <Trash
+                          className="hover:cursor-pointer"
+                          onClick={() => onDeleteTime(item.parent, item.name)}
+                        />
                       </TableCell>
                     </TableRow>
                   );

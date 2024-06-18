@@ -43,7 +43,6 @@ export function Cell({ item, row }: { item: any; row: any }) {
       } else if (hour == 0) {
         bgClass = "bg-tansparent";
       }
-
       if (!isNew && (hour == 0 || (!timesheet && !leaveData))) {
         dateArray.push({ date, hour, bgClass, isHoliday, isNew: true, key });
         isNew = true;
@@ -54,7 +53,12 @@ export function Cell({ item, row }: { item: any; row: any }) {
     setData(dateArray);
   }, [row, item]);
 
-  const onCellClick = (isNew: boolean, employee: string, date: string,hour:number) => {
+  const onCellClick = (
+    isNew: boolean,
+    employee: string,
+    date: string,
+    hour: number
+  ) => {
     const data = {
       employee,
       task: "",
@@ -68,14 +72,13 @@ export function Cell({ item, row }: { item: any; row: any }) {
     if (isNew || hour == 0) {
       dispatch(setIsAddTimeDialogOpen(true));
     } else {
-      
       dispatch(setIsEditTimeDialogOpen(true));
     }
   };
   return (
     <TableCell key={item.key} className="px-0 py-0 col-span-4">
       <TableRow
-        className={`flex h-full !border-b-0 w-full ${
+        className={`flex  !border-b-0 [&_td:last-child]:border-r-2 ${
           item.key != "This Week" ? "bg-primary" : ""
         }`}
       >
@@ -85,7 +88,9 @@ export function Cell({ item, row }: { item: any; row: any }) {
               key={item.date}
               item={item}
               css={item.bgClass}
-              cellClick={() => onCellClick(item.isNew, row.name, item.date,item.hour)}
+              cellClick={() =>
+                onCellClick(item.isNew, row.name, item.date, item.hour)
+              }
             />
           );
         })}
@@ -106,13 +111,13 @@ function InnerCell({
   const [isHovered, setIsHovered] = useState(false);
   return (
     <TableCell
-      className={`w-14 h-full  flex items-center ${
+      className={`w-[57px] h-[49px]  flex items-center ${
         !item.isNew ? "hover:py-1 hover:items-start hover:flex-col" : ""
       }  hover:cursor-pointer px-2 py-3 flex items-center justify-center ${css} ${
         isHovered || item.hour == 0
           ? "hover:items-center hover:bg-background"
           : ""
-      } `}
+      } border-r`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={cellClick}
@@ -122,8 +127,8 @@ function InnerCell({
       ) : (
         <>
           <Typography
-            variant="p"
-            className={`!text-[15px]  !font-semibold  ${
+            variant="small"
+            className={`!text-[13px]  !font-semibold  ${
               isHovered ? "text-primary-foreground/50" : ""
             }`}
           >

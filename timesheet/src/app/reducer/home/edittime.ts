@@ -5,6 +5,7 @@ export interface EditTimeProps {
     selectedDate: string;
     isOpen: boolean;
     dialogInput: DialogInput;
+    data: any;
 }
 interface DialogInput {
     employee: string
@@ -27,7 +28,8 @@ export const initialState: EditTimeProps = {
     isEmployeeBoxOpen: false,
     isDatePickerOpen: false,
     selectedDate: getFormatedDate(new Date()),
-    isOpen: false
+    isOpen: false,
+    data: null
 }
 
 export const reducer = (state: EditTimeProps, { type, payload }: { type: string, payload: any }) => {
@@ -55,5 +57,9 @@ const actionMap = new Map([
     ["setIsDatePickerOpen", (state: EditTimeProps, payload: any) => ({
         ...state,
         isDatePickerOpen: payload,
+    })],
+    ["setData", (state: EditTimeProps, payload: any) => ({
+        ...state,
+        data: payload,
     })],
 ]);

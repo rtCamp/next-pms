@@ -199,7 +199,7 @@ export default function CompactView() {
         <Table>
           <TableHeader>
             <TableRow className="grid grid-cols-11 w-full border-t">
-              <TableHead className=" flex items-center col-span-3">
+              <TableHead className=" flex items-center col-span-3 px-3">
                 <Input
                   placeholder="Employee name..."
                   className=""
@@ -211,7 +211,7 @@ export default function CompactView() {
                 return (
                   <TableHead key={item.key} className="px-0 col-span-4">
                     <TableRow
-                      className={`flex h-full !border-b-0 w-full ${
+                      className={`flex h-full !border-b-0 w-full [&_td:last-child]:border-r-2 ${
                         item.key != "This Week" ? "bg-primary" : ""
                       }`}
                     >
@@ -220,7 +220,7 @@ export default function CompactView() {
                         return (
                           <TableCell
                             key={formattedDate}
-                            className="p-0  w-14 max-w-14 flex items-center px-2 py-3"
+                            className="p-0  w-14 max-w-14 flex items-center px-2 py-3 border-r"
                           >
                             <Typography
                               variant="p"
