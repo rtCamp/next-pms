@@ -42,7 +42,22 @@ export function TimesheetTableBody({
           <TableRow className="flex  bg-primary border-b-[1px] hover:bg-primary/60">
             <TableCell className=" w-full max-w-sm text-justify font-medium hover:cursor-not-allowed !px-2 py-4"></TableCell>
             {hours.map((hour: any, index: number) => {
-              total += hour.hours;
+              const date = hour.date;
+              const leaveData = leaves.find((data: any) => {
+                return date >= data.from_date && date <= data.to_date;
+              });
+              let dayTotal = hour.hours;
+              if (leaveData) {
+                if (
+                  leaveData.half_day ||
+                  (leaveData.half_day_date && leaveData.half_day_date == date)
+                ) {
+                  dayTotal += 4;
+                } else {
+                  dayTotal += 8;
+                }
+              }
+              total += dayTotal;
               return (
                 <TaskCell
                   classname="text-foreground  hover:cursor-not-allowed"
@@ -51,9 +66,9 @@ export function TimesheetTableBody({
                   parent={""}
                   task={""}
                   description={`Total working hours for the day is ${floatToTime(
-                    hour.hours
+                    dayTotal
                   )}`}
-                  hours={hour.hours}
+                  hours={dayTotal}
                   date={hour.date}
                   isCellDisabled={true}
                 />
@@ -92,8 +107,6 @@ export function TimesheetTableBody({
                 </TableCell>
                 {hours.map((hour: any, index: number) => {
                   const date = hour.date;
-                  const isHoliday = holidays.includes(date);
-
                   const taskDateData = taskData.data.find(
                     (data: any) =>
                       getDateFromDateAndTime(data.from_time) === date
@@ -101,25 +114,16 @@ export function TimesheetTableBody({
                   if (taskDateData && taskDateData.hours) {
                     totalHours += taskDateData.hours;
                   }
-                  const leaveData = leaves.find((data: any) => {
-                    return date >= data.from_date && date <= data.to_date;
-                  });
-                  const isCellDisabled =
-                    (leaveData && !leaveData.half_day) ||
-                    (getTodayDate() < date && hour.disabled ) ||
-                    (isHoliday && hour.disabled) ||
-                    (isDateNotInCurrentWeek(date) && hour.disabled);
-
                   return (
                     <TaskCell
-                      onCellClick={!isCellDisabled ? onTaskCellClick : () => {}}
+                      onCellClick={!hour.disabled ? onTaskCellClick : () => {}}
                       name={taskDateData?.name ?? ""}
                       parent={taskDateData?.parent ?? ""}
                       task={taskData?.name ?? ""}
                       description={taskDateData?.description ?? ""}
                       hours={taskDateData?.hours ?? 0}
                       date={date}
-                      isCellDisabled={isCellDisabled}
+                      isCellDisabled={hour.disabled}
                     />
                   );
                 })}

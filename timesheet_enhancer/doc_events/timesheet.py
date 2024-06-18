@@ -36,7 +36,15 @@ def validate_dates(doc):
     leaves = get_leaves_for_employee(
         str(doc.start_date), str(doc.end_date), doc.employee
     )
-    if is_holiday:
+    roles = {
+        "Projects Manager",
+        "HR User",
+        "HR Manager",
+        "System Manager",
+        "Administrator",
+    }
+    frappe_roles = set(frappe.get_roles())
+    if is_holiday and not roles.intersection(frappe_roles):
         frappe.throw(
             frappe._("You can't save time entry for {0} as it is holiday.").format(
                 doc.start_date

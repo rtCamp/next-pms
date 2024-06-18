@@ -43,11 +43,24 @@ export function TimesheetTable({
             const val = hours.find((item: HourProps) => item.date === date);
             const isToday = getTodayDate() == date;
             const isHoliday = holidays.includes(date);
-
+            const leaveData = leaves.find((data: any) => {
+              return date >= data.from_date && date <= data.to_date;
+            });
+            let dayTotal = val.hours;
+            if (leaveData) {
+              if (
+                leaveData.half_day ||
+                (leaveData.half_day_date && leaveData.half_day_date == date)
+              ) {
+                dayTotal += 4;
+              } else {
+                dayTotal += 8;
+              }
+            }
             let classname = "";
-            if (val.hours < 8) {
+            if (dayTotal < 8) {
               classname = "bg-destructive";
-            } else if (val.hours == 8) {
+            } else if (dayTotal == 8) {
               classname = "bg-success";
             } else {
               classname = "bg-warning";
