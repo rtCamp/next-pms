@@ -6,7 +6,6 @@ export interface AddTimeProps {
     isDatePickerOpen: boolean;
     isTaskBoxOpen: boolean;
     taskSearch: string;
-    filterTask: Array<Task>;
     selectedDate: string;
     isOpen: boolean;
 
@@ -34,7 +33,7 @@ export const initialState: AddTimeProps = {
     isDatePickerOpen: false,
     isTaskBoxOpen: false,
     taskSearch: "",
-    filterTask: [],
+
     selectedDate: getFormatedDate(new Date()),
     isOpen: false
 };
@@ -64,10 +63,6 @@ const actionMap = new Map([
     ["setTaskSearch", (state: AddTimeProps, payload: any) => ({
         ...state,
         taskSearch: payload,
-    })],
-    ["setFilterTask", (state: AddTimeProps, payload: any) => ({
-        ...state,
-        filterTask: payload,
     })],
     ["setSelectedDate", (state: AddTimeProps, payload: any) => ({
         ...state,

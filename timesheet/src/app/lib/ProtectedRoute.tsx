@@ -39,7 +39,6 @@ export const AuthenticatedRoute = () => {
 export const OnlyPMRoute = () => {
   const { logout } = useContext(UserContext);
   const roles = useSelector((state: RootState) => state.roles);
-
   if (!roles.value.includes("Projects Manager")) {
     logout();
   }
