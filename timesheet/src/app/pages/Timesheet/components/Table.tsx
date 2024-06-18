@@ -13,7 +13,6 @@ interface TimesheetTableProps {
     description,
     hours,
   }: TaskCellClickProps) => void;
-  onApproveTimeClick?: (tableRef: any) => void;
 }
 interface HourProps {
   date: string;
@@ -22,7 +21,6 @@ interface HourProps {
 export function TimesheetTable({
   data,
   onTaskCellClick,
-  onApproveTimeClick,
 }: TimesheetTableProps) {
   const dates = data?.dates;
   const hours = data?.hours;

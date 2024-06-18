@@ -90,7 +90,8 @@ export function TimesheetTableBody({
                     {taskData.project}
                   </Typography>
                 </TableCell>
-                {dates.map((date: string) => {
+                {hours.map((hour: any, index: number) => {
+                  const date = hour.date;
                   const isHoliday = holidays.includes(date);
 
                   const taskDateData = taskData.data.find(
@@ -105,9 +106,10 @@ export function TimesheetTableBody({
                   });
                   const isCellDisabled =
                     (leaveData && !leaveData.half_day) ||
-                    getTodayDate() < date ||
-                    isHoliday ||
-                    isDateNotInCurrentWeek(date);
+                    (getTodayDate() < date && hour.disabled ) ||
+                    (isHoliday && hour.disabled) ||
+                    (isDateNotInCurrentWeek(date) && hour.disabled);
+
                   return (
                     <TaskCell
                       onCellClick={!isCellDisabled ? onTaskCellClick : () => {}}

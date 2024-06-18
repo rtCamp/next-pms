@@ -170,7 +170,7 @@ export default function CompactView() {
             parentCallback={setSelectedProject}
           />
         </div>
-        <div className="flex items-center col-span-4 text-center w-full">
+        <div className="flex items-center col-span-4 text-center w-full border-r-2">
           <Button
             variant="outline"
             onClick={handleprevWeek}
@@ -240,7 +240,7 @@ export default function CompactView() {
           <TableBody className="[&_tr:last-child]:border-b">
             {res?.map((row: any) => {
               return (
-                <TableRow className="grid  grid-flow-row-dense grid-cols-11">
+                <TableRow className="grid grid-flow-row-dense grid-cols-11">
                   <TableCell className="p-2 col-span-3 px-3 flex items-center hover:text-accent hover:underline">
                     <Typography variant="p" className="sm:text-sm !font-medium">
                       {row.employee_name}

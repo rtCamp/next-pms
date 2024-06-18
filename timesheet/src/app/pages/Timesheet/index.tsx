@@ -7,7 +7,7 @@ import { RootState } from "@/app/state/store";
 import { useSelector } from "react-redux";
 import { useToast } from "@/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/app/lib/utils";
-import { CircleCheck } from "lucide-react";
+import { CircleCheck, Clock9 } from "lucide-react";
 import ApprovalDialog from "./components/ApprovalDialog";
 import { getInitialState, reducer } from "@/app/reducer/timesheet";
 import { TaskCellClickProps } from "@/app/types/timesheet";
@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowDown } from "@/app/components/Icon";
 import { AddTimeDialog } from "./components/AddTimeDialog";
 import { Typography } from "@/app/components/Typography";
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 function Timesheet() {
   const { toast } = useToast();
@@ -106,15 +106,13 @@ function Timesheet() {
     dispatch({ type: "SetAddTimeDialog", payload: true });
   };
 
-  const onApproveTimeClick = (tableRef: any) => {
+  const onApproveTimeClick = (date: Array<string>) => {
+    console.log(date);
     dispatch({
       type: "SetDateRange",
       payload: {
-        start_date:
-          // @ts-ignore
-          tableRef?.current?.getAttribute("data-start-date"),
-        // @ts-ignore
-        end_date: tableRef?.current?.getAttribute("data-end-date"),
+        start_date: date.at(0),
+        end_date: date.at(-1),
       },
     });
     dispatch({ type: "SetApprovalDialog", payload: true });
@@ -134,65 +132,86 @@ function Timesheet() {
             Add Time
           </Button>
         </div>
-        <ScrollArea  style={{ height: "calc(100vh - 8rem)" }}>
-        <TabsContent value="timesheet">
-          {state.data &&
-            Object.entries(state.data).map(([key, value]: [string, any]) => {
-              return (
-                <div>
-                  <div className="flex w-full h-12 justify-between items-center border-b mt-5">
-                    <div className="flex gap-x-2 md:gap-x-4 items-center">
-                      <Typography variant="p" className="!font-bold">
-                        {key}
-                      </Typography>
-                    </div>
-                    <div
-                      className=" flex gap-x-2 text-sm pr-2 items-center"
-                      onClick={() => {
-                        console.log("yeah");
-                      }}
-                    >
-                      <CircleCheck
-                        size={16}
-                        className="text-muted-foreground/70 "
-                      />
-                      <Typography
-                        variant="muted"
-                        className="text-muted-foreground/70"
+        <ScrollArea style={{ height: "calc(100vh - 8rem)" }}>
+          <TabsContent value="timesheet">
+            {state.data &&
+              Object.entries(state.data).map(([key, value]: [string, any]) => {
+                return (
+                  <div>
+                    <div className="flex w-full h-12 justify-between items-center border-b mt-5">
+                      <div className="flex gap-x-2 md:gap-x-4 items-center">
+                        <Typography variant="p" className="!font-bold">
+                          {key}
+                        </Typography>
+                      </div>
+                      <div
+                        className=" flex gap-x-2 text-sm pr-2 items-center hover:bg-primary p-2 hover: rounded-sm hover:cursor-pointer"
+                        onClick={() =>
+                          value.state == "open"
+                            ? onApproveTimeClick(value.dates)
+                            : null
+                        }
                       >
-                        Not Submitted
-                      </Typography>
+                        <Status status={value.state} />
+                      </div>
                     </div>
+                    <TimesheetTable
+                      data={value}
+                      onTaskCellClick={onTaskCellClick}
+                    />
                   </div>
-                  <TimesheetTable
-                    data={value}
-                    onTaskCellClick={onTaskCellClick}
-                  />
-                </div>
-              );
-            })}
-          <Button
-            variant="accent-outline"
-            onClick={updateWeekDate}
-            className="flex gap-x-2 my-6"
-          >
-            <ArrowDown />
-            <Typography variant="p" className="!font-medium">
-              Load More
-            </Typography>
-          </Button>
+                );
+              })}
+            <Button
+              variant="accent-outline"
+              onClick={updateWeekDate}
+              className="flex gap-x-2 my-6"
+            >
+              <ArrowDown />
+              <Typography variant="p" className="!font-medium">
+                Load More
+              </Typography>
+            </Button>
           </TabsContent>
-          </ScrollArea>
+        </ScrollArea>
       </Tabs>
 
       {state.isAddTimeDialogOpen && (
         <AddTimeDialog state={state} dispatch={dispatch} />
       )}
-      {/* {state.isAprrovalDialogOpen && (
-        <ApprovalDialog dialogState={state} dispatch={dispatch} />
-      )} */}
+      {state.isAprrovalDialogOpen && (
+        <ApprovalDialog state={state} dispatch={dispatch} />
+      )}
     </div>
   );
 }
 
 export default Timesheet;
+
+function Status({ status }: { status: string }) {
+  console.log(status);
+  if (status == "submitted") {
+    return (
+      <>
+        <Clock9 size={16} stroke="#F2994A" />
+        <Typography variant="muted">Submitted</Typography>
+      </>
+    );
+  } else if (status == "approved") {
+    return (
+      <>
+        <CircleCheck size={16} fill="#58C900" stroke="#fff" />
+        <Typography variant="muted">Approved</Typography>
+      </>
+    );
+  } else {
+    return (
+      <>
+        <CircleCheck size={16} className="text-muted-foreground/70 " />
+        <Typography variant="muted" className="text-muted-foreground/70">
+          Not Submitted
+        </Typography>
+      </>
+    );
+  }
+}

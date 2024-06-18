@@ -76,11 +76,11 @@ export function Cell({ item, row }: { item: any; row: any }) {
     }
   };
   return (
-    <TableCell key={item.key} className="px-0 py-0 col-span-4">
-      <TableRow
-        className={`flex  !border-b-0 [&_td:last-child]:border-r-2 ${
+    <TableCell key={item.key} className={`px-0 py-0 col-span-4  ${
           item.key != "This Week" ? "bg-primary" : ""
-        }`}
+        }`}>
+      <TableRow
+        className={`flex  !border-b-0 [&_td:last-child]:border-r-2`}
       >
         {data.map((item: any) => {
           return (

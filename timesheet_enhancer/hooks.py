@@ -12,6 +12,10 @@ website_route_rules = [
         "to_route": "/timesheet",
     },
 ]
+
+fixtures = [
+    {"dt": "Property Setter", "filters": [["name", "in", {"Timesheet-status-options"}]]}
+]
 # Includes in <head>
 # ------------------
 
