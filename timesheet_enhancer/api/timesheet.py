@@ -43,7 +43,9 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
         data[week_dates["key"]]["holidays"] = get_holiday_dates_for_employee(
             employee, week_dates["start_date"], week_dates["end_date"]
         )
-        data[week_dates["key"]]["state"] = get_timesheet_state(week_dates["dates"])
+        data[week_dates["key"]]["state"] = get_timesheet_state(
+            week_dates["dates"], employee
+        )
         start_date = add_days(getdate(week_dates["start_date"]), -1)
 
     return data
@@ -156,14 +158,14 @@ def submit_for_approval(
     wf = frappe.db.exists("Workflow", {"document_type": "Timesheet", "is_active": True})
     for timesheet in timesheets:
         doc = frappe.get_doc("Timesheet", timesheet["name"])
+        doc.note = notes
+        doc.save()
         workflow_state = get_doc_workflow_state(doc)
         action = frappe.db.get_value(
             "Workflow Transition",
             {"parent": wf, "state": workflow_state},
             "action",
         )
-        doc.note = notes
-        doc.save()
         apply_workflow(doc, action)
     return _("Timesheet submitted for approval.")
 
@@ -315,25 +317,35 @@ def get_timesheet_detail_for_employee(employee: str, date: str):
     return res
 
 
-def get_timesheet_state(dates: list):
+def get_timesheet_state(dates: list, employee: str):
+    from frappe.workflow.doctype.workflow_action.workflow_action import (
+        get_doc_workflow_state,
+    )
+
     res = "open"
     timesheets = frappe.get_all(
         "Timesheet",
         filters={
             "start_date": [">=", getdate(dates[0])],
             "end_date": ["<=", getdate(dates[-1])],
+            "employee": employee,
         },
-        fields=["status"],
     )
-    if not timesheets:
+    if len(timesheets) == 0:
         return res
+    approved = 0
+    submitted = 0
 
     for timesheet in timesheets:
-        approved = True if timesheet.status == "Submitted" else False
-        submitted = True if timesheet.status == "Awaiting Approval" else False
+        timesheet = frappe.get_doc("Timesheet", timesheet["name"])
+        state = get_doc_workflow_state(timesheet)
+        approved += 1 if state == "Approved" else 0
+        submitted += 1 if state == "Waiting Approval" else 0
 
-    if approved:
+    if approved == 0 and submitted == 0:
+        return res
+    if approved > submitted:
         res = "approved"
-    elif submitted:
+    else:
         res = "submitted"
     return res
