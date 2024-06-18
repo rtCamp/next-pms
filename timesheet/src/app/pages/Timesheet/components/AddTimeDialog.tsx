@@ -175,6 +175,13 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
         });
       });
   }
+  const onTaskSearch = (value: string, search: string) => {
+    const item = tasks?.message?.find((item: Task) => item.name === value);
+    if (!item) return 0;
+    if (item.subject.toLowerCase().includes(search.toLowerCase())) return 1;
+
+    return 0;
+  };
   return (
     <Sheet open={isOpen} onOpenChange={closeDialog}>
       {isTaskLoading || isDateLoading ? (
@@ -284,13 +291,20 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
                             <Button
                               variant="outline"
                               role="combobox"
-                              className="max-w-full px-1 justify-between !mt-0 truncate"
+                              className="px-2  max-w-full  justify-between !mt-0 truncate"
                               disabled={state.timesheet.task ? true : false}
                             >
                               {field.value ? (
-                                tasks?.message.find(
-                                  (task: Task) => task.name === field.value
-                                )?.subject
+                                <Typography
+                                  variant="p"
+                                  className="sm:text-sm truncate "
+                                >
+                                  {
+                                    tasks?.message.find(
+                                      (task: Task) => task.name === field.value
+                                    )?.subject
+                                  }
+                                </Typography>
                               ) : (
                                 <div className="flex justify-center items-center">
                                   <p className="ml-2 shrink-0 opacity-50">
@@ -303,7 +317,7 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="w-96">
-                          <Command>
+                          <Command filter={onTaskSearch}>
                             <CommandInput placeholder="Search Tasks..." />
                             <ScrollArea>
                               <CommandEmpty>No task found.</CommandEmpty>
@@ -324,7 +338,7 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
                                             : "opacity-0"
                                         )}
                                       />
-                                         <Typography
+                                      <Typography
                                         variant="p"
                                         className={`sm:text-sm truncate w-full ${
                                           task.status === "Completed"
@@ -335,7 +349,7 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
                                         {task.subject}
                                         <Typography
                                           variant="p"
-                                          className="text-muted-foreground sm:text-[12px] truncate"
+                                          className="text-muted-foreground !text-[12px] truncate"
                                         >
                                           {task.project_name}
                                         </Typography>

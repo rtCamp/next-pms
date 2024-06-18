@@ -52,7 +52,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { cn, getFormatedDate, parseFrappeErrorMsg } from "@/app/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
-import { Task ,EmployeeProps} from "@/app/types/type";
+import { Task, EmployeeProps } from "@/app/types/type";
 import { reducer, initialState } from "@/app/reducer/home/addtime";
 import { useReducer } from "react";
 
@@ -60,7 +60,6 @@ export function AddTimeDialog() {
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
   const state = useSelector((state: RootState) => state.employeeList);
   const [localState, localDispatch] = useReducer(reducer, initialState);
-
   const { toast } = useToast();
   const dispatch = useDispatch();
 
@@ -132,6 +131,7 @@ export function AddTimeDialog() {
   useEffect(() => {
     mutate();
   }, [localState.dialogInput.employee]);
+
   const closeDialog = () => {
     const data = {
       isNew: false,
@@ -192,6 +192,13 @@ export function AddTimeDialog() {
           title: error,
         });
       });
+  };
+  const onTaskSearch = (value: string, search: string) => {
+    const item = tasks?.message?.find((item: Task) => item.name === value);
+    if (!item) return 0;
+    if (item.subject.toLowerCase().includes(search.toLowerCase())) return 1;
+
+    return 0;
   };
   return (
     <Sheet open={localState.isOpen} onOpenChange={closeDialog}>
@@ -466,7 +473,9 @@ export function AddTimeDialog() {
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="w-96">
-                          <Command>
+                          <Command
+                            filter={onTaskSearch}
+                          >
                             <CommandInput placeholder="Search Tasks..." />
                             <ScrollArea>
                               <CommandEmpty>No task found.</CommandEmpty>
@@ -498,7 +507,7 @@ export function AddTimeDialog() {
                                         {task.subject}
                                         <Typography
                                           variant="p"
-                                          className="text-muted-foreground sm:text-[12px] truncate"
+                                          className="text-muted-foreground !text-[12px] truncate"
                                         >
                                           {task.project_name}
                                         </Typography>
