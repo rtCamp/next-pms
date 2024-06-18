@@ -13,9 +13,7 @@ website_route_rules = [
     },
 ]
 
-fixtures = [
-    {"dt": "Property Setter", "filters": [["name", "in", {"Timesheet-status-options"}]]}
-]
+
 # Includes in <head>
 # ------------------
 
