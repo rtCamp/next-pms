@@ -72,7 +72,7 @@ export function Cell({ item, row }: { item: any; row: any }) {
   return (
     <TableCell
       key={item.key}
-      className={`px-0 py-0 col-span-4  ${
+      className={`px-0 py-0  col-span-4 ${
         item.key != "This Week" ? "bg-primary" : ""
       }`}
     >
@@ -104,7 +104,7 @@ function InnerCell({
   const [isHovered, setIsHovered] = useState(false);
   return (
     <TableCell
-      className={`w-[57px] h-[49px]  flex items-center ${
+      className={`w-[57px] h-[49px] flex items-center ${
         !item.isNew ? "hover:py-1 hover:items-start hover:flex-col" : ""
       }  hover:cursor-pointer px-2 py-3 flex items-center justify-center ${css} ${
         isHovered || item.hour == 0
@@ -116,7 +116,9 @@ function InnerCell({
       onClick={cellClick}
     >
       {isHovered && (item.isNew || item.hour == 0) ? (
-        <CirclePlus stroke="#AB3A6C" width={17} height={17} />
+        <Typography variant="small" className="!text-[13px]">
+          <CirclePlus stroke="#AB3A6C" width={17} height={17} />
+        </Typography>
       ) : (
         <>
           <Typography
@@ -125,7 +127,9 @@ function InnerCell({
               isHovered ? "text-primary-foreground/50" : ""
             }`}
           >
-            {!item.isHoliday && item.hour != 0 ? floatToTime(item.hour) : ""}
+              {(!item.isHoliday && item.hour != 0 )|| (item.isHoliday && item.hour != 0)
+              ? floatToTime(item.hour)
+              : ""}
           </Typography>
           {isHovered && !item.isNew && item.hour != 0 && (
             <Pencil className="self-center" />
