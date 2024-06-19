@@ -1,10 +1,5 @@
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
-import {
-  floatToTime,
-  getTodayDate,
-  getDateFromDateAndTime,
-  isDateNotInCurrentWeek,
-} from "@/app/lib/utils";
+import { floatToTime, getDateFromDateAndTime } from "@/app/lib/utils";
 import { TaskCellClickProps } from "@/app/types/timesheet";
 import { TaskCell } from "@/app/components/TaskCell";
 import { LeaveRow } from "@/app/components/LeaveRow";
@@ -16,6 +11,7 @@ interface TimesheetTableBodyProps {
   holidays: Array<string>;
   leaves: any;
   hours: any;
+  employee?: string;
   onTaskCellClick: ({
     date,
     name,
@@ -24,6 +20,7 @@ interface TimesheetTableBodyProps {
     description,
     hours,
   }: TaskCellClickProps) => void;
+  heading?: boolean;
 }
 
 export function TimesheetTableBody({
@@ -32,14 +29,20 @@ export function TimesheetTableBody({
   leaves,
   holidays,
   hours,
+  employee="",
   onTaskCellClick,
+  heading = true,
 }: TimesheetTableBodyProps) {
   let total = 0;
   return (
     <>
-      <TableBody className="[&_tr:last-child]:border-b">
-        {Object.keys(tasks).length > 0 && (
-          <TableRow className="flex  bg-primary border-b-[1px] hover:bg-primary/60">
+      <TableBody
+        className={`[&_tr:last-child]:border-b bg-primary hover:[&_tr]:bg-primary/60 ${
+          !heading ? "border-t bg-background" : ""
+        }`}
+      >
+        {Object.keys(tasks).length > 0 && heading && (
+          <TableRow className="flex   border-b-[1px] ">
             <TableCell className=" w-full max-w-sm text-justify font-medium hover:cursor-not-allowed !px-2 py-4"></TableCell>
             {hours.map((hour: any, index: number) => {
               const date = hour.date;
@@ -87,10 +90,7 @@ export function TimesheetTableBody({
           Object.entries(tasks).map(([task, taskData]: [string, any]) => {
             let totalHours = 0;
             return (
-              <TableRow
-                key={task}
-                className="flex  bg-primary border-b-[1px] hover:bg-primary/60"
-              >
+              <TableRow key={task} className="flex   border-b-[1px] ">
                 <TableCell className=" w-full max-w-sm text-justify font-medium hover:cursor-pointer !px-2 py-4">
                   <Typography
                     variant="p"
@@ -124,6 +124,7 @@ export function TimesheetTableBody({
                       hours={taskDateData?.hours ?? 0}
                       date={date}
                       isCellDisabled={hour.disabled}
+                      employee={employee}
                     />
                   );
                 })}
@@ -137,10 +138,7 @@ export function TimesheetTableBody({
             );
           })
         ) : (
-          <TableRow
-            key={"no-task"}
-            className="flex  bg-primary border-b-[1px] hover:bg-primary/60"
-          >
+          <TableRow key={"no-task"} className="flex  border-b-[1px] ">
             <TableCell className=" w-full max-w-sm text-justify font-medium hover:cursor-pointer !px-2 py-4">
               <Typography
                 variant="p"
@@ -163,6 +161,7 @@ export function TimesheetTableBody({
                   date={date}
                   isCellDisabled={hour.disabled}
                   showAdd={showAdd}
+                  employee={employee}
                 />
               );
             })}

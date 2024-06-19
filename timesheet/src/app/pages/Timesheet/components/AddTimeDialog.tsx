@@ -49,14 +49,22 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Typography } from "@/app/components/Typography";
 import { Task } from "@/app/types/type";
 
-export function AddTimeDialog({ state, dispatch }: DialogProps) {
+export function AddTimeDialog({
+  state,
+  submitAction,
+  closeAction,
+}: {
+  state: any;
+  submitAction: () => void;
+  closeAction: () => void;
+}) {
   const employee = useSelector((state: RootState) => state.employee);
   const roles = useSelector((state: RootState) => state.roles);
   const isManager = roles.value.includes("Projects Manager");
   const [selectedDate, setSelectedDate] = useState<string>(
     getFormatedDate(new Date())
   );
-  const [isOpen, setIsOpen] = useState(state.isAddTimeDialogOpen);
+  const [isOpen, setIsOpen] = useState(state.isDialogOpen);
   const [isComboOpen, setIsComboOpen] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const { toast } = useToast();
@@ -83,6 +91,7 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
     }),
     parent: z.string({}),
     is_update: z.boolean({}),
+    employee: z.string({}),
   });
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -95,6 +104,7 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
       date: state.timesheet.date,
       parent: state.timesheet.parent,
       is_update: state.timesheet.isUpdate,
+      employee: state.timesheet?.employee ?? "",
     },
     mode: "onBlur",
   });
@@ -135,11 +145,8 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
     setIsDatePickerOpen(!isDatePickerOpen);
   };
   const closeDialog = () => {
-    dispatch({ type: "SetTimesheet", payload: getInitialState.timesheet });
     setIsOpen(false);
-    setTimeout(() => {
-      dispatch({ type: "SetAddTimeDialog", payload: false });
-    }, 500);
+    closeAction();
   };
   const onTaskSelect = (task: string) => {
     form.setValue("task", task);
@@ -158,10 +165,11 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
     handleDatePickerState();
   };
   function onSubmit(values: z.infer<typeof FormSchema>) {
+    
     call(values)
       .then((res) => {
         closeDialog();
-        dispatch({ type: "SetFetchAgain", payload: true });
+        submitAction();
         toast({
           variant: "success",
           title: res.message,
@@ -195,6 +203,7 @@ export function AddTimeDialog({ state, dispatch }: DialogProps) {
           <div>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)}>
+
                 <div className="flex gap-x-7 ">
                   <FormField
                     name="hours"

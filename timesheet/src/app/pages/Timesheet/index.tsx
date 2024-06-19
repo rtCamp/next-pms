@@ -23,7 +23,15 @@ function Timesheet() {
   const { call } = useContext(FrappeContext) as FrappeConfig;
   const employee = useSelector((state: RootState) => state.employee);
   const [state, dispatch] = useReducer(reducer, getInitialState);
-
+  const onSubmit = () => {
+    dispatch({ type: "SetFetchAgain", payload: true });
+  };
+  const onClose = () => {
+    dispatch({ type: "SetTimesheet", payload: getInitialState.timesheet });
+    setTimeout(() => {
+      dispatch({ type: "SetAddTimeDialog", payload: false });
+    }, 500);
+  };
   function fetchData(employee: string, append: boolean = false) {
     call
       .post("timesheet_enhancer.api.timesheet.get_timesheet_data", {
@@ -80,9 +88,10 @@ function Timesheet() {
     task,
     description,
     hours,
+    employee,
   }: TaskCellClickProps) => {
     const isUpdate = name ? true : false;
-    console.log(date, name, parent, task, description, hours);
+
     dispatch({
       type: "SetTimesheet",
       payload: { name, parent, task, date, description, hours, isUpdate },
@@ -107,7 +116,6 @@ function Timesheet() {
   };
 
   const onApproveTimeClick = (date: Array<string>) => {
-    console.log(date);
     dispatch({
       type: "SetDateRange",
       payload: {
@@ -137,7 +145,7 @@ function Timesheet() {
             {state.data &&
               Object.entries(state.data).map(([key, value]: [string, any]) => {
                 return (
-                  <div>
+                  <>
                     <div className="flex w-full h-12 justify-between items-center border-b mt-5">
                       <div className="flex gap-x-2 md:gap-x-4 items-center">
                         <Typography variant="p" className="!font-bold">
@@ -159,7 +167,7 @@ function Timesheet() {
                       data={value}
                       onTaskCellClick={onTaskCellClick}
                     />
-                  </div>
+                  </>
                 );
               })}
             <Button
@@ -176,8 +184,12 @@ function Timesheet() {
         </ScrollArea>
       </Tabs>
 
-      {state.isAddTimeDialogOpen && (
-        <AddTimeDialog state={state} dispatch={dispatch} />
+      {state.isDialogOpen && (
+        <AddTimeDialog
+          state={state}
+          submitAction={onSubmit}
+          closeAction={onClose}
+        />
       )}
       {state.isAprrovalDialogOpen && (
         <ApprovalDialog state={state} dispatch={dispatch} />

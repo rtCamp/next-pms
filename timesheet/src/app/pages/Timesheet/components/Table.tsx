@@ -12,7 +12,10 @@ interface TimesheetTableProps {
     task,
     description,
     hours,
+    employee
   }: TaskCellClickProps) => void;
+  isHeading?: boolean;
+  employee?: string;
 }
 interface HourProps {
   date: string;
@@ -21,105 +24,110 @@ interface HourProps {
 export function TimesheetTable({
   data,
   onTaskCellClick,
+  isHeading = true,
+  employee="",
 }: TimesheetTableProps) {
   const dates = data?.dates;
   const hours = data?.hours;
   const holidays = data?.holidays;
   const tasks = data?.tasks;
   const leaves = data?.leaves;
-
   return (
     <Table className="[&_th]:px-0 [&_td]:px-0 ">
-      <TableHeader>
-        <TableRow className="flex h-16 ">
-          <TableHead
-            key="Heading"
-            className="flex w-full max-w-sm font-medium items-center h-16 text-heading !px-2 "
-          >
-            Tasks
-          </TableHead>
-          {dates.map((date: string) => {
-            const { date: formattedDate, day } = formatDate(date);
-            const val = hours.find((item: HourProps) => item.date === date);
-            const isToday = getTodayDate() == date;
-            const isHoliday = holidays.includes(date);
-            const leaveData = leaves.find((data: any) => {
-              return date >= data.from_date && date <= data.to_date;
-            });
-            let dayTotal = val.hours;
-            if (leaveData) {
-              if (
-                leaveData.half_day ||
-                (leaveData.half_day_date && leaveData.half_day_date == date)
-              ) {
-                dayTotal += 4;
-              } else {
-                dayTotal += 8;
+      {isHeading && (
+        <TableHeader>
+          <TableRow className="flex h-16 ">
+            <TableHead
+              key="Heading"
+              className="flex w-full max-w-sm font-medium items-center h-16 text-heading !px-2 "
+            >
+              Tasks
+            </TableHead>
+            {dates.map((date: string) => {
+              const { date: formattedDate, day } = formatDate(date);
+              const val = hours.find((item: HourProps) => item.date === date);
+              const isToday = getTodayDate() == date;
+              const isHoliday = holidays.includes(date);
+              const leaveData = leaves.find((data: any) => {
+                return date >= data.from_date && date <= data.to_date;
+              });
+              let dayTotal = val.hours;
+              if (leaveData) {
+                if (
+                  leaveData.half_day ||
+                  (leaveData.half_day_date && leaveData.half_day_date == date)
+                ) {
+                  dayTotal += 4;
+                } else {
+                  dayTotal += 8;
+                }
               }
-            }
-            let classname = "";
-            if (dayTotal < 8) {
-              classname = "bg-destructive";
-            } else if (dayTotal == 8) {
-              classname = "bg-success";
-            } else {
-              classname = "bg-warning";
-            }
-            if (date >= getTodayDate() || isHoliday) {
-              classname = "";
-            }
-            return (
-              <div className="flex w-full  h-16  text-[#09090B]  flex-col max-w-20  px-0 ">
-                <TableHead
-                  key={date}
-                  className="h-full flex flex-col justify-center"
-                >
-                  <div
-                    className={cn(
-                      `font-semibold ${
-                        isHoliday
-                          ? "text-secondary/30"
-                          : isToday
-                          ? "text-accent"
-                          : "text-secondary"
-                      }`
-                    )}
+              let classname = "";
+              if (dayTotal < 8) {
+                classname = "bg-destructive";
+              } else if (dayTotal == 8) {
+                classname = "bg-success";
+              } else {
+                classname = "bg-warning";
+              }
+              if (date >= getTodayDate() || isHoliday) {
+                classname = "";
+              }
+              return (
+                <div className="flex w-full  h-16  text-[#09090B]  flex-col max-w-20  px-0 ">
+                  <TableHead
+                    key={date}
+                    className="h-full flex flex-col justify-center"
                   >
-                    {day}
-                  </div>
-                  <div
-                    className={cn(
-                      ` ${
-                        isToday
-                          ? "text-accent"
-                          : isHoliday
-                          ? "text-secondary/20"
-                          : "text-secondary/50"
-                      } text-xs font-medium `
-                    )}
-                  >
-                    {formattedDate.toUpperCase()}
-                  </div>
-                </TableHead>
+                    <div
+                      className={cn(
+                        `font-semibold ${
+                          isHoliday
+                            ? "text-secondary/30"
+                            : isToday
+                            ? "text-accent"
+                            : "text-secondary"
+                        }`
+                      )}
+                    >
+                      {day}
+                    </div>
+                    <div
+                      className={cn(
+                        ` ${
+                          isToday
+                            ? "text-accent"
+                            : isHoliday
+                            ? "text-secondary/20"
+                            : "text-secondary/50"
+                        } text-xs font-medium `
+                      )}
+                    >
+                      {formattedDate.toUpperCase()}
+                    </div>
+                  </TableHead>
 
-                <span className={cn(`w-6/12 h-[3px] ${classname}`)}></span>
-              </div>
-            );
-          })}
-          <TableHead
-            key="Total"
-            className="flex w-full  justify-center flex-col h-16  text-heading text-center max-w-24 font-bold  px-0"
-          >
-            Total
-          </TableHead>
-        </TableRow>
-      </TableHeader>
+                  <span className={cn(`w-6/12 h-[3px] ${classname}`)}></span>
+                </div>
+              );
+            })}
+            <TableHead
+              key="Total"
+              className="flex w-full  justify-center flex-col h-16  text-heading text-center max-w-24 font-bold  px-0"
+            >
+              Total
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+      )}
       <TimesheetTableBody
         tasks={tasks}
+        heading={isHeading}
         holidays={holidays}
         dates={dates}
         leaves={leaves}
         hours={hours}
+        employee={employee}
         onTaskCellClick={onTaskCellClick}
       />
     </Table>
