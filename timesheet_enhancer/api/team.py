@@ -3,7 +3,6 @@ import json
 import frappe
 from frappe.utils.data import add_days, nowdate
 
-from .timesheet import get_timesheet_data
 from .utils import get_week_dates, weekly_working_hours_for_employee
 
 now = nowdate()
@@ -83,22 +82,26 @@ def get_weekly_compact_view_data(
 
 @frappe.whitelist()
 def get_weekly_team_view_data(date: str):
-    data = {}
+    from .timesheet import get_timesheet_data
 
-    data["summary"] = get_weekly_compact_view_data(date)
-    data["data"] = {}
-    for employee in data["summary"]["employees"]:
-        data["data"][employee.name] = next(
-            iter(get_timesheet_data(employee.name, date, 1).values())
-        )
-
+    holiday_map = []
+    week_info = get_week_dates(date)
+    data = week_info
+    employees = filter_employees()
+    for employee in employees:
+        info = get_timesheet_data(employee.name, date, 1)
+        info = info[next(iter(info))]
+        data[employee.name] = info
+        holiday_map.extend(info.get("holidays"))
+    data["employees"] = employees
+    data["holiday_map"] = set(holiday_map)
     return data
 
 
 def filter_employees(employee_name=None, department=None, project=None):
     from frappe.query_builder import DocType
 
-    fields = ["name", "image", "employee_name", "department"]
+    fields = ["name", "image", "employee_name", "department", "designation"]
     employee_ids = None
     filters = {}
     if isinstance(department, str):
@@ -110,10 +113,10 @@ def filter_employees(employee_name=None, department=None, project=None):
     if employee_name:
         filters["employee_name"] = ["like", f"%{employee_name}%"]
 
-    if len(department) > 0:
+    if department and len(department) > 0:
         filters["department"] = ["in", department]
 
-    if len(project) > 0:
+    if project and len(project) > 0:
         project_teams = DocType("Project Team")
         employee_ids = (
             frappe.qb.from_(project_teams)

@@ -55,7 +55,7 @@ def validate_dates(doc):
         return
 
     leave = leaves[0]
-    if not leave.get("half_day"):
+    if not leave.get("half_day") and not roles.intersection(frappe_roles):
         frappe.throw(
             frappe._("You can't save time entry for {0} as You alreay.").format(
                 doc.start_date
