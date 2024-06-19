@@ -11,7 +11,7 @@ export function LeaveRow({
 }) {
   let totalHours = 0;
   return (
-    <TableRow key={1} className="flex  border-b-[1px] bg-primary hover:bg-primary/60">
+    <TableRow key={1} className="flex  border-b-[1px] ">
       <TableCell className=" flex w-full max-w-sm text-justify  hover:cursor-pointer !px-2 py-4">
         <Typography variant="p" className="sm:text-sm !font-medium ">Time Off</Typography>
       </TableCell>

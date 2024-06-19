@@ -3,7 +3,7 @@ import { Separator } from "@/components/ui/separator";
 import { NavLink } from "react-router-dom";
 import { RootState } from "@/app/state/store";
 import { useSelector } from "react-redux";
-import { Home, Clock, Briefcase, Setting } from "../Icon";
+import { Home, Clock, Briefcase, Setting ,Users} from "../Icon";
 export function Sidebar() {
   const roles = useSelector((state: RootState) => state.roles);
   const hasPmRole = roles.value.includes("Projects Manager");
@@ -23,26 +23,26 @@ export function Sidebar() {
       isSeparator: false,
     },
     {
-      to: "/projects",
-      icon: Briefcase,
-      label: "Projects",
+      to: "/team",
+      icon: Users,
+      label: "Teams",
       isPmRoute: true,
       isSeparator: false,
     },
-    {
-      to: "",
-      icon: "",
-      label: "",
-      isPmRoute: false,
-      isSeparator: true,
-    },
-    {
-      to: "/setting",
-      icon: Setting,
-      label: "Settings",
-      isPmRoute: false,
-      isSeparator: false,
-    },
+    // {
+    //   to: "",
+    //   icon: "",
+    //   label: "",
+    //   isPmRoute: false,
+    //   isSeparator: true,
+    // },
+    // {
+    //   to: "/setting",
+    //   icon: Setting,
+    //   label: "Settings",
+    //   isPmRoute: false,
+    //   isSeparator: false,
+    // },
   ];
   return (
     <div className="border-[1px]  h-[650px] ">

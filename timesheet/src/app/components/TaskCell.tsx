@@ -17,6 +17,7 @@ interface TaskCellProps {
   isCellDisabled?: boolean;
   showAdd?: boolean;
   classname?: string;
+  employee?: string;
   onCellClick: ({
     date,
     name,
@@ -24,7 +25,7 @@ interface TaskCellProps {
     task,
     description,
     hours,
-    
+    employee,
   }: TaskCellClickProps) => void;
 }
 
@@ -35,13 +36,14 @@ export function TaskCell({
   task = "",
   description,
   hours,
-  isCellDisabled=false,
+  isCellDisabled = false,
   showAdd = false,
-  classname="",
+  classname = "",
+  employee = "",
   onCellClick,
 }: TaskCellProps) {
   const onClick = () => {
-    onCellClick({ date, name, parent, task, description, hours });
+    onCellClick({ date, name, parent, task, description, hours, employee });
   };
   return (
     <TableCell
