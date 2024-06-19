@@ -60,7 +60,13 @@ interface timesheetProps {
   parent: string;
   description: string;
 }
-export function EditTimeDialog() {
+export function EditTimeDialog({
+  state,
+  closeAction,
+}: {
+  state: any;
+  closeAction: () => void;
+}) {
   const { call: saveTime } = useFrappePostCall(
     "timesheet_enhancer.api.timesheet.save"
   );
@@ -71,8 +77,6 @@ export function EditTimeDialog() {
     "timesheet_enhancer.api.timesheet.get_timesheet_detail_for_employee"
   );
   const [localState, localDispatch] = useReducer(reducer, initialState);
-  const state = useSelector((state: RootState) => state.employeeList);
-  const dispatch = useDispatch();
   const { toast } = useToast();
 
   function fetch(employee: string, date: string) {
@@ -190,10 +194,7 @@ export function EditTimeDialog() {
   );
   const closeDialog = () => {
     localDispatch({ type: "setIsOpen", payload: false });
-    setTimeout(() => {
-      dispatch(setIsFetchAgain(true));
-      dispatch(setIsEditTimeDialogOpen(false));
-    }, 500);
+    closeAction();
   };
 
   return (

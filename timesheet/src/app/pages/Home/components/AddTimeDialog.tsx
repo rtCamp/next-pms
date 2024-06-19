@@ -1,4 +1,3 @@
-import { RootState } from "@/app/state/store";
 import {
   Sheet,
   SheetContent,
@@ -40,12 +39,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-import {
-  setDialogInput,
-  setIsAddTimeDialogOpen,
-  setIsFetchAgain,
-} from "@/app/state/employeeList";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useEffect } from "react";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { z } from "zod";
@@ -56,9 +50,16 @@ import { Task, EmployeeProps } from "@/app/types/type";
 import { reducer, initialState } from "@/app/reducer/home/addtime";
 import { useReducer } from "react";
 
-export function AddTimeDialog() {
+export function AddTimeDialog({
+  state,
+  closeAction,
+  submitAction,
+}: {
+  state: any;
+  closeAction: () => void;
+  submitAction: () => void;
+}) {
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
-  const state = useSelector((state: RootState) => state.employeeList);
   const [localState, localDispatch] = useReducer(reducer, initialState);
   const { toast } = useToast();
   const dispatch = useDispatch();
@@ -134,7 +135,6 @@ export function AddTimeDialog() {
 
   const closeDialog = () => {
     const data = {
-      isNew: false,
       employee: "",
       task: "",
       hours: "",
@@ -142,11 +142,9 @@ export function AddTimeDialog() {
       date: "",
       is_update: false,
     };
-    dispatch(setDialogInput(data));
+
     localDispatch({ type: "setIsOpen", payload: false });
-    setTimeout(() => {
-      dispatch(setIsAddTimeDialogOpen(false));
-    }, 500);
+    closeAction();
   };
 
   const onEmployeeSelect = (employee: string) => {
@@ -179,7 +177,7 @@ export function AddTimeDialog() {
     call(values)
       .then((res) => {
         closeDialog();
-        dispatch(setIsFetchAgain(true));
+        submitAction();
         toast({
           variant: "success",
           title: res.message,
@@ -473,9 +471,7 @@ export function AddTimeDialog() {
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="w-96">
-                          <Command
-                            filter={onTaskSearch}
-                          >
+                          <Command filter={onTaskSearch}>
                             <CommandInput placeholder="Search Tasks..." />
                             <ScrollArea>
                               <CommandEmpty>No task found.</CommandEmpty>

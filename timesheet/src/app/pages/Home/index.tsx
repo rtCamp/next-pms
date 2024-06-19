@@ -29,6 +29,10 @@ import {
   setHeading,
   setProject as setProjectState,
   setWeekDate,
+  setDialogInput,
+  setIsAddTimeDialogOpen,
+  setIsFetchAgain,
+  setIsEditTimeDialogOpen,
 } from "@/app/state/employeeList";
 import { Button } from "@/components/ui/button";
 import { Cell } from "./components/Cell";
@@ -140,7 +144,25 @@ export default function CompactView() {
     },
     1000
   );
-
+  const onClose = () => {
+    const data = {
+      employee: "",
+      task: "",
+      hours: "",
+      description: "",
+      date: "",
+      is_update: false,
+    };
+    dispatch(setDialogInput(data));
+    setTimeout(() => {
+      dispatch(setIsAddTimeDialogOpen(false));
+      dispatch(setIsEditTimeDialogOpen(false));
+    }, 500);
+    dispatch(setIsFetchAgain(true));
+  };
+  const onSubmit = () => {
+    dispatch(setIsFetchAgain(true));
+  };
   if (state.isFetching || isLoading || !weekData) {
     return <div>Loading...</div>;
   }
@@ -220,7 +242,7 @@ export default function CompactView() {
                         return (
                           <TableCell
                             key={formattedDate}
-                            className="p-0  w-14 max-w-14 flex items-center px-2 py-3 border-r"
+                            className="p-0 w-16 flex items-center px-2 py-3 border-r"
                           >
                             <Typography
                               variant="p"
@@ -255,8 +277,14 @@ export default function CompactView() {
           </TableBody>
         </Table>
       </ScrollArea>
-      {state.isAddTimeDialogOpen && <AddTimeDialog />}
-      {state.isEditTimeDialogOpen && <EditTimeDialog />}
+      {state.isAddTimeDialogOpen && (
+        <AddTimeDialog
+          state={state}
+          closeAction={onClose}
+          submitAction={onSubmit}
+        />
+      )}
+      {state.isEditTimeDialogOpen && <EditTimeDialog state={state} closeAction={onClose} />}
     </div>
   );
 }

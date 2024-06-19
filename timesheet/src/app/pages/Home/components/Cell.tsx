@@ -53,44 +53,37 @@ export function Cell({ item, row }: { item: any; row: any }) {
     setData(dateArray);
   }, [row, item]);
 
-  const onCellClick = (
-    isNew: boolean,
-    employee: string,
-    date: string,
-    hour: number
-  ) => {
+  const onCellClick = (employee: string, date: string, hour: number) => {
     const data = {
       employee,
       task: "",
       hours: "",
       description: "",
       date: date,
-      is_update: isNew ? false : true,
+      is_update: hour == 0 ? false : true,
     };
-
     dispatch(setDialogInput(data));
-    if (isNew || hour == 0) {
+    if (!data.is_update) {
       dispatch(setIsAddTimeDialogOpen(true));
     } else {
       dispatch(setIsEditTimeDialogOpen(true));
     }
   };
   return (
-    <TableCell key={item.key} className={`px-0 py-0 col-span-4  ${
-          item.key != "This Week" ? "bg-primary" : ""
-        }`}>
-      <TableRow
-        className={`flex  !border-b-0 [&_td:last-child]:border-r-2`}
-      >
+    <TableCell
+      key={item.key}
+      className={`px-0 py-0 col-span-4  ${
+        item.key != "This Week" ? "bg-primary" : ""
+      }`}
+    >
+      <TableRow className={`flex  !border-b-0 [&_td:last-child]:border-r-2`}>
         {data.map((item: any) => {
           return (
             <InnerCell
               key={item.date}
               item={item}
               css={item.bgClass}
-              cellClick={() =>
-                onCellClick(item.isNew, row.name, item.date, item.hour)
-              }
+              cellClick={() => onCellClick(row.name, item.date, item.hour)}
             />
           );
         })}
