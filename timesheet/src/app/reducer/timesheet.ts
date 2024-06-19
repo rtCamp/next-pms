@@ -13,7 +13,7 @@ export interface TimesheetStateProps {
     isFetching: boolean;
     isFetchAgain: boolean;
     data: object;
-    isAddTimeDialogOpen: boolean;
+    isDialogOpen: boolean;
     isAprrovalDialogOpen: boolean;
     weekDate: string;
 }
@@ -32,7 +32,7 @@ export const getInitialState = {
     isFetching: false,
     isFetchAgain: false,
     data: {},
-    isAddTimeDialogOpen: false,
+    isDialogOpen: false,
     isAprrovalDialogOpen: false,
     weekDate: getTodayDate()
 }
@@ -48,7 +48,7 @@ const actionMap = new Map([
 
     ["SetAddTimeDialog", (state: TimesheetStateProps, payload: any) => ({
         ...state,
-        isAddTimeDialogOpen: payload,
+        isDialogOpen: payload,
     })],
     ["SetApprovalDialog", (state: TimesheetStateProps, payload: any) => ({
         ...state,

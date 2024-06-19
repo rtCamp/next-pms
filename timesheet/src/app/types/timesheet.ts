@@ -15,4 +15,5 @@ export interface TaskCellClickProps {
   task?: any,
   description: string,
   hours: number
+  employee?: string
 }

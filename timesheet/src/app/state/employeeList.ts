@@ -1,7 +1,6 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { getTodayDate } from "@/app/lib/utils";
-import { set } from "lodash";
-
+import { DialogInput } from "@/app/types/type";
 interface EmployeeListState {
     start_date: string;
     end_date: string;
@@ -20,14 +19,7 @@ interface EmployeeListState {
     dialogInput: DialogInput
 }
 
-interface DialogInput {
-    employee: string
-    task: string
-    hours: string
-    description: string
-    date: string
-    is_update: boolean
-}
+
 const initialState: EmployeeListState = {
     start_date: '',
     end_date: '',
