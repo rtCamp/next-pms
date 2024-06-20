@@ -94,6 +94,7 @@ export function EditTimeDialog({
           variant: "destructive",
           title: errorMsg,
         });
+        localDispatch({ type: "setData", payload: []});
       });
   }
   useEffect(() => {

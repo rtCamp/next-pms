@@ -104,7 +104,7 @@ function InnerCell({
   const [isHovered, setIsHovered] = useState(false);
   return (
     <TableCell
-      className={`w-[57px] h-[49px] flex items-center ${
+      className={`w-[57px] h-[49px] flex items-center !text-primary-foreground !no-underline ${
         !item.isNew ? "hover:py-1 hover:items-start hover:flex-col" : ""
       }  hover:cursor-pointer px-2 py-3 flex items-center justify-center ${css} ${
         isHovered || item.hour == 0

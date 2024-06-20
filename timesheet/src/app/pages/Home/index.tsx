@@ -1,4 +1,9 @@
-import { getTodayDate, formatDate, addDays } from "@/app/lib/utils";
+import {
+  getTodayDate,
+  formatDate,
+  addDays,
+  parseFrappeErrorMsg,
+} from "@/app/lib/utils";
 import {
   Table,
   TableBody,
@@ -11,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { MultiCombo } from "@/app/components/MultiCombo";
 import { Typography } from "@/app/components/Typography";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ScreenLoader } from "@/app/components/Loader";
 import {
   FrappeContext,
   FrappeConfig,
@@ -41,6 +47,7 @@ import { AddTimeDialog } from "./components/AddTimeDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { EditTimeDialog } from "./components/EditTimeDialog";
+import { useToast } from "@/components/ui/use-toast";
 export default function CompactView() {
   const { call } = useContext(FrappeContext) as FrappeConfig;
 
@@ -48,11 +55,13 @@ export default function CompactView() {
   const departments = useSelector((state: RootState) => state.departments);
   const state = useSelector((state: RootState) => state.employeeList);
   const dispatch = useDispatch();
+  const { toast } = useToast();
 
   const {
     data: weekData,
     isLoading,
     mutate,
+    error,
   } = useFrappeGetCall(
     "timesheet_enhancer.api.team.get_weekly_compact_view_data",
     {
@@ -95,19 +104,24 @@ export default function CompactView() {
   }, []);
 
   useEffect(() => {
+    dispatch(setFetching(true));
     if (weekData && !isLoading) {
       dispatch(setEmployeeWeekList(weekData?.message));
+      dispatch(setFetching(false));
     }
-  }, [weekData, isLoading]);
+    if (error && !weekData) {
+      const err = parseFrappeErrorMsg(error);
+      toast({
+        variant: "destructive",
+        title: err,
+      });
+      dispatch(setFetching(false));
+    }
+  }, [weekData, isLoading, error]);
 
   useEffect(() => {
     if (state.weekDate == getTodayDate() && !state) return;
-    mutate({
-      date: state.weekDate,
-      employee_name: state.employeeName,
-      department: state.selectedDepartment,
-      project: state.selectedProject,
-    });
+    mutate();
   }, [
     state.weekDate,
     state.employeeName,
@@ -163,128 +177,140 @@ export default function CompactView() {
   const onSubmit = () => {
     dispatch(setIsFetchAgain(true));
   };
-  if (state.isFetching || isLoading || !weekData) {
-    return <div>Loading...</div>;
+  if (state.isFetching) {
+    return <ScreenLoader isFullPage={true} />;
   }
   const dates = state?.dates;
   const res = state?.data;
 
   return (
-    <div>
-      <div id="header" className="grid grid-cols-11 w-full">
-        <div className="flex gap-2 pr-2 col-span-3 flex-wrap">
-          <MultiCombo
-            comboData={departments.value.map((item) => ({
-              value: item.name,
-              label: item.department_name,
-            }))}
-            buttonLabel="Departments"
-            buttonClass="w-fit"
-            parentCallback={setSelectedDepartment}
-          />
-          <MultiCombo
-            comboData={projects.value.map((item) => ({
-              value: item.name,
-              label: item.project_name,
-            }))}
-            buttonLabel="Projects"
-            buttonClass="w-fit"
-            parentCallback={setSelectedProject}
-          />
-        </div>
-        <div className="flex items-center col-span-4 text-center w-full border-r-2">
-          <Button
-            variant="outline"
-            onClick={handleprevWeek}
-            className="p-1 h-auto"
-          >
-            <ChevronLeft size={16} className="hover:cursor-pointer" />
-          </Button>
-          <Typography variant="p" className="!font-semibold w-full">
-            {state.prevHeading}
-          </Typography>
-        </div>
-        <div className="flex flex-row-reverse items-center col-span-4  text-center w-full">
-          <Button
-            variant="outline"
-            onClick={handlenextWeek}
-            className="p-1 h-auto"
-          >
-            <ChevronRight size={16} className="hover:cursor-pointer" />
-          </Button>
-          <Typography variant="p" className="!font-semibold w-full">
-            {state.curentHeading}
-          </Typography>
-        </div>
-      </div>
-      <ScrollArea className="mt-4" style={{ height: "calc(100vh - 9rem)" }}>
-        <Table>
-          <TableHeader>
-            <TableRow className="grid grid-cols-11 w-full border-t">
-              <TableHead className=" flex items-center col-span-3 px-3">
-                <Input
-                  placeholder="Employee name..."
-                  className=""
-                  onInput={onEmployeeNameInputChange}
-                />
-              </TableHead>
-              {dates?.map((item: any) => {
-                const dateMap = item?.dates;
-                return (
-                  <TableHead key={item.key} className="px-0 col-span-4">
-                    <TableRow
-                      className={`flex h-full !border-b-0 w-full [&_td:last-child]:border-r-2 ${
-                        item.key != "This Week" ? "bg-primary" : ""
-                      }`}
-                    >
-                      {dateMap?.map((date: any) => {
-                        const { date: formattedDate, day } = formatDate(date);
-                        return (
-                          <TableCell
-                            key={formattedDate}
-                            className="p-0 w-16 flex items-center px-2 py-3 border-r"
-                          >
-                            <Typography
-                              variant="p"
-                              className="!text-[15px]  !font-semibold"
-                            >
-                              {day}
-                            </Typography>
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
+    <>
+      {!error ? (
+        <div>
+          <div id="header" className="grid grid-cols-11 w-full">
+            <div className="flex gap-2 pr-2 col-span-3 flex-wrap">
+              <MultiCombo
+                comboData={departments.value.map((item) => ({
+                  value: item.name,
+                  label: item.department_name,
+                }))}
+                buttonLabel="Departments"
+                buttonClass="w-fit"
+                parentCallback={setSelectedDepartment}
+              />
+              <MultiCombo
+                comboData={projects.value.map((item) => ({
+                  value: item.name,
+                  label: item.project_name,
+                }))}
+                buttonLabel="Projects"
+                buttonClass="w-fit"
+                parentCallback={setSelectedProject}
+              />
+            </div>
+            <div className="flex items-center col-span-4 text-center w-full border-r-2">
+              <Button
+                variant="outline"
+                onClick={handleprevWeek}
+                className="p-1 h-auto"
+              >
+                <ChevronLeft size={16} className="hover:cursor-pointer" />
+              </Button>
+              <Typography variant="p" className="!font-semibold w-full">
+                {state.prevHeading}
+              </Typography>
+            </div>
+            <div className="flex flex-row-reverse items-center col-span-4  text-center w-full">
+              <Button
+                variant="outline"
+                onClick={handlenextWeek}
+                className="p-1 h-auto"
+              >
+                <ChevronRight size={16} className="hover:cursor-pointer" />
+              </Button>
+              <Typography variant="p" className="!font-semibold w-full">
+                {state.curentHeading}
+              </Typography>
+            </div>
+          </div>
+          <ScrollArea className="mt-4" style={{ height: "calc(100vh - 9rem)" }}>
+            <Table>
+              <TableHeader>
+                <TableRow className="grid grid-cols-11 w-full border-t">
+                  <TableHead className=" flex items-center col-span-3 px-3">
+                    <Input
+                      placeholder="Employee name..."
+                      className=""
+                      onInput={onEmployeeNameInputChange}
+                    />
                   </TableHead>
-                );
-              })}
-            </TableRow>
-          </TableHeader>
-          <TableBody className="[&_tr:last-child]:border-b">
-            {res?.map((row: any) => {
-              return (
-                <TableRow className="grid grid-flow-row-dense grid-cols-11">
-                  <TableCell className="p-2 col-span-3 px-3 flex items-center hover:text-accent hover:underline">
-                    <Typography variant="p" className="sm:text-sm !font-medium">
-                      {row.employee_name}
-                    </Typography>
-                  </TableCell>
                   {dates?.map((item: any) => {
-                    return <Cell item={item} row={row} />;
+                    const dateMap = item?.dates;
+                    return (
+                      <TableHead key={item.key} className="px-0 col-span-4">
+                        <TableRow
+                          className={`flex h-full !border-b-0 w-full [&_td:last-child]:border-r-2 ${
+                            item.key != "This Week" ? "bg-primary" : ""
+                          }`}
+                        >
+                          {dateMap?.map((date: any) => {
+                            const { date: formattedDate, day } =
+                              formatDate(date);
+                            return (
+                              <TableCell
+                                key={formattedDate}
+                                className="p-0 w-16 flex items-center px-2 py-3 border-r"
+                              >
+                                <Typography
+                                  variant="p"
+                                  className="!text-[15px]  !font-semibold"
+                                >
+                                  {day}
+                                </Typography>
+                              </TableCell>
+                            );
+                          })}
+                        </TableRow>
+                      </TableHead>
+                    );
                   })}
                 </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </ScrollArea>
-      {state.isAddTimeDialogOpen && (
-        <AddTimeDialog
-          state={state}
-          closeAction={onClose}
-          submitAction={onSubmit}
-        />
+              </TableHeader>
+              <TableBody className="[&_tr:last-child]:border-b">
+                {res?.map((row: any) => {
+                  return (
+                    <TableRow className="grid grid-flow-row-dense grid-cols-11 [&_td:first-child]:hover:underline [&_td:first-child]:hover:text-accent">
+                      <TableCell className="p-2 col-span-3 px-3 flex items-center ">
+                        <Typography
+                          variant="p"
+                          className="sm:text-sm !font-medium"
+                        >
+                          {row.employee_name}
+                        </Typography>
+                      </TableCell>
+                      {dates?.map((item: any) => {
+                        return <Cell item={item} row={row} />;
+                      })}
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+          {state.isAddTimeDialogOpen && (
+            <AddTimeDialog
+              state={state}
+              closeAction={onClose}
+              submitAction={onSubmit}
+            />
+          )}
+          {state.isEditTimeDialogOpen && (
+            <EditTimeDialog state={state} closeAction={onClose} />
+          )}
+        </div>
+      ) : (
+        <></>
       )}
-      {state.isEditTimeDialogOpen && <EditTimeDialog state={state} closeAction={onClose} />}
-    </div>
+    </>
   );
 }

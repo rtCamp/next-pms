@@ -51,8 +51,7 @@ function Timesheet() {
         dispatch({ type: "SetFetching", payload: false });
         toast({
           variant: "destructive",
-          title: "Error! Something went wrong.",
-          description: error,
+          title: error,
         });
       });
   }
@@ -130,71 +129,78 @@ function Timesheet() {
     return <ScreenLoader isFullPage={true} />;
   }
   return (
-    <div>
-      <Tabs defaultValue="timesheet">
-        <div className="flex gap-x-2.5 z-10">
-          <TabsList className="justify-start w-full  py-0 bg-primary ">
-            <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
-          </TabsList>
-          <Button variant="accent" onClick={onAddTimeClick}>
-            Add Time
-          </Button>
-        </div>
-        <ScrollArea style={{ height: "calc(100vh - 8rem)" }}>
-          <TabsContent value="timesheet">
-            {state.data &&
-              Object.entries(state.data).map(([key, value]: [string, any]) => {
-                return (
-                  <>
-                    <div className="flex w-full h-12 justify-between items-center border-b mt-5">
-                      <div className="flex gap-x-2 md:gap-x-4 items-center">
-                        <Typography variant="p" className="!font-bold">
-                          {key}
-                        </Typography>
-                      </div>
-                      <div
-                        className=" flex gap-x-2 text-sm pr-2 items-center hover:bg-primary p-2 hover: rounded-sm hover:cursor-pointer"
-                        onClick={() =>
-                          value.state == "open"
-                            ? onApproveTimeClick(value.dates)
-                            : null
-                        }
-                      >
-                        <Status status={value.state} />
-                      </div>
-                    </div>
-                    <TimesheetTable
-                      data={value}
-                      onTaskCellClick={onTaskCellClick}
-                    />
-                  </>
-                );
-              })}
-            <Button
-              variant="accent-outline"
-              onClick={updateWeekDate}
-              className="flex gap-x-2 my-6"
-            >
-              <ArrowDown />
-              <Typography variant="p" className="!font-medium">
-                Load More
-              </Typography>
-            </Button>
-          </TabsContent>
-        </ScrollArea>
-      </Tabs>
+    <>
+      {Object.keys(state.data).length > 0 ? (
+        <>
+          <Tabs defaultValue="timesheet">
+            <div className="flex gap-x-2.5 z-10">
+              <TabsList className="justify-start w-full  py-0 bg-primary ">
+                <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
+              </TabsList>
+              <Button variant="accent" onClick={onAddTimeClick}>
+                Add Time
+              </Button>
+            </div>
+            <ScrollArea style={{ height: "calc(100vh - 8rem)" }}>
+              <TabsContent value="timesheet">
+                {Object.entries(state.data).map(
+                  ([key, value]: [string, any]) => {
+                    return (
+                      <>
+                        <div className="flex w-full h-12 justify-between items-center border-b mt-5">
+                          <div className="flex gap-x-2 md:gap-x-4 items-center">
+                            <Typography variant="p" className="!font-bold">
+                              {key}
+                            </Typography>
+                          </div>
+                          <div
+                            className=" flex gap-x-2 text-sm pr-2 items-center hover:bg-primary p-2 hover: rounded-sm hover:cursor-pointer"
+                            onClick={() =>
+                              value.state == "open"
+                                ? onApproveTimeClick(value.dates)
+                                : null
+                            }
+                          >
+                            <Status status={value.state} />
+                          </div>
+                        </div>
+                        <TimesheetTable
+                          data={value}
+                          onTaskCellClick={onTaskCellClick}
+                        />
+                      </>
+                    );
+                  }
+                )}
+                <Button
+                  variant="accent-outline"
+                  onClick={updateWeekDate}
+                  className="flex gap-x-2 my-6"
+                >
+                  <ArrowDown />
+                  <Typography variant="p" className="!font-medium">
+                    Load More
+                  </Typography>
+                </Button>
+              </TabsContent>
+            </ScrollArea>
+          </Tabs>
 
-      {state.isDialogOpen && (
-        <AddTimeDialog
-          state={state}
-          submitAction={onSubmit}
-          closeAction={onClose}
-        />
+          {state.isDialogOpen && (
+            <AddTimeDialog
+              state={state}
+              submitAction={onSubmit}
+              closeAction={onClose}
+            />
+          )}
+          {state.isAprrovalDialogOpen && (
+            <ApprovalDialog state={state} dispatch={dispatch} />
+          )}
+        </>
+      ) : (
+        <></>
       )}
-      {state.isAprrovalDialogOpen && (
-        <ApprovalDialog state={state} dispatch={dispatch} />
-      )}
-    </div>
+    </>
   );
 }
 

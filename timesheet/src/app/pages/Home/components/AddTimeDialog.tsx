@@ -471,9 +471,9 @@ export function AddTimeDialog({
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="w-96">
-                          <Command filter={onTaskSearch}>
+                          <Command filter={onTaskSearch} >
                             <CommandInput placeholder="Search Tasks..." />
-                            <ScrollArea>
+                            {/* <ScrollArea className="w-96"> */}
                               <CommandEmpty>No task found.</CommandEmpty>
                               <CommandGroup>
                                 <CommandList>
@@ -512,7 +512,7 @@ export function AddTimeDialog({
                                   ))}
                                 </CommandList>
                               </CommandGroup>
-                            </ScrollArea>
+                            {/* </ScrollArea> */}
                           </Command>
                         </PopoverContent>
                       </Popover>
