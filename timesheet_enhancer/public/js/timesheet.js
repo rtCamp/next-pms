@@ -1,10 +1,4 @@
-frappe.ui.form.on("Timesheet", {
-  refresh: function (frm) {
-    frm._setting_hours = true;
-    frm.fields_dict.time_logs.grid.toggle_enable("from_time", false);
-    frm.fields_dict.time_logs.grid.toggle_enable("to_time", false);
-  },
-});
+frappe.ui.form.on("Timesheet", {});
 frappe.ui.form.on("Timesheet Detail", {
   hours: function (frm, cdt, cdn) {
     update_time(frm, cdt, cdn, "from_time");
