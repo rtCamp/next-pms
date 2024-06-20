@@ -128,7 +128,7 @@ def delete(parent: str, name: str):
         if log.name == name:
             parent_doc.remove(log)
     if not parent_doc.time_logs:
-        parent_doc.delete()
+        parent_doc.delete(ignore_permissions=True)
     else:
         parent_doc.save()
     return _("Timesheet deleted successfully.")

@@ -28,15 +28,17 @@ def get_context(context):
         enabled = True
     boot["server_script_enabled"] = enabled
 
+    projects = []
+    departments = []
     if "Projects Manager" in frappe.get_roles():
         projects = frappe.get_list("Project", fields=["name", "project_name"])
-        departments = frappe.get_list(
+        departments = frappe.get_all(
             "Department",
-            fields=["name", "department_name "],
+            fields=["name", "department_name"],
             filters={"is_group": False},
         )
-        boot["projects"] = projects
-        boot["departments"] = departments
+    boot["projects"] = projects
+    boot["departments"] = departments
 
     boot_json = frappe.as_json(boot, indent=None, separators=(",", ":"))
     boot_json = SCRIPT_TAG_PATTERN.sub("", boot_json)

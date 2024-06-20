@@ -95,11 +95,12 @@ def get_week_dates(date, current_week: bool = False):
 def get_task_for_employee(employee: str = None):
     if not employee:
         employee = get_employee_from_user()
+    user = frappe.get_value("Employee", employee, "user_id")
     project_team = frappe.qb.DocType("Project Team")
     projects = (
         frappe.qb.from_(project_team)
         .select("parent")
-        .where(project_team.employee == employee)
+        .where(project_team.user == user)
         .run(as_dict=True)
     )
     project_list = [project["parent"] for project in projects]
