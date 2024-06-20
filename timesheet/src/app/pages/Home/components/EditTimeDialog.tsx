@@ -4,15 +4,13 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { reducer, initialState } from "@/app/reducer/home/edittime";
 import { useEffect, useReducer, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/app/state/store";
-import {
-  setIsEditTimeDialogOpen,
-  setIsFetchAgain,
-} from "@/app/state/employeeList";
 import { Separator } from "@/components/ui/separator";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { cn, getFormatedDate, parseFrappeErrorMsg } from "@/app/lib/utils";
@@ -78,6 +76,7 @@ export function EditTimeDialog({
   );
   const [localState, localDispatch] = useReducer(reducer, initialState);
   const { toast } = useToast();
+  const [isHoverOpen, setIsHoverOpen] = useState(false);
 
   function fetch(employee: string, date: string) {
     if (!employee || !date) return;
@@ -94,7 +93,7 @@ export function EditTimeDialog({
           variant: "destructive",
           title: errorMsg,
         });
-        localDispatch({ type: "setData", payload: []});
+        localDispatch({ type: "setData", payload: [] });
       });
   }
   useEffect(() => {
@@ -402,10 +401,36 @@ export function EditTimeDialog({
                         </Typography>
                       </TableCell>
                       <TableCell>
-                        <Trash
-                          className="hover:cursor-pointer"
-                          onClick={() => onDeleteTime(item.parent, item.name)}
-                        />
+                        
+                        <HoverCard
+                          open={isHoverOpen}
+                          onOpenChange={setIsHoverOpen}
+                        >
+                          <HoverCardTrigger onMouseEnter={() => setIsHoverOpen}>
+                            <Trash className="hover:cursor-pointer" />
+                          </HoverCardTrigger>
+                          <HoverCardContent className="w-54 mr-10">
+                            <Typography variant="small" className="!font-bold">
+                              Do you want to delete this entry?
+                            </Typography>
+                            <div className="flex gap-4 pt-4">
+                              <Button
+                                variant="accent"
+                                onClick={() =>
+                                  onDeleteTime(item.parent, item.name)
+                                }
+                              >
+                                Yes
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                onClick={() => setIsHoverOpen(false)}
+                              >
+                                Cancel{" "}
+                              </Button>
+                            </div>
+                          </HoverCardContent>
+                        </HoverCard>
                       </TableCell>
                     </TableRow>
                   );
