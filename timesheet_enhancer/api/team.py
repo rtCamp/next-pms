@@ -118,14 +118,17 @@ def filter_employees(employee_name=None, department=None, project=None):
 
     if project and len(project) > 0:
         project_teams = DocType("Project Team")
-        employee_ids = (
+        project_users = (
             frappe.qb.from_(project_teams)
-            .select(project_teams.employee)
+            .select(project_teams.user)
             .distinct()
             .where(project_teams.parent.isin(project))
             .where(project_teams.parenttype == "Project")
         ).run(as_dict=True)
-        employee_ids = [emp.get("employee") for emp in employee_ids]
+        employee_ids = [
+            frappe.get_value("Employee", {"user_id": project_user.get("user")})
+            for project_user in project_users
+        ]
         filters["name"] = ["in", employee_ids]
 
     return frappe.get_list("Employee", fields=fields, filters=filters)
