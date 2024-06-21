@@ -117,3 +117,10 @@ def get_task_for_employee(employee: str = None):
     )
 
     return project_task + tasks
+
+
+@frappe.whitelist()
+def get_departments():
+    return frappe.get_all(
+        "Department", filters={"is_group": False}, fields=["name", "department_name"]
+    )
