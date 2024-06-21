@@ -39,7 +39,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-import { useDispatch } from "react-redux";
 import { useEffect } from "react";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { z } from "zod";
@@ -49,6 +48,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Task, EmployeeProps } from "@/app/types/type";
 import { reducer, initialState } from "@/app/reducer/home/addtime";
 import { useReducer } from "react";
+import { TimesheetSchema } from "@/app/schema";
 
 export function AddTimeDialog({
   state,
@@ -62,7 +62,7 @@ export function AddTimeDialog({
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
   const [localState, localDispatch] = useReducer(reducer, initialState);
   const { toast } = useToast();
-  const dispatch = useDispatch();
+  
 
   useEffect(() => {
     const date = getFormatedDate(state.dialogInput.date);
@@ -71,31 +71,9 @@ export function AddTimeDialog({
     localDispatch({ type: "setDialogInput", payload: state.dialogInput });
   }, []);
 
-  const FormSchema = z.object({
-    task: z.string({
-      required_error: "Please select a task.",
-    }),
-    hours: z
-      .string()
-      .refine(
-        (value) => !isNaN(parseFloat(value)) && /^\d+(\.\d)?$/.test(value),
-        {
-          message: "Hours must be a number with at most one decimal place",
-        }
-      ),
-    date: z.string({
-      required_error: "Please enter date.",
-    }),
-    description: z.string({
-      required_error: "Please enter description.",
-    }),
-    is_update: z.boolean({}),
-    employee: z.string({
-      required_error: "Please select an employee.",
-    }),
-  });
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
+
+  const form = useForm<z.infer<typeof TimesheetSchema>>({
+    resolver: zodResolver(TimesheetSchema),
     defaultValues: {
       task: state.dialogInput.task,
       hours: state.dialogInput.hours,
@@ -161,9 +139,7 @@ export function AddTimeDialog({
     activeModifiers: any,
     e: React.MouseEvent<Element, globalThis.MouseEvent>
   ) => {
-    if (!day) return;
-    const formatedDate = getFormatedDate(day);
-
+    const formatedDate = getFormatedDate(day ?? new Date());
     localDispatch({ type: "setSelectedDate", payload: formatedDate });
     form.setValue("date", formatedDate);
     localDispatch({ type: "setIsDatePickerOpen", payload: false });
@@ -173,7 +149,7 @@ export function AddTimeDialog({
     localDispatch({ type: "setIsTaskBoxOpen", payload: false });
   };
 
-  const onSubmit = (values: z.infer<typeof FormSchema>) => {
+  const onSubmit = (values: z.infer<typeof TimesheetSchema>) => {
     call(values)
       .then((res) => {
         closeDialog();

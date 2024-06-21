@@ -43,7 +43,7 @@ import { RootState } from "@/app/state/store";
 import { Check, ChevronDown } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { getInitialState } from "@/app/reducer/timesheet";
+import { TimesheetSchema } from "@/app/schema";
 import { Clock2, Calendar as CalIcon } from "@/app/components/Icon";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Typography } from "@/app/components/Typography";
@@ -70,32 +70,8 @@ export function AddTimeDialog({
   const { toast } = useToast();
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
 
-  const FormSchema = z.object({
-    task: z.string({
-      required_error: "Please select a task.",
-    }),
-    name: z.string({}),
-    hours: z
-      .string()
-      .refine(
-        (value) => !isNaN(parseFloat(value)) && /^\d+(\.\d)?$/.test(value),
-        {
-          message: "Hours must be a number with at most one decimal place",
-        }
-      ),
-    date: z.string({
-      required_error: "Please enter date.",
-    }),
-    description: z.string({
-      required_error: "Please enter description.",
-    }),
-    parent: z.string({}),
-    is_update: z.boolean({}),
-    employee: z.string({}),
-  });
-
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
+  const form = useForm<z.infer<typeof TimesheetSchema>>({
+    resolver: zodResolver(TimesheetSchema),
     defaultValues: {
       name: state.timesheet.name,
       task: state.timesheet.task,
@@ -164,7 +140,7 @@ export function AddTimeDialog({
     form.setValue("date", d);
     handleDatePickerState();
   };
-  function onSubmit(values: z.infer<typeof FormSchema>) {
+  function onSubmit(values: z.infer<typeof TimesheetSchema>) {
     
     call(values)
       .then((res) => {

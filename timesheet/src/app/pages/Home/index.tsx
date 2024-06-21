@@ -90,15 +90,9 @@ export default function CompactView() {
         });
     }
     if (departments.value.length === 0) {
-      call
-        .get("frappe.client.get_list", {
-          doctype: "Department",
-          fields: ["name", "department_name"],
-          filters: { is_group: false },
-        })
-        .then((res) => {
-          dispatch(setDepartment(res.message));
-        });
+      call.get("timesheet_enhancer.api.utils.get_departments").then((res) => {
+        dispatch(setDepartment(res.message));
+      });
     }
     dispatch(setFetching(false));
   }, []);
