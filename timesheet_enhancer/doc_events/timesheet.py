@@ -1,21 +1,51 @@
-def validate(doc, method=None):
+from frappe import get_value
 
-    pass
-    # TODO: Will be implemented later
-    # from frappe.utils import add_days, getdate
 
-    # if not doc.get("time_logs"):
-    #     return
-    # today = getdate()
-    # past_date = getdate(add_days(today, -3))
+def before_save(doc, method=None):
+    from frappe.utils import get_datetime
 
-    # for data in doc.get("time_logs"):
-    #     fromtime = getdate(data.from_time)
-    #     totime = getdate(data.to_time)
-    #     if not past_date <= fromtime <= today:
-    #         throw(_(f"You can't save time entry for {fromtime}"))
-    #     if not past_date <= totime <= today:
-    #         throw(_(f"You can't save time entry for {totime}"))
+    validate_dates(doc)
+
+    if not doc.get("time_logs"):
+        return
+    #  Update the from_time and to_time to have only date part and time part as 00:00:00
+    for key, data in enumerate(doc.get("time_logs")):
+        from_time = get_datetime(data.from_time).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        to_time = get_datetime(data.to_time).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        doc.time_logs[key].from_time = from_time
+        doc.time_logs[key].to_time = to_time
+        doc.time_logs[key].project = get_value(
+            "Task", {"name": doc.time_logs[key].task}, "project"
+        )
+
+
+def before_insert(doc, method=None):
+    import frappe
+
+    exists = frappe.db.exists(
+        "Timesheet",
+        {
+            "employee": doc.employee,
+            "start_date": doc.start_date,
+            "end_date": doc.end_date,
+        },
+    )
+    if exists:
+        frappe.throw(frappe._("Timesheet already exists for the given date range."))
+
+
+def on_update(doc, method=None):
+    update_is_time_billable(doc)
+
+
+def update_is_time_billable(doc, method=None):
+    for key, data in enumerate(doc.get("time_logs")):
+        value = get_value("Task", data.task, "custom_is_billable")
+        doc.time_logs[key].is_billable = value
 
 
 def validate_dates(doc):
@@ -60,27 +90,4 @@ def validate_dates(doc):
             frappe._("You can't save time entry for {0} as You alreay.").format(
                 doc.start_date
             )
-        )
-
-
-def before_save(doc, method=None):
-    from frappe import get_value
-    from frappe.utils import get_datetime
-
-    validate_dates(doc)
-
-    if not doc.get("time_logs"):
-        return
-    #  Update the from_time and to_time to have only date part and time part as 00:00:00
-    for key, data in enumerate(doc.get("time_logs")):
-        from_time = get_datetime(data.from_time).replace(
-            hour=0, minute=0, second=0, microsecond=0
-        )
-        to_time = get_datetime(data.to_time).replace(
-            hour=0, minute=0, second=0, microsecond=0
-        )
-        doc.time_logs[key].from_time = from_time
-        doc.time_logs[key].to_time = to_time
-        doc.time_logs[key].project = get_value(
-            "Task", {"name": doc.time_logs[key].task}, "project"
         )

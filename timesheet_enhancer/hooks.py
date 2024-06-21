@@ -40,7 +40,32 @@ doctype_js = {"Timesheet": "public/js/timesheet.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
-
+fixtures = [
+    {
+        "dt": "Custom Field",
+        "filters": [
+            [
+                "name",
+                "in",
+                {"Task-custom_is_billable", "Project Type-custom_is_billable"},
+            ]
+        ],
+    },
+    {
+        "dt": "Property Setter",
+        "filters": [
+            [
+                "name",
+                "in",
+                {
+                    "Task-total_billing_amount-permlevel",
+                    "Task-total_expense_claim-permlevel",
+                    "Task-total_costing_amount-permlevel",
+                },
+            ]
+        ],
+    },
+]
 # Svg Icons
 # ------------------
 # include app icons in desk
@@ -132,9 +157,11 @@ override_doctype_class = {
 
 doc_events = {
     "Timesheet": {
-        "validate": "timesheet_enhancer.doc_events.timesheet.validate",
         "before_save": "timesheet_enhancer.doc_events.timesheet.before_save",
-    }
+        "on_update": "timesheet_enhancer.doc_events.timesheet.on_update",
+        "before_insert": "timesheet_enhancer.doc_events.timesheet.before_insert",
+    },
+    "Task": {"before_save": "timesheet_enhancer.doc_events.task.before_save"},
 }
 
 # Scheduled Tasks
