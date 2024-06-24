@@ -62,7 +62,6 @@ export function AddTimeDialog({
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
   const [localState, localDispatch] = useReducer(reducer, initialState);
   const { toast } = useToast();
-  
 
   useEffect(() => {
     const date = getFormatedDate(state.dialogInput.date);
@@ -70,7 +69,6 @@ export function AddTimeDialog({
     localDispatch({ type: "setIsOpen", payload: state.isAddTimeDialogOpen });
     localDispatch({ type: "setDialogInput", payload: state.dialogInput });
   }, []);
-
 
   const form = useForm<z.infer<typeof TimesheetSchema>>({
     resolver: zodResolver(TimesheetSchema),
@@ -112,15 +110,6 @@ export function AddTimeDialog({
   }, [localState.dialogInput.employee]);
 
   const closeDialog = () => {
-    const data = {
-      employee: "",
-      task: "",
-      hours: "",
-      description: "",
-      date: "",
-      is_update: false,
-    };
-
     localDispatch({ type: "setIsOpen", payload: false });
     closeAction();
   };
@@ -447,48 +436,47 @@ export function AddTimeDialog({
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="w-96">
-                          <Command filter={onTaskSearch} >
+                          <Command filter={onTaskSearch}>
                             <CommandInput placeholder="Search Tasks..." />
-                            {/* <ScrollArea className="w-96"> */}
-                              <CommandEmpty>No task found.</CommandEmpty>
-                              <CommandGroup>
-                                <CommandList>
-                                  {tasks?.message?.map((task: Task) => (
-                                    <CommandItem
-                                      className="hover:cursor-pointer aria-selected:bg-primary aria-selected:text-primary-forground"
-                                      key={task.name}
-                                      value={task.name}
-                                      onSelect={onTaskSelect}
+
+                            <CommandEmpty>No task found.</CommandEmpty>
+                            <CommandGroup>
+                              <CommandList>
+                                {tasks?.message?.map((task: Task) => (
+                                  <CommandItem
+                                    className="hover:cursor-pointer aria-selected:bg-primary aria-selected:text-primary-forground"
+                                    key={task.name}
+                                    value={task.name}
+                                    onSelect={onTaskSelect}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        field.value === task.name
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                    <Typography
+                                      variant="p"
+                                      className={`sm:text-sm truncate w-full ${
+                                        task.status === "Completed"
+                                          ? "text-muted-foreground/60"
+                                          : ""
+                                      }`}
                                     >
-                                      <Check
-                                        className={cn(
-                                          "mr-2 h-4 w-4",
-                                          field.value === task.name
-                                            ? "opacity-100"
-                                            : "opacity-0"
-                                        )}
-                                      />
+                                      {task.subject}
                                       <Typography
                                         variant="p"
-                                        className={`sm:text-sm truncate w-full ${
-                                          task.status === "Completed"
-                                            ? "text-muted-foreground/60"
-                                            : ""
-                                        }`}
+                                        className="text-muted-foreground !text-[12px] truncate"
                                       >
-                                        {task.subject}
-                                        <Typography
-                                          variant="p"
-                                          className="text-muted-foreground !text-[12px] truncate"
-                                        >
-                                          {task.project_name}
-                                        </Typography>
+                                        {task.project_name}
                                       </Typography>
-                                    </CommandItem>
-                                  ))}
-                                </CommandList>
-                              </CommandGroup>
-                            {/* </ScrollArea> */}
+                                    </Typography>
+                                  </CommandItem>
+                                ))}
+                              </CommandList>
+                            </CommandGroup>
                           </Command>
                         </PopoverContent>
                       </Popover>
