@@ -26,6 +26,7 @@ import {
 import { TaskCellClickProps } from "@/app/types/timesheet";
 import {
   Table,
+  TableBody,
   TableCell,
   TableHead,
   TableHeader,
@@ -194,64 +195,65 @@ export default function Team() {
               </div>
             </div>
 
-            <ScrollArea style={{ height: "calc(100vh - 8rem)" }}>
-              <TabsContent value="team">
-                <>
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="flex h-16 ">
-                        <TableHead
-                          key="Heading"
-                          className="flex w-full max-w-sm font-medium items-center h-16 text-heading !px-2 font-bold text-base"
-                        >
-                          Members
-                        </TableHead>
-                        {state.data.dates.map((date: string) => {
-                          const { date: formattedDate, day } = formatDate(date);
-                          const isHoliday =
-                            state.data.holiday_map.includes(date);
+            <TabsContent
+              value="team"
+              style={{ height: "calc(100vh - 8rem)" }}
+              className="overflow-y-auto no-scrollbar"
+            >
+              <Table>
+                <TableHeader>
+                  <TableRow className="flex h-16 ">
+                    <TableHead
+                      key="Heading"
+                      className="flex w-96 font-medium items-center h-16 text-heading !px-2 font-bold text-base"
+                    >
+                      Members
+                    </TableHead>
+                    {state.data.dates.map((date: string) => {
+                      const { date: formattedDate, day } = formatDate(date);
+                      const isHoliday = state.data.holiday_map.includes(date);
 
-                          return (
-                            <div className="flex w-full  h-16  text-[#09090B]  flex-col max-w-20  px-0 ">
-                              <TableHead
-                                key={date}
-                                className="h-full flex flex-col justify-center px-0"
-                              >
-                                <div
-                                  className={cn(
-                                    `font-semibold ${
-                                      isHoliday
-                                        ? "text-secondary/30"
-                                        : "text-secondary"
-                                    }`
-                                  )}
-                                >
-                                  {day}
-                                </div>
-                                <div
-                                  className={cn(
-                                    ` ${
-                                      isHoliday
-                                        ? "text-secondary/20"
-                                        : "text-secondary/50"
-                                    } text-xs font-medium `
-                                  )}
-                                >
-                                  {formattedDate.toUpperCase()}
-                                </div>
-                              </TableHead>
+                      return (
+                        <div className="flex w-20  h-16  text-[#09090B]  flex-col max-w-20  px-0 ">
+                          <TableHead
+                            key={date}
+                            className="h-full flex flex-col justify-center px-0"
+                          >
+                            <div
+                              className={cn(
+                                `font-semibold ${
+                                  isHoliday
+                                    ? "text-secondary/30"
+                                    : "text-secondary"
+                                }`
+                              )}
+                            >
+                              {day}
                             </div>
-                          );
-                        })}
-                        <TableHead
-                          key="Total"
-                          className="flex w-full  justify-center flex-col h-16  text-heading text-center max-w-24 font-bold  px-0"
-                        >
-                          Total
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                  </Table>
+                            <div
+                              className={cn(
+                                ` ${
+                                  isHoliday
+                                    ? "text-secondary/20"
+                                    : "text-secondary/50"
+                                } text-xs font-medium `
+                              )}
+                            >
+                              {formattedDate.toUpperCase()}
+                            </div>
+                          </TableHead>
+                        </div>
+                      );
+                    })}
+                    <TableHead
+                      key="Total"
+                      className="flex w-24  justify-center flex-col h-16  text-heading text-center max-w-24 font-bold  px-0"
+                    >
+                      Total
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {state.data.employees.map((employee: any) => {
                     const hours = state.data[employee.name].hours;
                     const leaves = state.data[employee.name].leaves;
@@ -262,8 +264,9 @@ export default function Team() {
                           key={employee.name}
                           value={employee.name}
                         >
-                          <AccordionTrigger className="justify-start bg-primary rounded-none hover:no-underline w-full p-2">
-                            <div className="flex items-center gap-x-2 pl-4 w-full max-w-sm">
+                          <AccordionTrigger className="justify-start bg-primary rounded-none hover:no-underline w-full p-2 py-0">
+                            <TableRow className="flex">
+                            <TableCell className="flex items-center gap-x-2 px-2 w-[360px] ">
                               <Avatar className="h-[35px] w-[35px] ">
                                 <AvatarImage
                                   src={employee.image}
@@ -285,7 +288,7 @@ export default function Team() {
                                   {employee.designation}
                                 </Typography>
                               </div>
-                            </div>
+                            </TableCell>
 
                             {hours.map((hour: any, index: number) => {
                               const date = hour.date;
@@ -325,10 +328,11 @@ export default function Team() {
                             })}
                             <TableCell
                               key={"Total"}
-                              className="flex w-full justify-center flex-col font-bold max-w-24 px-0 text-center text-[15px] "
+                              className="flex w-24 justify-center flex-col font-bold max-w-24 px-0 text-center text-[15px] "
                             >
                               {floatToTime(total)}
-                            </TableCell>
+                              </TableCell>
+                              </TableRow>
                           </AccordionTrigger>
                           <AccordionContent>
                             <TimesheetTable
@@ -351,9 +355,9 @@ export default function Team() {
                       </Accordion>
                     );
                   })}
-                </>
-              </TabsContent>
-            </ScrollArea>
+                </TableBody>
+              </Table>
+            </TabsContent>
           </Tabs>
           {state.isAddTimeDialogOpen && (
             <AddTimeDialog

@@ -43,7 +43,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="w-1/5 hidden lg:block">
             <Sidebar />
           </div>
-          <div className="flex-1 overflow-hidden">{employee.value && children}</div>
+          <div className="flex-1 overflow-auto">{employee.value && children}</div>
         </div>
       </div>
       <Toaster />
