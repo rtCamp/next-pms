@@ -50,7 +50,7 @@ export function TaskCell({
       onClick={onClick}
       key={date}
       className={cn(
-        "flex w-full justify-center flex-col max-w-20 p-0",
+        "flex w-20 justify-center flex-col max-w-20 p-0",
         `${
           isCellDisabled
             ? "text-muted-foreground hover:cursor-not-allowed "
