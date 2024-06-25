@@ -12,7 +12,7 @@ interface TimesheetTableProps {
     task,
     description,
     hours,
-    employee
+    employee,
   }: TaskCellClickProps) => void;
   isHeading?: boolean;
   employee?: string;
@@ -25,7 +25,7 @@ export function TimesheetTable({
   data,
   onTaskCellClick,
   isHeading = true,
-  employee="",
+  employee = "",
 }: TimesheetTableProps) {
   const dates = data?.dates;
   const hours = data?.hours;
@@ -33,13 +33,14 @@ export function TimesheetTable({
   const tasks = data?.tasks;
   const leaves = data?.leaves;
   return (
-    <Table className="[&_th]:px-0 [&_td]:px-0 ">
+    <div className="max-w-full box-border overflow-x-hidden ">
+    <Table className="[&_th]:px-0 [&_td]:px-0  box-border overflow-x-auto no-scrollbar">
       {isHeading && (
         <TableHeader>
           <TableRow className="flex h-16 ">
             <TableHead
               key="Heading"
-              className="flex w-full max-w-sm font-medium items-center h-16 text-heading !px-2 "
+              className="flex w-96  font-medium items-center h-16 text-heading !px-2 "
             >
               Tasks
             </TableHead>
@@ -74,7 +75,7 @@ export function TimesheetTable({
                 classname = "";
               }
               return (
-                <div className="flex w-full  h-16  text-[#09090B]  flex-col max-w-20  px-0 ">
+                <div className="flex w-20  h-16  text-[#09090B]  flex-col max-w-20  px-0 ">
                   <TableHead
                     key={date}
                     className="h-full flex flex-col justify-center"
@@ -113,7 +114,7 @@ export function TimesheetTable({
             })}
             <TableHead
               key="Total"
-              className="flex w-full  justify-center flex-col h-16  text-heading text-center max-w-24 font-bold  px-0"
+              className="flex w-24  justify-center flex-col h-16  text-heading text-center max-w-24 font-bold  px-0"
             >
               Total
             </TableHead>
@@ -130,6 +131,7 @@ export function TimesheetTable({
         employee={employee}
         onTaskCellClick={onTaskCellClick}
       />
-    </Table>
+      </Table>
+      </div>
   );
 }

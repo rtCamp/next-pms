@@ -37,13 +37,13 @@ export function TimesheetTableBody({
   return (
     <>
       <TableBody
-        className={`[&_tr:last-child]:border-b bg-primary hover:[&_tr]:bg-primary/60 ${
+        className={`[&_tr:last-child]:border-b bg-primary  hover:[&_tr]:bg-primary/60 ${
           !heading ? "border-t bg-background" : ""
         }`}
       >
         {Object.keys(tasks).length > 0 && heading && (
           <TableRow className="flex   border-b-[1px] ">
-            <TableCell className=" w-full max-w-sm text-justify font-medium hover:cursor-not-allowed !px-2 py-4"></TableCell>
+            <TableCell className=" w-96  text-justify font-medium hover:cursor-not-allowed !px-2 py-4"></TableCell>
             {hours.map((hour: any, index: number) => {
               const date = hour.date;
               const leaveData = leaves.find((data: any) => {
@@ -79,7 +79,7 @@ export function TimesheetTableBody({
             })}
             <TableCell
               key={"Total"}
-              className="flex w-full justify-center flex-col font-bold max-w-24 px-0 text-center  hover:cursor-not-allowed "
+              className="flex w-24 justify-center flex-col font-bold max-w-24 px-0 text-center  hover:cursor-not-allowed "
             >
               {floatToTime(total)}
             </TableCell>
@@ -91,7 +91,7 @@ export function TimesheetTableBody({
             let totalHours = 0;
             return (
               <TableRow key={task} className="flex   border-b-[1px] ">
-                <TableCell className=" w-full max-w-sm text-justify font-medium hover:cursor-pointer !px-2 py-4">
+                <TableCell className=" w-96 text-justify font-medium hover:cursor-pointer !px-2 py-4">
                   <Typography
                     variant="p"
                     className="truncate sm:text-sm !font-medium"
@@ -130,7 +130,7 @@ export function TimesheetTableBody({
                 })}
                 <TableCell
                   key={"TotalHour" + task}
-                  className="flex w-full justify-center flex-col font-bold max-w-24 px-0 text-center hover:cursor-pointer "
+                  className="flex w-24 justify-center flex-col font-bold max-w-24 px-0 text-center hover:cursor-pointer "
                 >
                   {totalHours > 0 ? floatToTime(totalHours) : "-"}
                 </TableCell>
@@ -139,7 +139,7 @@ export function TimesheetTableBody({
           })
         ) : (
           <TableRow key={"no-task"} className="flex  border-b-[1px] ">
-            <TableCell className=" w-full max-w-sm text-justify font-medium hover:cursor-pointer !px-2 py-4">
+            <TableCell className=" w-96 text-justify font-medium hover:cursor-pointer !px-2 py-4">
               <Typography
                 variant="p"
                 className="sm:text-sm !font-medium text-destructive"
@@ -167,7 +167,7 @@ export function TimesheetTableBody({
             })}
             <TableCell
               key={"TotlaHour-empty"}
-              className="flex w-full justify-center flex-col font-bold max-w-24 px-0 text-center hover:cursor-pointer "
+              className="flex w-24 justify-center flex-col font-bold max-w-24 px-0 text-center hover:cursor-pointer "
             >
               -
             </TableCell>

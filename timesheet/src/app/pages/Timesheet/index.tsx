@@ -16,7 +16,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowDown } from "@/app/components/Icon";
 import { AddTimeDialog } from "./components/AddTimeDialog";
 import { Typography } from "@/app/components/Typography";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 function Timesheet() {
   const { toast } = useToast();
@@ -133,57 +132,59 @@ function Timesheet() {
       {Object.keys(state.data).length > 0 ? (
         <>
           <Tabs defaultValue="timesheet">
-            <div className="flex gap-x-2.5 z-10">
-              <TabsList className="justify-start w-full  py-0 bg-primary ">
+            <div className="flex gap-x-2.5 z-10 w-full ">
+              <TabsList className="justify-start  py-0 bg-primary w-full">
                 <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
               </TabsList>
               <Button variant="accent" onClick={onAddTimeClick}>
                 Add Time
               </Button>
             </div>
-            <ScrollArea style={{ height: "calc(100vh - 8rem)" }}>
-              <TabsContent value="timesheet">
-                {Object.entries(state.data).map(
-                  ([key, value]: [string, any]) => {
-                    return (
-                      <>
-                        <div className="flex w-full h-12 justify-between items-center border-b mt-5">
-                          <div className="flex gap-x-2 md:gap-x-4 items-center">
-                            <Typography variant="p" className="!font-bold">
-                              {key}
-                            </Typography>
-                          </div>
-                          <div
-                            className=" flex gap-x-2 text-sm pr-2 items-center hover:bg-primary p-2 hover: rounded-sm hover:cursor-pointer"
-                            onClick={() =>
-                              value.state == "open"
-                                ? onApproveTimeClick(value.dates)
-                                : null
-                            }
-                          >
-                            <Status status={value.state} />
-                          </div>
-                        </div>
-                        <TimesheetTable
-                          data={value}
-                          onTaskCellClick={onTaskCellClick}
-                        />
-                      </>
-                    );
-                  }
-                )}
-                <Button
-                  variant="accent-outline"
-                  onClick={updateWeekDate}
-                  className="flex gap-x-2 my-6"
-                >
-                  <ArrowDown />
-                  <Typography variant="p" className="!font-medium">
-                    Load More
-                  </Typography>
-                </Button>
-              </TabsContent>
-            </ScrollArea>
+
+            <TabsContent
+              value="timesheet"
+              style={{ height: "calc(100vh - 8rem)" }}
+              className="overflow-y-auto no-scrollbar"
+            >
+              {Object.entries(state.data).map(([key, value]: [string, any]) => {
+                return (
+                  <>
+                    <div className="flex w-full h-12 justify-between items-center border-b mt-5">
+                      <div className="flex gap-x-2 md:gap-x-4 items-center">
+                        <Typography variant="p" className="!font-bold">
+                          {key}
+                        </Typography>
+                      </div>
+                      <div
+                        className=" flex gap-x-2 text-sm pr-2 items-center hover:bg-primary p-2 hover: rounded-sm hover:cursor-pointer"
+                        onClick={() =>
+                          value.state == "open"
+                            ? onApproveTimeClick(value.dates)
+                            : null
+                        }
+                      >
+                        <Status status={value.state} />
+                      </div>
+                    </div>
+
+                    <TimesheetTable
+                      data={value}
+                      onTaskCellClick={onTaskCellClick}
+                    />
+                  </>
+                );
+              })}
+              <Button
+                variant="accent-outline"
+                onClick={updateWeekDate}
+                className="flex gap-x-2 my-6"
+              >
+                <ArrowDown />
+                <Typography variant="p" className="!font-medium">
+                  Load More
+                </Typography>
+              </Button>
+            </TabsContent>
           </Tabs>
 
           {state.isDialogOpen && (
@@ -207,7 +208,6 @@ function Timesheet() {
 export default Timesheet;
 
 function Status({ status }: { status: string }) {
-  console.log(status);
   if (status == "submitted") {
     return (
       <>
