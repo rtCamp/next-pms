@@ -14,12 +14,18 @@ import { UserContext } from "@/app/provider/UserProvider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn, getCookie } from "@/app/lib/utils";
 import { useContext } from "react";
-import { RtCamp } from "../Icon";
 import { Typography } from "../Typography";
+import { useFrappeGetCall } from "frappe-react-sdk";
 
 export function Header() {
   const { alt, src } = get_user_avatar();
   const { logout } = useContext(UserContext);
+  const {
+    data: logo,
+    isLoading,
+    error,
+  } = useFrappeGetCall("timesheet_enhancer.api.utils.app_logo");
+
   return (
     <div className="w-full ">
       <NavigationMenu
@@ -30,7 +36,7 @@ export function Header() {
           <NavigationMenuList className="justify-between">
             <NavigationMenuItem>
               <div className="flex gap-x-2 items-center">
-                <RtCamp />
+                <img src={logo?.message} alt="RtCamp" className="max-w-6 max-h-6" />
                 <Typography variant="h5">Timesheet Entry</Typography>
               </div>
             </NavigationMenuItem>
