@@ -45,27 +45,24 @@ export function Sidebar() {
     // },
   ];
   return (
-    <div className="border-[1px]  h-full  ">
-      <div className=" p-2.5">
-        {routes.map((route) => {
-          if (route.isSeparator)
-            return <Separator className="my-2 borderLine" />;
-          if (route.isPmRoute && !hasPmRole) return null;
-          return (
-            <NavLink to={route.to}>
-              {({ isActive }) => (
-                <Button
-                  variant={isActive ? "secondary" : "ghost"}
-                  className="w-full justify-start gap-x-1.5"
-                >
-                  <route.icon stroke={isActive ? "#FFF" : "#1c1c1c"} />
-                  <p className="font-semibold">{route.label}</p>
-                </Button>
-              )}
-            </NavLink>
-          );
-        })}
-      </div>
+    <div className="border-[1px]  h-full  p-2.5 ">
+      {routes.map((route) => {
+        if (route.isSeparator) return <Separator className="my-2 borderLine" />;
+        if (route.isPmRoute && !hasPmRole) return null;
+        return (
+          <NavLink to={route.to}>
+            {({ isActive }) => (
+              <Button
+                variant={isActive ? "secondary" : "ghost"}
+                className="w-full justify-start gap-x-1.5  "
+              >
+                <route.icon stroke={isActive ? "#FFF" : "#1c1c1c"} />
+                <p className="font-semibold ">{route.label}</p>
+              </Button>
+            )}
+          </NavLink>
+        );
+      })}
     </div>
   );
 }
