@@ -124,3 +124,10 @@ def get_departments():
     return frappe.get_all(
         "Department", filters={"is_group": False}, fields=["name", "department_name"]
     )
+
+
+@frappe.whitelist()
+def app_logo():
+    from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo
+
+    return get_app_logo()
