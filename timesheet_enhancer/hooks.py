@@ -158,7 +158,7 @@ override_doctype_class = {
 doc_events = {
     "Timesheet": {
         "before_save": "timesheet_enhancer.doc_events.timesheet.before_save",
-        "on_update": "timesheet_enhancer.doc_events.timesheet.on_update",
+        "validate": "timesheet_enhancer.doc_events.timesheet.validate",
         "before_insert": "timesheet_enhancer.doc_events.timesheet.before_insert",
     },
     "Task": {"before_save": "timesheet_enhancer.doc_events.task.before_save"},

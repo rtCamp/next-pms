@@ -1,10 +1,21 @@
 from frappe import get_value
 
+ROLES = {
+    "Projects Manager",
+    "HR User",
+    "HR Manager",
+    "System Manager",
+    "Administrator",
+}
+
+
+def validate(doc, method=None):
+    validate_dates(doc)
+    validate_is_time_billable(doc)
+
 
 def before_save(doc, method=None):
     from frappe.utils import get_datetime
-
-    validate_dates(doc)
 
     if not doc.get("time_logs"):
         return
@@ -38,11 +49,7 @@ def before_insert(doc, method=None):
         frappe.throw(frappe._("Timesheet already exists for the given date range."))
 
 
-def on_update(doc, method=None):
-    update_is_time_billable(doc)
-
-
-def update_is_time_billable(doc, method=None):
+def validate_is_time_billable(doc, method=None):
     for key, data in enumerate(doc.get("time_logs")):
         value = get_value("Task", data.task, "custom_is_billable")
         doc.time_logs[key].is_billable = value
@@ -66,15 +73,9 @@ def validate_dates(doc):
     leaves = get_leaves_for_employee(
         str(doc.start_date), str(doc.end_date), doc.employee
     )
-    roles = {
-        "Projects Manager",
-        "HR User",
-        "HR Manager",
-        "System Manager",
-        "Administrator",
-    }
+
     frappe_roles = set(frappe.get_roles())
-    if is_holiday and not roles.intersection(frappe_roles):
+    if is_holiday and not ROLES.intersection(frappe_roles):
         frappe.throw(
             frappe._("You can't save time entry for {0} as it is holiday.").format(
                 doc.start_date
@@ -85,7 +86,7 @@ def validate_dates(doc):
         return
 
     leave = leaves[0]
-    if not leave.get("half_day") and not roles.intersection(frappe_roles):
+    if not leave.get("half_day") and not ROLES.intersection(frappe_roles):
         frappe.throw(
             frappe._("You can't save time entry for {0} as You alreay.").format(
                 doc.start_date

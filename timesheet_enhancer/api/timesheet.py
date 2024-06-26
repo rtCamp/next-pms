@@ -246,7 +246,6 @@ def get_timesheet(dates: list, employee: str):
             ) and not is_holiday(employee, getdate(date), raise_exception=False):
                 disabled = False
 
-        date = date
         name = frappe.db.exists(
             "Timesheet",
             {
@@ -255,6 +254,7 @@ def get_timesheet(dates: list, employee: str):
                 "end_date": getdate(date),
             },
         )
+
         if not name:
             week.append({"date": date, "hours": 0, "disabled": disabled})
             continue
@@ -263,7 +263,10 @@ def get_timesheet(dates: list, employee: str):
         week.append(
             {"date": date, "hours": timesheet.total_hours, "disabled": disabled}
         )
+
         for log in timesheet.time_logs:
+            if not log.task:
+                continue
             subject, task_name, project_name = frappe.get_value(
                 "Task", log.task, ["subject", "name", "project.project_name"]
             )
