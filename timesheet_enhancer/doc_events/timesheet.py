@@ -59,12 +59,15 @@ def validate_dates(doc):
     """Validate if time entry is made for holidays or leave days."""
     import frappe
     from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
-    from frappe.utils import date_diff
+    from frappe.utils import date_diff, getdate
 
     from timesheet_enhancer.api.utils import get_leaves_for_employee
 
     if date_diff(doc.end_date, doc.start_date) > 0:
         frappe.throw(frappe._("Timesheet should not exceed more than one day."))
+
+    frappe_roles = set(frappe.get_roles())
+    has_access = ROLES.intersection(frappe_roles)
 
     holiday_list = get_holiday_list_for_employee(doc.employee)
     is_holiday = frappe.db.exists(
@@ -74,21 +77,34 @@ def validate_dates(doc):
         str(doc.start_date), str(doc.end_date), doc.employee
     )
 
-    frappe_roles = set(frappe.get_roles())
-    if is_holiday and not ROLES.intersection(frappe_roles):
+    if is_holiday and not has_access:
         frappe.throw(
             frappe._("You can't save time entry for {0} as it is holiday.").format(
                 doc.start_date
             )
         )
 
-    if not leaves:
-        return
+    # Loop over every leave and check if the time entry is made for the leave days.
+    if leaves:
+        for leave in leaves:
+            from_date = getdate(leave.get("from_date"))
+            to_date = getdate(leave.get("to_date"))
+            half_day = leave.get("half_day")
+            half_day_date = getdate(leave.get("half_day_date"))
 
-    leave = leaves[0]
-    if not leave.get("half_day") and not ROLES.intersection(frappe_roles):
-        frappe.throw(
-            frappe._("You can't save time entry for {0} as You alreay.").format(
-                doc.start_date
-            )
-        )
+            #  we will check for full day leave and the date should be in the range of leave dates.
+            if (
+                from_date <= getdate(doc.start_date) <= to_date
+                and (half_day and half_day_date != getdate(doc.start_date))
+                and not has_access
+            ):
+
+                frappe.throw(
+                    frappe._(
+                        "You can't save time entry for {0} as you have already appliead for the leave."
+                    ).format(doc.start_date)
+                )
+
+    #  In ideal case the employee should not be able to save the time entry for the future dates.
+    if getdate(doc.start_date) > getdate(frappe.utils.nowdate()) and not has_access:
+        frappe.throw(frappe._("You do not have the access to save future time entry."))

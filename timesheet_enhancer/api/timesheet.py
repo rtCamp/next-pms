@@ -28,21 +28,27 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
     if not employee:
         employee = get_employee_from_user()
     data = {}
+    #  We will loop over the number of weeks and get the timesheet data for each week.
+    #  We will return the leaves, holidays, and timesheet details for each week.
     for i in range(max_week):
         current_week = True if start_date == now else False
-
+        # Get the week dates for the given date, which will return list of dates.
         week_dates = get_week_dates(start_date, current_week=current_week)
         data[week_dates["key"]] = week_dates
+
         tasks, hours = get_timesheet(week_dates["dates"], employee)
         data[week_dates["key"]]["hours"] = hours
         data[week_dates["key"]]["tasks"] = tasks
+
         leaves = get_leaves_for_employee(
             week_dates["start_date"], week_dates["end_date"], employee
         )
         data[week_dates["key"]]["leaves"] = leaves
+
         data[week_dates["key"]]["holidays"] = get_holiday_dates_for_employee(
             employee, week_dates["start_date"], week_dates["end_date"]
         )
+
         data[week_dates["key"]]["state"] = get_timesheet_state(
             week_dates["dates"], employee
         )
@@ -60,23 +66,19 @@ def get_employee_holidays_and_leave_dates(employee: str):
     end_date = get_last_day(nowdate())
 
     dates = get_holiday_dates_for_employee(employee, start_date, end_date)
+    leave_applications = get_leaves_for_employee(start_date, end_date, employee)
 
-    leave_applications = frappe.get_list(
-        "Leave Application",
-        filters={
-            "employee": employee,
-            "status": ["IN", ["Open", "Approved"]],
-            "half_day": False,
-        },
-        fields=["from_date", "to_date"],
-    )
-
-    leaves_dates = []
+    # Loop over all the leaves and create the date map of the leaves.
+    # If the leave is half day then we will skip the half day date as employee can still save time entry.
     for entry in leave_applications:
-        leaves_dates.append(entry["from_date"])
-        leaves_dates.append(entry["to_date"])
+        from_date = getdate(entry["from_date"])
+        to_date = getdate(entry["to_date"])
+        while from_date <= to_date:
+            if entry["half_day"] and entry["half_day_date"] == from_date:
+                continue
+            dates.append(from_date)
+            from_date = add_days(from_date, 1)
 
-    dates.extend(leaves_dates)
     return list(set(dates))
 
 
@@ -145,6 +147,7 @@ def submit_for_approval(
 
     if not employee:
         employee = get_employee_from_user()
+    #  get the timesheet for whole week.
     timesheets = frappe.get_list(
         "Timesheet",
         filters={
@@ -156,7 +159,9 @@ def submit_for_approval(
     )
 
     wf = frappe.db.exists("Workflow", {"document_type": "Timesheet", "is_active": True})
+
     for timesheet in timesheets:
+        #  First add the note in timesheet and run the workflow action.
         doc = frappe.get_doc("Timesheet", timesheet["name"])
         doc.note = notes
         doc.save()
@@ -237,21 +242,23 @@ def get_timesheet(dates: list, employee: str):
         disabled = True
         start_date = get_first_day_of_week(now)
         end_date = get_last_day_of_week(now)
-
+        date = getdate(date)
         if isManager:
             disabled = False
         else:
             if (
-                getdate(date) >= start_date and getdate(date) <= end_date
-            ) and not is_holiday(employee, getdate(date), raise_exception=False):
+                (date >= start_date and date <= end_date)
+                and not is_holiday(employee, date, raise_exception=False)
+                and date <= getdate(now)
+            ):
                 disabled = False
 
         name = frappe.db.exists(
             "Timesheet",
             {
                 "employee": str(employee),
-                "start_date": getdate(date),
-                "end_date": getdate(date),
+                "start_date": date,
+                "end_date": date,
             },
         )
 
@@ -259,7 +266,7 @@ def get_timesheet(dates: list, employee: str):
             week.append({"date": date, "hours": 0, "disabled": disabled})
             continue
         timesheet = frappe.get_doc("Timesheet", name)
-        # total_hours += timesheet.total_hours
+
         week.append(
             {"date": date, "hours": timesheet.total_hours, "disabled": disabled}
         )
