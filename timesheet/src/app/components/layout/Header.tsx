@@ -36,7 +36,11 @@ export function Header() {
           <NavigationMenuList className="justify-between">
             <NavigationMenuItem>
               <div className="flex gap-x-2 items-center">
-                <img src={logo?.message} alt="RtCamp" className="max-w-6 max-h-6" />
+                <img
+                  src={logo?.message}
+                  alt="RtCamp"
+                  className="max-w-6 max-h-6"
+                />
                 <Typography variant="h5">Timesheet Entry</Typography>
               </div>
             </NavigationMenuItem>
@@ -85,13 +89,13 @@ const ListItem = forwardRef<
         <a
           ref={ref}
           className={cn(
-            "flex select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none hover:bg-primary hover:text-primary-foreground",
+            "flex select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none ",
             className
           )}
           {...props}
         >
           <div className="text-sm font-medium leading-none">{title}</div>
-          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+          <p className="line-clamp-2 text-sm leading-snug ">
             {children}
           </p>
         </a>

@@ -133,12 +133,10 @@ function Timesheet() {
         <>
           <Tabs defaultValue="timesheet">
             <div className="flex gap-x-2.5 z-10 w-full ">
-              <TabsList className="justify-start  py-0 bg-primary w-full">
+              <TabsList className="justify-start  py-0  w-full">
                 <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
               </TabsList>
-              <Button variant="accent" onClick={onAddTimeClick}>
-                Add Time
-              </Button>
+              <Button onClick={onAddTimeClick}>Add Time</Button>
             </div>
 
             <TabsContent
@@ -156,7 +154,7 @@ function Timesheet() {
                         </Typography>
                       </div>
                       <div
-                        className=" flex gap-x-2 text-sm pr-2 items-center hover:bg-primary p-2 hover: rounded-sm hover:cursor-pointer"
+                        className=" flex gap-x-2 text-sm pr-2 items-center p-2 hover: rounded-sm hover:cursor-pointer"
                         onClick={() =>
                           value.state == "open"
                             ? onApproveTimeClick(value.dates)
@@ -174,12 +172,8 @@ function Timesheet() {
                   </>
                 );
               })}
-              <Button
-                variant="accent-outline"
-                onClick={updateWeekDate}
-                className="flex gap-x-2 my-6"
-              >
-                <ArrowDown />
+              <Button onClick={updateWeekDate} className="flex gap-x-2 my-6 group" variant="outline">
+                <ArrowDown className="stroke-black group-hover:stroke-white" />
                 <Typography variant="p" className="!font-medium">
                   Load More
                 </Typography>

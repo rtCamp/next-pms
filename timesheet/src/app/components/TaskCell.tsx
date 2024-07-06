@@ -70,8 +70,8 @@ export function TaskCell({
           </Tooltip>
         </>
       ) : showAdd && !isCellDisabled ? (
-        <div className="flex bg-background h-full w-14 items-center justify-center">
-          <CirclePlus />
+        <div className="flex h-full w-14 items-center ">
+          <CirclePlus  className="stroke-black" />
         </div>
       ) : (
         "-"

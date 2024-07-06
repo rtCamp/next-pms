@@ -112,9 +112,7 @@ export default function ApprovalDialog({ state, dispatch }: DialogProps) {
                 )}
               />
               <SheetFooter className="py-6 sm:justify-start gap-x-6">
-                <Button type="submit" variant="accent">
-                  Submit for Approval
-                </Button>
+                <Button type="submit">Submit for Approval</Button>
                 <Button variant="ghost" type="button" onClick={closeDialog}>
                   Cancel
                 </Button>

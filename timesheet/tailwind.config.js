@@ -19,8 +19,6 @@ export const theme = {
   extend: {
     colors: {
       border: "hsl(var(--border))",
-      heading: "hsl(var(--heading))",
-      secondaryText: "hsl(var(--secondary-text))",
       input: "hsl(var(--input))",
       ring: "hsl(var(--ring))",
       background: "hsl(var(--background))",
@@ -44,10 +42,6 @@ export const theme = {
       accent: {
         DEFAULT: "hsl(var(--accent))",
         foreground: "hsl(var(--accent-foreground))",
-      },
-      "accent-secondary": {
-        DEFAULT: "hsl(var(--accent-secondary))",
-        foreground: "hsl(var(--accent-secondary-foreground))",
       },
       popover: {
         DEFAULT: "hsl(var(--popover))",
@@ -84,9 +78,6 @@ export const theme = {
     animation: {
       "accordion-down": "accordion-down 0.2s ease-out",
       "accordion-up": "accordion-up 0.2s ease-out",
-    },
-    fontFamily: {
-      sans: ["Manrope", "inter"],
     },
   },
 };

@@ -141,7 +141,6 @@ export function AddTimeDialog({
     handleDatePickerState();
   };
   function onSubmit(values: z.infer<typeof TimesheetSchema>) {
-    
     call(values)
       .then((res) => {
         closeDialog();
@@ -179,7 +178,6 @@ export function AddTimeDialog({
           <div>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)}>
-
                 <div className="flex gap-x-7 ">
                   <FormField
                     name="hours"
@@ -310,7 +308,7 @@ export function AddTimeDialog({
                                 <CommandList>
                                   {tasks?.message.map((task: Task) => (
                                     <CommandItem
-                                      className="hover:cursor-pointer truncate aria-selected:bg-primary aria-selected:text-primary-forground"
+                                      className="hover:cursor-pointer truncate"
                                       key={task.name}
                                       value={task.name}
                                       onSelect={onTaskSelect}
@@ -377,9 +375,7 @@ export function AddTimeDialog({
                 />
 
                 <SheetFooter className="py-6 sm:justify-start gap-x-6">
-                  <Button variant="accent" type="submit">
-                    Add Time
-                  </Button>
+                  <Button type="submit">Add Time</Button>
                   <Button variant="ghost" type="button" onClick={closeDialog}>
                     Cancel
                   </Button>

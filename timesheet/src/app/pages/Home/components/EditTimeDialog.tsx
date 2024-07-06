@@ -305,7 +305,7 @@ export function EditTimeDialog({
                               {employees.message.map(
                                 (employee: EmployeeProps) => (
                                   <CommandItem
-                                    className="hover:cursor-pointer truncate aria-selected:bg-primary aria-selected:text-primary-forground"
+                                    className="hover:cursor-pointer truncate "
                                     key={employee.name}
                                     value={employee.name}
                                     onSelect={onEmployeeSelect}
@@ -363,11 +363,11 @@ export function EditTimeDialog({
                         type="button"
                         variant={"outline"}
                         className={cn(
-                          "w-full  justify-between text-left font-normal !mt-0  text-muted-foreground"
+                          "w-full group justify-between text-left font-normal !mt-0  text-muted-foreground"
                         )}
                       >
                         <span>{localState.dialogInput.date}</span>
-                        <CalIcon stroke="#AB3A6C" />
+                        <CalIcon calssName="stroke-primary group-hover:stroke-background" />
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -380,7 +380,6 @@ export function EditTimeDialog({
                     </PopoverContent>
                   </Popover>
                   <Button
-                    variant="accent"
                     onClick={openAddTimeDialog}
                     disabled={localState.isAdd}
                   >
@@ -390,7 +389,7 @@ export function EditTimeDialog({
               </div>
               <Table className="my-6">
                 <TableHeader className="[&_th]:p-2">
-                  <TableRow className="bg-primary">
+                  <TableRow>
                     <TableHead>Time</TableHead>
                     <TableHead>Task</TableHead>
                     <TableHead>Project</TableHead>
@@ -399,17 +398,17 @@ export function EditTimeDialog({
                     </TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody className="bg-primary [&_td]:p-2">
+                <TableBody className=" [&_td]:p-2">
                   {localState?.data?.map((item: timesheetProps) => {
                     return (
                       <TableRow>
                         <TableCell>
-                          <div className="bg-background flex items-center rounded-md justify-around">
+                          <div className=" flex items-center rounded-md justify-around">
                             <TimeInput
                               data={item}
                               callback={onTaskTimeChange}
                             />
-                            <ChevronDown size={16} />
+                            {/* <ChevronDown size={16} /> */}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -439,10 +438,8 @@ export function EditTimeDialog({
                             open={isHoverOpen}
                             onOpenChange={setIsHoverOpen}
                           >
-                            <HoverCardTrigger
-                              onMouseEnter={() => setIsHoverOpen}
-                            >
-                              <Trash className="hover:cursor-pointer" />
+                            <HoverCardTrigger>
+                              <Trash className="hover:cursor-pointer stroke-primary" />
                             </HoverCardTrigger>
                             <HoverCardContent className="w-54 mr-10">
                               <Typography
@@ -453,7 +450,6 @@ export function EditTimeDialog({
                               </Typography>
                               <div className="flex gap-4 pt-4">
                                 <Button
-                                  variant="accent"
                                   onClick={() =>
                                     onDeleteTime(item.parent, item.name)
                                   }
@@ -464,7 +460,7 @@ export function EditTimeDialog({
                                   variant="ghost"
                                   onClick={() => setIsHoverOpen(false)}
                                 >
-                                  Cancel{" "}
+                                  Cancel
                                 </Button>
                               </div>
                             </HoverCardContent>
@@ -623,8 +619,8 @@ function AddTime({
                         {...field}
                       />
                       <Clock2
-                        className="absolute right-0   my-3 mr-4 h-4 w-4 text-accent"
-                        stroke="#AB3A6C"
+                        className="absolute right-0   my-3 mr-4 h-4 w-4 stroke-primary"
+                        
                       />
                     </div>
                   </FormControl>
@@ -646,12 +642,12 @@ function AddTime({
                         type="button"
                         variant={"outline"}
                         className={cn(
-                          "w-full  justify-between text-left font-normal !mt-0  text-muted-foreground"
+                          "w-full group justify-between text-left font-normal !mt-0  text-muted-foreground"
                         )}
                       >
                         <span>{field.value}</span>
 
-                        <CalIcon stroke="#AB3A6C" />
+                        <CalIcon className="stroke-primary group-hover:stroke-background" />
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -720,7 +716,7 @@ function AddTime({
                         <CommandList>
                           {tasks?.message?.map((task: Task) => (
                             <CommandItem
-                              className="hover:cursor-pointer aria-selected:bg-primary aria-selected:text-primary-forground"
+                              className="hover:cursor-pointer "
                               key={task.name}
                               value={task.name}
                               onSelect={(task) => {
@@ -785,9 +781,7 @@ function AddTime({
             )}
           />
           <SheetFooter className="py-6 sm:justify-start gap-x-6">
-            <Button variant="accent" type="submit">
-              Add Time
-            </Button>
+            <Button type="submit">Add Time</Button>
             <Button variant="ghost" type="button" onClick={onClose}>
               Cancel
             </Button>

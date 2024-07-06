@@ -29,7 +29,7 @@ export function TimesheetTableBody({
   leaves,
   holidays,
   hours,
-  employee="",
+  employee = "",
   onTaskCellClick,
   heading = true,
 }: TimesheetTableBodyProps) {
@@ -37,9 +37,7 @@ export function TimesheetTableBody({
   return (
     <>
       <TableBody
-        className={`[&_tr:last-child]:border-b bg-primary  hover:[&_tr]:bg-primary/60 ${
-          !heading ? "border-t bg-background" : ""
-        }`}
+        className={`[&_tr:last-child]:border-b  ${!heading ? "border-t " : ""}`}
       >
         {Object.keys(tasks).length > 0 && heading && (
           <TableRow className="flex   border-b-[1px] ">

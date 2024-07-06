@@ -6,7 +6,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -175,21 +175,15 @@ export default function Team() {
       {!error ? (
         <>
           <Tabs defaultValue="team">
-            <div className=" bg-primary  rounded-sm flex items-center">
-              <TabsList className="justify-start w-full  py-0 bg-primary">
+            <div className=" bg-muted rounded-sm flex items-center">
+              <TabsList className="justify-start w-full  py-0 ">
                 <TabsTrigger value="team">Timesheet</TabsTrigger>
               </TabsList>
               <div className="flex gap-x-2 pr-1">
-                <Button
-                  className="bg-background hover:bg-background p-2 h-[28px]"
-                  onClick={handleprevWeek}
-                >
+                <Button className=" p-2 h-[28px]" variant="outline" onClick={handleprevWeek}>
                   <ChevronLeft size={16} />
                 </Button>
-                <Button
-                  className="bg-background hover:bg-background p-2  h-[28px]"
-                  onClick={handlenextWeek}
-                >
+                <Button className=" p-2  h-[28px]"  variant="outline" onClick={handlenextWeek}>
                   <ChevronRight size={16} />
                 </Button>
               </div>
@@ -214,31 +208,13 @@ export default function Team() {
                       const isHoliday = state.data.holiday_map.includes(date);
 
                       return (
-                        <div className="flex w-20  h-16  text-[#09090B]  flex-col max-w-20  px-0 ">
+                        <div className="flex w-20  h-16    flex-col max-w-20  px-0 ">
                           <TableHead
                             key={date}
                             className="h-full flex flex-col justify-center px-0"
                           >
-                            <div
-                              className={cn(
-                                `font-semibold ${
-                                  isHoliday
-                                    ? "text-secondary/30"
-                                    : "text-secondary"
-                                }`
-                              )}
-                            >
-                              {day}
-                            </div>
-                            <div
-                              className={cn(
-                                ` ${
-                                  isHoliday
-                                    ? "text-secondary/20"
-                                    : "text-secondary/50"
-                                } text-xs font-medium `
-                              )}
-                            >
+                            <div className={cn(`font-semibold `)}>{day}</div>
+                            <div className={cn(`text-xs font-medium `)}>
                               {formattedDate.toUpperCase()}
                             </div>
                           </TableHead>
@@ -264,75 +240,76 @@ export default function Team() {
                           key={employee.name}
                           value={employee.name}
                         >
-                          <AccordionTrigger className="justify-start bg-primary rounded-none hover:no-underline w-full p-2 py-0">
+                          <AccordionTrigger className="justify-start rounded-none hover:no-underline w-full p-2 py-0">
                             <TableRow className="flex">
-                            <TableCell className="flex items-center gap-x-2 px-2 w-[360px] ">
-                              <Avatar className="h-[35px] w-[35px] ">
-                                <AvatarImage
-                                  src={employee.image}
-                                  alt="employee"
-                                />
-                                <AvatarFallback>
-                                  {employee.employee_name[0]}
-                                </AvatarFallback>
-                              </Avatar>
+                              <TableCell className="flex items-center gap-x-2 px-2 w-[360px] ">
+                                <Avatar className="h-[35px] w-[35px] ">
+                                  <AvatarImage
+                                    src={employee.image}
+                                    alt="employee"
+                                  />
+                                  <AvatarFallback>
+                                    {employee.employee_name[0]}
+                                  </AvatarFallback>
+                                </Avatar>
 
-                              <div className="flex items-start flex-col">
-                                <Typography
-                                  variant="p"
-                                  className="!font-bold !text-sm"
-                                >
-                                  {employee.employee_name}
-                                </Typography>
-                                <Typography variant="muted">
-                                  {employee.designation}
-                                </Typography>
-                              </div>
-                            </TableCell>
-
-                            {hours.map((hour: any, index: number) => {
-                              const date = hour.date;
-                              const leaveData = leaves.find((data: any) => {
-                                return (
-                                  date >= data.from_date && date <= data.to_date
-                                );
-                              });
-                              let dayTotal = hour.hours;
-                              if (leaveData) {
-                                if (
-                                  leaveData.half_day ||
-                                  (leaveData.half_day_date &&
-                                    leaveData.half_day_date == date)
-                                ) {
-                                  dayTotal += 4;
-                                } else {
-                                  dayTotal += 8;
-                                }
-                              }
-                              total += dayTotal;
-                              return (
-                                <TaskCell
-                                  classname="text-foreground items-start  hover:cursor-not-allowed p-0 text-[15px]"
-                                  onCellClick={() => {}}
-                                  name={""}
-                                  parent={""}
-                                  task={""}
-                                  description={`Total working hours for the day is ${floatToTime(
-                                    dayTotal
-                                  )}`}
-                                  hours={dayTotal}
-                                  date={hour.date}
-                                  isCellDisabled={true}
-                                />
-                              );
-                            })}
-                            <TableCell
-                              key={"Total"}
-                              className="flex w-24 justify-center flex-col font-bold max-w-24 px-0 text-center text-[15px] "
-                            >
-                              {floatToTime(total)}
+                                <div className="flex items-start flex-col">
+                                  <Typography
+                                    variant="p"
+                                    className="!font-bold !text-sm"
+                                  >
+                                    {employee.employee_name}
+                                  </Typography>
+                                  <Typography variant="muted">
+                                    {employee.designation}
+                                  </Typography>
+                                </div>
                               </TableCell>
-                              </TableRow>
+
+                              {hours.map((hour: any, index: number) => {
+                                const date = hour.date;
+                                const leaveData = leaves.find((data: any) => {
+                                  return (
+                                    date >= data.from_date &&
+                                    date <= data.to_date
+                                  );
+                                });
+                                let dayTotal = hour.hours;
+                                if (leaveData) {
+                                  if (
+                                    leaveData.half_day ||
+                                    (leaveData.half_day_date &&
+                                      leaveData.half_day_date == date)
+                                  ) {
+                                    dayTotal += 4;
+                                  } else {
+                                    dayTotal += 8;
+                                  }
+                                }
+                                total += dayTotal;
+                                return (
+                                  <TaskCell
+                                    classname="text-foreground items-start  hover:cursor-not-allowed p-0 text-[15px]"
+                                    onCellClick={() => {}}
+                                    name={""}
+                                    parent={""}
+                                    task={""}
+                                    description={`Total working hours for the day is ${floatToTime(
+                                      dayTotal
+                                    )}`}
+                                    hours={dayTotal}
+                                    date={hour.date}
+                                    isCellDisabled={true}
+                                  />
+                                );
+                              })}
+                              <TableCell
+                                key={"Total"}
+                                className="flex w-24 justify-center flex-col font-bold max-w-24 px-0 text-center text-[15px] "
+                              >
+                                {floatToTime(total)}
+                              </TableCell>
+                            </TableRow>
                           </AccordionTrigger>
                           <AccordionContent>
                             <TimesheetTable
@@ -344,7 +321,7 @@ export default function Team() {
 
                             <div className="pt-4">
                               <Button
-                                variant="accent"
+                                
                                 onClick={() => onAddTimeClick(employee.name)}
                               >
                                 Add Time

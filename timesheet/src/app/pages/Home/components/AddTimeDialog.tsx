@@ -261,7 +261,7 @@ export function AddTimeDialog({
                                       {employees.message.map(
                                         (employee: EmployeeProps) => (
                                           <CommandItem
-                                            className="hover:cursor-pointer truncate aria-selected:bg-primary aria-selected:text-primary-forground"
+                                            className="hover:cursor-pointer truncate "
                                             key={employee.name}
                                             value={employee.name}
                                             onSelect={onEmployeeSelect}
@@ -326,10 +326,7 @@ export function AddTimeDialog({
                                 placeholder="Hours"
                                 {...field}
                               />
-                              <Clock2
-                                className="absolute right-0   my-3 mr-4 h-4 w-4 text-accent"
-                                stroke="#AB3A6C"
-                              />
+                              <Clock2 className="absolute right-0   my-3 mr-4 h-4 w-4 stroke-primary " />
                             </div>
                           </FormControl>
                           <FormMessage />
@@ -360,7 +357,7 @@ export function AddTimeDialog({
                                 type="button"
                                 variant={"outline"}
                                 className={cn(
-                                  "w-full  justify-between text-left font-normal !mt-0  text-muted-foreground"
+                                  "w-full group  justify-between text-left font-normal !mt-0  text-muted-foreground"
                                 )}
                               >
                                 {field.value ? (
@@ -368,7 +365,7 @@ export function AddTimeDialog({
                                 ) : (
                                   <span>{localState.selectedDate}</span>
                                 )}
-                                <CalIcon stroke="#AB3A6C" />
+                                <CalIcon className="stroke-primary group-hover:stroke-background" />
                               </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0">
@@ -444,7 +441,7 @@ export function AddTimeDialog({
                               <CommandList>
                                 {tasks?.message?.map((task: Task) => (
                                   <CommandItem
-                                    className="hover:cursor-pointer aria-selected:bg-primary aria-selected:text-primary-forground"
+                                    className="hover:cursor-pointer"
                                     key={task.name}
                                     value={task.name}
                                     onSelect={onTaskSelect}
@@ -509,9 +506,7 @@ export function AddTimeDialog({
                   )}
                 />
                 <SheetFooter className="py-6 sm:justify-start gap-x-6">
-                  <Button variant="accent" type="submit">
-                    Add Time
-                  </Button>
+                  <Button type="submit">Add Time</Button>
                   <Button variant="ghost" type="button" onClick={closeDialog}>
                     Cancel
                   </Button>

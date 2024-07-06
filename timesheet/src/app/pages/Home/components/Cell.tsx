@@ -30,17 +30,20 @@ export function Cell({ item, row }: { item: any; row: any }) {
       const leaveData = row.leaves.find((data: any) => {
         return date >= data.from_date && date <= data.to_date;
       });
-      
+
       const isHoliday = row.holidays.includes(date);
       let hour = timesheet ? timesheet.total_hours : 0;
 
-      if (leaveData) { 
-        leave = leaveData?.half_day && leaveData.half_day_date == date ? "half_day" : "full_day";
+      if (leaveData) {
+        leave =
+          leaveData?.half_day && leaveData.half_day_date == date
+            ? "half_day"
+            : "full_day";
       }
       if (timesheet && leave) {
         hour = timesheet.total_hours + (leave == "half_day" ? 4 : 8);
       }
-      if (leave && !timesheet) { 
+      if (leave && !timesheet) {
         hour = leave == "half_day" ? 4 : 8;
       }
       if (hour == 8) {
@@ -53,10 +56,26 @@ export function Cell({ item, row }: { item: any; row: any }) {
         bgClass = "bg-tansparent";
       }
       if (!isNew && (hour == 0 || (!timesheet && !leaveData))) {
-        dateArray.push({ date, hour, bgClass, isHoliday, isNew: true, key,leave });
+        dateArray.push({
+          date,
+          hour,
+          bgClass,
+          isHoliday,
+          isNew: true,
+          key,
+          leave,
+        });
         isNew = true;
       } else {
-        dateArray.push({ date, hour, bgClass, isHoliday, isNew: false, key,leave });
+        dateArray.push({
+          date,
+          hour,
+          bgClass,
+          isHoliday,
+          isNew: false,
+          key,
+          leave,
+        });
       }
     }
     setData(dateArray);
@@ -79,13 +98,8 @@ export function Cell({ item, row }: { item: any; row: any }) {
     }
   };
   return (
-    <TableCell
-      key={item.key}
-      className={`px-0 py-0  col-span-4 ${
-        item.key != "This Week" ? "bg-primary" : ""
-      }`}
-    >
-      <TableRow className={`flex  !border-b-0 [&_td:last-child]:border-r-2`}>
+    <TableCell key={item.key} className={`px-0 py-0  col-span-4`}>
+      <TableRow className={`flex  !border-b-0 `}>
         {data.map((item: any) => {
           return (
             <InnerCell
@@ -116,32 +130,32 @@ function InnerCell({
       className={`w-[57px] h-[49px] flex items-center  !no-underline ${
         !item.isNew ? "hover:py-1 hover:items-start hover:flex-col" : ""
       }  hover:cursor-pointer px-2 py-3 flex items-center justify-center ${css} ${
-        isHovered || item.hour == 0
-          ? "hover:items-center hover:bg-background"
+        isHovered || item.hour == 0 ? "hover:items-center" : ""
+      } border-r ${
+        item.leave && item.leave == "full_day"
+          ? "hover:cursor-not-allowed "
           : ""
-      } border-r ${item.leave && item.leave == "full_day" ? "bg-background/70 text-foreground/50 hover:cursor-not-allowed ": ""}`}
-      onMouseEnter={() => (!item.leave || item.leave == "half_day")  && setIsHovered(true)}
+      }`}
+      onMouseEnter={() =>
+        (!item.leave || item.leave == "half_day") && setIsHovered(true)
+      }
       onMouseLeave={() => setIsHovered(false)}
-      onClick={(!item.leave || item.leave == "half_day")  && cellClick}
+      onClick={(!item.leave || item.leave == "half_day") && cellClick}
     >
       {isHovered && (item.isNew || item.hour == 0) ? (
         <Typography variant="small" className="!text-[13px]">
-          <CirclePlus stroke="#AB3A6C" width={17} height={17} />
+          <CirclePlus className="stroke-black" width={17} height={17} />
         </Typography>
       ) : (
         <>
-          <Typography
-            variant="small"
-            className={`!text-[13px]  !font-semibold  ${
-              isHovered ? "text-primary-foreground/50" : ""
-            }`}
-          >
-              {(!item.isHoliday && item.hour != 0 )|| (item.isHoliday && item.hour != 0)
+          <Typography variant="small" className={`!text-[13px]`}>
+            {(!item.isHoliday && item.hour != 0) ||
+            (item.isHoliday && item.hour != 0)
               ? floatToTime(item.hour)
               : ""}
           </Typography>
           {isHovered && !item.isNew && item.hour != 0 && (
-            <Pencil className="self-center" />
+            <Pencil className="self-center stroke-primary" />
           )}
         </>
       )}

@@ -69,9 +69,9 @@ export function MultiCombo({
           variant="outline"
           role="combobox"
           aria-expanded={openCombobox}
-          className={`w-[200px] justify-center items-center gap-x-2 text-foreground ${buttonClass}`}
+          className={`w-[200px] justify-center items-center gap-x-2 text-foreground group ${buttonClass}`}
         >
-          <CirclePlus />
+          <CirclePlus className="stroke-primary group-hover:stroke-background" />
           {showSelectedValue && selectedValues.length > 0 ? (
             <span className="truncate">
               {selectedValues.length === 1 && selectedValues[0].label}
@@ -98,9 +98,7 @@ export function MultiCombo({
                     key={item.value}
                     value={item.value}
                     onSelect={() => toggleData(item)}
-                    className={` ${
-                      isActive ? "bg-primary " : ""
-                    } aria-selected:bg-primary aria-selected:text-primary-foreground`}
+                    
                   >
                     <Check
                       className={cn(

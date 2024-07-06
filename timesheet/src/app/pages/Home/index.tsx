@@ -114,17 +114,6 @@ export default function CompactView() {
   }, [weekData, isLoading, error]);
 
   useEffect(() => {
-    if (state.weekDate == getTodayDate() && !state) return;
-    mutate();
-  }, [
-    state.weekDate,
-    state.employeeName,
-    state.selectedDepartment,
-    state.selectedProject,
-    state.isFetchAgain,
-  ]);
-
-  useEffect(() => {
     if (!state.dates) return;
     const dates = state.dates;
     dispatch(
@@ -171,6 +160,17 @@ export default function CompactView() {
   const onSubmit = () => {
     dispatch(setIsFetchAgain(true));
   };
+  useEffect(() => {
+    if (state.weekDate == getTodayDate() && !state) return;
+    mutate();
+    dispatch(setIsFetchAgain(false));
+  }, [
+    state.weekDate,
+    state.employeeName,
+    state.selectedDepartment,
+    state.selectedProject,
+    state.isFetchAgain,
+  ]);
   if (state.isFetching) {
     return <ScreenLoader isFullPage={true} />;
   }
@@ -231,7 +231,7 @@ export default function CompactView() {
             <Table>
               <TableHeader>
                 <TableRow className="grid grid-cols-11 w-full border-t">
-                  <TableHead className=" flex items-center col-span-3 px-3">
+                  <TableHead className="flex items-center col-span-3 px-3">
                     <Input
                       placeholder="Employee name..."
                       className=""
@@ -242,11 +242,7 @@ export default function CompactView() {
                     const dateMap = item?.dates;
                     return (
                       <TableHead key={item.key} className="px-0 col-span-4">
-                        <TableRow
-                          className={`flex h-full !border-b-0 w-full [&_td:last-child]:border-r-2 ${
-                            item.key != "This Week" ? "bg-primary" : ""
-                          }`}
-                        >
+                        <TableRow className={`flex h-full !border-b-0 w-full `}>
                           {dateMap?.map((date: any) => {
                             const { date: formattedDate, day } =
                               formatDate(date);
@@ -273,7 +269,7 @@ export default function CompactView() {
               <TableBody className="[&_tr:last-child]:border-b">
                 {res?.map((row: any) => {
                   return (
-                    <TableRow className="grid grid-flow-row-dense grid-cols-11 [&_td:first-child]:hover:underline [&_td:first-child]:hover:text-accent">
+                    <TableRow className="grid grid-flow-row-dense grid-cols-11 [&_td:first-child]:hover:underline">
                       <TableCell className="p-2 col-span-3 px-3 flex items-center ">
                         <Typography
                           variant="p"

@@ -54,9 +54,11 @@ export function Sidebar() {
             {({ isActive }) => (
               <Button
                 variant={isActive ? "secondary" : "ghost"}
-                className="w-full justify-start gap-x-1.5  "
+                className={`w-full justify-start gap-x-1.5 group`}
               >
-                <route.icon stroke={isActive ? "#FFF" : "#1c1c1c"} />
+                <route.icon
+                  className={`stroke-primary ${isActive ? "" : " group-hover:stroke-background"}`}
+                />
                 <p className="font-semibold ">{route.label}</p>
               </Button>
             )}

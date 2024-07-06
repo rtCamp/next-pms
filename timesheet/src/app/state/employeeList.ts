@@ -78,6 +78,7 @@ const employeeListSlice = createSlice({
             return { ...state, isAddTimeDialogOpen: action.payload };
         },
         setIsFetchAgain: (state, action: PayloadAction<boolean>) => { 
+            
             return { ...state, isFetchAgain: action.payload };
         },
         setIsEditTimeDialogOpen: (state, action: PayloadAction<boolean>) => { 
