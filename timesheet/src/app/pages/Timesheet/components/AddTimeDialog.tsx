@@ -134,7 +134,10 @@ export function AddTimeDialog({
     activeModifiers: any,
     e: React.MouseEvent<Element, globalThis.MouseEvent>
   ) => {
-    if (!day) return;
+    if (!day) {
+      handleDatePickerState();
+      return
+    };
     const d = getFormatedDate(day);
     setSelectedDate(d);
     form.setValue("date", d);
@@ -154,7 +157,7 @@ export function AddTimeDialog({
         const error = parseFrappeErrorMsg(err);
         toast({
           variant: "destructive",
-          title: error.message,
+          title: error,
         });
       });
   }
@@ -214,7 +217,7 @@ export function AddTimeDialog({
                             *
                           </sup>
                         </div>
-                        <Popover open={isDatePickerOpen}>
+                        <Popover open={isDatePickerOpen} onOpenChange={handleDatePickerState}>
                           <PopoverTrigger asChild>
                             <Button
                               type="button"

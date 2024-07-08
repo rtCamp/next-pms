@@ -1,5 +1,4 @@
 import { type ClassValue, clsx } from "clsx";
-import { error } from "console";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -42,9 +41,11 @@ export function parseFrappeErrorMsg(error: any) {
     }
     if (e) {
       const jsonMsgArray = JSON.parse(e);
+      
       if (jsonMsgArray.length > 0) {
         const jsonObjectStr = jsonMsgArray[0];
         const e = JSON.parse(jsonObjectStr);
+        console.log(e.message);
         return e.message;
       }
     }
