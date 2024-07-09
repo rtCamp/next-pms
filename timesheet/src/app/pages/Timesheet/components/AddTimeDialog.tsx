@@ -48,6 +48,7 @@ import { Clock2, Calendar as CalIcon } from "@/app/components/Icon";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Typography } from "@/app/components/Typography";
 import { Task } from "@/app/types/type";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function AddTimeDialog({
   state,
@@ -69,6 +70,7 @@ export function AddTimeDialog({
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const { toast } = useToast();
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const form = useForm<z.infer<typeof TimesheetSchema>>({
     resolver: zodResolver(TimesheetSchema),
@@ -85,14 +87,21 @@ export function AddTimeDialog({
     mode: "onBlur",
   });
 
+  const { data: employeeData } = useFrappeGetCall("frappe.client.get", {
+    doctype: "Employee",
+    name: state.timesheet?.employee,
+  });
+
   const {
     isLoading: isTaskLoading,
     data: tasks,
     error: taskError,
+    mutate: mutateTasks,
   } = useFrappeGetCall<{ message: [Task] }>(
     "timesheet_enhancer.api.utils.get_task_for_employee",
     {
       employee: employee.value,
+      search: searchTerm,
     },
     "tasks",
     {
@@ -136,8 +145,8 @@ export function AddTimeDialog({
   ) => {
     if (!day) {
       handleDatePickerState();
-      return
-    };
+      return;
+    }
     const d = getFormatedDate(day);
     setSelectedDate(d);
     form.setValue("date", d);
@@ -162,11 +171,22 @@ export function AddTimeDialog({
       });
   }
   const onTaskSearch = (value: string, search: string) => {
+    let has_found = false;
     const item = tasks?.message?.find((item: Task) => item.name === value);
-    if (!item) return 0;
-    if (item.subject.toLowerCase().includes(search.toLowerCase())) return 1;
 
-    return 0;
+    if (!item) {
+      has_found = false;
+    }
+    if (item && item.subject.toLowerCase().includes(search.toLowerCase())) {
+      has_found = true;
+    }
+
+    if (!has_found) {
+      mutateTasks();
+      return 0;
+    } else {
+      return 1;
+    }
   };
   return (
     <Sheet open={isOpen} onOpenChange={closeDialog}>
@@ -182,6 +202,31 @@ export function AddTimeDialog({
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)}>
                 <div className="flex gap-x-7 ">
+                  {isManager && (
+                    <div className="w-full space-y-2">
+                      <div className="leading-[14px]">
+                        <FormLabel>Employee</FormLabel>
+                      </div>
+                      <Button variant="outline" className="gap-x-2" disabled>
+                        <>
+                          <Avatar className="h-[24px] w-[24px]">
+                            <AvatarFallback>
+                              employeeData?.message?.employee_name[0]
+                            </AvatarFallback>
+                            <AvatarImage
+                              src={decodeURIComponent(
+                                employeeData?.message?.image
+                              )}
+                              alt="Employee Image"
+                            />
+                          </Avatar>
+                          <Typography variant="p" className="sm:text-sm">
+                            {employeeData?.message?.employee_name}
+                          </Typography>
+                        </>
+                      </Button>
+                    </div>
+                  )}
                   <FormField
                     name="hours"
                     render={({ field }) => (
@@ -217,7 +262,10 @@ export function AddTimeDialog({
                             *
                           </sup>
                         </div>
-                        <Popover open={isDatePickerOpen} onOpenChange={handleDatePickerState}>
+                        <Popover
+                          open={isDatePickerOpen}
+                          onOpenChange={handleDatePickerState}
+                        >
                           <PopoverTrigger asChild>
                             <Button
                               type="button"
@@ -304,7 +352,11 @@ export function AddTimeDialog({
                         </PopoverTrigger>
                         <PopoverContent className="w-96">
                           <Command filter={onTaskSearch}>
-                            <CommandInput placeholder="Search Tasks..." />
+                            <CommandInput
+                              placeholder="Search Tasks..."
+                              value={searchTerm}
+                              onValueChange={setSearchTerm}
+                            />
                             <ScrollArea>
                               <CommandEmpty>No task found.</CommandEmpty>
                               <CommandGroup>

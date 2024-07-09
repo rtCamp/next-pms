@@ -92,10 +92,16 @@ def get_week_dates(date, current_week: bool = False):
 
 
 @frappe.whitelist()
-def get_task_for_employee(employee: str = None, page_length: int = 10, start: int = 0):
+def get_task_for_employee(employee: str = None, search: str = None):
     if not employee:
         employee = get_employee_from_user()
     user = frappe.get_value("Employee", employee, "user_id")
+    search_filter = {}
+    if search:
+        search_filter = {
+            "subject": ["like", f"%{search}%"],
+            "description": ["like", f"%{search}%"],
+        }
     shared_projects = frappe.get_all(
         "DocShare",
         filters={"user": user, "share_doctype": "Project"},
@@ -104,18 +110,14 @@ def get_task_for_employee(employee: str = None, page_length: int = 10, start: in
     projects = [project["share_name"] for project in shared_projects]
     project_task = frappe.get_all(
         "Task",
-        filters={"project": ["in", projects]},
+        filters={"project": ["in", projects], **search_filter},
         fields=["name", "subject", "status", "project.project_name"],
-        page_length=page_length,
-        start=start,
     )
     names = [task["name"] for task in project_task]
     tasks = frappe.get_list(
         "Task",
-        filters={"name": ["NOT IN", names]},
+        filters={"name": ["NOT IN", names], **search_filter},
         fields=["name", "subject", "status", "project.project_name"],
-        page_length=page_length,
-        start=start,
     )
 
     return project_task + tasks

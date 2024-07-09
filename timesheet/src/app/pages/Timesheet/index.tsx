@@ -156,7 +156,7 @@ function Timesheet() {
                       <div
                         className=" flex gap-x-2 text-sm pr-2 items-center p-2 hover: rounded-sm hover:cursor-pointer"
                         onClick={() =>
-                          value.state == "open"
+                          value.state == "Not Submitted"
                             ? onApproveTimeClick(value.dates)
                             : null
                         }
@@ -172,7 +172,11 @@ function Timesheet() {
                   </>
                 );
               })}
-              <Button onClick={updateWeekDate} className="flex gap-x-2 my-6 group" variant="outline">
+              <Button
+                onClick={updateWeekDate}
+                className="flex gap-x-2 my-6 group"
+                variant="outline"
+              >
                 <ArrowDown className="stroke-black group-hover:stroke-white" />
                 <Typography variant="p" className="!font-medium">
                   Load More
@@ -202,18 +206,18 @@ function Timesheet() {
 export default Timesheet;
 
 function Status({ status }: { status: string }) {
-  if (status == "submitted") {
+  if (status == "Approval Pending") {
     return (
       <>
         <Clock9 size={16} stroke="#F2994A" />
-        <Typography variant="muted">Submitted</Typography>
+        <Typography variant="muted">{status}</Typography>
       </>
     );
-  } else if (status == "approved") {
+  } else if (status == "Approved") {
     return (
       <>
         <CircleCheck size={16} fill="#58C900" stroke="#fff" />
-        <Typography variant="muted">Approved</Typography>
+        <Typography variant="muted">{status}</Typography>
       </>
     );
   } else {
@@ -221,7 +225,7 @@ function Status({ status }: { status: string }) {
       <>
         <CircleCheck size={16} className="text-muted-foreground/70 " />
         <Typography variant="muted" className="text-muted-foreground/70">
-          Not Submitted
+          {status}
         </Typography>
       </>
     );

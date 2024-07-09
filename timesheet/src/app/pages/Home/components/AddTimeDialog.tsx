@@ -183,7 +183,7 @@ export function AddTimeDialog({
                       render={({ field }) => (
                         <FormItem className="flex flex-col ">
                           <FormLabel>
-                            Member
+                          Employee
                             <sup className="text-destructive text-sm align-sub">
                               *
                             </sup>

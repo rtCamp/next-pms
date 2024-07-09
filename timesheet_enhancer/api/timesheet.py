@@ -140,10 +140,10 @@ def delete(parent: str, name: str):
 def submit_for_approval(
     start_date: str, end_date: str, notes: str, employee: str = None
 ):
-    from frappe.model.workflow import apply_workflow
-    from frappe.workflow.doctype.workflow_action.workflow_action import (
-        get_doc_workflow_state,
-    )
+    # from frappe.model.workflow import apply_workflow
+    # from frappe.workflow.doctype.workflow_action.workflow_action import (
+    #     get_doc_workflow_state,
+    # )
 
     if not employee:
         employee = get_employee_from_user()
@@ -158,20 +158,21 @@ def submit_for_approval(
         },
     )
 
-    wf = frappe.db.exists("Workflow", {"document_type": "Timesheet", "is_active": True})
+    # wf = frappe.db.exists("Workflow", {"document_type": "Timesheet", "is_active": True})
 
     for timesheet in timesheets:
         #  First add the note in timesheet and run the workflow action.
         doc = frappe.get_doc("Timesheet", timesheet["name"])
         doc.note = notes
+        doc.custom_approval_status = "Approval Pending"
         doc.save()
-        workflow_state = get_doc_workflow_state(doc)
-        action = frappe.db.get_value(
-            "Workflow Transition",
-            {"parent": wf, "state": workflow_state},
-            "action",
-        )
-        apply_workflow(doc, action)
+        # workflow_state = get_doc_workflow_state(doc)
+        # action = frappe.db.get_value(
+        #     "Workflow Transition",
+        #     {"parent": wf, "state": workflow_state},
+        #     "action",
+        # )
+        # apply_workflow(doc, action)
     return _("Timesheet submitted for approval.")
 
 
@@ -328,11 +329,8 @@ def get_timesheet_detail_for_employee(employee: str, date: str):
 
 
 def get_timesheet_state(dates: list, employee: str):
-    from frappe.workflow.doctype.workflow_action.workflow_action import (
-        get_doc_workflow_state,
-    )
 
-    res = "open"
+    res = "Not Submitted"
     timesheets = frappe.get_all(
         "Timesheet",
         filters={
@@ -340,6 +338,7 @@ def get_timesheet_state(dates: list, employee: str):
             "end_date": ["<=", getdate(dates[-1])],
             "employee": employee,
         },
+        fields=["custom_approval_status"],
     )
     if len(timesheets) == 0:
         return res
@@ -347,15 +346,14 @@ def get_timesheet_state(dates: list, employee: str):
     submitted = 0
 
     for timesheet in timesheets:
-        timesheet = frappe.get_doc("Timesheet", timesheet["name"])
-        state = get_doc_workflow_state(timesheet)
+        state = timesheet.get("custom_approval_status")
         approved += 1 if state == "Approved" else 0
-        submitted += 1 if state == "Waiting Approval" else 0
+        submitted += 1 if state == "Approval Pending" else 0
 
     if approved == 0 and submitted == 0:
         return res
     if approved > submitted:
-        res = "approved"
+        res = "Approved"
     else:
-        res = "submitted"
+        res = "Approval Pending"
     return res

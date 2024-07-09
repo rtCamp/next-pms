@@ -180,10 +180,18 @@ export default function Team() {
                 <TabsTrigger value="team">Timesheet</TabsTrigger>
               </TabsList>
               <div className="flex gap-x-2 pr-1">
-                <Button className=" p-2 h-[28px]" variant="outline" onClick={handleprevWeek}>
+                <Button
+                  className=" p-2 h-[28px]"
+                  variant="outline"
+                  onClick={handleprevWeek}
+                >
                   <ChevronLeft size={16} />
                 </Button>
-                <Button className=" p-2  h-[28px]"  variant="outline" onClick={handlenextWeek}>
+                <Button
+                  className=" p-2  h-[28px]"
+                  variant="outline"
+                  onClick={handlenextWeek}
+                >
                   <ChevronRight size={16} />
                 </Button>
               </div>
@@ -321,7 +329,6 @@ export default function Team() {
 
                             <div className="pt-4">
                               <Button
-                                
                                 onClick={() => onAddTimeClick(employee.name)}
                               >
                                 Add Time
