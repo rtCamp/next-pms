@@ -54,14 +54,6 @@ def get_context(context):
         }
     )
 
-    app_name = frappe.get_website_settings("app_name") or frappe.get_system_settings(
-        "app_name"
-    )
-
-    if app_name and app_name != "Frappe":
-        context["app_name"] = app_name + " | " + "Timesheet"
-
-    else:
-        context["app_name"] = "Timesheet"
+    context["app_name"] = "Timesheet"
 
     return context

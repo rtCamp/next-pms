@@ -92,28 +92,30 @@ def get_week_dates(date, current_week: bool = False):
 
 
 @frappe.whitelist()
-def get_task_for_employee(employee: str = None):
+def get_task_for_employee(employee: str = None, page_length: int = 10, start: int = 0):
     if not employee:
         employee = get_employee_from_user()
     user = frappe.get_value("Employee", employee, "user_id")
-    project_team = frappe.qb.DocType("Project Team")
-    projects = (
-        frappe.qb.from_(project_team)
-        .select("parent")
-        .where(project_team.user == user)
-        .run(as_dict=True)
+    shared_projects = frappe.get_all(
+        "DocShare",
+        filters={"user": user, "share_doctype": "Project"},
+        fields=["share_name"],
     )
-    project_list = [project["parent"] for project in projects]
-    project_task = frappe.get_list(
+    projects = [project["share_name"] for project in shared_projects]
+    project_task = frappe.get_all(
         "Task",
-        filters={"project": ["in", project_list]},
+        filters={"project": ["in", projects]},
         fields=["name", "subject", "status", "project.project_name"],
+        page_length=page_length,
+        start=start,
     )
     names = [task["name"] for task in project_task]
     tasks = frappe.get_list(
         "Task",
         filters={"name": ["NOT IN", names]},
         fields=["name", "subject", "status", "project.project_name"],
+        page_length=page_length,
+        start=start,
     )
 
     return project_task + tasks
