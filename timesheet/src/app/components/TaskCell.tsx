@@ -54,7 +54,7 @@ export function TaskCell({
         "flex w-20 justify-center flex-col max-w-20 p-0",
         `${
           isCellDisabled
-            ? "text-muted-foreground hover:cursor-not-allowed "
+            ? "text-muted-foreground/50 hover:cursor-not-allowed "
             : "hover:cursor-pointer"
         } ${classname}`
       )}

@@ -261,7 +261,7 @@ export default function Team() {
                         <div className="flex w-20  h-16    flex-col max-w-20  px-0 ">
                           <TableHead
                             key={date}
-                            className="h-full flex flex-col justify-center px-0"
+                            className={cn("h-full flex flex-col justify-center px-0", isHoliday && "text-muted-foreground/50")}
                           >
                             <div className={cn(`font-semibold `)}>{day}</div>
                             <div className={cn(`text-xs font-medium `)}>

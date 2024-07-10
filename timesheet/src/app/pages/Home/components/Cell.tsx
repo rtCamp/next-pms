@@ -50,10 +50,11 @@ export function Cell({ item, row }: { item: any; row: any }) {
         bgClass = "bg-success/25";
       } else if (hour > 8) {
         bgClass = "bg-warning/25";
-      } else if (!timesheet && !leaveData) {
+      } else if ((!timesheet && !leaveData )|| hour == 0) {
         bgClass = "bg-tansparent";
-      } else if (hour == 0) {
-        bgClass = "bg-tansparent";
+      }
+      if (isHoliday || leave == "full_day") {
+          bgClass = "bg-muted/50 text-muted-foreground/50";
       }
       if (!isNew && (hour == 0 || (!timesheet && !leaveData))) {
         dateArray.push({

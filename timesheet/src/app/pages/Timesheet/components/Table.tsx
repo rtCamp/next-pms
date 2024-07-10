@@ -40,7 +40,7 @@ export function TimesheetTable({
             <TableRow className="flex h-16 ">
               <TableHead
                 key="Heading"
-                className="flex w-96  font-medium items-center h-16  !px-2 "
+                className="flex w-96  font-medium items-center h-16  !px-2  text-primary"
               >
                 Tasks
               </TableHead>
@@ -78,7 +78,7 @@ export function TimesheetTable({
                   <div className="flex w-20  h-16    flex-col max-w-20  px-0 ">
                     <TableHead
                       key={date}
-                      className="h-full flex flex-col justify-center"
+                      className={cn("h-full flex flex-col justify-center text-primary",isHoliday && "text-muted-foreground/50")}
                     >
                       <div className={cn(`font-semibold `)}>{day}</div>
                       <div className={cn(` text-xs font-medium `)}>
