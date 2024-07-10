@@ -6,11 +6,10 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { ScreenLoader } from "@/app/components/Loader";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -22,6 +21,9 @@ import {
   setTimesheet,
   setIsDialogOpen,
   setWeekDate,
+  setStart,
+  updateTeam,
+  setHasMore,
 } from "@/app/state/team";
 import { TaskCellClickProps } from "@/app/types/timesheet";
 import {
@@ -50,6 +52,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 export default function Team() {
   const state = useSelector((state: RootState) => state.team);
+  const observerTarget = useRef(null);
   const dispatch = useDispatch();
   const { toast } = useToast();
 
@@ -57,12 +60,24 @@ export default function Team() {
     "timesheet_enhancer.api.team.get_weekly_team_view_data",
     {
       date: state.weekDate,
+      start: state.start,
     }
   );
   useEffect(() => {
     dispatch(setFetching(true));
     if (data && !isLoading) {
-      dispatch(setTeam(data?.message));
+      if (state.start > 0) {
+        const d = {
+          empData: { ...state.data.empData, ...data.message.empData },
+          employees: [...state.data.employees, ...data.message.employees],
+          holiday_map: [...state.data.holiday_map, ...data.message.holiday_map],
+          has_more: data.message.has_more,
+        };
+        dispatch(updateTeam(d));
+      } else {
+        dispatch(setTeam(data?.message));
+      }
+      dispatch(setHasMore(data.message?.has_more));
       dispatch(setFetching(false));
     }
     if (error) {
@@ -81,9 +96,34 @@ export default function Team() {
       dispatch(setIsFetchAgain(false));
     }
   }, [state.isFetchAgain]);
+
   useEffect(() => {
+    if (!state.hasMore) return;
     mutate();
-  }, [state.weekDate]);
+  }, [state.weekDate, state.start]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          dispatch(setStart(state.start + 10));
+        }
+        console.log(entries);
+      },
+      { threshold: 1, rootMargin: "0px" }
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => {
+      if (observerTarget.current) {
+        observer.unobserve(observerTarget.current);
+      }
+    };
+    console.log(observerTarget.current);
+  }, [observerTarget]);
   const onTaskCellClick = ({
     date,
     name,
@@ -146,10 +186,12 @@ export default function Team() {
   const handleprevWeek = () => {
     const date = addDays(state.weekDate, -7);
     dispatch(setWeekDate(date));
+    dispatch(setStart(0));
   };
   const handlenextWeek = () => {
     const date = addDays(state.weekDate, 7);
     dispatch(setWeekDate(date));
+    dispatch(setStart(0));
   };
   const onAddTimeClick = (employee: string) => {
     const data = {
@@ -166,10 +208,10 @@ export default function Team() {
   const onsubmit = () => {
     dispatch(setIsFetchAgain(true));
   };
-  if (state.isFetching) {
+  if (state.isFetching && state.start == 0) {
     return <ScreenLoader isFullPage={true} />;
   }
-
+  console.log(observerTarget.current);
   return (
     <>
       {!error ? (
@@ -199,7 +241,7 @@ export default function Team() {
 
             <TabsContent
               value="team"
-              style={{ height: "calc(100vh - 8rem)"}}
+              style={{ height: "calc(100vh - 8rem)" }}
               className="overflow-y-auto no-scrollbar"
             >
               <Table>
@@ -238,109 +280,114 @@ export default function Team() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {state.data.employees.map((employee: any) => {
-                    const hours = state.data[employee.name].hours;
-                    const leaves = state.data[employee.name].leaves;
+                  {state.data.employees.map((employee: any, index) => {
+                    const hours = state.data.empData[employee.name].hours;
+                    const leaves = state.data.empData[employee.name].leaves;
                     let total = 0;
+                    const isLast = index === state.data.employees.length - 1;
+
                     return (
-                      <Accordion type="multiple">
-                        <AccordionItem
-                          key={employee.name}
-                          value={employee.name}
-                        >
-                          <AccordionTrigger className="justify-start rounded-none hover:no-underline w-full p-2 py-0">
-                            <TableRow className="flex">
-                              <TableCell className="flex items-center gap-x-2 px-2 w-[360px] ">
-                                <Avatar className="h-[35px] w-[35px] ">
-                                  <AvatarImage
-                                    src={employee.image}
-                                    alt="employee"
-                                  />
-                                  <AvatarFallback>
-                                    {employee.employee_name[0]}
-                                  </AvatarFallback>
-                                </Avatar>
+                      <div ref={isLast ? observerTarget : null}>
+                        <Accordion type="multiple">
+                          <AccordionItem
+                            key={employee.name}
+                            value={employee.name}
+                          >
+                            <AccordionTrigger className="justify-start rounded-none hover:no-underline w-full p-2 py-0">
+                              <TableRow className="flex">
+                                <TableCell className="flex items-center gap-x-2 px-2 w-[360px] ">
+                                  <Avatar className="h-[35px] w-[35px] ">
+                                    <AvatarImage
+                                      src={employee.image}
+                                      alt="employee"
+                                    />
+                                    <AvatarFallback>
+                                      {employee.employee_name[0]}
+                                    </AvatarFallback>
+                                  </Avatar>
 
-                                <div className="flex items-start flex-col">
-                                  <Typography
-                                    variant="p"
-                                    className="!font-bold !text-sm"
-                                  >
-                                    {employee.employee_name}
-                                  </Typography>
-                                  <Typography variant="muted">
-                                    {employee.designation}
-                                  </Typography>
-                                </div>
-                              </TableCell>
+                                  <div className="flex items-start flex-col">
+                                    <Typography
+                                      variant="p"
+                                      className="!font-bold !text-sm"
+                                    >
+                                      {employee.employee_name}
+                                    </Typography>
+                                    <Typography variant="muted">
+                                      {employee.designation}
+                                    </Typography>
+                                  </div>
+                                </TableCell>
 
-                              {hours.map((hour: any, index: number) => {
-                                const date = hour.date;
-                                const leaveData = leaves.find((data: any) => {
-                                  return (
-                                    date >= data.from_date &&
-                                    date <= data.to_date
-                                  );
-                                });
-                                let dayTotal = hour.hours;
-                                if (leaveData) {
-                                  if (
-                                    leaveData.half_day ||
-                                    (leaveData.half_day_date &&
-                                      leaveData.half_day_date == date)
-                                  ) {
-                                    dayTotal += 4;
-                                  } else {
-                                    dayTotal += 8;
+                                {hours.map((hour: any, index: number) => {
+                                  const date = hour.date;
+                                  const leaveData = leaves.find((data: any) => {
+                                    return (
+                                      date >= data.from_date &&
+                                      date <= data.to_date
+                                    );
+                                  });
+                                  let dayTotal = hour.hours;
+                                  if (leaveData) {
+                                    if (
+                                      leaveData.half_day ||
+                                      (leaveData.half_day_date &&
+                                        leaveData.half_day_date == date)
+                                    ) {
+                                      dayTotal += 4;
+                                    } else {
+                                      dayTotal += 8;
+                                    }
                                   }
-                                }
-                                total += dayTotal;
-                                return (
-                                  <TaskCell
-                                    classname="text-foreground items-start  hover:cursor-not-allowed p-0 text-[15px]"
-                                    onCellClick={() => {}}
-                                    name={""}
-                                    parent={""}
-                                    task={""}
-                                    description={`Total working hours for the day is ${floatToTime(
-                                      dayTotal
-                                    )}`}
-                                    hours={dayTotal}
-                                    date={hour.date}
-                                    isCellDisabled={true}
-                                  />
-                                );
-                              })}
-                              <TableCell
-                                key={"Total"}
-                                className="flex w-24 justify-center flex-col font-bold max-w-24 px-0 text-center text-[15px] "
-                              >
-                                {floatToTime(total)}
-                              </TableCell>
-                            </TableRow>
-                          </AccordionTrigger>
-                          <AccordionContent>
-                            <TimesheetTable
-                              data={state.data[employee.name]}
-                              onTaskCellClick={onTaskCellClick}
-                              isHeading={false}
-                              employee={employee.name}
-                            />
+                                  total += dayTotal;
+                                  return (
+                                    <TaskCell
+                                      classname="text-foreground items-start  hover:cursor-not-allowed p-0 text-[15px]"
+                                      onCellClick={() => {}}
+                                      name={""}
+                                      parent={""}
+                                      task={""}
+                                      description={`Total working hours for the day is ${floatToTime(
+                                        dayTotal
+                                      )}`}
+                                      hours={dayTotal}
+                                      date={hour.date}
+                                      isCellDisabled={true}
+                                    />
+                                  );
+                                })}
+                                <TableCell
+                                  key={"Total"}
+                                  className="flex w-24 justify-center flex-col font-bold max-w-24 px-0 text-center text-[15px] "
+                                >
+                                  {floatToTime(total)}
+                                </TableCell>
+                              </TableRow>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <TimesheetTable
+                                data={state.data.empData[employee.name]}
+                                onTaskCellClick={onTaskCellClick}
+                                isHeading={false}
+                                employee={employee.name}
+                              />
 
-                            <div className="pt-4">
-                              <Button
-                                onClick={() => onAddTimeClick(employee.name)}
-                              >
-                                Add Time
-                              </Button>
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      </Accordion>
+                              <div className="pt-4">
+                                <Button
+                                  onClick={() => onAddTimeClick(employee.name)}
+                                >
+                                  Add Time
+                                </Button>
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
+                      </div>
                     );
                   })}
                 </TableBody>
               </Table>
+              {/* <div ref={observerTarget}></div> */}
             </TabsContent>
           </Tabs>
           {state.isAddTimeDialogOpen && (

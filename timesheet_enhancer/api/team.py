@@ -81,24 +81,29 @@ def get_weekly_compact_view_data(
 
 
 @frappe.whitelist()
-def get_weekly_team_view_data(date: str):
+def get_weekly_team_view_data(date: str, page_length=10, start=0):
     from .timesheet import get_timesheet_data
 
     holiday_map = []
+    total_employee = len(frappe.get_list("Employee"))
     week_info = get_week_dates(date)
     data = week_info
-    employees = filter_employees()
+    employees = filter_employees(page_length=page_length, start=start)
+    data["empData"] = {}
     for employee in employees:
         info = get_timesheet_data(employee.name, date, 1)
         info = info[next(iter(info))]
-        data[employee.name] = info
+        data["empData"][employee.name] = info
         holiday_map.extend(info.get("holidays"))
     data["employees"] = employees
     data["holiday_map"] = set(holiday_map)
+    data["has_more"] = True if int(start) + int(page_length) < total_employee else False
     return data
 
 
-def filter_employees(employee_name=None, department=None, project=None):
+def filter_employees(
+    employee_name=None, department=None, project=None, page_length=10, start=0
+):
 
     fields = ["name", "image", "employee_name", "department", "designation"]
     employee_ids = None
@@ -127,4 +132,6 @@ def filter_employees(employee_name=None, department=None, project=None):
         ]
         filters["name"] = ["in", employee_ids]
 
-    return frappe.get_list("Employee", fields=fields, filters=filters)
+    return frappe.get_list(
+        "Employee", fields=fields, filters=filters, page_length=page_length, start=start
+    )

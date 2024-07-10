@@ -1,6 +1,7 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { getTodayDate } from "@/app/lib/utils";
 import { DialogInput } from "@/app/types/type";
+import { set, update } from "lodash";
 
 interface TeamState {
     data: {
@@ -8,8 +9,8 @@ interface TeamState {
         end_date: string;
         dates: Array<string>;
         holiday_map: Array<string>;
-        [string: string]: any;
         employees: Array<any>;
+        empData: any;
     };
     isFetching: boolean;
     weekDate: string;
@@ -18,6 +19,8 @@ interface TeamState {
     isFetchAgain: boolean;
     dialogInput: DialogInput
     timesheet: any
+    start: number
+    hasMore: boolean
 }
 
 const initialState: TeamState = {
@@ -26,7 +29,8 @@ const initialState: TeamState = {
         end_date: "",
         dates: [],
         holiday_map: [],
-        employees: []
+        employees: [],
+        empData: {}
     },
     isFetching: false,
     weekDate: getTodayDate(),
@@ -48,8 +52,10 @@ const initialState: TeamState = {
         description: "",
         date: "",
         isUpdate: false,
-        name:""
-    }
+        name: ""
+    },
+    start: 0,
+    hasMore: true
 };
 
 const teamSlice = createSlice({
@@ -58,6 +64,9 @@ const teamSlice = createSlice({
     reducers: {
         setTeam: (state, action: PayloadAction<any>) => {
             return { ...state, data: action.payload }
+        },
+        updateTeam: (state, action: PayloadAction<any>) => {
+            return { ...state, data: { ...state.data, ...action.payload } }
         },
         setDialogInput: (state, action: PayloadAction<DialogInput>) => {
             return { ...state, dialogInput: action.payload };
@@ -80,7 +89,14 @@ const teamSlice = createSlice({
         setTimesheet: (state, action: PayloadAction<any>) => {
             return { ...state, timesheet: action.payload };
         },
+        setStart: (state, action: PayloadAction<number>) => {
+            return { ...state, start: action.payload }
+        },
+        setHasMore: (state, action: PayloadAction<boolean>) => {
+            return { ...state, hasMore: action.payload }
+
+        }
     }
 });
-export const { setDialogInput, setTeam, setFetching, setIsAddTimeDialogOpen, setWeekDate, setIsFetchAgain, setIsDialogOpen ,setTimesheet} = teamSlice.actions;
+export const { setDialogInput, setTeam, setFetching, setIsAddTimeDialogOpen, setWeekDate, setIsFetchAgain, setIsDialogOpen, setTimesheet, setStart, setHasMore, updateTeam } = teamSlice.actions;
 export default teamSlice.reducer;
