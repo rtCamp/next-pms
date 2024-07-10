@@ -92,7 +92,9 @@ def get_week_dates(date, current_week: bool = False):
 
 
 @frappe.whitelist()
-def get_task_for_employee(employee: str = None, search: str = None):
+def get_task_for_employee(
+    employee: str = None, search: str = None, page_length: int = 10, start: int = 0
+):
     if not employee:
         employee = get_employee_from_user()
     user = frappe.get_value("Employee", employee, "user_id")
@@ -112,12 +114,18 @@ def get_task_for_employee(employee: str = None, search: str = None):
         "Task",
         filters={"project": ["in", projects], **search_filter},
         fields=["name", "subject", "status", "project.project_name"],
+        page_length=page_length,
+        start=start,
+        order_by="name desc",
     )
     names = [task["name"] for task in project_task]
     tasks = frappe.get_list(
         "Task",
         filters={"name": ["NOT IN", names], **search_filter},
         fields=["name", "subject", "status", "project.project_name"],
+        page_length=page_length,
+        start=start,
+        order_by="name desc",
     )
 
     return project_task + tasks

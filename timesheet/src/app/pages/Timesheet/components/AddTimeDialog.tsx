@@ -92,7 +92,7 @@ export function AddTimeDialog({
     doctype: "Employee",
     name: state.timesheet?.employee,
   });
-  console.log(state.timesheet);
+
   const {
     isLoading: isTaskLoading,
     data: tasks,
