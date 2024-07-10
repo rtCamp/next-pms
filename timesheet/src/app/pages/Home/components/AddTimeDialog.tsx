@@ -84,7 +84,7 @@ export function AddTimeDialog({
     },
     mode: "onBlur",
   });
-  const { data: employees, isLoading } = useFrappeGetCall(
+  const { data: employees, isLoading,error:errorEmployee } = useFrappeGetCall(
     "frappe.client.get_list",
     {
       doctype: "Employee",
@@ -95,11 +95,19 @@ export function AddTimeDialog({
     },
     "employees"
   );
+  if (errorEmployee) {
+    const error = parseFrappeErrorMsg(errorEmployee);
+    toast({
+      variant: "destructive",
+      title: error,
+    });
+  }
 
   const {
     data: tasks,
     isLoading: isTaskLoading,
     mutate: mutateTasks,
+    error: errorTask,
   } = useFrappeGetCall(
     "timesheet_enhancer.api.utils.get_task_for_employee",
     {
@@ -107,6 +115,13 @@ export function AddTimeDialog({
     },
     "tasks"
   );
+  if (errorTask) {
+    const error = parseFrappeErrorMsg(errorTask);
+    toast({
+      variant: "destructive",
+      title: error,
+    });
+  }
   useEffect(() => {
     mutateTasks();
   }, [localState.dialogInput.employee]);

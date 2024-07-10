@@ -22,6 +22,7 @@ function Timesheet() {
   const { call } = useContext(FrappeContext) as FrappeConfig;
   const employee = useSelector((state: RootState) => state.employee);
   const [state, dispatch] = useReducer(reducer, getInitialState);
+  
   const onSubmit = () => {
     dispatch({ type: "SetFetchAgain", payload: true });
   };
@@ -32,6 +33,7 @@ function Timesheet() {
     }, 500);
   };
   function fetchData(employee: string, append: boolean = false) {
+    dispatch({ type: "SetFetching", payload: true });
     call
       .post("timesheet_enhancer.api.timesheet.get_timesheet_data", {
         employee: employee,
@@ -47,18 +49,14 @@ function Timesheet() {
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
-        dispatch({ type: "SetFetching", payload: false });
         toast({
           variant: "destructive",
           title: error,
         });
       });
-  }
-  const init = (append: boolean = false) => {
-    dispatch({ type: "SetFetching", payload: true });
-    fetchData(employee.value, append);
     dispatch({ type: "SetFetching", payload: false });
-  };
+  }
+
   const updateWeekDate = () => {
     const stateData = state.data;
     if (!stateData) return;
@@ -69,14 +67,12 @@ function Timesheet() {
 
   useEffect(() => {
     if (!state.isFetchAgain) return;
-    dispatch({ type: "SetFetching", payload: true });
     fetchData(employee.value);
-    dispatch({ type: "SetFetching", payload: false });
     dispatch({ type: "SetFetchAgain", payload: false });
   }, [state.isFetchAgain]);
 
   useEffect(() => {
-    init(true);
+    fetchData(employee.value, true);
   }, [state.weekDate]);
 
   const onTaskCellClick = ({
@@ -139,76 +135,71 @@ function Timesheet() {
   }
   return (
     <>
-      {Object.keys(state.data).length > 0 ? (
-        <>
-          <Tabs defaultValue="timesheet">
-            <div className="flex gap-x-2.5 z-10 w-full ">
-              <TabsList className="justify-start  py-0  w-full">
-                <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
-              </TabsList>
-              <Button onClick={onAddTimeClick}>Add Time</Button>
-            </div>
+      <Tabs defaultValue="timesheet">
+        <div className="flex gap-x-2.5 z-10 w-full ">
+          <TabsList className="justify-start  py-0  w-full">
+            <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
+          </TabsList>
+          <Button onClick={onAddTimeClick}>Add Time</Button>
+        </div>
 
-            <TabsContent
-              value="timesheet"
-              style={{ height: "calc(100vh - 8rem)" }}
-              className="overflow-y-auto no-scrollbar"
-            >
-              {Object.entries(state.data).map(([key, value]: [string, any]) => {
-                return (
-                  <>
-                    <div className="flex w-full h-12 justify-between items-center border-b mt-5">
-                      <div className="flex gap-x-2 md:gap-x-4 items-center">
-                        <Typography variant="p" className="!font-bold">
-                          {key}
-                        </Typography>
-                      </div>
-                      <div
-                        className=" flex gap-x-2 text-sm pr-2 items-center p-2 hover: rounded-sm hover:cursor-pointer"
-                        onClick={() =>
-                          value.state == "Not Submitted"
-                            ? onApproveTimeClick(value.dates)
-                            : null
-                        }
-                      >
-                        <Status status={value.state} />
-                      </div>
+        <TabsContent
+          value="timesheet"
+          style={{ height: "calc(100vh - 8rem)" }}
+          className="overflow-y-auto no-scrollbar "
+        >
+          {Object.keys(state.data).length > 0 &&
+            Object.entries(state.data).map(([key, value]: [string, any]) => {
+              return (
+                <>
+                  <div className="flex w-full h-12 justify-between items-center border-b mt-5">
+                    <div className="flex gap-x-2 md:gap-x-4 items-center">
+                      <Typography variant="p" className="!font-bold">
+                        {key}
+                      </Typography>
                     </div>
+                    <div
+                      className=" flex gap-x-2 text-sm pr-2 items-center p-2 hover: rounded-sm hover:cursor-pointer"
+                      onClick={() =>
+                        value.state == "Not Submitted"
+                          ? onApproveTimeClick(value.dates)
+                          : null
+                      }
+                    >
+                      <Status status={value.state} />
+                    </div>
+                  </div>
 
-                    <TimesheetTable
-                      data={value}
-                      onTaskCellClick={onTaskCellClick}
-                      employee={employee.value}
-                    />
-                  </>
-                );
-              })}
-              <Button
-                onClick={updateWeekDate}
-                className="flex gap-x-2 my-6 group"
-                variant="outline"
-              >
-                <ArrowDown className="stroke-black group-hover:stroke-white" />
-                <Typography variant="p" className="!font-medium">
-                  Load More
-                </Typography>
-              </Button>
-            </TabsContent>
-          </Tabs>
+                  <TimesheetTable
+                    data={value}
+                    onTaskCellClick={onTaskCellClick}
+                    employee={employee.value}
+                  />
+                </>
+              );
+            })}
+          <Button
+            onClick={updateWeekDate}
+            className="flex gap-x-2 my-6 group"
+            variant="outline"
+          >
+            <ArrowDown className="stroke-black group-hover:stroke-white" />
+            <Typography variant="p" className="!font-medium">
+              Load More
+            </Typography>
+          </Button>
+        </TabsContent>
+      </Tabs>
 
-          {state.isDialogOpen && (
-            <AddTimeDialog
-              state={state}
-              submitAction={onSubmit}
-              closeAction={onClose}
-            />
-          )}
-          {state.isAprrovalDialogOpen && (
-            <ApprovalDialog state={state} dispatch={dispatch} />
-          )}
-        </>
-      ) : (
-        <></>
+      {state.isDialogOpen && (
+        <AddTimeDialog
+          state={state}
+          submitAction={onSubmit}
+          closeAction={onClose}
+        />
+      )}
+      {state.isAprrovalDialogOpen && (
+        <ApprovalDialog state={state} dispatch={dispatch} />
       )}
     </>
   );

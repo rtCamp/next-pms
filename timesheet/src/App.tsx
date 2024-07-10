@@ -32,7 +32,7 @@ function App() {
         <Provider store={store}>
           <TooltipProvider>
             {/* Within routes component  are lazy loaded, therefore suspense is required. */}
-            <Suspense fallback={<ScreenLoader isFullPage={true} />}>
+            <Suspense fallback={<></>}>
               <RouterProvider router={router} />
             </Suspense>
           </TooltipProvider>

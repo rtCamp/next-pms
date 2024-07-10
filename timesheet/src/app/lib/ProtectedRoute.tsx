@@ -23,7 +23,7 @@ export const AuthenticatedRoute = () => {
       });
   }
   if (isLoading) {
-    return <ScreenLoader isFullPage={true} />;
+    return <></>;
   } else if (!currentUser || currentUser === "Guest") {
     window.location.replace("/login?redirect-to=/timesheet");
   }

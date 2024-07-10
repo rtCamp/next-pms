@@ -199,7 +199,7 @@ export default function Team() {
 
             <TabsContent
               value="team"
-              style={{ height: "calc(100vh - 8rem)" }}
+              style={{ height: "calc(100vh - 8rem)"}}
               className="overflow-y-auto no-scrollbar"
             >
               <Table>
