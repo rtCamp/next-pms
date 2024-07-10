@@ -92,7 +92,16 @@ function Timesheet() {
 
     dispatch({
       type: "SetTimesheet",
-      payload: { name, parent, task, date, description, hours, isUpdate },
+      payload: {
+        name,
+        parent,
+        task,
+        date,
+        description,
+        hours,
+        isUpdate,
+        employee,
+      },
     });
     dispatch({ type: "SetAddTimeDialog", payload: true });
   };
@@ -108,6 +117,7 @@ function Timesheet() {
         name: "",
         parent: "",
         task: "",
+        employee: employee.value,
       },
     });
     dispatch({ type: "SetAddTimeDialog", payload: true });
@@ -168,6 +178,7 @@ function Timesheet() {
                     <TimesheetTable
                       data={value}
                       onTaskCellClick={onTaskCellClick}
+                      employee={employee.value}
                     />
                   </>
                 );

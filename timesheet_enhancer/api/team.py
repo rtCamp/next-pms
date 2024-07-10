@@ -99,7 +99,6 @@ def get_weekly_team_view_data(date: str):
 
 
 def filter_employees(employee_name=None, department=None, project=None):
-    from frappe.query_builder import DocType
 
     fields = ["name", "image", "employee_name", "department", "designation"]
     employee_ids = None
@@ -117,17 +116,14 @@ def filter_employees(employee_name=None, department=None, project=None):
         filters["department"] = ["in", department]
 
     if project and len(project) > 0:
-        project_teams = DocType("Project Team")
-        project_users = (
-            frappe.qb.from_(project_teams)
-            .select(project_teams.user)
-            .distinct()
-            .where(project_teams.parent.isin(project))
-            .where(project_teams.parenttype == "Project")
-        ).run(as_dict=True)
+        shared_projects = frappe.get_all(
+            "DocShare",
+            filters={"share_doctype": "Project", "share_name": ["IN", project]},
+            fields=["user"],
+        )
         employee_ids = [
-            frappe.get_value("Employee", {"user_id": project_user.get("user")})
-            for project_user in project_users
+            frappe.get_value("Employee", {"user_id": shared_project.get("user")})
+            for shared_project in shared_projects
         ]
         filters["name"] = ["in", employee_ids]
 

@@ -45,6 +45,7 @@ export function TaskCell({
   const onClick = () => {
     onCellClick({ date, name, parent, task, description, hours, employee });
   };
+
   return (
     <TableCell
       onClick={onClick}
@@ -71,7 +72,7 @@ export function TaskCell({
         </>
       ) : showAdd && !isCellDisabled ? (
         <div className="flex h-full w-14 items-center ">
-          <CirclePlus  className="stroke-black" />
+          <CirclePlus className="stroke-black" />
         </div>
       ) : (
         "-"

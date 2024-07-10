@@ -47,7 +47,7 @@ export function TimesheetTable({
               {dates.map((date: string) => {
                 const { date: formattedDate, day } = formatDate(date);
                 const val = hours.find((item: HourProps) => item.date === date);
-                const isToday = getTodayDate() == date;
+                
                 const isHoliday = holidays.includes(date);
                 const leaveData = leaves.find((data: any) => {
                   return date >= data.from_date && date <= data.to_date;

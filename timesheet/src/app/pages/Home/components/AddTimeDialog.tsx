@@ -39,7 +39,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -49,6 +49,7 @@ import { Task, EmployeeProps } from "@/app/types/type";
 import { reducer, initialState } from "@/app/reducer/home/addtime";
 import { useReducer } from "react";
 import { TimesheetSchema } from "@/app/schema";
+import { debounce } from "lodash";
 
 export function AddTimeDialog({
   state,
@@ -62,6 +63,7 @@ export function AddTimeDialog({
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
   const [localState, localDispatch] = useReducer(reducer, initialState);
   const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const date = getFormatedDate(state.dialogInput.date);
@@ -97,17 +99,28 @@ export function AddTimeDialog({
   const {
     data: tasks,
     isLoading: isTaskLoading,
-    mutate,
+    mutate: mutateTasks,
   } = useFrappeGetCall(
     "timesheet_enhancer.api.utils.get_task_for_employee",
     {
-      employee: localState.dialogInput.employee,
+      search: searchTerm,
     },
     "tasks"
   );
   useEffect(() => {
-    mutate();
+    mutateTasks();
   }, [localState.dialogInput.employee]);
+
+  useEffect(() => {
+    searchTask();
+  }, [searchTerm]);
+
+  const searchTask = useCallback(
+    debounce(() => {
+      mutateTasks();
+    }, 1000),
+    []
+  );
 
   const closeDialog = () => {
     localDispatch({ type: "setIsOpen", payload: false });
@@ -156,13 +169,7 @@ export function AddTimeDialog({
         });
       });
   };
-  const onTaskSearch = (value: string, search: string) => {
-    const item = tasks?.message?.find((item: Task) => item.name === value);
-    if (!item) return 0;
-    if (item.subject.toLowerCase().includes(search.toLowerCase())) return 1;
 
-    return 0;
-  };
   return (
     <Sheet open={localState.isOpen} onOpenChange={closeDialog}>
       <SheetContent className="sm:max-w-xl px-11 py-6">
@@ -183,7 +190,7 @@ export function AddTimeDialog({
                       render={({ field }) => (
                         <FormItem className="flex flex-col ">
                           <FormLabel>
-                          Employee
+                            Employee
                             <sup className="text-destructive text-sm align-sub">
                               *
                             </sup>
@@ -433,9 +440,12 @@ export function AddTimeDialog({
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="w-96">
-                          <Command filter={onTaskSearch}>
-                            <CommandInput placeholder="Search Tasks..." />
-
+                          <Command shouldFilter={false}>
+                            <CommandInput
+                              placeholder="Search Tasks..."
+                              value={searchTerm}
+                              onValueChange={setSearchTerm}
+                            />
                             <CommandEmpty>No task found.</CommandEmpty>
                             <CommandGroup>
                               <CommandList>
