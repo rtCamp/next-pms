@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { ScreenLoader } from "@/app/components/Loader";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -52,7 +52,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 export default function Team() {
   const state = useSelector((state: RootState) => state.team);
-  const observerTarget = useRef(null);
+  const observer = useRef<IntersectionObserver | null>();
   const dispatch = useDispatch();
   const { toast } = useToast();
 
@@ -102,28 +102,30 @@ export default function Team() {
     mutate();
   }, [state.weekDate, state.start]);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          dispatch(setStart(state.start + 10));
-        }
-        console.log(entries);
-      },
-      { threshold: 1, rootMargin: "0px" }
-    );
+  const targetElementRef = useCallback(
+    (node:Element | null) => {
+      if(isLoading) return;
 
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
-    }
-
-    return () => {
-      if (observerTarget.current) {
-        observer.unobserve(observerTarget.current);
+      if (observer.current) {
+        observer.current.disconnect();
+        if(!state.hasMore) return
       }
-    };
-    console.log(observerTarget.current);
-  }, [observerTarget]);
+
+      observer.current = new IntersectionObserver(
+        (entries) => {
+          console.log(entries)
+          if (entries[0].isIntersecting) {
+            dispatch(setStart(state.start + 10));
+          }
+        },
+        { rootMargin:"0px" }
+      );
+
+      if (node) observer.current.observe(node);
+    },
+    [isLoading]
+  );
+
   const onTaskCellClick = ({
     date,
     name,
@@ -211,7 +213,6 @@ export default function Team() {
   if (state.isFetching && state.start == 0) {
     return <ScreenLoader isFullPage={true} />;
   }
-  console.log(observerTarget.current);
   return (
     <>
       {!error ? (
@@ -287,7 +288,7 @@ export default function Team() {
                     const isLast = index === state.data.employees.length - 1;
 
                     return (
-                      <div ref={isLast ? observerTarget : null}>
+                      <div ref={isLast ? targetElementRef : null}>
                         <Accordion type="multiple">
                           <AccordionItem
                             key={employee.name}
