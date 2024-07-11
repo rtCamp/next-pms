@@ -47,7 +47,11 @@ fixtures = [
             [
                 "name",
                 "in",
-                {"Task-custom_is_billable", "Project Type-custom_is_billable"},
+                {
+                    "Task-custom_is_billable",
+                    "Project Type-custom_is_billable",
+                    "Timesheet-custom_approval_status",
+                },
             ]
         ],
     },
