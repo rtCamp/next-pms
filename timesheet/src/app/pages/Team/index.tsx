@@ -113,7 +113,6 @@ export default function Team() {
 
       observer.current = new IntersectionObserver(
         (entries) => {
-          console.log(entries)
           if (entries[0].isIntersecting) {
             dispatch(setStart(state.start + 10));
           }
