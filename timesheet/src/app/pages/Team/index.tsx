@@ -104,6 +104,7 @@ export default function Team() {
 
   const targetElementRef = useCallback(
     (node:Element | null) => {
+
       if(isLoading) return;
 
       if (observer.current) {
@@ -122,7 +123,7 @@ export default function Team() {
 
       if (node) observer.current.observe(node);
     },
-    [isLoading]
+    [isLoading, state.weekDate]
   );
 
   const onTaskCellClick = ({
@@ -187,11 +188,13 @@ export default function Team() {
   const handleprevWeek = () => {
     const date = addDays(state.weekDate, -7);
     dispatch(setWeekDate(date));
+    dispatch(setHasMore(true));
     dispatch(setStart(0));
   };
   const handlenextWeek = () => {
     const date = addDays(state.weekDate, 7);
     dispatch(setWeekDate(date));
+    dispatch(setHasMore(true));
     dispatch(setStart(0));
   };
   const onAddTimeClick = (employee: string) => {
