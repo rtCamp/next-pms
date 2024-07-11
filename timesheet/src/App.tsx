@@ -7,11 +7,11 @@ import {
 import { UserProvider } from "@/app/provider/UserProvider";
 import Router from "@/Router";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ScreenLoader } from "@/app/components/Loader";
 import { Suspense } from "react";
 import { Provider } from "react-redux";
 import { store } from "@/app/state/store";
 import { getSiteName } from "@/app/lib/utils";
+
 function App() {
   const router = createBrowserRouter(createRoutesFromElements(Router()), {
     basename: "/timesheet",

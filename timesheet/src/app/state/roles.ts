@@ -1,6 +1,6 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
-interface RoleState { 
+interface RoleState {
     value: Array<string>;
 }
 const initialState: RoleState = {
@@ -12,11 +12,11 @@ const roleSlice = createSlice({
     name: 'roles',
     initialState,
     reducers: {
-        setRole: (state, action: PayloadAction<Array<string>>) => { 
+        setRole: (state, action: PayloadAction<Array<string>>) => {
             state.value = action.payload;
         }
     },
-    
+
 });
-export const { setRole } = roleSlice.actions;   
+export const { setRole } = roleSlice.actions;
 export default roleSlice.reducer;

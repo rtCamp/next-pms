@@ -34,18 +34,17 @@ export function getTodayDate() {
 
 export function parseFrappeErrorMsg(error: any) {
   try {
-    
+
     const e = error._server_messages ?? error._debug_message;
     if (error.exception && !e) {
       return error.exception;
     }
     if (e) {
       const jsonMsgArray = JSON.parse(e);
-      
+
       if (jsonMsgArray.length > 0) {
         const jsonObjectStr = jsonMsgArray[0];
         const e = JSON.parse(jsonObjectStr);
-        console.log(e.message);
         return e.message;
       }
     }
