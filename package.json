@@ -7,7 +7,7 @@
   "license": "MIT",
   "private":true,
   "scripts": {
-		"dev": "cd timesheet && yarn dev",
-		"build": "cd timesheet && yarn build"
+		"dev": "cd timesheet && npm run dev",
+		"build": "cd timesheet && npm run build"
 	}
 }
