@@ -5,7 +5,7 @@ import { setAppLogo, setSidebarCollapsed } from "@/store/user";
 import { useDispatch } from "react-redux";
 import { Typography } from "@/app/components/typography";
 import { NavLink } from "react-router-dom";
-import { cn,parseFrappeErrorMsg } from "@/lib/utils";
+import { cn, parseFrappeErrorMsg } from "@/lib/utils";
 import { Home, Users, Clock3, ArrowLeftToLine } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { TIMESHEET, HOME, TEAM } from "@/lib/constant";
@@ -47,22 +47,25 @@ export const Sidebar = () => {
       to: HOME,
       icon: Home,
       label: "Home",
+      key: "home",
     },
     {
       to: TIMESHEET,
       icon: Clock3,
       label: "Timesheet",
+      key: "timesheet",
     },
     {
       to: TEAM,
       icon: Users,
       label: "Teams",
+      key: "teams",
     },
   ];
   return (
     <aside
       className={cn(
-        "bg-slate-100 h-screen w-1/5 transition-all duration-300 ease-in-out p-4 flex flex-col",
+        "bg-slate-100 h-full w-1/5 transition-all duration-300 ease-in-out p-4 flex flex-col",
         user.isSidebarCollapsed && "w-16 items-center"
       )}
     >
@@ -93,14 +96,14 @@ export const Sidebar = () => {
           return (
             <NavLink
               to={route.to}
+              key={route.key}
               className="transition-all duration-300 ease-in-out flex items-center h-9"
             >
               {({ isActive }: { isActive: boolean }) => (
                 <div
                   className={cn(
                     "flex w-full pl-2 rounded-lg items-center px-3 py-2 hover:bg-slate-200 text-primary gap-x-2",
-                    isActive &&
-                      "bg-primary text-white shadow-md hover:bg-slate-700"
+                    isActive && "bg-primary shadow-md hover:bg-slate-700 "
                   )}
                 >
                   <route.icon
@@ -112,7 +115,8 @@ export const Sidebar = () => {
                   <Typography
                     variant="p"
                     className={cn(
-                      "transition-all duration-300 ease-in-out",
+                      "transition-all duration-300 ease-in-out text-white",
+                      !isActive && "text-primary",
                       user.isSidebarCollapsed && "hidden"
                     )}
                   >
@@ -130,11 +134,11 @@ export const Sidebar = () => {
         className="justify-start gap-x-2 transition-all duration-300 ease-in-out"
         onClick={handleCollapse}
       >
-        <ArrowLeftToLine className="stroke-primary h-4 w-4" />
+        <ArrowLeftToLine className={ cn("stroke-primary h-4 w-4 transition-all duration-600",user.isSidebarCollapsed && "rotate-180")} />
         <Typography
           variant="p"
           className={cn(
-            "transition-all duration-300 ease-in-out",
+            "transition-all duration-600 ease-in-out",
             user.isSidebarCollapsed && "hidden"
           )}
         >
