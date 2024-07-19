@@ -69,7 +69,36 @@ doctype_js = {"Timesheet": "public/js/timesheet.js"}
 # 	"methods": "timesheet_enhancer.utils.jinja_methods",
 # 	"filters": "timesheet_enhancer.utils.jinja_filters"
 # }
-
+fixtures = [
+    {
+        "dt": "Custom Field",
+        "filters": [
+            [
+                "name",
+                "in",
+                {
+                    "Task-custom_is_billable",
+                    "Project Type-custom_is_billable",
+                    "Timesheet-custom_approval_status",
+                },
+            ]
+        ],
+    },
+    {
+        "dt": "Property Setter",
+        "filters": [
+            [
+                "name",
+                "in",
+                {
+                    "Task-total_billing_amount-permlevel",
+                    "Task-total_expense_claim-permlevel",
+                    "Task-total_costing_amount-permlevel",
+                },
+            ]
+        ],
+    },
+]
 # Installation
 # ------------
 
