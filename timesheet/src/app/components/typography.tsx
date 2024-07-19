@@ -37,7 +37,7 @@ const sizes: Record<Variant, string> = {
   h2: "text-2xl font-bold",
   h3: "text-xl font-bold ",
   h4: "text-lg font-bold ",
-  h5: "sm:text-md font-bold ",
+  h5: "text-md font-bold",
   h6: "text-base font-bold ",
   p: "text-sm font-normal",
   large: "text-lg sm:text-md font-bold",
@@ -49,5 +49,5 @@ export const Typography = ({ variant, children, className="", as }: Props) => {
   const sizeClasses = sizes[variant];
   const Tag = as || tags[variant];
 
-  return <Tag className={cn(sizeClasses,className)}>{children}</Tag>;
+  return <Tag className={cn("text-primary",sizeClasses,className)}>{children}</Tag>;
 };
