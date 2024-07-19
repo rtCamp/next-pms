@@ -35,5 +35,44 @@ export function parseFrappeErrorMsg(error: any) {
   } catch (e) {
     return "Something went wrong! Please try again later."
   }
+}
 
+export function getFormatedDate(date: string | Date) {
+  if (typeof date == "string") {
+    date = new Date(date);
+  }
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+export function getTodayDate() {
+  const today = new Date();
+  return getFormatedDate(today);
+}
+
+export function prettyDate(dateString: string) {
+  const date = new Date(dateString);
+
+  const month = date.toLocaleString("default", { month: "short" });
+  const dayOfMonth = date.getDate();
+  const dayOfWeek = date.toLocaleString("default", { weekday: "short" });
+  return { date: `${month} ${dayOfMonth}`, day: dayOfWeek };
+}
+export function getDateFromDateAndTime(dateTimeString: string) {
+  // Split the date and time parts exa: '2024-05-08 00:00:00'
+  const parts = dateTimeString.split(" ");
+  return parts[0];
+}
+
+export function floatToTime(float: number) {
+  // Extract hours and minutes from the float
+  let hours = Math.floor(float);
+  let minutes = Math.round((float % 1) * 60);
+
+  // Format hours and minutes to always be two digits
+  let formattedHours = String(hours).padStart(2, '0');
+  let formattedMinutes = String(minutes).padStart(2, '0');
+
+  return `${formattedHours}:${formattedMinutes}`;
 }

@@ -12,9 +12,9 @@ charset = utf-8
 [{*.py}]
 indent_style = space
 indent_size = 4
-max_line_length = 88
+max_line_length = 120
 
-[{*.js,*.vue,*.css,*.scss,*.html}]
+[{*.js,*.tsx,*.jsx,*.vue,*.css,*.scss,*.html}]
 indent_style = space
 indent_size = 2
-max_line_length = 80
+max_line_length = 120

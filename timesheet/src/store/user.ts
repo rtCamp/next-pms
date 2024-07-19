@@ -9,6 +9,7 @@ interface UserState {
     roles: string[];
     appLogo: string
     isSidebarCollapsed: boolean
+    employee: string
 }
 
 const initialState: UserState = {
@@ -18,7 +19,8 @@ const initialState: UserState = {
     image: userImage ?? "",
     //@ts-ignore
     appLogo: window.frappe?.boot?.app_logo_url,
-    isSidebarCollapsed: false
+    isSidebarCollapsed: false,
+    employee: ""
 
 };
 
@@ -40,10 +42,13 @@ const userSlice = createSlice({
         },
         setSidebarCollapsed: (state, action: PayloadAction<boolean>) => {
             state.isSidebarCollapsed = action.payload
+        },
+        setEmployee: (state, action: PayloadAction<string>) => { 
+            state.employee = action.payload
         }
     },
 
 });
 
-export const { setRole, setImage, setUserName, setAppLogo,setSidebarCollapsed } = userSlice.actions;
+export const { setRole, setImage, setUserName, setAppLogo,setSidebarCollapsed,setEmployee } = userSlice.actions;
 export default userSlice.reducer;
