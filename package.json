@@ -5,9 +5,14 @@
   "repository": "git@github.com:rtCamp/timesheet-enhancer.git",
   "author": "rtCamp",
   "license": "MIT",
-  "private":true,
+  "private": true,
   "scripts": {
-		"dev": "cd timesheet && npm run dev",
-		"build": "cd timesheet && npm run build"
-	}
+    "dev": "cd timesheet && npm run dev",
+    "build": "cd timesheet && npm run build"
+  },
+  "dependencies": {
+    "frappe-react-sdk": "^1.7.1",
+    "react-redux": "^9.1.2",
+    "react-router-dom": "^6.25.1"
+  }
 }

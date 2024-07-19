@@ -89,3 +89,10 @@ def get_week_dates(date, current_week: bool = False):
         start_date = add_days(start_date, 1)
     data["dates"] = dates
     return data
+
+
+@frappe.whitelist()
+def app_logo():
+    from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo
+
+    return get_app_logo()
