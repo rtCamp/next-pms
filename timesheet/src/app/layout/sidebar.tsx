@@ -1,6 +1,6 @@
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { forwardRef, ReactElement, useContext, useEffect } from "react";
+import { useContext, useEffect } from "react";
 import { setAppLogo, setSidebarCollapsed } from "@/store/user";
 import { useDispatch } from "react-redux";
 import { Typography } from "@/app/components/typography";
@@ -148,22 +148,3 @@ export const Sidebar = () => {
     </aside>
   );
 };
-
-const ListItem = forwardRef<
-  React.ElementRef<"a">,
-  React.ComponentPropsWithoutRef<"a"> & { icon?: ReactElement }
->(({ className, title, children, icon, ...props }, ref) => {
-  return (
-    <a
-      ref={ref}
-      className={cn(
-        "flex items-center rounded-md px-3 py-2 no-underline hover:bg-slate-200 h-9",
-        className
-      )}
-      {...props}
-    >
-      {icon && <span className="mr-2"> {icon} </span>}
-      <Typography variant="p">{title}</Typography>
-    </a>
-  );
-});
