@@ -8,7 +8,7 @@ import { Button } from "@/app/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Typography } from "@/app/components/typography";
 import { TimesheetTable } from "@/app/components/timesheetTable";
-import { parseFrappeErrorMsg } from "@/lib/utils";
+import { parseFrappeErrorMsg,getFormatedDate } from "@/lib/utils";
 import { Spinner } from "@/app/components/spinner";
 import { AddTime } from "./addTime";
 
@@ -43,7 +43,7 @@ function Timesheet() {
       name: "",
       parent: "",
       task: "",
-      date: new Date().toISOString(),
+      date: getFormatedDate(new Date()),
       description: "",
       hours: 0,
       isUpdate: false,

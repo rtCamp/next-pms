@@ -77,14 +77,19 @@ def save(
     hours: float = 0,
     parent: str = None,
     is_update: bool = False,
+    employee: str = None,
 ):
     """Updates/create time entry in Timesheet Detail child table."""
-    employee = get_employee_from_user()
+    if not employee:
+        employee = get_employee_from_user()
     if is_update and not name:
-        throw(_("Timesheet name is required for update"))
+        throw(_("Timesheet is required for update"))
     if is_update:
         update_timesheet_detail(name, parent, hours, description, task)
         return _("Timesheet updated successfully.")
+
+    if not name and not task:
+        throw(_("Task is required for new entry."))
 
     parent = frappe.db.get_value(
         "Timesheet",
@@ -107,10 +112,26 @@ def save(
 
 
 @frappe.whitelist()
-def submit_for_approval(start_date: str, end_date: str, notes: str):
-    from frappe.model.workflow import apply_workflow
+def delete(parent: str, name: str):
+    """Delete single time entry from timesheet doctype."""
+    parent_doc = frappe.get_doc("Timesheet", parent)
+    for log in parent_doc.time_logs:
+        if log.name == name:
+            parent_doc.remove(log)
+    if not parent_doc.time_logs:
+        parent_doc.delete(ignore_permissions=True)
+    else:
+        parent_doc.save()
+    return _("Timesheet deleted successfully.")
 
-    employee = get_employee_from_user()
+
+@frappe.whitelist()
+def submit_for_approval(
+    start_date: str, end_date: str, notes: str, employee: str = None
+):
+    if not employee:
+        employee = get_employee_from_user()
+    #  get the timesheet for whole week.
     timesheets = frappe.get_list(
         "Timesheet",
         filters={
@@ -120,18 +141,12 @@ def submit_for_approval(start_date: str, end_date: str, notes: str):
             "docstatus": 0,
         },
     )
-    # TODO: Need to update later
-    wf = frappe.db.exists("Workflow", {"document_type": "Timesheet", "is_active": True})
-    action = frappe.db.get_value(
-        "Workflow Transition",
-        {"parent": wf, "next_state": "Waiting Approval"},
-        "action",
-    )
     for timesheet in timesheets:
         doc = frappe.get_doc("Timesheet", timesheet["name"])
         doc.note = notes
+        doc.custom_approval_status = "Approval Pending"
         doc.save()
-        apply_workflow(doc, action)
+    return _("Timesheet submitted for approval.")
 
 
 def update_timesheet_detail(

@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
 import { RootState } from "@/store";
 import { useDispatch, useSelector } from "react-redux";
-import { SetAddTimeDialog } from "@/store/timesheet";
+import { SetAddTimeDialog,SetFetchAgain } from "@/store/timesheet";
 import { Button } from "@/app/components/ui/button";
 import { Textarea } from "@/app/components/ui/textarea";
 import { DatePicker } from "@/app/components/datePicker";
@@ -13,12 +13,16 @@ import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
 import { Input } from "@/app/components/ui/input";
 import { Clock3 } from "lucide-react";
-import { useFrappeGetCall } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import { getFormatedDate,parseFrappeErrorMsg } from "@/lib/utils";
+import { useToast } from "@/app/components/ui/use-toast";
 
 export const AddTime = () => {
+  const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
   const timesheetState = useSelector((state: RootState) => state.timesheet);
   const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof TimesheetSchema>>({
     resolver: zodResolver(TimesheetSchema),
@@ -42,6 +46,35 @@ export const AddTime = () => {
     dispatch(SetAddTimeDialog(false));
   };
 
+  const handleDateChange = (date: Date) => {
+    form.setValue("date", getFormatedDate(date));
+  };
+
+  const handleTaskChange = (value: string) => {
+    form.setValue("task", value);
+  };
+  const handleTimeChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    const value = event.target.value;
+    form.setValue("hours", value);
+  };
+  const handleSubmit = (data: z.infer<typeof TimesheetSchema>) => {
+    call(data)
+      .then((res) => {
+        toast({
+          variant: "success",
+          description: res.message,
+        });
+        dispatch(SetFetchAgain(true));
+        handleOpen();
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          description: error,
+        });
+      });
+  };
   return (
     <Dialog open={timesheetState.isDialogOpen} onOpenChange={handleOpen}>
       <DialogContent>
@@ -49,7 +82,7 @@ export const AddTime = () => {
           <DialogTitle className="pb-6">Add Time</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((data) => console.log(data))}>
+          <form onSubmit={form.handleSubmit(handleSubmit)}>
             <div className="flex flex-col gap-y-6">
               <div className="flex gap-x-4">
                 <FormField
@@ -60,7 +93,13 @@ export const AddTime = () => {
                       <FormLabel>Time</FormLabel>
                       <FormControl>
                         <div className="relative flex items-center">
-                          <Input className="text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0" {...field} />
+                          <Input
+                            placeholder="0h"
+                            className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                            {...field}
+                            type="text"
+                            onChange={handleTimeChange}
+                          />
                           <Clock3 className="h-4 w-4 absolute right-0 m-3 top-0 stroke-slate-400" />
                         </div>
                       </FormControl>
@@ -75,7 +114,7 @@ export const AddTime = () => {
                     <FormItem className="w-full">
                       <FormLabel>Date</FormLabel>
                       <FormControl>
-                        <DatePicker date={field.value} />
+                        <DatePicker date={field.value} onDateChange={handleDateChange} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -97,9 +136,9 @@ export const AddTime = () => {
                           label: item.subject,
                           value: item.name,
                           description: item.project_name,
-                          disabled: false
+                          disabled: false,
                         }))}
-                        onSelect={(value) => form.setValue("task", value)}
+                        onSelect={handleTaskChange}
                       />
                     </FormControl>
                     <FormMessage />
@@ -114,7 +153,12 @@ export const AddTime = () => {
                   <FormItem className="w-full">
                     <FormLabel>Comment</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Explain your progress"  rows={4} className="w-full placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0" {...field} />
+                      <Textarea
+                        placeholder="Explain your progress"
+                        rows={4}
+                        className="w-full placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

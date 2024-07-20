@@ -12,6 +12,7 @@ import { Search } from "lucide-react";
 import { Typography } from "./typography";
 import { useState } from "react";
 import { Checkbox } from "@/app/components/ui/checkbox";
+import { cn } from "@/lib/utils";
 
 interface ComboBoxProps {
   data?: Array<{ label: string; value: string; disabled?: boolean; description?: string }>;
@@ -47,11 +48,20 @@ export const ComboxBox = ({
     }
     onSelect && onSelect(value);
   };
+  const hasValue = selectedValues.length > 0;
+  const selectedValue = () => {
+    if (selectedValues.length === 1) {
+      return data.find((item) => item.value === selectedValues[0])?.label;
+    }
+    return `${selectedValues.length} selected`;
+  };
   return (
     <Popover modal>
       <PopoverTrigger asChild>
         <Button variant="outline" className="justify-between w-full" disabled={disabled}>
-          <Typography variant="p" className="text-slate-400">{label}</Typography>
+          <Typography variant="p" className={cn("text-slate-400",hasValue && "text-primary")}>
+            {!hasValue ? label : selectedValue()}
+          </Typography>
           <Search className="h-4 w-4 stroke-slate-400" />
         </Button>
       </PopoverTrigger>
