@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getTodayDate } from "@/lib/utils";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 export interface TimesheetState {
@@ -9,6 +10,7 @@ export interface TimesheetState {
         description: string;
         hours: number;
         isUpdate: boolean;
+        employee?: string;
     },
     dateRange: { start_date: string; end_date: string };
     isFetching: boolean;
@@ -28,6 +30,7 @@ export const initialState = {
         description: "",
         hours: 0,
         isUpdate: false,
+        employee: "",
     },
     dateRange: { start_date: "", end_date: "" },
     isFetching: false,

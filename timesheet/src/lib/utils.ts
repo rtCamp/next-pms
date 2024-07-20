@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { Error } from "frappe-js-sdk/lib/frappe_app/types"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -13,13 +14,13 @@ export function getCookie(name: string) {
 }
 
 export const getSiteName = () => {
-  // @ts-ignore
+  // eslint-disable-next-line 
+  // @ts-expect-error
   return window.frappe?.boot?.sitename ?? import.meta.env.VITE_SITE_NAME
 }
-export function parseFrappeErrorMsg(error: any) {
+export function parseFrappeErrorMsg(error: Error) {
   try {
-
-    const e = error._server_messages ?? error._debug_message;
+    const e = error._server_messages;
     if (error.exception && !e) {
       return error.exception;
     }
@@ -67,12 +68,12 @@ export function getDateFromDateAndTime(dateTimeString: string) {
 
 export function floatToTime(float: number) {
   // Extract hours and minutes from the float
-  let hours = Math.floor(float);
-  let minutes = Math.round((float % 1) * 60);
+  const hours = Math.floor(float);
+  const minutes = Math.round((float % 1) * 60);
 
   // Format hours and minutes to always be two digits
-  let formattedHours = String(hours).padStart(2, '0');
-  let formattedMinutes = String(minutes).padStart(2, '0');
+  const formattedHours = String(hours).padStart(2, '0');
+  const formattedMinutes = String(minutes).padStart(2, '0');
 
   return `${formattedHours}:${formattedMinutes}`;
 }

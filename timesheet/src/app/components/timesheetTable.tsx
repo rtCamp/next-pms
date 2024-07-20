@@ -1,16 +1,17 @@
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { cn, prettyDate, getDateFromDateAndTime, floatToTime } from "@/lib/utils";
 import { Typography } from "./typography";
 
 interface TimesheetTableProps {
   dates: string[];
   holidays: string[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   tasks: any;
   leaves: string[];
 }
 
 export const TimesheetTable = ({ dates, holidays, tasks, leaves }: TimesheetTableProps) => {
-  console.log(tasks, leaves);
+
   return (
     <Table>
       <TableHeader>
@@ -44,6 +45,7 @@ export const TimesheetTable = ({ dates, holidays, tasks, leaves }: TimesheetTabl
       <TableBody>
         {leaves.length > 0 && <LeaveRow dates={dates} leaves={leaves} />}
         {Object.keys(tasks).length > 0 &&
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           Object.entries(tasks).map(([task, taskData]: [string, any]) => {
             let totalHours = 0;
             return (
@@ -57,6 +59,7 @@ export const TimesheetTable = ({ dates, holidays, tasks, leaves }: TimesheetTabl
                   </Typography>
                 </TableCell>
                 {dates.map((date: string) => {
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   const data = taskData.data.find((data: any) => getDateFromDateAndTime(data.from_time) === date);
                   if (data && data.hours) {
                     totalHours += data.hours;
@@ -83,6 +86,7 @@ export const TimesheetTable = ({ dates, holidays, tasks, leaves }: TimesheetTabl
   );
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const LeaveRow = ({ leaves, dates }: { leaves: Array<any>; dates: string[] }) => {
   let total_hours = 0;
   return (
@@ -93,6 +97,7 @@ const LeaveRow = ({ leaves, dates }: { leaves: Array<any>; dates: string[] }) =>
         </Typography>
       </TableCell>
       {dates.map((date: string) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const data = leaves.find((data: any) => {
           return date >= data.from_date && date <= data.to_date;
         });

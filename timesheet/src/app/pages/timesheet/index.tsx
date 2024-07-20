@@ -3,11 +3,14 @@ import { RootState } from "@/store";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { setData } from "@/store/timesheet";
+import { setData, SetAddTimeDialog, SetTimesheet } from "@/store/timesheet";
 import { Button } from "@/app/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Typography } from "@/app/components/typography";
 import { TimesheetTable } from "@/app/components/timesheetTable";
+import { parseFrappeErrorMsg } from "@/lib/utils";
+import { Spinner } from "@/app/components/spinner";
+import { AddTime } from "./addTime";
 
 function Timesheet() {
   const { toast } = useToast();
@@ -15,26 +18,51 @@ function Timesheet() {
   const timesheet = useSelector((state: RootState) => state.timesheet);
   const dispatch = useDispatch();
 
-  const { data, isLoading, error, mutate } = useFrappeGetCall("timesheet_enhancer.api.timesheet.get_timesheet_data", {
+  const { data, isLoading, error } = useFrappeGetCall("timesheet_enhancer.api.timesheet.get_timesheet_data", {
     employee: user.employee,
     weekdate: timesheet.weekDate,
-    max_week: 2,
+    max_week: 4,
   });
 
   useEffect(() => {
     if (data) {
       dispatch(setData(data.message));
     }
-  }, [data, timesheet.weekDate]);
+    if (error) {
+      const err = parseFrappeErrorMsg(error);
+      toast({
+        variant: "destructive",
+        description: err,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, timesheet.weekDate, error]);
 
-  if (isLoading) return <div>Loading...</div>;
+  const handleAddTime = () => {
+    const timesheetData = {
+      name: "",
+      parent: "",
+      task: "",
+      date: new Date().toISOString(),
+      description: "",
+      hours: 0,
+      isUpdate: false,
+      employee: user.employee,
+    };
+    dispatch(SetTimesheet(timesheetData));
+    dispatch(SetAddTimeDialog(true));
+  };
+  if (isLoading) return <Spinner isFull />;
 
   return (
     <div className="flex flex-col">
       <div>
-        <Button className="float-right mb-5">Add Time</Button>
+        <Button className="float-right mb-5" onClick={handleAddTime}>
+          Add Time
+        </Button>
       </div>
       {Object.keys(timesheet.data).length > 0 &&
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         Object.entries(timesheet.data).map(([key, value]: [string, any]) => {
           return (
             <Accordion type="multiple" key={key}>
@@ -61,6 +89,7 @@ function Timesheet() {
             </Accordion>
           );
         })}
+      {timesheet.isDialogOpen && <AddTime />}
     </div>
   );
 }
