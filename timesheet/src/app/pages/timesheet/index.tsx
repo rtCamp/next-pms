@@ -3,12 +3,12 @@ import { RootState } from "@/store";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { setData, SetAddTimeDialog, SetTimesheet } from "@/store/timesheet";
+import { setData, SetAddTimeDialog, SetTimesheet, SetFetchAgain } from "@/store/timesheet";
 import { Button } from "@/app/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Typography } from "@/app/components/typography";
 import { TimesheetTable } from "@/app/components/timesheetTable";
-import { parseFrappeErrorMsg,getFormatedDate } from "@/lib/utils";
+import { parseFrappeErrorMsg, getFormatedDate } from "@/lib/utils";
 import { Spinner } from "@/app/components/spinner";
 import { AddTime } from "./addTime";
 
@@ -18,13 +18,17 @@ function Timesheet() {
   const timesheet = useSelector((state: RootState) => state.timesheet);
   const dispatch = useDispatch();
 
-  const { data, isLoading, error } = useFrappeGetCall("timesheet_enhancer.api.timesheet.get_timesheet_data", {
+  const { data, isLoading, error, mutate } = useFrappeGetCall("timesheet_enhancer.api.timesheet.get_timesheet_data", {
     employee: user.employee,
     weekdate: timesheet.weekDate,
     max_week: 4,
   });
 
   useEffect(() => {
+    if (timesheet.isFetchAgain) {
+      mutate();
+      dispatch(SetFetchAgain(false));
+    }
     if (data) {
       dispatch(setData(data.message));
     }
@@ -36,7 +40,7 @@ function Timesheet() {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, timesheet.weekDate, error]);
+  }, [data, timesheet.weekDate, error, timesheet.isFetchAgain]);
 
   const handleAddTime = () => {
     const timesheetData = {
@@ -63,9 +67,9 @@ function Timesheet() {
       </div>
       {Object.keys(timesheet.data).length > 0 &&
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        Object.entries(timesheet.data).map(([key, value]: [string, any]) => {
+        Object.entries(timesheet.data).map(([key, value]: [string, any], index: number) => {
           return (
-            <Accordion type="multiple" key={key}>
+            <Accordion type="multiple" key={key} defaultValue={index == 0 ? [key] : []}>
               <AccordionItem value={key}>
                 <AccordionTrigger className="hover:no-underline w-full">
                   <div className="flex justify-between w-full">

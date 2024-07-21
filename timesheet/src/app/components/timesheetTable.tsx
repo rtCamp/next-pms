@@ -1,17 +1,18 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { cn, prettyDate, getDateFromDateAndTime, floatToTime } from "@/lib/utils";
 import { Typography } from "./typography";
+import { useState } from "react";
+import { CirclePlus, PencilLine } from "lucide-react";
 
 interface TimesheetTableProps {
   dates: string[];
   holidays: string[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   tasks: any;
   leaves: string[];
 }
 
 export const TimesheetTable = ({ dates, holidays, tasks, leaves }: TimesheetTableProps) => {
-
   return (
     <Table>
       <TableHeader>
@@ -43,9 +44,9 @@ export const TimesheetTable = ({ dates, holidays, tasks, leaves }: TimesheetTabl
         </TableRow>
       </TableHeader>
       <TableBody>
+        <TotalHourRow dates={dates} leaves={leaves} tasks={tasks} holidays={holidays} />
         {leaves.length > 0 && <LeaveRow dates={dates} leaves={leaves} />}
         {Object.keys(tasks).length > 0 &&
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           Object.entries(tasks).map(([task, taskData]: [string, any]) => {
             let totalHours = 0;
             return (
@@ -59,19 +60,12 @@ export const TimesheetTable = ({ dates, holidays, tasks, leaves }: TimesheetTabl
                   </Typography>
                 </TableCell>
                 {dates.map((date: string) => {
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   const data = taskData.data.find((data: any) => getDateFromDateAndTime(data.from_time) === date);
                   if (data && data.hours) {
                     totalHours += data.hours;
                   }
                   const isHoliday = holidays.includes(date);
-                  return (
-                    <TableCell key={date}>
-                      <Typography variant="p" className={cn("text-slate-600", isHoliday && "text-slate-400")}>
-                        {data?.hours ? floatToTime(data?.hours || 0) : "-"}
-                      </Typography>
-                    </TableCell>
-                  );
+                  return <Cell date={date} data={data} isHoliday={isHoliday} />;
                 })}
                 <TableCell>
                   <Typography variant="p" className="text-slate-800 font-medium">
@@ -86,7 +80,6 @@ export const TimesheetTable = ({ dates, holidays, tasks, leaves }: TimesheetTabl
   );
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const LeaveRow = ({ leaves, dates }: { leaves: Array<any>; dates: string[] }) => {
   let total_hours = 0;
   return (
@@ -97,7 +90,6 @@ const LeaveRow = ({ leaves, dates }: { leaves: Array<any>; dates: string[] }) =>
         </Typography>
       </TableCell>
       {dates.map((date: string) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const data = leaves.find((data: any) => {
           return date >= data.from_date && date <= data.to_date;
         });
@@ -119,5 +111,98 @@ const LeaveRow = ({ leaves, dates }: { leaves: Array<any>; dates: string[] }) =>
         </Typography>
       </TableCell>
     </TableRow>
+  );
+};
+
+const TotalHourRow = ({
+  leaves,
+  dates,
+  tasks,
+  holidays,
+}: {
+  leaves: Array<any>;
+  dates: string[];
+  tasks: any;
+  holidays: string[];
+}) => {
+  let total = 0;
+  return (
+    <TableRow>
+      <TableCell></TableCell>
+      {dates.map((date: string) => {
+        const isHoliday = holidays.includes(date);
+        if (isHoliday) {
+          return (
+            <TableCell key={date}>
+              <Typography variant="p" className={cn("text-slate-400")}>
+                {"-"}
+              </Typography>
+            </TableCell>
+          );
+        }
+        let total_hours = 0;
+        if (tasks) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          Object.entries(tasks).map(([task, taskData]: [string, any]) => {
+            const data = taskData.data.find((data: any) => {
+              return getDateFromDateAndTime(data.from_time) === date;
+            });
+            if (data && data.hours) {
+              total_hours += data.hours;
+            }
+          });
+        }
+        const leaveData = leaves.find((data: any) => {
+          return date >= data.from_date && date <= data.to_date;
+        });
+        if (leaveData) {
+          if (leaveData.half_day || (leaveData.half_day_date && leaveData.half_day_date == date)) {
+            total_hours += 4;
+          } else {
+            total_hours += 8;
+          }
+        }
+        total += total_hours;
+        return (
+          <TableCell>
+            <Typography variant="p" className={cn("text-slate-600", total_hours > 8 && "text-warning")}>
+              {floatToTime(total_hours)}
+            </Typography>
+          </TableCell>
+        );
+      })}
+      <TableCell>
+        <Typography variant="p" className={cn("text-slate-800 font-medium", total > 40 && "text-warning")}>
+          {floatToTime(total)}
+        </Typography>
+      </TableCell>
+    </TableRow>
+  );
+};
+
+const Cell = ({ date, data, isHoliday }: { date: string; data: any; isHoliday: boolean }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  const onMouseEnter: React.MouseEventHandler<HTMLTableCellElement> = () => {
+    setIsHovered(true);
+  };
+  const onMouseLeave:React.MouseEventHandler<HTMLTableCellElement> = () => { 
+    setIsHovered(false);
+  }
+  return (
+    <TableCell
+      key={date}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      className={cn(isHovered && "bg-slate-100")}
+    >
+      {!isHovered && (
+        <Typography variant="p" className={cn("text-slate-600", isHoliday && "text-slate-400")}>
+          {data?.hours ? floatToTime(data?.hours || 0) : "-"}
+        </Typography>
+      )}
+      {isHovered && data?.hours && <PencilLine className="text-center" size={16} />}
+      {isHovered && !data?.hours && <CirclePlus className="text-center" size={16} />}
+    </TableCell>
   );
 };
