@@ -77,3 +77,11 @@ export function floatToTime(float: number) {
 
   return `${formattedHours}:${formattedMinutes}`;
 }
+
+export function addDays(dateString: string, days: number) {
+  const date = new Date(dateString);
+  const daysNum = date.getDate() + days;
+  date.setDate(daysNum);
+  return getFormatedDate(date);
+
+}

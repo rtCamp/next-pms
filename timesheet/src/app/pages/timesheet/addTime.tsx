@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
 import { RootState } from "@/store";
 import { useDispatch, useSelector } from "react-redux";
-import { SetAddTimeDialog,SetFetchAgain } from "@/store/timesheet";
+import { SetAddTimeDialog, SetFetchAgain } from "@/store/timesheet";
 import { Button } from "@/app/components/ui/button";
 import { Textarea } from "@/app/components/ui/textarea";
 import { DatePicker } from "@/app/components/datePicker";
@@ -14,7 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/app/components/ui/input";
 import { Clock3 } from "lucide-react";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
-import { getFormatedDate,parseFrappeErrorMsg } from "@/lib/utils";
+import { getFormatedDate, parseFrappeErrorMsg } from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
 
 export const AddTime = () => {
@@ -130,6 +130,7 @@ export const AddTime = () => {
                     <FormControl>
                       <ComboxBox
                         label="Search Task"
+                        value={form.getValues("task") ? [form.getValues("task")] : []}
                         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         //  @ts-expect-error
                         data={tasks?.message.map((item) => ({

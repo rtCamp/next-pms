@@ -20,6 +20,7 @@ interface ComboBoxProps {
   disabled?: boolean;
   label: string;
   isMulti?: boolean;
+  value?: string[];
 }
 
 export const ComboxBox = ({
@@ -28,8 +29,9 @@ export const ComboxBox = ({
   disabled = false,
   label = "Search",
   isMulti = false,
+  value
 }: ComboBoxProps) => {
-  const [selectedValues, setSelectedValues] = useState<string[]>([]);
+  const [selectedValues, setSelectedValues] = useState<string[]>(value ?? []);
 
   const clearFilter = () => {
     setSelectedValues([]);

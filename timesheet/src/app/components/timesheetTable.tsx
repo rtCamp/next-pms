@@ -10,9 +10,12 @@ interface TimesheetTableProps {
   holidays: string[];
   tasks: any;
   leaves: string[];
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  onCellClick?: (data) => void;
 }
 
-export const TimesheetTable = ({ dates, holidays, tasks, leaves }: TimesheetTableProps) => {
+export const TimesheetTable = ({ dates, holidays, tasks, leaves, onCellClick }: TimesheetTableProps) => {
   return (
     <Table>
       <TableHeader>
@@ -44,8 +47,11 @@ export const TimesheetTable = ({ dates, holidays, tasks, leaves }: TimesheetTabl
         </TableRow>
       </TableHeader>
       <TableBody>
-        <TotalHourRow dates={dates} leaves={leaves} tasks={tasks} holidays={holidays} />
+        {Object.keys(tasks).length > 0 && (
+          <TotalHourRow dates={dates} leaves={leaves} tasks={tasks} holidays={holidays} />
+        )}
         {leaves.length > 0 && <LeaveRow dates={dates} leaves={leaves} />}
+        {Object.keys(tasks).length == 0 && <EmotyRow dates={dates} holidays={holidays} onCellClick={onCellClick} />}
         {Object.keys(tasks).length > 0 &&
           Object.entries(tasks).map(([task, taskData]: [string, any]) => {
             let totalHours = 0;
@@ -65,7 +71,7 @@ export const TimesheetTable = ({ dates, holidays, tasks, leaves }: TimesheetTabl
                     totalHours += data.hours;
                   }
                   const isHoliday = holidays.includes(date);
-                  return <Cell date={date} data={data} isHoliday={isHoliday} />;
+                  return <Cell date={date} data={data} isHoliday={isHoliday} onCellClick={onCellClick} />;
                 })}
                 <TableCell>
                   <Typography variant="p" className="text-slate-800 font-medium">
@@ -180,21 +186,46 @@ const TotalHourRow = ({
   );
 };
 
-const Cell = ({ date, data, isHoliday }: { date: string; data: any; isHoliday: boolean }) => {
+const Cell = ({
+  date,
+  data,
+  isHoliday,
+  onCellClick,
+}: {
+  date: string;
+  data: any;
+  isHoliday: boolean;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  onCellClick?: (val) => void;
+}) => {
   const [isHovered, setIsHovered] = useState(false);
+  const handleClick = () => {
+    const value = {
+      date: date,
+      hours: data?.hours ?? "",
+      description: data?.description ?? "",
+      isUpdate: data?.hours > 0 ? true : false,
+      name: data?.name ?? "",
+      parent: data?.parent ?? "",
+      task: data?.task ?? "",
+    };
 
+    onCellClick && onCellClick(value);
+  };
   const onMouseEnter: React.MouseEventHandler<HTMLTableCellElement> = () => {
     setIsHovered(true);
   };
-  const onMouseLeave:React.MouseEventHandler<HTMLTableCellElement> = () => { 
+  const onMouseLeave: React.MouseEventHandler<HTMLTableCellElement> = () => {
     setIsHovered(false);
-  }
+  };
   return (
     <TableCell
       key={date}
       onMouseEnter={onMouseEnter}
+      onClick={handleClick}
       onMouseLeave={onMouseLeave}
-      className={cn(isHovered && "bg-slate-100")}
+      className={cn(isHovered && " h-full  bg-slate-100 text-center")}
     >
       {!isHovered && (
         <Typography variant="p" className={cn("text-slate-600", isHoliday && "text-slate-400")}>
@@ -204,5 +235,41 @@ const Cell = ({ date, data, isHoliday }: { date: string; data: any; isHoliday: b
       {isHovered && data?.hours && <PencilLine className="text-center" size={16} />}
       {isHovered && !data?.hours && <CirclePlus className="text-center" size={16} />}
     </TableCell>
+  );
+};
+
+const EmotyRow = ({
+  dates,
+  holidays,
+  onCellClick,
+}: {
+  dates: string[];
+  holidays: string[];
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  onCellClick?: (data) => void;
+}) => {
+  return (
+    <TableRow>
+      <TableCell>
+        <Typography variant="p" className="text-destructive">
+          No Task found
+        </Typography>
+      </TableCell>
+      {dates.map((date: string) => {
+        const isHoliday = holidays.includes(date);
+        const value = {
+          date,
+          hours: "",
+          description: "",
+          isUpdate: false,
+          name: "",
+          parent: "",
+          task: "",
+        };
+        return <Cell date={date} data={value} isHoliday={isHoliday} onCellClick={onCellClick} />;
+      })}
+      <TableCell></TableCell>
+    </TableRow>
   );
 };
