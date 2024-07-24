@@ -36,7 +36,7 @@ export const AddTime = () => {
       is_update: timesheetState.timesheet.isUpdate,
       employee: timesheetState.timesheet?.employee ?? user.employee,
     },
-    mode: "onBlur",
+    mode: "onSubmit",
   });
   const { data: tasks } = useFrappeGetCall("timesheet_enhancer.api.utils.get_task_for_employee", {
     employee: form.getValues("employee"),

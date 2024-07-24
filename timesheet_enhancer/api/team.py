@@ -1,7 +1,82 @@
 import frappe
+from frappe.utils import nowdate
+from frappe.utils.data import add_days, getdate
 
 from .timesheet import get_timesheet_data
 from .utils import get_week_dates, weekly_working_hours_for_employee
+
+now = nowdate()
+
+
+@frappe.whitelist()
+def get_compact_view_data(
+    date: str, max_week: int = 2, employee_name=None, department=None, project=None
+):
+    from .utils import filter_employees, get_leaves_for_employee
+
+    employees = filter_employees(employee_name, department, project)
+    dates = []
+    data = {}
+
+    for i in range(max_week):
+        current_week = True if date == now else False
+        week = get_week_dates(date=date, current_week=current_week)
+        dates.append(week)
+        date = add_days(getdate(week["start_date"]), -1)
+    dates.reverse()
+    data = {}
+    res = {"dates": dates}
+
+    for employee in employees:
+        local_data = {**employee}
+
+        local_data["data"] = []
+
+        for date_info in dates:
+            leaves = get_leaves_for_employee(
+                from_date=date_info.get("start_date"),
+                to_date=date_info.get("end_date"),
+                employee=employee.name,
+            )
+
+            for date in date_info.get("dates"):
+                hour = 0
+                leave = list(
+                    filter(
+                        lambda data: data["from_date"] <= date <= data["to_date"],
+                        leaves,
+                    )
+                )
+
+                total_hours = frappe.get_value(
+                    "Timesheet",
+                    {
+                        "employee": employee.name,
+                        "start_date": date,
+                        "end_date": date,
+                    },
+                    "total_hours",
+                )
+                if leave:
+                    leave = leave[0]
+                    if leave.get("half_day") and leave.get("half_day_date") == date:
+                        hour += 4
+                    else:
+                        hour += 8
+
+                if total_hours:
+                    hour += total_hours
+
+                local_data["data"].append(
+                    {
+                        "date": date,
+                        "hour": hour,
+                    }
+                )
+        data[employee.name] = local_data
+
+    res["data"] = data
+    return res
 
 
 @frappe.whitelist()

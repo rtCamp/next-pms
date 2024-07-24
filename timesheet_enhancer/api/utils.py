@@ -136,3 +136,40 @@ def get_task_for_employee(
     )
 
     return project_task + tasks
+
+
+def filter_employees(
+    employee_name=None, department=None, project=None, page_length=10, start=0
+):
+    import json
+
+    fields = ["name", "image", "employee_name", "department", "designation"]
+    employee_ids = None
+    filters = {}
+    if isinstance(department, str):
+        department = json.loads(department)
+
+    if isinstance(project, str):
+        project = json.loads(project)
+
+    if employee_name:
+        filters["employee_name"] = ["like", f"%{employee_name}%"]
+
+    if department and len(department) > 0:
+        filters["department"] = ["in", department]
+
+    if project and len(project) > 0:
+        shared_projects = frappe.get_all(
+            "DocShare",
+            filters={"share_doctype": "Project", "share_name": ["IN", project]},
+            fields=["user"],
+        )
+        employee_ids = [
+            frappe.get_value("Employee", {"user_id": shared_project.get("user")})
+            for shared_project in shared_projects
+        ]
+        filters["name"] = ["in", employee_ids]
+
+    return frappe.get_list(
+        "Employee", fields=fields, filters=filters, page_length=page_length, start=start
+    )

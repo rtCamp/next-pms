@@ -142,7 +142,7 @@ export const Sidebar = () => {
             user.isSidebarCollapsed && "hidden"
           )}
         >
-          Collpase Menu
+          Collapse Menu
         </Typography>
       </Button>
     </aside>

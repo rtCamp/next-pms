@@ -85,3 +85,13 @@ export function addDays(dateString: string, days: number) {
   return getFormatedDate(date);
 
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function deBounce<T extends (...args: any[]) => void>(func: T, wait: number): (...args: Parameters<T>) => void {
+  let timeout: ReturnType<typeof setTimeout>;
+
+  return (...args: Parameters<T>): void => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+}

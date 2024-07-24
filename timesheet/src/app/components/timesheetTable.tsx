@@ -16,6 +16,7 @@ interface TimesheetTableProps {
 }
 
 export const TimesheetTable = ({ dates, holidays, tasks, leaves, onCellClick }: TimesheetTableProps) => {
+
   return (
     <Table>
       <TableHeader>
@@ -51,7 +52,7 @@ export const TimesheetTable = ({ dates, holidays, tasks, leaves, onCellClick }: 
           <TotalHourRow dates={dates} leaves={leaves} tasks={tasks} holidays={holidays} />
         )}
         {leaves.length > 0 && <LeaveRow dates={dates} leaves={leaves} />}
-        {Object.keys(tasks).length == 0 && <EmotyRow dates={dates} holidays={holidays} onCellClick={onCellClick} />}
+        {Object.keys(tasks).length == 0 && <EmptyRow dates={dates} holidays={holidays} onCellClick={onCellClick} />}
         {Object.keys(tasks).length > 0 &&
           Object.entries(tasks).map(([task, taskData]: [string, any]) => {
             let totalHours = 0;
@@ -238,7 +239,7 @@ const Cell = ({
   );
 };
 
-const EmotyRow = ({
+const EmptyRow = ({
   dates,
   holidays,
   onCellClick,
