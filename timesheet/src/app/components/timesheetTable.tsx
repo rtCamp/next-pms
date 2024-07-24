@@ -4,6 +4,7 @@ import { cn, prettyDate, getDateFromDateAndTime, floatToTime } from "@/lib/utils
 import { Typography } from "./typography";
 import { useState } from "react";
 import { CirclePlus, PencilLine } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
 
 interface TimesheetTableProps {
   dates: string[];
@@ -16,7 +17,6 @@ interface TimesheetTableProps {
 }
 
 export const TimesheetTable = ({ dates, holidays, tasks, leaves, onCellClick }: TimesheetTableProps) => {
-
   return (
     <Table>
       <TableHeader>
@@ -192,6 +192,7 @@ const Cell = ({
   data,
   isHoliday,
   onCellClick,
+  disabled,
 }: {
   date: string;
   data: any;
@@ -199,9 +200,12 @@ const Cell = ({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   onCellClick?: (val) => void;
+  disabled?: boolean;
 }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const isDisabled = disabled || data?.docstatus === 1;
   const handleClick = () => {
+    if (isDisabled) return;
     const value = {
       date: date,
       hours: data?.hours ?? "",
@@ -215,27 +219,34 @@ const Cell = ({
     onCellClick && onCellClick(value);
   };
   const onMouseEnter: React.MouseEventHandler<HTMLTableCellElement> = () => {
+    if (isDisabled) return;
     setIsHovered(true);
   };
   const onMouseLeave: React.MouseEventHandler<HTMLTableCellElement> = () => {
+    if (isDisabled) return;
     setIsHovered(false);
   };
   return (
-    <TableCell
-      key={date}
-      onMouseEnter={onMouseEnter}
-      onClick={handleClick}
-      onMouseLeave={onMouseLeave}
-      className={cn(isHovered && " h-full  bg-slate-100 text-center")}
-    >
-      {!isHovered && (
-        <Typography variant="p" className={cn("text-slate-600", isHoliday && "text-slate-400")}>
-          {data?.hours ? floatToTime(data?.hours || 0) : "-"}
-        </Typography>
-      )}
-      {isHovered && data?.hours && <PencilLine className="text-center" size={16} />}
-      {isHovered && !data?.hours && <CirclePlus className="text-center" size={16} />}
-    </TableCell>
+    <Tooltip>
+      <TableCell
+        key={date}
+        onMouseEnter={onMouseEnter}
+        onClick={handleClick}
+        onMouseLeave={onMouseLeave}
+        className={cn(isDisabled && "cursor-default", isHovered && "h-full bg-slate-100 text-center cursor-pointer")}
+      >
+        <TooltipTrigger className={cn(isDisabled && "cursor-default")}>
+          {!isHovered && (
+            <Typography variant="p" className={cn("text-slate-600", isHoliday || (isDisabled && "text-slate-400"))}>
+              {data?.hours ? floatToTime(data?.hours || 0) : "-"}
+            </Typography>
+          )}
+          {isHovered && data?.hours && <PencilLine className="text-center" size={16} />}
+          {isHovered && !data?.hours && <CirclePlus className="text-center" size={16} />}
+        </TooltipTrigger>
+        {data?.description && <TooltipContent>{data?.description}</TooltipContent>}
+      </TableCell>
+    </Tooltip>
   );
 };
 

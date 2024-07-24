@@ -3,7 +3,16 @@ import { RootState } from "@/store";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { setData, SetAddTimeDialog, SetTimesheet, SetFetchAgain, SetWeekDate, AppendData } from "@/store/timesheet";
+import {
+  setData,
+  SetAddTimeDialog,
+  SetTimesheet,
+  SetFetchAgain,
+  SetWeekDate,
+  AppendData,
+  setDateRange,
+  setApprovalDialog,
+} from "@/store/timesheet";
 import { Button } from "@/app/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Typography } from "@/app/components/typography";
@@ -11,7 +20,8 @@ import { TimesheetTable } from "@/app/components/timesheetTable";
 import { parseFrappeErrorMsg, getFormatedDate, addDays } from "@/lib/utils";
 import { Spinner } from "@/app/components/spinner";
 import { AddTime } from "./addTime";
-import {CircleCheck} from "lucide-react"
+import { CircleCheck, CircleX, Clock3 } from "lucide-react";
+import { Approval } from "./Approval";
 
 function Timesheet() {
   const { toast } = useToast();
@@ -80,6 +90,14 @@ function Timesheet() {
     dispatch(SetWeekDate(addDays(obj.start_date, -1)));
     dispatch(SetFetchAgain(true));
   };
+  const handleApproval = (start_date: string, end_date: string) => {
+    const data = {
+      start_date: start_date,
+      end_date: end_date,
+    };
+    dispatch(setDateRange(data));
+    dispatch(setApprovalDialog(true));
+  };
   if (isLoading) return <Spinner isFull />;
 
   return (
@@ -101,7 +119,12 @@ function Timesheet() {
                       <Typography variant="h5" className="font-medium">
                         {key} : {value.total_hours}h
                       </Typography>
-                      <SubmitButton/>
+                      <SubmitButton
+                        start_date={value.start_date}
+                        end_date={value.end_date}
+                        onApproval={handleApproval}
+                        status={value.status}
+                      />
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="pb-0">
@@ -124,17 +147,53 @@ function Timesheet() {
         </Button>
       </div>
       {timesheet.isDialogOpen && <AddTime />}
+      {timesheet.isAprrovalDialogOpen && <Approval />}
     </div>
   );
 }
 
-
-const SubmitButton = () => {
-  return (
-    <Button variant="ghost" className="mr-1 text-slate-400 font-normal gap-x-2">
-      <CircleCheck/>
-      Not Submitted
-    </Button>
-  );
-}
+const SubmitButton = ({
+  start_date,
+  end_date,
+  onApproval,
+  status,
+}: {
+  start_date: string;
+  end_date: string;
+  onApproval: (start_date: string, end_date: string) => void;
+  status: string;
+}) => {
+  const handleClick = () => {
+    onApproval(start_date, end_date);
+  };
+  if (status == "Approved") {
+    return (
+      <Button variant="ghost" className="mr-1 text-primary bg-green-50 font-normal gap-x-2">
+        <CircleCheck className="stroke-success" />
+        {status}
+      </Button>
+    );
+  } else if (status == "Rejected") {
+    return (
+      <Button variant="ghost" className="mr-1 text-primary bg-red-50 font-normal gap-x-2">
+        <CircleX className="stroke-destructive" />
+        {status}
+      </Button>
+    );
+  } else if (status == "Approval Pending") {
+    return (
+      <Button variant="ghost" className="mr-1 text-primary bg-orange-50 font-normal gap-x-2" onClick={handleClick}>
+        <Clock3 className="stroke-warning" />
+        {status}
+      </Button>
+    );
+  } else {
+    return (
+      <Button variant="ghost" className="mr-1 font-normal text-slate-400 gap-x-2" onClick={handleClick}>
+        <CircleCheck />
+        {status}
+      </Button>
+    );
+  }
+};
 export default Timesheet;

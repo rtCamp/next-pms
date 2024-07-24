@@ -34,6 +34,9 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
         data[week_dates["key"]]["holidays"] = get_holiday_dates_for_employee(
             employee, week_dates["start_date"], week_dates["end_date"]
         )
+        data[week_dates["key"]]["status"] = get_timesheet_state(
+            week_dates["dates"], employee
+        )
         start_date = add_days(getdate(week_dates["start_date"]), -1)
 
     return data
@@ -141,6 +144,8 @@ def submit_for_approval(
             "docstatus": 0,
         },
     )
+    if not timesheets:
+        throw(_("No timesheet found for the given week."))
     for timesheet in timesheets:
         doc = frappe.get_doc("Timesheet", timesheet["name"])
         doc.note = notes
@@ -242,3 +247,34 @@ def get_timesheet(dates: list, employee: str):
 
             data[subject]["data"].append(log.as_dict())
     return [data, total_hours]
+
+
+def get_timesheet_state(dates: list, employee: str):
+
+    res = "Not Submitted"
+    timesheets = frappe.get_all(
+        "Timesheet",
+        filters={
+            "start_date": [">=", getdate(dates[0])],
+            "end_date": ["<=", getdate(dates[-1])],
+            "employee": employee,
+        },
+        fields=["custom_approval_status"],
+    )
+    if len(timesheets) == 0:
+        return res
+    approved = 0
+    submitted = 0
+
+    for timesheet in timesheets:
+        state = timesheet.get("custom_approval_status")
+        approved += 1 if state == "Approved" else 0
+        submitted += 1 if state == "Approval Pending" else 0
+
+    if approved == 0 and submitted == 0:
+        return res
+    if approved > submitted:
+        res = "Approved"
+    else:
+        res = "Approval Pending"
+    return res

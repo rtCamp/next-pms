@@ -55,7 +55,7 @@ const timesheetSlice = createSlice({
         SetFetchAgain: (state, action: PayloadAction<boolean>) => {
             state.isFetchAgain = action.payload;
         },
-        SetDateRange: (state, action: PayloadAction<any>) => {
+        setDateRange: (state, action: PayloadAction<any>) => {
             state.dateRange = action.payload;
         },
         SetTimesheet: (state, action: PayloadAction<any>) => {
@@ -67,7 +67,7 @@ const timesheetSlice = createSlice({
         SetAddTimeDialog: (state, action: PayloadAction<boolean>) => {
             state.isDialogOpen = action.payload;
         },
-        SetApprovalDialog: (state, action: PayloadAction<boolean>) => {
+        setApprovalDialog: (state, action: PayloadAction<boolean>) => {
             state.isAprrovalDialogOpen = action.payload;
         },
         AppendData: (state, action: PayloadAction<any>) => {
@@ -79,5 +79,5 @@ const timesheetSlice = createSlice({
 });
 
 
-export const { setData, SetFetching, SetFetchAgain, SetDateRange, SetTimesheet, SetWeekDate, SetAddTimeDialog, SetApprovalDialog, AppendData } = timesheetSlice.actions;
+export const { setData, SetFetching, SetFetchAgain, setDateRange, SetTimesheet, SetWeekDate, SetAddTimeDialog, setApprovalDialog, AppendData } = timesheetSlice.actions;
 export default timesheetSlice.reducer;

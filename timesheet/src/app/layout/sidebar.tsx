@@ -22,6 +22,7 @@ export const Sidebar = () => {
     if (!user.appLogo) {
       fetchAppLogo();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchAppLogo = () => {
@@ -69,24 +70,11 @@ export const Sidebar = () => {
         user.isSidebarCollapsed && "w-16 items-center"
       )}
     >
-      <div
-        className={cn(
-          "flex gap-x-2 items-center",
-          !user.isSidebarCollapsed && "pl-3"
-        )}
-        id="app-logo"
-      >
-        <img
-          src={decodeURIComponent(user.appLogo)}
-          alt="app-logo"
-          className="w-8 h-8"
-        />
+      <div className={cn("flex gap-x-2 items-center", !user.isSidebarCollapsed && "pl-3")} id="app-logo">
+        <img src={decodeURIComponent(user.appLogo)} alt="app-logo" className="w-8 h-8" />
         <Typography
           variant="h2"
-          className={cn(
-            "transition-all duration-300 ease-in-out",
-            user.isSidebarCollapsed && "hidden"
-          )}
+          className={cn("transition-all duration-300 ease-in-out", user.isSidebarCollapsed && "hidden")}
         >
           Timesheet
         </Typography>
@@ -106,12 +94,7 @@ export const Sidebar = () => {
                     isActive && "bg-primary shadow-md hover:bg-slate-700 "
                   )}
                 >
-                  <route.icon
-                    className={cn(
-                      "shrink-0 stroke-primary h-4 w-4",
-                      isActive && "stroke-background"
-                    )}
-                  />
+                  <route.icon className={cn("shrink-0 stroke-primary h-4 w-4", isActive && "stroke-background")} />
                   <Typography
                     variant="p"
                     className={cn(
@@ -134,13 +117,12 @@ export const Sidebar = () => {
         className="justify-start gap-x-2 transition-all duration-300 ease-in-out"
         onClick={handleCollapse}
       >
-        <ArrowLeftToLine className={ cn("stroke-primary h-4 w-4 transition-all duration-600",user.isSidebarCollapsed && "rotate-180")} />
+        <ArrowLeftToLine
+          className={cn("stroke-primary h-4 w-4 transition-all duration-600", user.isSidebarCollapsed && "rotate-180")}
+        />
         <Typography
           variant="p"
-          className={cn(
-            "transition-all duration-600 ease-in-out",
-            user.isSidebarCollapsed && "hidden"
-          )}
+          className={cn("transition-all duration-600 ease-in-out", user.isSidebarCollapsed && "hidden")}
         >
           Collapse Menu
         </Typography>
