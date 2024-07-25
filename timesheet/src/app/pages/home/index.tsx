@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useToast } from "@/app/components/ui/use-toast";
-import { cn, parseFrappeErrorMsg, prettyDate, floatToTime, deBounce } from "@/lib/utils";
+import { cn, parseFrappeErrorMsg, prettyDate, floatToTime, deBounce, getFormatedDate } from "@/lib/utils";
 import { RootState } from "@/store";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { setData, setFetchAgain, setEmployeeName,DateProps } from "@/store/home";
+import { setData, setFetchAgain, setEmployeeName, DateProps, setWeekDate } from "@/store/home";
 // import { Spinner } from "@/app/components/spinner";
 import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
-import { isToday } from "date-fns";
+import { addDays, isToday } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 import { Input } from "@/app/components/ui/input";
 import { ChevronRight, ChevronLeft } from "lucide-react";
@@ -48,28 +48,46 @@ const Home = () => {
     dispatch(setFetchAgain(true));
   }, 1000);
 
+  const handleprevWeek = () => {
+    const date = getFormatedDate(addDays(homeState.weekDate, -14));
+    dispatch(setWeekDate(date));
+    dispatch(setFetchAgain(true));
+  };
+  const handlenextWeek = () => {
+    const date = getFormatedDate(addDays(homeState.weekDate, 14));
+    dispatch(setWeekDate(date));
+    dispatch(setFetchAgain(true));
+  };
   //   if (isLoading) return <Spinner isFull />;
 
   return (
     <>
-      <section id="filter-section" className="flex gap-x-2 mb-3">
-        <div className="max-w-sm w-full">
+      <section id="filter-section" className="flex gap-x-3 mb-3">
+        <div className="pr-4 max-w-sm w-full">
           <Input
             placeholder="Employee name"
-            className="placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-slate-800"
+            className="placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-slate-800 max-w-sm"
             onChange={onInputChange}
           />
         </div>
         <div className="w-full flex">
-          <div className="grow flex items-center ">
-            <Button variant="outline">
+          <div className="grow flex items-center w-full">
+            <Button variant="outline" className="p-1 h-fit" onClick={handleprevWeek}>
               <ChevronLeft />
             </Button>
-            <Typography variant="h6">{homeState.data.dates.length > 0 && homeState.data.dates[0].key}</Typography>
+            <Typography className="w-full text-center" variant="h6">
+              {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+              {/* @ts-ignore */}
+              {homeState.data.dates.length > 0 && homeState.data.dates[0].key}
+            </Typography>
           </div>
-          <div className="grow flex items-center">
-            <Typography variant="h6">{homeState.data.dates.length > 0 && homeState.data.dates[1].key}</Typography>
-            <Button variant="outline">
+          <div className="grow flex items-center w-full">
+            <Typography className="w-full text-center" variant="h6">
+              {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+              {/* @ts-ignore */}
+              {homeState.data.dates.length > 0 && homeState.data.dates[1].key}
+            </Typography>
+            <Button variant="outline" className="p-1 h-fit" onClick={handlenextWeek}>
               <ChevronRight />
             </Button>
           </div>

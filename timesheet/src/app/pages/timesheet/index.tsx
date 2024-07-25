@@ -17,7 +17,8 @@ import { Button } from "@/app/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Typography } from "@/app/components/typography";
 import { TimesheetTable } from "@/app/components/timesheetTable";
-import { parseFrappeErrorMsg, getFormatedDate, addDays } from "@/lib/utils";
+import { parseFrappeErrorMsg, getFormatedDate } from "@/lib/utils";
+import { addDays } from "date-fns";
 import { Spinner } from "@/app/components/spinner";
 import { AddTime } from "./addTime";
 import { CircleCheck, CircleX, Clock3 } from "lucide-react";
@@ -87,7 +88,7 @@ function Timesheet() {
     // @ts-expect-error
     const obj = data[Object.keys(data).pop()];
 
-    dispatch(SetWeekDate(addDays(obj.start_date, -1)));
+    dispatch(SetWeekDate(getFormatedDate(addDays(obj.start_date, -1))));
     dispatch(SetFetchAgain(true));
   };
   const handleApproval = (start_date: string, end_date: string) => {
@@ -98,49 +99,52 @@ function Timesheet() {
     dispatch(setDateRange(data));
     dispatch(setApprovalDialog(true));
   };
-  if (isLoading) return <Spinner isFull />;
 
   return (
     <div className="flex flex-col">
       <div>
-        <Button className="float-right mb-5" onClick={handleAddTime}>
+        <Button className="float-right mb-1" onClick={handleAddTime}>
           Add Time
         </Button>
       </div>
-      <div className="overflow-y-scroll" style={{ height: "calc(100vh - 14rem)" }}>
-        {Object.keys(timesheet.data).length > 0 &&
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          Object.entries(timesheet.data).map(([key, value]: [string, any], index: number) => {
-            return (
-              <Accordion type="multiple" key={key} defaultValue={index == 0 ? [key] : []}>
-                <AccordionItem value={key}>
-                  <AccordionTrigger className="hover:no-underline w-full">
-                    <div className="flex justify-between w-full">
-                      <Typography variant="h5" className="font-medium">
-                        {key} : {value.total_hours}h
-                      </Typography>
-                      <SubmitButton
-                        start_date={value.start_date}
-                        end_date={value.end_date}
-                        onApproval={handleApproval}
-                        status={value.status}
+      {isLoading ? (
+        <Spinner isFull />
+      ) : (
+        <div className="overflow-y-scroll" style={{ height: "calc(100vh - 14rem)" }}>
+          {Object.keys(timesheet.data).length > 0 &&
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            Object.entries(timesheet.data).map(([key, value]: [string, any], index: number) => {
+              return (
+                <Accordion type="multiple" key={key} defaultValue={index == 0 ? [key] : []}>
+                  <AccordionItem value={key}>
+                    <AccordionTrigger className="hover:no-underline w-full">
+                      <div className="flex justify-between w-full">
+                        <Typography variant="h5" className="font-medium">
+                          {key} : {value.total_hours}h
+                        </Typography>
+                        <SubmitButton
+                          start_date={value.start_date}
+                          end_date={value.end_date}
+                          onApproval={handleApproval}
+                          status={value.status}
+                        />
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-0">
+                      <TimesheetTable
+                        dates={value.dates}
+                        holidays={value.holidays}
+                        leaves={value.leaves}
+                        tasks={value.tasks}
+                        onCellClick={onCellClick}
                       />
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="pb-0">
-                    <TimesheetTable
-                      dates={value.dates}
-                      holidays={value.holidays}
-                      leaves={value.leaves}
-                      tasks={value.tasks}
-                      onCellClick={onCellClick}
-                    />
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            );
-          })}
-      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              );
+            })}
+        </div>
+      )}
       <div className="mt-5">
         <Button className="float-left" variant="outline" onClick={loadData}>
           Load More

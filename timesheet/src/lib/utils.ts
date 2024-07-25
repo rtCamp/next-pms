@@ -78,13 +78,6 @@ export function floatToTime(float: number) {
   return `${formattedHours}:${formattedMinutes}`;
 }
 
-export function addDays(dateString: string, days: number) {
-  const date = new Date(dateString);
-  const daysNum = date.getDate() + days;
-  date.setDate(daysNum);
-  return getFormatedDate(date);
-
-}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function deBounce<T extends (...args: any[]) => void>(func: T, wait: number): (...args: Parameters<T>) => void {
@@ -92,6 +85,8 @@ export function deBounce<T extends (...args: any[]) => void>(func: T, wait: numb
 
   return (...args: Parameters<T>): void => {
     clearTimeout(timeout);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     timeout = setTimeout(() => func.apply(this, args), wait);
   };
 }
