@@ -12,7 +12,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
 import { Input } from "@/app/components/ui/input";
-import { Clock3 } from "lucide-react";
+import { Clock3, Search } from "lucide-react";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { getFormatedDate, parseFrappeErrorMsg } from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
@@ -41,7 +41,7 @@ export const AddTime = () => {
     },
     mode: "onSubmit",
   });
-  const { data: tasks, mutate:mutateTask } = useFrappeGetCall("timesheet_enhancer.api.utils.get_task_for_employee", {
+  const { data: tasks, mutate: mutateTask } = useFrappeGetCall("timesheet_enhancer.api.utils.get_task_for_employee", {
     employee: form.getValues("employee"),
     search: searchTerm,
   });
@@ -54,8 +54,12 @@ export const AddTime = () => {
     form.setValue("date", getFormatedDate(date));
   };
 
-  const handleTaskChange = (value: string) => {
-    form.setValue("task", value);
+  const handleTaskChange = (value: string | string[]) => {
+    if (value instanceof Array) {
+      form.setValue("task", value[0]);
+    } else {
+      form.setValue("task", value);
+    }
   };
   const handleTimeChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     const value = event.target.value;
@@ -152,6 +156,7 @@ export const AddTime = () => {
                         }))}
                         onSelect={handleTaskChange}
                         onSearch={handleTaskSearch}
+                        rightIcon={<Search className="h-4 w-4 stroke-slate-400" />}
                       />
                     </FormControl>
                     <FormMessage />

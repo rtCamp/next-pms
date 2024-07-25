@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getTodayDate } from "@/lib/utils";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
-export interface HomeState {
+export interface TeamState {
     isFetchAgain: boolean;
     data: dataProps;
     isDialogOpen: boolean;
@@ -22,7 +21,9 @@ export interface HomeState {
 
 }
 
+
 export interface dataProps {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any;
     dates: DateProps
 }
@@ -55,16 +56,18 @@ export const initialState = {
     weekDate: getTodayDate(),
 }
 
-const homeSlice = createSlice({
-    name: 'home',
+const TeamSlice = createSlice({
+    name: 'team',
     initialState,
     reducers: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setData: (state, action: PayloadAction<any>) => {
             state.data = action.payload;
         },
         setFetchAgain: (state, action: PayloadAction<boolean>) => {
             state.isFetchAgain = action.payload;
         },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setTimesheet: (state, action: PayloadAction<any>) => {
             state.timesheet = action.payload;
         },
@@ -77,5 +80,5 @@ const homeSlice = createSlice({
     }
 });
 
-export const { setData, setFetchAgain, setTimesheet, setWeekDate, setEmployeeName } = homeSlice.actions;
-export default homeSlice.reducer;
+export const { setData, setFetchAgain, setTimesheet, setWeekDate, setEmployeeName } = TeamSlice.actions;
+export default TeamSlice.reducer;
