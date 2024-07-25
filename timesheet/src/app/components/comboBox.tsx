@@ -12,7 +12,7 @@ import { Search } from "lucide-react";
 import { Typography } from "./typography";
 import { useState } from "react";
 import { Checkbox } from "@/app/components/ui/checkbox";
-import { cn } from "@/lib/utils";
+import { cn, deBounce } from "@/lib/utils";
 
 interface ComboBoxProps {
   data?: Array<{ label: string; value: string; disabled?: boolean; description?: string }>;
@@ -21,6 +21,7 @@ interface ComboBoxProps {
   label: string;
   isMulti?: boolean;
   value?: string[];
+  onSearch?: (searchTerm: string) => void;
 }
 
 export const ComboxBox = ({
@@ -29,7 +30,8 @@ export const ComboxBox = ({
   disabled = false,
   label = "Search",
   isMulti = false,
-  value
+  value,
+  onSearch,
 }: ComboBoxProps) => {
   const [selectedValues, setSelectedValues] = useState<string[]>(value ?? []);
 
@@ -57,19 +59,24 @@ export const ComboxBox = ({
     }
     return `${selectedValues.length} selected`;
   };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const onInputChange = deBounce((search) => {
+    onSearch && onSearch(search);
+  }, 1000);
+  
   return (
     <Popover modal>
       <PopoverTrigger asChild>
         <Button variant="outline" className="justify-between w-full" disabled={disabled}>
-          <Typography variant="p" className={cn("text-slate-400",hasValue && "text-primary")}>
+          <Typography variant="p" className={cn("text-slate-400", hasValue && "text-primary")}>
             {!hasValue ? label : selectedValue()}
           </Typography>
           <Search className="h-4 w-4 stroke-slate-400" />
         </Button>
       </PopoverTrigger>
       <PopoverContent>
-        <Command>
-          <CommandInput placeholder={label} />
+        <Command shouldFilter={false}>
+          <CommandInput placeholder={label} onValueChange={onInputChange} />
           <CommandEmpty>No data.</CommandEmpty>
           <CommandGroup>
             <CommandList>

@@ -16,10 +16,13 @@ import { Clock3 } from "lucide-react";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { getFormatedDate, parseFrappeErrorMsg } from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
+import { useEffect, useState } from "react";
 
 export const AddTime = () => {
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
   const timesheetState = useSelector((state: RootState) => state.timesheet);
+  const [searchTerm, setSearchTerm] = useState("");
+
   const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
   const { toast } = useToast();
@@ -38,8 +41,9 @@ export const AddTime = () => {
     },
     mode: "onSubmit",
   });
-  const { data: tasks } = useFrappeGetCall("timesheet_enhancer.api.utils.get_task_for_employee", {
+  const { data: tasks, mutate:mutateTask } = useFrappeGetCall("timesheet_enhancer.api.utils.get_task_for_employee", {
     employee: form.getValues("employee"),
+    search: searchTerm,
   });
   const handleOpen = () => {
     form.reset();
@@ -56,6 +60,9 @@ export const AddTime = () => {
   const handleTimeChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     const value = event.target.value;
     form.setValue("hours", value);
+  };
+  const handleTaskSearch = (searchTerm: string) => {
+    setSearchTerm(searchTerm);
   };
   const handleSubmit = (data: z.infer<typeof TimesheetSchema>) => {
     call(data)
@@ -75,6 +82,10 @@ export const AddTime = () => {
         });
       });
   };
+
+  useEffect(() => {
+    mutateTask();
+  }, [searchTerm, mutateTask]);
   return (
     <Dialog open={timesheetState.isDialogOpen} onOpenChange={handleOpen}>
       <DialogContent>
@@ -140,6 +151,7 @@ export const AddTime = () => {
                           disabled: false,
                         }))}
                         onSelect={handleTaskChange}
+                        onSearch={handleTaskSearch}
                       />
                     </FormControl>
                     <FormMessage />

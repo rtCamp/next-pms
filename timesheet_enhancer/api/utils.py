@@ -108,6 +108,7 @@ def get_task_for_employee(
     search_filter = {}
     if search:
         search_filter = {
+            "name": ["like", f"%{search}%"],
             "subject": ["like", f"%{search}%"],
             "description": ["like", f"%{search}%"],
         }
@@ -117,9 +118,11 @@ def get_task_for_employee(
         fields=["share_name"],
     )
     projects = [project["share_name"] for project in shared_projects]
+
     project_task = frappe.get_all(
         "Task",
-        filters={"project": ["in", projects], **search_filter},
+        filters={"project": ["in", projects]},
+        or_filters=search_filter,
         fields=["name", "subject", "status", "project.project_name"],
         page_length=page_length,
         start=start,
@@ -128,7 +131,8 @@ def get_task_for_employee(
     names = [task["name"] for task in project_task]
     tasks = frappe.get_list(
         "Task",
-        filters={"name": ["NOT IN", names], **search_filter},
+        filters={"name": ["NOT IN", names]},
+        or_filters=search_filter,
         fields=["name", "subject", "status", "project.project_name"],
         page_length=page_length,
         start=start,
