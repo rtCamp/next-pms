@@ -8,7 +8,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/app/components/ui/command";
-import { Search } from "lucide-react";
+
 import { Typography } from "./typography";
 import { useState } from "react";
 import { Checkbox } from "@/app/components/ui/checkbox";
@@ -16,12 +16,15 @@ import { cn, deBounce } from "@/lib/utils";
 
 interface ComboBoxProps {
   data?: Array<{ label: string; value: string; disabled?: boolean; description?: string }>;
-  onSelect?: (value: string) => void;
+  onSelect?: (value: string|string[]) => void;
   disabled?: boolean;
   label: string;
   isMulti?: boolean;
   value?: string[];
   onSearch?: (searchTerm: string) => void;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
+  className?:string
 }
 
 export const ComboxBox = ({
@@ -32,11 +35,15 @@ export const ComboxBox = ({
   isMulti = false,
   value,
   onSearch,
+  leftIcon,
+  rightIcon,
+  className=""
 }: ComboBoxProps) => {
   const [selectedValues, setSelectedValues] = useState<string[]>(value ?? []);
 
   const clearFilter = () => {
     setSelectedValues([]);
+    onSelect && onSelect(selectedValues);
   };
   const handleSelect = (value: string) => {
     if (!isMulti) {
@@ -57,21 +64,24 @@ export const ComboxBox = ({
     if (selectedValues.length === 1) {
       return data.find((item) => item.value === selectedValues[0])?.label;
     }
-    return `${selectedValues.length} selected`;
+    return `${selectedValues.length} items selected`;
   };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const onInputChange = deBounce((search) => {
     onSearch && onSearch(search);
   }, 1000);
-  
+
   return (
     <Popover modal>
       <PopoverTrigger asChild>
-        <Button variant="outline" className="justify-between w-full" disabled={disabled}>
-          <Typography variant="p" className={cn("text-slate-400", hasValue && "text-primary")}>
-            {!hasValue ? label : selectedValue()}
-          </Typography>
-          <Search className="h-4 w-4 stroke-slate-400" />
+        <Button
+          variant="outline"
+          className={cn("justify-between w-full text-slate-400", hasValue && "text-primary",className)}
+          disabled={disabled}
+        >
+          {leftIcon}
+          {!hasValue ? label : selectedValue()}
+          {rightIcon}
         </Button>
       </PopoverTrigger>
       <PopoverContent>
