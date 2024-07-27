@@ -21,7 +21,7 @@ export interface TimesheetState {
     weekDate: string;
 }
 
-export const initialState = {
+export const initialState:TimesheetState = {
     timesheet: {
         name: "",
         parent: "",

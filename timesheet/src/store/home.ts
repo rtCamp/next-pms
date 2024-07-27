@@ -24,7 +24,7 @@ export interface HomeState {
 
 export interface dataProps {
     data: any;
-    dates: DateProps
+    dates: DateProps[]
 }
 
 export type DateProps = {
@@ -33,7 +33,7 @@ export type DateProps = {
     key: string
     dates: string[]
 }
-export const initialState = {
+export const initialState:HomeState = {
     timesheet: {
         name: "",
         parent: "",

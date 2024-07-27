@@ -1,52 +1,62 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { cn, prettyDate, getDateFromDateAndTime, floatToTime } from "@/lib/utils";
 import { Typography } from "./typography";
 import { useState } from "react";
 import { CirclePlus, PencilLine } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
+import { TaskDataProps, TaskDataItemProps, LeaveProps } from "@/types/timesheet";
 
 interface TimesheetTableProps {
   dates: string[];
   holidays: string[];
-  tasks: any;
-  leaves: string[];
+  tasks: TaskDataProps;
+  leaves: Array<LeaveProps>;
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   onCellClick?: (data) => void;
+  hasHeading?: boolean;
 }
 
-export const TimesheetTable = ({ dates, holidays, tasks, leaves, onCellClick }: TimesheetTableProps) => {
+export const TimesheetTable = ({
+  dates,
+  holidays,
+  tasks,
+  leaves,
+  onCellClick,
+  hasHeading = true,
+}: TimesheetTableProps) => {
   return (
     <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="max-w-sm w-2/6">
-            <Typography variant="p" className="text-base text-slate-600">
-              Tasks
-            </Typography>
-          </TableHead>
-          {dates?.map((date: string) => {
-            const { date: formattedDate, day } = prettyDate(date);
-            const isHoliday = holidays.includes(date);
-            return (
-              <TableHead key={date} className=" max-w-20">
-                <Typography variant="p" className={cn("text-slate-600 font-medium", isHoliday && "text-slate-400")}>
-                  {day}
-                </Typography>
-                <Typography variant="small" className={cn("text-slate-500", isHoliday && "text-slate-300")}>
-                  {formattedDate}
-                </Typography>
-              </TableHead>
-            );
-          })}
-          <TableHead className="max-w-24 w-1/12">
-            <Typography variant="p" className="text-base text-slate-600">
-              Total
-            </Typography>
-          </TableHead>
-        </TableRow>
-      </TableHeader>
+      {hasHeading && (
+        <TableHeader>
+          <TableRow>
+            <TableHead className="max-w-sm w-2/6">
+              <Typography variant="p" className="text-base text-slate-600">
+                Tasks
+              </Typography>
+            </TableHead>
+            {dates?.map((date: string) => {
+              const { date: formattedDate, day } = prettyDate(date);
+              const isHoliday = holidays.includes(date);
+              return (
+                <TableHead key={date} className="max-w-20">
+                  <Typography variant="p" className={cn("text-slate-600 font-medium", isHoliday && "text-slate-400")}>
+                    {day}
+                  </Typography>
+                  <Typography variant="small" className={cn("text-slate-500", isHoliday && "text-slate-300")}>
+                    {formattedDate}
+                  </Typography>
+                </TableHead>
+              );
+            })}
+            <TableHead className="max-w-24 w-1/12">
+              <Typography variant="p" className="text-base text-slate-600">
+                Total
+              </Typography>
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+      )}
       <TableBody>
         {Object.keys(tasks).length > 0 && (
           <TotalHourRow dates={dates} leaves={leaves} tasks={tasks} holidays={holidays} />
@@ -54,7 +64,7 @@ export const TimesheetTable = ({ dates, holidays, tasks, leaves, onCellClick }: 
         {leaves.length > 0 && <LeaveRow dates={dates} leaves={leaves} />}
         {Object.keys(tasks).length == 0 && <EmptyRow dates={dates} holidays={holidays} onCellClick={onCellClick} />}
         {Object.keys(tasks).length > 0 &&
-          Object.entries(tasks).map(([task, taskData]: [string, any]) => {
+          Object.entries(tasks).map(([task, taskData]: [string, TaskDataProps]) => {
             let totalHours = 0;
             return (
               <TableRow key={task} className="border-b border-slate-200">
@@ -67,7 +77,9 @@ export const TimesheetTable = ({ dates, holidays, tasks, leaves, onCellClick }: 
                   </Typography>
                 </TableCell>
                 {dates.map((date: string) => {
-                  const data = taskData.data.find((data: any) => getDateFromDateAndTime(data.from_time) === date);
+                  const data = taskData.data.find(
+                    (data: TaskDataItemProps) => getDateFromDateAndTime(data.from_time) === date
+                  );
                   if (data && data.hours) {
                     totalHours += data.hours;
                   }
@@ -87,7 +99,7 @@ export const TimesheetTable = ({ dates, holidays, tasks, leaves, onCellClick }: 
   );
 };
 
-const LeaveRow = ({ leaves, dates }: { leaves: Array<any>; dates: string[] }) => {
+const LeaveRow = ({ leaves, dates }: { leaves: Array<LeaveProps>; dates: string[] }) => {
   let total_hours = 0;
   return (
     <TableRow>
@@ -97,7 +109,7 @@ const LeaveRow = ({ leaves, dates }: { leaves: Array<any>; dates: string[] }) =>
         </Typography>
       </TableCell>
       {dates.map((date: string) => {
-        const data = leaves.find((data: any) => {
+        const data = leaves.find((data: LeaveProps) => {
           return date >= data.from_date && date <= data.to_date;
         });
         const hour = data?.half_day ? 4 : 8;
@@ -127,9 +139,9 @@ const TotalHourRow = ({
   tasks,
   holidays,
 }: {
-  leaves: Array<any>;
+  leaves: Array<LeaveProps>;
   dates: string[];
-  tasks: any;
+  tasks: TaskDataProps;
   holidays: string[];
 }) => {
   let total = 0;
@@ -150,8 +162,8 @@ const TotalHourRow = ({
         let total_hours = 0;
         if (tasks) {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          Object.entries(tasks).map(([task, taskData]: [string, any]) => {
-            const data = taskData.data.find((data: any) => {
+          Object.entries(tasks).map(([task, taskData]: [string, TaskDataProps]) => {
+            const data = taskData.data.find((data: TaskDataItemProps) => {
               return getDateFromDateAndTime(data.from_time) === date;
             });
             if (data && data.hours) {
@@ -159,7 +171,7 @@ const TotalHourRow = ({
             }
           });
         }
-        const leaveData = leaves.find((data: any) => {
+        const leaveData = leaves.find((data: LeaveProps) => {
           return date >= data.from_date && date <= data.to_date;
         });
         if (leaveData) {
@@ -195,7 +207,7 @@ const Cell = ({
   disabled,
 }: {
   date: string;
-  data: any;
+  data: TaskDataItemProps | undefined;
   isHoliday: boolean;
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -205,7 +217,7 @@ const Cell = ({
   const [isHovered, setIsHovered] = useState(false);
   const isDisabled = disabled || data?.docstatus === 1;
   const handleClick = () => {
-    if (isDisabled) return;
+    if (isDisabled || !data) return;
     const value = {
       date: date,
       hours: data?.hours ?? "",
@@ -279,6 +291,8 @@ const EmptyRow = ({
           parent: "",
           task: "",
         };
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //   @ts-ignore
         return <Cell date={date} data={value} isHoliday={isHoliday} onCellClick={onCellClick} />;
       })}
       <TableCell></TableCell>

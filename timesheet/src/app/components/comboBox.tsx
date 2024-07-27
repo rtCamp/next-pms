@@ -1,5 +1,6 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
 import { Button } from "@/app/components/ui/button";
+import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
 import {
   Command,
   CommandEmpty,
@@ -16,7 +17,7 @@ import { cn, deBounce } from "@/lib/utils";
 
 interface ComboBoxProps {
   data?: Array<{ label: string; value: string; disabled?: boolean; description?: string }>;
-  onSelect?: (value: string|string[]) => void;
+  onSelect?: (value: string | string[]) => void;
   disabled?: boolean;
   label: string;
   isMulti?: boolean;
@@ -24,7 +25,7 @@ interface ComboBoxProps {
   onSearch?: (searchTerm: string) => void;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
-  className?:string
+  className?: string;
 }
 
 export const ComboxBox = ({
@@ -37,13 +38,13 @@ export const ComboxBox = ({
   onSearch,
   leftIcon,
   rightIcon,
-  className=""
+  className = "",
 }: ComboBoxProps) => {
   const [selectedValues, setSelectedValues] = useState<string[]>(value ?? []);
 
   const clearFilter = () => {
     setSelectedValues([]);
-    onSelect && onSelect(selectedValues);
+    onSelect && onSelect(isMulti ? [] : "");
   };
   const handleSelect = (value: string) => {
     if (!isMulti) {
@@ -51,13 +52,14 @@ export const ComboxBox = ({
       onSelect && onSelect(value);
       return;
     }
-
-    if (selectedValues.includes(value)) {
-      setSelectedValues(selectedValues.filter((val) => val !== value));
+    let values = [...selectedValues];
+    if (values.includes(value)) {
+      values = values.filter((val) => val !== value);
     } else {
-      setSelectedValues([...selectedValues, value]);
+      values.push(value);
     }
-    onSelect && onSelect(value);
+    setSelectedValues(values);
+    onSelect && onSelect(values);
   };
   const hasValue = selectedValues.length > 0;
   const selectedValue = () => {
@@ -76,7 +78,7 @@ export const ComboxBox = ({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className={cn("justify-between w-full text-slate-400", hasValue && "text-primary",className)}
+          className={cn("justify-between w-full text-slate-400", hasValue && "text-primary", className)}
           disabled={disabled}
         >
           {leftIcon}
@@ -99,7 +101,14 @@ export const ComboxBox = ({
                     className="flex gap-x-2 text-primary"
                     value={item.value}
                   >
-                    <Checkbox checked={isActive} />
+                    {!isMulti ? (
+                      <RadioGroup>
+                        <RadioGroupItem value={item.value} checked={isActive} />
+                      </RadioGroup>
+                    ) : (
+                      <Checkbox checked={isActive} />
+                    )}
+
                     <div>
                       <Typography variant="p">{item.label}</Typography>
                       <Typography variant="small">{item.description}</Typography>

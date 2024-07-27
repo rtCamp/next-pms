@@ -6,8 +6,8 @@ export interface TeamState {
     data: dataProps;
     isDialogOpen: boolean;
     isAprrovalDialogOpen: boolean;
-    employeeName?: string;
     weekDate: string;
+    project: Array<string>;
     timesheet: {
         name: string;
         parent: string;
@@ -18,14 +18,17 @@ export interface TeamState {
         isUpdate: boolean;
         employee?: string;
     },
-
+    start: number;
+    hasMore: boolean;
 }
 
 
 export interface dataProps {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any;
-    dates: DateProps
+    dates: DateProps[]
+    total_count: number;
+    has_more: boolean;
 }
 
 export type DateProps = {
@@ -34,7 +37,7 @@ export type DateProps = {
     key: string
     dates: string[]
 }
-export const initialState = {
+export const initialState: TeamState = {
     timesheet: {
         name: "",
         parent: "",
@@ -47,13 +50,17 @@ export const initialState = {
     },
     isFetchAgain: false,
     data: {
-        data: [],
-        dates: []
+        data: {},
+        dates: [],
+        total_count: 0,
+        has_more: false
     },
     isDialogOpen: false,
     isAprrovalDialogOpen: false,
-    employeeName: "",
     weekDate: getTodayDate(),
+    project: [],
+    start: 0,
+    hasMore: true
 }
 
 const TeamSlice = createSlice({
@@ -63,6 +70,15 @@ const TeamSlice = createSlice({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setData: (state, action: PayloadAction<any>) => {
             state.data = action.payload;
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        updateData: (state, action: PayloadAction<any>) => {
+            // Object.assign(action.payload.data, state.data.data);
+            const data = state.data.data;
+            return { ...state, data: { ...state.data, data: { ...data, ...action.payload.data } } }
+        },
+        resetData: (state) => {
+            return { ...state, data: { data: {}, dates: [], total_count: 0, has_more: true } }
         },
         setFetchAgain: (state, action: PayloadAction<boolean>) => {
             state.isFetchAgain = action.payload;
@@ -74,11 +90,17 @@ const TeamSlice = createSlice({
         setWeekDate: (state, action: PayloadAction<string>) => {
             state.weekDate = action.payload;
         },
-        setEmployeeName: (state, action: PayloadAction<string>) => {
-            state.employeeName = action.payload;
+        setProject: (state, action: PayloadAction<Array<string>>) => {
+            state.project = action.payload;
+        },
+        setStart: (state, action: PayloadAction<number>) => {
+            return { ...state, start: action.payload }
+        },
+        setHasMore: (state, action: PayloadAction<boolean>) => {
+            return { ...state, hasMore: action.payload }
         }
     }
 });
 
-export const { setData, setFetchAgain, setTimesheet, setWeekDate, setEmployeeName } = TeamSlice.actions;
+export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData,resetData } = TeamSlice.actions;
 export default TeamSlice.reducer;
