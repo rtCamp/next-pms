@@ -100,7 +100,7 @@ def app_logo():
 
 @frappe.whitelist()
 def get_task_for_employee(
-    employee: str = None, search: str = None, page_length: int = 10, start: int = 0
+    employee: str = None, search: str = None, page_length: int = 20, start: int = 0
 ):
     if not employee:
         employee = get_employee_from_user()
@@ -174,6 +174,8 @@ def filter_employees(
         ]
         filters["name"] = ["in", employee_ids]
 
-    return frappe.get_list(
+    employees = frappe.get_list(
         "Employee", fields=fields, filters=filters, page_length=page_length, start=start
     )
+    total_count = len(frappe.get_list("Employee", filters=filters))
+    return employees, total_count

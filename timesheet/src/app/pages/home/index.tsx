@@ -18,7 +18,6 @@ import { Typography } from "@/app/components/typography";
 const Home = () => {
   const { toast } = useToast();
   const homeState = useSelector((state: RootState) => state.home);
-
   const dispatch = useDispatch();
 
   const { data, error, mutate } = useFrappeGetCall("timesheet_enhancer.api.team.get_compact_view_data", {
