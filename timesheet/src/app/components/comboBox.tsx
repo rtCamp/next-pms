@@ -86,7 +86,7 @@ export const ComboxBox = ({
           {rightIcon}
         </Button>
       </PopoverTrigger>
-      <PopoverContent>
+      <PopoverContent className="p-0">
         <Command shouldFilter={false}>
           <CommandInput placeholder={label} onValueChange={onInputChange} />
           <CommandEmpty>No data.</CommandEmpty>
@@ -119,7 +119,7 @@ export const ComboxBox = ({
             </CommandList>
           </CommandGroup>
         </Command>
-        <Button variant="outline" onClick={clearFilter} className="w-full">
+        <Button variant="ghost" onClick={clearFilter} className="border-t rounded-none font-normal w-full">
           Clear Filters
         </Button>
       </PopoverContent>

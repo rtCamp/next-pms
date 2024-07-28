@@ -1,5 +1,5 @@
 import { Button } from "@/app/components/ui/button";
-import { ChevronLeft, ChevronRight, Filter, CircleCheck } from "lucide-react";
+import { ChevronLeft, ChevronRight, Filter, CircleCheck ,ChevronLast} from "lucide-react";
 import { ComboxBox } from "@/app/components/comboBox";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useSelector, useDispatch } from "react-redux";
@@ -140,10 +140,10 @@ const Team = () => {
         </div>
         <div id="date-filter" className="flex gap-x-2">
           <Button className="p-1 h-fit" variant="outline" onClick={handleprevWeek}>
-            <ChevronLeft />
+            <ChevronLeft className="w-4 h-4" />
           </Button>
           <Button className="p-1 h-fit" variant="outline" onClick={handlenextWeek}>
-            <ChevronRight />
+            <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
       </div>
@@ -169,7 +169,7 @@ const Team = () => {
               })}
               <TableHead className="w-full max-w-24 flex items-center">Total</TableHead>
               <TableHead className="w-full max-w-20 flex items-center">
-                <CircleCheck />
+                <CircleCheck className="w-4 h-4" />
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -190,6 +190,7 @@ const Team = () => {
                               <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
                             </Avatar>
                             {item.employee_name}
+                            <ChevronLast className="h-4 w-4"  onClick={()=>{console.log("he")}}/>
                           </TableCell>
                           {item.data.map((data: ItemDataProps) => {
                             total += data.hour;

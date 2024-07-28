@@ -72,7 +72,7 @@ const Home = () => {
         <div className="w-full flex">
           <div className="grow flex items-center w-full">
             <Button variant="outline" className="p-1 h-fit" onClick={handleprevWeek}>
-              <ChevronLeft />
+              <ChevronLeft className="w-4 h-4" />
             </Button>
             <Typography className="w-full text-center" variant="h6">
               {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
@@ -87,7 +87,7 @@ const Home = () => {
               {homeState.data.dates.length > 0 && homeState.data.dates[1].key}
             </Typography>
             <Button variant="outline" className="p-1 h-fit" onClick={handlenextWeek}>
-              <ChevronRight />
+              <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
         </div>

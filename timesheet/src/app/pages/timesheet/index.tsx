@@ -173,28 +173,28 @@ const SubmitButton = ({
   if (status == "Approved") {
     return (
       <Button variant="ghost" className="mr-1 text-primary bg-green-50 font-normal gap-x-2">
-        <CircleCheck className="stroke-success" />
+        <CircleCheck className="stroke-success w-4 h-4" />
         {status}
       </Button>
     );
   } else if (status == "Rejected") {
     return (
       <Button variant="ghost" className="mr-1 text-primary bg-red-50 font-normal gap-x-2">
-        <CircleX className="stroke-destructive" />
+        <CircleX className="stroke-destructive w-4 h-4" />
         {status}
       </Button>
     );
   } else if (status == "Approval Pending") {
     return (
       <Button variant="ghost" className="mr-1 text-primary bg-orange-50 font-normal gap-x-2" onClick={handleClick}>
-        <Clock3 className="stroke-warning" />
+        <Clock3 className="stroke-warning w-4 h-4" />
         {status}
       </Button>
     );
   } else {
     return (
       <Button variant="ghost" className="mr-1 font-normal text-slate-400 gap-x-2" onClick={handleClick}>
-        <CircleCheck />
+        <CircleCheck className="w-4 h-4" />
         {status}
       </Button>
     );

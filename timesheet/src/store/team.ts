@@ -1,5 +1,6 @@
-import { getTodayDate } from "@/lib/utils";
+import { getTodayDate,getFormatedDate } from "@/lib/utils";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+import { addDays } from "date-fns";
 
 export interface TeamState {
     isFetchAgain: boolean;
@@ -57,7 +58,7 @@ export const initialState: TeamState = {
     },
     isDialogOpen: false,
     isAprrovalDialogOpen: false,
-    weekDate: getTodayDate(),
+    weekDate: getFormatedDate(addDays(getTodayDate(),-7)),
     project: [],
     start: 0,
     hasMore: true

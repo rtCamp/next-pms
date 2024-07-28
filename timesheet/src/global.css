@@ -65,8 +65,6 @@
 
 .lucide{
   stroke-width: 1.5;
-  width: 16px;
-  height: 16px;
 }
 @layer base {
   * {

@@ -13,7 +13,7 @@ export const Header = () => {
   return (
     <div className="px-8 py-3 flex flex-row-reverse items-center gap-x-4 border-b">
       <Navigation />
-      <Bell />
+      <Bell className="w-4 h-4" />
     </div>
   );
 };
@@ -35,7 +35,7 @@ const Navigation = () => {
           href={DESK}
         >
           Switch To Desk
-          <ArrowRightLeft />
+          <ArrowRightLeft className="w-4 h-4"/>
         </a>
         <Separator className="my-1" />
         <Button
@@ -44,7 +44,7 @@ const Navigation = () => {
           onClick={logout}
         >
           Logout
-          <LogOut />
+          <LogOut className="w-4 h-4" />
         </Button>
       </PopoverContent>
     </Popover>
