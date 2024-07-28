@@ -18,6 +18,8 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
 
     if not employee:
         employee = get_employee_from_user()
+    if not frappe.db.exists("Employee", employee):
+        throw(_("Employee not found."))
     data = {}
     for i in range(max_week):
         current_week = True if start_date == now else False

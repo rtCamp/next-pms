@@ -1,5 +1,5 @@
 import { Button } from "@/app/components/ui/button";
-import { ChevronLeft, ChevronRight, Filter, CircleCheck ,ChevronLast} from "lucide-react";
+import { ChevronLeft, ChevronRight, Filter, CircleCheck, ChevronLast } from "lucide-react";
 import { ComboxBox } from "@/app/components/comboBox";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useSelector, useDispatch } from "react-redux";
@@ -23,6 +23,7 @@ import { Typography } from "@/app/components/typography";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 import { Employee } from "./employee";
 import { addDays } from "date-fns";
+import { useNavigate } from "react-router-dom";
 
 type ProjectProps = {
   project_name: string;
@@ -50,6 +51,7 @@ const Team = () => {
   const { toast } = useToast();
   const teamState = useSelector((state: RootState) => state.team);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const { data: projects } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Project",
@@ -190,7 +192,12 @@ const Team = () => {
                               <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
                             </Avatar>
                             {item.employee_name}
-                            <ChevronLast className="h-4 w-4"  onClick={()=>{console.log("he")}}/>
+                            <ChevronLast
+                              className="h-4 w-4"
+                              onClick={() => {
+                                navigate(`/team/employee/${item.name}`);
+                              }}
+                            />
                           </TableCell>
                           {item.data.map((data: ItemDataProps) => {
                             total += data.hour;

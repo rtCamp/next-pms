@@ -21,7 +21,7 @@ export interface TimesheetState {
     weekDate: string;
 }
 
-export const initialState:TimesheetState = {
+export const initialState: TimesheetState = {
     timesheet: {
         name: "",
         parent: "",
@@ -71,13 +71,15 @@ const timesheetSlice = createSlice({
             state.isAprrovalDialogOpen = action.payload;
         },
         AppendData: (state, action: PayloadAction<any>) => {
-            state.data = Object.assign(state.data, action.payload
-            );
+            state.data = Object.assign(state.data, action.payload);
+        },
+        resetState: (state) => {
+            return { ...state, ...initialState }
         }
     },
 
 });
 
 
-export const { setData, SetFetching, SetFetchAgain, setDateRange, SetTimesheet, SetWeekDate, SetAddTimeDialog, setApprovalDialog, AppendData } = timesheetSlice.actions;
+export const { setData, SetFetching, SetFetchAgain, setDateRange, SetTimesheet, SetWeekDate, SetAddTimeDialog, setApprovalDialog, AppendData, resetState } = timesheetSlice.actions;
 export default timesheetSlice.reducer;

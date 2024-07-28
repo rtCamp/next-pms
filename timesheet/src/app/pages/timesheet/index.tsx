@@ -16,12 +16,11 @@ import {
 import { Button } from "@/app/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Typography } from "@/app/components/typography";
-import { TimesheetTable } from "@/app/components/timesheetTable";
+import { TimesheetTable, SubmitButton } from "@/app/components/timesheetTable";
 import { parseFrappeErrorMsg, getFormatedDate } from "@/lib/utils";
 import { addDays } from "date-fns";
 import { Spinner } from "@/app/components/spinner";
 import { AddTime } from "./addTime";
-import { CircleCheck, CircleX, Clock3 } from "lucide-react";
 import { Approval } from "./Approval";
 
 function Timesheet() {
@@ -42,7 +41,7 @@ function Timesheet() {
       dispatch(SetFetchAgain(false));
     }
     if (data) {
-      if (timesheet.data) {
+      if (Object.keys(timesheet.data).length > 0) {
         dispatch(AppendData(data.message));
       } else {
         dispatch(setData(data.message));
@@ -87,7 +86,7 @@ function Timesheet() {
     // eslint-disable-next-line
     // @ts-expect-error
     const obj = data[Object.keys(data).pop()];
-
+    console.log(obj);
     dispatch(SetWeekDate(getFormatedDate(addDays(obj.start_date, -1))));
     dispatch(SetFetchAgain(true));
   };
@@ -99,7 +98,9 @@ function Timesheet() {
     dispatch(setDateRange(data));
     dispatch(setApprovalDialog(true));
   };
-
+  if (error) {
+    return <></>;
+  }
   return (
     <div className="flex flex-col">
       <div>
@@ -156,48 +157,4 @@ function Timesheet() {
   );
 }
 
-const SubmitButton = ({
-  start_date,
-  end_date,
-  onApproval,
-  status,
-}: {
-  start_date: string;
-  end_date: string;
-  onApproval: (start_date: string, end_date: string) => void;
-  status: string;
-}) => {
-  const handleClick = () => {
-    onApproval(start_date, end_date);
-  };
-  if (status == "Approved") {
-    return (
-      <Button variant="ghost" className="mr-1 text-primary bg-green-50 font-normal gap-x-2">
-        <CircleCheck className="stroke-success w-4 h-4" />
-        {status}
-      </Button>
-    );
-  } else if (status == "Rejected") {
-    return (
-      <Button variant="ghost" className="mr-1 text-primary bg-red-50 font-normal gap-x-2">
-        <CircleX className="stroke-destructive w-4 h-4" />
-        {status}
-      </Button>
-    );
-  } else if (status == "Approval Pending") {
-    return (
-      <Button variant="ghost" className="mr-1 text-primary bg-orange-50 font-normal gap-x-2" onClick={handleClick}>
-        <Clock3 className="stroke-warning w-4 h-4" />
-        {status}
-      </Button>
-    );
-  } else {
-    return (
-      <Button variant="ghost" className="mr-1 font-normal text-slate-400 gap-x-2" onClick={handleClick}>
-        <CircleCheck className="w-4 h-4" />
-        {status}
-      </Button>
-    );
-  }
-};
 export default Timesheet;

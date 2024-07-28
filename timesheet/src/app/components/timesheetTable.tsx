@@ -2,9 +2,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { cn, prettyDate, getDateFromDateAndTime, floatToTime } from "@/lib/utils";
 import { Typography } from "./typography";
 import { useState } from "react";
-import { CirclePlus, PencilLine } from "lucide-react";
+import { CircleCheck, CirclePlus, CircleX, Clock3, PencilLine } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
 import { TaskDataProps, TaskDataItemProps, LeaveProps } from "@/types/timesheet";
+import { Button } from "@/app/components/ui/button";
 
 interface TimesheetTableProps {
   dates: string[];
@@ -298,4 +299,50 @@ const EmptyRow = ({
       <TableCell></TableCell>
     </TableRow>
   );
+};
+
+
+export const SubmitButton = ({
+  start_date,
+  end_date,
+  onApproval,
+  status,
+}: {
+  start_date: string;
+  end_date: string;
+  onApproval?: (start_date: string, end_date: string) => void;
+  status: string;
+}) => {
+  const handleClick = () => {
+   onApproval && onApproval(start_date, end_date);
+  };
+  if (status == "Approved") {
+    return (
+      <Button variant="ghost" className="mr-1 text-primary bg-green-50 font-normal gap-x-2">
+        <CircleCheck className="stroke-success w-4 h-4" />
+        {status}
+      </Button>
+    );
+  } else if (status == "Rejected") {
+    return (
+      <Button variant="ghost" className="mr-1 text-primary bg-red-50 font-normal gap-x-2">
+        <CircleX className="stroke-destructive w-4 h-4" />
+        {status}
+      </Button>
+    );
+  } else if (status == "Approval Pending") {
+    return (
+      <Button variant="ghost" className="mr-1 text-primary bg-orange-50 font-normal gap-x-2" onClick={handleClick}>
+        <Clock3 className="stroke-warning w-4 h-4" />
+        {status}
+      </Button>
+    );
+  } else {
+    return (
+      <Button variant="ghost" className="mr-1 font-normal text-slate-400 gap-x-2" onClick={handleClick}>
+        <CircleCheck className="w-4 h-4" />
+        {status}
+      </Button>
+    );
+  }
 };
