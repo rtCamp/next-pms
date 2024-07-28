@@ -17,12 +17,12 @@ export const Sidebar = () => {
   const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
   const { toast } = useToast();
-
+  const hasPmRole = user.roles.includes("Projects Manager");
   useEffect(() => {
     if (!user.appLogo) {
       fetchAppLogo();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchAppLogo = () => {
@@ -49,18 +49,21 @@ export const Sidebar = () => {
       icon: Home,
       label: "Home",
       key: "home",
+      isPmRoute: true,
     },
     {
       to: TIMESHEET,
       icon: Clock3,
       label: "Timesheet",
       key: "timesheet",
+      isPmRoute: false,
     },
     {
       to: TEAM,
       icon: Users,
       label: "Teams",
       key: "teams",
+      isPmRoute: true,
     },
   ];
   return (
@@ -81,6 +84,7 @@ export const Sidebar = () => {
       </div>
       <div className="pt-10 flex flex-col gap-y-2">
         {routes.map((route) => {
+          if (route.isPmRoute && !hasPmRole) return null;
           return (
             <NavLink
               to={route.to}
