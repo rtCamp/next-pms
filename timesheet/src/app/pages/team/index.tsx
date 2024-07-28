@@ -1,5 +1,5 @@
 import { Button } from "@/app/components/ui/button";
-import { ChevronLeft, ChevronRight, Filter, CircleCheck, ChevronLast } from "lucide-react";
+import { ChevronLeft, ChevronRight, Filter, CircleCheck, ChevronLast, Hourglass, CircleX } from "lucide-react";
 import { ComboxBox } from "@/app/components/comboBox";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useSelector, useDispatch } from "react-redux";
@@ -13,6 +13,9 @@ import {
   updateData,
   setHasMore,
   resetData,
+  setDateRange,
+  setApprovalDialog,
+  setEmployee
 } from "@/store/team";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg, prettyDate, floatToTime, getFormatedDate, cn } from "@/lib/utils";
@@ -24,6 +27,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar"
 import { Employee } from "./employee";
 import { addDays } from "date-fns";
 import { useNavigate } from "react-router-dom";
+import { Approval } from "./approval";
 
 type ProjectProps = {
   project_name: string;
@@ -38,6 +42,7 @@ type ItemProps = {
   name: string;
   image: string;
   data: Array<ItemDataProps>;
+  status: string;
 };
 
 type DateProps = {
@@ -116,9 +121,19 @@ const Team = () => {
     dispatch(setStart(teamState.start + 10));
     dispatch(setFetchAgain(true));
   };
+  const onStatusClick = (start_date: string, end_date: string,employee:string) => {
+    const data = {
+      start_date,
+      end_date,
+    };
+    dispatch(setDateRange(data));
+    dispatch(setEmployee(employee));
+    dispatch(setApprovalDialog(true));
+  };
   return (
     <>
       <div className="flex gap-x-2 items-center justify-between mb-3">
+        <Approval />
         <div id="filters" className="flex gap-x-2">
           <ComboxBox
             label="Approval"
@@ -211,6 +226,15 @@ const Team = () => {
                           })}
                           <TableCell className="w-full max-w-24 text-left">{floatToTime(total)}</TableCell>
                         </span>
+                        <TableCell
+                          className="w-full max-w-16 flex"
+                          onClick={() => {
+                            item.status != "Approved" &&
+                            onStatusClick(item.data[0].date, item.data[item.data.length - 1].date,item.name);
+                          }}
+                        >
+                          <Status status={item.status} />
+                        </TableCell>
                       </AccordionTrigger>
                       <AccordionContent className="pb-0">
                         <Employee employee={item.name} />
@@ -231,4 +255,13 @@ const Team = () => {
   );
 };
 
+const Status = ({ status }: { status: string }) => {
+  if (status === "Pending") {
+    return <Hourglass className="w-4 h-4 stroke-warning " />;
+  }
+  if (status === "Approved") {
+    return <CircleX className="w-4 h-4 stroke-success" />;
+  }
+  return <CircleCheck className="w-4 h-4 " />;
+};
 export default Team;

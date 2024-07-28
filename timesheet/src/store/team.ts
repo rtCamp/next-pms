@@ -1,7 +1,11 @@
-import { getTodayDate,getFormatedDate } from "@/lib/utils";
+import { getTodayDate, getFormatedDate } from "@/lib/utils";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { addDays } from "date-fns";
 
+type DateRange = {
+    start_date: string;
+    end_date: string;
+}
 export interface TeamState {
     isFetchAgain: boolean;
     data: dataProps;
@@ -17,9 +21,10 @@ export interface TeamState {
         description: string;
         hours: number;
         isUpdate: boolean;
-        employee?: string;
     },
     start: number;
+    dateRange: DateRange,
+    employee: string;
     hasMore: boolean;
 }
 
@@ -47,8 +52,8 @@ export const initialState: TeamState = {
         description: "",
         hours: 0,
         isUpdate: false,
-        employee: "",
     },
+    employee: "",
     isFetchAgain: false,
     data: {
         data: {},
@@ -58,10 +63,14 @@ export const initialState: TeamState = {
     },
     isDialogOpen: false,
     isAprrovalDialogOpen: false,
-    weekDate: getFormatedDate(addDays(getTodayDate(),-7)),
+    weekDate: getFormatedDate(addDays(getTodayDate(), -7)),
     project: [],
     start: 0,
-    hasMore: true
+    hasMore: true,
+    dateRange: {
+        start_date: "",
+        end_date: ""
+    }
 }
 
 const TeamSlice = createSlice({
@@ -99,9 +108,18 @@ const TeamSlice = createSlice({
         },
         setHasMore: (state, action: PayloadAction<boolean>) => {
             return { ...state, hasMore: action.payload }
+        },
+        setDateRange: (state, action: PayloadAction<DateRange>) => {
+            state.dateRange = action.payload;
+        },
+        setApprovalDialog: (state, action: PayloadAction<boolean>) => {
+            state.isAprrovalDialogOpen = action.payload;
+        },
+        setEmployee: (state, action: PayloadAction<string>) => {
+            state.employee = action.payload;
         }
     }
 });
 
-export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData,resetData } = TeamSlice.actions;
+export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData, resetData, setDateRange, setApprovalDialog,setEmployee } = TeamSlice.actions;
 export default TeamSlice.reducer;

@@ -36,7 +36,27 @@ def get_compact_view_data(
 
     for employee in employees:
         local_data = {**employee}
-
+        is_approved = frappe.db.count(
+            "Timesheet",
+            {
+                "employee": employee.name,
+                "custom_approval_status": "Approved",
+                "start_date": [">=", dates[0].get("start_date")],
+                "end_date": ["<=", dates[-1].get("end_date")],
+            },
+        )
+        is_pending = frappe.db.count(
+            "Timesheet",
+            {
+                "employee": employee.name,
+                "custom_approval_status": "Approval Pending",
+                "start_date": [">=", dates[0].get("start_date")],
+                "end_date": ["<=", dates[-1].get("end_date")],
+            },
+        )
+        local_data["status"] = is_approved > is_pending and "Approved" or "Pending"
+        if is_approved == 0 and is_pending == 0:
+            local_data["status"] = "Not Submitted"
         local_data["data"] = []
 
         for date_info in dates:
@@ -94,3 +114,25 @@ def get_timesheet_for_employee(employee: str, date: str):
 
     date = getdate(date)
     return get_timesheet_data(employee=employee, start_date=date, max_week=1)
+
+
+@frappe.whitelist()
+def update_timesheet_status(start_date: str, end_date: str, employee: str, status: str):
+    timesheets = frappe.get_all(
+        "Timesheet",
+        {
+            "employee": employee,
+            "start_date": [">=", start_date],
+            "end_date": ["<=", end_date],
+        },
+        ["name"],
+    )
+    if not timesheets:
+        return frappe._("No timesheet found for the given date range.")
+
+    for timesheet in timesheets:
+        doc = frappe.get_doc("Timesheet", timesheet.name)
+        doc.custom_approval_status = status
+        doc.save()
+        doc.submit()
+    return frappe._("Timesheet status updated successfully")

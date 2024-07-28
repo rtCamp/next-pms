@@ -63,32 +63,32 @@ export const Approval = () => {
             Week of {prettyDate(timesheetState.dateRange.start_date).date} -
             {prettyDate(timesheetState.dateRange.end_date).date}
           </DialogTitle>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)}>
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel>Note</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Add a note"
-                        rows={4}
-                        className="w-full placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <DialogFooter className="sm:justify-start mt-6">
-                <Button>Submit For Approval</Button>
-              </DialogFooter>
-            </form>
-          </Form>
         </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)}>
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Note</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Add a note"
+                      rows={4}
+                      className="w-full placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <DialogFooter className="sm:justify-start mt-6">
+              <Button>Submit For Approval</Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
