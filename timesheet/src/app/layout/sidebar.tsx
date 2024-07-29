@@ -6,11 +6,15 @@ import { useDispatch } from "react-redux";
 import { Typography } from "@/app/components/typography";
 import { NavLink } from "react-router-dom";
 import { cn, parseFrappeErrorMsg } from "@/lib/utils";
-import { Home, Users, Clock3, ArrowLeftToLine } from "lucide-react";
+import { Home, Users, Clock3, ArrowLeftToLine, ArrowRightLeft, LogOut } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
-import { TIMESHEET, HOME, TEAM } from "@/lib/constant";
+import { TIMESHEET, HOME, TEAM, DESK } from "@/lib/constant";
 import { FrappeContext, FrappeConfig } from "frappe-react-sdk";
 import { useToast } from "@/app/components/ui/use-toast";
+import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
+import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
+import { UserContext } from "@/lib/UserProvider";
+import { Separator } from "@radix-ui/react-separator";
 
 export const Sidebar = () => {
   const { call } = useContext(FrappeContext) as FrappeConfig;
@@ -116,21 +120,57 @@ export const Sidebar = () => {
         })}
       </div>
       <div className="grow"></div>
-      <Button
-        variant="ghost"
-        className="justify-start gap-x-2 transition-all duration-300 ease-in-out"
-        onClick={handleCollapse}
-      >
-        <ArrowLeftToLine
-          className={cn("stroke-primary h-4 w-4 transition-all duration-600", user.isSidebarCollapsed && "rotate-180")}
-        />
-        <Typography
-          variant="p"
-          className={cn("transition-all duration-600 ease-in-out", user.isSidebarCollapsed && "hidden")}
+      <div className={ cn("flex justify-between",user.isSidebarCollapsed && "flex-col items-center")}>
+        <Navigation />
+        <Button
+          variant="ghost"
+          className="justify-end  gap-x-2 transition-all duration-300 ease-in-out"
+          onClick={handleCollapse}
         >
-          Collapse Menu
-        </Typography>
-      </Button>
+          <ArrowLeftToLine
+            className={cn(
+              "stroke-primary h-4 w-4 transition-all duration-600",
+              user.isSidebarCollapsed && "rotate-180"
+            )}
+          />
+        </Button>
+      </div>
     </aside>
+  );
+};
+
+const Navigation = () => {
+  const user = useSelector((state: RootState) => state.user);
+  const { logout } = useContext(UserContext);
+  return (
+    <Popover>
+      <PopoverTrigger className={cn("flex items-center gap-x-2")}>
+        <Avatar className="w-8 h-8 justify-self-end transition-all duration-600">
+          <AvatarImage src={decodeURIComponent(user.image)} />
+          <AvatarFallback>{user.userName[0]}</AvatarFallback>
+        </Avatar>
+        <Typography variant="p" className={cn("transition-all duration-800", user.isSidebarCollapsed && "hidden")}>
+          {decodeURIComponent(user.userName)}
+        </Typography>
+      </PopoverTrigger>
+      <PopoverContent className="flex flex-col p-1 w-52">
+        <a
+          className="flex justify-start text-sm hover:no-underline hover:bg-accent p-2 gap-x-2 items-center"
+          href={DESK}
+        >
+          <ArrowRightLeft className="w-4 h-4" />
+          Switch To Desk
+        </a>
+        <Separator className="my-1" />
+        <Button
+          variant="link"
+          className="flex justify-start hover:no-underline font-normal hover:bg-accent p-2 gap-x-2 items-center focus-visible:ring-0 focus-visible:ring-offset-0"
+          onClick={logout}
+        >
+          <LogOut className="w-4 h-4" />
+          Logout
+        </Button>
+      </PopoverContent>
+    </Popover>
   );
 };
