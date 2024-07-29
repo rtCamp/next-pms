@@ -53,7 +53,9 @@ const EmployeeDetail = () => {
     // navigate(`/team/employee/${name}`);
   };
   const handleLoadData = () => {
-    if (!data) return;
+    if (data == undefined || Object.keys(data).length == 0) return;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     const obj = data[Object.keys(data).pop()];
     const date = getFormatedDate(addDays(obj.start_date, -1));
     setWeekDate(date);
