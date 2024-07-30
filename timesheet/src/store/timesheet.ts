@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { getTodayDate } from "@/lib/utils";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+import { DataProp, DynamicKey } from "@/types/timesheet";
 export interface TimesheetState {
     timesheet: {
         name: string;
@@ -15,11 +16,12 @@ export interface TimesheetState {
     dateRange: { start_date: string; end_date: string };
     isFetching: boolean;
     isFetchAgain: boolean;
-    data: object;
+    data: DataProp & DynamicKey;
     isDialogOpen: boolean;
     isAprrovalDialogOpen: boolean;
     weekDate: string;
 }
+
 
 export const initialState: TimesheetState = {
     timesheet: {
@@ -35,7 +37,11 @@ export const initialState: TimesheetState = {
     dateRange: { start_date: "", end_date: "" },
     isFetching: false,
     isFetchAgain: false,
-    data: {},
+    // @ts-ignore
+    data: {
+        working_hour: 0,
+        working_frequency: "",
+    },
     isDialogOpen: false,
     isAprrovalDialogOpen: false,
     weekDate: getTodayDate()
@@ -46,7 +52,7 @@ const timesheetSlice = createSlice({
     name: 'timesheet',
     initialState,
     reducers: {
-        setData: (state, action: PayloadAction<any>) => {
+        setData: (state, action: PayloadAction<DataProp & DynamicKey>) => {
             state.data = action.payload;
         },
         SetFetching: (state, action: PayloadAction<boolean>) => {
@@ -70,8 +76,9 @@ const timesheetSlice = createSlice({
         setApprovalDialog: (state, action: PayloadAction<boolean>) => {
             state.isAprrovalDialogOpen = action.payload;
         },
-        AppendData: (state, action: PayloadAction<any>) => {
-            state.data = Object.assign(state.data, action.payload);
+        AppendData: (state, action: PayloadAction<DynamicKey>) => {
+            const data = Object.assign(state.data.data, action.payload);
+            state.data.data = data;
         },
         resetState: (state) => {
             return { ...state, ...initialState }

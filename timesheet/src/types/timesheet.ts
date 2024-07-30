@@ -1,8 +1,10 @@
 
+interface TaskProps {
+    [key: string]: TaskDataProps
+}
 export interface TaskDataProps {
     name: string
     project_name: string | null
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: Array<TaskDataItemProps>
 }
 
@@ -16,11 +18,31 @@ export interface TaskDataItemProps {
     docstatus: 0 | 1 | 2
 }
 
-export interface LeaveProps{
+export interface LeaveProps {
     name: string
     from_date: string
     to_date: string
     status: string
     half_day: boolean
     half_day_date: string
+}
+
+export interface DynamicKey {
+    [key: string]: timesheet;
+}
+export interface DataProp {
+    working_hour: number;
+    working_frequency: string;
+    data: DynamicKey;
+}
+export interface timesheet {
+    start_date: string;
+    end_date: string;
+    key: string;
+    dates: string[];
+    total_hours: number;
+    tasks: TaskProps
+    leaves: Array<LeaveProps>;
+    holidays: string[]
+    status: string
 }

@@ -17,7 +17,7 @@ export const TimesheetSchema = z.object({
     }),
     description: z.string({
         required_error: "Please enter description.",
-    }),
+    }).min(4, "Please enter description."),
     parent: z.string({}).optional(),
     is_update: z.boolean({}),
     employee: z.string({}),

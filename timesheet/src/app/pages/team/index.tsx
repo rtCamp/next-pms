@@ -1,5 +1,5 @@
 import { Button } from "@/app/components/ui/button";
-import { ChevronLeft, ChevronRight, Filter, CircleCheck, ChevronLast, Hourglass, CircleX } from "lucide-react";
+import { ChevronLeft, ChevronRight, Filter, CircleCheck, Hourglass, CircleX } from "lucide-react";
 import { ComboxBox } from "@/app/components/comboBox";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useSelector, useDispatch } from "react-redux";
@@ -15,7 +15,8 @@ import {
   resetData,
   setDateRange,
   setApprovalDialog,
-  setEmployee
+  setEmployee,
+  resetState,
 } from "@/store/team";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg, prettyDate, floatToTime, getFormatedDate, cn } from "@/lib/utils";
@@ -28,6 +29,7 @@ import { Employee } from "./employee";
 import { addDays } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { Approval } from "./approval";
+import { TEAM, EMPLOYEE } from "@/lib/constant";
 
 type ProjectProps = {
   project_name: string;
@@ -78,6 +80,12 @@ const Team = () => {
   ];
 
   useEffect(() => {
+    return () => {
+      dispatch(resetState());
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
     if (data) {
       if (Object.keys(teamState.data.data).length > 0) {
         dispatch(updateData(data.message));
@@ -121,7 +129,7 @@ const Team = () => {
     dispatch(setStart(teamState.start + 10));
     dispatch(setFetchAgain(true));
   };
-  const onStatusClick = (start_date: string, end_date: string,employee:string) => {
+  const onStatusClick = (start_date: string, end_date: string, employee: string) => {
     const data = {
       start_date,
       end_date,
@@ -144,7 +152,7 @@ const Team = () => {
             disabled
           />
           <ComboxBox
-            label="Team Groups"
+            label="Projects"
             isMulti
             onSelect={handleProjectChange}
             leftIcon={<Filter className="h-4 w-4" />}
@@ -164,7 +172,7 @@ const Team = () => {
           </Button>
         </div>
       </div>
-      <div className="overflow-y-scroll mb-3" style={{ height: "calc(100vh - 14rem)" }}>
+      <div className="overflow-y-scroll mb-2" style={{ height: "calc(100vh - 8rem)" }}>
         <Table>
           <TableHeader>
             <TableRow className="flex items-center w-full">
@@ -199,20 +207,19 @@ const Team = () => {
                 <TableRow className="flex items-center w-full">
                   <Accordion type="multiple" key={key} className="w-full">
                     <AccordionItem value={key} className="border-b-0">
-                      <AccordionTrigger className="hover:no-underline py-2">
+                      <AccordionTrigger className="hover:no-underline py-0">
                         <span className="w-full flex">
-                          <TableCell className="w-full max-w-md flex gap-x-2 items-center font-normal">
+                          <TableCell
+                            className="w-full max-w-md flex gap-x-2 items-center font-normal hover:underline"
+                            onClick={() => {
+                              navigate(`${TEAM}${EMPLOYEE}/${item.name}`);
+                            }}
+                          >
                             <Avatar className="w-8 h-8">
                               <AvatarImage src={decodeURIComponent(item.image)} />
                               <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
                             </Avatar>
                             {item.employee_name}
-                            <ChevronLast
-                              className="h-4 w-4"
-                              onClick={() => {
-                                navigate(`/team/employee/${item.name}`);
-                              }}
-                            />
                           </TableCell>
                           {item.data.map((data: ItemDataProps) => {
                             total += data.hour;
@@ -225,16 +232,17 @@ const Team = () => {
                             );
                           })}
                           <TableCell className="w-full max-w-24 text-left">{floatToTime(total)}</TableCell>
+
+                          <TableCell
+                            className="w-full max-w-16 flex items-center"
+                            onClick={() => {
+                              item.status != "Approved" &&
+                                onStatusClick(item.data[0].date, item.data[item.data.length - 1].date, item.name);
+                            }}
+                          >
+                            <Status status={item.status} />
+                          </TableCell>
                         </span>
-                        <TableCell
-                          className="w-full max-w-16 flex"
-                          onClick={() => {
-                            item.status != "Approved" &&
-                            onStatusClick(item.data[0].date, item.data[item.data.length - 1].date,item.name);
-                          }}
-                        >
-                          <Status status={item.status} />
-                        </TableCell>
                       </AccordionTrigger>
                       <AccordionContent className="pb-0">
                         <Employee employee={item.name} />

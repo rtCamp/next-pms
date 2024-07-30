@@ -117,9 +117,15 @@ const TeamSlice = createSlice({
         },
         setEmployee: (state, action: PayloadAction<string>) => {
             state.employee = action.payload;
+        },
+        setDialog: (state, action: PayloadAction<boolean>) => {
+            state.isDialogOpen = action.payload;
+        },
+        resetState: (state) => {
+            return { ...state, ...initialState }
         }
     }
 });
 
-export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData, resetData, setDateRange, setApprovalDialog,setEmployee } = TeamSlice.actions;
+export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData, resetData, setDateRange, setApprovalDialog, setEmployee, setDialog, resetState } = TeamSlice.actions;
 export default TeamSlice.reducer;

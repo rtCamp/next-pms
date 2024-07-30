@@ -1,5 +1,6 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { getCookie } from "@/lib/utils";
+
 const userImage = getCookie("user_image");
 const fullName = getCookie("full_name");
 
@@ -15,13 +16,12 @@ interface UserState {
 const initialState: UserState = {
     //@ts-ignore
     roles: window.frappe?.boot?.user?.roles ?? [],
-    userName: fullName ?? "",
+    userName: decodeURIComponent(fullName as string) ?? "",
     image: userImage ?? "",
     //@ts-ignore
     appLogo: window.frappe?.boot?.app_logo_url,
     isSidebarCollapsed: false,
-    employee: ""
-
+    employee: "",
 };
 
 const userSlice = createSlice({
@@ -43,12 +43,12 @@ const userSlice = createSlice({
         setSidebarCollapsed: (state, action: PayloadAction<boolean>) => {
             state.isSidebarCollapsed = action.payload
         },
-        setEmployee: (state, action: PayloadAction<string>) => { 
+        setEmployee: (state, action: PayloadAction<string>) => {
             state.employee = action.payload
-        }
+        },
     },
 
 });
 
-export const { setRole, setImage, setUserName, setAppLogo,setSidebarCollapsed,setEmployee } = userSlice.actions;
+export const { setRole, setImage, setUserName, setAppLogo, setSidebarCollapsed, setEmployee} = userSlice.actions;
 export default userSlice.reducer;

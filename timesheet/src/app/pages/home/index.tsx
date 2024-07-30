@@ -5,7 +5,7 @@ import { RootState } from "@/store";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { setData, setFetchAgain, setEmployeeName, DateProps, setWeekDate } from "@/store/home";
+import { setData, setFetchAgain, setWeekDate, setEmployee, resetState, DateProps } from "@/store/team";
 // import { Spinner } from "@/app/components/spinner";
 import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
 import { addDays, isToday } from "date-fns";
@@ -17,13 +17,19 @@ import { Typography } from "@/app/components/typography";
 
 const Home = () => {
   const { toast } = useToast();
-  const homeState = useSelector((state: RootState) => state.home);
+  const homeState = useSelector((state: RootState) => state.team);
   const dispatch = useDispatch();
 
   const { data, error, mutate } = useFrappeGetCall("timesheet_enhancer.api.team.get_compact_view_data", {
     date: homeState.weekDate,
-    employee_name: homeState.employeeName,
+    employee_name: homeState.employee,
   });
+  useEffect(() => {
+    return () => {
+      dispatch(resetState());
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   useEffect(() => {
     if (homeState.isFetchAgain) {
       mutate();
@@ -43,7 +49,7 @@ const Home = () => {
   }, [data, homeState.isFetchAgain, error]);
 
   const onInputChange = deBounce((e: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(setEmployeeName(e.target.value));
+    dispatch(setEmployee(e.target.value));
     dispatch(setFetchAgain(true));
   }, 1000);
 
