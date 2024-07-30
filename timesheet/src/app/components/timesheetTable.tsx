@@ -1,21 +1,23 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
-import { cn, prettyDate, getDateFromDateAndTime, floatToTime } from "@/lib/utils";
+import { cn, prettyDate, getDateFromDateAndTime, floatToTime, calculateExtendedWorkingHour} from "@/lib/utils";
 import { Typography } from "./typography";
 import { useState } from "react";
 import { CircleCheck, CirclePlus, CircleX, Clock3, PencilLine } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
-import { TaskDataProps, TaskDataItemProps, LeaveProps } from "@/types/timesheet";
+import { TaskDataProps, TaskProps, TaskDataItemProps, LeaveProps } from "@/types/timesheet";
 import { Button } from "@/app/components/ui/button";
-
+import { WorkingFrequency } from "@/types";
 interface TimesheetTableProps {
   dates: string[];
   holidays: string[];
-  tasks: TaskDataProps;
+  tasks: TaskProps;
   leaves: Array<LeaveProps>;
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   onCellClick?: (data) => void;
   hasHeading?: boolean;
+  working_hour: number;
+  working_frequency: WorkingFrequency;
 }
 
 export const TimesheetTable = ({
@@ -25,6 +27,8 @@ export const TimesheetTable = ({
   leaves,
   onCellClick,
   hasHeading = true,
+  working_hour,
+  working_frequency,
 }: TimesheetTableProps) => {
   return (
     <Table>
@@ -60,7 +64,7 @@ export const TimesheetTable = ({
       )}
       <TableBody>
         {Object.keys(tasks).length > 0 && (
-          <TotalHourRow dates={dates} leaves={leaves} tasks={tasks} holidays={holidays} />
+          <TotalHourRow dates={dates} leaves={leaves} tasks={tasks} holidays={holidays} working_frequency={working_frequency} working_hour={working_hour} />
         )}
         {leaves.length > 0 && <LeaveRow dates={dates} leaves={leaves} />}
         {Object.keys(tasks).length == 0 && <EmptyRow dates={dates} holidays={holidays} onCellClick={onCellClick} />}
@@ -78,11 +82,22 @@ export const TimesheetTable = ({
                   </Typography>
                 </TableCell>
                 {dates.map((date: string) => {
-                  const data = taskData.data.find(
+                  let data = taskData.data.find(
                     (data: TaskDataItemProps) => getDateFromDateAndTime(data.from_time) === date
                   );
                   if (data && data.hours) {
                     totalHours += data.hours;
+                  }
+                  if (!data) {
+                    data = {
+                      hours: "",
+                      description: "",
+                      name: "",
+                      parent: "",
+                      task: taskData.name,
+                      from_time: date,
+                      docstatus: 0,
+                    };
                   }
                   const isHoliday = holidays.includes(date);
                   return <Cell date={date} data={data} isHoliday={isHoliday} onCellClick={onCellClick} />;
@@ -139,11 +154,15 @@ const TotalHourRow = ({
   dates,
   tasks,
   holidays,
+  working_hour,
+  working_frequency,
 }: {
   leaves: Array<LeaveProps>;
   dates: string[];
-  tasks: TaskDataProps;
+  tasks: TaskProps;
   holidays: string[];
+  working_hour: number;
+  working_frequency: WorkingFrequency;
 }) => {
   let total = 0;
   return (
@@ -183,9 +202,10 @@ const TotalHourRow = ({
           }
         }
         total += total_hours;
+        const isMoreThanWorkingHour=calculateExtendedWorkingHour(total_hours, working_hour, working_frequency);
         return (
           <TableCell>
-            <Typography variant="p" className={cn("text-slate-600", total_hours > 8 && "text-warning")}>
+            <Typography variant="p" className={cn("text-slate-600", isMoreThanWorkingHour && "text-warning")}>
               {floatToTime(total_hours)}
             </Typography>
           </TableCell>
@@ -251,10 +271,10 @@ const Cell = ({
         <TooltipTrigger className={cn(isDisabled && "cursor-default")}>
           {!isHovered && (
             <Typography variant="p" className={cn("text-slate-600", isHoliday || (isDisabled && "text-slate-400"))}>
-              {data?.hours ? floatToTime(data?.hours || 0) : "-"}
+              {data?.hours && data?.hours > 0 ? floatToTime(data?.hours || 0) : "-"}
             </Typography>
           )}
-          {isHovered && data?.hours && <PencilLine className="text-center" size={16} />}
+          {isHovered && data?.hours && data?.hours > 0 && <PencilLine className="text-center" size={16} />}
           {isHovered && !data?.hours && <CirclePlus className="text-center" size={16} />}
         </TooltipTrigger>
         {data?.description && <TooltipContent>{data?.description}</TooltipContent>}
@@ -301,7 +321,6 @@ const EmptyRow = ({
   );
 };
 
-
 export const SubmitButton = ({
   start_date,
   end_date,
@@ -314,7 +333,7 @@ export const SubmitButton = ({
   status: string;
 }) => {
   const handleClick = () => {
-   onApproval && onApproval(start_date, end_date);
+    onApproval && onApproval(start_date, end_date);
   };
   if (status == "Approved") {
     return (

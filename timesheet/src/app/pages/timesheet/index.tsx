@@ -22,6 +22,8 @@ import { addDays } from "date-fns";
 import { Spinner } from "@/app/components/spinner";
 import { AddTime } from "./addTime";
 import { Approval } from "./Approval";
+import { NewTimesheetProps, timesheet } from "@/types/timesheet";
+import { WorkingFrequency } from "@/types";
 
 function Timesheet() {
   const { toast } = useToast();
@@ -72,9 +74,7 @@ function Timesheet() {
     dispatch(SetAddTimeDialog(true));
   };
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  const onCellClick = (data) => {
+  const onCellClick = (data: NewTimesheetProps) => {
     data.employee = user.employee;
     data.isUpdate = true;
     dispatch(SetTimesheet(data));
@@ -115,7 +115,7 @@ function Timesheet() {
           {timesheet.data?.data &&
             Object.keys(timesheet.data?.data).length > 0 &&
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            Object.entries(timesheet.data?.data).map(([key, value]: [string, any]) => {
+            Object.entries(timesheet.data?.data).map(([key, value]: [string, timesheet]) => {
               return (
                 <Accordion type="multiple" key={key} defaultValue={[key]}>
                   <AccordionItem value={key}>
@@ -134,6 +134,8 @@ function Timesheet() {
                     </AccordionTrigger>
                     <AccordionContent className="pb-0">
                       <TimesheetTable
+                        working_hour={timesheet.data.working_hour}
+                        working_frequency={timesheet.data.working_frequency as WorkingFrequency}
                         dates={value.dates}
                         holidays={value.holidays}
                         leaves={value.leaves}

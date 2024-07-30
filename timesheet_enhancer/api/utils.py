@@ -27,7 +27,8 @@ def get_employee_working_hours(employee: str = None):
         working_hour = frappe.db.get_single_value(
             "HR Settings", "standard_working_hours"
         )
-
+    if not working_frequency:
+        working_frequency = "Per Day"
     return {"working_hour": working_hour, "working_frequency": working_frequency}
 
 

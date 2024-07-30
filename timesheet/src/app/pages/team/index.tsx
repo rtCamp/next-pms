@@ -18,7 +18,14 @@ import {
   setEmployee,
 } from "@/store/team";
 import { useToast } from "@/app/components/ui/use-toast";
-import { parseFrappeErrorMsg, prettyDate, floatToTime, getFormatedDate, cn } from "@/lib/utils";
+import {
+  parseFrappeErrorMsg,
+  prettyDate,
+  floatToTime,
+  getFormatedDate,
+  cn,
+  calculateExtendedWorkingHour,
+} from "@/lib/utils";
 import { useEffect } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Table, TableHead, TableHeader, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
@@ -29,21 +36,11 @@ import { addDays } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { Approval } from "./approval";
 import { TEAM, EMPLOYEE } from "@/lib/constant";
+import { ItemProps, ItemDataProps } from "@/types";
 
 type ProjectProps = {
   project_name: string;
   name: string;
-};
-type ItemDataProps = {
-  date: string;
-  hour: number;
-};
-type ItemProps = {
-  employee_name: string;
-  name: string;
-  image: string;
-  data: Array<ItemDataProps>;
-  status: string;
 };
 
 type DateProps = {
@@ -219,9 +216,14 @@ const Team = () => {
                           </TableCell>
                           {item.data.map((data: ItemDataProps) => {
                             total += data.hour;
+                            const isMoreThanExpected = calculateExtendedWorkingHour(
+                              data.hour,
+                              item.working_hour,
+                              item.working_frequency
+                            );
                             return (
                               <TableCell className={cn("max-w-20 w-full text-left")}>
-                                <Typography className={cn(data.hour > 8 && "text-warning")} variant="p">
+                                <Typography className={cn(isMoreThanExpected && "text-warning")} variant="p">
                                   {data.hour ? floatToTime(data.hour) : "-"}
                                 </Typography>
                               </TableCell>

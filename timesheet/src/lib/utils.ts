@@ -1,6 +1,7 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { Error } from "frappe-js-sdk/lib/frappe_app/types"
+import { WorkingFrequency } from "@/types"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -89,4 +90,14 @@ export function deBounce<T extends (...args: any[]) => void>(func: T, wait: numb
     // @ts-ignore
     timeout = setTimeout(() => func.apply(this, args), wait);
   };
+}
+
+
+
+export function calculateExtendedWorkingHour(hours: number, expected_hours: number, frequency: WorkingFrequency) {
+  if (frequency === "Per Day") {
+    return hours > expected_hours;
+  }
+  const perDay = expected_hours / 5;
+  return hours > perDay;
 }

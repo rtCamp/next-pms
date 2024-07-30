@@ -1,6 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useToast } from "@/app/components/ui/use-toast";
-import { cn, parseFrappeErrorMsg, prettyDate, floatToTime, deBounce, getFormatedDate } from "@/lib/utils";
+import {
+  cn,
+  parseFrappeErrorMsg,
+  prettyDate,
+  floatToTime,
+  deBounce,
+  getFormatedDate,
+  calculateExtendedWorkingHour,
+} from "@/lib/utils";
 import { RootState } from "@/store";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useEffect } from "react";
@@ -138,9 +146,19 @@ const Home = () => {
                     {item.employee_name}
                   </TableCell>
                   {item.data.map((data: any, index: number) => {
+                    const isMoreThanExpected = calculateExtendedWorkingHour(
+                      data.hour,
+                      item.working_hour,
+                      item.working_frequency
+                    );
+
                     return (
                       <TableCell
-                        className={cn("text-xs", data.hour > 8 && "text-warning", isToday(data.date) && "bg-slate-50")}
+                        className={cn(
+                          "text-xs",
+                          isMoreThanExpected && "text-warning",
+                          isToday(data.date) && "bg-slate-50"
+                        )}
                         key={`${key}-${index}`}
                       >
                         {data.hour > 0 ? floatToTime(data.hour) : "-"}

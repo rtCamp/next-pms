@@ -1,6 +1,5 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
 import { Button } from "@/app/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
 import {
   Command,
   CommandEmpty,
@@ -9,7 +8,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/app/components/ui/command";
-
+import { Check } from "lucide-react";
 import { Typography } from "./typography";
 import { useState } from "react";
 import { Checkbox } from "@/app/components/ui/checkbox";
@@ -102,9 +101,7 @@ export const ComboxBox = ({
                     value={item.value}
                   >
                     {!isMulti ? (
-                      <RadioGroup>
-                        <RadioGroupItem value={item.value} checked={isActive} />
-                      </RadioGroup>
+                      <Check className={cn("mr-2 h-4 w-4", isActive ? "opacity-100" : "opacity-0")} />
                     ) : (
                       <Checkbox checked={isActive} />
                     )}

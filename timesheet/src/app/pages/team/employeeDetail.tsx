@@ -34,6 +34,8 @@ import {
 } from "@/store/team";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
+import { Employee } from "@/types";
+import { NewTimesheetProps, timesheet } from "@/types/timesheet";
 
 const EmployeeDetail = () => {
   const { id } = useParams();
@@ -82,6 +84,12 @@ const EmployeeDetail = () => {
     dispatch(setEmployee(id as string));
     dispatch(setDialog(true));
   };
+  const onCellClick = (data: NewTimesheetProps) => {
+    dispatch(setEmployee(id as string));
+    data.isUpdate = data?.hours && data?.hours > 0 ? true : false;
+    dispatch(setTimesheet(data));
+    dispatch(setDialog(true));
+  };
   useEffect(() => {
     dispatch(resetState());
     const date = getTodayDate();
@@ -89,6 +97,7 @@ const EmployeeDetail = () => {
     dispatch(setFetchAgain(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
   useEffect(() => {
     if (teamState.isFetchAgain) {
       mutate();
@@ -133,7 +142,7 @@ const EmployeeDetail = () => {
             {teamState.timesheetData.data &&
               Object.keys(teamState.timesheetData.data).length > 0 &&
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              Object.entries(teamState.timesheetData.data).map(([key, value]: [string, any]) => {
+              Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet]) => {
                 return (
                   <>
                     <Accordion type="multiple" key={key} defaultValue={[key]}>
@@ -151,6 +160,9 @@ const EmployeeDetail = () => {
                             holidays={value.holidays}
                             leaves={value.leaves}
                             tasks={value.tasks}
+                            onCellClick={onCellClick}
+                            working_frequency={teamState.timesheetData.working_frequency}
+                            working_hour={teamState.timesheetData.working_hour}
                           />
                         </AccordionContent>
                       </AccordionItem>
@@ -172,11 +184,6 @@ const EmployeeDetail = () => {
 
 export default EmployeeDetail;
 
-type Employee = {
-  name: string;
-  image: string;
-  employee_name: string;
-};
 const EmployeeCombo = ({
   id,
   data,
@@ -196,7 +203,7 @@ const EmployeeCombo = ({
   useEffect(() => {
     const res = data?.find((item) => item.name === selectedValues);
     setEmployee(res);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedValues]);
   return (
     <Popover modal>

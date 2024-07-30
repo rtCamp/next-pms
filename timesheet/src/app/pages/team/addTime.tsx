@@ -15,7 +15,6 @@ import {
 import { Button } from "@/app/components/ui/button";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { TimesheetSchema } from "@/schema/timesheet";
-import { Checkbox } from "@/app/components/ui/checkbox";
 import { Typography } from "@/app/components/typography";
 import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,18 +24,20 @@ import { Input } from "@/app/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
 import { Clock3, Search } from "lucide-react";
 import { DatePicker } from "@/app/components/datePicker";
-import { getFormatedDate, parseFrappeErrorMsg } from "@/lib/utils";
+import { cn, getFormatedDate, parseFrappeErrorMsg } from "@/lib/utils";
 import { ComboxBox } from "@/app/components/comboBox";
 import { Textarea } from "@/app/components/ui/textarea";
 import { useToast } from "@/app/components/ui/use-toast";
 import { setFetchAgain } from "@/store/team";
+import { Check } from "lucide-react";
+import { Employee } from "@/types";
 
 export const AddTime = () => {
   const teamState = useSelector((state: RootState) => state.team);
   const dispatch = useDispatch();
   const [searchTerm, setSearchTerm] = useState("");
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
-  const {toast} = useToast();
+  const { toast } = useToast();
   const form = useForm<z.infer<typeof TimesheetSchema>>({
     resolver: zodResolver(TimesheetSchema),
     defaultValues: {
@@ -80,21 +81,21 @@ export const AddTime = () => {
   };
   const handleSubmit = (data: z.infer<typeof TimesheetSchema>) => {
     call(data)
-    .then((res) => {
-      toast({
-        variant: "success",
-        description: res.message,
+      .then((res) => {
+        toast({
+          variant: "success",
+          description: res.message,
+        });
+        dispatch(setFetchAgain(true));
+        handleOpenChange();
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          description: error,
+        });
       });
-      dispatch(setFetchAgain(true));
-      handleOpenChange();
-    })
-    .catch((err) => {
-      const error = parseFrappeErrorMsg(err);
-      toast({
-        variant: "destructive",
-        description: error,
-      });
-    });
   };
   useEffect(() => {
     mutateTask();
@@ -116,7 +117,7 @@ export const AddTime = () => {
                       <FormLabel>Employee</FormLabel>
                       <FormControl>
                         <div className="relative flex items-center">
-                          <EmployeeList employee={teamState.employee} />
+                          <EmployeeList id={teamState.employee} />
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -220,22 +221,25 @@ export const AddTime = () => {
 };
 
 type EmployeeListProps = {
-  employee: string;
+  id: string;
 };
-type EmployeeProps = {
-  name: string;
-  employee_name: string;
-  image: string;
-};
-const EmployeeList = ({ employee }: EmployeeListProps) => {
+
+const EmployeeList = ({ id }: EmployeeListProps) => {
   const { data, isLoading } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Employee",
     fields: ["name", "employee_name", "image"],
   });
-  const [selectedEmployee, setSelectedEmployee] = useState<string>(employee);
+  const [selectedEmployee, setSelectedEmployee] = useState<string>(id);
+  const [employee, setEmployee] = useState<Employee | undefined>();
   const handleSelectEmployee = (value: string) => {
     setSelectedEmployee(value);
   };
+  useEffect(() => {
+    const res = data.message?.find((item: Employee) => item.name === selectedEmployee);
+    setEmployee(res);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedEmployee]);
+
   if (isLoading) return <></>;
   return (
     <Popover modal>
@@ -244,16 +248,11 @@ const EmployeeList = ({ employee }: EmployeeListProps) => {
           {selectedEmployee ? (
             <>
               <Avatar className="w-8 h-8">
-                <AvatarImage
-                  src={data?.message.find((item: EmployeeProps) => item.name === selectedEmployee)?.image}
-                  alt="image"
-                />
-                <AvatarFallback>
-                  {data?.message.find((item: EmployeeProps) => item.name === selectedEmployee)?.employee_name[0]}
-                </AvatarFallback>
+                <AvatarImage src={employee?.image} alt="image" />
+                <AvatarFallback>{employee?.employee_name[0]}</AvatarFallback>
               </Avatar>
               <Typography variant="p" className="truncate">
-                {data?.message.find((item: EmployeeProps) => item.name === selectedEmployee)?.employee_name}
+                {employee?.employee_name}
               </Typography>
             </>
           ) : (
@@ -268,7 +267,7 @@ const EmployeeList = ({ employee }: EmployeeListProps) => {
           {data?.message && (
             <CommandGroup>
               <CommandList>
-                {data?.message.map((item: EmployeeProps, index: number) => {
+                {data?.message.map((item: Employee, index: number) => {
                   const isActive = selectedEmployee == item.name;
                   return (
                     <CommandItem
@@ -277,7 +276,7 @@ const EmployeeList = ({ employee }: EmployeeListProps) => {
                       value={item.name}
                       onSelect={handleSelectEmployee}
                     >
-                      <Checkbox checked={isActive} />
+                      <Check className={cn("mr-2 h-4 w-4", isActive ? "opacity-100" : "opacity-0")} />
                       <Avatar className="w-6 h-6">
                         <AvatarImage src={item.image} alt={item.employee_name} />
                         <AvatarFallback>{item.employee_name[0]}</AvatarFallback>

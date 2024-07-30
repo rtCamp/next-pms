@@ -135,7 +135,7 @@ const TeamSlice = createSlice({
             state.timesheetData = action.payload;
         },
         updateTimesheetData: (state, action: PayloadAction<DynamicKey>) => {
-            
+
             const data = Object.assign(state.timesheetData.data, action.payload);
             state.timesheetData.data = data;
         },

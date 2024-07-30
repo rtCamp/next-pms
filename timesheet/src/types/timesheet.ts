@@ -1,5 +1,5 @@
-
-interface TaskProps {
+import { WorkingFrequency } from "@/types"
+export interface TaskProps {
     [key: string]: TaskDataProps
 }
 export interface TaskDataProps {
@@ -32,7 +32,7 @@ export interface DynamicKey {
 }
 export interface DataProp {
     working_hour: number;
-    working_frequency: string;
+    working_frequency: WorkingFrequency;
     data: DynamicKey;
 }
 export interface timesheet {
@@ -45,4 +45,15 @@ export interface timesheet {
     leaves: Array<LeaveProps>;
     holidays: string[]
     status: string
+}
+
+export interface NewTimesheetProps {
+    name: string;
+    parent: string;
+    task: string;
+    date: string;
+    description: string;
+    hours: number;
+    isUpdate: boolean;
+    employee?: string;
 }

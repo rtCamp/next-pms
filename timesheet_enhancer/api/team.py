@@ -2,7 +2,7 @@ import frappe
 from frappe.utils import nowdate
 from frappe.utils.data import add_days, getdate
 
-from .utils import get_week_dates
+from .utils import get_employee_working_hours, get_week_dates
 
 now = nowdate()
 
@@ -35,7 +35,8 @@ def get_compact_view_data(
     res = {"dates": dates}
 
     for employee in employees:
-        local_data = {**employee}
+        working_hours = get_employee_working_hours(employee.name)
+        local_data = {**employee, **working_hours}
         is_approved = frappe.db.count(
             "Timesheet",
             {
