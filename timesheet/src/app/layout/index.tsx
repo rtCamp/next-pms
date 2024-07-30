@@ -44,7 +44,7 @@ export const Layout = () => {
           });
         });
     })();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
     <div className="flex flex-row h-screen w-screen">
@@ -79,7 +79,7 @@ export const PmRoute = () => {
     if (user.roles.length < 1 && !isLoading && !error) {
       dispatch(setRole(data.message));
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, error, isLoading]);
 
   if (!user.roles.includes("Projects Manager")) {

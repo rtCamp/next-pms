@@ -150,7 +150,7 @@ const Navigation = () => {
           <AvatarFallback>{user.userName[0]}</AvatarFallback>
         </Avatar>
         <Typography variant="p" className={cn("transition-all duration-800", user.isSidebarCollapsed && "hidden")}>
-          {decodeURIComponent(user.userName)}
+          {user.userName}
         </Typography>
       </PopoverTrigger>
       <PopoverContent className="flex flex-col p-1 w-52">

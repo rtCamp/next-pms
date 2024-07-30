@@ -72,7 +72,7 @@ export function floatToTime(float: number) {
   const minutes = Math.round((float % 1) * 60);
 
   // Format hours and minutes to always be two digits
-  const formattedHours = String(hours).padStart(2, '0');
+  const formattedHours = String(hours).padStart(1, '0');
   const formattedMinutes = String(minutes).padStart(2, '0');
 
   return `${formattedHours}:${formattedMinutes}`;
