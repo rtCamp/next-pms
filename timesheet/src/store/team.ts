@@ -1,6 +1,7 @@
 import { getTodayDate, getFormatedDate } from "@/lib/utils";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { addDays } from "date-fns";
+import { DataProp as timesheetDataProps, DynamicKey } from "@/types/timesheet";
 
 type DateRange = {
     start_date: string;
@@ -22,6 +23,7 @@ export interface TeamState {
         hours: number;
         isUpdate: boolean;
     },
+    timesheetData: timesheetDataProps & DynamicKey;
     start: number;
     dateRange: DateRange,
     employee: string;
@@ -70,6 +72,11 @@ export const initialState: TeamState = {
     dateRange: {
         start_date: "",
         end_date: ""
+    },
+    // @ts-ignore
+    timesheetData: {
+        working_hour: 0,
+        working_frequency: "",
     }
 }
 
@@ -123,9 +130,17 @@ const TeamSlice = createSlice({
         },
         resetState: (state) => {
             return { ...state, ...initialState }
-        }
+        },
+        setTimesheetData: (state, action: PayloadAction<timesheetDataProps & DynamicKey>) => {
+            state.timesheetData = action.payload;
+        },
+        updateTimesheetData: (state, action: PayloadAction<DynamicKey>) => {
+            
+            const data = Object.assign(state.timesheetData.data, action.payload);
+            state.timesheetData.data = data;
+        },
     }
 });
 
-export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData, resetData, setDateRange, setApprovalDialog, setEmployee, setDialog, resetState } = TeamSlice.actions;
+export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData, resetData, setDateRange, setApprovalDialog, setEmployee, setDialog, resetState, setTimesheetData, updateTimesheetData } = TeamSlice.actions;
 export default TeamSlice.reducer;

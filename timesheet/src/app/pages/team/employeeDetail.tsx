@@ -22,26 +22,29 @@ import { ChevronDown } from "lucide-react";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { addDays } from "date-fns";
 import { AddTime } from "./addTime";
-import { setTimesheet, setDialog, setEmployee, setFetchAgain } from "@/store/team";
+import {
+  setTimesheet,
+  setDialog,
+  setEmployee,
+  setFetchAgain,
+  setTimesheetData,
+  updateTimesheetData,
+  setWeekDate,
+  resetState,
+} from "@/store/team";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { DataProp } from "@/types/timesheet";
+
 const EmployeeDetail = () => {
   const { id } = useParams();
   const teamState = useSelector((state: RootState) => state.team);
-  const [weekDate, setWeekDate] = useState(getTodayDate());
-  const [timesheetData, setTimesheetData] = useState<DataProp>({
-    working_hour: 0,
-    working_frequency: "",
-    data: {},
-  });
   const { toast } = useToast();
   const dispatch = useDispatch();
   const { data, isLoading, error, mutate } = useFrappeGetCall(
     "timesheet_enhancer.api.timesheet.get_timesheet_data",
     {
       employee: id,
-      start_date: weekDate,
+      start_date: teamState.weekDate,
       max_week: 4,
     },
     {
@@ -57,13 +60,13 @@ const EmployeeDetail = () => {
     // navigate(`/team/employee/${name}`);
   };
   const handleLoadData = () => {
-    if (timesheetData.data == undefined || Object.keys(timesheetData.data).length == 0) return;
+    if (teamState.timesheetData.data == undefined || Object.keys(teamState.timesheetData.data).length == 0) return;
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    const obj = timesheetData.data[Object.keys(timesheetData.data).pop()];
+    const obj = teamState.timesheetData.data[Object.keys(teamState.timesheetData.data).pop()];
     const date = getFormatedDate(addDays(obj.start_date, -1));
-    setWeekDate(date);
-    setFetchAgain(true);
+    dispatch(setWeekDate(date));
+    dispatch(setFetchAgain(true));
   };
   const handleAddTime = () => {
     const timesheetData = {
@@ -80,18 +83,22 @@ const EmployeeDetail = () => {
     dispatch(setDialog(true));
   };
   useEffect(() => {
+    dispatch(resetState());
+    const date = getTodayDate();
+    dispatch(setWeekDate(date));
+    dispatch(setFetchAgain(true));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
     if (teamState.isFetchAgain) {
       mutate();
       setFetchAgain(false);
     }
     if (data) {
-      if (timesheetData.data && Object.keys(timesheetData.data).length > 0) {
-        const res = Object.assign(timesheetData.data, data.message.data);
-        setTimesheetData((prev) => {
-          return { ...prev, data: res };
-        });
+      if (teamState.timesheetData.data && Object.keys(teamState.timesheetData.data).length > 0) {
+        dispatch(updateTimesheetData(data.message.data));
       } else {
-        setTimesheetData(data.message);
+        dispatch(setTimesheetData(data.message));
       }
     }
     if (error) {
@@ -103,10 +110,10 @@ const EmployeeDetail = () => {
       setFetchAgain(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, weekDate, error, teamState.isFetchAgain]);
+  }, [data, teamState.weekDate, error, teamState.isFetchAgain]);
 
-  if (error || isEmployeeLoading) {
-    return <></>;
+  if (isLoading || isEmployeeLoading) {
+    return <Spinner isFull />;
   }
 
   return (
@@ -123,9 +130,10 @@ const EmployeeDetail = () => {
       ) : (
         <>
           <div className="overflow-y-scroll" style={{ height: "calc(100vh - 8rem)" }}>
-            {Object.keys(timesheetData.data).length > 0 &&
+            {teamState.timesheetData.data &&
+              Object.keys(teamState.timesheetData.data).length > 0 &&
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              Object.entries(timesheetData.data).map(([key, value]: [string, any]) => {
+              Object.entries(teamState.timesheetData.data).map(([key, value]: [string, any]) => {
                 return (
                   <>
                     <Accordion type="multiple" key={key} defaultValue={[key]}>
@@ -179,10 +187,17 @@ const EmployeeCombo = ({
   handleChange: (name: string) => void;
 }) => {
   const [selectedValues, setSelectedValues] = useState<string>(id ?? "");
+  const [employee, setEmployee] = useState<Employee | undefined>();
+
   const onEmployeeChange = (name: string) => {
     setSelectedValues(name);
     handleChange(name);
   };
+  useEffect(() => {
+    const res = data?.find((item) => item.name === selectedValues);
+    setEmployee(res);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedValues]);
   return (
     <Popover modal>
       <PopoverTrigger asChild>
@@ -193,10 +208,10 @@ const EmployeeCombo = ({
         >
           <span className="flex gap-x-2 items-center">
             <Avatar className="w-8 h-8">
-              <AvatarImage src={data?.find((item) => item.name === selectedValues)?.image} alt="image" />
-              <AvatarFallback>{data?.find((item) => item.name === selectedValues)?.employee_name[0]}</AvatarFallback>
+              <AvatarImage src={employee?.image} alt="image" />
+              <AvatarFallback>{employee?.employee_name[0]}</AvatarFallback>
             </Avatar>
-            {data?.find((item) => item.name === selectedValues)?.employee_name}
+            {employee?.employee_name}
           </span>
           <ChevronDown size={24} className="w-4 h-4 transition-transform duration-400" />
         </Button>
