@@ -73,7 +73,7 @@ export const Sidebar = () => {
   return (
     <aside
       className={cn(
-        "bg-slate-100 h-full w-1/5 transition-all duration-300 ease-in-out p-4 flex flex-col",
+        "bg-slate-100  w-1/5 transition-all duration-300 ease-in-out p-4 flex flex-col",
         user.isSidebarCollapsed && "w-16 items-center"
       )}
     >
@@ -124,7 +124,7 @@ export const Sidebar = () => {
         <Navigation />
         <Button
           variant="ghost"
-          className="justify-end  gap-x-2 transition-all duration-300 ease-in-out"
+          className="justify-end  gap-x-2 transition-all duration-300 ease-in-out h-6"
           onClick={handleCollapse}
         >
           <ArrowLeftToLine

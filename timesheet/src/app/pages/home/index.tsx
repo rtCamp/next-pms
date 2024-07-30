@@ -5,7 +5,7 @@ import { RootState } from "@/store";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { setData, setFetchAgain, setWeekDate, setEmployee, resetState, DateProps } from "@/store/team";
+import { setData, setFetchAgain, setWeekDate, setEmployeeName, DateProps, setStart, setHasMore } from "@/store/home";
 // import { Spinner } from "@/app/components/spinner";
 import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
 import { addDays, isToday } from "date-fns";
@@ -17,19 +17,16 @@ import { Typography } from "@/app/components/typography";
 
 const Home = () => {
   const { toast } = useToast();
-  const homeState = useSelector((state: RootState) => state.team);
+  const homeState = useSelector((state: RootState) => state.home);
   const dispatch = useDispatch();
 
   const { data, error, mutate } = useFrappeGetCall("timesheet_enhancer.api.team.get_compact_view_data", {
     date: homeState.weekDate,
-    employee_name: homeState.employee,
+    employee_name: homeState.employeeName,
+    page_length: 20,
+    start: homeState.start,
   });
-  useEffect(() => {
-    return () => {
-      dispatch(resetState());
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
   useEffect(() => {
     if (homeState.isFetchAgain) {
       mutate();
@@ -37,6 +34,7 @@ const Home = () => {
     }
     if (data) {
       dispatch(setData(data.message));
+      dispatch(setHasMore(data.message.has_more));
     }
     if (error) {
       const err = parseFrappeErrorMsg(error);
@@ -49,7 +47,7 @@ const Home = () => {
   }, [data, homeState.isFetchAgain, error]);
 
   const onInputChange = deBounce((e: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(setEmployee(e.target.value));
+    dispatch(setEmployeeName(e.target.value));
     dispatch(setFetchAgain(true));
   }, 1000);
 
@@ -61,6 +59,11 @@ const Home = () => {
   const handlenextWeek = () => {
     const date = getFormatedDate(addDays(homeState.weekDate, 14));
     dispatch(setWeekDate(date));
+    dispatch(setFetchAgain(true));
+  };
+  const handleLoadMore = () => {
+    if (!homeState.hasMore) return;
+    dispatch(setStart(homeState.start + 20));
     dispatch(setFetchAgain(true));
   };
   //   if (isLoading) return <Spinner isFull />;
@@ -98,7 +101,7 @@ const Home = () => {
           </div>
         </div>
       </section>
-      <div>
+      <div className="overflow-y-scroll mb-2" style={{ height: "calc(100vh - 8rem)" }}>
         <Table>
           <TableHeader>
             <TableRow>
@@ -150,6 +153,9 @@ const Home = () => {
           </TableBody>
         </Table>
       </div>
+      <Button variant="outline" onClick={handleLoadMore} disabled={!homeState.hasMore}>
+        Load More
+      </Button>
     </>
   );
 };

@@ -47,7 +47,7 @@ export const Layout = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
-    <div className="flex flex-row h-screen w-screen">
+    <div className="flex flex-row h-full w-screen">
       <Sidebar />
       <div className="w-full flex flex-col">
         {user.employee && (

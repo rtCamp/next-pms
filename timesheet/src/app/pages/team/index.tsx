@@ -16,7 +16,6 @@ import {
   setDateRange,
   setApprovalDialog,
   setEmployee,
-  resetState,
 } from "@/store/team";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg, prettyDate, floatToTime, getFormatedDate, cn } from "@/lib/utils";
@@ -68,6 +67,7 @@ const Team = () => {
   const { data, error } = useFrappeGetCall("timesheet_enhancer.api.team.get_compact_view_data", {
     date: teamState.weekDate,
     max_week: 1,
+    page_length: 20,
     project: teamState.project,
     start: teamState.start,
   });
@@ -79,12 +79,6 @@ const Team = () => {
     { label: "Rejected", value: "Rejected" },
   ];
 
-  useEffect(() => {
-    return () => {
-      dispatch(resetState());
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
   useEffect(() => {
     if (data) {
       if (Object.keys(teamState.data.data).length > 0) {
@@ -126,7 +120,7 @@ const Team = () => {
   };
   const handleLoadMore = () => {
     if (!teamState.hasMore) return;
-    dispatch(setStart(teamState.start + 10));
+    dispatch(setStart(teamState.start + 20));
     dispatch(setFetchAgain(true));
   };
   const onStatusClick = (start_date: string, end_date: string, employee: string) => {
@@ -209,17 +203,19 @@ const Team = () => {
                     <AccordionItem value={key} className="border-b-0">
                       <AccordionTrigger className="hover:no-underline py-0">
                         <span className="w-full flex">
-                          <TableCell
-                            className="w-full max-w-md flex gap-x-2 items-center font-normal hover:underline"
-                            onClick={() => {
-                              navigate(`${TEAM}${EMPLOYEE}/${item.name}`);
-                            }}
-                          >
-                            <Avatar className="w-8 h-8">
-                              <AvatarImage src={decodeURIComponent(item.image)} />
-                              <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
-                            </Avatar>
-                            {item.employee_name}
+                          <TableCell className="w-full max-w-md ">
+                            <span
+                              className="flex gap-x-2 items-center font-normal hover:underline w-fit"
+                              onClick={() => {
+                                navigate(`${TEAM}${EMPLOYEE}/${item.name}`);
+                              }}
+                            >
+                              <Avatar className="w-8 h-8">
+                                <AvatarImage src={decodeURIComponent(item.image)} />
+                                <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
+                              </Avatar>
+                              {item.employee_name}
+                            </span>
                           </TableCell>
                           {item.data.map((data: ItemDataProps) => {
                             total += data.hour;
