@@ -5,6 +5,7 @@ from hrms.hr.utils import get_holiday_dates_for_employee
 
 from timesheet_enhancer.api.utils import (
     get_employee_from_user,
+    get_employee_working_hours,
     get_leaves_for_employee,
     get_week_dates,
 )
@@ -20,6 +21,9 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
         employee = get_employee_from_user()
     if not frappe.db.exists("Employee", employee):
         throw(_("Employee not found."))
+
+    hour_detail = get_employee_working_hours(employee)
+    res = {**hour_detail}
     data = {}
     for i in range(max_week):
         current_week = True if start_date == now else False
@@ -40,8 +44,8 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
             week_dates["dates"], employee
         )
         start_date = add_days(getdate(week_dates["start_date"]), -1)
-
-    return data
+    res["data"] = data
+    return res
 
 
 @frappe.whitelist()

@@ -23,8 +23,7 @@ export const Employee = ({ employee }: EmployeeProps) => {
   if (isLoading) {
     return <Spinner />;
   }
-  const timesheetData = data?.message[Object.keys(data?.message)[0]];
-
+  const timesheetData = data?.message.data[Object.keys(data?.message.data)[0]];
   return (
     <div>
       <Table>
@@ -150,7 +149,7 @@ const Cell = ({
     setIsHovered(false);
   };
   return (
-    <Tooltip >
+    <Tooltip>
       <TableCell
         key={date}
         onMouseEnter={onMouseEnter}
@@ -162,7 +161,7 @@ const Cell = ({
           isHovered && "bg-slate-100 text-center cursor-pointer"
         )}
       >
-        <TooltipTrigger className={cn("h-full",isDisabled && "cursor-default")}>
+        <TooltipTrigger className={cn("h-full", isDisabled && "cursor-default")}>
           {!isHovered && (
             <Typography variant="p" className={cn("text-slate-600", isHoliday || (isDisabled && "text-slate-400"))}>
               {data?.hours ? floatToTime(data?.hours || 0) : "-"}

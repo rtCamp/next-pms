@@ -41,8 +41,8 @@ function Timesheet() {
       dispatch(SetFetchAgain(false));
     }
     if (data) {
-      if (Object.keys(timesheet.data).length > 0) {
-        dispatch(AppendData(data.message));
+      if (timesheet.data?.data && Object.keys(timesheet.data?.data).length > 0) {
+        dispatch(AppendData(data.message.data));
       } else {
         dispatch(setData(data.message));
       }
@@ -81,12 +81,12 @@ function Timesheet() {
     dispatch(SetAddTimeDialog(true));
   };
   const loadData = () => {
-    const data = timesheet.data;
+    const data = timesheet.data.data;
     if (!data) return;
     // eslint-disable-next-line
     // @ts-expect-error
     const obj = data[Object.keys(data).pop()];
-    console.log(obj);
+
     dispatch(SetWeekDate(getFormatedDate(addDays(obj.start_date, -1))));
     dispatch(SetFetchAgain(true));
   };
@@ -111,14 +111,15 @@ function Timesheet() {
       {isLoading ? (
         <Spinner isFull />
       ) : (
-        <div className="overflow-y-scroll" style={{ height: "calc(100vh - 14rem)" }}>
-          {Object.keys(timesheet.data).length > 0 &&
+        <div className="overflow-y-scroll" style={{ height: "calc(100vh - 8rem)" }}>
+          {timesheet.data?.data &&
+            Object.keys(timesheet.data?.data).length > 0 &&
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            Object.entries(timesheet.data).map(([key, value]: [string, any], index: number) => {
+            Object.entries(timesheet.data?.data).map(([key, value]: [string, any]) => {
               return (
-                <Accordion type="multiple" key={key} defaultValue={index == 0 ? [key] : []}>
+                <Accordion type="multiple" key={key} defaultValue={[key]}>
                   <AccordionItem value={key}>
-                    <AccordionTrigger className="hover:no-underline w-full">
+                    <AccordionTrigger className="hover:no-underline w-full py-2">
                       <div className="flex justify-between w-full">
                         <Typography variant="h5" className="font-medium">
                           {key} : {value.total_hours}h

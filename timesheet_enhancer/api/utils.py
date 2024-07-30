@@ -15,6 +15,23 @@ def get_employee_from_user(user: str = None):
 
 
 @frappe.whitelist()
+def get_employee_working_hours(employee: str = None):
+    if not employee:
+        employee = get_employee_from_user()
+    working_hour, working_frequency = frappe.get_value(
+        "Employee",
+        employee,
+        ["custom_working_hourfrequency", "custom_working_frequency"],
+    )
+    if not working_hour:
+        working_hour = frappe.db.get_single_value(
+            "HR Settings", "standard_working_hours"
+        )
+
+    return {"working_hour": working_hour, "working_frequency": working_frequency}
+
+
+@frappe.whitelist()
 def get_current_user_roles(user: str = None):
     if not user:
         user = frappe.session.user

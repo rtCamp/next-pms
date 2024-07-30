@@ -21,19 +21,23 @@ import {
 import { ChevronDown } from "lucide-react";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { addDays } from "date-fns";
-
+import { AddTime } from "./addTime";
+import { setTimesheet, setDialog, setEmployee, setFetchAgain } from "@/store/team";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/store";
+import { DataProp } from "@/types/timesheet";
 const EmployeeDetail = () => {
   const { id } = useParams();
+  const teamState = useSelector((state: RootState) => state.team);
   const [weekDate, setWeekDate] = useState(getTodayDate());
-  const [data, setData] = useState({});
-  const [fetch, setFetch] = useState(false);
+  const [timesheetData, setTimesheetData] = useState<DataProp>({
+    working_hour: 0,
+    working_frequency: "",
+    data: {},
+  });
   const { toast } = useToast();
-  const {
-    data: timesheetData,
-    isLoading,
-    error,
-    mutate,
-  } = useFrappeGetCall(
+  const dispatch = useDispatch();
+  const { data, isLoading, error, mutate } = useFrappeGetCall(
     "timesheet_enhancer.api.timesheet.get_timesheet_data",
     {
       employee: id,
@@ -49,30 +53,45 @@ const EmployeeDetail = () => {
     fields: ["name", "employee_name", "image"],
   });
 
-  const onEmployeeChange = (name: string) => {
+  const onEmployeeChange = () => {
     // navigate(`/team/employee/${name}`);
   };
   const handleLoadData = () => {
-    if (data == undefined || Object.keys(data).length == 0) return;
+    if (timesheetData.data == undefined || Object.keys(timesheetData.data).length == 0) return;
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    const obj = data[Object.keys(data).pop()];
+    const obj = timesheetData.data[Object.keys(timesheetData.data).pop()];
     const date = getFormatedDate(addDays(obj.start_date, -1));
     setWeekDate(date);
-    setFetch(true);
+    setFetchAgain(true);
+  };
+  const handleAddTime = () => {
+    const timesheetData = {
+      name: "",
+      parent: "",
+      task: "",
+      date: getFormatedDate(new Date()),
+      description: "",
+      hours: 0,
+      isUpdate: false,
+    };
+    dispatch(setTimesheet(timesheetData));
+    dispatch(setEmployee(id as string));
+    dispatch(setDialog(true));
   };
   useEffect(() => {
-    if (fetch) {
+    if (teamState.isFetchAgain) {
       mutate();
-      setFetch(false);
+      setFetchAgain(false);
     }
-    if (timesheetData) {
-      if (Object.keys(data).length > 0) {
-        setData((prev) => {
-          return { ...prev, ...timesheetData.message };
+    if (data) {
+      if (timesheetData.data && Object.keys(timesheetData.data).length > 0) {
+        const res = Object.assign(timesheetData.data, data.message.data);
+        setTimesheetData((prev) => {
+          return { ...prev, data: res };
         });
       } else {
-        setData(timesheetData.message);
+        setTimesheetData(data.message);
       }
     }
     if (error) {
@@ -81,10 +100,10 @@ const EmployeeDetail = () => {
         variant: "destructive",
         description: err,
       });
-      setFetch(false);
+      setFetchAgain(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timesheetData, weekDate, error, fetch]);
+  }, [data, weekDate, error, teamState.isFetchAgain]);
 
   if (error || isEmployeeLoading) {
     return <></>;
@@ -92,21 +111,24 @@ const EmployeeDetail = () => {
 
   return (
     <div className="flex flex-col">
+      {teamState.isDialogOpen && <AddTime />}
       <div>
         <EmployeeCombo id={id} data={employees?.message} handleChange={onEmployeeChange} />
-        <Button className="float-right mb-1">Add Time</Button>
+        <Button className="float-right mb-1" onClick={handleAddTime}>
+          Add Time
+        </Button>
       </div>
       {isLoading ? (
         <Spinner isFull />
       ) : (
         <>
-          <div className="overflow-y-scroll" style={{ height: "calc(100vh - 14rem)" }}>
-            {Object.keys(data).length > 0 &&
+          <div className="overflow-y-scroll" style={{ height: "calc(100vh - 8rem)" }}>
+            {Object.keys(timesheetData.data).length > 0 &&
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              Object.entries(data).map(([key, value]: [string, any], index: number) => {
+              Object.entries(timesheetData.data).map(([key, value]: [string, any]) => {
                 return (
                   <>
-                    <Accordion type="multiple" key={key} defaultValue={index == 0 ? [key] : []}>
+                    <Accordion type="multiple" key={key} defaultValue={[key]}>
                       <AccordionItem value={key}>
                         <AccordionTrigger className="hover:no-underline w-full">
                           <div className="flex justify-between w-full">
