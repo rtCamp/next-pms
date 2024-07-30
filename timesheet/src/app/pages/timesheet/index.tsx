@@ -57,7 +57,7 @@ function Timesheet() {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, timesheet.weekDate, error, timesheet.isFetchAgain]);
+  }, [data, error, timesheet.isFetchAgain]);
 
   const handleAddTime = () => {
     const timesheetData = {
