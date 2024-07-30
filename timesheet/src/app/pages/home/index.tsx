@@ -13,7 +13,16 @@ import { RootState } from "@/store";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { setData, setFetchAgain, setWeekDate, setEmployeeName, DateProps, setStart, setHasMore } from "@/store/home";
+import {
+  setData,
+  setFetchAgain,
+  setWeekDate,
+  setEmployeeName,
+  DateProps,
+  setStart,
+  setHasMore,
+  updateData,
+} from "@/store/home";
 // import { Spinner } from "@/app/components/spinner";
 import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
 import { addDays, isToday } from "date-fns";
@@ -41,7 +50,11 @@ const Home = () => {
       dispatch(setFetchAgain(false));
     }
     if (data) {
-      dispatch(setData(data.message));
+      if (Object.keys(homeState.data.data).length > 0) {
+        dispatch(updateData(data.message));
+      } else {
+        dispatch(setData(data.message));
+      }
       dispatch(setHasMore(data.message.has_more));
     }
     if (error) {

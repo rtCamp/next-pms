@@ -83,8 +83,13 @@ const homeSlice = createSlice({
         setHasMore: (state, action: PayloadAction<boolean>) => {
             return { ...state, hasMore: action.payload }
         },
+        updateData: (state, action: PayloadAction<any>) => {
+            // Object.assign(action.payload.data, state.data.data);
+            const data = state.data.data;
+            return { ...state, data: { ...state.data, data: { ...data, ...action.payload.data } } }
+        },
     }
 });
 
-export const { setData, setFetchAgain, setTimesheet, setWeekDate, setEmployeeName,setStart,setHasMore } = homeSlice.actions;
+export const { setData, setFetchAgain, setTimesheet, setWeekDate, setEmployeeName,setStart,setHasMore,updateData } = homeSlice.actions;
 export default homeSlice.reducer;
