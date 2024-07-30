@@ -6,7 +6,7 @@
   "scripts": {
     "copy-html-entry": "cp ../timesheet_enhancer/public/timesheet/index.html ../timesheet_enhancer/www/timesheet/index.html",
     "dev": "vite",
-    "build": "tsc -b && vite build --base=/assets/timesheet_enhancer/timesheet/ && npm run copy-html-entry",
+    "build": "npm install && vite build --base=/assets/timesheet_enhancer/timesheet/ && npm run copy-html-entry",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },

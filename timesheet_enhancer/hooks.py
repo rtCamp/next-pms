@@ -80,6 +80,8 @@ fixtures = [
                     "Task-custom_is_billable",
                     "Project Type-custom_is_billable",
                     "Timesheet-custom_approval_status",
+                    "Employee-custom_working_frequency",
+                    "Employee-custom_working_hourfrequency",
                 },
             ]
         ],
