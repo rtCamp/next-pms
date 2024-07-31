@@ -34,7 +34,10 @@ website_route_rules = [
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-doctype_js = {"Timesheet": "public/js/timesheet.js"}
+doctype_js = {
+    "Timesheet": "public/js/timesheet.js",
+    "Employee": "public/js/employee.js",
+}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -80,8 +83,8 @@ fixtures = [
                     "Task-custom_is_billable",
                     "Project Type-custom_is_billable",
                     "Timesheet-custom_approval_status",
-                    "Employee-custom_working_frequency",
-                    "Employee-custom_working_hourfrequency",
+                    "Employee-custom_working_hours",
+                    "Employee-custom_work_schedule",
                 },
             ]
         ],
