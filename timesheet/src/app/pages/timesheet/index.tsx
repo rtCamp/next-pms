@@ -120,7 +120,7 @@ function Timesheet() {
                 <Accordion type="multiple" key={key} defaultValue={[key]}>
                   <AccordionItem value={key}>
                     <AccordionTrigger className="hover:no-underline w-full py-2">
-                      <div className="flex justify-between w-full">
+                      <div className="flex justify-between items-center w-full">
                         <Typography variant="h5" className="font-medium">
                           {key} : {value.total_hours}h
                         </Typography>

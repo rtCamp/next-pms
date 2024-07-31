@@ -2,16 +2,7 @@ import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/app/componen
 import { RootState } from "@/store";
 import { useDispatch, useSelector } from "react-redux";
 import { setDialog } from "@/store/team";
-import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
 import { Avatar, AvatarImage, AvatarFallback } from "@/app/components/ui/avatar";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/app/components/ui/command";
 import { Button } from "@/app/components/ui/button";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { TimesheetSchema } from "@/schema/timesheet";
@@ -24,13 +15,12 @@ import { Input } from "@/app/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
 import { Clock3, Search } from "lucide-react";
 import { DatePicker } from "@/app/components/datePicker";
-import { cn, getFormatedDate, parseFrappeErrorMsg } from "@/lib/utils";
+import { getFormatedDate, parseFrappeErrorMsg } from "@/lib/utils";
 import { ComboxBox } from "@/app/components/comboBox";
 import { Textarea } from "@/app/components/ui/textarea";
 import { useToast } from "@/app/components/ui/use-toast";
 import { setFetchAgain } from "@/store/team";
-import { Check } from "lucide-react";
-import { Employee } from "@/types";
+import { Spinner } from "@/app/components/spinner";
 
 export const AddTime = () => {
   const teamState = useSelector((state: RootState) => state.team);
@@ -53,11 +43,19 @@ export const AddTime = () => {
     mode: "onSubmit",
   });
 
-  const { data: tasks, mutate: mutateTask } = useFrappeGetCall("timesheet_enhancer.api.utils.get_task_for_employee", {
+  const {
+    data: tasks,
+    isLoading: taskLoading,
+    mutate: mutateTask,
+  } = useFrappeGetCall("timesheet_enhancer.api.utils.get_task_for_employee", {
     employee: form.getValues("employee"),
     search: searchTerm,
   });
-
+  const { data: employeeDetail, isLoading: employeeDetailLoading } = useFrappeGetCall("frappe.client.get_value", {
+    doctype: "Employee",
+    fieldname: ["name", "employee_name", "image"],
+    filters: [["name", "=", teamState.employee]],
+  });
   const handleOpenChange = () => {
     form.reset();
     dispatch(setDialog(false));
@@ -79,6 +77,7 @@ export const AddTime = () => {
       form.setValue("task", value);
     }
   };
+
   const handleSubmit = (data: z.infer<typeof TimesheetSchema>) => {
     call(data)
       .then((res) => {
@@ -105,20 +104,104 @@ export const AddTime = () => {
     <Dialog open={teamState.isDialogOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-xl">
         <DialogTitle>Add Time</DialogTitle>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)}>
-            <div className="flex flex-col gap-y-4">
-              <div className="flex gap-x-2">
+        {taskLoading || employeeDetailLoading ? (
+          <Spinner />
+        ) : (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)}>
+              <div className="flex flex-col gap-y-4">
+                <div className="flex gap-x-2">
+                  <FormField
+                    control={form.control}
+                    name="employee"
+                    render={() => (
+                      <FormItem className="w-full">
+                        <FormLabel>Employee</FormLabel>
+                        <FormControl>
+                          <div className="relative flex items-center">
+                            <Button
+                              variant="outline"
+                              disabled
+                              className="justify-start gap-x-3 font-normal w-full truncate"
+                            >
+                              {employeeDetail && employeeDetail.message ? (
+                                <>
+                                  <Avatar className="w-8 h-8">
+                                    <AvatarImage src={employeeDetail.message?.image} alt="image" />
+                                    <AvatarFallback>{employeeDetail.message?.employee_name[0]}</AvatarFallback>
+                                  </Avatar>
+                                  <Typography variant="p" className="truncate">
+                                    {employeeDetail.message?.employee_name}
+                                  </Typography>
+                                </>
+                              ) : (
+                                "select employee"
+                              )}
+                            </Button>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="hours"
+                    render={({ field }) => (
+                      <FormItem className="w-full">
+                        <FormLabel>Time</FormLabel>
+                        <FormControl>
+                          <div className="relative flex items-center">
+                            <Input
+                              placeholder="0h"
+                              className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                              {...field}
+                              type="text"
+                              onChange={handleTimeChange}
+                            />
+                            <Clock3 className="h-4 w-4 absolute right-0 m-3 top-0 stroke-slate-400" />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="date"
+                    render={({ field }) => (
+                      <FormItem className="w-full">
+                        <FormLabel>Date</FormLabel>
+                        <FormControl>
+                          <DatePicker date={field.value} onDateChange={handleDateChange} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <FormField
                   control={form.control}
-                  name="employee"
+                  name="task"
                   render={() => (
                     <FormItem className="w-full">
-                      <FormLabel>Employee</FormLabel>
+                      <FormLabel>Tasks</FormLabel>
                       <FormControl>
-                        <div className="relative flex items-center">
-                          <EmployeeList id={teamState.employee} />
-                        </div>
+                        <ComboxBox
+                          label="Search Task"
+                          value={form.getValues("task") ? [form.getValues("task")] : []}
+                          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                          //  @ts-expect-error
+                          data={tasks?.message.map((item) => ({
+                            label: item.subject,
+                            value: item.name,
+                            description: item.project_name,
+                            disabled: false,
+                          }))}
+                          onSelect={handleTaskChange}
+                          onSearch={handleTaskSearch}
+                          rightIcon={<Search className="h-4 w-4 stroke-slate-400" />}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -126,170 +209,34 @@ export const AddTime = () => {
                 />
                 <FormField
                   control={form.control}
-                  name="hours"
+                  name="description"
                   render={({ field }) => (
                     <FormItem className="w-full">
-                      <FormLabel>Time</FormLabel>
+                      <FormLabel>Comment</FormLabel>
                       <FormControl>
-                        <div className="relative flex items-center">
-                          <Input
-                            placeholder="0h"
-                            className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
-                            {...field}
-                            type="text"
-                            onChange={handleTimeChange}
-                          />
-                          <Clock3 className="h-4 w-4 absolute right-0 m-3 top-0 stroke-slate-400" />
-                        </div>
+                        <Textarea
+                          placeholder="Explain your progress"
+                          rows={4}
+                          className="w-full placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="date"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Date</FormLabel>
-                      <FormControl>
-                        <DatePicker date={field.value} onDateChange={handleDateChange} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <FormField
-                control={form.control}
-                name="task"
-                render={() => (
-                  <FormItem className="w-full">
-                    <FormLabel>Tasks</FormLabel>
-                    <FormControl>
-                      <ComboxBox
-                        label="Search Task"
-                        value={form.getValues("task") ? [form.getValues("task")] : []}
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        //  @ts-expect-error
-                        data={tasks?.message.map((item) => ({
-                          label: item.subject,
-                          value: item.name,
-                          description: item.project_name,
-                          disabled: false,
-                        }))}
-                        onSelect={handleTaskChange}
-                        onSearch={handleTaskSearch}
-                        rightIcon={<Search className="h-4 w-4 stroke-slate-400" />}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel>Comment</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Explain your progress"
-                        rows={4}
-                        className="w-full placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
-              <DialogFooter className="sm:justify-start">
-                <Button>Add Time</Button>
-                <Button type="button" variant="outline" onClick={handleOpenChange}>
-                  Cancel
-                </Button>
-              </DialogFooter>
-            </div>
-          </form>
-        </Form>
+                <DialogFooter className="sm:justify-start">
+                  <Button>Add Time</Button>
+                  <Button type="button" variant="outline" onClick={handleOpenChange}>
+                    Cancel
+                  </Button>
+                </DialogFooter>
+              </div>
+            </form>
+          </Form>
+        )}
       </DialogContent>
     </Dialog>
-  );
-};
-
-type EmployeeListProps = {
-  id: string;
-};
-
-const EmployeeList = ({ id }: EmployeeListProps) => {
-  const { data, isLoading } = useFrappeGetCall("frappe.client.get_list", {
-    doctype: "Employee",
-    fields: ["name", "employee_name", "image"],
-  });
-  const [selectedEmployee, setSelectedEmployee] = useState<string>(id);
-  const [employee, setEmployee] = useState<Employee | undefined>();
-  const handleSelectEmployee = (value: string) => {
-    setSelectedEmployee(value);
-  };
-  useEffect(() => {
-    const res = data.message?.find((item: Employee) => item.name === selectedEmployee);
-    setEmployee(res);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedEmployee]);
-
-  if (isLoading) return <></>;
-  return (
-    <Popover modal>
-      <PopoverTrigger asChild>
-        <Button variant="outline" className="justify-start gap-x-3 font-normal w-full truncate">
-          {selectedEmployee ? (
-            <>
-              <Avatar className="w-8 h-8">
-                <AvatarImage src={employee?.image} alt="image" />
-                <AvatarFallback>{employee?.employee_name[0]}</AvatarFallback>
-              </Avatar>
-              <Typography variant="p" className="truncate">
-                {employee?.employee_name}
-              </Typography>
-            </>
-          ) : (
-            "select employee"
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="p-0">
-        <Command shouldFilter={false}>
-          <CommandInput placeholder="Search Employee" />
-          <CommandEmpty>No data.</CommandEmpty>
-          {data?.message && (
-            <CommandGroup>
-              <CommandList>
-                {data?.message.map((item: Employee, index: number) => {
-                  const isActive = selectedEmployee == item.name;
-                  return (
-                    <CommandItem
-                      key={index}
-                      className="flex gap-x-2 text-primary font-normal"
-                      value={item.name}
-                      onSelect={handleSelectEmployee}
-                    >
-                      <Check className={cn("mr-2 h-4 w-4", isActive ? "opacity-100" : "opacity-0")} />
-                      <Avatar className="w-6 h-6">
-                        <AvatarImage src={item.image} alt={item.employee_name} />
-                        <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
-                      </Avatar>
-                      <Typography variant="p">{item.employee_name}</Typography>
-                    </CommandItem>
-                  );
-                })}
-              </CommandList>
-            </CommandGroup>
-          )}
-        </Command>
-      </PopoverContent>
-    </Popover>
   );
 };

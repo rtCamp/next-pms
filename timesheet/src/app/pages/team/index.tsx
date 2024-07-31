@@ -153,6 +153,10 @@ const Team = () => {
             }))}
             className="text-primary border-dashed gap-x-2 font-normal"
           />
+          <ComboxBox
+            label="User Groups"
+            className="text-primary border-dashed gap-x-2 font-normal"
+          />
         </div>
         <div id="date-filter" className="flex gap-x-2">
           <Button className="p-1 h-fit" variant="outline" onClick={handleprevWeek}>
@@ -266,7 +270,10 @@ const Status = ({ status }: { status: string }) => {
     return <Hourglass className="w-4 h-4 stroke-warning " />;
   }
   if (status === "Approved") {
-    return <CircleX className="w-4 h-4 stroke-success" />;
+    return <CircleCheck className="w-4 h-4 stroke-success" />;
+  }
+  if (status === "Rejected") {
+    return <CircleX className="w-4 h-4 stroke-error" />;
   }
   return <CircleCheck className="w-4 h-4 " />;
 };
