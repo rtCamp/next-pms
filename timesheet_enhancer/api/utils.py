@@ -161,18 +161,27 @@ def get_task_for_employee(
 
 
 def filter_employees(
-    employee_name=None, department=None, project=None, page_length=10, start=0
+    employee_name=None,
+    department=None,
+    project=None,
+    page_length=10,
+    start=0,
+    user_group=None,
 ):
     import json
 
     fields = ["name", "image", "employee_name", "department", "designation"]
-    employee_ids = None
+    employee_ids = []
     filters = {}
+
     if isinstance(department, str):
         department = json.loads(department)
 
     if isinstance(project, str):
         project = json.loads(project)
+
+    if isinstance(user_group, str):
+        user_group = json.loads(user_group)
 
     if employee_name:
         filters["employee_name"] = ["like", f"%{employee_name}%"]
@@ -186,10 +195,23 @@ def filter_employees(
             filters={"share_doctype": "Project", "share_name": ["IN", project]},
             fields=["user"],
         )
-        employee_ids = [
+        ids = [
             frappe.get_value("Employee", {"user_id": shared_project.get("user")})
             for shared_project in shared_projects
         ]
+        employee_ids.extend(ids)
+
+    if user_group and len(user_group) > 0:
+        users = frappe.get_all(
+            "User Group Member", fields=["user"], filters={"parent": ["in", user_group]}
+        )
+        ids = [
+            frappe.get_value("Employee", {"user_id": user.get("user")})
+            for user in users
+        ]
+        employee_ids.extend(ids)
+
+    if len(employee_ids) > 0:
         filters["name"] = ["in", employee_ids]
 
     employees = frappe.get_list(

@@ -16,6 +16,7 @@ import {
   setDateRange,
   setApprovalDialog,
   setEmployee,
+  setUsergroup,
 } from "@/store/team";
 import { useToast } from "@/app/components/ui/use-toast";
 import {
@@ -42,7 +43,9 @@ type ProjectProps = {
   project_name: string;
   name: string;
 };
-
+type UserGroupProps = {
+  name: string;
+};
 type DateProps = {
   start_date: string;
   end_date: string;
@@ -61,11 +64,19 @@ const Team = () => {
     fields: ["name", "project_name"],
   });
 
-  const { data, error } = useFrappeGetCall("timesheet_enhancer.api.team.get_compact_view_data", {
+  const {
+    data: userGroups,
+    isLoading: isGroupLoading,
+    error: groupError,
+  } = useFrappeGetCall("frappe.client.get_list", {
+    doctype: "User Group",
+  });
+  const { data, error, mutate } = useFrappeGetCall("timesheet_enhancer.api.team.get_compact_view_data", {
     date: teamState.weekDate,
     max_week: 1,
     page_length: 20,
     project: teamState.project,
+    user_group:teamState.userGroup,
     start: teamState.start,
   });
 
@@ -77,6 +88,10 @@ const Team = () => {
   ];
 
   useEffect(() => {
+    if (teamState.isFetchAgain) {
+      mutate();
+      dispatch(setFetchAgain(false));
+    }
     if (data) {
       if (Object.keys(teamState.data.data).length > 0) {
         dispatch(updateData(data.message));
@@ -93,7 +108,7 @@ const Team = () => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, error]);
+  }, [data, error, teamState.isFetchAgain]);
 
   const handleprevWeek = () => {
     const date = getFormatedDate(addDays(teamState.weekDate, -6));
@@ -115,6 +130,12 @@ const Team = () => {
     dispatch(resetData());
     dispatch(setFetchAgain(true));
   };
+  const handleUserGroupChange = (value: string | string[]) => {
+    dispatch(setUsergroup(value as string[]));
+    dispatch(setStart(0));
+    dispatch(resetData());
+    dispatch(setFetchAgain(true));
+  };
   const handleLoadMore = () => {
     if (!teamState.hasMore) return;
     dispatch(setStart(teamState.start + 20));
@@ -129,6 +150,7 @@ const Team = () => {
     dispatch(setEmployee(employee));
     dispatch(setApprovalDialog(true));
   };
+
   return (
     <>
       <div className="flex gap-x-2 items-center justify-between mb-3">
@@ -155,6 +177,13 @@ const Team = () => {
           />
           <ComboxBox
             label="User Groups"
+            data={userGroups?.message.map((item: UserGroupProps) => ({
+              label: item.name,
+              value: item.name,
+            }))}
+            isMulti
+            leftIcon={<Filter className="h-4 w-4" />}
+            onSelect={handleUserGroupChange}
             className="text-primary border-dashed gap-x-2 font-normal"
           />
         </div>

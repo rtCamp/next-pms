@@ -14,13 +14,19 @@ def get_compact_view_data(
     employee_name=None,
     department=None,
     project=None,
+    user_group=None,
     page_length=10,
     start=0,
 ):
     from .utils import filter_employees, get_leaves_for_employee
 
     employees, total_count = filter_employees(
-        employee_name, department, project, page_length=page_length, start=start
+        employee_name,
+        department,
+        project,
+        user_group=user_group,
+        page_length=page_length,
+        start=start,
     )
     dates = []
     data = {}

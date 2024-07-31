@@ -14,6 +14,7 @@ export interface TeamState {
     isAprrovalDialogOpen: boolean;
     weekDate: string;
     project: Array<string>;
+    userGroup: Array<string>;
     timesheet: {
         name: string;
         parent: string;
@@ -67,6 +68,7 @@ export const initialState: TeamState = {
     isAprrovalDialogOpen: false,
     weekDate: getFormatedDate(addDays(getTodayDate(), -7)),
     project: [],
+    userGroup: [],
     start: 0,
     hasMore: true,
     dateRange: {
@@ -135,12 +137,14 @@ const TeamSlice = createSlice({
             state.timesheetData = action.payload;
         },
         updateTimesheetData: (state, action: PayloadAction<DynamicKey>) => {
-
             const data = Object.assign(state.timesheetData.data, action.payload);
             state.timesheetData.data = data;
+        },
+        setUsergroup: (state, action: PayloadAction<Array<string>>) => {
+            state.userGroup = action.payload;
         },
     }
 });
 
-export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData, resetData, setDateRange, setApprovalDialog, setEmployee, setDialog, resetState, setTimesheetData, updateTimesheetData } = TeamSlice.actions;
+export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData, resetData, setDateRange, setApprovalDialog, setEmployee, setDialog, resetState, setTimesheetData, updateTimesheetData,setUsergroup } = TeamSlice.actions;
 export default TeamSlice.reducer;
