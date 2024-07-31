@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { getTodayDate } from "@/lib/utils";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { DataProp, DynamicKey } from "@/types/timesheet";
+import { DataProp,DynamicKey } from "@/types/timesheet";
 export interface TimesheetState {
     timesheet: {
         name: string;
@@ -16,7 +16,7 @@ export interface TimesheetState {
     dateRange: { start_date: string; end_date: string };
     isFetching: boolean;
     isFetchAgain: boolean;
-    data: DataProp & DynamicKey;
+    data: DataProp;
     isDialogOpen: boolean;
     isAprrovalDialogOpen: boolean;
     weekDate: string;
@@ -40,7 +40,7 @@ export const initialState: TimesheetState = {
     // @ts-ignore
     data: {
         working_hour: 0,
-        working_frequency: "",
+        working_frequency: "Per Day",
     },
     isDialogOpen: false,
     isAprrovalDialogOpen: false,
@@ -52,7 +52,7 @@ const timesheetSlice = createSlice({
     name: 'timesheet',
     initialState,
     reducers: {
-        setData: (state, action: PayloadAction<DataProp & DynamicKey>) => {
+        setData: (state, action: PayloadAction<DataProp>) => {
             state.data = action.payload;
         },
         SetFetching: (state, action: PayloadAction<boolean>) => {

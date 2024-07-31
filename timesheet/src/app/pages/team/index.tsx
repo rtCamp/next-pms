@@ -132,7 +132,7 @@ const Team = () => {
   return (
     <>
       <div className="flex gap-x-2 items-center justify-between mb-3">
-        <Approval />
+        {teamState.isAprrovalDialogOpen && <Approval />}
         <div id="filters" className="flex gap-x-2">
           <ComboxBox
             label="Approval"

@@ -26,6 +26,8 @@ export interface HomeState {
 export interface dataProps {
     data: any;
     dates: DateProps[]
+    total_count: number;
+    has_more: boolean;
 }
 
 export type DateProps = {
@@ -34,7 +36,7 @@ export type DateProps = {
     key: string
     dates: string[]
 }
-export const initialState:HomeState = {
+export const initialState: HomeState = {
     timesheet: {
         name: "",
         parent: "",
@@ -48,7 +50,9 @@ export const initialState:HomeState = {
     isFetchAgain: false,
     data: {
         data: [],
-        dates: []
+        dates: [],
+        total_count: 0,
+        has_more: true
     },
     isDialogOpen: false,
     isAprrovalDialogOpen: false,
@@ -88,8 +92,11 @@ const homeSlice = createSlice({
             const data = state.data.data;
             return { ...state, data: { ...state.data, data: { ...data, ...action.payload.data } } }
         },
+        resetData: (state) => {
+            return { ...state, data: { data: {}, dates: [], total_count: 0, has_more: true } }
+        },
     }
 });
 
-export const { setData, setFetchAgain, setTimesheet, setWeekDate, setEmployeeName,setStart,setHasMore,updateData } = homeSlice.actions;
+export const { setData, setFetchAgain, setTimesheet, setWeekDate, setEmployeeName, setStart, setHasMore, updateData ,resetData} = homeSlice.actions;
 export default homeSlice.reducer;
