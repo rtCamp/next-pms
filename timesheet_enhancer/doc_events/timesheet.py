@@ -1,4 +1,4 @@
-from frappe import get_value
+from frappe import _, get_value, throw
 
 ROLES = {
     "Projects Manager",
@@ -12,6 +12,18 @@ ROLES = {
 def validate(doc, method=None):
     validate_dates(doc)
     validate_is_time_billable(doc)
+    validate_time(doc)
+
+
+def validate_time(doc):
+    from timesheet_enhancer.api.utils import get_employee_working_hours
+
+    if not doc.employee:
+        throw(_("Employee is required."))
+    data = get_employee_working_hours(doc.employee)
+    working_frequency = data.get("working_frequency")
+    if working_frequency == "Per Day" and doc.total_hours > 24:
+        throw(_("Total hours should not exceed 24."))
 
 
 def before_save(doc, method=None):
