@@ -38,7 +38,7 @@ import { useNavigate } from "react-router-dom";
 import { Approval } from "./approval";
 import { TEAM, EMPLOYEE } from "@/lib/constant";
 import { ItemProps, ItemDataProps } from "@/types";
-
+import { Spinner } from "@/app/components/spinner";
 type ProjectProps = {
   project_name: string;
   name: string;
@@ -71,7 +71,7 @@ const Team = () => {
   } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "User Group",
   });
-  const { data, error, mutate } = useFrappeGetCall("timesheet_enhancer.api.team.get_compact_view_data", {
+  const { data,isLoading, error, mutate } = useFrappeGetCall("timesheet_enhancer.api.team.get_compact_view_data", {
     date: teamState.weekDate,
     max_week: 1,
     page_length: 20,
@@ -151,6 +151,7 @@ const Team = () => {
     dispatch(setApprovalDialog(true));
   };
 
+  if (isLoading) return <Spinner isFull />;
   return (
     <>
       <div className="flex gap-x-2 items-center justify-between mb-3">

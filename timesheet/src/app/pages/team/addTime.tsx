@@ -47,11 +47,25 @@ export const AddTime = () => {
     data: tasks,
     isLoading: taskLoading,
     mutate: mutateTask,
-  } = useFrappeGetCall("timesheet_enhancer.api.utils.get_task_for_employee", {
-    employee: form.getValues("employee"),
-    search: searchTerm,
-  });
-  const { data: employeeDetail, isLoading: employeeDetailLoading } = useFrappeGetCall("frappe.client.get_value", {
+    error: taskError,
+  } = useFrappeGetCall(
+    "timesheet_enhancer.api.utils.get_task_for_employee",
+    {
+      employee: form.getValues("employee"),
+      search: searchTerm,
+    },
+    "task_for_an_employee",
+    {
+      shouldRetryOnError: false,
+      errorRetryCount: 0,
+      keepPreviousData: true,
+    }
+  );
+  const {
+    data: employeeDetail,
+    isLoading: employeeDetailLoading,
+    error: employeeDetailError,
+  } = useFrappeGetCall("frappe.client.get_value", {
     doctype: "Employee",
     fieldname: ["name", "employee_name", "image"],
     filters: [["name", "=", teamState.employee]],
@@ -99,7 +113,23 @@ export const AddTime = () => {
   useEffect(() => {
     mutateTask();
   }, [searchTerm, mutateTask]);
-
+  useEffect(() => {
+    if (taskError) {
+      const err = parseFrappeErrorMsg(taskError);
+      toast({
+        variant: "destructive",
+        description: err,
+      });
+    }
+    if (employeeDetailError) {
+      const err = parseFrappeErrorMsg(employeeDetailError);
+      toast({
+        variant: "destructive",
+        description: err,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [taskError, employeeDetailError]);
   return (
     <Dialog open={teamState.isDialogOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-xl">

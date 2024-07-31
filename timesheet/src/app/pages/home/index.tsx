@@ -8,7 +8,7 @@ import {
   deBounce,
   getFormatedDate,
   calculateExtendedWorkingHour,
-  calculateExpectedWorkingHour
+  calculateExpectedWorkingHour,
 } from "@/lib/utils";
 import { RootState } from "@/store";
 import { useFrappeGetCall } from "frappe-react-sdk";
@@ -23,7 +23,7 @@ import {
   setStart,
   setHasMore,
   updateData,
-  resetData
+  resetData,
 } from "@/store/home";
 // import { Spinner } from "@/app/components/spinner";
 import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
