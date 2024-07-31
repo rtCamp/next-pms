@@ -120,7 +120,7 @@ export const Sidebar = () => {
         })}
       </div>
       <div className="grow"></div>
-      <div className={ cn("flex justify-between",user.isSidebarCollapsed && "flex-col items-center")}>
+      <div className={ cn("flex justify-between items-center",user.isSidebarCollapsed && "flex-col ")}>
         <Navigation />
         <Button
           variant="ghost"

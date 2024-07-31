@@ -1,5 +1,5 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
-import { cn, prettyDate, getDateFromDateAndTime, floatToTime, calculateExtendedWorkingHour} from "@/lib/utils";
+import { cn, prettyDate, getDateFromDateAndTime, floatToTime, calculateExtendedWorkingHour } from "@/lib/utils";
 import { Typography } from "./typography";
 import { useState } from "react";
 import { CircleCheck, CirclePlus, CircleX, Clock3, PencilLine } from "lucide-react";
@@ -17,6 +17,7 @@ interface TimesheetTableProps {
   onCellClick?: (data) => void;
   hasHeading?: boolean;
   working_hour: number;
+  disabled?: boolean;
   working_frequency: WorkingFrequency;
 }
 
@@ -29,6 +30,7 @@ export const TimesheetTable = ({
   hasHeading = true,
   working_hour,
   working_frequency,
+  disabled,
 }: TimesheetTableProps) => {
   return (
     <Table>
@@ -64,10 +66,17 @@ export const TimesheetTable = ({
       )}
       <TableBody>
         {Object.keys(tasks).length > 0 && (
-          <TotalHourRow dates={dates} leaves={leaves} tasks={tasks} holidays={holidays} working_frequency={working_frequency} working_hour={working_hour} />
+          <TotalHourRow
+            dates={dates}
+            leaves={leaves}
+            tasks={tasks}
+            holidays={holidays}
+            working_frequency={working_frequency}
+            working_hour={working_hour}
+          />
         )}
         {leaves.length > 0 && <LeaveRow dates={dates} leaves={leaves} />}
-        {Object.keys(tasks).length == 0 && <EmptyRow dates={dates} holidays={holidays} onCellClick={onCellClick} />}
+        {Object.keys(tasks).length == 0 && <EmptyRow dates={dates} holidays={holidays} onCellClick={onCellClick} disabled={disabled} />}
         {Object.keys(tasks).length > 0 &&
           Object.entries(tasks).map(([task, taskData]: [string, TaskDataProps]) => {
             let totalHours = 0;
@@ -100,7 +109,9 @@ export const TimesheetTable = ({
                     };
                   }
                   const isHoliday = holidays.includes(date);
-                  return <Cell date={date} data={data} isHoliday={isHoliday} onCellClick={onCellClick} />;
+                  return (
+                    <Cell date={date} data={data} isHoliday={isHoliday} onCellClick={onCellClick} disabled={disabled} />
+                  );
                 })}
                 <TableCell>
                   <Typography variant="p" className="text-slate-800 font-medium">
@@ -202,7 +213,7 @@ const TotalHourRow = ({
           }
         }
         total += total_hours;
-        const isMoreThanWorkingHour=calculateExtendedWorkingHour(total_hours, working_hour, working_frequency);
+        const isMoreThanWorkingHour = calculateExtendedWorkingHour(total_hours, working_hour, working_frequency);
         return (
           <TableCell>
             <Typography variant="p" className={cn("text-slate-600", isMoreThanWorkingHour && "text-warning")}>
@@ -287,12 +298,14 @@ const EmptyRow = ({
   dates,
   holidays,
   onCellClick,
+  disabled
 }: {
   dates: string[];
   holidays: string[];
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  onCellClick?: (data) => void;
+    onCellClick?: (data) => void;
+    disabled?: boolean;
 }) => {
   return (
     <TableRow>
@@ -314,7 +327,7 @@ const EmptyRow = ({
         };
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //   @ts-ignore
-        return <Cell date={date} data={value} isHoliday={isHoliday} onCellClick={onCellClick} />;
+        return <Cell date={date} data={value} isHoliday={isHoliday} onCellClick={onCellClick} disabled={disabled} />;
       })}
       <TableCell></TableCell>
     </TableRow>
@@ -337,28 +350,28 @@ export const SubmitButton = ({
   };
   if (status == "Approved") {
     return (
-      <Button variant="ghost" className="mr-1 text-primary bg-green-50 font-normal gap-x-2">
+      <Button variant="ghost" className="mr-1 text-primary bg-green-50 font-normal gap-x-2 px-2">
         <CircleCheck className="stroke-success w-4 h-4" />
         {status}
       </Button>
     );
   } else if (status == "Rejected") {
     return (
-      <Button variant="ghost" className="mr-1 text-primary bg-red-50 font-normal gap-x-2">
+      <Button variant="ghost" className="mr-1 text-primary bg-red-50 font-normal gap-x-2 px-2">
         <CircleX className="stroke-destructive w-4 h-4" />
         {status}
       </Button>
     );
   } else if (status == "Approval Pending") {
     return (
-      <Button variant="ghost" className="mr-1 text-primary bg-orange-50 font-normal gap-x-2" onClick={handleClick}>
+      <Button variant="ghost" className="mr-1 text-primary bg-orange-50 font-normal gap-x-2 px-2" onClick={handleClick}>
         <Clock3 className="stroke-warning w-4 h-4" />
         {status}
       </Button>
     );
   } else {
     return (
-      <Button variant="ghost" className="mr-1 font-normal text-slate-400 gap-x-2" onClick={handleClick}>
+      <Button variant="ghost" className="mr-1 font-normal text-slate-400 gap-x-2 px-2" onClick={handleClick}>
         <CircleCheck className="w-4 h-4" />
         {status}
       </Button>

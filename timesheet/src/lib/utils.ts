@@ -101,3 +101,11 @@ export function calculateExtendedWorkingHour(hours: number, expected_hours: numb
   const perDay = expected_hours / 5;
   return hours > perDay;
 }
+
+export function calculateExpectedWorkingHour(hours: number, expected_hours: number, frequency: WorkingFrequency) {
+  if (frequency === "Per Day") {
+    return hours == expected_hours;
+  }
+  const perDay = expected_hours / 5;
+  return hours == perDay;
+}

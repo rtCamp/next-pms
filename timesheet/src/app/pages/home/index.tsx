@@ -8,6 +8,7 @@ import {
   deBounce,
   getFormatedDate,
   calculateExtendedWorkingHour,
+  calculateExpectedWorkingHour
 } from "@/lib/utils";
 import { RootState } from "@/store";
 import { useFrappeGetCall } from "frappe-react-sdk";
@@ -167,13 +168,19 @@ const Home = () => {
                       item.working_hour,
                       item.working_frequency
                     );
-
+                    const isExpected = calculateExpectedWorkingHour(
+                      data.hour,
+                      item.working_hour,
+                      item.working_frequency
+                    );
                     return (
                       <TableCell
                         className={cn(
                           "text-xs",
-                          isMoreThanExpected && "text-warning",
-                          isToday(data.date) && "bg-slate-50"
+                          isExpected && "bg-success/20",
+                          isMoreThanExpected && "bg-warning/20",
+                          isToday(data.date) && "bg-slate-50",
+                          data.hour == 0 && "text-center"
                         )}
                         key={`${key}-${index}`}
                       >
