@@ -105,7 +105,7 @@ fixtures = [
 # ------------
 
 # before_install = "timesheet_enhancer.install.before_install"
-# after_install = "timesheet_enhancer.install.after_install"
+after_install = "timesheet_enhancer.install.after_install"
 
 # Uninstallation
 # ------------

@@ -2,12 +2,7 @@
 module.exports = {
   // eslint-disable-line no-use-before-define
   darkMode: ["class"],
-  content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}",
-  ],
+  content: ["./src/**/*.{ts,tsx,jsx}"],
   prefix: "",
   theme: {
     container: {
