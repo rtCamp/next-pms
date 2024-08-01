@@ -55,7 +55,7 @@ export const Employee = ({ employee }: EmployeeProps) => {
                       totalHours += data.hours;
                     }
                     const isHoliday = timesheetData.holidays.includes(date);
-                    return <Cell date={date} data={data} isHoliday={isHoliday} />;
+                    return <Cell date={date} data={data} isHoliday={isHoliday} disabled />;
                   })}
                   <TableCell>
                     <Typography variant="p" className="text-slate-800 font-medium">
@@ -102,7 +102,7 @@ export const EmptyRow = ({
         };
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //   @ts-ignore
-        return <Cell date={date} data={value} isHoliday={isHoliday} onCellClick={onCellClick} />;
+        return <Cell date={date} data={value} isHoliday={isHoliday} onCellClick={onCellClick} disabled/>;
       })}
       <TableCell className="w-full max-w-24 text-left"></TableCell>
     </TableRow>
@@ -148,6 +148,7 @@ const Cell = ({
     if (isDisabled) return;
     setIsHovered(false);
   };
+
   return (
     <Tooltip>
       <TableCell
@@ -167,7 +168,7 @@ const Cell = ({
               {data?.hours ? floatToTime(data?.hours || 0) : "-"}
             </Typography>
           )}
-          {isHovered && data?.hours && <PencilLine className="text-center" size={16} />}
+          {isHovered && data?.hours && data?.hours > 0 && <PencilLine className="text-center" size={16} />}
           {isHovered && !data?.hours && <CirclePlus className="text-center" size={16} />}
         </TooltipTrigger>
         {data?.description && <TooltipContent>{data?.description}</TooltipContent>}
