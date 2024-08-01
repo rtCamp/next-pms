@@ -1,8 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   // eslint-disable-line no-use-before-define
+  important: true,
   darkMode: ["class"],
-  content: ["./src/**/*.{ts,tsx,jsx}"],
+  content: ["./index.html", "./src/**/*.{ts,tsx,jsx,js}"],
   prefix: "",
   theme: {
     container: {
