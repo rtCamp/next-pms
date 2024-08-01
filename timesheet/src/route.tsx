@@ -1,40 +1,53 @@
 import { lazy, useContext } from "react";
 import { Routes, Route, Outlet } from "react-router-dom";
 import { TIMESHEET, HOME, TEAM } from "@/lib/constant";
-import { PmRoute } from "@/app/layout/index";
+import { Layout, PmRoute } from "@/app/layout/index";
 import { RootState } from "./store";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { UserContext } from "@/lib/UserProvider";
-import { Spinner } from "./app/components/spinner";
+
+import { FrappeConfig, FrappeContext } from "frappe-react-sdk";
+import { setRole } from "./store/user";
 const Timesheet = lazy(() => import("@/app/pages/timesheet"));
 const Home = lazy(() => import("@/app/pages/home"));
 const Team = lazy(() => import("@/app/pages/team"));
 const EmployeeDetail = lazy(() => import("@/app/pages/team/employeeDetail"));
 export function Router() {
   return (
-    <Routes>
-      <Route element={<AuthorizeRoute />}>
-        <Route path={TIMESHEET} element={<Timesheet />} />
-        <Route element={<PmRoute />}>
-          <Route path={HOME} element={<Home />} />
-          <Route path={TEAM}>
-            <Route path={`${TEAM}/`} element={<Team />} />
-            <Route path={`${TEAM}/Employee/:id`} element={<EmployeeDetail />} />
-          </Route>
+    <Route element={<AuthenticatedRoute />}>
+      <Route path={TIMESHEET} element={<Timesheet />} />
+      <Route element={<PmRoute />}>
+        <Route path={HOME} element={<Home />} />
+        <Route path={TEAM}>
+          <Route path={`${TEAM}/`} element={<Team />} />
+          <Route path={`${TEAM}/Employee/:id`} element={<EmployeeDetail />} />
         </Route>
       </Route>
-    </Routes>
+    </Route>
   );
 }
 
-const AuthorizeRoute = () => {
-  const user = useSelector((state: RootState) => state.user);
+export const AuthenticatedRoute = () => {
   const { currentUser, isLoading } = useContext(UserContext);
-  if (isLoading) {
-    return <Spinner />;
+  const { call } = useContext(FrappeContext) as FrappeConfig;
+  const user = useSelector((state: RootState) => state.user);
+  const dispatch = useDispatch();
+
+  if (user.roles.length < 1) {
+    call.get("timesheet_enhancer.api.utils.get_current_user_roles").then((res) => {
+      dispatch(setRole(res.message));
+    });
   }
-  if (user.roles.length < 1 || !currentUser || currentUser === "Guest") {
+  if (isLoading) {
+    return <></>;
+  } else if (!currentUser || currentUser === "Guest") {
     window.location.replace("/login?redirect-to=/timesheet");
   }
-  return <Outlet />;
+  if (!isLoading && currentUser && currentUser !== "Guest") {
+    return (
+      <Layout>
+        <Outlet />
+      </Layout>
+    );
+  }
 };

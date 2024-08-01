@@ -3,11 +3,15 @@ import { FrappeProvider } from "frappe-react-sdk";
 import { UserProvider } from "@/lib/UserProvider";
 import { Provider } from "react-redux";
 import { store } from "@/store";
-import { Layout } from "@/app/layout";
-import { BrowserRouter } from "react-router-dom";
+import { RouterProvider, createBrowserRouter, createRoutesFromElements } from "react-router-dom";
 import { BASE_ROUTE } from "@/lib/constant";
 import { TooltipProvider } from "@/app/components/ui/tooltip";
+import { Router } from "@/route";
+import { Suspense } from "react";
 function App() {
+  const router = createBrowserRouter(createRoutesFromElements(Router()), {
+    basename: BASE_ROUTE,
+  });
   return (
     <>
       <FrappeProvider
@@ -18,11 +22,11 @@ function App() {
       >
         <UserProvider>
           <Provider store={store}>
-            <BrowserRouter basename={BASE_ROUTE}>
-              <TooltipProvider>
-                <Layout />
-              </TooltipProvider>
-            </BrowserRouter>
+            <TooltipProvider>
+              <Suspense fallback={<></>}>
+                <RouterProvider router={router} />
+              </Suspense>
+            </TooltipProvider>
           </Provider>
         </UserProvider>
       </FrappeProvider>
