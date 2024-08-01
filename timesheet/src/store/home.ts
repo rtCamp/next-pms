@@ -80,6 +80,7 @@ const homeSlice = createSlice({
         },
         setEmployeeName: (state, action: PayloadAction<string>) => {
             state.employeeName = action.payload;
+            // return {...state,employeeName: action.payload,start:0,isFetchAgain:true,data: { data: {}, dates: [], total_count: 0, has_more: true }}
         },
         setStart: (state, action: PayloadAction<number>) => {
             return { ...state, start: action.payload }

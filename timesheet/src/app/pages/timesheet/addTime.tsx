@@ -41,10 +41,24 @@ export const AddTime = () => {
     },
     mode: "onSubmit",
   });
-  const { data: tasks, mutate: mutateTask } = useFrappeGetCall("timesheet_enhancer.api.utils.get_task_for_employee", {
+  const {
+    data: tasks,
+    mutate: mutateTask,
+    error: errorTask,
+  } = useFrappeGetCall("timesheet_enhancer.api.utils.get_task_for_employee", {
     employee: form.getValues("employee"),
     search: searchTerm,
   });
+  useEffect(() => {
+    if (errorTask) {
+      const error = parseFrappeErrorMsg(errorTask);
+      toast({
+        variant: "destructive",
+        description: error,
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [errorTask]);
   const handleOpen = () => {
     form.reset();
     dispatch(SetAddTimeDialog(false));

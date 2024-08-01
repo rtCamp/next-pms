@@ -166,6 +166,7 @@ const Team = () => {
             disabled
           />
           <ComboxBox
+            value={teamState.project}
             label="Projects"
             isMulti
             onSelect={handleProjectChange}
@@ -177,6 +178,7 @@ const Team = () => {
             className="text-primary border-dashed gap-x-2 font-normal"
           />
           <ComboxBox
+            value={teamState.userGroup}
             label="User Groups"
             data={userGroups?.message.map((item: UserGroupProps) => ({
               label: item.name,

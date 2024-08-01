@@ -76,7 +76,7 @@ function Timesheet() {
 
   const onCellClick = (data: NewTimesheetProps) => {
     data.employee = user.employee;
-    data.isUpdate = true;
+    data.isUpdate = data.hours > 0;
     dispatch(SetTimesheet(data));
     dispatch(SetAddTimeDialog(true));
   };

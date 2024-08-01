@@ -12,7 +12,7 @@ import {
 } from "@/lib/utils";
 import { RootState } from "@/store";
 import { useFrappeGetCall } from "frappe-react-sdk";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   setData,
@@ -76,21 +76,23 @@ const Home = () => {
     dispatch(setFetchAgain(true));
   }, 1000);
 
-  const handleprevWeek = () => {
+  const handleprevWeek = useCallback(() => {
     const date = getFormatedDate(addDays(homeState.weekDate, -14));
     dispatch(setWeekDate(date));
     dispatch(setFetchAgain(true));
-  };
-  const handlenextWeek = () => {
+  }, [dispatch, homeState.weekDate]);
+
+  const handlenextWeek = useCallback(() => {
     const date = getFormatedDate(addDays(homeState.weekDate, 14));
     dispatch(setWeekDate(date));
     dispatch(setFetchAgain(true));
-  };
-  const handleLoadMore = () => {
+  }, [dispatch, homeState.weekDate]);
+
+  const handleLoadMore = useCallback(() => {
     if (!homeState.hasMore) return;
     dispatch(setStart(homeState.start + 20));
     dispatch(setFetchAgain(true));
-  };
+  }, [dispatch, homeState.hasMore, homeState.start]);
   //   if (isLoading) return <Spinner isFull />;
 
   return (
