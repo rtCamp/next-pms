@@ -13,7 +13,7 @@ interface DatePickerProps {
 
 export const DatePicker = ({ date, onDateChange }: DatePickerProps) => {
   const [pickerDate, setPickerDate] = useState<Date>();
-
+  const [isOpen, setIsOpen] = useState(false);
   useEffect(() => {
     if (!date) setPickerDate(new Date());
 
@@ -27,11 +27,12 @@ export const DatePicker = ({ date, onDateChange }: DatePickerProps) => {
   const onDateSelect = (date: Date) => {
     setPickerDate(date);
     onDateChange && onDateChange(date);
+    setIsOpen(false);
   };
 
   return (
     <div>
-      <Popover>
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button variant="outline" className="justify-between w-full">
             <Typography variant="p">{pickerDate ? formateDate(pickerDate) : "Pick a date"}</Typography>

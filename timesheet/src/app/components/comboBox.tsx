@@ -15,6 +15,7 @@ import { Checkbox } from "@/app/components/ui/checkbox";
 import { cn, deBounce } from "@/lib/utils";
 
 interface ComboBoxProps {
+  isOpen?: boolean;
   data?: Array<{ label: string; value: string; disabled?: boolean; description?: string }>;
   onSelect?: (value: string | string[]) => void;
   disabled?: boolean;
@@ -28,6 +29,7 @@ interface ComboBoxProps {
 }
 
 export const ComboxBox = ({
+  isOpen=false,
   data = [],
   onSelect,
   disabled = false,
@@ -40,7 +42,7 @@ export const ComboxBox = ({
   className = "",
 }: ComboBoxProps) => {
   const [selectedValues, setSelectedValues] = useState<string[]>(value ?? []);
-
+  const [open, setOpen] = useState(isOpen);
   const clearFilter = () => {
     setSelectedValues([]);
     onSelect && onSelect(isMulti ? [] : "");
@@ -49,6 +51,7 @@ export const ComboxBox = ({
     if (!isMulti) {
       setSelectedValues([value]);
       onSelect && onSelect(value);
+      setOpen(false);
       return;
     }
     let values = [...selectedValues];
@@ -73,7 +76,7 @@ export const ComboxBox = ({
   }, 1000);
 
   return (
-    <Popover modal>
+    <Popover modal open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -81,11 +84,13 @@ export const ComboxBox = ({
           disabled={disabled}
         >
           {leftIcon}
-          {!hasValue ? label : selectedValue()}
+          <Typography variant="p" className="truncate max-w-md">
+            {!hasValue ? label : selectedValue()}
+          </Typography>
           {rightIcon}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0">
+      <PopoverContent className="p-0 w-96">
         <Command shouldFilter={false}>
           <CommandInput placeholder={label} onValueChange={onInputChange} />
           <CommandEmpty>No data.</CommandEmpty>

@@ -45,12 +45,17 @@ export const AddTime = () => {
     data: tasks,
     mutate: mutateTask,
     error: errorTask,
-  } = useFrappeGetCall("timesheet_enhancer.api.utils.get_task_for_employee", {
-    employee: form.getValues("employee"),
-    search: searchTerm,
-  }, "task_for_employee", {
-    errorRetryCount:1
-  });
+  } = useFrappeGetCall(
+    "timesheet_enhancer.api.utils.get_task_for_employee",
+    {
+      employee: form.getValues("employee"),
+      search: searchTerm,
+    },
+    "task_for_employee",
+    {
+      errorRetryCount: 1,
+    }
+  );
   useEffect(() => {
     if (errorTask) {
       const error = parseFrappeErrorMsg(errorTask);
@@ -59,7 +64,7 @@ export const AddTime = () => {
         description: error,
       });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [errorTask]);
   const handleOpen = () => {
     form.reset();
@@ -108,7 +113,7 @@ export const AddTime = () => {
   }, [searchTerm, mutateTask]);
   return (
     <Dialog open={timesheetState.isDialogOpen} onOpenChange={handleOpen}>
-      <DialogContent>
+      <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle className="pb-6">Add Time</DialogTitle>
         </DialogHeader>
@@ -156,7 +161,7 @@ export const AddTime = () => {
                 control={form.control}
                 name="task"
                 render={() => (
-                  <FormItem className="w-full">
+                  <FormItem>
                     <FormLabel>Tasks</FormLabel>
                     <FormControl>
                       <ComboxBox
@@ -184,7 +189,7 @@ export const AddTime = () => {
                 control={form.control}
                 name="description"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem>
                     <FormLabel>Comment</FormLabel>
                     <FormControl>
                       <Textarea
