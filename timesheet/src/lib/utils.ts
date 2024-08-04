@@ -25,17 +25,21 @@ export function parseFrappeErrorMsg(error: Error) {
     if (error.exception && !e) {
       return error.exception;
     }
+
     if (e) {
       const jsonMsgArray = JSON.parse(e);
-
       if (jsonMsgArray.length > 0) {
         const jsonObjectStr = jsonMsgArray[0];
         const e = JSON.parse(jsonObjectStr);
         return e.message;
       }
+      // @ts-ignore
+    } else if (error._error_message) {
+      // @ts-ignore
+      return error._error_message;
     }
-  } catch (e) {
-    return "Something went wrong! Please try again later."
+  } catch (err) {
+    return err || "Something went wrong! Please try again later."
   }
 }
 

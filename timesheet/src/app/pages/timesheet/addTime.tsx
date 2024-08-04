@@ -48,6 +48,8 @@ export const AddTime = () => {
   } = useFrappeGetCall("timesheet_enhancer.api.utils.get_task_for_employee", {
     employee: form.getValues("employee"),
     search: searchTerm,
+  }, "task_for_employee", {
+    errorRetryCount:1
   });
   useEffect(() => {
     if (errorTask) {

@@ -1,5 +1,5 @@
 import { lazy, useContext } from "react";
-import { Routes, Route, Outlet } from "react-router-dom";
+import { Route, Outlet } from "react-router-dom";
 import { TIMESHEET, HOME, TEAM } from "@/lib/constant";
 import { Layout, PmRoute } from "@/app/layout/index";
 import { RootState } from "./store";
