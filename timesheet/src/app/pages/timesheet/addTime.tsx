@@ -21,7 +21,7 @@ import { useEffect, useState } from "react";
 export const AddTime = () => {
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
   const timesheetState = useSelector((state: RootState) => state.timesheet);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(timesheetState.timesheet.task ?? "");
 
   const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
