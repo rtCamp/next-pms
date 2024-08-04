@@ -173,6 +173,11 @@ def update_timesheet_detail(
         log.description = description
     parent_doc.save()
 
+    parent_doc.reload()
+
+    if parent_doc.total_hours == 0:
+        parent_doc.delete(ignore_permissions=True)
+
 
 def create_timesheet_detail(
     date: str,

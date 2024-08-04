@@ -115,7 +115,7 @@ export const AddTime = () => {
     <Dialog open={timesheetState.isDialogOpen} onOpenChange={handleOpen}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle className="pb-6">Add Time</DialogTitle>
+          <DialogTitle className="pb-6">{timesheetState.timesheet.hours > 0 ? "Edit Time" : "Add Time"}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)}>
@@ -166,6 +166,7 @@ export const AddTime = () => {
                     <FormControl>
                       <ComboxBox
                         label="Search Task"
+                        disabled={timesheetState.timesheet.task.length > 0}
                         value={form.getValues("task") ? [form.getValues("task")] : []}
                         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         //  @ts-expect-error
@@ -206,7 +207,7 @@ export const AddTime = () => {
 
               <DialogFooter className="sm:justify-start">
                 <div className="flex gap-x-4">
-                  <Button>Add Time</Button>
+                  <Button>{timesheetState.timesheet.hours > 0 ? "Edit Time" : "Add Time"}</Button>
                   <Button variant="secondary" type="button" onClick={handleOpen}>
                     Cancel
                   </Button>
