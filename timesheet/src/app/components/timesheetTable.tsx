@@ -57,7 +57,7 @@ export const TimesheetTable = ({
               );
             })}
             <TableHead className="max-w-24 w-1/12">
-              <Typography variant="p" className="text-base text-slate-600">
+              <Typography variant="p" className="text-base text-slate-600 text-right">
                 Total
               </Typography>
             </TableHead>
@@ -76,7 +76,9 @@ export const TimesheetTable = ({
           />
         )}
         {leaves.length > 0 && <LeaveRow dates={dates} leaves={leaves} />}
-        {Object.keys(tasks).length == 0 && <EmptyRow dates={dates} holidays={holidays} onCellClick={onCellClick} disabled={disabled} />}
+        {Object.keys(tasks).length == 0 && (
+          <EmptyRow dates={dates} holidays={holidays} onCellClick={onCellClick} disabled={disabled} />
+        )}
         {Object.keys(tasks).length > 0 &&
           Object.entries(tasks).map(([task, taskData]: [string, TaskDataProps]) => {
             let totalHours = 0;
@@ -114,7 +116,7 @@ export const TimesheetTable = ({
                   );
                 })}
                 <TableCell>
-                  <Typography variant="p" className="text-slate-800 font-medium">
+                  <Typography variant="p" className="text-slate-800 font-medium text-right">
                     {floatToTime(totalHours)}
                   </Typography>
                 </TableCell>
@@ -152,7 +154,7 @@ const LeaveRow = ({ leaves, dates }: { leaves: Array<LeaveProps>; dates: string[
         );
       })}
       <TableCell>
-        <Typography variant="p" className="text-slate-800 font-medium">
+        <Typography variant="p" className="text-slate-800 font-medium text-right">
           {floatToTime(total_hours)}
         </Typography>
       </TableCell>
@@ -216,14 +218,14 @@ const TotalHourRow = ({
         const isMoreThanWorkingHour = calculateExtendedWorkingHour(total_hours, working_hour, working_frequency);
         return (
           <TableCell>
-            <Typography variant="p" className={cn("text-slate-600", isMoreThanWorkingHour && "text-warning")}>
+            <Typography variant="p" className={cn("text-slate-600 ", isMoreThanWorkingHour && "text-warning")}>
               {floatToTime(total_hours)}
             </Typography>
           </TableCell>
         );
       })}
       <TableCell>
-        <Typography variant="p" className={cn("text-slate-800 font-medium", total > 40 && "text-warning")}>
+        <Typography variant="p" className={cn("text-slate-800 text-right font-medium", total > 40 && "text-warning")}>
           {floatToTime(total)}
         </Typography>
       </TableCell>
@@ -298,14 +300,14 @@ const EmptyRow = ({
   dates,
   holidays,
   onCellClick,
-  disabled
+  disabled,
 }: {
   dates: string[];
   holidays: string[];
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-    onCellClick?: (data) => void;
-    disabled?: boolean;
+  onCellClick?: (data) => void;
+  disabled?: boolean;
 }) => {
   return (
     <TableRow>

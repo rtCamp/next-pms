@@ -17,6 +17,8 @@ import {
   setApprovalDialog,
   setEmployee,
   setUsergroup,
+  setUserGroupSearch,
+  setProjectSearch,
 } from "@/store/team";
 import { useToast } from "@/app/components/ui/use-toast";
 import {
@@ -59,24 +61,34 @@ const Team = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { data: projects } = useFrappeGetCall("frappe.client.get_list", {
+  const {
+    data: projects,
+    mutate: projectMutate,
+    error: projectError,
+  } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Project",
     fields: ["name", "project_name"],
+    or_filters: [
+      ["name", "like", `%${teamState.projectSearch}%`],
+      ["project_name", "like", `%${teamState.projectSearch}%`],
+    ],
   });
 
   const {
     data: userGroups,
-    isLoading: isGroupLoading,
     error: groupError,
+    mutate: userGroupMutate,
   } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "User Group",
+    or_filters: [["name", "like", `%${teamState.userGroupSearch}%`]],
   });
-  const { data,isLoading, error, mutate } = useFrappeGetCall("timesheet_enhancer.api.team.get_compact_view_data", {
+
+  const { data, isLoading, error, mutate } = useFrappeGetCall("timesheet_enhancer.api.team.get_compact_view_data", {
     date: teamState.weekDate,
     max_week: 1,
     page_length: 20,
     project: teamState.project,
-    user_group:teamState.userGroup,
+    user_group: teamState.userGroup,
     start: teamState.start,
   });
 
@@ -110,6 +122,28 @@ const Team = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, error, teamState.isFetchAgain]);
 
+  useEffect(() => {
+    projectMutate();
+    if (projectError) {
+      const err = parseFrappeErrorMsg(projectError);
+      toast({
+        variant: "destructive",
+        description: err,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [teamState.projectSearch, projectError]);
+  useEffect(() => {
+    userGroupMutate();
+    if (groupError) {
+      const err = parseFrappeErrorMsg(groupError);
+      toast({
+        variant: "destructive",
+        description: err,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [teamState.userGroupSearch, groupError]);
   const handleprevWeek = () => {
     const date = getFormatedDate(addDays(teamState.weekDate, -6));
     dispatch(setStart(0));
@@ -150,7 +184,12 @@ const Team = () => {
     dispatch(setEmployee(employee));
     dispatch(setApprovalDialog(true));
   };
-
+  const onProjectSearch = (searchTerm: string) => {
+    dispatch(setProjectSearch(searchTerm));
+  };
+  const onUserGroupSearch = (searchTerm: string) => {
+    dispatch(setUserGroupSearch(searchTerm));
+  };
   if (isLoading) return <Spinner isFull />;
   return (
     <>
@@ -170,6 +209,7 @@ const Team = () => {
             label="Projects"
             isMulti
             onSelect={handleProjectChange}
+            onSearch={onProjectSearch}
             leftIcon={<Filter className="h-4 w-4" />}
             data={projects?.message.map((item: ProjectProps) => ({
               label: item.project_name,
@@ -180,6 +220,7 @@ const Team = () => {
           <ComboxBox
             value={teamState.userGroup}
             label="User Groups"
+            onSearch={onUserGroupSearch}
             data={userGroups?.message.map((item: UserGroupProps) => ({
               label: item.name,
               value: item.name,

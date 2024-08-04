@@ -29,7 +29,7 @@ interface ComboBoxProps {
 }
 
 export const ComboxBox = ({
-  isOpen=false,
+  isOpen = false,
   data = [],
   onSelect,
   disabled = false,
@@ -46,6 +46,13 @@ export const ComboxBox = ({
   const clearFilter = () => {
     setSelectedValues([]);
     onSelect && onSelect(isMulti ? [] : "");
+    setOpen(!open);
+  };
+  const handleComboClose = () => {
+    if (isMulti) {
+      onSelect && onSelect(selectedValues);
+    }
+    setOpen(!open);
   };
   const handleSelect = (value: string) => {
     if (!isMulti) {
@@ -61,7 +68,6 @@ export const ComboxBox = ({
       values.push(value);
     }
     setSelectedValues(values);
-    onSelect && onSelect(values);
   };
   const hasValue = selectedValues.length > 0;
   const selectedValue = () => {
@@ -76,7 +82,7 @@ export const ComboxBox = ({
   }, 1000);
 
   return (
-    <Popover modal open={open} onOpenChange={setOpen}>
+    <Popover modal open={open} onOpenChange={handleComboClose}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
