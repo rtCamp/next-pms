@@ -49,7 +49,7 @@ export const ComboxBox = ({
     setOpen(!open);
   };
   const handleComboClose = () => {
-    if (isMulti) {
+    if (isMulti && selectedValues.length > 0) {
       onSelect && onSelect(selectedValues);
     }
     setOpen(!open);

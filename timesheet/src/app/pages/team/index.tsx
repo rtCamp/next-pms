@@ -64,23 +64,37 @@ const Team = () => {
     data: projects,
     mutate: projectMutate,
     error: projectError,
-  } = useFrappeGetCall("frappe.client.get_list", {
-    doctype: "Project",
-    fields: ["name", "project_name"],
-    or_filters: [
-      ["name", "like", `%${teamState.projectSearch}%`],
-      ["project_name", "like", `%${teamState.projectSearch}%`],
-    ],
-  });
+  } = useFrappeGetCall(
+    "frappe.client.get_list",
+    {
+      doctype: "Project",
+      fields: ["name", "project_name"],
+      or_filters: [
+        ["name", "like", `%${teamState.projectSearch}%`],
+        ["project_name", "like", `%${teamState.projectSearch}%`],
+      ],
+    },
+    {
+      shouldRetryOnError: false,
+      keepPreviousData: true,
+    }
+  );
 
   const {
     data: userGroups,
     error: groupError,
     mutate: userGroupMutate,
-  } = useFrappeGetCall("frappe.client.get_list", {
-    doctype: "User Group",
-    or_filters: [["name", "like", `%${teamState.userGroupSearch}%`]],
-  });
+  } = useFrappeGetCall(
+    "frappe.client.get_list",
+    {
+      doctype: "User Group",
+      or_filters: [["name", "like", `%${teamState.userGroupSearch}%`]],
+    },
+    {
+      shouldRetryOnError: false,
+      keepPreviousData: true,
+    }
+  );
 
   const { data, isLoading, error, mutate } = useFrappeGetCall("timesheet_enhancer.api.team.get_compact_view_data", {
     date: teamState.weekDate,
@@ -122,7 +136,11 @@ const Team = () => {
   }, [data, error, teamState.isFetchAgain]);
 
   useEffect(() => {
-    projectMutate();
+    if (!projectError) {
+      projectMutate();
+      return;
+    }
+
     if (projectError) {
       const err = parseFrappeErrorMsg(projectError);
       toast({
@@ -133,7 +151,10 @@ const Team = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teamState.projectSearch, projectError]);
   useEffect(() => {
-    userGroupMutate();
+    if (!groupError) {
+      userGroupMutate();
+      return;
+    }
     if (groupError) {
       const err = parseFrappeErrorMsg(groupError);
       toast({
