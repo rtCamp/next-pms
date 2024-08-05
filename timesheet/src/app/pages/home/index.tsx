@@ -23,7 +23,6 @@ import {
   setStart,
   setHasMore,
   updateData,
-  resetData,
 } from "@/store/home";
 // import { Spinner } from "@/app/components/spinner";
 import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
@@ -71,21 +70,16 @@ const Home = () => {
 
   const onInputChange = deBounce((e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setEmployeeName(e.target.value));
-    dispatch(setStart(0));
-    dispatch(resetData());
-    dispatch(setFetchAgain(true));
   }, 1000);
 
   const handleprevWeek = useCallback(() => {
     const date = getFormatedDate(addDays(homeState.weekDate, -14));
     dispatch(setWeekDate(date));
-    dispatch(setFetchAgain(true));
   }, [dispatch, homeState.weekDate]);
 
   const handlenextWeek = useCallback(() => {
     const date = getFormatedDate(addDays(homeState.weekDate, 14));
     dispatch(setWeekDate(date));
-    dispatch(setFetchAgain(true));
   }, [dispatch, homeState.weekDate]);
 
   const handleLoadMore = useCallback(() => {

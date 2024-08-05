@@ -68,7 +68,6 @@ const EmployeeDetail = () => {
     const obj = teamState.timesheetData.data[Object.keys(teamState.timesheetData.data).pop()];
     const date = getFormatedDate(addDays(obj.start_date, -1));
     dispatch(setWeekDate(date));
-    dispatch(setFetchAgain(true));
   };
   const handleAddTime = () => {
     const timesheetData = {
@@ -94,7 +93,6 @@ const EmployeeDetail = () => {
     dispatch(resetState());
     const date = getTodayDate();
     dispatch(setWeekDate(date));
-    dispatch(setFetchAgain(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

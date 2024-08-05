@@ -100,9 +100,6 @@ const TeamSlice = createSlice({
             const data = state.data.data;
             return { ...state, data: { ...state.data, data: { ...data, ...action.payload.data } } }
         },
-        resetData: (state) => {
-            return { ...state, data: { data: {}, dates: [], total_count: 0, has_more: true } }
-        },
         setFetchAgain: (state, action: PayloadAction<boolean>) => {
             state.isFetchAgain = action.payload;
         },
@@ -111,10 +108,10 @@ const TeamSlice = createSlice({
             state.timesheet = action.payload;
         },
         setWeekDate: (state, action: PayloadAction<string>) => {
-            state.weekDate = action.payload;
+            return { ...state, weekDate: action.payload, data: initialState.data, start: 0, isFetchAgain: true }
         },
         setProject: (state, action: PayloadAction<Array<string>>) => {
-            state.project = action.payload;
+            return { ...state, project: action.payload, data: initialState.data, start: 0, isFetchAgain: true }
         },
         setStart: (state, action: PayloadAction<number>) => {
             return { ...state, start: action.payload }
@@ -145,7 +142,7 @@ const TeamSlice = createSlice({
             state.timesheetData.data = data;
         },
         setUsergroup: (state, action: PayloadAction<Array<string>>) => {
-            state.userGroup = action.payload;
+            return { ...state, userGroup: action.payload, data: initialState.data, start: 0, isFetchAgain: true }
         },
         setUserGroupSearch: (state, action: PayloadAction<string>) => {
             state.userGroupSearch = action.payload;
@@ -157,5 +154,5 @@ const TeamSlice = createSlice({
     }
 });
 
-export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData, resetData, setDateRange, setApprovalDialog, setEmployee, setDialog, resetState, setTimesheetData, updateTimesheetData, setUsergroup,setUserGroupSearch,setProjectSearch } = TeamSlice.actions;
+export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData, setDateRange, setApprovalDialog, setEmployee, setDialog, resetState, setTimesheetData, updateTimesheetData, setUsergroup, setUserGroupSearch, setProjectSearch } = TeamSlice.actions;
 export default TeamSlice.reducer;

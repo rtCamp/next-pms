@@ -12,7 +12,6 @@ import {
   setStart,
   updateData,
   setHasMore,
-  resetData,
   setDateRange,
   setApprovalDialog,
   setEmployee,
@@ -29,7 +28,7 @@ import {
   cn,
   calculateExtendedWorkingHour,
 } from "@/lib/utils";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Table, TableHead, TableHeader, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
 import { Typography } from "@/app/components/typography";
@@ -144,32 +143,30 @@ const Team = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teamState.userGroupSearch, groupError]);
-  const handleprevWeek = () => {
+  const handleprevWeek = useCallback(() => {
     const date = getFormatedDate(addDays(teamState.weekDate, -6));
-    dispatch(setStart(0));
-    dispatch(resetData());
     dispatch(setWeekDate(date));
-    dispatch(setFetchAgain(true));
-  };
-  const handlenextWeek = () => {
+  }, [dispatch, teamState.weekDate]);
+
+  const handlenextWeek = useCallback(() => {
     const date = getFormatedDate(addDays(teamState.weekDate, 6));
-    dispatch(setStart(0));
-    dispatch(resetData());
     dispatch(setWeekDate(date));
-    dispatch(setFetchAgain(true));
-  };
-  const handleProjectChange = (value: string | string[]) => {
-    dispatch(setProject(value as string[]));
-    dispatch(setStart(0));
-    dispatch(resetData());
-    dispatch(setFetchAgain(true));
-  };
-  const handleUserGroupChange = (value: string | string[]) => {
-    dispatch(setUsergroup(value as string[]));
-    dispatch(setStart(0));
-    dispatch(resetData());
-    dispatch(setFetchAgain(true));
-  };
+  }, [dispatch, teamState.weekDate]);
+
+  const handleProjectChange = useCallback(
+    (value: string | string[]) => {
+      dispatch(setProject(value as string[]));
+    },
+    [dispatch]
+  );
+
+  const handleUserGroupChange = useCallback(
+    (value: string | string[]) => {
+      dispatch(setUsergroup(value as string[]));
+    },
+    [dispatch]
+  );
+
   const handleLoadMore = () => {
     if (!teamState.hasMore) return;
     dispatch(setStart(teamState.start + 20));
@@ -184,12 +181,20 @@ const Team = () => {
     dispatch(setEmployee(employee));
     dispatch(setApprovalDialog(true));
   };
-  const onProjectSearch = (searchTerm: string) => {
-    dispatch(setProjectSearch(searchTerm));
-  };
-  const onUserGroupSearch = (searchTerm: string) => {
-    dispatch(setUserGroupSearch(searchTerm));
-  };
+  const onProjectSearch = useCallback(
+    (searchTerm: string) => {
+      dispatch(setProjectSearch(searchTerm));
+    },
+    [dispatch]
+  );
+
+  const onUserGroupSearch = useCallback(
+    (searchTerm: string) => {
+      dispatch(setUserGroupSearch(searchTerm));
+    },
+    [dispatch]
+  );
+
   if (isLoading) return <Spinner isFull />;
   return (
     <>

@@ -76,11 +76,10 @@ const homeSlice = createSlice({
             state.timesheet = action.payload;
         },
         setWeekDate: (state, action: PayloadAction<string>) => {
-            state.weekDate = action.payload;
+            return { ...state, weekDate: action.payload, data: initialState.data, start: 0, isFetchAgain: true }
         },
         setEmployeeName: (state, action: PayloadAction<string>) => {
-            state.employeeName = action.payload;
-            // return {...state,employeeName: action.payload,start:0,isFetchAgain:true,data: { data: {}, dates: [], total_count: 0, has_more: true }}
+            return { ...state, employeeName: action.payload, data: initialState.data, start: 0, isFetchAgain: true }
         },
         setStart: (state, action: PayloadAction<number>) => {
             return { ...state, start: action.payload }
@@ -89,15 +88,11 @@ const homeSlice = createSlice({
             return { ...state, hasMore: action.payload }
         },
         updateData: (state, action: PayloadAction<any>) => {
-            // Object.assign(action.payload.data, state.data.data);
             const data = state.data.data;
             return { ...state, data: { ...state.data, data: { ...data, ...action.payload.data }, dates: action.payload.dates } }
-        },
-        resetData: (state) => {
-            return { ...state, data: { data: {}, dates: [], total_count: 0, has_more: true } }
         },
     }
 });
 
-export const { setData, setFetchAgain, setTimesheet, setWeekDate, setEmployeeName, setStart, setHasMore, updateData, resetData } = homeSlice.actions;
+export const { setData, setFetchAgain, setTimesheet, setWeekDate, setEmployeeName, setStart, setHasMore, updateData } = homeSlice.actions;
 export default homeSlice.reducer;
