@@ -12,7 +12,7 @@ import {
 } from "@/lib/utils";
 import { RootState } from "@/store";
 import { useFrappeGetCall } from "frappe-react-sdk";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   setData,
@@ -24,7 +24,7 @@ import {
   setHasMore,
   updateData,
 } from "@/store/home";
-// import { Spinner } from "@/app/components/spinner";
+import { Spinner } from "@/app/components/spinner";
 import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
 import { addDays, isToday } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
@@ -34,11 +34,12 @@ import { Button } from "@/app/components/ui/button";
 import { Typography } from "@/app/components/typography";
 
 const Home = () => {
+  const [employee, setEmployee] = useState("");
   const { toast } = useToast();
   const homeState = useSelector((state: RootState) => state.home);
   const dispatch = useDispatch();
 
-  const { data, error, mutate } = useFrappeGetCall("timesheet_enhancer.api.team.get_compact_view_data", {
+  const { data, error, mutate, isLoading } = useFrappeGetCall("timesheet_enhancer.api.team.get_compact_view_data", {
     date: homeState.weekDate,
     employee_name: homeState.employeeName,
     page_length: 20,
@@ -68,9 +69,15 @@ const Home = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, homeState.isFetchAgain, error]);
 
-  const onInputChange = deBounce((e: React.ChangeEvent<HTMLInputElement>) => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const onInputChange = useCallback(deBounce((e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setEmployeeName(e.target.value));
-  }, 1000);
+  }, 1000), [dispatch]);
+  
+  const handleEmployeeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => { 
+    setEmployee(e.target.value);
+    onInputChange(e);
+  }, [onInputChange]);
 
   const handleprevWeek = useCallback(() => {
     const date = getFormatedDate(addDays(homeState.weekDate, -14));
@@ -87,7 +94,8 @@ const Home = () => {
     dispatch(setStart(homeState.start + 20));
     dispatch(setFetchAgain(true));
   }, [dispatch, homeState.hasMore, homeState.start]);
-  //   if (isLoading) return <Spinner isFull />;
+
+  if (isLoading) return <Spinner isFull />;
 
   return (
     <>
@@ -95,8 +103,9 @@ const Home = () => {
         <div className="pr-4 max-w-sm w-full">
           <Input
             placeholder="Employee name"
+            value={employee}
             className="placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-slate-800 max-w-sm"
-            onChange={onInputChange}
+            onChange={handleEmployeeChange}
           />
         </div>
         <div className="w-full flex">
