@@ -53,10 +53,17 @@ const EmployeeDetail = () => {
       errorRetryCount: 1,
     }
   );
-  const { data: employees, isLoading: isEmployeeLoading } = useFrappeGetCall("frappe.client.get_list", {
-    doctype: "Employee",
-    fields: ["name", "employee_name", "image"],
-  });
+  const { data: employees, isLoading: isEmployeeLoading } = useFrappeGetCall(
+    "frappe.client.get_list",
+    {
+      doctype: "Employee",
+      fields: ["name", "employee_name", "image"],
+    },
+    {
+      shouldRetryOnError: false,
+      keepPreviousData: true,
+    }
+  );
 
   const onEmployeeChange = () => {
     // navigate(`/team/employee/${name}`);
