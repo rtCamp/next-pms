@@ -8,7 +8,6 @@ import {
   deBounce,
   getFormatedDate,
   calculateExtendedWorkingHour,
-  calculateExpectedWorkingHour,
 } from "@/lib/utils";
 import { RootState } from "@/store";
 import { useFrappeGetCall } from "frappe-react-sdk";
@@ -32,6 +31,7 @@ import { Input } from "@/app/components/ui/input";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { Typography } from "@/app/components/typography";
+import { dataItem } from "@/types/team";
 
 const Home = () => {
   const [employee, setEmployee] = useState("");
@@ -70,14 +70,20 @@ const Home = () => {
   }, [data, homeState.isFetchAgain, error]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const onInputChange = useCallback(deBounce((e: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(setEmployeeName(e.target.value));
-  }, 1000), [dispatch]);
-  
-  const handleEmployeeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => { 
-    setEmployee(e.target.value);
-    onInputChange(e);
-  }, [onInputChange]);
+  const onInputChange = useCallback(
+    deBounce((e: React.ChangeEvent<HTMLInputElement>) => {
+      dispatch(setEmployeeName(e.target.value));
+    }, 1000),
+    [dispatch]
+  );
+
+  const handleEmployeeChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setEmployee(e.target.value);
+      onInputChange(e);
+    },
+    [onInputChange]
+  );
 
   const handleprevWeek = useCallback(() => {
     const date = getFormatedDate(addDays(homeState.weekDate, -14));
@@ -144,7 +150,7 @@ const Home = () => {
                     <TableHead
                       key={`${index}-${date}`}
                       className={cn(
-                        "text-slate-600 font-medium max-w-20",
+                        "text-slate-600 font-medium max-w-20 ",
                         index != 0 && "bg-slate-200",
                         isToday(date) && "bg-slate-300"
                       )}
@@ -167,25 +173,22 @@ const Home = () => {
                     </Avatar>
                     {item.employee_name}
                   </TableCell>
-                  {item.data.map((data: any, index: number) => {
-                    const isMoreThanExpected = calculateExtendedWorkingHour(
+                  {item.data.map((data: dataItem, index: number) => {
+                    const expectedTime = calculateExtendedWorkingHour(
                       data.hour,
                       item.working_hour,
                       item.working_frequency
                     );
-                    const isExpected = calculateExpectedWorkingHour(
-                      data.hour,
-                      item.working_hour,
-                      item.working_frequency
-                    );
+
                     return (
                       <TableCell
                         className={cn(
                           "text-xs",
-                          isExpected && "bg-success/20",
-                          isMoreThanExpected && "bg-warning/20",
+                          expectedTime == 2 && "bg-warning/20",
+                          expectedTime == 1 && "bg-success/20",
                           isToday(data.date) && "bg-slate-50",
-                          data.hour == 0 && "text-center"
+                          data.hour == 0 && "text-center",
+                          data.is_leave && "bg-gray-50 text-gray-400"
                         )}
                         key={`${key}-${index}`}
                       >

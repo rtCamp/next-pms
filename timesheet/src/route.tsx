@@ -20,7 +20,7 @@ export function Router() {
         <Route path={HOME} element={<Home />} />
         <Route path={TEAM}>
           <Route path={`${TEAM}/`} element={<Team />} />
-          <Route path={`${TEAM}/Employee/:id`} element={<EmployeeDetail />} />
+          <Route path={`${TEAM}/employee/:id`} element={<EmployeeDetail />} />
         </Route>
       </Route>
     </Route>

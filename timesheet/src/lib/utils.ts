@@ -106,16 +106,20 @@ export function deBounce<T extends (...args: any[]) => void>(func: T, wait: numb
 
 export function calculateExtendedWorkingHour(hours: number, expected_hours: number, frequency: WorkingFrequency) {
   if (frequency === "Per Day") {
-    return hours > expected_hours;
+    if (hours > expected_hours) {
+      return 2;
+    } else if (hours < expected_hours) {
+      return 0;
+    } else {
+      return 1;
+    }
   }
   const perDay = expected_hours / 5;
-  return hours > perDay;
-}
-
-export function calculateExpectedWorkingHour(hours: number, expected_hours: number, frequency: WorkingFrequency) {
-  if (frequency === "Per Day") {
-    return hours == expected_hours;
+  if (hours > perDay) {
+    return 2;
+  } else if (hours < perDay) {
+    return 0;
+  } else {
+    return 1;
   }
-  const perDay = expected_hours / 5;
-  return hours == perDay;
 }

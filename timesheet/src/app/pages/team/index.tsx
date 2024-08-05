@@ -38,8 +38,9 @@ import { addDays } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { Approval } from "./approval";
 import { TEAM, EMPLOYEE } from "@/lib/constant";
-import { ItemProps, ItemDataProps } from "@/types";
+import { ItemProps, dataItem } from "@/types/team";
 import { Spinner } from "@/app/components/spinner";
+
 type ProjectProps = {
   project_name: string;
   name: string;
@@ -275,7 +276,7 @@ const Team = () => {
                 return item?.dates?.map((date) => {
                   const { date: dateStr, day } = prettyDate(date);
                   return (
-                    <TableHead className="flex flex-col max-w-20 w-full">
+                    <TableHead className="flex flex-col max-w-20 w-full text-center">
                       <Typography variant="p" className="text-slate-600">
                         {day}
                       </Typography>
@@ -286,8 +287,8 @@ const Team = () => {
                   );
                 });
               })}
-              <TableHead className="w-full max-w-24 flex items-center">Total</TableHead>
-              <TableHead className="w-full max-w-20 flex items-center">
+              <TableHead className="w-full max-w-24 flex items-center justify-end">Total</TableHead>
+              <TableHead className="w-full max-w-20 flex items-center justify-center">
                 <CircleCheck className="w-4 h-4" />
               </TableHead>
             </TableRow>
@@ -303,7 +304,7 @@ const Team = () => {
                     <AccordionItem value={key} className="border-b-0">
                       <AccordionTrigger className="hover:no-underline py-0">
                         <span className="w-full flex">
-                          <TableCell className="w-full max-w-md ">
+                          <TableCell className="w-full max-w-md">
                             <span
                               className="flex gap-x-2 items-center font-normal hover:underline w-fit"
                               onClick={() => {
@@ -317,25 +318,28 @@ const Team = () => {
                               {item.employee_name}
                             </span>
                           </TableCell>
-                          {item.data.map((data: ItemDataProps) => {
+                          {item.data.map((data: dataItem) => {
                             total += data.hour;
-                            const isMoreThanExpected = calculateExtendedWorkingHour(
+                            const expectedTime = calculateExtendedWorkingHour(
                               data.hour,
                               item.working_hour,
                               item.working_frequency
                             );
                             return (
-                              <TableCell className={cn("max-w-20 w-full text-left")}>
-                                <Typography className={cn(isMoreThanExpected && "text-warning")} variant="p">
+                              <TableCell className={cn("flex max-w-20 w-full justify-center items-center")}>
+                                <Typography
+                                  className={cn(expectedTime == 2 && "text-warning", data.is_leave && "text-gray-400")}
+                                  variant="p"
+                                >
                                   {data.hour ? floatToTime(data.hour) : "-"}
                                 </Typography>
                               </TableCell>
                             );
                           })}
-                          <TableCell className="w-full max-w-24 text-left">{floatToTime(total)}</TableCell>
+                          <TableCell className="w-full max-w-24 flex items-center justify-end">{floatToTime(total)}</TableCell>
 
                           <TableCell
-                            className="w-full max-w-16 flex items-center"
+                            className="w-full max-w-16 flex items-center justify-end"
                             onClick={() => {
                               item.status != "Approved" &&
                                 onStatusClick(item.data[0].date, item.data[item.data.length - 1].date, item.name);

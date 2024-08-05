@@ -46,7 +46,7 @@ export const TimesheetTable = ({
               const { date: formattedDate, day } = prettyDate(date);
               const isHoliday = holidays.includes(date);
               return (
-                <TableHead key={date} className="max-w-20">
+                <TableHead key={date} className="max-w-20 text-center">
                   <Typography variant="p" className={cn("text-slate-600 font-medium", isHoliday && "text-slate-400")}>
                     {day}
                   </Typography>
@@ -146,7 +146,7 @@ const LeaveRow = ({ leaves, dates }: { leaves: Array<LeaveProps>; dates: string[
           total_hours += hour;
         }
         return (
-          <TableCell key={date}>
+          <TableCell key={date} className="text-center">
             <Typography variant="p" className="text-slate-600">
               {data ? floatToTime(hour) : "-"}
             </Typography>
@@ -185,7 +185,7 @@ const TotalHourRow = ({
         const isHoliday = holidays.includes(date);
         if (isHoliday) {
           return (
-            <TableCell key={date}>
+            <TableCell key={date} className="text-center">
               <Typography variant="p" className={cn("text-slate-400")}>
                 {"-"}
               </Typography>
@@ -217,7 +217,7 @@ const TotalHourRow = ({
         total += total_hours;
         const isMoreThanWorkingHour = calculateExtendedWorkingHour(total_hours, working_hour, working_frequency);
         return (
-          <TableCell>
+          <TableCell className="text-center">
             <Typography variant="p" className={cn("text-slate-600 ", isMoreThanWorkingHour && "text-warning")}>
               {floatToTime(total_hours)}
             </Typography>
@@ -279,14 +279,16 @@ const Cell = ({
         onMouseEnter={onMouseEnter}
         onClick={handleClick}
         onMouseLeave={onMouseLeave}
-        className={cn(isDisabled && "cursor-default", isHovered && "h-full bg-slate-100 text-center cursor-pointer")}
+        className={cn(
+          "text-center",
+          isDisabled && "cursor-default",
+          isHovered && "h-full bg-slate-100 cursor-pointer"
+        )}
       >
         <TooltipTrigger className={cn(isDisabled && "cursor-default")}>
-          {!isHovered && (
-            <Typography variant="p" className={cn("text-slate-600", isHoliday || (isDisabled && "text-slate-400"))}>
-              {data?.hours && data?.hours > 0 ? floatToTime(data?.hours || 0) : "-"}
-            </Typography>
-          )}
+          <Typography variant="p" className={cn("text-slate-600", isHoliday || (isDisabled && "text-slate-400"),isHovered && !data?.hours && "hidden ")}>
+            {data?.hours && data?.hours > 0 ? floatToTime(data?.hours || 0) : "-"}
+          </Typography>
           {isHovered && data?.hours && data?.hours > 0 && <PencilLine className="text-center" size={16} />}
           {isHovered && !data?.hours && <CirclePlus className="text-center" size={16} />}
         </TooltipTrigger>

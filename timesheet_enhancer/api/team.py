@@ -75,6 +75,7 @@ def get_compact_view_data(
 
             for date in date_info.get("dates"):
                 hour = 0
+                on_leave = False
                 leave = list(
                     filter(
                         lambda data: data["from_date"] <= date <= data["to_date"],
@@ -97,15 +98,13 @@ def get_compact_view_data(
                         hour += 4
                     else:
                         hour += 8
+                    on_leave = True
 
                 if total_hours:
                     hour += total_hours
 
                 local_data["data"].append(
-                    {
-                        "date": date,
-                        "hour": hour,
-                    }
+                    {"date": date, "hour": hour, "is_leave": on_leave}
                 )
         data[employee.name] = local_data
 

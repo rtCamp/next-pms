@@ -38,7 +38,7 @@ export const Employee = ({ employee }: EmployeeProps) => {
             Object.entries(timesheetData.tasks).map(([task, taskData]: [string, TaskDataProps]) => {
               let totalHours = 0;
               return (
-                <TableRow key={task} className="border-b border-slate-200 flex">
+                <TableRow key={task} className="border-b border-slate-200 flex w-full">
                   <TableCell className="max-w-md w-full">
                     <Typography variant="p" className="text-slate-800">
                       {task}
@@ -57,7 +57,7 @@ export const Employee = ({ employee }: EmployeeProps) => {
                     const isHoliday = timesheetData.holidays.includes(date);
                     return <Cell date={date} data={data} isHoliday={isHoliday} disabled />;
                   })}
-                  <TableCell>
+                  <TableCell className="max-w-24 flex w-full items-center justify-end">
                     <Typography variant="p" className="text-slate-800 font-medium">
                       {floatToTime(totalHours)}
                     </Typography>
@@ -157,7 +157,7 @@ const Cell = ({
         onClick={handleClick}
         onMouseLeave={onMouseLeave}
         className={cn(
-          "max-w-20 w-full text-left",
+          "max-w-20 w-full text-center",
           isDisabled && "cursor-default",
           isHovered && "bg-slate-100 text-center cursor-pointer"
         )}
@@ -195,14 +195,14 @@ const LeaveRow = ({ leaves, dates }: { leaves: Array<LeaveProps>; dates: string[
           total_hours += hour;
         }
         return (
-          <TableCell key={date} className="max-w-20 min-w-20 w-full">
+          <TableCell key={date} className="max-w-20 min-w-20 w-full text-center">
             <Typography variant="p" className="text-slate-600">
               {data ? floatToTime(hour) : "-"}
             </Typography>
           </TableCell>
         );
       })}
-      <TableCell className="max-w-24 w-full">
+      <TableCell className="max-w-24 w-full items-center justify-end flex">
         <Typography variant="p" className="text-slate-800 font-medium">
           {floatToTime(total_hours)}
         </Typography>
