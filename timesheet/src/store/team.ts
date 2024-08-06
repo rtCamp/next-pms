@@ -132,7 +132,8 @@ const TeamSlice = createSlice({
             state.isDialogOpen = action.payload;
         },
         resetState: (state) => {
-            return { ...state, ...initialState }
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            state = initialState;
         },
         setTimesheetData: (state, action: PayloadAction<timesheetDataProps & DynamicKey>) => {
             state.timesheetData = action.payload;
