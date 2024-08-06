@@ -18,14 +18,11 @@ import {
   CommandItem,
   CommandList,
 } from "@/app/components/ui/command";
-import { ChevronDown } from "lucide-react";
-import { Checkbox } from "@/app/components/ui/checkbox";
+import { ChevronDown, Check } from "lucide-react";
 import { addDays } from "date-fns";
 import { AddTime } from "./addTime";
 import {
   setTimesheet,
-  setDialog,
-  setEmployee,
   setFetchAgain,
   setTimesheetData,
   updateTimesheetData,
@@ -36,37 +33,32 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { Employee } from "@/types";
 import { NewTimesheetProps, timesheet } from "@/types/timesheet";
+import { useNavigate } from "react-router-dom";
 
 const EmployeeDetail = () => {
   const { id } = useParams();
   const teamState = useSelector((state: RootState) => state.team);
   const { toast } = useToast();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { data, isLoading, error, mutate } = useFrappeGetCall(
-    "timesheet_enhancer.api.timesheet.get_timesheet_data",
-    {
-      employee: id,
-      start_date: teamState.weekDate,
-      max_week: 4,
-    },
-    {
-      errorRetryCount: 1,
-    }
-  );
+
+  const { data, isLoading, error, mutate } = useFrappeGetCall("timesheet_enhancer.api.timesheet.get_timesheet_data", {
+    employee: id,
+    start_date: teamState.weekDate,
+    max_week: 4,
+  });
   const { data: employees, isLoading: isEmployeeLoading } = useFrappeGetCall(
     "frappe.client.get_list",
     {
       doctype: "Employee",
       fields: ["name", "employee_name", "image"],
+      filters: [["status", "=", "Active"]],
     },
-    {
-      shouldRetryOnError: false,
-      keepPreviousData: true,
-    }
+    { shouldRetryOnError: false }
   );
 
-  const onEmployeeChange = () => {
-    // navigate(`/team/employee/${name}`);
+  const onEmployeeChange = (name: string) => {
+    navigate(`/team/employee/${name}`);
   };
   const handleLoadData = () => {
     if (teamState.timesheetData.data == undefined || Object.keys(teamState.timesheetData.data).length == 0) return;
@@ -77,7 +69,7 @@ const EmployeeDetail = () => {
     dispatch(setWeekDate(date));
   };
   const handleAddTime = () => {
-    const timesheetData = {
+    const timesheet = {
       name: "",
       parent: "",
       task: "",
@@ -86,22 +78,18 @@ const EmployeeDetail = () => {
       hours: 0,
       isUpdate: false,
     };
-    dispatch(setTimesheet(timesheetData));
-    dispatch(setEmployee(id as string));
-    dispatch(setDialog(true));
+    dispatch(setTimesheet({ timesheet, id }));
   };
-  const onCellClick = (data: NewTimesheetProps) => {
-    dispatch(setEmployee(id as string));
-    data.isUpdate = data?.hours && data?.hours > 0 ? true : false;
-    dispatch(setTimesheet(data));
-    dispatch(setDialog(true));
+  const onCellClick = (timesheet: NewTimesheetProps) => {
+    timesheet.isUpdate = timesheet?.hours && timesheet?.hours > 0 ? true : false;
+    dispatch(setTimesheet({ timesheet, id }));
   };
   useEffect(() => {
     dispatch(resetState());
     const date = getTodayDate();
     dispatch(setWeekDate(date));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     if (teamState.isFetchAgain) {
@@ -126,11 +114,9 @@ const EmployeeDetail = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, teamState.weekDate, error, teamState.isFetchAgain]);
 
-
   if (isLoading || isEmployeeLoading) {
     return <Spinner isFull />;
   }
-
 
   return (
     <div className="flex flex-col">
@@ -207,6 +193,7 @@ const EmployeeCombo = ({
     setSelectedValues(name);
     handleChange(name);
   };
+
   useEffect(() => {
     const res = data?.find((item) => item.name === selectedValues);
     setEmployee(res);
@@ -217,7 +204,6 @@ const EmployeeCombo = ({
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
-          disabled
           className={cn("items-center gap-x-4 px-2 justify-between [&[data-state=open]>svg]:rotate-180")}
         >
           <span className="flex gap-x-2 items-center">
@@ -231,7 +217,7 @@ const EmployeeCombo = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0">
-        <Command shouldFilter={false}>
+        <Command>
           <CommandInput placeholder="Search Employee" />
           <CommandEmpty>No data.</CommandEmpty>
           <CommandGroup>
@@ -245,7 +231,7 @@ const EmployeeCombo = ({
                     className="flex gap-x-2 text-primary font-normal"
                     value={item.name}
                   >
-                    <Checkbox checked={isActive} />
+                    <Check className={cn("mr-2 h-4 w-4", isActive ? "opacity-100" : "opacity-0")} />
                     <Avatar>
                       <AvatarImage src={item.image} alt={item.employee_name} />
                       <AvatarFallback>{item.employee_name[0]}</AvatarFallback>

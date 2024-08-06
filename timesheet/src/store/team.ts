@@ -105,7 +105,9 @@ const TeamSlice = createSlice({
         },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setTimesheet: (state, action: PayloadAction<any>) => {
-            state.timesheet = action.payload;
+            state.timesheet = action.payload.timesheet;
+            state.employee = action.payload.id;
+            state.isDialogOpen = true;
         },
         setWeekDate: (state, action: PayloadAction<string>) => {
             return { ...state, weekDate: action.payload, data: initialState.data, start: 0, isFetchAgain: true }
@@ -143,7 +145,10 @@ const TeamSlice = createSlice({
             state.timesheetData.data = data;
         },
         setUsergroup: (state, action: PayloadAction<Array<string>>) => {
-            return { ...state, userGroup: action.payload, data: initialState.data, start: 0, isFetchAgain: true }
+            state.userGroup = action.payload;
+            state.data = initialState.data;
+            state.start = 0;
+            state.isFetchAgain = true;
         },
         setUserGroupSearch: (state, action: PayloadAction<string>) => {
             state.userGroupSearch = action.payload;

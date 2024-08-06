@@ -172,7 +172,7 @@ def filter_employees(
 
     fields = ["name", "image", "employee_name", "department", "designation"]
     employee_ids = []
-    filters = {}
+    filters = {"status": "Active"}
 
     if isinstance(department, str):
         department = json.loads(department)

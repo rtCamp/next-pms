@@ -69,9 +69,9 @@ const Team = () => {
         ["project_name", "like", `%${teamState.projectSearch}%`],
       ],
     },
+    "projects",
     {
       shouldRetryOnError: false,
-      keepPreviousData: true,
     }
   );
 
@@ -85,9 +85,9 @@ const Team = () => {
       doctype: "User Group",
       or_filters: [["name", "like", `%${teamState.userGroupSearch}%`]],
     },
+    "user_group",
     {
       shouldRetryOnError: false,
-      keepPreviousData: true,
     }
   );
 
