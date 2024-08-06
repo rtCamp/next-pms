@@ -57,7 +57,6 @@ const Home = () => {
       } else {
         dispatch(setData(data.message));
       }
-      dispatch(setHasMore(data.message.has_more));
     }
     if (error) {
       const err = parseFrappeErrorMsg(error);
@@ -189,7 +188,7 @@ const Home = () => {
                           expectedTime == 1 && "bg-success/20",
                           expectedTime == 0 && "bg-destructive/10",
                           data.is_leave && "bg-warning/20",
-                          data.hour == 0 && "text-center",
+                          data.hour == 0 && "text-center"
                         )}
                         key={`${key}-${index}`}
                       >

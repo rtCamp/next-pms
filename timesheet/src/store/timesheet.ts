@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { getTodayDate } from "@/lib/utils";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { DataProp,DynamicKey } from "@/types/timesheet";
+import { DataProp, DynamicKey } from "@/types/timesheet";
 export interface TimesheetState {
     timesheet: {
         name: string;
@@ -81,7 +81,8 @@ const timesheetSlice = createSlice({
             state.data.data = data;
         },
         resetState: (state) => {
-            return { ...state, ...initialState }
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            state = initialState;
         }
     },
 

@@ -11,10 +11,7 @@ import {
   setProject,
   setStart,
   updateData,
-  setHasMore,
   setDateRange,
-  setApprovalDialog,
-  setEmployee,
   setUsergroup,
   setUserGroupSearch,
   setProjectSearch,
@@ -118,7 +115,6 @@ const Team = () => {
       } else {
         dispatch(setData(data.message));
       }
-      dispatch(setHasMore(data.message.has_more));
     }
     if (error) {
       const err = parseFrappeErrorMsg(error);
@@ -193,9 +189,7 @@ const Team = () => {
       start_date,
       end_date,
     };
-    dispatch(setDateRange(data));
-    dispatch(setEmployee(employee));
-    dispatch(setApprovalDialog(true));
+    dispatch(setDateRange({ dateRange: data, employee, isAprrovalDialogOpen: true }));
   };
   const onProjectSearch = useCallback(
     (searchTerm: string) => {

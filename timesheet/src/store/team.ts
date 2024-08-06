@@ -93,12 +93,14 @@ const TeamSlice = createSlice({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setData: (state, action: PayloadAction<any>) => {
             state.data = action.payload;
+            state.hasMore = action.payload.has_more;
         },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         updateData: (state, action: PayloadAction<any>) => {
             // Object.assign(action.payload.data, state.data.data);
             const data = state.data.data;
-            return { ...state, data: { ...state.data, data: { ...data, ...action.payload.data } } }
+            state.data.data = { ...data, ...action.payload.data };
+            state.hasMore = action.payload.has_more;
         },
         setFetchAgain: (state, action: PayloadAction<boolean>) => {
             state.isFetchAgain = action.payload;
@@ -110,19 +112,27 @@ const TeamSlice = createSlice({
             state.isDialogOpen = true;
         },
         setWeekDate: (state, action: PayloadAction<string>) => {
-            return { ...state, weekDate: action.payload, data: initialState.data, start: 0, isFetchAgain: true }
+            state.weekDate = action.payload;
+            state.data = initialState.data;
+            state.start = 0;
+            state.isFetchAgain = true;
         },
         setProject: (state, action: PayloadAction<Array<string>>) => {
-            return { ...state, project: action.payload, data: initialState.data, start: 0, isFetchAgain: true }
+            state.project = action.payload;
+            state.data = initialState.data;
+            state.start = 0;
+            state.isFetchAgain = true;
         },
         setStart: (state, action: PayloadAction<number>) => {
-            return { ...state, start: action.payload }
+            state.start = action.payload;
         },
         setHasMore: (state, action: PayloadAction<boolean>) => {
-            return { ...state, hasMore: action.payload }
+            state.hasMore = action.payload;
         },
-        setDateRange: (state, action: PayloadAction<DateRange>) => {
-            state.dateRange = action.payload;
+        setDateRange: (state, action: PayloadAction<{ dateRange: DateRange; employee: string; isAprrovalDialogOpen: boolean }>) => {
+            state.dateRange = action.payload.dateRange;
+            state.employee = action.payload.employee;
+            state.isAprrovalDialogOpen = action.payload.isAprrovalDialogOpen;
         },
         setApprovalDialog: (state, action: PayloadAction<boolean>) => {
             state.isAprrovalDialogOpen = action.payload;

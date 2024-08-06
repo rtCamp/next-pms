@@ -68,6 +68,7 @@ const homeSlice = createSlice({
     reducers: {
         setData: (state, action: PayloadAction<any>) => {
             state.data = action.payload;
+            state.hasMore = action.payload.has_more;
         },
         setFetchAgain: (state, action: PayloadAction<boolean>) => {
             state.isFetchAgain = action.payload;
@@ -76,20 +77,28 @@ const homeSlice = createSlice({
             state.timesheet = action.payload;
         },
         setWeekDate: (state, action: PayloadAction<string>) => {
-            return { ...state, weekDate: action.payload, data: initialState.data, start: 0, isFetchAgain: true }
+            state.weekDate = action.payload;
+            state.data = initialState.data;
+            state.start = 0;
+            state.isFetchAgain = true;
         },
         setEmployeeName: (state, action: PayloadAction<string>) => {
-            return { ...state, employeeName: action.payload, data: initialState.data, start: 0, isFetchAgain: true }
+            state.employeeName = action.payload;
+            state.data = initialState.data;
+            state.start = 0;
+            state.isFetchAgain = true;
         },
         setStart: (state, action: PayloadAction<number>) => {
-            return { ...state, start: action.payload }
+            state.start = action.payload;
         },
         setHasMore: (state, action: PayloadAction<boolean>) => {
-            return { ...state, hasMore: action.payload }
+            state.hasMore = action.payload;
         },
         updateData: (state, action: PayloadAction<any>) => {
             const data = state.data.data;
-            return { ...state, data: { ...state.data, data: { ...data, ...action.payload.data }, dates: action.payload.dates } }
+            state.data.data = { ...data, ...action.payload.data };
+            state.data.dates = action.payload.dates;
+            state.hasMore = action.payload.has_more;
         },
     }
 });

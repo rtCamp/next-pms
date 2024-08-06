@@ -1,7 +1,7 @@
 import { useToast } from "@/app/components/ui/use-toast";
 import { RootState } from "@/store";
 import { useSelector, useDispatch } from "react-redux";
-import { setApprovalDialog, setDateRange, setEmployee, setFetchAgain } from "@/store/team";
+import { setDateRange, setFetchAgain } from "@/store/team";
 import { Button } from "@/app/components/ui/button";
 import { parseFrappeErrorMsg, prettyDate } from "@/lib/utils";
 // import { Textarea } from "@/app/components/ui/textarea";
@@ -29,10 +29,8 @@ export const Approval = () => {
   });
   const handleOpen = () => {
     const data = { start_date: "", end_date: "" };
-    dispatch(setDateRange(data));
     dispatch(setFetchAgain(true));
-    dispatch(setEmployee(""));
-    dispatch(setApprovalDialog(false));
+    dispatch(setDateRange({ dateRange: data, employee: "", isAprrovalDialogOpen: false }));
   };
   const handleApproval = () => {
     const data = {
