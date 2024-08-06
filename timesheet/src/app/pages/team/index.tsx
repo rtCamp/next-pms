@@ -20,14 +20,7 @@ import {
   setProjectSearch,
 } from "@/store/team";
 import { useToast } from "@/app/components/ui/use-toast";
-import {
-  parseFrappeErrorMsg,
-  prettyDate,
-  floatToTime,
-  getFormatedDate,
-  cn,
-  calculateExtendedWorkingHour,
-} from "@/lib/utils";
+import { parseFrappeErrorMsg, prettyDate, floatToTime, getFormatedDate, cn, calculateWeeklyHour } from "@/lib/utils";
 import { useEffect, useCallback } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Table, TableHead, TableHeader, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
@@ -40,6 +33,7 @@ import { Approval } from "./approval";
 import { TEAM, EMPLOYEE } from "@/lib/constant";
 import { ItemProps, dataItem } from "@/types/team";
 import { Spinner } from "@/app/components/spinner";
+import { WorkingFrequency } from "@/types";
 
 type ProjectProps = {
   project_name: string;
@@ -320,15 +314,10 @@ const Team = () => {
                           </TableCell>
                           {item.data.map((data: dataItem) => {
                             total += data.hour;
-                            const expectedTime = calculateExtendedWorkingHour(
-                              data.hour,
-                              item.working_hour,
-                              item.working_frequency
-                            );
                             return (
                               <TableCell className={cn("flex max-w-20 w-full justify-center items-center")}>
                                 <Typography
-                                  className={cn(expectedTime == 2 && "text-warning", data.is_leave && "text-gray-400")}
+                                  className={cn(data.is_leave && "text-warning", data.hour == 0 && "text-primary")}
                                   variant="p"
                                 >
                                   {data.hour ? floatToTime(data.hour) : "-"}
@@ -336,7 +325,12 @@ const Team = () => {
                               </TableCell>
                             );
                           })}
-                          <TableCell className="w-full max-w-24 flex items-center justify-end">{floatToTime(total)}</TableCell>
+
+                          <WeekTotal
+                            total={total}
+                            expected_hour={item.working_hour}
+                            frequency={item.working_frequency}
+                          />
 
                           <TableCell
                             className="w-full max-w-16 flex items-center justify-end"
@@ -381,3 +375,27 @@ const Status = ({ status }: { status: string }) => {
   return <CircleCheck className="w-4 h-4 " />;
 };
 export default Team;
+
+const WeekTotal = ({
+  total,
+  expected_hour,
+  frequency,
+}: {
+  total: number;
+  expected_hour: number;
+  frequency: WorkingFrequency;
+}) => {
+  const expectedTime = calculateWeeklyHour(total, expected_hour, frequency);
+  return (
+    <TableCell
+      className={cn(
+        "w-full max-w-24 flex items-center justify-end",
+        expectedTime == 1 && "text-success",
+        expectedTime == 2 && "text-warning",
+        expectedTime == 0 && "text-destructive"
+      )}
+    >
+      {floatToTime(total)}
+    </TableCell>
+  );
+};

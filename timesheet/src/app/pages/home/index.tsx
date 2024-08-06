@@ -184,11 +184,12 @@ const Home = () => {
                       <TableCell
                         className={cn(
                           "text-xs",
-                          expectedTime == 2 && "bg-warning/20",
-                          expectedTime == 1 && "bg-success/20",
                           isToday(data.date) && "bg-slate-50",
+                          expectedTime == 2 && "bg-warning/40",
+                          expectedTime == 1 && "bg-success/20",
+                          expectedTime == 0 && "bg-destructive/10",
+                          data.is_leave && "bg-warning/20",
                           data.hour == 0 && "text-center",
-                          data.is_leave && "bg-gray-50 text-gray-400"
                         )}
                         key={`${key}-${index}`}
                       >

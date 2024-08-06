@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableRow } from "@/app/components/ui/table
 import { Typography } from "@/app/components/typography";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
 import { cn, floatToTime, getDateFromDateAndTime } from "@/lib/utils";
-import { PencilLine, CirclePlus } from "lucide-react";
+import { PencilLine, CirclePlus, CircleDollarSign } from "lucide-react";
 import { useState } from "react";
 import { TaskDataProps, TaskDataItemProps, LeaveProps } from "@/types/timesheet";
 
@@ -57,7 +57,8 @@ export const Employee = ({ employee }: EmployeeProps) => {
                     const isHoliday = timesheetData.holidays.includes(date);
                     return <Cell date={date} data={data} isHoliday={isHoliday} disabled />;
                   })}
-                  <TableCell className="max-w-24 flex w-full items-center justify-end">
+                  <TableCell className={ cn("max-w-24 w-full flex justify-between items-center",!taskData.is_billable && "justify-end")}>
+                    {taskData.is_billable == true && <CircleDollarSign className="stroke-success w-4 h-4" />}
                     <Typography variant="p" className="text-slate-800 font-medium">
                       {floatToTime(totalHours)}
                     </Typography>
@@ -86,7 +87,7 @@ export const EmptyRow = ({
     <TableRow className="flex">
       <TableCell className="w-full max-w-md">
         <Typography variant="p" className="text-destructive">
-          No Task found
+          Add Task
         </Typography>
       </TableCell>
       {dates.map((date: string) => {
@@ -102,7 +103,7 @@ export const EmptyRow = ({
         };
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //   @ts-ignore
-        return <Cell date={date} data={value} isHoliday={isHoliday} onCellClick={onCellClick} disabled/>;
+        return <Cell date={date} data={value} isHoliday={isHoliday} onCellClick={onCellClick} disabled />;
       })}
       <TableCell className="w-full max-w-24 text-left"></TableCell>
     </TableRow>
@@ -171,7 +172,7 @@ const Cell = ({
           {isHovered && data?.hours && data?.hours > 0 && <PencilLine className="text-center" size={16} />}
           {isHovered && !data?.hours && <CirclePlus className="text-center" size={16} />}
         </TooltipTrigger>
-        {data?.description && <TooltipContent>{data?.description}</TooltipContent>}
+        {data?.description && <TooltipContent className="whitespace-pre text-left">{data?.description}</TooltipContent>}
       </TableCell>
     </Tooltip>
   );

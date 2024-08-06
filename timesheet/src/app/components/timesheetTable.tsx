@@ -1,8 +1,14 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
-import { cn, prettyDate, getDateFromDateAndTime, floatToTime, calculateExtendedWorkingHour } from "@/lib/utils";
+import {
+  cn,
+  prettyDate,
+  getDateFromDateAndTime,
+  floatToTime,
+  calculateWeeklyHour,
+} from "@/lib/utils";
 import { Typography } from "./typography";
 import { useState } from "react";
-import { CircleCheck, CirclePlus, CircleX, Clock3, PencilLine } from "lucide-react";
+import { CircleCheck, CirclePlus, CircleX, Clock3, PencilLine, CircleDollarSign } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
 import { TaskDataProps, TaskProps, TaskDataItemProps, LeaveProps } from "@/types/timesheet";
 import { Button } from "@/app/components/ui/button";
@@ -115,8 +121,15 @@ export const TimesheetTable = ({
                     <Cell date={date} data={data} isHoliday={isHoliday} onCellClick={onCellClick} disabled={disabled} />
                   );
                 })}
-                <TableCell>
-                  <Typography variant="p" className="text-slate-800 font-medium text-right">
+                <TableCell className="text-center">
+                  <Typography
+                    variant="p"
+                    className={cn(
+                      "text-slate-800 font-medium text-right flex justify-between items-center",
+                      !taskData.is_billable && "justify-end"
+                    )}
+                  >
+                    {taskData.is_billable == true && <CircleDollarSign className="stroke-success w-4 h-4" />}
                     {floatToTime(totalHours)}
                   </Typography>
                 </TableCell>
@@ -147,8 +160,8 @@ const LeaveRow = ({ leaves, dates }: { leaves: Array<LeaveProps>; dates: string[
         }
         return (
           <TableCell key={date} className="text-center">
-            <Typography variant="p" className="text-slate-600">
-              {data ? floatToTime(hour) : "-"}
+            <Typography variant="p" className="text-warning">
+              {data ? floatToTime(hour) : ""}
             </Typography>
           </TableCell>
         );
@@ -182,6 +195,7 @@ const TotalHourRow = ({
     <TableRow>
       <TableCell></TableCell>
       {dates.map((date: string) => {
+        let isLeave = false;
         const isHoliday = holidays.includes(date);
         if (isHoliday) {
           return (
@@ -212,24 +226,46 @@ const TotalHourRow = ({
             total_hours += 4;
           } else {
             total_hours += 8;
+            isLeave = true;
           }
         }
         total += total_hours;
-        const isMoreThanWorkingHour = calculateExtendedWorkingHour(total_hours, working_hour, working_frequency);
         return (
           <TableCell className="text-center">
-            <Typography variant="p" className={cn("text-slate-600 ", isMoreThanWorkingHour && "text-warning")}>
+            <Typography variant="p" className={cn("text-slate-600 ", isLeave && "text-warning")}>
               {floatToTime(total_hours)}
             </Typography>
           </TableCell>
         );
       })}
-      <TableCell>
-        <Typography variant="p" className={cn("text-slate-800 text-right font-medium", total > 40 && "text-warning")}>
-          {floatToTime(total)}
-        </Typography>
-      </TableCell>
+      <WeekTotal total={total} expected_hour={working_hour} frequency={working_frequency} />
     </TableRow>
+  );
+};
+const WeekTotal = ({
+  total,
+  expected_hour,
+  frequency,
+}: {
+  total: number;
+  expected_hour: number;
+  frequency: WorkingFrequency;
+}) => {
+  const expectedTime = calculateWeeklyHour(total, expected_hour, frequency);
+  return (
+    <TableCell>
+      <Typography
+        variant="p"
+        className={cn(
+          "text-right font-medium",
+          expectedTime == 1 && "text-success",
+          expectedTime == 2 && "text-warning",
+          expectedTime == 0 && "text-destructive"
+        )}
+      >
+        {floatToTime(total)}
+      </Typography>
+    </TableCell>
   );
 };
 
@@ -274,26 +310,37 @@ const Cell = ({
   };
   return (
     <Tooltip>
-      <TableCell
-        key={date}
-        onMouseEnter={onMouseEnter}
-        onClick={handleClick}
-        onMouseLeave={onMouseLeave}
-        className={cn(
-          "text-center",
-          isDisabled && "cursor-default",
-          isHovered && "h-full bg-slate-100 cursor-pointer"
-        )}
-      >
-        <TooltipTrigger className={cn(isDisabled && "cursor-default")}>
-          <Typography variant="p" className={cn("text-slate-600", isHoliday || (isDisabled && "text-slate-400"),isHovered && !data?.hours && "hidden ")}>
-            {data?.hours && data?.hours > 0 ? floatToTime(data?.hours || 0) : "-"}
-          </Typography>
-          {isHovered && data?.hours && data?.hours > 0 && <PencilLine className="text-center" size={16} />}
-          {isHovered && !data?.hours && <CirclePlus className="text-center" size={16} />}
-        </TooltipTrigger>
-        {data?.description && <TooltipContent className="w-72 text-left">{data?.description}</TooltipContent>}
-      </TableCell>
+      <TooltipTrigger className={cn(isDisabled && "cursor-default")} asChild>
+        <TableCell
+          key={date}
+          onMouseEnter={onMouseEnter}
+          onClick={handleClick}
+          onMouseLeave={onMouseLeave}
+          className={cn(
+            "text-center",
+            isDisabled && "cursor-default",
+            isHovered && "h-full bg-slate-100 cursor-pointer"
+          )}
+        >
+          <span className="flex flex-col items-center">
+            <Typography
+              variant="p"
+              className={cn(
+                "text-slate-600",
+                isHoliday || (isDisabled && "text-slate-400"),
+                isHovered && !data?.hours && "hidden"
+              )}
+            >
+              {data?.hours && data?.hours > 0 ? floatToTime(data?.hours || 0) : "-"}
+            </Typography>
+            {isHovered && data?.hours && data?.hours > 0 && <PencilLine className="text-center" size={16} />}
+            {isHovered && !data?.hours && <CirclePlus className="text-center" size={16} />}
+          </span>
+          {data?.description && (
+            <TooltipContent className="text-left whitespace-pre">{data?.description}</TooltipContent>
+          )}
+        </TableCell>
+      </TooltipTrigger>
     </Tooltip>
   );
 };
@@ -315,7 +362,7 @@ const EmptyRow = ({
     <TableRow>
       <TableCell>
         <Typography variant="p" className="text-destructive">
-          No Task found
+          Add Task
         </Typography>
       </TableCell>
       {dates.map((date: string) => {

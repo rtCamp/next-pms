@@ -5,6 +5,7 @@ export interface TaskProps {
 export interface TaskDataProps {
     name: string
     project_name: string | null
+    is_billable: boolean
     data: Array<TaskDataItemProps>
 }
 
