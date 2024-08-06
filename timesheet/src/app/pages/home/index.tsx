@@ -20,7 +20,6 @@ import {
   setEmployeeName,
   DateProps,
   setStart,
-  setHasMore,
   updateData,
 } from "@/store/home";
 import { Spinner } from "@/app/components/spinner";

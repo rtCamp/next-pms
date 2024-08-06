@@ -5,13 +5,23 @@ export const TimesheetSchema = z.object({
         required_error: "Please select a task.",
     }).trim().min(1, { message: 'Please select a task.' }),
     name: z.string({}).optional(),
-    hours: z.string({ required_error: "Please enter hours." })
-        .refine(
-            (value) => !isNaN(parseFloat(value)) && /^\d+(\.\d)?$/.test(value),
-            {
-                message: "Hours must be a number with at most one decimal place",
+    hours: z.preprocess((val) => {
+        if (typeof val === 'string') {
+            const parsed = parseFloat(val);
+            if (isNaN(parsed)) {
+                throw new Error("Please enter a valid number for hours.");
             }
-        ),
+            return parsed;
+        }
+        return val;
+    }, z.number()
+        .refine((val) => /^\d+(\.\d)?$/.test(val.toString()), {
+            message: "Hour must be a number with at most one decimal place",
+        })
+        .refine((val) => val > 0, {
+            message: "Hour must be greater than 0",
+        })
+    ),
     date: z.string({
         required_error: "Please enter date.",
     }),

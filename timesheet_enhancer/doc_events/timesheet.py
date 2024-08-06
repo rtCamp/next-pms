@@ -16,13 +16,13 @@ def validate(doc, method=None):
 
 
 def validate_time(doc):
-    from timesheet_enhancer.api.utils import get_employee_working_hours
-
     if not doc.employee:
         throw(_("Employee is required."))
-    data = get_employee_working_hours(doc.employee)
-    working_frequency = data.get("working_frequency")
-    if working_frequency == "Per Day" and doc.total_hours > 24:
+    for data in doc.get("time_logs"):
+        if not data.hours or data.hours < 1:
+            throw(_("Hour should be greater than 0."))
+
+    if doc.total_hours > 24:
         throw(_("Total hours should not exceed 24."))
 
 
