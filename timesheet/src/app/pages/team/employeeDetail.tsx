@@ -119,9 +119,11 @@ const EmployeeDetail = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, teamState.weekDate, error, teamState.isFetchAgain]);
 
+
   if (isLoading || isEmployeeLoading) {
     return <Spinner isFull />;
   }
+
 
   return (
     <div className="flex flex-col">
