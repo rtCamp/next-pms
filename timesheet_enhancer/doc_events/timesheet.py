@@ -23,7 +23,7 @@ def validate_time(doc):
             throw(_("Hour should be greater than 0."))
 
     if doc.total_hours > 24:
-        throw(_("Total hours should not exceed 24."))
+        throw(_("You cannot log more than 24 hours in a single day."))
 
 
 def before_save(doc, method=None):

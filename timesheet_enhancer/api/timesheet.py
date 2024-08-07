@@ -169,14 +169,19 @@ def update_timesheet_detail(
             continue
         if log.task != task:
             throw(_("No matching task found for update."))
+        if hours == 0:
+            parent_doc.remove(log)
+            continue
         log.hours = hours
         log.description = description
-    parent_doc.save()
-
-    parent_doc.reload()
-
-    if parent_doc.total_hours == 0:
+    if not parent_doc.time_logs:
         parent_doc.delete(ignore_permissions=True)
+    else:
+        parent_doc.save()
+        parent_doc.reload()
+
+        if parent_doc.total_hours == 0:
+            parent_doc.delete(ignore_permissions=True)
 
 
 def create_timesheet_detail(
