@@ -238,7 +238,7 @@ const Team = () => {
             label="Approval"
             data={approvals}
             isMulti
-            leftIcon={<Filter className="h-4 w-4" />}
+            leftIcon={teamState.userGroupSearch.length==0 ? <Filter className="h-4 w-4" /> : <Filter className="h-4 w-4 fill-primary" />}
             className="text-primary border-dashed gap-x-2 font-normal"
             disabled
           />
@@ -248,7 +248,7 @@ const Team = () => {
             isMulti
             onSelect={handleProjectChange}
             onSearch={onProjectSearch}
-            leftIcon={<Filter className="h-4 w-4" />}
+            leftIcon={teamState.project.length==0 ? <Filter className="h-4 w-4" /> : <Filter className="h-4 w-4 fill-primary" />}
             data={projects?.message.map((item: ProjectProps) => ({
               label: item.project_name,
               value: item.name,
@@ -264,7 +264,7 @@ const Team = () => {
               value: item.name,
             }))}
             isMulti
-            leftIcon={<Filter className="h-4 w-4" />}
+            leftIcon={teamState.userGroup.length==0 ? <Filter className="h-4 w-4" /> : <Filter className="h-4 w-4 fill-primary" />}
             onSelect={handleUserGroupChange}
             className="text-primary border-dashed gap-x-2 font-normal"
           />

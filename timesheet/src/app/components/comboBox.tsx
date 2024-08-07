@@ -68,9 +68,6 @@ export const ComboxBox = ({
   };
   const hasValue = selectedValues.length > 0;
   const selectedValue = () => {
-    if (selectedValues.length === 1) {
-      return data.find((item) => item.value === selectedValues[0])?.label;
-    }
     return `${selectedValues.length} items selected`;
   };
   // eslint-disable-next-line react-hooks/exhaustive-deps
