@@ -31,6 +31,7 @@ import { TEAM, EMPLOYEE } from "@/lib/constant";
 import { ItemProps, dataItem } from "@/types/team";
 import { Spinner } from "@/app/components/spinner";
 import { WorkingFrequency } from "@/types";
+import { useQueryParamsState } from "@/lib/queryParam";
 
 type ProjectProps = {
   project_name: string;
@@ -51,6 +52,9 @@ const Team = () => {
   const teamState = useSelector((state: RootState) => state.team);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const [projectParam, setProjectParam] = useQueryParamsState<string[]>("project", []);
+  const [userGroupParam, setUserGroupParam] = useQueryParamsState<string[]>("user-group", []);
 
   const {
     data: projects,
@@ -127,11 +131,9 @@ const Team = () => {
   }, [data, error, teamState.isFetchAgain]);
 
   useEffect(() => {
-    if (!projectError) {
+    if (teamState.projectSearch !== "") {
       projectMutate();
-      return;
     }
-
     if (projectError) {
       const err = parseFrappeErrorMsg(projectError);
       toast({
@@ -141,10 +143,10 @@ const Team = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teamState.projectSearch, projectError]);
+
   useEffect(() => {
-    if (!groupError) {
+    if (teamState.userGroupSearch !== "") {
       userGroupMutate();
-      return;
     }
     if (groupError) {
       const err = parseFrappeErrorMsg(groupError);
@@ -155,6 +157,27 @@ const Team = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teamState.userGroupSearch, groupError]);
+
+  useEffect(() => {
+    if (projectParam.length > 0) {
+      dispatch(setProject(projectParam));
+    }
+  }, [dispatch, projectParam]);
+
+  useEffect(() => {
+    if (userGroupParam.length > 0) {
+      dispatch(setUsergroup(userGroupParam));
+    }
+  }, [dispatch, userGroupParam]);
+
+  useEffect(() => {
+    setProjectParam(teamState.project);
+  }, [setProjectParam, teamState.project]);
+
+  useEffect(() => {
+    setUserGroupParam(teamState.userGroup);
+  }, [setUserGroupParam, teamState.userGroup]);
+
   const handleprevWeek = useCallback(() => {
     const date = getFormatedDate(addDays(teamState.weekDate, -6));
     dispatch(setWeekDate(date));
