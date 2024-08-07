@@ -110,6 +110,7 @@ const Team = () => {
 
   useEffect(() => {
     if (teamState.isFetchAgain) {
+      console.log("fetching again");
       mutate();
       dispatch(setFetchAgain(false));
     }
@@ -238,7 +239,7 @@ const Team = () => {
             label="Approval"
             data={approvals}
             isMulti
-            leftIcon={teamState.userGroupSearch.length==0 ? <Filter className="h-4 w-4" /> : <Filter className="h-4 w-4 fill-primary" />}
+            leftIcon={<Filter className={cn("h-4 w-4")} />}
             className="text-primary border-dashed gap-x-2 font-normal"
             disabled
           />
@@ -248,7 +249,7 @@ const Team = () => {
             isMulti
             onSelect={handleProjectChange}
             onSearch={onProjectSearch}
-            leftIcon={teamState.project.length==0 ? <Filter className="h-4 w-4" /> : <Filter className="h-4 w-4 fill-primary" />}
+            leftIcon={<Filter className={cn("h-4 w-4", teamState.project.length != 0 && "fill-primary")} />}
             data={projects?.message.map((item: ProjectProps) => ({
               label: item.project_name,
               value: item.name,
@@ -264,7 +265,7 @@ const Team = () => {
               value: item.name,
             }))}
             isMulti
-            leftIcon={teamState.userGroup.length==0 ? <Filter className="h-4 w-4" /> : <Filter className="h-4 w-4 fill-primary" />}
+            leftIcon={<Filter className={cn("h-4 w-4", teamState.userGroup.length != 0 && "fill-primary")} />}
             onSelect={handleUserGroupChange}
             className="text-primary border-dashed gap-x-2 font-normal"
           />

@@ -13,15 +13,7 @@ import { RootState } from "@/store";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useCallback, useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import {
-  setData,
-  setFetchAgain,
-  setWeekDate,
-  setEmployeeName,
-  DateProps,
-  setStart,
-  updateData,
-} from "@/store/home";
+import { setData, setFetchAgain, setWeekDate, setEmployeeName, DateProps, setStart, updateData } from "@/store/home";
 import { Spinner } from "@/app/components/spinner";
 import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
 import { addDays, isToday } from "date-fns";
@@ -31,12 +23,14 @@ import { ChevronRight, ChevronLeft } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { Typography } from "@/app/components/typography";
 import { dataItem } from "@/types/team";
+import { useQueryParamsState } from "@/lib/queryParam";
 
 const Home = () => {
-  const [employee, setEmployee] = useState("");
   const { toast } = useToast();
   const homeState = useSelector((state: RootState) => state.home);
   const dispatch = useDispatch();
+  const [employeeNameParam, setEmployeeNameParam] = useQueryParamsState<string>("employee-name", "");
+  const [employee, setEmployee] = useState(employeeNameParam);
 
   const { data, error, mutate, isLoading } = useFrappeGetCall("timesheet_enhancer.api.team.get_compact_view_data", {
     date: homeState.weekDate,
@@ -66,11 +60,17 @@ const Home = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, homeState.isFetchAgain, error]);
+  useEffect(() => {
+    if (employeeNameParam !== "") {
+      dispatch(setEmployeeName(employeeNameParam));
+    }
+  }, [dispatch, employeeNameParam]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const onInputChange = useCallback(
     deBounce((e: React.ChangeEvent<HTMLInputElement>) => {
       dispatch(setEmployeeName(e.target.value));
+      setEmployeeNameParam(e.target.value);
     }, 1000),
     [dispatch]
   );
@@ -182,12 +182,12 @@ const Home = () => {
                       <TableCell
                         className={cn(
                           "text-xs",
-                          isToday(data.date) && "bg-slate-50",
                           expectedTime == 2 && "bg-warning/40",
                           expectedTime == 1 && "bg-success/20",
                           expectedTime == 0 && "bg-destructive/10",
                           data.is_leave && "bg-warning/20",
-                          data.hour == 0 && "text-center"
+                          data.hour == 0 && "text-center bg-transparent",
+                          isToday(data.date) && "bg-slate-50"
                         )}
                         key={`${key}-${index}`}
                       >
