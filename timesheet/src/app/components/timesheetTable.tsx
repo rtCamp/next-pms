@@ -309,7 +309,7 @@ const Cell = ({
     setIsHovered(false);
   };
   return (
-    <Tooltip>
+    <Tooltip delayDuration={0}>
       <TooltipTrigger className={cn(isDisabled && "cursor-default")} asChild>
         <TableCell
           key={date}

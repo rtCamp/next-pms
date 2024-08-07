@@ -24,6 +24,7 @@ import { Button } from "@/app/components/ui/button";
 import { Typography } from "@/app/components/typography";
 import { dataItem } from "@/types/team";
 import { useQueryParamsState } from "@/lib/queryParam";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
 
 const Home = () => {
   const { toast } = useToast();
@@ -165,7 +166,7 @@ const Home = () => {
               return (
                 <TableRow key={key}>
                   <TableCell className="flex items-center gap-x-2 max-w-sm w-full">
-                    <Avatar className="w-8 h-8">
+                    <Avatar className="w-6 h-6">
                       <AvatarImage src={decodeURIComponent(item.image)} alt={item.employee_name} />
                       <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
                     </Avatar>
@@ -179,20 +180,27 @@ const Home = () => {
                     );
 
                     return (
-                      <TableCell
-                        className={cn(
-                          "text-xs",
-                          expectedTime == 2 && "bg-warning/40",
-                          expectedTime == 1 && "bg-success/20",
-                          expectedTime == 0 && "bg-destructive/10",
-                          data.is_leave && "bg-warning/20",
-                          data.hour == 0 && "text-center bg-transparent",
-                          isToday(data.date) && "bg-slate-50"
-                        )}
-                        key={`${key}-${index}`}
-                      >
-                        {data.hour > 0 ? floatToTime(data.hour) : "-"}
-                      </TableCell>
+                      <Tooltip delayDuration={0}>
+                        <TooltipTrigger asChild>
+                          <TableCell
+                            className={cn(
+                              "text-xs hover:cursor-pointer bg-transparent",
+                              expectedTime == 2 && "bg-warning/40",
+                              expectedTime == 1 && "bg-success/20",
+                              expectedTime == 0 && data.hour != 0  && "bg-destructive/10",
+                              data.is_leave && "bg-warning/20",
+                              isToday(data.date) && "bg-slate-50",
+                              data.hour == 0 && "text-center",
+                            )}
+                            key={`${key}-${index}`}
+                          >
+                            {data.hour > 0 ? floatToTime(data.hour) : "-"}
+                            {data.note && (
+                              <TooltipContent className="text-left whitespace-pre">{data.note}</TooltipContent>
+                            )}
+                          </TableCell>
+                        </TooltipTrigger>
+                      </Tooltip>
                     );
                   })}
                 </TableRow>

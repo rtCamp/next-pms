@@ -90,7 +90,8 @@ def get_compact_view_data(
                         "start_date": date,
                         "end_date": date,
                     },
-                    "total_hours",
+                    ["total_hours", "note"],
+                    as_dict=True,
                 )
                 if leave:
                     leave = leave[0]
@@ -100,11 +101,20 @@ def get_compact_view_data(
                         hour += 8
                     on_leave = True
 
-                if total_hours:
-                    hour += total_hours
+                if total_hours is not None:
+                    hour += total_hours.get("total_hours")
 
                 local_data["data"].append(
-                    {"date": date, "hour": hour, "is_leave": on_leave}
+                    {
+                        "date": date,
+                        "hour": hour,
+                        "is_leave": on_leave,
+                        "note": (
+                            total_hours.get("note").replace("<br>", "\n")
+                            if total_hours and total_hours.get("note")
+                            else ""
+                        ),
+                    }
                 )
         data[employee.name] = local_data
 

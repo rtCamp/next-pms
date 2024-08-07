@@ -97,9 +97,9 @@ const TeamSlice = createSlice({
         },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         updateData: (state, action: PayloadAction<any>) => {
-            // Object.assign(action.payload.data, state.data.data);
             const data = state.data.data;
             state.data.data = { ...data, ...action.payload.data };
+            // state.data.dates = action.payload.dates;
             state.hasMore = action.payload.has_more;
         },
         setFetchAgain: (state, action: PayloadAction<boolean>) => {

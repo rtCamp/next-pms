@@ -3,6 +3,7 @@ export type dataItem = {
     date: string;
     hour: number;
     is_leave: boolean;
+    note: string;
 };
 
 export type ItemProps = {

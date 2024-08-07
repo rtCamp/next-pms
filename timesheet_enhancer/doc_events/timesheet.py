@@ -13,6 +13,16 @@ def validate(doc, method=None):
     validate_dates(doc)
     validate_is_time_billable(doc)
     validate_time(doc)
+    update_note(doc)
+
+
+def update_note(doc):
+    note = ""
+    for data in doc.get("time_logs"):
+        if data.description:
+            note += data.description.replace("\n", "<br>")
+        note += "<br>"
+    doc.note = note
 
 
 def validate_time(doc):

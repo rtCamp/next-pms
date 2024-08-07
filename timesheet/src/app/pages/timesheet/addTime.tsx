@@ -32,7 +32,7 @@ export const AddTime = () => {
     defaultValues: {
       name: timesheetState.timesheet.name,
       task: timesheetState.timesheet.task,
-      hours: timesheetState.timesheet.hours.toString(),
+      hours: timesheetState.timesheet.hours,
       description: timesheetState.timesheet.description,
       date: timesheetState.timesheet.date,
       parent: timesheetState.timesheet.parent,

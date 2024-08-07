@@ -110,12 +110,12 @@ const Team = () => {
 
   useEffect(() => {
     if (teamState.isFetchAgain) {
-      console.log("fetching again");
       mutate();
       dispatch(setFetchAgain(false));
     }
     if (data) {
-      if (Object.keys(teamState.data.data).length > 0) {
+      console.log("here")
+      if (Object.keys(teamState.data.data).length > 0 && teamState.data.dates.length > 0) {
         dispatch(updateData(data.message));
       } else {
         dispatch(setData(data.message));
@@ -323,7 +323,7 @@ const Team = () => {
                                 navigate(`${TEAM}${EMPLOYEE}/${item.name}`);
                               }}
                             >
-                              <Avatar className="w-8 h-8">
+                              <Avatar className="w-6 h-6">
                                 <AvatarImage src={decodeURIComponent(item.image)} />
                                 <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
                               </Avatar>
