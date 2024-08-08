@@ -10,6 +10,7 @@ import { Typography } from "@/app/components/typography";
 import { TimesheetTable } from "@/app/components/timesheetTable";
 import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
 import { Avatar, AvatarImage, AvatarFallback } from "@/app/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import {
   Command,
   CommandEmpty,
@@ -27,7 +28,7 @@ import {
   setTimesheetData,
   updateTimesheetData,
   setWeekDate,
-  resetState,
+  resetTimesheetDataState,
 } from "@/store/team";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
@@ -38,36 +39,14 @@ import { useNavigate } from "react-router-dom";
 const EmployeeDetail = () => {
   const { id } = useParams();
   const teamState = useSelector((state: RootState) => state.team);
-  const { toast } = useToast();
-  const navigate = useNavigate();
   const dispatch = useDispatch();
-
+  const { toast } = useToast();
   const { data, isLoading, error, mutate } = useFrappeGetCall("timesheet_enhancer.api.timesheet.get_timesheet_data", {
     employee: id,
     start_date: teamState.weekDate,
     max_week: 4,
   });
-  const { data: employees, isLoading: isEmployeeLoading } = useFrappeGetCall(
-    "frappe.client.get_list",
-    {
-      doctype: "Employee",
-      fields: ["name", "employee_name", "image"],
-      filters: [["status", "=", "Active"]],
-    },
-    { shouldRetryOnError: false }
-  );
 
-  const onEmployeeChange = (name: string) => {
-    navigate(`/team/employee/${name}`);
-  };
-  const handleLoadData = () => {
-    if (teamState.timesheetData.data == undefined || Object.keys(teamState.timesheetData.data).length == 0) return;
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const obj = teamState.timesheetData.data[Object.keys(teamState.timesheetData.data).pop()];
-    const date = getFormatedDate(addDays(obj.start_date, -1));
-    dispatch(setWeekDate(date));
-  };
   const handleAddTime = () => {
     const timesheet = {
       name: "",
@@ -80,12 +59,16 @@ const EmployeeDetail = () => {
     };
     dispatch(setTimesheet({ timesheet, id }));
   };
-  const onCellClick = (timesheet: NewTimesheetProps) => {
-    timesheet.isUpdate = timesheet?.hours && timesheet?.hours > 0 ? true : false;
-    dispatch(setTimesheet({ timesheet, id }));
+  const handleLoadData = () => {
+    if (teamState.timesheetData.data == undefined || Object.keys(teamState.timesheetData.data).length == 0) return;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const obj = teamState.timesheetData.data[Object.keys(teamState.timesheetData.data).pop()];
+    const date = getFormatedDate(addDays(obj.start_date, -1));
+    dispatch(setWeekDate(date));
   };
   useEffect(() => {
-    dispatch(resetState());
+    dispatch(resetTimesheetDataState());
     const date = getTodayDate();
     dispatch(setWeekDate(date));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -113,92 +96,116 @@ const EmployeeDetail = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, teamState.weekDate, error, teamState.isFetchAgain]);
+  return (
+    <>
+      {teamState.isDialogOpen && <AddTime />}
+      <EmployeeCombo />
+      <Tabs defaultValue="timesheet" className="mt-3">
+        <div className="flex gap-x-4">
+          <TabsList className="w-full justify-start">
+            <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
+            <TabsTrigger value="time">Time</TabsTrigger>
+          </TabsList>
+          <Button className="float-right mb-1" onClick={handleAddTime}>
+            Add Time
+          </Button>
+        </div>
+        {isLoading ? (
+          <Spinner isFull />
+        ) : (
+          <>
+            <div className="overflow-y-scroll" style={{ height: "calc(100vh - 11rem)" }}>
+              <TabsContent value="timesheet" className="mt-0">
+                <Timesheet />
+              </TabsContent>
+              <TabsContent value="time" className="mt-0">
+                Change your password here.
+              </TabsContent>
+            </div>
+            <div className="mt-5">
+              <Button className="float-left" variant="outline" onClick={handleLoadData}>
+                Load More
+              </Button>
+            </div>
+          </>
+        )}
+      </Tabs>
+    </>
+  );
+};
 
-  if (isLoading || isEmployeeLoading) {
-    return <Spinner isFull />;
-  }
+const Timesheet = () => {
+  const { id } = useParams();
+  const teamState = useSelector((state: RootState) => state.team);
+  const dispatch = useDispatch();
+
+  const onCellClick = (timesheet: NewTimesheetProps) => {
+    timesheet.isUpdate = timesheet?.hours && timesheet?.hours > 0 ? true : false;
+    dispatch(setTimesheet({ timesheet, id }));
+  };
 
   return (
     <div className="flex flex-col">
-      {teamState.isDialogOpen && <AddTime />}
-      <div>
-        <EmployeeCombo id={id} data={employees?.message} handleChange={onEmployeeChange} />
-        <Button className="float-right mb-1" onClick={handleAddTime}>
-          Add Time
-        </Button>
-      </div>
-      {isLoading ? (
-        <Spinner isFull />
-      ) : (
-        <>
-          <div className="overflow-y-scroll" style={{ height: "calc(100vh - 8rem)" }}>
-            {teamState.timesheetData.data &&
-              Object.keys(teamState.timesheetData.data).length > 0 &&
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet]) => {
-                return (
-                  <>
-                    <Accordion type="multiple" key={key} defaultValue={[key]}>
-                      <AccordionItem value={key}>
-                        <AccordionTrigger className="hover:no-underline w-full">
-                          <div className="flex justify-between w-full">
-                            <Typography variant="h5" className="font-medium">
-                              {key} : {value.total_hours}h
-                            </Typography>
-                          </div>
-                        </AccordionTrigger>
-                        <AccordionContent className="pb-0">
-                          <TimesheetTable
-                            dates={value.dates}
-                            holidays={value.holidays}
-                            leaves={value.leaves}
-                            tasks={value.tasks}
-                            onCellClick={onCellClick}
-                            working_frequency={teamState.timesheetData.working_frequency}
-                            working_hour={teamState.timesheetData.working_hour}
-                          />
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                  </>
-                );
-              })}
-          </div>
-          <div className="mt-5">
-            <Button className="float-left" variant="outline" onClick={handleLoadData}>
-              Load More
-            </Button>
-          </div>
-        </>
-      )}
+      {teamState.timesheetData.data &&
+        Object.keys(teamState.timesheetData.data).length > 0 &&
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet]) => {
+          return (
+            <>
+              <Accordion type="multiple" key={key} defaultValue={[key]}>
+                <AccordionItem value={key}>
+                  <AccordionTrigger className="hover:no-underline w-full">
+                    <div className="flex justify-between w-full">
+                      <Typography variant="h5" className="font-medium">
+                        {key} : {value.total_hours}h
+                      </Typography>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-0">
+                    <TimesheetTable
+                      dates={value.dates}
+                      holidays={value.holidays}
+                      leaves={value.leaves}
+                      tasks={value.tasks}
+                      onCellClick={onCellClick}
+                      working_frequency={teamState.timesheetData.working_frequency}
+                      working_hour={teamState.timesheetData.working_hour}
+                    />
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </>
+          );
+        })}
     </div>
   );
 };
 
-export default EmployeeDetail;
-
-const EmployeeCombo = ({
-  id,
-  data,
-  handleChange,
-}: {
-  id: string | undefined;
-  data: Array<Employee>;
-  handleChange: (name: string) => void;
-}) => {
+const EmployeeCombo = () => {
+  const { id } = useParams();
   const [selectedValues, setSelectedValues] = useState<string>(id ?? "");
   const [employee, setEmployee] = useState<Employee | undefined>();
+  const navigate = useNavigate();
 
+  const { data: employees } = useFrappeGetCall(
+    "frappe.client.get_list",
+    {
+      doctype: "Employee",
+      fields: ["name", "employee_name", "image"],
+      filters: [["status", "=", "Active"]],
+    },
+    { shouldRetryOnError: false }
+  );
   const onEmployeeChange = (name: string) => {
     setSelectedValues(name);
-    handleChange(name);
+    navigate(`/team/employee/${name}`);
   };
 
   useEffect(() => {
-    const res = data?.find((item) => item.name === selectedValues);
+    const res = employees?.message.find((item: Employee) => item.name === selectedValues);
     setEmployee(res);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedValues]);
+  }, [employees, id]);
   return (
     <Popover modal>
       <PopoverTrigger asChild>
@@ -222,7 +229,7 @@ const EmployeeCombo = ({
           <CommandEmpty>No data.</CommandEmpty>
           <CommandGroup>
             <CommandList>
-              {data.map((item, index) => {
+              {employees?.message.map((item: Employee, index: number) => {
                 const isActive = selectedValues == item.name;
                 return (
                   <CommandItem
@@ -247,3 +254,5 @@ const EmployeeCombo = ({
     </Popover>
   );
 };
+
+export default EmployeeDetail;
