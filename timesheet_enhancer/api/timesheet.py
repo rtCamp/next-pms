@@ -5,6 +5,7 @@ from hrms.hr.utils import get_holiday_dates_for_employee
 
 from timesheet_enhancer.api.utils import (
     get_employee_from_user,
+    get_employee_working_hours,
     get_leaves_for_employee,
     get_week_dates,
 )
@@ -18,6 +19,11 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
 
     if not employee:
         employee = get_employee_from_user()
+    if not frappe.db.exists("Employee", employee):
+        throw(_("Employee not found."))
+
+    hour_detail = get_employee_working_hours(employee)
+    res = {**hour_detail}
     data = {}
     for i in range(max_week):
         current_week = True if start_date == now else False
@@ -34,9 +40,12 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
         data[week_dates["key"]]["holidays"] = get_holiday_dates_for_employee(
             employee, week_dates["start_date"], week_dates["end_date"]
         )
+        data[week_dates["key"]]["status"] = get_timesheet_state(
+            week_dates["dates"], employee
+        )
         start_date = add_days(getdate(week_dates["start_date"]), -1)
-
-    return data
+    res["data"] = data
+    return res
 
 
 @frappe.whitelist()
@@ -77,14 +86,19 @@ def save(
     hours: float = 0,
     parent: str = None,
     is_update: bool = False,
+    employee: str = None,
 ):
     """Updates/create time entry in Timesheet Detail child table."""
-    employee = get_employee_from_user()
+    if not employee:
+        employee = get_employee_from_user()
     if is_update and not name:
-        throw(_("Timesheet name is required for update"))
+        throw(_("Timesheet is required for update"))
     if is_update:
         update_timesheet_detail(name, parent, hours, description, task)
         return _("Timesheet updated successfully.")
+
+    if not name and not task:
+        throw(_("Task is required for new entry."))
 
     parent = frappe.db.get_value(
         "Timesheet",
@@ -107,10 +121,26 @@ def save(
 
 
 @frappe.whitelist()
-def submit_for_approval(start_date: str, end_date: str, notes: str):
-    from frappe.model.workflow import apply_workflow
+def delete(parent: str, name: str):
+    """Delete single time entry from timesheet doctype."""
+    parent_doc = frappe.get_doc("Timesheet", parent)
+    for log in parent_doc.time_logs:
+        if log.name == name:
+            parent_doc.remove(log)
+    if not parent_doc.time_logs:
+        parent_doc.delete(ignore_permissions=True)
+    else:
+        parent_doc.save()
+    return _("Timesheet deleted successfully.")
 
-    employee = get_employee_from_user()
+
+@frappe.whitelist()
+def submit_for_approval(
+    start_date: str, end_date: str, notes: str, employee: str = None
+):
+    if not employee:
+        employee = get_employee_from_user()
+    #  get the timesheet for whole week.
     timesheets = frappe.get_list(
         "Timesheet",
         filters={
@@ -120,18 +150,14 @@ def submit_for_approval(start_date: str, end_date: str, notes: str):
             "docstatus": 0,
         },
     )
-    # TODO: Need to update later
-    wf = frappe.db.exists("Workflow", {"document_type": "Timesheet", "is_active": True})
-    action = frappe.db.get_value(
-        "Workflow Transition",
-        {"parent": wf, "next_state": "Waiting Approval"},
-        "action",
-    )
+    if not timesheets:
+        throw(_("No timesheet found for the given week."))
     for timesheet in timesheets:
         doc = frappe.get_doc("Timesheet", timesheet["name"])
         doc.note = notes
+        doc.custom_approval_status = "Approval Pending"
         doc.save()
-        apply_workflow(doc, action)
+    return _("Timesheet submitted for approval.")
 
 
 def update_timesheet_detail(
@@ -143,9 +169,19 @@ def update_timesheet_detail(
             continue
         if log.task != task:
             throw(_("No matching task found for update."))
+        if hours == 0:
+            parent_doc.remove(log)
+            continue
         log.hours = hours
         log.description = description
-    parent_doc.save()
+    if not parent_doc.time_logs:
+        parent_doc.delete(ignore_permissions=True)
+    else:
+        parent_doc.save()
+        parent_doc.reload()
+
+        if parent_doc.total_hours == 0:
+            parent_doc.delete(ignore_permissions=True)
 
 
 def create_timesheet_detail(
@@ -211,11 +247,53 @@ def get_timesheet(dates: list, employee: str):
         timesheet = frappe.get_doc("Timesheet", name)
         total_hours += timesheet.total_hours
         for log in timesheet.time_logs:
-            subject, task_name = frappe.get_value("Task", log.task, ["subject", "name"])
+            if not log.task:
+                continue
+            subject, task_name, project_name, is_billable = frappe.get_value(
+                "Task",
+                log.task,
+                ["subject", "name", "project.project_name", "custom_is_billable"],
+            )
             if not subject:
                 continue
             if subject not in data:
-                data[subject] = {"name": task_name, "data": []}
+                data[subject] = {
+                    "name": task_name,
+                    "data": [],
+                    "is_billable": is_billable,
+                    "project_name": project_name,
+                }
 
             data[subject]["data"].append(log.as_dict())
     return [data, total_hours]
+
+
+def get_timesheet_state(dates: list, employee: str):
+
+    res = "Not Submitted"
+    timesheets = frappe.get_all(
+        "Timesheet",
+        filters={
+            "start_date": [">=", getdate(dates[0])],
+            "end_date": ["<=", getdate(dates[-1])],
+            "employee": employee,
+        },
+        fields=["custom_approval_status"],
+    )
+    if len(timesheets) == 0:
+        return res
+    approved = 0
+    submitted = 0
+
+    for timesheet in timesheets:
+        state = timesheet.get("custom_approval_status")
+        approved += 1 if state == "Approved" else 0
+        submitted += 1 if state == "Approval Pending" else 0
+
+    if approved == 0 and submitted == 0:
+        return res
+    if approved > submitted:
+        res = "Approved"
+    else:
+        res = "Approval Pending"
+    return res

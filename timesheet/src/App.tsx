@@ -1,44 +1,36 @@
+import { getSiteName } from "@/lib/utils";
 import { FrappeProvider } from "frappe-react-sdk";
-import {
-  RouterProvider,
-  createBrowserRouter,
-  createRoutesFromElements,
-} from "react-router-dom";
-import { UserProvider } from "@/app/provider/UserProvider";
-import Router from "@/Router";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { ScreenLoader } from "@/app/components/Loader";
-import { Suspense } from "react";
+import { UserProvider } from "@/lib/UserProvider";
 import { Provider } from "react-redux";
-import { store } from "@/app/state/store";
-import { getSiteName } from "@/app/lib/utils";
+import { store } from "@/store";
+import { RouterProvider, createBrowserRouter, createRoutesFromElements } from "react-router-dom";
+import { BASE_ROUTE } from "@/lib/constant";
+import { TooltipProvider } from "@/app/components/ui/tooltip";
+import { Router } from "@/route";
+import { Suspense } from "react";
 function App() {
   const router = createBrowserRouter(createRoutesFromElements(Router()), {
-    basename: "/timesheet",
+    basename: BASE_ROUTE,
   });
-
   return (
-    <FrappeProvider
-      url={import.meta.env.VITE_BASE_URL ?? ""}
-      socketPort={import.meta.env.VITE_SOCKET_PORT}
-      enableSocket={
-        import.meta.env.VITE_ENABLE_SOCKET === "true" ? true : false
-      }
-      siteName={getSiteName()}
-    >
-      {/* Provides user Auth functions. */}
-      <UserProvider>
-        {/* Redux store. */}
-        <Provider store={store}>
-          <TooltipProvider>
-            {/* Within routes component  are lazy loaded, therefore suspense is required. */}
-            <Suspense fallback={<ScreenLoader isFullPage={true} />}>
-              <RouterProvider router={router} />
-            </Suspense>
-          </TooltipProvider>
-        </Provider>
-      </UserProvider>
-    </FrappeProvider>
+    <>
+      <FrappeProvider
+        url={import.meta.env.VITE_BASE_URL ?? ""}
+        socketPort={import.meta.env.VITE_SOCKET_PORT}
+        enableSocket={import.meta.env.VITE_ENABLE_SOCKET === "true" ? true : false}
+        siteName={getSiteName()}
+      >
+        <UserProvider>
+          <Provider store={store}>
+            <TooltipProvider>
+              <Suspense fallback={<></>}>
+                <RouterProvider router={router} />
+              </Suspense>
+            </TooltipProvider>
+          </Provider>
+        </UserProvider>
+      </FrappeProvider>
+    </>
   );
 }
 

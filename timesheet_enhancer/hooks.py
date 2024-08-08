@@ -34,7 +34,10 @@ website_route_rules = [
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-doctype_js = {"Timesheet": "public/js/timesheet.js"}
+doctype_js = {
+    "Timesheet": "public/js/timesheet.js",
+    "Employee": "public/js/employee.js",
+}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -69,12 +72,43 @@ doctype_js = {"Timesheet": "public/js/timesheet.js"}
 # 	"methods": "timesheet_enhancer.utils.jinja_methods",
 # 	"filters": "timesheet_enhancer.utils.jinja_filters"
 # }
-
+fixtures = [
+    {
+        "dt": "Custom Field",
+        "filters": [
+            [
+                "name",
+                "in",
+                {
+                    "Task-custom_is_billable",
+                    "Project Type-custom_is_billable",
+                    "Timesheet-custom_approval_status",
+                    "Employee-custom_working_hours",
+                    "Employee-custom_work_schedule",
+                },
+            ]
+        ],
+    },
+    {
+        "dt": "Property Setter",
+        "filters": [
+            [
+                "name",
+                "in",
+                {
+                    "Task-total_billing_amount-permlevel",
+                    "Task-total_expense_claim-permlevel",
+                    "Task-total_costing_amount-permlevel",
+                },
+            ]
+        ],
+    },
+]
 # Installation
 # ------------
 
 # before_install = "timesheet_enhancer.install.before_install"
-# after_install = "timesheet_enhancer.install.after_install"
+after_install = "timesheet_enhancer.install.after_install"
 
 # Uninstallation
 # ------------
@@ -132,7 +166,9 @@ doc_events = {
     "Timesheet": {
         "validate": "timesheet_enhancer.doc_events.timesheet.validate",
         "before_save": "timesheet_enhancer.doc_events.timesheet.before_save",
-    }
+        "before_insert": "timesheet_enhancer.doc_events.timesheet.before_insert",
+    },
+    "Task": {"before_save": "timesheet_enhancer.doc_events.task.before_save"},
 }
 
 # Scheduled Tasks
