@@ -14,22 +14,22 @@ function App() {
   });
   return (
     <>
-        <FrappeProvider
-          url={import.meta.env.VITE_BASE_URL ?? ""}
-          socketPort={import.meta.env.VITE_SOCKET_PORT}
-          enableSocket={import.meta.env.VITE_ENABLE_SOCKET === "true" ? true : false}
-          siteName={getSiteName()}
-        >
-          <UserProvider>
-            <Provider store={store}>
-              <TooltipProvider>
-                <Suspense fallback={<></>}>
-                  <RouterProvider router={router} />
-                </Suspense>
-              </TooltipProvider>
-            </Provider>
-          </UserProvider>
-        </FrappeProvider>
+      <FrappeProvider
+        url={import.meta.env.VITE_BASE_URL ?? ""}
+        socketPort={import.meta.env.VITE_SOCKET_PORT}
+        enableSocket={import.meta.env.VITE_ENABLE_SOCKET === "true" ? true : false}
+        siteName={getSiteName()}
+      >
+        <UserProvider>
+          <Provider store={store}>
+            <TooltipProvider>
+              <Suspense fallback={<></>}>
+                <RouterProvider router={router} />
+              </Suspense>
+            </TooltipProvider>
+          </Provider>
+        </UserProvider>
+      </FrappeProvider>
     </>
   );
 }

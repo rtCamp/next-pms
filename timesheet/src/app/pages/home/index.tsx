@@ -39,7 +39,6 @@ const Home = () => {
     page_length: 20,
     start: homeState.start,
   });
-  console.log(data);
 
   useEffect(() => {
     if (homeState.isFetchAgain) {
