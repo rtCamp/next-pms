@@ -115,7 +115,6 @@ const Team = () => {
       dispatch(setFetchAgain(false));
     }
     if (data) {
-      console.log("here");
       if (Object.keys(teamState.data.data).length > 0 && teamState.data.dates.length > 0) {
         dispatch(updateData(data.message));
       } else {
