@@ -84,7 +84,7 @@ export const AddTime = () => {
   };
   const handleTimeChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     const value = event.target.value;
-    form.setValue("hours", parseFloat(value));
+    form.setValue("hours", value);
   };
   const handleTaskSearch = (searchTerm: string) => {
     setSearchTerm(searchTerm);

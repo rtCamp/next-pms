@@ -16,7 +16,6 @@ now = nowdate()
 @frappe.whitelist()
 def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
     """Get timesheet data for the given employee for the given number of weeks."""
-
     if not employee:
         employee = get_employee_from_user()
     if not frappe.db.exists("Employee", employee):
@@ -138,8 +137,13 @@ def delete(parent: str, name: str):
 def submit_for_approval(
     start_date: str, end_date: str, notes: str, employee: str = None
 ):
+
     if not employee:
         employee = get_employee_from_user()
+    reporting_manager = frappe.get_value("Employee", employee, "reports_to")
+    if not reporting_manager:
+        throw(_("Reporting Manager not found for the employee."))
+    reporting_manager = frappe.get_value("Employee", reporting_manager, "employee_name")
     #  get the timesheet for whole week.
     timesheets = frappe.get_list(
         "Timesheet",
@@ -154,10 +158,10 @@ def submit_for_approval(
         throw(_("No timesheet found for the given week."))
     for timesheet in timesheets:
         doc = frappe.get_doc("Timesheet", timesheet["name"])
-        doc.note = notes
         doc.custom_approval_status = "Approval Pending"
         doc.save()
-    return _("Timesheet submitted for approval.")
+        doc.add_comment("Comment", text=notes)
+    return _(f"Timesheet has been set for Approval to {reporting_manager}.")
 
 
 def update_timesheet_detail(

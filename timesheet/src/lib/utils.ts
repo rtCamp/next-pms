@@ -29,7 +29,7 @@ export function parseFrappeErrorMsg(error: Error) {
   try {
     const e = error._server_messages;
     if (error.exception && !e) {
-      return error.exception;
+      return removeHtmlString(error.exception);
     }
 
     if (e) {
@@ -37,16 +37,20 @@ export function parseFrappeErrorMsg(error: Error) {
       if (jsonMsgArray.length > 0) {
         const jsonObjectStr = jsonMsgArray[0];
         const e = JSON.parse(jsonObjectStr);
-        return e.message;
+        return removeHtmlString(e.message);
       }
       // @ts-ignore
     } else if (error._error_message) {
       // @ts-ignore
-      return error._error_message;
+      return removeHtmlString(error._error_message);
     }
   } catch (err) {
-    return err || "Something went wrong! Please try again later."
+    return "Something went wrong! Please try again later."
   }
+}
+
+function removeHtmlString(data: string) {
+  return data.replace(/<\/?[^>]+(>|$)/g, "");
 }
 
 export function getFormatedDate(date: string | Date) {
@@ -63,12 +67,12 @@ export function getTodayDate() {
   return getFormatedDate(today);
 }
 
-export function prettyDate(dateString: string) {
+export function prettyDate(dateString: string,isLong:boolean=false) {
   const date = new Date(dateString);
 
   const month = date.toLocaleString("default", { month: "short" });
   const dayOfMonth = date.getDate();
-  const dayOfWeek = date.toLocaleString("default", { weekday: "short" });
+  const dayOfWeek = date.toLocaleString("default", { weekday: !isLong ?"short":"long" });
   return { date: `${month} ${dayOfMonth}`, day: dayOfWeek };
 }
 export function getDateFromDateAndTime(dateTimeString: string) {

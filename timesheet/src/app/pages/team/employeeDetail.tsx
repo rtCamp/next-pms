@@ -2,7 +2,14 @@ import { Button } from "@/app/components/ui/button";
 import { useParams } from "react-router-dom";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { useFrappeGetCall } from "frappe-react-sdk";
-import { cn, getFormatedDate, getTodayDate, parseFrappeErrorMsg } from "@/lib/utils";
+import {
+  cn,
+  getDateFromDateAndTime,
+  getFormatedDate,
+  getTodayDate,
+  parseFrappeErrorMsg,
+  prettyDate,
+} from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useToast } from "@/app/components/ui/use-toast";
 import { Spinner } from "@/app/components/spinner";
@@ -33,8 +40,9 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { Employee } from "@/types";
-import { NewTimesheetProps, timesheet } from "@/types/timesheet";
+import { NewTimesheetProps, TaskDataItemProps, timesheet } from "@/types/timesheet";
 import { useNavigate } from "react-router-dom";
+import { Input } from "@/app/components/ui/input";
 
 const EmployeeDetail = () => {
   const { id } = useParams();
@@ -119,7 +127,7 @@ const EmployeeDetail = () => {
                 <Timesheet />
               </TabsContent>
               <TabsContent value="time" className="mt-0">
-                Change your password here.
+                <Time />
               </TabsContent>
             </div>
             <div className="mt-5">
@@ -181,6 +189,84 @@ const Timesheet = () => {
   );
 };
 
+const Time = () => {
+  const teamState = useSelector((state: RootState) => state.team);
+  return (
+    <div>
+      {teamState.timesheetData.data &&
+        Object.keys(teamState.timesheetData.data).length > 0 &&
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet]) => {
+          return (
+            <>
+              <Accordion type="multiple" key={key}>
+                <AccordionItem value={key}>
+                  <AccordionTrigger className="hover:no-underline w-full">
+                    <div className="flex justify-between w-full">
+                      <Typography variant="h5" className="font-medium">
+                        {key} : {value.total_hours}h
+                      </Typography>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-0">
+                    {value.dates.map((date: string, index: number) => {
+                      const { date: formattedDate, day } = prettyDate(date, true);
+                      const matchingTasks = Object.entries(value.tasks).flatMap(
+                        ([taskName, task]: [string, TaskDataItemProps]) =>
+                          task.data
+                            .filter(
+                              (taskItem: TaskDataItemProps[]) => getDateFromDateAndTime(taskItem.from_time) === date
+                            )
+                            .map((taskItem: TaskDataItemProps) => ({
+                              ...taskItem,
+                              taskName,
+                              projectName: task.project_name,
+                            }))
+                      );
+
+                      return (
+                        <div key={index} className="flex flex-col ">
+                          <Typography variant="p" className="bg-gray-100 p-2 py-3 border-b">
+                            {day.toUpperCase()} . {formattedDate}
+                          </Typography>
+                          {matchingTasks?.map((task: TaskDataItemProps, index: number) => {
+                            return (
+                              <div className="flex gap-x-4 items-center px-4 py-2">
+                                <Input value={task.hours} className="w-20" />
+                                <div className="flex justify-between w-full">
+                                  <div className="flex flex-col gap-y-2 w-full">
+                                    <Typography variant="p" className="font-bold">
+                                      {task.taskName}
+                                    </Typography>
+                                    <Typography variant="p">{task.description}</Typography>
+                                  </div>
+                                  <Typography
+                                    variant="p"
+                                    className="w-full max-w-xs float-right flex justify-end items-center"
+                                  >
+                                    {task.projectName}
+                                  </Typography>
+                                </div>
+                              </div>
+                            );
+                          })}
+                          {matchingTasks.length == 0 && (
+                            <Typography variant="p" className="text-center p-3">
+                              No data.
+                            </Typography>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </>
+          );
+        })}
+    </div>
+  );
+};
 const EmployeeCombo = () => {
   const { id } = useParams();
   const [selectedValues, setSelectedValues] = useState<string>(id ?? "");
@@ -210,7 +296,7 @@ const EmployeeCombo = () => {
     <Popover modal>
       <PopoverTrigger asChild>
         <Button
-          variant="ghost"
+          variant="outline"
           className={cn("items-center gap-x-4 px-2 justify-between [&[data-state=open]>svg]:rotate-180")}
         >
           <span className="flex gap-x-2 items-center">
