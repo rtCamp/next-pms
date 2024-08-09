@@ -240,6 +240,7 @@ def get_timesheet(dates: list, employee: str):
                 "employee": str(employee),
                 "start_date": getdate(date),
                 "end_date": getdate(date),
+                "docstatus": ["!=", 2],
             },
         )
         if not name:

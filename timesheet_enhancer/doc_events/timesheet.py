@@ -65,6 +65,7 @@ def before_insert(doc, method=None):
             "employee": doc.employee,
             "start_date": doc.start_date,
             "end_date": doc.end_date,
+            "docstatus": ["!=", 2],
         },
     )
     if exists:
