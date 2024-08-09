@@ -1,6 +1,7 @@
 import { Button } from "@/app/components/ui/button";
 import { ChevronLeft, ChevronRight, Filter, CircleCheck, Hourglass, CircleX } from "lucide-react";
 import { ComboxBox } from "@/app/components/comboBox";
+import { Badge } from "@/app/components/ui/badge";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store";
@@ -246,8 +247,10 @@ const Team = () => {
             value={teamState.project}
             label="Projects"
             isMulti
+            showSelected={false}
             onSelect={handleProjectChange}
             onSearch={onProjectSearch}
+            rightIcon={teamState.project.length > 0 && <Badge className="px-1.5">{teamState.project.length}</Badge>}
             leftIcon={<Filter className={cn("h-4 w-4", teamState.project.length != 0 && "fill-primary")} />}
             data={projects?.message.map((item: ProjectProps) => ({
               label: item.project_name,
@@ -259,10 +262,12 @@ const Team = () => {
             value={teamState.userGroup}
             label="User Groups"
             onSearch={onUserGroupSearch}
+            showSelected={false}
             data={userGroups?.message.map((item: UserGroupProps) => ({
               label: item.name,
               value: item.name,
             }))}
+            rightIcon={teamState.userGroup.length > 0 && <Badge  className="px-1.5">{teamState.userGroup.length}</Badge>}
             isMulti
             leftIcon={<Filter className={cn("h-4 w-4", teamState.userGroup.length != 0 && "fill-primary")} />}
             onSelect={handleUserGroupChange}

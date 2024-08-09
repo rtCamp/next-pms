@@ -83,6 +83,7 @@ export const initialState: TeamState = {
     timesheetData: {
         working_hour: 0,
         working_frequency: "",
+        data: {}
     }
 }
 
@@ -147,6 +148,10 @@ const TeamSlice = createSlice({
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             state = initialState;
         },
+        resetTimesheetDataState: (state) => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            state.timesheetData = initialState.timesheetData;
+        },
         setTimesheetData: (state, action: PayloadAction<timesheetDataProps & DynamicKey>) => {
             state.timesheetData = action.payload;
         },
@@ -170,5 +175,5 @@ const TeamSlice = createSlice({
     }
 });
 
-export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData, setDateRange, setApprovalDialog, setEmployee, setDialog, resetState, setTimesheetData, updateTimesheetData, setUsergroup, setUserGroupSearch, setProjectSearch } = TeamSlice.actions;
+export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData, setDateRange, setApprovalDialog, setEmployee, setDialog, resetState, setTimesheetData, updateTimesheetData, setUsergroup, setUserGroupSearch, setProjectSearch,resetTimesheetDataState } = TeamSlice.actions;
 export default TeamSlice.reducer;

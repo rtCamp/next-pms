@@ -17,6 +17,8 @@ export interface TaskDataItemProps {
     task: string
     from_time: string
     docstatus: 0 | 1 | 2
+    taskName?: string
+    projectName?: string
 }
 
 export interface LeaveProps {
