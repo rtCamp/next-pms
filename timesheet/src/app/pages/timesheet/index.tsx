@@ -16,7 +16,7 @@ import {
 import { Button } from "@/app/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Typography } from "@/app/components/typography";
-import { TimesheetTable, SubmitButton } from "@/app/components/timesheetTable";
+import TimesheetTable, { SubmitButton } from "@/app/components/timesheetTable";
 import { parseFrappeErrorMsg, getFormatedDate } from "@/lib/utils";
 import { addDays } from "date-fns";
 import { Spinner } from "@/app/components/spinner";
@@ -24,6 +24,7 @@ import { AddTime } from "./addTime";
 import { Approval } from "./Approval";
 import { NewTimesheetProps, timesheet } from "@/types/timesheet";
 import { WorkingFrequency } from "@/types";
+import GenWrapper from "@/app/components/GenWrapper";
 
 function Timesheet() {
   const { toast } = useToast();
@@ -102,61 +103,61 @@ function Timesheet() {
     return <></>;
   }
   return (
-    <div className="flex flex-col">
-      <div>
-        <Button className="float-right mb-1" onClick={handleAddTime}>
-          Add Time
-        </Button>
-      </div>
-      {isLoading ? (
-        <Spinner isFull />
-      ) : (
-        <div className="overflow-y-scroll" style={{ height: "calc(100vh - 8rem)" }}>
-          {timesheet.data?.data &&
-            Object.keys(timesheet.data?.data).length > 0 &&
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            Object.entries(timesheet.data?.data).map(([key, value]: [string, timesheet]) => {
-              return (
-                <Accordion type="multiple" key={key} defaultValue={[key]}>
-                  <AccordionItem value={key}>
-                    <AccordionTrigger className="hover:no-underline w-full py-2">
-                      <div className="flex justify-between items-center w-full">
-                        <Typography variant="h5" className="font-medium">
-                          {key} : {value.total_hours}h
-                        </Typography>
-                        <SubmitButton
-                          start_date={value.start_date}
-                          end_date={value.end_date}
-                          onApproval={handleApproval}
-                          status={value.status}
-                        />
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pb-0">
-                      <TimesheetTable
-                        working_hour={timesheet.data.working_hour}
-                        working_frequency={timesheet.data.working_frequency as WorkingFrequency}
-                        dates={value.dates}
-                        holidays={value.holidays}
-                        leaves={value.leaves}
-                        tasks={value.tasks}
-                        onCellClick={onCellClick}
-                      />
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              );
-            })}
+      <div className="flex flex-col">
+        <div>
+          <Button className="float-right mb-1" onClick={handleAddTime}>
+            Add Time
+          </Button>
         </div>
-      )}
-      <div className="mt-5">
-        <Button className="float-left" variant="outline" onClick={loadData}>
-          Load More
-        </Button>
+        {isLoading ? (
+          <Spinner isFull />
+        ) : (
+          <div className="overflow-y-scroll" style={{ height: "calc(100vh - 8rem)" }}>
+            {timesheet.data?.data &&
+              Object.keys(timesheet.data?.data).length > 0 &&
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              Object.entries(timesheet.data?.data).map(([key, value]: [string, timesheet]) => {
+                return (
+                  <Accordion type="multiple" key={key} defaultValue={[key]}>
+                    <AccordionItem value={key} >
+                      <AccordionTrigger className="hover:no-underline w-full py-2">
+                        <div className="flex justify-between items-center w-full">
+                          <Typography variant="h5" className="font-medium">
+                            {key} : {value.total_hours}h
+                          </Typography>
+                          <SubmitButton
+                            start_date={value.start_date}
+                            end_date={value.end_date}
+                            onApproval={handleApproval}
+                            status={value.status}
+                          />
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="pb-0">
+                        <TimesheetTable
+                          working_hour={timesheet.data.working_hour}
+                          working_frequency={timesheet.data.working_frequency as WorkingFrequency}
+                          dates={value.dates}
+                          holidays={value.holidays}
+                          leaves={value.leaves}
+                          tasks={value.tasks}
+                          onCellClick={onCellClick}
+                        />
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                );
+              })}
+          </div>
+        )}
+        <div className="mt-5">
+          <Button className="float-left" variant="outline" onClick={loadData}>
+            Load More
+          </Button>
+        </div>
+        {timesheet.isDialogOpen && <AddTime />}
+        {timesheet.isAprrovalDialogOpen && <Approval />}
       </div>
-      {timesheet.isDialogOpen && <AddTime />}
-      {timesheet.isAprrovalDialogOpen && <Approval />}
-    </div>
   );
 }
 

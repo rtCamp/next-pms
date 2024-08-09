@@ -8,7 +8,7 @@ import { parseFrappeErrorMsg, prettyDate } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/app/components/ui/sheet";
-import { TimesheetTable } from "@/app/components/timesheetTable";
+import  TimesheetTable from "@/app/components/timesheetTable";
 import { Spinner } from "@/app/components/spinner";
 import { timesheet } from "@/types/timesheet";
 // import { Typography } from "@/app/components/typography";

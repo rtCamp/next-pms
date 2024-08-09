@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { useToast } from "@/app/components/ui/use-toast";
 import { Spinner } from "@/app/components/spinner";
 import { Typography } from "@/app/components/typography";
-import { TimesheetTable } from "@/app/components/timesheetTable";
+import TimesheetTable from "@/app/components/timesheetTable";
 import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
 import { Avatar, AvatarImage, AvatarFallback } from "@/app/components/ui/avatar";
 import {
@@ -92,6 +92,15 @@ const EmployeeDetail = () => {
   }, [id]);
 
   useEffect(() => {
+    if (error) {
+      const err = parseFrappeErrorMsg(error);
+      toast({
+        variant: "destructive",
+        description: err,
+      });
+      setFetchAgain(false);
+      return;
+    }
     if (teamState.isFetchAgain) {
       mutate();
       setFetchAgain(false);
@@ -103,14 +112,7 @@ const EmployeeDetail = () => {
         dispatch(setTimesheetData(data.message));
       }
     }
-    if (error) {
-      const err = parseFrappeErrorMsg(error);
-      toast({
-        variant: "destructive",
-        description: err,
-      });
-      setFetchAgain(false);
-    }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, teamState.weekDate, error, teamState.isFetchAgain]);
 
