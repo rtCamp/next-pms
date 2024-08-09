@@ -5,7 +5,6 @@ import { useState } from "react";
 import { CircleCheck, CirclePlus, CircleX, Clock3, PencilLine, CircleDollarSign } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
 import { TaskDataProps, TaskProps, TaskDataItemProps, LeaveProps } from "@/types/timesheet";
-import { Button } from "@/app/components/ui/button";
 import { WorkingFrequency } from "@/types";
 import GenWrapper from "./GenWrapper";
 interface TimesheetTableProps {
@@ -380,22 +379,11 @@ const EmptyRow = ({
       </TableCell>
       {dates.map((date: string) => {
         const isHoliday = holidays.includes(date);
-        const value = {
-          date,
-          hours: "",
-          description: "",
-          isUpdate: false,
-          name: "",
-          parent: "",
-          task: "",
-        };
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //   @ts-ignore
         return (
           <Cell
             key={date}
             date={date}
-            data={value}
+            data={undefined}
             isHoliday={isHoliday}
             onCellClick={onCellClick}
             disabled={disabled}

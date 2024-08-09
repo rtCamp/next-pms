@@ -84,6 +84,8 @@ export const AddTime = () => {
   };
   const handleTimeChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     const value = event.target.value;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     form.setValue("hours", value);
   };
   const handleTaskSearch = (searchTerm: string) => {

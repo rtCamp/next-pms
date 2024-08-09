@@ -33,6 +33,8 @@ export const AddTime = () => {
     defaultValues: {
       name: teamState.timesheet.name,
       task: teamState.timesheet.task,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       hours: teamState.timesheet.hours.toString(),
       description: teamState.timesheet.description,
       date: teamState.timesheet.date,
@@ -76,6 +78,8 @@ export const AddTime = () => {
   };
   const handleTimeChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     const value = event.target.value;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     form.setValue("hours", value);
   };
   const handleDateChange = (date: Date) => {
