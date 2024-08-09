@@ -15,8 +15,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/pop
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 import { UserContext } from "@/lib/UserProvider";
 import { Separator } from "@radix-ui/react-separator";
+import GenWrapper from "../components/GenWrapper";
 
-export const Sidebar = () => {
+const Sidebar = () => {
   const { call } = useContext(FrappeContext) as FrappeConfig;
   const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
@@ -71,71 +72,73 @@ export const Sidebar = () => {
     },
   ];
   return (
-    <aside
-      className={cn(
-        "bg-slate-100  w-1/5 transition-all duration-300 ease-in-out p-4 flex flex-col",
-        user.isSidebarCollapsed && "w-16 items-center"
-      )}
-    >
-      <div className={cn("flex gap-x-2 items-center", !user.isSidebarCollapsed && "pl-3")} id="app-logo">
-        <img src={decodeURIComponent(user.appLogo)} alt="app-logo" className="w-8 h-8" />
-        <Typography
-          variant="h2"
-          className={cn("transition-all duration-300 ease-in-out", user.isSidebarCollapsed && "hidden")}
-        >
-          Timesheet
-        </Typography>
-      </div>
-      <div className="pt-10 flex flex-col gap-y-2">
-        {routes.map((route) => {
-          if (route.isPmRoute && !hasPmRole) return null;
-          return (
-            <NavLink
-              to={route.to}
-              key={route.key}
-              className="transition-all duration-300 ease-in-out flex items-center h-9"
-            >
-              {({ isActive }: { isActive: boolean }) => (
-                <div
-                  className={cn(
-                    "flex w-full pl-2 rounded-lg items-center px-3 py-2 hover:bg-slate-200 text-primary gap-x-2",
-                    isActive && "bg-primary shadow-md hover:bg-slate-700 "
-                  )}
-                >
-                  <route.icon className={cn("shrink-0 stroke-primary h-4 w-4", isActive && "stroke-background")} />
-                  <Typography
-                    variant="p"
+    <GenWrapper>
+      <aside
+        className={cn(
+          "bg-slate-100  w-1/5 transition-all duration-300 ease-in-out p-4 flex flex-col",
+          user.isSidebarCollapsed && "w-16 items-center"
+        )}
+      >
+        <div className={cn("flex gap-x-2 items-center", !user.isSidebarCollapsed && "pl-3")} id="app-logo">
+          <img src={decodeURIComponent(user.appLogo)} alt="app-logo" className="w-8 h-8" />
+          <Typography
+            variant="h2"
+            className={cn("transition-all duration-300 ease-in-out", user.isSidebarCollapsed && "hidden")}
+          >
+            Timesheet
+          </Typography>
+        </div>
+        <div className="pt-10 flex flex-col gap-y-2">
+          {routes.map((route) => {
+            if (route.isPmRoute && !hasPmRole) return null;
+            return (
+              <NavLink
+                to={route.to}
+                key={route.key}
+                className="transition-all duration-300 ease-in-out flex items-center h-9"
+              >
+                {({ isActive }: { isActive: boolean }) => (
+                  <div
                     className={cn(
-                      "transition-all duration-300 ease-in-out text-white",
-                      !isActive && "text-primary",
-                      user.isSidebarCollapsed && "hidden"
+                      "flex w-full pl-2 rounded-lg items-center px-3 py-2 hover:bg-slate-200 text-primary gap-x-2",
+                      isActive && "bg-primary shadow-md hover:bg-slate-700 "
                     )}
                   >
-                    {route.label}
-                  </Typography>
-                </div>
+                    <route.icon className={cn("shrink-0 stroke-primary h-4 w-4", isActive && "stroke-background")} />
+                    <Typography
+                      variant="p"
+                      className={cn(
+                        "transition-all duration-300 ease-in-out text-white",
+                        !isActive && "text-primary",
+                        user.isSidebarCollapsed && "hidden"
+                      )}
+                    >
+                      {route.label}
+                    </Typography>
+                  </div>
+                )}
+              </NavLink>
+            );
+          })}
+        </div>
+        <div className="grow"></div>
+        <div className={cn("flex justify-between items-center", user.isSidebarCollapsed && "flex-col ")}>
+          <Navigation />
+          <Button
+            variant="ghost"
+            className="justify-end  gap-x-2 transition-all duration-300 ease-in-out h-6"
+            onClick={handleCollapse}
+          >
+            <ArrowLeftToLine
+              className={cn(
+                "stroke-primary h-4 w-4 transition-all duration-600",
+                user.isSidebarCollapsed && "rotate-180"
               )}
-            </NavLink>
-          );
-        })}
-      </div>
-      <div className="grow"></div>
-      <div className={ cn("flex justify-between items-center",user.isSidebarCollapsed && "flex-col ")}>
-        <Navigation />
-        <Button
-          variant="ghost"
-          className="justify-end  gap-x-2 transition-all duration-300 ease-in-out h-6"
-          onClick={handleCollapse}
-        >
-          <ArrowLeftToLine
-            className={cn(
-              "stroke-primary h-4 w-4 transition-all duration-600",
-              user.isSidebarCollapsed && "rotate-180"
-            )}
-          />
-        </Button>
-      </div>
-    </aside>
+            />
+          </Button>
+        </div>
+      </aside>
+    </GenWrapper>
   );
 };
 
@@ -143,34 +146,38 @@ const Navigation = () => {
   const user = useSelector((state: RootState) => state.user);
   const { logout } = useContext(UserContext);
   return (
-    <Popover>
-      <PopoverTrigger className={cn("flex items-center gap-x-2")}>
-        <Avatar className="w-8 h-8 justify-self-end transition-all duration-600">
-          <AvatarImage src={decodeURIComponent(user.image)} />
-          <AvatarFallback>{user.userName[0]}</AvatarFallback>
-        </Avatar>
-        <Typography variant="p" className={cn("transition-all duration-800", user.isSidebarCollapsed && "hidden")}>
-          {user.userName}
-        </Typography>
-      </PopoverTrigger>
-      <PopoverContent className="flex flex-col p-1 w-52">
-        <a
-          className="flex justify-start text-sm hover:no-underline hover:bg-accent p-2 gap-x-2 items-center"
-          href={DESK}
-        >
-          <ArrowRightLeft className="w-4 h-4" />
-          Switch To Desk
-        </a>
-        <Separator className="my-1" />
-        <Button
-          variant="link"
-          className="flex justify-start hover:no-underline font-normal hover:bg-accent p-2 gap-x-2 items-center focus-visible:ring-0 focus-visible:ring-offset-0"
-          onClick={logout}
-        >
-          <LogOut className="w-4 h-4" />
-          Logout
-        </Button>
-      </PopoverContent>
-    </Popover>
+    <GenWrapper>
+      <Popover>
+        <PopoverTrigger className={cn("flex items-center gap-x-2")}>
+          <Avatar className="w-8 h-8 justify-self-end transition-all duration-600">
+            <AvatarImage src={decodeURIComponent(user.image)} />
+            <AvatarFallback>{user.userName[0]}</AvatarFallback>
+          </Avatar>
+          <Typography variant="p" className={cn("transition-all duration-800", user.isSidebarCollapsed && "hidden")}>
+            {user.userName}
+          </Typography>
+        </PopoverTrigger>
+        <PopoverContent className="flex flex-col p-1 w-52">
+          <a
+            className="flex justify-start text-sm hover:no-underline hover:bg-accent p-2 gap-x-2 items-center"
+            href={DESK}
+          >
+            <ArrowRightLeft className="w-4 h-4" />
+            Switch To Desk
+          </a>
+          <Separator className="my-1" />
+          <Button
+            variant="link"
+            className="flex justify-start hover:no-underline font-normal hover:bg-accent p-2 gap-x-2 items-center focus-visible:ring-0 focus-visible:ring-offset-0"
+            onClick={logout}
+          >
+            <LogOut className="w-4 h-4" />
+            Logout
+          </Button>
+        </PopoverContent>
+      </Popover>
+    </GenWrapper>
   );
 };
+
+export default Sidebar;
