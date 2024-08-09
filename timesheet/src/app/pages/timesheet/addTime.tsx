@@ -84,7 +84,7 @@ export const AddTime = () => {
   };
   const handleTimeChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     const value = event.target.value;
-    form.setValue("hours", value);
+    form.setValue("hours", parseFloat(value));
   };
   const handleTaskSearch = (searchTerm: string) => {
     setSearchTerm(searchTerm);
@@ -166,6 +166,7 @@ export const AddTime = () => {
                     <FormControl>
                       <ComboxBox
                         label="Search Task"
+                        showSelected
                         disabled={timesheetState.timesheet.task.length > 0}
                         value={form.getValues("task") ? [form.getValues("task")] : []}
                         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
