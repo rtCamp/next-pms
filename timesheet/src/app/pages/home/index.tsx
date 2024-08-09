@@ -170,7 +170,12 @@ const Home = () => {
                       <AvatarImage src={decodeURIComponent(item.image)} alt={item.employee_name} />
                       <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
                     </Avatar>
-                    {item.employee_name}
+                    <Typography
+                      variant="p"
+                      className="w-full text-left text-ellipsis whitespace-nowrap overflow-hidden "
+                    >
+                      {item.employee_name}
+                    </Typography>
                   </TableCell>
                   {item.data.map((data: dataItem, index: number) => {
                     const expectedTime = calculateExtendedWorkingHour(
@@ -180,17 +185,17 @@ const Home = () => {
                     );
 
                     return (
-                      <Tooltip delayDuration={0}>
+                      <Tooltip key={`${data.hour}-id-${Math.random()}`} delayDuration={0}>
                         <TooltipTrigger asChild>
                           <TableCell
                             className={cn(
                               "text-xs hover:cursor-pointer bg-transparent",
                               expectedTime == 2 && "bg-warning/40",
                               expectedTime == 1 && "bg-success/20",
-                              expectedTime == 0 && data.hour != 0  && "bg-destructive/10",
+                              expectedTime == 0 && data.hour != 0 && "bg-destructive/10",
                               data.is_leave && "bg-warning/20",
                               isToday(data.date) && "bg-slate-50",
-                              data.hour == 0 && "text-center",
+                              data.hour == 0 && "text-center"
                             )}
                             key={`${key}-${index}`}
                           >
@@ -209,9 +214,14 @@ const Home = () => {
           </TableBody>
         </Table>
       </div>
-      <Button variant="outline" onClick={handleLoadMore} disabled={!homeState.hasMore}>
-        Load More
-      </Button>
+      <div className="w-full flex justify-between items-center">
+        <Button variant="outline" onClick={handleLoadMore} disabled={!homeState.hasMore}>
+          Load More
+        </Button>
+        <Typography variant="p" className="px-5 font-semibold">
+          {`${Object.keys(data?.message?.data).length | 0} of ${data?.message?.total_count | 0}`}
+        </Typography>
+      </div>
     </>
   );
 };

@@ -1,6 +1,7 @@
 import { Button } from "@/app/components/ui/button";
 import { ChevronLeft, ChevronRight, Filter, CircleCheck, Hourglass, CircleX } from "lucide-react";
 import { ComboxBox } from "@/app/components/comboBox";
+import { Badge } from "@/app/components/ui/badge";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store";
@@ -114,7 +115,6 @@ const Team = () => {
       dispatch(setFetchAgain(false));
     }
     if (data) {
-      console.log("here")
       if (Object.keys(teamState.data.data).length > 0 && teamState.data.dates.length > 0) {
         dispatch(updateData(data.message));
       } else {
@@ -247,8 +247,10 @@ const Team = () => {
             value={teamState.project}
             label="Projects"
             isMulti
+            showSelected={false}
             onSelect={handleProjectChange}
             onSearch={onProjectSearch}
+            rightIcon={teamState.project.length > 0 && <Badge className="px-1.5">{teamState.project.length}</Badge>}
             leftIcon={<Filter className={cn("h-4 w-4", teamState.project.length != 0 && "fill-primary")} />}
             data={projects?.message.map((item: ProjectProps) => ({
               label: item.project_name,
@@ -260,10 +262,12 @@ const Team = () => {
             value={teamState.userGroup}
             label="User Groups"
             onSearch={onUserGroupSearch}
+            showSelected={false}
             data={userGroups?.message.map((item: UserGroupProps) => ({
               label: item.name,
               value: item.name,
             }))}
+            rightIcon={teamState.userGroup.length > 0 && <Badge  className="px-1.5">{teamState.userGroup.length}</Badge>}
             isMulti
             leftIcon={<Filter className={cn("h-4 w-4", teamState.userGroup.length != 0 && "fill-primary")} />}
             onSelect={handleUserGroupChange}
@@ -288,7 +292,7 @@ const Team = () => {
                 return item?.dates?.map((date) => {
                   const { date: dateStr, day } = prettyDate(date);
                   return (
-                    <TableHead className="flex flex-col max-w-20 w-full text-center">
+                    <TableHead key={date} className="flex flex-col max-w-20 w-full text-center">
                       <Typography variant="p" className="text-slate-600">
                         {day}
                       </Typography>
@@ -311,14 +315,14 @@ const Team = () => {
             {Object.entries(teamState.data?.data).map(([key, item]: [string, ItemProps]) => {
               let total = 0;
               return (
-                <TableRow className="flex items-center w-full">
+                <TableRow key={key} className="flex items-center w-full">
                   <Accordion type="multiple" key={key} className="w-full">
                     <AccordionItem value={key} className="border-b-0">
                       <AccordionTrigger className="hover:no-underline py-0">
-                        <span className="w-full flex">
-                          <TableCell className="w-full max-w-md">
+                        <span className="w-full flex ">
+                          <TableCell className="w-full max-w-md overflow-hidden">
                             <span
-                              className="flex gap-x-2 items-center font-normal hover:underline w-fit"
+                              className="flex gap-x-2 items-center font-normal hover:underline w-full"
                               onClick={() => {
                                 navigate(`${TEAM}${EMPLOYEE}/${item.name}`);
                               }}
@@ -327,13 +331,18 @@ const Team = () => {
                                 <AvatarImage src={decodeURIComponent(item.image)} />
                                 <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
                               </Avatar>
-                              {item.employee_name}
+                              <Typography
+                                variant="p"
+                                className="w-full text-left text-ellipsis whitespace-nowrap overflow-hidden "
+                              >
+                                {item.employee_name}
+                              </Typography>
                             </span>
                           </TableCell>
-                          {item.data.map((data: dataItem) => {
+                          {item.data.map((data: dataItem, key) => {
                             total += data.hour;
                             return (
-                              <TableCell className={cn("flex max-w-20 w-full justify-center items-center")}>
+                              <TableCell key={key} className={cn("flex max-w-20 w-full justify-center items-center")}>
                                 <Typography
                                   className={cn(data.is_leave && "text-warning", data.hour == 0 && "text-primary")}
                                   variant="p"
@@ -372,10 +381,14 @@ const Team = () => {
           </TableBody>
         </Table>
       </div>
-
-      <Button variant="outline" onClick={handleLoadMore} disabled={!teamState.hasMore}>
-        Load More
-      </Button>
+      <div className="flex justify-between items-center">
+        <Button variant="outline" onClick={handleLoadMore} disabled={!teamState.hasMore}>
+          Load More
+        </Button>
+        <Typography variant="p" className="px-5 font-semibold">
+          {`${Object.keys(data?.message?.data).length | 0} of ${data?.message?.total_count | 0}`}
+        </Typography>
+      </div>
     </>
   );
 };

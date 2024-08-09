@@ -26,6 +26,7 @@ interface ComboBoxProps {
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   className?: string;
+  showSelected?: boolean;
 }
 
 export const ComboxBox = ({
@@ -40,6 +41,7 @@ export const ComboxBox = ({
   leftIcon,
   rightIcon,
   className = "",
+  showSelected = false,
 }: ComboBoxProps) => {
   const [selectedValues, setSelectedValues] = useState<string[]>(value ?? []);
   const [open, setOpen] = useState(isOpen);
@@ -68,6 +70,9 @@ export const ComboxBox = ({
   };
   const hasValue = selectedValues.length > 0;
   const selectedValue = () => {
+    if (selectedValues.length === 1) {
+      return data.find((item) => item.value === selectedValues[0])?.label;
+    }
     return `${selectedValues.length} items selected`;
   };
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -90,7 +95,7 @@ export const ComboxBox = ({
         >
           {leftIcon}
           <Typography variant="p" className="truncate max-w-md">
-            {!hasValue ? label : selectedValue()}
+            {!hasValue || !showSelected ? label : selectedValue()}
           </Typography>
           {rightIcon}
         </Button>
