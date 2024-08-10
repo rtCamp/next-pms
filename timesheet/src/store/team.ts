@@ -82,7 +82,7 @@ export const initialState: TeamState = {
     // @ts-ignore
     timesheetData: {
         working_hour: 0,
-        working_frequency: "",
+        working_frequency: "Per Day",
         data: {}
     }
 }
@@ -155,9 +155,11 @@ const TeamSlice = createSlice({
         setTimesheetData: (state, action: PayloadAction<timesheetDataProps & DynamicKey>) => {
             state.timesheetData = action.payload;
         },
-        updateTimesheetData: (state, action: PayloadAction<DynamicKey>) => {
-            const data = Object.assign(state.timesheetData.data, action.payload);
+        updateTimesheetData: (state, action: PayloadAction<timesheetDataProps & DynamicKey>) => {
+            const data = Object.assign(state.timesheetData.data, action.payload.data);
             state.timesheetData.data = data;
+            state.timesheetData.working_hour = action.payload.working_hour;
+            state.timesheetData.working_frequency = action.payload.working_frequency;
         },
         setUsergroup: (state, action: PayloadAction<Array<string>>) => {
             state.userGroup = action.payload;
@@ -175,5 +177,5 @@ const TeamSlice = createSlice({
     }
 });
 
-export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData, setDateRange, setApprovalDialog, setEmployee, setDialog, resetState, setTimesheetData, updateTimesheetData, setUsergroup, setUserGroupSearch, setProjectSearch,resetTimesheetDataState } = TeamSlice.actions;
+export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData, setDateRange, setApprovalDialog, setEmployee, setDialog, resetState, setTimesheetData, updateTimesheetData, setUsergroup, setUserGroupSearch, setProjectSearch, resetTimesheetDataState } = TeamSlice.actions;
 export default TeamSlice.reducer;

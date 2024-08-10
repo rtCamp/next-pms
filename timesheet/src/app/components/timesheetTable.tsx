@@ -345,7 +345,9 @@ const Cell = ({
             >
               {data?.hours && data?.hours > 0 ? floatToTime(data?.hours || 0) : "-"}
             </Typography>
-            {isHovered && data?.hours && data?.hours > 0 && <PencilLine className="text-center" size={16} />}
+            {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+            {/* @ts-ignore */}
+            {isHovered && data?.hours > 0 && <PencilLine className="text-center" size={16} />}
             {isHovered && !data?.hours && <CirclePlus className="text-center" size={16} />}
           </span>
           {data?.description && (

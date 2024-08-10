@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { Button } from "@/app/components/ui/button";
 import { useParams } from "react-router-dom";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
@@ -9,6 +10,7 @@ import {
   getTodayDate,
   parseFrappeErrorMsg,
   prettyDate,
+  calculateExtendedWorkingHour,
 } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useToast } from "@/app/components/ui/use-toast";
@@ -98,7 +100,7 @@ const EmployeeDetail = () => {
     }
     if (data) {
       if (teamState.timesheetData.data && Object.keys(teamState.timesheetData.data).length > 0) {
-        dispatch(updateTimesheetData(data.message.data));
+        dispatch(updateTimesheetData(data.message));
       } else {
         dispatch(setTimesheetData(data.message));
       }
@@ -225,15 +227,28 @@ const Time = () => {
                               projectName: task.project_name,
                             }))
                       );
-
+                      const totalHours = matchingTasks.reduce((sum, task) => sum + task.hours, 0);
+                      const isExtended = calculateExtendedWorkingHour(
+                        totalHours,
+                        teamState.timesheetData.working_hour,
+                        teamState.timesheetData.working_frequency
+                      );
                       return (
                         <div key={index} className="flex flex-col ">
-                          <Typography variant="p" className="bg-gray-100 p-2 py-3 border-b">
-                            {day.toUpperCase()} . {formattedDate}
-                          </Typography>
+                          <div className="bg-gray-100 p-2 py-3 border-b flex gap-x-4">
+                            <Typography
+                              variant="p"
+                              className={cn("border px-1 rounded", isExtended == 0 && "border-destructive",isExtended && "border-success",isExtended ==2 && "border-warning")}
+                            >
+                              {totalHours}h
+                            </Typography>
+                            <Typography variant="p">
+                              {day.toUpperCase()} . {formattedDate}
+                            </Typography>
+                          </div>
                           {matchingTasks?.map((task: TaskDataItemProps, index: number) => {
                             return (
-                              <div className="flex gap-x-4 items-center px-4 py-2">
+                              <div className="flex gap-x-4 items-center px-4 py-2" key={index}>
                                 <Input value={task.hours} className="w-20" />
                                 <div className="flex justify-between w-full">
                                   <div className="flex flex-col gap-y-2 w-full">
