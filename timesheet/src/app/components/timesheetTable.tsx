@@ -1,7 +1,6 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { cn, prettyDate, getDateFromDateAndTime, floatToTime, calculateWeeklyHour } from "@/lib/utils";
 import { Typography } from "./typography";
-import { useState } from "react";
 import { CircleCheck, CirclePlus, CircleX, Clock3, PencilLine, CircleDollarSign } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
 import { TaskDataProps, TaskProps, TaskDataItemProps, LeaveProps } from "@/types/timesheet";
@@ -296,7 +295,6 @@ const Cell = ({
   onCellClick?: (val) => void;
   disabled?: boolean;
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
   const isDisabled = disabled || data?.docstatus === 1;
   const handleClick = () => {
     if (isDisabled || !data) return;
@@ -312,46 +310,37 @@ const Cell = ({
 
     onCellClick && onCellClick(value);
   };
-  const onMouseEnter: React.MouseEventHandler<HTMLTableCellElement> = () => {
-    if (isDisabled) return;
-    setIsHovered(true);
-  };
-  const onMouseLeave: React.MouseEventHandler<HTMLTableCellElement> = () => {
-    if (isDisabled) return;
-    setIsHovered(false);
-  };
+
   return (
     <Tooltip delayDuration={0}>
       <TooltipTrigger className={cn(isDisabled && "cursor-default")} asChild>
         <TableCell
           key={date}
-          onMouseEnter={onMouseEnter}
           onClick={handleClick}
-          onMouseLeave={onMouseLeave}
           className={cn(
-            "text-center",
+            "text-center group",
             isDisabled && "cursor-default",
-            isHovered && "h-full bg-slate-100 cursor-pointer"
+            "hover:h-full hover:bg-slate-100 hover:cursor-pointer"
           )}
         >
-          <span className="flex flex-col items-center">
+          <span className="flex flex-col items-center ">
             <Typography
               variant="p"
               className={cn(
                 "text-slate-600",
                 isHoliday || (isDisabled && "text-slate-400"),
-                isHovered && !data?.hours && "hidden"
+                !data?.hours && "group-hover:hidden"
               )}
             >
               {data?.hours && data?.hours > 0 ? floatToTime(data?.hours || 0) : "-"}
             </Typography>
             {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
             {/* @ts-ignore */}
-            {isHovered && data?.hours > 0 && <PencilLine className="text-center" size={16} />}
-            {isHovered && !data?.hours && <CirclePlus className="text-center" size={16} />}
+            <PencilLine className={cn("text-center hidden", data?.hours > 0 && "group-hover:block")} size={16} />
+            <CirclePlus className={cn("text-center hidden", data?.hours == 0 && "group-hover:block ")} size={16} />
           </span>
           {data?.description && (
-            <TooltipContent className="text-left whitespace-pre">{data?.description}</TooltipContent>
+            <TooltipContent className="text-left whitespace-pre text-wrap max-w-72">{data?.description}</TooltipContent>
           )}
         </TableCell>
       </TooltipTrigger>
