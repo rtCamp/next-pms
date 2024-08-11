@@ -29,7 +29,7 @@ def validate_time(doc):
     if not doc.employee:
         throw(_("Employee is required."))
     for data in doc.get("time_logs"):
-        if not data.hours or data.hours < 1:
+        if not data.hours or data.hours == 0:
             throw(_("Hour should be greater than 0."))
 
     if doc.total_hours > 24:
