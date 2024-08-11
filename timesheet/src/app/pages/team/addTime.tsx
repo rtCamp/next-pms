@@ -13,7 +13,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Input } from "@/app/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
-import { Clock3, Search } from "lucide-react";
+import { Clock3, Search, LoaderCircle } from "lucide-react";
 import { DatePicker } from "@/app/components/datePicker";
 import { getFormatedDate, parseFrappeErrorMsg } from "@/lib/utils";
 import { ComboxBox } from "@/app/components/comboBox";
@@ -223,6 +223,7 @@ export const AddTime = () => {
                       <FormControl>
                         <ComboxBox
                           label="Search Task"
+                          disabled
                           value={form.getValues("task") ? [form.getValues("task")] : []}
                           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                           //  @ts-expect-error
@@ -232,6 +233,7 @@ export const AddTime = () => {
                             description: item.project_name,
                             disabled: false,
                           }))}
+                          showSelected
                           onSelect={handleTaskChange}
                           onSearch={handleTaskSearch}
                           rightIcon={<Search className="h-4 w-4 stroke-slate-400" />}
@@ -261,7 +263,9 @@ export const AddTime = () => {
                 />
 
                 <DialogFooter className="sm:justify-start">
-                  <Button>Add Time</Button>
+                  <Button disabled={form.formState.isSubmitting}>
+                    {form.formState.isSubmitting && <LoaderCircle className="animate-spin w-4 h-4" />}Add Time
+                  </Button>
                   <Button type="button" variant="outline" onClick={handleOpenChange}>
                     Cancel
                   </Button>

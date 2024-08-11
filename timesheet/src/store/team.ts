@@ -2,7 +2,6 @@ import { getTodayDate, getFormatedDate } from "@/lib/utils";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { addDays } from "date-fns";
 import { DataProp as timesheetDataProps, DynamicKey } from "@/types/timesheet";
-
 type DateRange = {
     start_date: string;
     end_date: string;
@@ -10,6 +9,7 @@ type DateRange = {
 export interface TeamState {
     isFetchAgain: boolean;
     data: dataProps;
+    statusFilter: Array<string>;
     isDialogOpen: boolean;
     isAprrovalDialogOpen: boolean;
     weekDate: string;
@@ -73,6 +73,7 @@ export const initialState: TeamState = {
     weekDate: getFormatedDate(addDays(getTodayDate(), -7)),
     project: [],
     userGroup: [],
+    statusFilter: ["Not Submitted"],
     start: 0,
     hasMore: true,
     dateRange: {
@@ -82,7 +83,7 @@ export const initialState: TeamState = {
     // @ts-ignore
     timesheetData: {
         working_hour: 0,
-        working_frequency: "",
+        working_frequency: "Per Day",
         data: {}
     }
 }
@@ -95,6 +96,12 @@ const TeamSlice = createSlice({
         setData: (state, action: PayloadAction<any>) => {
             state.data = action.payload;
             state.hasMore = action.payload.has_more;
+        },
+        setStatusFilter: (state, action: PayloadAction<Array<string>>) => {
+            state.statusFilter = action.payload;
+            state.start = 0;
+            state.data = initialState.data;
+            state.isFetchAgain = true;
         },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         updateData: (state, action: PayloadAction<any>) => {
@@ -126,6 +133,7 @@ const TeamSlice = createSlice({
         },
         setStart: (state, action: PayloadAction<number>) => {
             state.start = action.payload;
+            state.isFetchAgain = true;
         },
         setHasMore: (state, action: PayloadAction<boolean>) => {
             state.hasMore = action.payload;
@@ -155,9 +163,11 @@ const TeamSlice = createSlice({
         setTimesheetData: (state, action: PayloadAction<timesheetDataProps & DynamicKey>) => {
             state.timesheetData = action.payload;
         },
-        updateTimesheetData: (state, action: PayloadAction<DynamicKey>) => {
-            const data = Object.assign(state.timesheetData.data, action.payload);
+        updateTimesheetData: (state, action: PayloadAction<timesheetDataProps & DynamicKey>) => {
+            const data = Object.assign(state.timesheetData.data, action.payload.data);
             state.timesheetData.data = data;
+            state.timesheetData.working_hour = action.payload.working_hour;
+            state.timesheetData.working_frequency = action.payload.working_frequency;
         },
         setUsergroup: (state, action: PayloadAction<Array<string>>) => {
             state.userGroup = action.payload;
@@ -175,5 +185,5 @@ const TeamSlice = createSlice({
     }
 });
 
-export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData, setDateRange, setApprovalDialog, setEmployee, setDialog, resetState, setTimesheetData, updateTimesheetData, setUsergroup, setUserGroupSearch, setProjectSearch,resetTimesheetDataState } = TeamSlice.actions;
+export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData, setDateRange, setApprovalDialog, setEmployee, setDialog, resetState, setTimesheetData, updateTimesheetData, setUsergroup, setUserGroupSearch, setProjectSearch, resetTimesheetDataState, setStatusFilter } = TeamSlice.actions;
 export default TeamSlice.reducer;
