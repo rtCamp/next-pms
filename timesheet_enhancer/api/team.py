@@ -17,7 +17,10 @@ def get_compact_view_data(
     user_group=None,
     page_length=10,
     start=0,
+    status_filter=None,
 ):
+    import json
+
     from .utils import filter_employees, get_leaves_for_employee
 
     employees, total_count = filter_employees(
@@ -37,71 +40,81 @@ def get_compact_view_data(
         dates.append(week)
         date = add_days(getdate(week["start_date"]), -1)
     dates.reverse()
-    data = {}
     res = {"dates": dates}
+
+    employee_names = [employee.name for employee in employees]
+    timesheet_data = frappe.get_all(
+        "Timesheet",
+        filters={
+            "employee": ["in", employee_names],
+            "start_date": [">=", dates[0].get("start_date")],
+            "end_date": ["<=", dates[-1].get("end_date")],
+        },
+        fields=[
+            "employee",
+            "start_date",
+            "end_date",
+            "total_hours",
+            "note",
+            "custom_approval_status",
+        ],
+    )
+
+    timesheet_map = {}
+    for ts in timesheet_data:
+        if ts.employee not in timesheet_map:
+            timesheet_map[ts.employee] = []
+        timesheet_map[ts.employee].append(ts)
 
     for employee in employees:
         working_hours = get_employee_working_hours(employee.name)
         local_data = {**employee, **working_hours}
-        is_approved = frappe.db.count(
-            "Timesheet",
-            {
-                "employee": employee.name,
-                "custom_approval_status": "Approved",
-                "start_date": [">=", dates[0].get("start_date")],
-                "end_date": ["<=", dates[-1].get("end_date")],
-            },
+        employee_timesheets = timesheet_map.get(employee.name, [])
+
+        is_approved = sum(
+            1 for ts in employee_timesheets if ts.custom_approval_status == "Approved"
         )
-        is_pending = frappe.db.count(
-            "Timesheet",
-            {
-                "employee": employee.name,
-                "custom_approval_status": "Approval Pending",
-                "start_date": [">=", dates[0].get("start_date")],
-                "end_date": ["<=", dates[-1].get("end_date")],
-            },
+        is_pending = sum(
+            1
+            for ts in employee_timesheets
+            if ts.custom_approval_status == "Approval Pending"
         )
-        local_data["status"] = is_approved > is_pending and "Approved" or "Pending"
+
+        local_data["status"] = "Approved" if is_approved > is_pending else "Pending"
         if is_approved == 0 and is_pending == 0:
             local_data["status"] = "Not Submitted"
         local_data["data"] = []
 
-        for date_info in dates:
-            leaves = get_leaves_for_employee(
-                from_date=date_info.get("start_date"),
-                to_date=date_info.get("end_date"),
-                employee=employee.name,
-            )
+        leaves = get_leaves_for_employee(
+            from_date=dates[0].get("start_date"),
+            to_date=dates[-1].get("end_date"),
+            employee=employee.name,
+        )
 
+        for date_info in dates:
             for date in date_info.get("dates"):
                 hour = 0
                 on_leave = False
-                leave = list(
-                    filter(
-                        lambda data: data["from_date"] <= date <= data["to_date"],
-                        leaves,
-                    )
+                leave = next(
+                    (l for l in leaves if l["from_date"] <= date <= l["to_date"]), None
                 )
 
-                total_hours = frappe.get_value(
-                    "Timesheet",
-                    {
-                        "employee": employee.name,
-                        "start_date": date,
-                        "end_date": date,
-                    },
-                    ["total_hours", "note"],
-                    as_dict=True,
-                )
                 if leave:
-                    leave = leave[0]
                     if leave.get("half_day") and leave.get("half_day_date") == date:
                         hour += 4
                     else:
                         hour += 8
                     on_leave = True
 
-                if total_hours is not None:
+                total_hours = next(
+                    (
+                        ts
+                        for ts in employee_timesheets
+                        if ts.start_date == date and ts.end_date == date
+                    ),
+                    None,
+                )
+                if total_hours:
                     hour += total_hours.get("total_hours")
 
                 local_data["data"].append(
@@ -116,11 +129,17 @@ def get_compact_view_data(
                         ),
                     }
                 )
-        data[employee.name] = local_data
+        if status_filter:
+            if isinstance(status_filter, str):
+                status_filter = json.loads(status_filter)
+            if local_data["status"] in status_filter:
+                data[employee.name] = local_data
+        else:
+            data[employee.name] = local_data
 
     res["data"] = data
-    res["total_count"] = total_count
-    res["has_more"] = True if int(start) + int(page_length) < total_count else False
+    res["total_count"] = len(data)
+    res["has_more"] = int(start) + int(page_length) < total_count
     return res
 
 
