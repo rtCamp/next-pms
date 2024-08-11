@@ -24,7 +24,6 @@ import { AddTime } from "./addTime";
 import { Approval } from "./Approval";
 import { NewTimesheetProps, timesheet } from "@/types/timesheet";
 import { WorkingFrequency } from "@/types";
-import GenWrapper from "@/app/components/GenWrapper";
 
 function Timesheet() {
   const { toast } = useToast();

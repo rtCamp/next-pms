@@ -12,7 +12,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
 import { Input } from "@/app/components/ui/input";
-import { Clock3, Search } from "lucide-react";
+import { Clock3, Search, LoaderCircle } from "lucide-react";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { getFormatedDate, parseFrappeErrorMsg } from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
@@ -84,6 +84,8 @@ export const AddTime = () => {
   };
   const handleTimeChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     const value = event.target.value;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     form.setValue("hours", value);
   };
   const handleTaskSearch = (searchTerm: string) => {
@@ -107,7 +109,6 @@ export const AddTime = () => {
         });
       });
   };
-
   useEffect(() => {
     mutateTask();
   }, [searchTerm, mutateTask]);
@@ -150,7 +151,11 @@ export const AddTime = () => {
                     <FormItem className="w-full">
                       <FormLabel>Date</FormLabel>
                       <FormControl>
-                        <DatePicker date={field.value} onDateChange={handleDateChange} />
+                        <DatePicker
+                          date={field.value}
+                          onDateChange={handleDateChange}
+                          disabled={timesheetState.timesheet.task.length > 0}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -208,7 +213,10 @@ export const AddTime = () => {
 
               <DialogFooter className="sm:justify-start">
                 <div className="flex gap-x-4">
-                  <Button>{timesheetState.timesheet.hours > 0 ? "Edit Time" : "Add Time"}</Button>
+                  <Button disabled={form.formState.isSubmitting}>
+                    {form.formState.isSubmitting && <LoaderCircle className="animate-spin w-4 h-4" />}
+                    {timesheetState.timesheet.hours > 0 ? "Edit Time" : "Add Time"}
+                  </Button>
                   <Button variant="secondary" type="button" onClick={handleOpen}>
                     Cancel
                   </Button>

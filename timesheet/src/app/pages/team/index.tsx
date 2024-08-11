@@ -16,6 +16,7 @@ import {
   setUsergroup,
   setUserGroupSearch,
   setProjectSearch,
+  setStatusFilter,
 } from "@/store/team";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg, prettyDate, floatToTime, getFormatedDate, cn, calculateWeeklyHour } from "@/lib/utils";
@@ -56,6 +57,7 @@ const Team = () => {
 
   const [projectParam, setProjectParam] = useQueryParamsState<string[]>("project", []);
   const [userGroupParam, setUserGroupParam] = useQueryParamsState<string[]>("user-group", []);
+  const [statusParam, setStatusParam] = useQueryParamsState<string[]>("status", []);
 
   const {
     data: projects,
@@ -100,6 +102,7 @@ const Team = () => {
     project: teamState.project,
     user_group: teamState.userGroup,
     start: teamState.start,
+    status_filter: teamState.statusFilter,
   });
 
   const approvals = [
@@ -166,6 +169,12 @@ const Team = () => {
   }, [dispatch, projectParam]);
 
   useEffect(() => {
+    if (statusParam.length > 0) {
+      dispatch(setStatusFilter(statusParam));
+    }
+  }, [dispatch, statusParam]);
+
+  useEffect(() => {
     if (userGroupParam.length > 0) {
       dispatch(setUsergroup(userGroupParam));
     }
@@ -174,6 +183,10 @@ const Team = () => {
   useEffect(() => {
     setProjectParam(teamState.project);
   }, [setProjectParam, teamState.project]);
+
+  useEffect(() => {
+    setStatusParam(teamState.statusFilter);
+  }, [setStatusParam, teamState.statusFilter]);
 
   useEffect(() => {
     setUserGroupParam(teamState.userGroup);
@@ -202,11 +215,16 @@ const Team = () => {
     },
     [dispatch]
   );
-
+  const handleStatusChange = useCallback(
+    (filters: string | string[]) => {
+      const normalizedFilters = Array.isArray(filters) ? filters : [filters];
+      dispatch(setStatusFilter(normalizedFilters));
+    },
+    [dispatch]
+  );
   const handleLoadMore = () => {
     if (!teamState.hasMore) return;
     dispatch(setStart(teamState.start + 20));
-    dispatch(setFetchAgain(true));
   };
   const onStatusClick = (start_date: string, end_date: string, employee: string) => {
     const data = {
@@ -236,12 +254,16 @@ const Team = () => {
         {teamState.isAprrovalDialogOpen && <Approval />}
         <div id="filters" className="flex gap-x-2">
           <ComboxBox
+            value={teamState.statusFilter}
             label="Approval"
             data={approvals}
             isMulti
-            leftIcon={<Filter className={cn("h-4 w-4")} />}
+            onSelect={handleStatusChange}
+            leftIcon={<Filter className={cn("h-4 w-4", teamState.statusFilter.length != 0 && "fill-primary")} />}
+            rightIcon={
+              teamState.statusFilter.length > 0 && <Badge className="px-1.5">{teamState.statusFilter.length}</Badge>
+            }
             className="text-primary border-dashed gap-x-2 font-normal"
-            disabled
           />
           <ComboxBox
             value={teamState.project}
@@ -267,7 +289,7 @@ const Team = () => {
               label: item.name,
               value: item.name,
             }))}
-            rightIcon={teamState.userGroup.length > 0 && <Badge  className="px-1.5">{teamState.userGroup.length}</Badge>}
+            rightIcon={teamState.userGroup.length > 0 && <Badge className="px-1.5">{teamState.userGroup.length}</Badge>}
             isMulti
             leftIcon={<Filter className={cn("h-4 w-4", teamState.userGroup.length != 0 && "fill-primary")} />}
             onSelect={handleUserGroupChange}
@@ -386,7 +408,7 @@ const Team = () => {
           Load More
         </Button>
         <Typography variant="p" className="px-5 font-semibold">
-          {`${Object.keys(data?.message?.data).length | 0} of ${data?.message?.total_count | 0}`}
+          {`${Object.keys(teamState.data.data).length | 0} of ${data?.message?.total_count | 0}`}
         </Typography>
       </div>
     </>

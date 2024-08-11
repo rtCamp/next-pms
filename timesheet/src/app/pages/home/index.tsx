@@ -9,6 +9,7 @@ import {
   getFormatedDate,
   calculateExtendedWorkingHour,
 } from "@/lib/utils";
+import { TEAM, EMPLOYEE } from "@/lib/constant";
 import { RootState } from "@/store";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useCallback, useEffect, useState } from "react";
@@ -25,6 +26,7 @@ import { Typography } from "@/app/components/typography";
 import { dataItem } from "@/types/team";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
   const { toast } = useToast();
@@ -32,6 +34,7 @@ const Home = () => {
   const dispatch = useDispatch();
   const [employeeNameParam, setEmployeeNameParam] = useQueryParamsState<string>("employee-name", "");
   const [employee, setEmployee] = useState(employeeNameParam);
+  const navigate = useNavigate();
 
   const { data, error, mutate, isLoading } = useFrappeGetCall("timesheet_enhancer.api.team.get_compact_view_data", {
     date: homeState.weekDate,
@@ -166,16 +169,23 @@ const Home = () => {
               return (
                 <TableRow key={key}>
                   <TableCell className="flex items-center gap-x-2 max-w-sm w-full">
-                    <Avatar className="w-6 h-6">
-                      <AvatarImage src={decodeURIComponent(item.image)} alt={item.employee_name} />
-                      <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
-                    </Avatar>
-                    <Typography
-                      variant="p"
-                      className="w-full text-left text-ellipsis whitespace-nowrap overflow-hidden "
+                    <span
+                      className="flex gap-x-2 items-center font-normal hover:underline hover:cursor-pointer w-full"
+                      onClick={() => {
+                        navigate(`${TEAM}${EMPLOYEE}/${item.name}`);
+                      }}
                     >
-                      {item.employee_name}
-                    </Typography>
+                      <Avatar className="w-6 h-6">
+                        <AvatarImage src={decodeURIComponent(item.image)} alt={item.employee_name} />
+                        <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
+                      </Avatar>
+                      <Typography
+                        variant="p"
+                        className="w-full text-left text-ellipsis whitespace-nowrap overflow-hidden "
+                      >
+                        {item.employee_name}
+                      </Typography>
+                    </span>
                   </TableCell>
                   {item.data.map((data: dataItem, index: number) => {
                     const expectedTime = calculateExtendedWorkingHour(

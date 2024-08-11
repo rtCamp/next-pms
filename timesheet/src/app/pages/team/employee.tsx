@@ -172,7 +172,7 @@ const Cell = ({
           {isHovered && data?.hours && data?.hours > 0 && <PencilLine className="text-center" size={16} />}
           {isHovered && !data?.hours && <CirclePlus className="text-center" size={16} />}
         </TooltipTrigger>
-        {data?.description && <TooltipContent className="whitespace-pre text-left">{data?.description}</TooltipContent>}
+        {data?.description && <TooltipContent className="whitespace-pre text-left max-w-72 text-wrap">{data?.description}</TooltipContent>}
       </TableCell>
     </Tooltip>
   );

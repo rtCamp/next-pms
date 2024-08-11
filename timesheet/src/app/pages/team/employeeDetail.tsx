@@ -1,7 +1,8 @@
+// @ts-nocheck
 import { Button } from "@/app/components/ui/button";
 import { useParams } from "react-router-dom";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
-import { useFrappeGetCall } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import {
   cn,
   getDateFromDateAndTime,
@@ -9,6 +10,8 @@ import {
   getTodayDate,
   parseFrappeErrorMsg,
   prettyDate,
+  calculateExtendedWorkingHour,
+  deBounce,
 } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useToast } from "@/app/components/ui/use-toast";
@@ -36,6 +39,7 @@ import {
   updateTimesheetData,
   setWeekDate,
   resetTimesheetDataState,
+  setEmployee,
 } from "@/store/team";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
@@ -79,6 +83,7 @@ const EmployeeDetail = () => {
     dispatch(resetTimesheetDataState());
     const date = getTodayDate();
     dispatch(setWeekDate(date));
+    dispatch(setEmployee(id as string));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -98,7 +103,7 @@ const EmployeeDetail = () => {
     }
     if (data) {
       if (teamState.timesheetData.data && Object.keys(teamState.timesheetData.data).length > 0) {
-        dispatch(updateTimesheetData(data.message.data));
+        dispatch(updateTimesheetData(data.message));
       } else {
         dispatch(setTimesheetData(data.message));
       }
@@ -193,6 +198,26 @@ const Timesheet = () => {
 
 const Time = () => {
   const teamState = useSelector((state: RootState) => state.team);
+  const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
+  const { toast } = useToast();
+  const dispatch = useDispatch();
+  const updateTime = (data: NewTimesheetProps) => {
+    call(data)
+      .then((res) => {
+        toast({
+          variant: "success",
+          description: res.message,
+        });
+        dispatch(setFetchAgain(true));
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          description: error,
+        });
+      });
+  };
   return (
     <div>
       {teamState.timesheetData.data &&
@@ -225,16 +250,43 @@ const Time = () => {
                               projectName: task.project_name,
                             }))
                       );
-
+                      const totalHours = matchingTasks.reduce((sum, task) => sum + task.hours, 0);
+                      const isExtended = calculateExtendedWorkingHour(
+                        totalHours,
+                        teamState.timesheetData.working_hour,
+                        teamState.timesheetData.working_frequency
+                      );
                       return (
                         <div key={index} className="flex flex-col ">
-                          <Typography variant="p" className="bg-gray-100 p-2 py-3 border-b">
-                            {day.toUpperCase()} . {formattedDate}
-                          </Typography>
+                          <div className="bg-gray-100 p-2 py-3 border-b flex gap-x-4">
+                            <Typography
+                              variant="p"
+                              className={cn(
+                                "border px-1 rounded",
+                                isExtended == 0 && "border-destructive",
+                                isExtended && "border-success",
+                                isExtended == 2 && "border-warning"
+                              )}
+                            >
+                              {totalHours}h
+                            </Typography>
+                            <Typography variant="p">
+                              {day.toUpperCase()} . {formattedDate}
+                            </Typography>
+                          </div>
                           {matchingTasks?.map((task: TaskDataItemProps, index: number) => {
+                            const data = {
+                              name: task.name,
+                              parent: task.parent,
+                              task: task.task,
+                              date: getDateFromDateAndTime(task.from_time),
+                              description: task.description,
+                              hours: task.hours,
+                              isUpdate: task.hours > 0 ? true : false,
+                            };
                             return (
-                              <div className="flex gap-x-4 items-center px-4 py-2">
-                                <Input value={task.hours} className="w-20" />
+                              <div className="flex gap-x-4 items-center px-4 py-2 border-b last:border-b-0" key={index}>
+                                <TimeInput data={data} callback={updateTime} employee={teamState.employee} />
                                 <div className="flex justify-between w-full">
                                   <div className="flex flex-col gap-y-2 w-full">
                                     <Typography variant="p" className="font-bold">
@@ -343,4 +395,30 @@ const EmployeeCombo = () => {
   );
 };
 
+const TimeInput = ({
+  data,
+  employee,
+  callback,
+}: {
+  data: NewTimesheetProps;
+  employee: string;
+  callback: (data: NewTimesheetProps) => void;
+}) => {
+  const [hour, setHour] = useState(data.hours);
+  const handleHourChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // @ts-ignore
+    setHour(e.target.value);
+    timeUpdate(parseFloat(e.target.value));
+  };
+  const timeUpdate = deBounce((hour: number) => {
+    if (hour == 0 || Number.isNaN(hour)) return;
+    const value = {
+      ...data,
+      hours: hour,
+      employee: employee,
+    };
+    callback(value);
+  }, 1000);
+  return <Input value={hour} className="w-20" onChange={handleHourChange} />;
+};
 export default EmployeeDetail;
