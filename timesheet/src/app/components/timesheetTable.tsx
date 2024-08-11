@@ -85,8 +85,8 @@ const TimesheetTable = ({
               return (
                 <TableRow key={task} className="border-b border-slate-200">
                   <Tooltip delayDuration={0}>
-                    <TooltipTrigger className={``} asChild>
-                      <TableCell className={`cursor-pointer`}>
+                    <TooltipTrigger asChild>
+                      <TableCell className="cursor-pointer">
                         <Typography variant="p" className="text-slate-800 truncate overflow-hidden ">
                           {task}
                         </Typography>
@@ -297,12 +297,12 @@ const Cell = ({
 }) => {
   const isDisabled = disabled || data?.docstatus === 1;
   const handleClick = () => {
-    if (isDisabled || !data) return;
+    if (isDisabled) return;
     const value = {
       date: date,
       hours: data?.hours ?? "",
       description: data?.description ?? "",
-      isUpdate: data?.hours > 0 ? true : false,
+      isUpdate: data?.hours && data?.hours > 0 ? true : false,
       name: data?.name ?? "",
       parent: data?.parent ?? "",
       task: data?.task ?? "",
@@ -337,7 +337,7 @@ const Cell = ({
             {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
             {/* @ts-ignore */}
             <PencilLine className={cn("text-center hidden", data?.hours > 0 && "group-hover:block")} size={16} />
-            <CirclePlus className={cn("text-center hidden", data?.hours == 0 && "group-hover:block ")} size={16} />
+            <CirclePlus className={cn("text-center hidden", !data?.hours&& "group-hover:block ")} size={16} />
           </span>
           {data?.description && (
             <TooltipContent className="text-left whitespace-pre text-wrap max-w-72">{data?.description}</TooltipContent>

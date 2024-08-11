@@ -223,6 +223,7 @@ export const AddTime = () => {
                       <FormControl>
                         <ComboxBox
                           label="Search Task"
+                          disabled
                           value={form.getValues("task") ? [form.getValues("task")] : []}
                           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                           //  @ts-expect-error
@@ -232,6 +233,7 @@ export const AddTime = () => {
                             description: item.project_name,
                             disabled: false,
                           }))}
+                          showSelected
                           onSelect={handleTaskChange}
                           onSearch={handleTaskSearch}
                           rightIcon={<Search className="h-4 w-4 stroke-slate-400" />}
