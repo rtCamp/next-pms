@@ -12,6 +12,7 @@ import {
   prettyDate,
   calculateExtendedWorkingHour,
   deBounce,
+  floatToTime
 } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useToast } from "@/app/components/ui/use-toast";
@@ -171,8 +172,8 @@ const Timesheet = () => {
                 <AccordionItem value={key}>
                   <AccordionTrigger className="hover:no-underline w-full">
                     <div className="flex justify-between w-full">
-                      <Typography variant="h5" className="font-medium">
-                        {key} : {value.total_hours}h
+                      <Typography variant="h6" className="font-normal">
+                        {key}: {floatToTime(value.total_hours)}h
                       </Typography>
                     </div>
                   </AccordionTrigger>
@@ -230,8 +231,8 @@ const Time = () => {
                 <AccordionItem value={key}>
                   <AccordionTrigger className="hover:no-underline w-full">
                     <div className="flex justify-between w-full">
-                      <Typography variant="h5" className="font-medium">
-                        {key} : {value.total_hours}h
+                    <Typography variant="h6" className="font-normal">
+                        {key}: {floatToTime(value.total_hours)}h
                       </Typography>
                     </div>
                   </AccordionTrigger>
@@ -271,7 +272,7 @@ const Time = () => {
                               {totalHours}h
                             </Typography>
                             <Typography variant="p">
-                              {day.toUpperCase()} . {formattedDate}
+                              {day.toUpperCase()} {formattedDate}
                             </Typography>
                           </div>
                           {matchingTasks?.map((task: TaskDataItemProps, index: number) => {

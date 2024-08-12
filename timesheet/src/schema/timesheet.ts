@@ -37,12 +37,6 @@ export const TimesheetSchema = z.object({
     }
 }).superRefine((v, ctx) => {
     if (v.is_update == false || (v.is_update == true && v.hours != 0)) {
-        ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ["description"],
-            message: "please provide description",
-        })
-
         if (v.description && v.description?.length < 4) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
