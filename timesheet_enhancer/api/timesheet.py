@@ -1,6 +1,14 @@
 import frappe
 from frappe import _, throw
-from frappe.utils import add_days, get_first_day, get_last_day, getdate, nowdate
+from frappe.utils import (
+    add_days,
+    get_first_day,
+    get_first_day_of_week,
+    get_last_day,
+    get_last_day_of_week,
+    getdate,
+    nowdate,
+)
 from hrms.hr.utils import get_holiday_dates_for_employee
 
 from timesheet_enhancer.api.utils import (
@@ -134,10 +142,7 @@ def delete(parent: str, name: str):
 
 
 @frappe.whitelist()
-def submit_for_approval(
-    start_date: str, end_date: str, notes: str, employee: str = None
-):
-
+def submit_for_approval(start_date: str, notes: str, employee: str = None):
     if not employee:
         employee = get_employee_from_user()
     reporting_manager = frappe.get_value("Employee", employee, "reports_to")
@@ -145,6 +150,9 @@ def submit_for_approval(
         throw(_("Reporting Manager not found for the employee."))
     reporting_manager = frappe.get_value("Employee", reporting_manager, "employee_name")
     #  get the timesheet for whole week.
+    start_date = get_first_day_of_week(start_date)
+    end_date = get_last_day_of_week(start_date)
+
     timesheets = frappe.get_list(
         "Timesheet",
         filters={
@@ -156,11 +164,17 @@ def submit_for_approval(
     )
     if not timesheets:
         throw(_("No timesheet found for the given week."))
-    for timesheet in timesheets:
-        doc = frappe.get_doc("Timesheet", timesheet["name"])
+
+    length = len(timesheets)
+    comment = f"User has submitted time entries for the week {start_date} to {end_date}.<br> {notes}"
+
+    for index, timesheet in enumerate(timesheets):
+        doc = frappe.get_doc("Timesheet", timesheet.name)
         doc.custom_approval_status = "Approval Pending"
         doc.save()
-        doc.add_comment("Comment", text=notes)
+        if index == length - 1:
+            doc.add_comment("Comment", text=comment)
+
     return _(f"Timesheet has been set for Approval to {reporting_manager}.")
 
 

@@ -90,7 +90,7 @@ const TimesheetTable = ({
                         <Typography variant="p" className="text-slate-800 truncate overflow-hidden ">
                           {task}
                         </Typography>
-                        <TooltipContent>{task}</TooltipContent>
+                        <TooltipContent className="max-w-72">{task}</TooltipContent>
 
                         <Typography
                           variant="small"
