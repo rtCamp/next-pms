@@ -142,7 +142,7 @@ def delete(parent: str, name: str):
 
 
 @frappe.whitelist()
-def submit_for_approval(start_date: str, notes: str, employee: str = None):
+def submit_for_approval(start_date: str, notes: str = None, employee: str = None):
     if not employee:
         employee = get_employee_from_user()
     reporting_manager = frappe.get_value("Employee", employee, "reports_to")
@@ -166,14 +166,12 @@ def submit_for_approval(start_date: str, notes: str, employee: str = None):
         throw(_("No timesheet found for the given week."))
 
     length = len(timesheets)
-    comment = f"User has submitted time entries for the week {start_date} to {end_date}.<br> {notes}"
-
     for index, timesheet in enumerate(timesheets):
         doc = frappe.get_doc("Timesheet", timesheet.name)
         doc.custom_approval_status = "Approval Pending"
         doc.save()
-        if index == length - 1:
-            doc.add_comment("Comment", text=comment)
+        if index == length - 1 and notes:
+            doc.add_comment("Comment", text=notes)
 
     return _(f"Timesheet has been set for Approval to {reporting_manager}.")
 
