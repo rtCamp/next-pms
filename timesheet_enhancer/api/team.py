@@ -33,6 +33,8 @@ def get_compact_view_data(
     )
     dates = []
     data = {}
+    if status_filter and isinstance(status_filter, str):
+        status_filter = json.loads(status_filter)
 
     for i in range(max_week):
         current_week = True if date == now else False
@@ -129,12 +131,11 @@ def get_compact_view_data(
                         ),
                     }
                 )
-        if status_filter:
-            if isinstance(status_filter, str):
-                status_filter = json.loads(status_filter)
-            if local_data["status"] in status_filter:
-                data[employee.name] = local_data
-        else:
+
+        if status_filter and local_data["status"] in status_filter:
+            data[employee.name] = local_data
+
+        if not status_filter:
             data[employee.name] = local_data
 
     res["data"] = data
