@@ -12,7 +12,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
 import { Input } from "@/app/components/ui/input";
-import { Clock3, Search, LoaderCircle } from "lucide-react";
+import { Clock3, Search, LoaderCircle, Trash2 } from "lucide-react";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { getFormatedDate, parseFrappeErrorMsg } from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
@@ -20,6 +20,7 @@ import { useEffect, useState } from "react";
 
 export const AddTime = () => {
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
+  const { call: deleteCall } = useFrappePostCall("timesheet_enhancer.api.timesheet.delete");
   const timesheetState = useSelector((state: RootState) => state.timesheet);
   const [searchTerm, setSearchTerm] = useState(timesheetState.timesheet.task ?? "");
 
@@ -41,6 +42,7 @@ export const AddTime = () => {
     },
     mode: "onSubmit",
   });
+
   const {
     data: tasks,
     mutate: mutateTask,
@@ -93,6 +95,28 @@ export const AddTime = () => {
   };
   const handleSubmit = (data: z.infer<typeof TimesheetSchema>) => {
     call(data)
+      .then((res) => {
+        toast({
+          variant: "success",
+          description: res.message,
+        });
+        dispatch(SetFetchAgain(true));
+        handleOpen();
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          description: error,
+        });
+      });
+  };
+  const handleDelete = () => {
+    const data = {
+      name: form.getValues("name"),
+      parent: form.getValues("parent"),
+    };
+    deleteCall(data)
       .then((res) => {
         toast({
           variant: "success",
@@ -211,8 +235,8 @@ export const AddTime = () => {
                 )}
               />
 
-              <DialogFooter className="sm:justify-start">
-                <div className="flex gap-x-4">
+              <DialogFooter className="sm:justify-start w-full">
+                <div className="flex gap-x-4 w-full">
                   <Button disabled={form.formState.isSubmitting}>
                     {form.formState.isSubmitting && <LoaderCircle className="animate-spin w-4 h-4" />}
                     {timesheetState.timesheet.hours > 0 ? "Edit Time" : "Add Time"}
@@ -221,6 +245,12 @@ export const AddTime = () => {
                     Cancel
                   </Button>
                 </div>
+                {timesheetState.timesheet.hours > 0 && (
+                  <Button variant="destructive" className="float-right gap-x-1" type="button" onClick={handleDelete}>
+                    <Trash2 className="h-4 w-4 stroke-white" />
+                    Delete
+                  </Button>
+                )}
               </DialogFooter>
             </div>
           </form>

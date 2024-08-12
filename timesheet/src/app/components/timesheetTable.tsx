@@ -336,8 +336,8 @@ const Cell = ({
             </Typography>
             {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
             {/* @ts-ignore */}
-            <PencilLine className={cn("text-center hidden", data?.hours > 0 && "group-hover:block")} size={16} />
-            <CirclePlus className={cn("text-center hidden", !data?.hours&& "group-hover:block ")} size={16} />
+            <PencilLine className={cn("text-center hidden", data?.hours > 0 && !isDisabled && "group-hover:block")} size={16} />
+            <CirclePlus className={cn("text-center hidden", !data?.hours && !isDisabled && "group-hover:block ")} size={16} />
           </span>
           {data?.description && (
             <TooltipContent className="text-left whitespace-pre text-wrap max-w-72">{data?.description}</TooltipContent>

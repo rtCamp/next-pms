@@ -5,7 +5,9 @@ export const TimesheetSchema = z.object({
         required_error: "Please select a task.",
     }).trim().min(1, { message: 'Please select a task.' }),
     name: z.string({}).optional(),
-    description: z.string({}).optional(),
+    description: z.string({
+        required_error: "Please enter description.",
+    }).min(4, "Please enter description."),
     hours: z.preprocess((val) => {
         if (typeof val === 'string') {
             const parsed = parseFloat(val);
@@ -28,24 +30,14 @@ export const TimesheetSchema = z.object({
     is_update: z.boolean({}),
     employee: z.string({}),
 }).superRefine((v, ctx) => {
-    if (v.is_update == false && v.hours == 0) {
+    if (v.hours == 0) {
         ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ["hours"],
             message: "Hour should be greater than 0",
         });
     }
-}).superRefine((v, ctx) => {
-    if (v.is_update == false || (v.is_update == true && v.hours != 0)) {
-        if (v.description && v.description?.length < 4) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ["description"],
-                message: "please provide description",
-            })
-        }
-    }
-});
+})
 
 
 export const TimesheetApprovalSchema = z.object({

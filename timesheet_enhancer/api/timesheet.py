@@ -138,7 +138,7 @@ def delete(parent: str, name: str):
         parent_doc.delete(ignore_permissions=True)
     else:
         parent_doc.save()
-    return _("Timesheet deleted successfully.")
+    return _("Time entry deleted successfully.")
 
 
 @frappe.whitelist()
