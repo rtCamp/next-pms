@@ -18,8 +18,8 @@ export const TimesheetSchema = z.object({
         }
         return val;
     }, z.number()
-        .refine((val) => /^\d+(\.\d)?$/.test(val.toString()), {
-            message: "Hour must be a number with at most one decimal place",
+        .refine((val) => /^\d+(\.\d{1,2})?$/.test(val.toString()), {
+            message: "Hour must be a number with at most two decimal place",
         })
     ),
     date: z.string({
@@ -48,6 +48,19 @@ export const TimesheetApprovalSchema = z.object({
         required_error: "Please select a end date.",
     }).min(1, { message: 'Please select a end date.' }),
     notes: z.string({}).optional(),
+    employee: z.string({
+        required_error: "Please select a employee.",
+    }),
+});
+
+
+export const TimesheetRejectionSchema = z.object({
+    dates: z.array(z.string()).nonempty({
+        message: "Please select a date.",
+    }),
+    note: z.string({
+        required_error: "Please enter notes.",
+    }).min(4, "Please enter notes."),
     employee: z.string({
         required_error: "Please select a employee.",
     }),
