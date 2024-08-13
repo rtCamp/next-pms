@@ -67,12 +67,12 @@ export function getTodayDate() {
   return getFormatedDate(today);
 }
 
-export function prettyDate(dateString: string,isLong:boolean=false) {
+export function prettyDate(dateString: string, isLong: boolean = false) {
   const date = new Date(dateString);
 
   const month = date.toLocaleString("default", { month: "short" });
   const dayOfMonth = date.getDate();
-  const dayOfWeek = date.toLocaleString("default", { weekday: !isLong ?"short":"long" });
+  const dayOfWeek = date.toLocaleString("default", { weekday: !isLong ? "short" : "long" });
   return { date: `${month} ${dayOfMonth}`, day: dayOfWeek };
 }
 export function getDateFromDateAndTime(dateTimeString: string) {

@@ -47,7 +47,6 @@ export interface timesheet {
     dates: string[];
     total_hours: number;
     tasks: TaskProps
-    
     status: string
 }
 

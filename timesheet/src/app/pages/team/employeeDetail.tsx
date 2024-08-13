@@ -1,4 +1,4 @@
-// @ts-nocheck
+//@ts-nocheck
 import { Button } from "@/app/components/ui/button";
 import { useParams } from "react-router-dom";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
@@ -12,7 +12,7 @@ import {
   prettyDate,
   calculateExtendedWorkingHour,
   deBounce,
-  floatToTime
+  floatToTime,
 } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useToast } from "@/app/components/ui/use-toast";
@@ -48,7 +48,8 @@ import { Employee } from "@/types";
 import { NewTimesheetProps, TaskDataItemProps, timesheet } from "@/types/timesheet";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/app/components/ui/input";
-
+import { WorkingFrequency } from "@/types";
+import { DynamicKey } from "@/types/timesheet";
 const EmployeeDetail = () => {
   const { id } = useParams();
   const teamState = useSelector((state: RootState) => state.team);
@@ -135,7 +136,15 @@ const EmployeeDetail = () => {
                 <Timesheet />
               </TabsContent>
               <TabsContent value="time" className="mt-0">
-                <Time />
+                <Time
+                  data={teamState.timesheetData.data}
+                  working_hour={teamState.timesheetData.working_hour}
+                  working_frequency={teamState.timesheetData.working_frequency}
+                  employee={teamState.employee}
+                  callback={() => {
+                    dispatch(setFetchAgain(true));
+                  }}
+                />
               </TabsContent>
             </div>
             <div className="mt-5">
@@ -197,19 +206,31 @@ const Timesheet = () => {
   );
 };
 
-const Time = () => {
-  const teamState = useSelector((state: RootState) => state.team);
+export const Time = ({
+  data,
+  employee,
+  working_hour,
+  working_frequency,
+  callback,
+  isOpen = false,
+}: {
+  data: DynamicKey;
+  employee: string;
+  working_hour: number;
+  working_frequency: WorkingFrequency;
+  isOpen?: boolean;
+  callback?: () => void;
+}) => {
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
   const { toast } = useToast();
-  const dispatch = useDispatch();
-  const updateTime = (data: NewTimesheetProps) => {
-    call(data)
+  const updateTime = (value: NewTimesheetProps) => {
+    call(value)
       .then((res) => {
         toast({
           variant: "success",
           description: res.message,
         });
-        dispatch(setFetchAgain(true));
+        callback && callback();
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
@@ -219,19 +240,20 @@ const Time = () => {
         });
       });
   };
+
   return (
     <div>
-      {teamState.timesheetData.data &&
-        Object.keys(teamState.timesheetData.data).length > 0 &&
+      {data &&
+        Object.keys(data).length > 0 &&
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet]) => {
+        Object.entries(data).map(([key, value]: [string, timesheet]) => {
           return (
             <>
-              <Accordion type="multiple" key={key}>
+              <Accordion type="multiple" key={key} defaultValue={isOpen ? [key] : []}>
                 <AccordionItem value={key}>
                   <AccordionTrigger className="hover:no-underline w-full">
                     <div className="flex justify-between w-full">
-                    <Typography variant="h6" className="font-normal">
+                      <Typography variant="h6" className="font-normal">
                         {key}: {floatToTime(value.total_hours)}h
                       </Typography>
                     </div>
@@ -252,11 +274,7 @@ const Time = () => {
                             }))
                       );
                       const totalHours = matchingTasks.reduce((sum, task) => sum + task.hours, 0);
-                      const isExtended = calculateExtendedWorkingHour(
-                        totalHours,
-                        teamState.timesheetData.working_hour,
-                        teamState.timesheetData.working_frequency
-                      );
+                      const isExtended = calculateExtendedWorkingHour(totalHours, working_hour, working_frequency);
                       return (
                         <div key={index} className="flex flex-col ">
                           <div className="bg-gray-100 p-2 py-3 border-b flex gap-x-4">
@@ -287,7 +305,7 @@ const Time = () => {
                             };
                             return (
                               <div className="flex gap-x-4 items-center px-4 py-2 border-b last:border-b-0" key={index}>
-                                <TimeInput data={data} callback={updateTime} employee={teamState.employee} />
+                                <TimeInput data={data} callback={updateTime} employee={employee} />
                                 <div className="flex justify-between w-full">
                                   <div className="flex flex-col gap-y-2 w-full">
                                     <Typography variant="p" className="font-bold">
@@ -396,13 +414,15 @@ const EmployeeCombo = () => {
   );
 };
 
-const TimeInput = ({
+export const TimeInput = ({
   data,
   employee,
+  disabled = false,
   callback,
 }: {
   data: NewTimesheetProps;
   employee: string;
+  disabled?: boolean;
   callback: (data: NewTimesheetProps) => void;
 }) => {
   const [hour, setHour] = useState(data.hours);
@@ -420,6 +440,6 @@ const TimeInput = ({
     };
     callback(value);
   }, 1000);
-  return <Input value={hour} className="w-20" onChange={handleHourChange} />;
+  return <Input value={hour} className="w-20" onChange={handleHourChange} disabled={disabled} />;
 };
 export default EmployeeDetail;

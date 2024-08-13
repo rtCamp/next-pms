@@ -160,13 +160,21 @@ def get_timesheet_for_employee(employee: str, date: str):
 
 
 @frappe.whitelist()
-def update_timesheet_status(start_date: str, end_date: str, employee: str, status: str):
+def update_timesheet_status(
+    employee: str, status: str, dates: list[str] | str | None = None, note: str = ""
+):
+    import json
+
+    if isinstance(dates, str):
+        dates = json.loads(dates)
+
     timesheets = frappe.get_all(
         "Timesheet",
         {
             "employee": employee,
-            "start_date": [">=", start_date],
-            "end_date": ["<=", end_date],
+            "start_date": [">=", dates[0]],
+            "end_date": ["<=", dates[-1]],
+            "docstatus": ["=", 0],
         },
         ["name"],
     )
@@ -178,4 +186,9 @@ def update_timesheet_status(start_date: str, end_date: str, employee: str, statu
         doc.custom_approval_status = status
         doc.save()
         doc.submit()
+        if status == "Rejected":
+            doc.cancel()
+        if note:
+            doc.add_comment(text=note)
+
     return frappe._("Timesheet status updated successfully")
