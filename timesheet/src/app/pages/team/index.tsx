@@ -171,6 +171,7 @@ const Team = () => {
   useEffect(() => {
     if (statusParam.length > 0) {
       dispatch(setStatusFilter(statusParam));
+      dispatch(setFetchAgain(true));
     }
   }, [dispatch, statusParam]);
 
@@ -248,6 +249,7 @@ const Team = () => {
   );
 
   if (isLoading) return <Spinner isFull />;
+
   return (
     <>
       <div className="flex gap-x-2 items-center justify-between mb-3">

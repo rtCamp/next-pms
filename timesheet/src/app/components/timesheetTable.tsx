@@ -75,7 +75,7 @@ const TimesheetTable = ({
               working_hour={working_hour}
             />
           )}
-          {leaves.length > 0 && <LeaveRow dates={dates} leaves={leaves} />}
+          {leaves.length > 0 && <LeaveRow dates={dates} leaves={leaves} holidays={holidays} />}
           {Object.keys(tasks).length == 0 && (
             <EmptyRow dates={dates} holidays={holidays} onCellClick={onCellClick} disabled={disabled} />
           )}
@@ -152,8 +152,29 @@ const TimesheetTable = ({
   );
 };
 
-const LeaveRow = ({ leaves, dates }: { leaves: Array<LeaveProps>; dates: string[] }) => {
+const LeaveRow = ({ leaves, dates, holidays }: { leaves: Array<LeaveProps>; dates: string[], holidays: string[] }) => {
   let total_hours = 0;
+  const leaveData = dates.map((date: string) => {
+    if (holidays.includes(date)) {
+      return { date, isHoliday: true };
+    }
+    const data = leaves.find((data: LeaveProps) => {
+      return date >= data.from_date && date <= data.to_date;
+    });
+    const hour = data?.half_day ? 4 : 8;
+    if (data) {
+      total_hours += hour;
+    }
+    return { date, data, hour, isHoliday: false };
+  });
+
+  // Check if there are any leaves
+  const hasLeaves = leaveData.some(({ data, isHoliday }) => data || isHoliday);
+
+  if (!hasLeaves) {
+    return null;
+  }
+
   return (
     <TableRow>
       <TableCell>
@@ -161,22 +182,13 @@ const LeaveRow = ({ leaves, dates }: { leaves: Array<LeaveProps>; dates: string[
           Time Off
         </Typography>
       </TableCell>
-      {dates.map((date: string) => {
-        const data = leaves.find((data: LeaveProps) => {
-          return date >= data.from_date && date <= data.to_date;
-        });
-        const hour = data?.half_day ? 4 : 8;
-        if (data) {
-          total_hours += hour;
-        }
-        return (
-          <TableCell key={date} className="text-center">
-            <Typography variant="p" className="text-warning">
-              {data ? floatToTime(hour) : ""}
-            </Typography>
-          </TableCell>
-        );
-      })}
+      {leaveData.map(({ date, data, hour, isHoliday }) => (
+        <TableCell key={date} className="text-center" >
+          <Typography variant="p" className={isHoliday ? 'text-white' : 'text-warning'}>
+            {data ? floatToTime(hour) : ""}
+          </Typography>
+        </TableCell>
+      ))}
       <TableCell>
         <Typography variant="p" className="text-slate-800 font-medium text-right">
           {floatToTime(total_hours)}
@@ -185,7 +197,6 @@ const LeaveRow = ({ leaves, dates }: { leaves: Array<LeaveProps>; dates: string[
     </TableRow>
   );
 };
-
 const TotalHourRow = ({
   leaves,
   dates,

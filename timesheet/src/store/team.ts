@@ -1,7 +1,7 @@
 import { getTodayDate, getFormatedDate } from "@/lib/utils";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { addDays } from "date-fns";
-import { DataProp as timesheetDataProps, DynamicKey } from "@/types/timesheet";
+import { DataProp as timesheetDataProps } from "@/types/timesheet";
 type DateRange = {
     start_date: string;
     end_date: string;
@@ -26,7 +26,7 @@ export interface TeamState {
         hours: number;
         isUpdate: boolean;
     },
-    timesheetData: timesheetDataProps & DynamicKey;
+    timesheetData: timesheetDataProps;
     start: number;
     dateRange: DateRange,
     employee: string;
@@ -80,11 +80,12 @@ export const initialState: TeamState = {
         start_date: "",
         end_date: ""
     },
-    // @ts-ignore
     timesheetData: {
         working_hour: 0,
         working_frequency: "Per Day",
-        data: {}
+        data: {},
+        leaves: [],
+        holidays: []
     }
 }
 
@@ -101,7 +102,7 @@ const TeamSlice = createSlice({
             state.statusFilter = action.payload;
             state.start = 0;
             state.data = initialState.data;
-            state.isFetchAgain = true;
+
         },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         updateData: (state, action: PayloadAction<any>) => {
@@ -160,14 +161,16 @@ const TeamSlice = createSlice({
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             state.timesheetData = initialState.timesheetData;
         },
-        setTimesheetData: (state, action: PayloadAction<timesheetDataProps & DynamicKey>) => {
+        setTimesheetData: (state, action: PayloadAction<timesheetDataProps>) => {
             state.timesheetData = action.payload;
         },
-        updateTimesheetData: (state, action: PayloadAction<timesheetDataProps & DynamicKey>) => {
+        updateTimesheetData: (state, action: PayloadAction<timesheetDataProps>) => {
             const data = Object.assign(state.timesheetData.data, action.payload.data);
             state.timesheetData.data = data;
             state.timesheetData.working_hour = action.payload.working_hour;
             state.timesheetData.working_frequency = action.payload.working_frequency;
+            state.timesheetData.holidays = [...state.timesheetData.holidays, ...action.payload.holidays];
+            state.timesheetData.leaves = [...state.timesheetData.leaves, ...action.payload.leaves];
         },
         setUsergroup: (state, action: PayloadAction<Array<string>>) => {
             state.userGroup = action.payload;

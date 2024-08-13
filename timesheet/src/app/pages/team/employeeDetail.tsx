@@ -180,8 +180,8 @@ const Timesheet = () => {
                   <AccordionContent className="pb-0">
                     <TimesheetTable
                       dates={value.dates}
-                      holidays={value.holidays}
-                      leaves={value.leaves}
+                      holidays={teamState.timesheetData.holidays}
+                      leaves={teamState.timesheetData.leaves}
                       tasks={value.tasks}
                       onCellClick={onCellClick}
                       working_frequency={teamState.timesheetData.working_frequency}

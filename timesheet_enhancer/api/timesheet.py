@@ -32,24 +32,31 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
     hour_detail = get_employee_working_hours(employee)
     res = {**hour_detail}
     data = {}
+    # Retrieve holidays and leaves data outside the loop
+    res["holidays"] = get_holiday_dates_for_employee(
+        employee, start_date, add_days(start_date, max_week * 7)
+    )
+    res["leaves"] = get_leaves_for_employee(
+        add_days(start_date, -max_week * 7),
+        add_days(start_date, max_week * 7),
+        employee,
+    )
+
     for i in range(max_week):
-        current_week = True if start_date == now else False
+        current_week = start_date == now
 
         week_dates = get_week_dates(start_date, current_week=current_week)
-        data[week_dates["key"]] = week_dates
+        week_key = week_dates["key"]
+
         tasks, total_hours = get_timesheet(week_dates["dates"], employee)
-        data[week_dates["key"]]["total_hours"] = total_hours
-        data[week_dates["key"]]["tasks"] = tasks
-        leaves = get_leaves_for_employee(
-            week_dates["start_date"], week_dates["end_date"], employee
-        )
-        data[week_dates["key"]]["leaves"] = leaves
-        data[week_dates["key"]]["holidays"] = get_holiday_dates_for_employee(
-            employee, week_dates["start_date"], week_dates["end_date"]
-        )
-        data[week_dates["key"]]["status"] = get_timesheet_state(
-            week_dates["dates"], employee
-        )
+        status = get_timesheet_state(week_dates["dates"], employee)
+
+        data[week_key] = {
+            **week_dates,
+            "total_hours": total_hours,
+            "tasks": tasks,
+            "status": status,
+        }
         start_date = add_days(getdate(week_dates["start_date"]), -1)
     res["data"] = data
     return res

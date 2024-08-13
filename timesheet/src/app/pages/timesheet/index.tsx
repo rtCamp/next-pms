@@ -44,7 +44,7 @@ function Timesheet() {
     }
     if (data) {
       if (timesheet.data?.data && Object.keys(timesheet.data?.data).length > 0) {
-        dispatch(AppendData(data.message.data));
+        dispatch(AppendData(data.message));
       } else {
         dispatch(setData(data.message));
       }
@@ -137,8 +137,8 @@ function Timesheet() {
                         working_hour={timesheet.data.working_hour}
                         working_frequency={timesheet.data.working_frequency as WorkingFrequency}
                         dates={value.dates}
-                        holidays={value.holidays}
-                        leaves={value.leaves}
+                        holidays={timesheet.data.holidays}
+                        leaves={timesheet.data.leaves}
                         tasks={value.tasks}
                         onCellClick={onCellClick}
                       />
