@@ -386,8 +386,7 @@ const Team = () => {
                           <TableCell
                             className="w-full max-w-16 flex items-center justify-end"
                             onClick={() => {
-                              item.status != "Approved" &&
-                                onStatusClick(item.data[0].date, item.data[item.data.length - 1].date, item.name);
+                              onStatusClick(item.data[0].date, item.data[item.data.length - 1].date, item.name);
                             }}
                           >
                             <Status status={item.status} />
