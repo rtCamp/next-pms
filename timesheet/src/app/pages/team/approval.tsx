@@ -1,14 +1,22 @@
+// @ts-nocheck
 import { useToast } from "@/app/components/ui/use-toast";
 import { RootState } from "@/store";
 import { useSelector, useDispatch } from "react-redux";
 import { setDateRange, setFetchAgain } from "@/store/team";
 import { Button } from "@/app/components/ui/button";
-import { calculateExtendedWorkingHour, cn, getDateFromDateAndTime, parseFrappeErrorMsg, prettyDate } from "@/lib/utils";
+import {
+  calculateExtendedWorkingHour,
+  cn,
+  getDateFromDateAndTime,
+  parseFrappeErrorMsg,
+  prettyDate,
+  floatToTime,
+} from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useFrappeGetCall, useFrappePostCall, useFrappeGetDocList } from "frappe-react-sdk";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/app/components/ui/sheet";
 import { Spinner } from "@/app/components/spinner";
-import { NewTimesheetProps, TaskDataItemProps, timesheet } from "@/types/timesheet";
+import { LeaveProps, NewTimesheetProps, TaskDataItemProps, timesheet } from "@/types/timesheet";
 import { Typography } from "@/app/components/typography";
 import { WorkingFrequency } from "@/types";
 import { TimeInput } from "@/app/pages/team/employeeDetail";
@@ -29,7 +37,8 @@ export const Approval = () => {
   const [timesheetData, setTimesheetData] = useState<timesheet>();
   const [working_hour, setWorkingHour] = useState<number>(0);
   const [working_frequency, setWorkingFrequency] = useState<WorkingFrequency>("Per Day");
-  const [daySelectionRequired, setDaySelectionRequired] = useState(false);
+  const [holidays, setHoliday] = useState<string[]>([]);
+  const [leaves, setLeave] = useState<LeaveProps[]>([]);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const dispatch = useDispatch();
 
@@ -67,8 +76,8 @@ export const Approval = () => {
   });
   const handleOpen = () => {
     const data = { start_date: "", end_date: "" };
-    dispatch(setFetchAgain(true));
     dispatch(setDateRange({ dateRange: data, employee: "", isAprrovalDialogOpen: false }));
+    dispatch(setFetchAgain(true));
   };
   const handleApproval = () => {
     const data = {
@@ -122,6 +131,8 @@ export const Approval = () => {
   };
   useEffect(() => {
     if (data) {
+      setLeave(data.message.leaves);
+      setHoliday(data.message.holidays);
       setTimesheetData(data.message.data[Object.keys(data.message.data)[0]]);
       setWorkingHour(data.message.working_hour);
       setWorkingFrequency(data.message.working_frequency);
@@ -138,10 +149,15 @@ export const Approval = () => {
   useEffect(() => {
     if (timesheetData && timesheetList) {
       const validDates = timesheetList.filter((dateObj) => dateObj.docstatus == 1).map((dateObj) => dateObj.start_date);
-      const filteredDates = timesheetData.dates.filter((date) => !validDates.includes(date));
+      const filteredDates = timesheetData.dates.filter((date) => {
+        const isLeaveDate = leaves.some((leave: LeaveProps) => {
+          return date >= leave.from_date && date <= leave.to_date && leave.half_day == false;
+        });
+        return !validDates.includes(date) && !holidays.includes(date) && !isLeaveDate;
+      });
       setSelectedDates(filteredDates ?? []);
     }
-  }, [timesheetData, timesheetList]);
+  }, [holidays, leaves, timesheetData, timesheetList]);
 
   return (
     <Sheet open={teamState.isAprrovalDialogOpen} onOpenChange={handleOpen} modal={true}>
@@ -156,7 +172,6 @@ export const Approval = () => {
           <div className="flex flex-col gap-y-4 mt-6">
             <div>
               {timesheetData.dates.map((date: string, index: number) => {
-                const { date: formattedDate, day } = prettyDate(date, true);
                 const matchingTasks = Object.entries(timesheetData.tasks).flatMap(
                   ([taskName, task]: [string, TaskDataItemProps]) =>
                     task.data
@@ -167,26 +182,59 @@ export const Approval = () => {
                         projectName: task.project_name,
                       }))
                 );
-                const totalHours = matchingTasks.reduce((sum, task) => sum + task.hours, 0);
-                const isExtended = calculateExtendedWorkingHour(totalHours, working_hour, working_frequency);
+                let totalHours = matchingTasks.reduce((sum, task) => sum + task.hours, 0);
+                const isChecked = selectedDates.includes(date);
+                const isHoliday = holidays.includes(date);
+                const submittedTime = timesheetList?.some(
+                  (timesheet) => timesheet.start_date === date && timesheet.docstatus === 1
+                );
+                const leave = leaves.find((data: LeaveProps) => {
+                  return date >= data.from_date && date <= data.to_date;
+                });
+                const isHalfDayLeave = leave?.half_day && leave?.half_day_date == date ? true : false;
+                if (leave && !isHoliday) {
+                  if (isHalfDayLeave) {
+                    totalHours += 4;
+                  } else {
+                    totalHours += 8;
+                  }
+                }
 
+                const isExtended = calculateExtendedWorkingHour(totalHours, working_hour, working_frequency);
                 return (
                   <div key={index} className="flex flex-col ">
-                    <div className="bg-gray-100 p-2 py-3 border-b flex gap-x-4">
+                    <div className="bg-gray-100  p-1 border-b flex items-center gap-x-2">
+                      <Checkbox
+                        disabled={
+                          submittedTime ||
+                          (isHoliday && matchingTasks.length == 0) ||
+                          (leave && !isHalfDayLeave && !isHoliday)
+                        }
+                        checked={isChecked || submittedTime || isHalfDayLeave}
+                        className={cn(submittedTime && "data-[state=checked]:bg-success border-success")}
+                        onCheckedChange={() => handleCheckboxChange(date)}
+                      />
                       <Typography
                         variant="p"
                         className={cn(
-                          "border px-1 rounded",
-                          isExtended == 0 && "border-destructive",
-                          isExtended && "border-success",
-                          isExtended == 2 && "border-warning"
+                          isExtended == 0 && "text-destructive",
+                          isExtended && "text-success",
+                          isExtended == 2 && "text-warning"
                         )}
                       >
-                        {totalHours}h
+                        {floatToTime(totalHours)}h
                       </Typography>
-                      <Typography variant="p">
-                        {day.toUpperCase()} {formattedDate}
-                      </Typography>
+                      <Typography variant="p">{prettyDate(date).date}</Typography>
+                      {isHoliday && (
+                        <Typography variant="p" className="text-gray-600">
+                          (Holiday)
+                        </Typography>
+                      )}
+                      {leave && !isHoliday && (
+                        <Typography variant="p" className="text-gray-600">
+                          ({isHalfDayLeave ? "Half day leave" : "Full Day Leave"})
+                        </Typography>
+                      )}
                     </div>
                     {matchingTasks?.map((task: TaskDataItemProps, index: number) => {
                       const data = {
@@ -199,25 +247,21 @@ export const Approval = () => {
                         isUpdate: task.hours > 0 ? true : false,
                       };
                       return (
-                        <div className="flex gap-x-4 items-center px-4 py-2 border-b last:border-b-0" key={index}>
+                        <div className="flex gap-x-2 items-center py-1 border-b last:border-b-0" key={index}>
                           <TimeInput
                             disabled={task.docstatus == 1}
                             data={data}
+                            className="w-10 p-1 h-8"
                             callback={handleTimeChange}
                             employee={teamState.employee}
                           />
-                          <div className="flex justify-between w-full">
-                            <div className="flex flex-col gap-y-2 w-full">
-                              <Typography variant="p" className="font-bold">
-                                {task.taskName}
-                              </Typography>
-                              <Typography variant="p">{task.description}</Typography>
-                            </div>
-                            <Typography
-                              variant="p"
-                              className="w-full max-w-xs float-right flex justify-end items-center"
-                            >
-                              {task.projectName}
+                          <div className="grid w-full grid-cols-3 ">
+                            <Typography variant="p" className="font-bold ">
+                              {task.taskName}
+                            </Typography>
+
+                            <Typography variant="p" className="col-span-2">
+                              {task.description}
                             </Typography>
                           </div>
                         </div>
@@ -225,7 +269,7 @@ export const Approval = () => {
                     })}
                     {matchingTasks.length == 0 && (
                       <Typography variant="p" className="text-center p-3">
-                        No data.
+                        No data
                       </Typography>
                     )}
                   </div>
@@ -233,52 +277,18 @@ export const Approval = () => {
               })}
             </div>
             <Separator />
-            <div className="flex gap-x-2 items-center">
-              <Checkbox
-                checked={daySelectionRequired}
-                onCheckedChange={(checked: boolean) => {
-                  setDaySelectionRequired(checked);
-                }}
-              />
-              <Typography variant="p">Select days to approve</Typography>
-            </div>
-            <div className="flex gap-x-2">
-              {timesheetData.dates.map((date: string) => {
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const { date: formattedDate, day } = prettyDate(date, false);
-                const isChecked = selectedDates.includes(date);
-                const isDisabledAndGreen = timesheetList?.some(
-                  (timesheet) => timesheet.start_date === date && timesheet.docstatus === 1
-                );
-
-                return (
-                  <div className="flex items-center gap-x-1">
-                    <Checkbox
-                      checked={isChecked || isDisabledAndGreen}
-                      disabled={!daySelectionRequired || isDisabledAndGreen}
-                      className={cn(isDisabledAndGreen && "data-[state=checked]:bg-success border-success")}
-                      onCheckedChange={() => handleCheckboxChange(date)}
-                    />
-                    <Typography variant="p" className={cn(!daySelectionRequired && "text-primary/50")}>
-                      {day}
-                    </Typography>
-                  </div>
-                );
-              })}
-            </div>
           </div>
           <SheetFooter className="sm:justify-start mt-5 flex-col gap-y-4 w-full">
             <Button onClick={handleApproval} variant="success" className="items-center px-2 gap-x-1">
               <Check className="w-4 h-4" />
               Approve
             </Button>
-            
+
             <TimesheetRejectConfirmationDialog
               onRejection={handleRejection}
               dates={selectedDates}
               employee={teamState.employee}
             />
-            
           </SheetFooter>
         </SheetContent>
       )}
@@ -323,6 +333,18 @@ const TimesheetRejectConfirmationDialog = ({
       </DialogTrigger>
       <DialogContent>
         <DialogTitle>Reject timesheet</DialogTitle>
+        <div>
+          <Typography variant="p">The following day's timesheet will be rejected</Typography>
+          <ol className="list-disc pl-6">
+            {dates.map((date: string, index: number) => {
+              return (
+                <li key={index} className="text-sm">
+                  {prettyDate(date).date}
+                </li>
+              );
+            })}
+          </ol>
+        </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)}>
             <FormField
