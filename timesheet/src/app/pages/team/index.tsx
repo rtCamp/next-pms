@@ -17,6 +17,7 @@ import {
   setUserGroupSearch,
   setProjectSearch,
   setStatusFilter,
+  setFilters,
 } from "@/store/team";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg, prettyDate, floatToTime, getFormatedDate, cn, calculateWeeklyHour } from "@/lib/utils";
@@ -58,6 +59,15 @@ const Team = () => {
   const [projectParam, setProjectParam] = useQueryParamsState<string[]>("project", []);
   const [userGroupParam, setUserGroupParam] = useQueryParamsState<string[]>("user-group", []);
   const [statusParam, setStatusParam] = useQueryParamsState<string[]>("status", []);
+
+  useEffect(() => {
+    const payload = {
+      project: projectParam,
+      userGroup: userGroupParam,
+      statusFilter: statusParam,
+    };
+    dispatch(setFilters(payload));
+  }, []);
 
   const {
     data: projects,
@@ -161,25 +171,6 @@ const Team = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teamState.userGroupSearch, groupError]);
-
-  useEffect(() => {
-    if (projectParam.length > 0) {
-      dispatch(setProject(projectParam));
-    }
-  }, [dispatch, projectParam]);
-
-  useEffect(() => {
-    if (statusParam.length > 0) {
-      dispatch(setStatusFilter(statusParam));
-      dispatch(setFetchAgain(true));
-    }
-  }, [dispatch, statusParam]);
-
-  useEffect(() => {
-    if (userGroupParam.length > 0) {
-      dispatch(setUsergroup(userGroupParam));
-    }
-  }, [dispatch, userGroupParam]);
 
   useEffect(() => {
     setProjectParam(teamState.project);

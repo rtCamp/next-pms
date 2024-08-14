@@ -81,7 +81,7 @@ export const ComboxBox = ({
   }, 1000);
   useEffect(() => {
     if (open) return;
-    if (isMulti) {
+    if (isMulti && selectedValues.length > 0) {
       onSelect && onSelect(selectedValues);
     }
   }, [isMulti, onSelect, open, selectedValues]);

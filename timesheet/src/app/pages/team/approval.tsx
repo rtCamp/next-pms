@@ -244,6 +244,7 @@ export const Approval = () => {
             </div>
             <div className="flex gap-x-2">
               {timesheetData.dates.map((date: string) => {
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const { date: formattedDate, day } = prettyDate(date, false);
                 const isChecked = selectedDates.includes(date);
                 const isDisabledAndGreen = timesheetList?.some(
@@ -271,13 +272,13 @@ export const Approval = () => {
               <Check className="w-4 h-4" />
               Approve
             </Button>
-            {timesheetList && selectedDates.length > 0 && (
-              <TimesheetRejectConfirmationDialog
-                onRejection={handleRejection}
-                dates={selectedDates}
-                employee={teamState.employee}
-              />
-            )}
+            
+            <TimesheetRejectConfirmationDialog
+              onRejection={handleRejection}
+              dates={selectedDates}
+              employee={teamState.employee}
+            />
+            
           </SheetFooter>
         </SheetContent>
       )}
@@ -307,10 +308,15 @@ const TimesheetRejectConfirmationDialog = ({
     onRejection(data.note);
   };
 
+  useEffect(() => {
+    // @ts-ignore
+    form.setValue("dates", dates);
+  }, [dates, form]);
+
   return (
     <Dialog>
       <DialogTrigger>
-        <Button variant="destructive" className="items-center px-2 gap-x-1" disabled>
+        <Button variant="destructive" className="items-center px-2 gap-x-1">
           <X className="w-4 h-4" />
           Reject
         </Button>

@@ -102,7 +102,7 @@ const TeamSlice = createSlice({
             state.statusFilter = action.payload;
             state.start = 0;
             state.data = initialState.data;
-
+            state.isFetchAgain = true
         },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         updateData: (state, action: PayloadAction<any>) => {
@@ -183,10 +183,18 @@ const TeamSlice = createSlice({
         },
         setProjectSearch: (state, action: PayloadAction<string>) => {
             state.projectSearch = action.payload;
+        },
+        setFilters: (state, action: PayloadAction<{ project: Array<string>; userGroup: Array<string>; statusFilter: Array<string> }>) => {
+            state.project = action.payload.project;
+            state.userGroup = action.payload.userGroup;
+            state.statusFilter = action.payload.statusFilter;
+            state.start = 0;
+            state.data = initialState.data;
+            state.isFetchAgain = true;
         }
 
     }
 });
 
-export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData, setDateRange, setApprovalDialog, setEmployee, setDialog, resetState, setTimesheetData, updateTimesheetData, setUsergroup, setUserGroupSearch, setProjectSearch, resetTimesheetDataState, setStatusFilter } = TeamSlice.actions;
+export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData, setDateRange, setApprovalDialog, setEmployee, setDialog, resetState, setTimesheetData, updateTimesheetData, setUsergroup, setUserGroupSearch, setProjectSearch, resetTimesheetDataState, setStatusFilter,setFilters } = TeamSlice.actions;
 export default TeamSlice.reducer;
