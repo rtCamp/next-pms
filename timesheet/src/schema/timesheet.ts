@@ -8,16 +8,23 @@ export const TimesheetSchema = z.object({
     description: z.string({
         required_error: "Please enter description.",
     }).min(4, "Please enter description."),
-    hours: z.preprocess((val) => {
+    hours: z.preprocess((val, ctx) => {
         if (typeof val === 'string') {
             const parsed = parseFloat(val);
             if (isNaN(parsed)) {
-                throw new Error("Please enter a valid number for hours.");
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    path: ["hours"],
+                    message: "Please enter a valid number for hours.",
+                });
+                return null;
             }
             return parsed;
         }
         return val;
-    }, z.number()
+    }, z.number({
+        invalid_type_error: "Please enter a valid number for hours.",
+    })
         .refine((val) => /^\d+(\.\d{1,2})?$/.test(val.toString()), {
             message: "Hour must be a number with at most two decimal place",
         })

@@ -121,9 +121,13 @@ export const ComboxBox = ({
                       <Checkbox checked={isActive} />
                     )}
 
-                    <div>
-                      <Typography variant="p">{item.label}</Typography>
-                      <Typography variant="small">{item.description}</Typography>
+                    <div className="flex flex-col w-full overflow-hidden">
+                      <Typography className="truncate cursor-pointer" variant="p">
+                        {item.label}
+                      </Typography>
+                      <Typography className="truncate cursor-pointer" variant="small">
+                        {item.description}
+                      </Typography>
                     </div>
                   </CommandItem>
                 );

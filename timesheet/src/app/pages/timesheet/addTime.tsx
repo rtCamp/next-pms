@@ -21,9 +21,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/app/components/ui/input";
 import { Clock3, Search, LoaderCircle, Trash2 } from "lucide-react";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
-import { getFormatedDate, parseFrappeErrorMsg } from "@/lib/utils";
+import { getFormatedDate, parseFrappeErrorMsg,expectatedHours } from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Typography } from "@/app/components/typography";
 
 export const AddTime = () => {
@@ -31,7 +31,8 @@ export const AddTime = () => {
   const { call: deleteCall } = useFrappePostCall("timesheet_enhancer.api.timesheet.delete");
   const timesheetState = useSelector((state: RootState) => state.timesheet);
   const [searchTerm, setSearchTerm] = useState(timesheetState.timesheet.task ?? "");
-
+  const [selectedDate, setSelectedDate] = useState(getFormatedDate(timesheetState.timesheet.date));
+  const userState = useSelector((state: RootState) => state.user);
   const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
   const { toast } = useToast();
@@ -65,7 +66,16 @@ export const AddTime = () => {
     {
       errorRetryCount: 1,
     }
-  );
+    );
+
+
+    const { data: perDayEmpHours, mutate: mutatePerDayHrs } = useFrappeGetCall(
+      "timesheet_enhancer.api.timesheet.get_remaining_hour_for_employee",
+      {
+        employee: userState.employee,
+        date: selectedDate,
+      }
+    );
   useEffect(() => {
     if (errorTask) {
       const error = parseFrappeErrorMsg(errorTask);
@@ -81,8 +91,10 @@ export const AddTime = () => {
     dispatch(SetAddTimeDialog(false));
   };
 
-  const handleDateChange = (date: Date) => {
+  const handleDateChange = (date: Date | undefined) => {
+    if (!date) return;
     form.setValue("date", getFormatedDate(date));
+    setSelectedDate(getFormatedDate(date));
   };
 
   const handleTaskChange = (value: string | string[]) => {
@@ -144,6 +156,13 @@ export const AddTime = () => {
   useEffect(() => {
     mutateTask();
   }, [searchTerm, mutateTask]);
+  useEffect(() => {
+    mutatePerDayHrs();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDate]);
+  const expected_Hour_of_emp = useMemo(() => {
+    return expectatedHours(timesheetState.data.working_hour,timesheetState.data.working_frequency)
+  }, []);
   return (
     <Dialog open={timesheetState.isDialogOpen} onOpenChange={handleOpen}>
       <DialogContent className="max-w-xl">
@@ -161,16 +180,39 @@ export const AddTime = () => {
                     <FormItem className="w-full">
                       <FormLabel>Time</FormLabel>
                       <FormControl>
-                        <div className="relative flex items-center">
-                          <Input
-                            placeholder="0h"
-                            className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
-                            {...field}
-                            type="text"
-                            onChange={handleTimeChange}
-                          />
-                          <Clock3 className="h-4 w-4 absolute right-0 m-3 top-0 stroke-slate-400" />
-                        </div>
+                        <>
+                          <div className="relative flex items-center">
+                            <Input
+                              placeholder="0h"
+                              className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                              {...field}
+                              type="text"
+                              onChange={handleTimeChange}
+                            />
+                            <Clock3 className="h-4 w-4 absolute right-0 m-3 top-0 stroke-slate-400" />
+                          </div>
+                          {/* Task: Remaining hours indicator */}
+                          {perDayEmpHours && (
+                            <div className="flex gap-x-4">
+                              <div className="flex gap-1 justify-center items-center">
+                                <Typography
+                                  variant="p"
+                                  className={`${
+                                    Number(perDayEmpHours?.message) < expected_Hour_of_emp
+                                      ? "text-success"
+                                      : "text-destructive"
+                                  }`}
+                                >
+                                  {`${Math.abs(expected_Hour_of_emp - Number(perDayEmpHours?.message))} hrs ${
+                                    expected_Hour_of_emp - Number(perDayEmpHours?.message) >= 0
+                                      ? "remaining"
+                                      : "extended"
+                                  }`}
+                                </Typography>
+                              </div>
+                            </div>
+                          )}
+                        </>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
