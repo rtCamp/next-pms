@@ -321,3 +321,16 @@ def get_timesheet_state(dates: list, employee: str):
     else:
         res = "Approval Pending"
     return res
+
+
+@frappe.whitelist()
+def get_remaining_hour_for_employee(employee: str, date: str):
+    """Return the working hours for the given employee on the given date."""
+    timesheet = frappe.get_value(
+        "Timesheet",
+        {"employee": employee, "start_date": getdate(date), "end_date": getdate(date)},
+        "total_hours",
+    )
+    if timesheet:
+        return timesheet
+    return 0

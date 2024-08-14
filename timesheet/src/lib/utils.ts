@@ -140,3 +140,13 @@ export function calculateWeeklyHour(hours: number, expected_hours: number, frequ
     return 1;
   }
 }
+
+export const expectatedHours = (
+  expected_hours: number,
+  frequency: WorkingFrequency
+): number => {
+  if (frequency === "Per Day") {
+    return expected_hours;
+  }
+  return expected_hours / 5;
+};

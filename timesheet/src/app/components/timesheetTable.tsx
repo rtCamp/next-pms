@@ -91,7 +91,6 @@ const TimesheetTable = ({
                           {task}
                         </Typography>
                         <TooltipContent className="max-w-72">{task}</TooltipContent>
-
                         <Typography
                           variant="small"
                           className="text-slate-500 whitespace-nowrap text-ellipsis overflow-hidden "
