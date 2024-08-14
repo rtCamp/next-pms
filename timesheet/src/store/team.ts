@@ -1,7 +1,7 @@
 import { getTodayDate, getFormatedDate } from "@/lib/utils";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { addDays } from "date-fns";
-import { DataProp as timesheetDataProps, DynamicKey } from "@/types/timesheet";
+import { DataProp as timesheetDataProps } from "@/types/timesheet";
 type DateRange = {
     start_date: string;
     end_date: string;
@@ -13,6 +13,7 @@ export interface TeamState {
     isDialogOpen: boolean;
     isAprrovalDialogOpen: boolean;
     weekDate: string;
+    employeeWeekDate: string;
     project: Array<string>;
     projectSearch: string;
     userGroup: Array<string>;
@@ -26,7 +27,7 @@ export interface TeamState {
         hours: number;
         isUpdate: boolean;
     },
-    timesheetData: timesheetDataProps & DynamicKey;
+    timesheetData: timesheetDataProps;
     start: number;
     dateRange: DateRange,
     employee: string;
@@ -71,6 +72,7 @@ export const initialState: TeamState = {
     isDialogOpen: false,
     isAprrovalDialogOpen: false,
     weekDate: getFormatedDate(addDays(getTodayDate(), -7)),
+    employeeWeekDate: getFormatedDate(getTodayDate()),
     project: [],
     userGroup: [],
     statusFilter: ["Not Submitted"],
@@ -80,11 +82,12 @@ export const initialState: TeamState = {
         start_date: "",
         end_date: ""
     },
-    // @ts-ignore
     timesheetData: {
         working_hour: 0,
         working_frequency: "Per Day",
-        data: {}
+        data: {},
+        leaves: [],
+        holidays: []
     }
 }
 
@@ -101,7 +104,7 @@ const TeamSlice = createSlice({
             state.statusFilter = action.payload;
             state.start = 0;
             state.data = initialState.data;
-            state.isFetchAgain = true;
+            state.isFetchAgain = true
         },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         updateData: (state, action: PayloadAction<any>) => {
@@ -123,6 +126,10 @@ const TeamSlice = createSlice({
             state.weekDate = action.payload;
             state.data = initialState.data;
             state.start = 0;
+            state.isFetchAgain = true;
+        },
+        setEmployeeWeekDate: (state, action: PayloadAction<string>) => { 
+            state.employeeWeekDate = action.payload;
             state.isFetchAgain = true;
         },
         setProject: (state, action: PayloadAction<Array<string>>) => {
@@ -160,14 +167,16 @@ const TeamSlice = createSlice({
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             state.timesheetData = initialState.timesheetData;
         },
-        setTimesheetData: (state, action: PayloadAction<timesheetDataProps & DynamicKey>) => {
+        setTimesheetData: (state, action: PayloadAction<timesheetDataProps>) => {
             state.timesheetData = action.payload;
         },
-        updateTimesheetData: (state, action: PayloadAction<timesheetDataProps & DynamicKey>) => {
+        updateTimesheetData: (state, action: PayloadAction<timesheetDataProps>) => {
             const data = Object.assign(state.timesheetData.data, action.payload.data);
             state.timesheetData.data = data;
             state.timesheetData.working_hour = action.payload.working_hour;
             state.timesheetData.working_frequency = action.payload.working_frequency;
+            state.timesheetData.holidays = [...state.timesheetData.holidays, ...action.payload.holidays];
+            state.timesheetData.leaves = [...state.timesheetData.leaves, ...action.payload.leaves];
         },
         setUsergroup: (state, action: PayloadAction<Array<string>>) => {
             state.userGroup = action.payload;
@@ -180,10 +189,18 @@ const TeamSlice = createSlice({
         },
         setProjectSearch: (state, action: PayloadAction<string>) => {
             state.projectSearch = action.payload;
+        },
+        setFilters: (state, action: PayloadAction<{ project: Array<string>; userGroup: Array<string>; statusFilter: Array<string> }>) => {
+            state.project = action.payload.project;
+            state.userGroup = action.payload.userGroup;
+            state.statusFilter = action.payload.statusFilter;
+            state.start = 0;
+            state.data = initialState.data;
+            state.isFetchAgain = true;
         }
 
     }
 });
 
-export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData, setDateRange, setApprovalDialog, setEmployee, setDialog, resetState, setTimesheetData, updateTimesheetData, setUsergroup, setUserGroupSearch, setProjectSearch, resetTimesheetDataState, setStatusFilter } = TeamSlice.actions;
+export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData, setDateRange, setApprovalDialog, setEmployee, setDialog, resetState, setTimesheetData, updateTimesheetData, setUsergroup, setUserGroupSearch, setProjectSearch, resetTimesheetDataState, setStatusFilter,setFilters,setEmployeeWeekDate } = TeamSlice.actions;
 export default TeamSlice.reducer;

@@ -81,7 +81,6 @@ fixtures = [
                 "in",
                 {
                     "Task-custom_is_billable",
-                    "Project Type-custom_is_billable",
                     "Timesheet-custom_approval_status",
                     "Employee-custom_working_hours",
                     "Employee-custom_work_schedule",
@@ -168,7 +167,6 @@ doc_events = {
         "before_save": "timesheet_enhancer.doc_events.timesheet.before_save",
         "before_insert": "timesheet_enhancer.doc_events.timesheet.before_insert",
     },
-    "Task": {"before_save": "timesheet_enhancer.doc_events.task.before_save"},
 }
 
 # Scheduled Tasks

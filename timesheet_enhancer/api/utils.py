@@ -130,10 +130,14 @@ def get_task_for_employee(
     search_filter = {}
     if search:
         search_filter = {
-            "name": ["like", f"%{search}%"],
-            "subject": ["like", f"%{search}%"],
-            "description": ["like", f"%{search}%"],
+            "name": ["like", f"{search}%"],
+            "subject": ["like", f"{search}%"],
         }
+        task_meta = frappe.get_meta("Task")
+        gh_issue_id = task_meta.has_field("custom_github_issue_id")
+        if gh_issue_id:
+            search_filter.update({"custom_github_issue_id": ["like", f"{search}%"]})
+
     shared_projects = frappe.get_all(
         "DocShare",
         filters={"user": user, "share_doctype": "Project"},
@@ -161,7 +165,7 @@ def get_task_for_employee(
         order_by="name desc",
     )
 
-    return project_task + tasks
+    return tasks + project_task
 
 
 def filter_employees(

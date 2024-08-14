@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { getTodayDate } from "@/lib/utils";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { DataProp, DynamicKey } from "@/types/timesheet";
+import { DataProp } from "@/types/timesheet";
 export interface TimesheetState {
     timesheet: {
         name: string;
@@ -37,10 +37,12 @@ export const initialState: TimesheetState = {
     dateRange: { start_date: "", end_date: "" },
     isFetching: false,
     isFetchAgain: false,
-    // @ts-ignore
     data: {
         working_hour: 0,
         working_frequency: "Per Day",
+        data: {},
+        leaves: [],
+        holidays: [],
     },
     isDialogOpen: false,
     isAprrovalDialogOpen: false,
@@ -76,9 +78,11 @@ const timesheetSlice = createSlice({
         setApprovalDialog: (state, action: PayloadAction<boolean>) => {
             state.isAprrovalDialogOpen = action.payload;
         },
-        AppendData: (state, action: PayloadAction<DynamicKey>) => {
-            const data = Object.assign(state.data.data, action.payload);
+        AppendData: (state, action: PayloadAction<DataProp>) => {
+            const data = Object.assign(state.data.data, action.payload.data);
             state.data.data = data;
+            state.data.holidays = [...state.data.holidays, ...action.payload.holidays];
+            state.data.leaves = [...state.data.leaves, ...action.payload.leaves];
         },
         resetState: (state) => {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
