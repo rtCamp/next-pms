@@ -1,4 +1,4 @@
-//@ts-nocheck
+// @ts-nocheck
 import { Button } from "@/app/components/ui/button";
 import { useParams } from "react-router-dom";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
@@ -38,7 +38,7 @@ import {
   setFetchAgain,
   setTimesheetData,
   updateTimesheetData,
-  setWeekDate,
+  setEmployeeWeekDate,
   resetTimesheetDataState,
   setEmployee,
 } from "@/store/team";
@@ -57,7 +57,7 @@ const EmployeeDetail = () => {
   const { toast } = useToast();
   const { data, isLoading, error, mutate } = useFrappeGetCall("timesheet_enhancer.api.timesheet.get_timesheet_data", {
     employee: id,
-    start_date: teamState.weekDate,
+    start_date: teamState.employeeWeekDate,
     max_week: 4,
   });
 
@@ -79,12 +79,12 @@ const EmployeeDetail = () => {
     // @ts-ignore
     const obj = teamState.timesheetData.data[Object.keys(teamState.timesheetData.data).pop()];
     const date = getFormatedDate(addDays(obj.start_date, -1));
-    dispatch(setWeekDate(date));
+    dispatch(setEmployeeWeekDate(date));
   };
   useEffect(() => {
     dispatch(resetTimesheetDataState());
     const date = getTodayDate();
-    dispatch(setWeekDate(date));
+    dispatch(setEmployeeWeekDate(date));
     dispatch(setEmployee(id as string));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
@@ -112,7 +112,7 @@ const EmployeeDetail = () => {
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, teamState.weekDate, error, teamState.isFetchAgain]);
+  }, [data, teamState.employeeWeekDate, error, teamState.isFetchAgain]);
   return (
     <>
       {teamState.isDialogOpen && <AddTime />}

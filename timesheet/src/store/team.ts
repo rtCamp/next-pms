@@ -13,6 +13,7 @@ export interface TeamState {
     isDialogOpen: boolean;
     isAprrovalDialogOpen: boolean;
     weekDate: string;
+    employeeWeekDate: string;
     project: Array<string>;
     projectSearch: string;
     userGroup: Array<string>;
@@ -71,6 +72,7 @@ export const initialState: TeamState = {
     isDialogOpen: false,
     isAprrovalDialogOpen: false,
     weekDate: getFormatedDate(addDays(getTodayDate(), -7)),
+    employeeWeekDate: getFormatedDate(getTodayDate()),
     project: [],
     userGroup: [],
     statusFilter: ["Not Submitted"],
@@ -124,6 +126,10 @@ const TeamSlice = createSlice({
             state.weekDate = action.payload;
             state.data = initialState.data;
             state.start = 0;
+            state.isFetchAgain = true;
+        },
+        setEmployeeWeekDate: (state, action: PayloadAction<string>) => { 
+            state.employeeWeekDate = action.payload;
             state.isFetchAgain = true;
         },
         setProject: (state, action: PayloadAction<Array<string>>) => {
@@ -196,5 +202,5 @@ const TeamSlice = createSlice({
     }
 });
 
-export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData, setDateRange, setApprovalDialog, setEmployee, setDialog, resetState, setTimesheetData, updateTimesheetData, setUsergroup, setUserGroupSearch, setProjectSearch, resetTimesheetDataState, setStatusFilter,setFilters } = TeamSlice.actions;
+export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData, setDateRange, setApprovalDialog, setEmployee, setDialog, resetState, setTimesheetData, updateTimesheetData, setUsergroup, setUserGroupSearch, setProjectSearch, resetTimesheetDataState, setStatusFilter,setFilters,setEmployeeWeekDate } = TeamSlice.actions;
 export default TeamSlice.reducer;
