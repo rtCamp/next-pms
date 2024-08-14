@@ -187,9 +187,8 @@ def update_timesheet_status(
         doc = frappe.get_doc("Timesheet", timesheet.name)
         doc.custom_approval_status = status
         doc.save()
-        doc.submit()
-        if status == "Rejected":
-            doc.cancel()
+        if status == "Approved":
+            doc.submit()
         if note:
             doc.add_comment(text=note)
 
