@@ -195,7 +195,7 @@ const LeaveRow = ({ leaves, dates, holidays }: { leaves: Array<LeaveProps>; date
     const data = leaves.find((data: LeaveProps) => {
       return date >= data.from_date && date <= data.to_date;
     });
-    const hour = data?.half_day ? 4 : 8;
+    const hour = data?.half_day && data?.half_day_date==date ? 4 : 8;
     if (data) {
       total_hours += hour;
     }
