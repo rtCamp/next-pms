@@ -1,11 +1,9 @@
 import frappe
 from frappe.utils import nowdate
 from frappe.utils.data import add_days, getdate
+from hrms.hr.utils import get_holiday_dates_for_employee
 
 from .utils import get_employee_working_hours, get_week_dates
-
-# from hrms.hr.utils import get_holiday_dates_for_employee
-
 
 now = nowdate()
 
@@ -95,11 +93,12 @@ def get_compact_view_data(
             to_date=add_days(dates[-1].get("end_date"), max_week * 7),
             employee=employee.name,
         )
-        # holidays = get_holiday_dates_for_employee(
-        #     employee.name,
-        #     start_date=dates[0].get("start_date"),
-        #     end_date=dates[-1].get("end_date"),
-        # )
+        holidays = get_holiday_dates_for_employee(
+            employee.name,
+            start_date=dates[0].get("start_date"),
+            end_date=dates[-1].get("end_date"),
+        )
+        holidays = [getdate(holiday) for holiday in holidays]
         for date_info in dates:
             for date in date_info.get("dates"):
                 hour = 0
@@ -115,6 +114,9 @@ def get_compact_view_data(
                         hour += 8
                     on_leave = True
 
+                if date in holidays:
+                    hour = 0
+                    on_leave = False
                 total_hours = next(
                     (
                         ts

@@ -23,7 +23,7 @@ export const Employee = ({ employee }: EmployeeProps) => {
   if (isLoading) {
     return <Spinner />;
   }
-  
+
   const timesheetData = data?.message.data[Object.keys(data?.message.data)[0]];
   const holidays = data?.message.holidays;
   const leaves = data?.message.leaves;
@@ -32,9 +32,7 @@ export const Employee = ({ employee }: EmployeeProps) => {
       <Table>
         <TableBody>
           {leaves.length > 0 && <LeaveRow dates={timesheetData.dates} holidays={holidays} leaves={leaves} />}
-          {Object.keys(timesheetData.tasks).length == 0 && (
-            <EmptyRow dates={timesheetData.dates} holidays={holidays} />
-          )}
+          {Object.keys(timesheetData.tasks).length == 0 && <EmptyRow dates={timesheetData.dates} holidays={holidays} />}
           {Object.keys(timesheetData.tasks).length > 0 &&
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             //   @ts-ignore
@@ -60,7 +58,12 @@ export const Employee = ({ employee }: EmployeeProps) => {
                     const isHoliday = holidays.includes(date);
                     return <Cell date={date} data={data} isHoliday={isHoliday} disabled />;
                   })}
-                  <TableCell className={ cn("max-w-24 w-full flex justify-between items-center",!taskData.is_billable && "justify-end")}>
+                  <TableCell
+                    className={cn(
+                      "max-w-24 w-full flex justify-between items-center",
+                      !taskData.is_billable && "justify-end"
+                    )}
+                  >
                     {taskData.is_billable == true && <CircleDollarSign className="stroke-success w-4 h-4" />}
                     <Typography variant="p" className="text-slate-800 font-medium">
                       {floatToTime(totalHours)}
@@ -175,13 +178,15 @@ const Cell = ({
           {isHovered && data?.hours && data?.hours > 0 && <PencilLine className="text-center" size={16} />}
           {isHovered && !data?.hours && <CirclePlus className="text-center" size={16} />}
         </TooltipTrigger>
-        {data?.description && <TooltipContent className="whitespace-pre text-left max-w-72 text-wrap">{data?.description}</TooltipContent>}
+        {data?.description && (
+          <TooltipContent className="whitespace-pre text-left max-w-72 text-wrap">{data?.description}</TooltipContent>
+        )}
       </TableCell>
     </Tooltip>
   );
 };
 
-const LeaveRow = ({ leaves, dates, holidays }: { leaves: Array<LeaveProps>; dates: string[], holidays: string[] }) => {
+const LeaveRow = ({ leaves, dates, holidays }: { leaves: Array<LeaveProps>; dates: string[]; holidays: string[] }) => {
   let total_hours = 0;
   const leaveData = dates.map((date: string) => {
     if (holidays.includes(date)) {
@@ -205,20 +210,20 @@ const LeaveRow = ({ leaves, dates, holidays }: { leaves: Array<LeaveProps>; date
   }
 
   return (
-    <TableRow>
-      <TableCell>
-        <Typography variant="p" className="text-slate-800">
+    <TableRow className="flex">
+      <TableCell className="w-full min-w-md text-left max-w-md">
+        <Typography variant="p" className="text-slate-800 w-full">
           Time Off
         </Typography>
       </TableCell>
       {leaveData.map(({ date, data, hour, isHoliday }) => (
-        <TableCell key={date} className="text-center" >
-          <Typography variant="p" className={isHoliday ? 'text-white' : 'text-warning'}>
+        <TableCell key={date} className="max-w-20 min-w-20 w-full text-center">
+          <Typography variant="p" className={isHoliday ? "text-white" : "text-warning"}>
             {data ? floatToTime(hour) : ""}
           </Typography>
         </TableCell>
       ))}
-      <TableCell>
+       <TableCell className="max-w-24 w-full items-center justify-end flex">
         <Typography variant="p" className="text-slate-800 font-medium text-right">
           {floatToTime(total_hours)}
         </Typography>
