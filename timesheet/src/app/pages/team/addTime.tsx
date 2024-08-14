@@ -223,7 +223,7 @@ export const AddTime = () => {
                       <FormControl>
                         <ComboxBox
                           label="Search Task"
-                          disabled
+                          disabled={teamState.timesheet.task.length > 0}
                           value={form.getValues("task") ? [form.getValues("task")] : []}
                           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                           //  @ts-expect-error

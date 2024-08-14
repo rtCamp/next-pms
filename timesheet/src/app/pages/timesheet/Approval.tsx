@@ -12,6 +12,7 @@ import { z } from "zod";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/app/components/ui/form";
 import { Textarea } from "@/app/components/ui/textarea";
 import { Button } from "@/app/components/ui/button";
+import { LoaderCircle } from "lucide-react";
 
 export const Approval = () => {
   const timesheetState = useSelector((state: RootState) => state.timesheet);
@@ -85,7 +86,10 @@ export const Approval = () => {
               )}
             />
             <DialogFooter className="sm:justify-start mt-6">
-              <Button>Submit For Approval</Button>
+              <Button disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting && <LoaderCircle className="animate-spin w-4 h-4" />}
+                Submit For Approval
+              </Button>
             </DialogFooter>
           </form>
         </Form>

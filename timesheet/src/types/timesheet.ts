@@ -37,6 +37,8 @@ export interface DataProp {
     working_hour: number;
     working_frequency: WorkingFrequency;
     data: DynamicKey;
+    leaves: Array<LeaveProps>;
+    holidays: string[]
 }
 export interface timesheet {
     start_date: string;
@@ -45,8 +47,6 @@ export interface timesheet {
     dates: string[];
     total_hours: number;
     tasks: TaskProps
-    leaves: Array<LeaveProps>;
-    holidays: string[]
     status: string
 }
 

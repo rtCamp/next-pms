@@ -1,6 +1,7 @@
 import frappe
 from frappe.utils import nowdate
 from frappe.utils.data import add_days, getdate
+from hrms.hr.utils import get_holiday_dates_for_employee
 
 from .utils import get_employee_working_hours, get_week_dates
 
@@ -33,6 +34,8 @@ def get_compact_view_data(
     )
     dates = []
     data = {}
+    if status_filter and isinstance(status_filter, str):
+        status_filter = json.loads(status_filter)
 
     for i in range(max_week):
         current_week = True if date == now else False
@@ -86,11 +89,16 @@ def get_compact_view_data(
         local_data["data"] = []
 
         leaves = get_leaves_for_employee(
-            from_date=dates[0].get("start_date"),
-            to_date=dates[-1].get("end_date"),
+            from_date=add_days(dates[0].get("start_date"), -max_week * 7),
+            to_date=add_days(dates[-1].get("end_date"), max_week * 7),
             employee=employee.name,
         )
-
+        holidays = get_holiday_dates_for_employee(
+            employee.name,
+            start_date=dates[0].get("start_date"),
+            end_date=dates[-1].get("end_date"),
+        )
+        holidays = [getdate(holiday) for holiday in holidays]
         for date_info in dates:
             for date in date_info.get("dates"):
                 hour = 0
@@ -106,6 +114,9 @@ def get_compact_view_data(
                         hour += 8
                     on_leave = True
 
+                if date in holidays:
+                    hour = 0
+                    on_leave = False
                 total_hours = next(
                     (
                         ts
@@ -129,12 +140,11 @@ def get_compact_view_data(
                         ),
                     }
                 )
-        if status_filter:
-            if isinstance(status_filter, str):
-                status_filter = json.loads(status_filter)
-            if local_data["status"] in status_filter:
-                data[employee.name] = local_data
-        else:
+
+        if status_filter and local_data["status"] in status_filter:
+            data[employee.name] = local_data
+
+        if not status_filter:
             data[employee.name] = local_data
 
     res["data"] = data
@@ -152,13 +162,21 @@ def get_timesheet_for_employee(employee: str, date: str):
 
 
 @frappe.whitelist()
-def update_timesheet_status(start_date: str, end_date: str, employee: str, status: str):
+def update_timesheet_status(
+    employee: str, status: str, dates: list[str] | str | None = None, note: str = ""
+):
+    import json
+
+    if isinstance(dates, str):
+        dates = json.loads(dates)
+
     timesheets = frappe.get_all(
         "Timesheet",
         {
             "employee": employee,
-            "start_date": [">=", start_date],
-            "end_date": ["<=", end_date],
+            "start_date": [">=", dates[0]],
+            "end_date": ["<=", dates[-1]],
+            "docstatus": ["=", 0],
         },
         ["name"],
     )
@@ -169,5 +187,9 @@ def update_timesheet_status(start_date: str, end_date: str, employee: str, statu
         doc = frappe.get_doc("Timesheet", timesheet.name)
         doc.custom_approval_status = status
         doc.save()
-        doc.submit()
+        if status == "Approved":
+            doc.submit()
+        if note:
+            doc.add_comment(text=note)
+
     return frappe._("Timesheet status updated successfully")

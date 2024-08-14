@@ -1,6 +1,14 @@
 import frappe
 from frappe import _, throw
-from frappe.utils import add_days, get_first_day, get_last_day, getdate, nowdate
+from frappe.utils import (
+    add_days,
+    get_first_day,
+    get_first_day_of_week,
+    get_last_day,
+    get_last_day_of_week,
+    getdate,
+    nowdate,
+)
 from hrms.hr.utils import get_holiday_dates_for_employee
 
 from timesheet_enhancer.api.utils import (
@@ -24,24 +32,31 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
     hour_detail = get_employee_working_hours(employee)
     res = {**hour_detail}
     data = {}
+    # Retrieve holidays and leaves data outside the loop
+    res["holidays"] = get_holiday_dates_for_employee(
+        employee, start_date, add_days(start_date, max_week * 7)
+    )
+    res["leaves"] = get_leaves_for_employee(
+        add_days(start_date, -max_week * 7),
+        add_days(start_date, max_week * 7),
+        employee,
+    )
+
     for i in range(max_week):
-        current_week = True if start_date == now else False
+        current_week = start_date == now
 
         week_dates = get_week_dates(start_date, current_week=current_week)
-        data[week_dates["key"]] = week_dates
+        week_key = week_dates["key"]
+
         tasks, total_hours = get_timesheet(week_dates["dates"], employee)
-        data[week_dates["key"]]["total_hours"] = total_hours
-        data[week_dates["key"]]["tasks"] = tasks
-        leaves = get_leaves_for_employee(
-            week_dates["start_date"], week_dates["end_date"], employee
-        )
-        data[week_dates["key"]]["leaves"] = leaves
-        data[week_dates["key"]]["holidays"] = get_holiday_dates_for_employee(
-            employee, week_dates["start_date"], week_dates["end_date"]
-        )
-        data[week_dates["key"]]["status"] = get_timesheet_state(
-            week_dates["dates"], employee
-        )
+        status = get_timesheet_state(week_dates["dates"], employee)
+
+        data[week_key] = {
+            **week_dates,
+            "total_hours": total_hours,
+            "tasks": tasks,
+            "status": status,
+        }
         start_date = add_days(getdate(week_dates["start_date"]), -1)
     res["data"] = data
     return res
@@ -130,14 +145,11 @@ def delete(parent: str, name: str):
         parent_doc.delete(ignore_permissions=True)
     else:
         parent_doc.save()
-    return _("Timesheet deleted successfully.")
+    return _("Time entry deleted successfully.")
 
 
 @frappe.whitelist()
-def submit_for_approval(
-    start_date: str, end_date: str, notes: str, employee: str = None
-):
-
+def submit_for_approval(start_date: str, notes: str = None, employee: str = None):
     if not employee:
         employee = get_employee_from_user()
     reporting_manager = frappe.get_value("Employee", employee, "reports_to")
@@ -145,6 +157,9 @@ def submit_for_approval(
         throw(_("Reporting Manager not found for the employee."))
     reporting_manager = frappe.get_value("Employee", reporting_manager, "employee_name")
     #  get the timesheet for whole week.
+    start_date = get_first_day_of_week(start_date)
+    end_date = get_last_day_of_week(start_date)
+
     timesheets = frappe.get_list(
         "Timesheet",
         filters={
@@ -156,11 +171,15 @@ def submit_for_approval(
     )
     if not timesheets:
         throw(_("No timesheet found for the given week."))
-    for timesheet in timesheets:
-        doc = frappe.get_doc("Timesheet", timesheet["name"])
+
+    length = len(timesheets)
+    for index, timesheet in enumerate(timesheets):
+        doc = frappe.get_doc("Timesheet", timesheet.name)
         doc.custom_approval_status = "Approval Pending"
         doc.save()
-        doc.add_comment("Comment", text=notes)
+        if index == length - 1 and notes:
+            doc.add_comment("Comment", text=notes)
+
     return _(f"Timesheet has been set for Approval to {reporting_manager}.")
 
 

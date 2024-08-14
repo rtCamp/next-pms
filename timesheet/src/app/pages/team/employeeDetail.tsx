@@ -12,6 +12,7 @@ import {
   prettyDate,
   calculateExtendedWorkingHour,
   deBounce,
+  floatToTime,
 } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useToast } from "@/app/components/ui/use-toast";
@@ -37,14 +38,14 @@ import {
   setFetchAgain,
   setTimesheetData,
   updateTimesheetData,
-  setWeekDate,
+  setEmployeeWeekDate,
   resetTimesheetDataState,
   setEmployee,
 } from "@/store/team";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { Employee } from "@/types";
-import { NewTimesheetProps, TaskDataItemProps, timesheet } from "@/types/timesheet";
+import { LeaveProps, NewTimesheetProps, TaskDataItemProps, timesheet } from "@/types/timesheet";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/app/components/ui/input";
 
@@ -55,7 +56,7 @@ const EmployeeDetail = () => {
   const { toast } = useToast();
   const { data, isLoading, error, mutate } = useFrappeGetCall("timesheet_enhancer.api.timesheet.get_timesheet_data", {
     employee: id,
-    start_date: teamState.weekDate,
+    start_date: teamState.employeeWeekDate,
     max_week: 4,
   });
 
@@ -77,12 +78,12 @@ const EmployeeDetail = () => {
     // @ts-ignore
     const obj = teamState.timesheetData.data[Object.keys(teamState.timesheetData.data).pop()];
     const date = getFormatedDate(addDays(obj.start_date, -1));
-    dispatch(setWeekDate(date));
+    dispatch(setEmployeeWeekDate(date));
   };
   useEffect(() => {
     dispatch(resetTimesheetDataState());
     const date = getTodayDate();
-    dispatch(setWeekDate(date));
+    dispatch(setEmployeeWeekDate(date));
     dispatch(setEmployee(id as string));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
@@ -110,7 +111,7 @@ const EmployeeDetail = () => {
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, teamState.weekDate, error, teamState.isFetchAgain]);
+  }, [data, teamState.employeeWeekDate, error, teamState.isFetchAgain]);
   return (
     <>
       {teamState.isDialogOpen && <AddTime />}
@@ -134,7 +135,11 @@ const EmployeeDetail = () => {
                 <Timesheet />
               </TabsContent>
               <TabsContent value="time" className="mt-0">
-                <Time />
+                <Time
+                  callback={() => {
+                    dispatch(setFetchAgain(true));
+                  }}
+                />
               </TabsContent>
             </div>
             <div className="mt-5">
@@ -171,16 +176,16 @@ const Timesheet = () => {
                 <AccordionItem value={key}>
                   <AccordionTrigger className="hover:no-underline w-full">
                     <div className="flex justify-between w-full">
-                      <Typography variant="h5" className="font-medium">
-                        {key} : {value.total_hours}h
+                      <Typography variant="h6" className="font-normal">
+                        {key}: {floatToTime(value.total_hours)}h
                       </Typography>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="pb-0">
                     <TimesheetTable
                       dates={value.dates}
-                      holidays={value.holidays}
-                      leaves={value.leaves}
+                      holidays={teamState.timesheetData.holidays}
+                      leaves={teamState.timesheetData.leaves}
                       tasks={value.tasks}
                       onCellClick={onCellClick}
                       working_frequency={teamState.timesheetData.working_frequency}
@@ -196,19 +201,18 @@ const Timesheet = () => {
   );
 };
 
-const Time = () => {
+export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?: () => void }) => {
   const teamState = useSelector((state: RootState) => state.team);
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
   const { toast } = useToast();
-  const dispatch = useDispatch();
-  const updateTime = (data: NewTimesheetProps) => {
-    call(data)
+  const updateTime = (value: NewTimesheetProps) => {
+    call(value)
       .then((res) => {
         toast({
           variant: "success",
           description: res.message,
         });
-        dispatch(setFetchAgain(true));
+        callback && callback();
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
@@ -218,6 +222,7 @@ const Time = () => {
         });
       });
   };
+
   return (
     <div>
       {teamState.timesheetData.data &&
@@ -226,12 +231,12 @@ const Time = () => {
         Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet]) => {
           return (
             <>
-              <Accordion type="multiple" key={key}>
+              <Accordion type="multiple" key={key} defaultValue={isOpen ? [key] : []}>
                 <AccordionItem value={key}>
                   <AccordionTrigger className="hover:no-underline w-full">
                     <div className="flex justify-between w-full">
-                      <Typography variant="h5" className="font-medium">
-                        {key} : {value.total_hours}h
+                      <Typography variant="h6" className="font-normal">
+                        {key}: {floatToTime(value.total_hours)}h
                       </Typography>
                     </div>
                   </AccordionTrigger>
@@ -250,29 +255,48 @@ const Time = () => {
                               projectName: task.project_name,
                             }))
                       );
-                      const totalHours = matchingTasks.reduce((sum, task) => sum + task.hours, 0);
+                      const isHoliday = teamState.timesheetData.holidays.includes(date);
+                      let totalHours = matchingTasks.reduce((sum, task) => sum + task.hours, 0);
+                      const leave = teamState.timesheetData.leaves.find((data: LeaveProps) => {
+                        return date >= data.from_date && date <= data.to_date;
+                      });
+                      const isHalfDayLeave = leave?.half_day && leave?.half_day_date == date ? true : false;
+                      if (leave && !isHoliday) {
+                        if (isHalfDayLeave) {
+                          totalHours += 4;
+                        } else {
+                          totalHours += 8;
+                        }
+                      }
                       const isExtended = calculateExtendedWorkingHour(
                         totalHours,
                         teamState.timesheetData.working_hour,
                         teamState.timesheetData.working_frequency
                       );
                       return (
-                        <div key={index} className="flex flex-col ">
-                          <div className="bg-gray-100 p-2 py-3 border-b flex gap-x-4">
+                        <div key={index} className="flex flex-col">
+                          <div className="bg-gray-100 p-2 py-3 border-b flex items-center gap-x-2">
                             <Typography
                               variant="p"
                               className={cn(
-                                "border px-1 rounded",
-                                isExtended == 0 && "border-destructive",
-                                isExtended && "border-success",
-                                isExtended == 2 && "border-warning"
+                                isExtended == 0 && "text-destructive",
+                                isExtended && "text-success",
+                                isExtended == 2 && "text-warning"
                               )}
                             >
-                              {totalHours}h
+                              {floatToTime(totalHours)}h
                             </Typography>
-                            <Typography variant="p">
-                              {day.toUpperCase()} . {formattedDate}
-                            </Typography>
+                            <Typography variant="p">{formattedDate}</Typography>
+                            {isHoliday && (
+                              <Typography variant="p" className="text-gray-600">
+                                (Holiday)
+                              </Typography>
+                            )}
+                            {leave && !isHoliday && (
+                              <Typography variant="p" className="text-gray-600">
+                                ({isHalfDayLeave ? "Half day leave" : "Full Day Leave"})
+                              </Typography>
+                            )}
                           </div>
                           {matchingTasks?.map((task: TaskDataItemProps, index: number) => {
                             const data = {
@@ -285,20 +309,21 @@ const Time = () => {
                               isUpdate: task.hours > 0 ? true : false,
                             };
                             return (
-                              <div className="flex gap-x-4 items-center px-4 py-2 border-b last:border-b-0" key={index}>
-                                <TimeInput data={data} callback={updateTime} employee={teamState.employee} />
-                                <div className="flex justify-between w-full">
-                                  <div className="flex flex-col gap-y-2 w-full">
-                                    <Typography variant="p" className="font-bold">
-                                      {task.taskName}
-                                    </Typography>
-                                    <Typography variant="p">{task.description}</Typography>
-                                  </div>
-                                  <Typography
-                                    variant="p"
-                                    className="w-full max-w-xs float-right flex justify-end items-center"
-                                  >
-                                    {task.projectName}
+                              <div className="flex gap-x-4 items-center p-2 border-b last:border-b-0" key={index}>
+                                <TimeInput
+                                  disabled={task.docstatus == 1}
+                                  data={data}
+                                  callback={updateTime}
+                                  employee={teamState.employee}
+                                  className="w-12 p-1 h-8"
+                                />
+                                <div className="grid w-full grid-cols-3">
+                                  <Typography variant="p" className="font-bold ">
+                                    {task.taskName}
+                                  </Typography>
+
+                                  <Typography variant="p" className=" col-span-2">
+                                    {task.description}
                                   </Typography>
                                 </div>
                               </div>
@@ -395,13 +420,17 @@ const EmployeeCombo = () => {
   );
 };
 
-const TimeInput = ({
+export const TimeInput = ({
   data,
   employee,
+  disabled = false,
+  className,
   callback,
 }: {
   data: NewTimesheetProps;
   employee: string;
+  className?: string;
+  disabled?: boolean;
   callback: (data: NewTimesheetProps) => void;
 }) => {
   const [hour, setHour] = useState(data.hours);
@@ -419,6 +448,6 @@ const TimeInput = ({
     };
     callback(value);
   }, 1000);
-  return <Input value={hour} className="w-20" onChange={handleHourChange} />;
+  return <Input value={hour} className={cn("w-20", className)} onChange={handleHourChange} disabled={disabled} />;
 };
 export default EmployeeDetail;

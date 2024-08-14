@@ -5,6 +5,9 @@ export const TimesheetSchema = z.object({
         required_error: "Please select a task.",
     }).trim().min(1, { message: 'Please select a task.' }),
     name: z.string({}).optional(),
+    description: z.string({
+        required_error: "Please enter description.",
+    }).min(4, "Please enter description."),
     hours: z.preprocess((val) => {
         if (typeof val === 'string') {
             const parsed = parseFloat(val);
@@ -15,28 +18,26 @@ export const TimesheetSchema = z.object({
         }
         return val;
     }, z.number()
-        .refine((val) => /^\d+(\.\d)?$/.test(val.toString()), {
-            message: "Hour must be a number with at most one decimal place",
+        .refine((val) => /^\d+(\.\d{1,2})?$/.test(val.toString()), {
+            message: "Hour must be a number with at most two decimal place",
         })
     ),
     date: z.string({
         required_error: "Please enter date.",
     }),
-    description: z.string({
-        required_error: "Please enter description.",
-    }).min(4, "Please enter description."),
+
     parent: z.string({}).optional(),
     is_update: z.boolean({}),
     employee: z.string({}),
 }).superRefine((v, ctx) => {
-    if (v.is_update == false && v.hours == 0) {
+    if (v.hours == 0) {
         ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ["hours"],
             message: "Hour should be greater than 0",
         });
     }
-});
+})
 
 
 export const TimesheetApprovalSchema = z.object({
@@ -46,9 +47,20 @@ export const TimesheetApprovalSchema = z.object({
     end_date: z.string({
         required_error: "Please select a end date.",
     }).min(1, { message: 'Please select a end date.' }),
-    notes: z.string({
-        required_error: "Please enter note.",
-    }).optional(),
+    notes: z.string({}).optional(),
+    employee: z.string({
+        required_error: "Please select a employee.",
+    }),
+});
+
+
+export const TimesheetRejectionSchema = z.object({
+    dates: z.array(z.string()).nonempty({
+        message: "Please select a date.",
+    }),
+    note: z.string({
+        required_error: "Please enter notes.",
+    }).min(4, "Please enter notes."),
     employee: z.string({
         required_error: "Please select a employee.",
     }),
