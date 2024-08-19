@@ -121,14 +121,14 @@ const Home = () => {
             <Button variant="outline" className="p-1 h-fit" onClick={handleprevWeek}>
               <ChevronLeft className="w-4 h-4" />
             </Button>
-            <Typography className="w-full text-center" variant="h6">
+            <Typography className="w-full text-center  max-sm:text-sm  max-md:text-[2vw]" variant="h6">
               {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
               {/* @ts-ignore */}
               {homeState.data.dates.length > 0 && homeState.data.dates[0].key}
             </Typography>
           </div>
           <div className="grow flex items-center w-full">
-            <Typography className="w-full text-center" variant="h6">
+            <Typography className="w-full text-center  max-sm:text-sm max-md:text-[2vw]" variant="h6">
               {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
               {/* @ts-ignore */}
               {homeState.data.dates.length > 0 && homeState.data.dates[1].key}

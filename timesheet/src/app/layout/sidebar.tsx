@@ -80,10 +80,10 @@ const Sidebar = () => {
         )}
       >
         <div className={cn("flex gap-x-2 items-center", !user.isSidebarCollapsed && "pl-3")} id="app-logo">
-          <img src={decodeURIComponent(user.appLogo)} alt="app-logo" className="w-8 h-8" />
+          <img src={decodeURIComponent(user.appLogo)} alt="app-logo" className="w-8 h-8 max-xl:w-7 max-xl:h-7 transition-all duration-300 ease-in-out max-lg:w-7 max-lg:h-7 max-md:w-7 max-md:h-7 object-cover" />
           <Typography
             variant="h2"
-            className={cn("transition-all duration-300 ease-in-out", user.isSidebarCollapsed && "hidden")}
+            className={cn("transition-all duration-300 ease-in-out max-sm:hidden text-[1.75vw]", user.isSidebarCollapsed && "hidden")}
           >
             Timesheet
           </Typography>
@@ -100,7 +100,7 @@ const Sidebar = () => {
                 {({ isActive }: { isActive: boolean }) => (
                   <div
                     className={cn(
-                      "flex w-full pl-2 rounded-lg items-center px-3 py-2 hover:bg-slate-200 text-primary gap-x-2",
+                      "flex w-full pl-2 rounded-lg items-center px-3 py-2 hover:bg-slate-200 text-primary gap-x-2 overflow-hidden",
                       isActive && "bg-primary shadow-md hover:bg-slate-700 "
                     )}
                   >
@@ -153,7 +153,7 @@ const Navigation = () => {
             <AvatarImage src={decodeURIComponent(user.image)} />
             <AvatarFallback>{user.userName[0]}</AvatarFallback>
           </Avatar>
-          <Typography variant="p" className={cn("transition-all duration-800", user.isSidebarCollapsed && "hidden")}>
+          <Typography variant="p" className={cn("transition-all duration-800 max-md:hidden", user.isSidebarCollapsed && "hidden")}>
             {user.userName}
           </Typography>
         </PopoverTrigger>

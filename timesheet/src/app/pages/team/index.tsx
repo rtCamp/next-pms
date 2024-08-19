@@ -298,7 +298,7 @@ const Team = () => {
           </Button>
         </div>
       </div>
-      <div className="overflow-y-scroll mb-2" style={{ height: "calc(100vh - 8rem)" }}>
+      <div className="overflow-y-scroll mb-2 " style={{ height: "calc(100vh - 8rem)" }}>
         <Table>
           <TableHeader>
             <TableRow className="flex items-center w-full">
@@ -311,7 +311,7 @@ const Team = () => {
                       <Typography variant="p" className="text-slate-600">
                         {day}
                       </Typography>
-                      <Typography variant="small" className="text-slate-500">
+                      <Typography variant="small" className="text-slate-500 max-lg:text-[0.65rem]">
                         {dateStr}
                       </Typography>
                     </TableHead>
@@ -335,9 +335,9 @@ const Team = () => {
                     <AccordionItem value={key} className="border-b-0">
                       <AccordionTrigger className="hover:no-underline py-0">
                         <span className="w-full flex ">
-                          <TableCell className="w-full max-w-md overflow-hidden">
+                          <TableCell className="w-full min-w-24 max-w-md overflow-hidden">
                             <span
-                              className="flex gap-x-2 items-center font-normal hover:underline w-full"
+                              className="flex  gap-x-2 items-center font-normal hover:underline w-full"
                               onClick={() => {
                                 navigate(`${TEAM}${EMPLOYEE}/${item.name}`);
                               }}

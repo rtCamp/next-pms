@@ -33,7 +33,7 @@ const TimesheetTable = ({
 }: TimesheetTableProps) => {
   return (
     <GenWrapper>
-      <Table className={`table-fixed`}>
+      <Table className={``}>
         {hasHeading && (
           <TableHeader>
             <TableRow>
@@ -86,7 +86,7 @@ const TimesheetTable = ({
                 <TableRow key={task} className="border-b border-slate-200">
                   <Tooltip delayDuration={0}>
                     <TooltipTrigger asChild>
-                      <TableCell className="cursor-pointer">
+                      <TableCell className="cursor-pointer max-w-sm">
                         <Typography variant="p" className="text-slate-800 truncate overflow-hidden ">
                           {task}
                         </Typography>
@@ -373,7 +373,7 @@ const EmptyRow = ({
 }) => {
   return (
     <TableRow>
-      <TableCell>
+      <TableCell className="min-w-[24rem]">
         <Typography variant="p" className="text-destructive">
           Add Task
         </Typography>

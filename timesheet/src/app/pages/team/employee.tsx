@@ -40,11 +40,11 @@ export const Employee = ({ employee }: EmployeeProps) => {
               let totalHours = 0;
               return (
                 <TableRow key={task} className="border-b border-slate-200 flex w-full">
-                  <TableCell className="max-w-md w-full">
-                    <Typography variant="p" className="text-slate-800">
+                  <TableCell className="w-full min-w-24 max-w-md overflow-hidden">
+                    <Typography variant="p" className="text-slate-800  truncate w-full">
                       {task}
                     </Typography>
-                    <Typography variant="small" className="text-slate-500">
+                    <Typography variant="small" className="text-slate-500 truncate">
                       {taskData.project_name}
                     </Typography>
                   </TableCell>
@@ -60,7 +60,7 @@ export const Employee = ({ employee }: EmployeeProps) => {
                   })}
                   <TableCell
                     className={cn(
-                      "max-w-24 w-full flex justify-between items-center",
+                      "max-w-24 w-full  flex justify-between items-center",
                       !taskData.is_billable && "justify-end"
                     )}
                   >
@@ -69,6 +69,8 @@ export const Employee = ({ employee }: EmployeeProps) => {
                       {floatToTime(totalHours)}
                     </Typography>
                   </TableCell>
+                  {/* added empty TableCell to make it even when screen get's smaller */}
+                  <TableCell className={cn("flex max-w-20 w-full justify-center items-center")}></TableCell>
                 </TableRow>
               );
             })}
@@ -164,7 +166,7 @@ const Cell = ({
         onClick={handleClick}
         onMouseLeave={onMouseLeave}
         className={cn(
-          "max-w-20 w-full text-center",
+          "flex max-w-20 w-full justify-center items-center",
           isDisabled && "cursor-default",
           isHovered && "bg-slate-100 text-center cursor-pointer"
         )}
@@ -195,7 +197,7 @@ const LeaveRow = ({ leaves, dates, holidays }: { leaves: Array<LeaveProps>; date
     const data = leaves.find((data: LeaveProps) => {
       return date >= data.from_date && date <= data.to_date;
     });
-    const hour = data?.half_day && data?.half_day_date==date ? 4 : 8;
+    const hour = data?.half_day && data?.half_day_date == date ? 4 : 8;
     if (data) {
       total_hours += hour;
     }
@@ -223,7 +225,7 @@ const LeaveRow = ({ leaves, dates, holidays }: { leaves: Array<LeaveProps>; date
           </Typography>
         </TableCell>
       ))}
-       <TableCell className="max-w-24 w-full items-center justify-end flex">
+      <TableCell className="max-w-24 w-full items-center justify-end flex">
         <Typography variant="p" className="text-slate-800 font-medium text-right">
           {floatToTime(total_hours)}
         </Typography>
