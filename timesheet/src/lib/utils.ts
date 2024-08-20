@@ -2,6 +2,7 @@ import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { Error } from "frappe-js-sdk/lib/frappe_app/types"
 import { WorkingFrequency } from "@/types"
+import { TScreenSize } from "@/store/app"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -150,3 +151,19 @@ export const expectatedHours = (
   }
   return expected_hours / 5;
 };
+
+export const checkScreenSize =():TScreenSize=>{
+  const width = window.innerWidth;
+
+    if (width < 640) {
+        return 'sm';
+    } else if (width >= 640 && width < 768) {
+        return 'md';
+    } else if (width >= 768 && width < 1024) {
+        return 'lg';
+    } else if (width >= 1024 && width < 1280) {
+        return 'xl';
+    } else {
+        return '2xl';
+    }
+}

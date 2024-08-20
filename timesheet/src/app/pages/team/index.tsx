@@ -245,7 +245,7 @@ const Team = () => {
     <>
       <div className="flex gap-x-2 items-center justify-between mb-3">
         {teamState.isAprrovalDialogOpen && <Approval />}
-        <div id="filters" className="flex gap-x-2">
+        <div id="filters" className="flex gap-x-2 max-md:w-full max-md:w- max-md:overflow-scroll">
           <ComboxBox
             value={teamState.statusFilter}
             label="Approval"
