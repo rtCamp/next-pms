@@ -21,7 +21,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/app/components/ui/input";
 import { Clock3, Search, LoaderCircle, Trash2 } from "lucide-react";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
-import { getFormatedDate, parseFrappeErrorMsg,expectatedHours } from "@/lib/utils";
+import { getFormatedDate, parseFrappeErrorMsg, expectatedHours, floatToTime } from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
 import { useEffect, useMemo, useState } from "react";
 import { Typography } from "@/app/components/typography";
@@ -42,7 +42,9 @@ export const AddTime = () => {
     defaultValues: {
       name: timesheetState.timesheet.name,
       task: timesheetState.timesheet.task,
-      hours: timesheetState.timesheet.hours,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      hours: floatToTime(timesheetState.timesheet.hours),
       description: timesheetState.timesheet.description,
       date: timesheetState.timesheet.date,
       parent: timesheetState.timesheet.parent,
@@ -66,16 +68,15 @@ export const AddTime = () => {
     {
       errorRetryCount: 1,
     }
-    );
+  );
 
-
-    const { data: perDayEmpHours, mutate: mutatePerDayHrs } = useFrappeGetCall(
-      "timesheet_enhancer.api.timesheet.get_remaining_hour_for_employee",
-      {
-        employee: userState.employee,
-        date: selectedDate,
-      }
-    );
+  const { data: perDayEmpHours, mutate: mutatePerDayHrs } = useFrappeGetCall(
+    "timesheet_enhancer.api.timesheet.get_remaining_hour_for_employee",
+    {
+      employee: userState.employee,
+      date: selectedDate,
+    }
+  );
   useEffect(() => {
     if (errorTask) {
       const error = parseFrappeErrorMsg(errorTask);
@@ -158,10 +159,10 @@ export const AddTime = () => {
   }, [searchTerm, mutateTask]);
   useEffect(() => {
     mutatePerDayHrs();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
   const expected_Hour_of_emp = useMemo(() => {
-    return expectatedHours(timesheetState.data.working_hour,timesheetState.data.working_frequency)
+    return expectatedHours(timesheetState.data.working_hour, timesheetState.data.working_frequency);
   }, []);
   return (
     <Dialog open={timesheetState.isDialogOpen} onOpenChange={handleOpen}>
@@ -183,7 +184,7 @@ export const AddTime = () => {
                         <>
                           <div className="relative flex items-center">
                             <Input
-                              placeholder="0h"
+                              placeholder="00:00"
                               className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
                               {...field}
                               type="text"
@@ -203,7 +204,7 @@ export const AddTime = () => {
                                       : "text-destructive"
                                   }`}
                                 >
-                                  {`${Math.abs(expected_Hour_of_emp - Number(perDayEmpHours?.message))} hrs ${
+                                  {`${floatToTime(Math.abs(expected_Hour_of_emp - Number(perDayEmpHours?.message)))} hrs ${
                                     expected_Hour_of_emp - Number(perDayEmpHours?.message) >= 0
                                       ? "remaining"
                                       : "extended"

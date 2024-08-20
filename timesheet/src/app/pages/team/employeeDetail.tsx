@@ -48,6 +48,7 @@ import { Employee } from "@/types";
 import { LeaveProps, NewTimesheetProps, TaskDataItemProps, timesheet } from "@/types/timesheet";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/app/components/ui/input";
+import { timeFormatRegex } from "@/schema/timesheet";
 
 const EmployeeDetail = () => {
   const { id } = useParams();
@@ -433,21 +434,29 @@ export const TimeInput = ({
   disabled?: boolean;
   callback: (data: NewTimesheetProps) => void;
 }) => {
-  const [hour, setHour] = useState(data.hours);
+  const [hour, setHour] = useState(floatToTime(data.hours));
   const handleHourChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // @ts-ignore
-    setHour(e.target.value);
-    timeUpdate(parseFloat(e.target.value));
+    let time = 0;
+    const hour = e.target.value;
+    setHour(hour);
+
+    if (timeFormatRegex.test(hour)) {
+      const [hours, minutes] = hour.split(":").map(Number);
+      time = hours + minutes / 60;
+    } else {
+      time = parseFloat(hour);
+    }
+    if (time == 0 || Number.isNaN(time)) return;
+    timeUpdate(time);
   };
   const timeUpdate = deBounce((hour: number) => {
-    if (hour == 0 || Number.isNaN(hour)) return;
     const value = {
       ...data,
       hours: hour,
       employee: employee,
     };
     callback(value);
-  }, 1000);
+  }, 1500);
   return <Input value={hour} className={cn("w-20", className)} onChange={handleHourChange} disabled={disabled} />;
 };
 export default EmployeeDetail;

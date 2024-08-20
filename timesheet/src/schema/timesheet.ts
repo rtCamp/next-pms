@@ -1,5 +1,28 @@
 import { z } from "zod";
 
+export const timeFormatRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+
+const hourSchema = z
+    .string()
+    .refine((value) => {
+        // Check if the value matches either the time format or the floating number format
+        return timeFormatRegex.test(value) || !isNaN(parseFloat(value));
+    }, {
+        message: "Invalid hour format. Please enter time as HH:MM or a number.",
+    })
+    .transform((value) => {
+        if (typeof value === "string" && timeFormatRegex.test(value)) {
+            // Convert time format to floating number
+            const [hours, minutes] = value.split(":").map(Number);
+            return hours + minutes / 60;
+        }
+        else if (typeof value === "string") {
+            return parseFloat(value);
+        } else {
+            return value;
+        }
+    })
+
 export const TimesheetSchema = z.object({
     task: z.string({
         required_error: "Please select a task.",
@@ -8,27 +31,7 @@ export const TimesheetSchema = z.object({
     description: z.string({
         required_error: "Please enter description.",
     }).min(4, "Please enter description."),
-    hours: z.preprocess((val, ctx) => {
-        if (typeof val === 'string') {
-            const parsed = parseFloat(val);
-            if (isNaN(parsed)) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    path: ["hours"],
-                    message: "Please enter a valid number for hours.",
-                });
-                return null;
-            }
-            return parsed;
-        }
-        return val;
-    }, z.number({
-        invalid_type_error: "Please enter a valid number for hours.",
-    })
-        .refine((val) => /^\d+(\.\d{1,2})?$/.test(val.toString()), {
-            message: "Hour must be a number with at most two decimal place",
-        })
-    ),
+    hours: hourSchema,
     date: z.string({
         required_error: "Please enter date.",
     }),
@@ -42,6 +45,13 @@ export const TimesheetSchema = z.object({
             code: z.ZodIssueCode.custom,
             path: ["hours"],
             message: "Hour should be greater than 0",
+        });
+    }
+    if (v.hours > 24) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["hours"],
+            message: "Hour should be less than 24",
         });
     }
 })

@@ -39,8 +39,10 @@ export function parseFrappeErrorMsg(error: Error) {
         const e = JSON.parse(jsonObjectStr);
         return removeHtmlString(e.message);
       }
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
     } else if (error._error_message) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       return removeHtmlString(error._error_message);
     }
@@ -81,14 +83,14 @@ export function getDateFromDateAndTime(dateTimeString: string) {
   return parts[0];
 }
 
-export function floatToTime(float: number) {
+export function floatToTime(float: number,hourPadding:number = 1,minutePadding:number = 2) {
   // Extract hours and minutes from the float
   const hours = Math.floor(float);
   const minutes = Math.round((float % 1) * 60);
 
   // Format hours and minutes to always be two digits
-  const formattedHours = String(hours).padStart(1, '0');
-  const formattedMinutes = String(minutes).padStart(2, '0');
+  const formattedHours = String(hours).padStart(hourPadding, '0');
+  const formattedMinutes = String(minutes).padStart(minutePadding, '0');
 
   return `${formattedHours}:${formattedMinutes}`;
 }
