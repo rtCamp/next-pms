@@ -15,6 +15,8 @@ def validate(doc, method=None):
     validate_is_time_billable(doc)
     validate_time(doc)
     update_note(doc)
+    if doc.is_new():
+        validate_existing_timesheet(doc)
 
 
 def update_note(doc):
@@ -57,7 +59,7 @@ def before_save(doc, method=None):
         )
 
 
-def before_insert(doc, method=None):
+def validate_existing_timesheet(doc, method=None):
     import frappe
 
     exists = frappe.db.exists(
@@ -102,7 +104,11 @@ def validate_dates(doc):
     if date_gap > 0 and not has_access:
         throw(_("You can not save future time entry."))
 
-    if doc.start_date < today_date and frappe.session.user != "Administrator":
+    if (
+        doc.start_date < today_date
+        and frappe.session.user != "Administrator"
+        and date_gap != -1
+    ):
         employee = get_employee_from_user()
         holidays = get_holiday_dates_for_employee(
             doc.employee, doc.start_date, today_date
