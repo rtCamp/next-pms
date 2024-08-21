@@ -8,6 +8,7 @@ import {
   deBounce,
   getFormatedDate,
   calculateExtendedWorkingHour,
+  preProcessLink,
 } from "@/lib/utils";
 import { TEAM, EMPLOYEE } from "@/lib/constant";
 import { RootState } from "@/store";
@@ -25,8 +26,8 @@ import { Button } from "@/app/components/ui/button";
 import { Typography } from "@/app/components/typography";
 import { dataItem } from "@/types/team";
 import { useQueryParamsState } from "@/lib/queryParam";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
 import { useNavigate } from "react-router-dom";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
 
 const Home = () => {
   const { toast } = useToast();
@@ -195,27 +196,27 @@ const Home = () => {
                     );
 
                     return (
-                      <Tooltip key={`${data.hour}-id-${Math.random()}`} delayDuration={0}>
-                        <TooltipTrigger asChild>
-                          <TableCell
-                            className={cn(
-                              "text-xs hover:cursor-pointer bg-transparent",
-                              expectedTime == 2 && "bg-warning/40",
-                              expectedTime == 1 && "bg-success/20",
-                              expectedTime == 0 && data.hour != 0 && "bg-destructive/10",
-                              data.is_leave && "bg-warning/20",
-                              isToday(data.date) && "bg-slate-50",
-                              data.hour == 0 && "text-center"
-                            )}
-                            key={`${key}-${index}`}
-                          >
-                            {data.hour > 0 ? floatToTime(data.hour) : "-"}
-                            {data.note && (
-                              <TooltipContent className="text-left whitespace-pre text-wrap max-w-72 max-h-52 overflow-auto">{data.note}</TooltipContent>
-                            )}
-                          </TableCell>
-                        </TooltipTrigger>
-                      </Tooltip>
+                      <HoverCard key={`${data.hour}-id-${Math.random()}`} openDelay={0}>
+                        <TableCell
+                          className={cn(
+                            "text-xs hover:cursor-pointer bg-transparent",
+                            expectedTime == 2 && "bg-warning/40",
+                            expectedTime == 1 && "bg-success/20",
+                            expectedTime == 0 && data.hour != 0 && "bg-destructive/10",
+                            data.is_leave && "bg-warning/20",
+                            isToday(data.date) && "bg-slate-50",
+                            data.hour == 0 && "text-center"
+                          )}
+                          key={`${key}-${index}`}
+                        >
+                          <HoverCardTrigger>{data.hour > 0 ? floatToTime(data.hour) : "-"}</HoverCardTrigger>
+                          {data.note && (
+                            <HoverCardContent className="text-sm text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto">
+                              <p dangerouslySetInnerHTML={{ __html: preProcessLink(data.note) }}></p>
+                            </HoverCardContent>
+                          )}
+                        </TableCell>
+                      </HoverCard>
                     );
                   })}
                 </TableRow>

@@ -4,6 +4,7 @@ import { RootState } from "@/store";
 import { useSelector, useDispatch } from "react-redux";
 import { setDateRange, setFetchAgain } from "@/store/team";
 import { Button } from "@/app/components/ui/button";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
 import {
   calculateExtendedWorkingHour,
   cn,
@@ -11,6 +12,7 @@ import {
   parseFrappeErrorMsg,
   prettyDate,
   floatToTime,
+  truncateText,
   preProcessLink,
 } from "@/lib/utils";
 import { useEffect, useState } from "react";
@@ -32,13 +34,17 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
 
+type Holiday = {
+  holiday_date: string;
+  description: string;
+};
 export const Approval = () => {
   const { toast } = useToast();
   const teamState = useSelector((state: RootState) => state.team);
   const [timesheetData, setTimesheetData] = useState<timesheet>();
   const [working_hour, setWorkingHour] = useState<number>(0);
   const [working_frequency, setWorkingFrequency] = useState<WorkingFrequency>("Per Day");
-  const [holidays, setHoliday] = useState<string[]>([]);
+  const [holidays, setHoliday] = useState<Array<Holiday>>([]);
   const [leaves, setLeave] = useState<LeaveProps[]>([]);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const dispatch = useDispatch();
@@ -74,6 +80,7 @@ export const Approval = () => {
     employee: teamState.employee,
     start_date: teamState.weekDate,
     max_week: 1,
+    holiday_with_description: true,
   });
   const handleOpen = () => {
     const data = { start_date: "", end_date: "" };
@@ -154,7 +161,8 @@ export const Approval = () => {
         const isLeaveDate = leaves.some((leave: LeaveProps) => {
           return date >= leave.from_date && date <= leave.to_date && leave.half_day == false;
         });
-        return !validDates.includes(date) && !holidays.includes(date) && !isLeaveDate;
+        const isHoliday = holidays.some((holiday) => holiday.holiday_date === date);
+        return !validDates.includes(date) && !isHoliday && !isLeaveDate;
       });
       setSelectedDates(filteredDates ?? []);
     }
@@ -167,7 +175,8 @@ export const Approval = () => {
         <SheetContent className="sm:max-w-4xl overflow-auto">
           <SheetHeader>
             <SheetTitle>
-              Week of {prettyDate(teamState.dateRange.start_date).date} -{prettyDate(teamState.dateRange.end_date).date}
+              Week of {prettyDate(teamState.dateRange.start_date).date} -{" "}
+              {prettyDate(teamState.dateRange.end_date).date}
             </SheetTitle>
           </SheetHeader>
           <div className="flex flex-col gap-y-4 mt-6">
@@ -185,7 +194,8 @@ export const Approval = () => {
                 );
                 let totalHours = matchingTasks.reduce((sum, task) => sum + task.hours, 0);
                 const isChecked = selectedDates.includes(date);
-                const isHoliday = holidays.includes(date);
+                const holiday = holidays.find((holiday) => holiday.holiday_date === date);
+                const isHoliday = !!holiday;
                 const submittedTime = timesheetList?.some(
                   (timesheet) => timesheet.start_date === date && timesheet.docstatus === 1
                 );
@@ -228,7 +238,7 @@ export const Approval = () => {
                       <Typography variant="p">{prettyDate(date).date}</Typography>
                       {isHoliday && (
                         <Typography variant="p" className="text-gray-600">
-                          (Holiday)
+                          {holiday.description}
                         </Typography>
                       )}
                       {leave && !isHoliday && (
@@ -262,7 +272,14 @@ export const Approval = () => {
                               {task.taskName}
                             </Typography>
 
-                            <p className="text-sm font-normal col-span-2" dangerouslySetInnerHTML={{ __html: description }}></p>
+                            <HoverCard openDelay={50} closeDelay={50}>
+                              <HoverCardTrigger className="text-sm font-normal col-span-2 hover:cursor-pointer">
+                                <p dangerouslySetInnerHTML={{ __html: truncateText(description, 150) }}></p>
+                              </HoverCardTrigger>
+                              <HoverCardContent className="text-sm font-normal overflow-auto max-h-72 max-w-lg w-full">
+                                <p dangerouslySetInnerHTML={{ __html: description }}></p>
+                              </HoverCardContent>
+                            </HoverCard>
                           </div>
                         </div>
                       );

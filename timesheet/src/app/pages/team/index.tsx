@@ -4,6 +4,7 @@ import { ComboxBox } from "@/app/components/comboBox";
 import { Badge } from "@/app/components/ui/badge";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useSelector, useDispatch } from "react-redux";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
 import { RootState } from "@/store";
 import {
   setData,
@@ -20,7 +21,7 @@ import {
   setFilters,
 } from "@/store/team";
 import { useToast } from "@/app/components/ui/use-toast";
-import { parseFrappeErrorMsg, prettyDate, floatToTime, getFormatedDate, cn, calculateWeeklyHour } from "@/lib/utils";
+import { parseFrappeErrorMsg, prettyDate, floatToTime, getFormatedDate, cn, calculateWeeklyHour, preProcessLink } from "@/lib/utils";
 import { useEffect, useCallback } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Table, TableHead, TableHeader, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
@@ -357,14 +358,23 @@ const Team = () => {
                           {item.data.map((data: dataItem, key) => {
                             total += data.hour;
                             return (
-                              <TableCell key={key} className={cn("flex max-w-20 w-full justify-center items-center")}>
-                                <Typography
-                                  className={cn(data.is_leave && "text-warning", data.hour == 0 && "text-primary")}
-                                  variant="p"
-                                >
-                                  {data.hour ? floatToTime(data.hour) : "-"}
-                                </Typography>
-                              </TableCell>
+                              <HoverCard key={`${data.hour}-id-${Math.random()}`} openDelay={0}>
+                                <TableCell key={key} className={cn("flex max-w-20 w-full justify-center items-center")}>
+                                  <HoverCardTrigger>
+                                    <Typography
+                                      className={cn(data.is_leave && "text-warning", data.hour == 0 && "text-primary")}
+                                      variant="p"
+                                    >
+                                      {data.hour ? floatToTime(data.hour) : "-"}
+                                    </Typography>
+                                  </HoverCardTrigger>
+                                  {data.note && (
+                                    <HoverCardContent className="text-sm font-normal text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto">
+                                      <p dangerouslySetInnerHTML={{ __html: preProcessLink(data.note) }}></p>
+                                    </HoverCardContent>
+                                  )}
+                                </TableCell>
+                              </HoverCard>
                             );
                           })}
 
