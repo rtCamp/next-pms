@@ -87,7 +87,10 @@ const Sidebar = () => {
           user.isSidebarCollapsed && "w-16 items-center"
         )}
       >
-        <div className={cn("flex gap-x-2 items-center overflow-hidden", !user.isSidebarCollapsed && "pl-3")} id="app-logo">
+        <div
+          className={cn("flex gap-x-2 items-center overflow-hidden", !user.isSidebarCollapsed && "pl-3")}
+          id="app-logo"
+        >
           <img
             src={decodeURIComponent(user.appLogo)}
             alt="app-logo"
@@ -110,6 +113,7 @@ const Sidebar = () => {
               <NavLink
                 to={route.to}
                 key={route.key}
+                title={route.label}
                 className="transition-all duration-300 ease-in-out flex items-center h-9"
               >
                 {({ isActive }: { isActive: boolean }) => (
@@ -139,18 +143,20 @@ const Sidebar = () => {
         <div className="grow"></div>
         <div className={cn("flex justify-between items-center", user.isSidebarCollapsed && "flex-col ")}>
           <Navigation />
-          <Button
-            variant="ghost"
-            className="justify-end  gap-x-2 transition-all duration-300 ease-in-out h-6"
-            onClick={handleCollapse}
-          >
-            <ArrowLeftToLine
-              className={cn(
-                "stroke-primary h-4 w-4 transition-all duration-600",
-                user.isSidebarCollapsed && "rotate-180"
-              )}
-            />
-          </Button>
+          {(screenSize !== "sm" && screenSize !== "md") && (
+            <Button
+              variant="ghost"
+              className="justify-end  gap-x-2 transition-all duration-300 ease-in-out h-6"
+              onClick={handleCollapse}
+            >
+              <ArrowLeftToLine
+                className={cn(
+                  "stroke-primary h-4 w-4 transition-all duration-600",
+                  user.isSidebarCollapsed && "rotate-180"
+                )}
+              />
+            </Button>
+          )}
         </div>
       </aside>
     </GenWrapper>

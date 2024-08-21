@@ -48,7 +48,7 @@ export const Employee = ({ employee }: EmployeeProps) => {
                       {taskData.project_name}
                     </Typography>
                   </TableCell>
-                  {timesheetData.dates.map((date: string) => {
+                  {timesheetData.dates.map((date: string,key:number) => {
                     const data = taskData.data.find(
                       (data: TaskDataItemProps) => getDateFromDateAndTime(data.from_time) === date
                     );
@@ -56,7 +56,7 @@ export const Employee = ({ employee }: EmployeeProps) => {
                       totalHours += data.hours;
                     }
                     const isHoliday = holidays.includes(date);
-                    return <Cell date={date} data={data} isHoliday={isHoliday} disabled />;
+                    return <Cell key={key} date={date} data={data} isHoliday={isHoliday} disabled />;
                   })}
                   <TableCell
                     className={cn(
@@ -98,7 +98,7 @@ export const EmptyRow = ({
           Add Task
         </Typography>
       </TableCell>
-      {dates.map((date: string) => {
+      {dates.map((date: string,key) => {
         const isHoliday = holidays.includes(date);
         const value = {
           date,
@@ -111,7 +111,7 @@ export const EmptyRow = ({
         };
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //   @ts-ignore
-        return <Cell date={date} data={value} isHoliday={isHoliday} onCellClick={onCellClick} disabled />;
+        return <Cell key={key} date={date} data={value} isHoliday={isHoliday} onCellClick={onCellClick} disabled />;
       })}
       <TableCell className="w-full max-w-24 text-left"></TableCell>
     </TableRow>

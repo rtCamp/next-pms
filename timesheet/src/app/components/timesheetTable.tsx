@@ -407,7 +407,8 @@ export const SubmitButton = ({
   onApproval?: (start_date: string, end_date: string) => void;
   status: string;
 }) => {
-  const handleClick = () => {
+  const handleClick = (e:React.MouseEvent) => {
+    e.stopPropagation()
     onApproval && onApproval(start_date, end_date);
   };
   if (status == "Approved") {
