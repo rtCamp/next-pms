@@ -165,6 +165,7 @@ doc_events = {
     "Timesheet": {
         "validate": "timesheet_enhancer.doc_events.timesheet.validate",
         "before_save": "timesheet_enhancer.doc_events.timesheet.before_save",
+        "before_insert": "timesheet_enhancer.doc_events.timesheet.before_insert",
     },
 }
 

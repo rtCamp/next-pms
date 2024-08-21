@@ -10,13 +10,26 @@ ROLES = {
 }
 
 
+def set_date(doc):
+    if doc.docstatus < 2 and doc.time_logs:
+        start_date = min(getdate(d.from_time) for d in doc.time_logs)
+        end_date = max(getdate(d.to_time) for d in doc.time_logs)
+
+        if start_date and end_date:
+            doc.start_date = getdate(start_date)
+            doc.end_date = getdate(end_date)
+
+
 def validate(doc, method=None):
-    validate_dates(doc)
     validate_is_time_billable(doc)
     validate_time(doc)
     update_note(doc)
-    if doc.is_new():
-        validate_existing_timesheet(doc)
+
+
+def before_insert(doc, method=None):
+    set_date(doc)
+    validate_existing_timesheet(doc)
+    validate_dates(doc)
 
 
 def update_note(doc):
@@ -92,6 +105,7 @@ def validate_dates(doc):
         get_leaves_for_employee,
     )
 
+    #  Do not allow the time entry for more then one day.
     if date_diff(doc.end_date, doc.start_date) > 0:
         throw(_("Timesheet should not exceed more than one day."))
 
@@ -104,6 +118,9 @@ def validate_dates(doc):
     if date_gap > 0 and not has_access:
         throw(_("You can not save future time entry."))
 
+    #  The emloyee should not be able to save the time entry for more then past 1 day
+    #  excluding holidays and leave.
+    #  The Manager should not be able to save the time entry for more then past 5 days
     if (
         doc.start_date < today_date
         and frappe.session.user != "Administrator"
@@ -134,7 +151,7 @@ def validate_dates(doc):
                 holiday_counter += 1
 
         if (date_gap + holiday_counter) != -1 and employee == doc.employee:
-            throw(_("Back Dated time entry not allowed for more then 1 day."))
+            throw(_("Back Dated time entry not allowed."))
 
         if (date_gap + holiday_counter) < -5 and has_access:
             throw(_("Back Dated time entry not allowed for more then 5 day."))
