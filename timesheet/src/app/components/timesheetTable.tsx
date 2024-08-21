@@ -1,11 +1,13 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
-import { cn, prettyDate, getDateFromDateAndTime, floatToTime, calculateWeeklyHour } from "@/lib/utils";
+import { cn, prettyDate, getDateFromDateAndTime, floatToTime, calculateWeeklyHour, expectatedHours } from "@/lib/utils";
 import { Typography } from "./typography";
 import { CircleCheck, CirclePlus, CircleX, Clock3, PencilLine, CircleDollarSign } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
 import { TaskDataProps, TaskProps, TaskDataItemProps, LeaveProps } from "@/types/timesheet";
 import { WorkingFrequency } from "@/types";
 import GenWrapper from "./GenWrapper";
+import { RootState } from "@/store";
+import { useSelector } from "react-redux";
 interface TimesheetTableProps {
   dates: string[];
   holidays: string[];
@@ -31,6 +33,7 @@ const TimesheetTable = ({
   working_frequency,
   disabled,
 }: TimesheetTableProps) => {
+  const timesheetState = useSelector((state: RootState) => state.timesheet);
   return (
     <GenWrapper>
       <Table className={`table-fixed`}>
@@ -75,7 +78,7 @@ const TimesheetTable = ({
               working_hour={working_hour}
             />
           )}
-          {leaves.length > 0 && <LeaveRow dates={dates} leaves={leaves} holidays={holidays} />}
+          {leaves.length > 0 && <LeaveRow dates={dates} leaves={leaves} holidays={holidays} expectedHours={expectatedHours(timesheetState.data.working_hour, timesheetState.data.working_frequency)} />}
           {Object.keys(tasks).length == 0 && (
             <EmptyRow dates={dates} holidays={holidays} onCellClick={onCellClick} disabled={disabled} />
           )}
@@ -151,7 +154,7 @@ const TimesheetTable = ({
   );
 };
 
-const LeaveRow = ({ leaves, dates, holidays }: { leaves: Array<LeaveProps>; dates: string[], holidays: string[] }) => {
+const LeaveRow = ({ leaves, dates, holidays,expectedHours }: { leaves: Array<LeaveProps>; dates: string[], holidays: string[],expectedHours:number }) => {
   let total_hours = 0;
   const leaveData = dates.map((date: string) => {
     if (holidays.includes(date)) {
@@ -160,7 +163,7 @@ const LeaveRow = ({ leaves, dates, holidays }: { leaves: Array<LeaveProps>; date
     const data = leaves.find((data: LeaveProps) => {
       return date >= data.from_date && date <= data.to_date;
     });
-    const hour = data?.half_day && data?.half_day_date==date ? 4 : 8;
+    const hour = data?.half_day && data?.half_day_date==date ? (expectedHours/2) : expectedHours;
     if (data) {
       total_hours += hour;
     }

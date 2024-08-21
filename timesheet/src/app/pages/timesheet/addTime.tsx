@@ -25,6 +25,7 @@ import { getFormatedDate, parseFrappeErrorMsg, expectatedHours, floatToTime } fr
 import { useToast } from "@/app/components/ui/use-toast";
 import { useEffect, useMemo, useState } from "react";
 import { Typography } from "@/app/components/typography";
+import { LeaveProps } from "@/types/timesheet";
 
 export const AddTime = () => {
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
@@ -162,8 +163,18 @@ export const AddTime = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
   const expected_Hour_of_emp = useMemo(() => {
+    const data = timesheetState.data.leaves.find((data: LeaveProps) => {
+      return selectedDate >= data.from_date && selectedDate <= data.to_date;
+    });
+    
+    if(data){
+      const leaveHour = data?.half_day && data?.half_day_date==selectedDate ? (expectatedHours(timesheetState.data.working_hour, timesheetState.data.working_frequency)/2) : 0;
+      console.log(leaveHour)
+      return leaveHour;
+    }
+    
     return expectatedHours(timesheetState.data.working_hour, timesheetState.data.working_frequency);
-  }, []);
+  }, [selectedDate]);
   return (
     <Dialog open={timesheetState.isDialogOpen} onOpenChange={handleOpen}>
       <DialogContent className="max-w-xl">
@@ -173,13 +184,36 @@ export const AddTime = () => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)}>
             <div className="flex flex-col gap-y-6">
-              <div className="flex gap-x-4">
+              <div className="flex gap-x-4 items-center">
                 <FormField
                   control={form.control}
                   name="hours"
                   render={({ field }) => (
                     <FormItem className="w-full">
-                      <FormLabel>Time</FormLabel>
+                      <FormLabel className="flex gap-2 items-center">
+                        <p className="text-sm">Time</p>
+                        {/* Task: Remaining hours indicator */}
+                        {perDayEmpHours && (
+                          <div className="flex gap-x-4">
+                            <div className="flex gap-1 justify-center items-center ">
+                              <Typography
+                                variant="p"
+                                className={`${
+                                  Number(perDayEmpHours?.message) < expected_Hour_of_emp
+                                    ? "text-success"
+                                    : "text-destructive"
+                                }`}
+                              >
+                                {`${floatToTime(
+                                  Math.abs(expected_Hour_of_emp - Number(perDayEmpHours?.message))
+                                )} hrs ${
+                                  expected_Hour_of_emp - Number(perDayEmpHours?.message) >= 0 ? "remaining" : "extended"
+                                }`}
+                              </Typography>
+                            </div>
+                          </div>
+                        )}
+                      </FormLabel>
                       <FormControl>
                         <>
                           <div className="relative flex items-center">
@@ -192,27 +226,6 @@ export const AddTime = () => {
                             />
                             <Clock3 className="h-4 w-4 absolute right-0 m-3 top-0 stroke-slate-400" />
                           </div>
-                          {/* Task: Remaining hours indicator */}
-                          {perDayEmpHours && (
-                            <div className="flex gap-x-4">
-                              <div className="flex gap-1 justify-center items-center">
-                                <Typography
-                                  variant="p"
-                                  className={`${
-                                    Number(perDayEmpHours?.message) < expected_Hour_of_emp
-                                      ? "text-success"
-                                      : "text-destructive"
-                                  }`}
-                                >
-                                  {`${floatToTime(Math.abs(expected_Hour_of_emp - Number(perDayEmpHours?.message)))} hrs ${
-                                    expected_Hour_of_emp - Number(perDayEmpHours?.message) >= 0
-                                      ? "remaining"
-                                      : "extended"
-                                  }`}
-                                </Typography>
-                              </div>
-                            </div>
-                          )}
                         </>
                       </FormControl>
                       <FormMessage />
@@ -224,7 +237,7 @@ export const AddTime = () => {
                   name="date"
                   render={({ field }) => (
                     <FormItem className="w-full">
-                      <FormLabel>Date</FormLabel>
+                      <FormLabel className="flex gap-2 items-center text-sm">Date</FormLabel>
                       <FormControl>
                         <DatePicker
                           date={field.value}
