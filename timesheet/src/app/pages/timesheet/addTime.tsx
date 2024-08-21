@@ -33,7 +33,6 @@ export const AddTime = () => {
   const [searchTerm, setSearchTerm] = useState(timesheetState.timesheet.task ?? "");
   const [selectedDate, setSelectedDate] = useState(getFormatedDate(timesheetState.timesheet.date));
   const userState = useSelector((state: RootState) => state.user);
-  const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
   const { toast } = useToast();
 
@@ -49,7 +48,7 @@ export const AddTime = () => {
       date: timesheetState.timesheet.date,
       parent: timesheetState.timesheet.parent,
       is_update: timesheetState.timesheet.isUpdate,
-      employee: timesheetState.timesheet?.employee ?? user.employee,
+      employee: timesheetState.timesheet?.employee ?? userState.employee,
     },
     mode: "onSubmit",
   });
@@ -204,7 +203,9 @@ export const AddTime = () => {
                                       : "text-destructive"
                                   }`}
                                 >
-                                  {`${floatToTime(Math.abs(expected_Hour_of_emp - Number(perDayEmpHours?.message)))} hrs ${
+                                  {`${floatToTime(
+                                    Math.abs(expected_Hour_of_emp - Number(perDayEmpHours?.message))
+                                  )} hrs ${
                                     expected_Hour_of_emp - Number(perDayEmpHours?.message) >= 0
                                       ? "remaining"
                                       : "extended"

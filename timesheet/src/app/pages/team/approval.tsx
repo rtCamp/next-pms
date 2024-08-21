@@ -11,6 +11,7 @@ import {
   parseFrappeErrorMsg,
   prettyDate,
   floatToTime,
+  preProcessLink,
 } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useFrappeGetCall, useFrappePostCall, useFrappeGetDocList } from "frappe-react-sdk";
@@ -203,7 +204,7 @@ export const Approval = () => {
                 const isExtended = calculateExtendedWorkingHour(totalHours, working_hour, working_frequency);
                 return (
                   <div key={index} className="flex flex-col ">
-                    <div className="bg-gray-100  p-1 border-b flex items-center gap-x-2">
+                    <div className="bg-gray-100 rounded p-1 border-b flex items-center gap-x-2">
                       <Checkbox
                         disabled={
                           submittedTime ||
@@ -246,12 +247,13 @@ export const Approval = () => {
                         hours: task.hours,
                         isUpdate: task.hours > 0 ? true : false,
                       };
+                      const description = preProcessLink(task.description);
                       return (
-                        <div className="flex gap-x-2 items-center py-1 border-b last:border-b-0" key={index}>
+                        <div className="flex gap-x-2 py-1 pl-1 border-b last:border-b-0" key={index}>
                           <TimeInput
                             disabled={task.docstatus == 1}
                             data={data}
-                            className="w-10 p-1 h-8"
+                            className="w-10 p-1 ml-6  h-8"
                             callback={handleTimeChange}
                             employee={teamState.employee}
                           />
@@ -260,9 +262,7 @@ export const Approval = () => {
                               {task.taskName}
                             </Typography>
 
-                            <Typography variant="p" className="col-span-2">
-                              {task.description}
-                            </Typography>
+                            <p className="text-sm font-normal col-span-2" dangerouslySetInnerHTML={{ __html: description }}></p>
                           </div>
                         </div>
                       );

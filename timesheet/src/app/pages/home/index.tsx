@@ -211,7 +211,7 @@ const Home = () => {
                           >
                             {data.hour > 0 ? floatToTime(data.hour) : "-"}
                             {data.note && (
-                              <TooltipContent className="text-left whitespace-pre">{data.note}</TooltipContent>
+                              <TooltipContent className="text-left whitespace-pre text-wrap max-w-72 max-h-52 overflow-auto">{data.note}</TooltipContent>
                             )}
                           </TableCell>
                         </TooltipTrigger>

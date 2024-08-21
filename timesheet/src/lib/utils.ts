@@ -83,7 +83,7 @@ export function getDateFromDateAndTime(dateTimeString: string) {
   return parts[0];
 }
 
-export function floatToTime(float: number,hourPadding:number = 1,minutePadding:number = 2) {
+export function floatToTime(float: number, hourPadding: number = 1, minutePadding: number = 2) {
   // Extract hours and minutes from the float
   const hours = Math.floor(float);
   const minutes = Math.round((float % 1) * 60);
@@ -152,3 +152,17 @@ export const expectatedHours = (
   }
   return expected_hours / 5;
 };
+
+export const preProcessLink = (text: string) => {
+  const linkRegex = /\b((https?:\/\/|www\.)[^\s]+)\b/gi;
+  const processedText = text.replace(linkRegex, (url) => {
+    // Ensure the URL has a protocol
+    const href = url.startsWith('http') ? url : `https://${url}`;
+    return `<a 
+                href="${href}" 
+                class="text-blue-500 hover:text-blue-700 underline" 
+                target="_blank"
+                rel="noopener noreferrer">${url}</a>`;
+  });
+  return processedText;
+}

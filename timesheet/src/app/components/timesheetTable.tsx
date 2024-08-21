@@ -350,7 +350,7 @@ const Cell = ({
             <CirclePlus className={cn("text-center hidden", !data?.hours && !isDisabled && "group-hover:block ")} size={16} />
           </span>
           {data?.description && (
-            <TooltipContent className="text-left whitespace-pre text-wrap max-w-72">{data?.description}</TooltipContent>
+            <TooltipContent  className="text-left whitespace-pre text-wrap max-w-72 max-h-52 overflow-auto">{data?.description}</TooltipContent>
           )}
         </TableCell>
       </TooltipTrigger>
