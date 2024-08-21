@@ -169,7 +169,7 @@ export const AddTime = () => {
     
     if(data){
       const leaveHour = data?.half_day && data?.half_day_date==selectedDate ? (expectatedHours(timesheetState.data.working_hour, timesheetState.data.working_frequency)/2) : 0;
-      console.log(leaveHour)
+      // console.log(leaveHour)
       return leaveHour;
     }
     
