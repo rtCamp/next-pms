@@ -121,43 +121,21 @@ def app_logo():
 
 
 @frappe.whitelist()
-def get_task_for_employee(
-    employee: str = None, search: str = None, page_length: int = 20, start: int = 0
-):
-    if not employee:
-        employee = get_employee_from_user()
-    user = frappe.get_value("Employee", employee, "user_id")
-    search_filter = {}
-    if search:
-        search_filter = {
-            "name": ["like", f"{search}%"],
-            "subject": ["like", f"{search}%"],
-        }
-        task_meta = frappe.get_meta("Task")
-        gh_issue_id = task_meta.has_field("custom_github_issue_id")
-        if gh_issue_id:
-            search_filter.update({"custom_github_issue_id": ["like", f"{search}%"]})
+def get_task_for_employee(search: str = None, page_length: int = 20, start: int = 0):
 
-    shared_projects = frappe.get_all(
-        "DocShare",
-        filters={"user": user, "share_doctype": "Project"},
-        fields=["share_name"],
-    )
-    projects = [project["share_name"] for project in shared_projects]
+    projects = frappe.get_list("Project", pluck="name")
+    search_filter = {"project": ["in", projects]}
+
+    if search:
+        search_filter.update(
+            {
+                "name": ["like", f"%{search}%"],
+                "subject": ["like", f"%{search}%"],
+            }
+        )
 
     project_task = frappe.get_all(
         "Task",
-        filters={"project": ["in", projects]},
-        or_filters=search_filter,
-        fields=["name", "subject", "status", "project.project_name"],
-        page_length=page_length,
-        start=start,
-        order_by="name desc",
-    )
-    names = [task["name"] for task in project_task]
-    tasks = frappe.get_list(
-        "Task",
-        filters={"name": ["NOT IN", names]},
         or_filters=search_filter,
         fields=["name", "subject", "status", "project.project_name"],
         page_length=page_length,
@@ -165,7 +143,7 @@ def get_task_for_employee(
         order_by="name desc",
     )
 
-    return tasks + project_task
+    return project_task
 
 
 def filter_employees(

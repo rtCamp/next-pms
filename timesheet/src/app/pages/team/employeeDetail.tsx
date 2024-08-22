@@ -13,6 +13,7 @@ import {
   calculateExtendedWorkingHour,
   deBounce,
   floatToTime,
+  preProcessLink,
 } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useToast } from "@/app/components/ui/use-toast";
@@ -48,6 +49,7 @@ import { Employee } from "@/types";
 import { LeaveProps, NewTimesheetProps, TaskDataItemProps, timesheet } from "@/types/timesheet";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/app/components/ui/input";
+import { timeFormatRegex } from "@/schema/timesheet";
 
 const EmployeeDetail = () => {
   const { id } = useParams();
@@ -275,7 +277,7 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
                       );
                       return (
                         <div key={index} className="flex flex-col">
-                          <div className="bg-gray-100 p-2 py-3 border-b flex items-center gap-x-2">
+                          <div className="bg-gray-100 p-1 rounded border-b flex items-center gap-x-2">
                             <Typography
                               variant="p"
                               className={cn(
@@ -309,7 +311,7 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
                               isUpdate: task.hours > 0 ? true : false,
                             };
                             return (
-                              <div className="flex gap-x-4 items-center p-2 border-b last:border-b-0" key={index}>
+                              <div className="flex gap-x-4 p-2 border-b last:border-b-0" key={index}>
                                 <TimeInput
                                   disabled={task.docstatus == 1}
                                   data={data}
@@ -322,9 +324,10 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
                                     {task.taskName}
                                   </Typography>
 
-                                  <Typography variant="p" className=" col-span-2">
-                                    {task.description}
-                                  </Typography>
+                                  <p
+                                    dangerouslySetInnerHTML={{ __html: preProcessLink(task.description) }}
+                                    className="text-sm font-normal col-span-2"
+                                  ></p>
                                 </div>
                               </div>
                             );
@@ -433,21 +436,29 @@ export const TimeInput = ({
   disabled?: boolean;
   callback: (data: NewTimesheetProps) => void;
 }) => {
-  const [hour, setHour] = useState(data.hours);
+  const [hour, setHour] = useState(floatToTime(data.hours));
   const handleHourChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // @ts-ignore
-    setHour(e.target.value);
-    timeUpdate(parseFloat(e.target.value));
+    let time = 0;
+    const hour = e.target.value;
+    setHour(hour);
+
+    if (timeFormatRegex.test(hour)) {
+      const [hours, minutes] = hour.split(":").map(Number);
+      time = hours + minutes / 60;
+    } else {
+      time = parseFloat(hour);
+    }
+    if (time == 0 || Number.isNaN(time)) return;
+    timeUpdate(time);
   };
   const timeUpdate = deBounce((hour: number) => {
-    if (hour == 0 || Number.isNaN(hour)) return;
     const value = {
       ...data,
       hours: hour,
       employee: employee,
     };
     callback(value);
-  }, 1000);
+  }, 1500);
   return <Input value={hour} className={cn("w-20", className)} onChange={handleHourChange} disabled={disabled} />;
 };
 export default EmployeeDetail;

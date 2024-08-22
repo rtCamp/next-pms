@@ -8,6 +8,7 @@ import { BASE_ROUTE } from "@/lib/constant";
 import { TooltipProvider } from "@/app/components/ui/tooltip";
 import { Router } from "@/route";
 import { Suspense } from "react";
+import GenWrapper from "./app/components/GenWrapper";
 function App() {
   const router = createBrowserRouter(createRoutesFromElements(Router()), {
     basename: BASE_ROUTE,
@@ -24,7 +25,9 @@ function App() {
           <Provider store={store}>
             <TooltipProvider>
               <Suspense fallback={<></>}>
-                <RouterProvider router={router} />
+                <GenWrapper>
+                  <RouterProvider router={router} />
+                </GenWrapper>
               </Suspense>
             </TooltipProvider>
           </Provider>

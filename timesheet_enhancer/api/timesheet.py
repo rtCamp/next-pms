@@ -9,7 +9,7 @@ from frappe.utils import (
     getdate,
     nowdate,
 )
-from hrms.hr.utils import get_holiday_dates_for_employee
+from hrms.hr.utils import get_holiday_dates_for_employee, get_holidays_for_employee
 
 from timesheet_enhancer.api.utils import (
     get_employee_from_user,
@@ -22,7 +22,12 @@ now = nowdate()
 
 
 @frappe.whitelist()
-def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
+def get_timesheet_data(
+    employee: str,
+    start_date=now,
+    max_week: int = 4,
+    holiday_with_description: bool = False,
+):
     """Get timesheet data for the given employee for the given number of weeks."""
     if not employee:
         employee = get_employee_from_user()
@@ -33,9 +38,21 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
     res = {**hour_detail}
     data = {}
     # Retrieve holidays and leaves data outside the loop
-    res["holidays"] = get_holiday_dates_for_employee(
-        employee, add_days(start_date, -max_week * 7), add_days(start_date, max_week * 7)
-    )
+
+    if not holiday_with_description:
+        holidays = get_holiday_dates_for_employee(
+            employee,
+            add_days(start_date, -max_week * 7),
+            add_days(start_date, max_week * 7),
+        )
+    else:
+        holidays = get_holidays_for_employee(
+            employee,
+            add_days(start_date, -max_week * 7),
+            add_days(start_date, max_week * 7),
+        )
+    res["holidays"] = holidays
+
     res["leaves"] = get_leaves_for_employee(
         add_days(start_date, -max_week * 7),
         add_days(start_date, max_week * 7),
@@ -225,8 +242,8 @@ def create_timesheet_detail(
             "task": task,
             "hours": hours,
             "description": description,
-            "from_time": date,
-            "to_time": date,
+            "from_time": getdate(date),
+            "to_time": getdate(date),
         },
     )
     timehseet.save()
