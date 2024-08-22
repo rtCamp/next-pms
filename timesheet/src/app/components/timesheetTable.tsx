@@ -1,13 +1,20 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
-import { cn, prettyDate, getDateFromDateAndTime, floatToTime, calculateWeeklyHour, expectatedHours } from "@/lib/utils";
+import {
+  cn,
+  prettyDate,
+  getDateFromDateAndTime,
+  floatToTime,
+  calculateWeeklyHour,
+  expectatedHours,
+  preProcessLink,
+} from "@/lib/utils";
 import { Typography } from "./typography";
 import { CircleCheck, CirclePlus, CircleX, Clock3, PencilLine, CircleDollarSign } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
 import { TaskDataProps, TaskProps, TaskDataItemProps, LeaveProps } from "@/types/timesheet";
 import { WorkingFrequency } from "@/types";
 import GenWrapper from "./GenWrapper";
-import { RootState } from "@/store";
-import { useSelector } from "react-redux";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
+
 interface TimesheetTableProps {
   dates: string[];
   holidays: string[];
@@ -33,7 +40,6 @@ const TimesheetTable = ({
   working_frequency,
   disabled,
 }: TimesheetTableProps) => {
-  const timesheetState = useSelector((state: RootState) => state.timesheet);
   return (
     <GenWrapper>
       <Table>
@@ -78,7 +84,14 @@ const TimesheetTable = ({
               working_hour={working_hour}
             />
           )}
-          {leaves.length > 0 && <LeaveRow dates={dates} leaves={leaves} holidays={holidays} expectedHours={expectatedHours(working_hour, working_frequency)} />}
+          {leaves.length > 0 && (
+            <LeaveRow
+              dates={dates}
+              leaves={leaves}
+              holidays={holidays}
+              expectedHours={expectatedHours(working_hour, working_frequency)}
+            />
+          )}
           {Object.keys(tasks).length == 0 && (
             <EmptyRow dates={dates} holidays={holidays} onCellClick={onCellClick} disabled={disabled} />
           )}
@@ -87,13 +100,13 @@ const TimesheetTable = ({
               let totalHours = 0;
               return (
                 <TableRow key={task} className="border-b border-slate-200">
-                  <Tooltip delayDuration={0}>
-                    <TooltipTrigger asChild>
+                  <HoverCard openDelay={0}>
+                    <HoverCardTrigger asChild>
                       <TableCell className="cursor-pointer max-w-sm">
                         <Typography variant="p" className="text-slate-800 truncate overflow-hidden ">
                           {task}
                         </Typography>
-                        <TooltipContent className="max-w-72">{task}</TooltipContent>
+                        <HoverCardContent className="max-w-72">{task}</HoverCardContent>
                         <Typography
                           variant="small"
                           className="text-slate-500 whitespace-nowrap text-ellipsis overflow-hidden "
@@ -101,8 +114,8 @@ const TimesheetTable = ({
                           {taskData.project_name}
                         </Typography>
                       </TableCell>
-                    </TooltipTrigger>
-                  </Tooltip>
+                    </HoverCardTrigger>
+                  </HoverCard>
                   {dates.map((date: string) => {
                     let data = taskData.data.find(
                       (data: TaskDataItemProps) => getDateFromDateAndTime(data.from_time) === date
@@ -154,7 +167,17 @@ const TimesheetTable = ({
   );
 };
 
-const LeaveRow = ({ leaves, dates, holidays,expectedHours }: { leaves: Array<LeaveProps>; dates: string[], holidays: string[],expectedHours:number }) => {
+const LeaveRow = ({
+  leaves,
+  dates,
+  holidays,
+  expectedHours,
+}: {
+  leaves: Array<LeaveProps>;
+  dates: string[];
+  holidays: string[];
+  expectedHours: number;
+}) => {
   let total_hours = 0;
   const leaveData = dates.map((date: string) => {
     if (holidays.includes(date)) {
@@ -163,7 +186,7 @@ const LeaveRow = ({ leaves, dates, holidays,expectedHours }: { leaves: Array<Lea
     const data = leaves.find((data: LeaveProps) => {
       return date >= data.from_date && date <= data.to_date;
     });
-    const hour = data?.half_day && data?.half_day_date==date ? (expectedHours/2) : expectedHours;
+    const hour = data?.half_day && data?.half_day_date == date ? expectedHours / 2 : expectedHours;
     if (data) {
       total_hours += hour;
     }
@@ -185,8 +208,8 @@ const LeaveRow = ({ leaves, dates, holidays,expectedHours }: { leaves: Array<Lea
         </Typography>
       </TableCell>
       {leaveData.map(({ date, data, hour, isHoliday }) => (
-        <TableCell key={date} className="text-center" >
-          <Typography variant="p" className={isHoliday ? 'text-white' : 'text-warning'}>
+        <TableCell key={date} className="text-center">
+          <Typography variant="p" className={isHoliday ? "text-white" : "text-warning"}>
             {data ? floatToTime(hour) : ""}
           </Typography>
         </TableCell>
@@ -325,17 +348,17 @@ const Cell = ({
   };
 
   return (
-    <Tooltip delayDuration={0}>
-      <TooltipTrigger className={cn(isDisabled && "cursor-default")} asChild>
-        <TableCell
-          key={date}
-          onClick={handleClick}
-          className={cn(
-            "text-center group",
-            isDisabled && "cursor-default",
-            "hover:h-full hover:bg-slate-100 hover:cursor-pointer"
-          )}
-        >
+    <HoverCard openDelay={0}>
+      <TableCell
+        key={date}
+        onClick={handleClick}
+        className={cn(
+          "text-center group",
+          isDisabled && "cursor-default",
+          "hover:h-full hover:bg-slate-100 hover:cursor-pointer"
+        )}
+      >
+        <HoverCardTrigger className={cn(isDisabled && "cursor-default")}>
           <span className="flex flex-col items-center ">
             <Typography
               variant="p"
@@ -349,15 +372,23 @@ const Cell = ({
             </Typography>
             {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
             {/* @ts-ignore */}
-            <PencilLine className={cn("text-center hidden", data?.hours > 0 && !isDisabled && "group-hover:block")} size={16} />
-            <CirclePlus className={cn("text-center hidden", !data?.hours && !isDisabled && "group-hover:block ")} size={16} />
+            <PencilLine
+              className={cn("text-center hidden", data?.hours > 0 && !isDisabled && "group-hover:block")}
+              size={16}
+            />
+            <CirclePlus
+              className={cn("text-center hidden", !data?.hours && !isDisabled && "group-hover:block ")}
+              size={16}
+            />
           </span>
-          {data?.description && (
-            <TooltipContent  className="text-left whitespace-pre text-wrap max-w-72 max-h-52 overflow-auto">{data?.description}</TooltipContent>
-          )}
-        </TableCell>
-      </TooltipTrigger>
-    </Tooltip>
+        </HoverCardTrigger>
+        {data?.description && (
+          <HoverCardContent className="text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto">
+            <p dangerouslySetInnerHTML={{ __html: preProcessLink(data?.description) }}></p>
+          </HoverCardContent>
+        )}
+      </TableCell>
+    </HoverCard>
   );
 };
 
@@ -410,8 +441,8 @@ export const SubmitButton = ({
   onApproval?: (start_date: string, end_date: string) => void;
   status: string;
 }) => {
-  const handleClick = (e:React.MouseEvent) => {
-    e.stopPropagation()
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     onApproval && onApproval(start_date, end_date);
   };
   if (status == "Approved") {
