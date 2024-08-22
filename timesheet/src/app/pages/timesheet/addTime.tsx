@@ -21,7 +21,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/app/components/ui/input";
 import { Clock3, Search, LoaderCircle, Trash2 } from "lucide-react";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
-import { getFormatedDate, parseFrappeErrorMsg, expectatedHours, floatToTime } from "@/lib/utils";
+import { getFormatedDate, parseFrappeErrorMsg, expectatedHours, floatToTime, cn } from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
 import { useEffect, useMemo, useState } from "react";
 import { Typography } from "@/app/components/typography";
@@ -169,7 +169,6 @@ export const AddTime = () => {
     
     if(data){
       const leaveHour = data?.half_day && data?.half_day_date==selectedDate ? (expectatedHours(timesheetState.data.working_hour, timesheetState.data.working_frequency)/2) : 0;
-      // console.log(leaveHour)
       return leaveHour;
     }
     
@@ -198,11 +197,11 @@ export const AddTime = () => {
                             <div className="flex gap-1 justify-center items-center ">
                               <Typography
                                 variant="p"
-                                className={`${
+                                className={cn(
                                   Number(perDayEmpHours?.message) < expected_Hour_of_emp
                                     ? "text-success"
                                     : "text-destructive"
-                                }`}
+                                )}
                               >
                                 {`${floatToTime(
                                   Math.abs(expected_Hour_of_emp - Number(perDayEmpHours?.message))
