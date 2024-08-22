@@ -21,11 +21,13 @@ import { Textarea } from "@/app/components/ui/textarea";
 import { useToast } from "@/app/components/ui/use-toast";
 import { setFetchAgain } from "@/store/team";
 import { Spinner } from "@/app/components/spinner";
+import { DeleteConfirmation } from "@/app/pages/timesheet/addTime";
 
 export const AddTime = () => {
   const teamState = useSelector((state: RootState) => state.team);
+  const { call: deleteCall } = useFrappePostCall("timesheet_enhancer.api.timesheet.delete");
   const dispatch = useDispatch();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(teamState.timesheet.task??"");
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
   const { toast } = useToast();
   const form = useForm<z.infer<typeof TimesheetSchema>>({
@@ -97,6 +99,29 @@ export const AddTime = () => {
 
   const handleSubmit = (data: z.infer<typeof TimesheetSchema>) => {
     call(data)
+      .then((res) => {
+        toast({
+          variant: "success",
+          description: res.message,
+        });
+        dispatch(setFetchAgain(true));
+        handleOpenChange();
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          description: error,
+        });
+      });
+  };
+  const handleDelete = () => {
+    const data = {
+      name: form.getValues("name"),
+      parent: form.getValues("parent"),
+    };
+    
+    deleteCall(data)
       .then((res) => {
         toast({
           variant: "success",
@@ -262,12 +287,15 @@ export const AddTime = () => {
                 />
 
                 <DialogFooter className="sm:justify-start">
-                  <Button disabled={form.formState.isSubmitting}>
-                    {form.formState.isSubmitting && <LoaderCircle className="animate-spin w-4 h-4" />}Add Time
-                  </Button>
-                  <Button type="button" variant="outline" onClick={handleOpenChange}>
-                    Cancel
-                  </Button>
+                  <div className="flex gap-x-4 w-full">
+                    <Button disabled={form.formState.isSubmitting}>
+                      {form.formState.isSubmitting && <LoaderCircle className="animate-spin w-4 h-4" />}Add Time
+                    </Button>
+                    <Button type="button" variant="outline" onClick={handleOpenChange}>
+                      Cancel
+                    </Button>
+                  </div>
+                    {teamState.timesheet.hours>0 && <DeleteConfirmation onDelete={handleDelete} />}
                 </DialogFooter>
               </div>
             </form>

@@ -123,18 +123,19 @@ def app_logo():
 @frappe.whitelist()
 def get_task_for_employee(search: str = None, page_length: int = 20, start: int = 0):
 
-    search_filter = {}
-    if search:
-        search_filter = {
-            "name": ["like", f"%{search}%"],
-            "subject": ["like", f"%{search}%"],
-        }
-
     projects = frappe.get_list("Project", pluck="name")
+    search_filter = {"project": ["in", projects]}
+
+    if search:
+        search_filter.update(
+            {
+                "name": ["like", f"%{search}%"],
+                "subject": ["like", f"%{search}%"],
+            }
+        )
 
     project_task = frappe.get_all(
         "Task",
-        filters={"project": ["in", projects]},
         or_filters=search_filter,
         fields=["name", "subject", "status", "project.project_name"],
         page_length=page_length,

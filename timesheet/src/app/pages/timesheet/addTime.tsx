@@ -316,7 +316,7 @@ export const AddTime = () => {
   );
 };
 
-const DeleteConfirmation = ({ onDelete }: { onDelete: () => void }) => {
+export const DeleteConfirmation = ({ onDelete }: { onDelete: () => void }) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
