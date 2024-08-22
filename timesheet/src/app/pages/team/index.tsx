@@ -121,6 +121,8 @@ const Team = () => {
     { label: "Approval Pending", value: "Approval Pending" },
     { label: "Approved", value: "Approved" },
     { label: "Rejected", value: "Rejected" },
+    { label: "Partially Approved", value: "Partially Approved" },
+    { label: "Partially Rejected", value: "Partially Rejected" },
   ];
 
   useEffect(() => {
@@ -420,14 +422,14 @@ const Team = () => {
 };
 
 const Status = ({ status }: { status: string }) => {
-  if (status === "Pending") {
+  if (status === "Approval Pending") {
     return <Hourglass className="w-4 h-4 stroke-warning " />;
   }
-  if (status === "Approved") {
+  if (status === "Approved" || status === "Partially Approved") {
     return <CircleCheck className="w-4 h-4 stroke-success" />;
   }
-  if (status === "Rejected") {
-    return <CircleX className="w-4 h-4 stroke-error" />;
+  if (status === "Rejected" || status === "Partially Rejected") {
+    return <CircleX className="w-4 h-4 stroke-destructive" />;
   }
   return <CircleCheck className="w-4 h-4 " />;
 };
