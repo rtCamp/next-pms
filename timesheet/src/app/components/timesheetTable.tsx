@@ -36,7 +36,7 @@ const TimesheetTable = ({
   const timesheetState = useSelector((state: RootState) => state.timesheet);
   return (
     <GenWrapper>
-      <Table className={``}>
+      <Table>
         {hasHeading && (
           <TableHeader>
             <TableRow>
