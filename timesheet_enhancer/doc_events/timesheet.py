@@ -1,4 +1,5 @@
 from frappe import _, get_value, throw
+from frappe.utils import date_diff, getdate, today
 
 ROLES = {
     "Projects Manager",
@@ -9,11 +10,26 @@ ROLES = {
 }
 
 
+def set_date(doc):
+    if doc.docstatus < 2 and doc.time_logs:
+        start_date = min(getdate(d.from_time) for d in doc.time_logs)
+        end_date = max(getdate(d.to_time) for d in doc.time_logs)
+
+        if start_date and end_date:
+            doc.start_date = getdate(start_date)
+            doc.end_date = getdate(end_date)
+
+
 def validate(doc, method=None):
-    validate_dates(doc)
     validate_is_time_billable(doc)
     validate_time(doc)
     update_note(doc)
+
+
+def before_insert(doc, method=None):
+    set_date(doc)
+    validate_existing_timesheet(doc)
+    validate_dates(doc)
 
 
 def update_note(doc):
@@ -56,15 +72,15 @@ def before_save(doc, method=None):
         )
 
 
-def before_insert(doc, method=None):
+def validate_existing_timesheet(doc, method=None):
     import frappe
 
     exists = frappe.db.exists(
         "Timesheet",
         {
             "employee": doc.employee,
-            "start_date": doc.start_date,
-            "end_date": doc.end_date,
+            "start_date": getdate(doc.start_date),
+            "end_date": getdate(doc.end_date),
             "docstatus": ["!=", 2],
         },
     )
@@ -80,42 +96,61 @@ def validate_is_time_billable(doc, method=None):
 
 def validate_dates(doc):
     """Validate if time entry is made for holidays or leave days."""
-    import frappe
-    from frappe.utils import date_diff, getdate
+    # import frappe
+    from frappe import get_roles
 
-    from timesheet_enhancer.api.utils import get_leaves_for_employee
-
+    # from hrms.hr.utils import get_holiday_dates_for_employee
+    # from timesheet_enhancer.api.utils import (
+    #     get_employee_from_user,
+    #     get_leaves_for_employee,
+    # )
+    #  Do not allow the time entry for more then one day.
     if date_diff(doc.end_date, doc.start_date) > 0:
-        frappe.throw(frappe._("Timesheet should not exceed more than one day."))
+        throw(_("Timesheet should not exceed more than one day."))
 
-    frappe_roles = set(frappe.get_roles())
+    frappe_roles = set(get_roles())
     has_access = ROLES.intersection(frappe_roles)
+    # today_date = getdate(today())
 
-    leaves = get_leaves_for_employee(
-        str(doc.start_date), str(doc.end_date), doc.employee
-    )
-
-    # Loop over every leave and check if the time entry is made for the leave days.
-    if leaves:
-        for leave in leaves:
-            from_date = getdate(leave.get("from_date"))
-            to_date = getdate(leave.get("to_date"))
-            half_day = leave.get("half_day")
-            half_day_date = getdate(leave.get("half_day_date"))
-
-            #  we will check for full day leave and the date should be in the range of leave dates.
-            if (
-                from_date <= getdate(doc.start_date) <= to_date
-                and (half_day and half_day_date != getdate(doc.start_date))
-                and not has_access
-            ):
-
-                frappe.throw(
-                    frappe._(
-                        "You can't save time entry for {0} as you have already appliead for the leave."
-                    ).format(doc.start_date)
-                )
-
+    date_gap = date_diff(doc.start_date, today())
     #  In ideal case the employee should not be able to save the time entry for the future dates.
-    if getdate(doc.start_date) > getdate(frappe.utils.nowdate()) and not has_access:
-        frappe.throw(frappe._("You can not save future time entry."))
+    if date_gap > 0 and not has_access:
+        throw(_("You can not save future time entry."))
+
+    #  The emloyee should not be able to save the time entry for more then past 1 day
+    #  excluding holidays and leave.
+    #  The Manager should not be able to save the time entry for more then past 5 days
+    # if (
+    #     doc.start_date < today_date
+    #     and frappe.session.user != "Administrator"
+    #     and date_gap != -1
+    # ):
+    #     employee = get_employee_from_user()
+    #     holidays = get_holiday_dates_for_employee(
+    #         doc.employee, doc.start_date, today_date
+    #     )
+    #     leaves = get_leaves_for_employee(
+    #         str(add_days(doc.start_date, -28)),
+    #         str(add_days(today_date, 28)),
+    #         doc.employee,
+    #     )
+
+    #     for leave in leaves:
+    #         from_date = getdate(leave.from_date)
+    #         to_date = getdate(leave.to_date)
+
+    #         current_date = from_date
+    #         while current_date <= to_date:
+    #             holidays.append(str(current_date))
+    #             current_date = add_days(current_date, 1)
+
+    #     holiday_counter = 0
+    #     for holiday in holidays:
+    #         if doc.start_date <= getdate(holiday) < today_date:
+    #             holiday_counter += 1
+
+    #     if (date_gap + holiday_counter) != -1 and employee == doc.employee:
+    #         throw(_("Back Dated time entry not allowed."))
+
+    #     if (date_gap + holiday_counter) < -5 and has_access:
+    #         throw(_("Back Dated time entry not allowed for more then 5 day."))

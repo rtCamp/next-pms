@@ -23,6 +23,7 @@ const Sidebar = () => {
   const dispatch = useDispatch();
   const { toast } = useToast();
   const hasPmRole = user.roles.includes("Projects Manager");
+  const screenSize = useSelector((state: RootState) => state.app.screenSize);
   useEffect(() => {
     if (!user.appLogo) {
       fetchAppLogo();
@@ -71,6 +72,13 @@ const Sidebar = () => {
       isPmRoute: true,
     },
   ];
+  useEffect(() => {
+    if (screenSize === "sm" || screenSize === "md") {
+      dispatch(setSidebarCollapsed(true));
+    } else {
+      dispatch(setSidebarCollapsed(false));
+    }
+  }, [screenSize]);
   return (
     <GenWrapper>
       <aside
@@ -79,11 +87,21 @@ const Sidebar = () => {
           user.isSidebarCollapsed && "w-16 items-center"
         )}
       >
-        <div className={cn("flex gap-x-2 items-center", !user.isSidebarCollapsed && "pl-3")} id="app-logo">
-          <img src={decodeURIComponent(user.appLogo)} alt="app-logo" className="w-8 h-8" />
+        <div
+          className={cn("flex gap-x-2 items-center overflow-hidden", !user.isSidebarCollapsed && "pl-3")}
+          id="app-logo"
+        >
+          <img
+            src={decodeURIComponent(user.appLogo)}
+            alt="app-logo"
+            className="w-8 h-8 max-xl:w-7 max-xl:h-7 transition-all duration-300 ease-in-out max-lg:w-7 max-lg:h-7 max-md:w-7 max-md:h-7 object-cover"
+          />
           <Typography
             variant="h2"
-            className={cn("transition-all duration-300 ease-in-out", user.isSidebarCollapsed && "hidden")}
+            className={cn(
+              "transition-all duration-300 ease-in-out max-md:hidden text-[1.65vw]",
+              user.isSidebarCollapsed && "hidden"
+            )}
           >
             Timesheet
           </Typography>
@@ -95,12 +113,13 @@ const Sidebar = () => {
               <NavLink
                 to={route.to}
                 key={route.key}
+                title={route.label}
                 className="transition-all duration-300 ease-in-out flex items-center h-9"
               >
                 {({ isActive }: { isActive: boolean }) => (
                   <div
                     className={cn(
-                      "flex w-full pl-2 rounded-lg items-center px-3 py-2 hover:bg-slate-200 text-primary gap-x-2",
+                      "flex w-full pl-2 rounded-lg items-center px-3 py-2 hover:bg-slate-200 text-primary gap-x-2 overflow-hidden",
                       isActive && "bg-primary shadow-md hover:bg-slate-700 "
                     )}
                   >
@@ -124,18 +143,20 @@ const Sidebar = () => {
         <div className="grow"></div>
         <div className={cn("flex justify-between items-center", user.isSidebarCollapsed && "flex-col ")}>
           <Navigation />
-          <Button
-            variant="ghost"
-            className="justify-end  gap-x-2 transition-all duration-300 ease-in-out h-6"
-            onClick={handleCollapse}
-          >
-            <ArrowLeftToLine
-              className={cn(
-                "stroke-primary h-4 w-4 transition-all duration-600",
-                user.isSidebarCollapsed && "rotate-180"
-              )}
-            />
-          </Button>
+          {(screenSize !== "sm" && screenSize !== "md") && (
+            <Button
+              variant="ghost"
+              className="justify-end  gap-x-2 transition-all duration-300 ease-in-out h-6"
+              onClick={handleCollapse}
+            >
+              <ArrowLeftToLine
+                className={cn(
+                  "stroke-primary h-4 w-4 transition-all duration-600",
+                  user.isSidebarCollapsed && "rotate-180"
+                )}
+              />
+            </Button>
+          )}
         </div>
       </aside>
     </GenWrapper>
@@ -153,7 +174,10 @@ const Navigation = () => {
             <AvatarImage src={decodeURIComponent(user.image)} />
             <AvatarFallback>{user.userName[0]}</AvatarFallback>
           </Avatar>
-          <Typography variant="p" className={cn("transition-all duration-800", user.isSidebarCollapsed && "hidden")}>
+          <Typography
+            variant="p"
+            className={cn("transition-all duration-800 max-md:hidden", user.isSidebarCollapsed && "hidden")}
+          >
             {user.userName}
           </Typography>
         </PopoverTrigger>

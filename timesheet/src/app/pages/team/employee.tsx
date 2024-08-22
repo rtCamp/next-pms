@@ -4,12 +4,10 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 import { Spinner } from "@/app/components/spinner";
 import { Table, TableBody, TableCell, TableRow } from "@/app/components/ui/table";
 import { Typography } from "@/app/components/typography";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
-import { cn, floatToTime, getDateFromDateAndTime } from "@/lib/utils";
+import { cn, floatToTime, getDateFromDateAndTime, preProcessLink } from "@/lib/utils";
 import { PencilLine, CirclePlus, CircleDollarSign } from "lucide-react";
-import { useState } from "react";
 import { TaskDataProps, TaskDataItemProps, LeaveProps } from "@/types/timesheet";
-
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
 interface EmployeeProps {
   employee: string;
 }
@@ -40,15 +38,15 @@ export const Employee = ({ employee }: EmployeeProps) => {
               let totalHours = 0;
               return (
                 <TableRow key={task} className="border-b border-slate-200 flex w-full">
-                  <TableCell className="max-w-md w-full">
-                    <Typography variant="p" className="text-slate-800">
+                  <TableCell className="w-full min-w-24 max-w-md overflow-hidden">
+                    <Typography variant="p" className="text-slate-800  truncate w-full">
                       {task}
                     </Typography>
-                    <Typography variant="small" className="text-slate-500">
+                    <Typography variant="small" className="text-slate-500 truncate">
                       {taskData.project_name}
                     </Typography>
                   </TableCell>
-                  {timesheetData.dates.map((date: string) => {
+                  {timesheetData.dates.map((date: string,key:number) => {
                     const data = taskData.data.find(
                       (data: TaskDataItemProps) => getDateFromDateAndTime(data.from_time) === date
                     );
@@ -56,11 +54,12 @@ export const Employee = ({ employee }: EmployeeProps) => {
                       totalHours += data.hours;
                     }
                     const isHoliday = holidays.includes(date);
-                    return <Cell date={date} data={data} isHoliday={isHoliday} disabled />;
+                    return <Cell key={key} date={date} data={data} isHoliday={isHoliday} disabled />;
+                    return <Cell date={date} data={data} isHoliday={isHoliday} />;
                   })}
                   <TableCell
                     className={cn(
-                      "max-w-24 w-full flex justify-between items-center",
+                      "max-w-24 w-full  flex justify-between items-center",
                       !taskData.is_billable && "justify-end"
                     )}
                   >
@@ -69,6 +68,8 @@ export const Employee = ({ employee }: EmployeeProps) => {
                       {floatToTime(totalHours)}
                     </Typography>
                   </TableCell>
+                  {/* added empty TableCell to make it even when screen get's smaller */}
+                  <TableCell className={cn("flex max-w-20 w-full justify-center items-center")}></TableCell>
                 </TableRow>
               );
             })}
@@ -96,7 +97,7 @@ export const EmptyRow = ({
           Add Task
         </Typography>
       </TableCell>
-      {dates.map((date: string) => {
+      {dates.map((date: string,key) => {
         const isHoliday = holidays.includes(date);
         const value = {
           date,
@@ -109,7 +110,7 @@ export const EmptyRow = ({
         };
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //   @ts-ignore
-        return <Cell date={date} data={value} isHoliday={isHoliday} onCellClick={onCellClick} disabled />;
+        return <Cell key={key} date={date} data={value} isHoliday={isHoliday} onCellClick={onCellClick} disabled />;
       })}
       <TableCell className="w-full max-w-24 text-left"></TableCell>
     </TableRow>
@@ -131,7 +132,6 @@ const Cell = ({
   onCellClick?: (val) => void;
   disabled?: boolean;
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
   const isDisabled = disabled || data?.docstatus === 1;
   const handleClick = () => {
     if (isDisabled || !data) return;
@@ -147,42 +147,48 @@ const Cell = ({
 
     onCellClick && onCellClick(value);
   };
-  const onMouseEnter: React.MouseEventHandler<HTMLTableCellElement> = () => {
-    if (isDisabled) return;
-    setIsHovered(true);
-  };
-  const onMouseLeave: React.MouseEventHandler<HTMLTableCellElement> = () => {
-    if (isDisabled) return;
-    setIsHovered(false);
-  };
 
   return (
-    <Tooltip>
+    <HoverCard>
       <TableCell
         key={date}
-        onMouseEnter={onMouseEnter}
         onClick={handleClick}
-        onMouseLeave={onMouseLeave}
         className={cn(
-          "max-w-20 w-full text-center",
-          isDisabled && "cursor-default",
-          isHovered && "bg-slate-100 text-center cursor-pointer"
+          "max-w-20 w-full group text-center hover:bg-slate-100 hover:text-center hover:cursor-pointer",
+          isDisabled && "cursor-default"
         )}
       >
-        <TooltipTrigger className={cn("h-full", isDisabled && "cursor-default")}>
-          {!isHovered && (
-            <Typography variant="p" className={cn("text-slate-600", isHoliday || (isDisabled && "text-slate-400"))}>
+        <HoverCardTrigger className={cn("h-full", isDisabled && "cursor-default")} asChild>
+          <span className="flex flex-col items-center ">
+            <Typography
+              variant="p"
+              className={cn(
+                "text-slate-600",
+                isHoliday || (isDisabled && "text-slate-400"),
+                !data?.hours && "group-hover:hidden"
+              )}
+            >
               {data?.hours ? floatToTime(data?.hours || 0) : "-"}
             </Typography>
-          )}
-          {isHovered && data?.hours && data?.hours > 0 && <PencilLine className="text-center" size={16} />}
-          {isHovered && !data?.hours && <CirclePlus className="text-center" size={16} />}
-        </TooltipTrigger>
+            {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+            {/* @ts-ignore */}
+            <PencilLine
+              className={cn("text-center hidden", data?.hours > 0 && !isDisabled && "group-hover:block")}
+              size={16}
+            />
+            <CirclePlus
+              className={cn("text-center hidden", !data?.hours && !isDisabled && "group-hover:block ")}
+              size={16}
+            />
+          </span>
+        </HoverCardTrigger>
         {data?.description && (
-          <TooltipContent className="whitespace-pre text-left max-w-72 text-wrap">{data?.description}</TooltipContent>
+          <HoverCardContent className="whitespace-pre text-left w-full max-w-96 max-h-52 overflow-auto text-wrap">
+            <p dangerouslySetInnerHTML={{ __html: preProcessLink(data?.description) }}></p>
+          </HoverCardContent>
         )}
       </TableCell>
-    </Tooltip>
+    </HoverCard>
   );
 };
 
@@ -195,7 +201,7 @@ const LeaveRow = ({ leaves, dates, holidays }: { leaves: Array<LeaveProps>; date
     const data = leaves.find((data: LeaveProps) => {
       return date >= data.from_date && date <= data.to_date;
     });
-    const hour = data?.half_day && data?.half_day_date==date ? 4 : 8;
+    const hour = data?.half_day && data?.half_day_date == date ? 4 : 8;
     if (data) {
       total_hours += hour;
     }
@@ -223,7 +229,7 @@ const LeaveRow = ({ leaves, dates, holidays }: { leaves: Array<LeaveProps>; date
           </Typography>
         </TableCell>
       ))}
-       <TableCell className="max-w-24 w-full items-center justify-end flex">
+      <TableCell className="max-w-24 w-full items-center justify-end flex">
         <Typography variant="p" className="text-slate-800 font-medium text-right">
           {floatToTime(total_hours)}
         </Typography>
