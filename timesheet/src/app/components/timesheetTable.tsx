@@ -36,7 +36,7 @@ const TimesheetTable = ({
   const timesheetState = useSelector((state: RootState) => state.timesheet);
   return (
     <GenWrapper>
-      <Table className={`table-fixed`}>
+      <Table>
         {hasHeading && (
           <TableHeader>
             <TableRow>
@@ -78,7 +78,7 @@ const TimesheetTable = ({
               working_hour={working_hour}
             />
           )}
-          {leaves.length > 0 && <LeaveRow dates={dates} leaves={leaves} holidays={holidays} expectedHours={expectatedHours(timesheetState.data.working_hour, timesheetState.data.working_frequency)} />}
+          {leaves.length > 0 && <LeaveRow dates={dates} leaves={leaves} holidays={holidays} expectedHours={expectatedHours(working_hour, working_frequency)} />}
           {Object.keys(tasks).length == 0 && (
             <EmptyRow dates={dates} holidays={holidays} onCellClick={onCellClick} disabled={disabled} />
           )}
@@ -89,7 +89,7 @@ const TimesheetTable = ({
                 <TableRow key={task} className="border-b border-slate-200">
                   <Tooltip delayDuration={0}>
                     <TooltipTrigger asChild>
-                      <TableCell className="cursor-pointer">
+                      <TableCell className="cursor-pointer max-w-sm">
                         <Typography variant="p" className="text-slate-800 truncate overflow-hidden ">
                           {task}
                         </Typography>
@@ -376,7 +376,7 @@ const EmptyRow = ({
 }) => {
   return (
     <TableRow>
-      <TableCell>
+      <TableCell className="min-w-[24rem]">
         <Typography variant="p" className="text-destructive">
           Add Task
         </Typography>
@@ -410,7 +410,8 @@ export const SubmitButton = ({
   onApproval?: (start_date: string, end_date: string) => void;
   status: string;
 }) => {
-  const handleClick = () => {
+  const handleClick = (e:React.MouseEvent) => {
+    e.stopPropagation()
     onApproval && onApproval(start_date, end_date);
   };
   if (status == "Approved") {

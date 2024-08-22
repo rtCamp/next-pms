@@ -38,15 +38,15 @@ export const Employee = ({ employee }: EmployeeProps) => {
               let totalHours = 0;
               return (
                 <TableRow key={task} className="border-b border-slate-200 flex w-full">
-                  <TableCell className="max-w-md w-full">
-                    <Typography variant="p" className="text-slate-800">
+                  <TableCell className="w-full min-w-24 max-w-md overflow-hidden">
+                    <Typography variant="p" className="text-slate-800  truncate w-full">
                       {task}
                     </Typography>
-                    <Typography variant="small" className="text-slate-500">
+                    <Typography variant="small" className="text-slate-500 truncate">
                       {taskData.project_name}
                     </Typography>
                   </TableCell>
-                  {timesheetData.dates.map((date: string) => {
+                  {timesheetData.dates.map((date: string,key:number) => {
                     const data = taskData.data.find(
                       (data: TaskDataItemProps) => getDateFromDateAndTime(data.from_time) === date
                     );
@@ -54,11 +54,12 @@ export const Employee = ({ employee }: EmployeeProps) => {
                       totalHours += data.hours;
                     }
                     const isHoliday = holidays.includes(date);
+                    return <Cell key={key} date={date} data={data} isHoliday={isHoliday} disabled />;
                     return <Cell date={date} data={data} isHoliday={isHoliday} />;
                   })}
                   <TableCell
                     className={cn(
-                      "max-w-24 w-full flex justify-between items-center",
+                      "max-w-24 w-full  flex justify-between items-center",
                       !taskData.is_billable && "justify-end"
                     )}
                   >
@@ -67,6 +68,8 @@ export const Employee = ({ employee }: EmployeeProps) => {
                       {floatToTime(totalHours)}
                     </Typography>
                   </TableCell>
+                  {/* added empty TableCell to make it even when screen get's smaller */}
+                  <TableCell className={cn("flex max-w-20 w-full justify-center items-center")}></TableCell>
                 </TableRow>
               );
             })}
@@ -94,7 +97,7 @@ export const EmptyRow = ({
           Add Task
         </Typography>
       </TableCell>
-      {dates.map((date: string) => {
+      {dates.map((date: string,key) => {
         const isHoliday = holidays.includes(date);
         const value = {
           date,
@@ -107,7 +110,7 @@ export const EmptyRow = ({
         };
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //   @ts-ignore
-        return <Cell date={date} data={value} isHoliday={isHoliday} onCellClick={onCellClick} />;
+        return <Cell key={key} date={date} data={value} isHoliday={isHoliday} onCellClick={onCellClick} disabled />;
       })}
       <TableCell className="w-full max-w-24 text-left"></TableCell>
     </TableRow>

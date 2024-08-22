@@ -246,7 +246,7 @@ const Team = () => {
     <>
       <div className="flex gap-x-2 items-center justify-between mb-3">
         {teamState.isAprrovalDialogOpen && <Approval />}
-        <div id="filters" className="flex gap-x-2">
+        <div id="filters" className="flex gap-x-2 max-md:gap-x-5 max-md:w-4/5 max-md:overflow-scroll">
           <ComboxBox
             value={teamState.statusFilter}
             label="Approval"
@@ -291,15 +291,15 @@ const Team = () => {
           />
         </div>
         <div id="date-filter" className="flex gap-x-2">
-          <Button className="p-1 h-fit" variant="outline" onClick={handleprevWeek}>
-            <ChevronLeft className="w-4 h-4" />
+          <Button title="prev" className="p-1 h-fit" variant="outline" onClick={handleprevWeek}>
+            <ChevronLeft className="w-4 max-md:w-3 h-4 max-md:h-3" />
           </Button>
-          <Button className="p-1 h-fit" variant="outline" onClick={handlenextWeek}>
-            <ChevronRight className="w-4 h-4" />
+          <Button title="next" className="p-1 h-fit" variant="outline" onClick={handlenextWeek}>
+            <ChevronRight className="w-4 max-md:w-3 h-4 max-md:h-3" />
           </Button>
         </div>
       </div>
-      <div className="overflow-y-scroll mb-2" style={{ height: "calc(100vh - 8rem)" }}>
+      <div className="overflow-y-scroll mb-2 " style={{ height: "calc(100vh - 8rem)" }}>
         <Table>
           <TableHeader>
             <TableRow className="flex items-center w-full">
@@ -312,7 +312,7 @@ const Team = () => {
                       <Typography variant="p" className="text-slate-600">
                         {day}
                       </Typography>
-                      <Typography variant="small" className="text-slate-500">
+                      <Typography variant="small" className="text-slate-500 max-lg:text-[0.65rem]">
                         {dateStr}
                       </Typography>
                     </TableHead>
@@ -336,10 +336,11 @@ const Team = () => {
                     <AccordionItem value={key} className="border-b-0">
                       <AccordionTrigger className="hover:no-underline py-0">
                         <span className="w-full flex ">
-                          <TableCell className="w-full max-w-md overflow-hidden">
+                          <TableCell className="w-full min-w-24 max-w-md overflow-hidden">
                             <span
-                              className="flex gap-x-2 items-center font-normal hover:underline w-full"
-                              onClick={() => {
+                              className="flex  gap-x-2 items-center font-normal hover:underline w-full"
+                              onClick={(e) => {
+                                e.stopPropagation()
                                 navigate(`${TEAM}${EMPLOYEE}/${item.name}`);
                               }}
                             >
@@ -386,7 +387,8 @@ const Team = () => {
 
                           <TableCell
                             className="w-full max-w-16 flex items-center justify-end"
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               onStatusClick(item.data[0].date, item.data[item.data.length - 1].date, item.name);
                             }}
                           >

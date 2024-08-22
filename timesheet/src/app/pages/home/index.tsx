@@ -109,7 +109,7 @@ const Home = () => {
   return (
     <>
       <section id="filter-section" className="flex gap-x-3 mb-3">
-        <div className="pr-4 max-w-sm w-full">
+        <div className="pr-4 max-md:pr-2 max-w-sm w-full max-md:w-3/6 max-sm:w-4/6">
           <Input
             placeholder="Employee name"
             value={employee}
@@ -119,23 +119,23 @@ const Home = () => {
         </div>
         <div className="w-full flex">
           <div className="grow flex items-center w-full">
-            <Button variant="outline" className="p-1 h-fit" onClick={handleprevWeek}>
-              <ChevronLeft className="w-4 h-4" />
+            <Button title="prev" variant="outline" className="p-1 h-fit" onClick={handleprevWeek}>
+              <ChevronLeft className="w-4 h-4 max-sm:w-3 max-sm:h-3" />
             </Button>
-            <Typography className="w-full text-center" variant="h6">
+            <Typography className="w-full text-center  max-sm:text-sm  max-md:text-[2vw]" variant="h6">
               {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
               {/* @ts-ignore */}
               {homeState.data.dates.length > 0 && homeState.data.dates[0].key}
             </Typography>
           </div>
           <div className="grow flex items-center w-full">
-            <Typography className="w-full text-center" variant="h6">
+            <Typography className="w-full text-center  max-sm:text-sm max-md:text-[2vw]" variant="h6">
               {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
               {/* @ts-ignore */}
               {homeState.data.dates.length > 0 && homeState.data.dates[1].key}
             </Typography>
-            <Button variant="outline" className="p-1 h-fit" onClick={handlenextWeek}>
-              <ChevronRight className="w-4 h-4" />
+            <Button title="next" variant="outline" className="p-1 h-fit" onClick={handlenextWeek}>
+              <ChevronRight className="w-4 h-4 max-sm:w-3 max-sm:h-3" />
             </Button>
           </div>
         </div>
