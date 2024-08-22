@@ -4,12 +4,10 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 import { Spinner } from "@/app/components/spinner";
 import { Table, TableBody, TableCell, TableRow } from "@/app/components/ui/table";
 import { Typography } from "@/app/components/typography";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
-import { cn, floatToTime, getDateFromDateAndTime } from "@/lib/utils";
+import { cn, floatToTime, getDateFromDateAndTime, preProcessLink } from "@/lib/utils";
 import { PencilLine, CirclePlus, CircleDollarSign } from "lucide-react";
-import { useState } from "react";
 import { TaskDataProps, TaskDataItemProps, LeaveProps } from "@/types/timesheet";
-
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
 interface EmployeeProps {
   employee: string;
 }
@@ -57,6 +55,7 @@ export const Employee = ({ employee }: EmployeeProps) => {
                     }
                     const isHoliday = holidays.includes(date);
                     return <Cell key={key} date={date} data={data} isHoliday={isHoliday} disabled />;
+                    return <Cell date={date} data={data} isHoliday={isHoliday} />;
                   })}
                   <TableCell
                     className={cn(
@@ -133,7 +132,6 @@ const Cell = ({
   onCellClick?: (val) => void;
   disabled?: boolean;
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
   const isDisabled = disabled || data?.docstatus === 1;
   const handleClick = () => {
     if (isDisabled || !data) return;
@@ -149,42 +147,48 @@ const Cell = ({
 
     onCellClick && onCellClick(value);
   };
-  const onMouseEnter: React.MouseEventHandler<HTMLTableCellElement> = () => {
-    if (isDisabled) return;
-    setIsHovered(true);
-  };
-  const onMouseLeave: React.MouseEventHandler<HTMLTableCellElement> = () => {
-    if (isDisabled) return;
-    setIsHovered(false);
-  };
 
   return (
-    <Tooltip>
+    <HoverCard>
       <TableCell
         key={date}
-        onMouseEnter={onMouseEnter}
         onClick={handleClick}
-        onMouseLeave={onMouseLeave}
         className={cn(
-          "flex max-w-20 w-full justify-center items-center",
-          isDisabled && "cursor-default",
-          isHovered && "bg-slate-100 text-center cursor-pointer"
+          "max-w-20 w-full group text-center hover:bg-slate-100 hover:text-center hover:cursor-pointer",
+          isDisabled && "cursor-default"
         )}
       >
-        <TooltipTrigger className={cn("h-full", isDisabled && "cursor-default")}>
-          {!isHovered && (
-            <Typography variant="p" className={cn("text-slate-600", isHoliday || (isDisabled && "text-slate-400"))}>
+        <HoverCardTrigger className={cn("h-full", isDisabled && "cursor-default")} asChild>
+          <span className="flex flex-col items-center ">
+            <Typography
+              variant="p"
+              className={cn(
+                "text-slate-600",
+                isHoliday || (isDisabled && "text-slate-400"),
+                !data?.hours && "group-hover:hidden"
+              )}
+            >
               {data?.hours ? floatToTime(data?.hours || 0) : "-"}
             </Typography>
-          )}
-          {isHovered && data?.hours && data?.hours > 0 && <PencilLine className="text-center" size={16} />}
-          {isHovered && !data?.hours && <CirclePlus className="text-center" size={16} />}
-        </TooltipTrigger>
+            {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+            {/* @ts-ignore */}
+            <PencilLine
+              className={cn("text-center hidden", data?.hours > 0 && !isDisabled && "group-hover:block")}
+              size={16}
+            />
+            <CirclePlus
+              className={cn("text-center hidden", !data?.hours && !isDisabled && "group-hover:block ")}
+              size={16}
+            />
+          </span>
+        </HoverCardTrigger>
         {data?.description && (
-          <TooltipContent className="whitespace-pre text-left max-w-72 text-wrap">{data?.description}</TooltipContent>
+          <HoverCardContent className="whitespace-pre text-left w-full max-w-96 max-h-52 overflow-auto text-wrap">
+            <p dangerouslySetInnerHTML={{ __html: preProcessLink(data?.description) }}></p>
+          </HoverCardContent>
         )}
       </TableCell>
-    </Tooltip>
+    </HoverCard>
   );
 };
 

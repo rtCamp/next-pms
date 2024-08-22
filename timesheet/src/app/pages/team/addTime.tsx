@@ -15,7 +15,7 @@ import { Input } from "@/app/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
 import { Clock3, Search, LoaderCircle } from "lucide-react";
 import { DatePicker } from "@/app/components/datePicker";
-import { getFormatedDate, parseFrappeErrorMsg } from "@/lib/utils";
+import { getFormatedDate, parseFrappeErrorMsg,floatToTime } from "@/lib/utils";
 import { ComboxBox } from "@/app/components/comboBox";
 import { Textarea } from "@/app/components/ui/textarea";
 import { useToast } from "@/app/components/ui/use-toast";
@@ -35,7 +35,7 @@ export const AddTime = () => {
       task: teamState.timesheet.task,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      hours: teamState.timesheet.hours.toString(),
+      hours: floatToTime(teamState.timesheet.hours),
       description: teamState.timesheet.description,
       date: teamState.timesheet.date,
       parent: teamState.timesheet.parent,

@@ -34,7 +34,9 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
     data = {}
     # Retrieve holidays and leaves data outside the loop
     res["holidays"] = get_holiday_dates_for_employee(
-        employee, add_days(start_date, -max_week * 7), add_days(start_date, max_week * 7)
+        employee,
+        add_days(start_date, -max_week * 7),
+        add_days(start_date, max_week * 7),
     )
     res["leaves"] = get_leaves_for_employee(
         add_days(start_date, -max_week * 7),
@@ -225,8 +227,8 @@ def create_timesheet_detail(
             "task": task,
             "hours": hours,
             "description": description,
-            "from_time": date,
-            "to_time": date,
+            "from_time": getdate(date),
+            "to_time": getdate(date),
         },
     )
     timehseet.save()

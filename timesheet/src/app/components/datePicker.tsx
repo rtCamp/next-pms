@@ -1,18 +1,20 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
 import { Button } from "@/app/components/ui/button";
-import { Calendar } from "@/app/components/ui/calendar";
+import { Calendar ,CalendarProps} from "@/app/components/ui/calendar";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { format, isToday, isYesterday } from "date-fns";
 import { Typography } from "./typography";
+import { Matcher } from "react-day-picker";
 
 interface DatePickerProps {
   date?: Date | string;
   disabled?: boolean;
+  disabledDates?: Matcher | Matcher[] | undefined;
   onDateChange?: (date: Date) => void;
 }
 
-export const DatePicker = ({ date, disabled,onDateChange }: DatePickerProps) => {
+export const DatePicker = ({ date, disabled, onDateChange,disabledDates,...props }: DatePickerProps & CalendarProps) => {
   const [pickerDate, setPickerDate] = useState<Date>();
   const [isOpen, setIsOpen] = useState(false);
   useEffect(() => {
@@ -43,7 +45,7 @@ export const DatePicker = ({ date, disabled,onDateChange }: DatePickerProps) => 
         <PopoverContent>
           {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
           {/* @ts-expect-error */}
-          <Calendar mode="single" selected={pickerDate} onSelect={onDateSelect} />
+          <Calendar mode="single" selected={pickerDate} onSelect={onDateSelect} disabled={disabledDates} {...props} />
         </PopoverContent>
       </Popover>
     </div>
