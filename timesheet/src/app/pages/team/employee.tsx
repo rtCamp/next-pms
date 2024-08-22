@@ -4,7 +4,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 import { Spinner } from "@/app/components/spinner";
 import { Table, TableBody, TableCell, TableRow } from "@/app/components/ui/table";
 import { Typography } from "@/app/components/typography";
-import { cn, floatToTime, getDateFromDateAndTime, preProcessLink } from "@/lib/utils";
+import { cn, expectatedHours, floatToTime, getDateFromDateAndTime, preProcessLink } from "@/lib/utils";
 import { PencilLine, CirclePlus, CircleDollarSign } from "lucide-react";
 import { TaskDataProps, TaskDataItemProps, LeaveProps } from "@/types/timesheet";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
@@ -29,7 +29,7 @@ export const Employee = ({ employee }: EmployeeProps) => {
     <div>
       <Table>
         <TableBody>
-          {leaves.length > 0 && <LeaveRow dates={timesheetData.dates} holidays={holidays} leaves={leaves} />}
+          {leaves.length > 0 && <LeaveRow dates={timesheetData.dates} holidays={holidays} leaves={leaves} expectedHours={expectatedHours(timesheetData.working_hour, timesheetData.working_frequency)} />}
           {Object.keys(timesheetData.tasks).length == 0 && <EmptyRow dates={timesheetData.dates} holidays={holidays} />}
           {Object.keys(timesheetData.tasks).length > 0 &&
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -192,7 +192,7 @@ const Cell = ({
   );
 };
 
-const LeaveRow = ({ leaves, dates, holidays }: { leaves: Array<LeaveProps>; dates: string[]; holidays: string[] }) => {
+const LeaveRow = ({ leaves, dates, holidays ,expectedHours }: { leaves: Array<LeaveProps>; dates: string[]; holidays: string[],expectedHours:number }) => {
   let total_hours = 0;
   const leaveData = dates.map((date: string) => {
     if (holidays.includes(date)) {
@@ -201,7 +201,7 @@ const LeaveRow = ({ leaves, dates, holidays }: { leaves: Array<LeaveProps>; date
     const data = leaves.find((data: LeaveProps) => {
       return date >= data.from_date && date <= data.to_date;
     });
-    const hour = data?.half_day && data?.half_day_date == date ? 4 : 8;
+    const hour = data?.half_day && data?.half_day_date == date ? (expectedHours/2) : expectedHours;
     if (data) {
       total_hours += hour;
     }

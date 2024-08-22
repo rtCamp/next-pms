@@ -205,9 +205,9 @@ export const Approval = () => {
                 const isHalfDayLeave = leave?.half_day && leave?.half_day_date == date ? true : false;
                 if (leave && !isHoliday) {
                   if (isHalfDayLeave) {
-                    totalHours += 4;
+                    totalHours += (expectatedHours(working_hour, working_frequency)/2) ;
                   } else {
-                    totalHours += 8;
+                    totalHours +=  expectatedHours(working_hour, working_frequency);
                   }
                 }
 

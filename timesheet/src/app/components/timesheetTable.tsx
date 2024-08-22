@@ -244,11 +244,15 @@ const TotalHourRow = ({
       {dates.map((date: string) => {
         let isLeave = false;
         const isHoliday = holidays.includes(date);
+        // weekends here mean is the day a saturday/sunday or not
+        const dateObj = new Date(date);
+        const isWeekend = dateObj.getDay() === 0 || dateObj.getDay() === 6;
         if (isHoliday) {
+          if(!isWeekend) total += working_hour
           return (
             <TableCell key={date} className="text-center">
               <Typography variant="p" className={cn("text-slate-400")}>
-                {"-"}
+                {isWeekend ? "-" : floatToTime(working_hour)}
               </Typography>
             </TableCell>
           );
@@ -270,9 +274,9 @@ const TotalHourRow = ({
         });
         if (leaveData) {
           if (leaveData.half_day || (leaveData.half_day_date && leaveData.half_day_date == date)) {
-            total_hours += 4;
+            total_hours += working_hour/2;
           } else {
-            total_hours += 8;
+            total_hours += working_hour;
             isLeave = true;
           }
         }
