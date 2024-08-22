@@ -78,7 +78,7 @@ const TimesheetTable = ({
               working_hour={working_hour}
             />
           )}
-          {leaves.length > 0 && <LeaveRow dates={dates} leaves={leaves} holidays={holidays} expectedHours={expectatedHours(timesheetState.data.working_hour, timesheetState.data.working_frequency)} />}
+          {leaves.length > 0 && <LeaveRow dates={dates} leaves={leaves} holidays={holidays} expectedHours={expectatedHours(working_hour, working_frequency)} />}
           {Object.keys(tasks).length == 0 && (
             <EmptyRow dates={dates} holidays={holidays} onCellClick={onCellClick} disabled={disabled} />
           )}
