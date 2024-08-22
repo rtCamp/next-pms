@@ -15,7 +15,7 @@ import { Input } from "@/app/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
 import { Clock3, Search, LoaderCircle } from "lucide-react";
 import { DatePicker } from "@/app/components/datePicker";
-import { getFormatedDate, parseFrappeErrorMsg,floatToTime } from "@/lib/utils";
+import { getFormatedDate, parseFrappeErrorMsg, floatToTime } from "@/lib/utils";
 import { ComboxBox } from "@/app/components/comboBox";
 import { Textarea } from "@/app/components/ui/textarea";
 import { useToast } from "@/app/components/ui/use-toast";
@@ -53,7 +53,6 @@ export const AddTime = () => {
   } = useFrappeGetCall(
     "timesheet_enhancer.api.utils.get_task_for_employee",
     {
-      employee: form.getValues("employee"),
       search: searchTerm,
     },
     "task_for_an_employee",

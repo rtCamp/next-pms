@@ -27,6 +27,7 @@ interface ComboBoxProps {
   rightIcon?: React.ReactNode;
   className?: string;
   showSelected?: boolean;
+  shouldFilter?: boolean;
 }
 
 export const ComboxBox = ({
@@ -42,6 +43,7 @@ export const ComboxBox = ({
   rightIcon,
   className = "",
   showSelected = false,
+  shouldFilter=false
 }: ComboBoxProps) => {
   const [selectedValues, setSelectedValues] = useState<string[]>(value ?? []);
   const [open, setOpen] = useState(isOpen);
@@ -101,7 +103,7 @@ export const ComboxBox = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0 w-96">
-        <Command shouldFilter={false}>
+        <Command shouldFilter={shouldFilter}>
           <CommandInput placeholder={label} onValueChange={onInputChange} />
           <CommandEmpty>No data.</CommandEmpty>
           <CommandGroup>
@@ -134,10 +136,10 @@ export const ComboxBox = ({
               })}
             </CommandList>
           </CommandGroup>
+          <Button variant="ghost" onClick={clearFilter} className="border-t rounded-none font-normal w-full">
+            Clear Filters
+          </Button>
         </Command>
-        <Button variant="ghost" onClick={clearFilter} className="border-t rounded-none font-normal w-full">
-          Clear Filters
-        </Button>
       </PopoverContent>
     </Popover>
   );
