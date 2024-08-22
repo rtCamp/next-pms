@@ -100,7 +100,7 @@ const TimesheetTable = ({
               let totalHours = 0;
               return (
                 <TableRow key={task} className="border-b border-slate-200">
-                  <HoverCard openDelay={0}>
+                  <HoverCard openDelay={0} closeDelay={0}>
                     <HoverCardTrigger asChild>
                       <TableCell className="cursor-pointer max-w-sm">
                         <Typography variant="p" className="text-slate-800 truncate overflow-hidden ">
@@ -348,7 +348,7 @@ const Cell = ({
   };
 
   return (
-    <HoverCard openDelay={0}>
+    <HoverCard openDelay={0} closeDelay={0}>
       <TableCell
         key={date}
         onClick={handleClick}
@@ -373,11 +373,11 @@ const Cell = ({
             {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
             {/* @ts-ignore */}
             <PencilLine
-              className={cn("text-center hidden", data?.hours > 0 && !isDisabled && "group-hover:block")}
+              className={cn("text-center hidden", (data?.hours > 0 && !isDisabled) && "group-hover:block")}
               size={16}
             />
             <CirclePlus
-              className={cn("text-center hidden", !data?.hours && !isDisabled && "group-hover:block ")}
+              className={cn("text-center hidden", (!data?.hours && !isDisabled) && "group-hover:block ")}
               size={16}
             />
           </span>
@@ -445,41 +445,24 @@ export const SubmitButton = ({
     e.stopPropagation();
     onApproval && onApproval(start_date, end_date);
   };
-  if (status == "Approved") {
-    return (
-      <span className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm  ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground mr-1 text-primary bg-green-50 font-normal gap-x-2 p-2">
-        <CircleCheck className="stroke-success w-4 h-4" />
-        {status}
-      </span>
-    );
-  } else if (status == "Rejected") {
-    return (
-      <span className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm  ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground mr-1 text-primary bg-red-50 font-normal gap-x-2 p-2">
-        <CircleX className="stroke-destructive w-4 h-4" />
-        {status}
-      </span>
-    );
-  } else if (status == "Approval Pending") {
-    return (
-      <span
-        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm  ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground mr-1 text-primary bg-orange-50 font-normal gap-x-2 p-2"
-        onClick={handleClick}
-      >
-        <Clock3 className="stroke-warning w-4 h-4" />
-        {status}
-      </span>
-    );
-  } else {
-    return (
-      <span
-        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm  ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground mr-1 font-normal text-slate-400 gap-x-2 p-2"
-        onClick={handleClick}
-      >
-        <CircleCheck className="w-4 h-4" />
-        {status}
-      </span>
-    );
-  }
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm  ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground mr-1 text-primary font-normal gap-x-2 p-2",
+        (status == "Approved" || status == "Partially Approved") && "bg-green-50",
+        (status == "Rejected" || status == "Partially Rejected") && "bg-red-50",
+        status == "Approval Pending"  && "bg-orange-50",
+        status == "Not Submitted" && "text-slate-400"
+      )}
+      onClick={status != "Approved"  ? handleClick : undefined}
+    >
+      {(status == "Approved" || status == "Partially Approved" )&& <CircleCheck className="stroke-success w-4 h-4" />}
+      {(status == "Rejected" || status == "Partially Rejected") && <CircleX className="stroke-destructive w-4 h-4" />}
+      {status == "Approval Pending" && <Clock3 className="stroke-warning w-4 h-4" />}
+      {status == "Not Submitted" && <CircleCheck className="w-4 h-4" />}
+      {status}
+    </span>
+  );
 };
 
 export default TimesheetTable;

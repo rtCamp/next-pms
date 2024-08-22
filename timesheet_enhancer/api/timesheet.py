@@ -310,32 +310,69 @@ def get_timesheet(dates: list, employee: str):
 
 
 def get_timesheet_state(dates: list, employee: str):
+    from frappe.query_builder.functions import Count
 
+    timesheet = frappe.qb.DocType("Timesheet")
     res = "Not Submitted"
-    timesheets = frappe.get_all(
-        "Timesheet",
-        filters={
-            "start_date": [">=", getdate(dates[0])],
-            "end_date": ["<=", getdate(dates[-1])],
-            "employee": employee,
-        },
-        fields=["custom_approval_status"],
-    )
-    if len(timesheets) == 0:
-        return res
-    approved = 0
-    submitted = 0
+    status_counts = {
+        "Approved": 0,
+        "Approval Pending": 0,
+        "Not Submitted": 0,
+        "Rejected": 0,
+    }
+    status_count = (
+        frappe.qb.from_(timesheet)
+        .select(
+            timesheet.custom_approval_status,
+            Count("custom_approval_status").as_("count"),
+        )
+        .where(timesheet.employee == employee)
+        .where(timesheet.start_date >= dates[0])
+        .where(timesheet.end_date <= dates[-1])
+        .groupby(timesheet.custom_approval_status)
+    ).run(as_dict=True)
 
-    for timesheet in timesheets:
-        state = timesheet.get("custom_approval_status")
-        approved += 1 if state == "Approved" else 0
-        submitted += 1 if state == "Approval Pending" else 0
+    for status in status_count:
+        status_counts[status["custom_approval_status"]] = status["count"]
 
-    if approved == 0 and submitted == 0:
-        return res
-    if approved > submitted:
+    if (
+        status_counts.get("Approved") == 0
+        and status_counts.get("Rejected") == 0
+        and status_counts.get("Approval Pending") == 0
+        and status_counts.get("Not Submitted") > 0
+    ):
+        res = "Not Submitted"
+
+    if status_counts.get("Approved") > 0 and (
+        status_counts.get("Approval Pending") > 0
+        or status_counts.get("Rejected") > 0
+        or status_counts.get("Not Submitted") > 0
+    ):
+        res = "Partially Approved"
+
+    if status_counts.get("Rejected") > 0 and (
+        status_counts.get("Approval Pending") > 0
+        or status_counts.get("Approved") > 0
+        or status_counts.get("Not Submitted") > 0
+    ):
+        res = "Partially Rejected"
+
+    if (
+        status_counts.get("Approval Pending") == 0
+        and status_counts.get("Not Submitted") == 0
+        and status_counts.get("Rejected") > 0
+    ):
+        res = "Rejected"
+
+    if (
+        status_counts.get("Approved") > 0
+        and status_counts.get("Approval Pending") == 0
+        and status_counts.get("Rejected") == 0
+        and status_counts.get("Not Submitted") == 0
+    ):
         res = "Approved"
-    else:
+
+    if status_counts.get("Approval Pending") > 0:
         res = "Approval Pending"
     return res
 
