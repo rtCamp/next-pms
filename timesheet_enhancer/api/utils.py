@@ -138,7 +138,15 @@ def get_task_for_employee(search: str = None, page_length: int = 20, start: int 
         "Task",
         filters=filter,
         or_filters=search_filter,
-        fields=["name", "subject", "status", "project.project_name"],
+        fields=[
+            "name",
+            "subject",
+            "status",
+            "priority",
+            "description",
+            "custom_is_billable as is_billable",
+            "project.project_name",
+        ],
         page_length=page_length,
         start=start,
         order_by="name desc",
@@ -177,25 +185,22 @@ def filter_employees(
         filters["department"] = ["in", department]
 
     if project and len(project) > 0:
-        shared_projects = frappe.get_all(
+        project_employee = frappe.get_all(
             "DocShare",
             filters={"share_doctype": "Project", "share_name": ["IN", project]},
-            fields=["user"],
+            pluck="user",
         )
         ids = [
-            frappe.get_value("Employee", {"user_id": shared_project.get("user")})
-            for shared_project in shared_projects
+            frappe.get_value("Employee", {"user_id": employee})
+            for employee in project_employee
         ]
         employee_ids.extend(ids)
 
     if user_group and len(user_group) > 0:
         users = frappe.get_all(
-            "User Group Member", fields=["user"], filters={"parent": ["in", user_group]}
+            "User Group Member", pluck="user", filters={"parent": ["in", user_group]}
         )
-        ids = [
-            frappe.get_value("Employee", {"user_id": user.get("user")})
-            for user in users
-        ]
+        ids = [frappe.get_value("Employee", {"user_id": user}) for user in users]
         employee_ids.extend(ids)
 
     if len(employee_ids) > 0:
