@@ -6,9 +6,9 @@ import { useDispatch } from "react-redux";
 import { Typography } from "@/app/components/typography";
 import { NavLink } from "react-router-dom";
 import { cn, parseFrappeErrorMsg } from "@/lib/utils";
-import { Home, Users, Clock3, ArrowLeftToLine, ArrowRightLeft, LogOut } from "lucide-react";
+import { Home, Users, Clock3, ArrowLeftToLine, ArrowRightLeft, LogOut,ClipboardList } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
-import { TIMESHEET, HOME, TEAM, DESK } from "@/lib/constant";
+import { TIMESHEET, HOME, TEAM, DESK ,TASK} from "@/lib/constant";
 import { FrappeContext, FrappeConfig } from "frappe-react-sdk";
 import { useToast } from "@/app/components/ui/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
@@ -70,6 +70,13 @@ const Sidebar = () => {
       label: "Teams",
       key: "teams",
       isPmRoute: true,
+    },
+    {
+      to: TASK,
+      icon: ClipboardList,
+      label: "Tasks",
+      key: "tasks",
+      isPmRoute: false,
     },
   ];
   useEffect(() => {
