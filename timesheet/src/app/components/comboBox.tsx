@@ -80,7 +80,7 @@ export const ComboxBox = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const onInputChange = deBounce((search) => {
     onSearch && onSearch(search);
-  }, 1000);
+  }, 700);
   useEffect(() => {
     if (open) return;
     if (isMulti && selectedValues.length > 0) {

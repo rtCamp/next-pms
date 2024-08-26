@@ -21,7 +21,15 @@ import {
   setFilters,
 } from "@/store/team";
 import { useToast } from "@/app/components/ui/use-toast";
-import { parseFrappeErrorMsg, prettyDate, floatToTime, getFormatedDate, cn, calculateWeeklyHour, preProcessLink } from "@/lib/utils";
+import {
+  parseFrappeErrorMsg,
+  prettyDate,
+  floatToTime,
+  getFormatedDate,
+  cn,
+  calculateWeeklyHour,
+  preProcessLink,
+} from "@/lib/utils";
 import { useEffect, useCallback } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Table, TableHead, TableHeader, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
@@ -36,11 +44,8 @@ import { ItemProps, dataItem } from "@/types/team";
 import { Spinner } from "@/app/components/spinner";
 import { WorkingFrequency } from "@/types";
 import { useQueryParamsState } from "@/lib/queryParam";
+import { ProjectProps } from "@/types";
 
-type ProjectProps = {
-  project_name: string;
-  name: string;
-};
 type UserGroupProps = {
   name: string;
 };
@@ -342,7 +347,7 @@ const Team = () => {
                             <span
                               className="flex  gap-x-2 items-center font-normal hover:underline w-full"
                               onClick={(e) => {
-                                e.stopPropagation()
+                                e.stopPropagation();
                                 navigate(`${TEAM}${EMPLOYEE}/${item.name}`);
                               }}
                             >

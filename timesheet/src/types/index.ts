@@ -14,4 +14,13 @@ export interface TaskData {
     status: "Open" | "Working" | "Pending Review" | 'Overdue' | "Template" | "Completed" | "Cancelled";
     description: string | null;
     custom_is_billable: boolean;
+    actual_time: number;
+    due_date: string;
+    expected_time: number;
+    _liked_by: string;
 }
+
+export type ProjectProps = {
+    project_name: string;
+    name: string;
+};

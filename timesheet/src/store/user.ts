@@ -3,6 +3,7 @@ import { getCookie } from "@/lib/utils";
 
 const userImage = getCookie("user_image");
 const fullName = getCookie("full_name");
+const user = getCookie("user_id");
 
 interface UserState {
     userName: string;
@@ -11,6 +12,7 @@ interface UserState {
     appLogo: string
     isSidebarCollapsed: boolean
     employee: string
+    user: string
 }
 
 const initialState: UserState = {
@@ -22,6 +24,8 @@ const initialState: UserState = {
     appLogo: window.frappe?.boot?.app_logo_url,
     isSidebarCollapsed: false,
     employee: "",
+    //@ts-ignore
+    user: decodeURIComponent(user)
 };
 
 const userSlice = createSlice({
@@ -50,5 +54,5 @@ const userSlice = createSlice({
 
 });
 
-export const { setRole, setImage, setUserName, setAppLogo, setSidebarCollapsed, setEmployee} = userSlice.actions;
+export const { setRole, setImage, setUserName, setAppLogo, setSidebarCollapsed, setEmployee } = userSlice.actions;
 export default userSlice.reducer;
