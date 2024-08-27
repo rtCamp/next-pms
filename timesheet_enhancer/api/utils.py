@@ -121,10 +121,20 @@ def app_logo():
 
 
 @frappe.whitelist()
-def get_task_for_employee(search: str = None, page_length: int = 20, start: int = 0):
+def get_task_for_employee(
+    search: str = None, page_length: int = 20, start: int = 0, project=None
+):
+    import json
 
-    projects = frappe.get_list("Project", pluck="name")
-    filter = {"project": ["in", projects]}
+    if isinstance(project, str):
+        project = json.loads(project)
+
+    if project:
+        filter = {"project": ["in", project]}
+    else:
+        projects = frappe.get_list("Project", pluck="name")
+        filter = {"project": ["in", projects]}
+
     search_filter = {}
     if search:
         search_filter.update(
@@ -146,13 +156,17 @@ def get_task_for_employee(search: str = None, page_length: int = 20, start: int 
             "description",
             "custom_is_billable as is_billable",
             "project.project_name",
+            "actual_time",
+            "exp_end_date as due_date",
+            "expected_time",
+            "_liked_by",
         ],
         page_length=page_length,
         start=start,
         order_by="name desc",
     )
-
-    return project_task
+    count = frappe.db.count("Task", filters={**filter, **search_filter})
+    return {"task": project_task, "total_count": count}
 
 
 def filter_employees(
@@ -165,6 +179,7 @@ def filter_employees(
 ):
     import json
 
+    roles = frappe.get_roles()
     fields = ["name", "image", "employee_name", "department", "designation"]
     employee_ids = []
     filters = {"status": "Active"}
@@ -172,6 +187,9 @@ def filter_employees(
     if isinstance(department, str):
         department = json.loads(department)
 
+    if "Timesheet User" in roles:
+        current_employee = get_employee_from_user()
+        department = frappe.get_value("Employee", current_employee, "department")
     if isinstance(project, str):
         project = json.loads(project)
 
@@ -206,8 +224,23 @@ def filter_employees(
     if len(employee_ids) > 0:
         filters["name"] = ["in", employee_ids]
 
-    employees = frappe.get_list(
-        "Employee", fields=fields, filters=filters, page_length=page_length, start=start
-    )
-    total_count = len(frappe.get_list("Employee", filters=filters))
+    if "Timesheet User" in roles:
+
+        employees = frappe.get_all(
+            "Employee",
+            fields=fields,
+            filters=filters,
+            page_length=page_length,
+            start=start,
+        )
+    else:
+        employees = frappe.get_list(
+            "Employee",
+            fields=fields,
+            filters=filters,
+            page_length=page_length,
+            start=start,
+        )
+
+    total_count = frappe.db.count("Employee", filters=filters)
     return employees, total_count
