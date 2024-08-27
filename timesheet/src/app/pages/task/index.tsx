@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { setStart, setTaskData, setSelectedProject, setFetchAgain } from "@/store/task";
-import { cn, parseFrappeErrorMsg, floatToTime } from "@/lib/utils";
+import { cn, parseFrappeErrorMsg, floatToTime, getFormatedDate } from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
 import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
@@ -30,10 +30,13 @@ import {
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
 import { updateData } from "@/store/team";
+import { SetAddTimeDialog, SetTimesheet } from "@/store/timesheet";
+import { AddTime } from "@/app/pages/timesheet/addTime";
 
 const Task = () => {
   const task = useSelector((state: RootState) => state.task);
   const user = useSelector((state: RootState) => state.user);
+  const timesheet = useSelector((state: RootState) => state.timesheet);
   const { call } = useFrappePostCall("frappe.desk.like.toggle_like");
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -46,6 +49,21 @@ const Task = () => {
     dispatch(setSelectedProject(projectParam));
   }, []);
 
+  const handleAddTime = (taskName: string) => { 
+    const timesheetData = {
+      name: "",
+      parent: "",
+      task: taskName,
+      date: getFormatedDate(new Date()),
+      description: "",
+      hours: 0,
+      isUpdate: false,
+      employee: user.employee,
+    };
+    console.log("timesheetData", timesheetData);
+    dispatch(SetTimesheet(timesheetData));
+    dispatch(SetAddTimeDialog(true));
+  }
   const { data: projects } = useFrappeGetCall(
     "frappe.client.get_list",
     {
@@ -154,7 +172,7 @@ const Task = () => {
       },
       cell: ({ row }) => {
         return (
-          <Typography variant="p" className="max-w-sm truncate">
+          <Typography variant="p" className="max-w-sm truncate" onClick={() => { handleAddTime(row.original.name)}}>
             {row.original.subject}
           </Typography>
         );
@@ -317,6 +335,7 @@ const Task = () => {
           {`${task.task.length | 0} of ${task.total_count | 0}`}
         </Typography>
       </div>
+      {timesheet.isDialogOpen && <AddTime />}
     </div>
   );
 };
