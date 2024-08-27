@@ -276,14 +276,14 @@ const Navigation = () => {
   return (
     <GenWrapper>
       <Popover>
-        <PopoverTrigger className={cn("flex items-center gap-x-2")}>
+        <PopoverTrigger title={user.userName} className={cn("flex items-center gap-x-2 w-4/5")}>
           <Avatar className="w-8 h-8 justify-self-end transition-all duration-600">
             <AvatarImage src={decodeURIComponent(user.image)} />
             <AvatarFallback>{user.userName[0]}</AvatarFallback>
           </Avatar>
           <Typography
             variant="p"
-            className={cn("transition-all duration-800 max-md:hidden", user.isSidebarCollapsed && "hidden")}
+            className={cn("transition-all duration-800 max-md:hidden overflow-hidden max-w-full max-lg:1/3 truncate", user.isSidebarCollapsed && "hidden")}
           >
             {user.userName}
           </Typography>

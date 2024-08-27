@@ -7,7 +7,7 @@ import { Button } from "@/app/components/ui/button";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { TimesheetSchema } from "@/schema/timesheet";
 import { Typography } from "@/app/components/typography";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -15,13 +15,14 @@ import { Input } from "@/app/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
 import { Clock3, Search, LoaderCircle } from "lucide-react";
 import { DatePicker } from "@/app/components/datePicker";
-import { getFormatedDate, parseFrappeErrorMsg, floatToTime } from "@/lib/utils";
+import { getFormatedDate, parseFrappeErrorMsg, floatToTime, expectatedHours, cn } from "@/lib/utils";
 import { ComboxBox } from "@/app/components/comboBox";
 import { Textarea } from "@/app/components/ui/textarea";
 import { useToast } from "@/app/components/ui/use-toast";
 import { setFetchAgain } from "@/store/team";
 import { Spinner } from "@/app/components/spinner";
 import { DeleteConfirmation } from "@/app/pages/timesheet/addTime";
+import { LeaveProps } from "@/types/timesheet";
 
 export const AddTime = () => {
   const teamState = useSelector((state: RootState) => state.team);
@@ -29,6 +30,8 @@ export const AddTime = () => {
   const dispatch = useDispatch();
   const [searchTerm, setSearchTerm] = useState(teamState.timesheet.task ?? "");
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
+  const [selectedDate, setSelectedDate] = useState(getFormatedDate(teamState.timesheet.date));
+  const userState = useSelector((state: RootState) => state.user);
   const { toast } = useToast();
   const form = useForm<z.infer<typeof TimesheetSchema>>({
     resolver: zodResolver(TimesheetSchema),
@@ -82,7 +85,9 @@ export const AddTime = () => {
     form.setValue("hours", value);
   };
   const handleDateChange = (date: Date) => {
+    if (!date) return;
     form.setValue("date", getFormatedDate(date));
+    setSelectedDate(getFormatedDate(date));
   };
   const handleTaskSearch = (searchTerm: string) => {
     setSearchTerm(searchTerm);
@@ -156,10 +161,43 @@ export const AddTime = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [taskError, employeeDetailError]);
+
+  // For Task remaining hour indicator
+  const { data: perDayEmpHours, mutate: mutatePerDayHrs } = useFrappeGetCall(
+    "timesheet_enhancer.api.timesheet.get_remaining_hour_for_employee",
+    {
+      employee: userState.employee,
+      date: selectedDate,
+    }
+  );
+  const expected_Hour_of_emp = useMemo(() => {
+    const data = teamState.timesheetData.leaves.find((data: LeaveProps) => {
+      return selectedDate >= data.from_date && selectedDate <= data.to_date;
+    });
+    const holidayData = teamState.timesheetData.holidays.find((data: string) => {
+      return selectedDate === data;
+    });
+    if (holidayData) {
+      return 0;
+    }
+    if (data) {
+      const leaveHour =
+        data?.half_day && data?.half_day_date == selectedDate
+          ? expectatedHours(teamState.timesheetData.working_hour, teamState.timesheetData.working_frequency) / 2
+          : 0;
+      return leaveHour;
+    }
+
+    return expectatedHours(teamState.timesheetData.working_hour, teamState.timesheetData.working_frequency);
+  }, [selectedDate]);
+
+  useEffect(() => {
+    mutatePerDayHrs();
+  }, [selectedDate]);
   return (
     <Dialog open={teamState.isDialogOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-xl">
-        <DialogTitle>Add Time</DialogTitle>
+      <DialogTitle className="pb-6">{teamState.timesheet.hours > 0 ? "Edit Time" : "Add Time"}</DialogTitle>
         {taskLoading || employeeDetailLoading ? (
           <Spinner />
         ) : (
@@ -172,7 +210,7 @@ export const AddTime = () => {
                     name="employee"
                     render={() => (
                       <FormItem className="w-full">
-                        <FormLabel>Employee</FormLabel>
+                        <FormLabel className="flex gap-2 items-center text-sm">Employee</FormLabel>
                         <FormControl>
                           <div className="relative flex items-center">
                             <Button
@@ -205,7 +243,32 @@ export const AddTime = () => {
                     name="hours"
                     render={({ field }) => (
                       <FormItem className="w-full">
-                        <FormLabel>Time</FormLabel>
+                        <FormLabel className="flex gap-2 items-center">
+                          <p className="text-sm">Time</p>
+                          {/* Task: Remaining hours indicator */}
+                          {perDayEmpHours && (
+                            <div className="flex gap-x-4">
+                              <div className="flex gap-1 justify-center items-center ">
+                                <Typography
+                                  variant="p"
+                                  className={cn(
+                                    Number(perDayEmpHours?.message) < expected_Hour_of_emp
+                                      ? "text-success"
+                                      : "text-destructive" + " text-xs"
+                                  )}
+                                >
+                                  {`${floatToTime(
+                                    Math.abs(expected_Hour_of_emp - Number(perDayEmpHours?.message))
+                                  )} hrs ${
+                                    expected_Hour_of_emp - Number(perDayEmpHours?.message) >= 0
+                                      ? "remaining"
+                                      : "extended"
+                                  }`}
+                                </Typography>
+                              </div>
+                            </div>
+                          )}
+                        </FormLabel>
                         <FormControl>
                           <div className="relative flex items-center">
                             <Input
@@ -227,7 +290,7 @@ export const AddTime = () => {
                     name="date"
                     render={({ field }) => (
                       <FormItem className="w-full">
-                        <FormLabel>Date</FormLabel>
+                        <FormLabel className="flex gap-2 items-center text-sm">Date</FormLabel>
                         <FormControl>
                           <DatePicker date={field.value} onDateChange={handleDateChange} />
                         </FormControl>
