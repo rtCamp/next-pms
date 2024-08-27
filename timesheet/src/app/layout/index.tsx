@@ -76,7 +76,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 export const PmRoute = () => {
   const user = useSelector((state: RootState) => state.user);
 
-  if (!user.roles.includes("Projects Manager")) {
+  if (!user.roles.includes("Projects Manager") && !user.roles.includes("Timesheet User")) {
     return <Navigate to={TIMESHEET} />;
   }
   return <Outlet />;

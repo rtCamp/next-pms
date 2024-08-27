@@ -6,3 +6,4 @@
 # Patches added in this section will be executed after doctypes are migrated
 timesheet_enhancer.patches.add_project_manager_perm
 timesheet_enhancer.patches.remove_zero_hours_from_timesheet
+timesheet_enhancer.patches.add_timesheet_role
