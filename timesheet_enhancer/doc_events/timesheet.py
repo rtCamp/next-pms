@@ -80,6 +80,7 @@ def validate_existing_timesheet(doc, method=None):
             "employee": doc.employee,
             "start_date": getdate(doc.start_date),
             "end_date": getdate(doc.end_date),
+            "parent_project": doc.parent_project,
             "docstatus": ["!=", 2],
         },
     )

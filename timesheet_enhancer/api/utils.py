@@ -121,6 +121,24 @@ def app_logo():
 
 
 @frappe.whitelist()
+def get_project_task(project=None):
+    import json
+
+    filter = {}
+    if isinstance(project, str):
+        project = json.loads(project)
+        filter.update({"project": ["in", project]})
+
+    projects = frappe.get_list(
+        "Project", fields=["name", "project_name"], filters=filter
+    )
+    for project in projects:
+        project["tasks"] = get_task_for_employee(project=[project["name"]])
+
+    return projects
+
+
+@frappe.whitelist()
 def get_task_for_employee(
     search: str = None, page_length: int = 20, start: int = 0, project=None
 ):
