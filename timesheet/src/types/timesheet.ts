@@ -14,6 +14,7 @@ export interface TaskDataItemProps {
     description: string
     name: string
     parent: string
+    is_billable: boolean
     task: string
     from_time: string
     docstatus: 0 | 1 | 2

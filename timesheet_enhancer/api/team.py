@@ -74,6 +74,7 @@ def get_compact_view_data(
         working_hours = get_employee_working_hours(employee.name)
         local_data = {**employee, **working_hours}
         employee_timesheets = timesheet_map.get(employee.name, [])
+
         status = get_timesheet_state(
             employee=employee.name,
             dates=[dates[0].get("start_date"), dates[-1].get("end_date")],
@@ -111,27 +112,20 @@ def get_compact_view_data(
                 if date in holidays:
                     hour = 0
                     on_leave = False
-                total_hours = next(
-                    (
-                        ts
-                        for ts in employee_timesheets
-                        if ts.start_date == date and ts.end_date == date
-                    ),
-                    None,
-                )
-                if total_hours:
-                    hour += total_hours.get("total_hours")
+                total_hours = 0
+                notes = ""
+                for ts in employee_timesheets:
+                    if ts.start_date == date and ts.end_date == date:
+                        total_hours += ts.get("total_hours")
+                        notes += ts.get("note", "")
+                hour += total_hours
 
                 local_data["data"].append(
                     {
                         "date": date,
                         "hour": hour,
                         "is_leave": on_leave,
-                        "note": (
-                            total_hours.get("note").replace("<br>", "\n")
-                            if total_hours and total_hours.get("note")
-                            else ""
-                        ),
+                        "note": notes.replace("<br>", "\n"),
                     }
                 )
 

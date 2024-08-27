@@ -131,12 +131,15 @@ def save(
     if not name and not task:
         throw(_("Task is required for new entry."))
 
+    project = frappe.get_value("Task", task, "project")
     parent = frappe.db.get_value(
         "Timesheet",
         {
             "employee": employee,
             "start_date": [">=", getdate(date)],
             "end_date": ["<=", getdate(date)],
+            "parent_project": project,
+            "docstatus": ["!=", 2],
         },
         "name",
     )
@@ -273,39 +276,39 @@ def get_timesheet(dates: list, employee: str):
     data = {}
     total_hours = 0
     for date in dates:
-        date = date
-        name = frappe.db.exists(
+        timesheets = frappe.get_all(
             "Timesheet",
-            {
-                "employee": str(employee),
+            filters={
+                "employee": employee,
                 "start_date": getdate(date),
                 "end_date": getdate(date),
                 "docstatus": ["!=", 2],
             },
         )
-        if not name:
+        if not timesheets:
             continue
-        timesheet = frappe.get_doc("Timesheet", name)
-        total_hours += timesheet.total_hours
-        for log in timesheet.time_logs:
-            if not log.task:
-                continue
-            subject, task_name, project_name, is_billable = frappe.get_value(
-                "Task",
-                log.task,
-                ["subject", "name", "project.project_name", "custom_is_billable"],
-            )
-            if not subject:
-                continue
-            if subject not in data:
-                data[subject] = {
-                    "name": task_name,
-                    "data": [],
-                    "is_billable": is_billable,
-                    "project_name": project_name,
-                }
+        for timesheet in timesheets:
+            timesheet = frappe.get_doc("Timesheet", timesheet.get("name"))
+            total_hours += timesheet.total_hours
+            for log in timesheet.time_logs:
+                if not log.task:
+                    continue
+                subject, task_name, project_name, is_billable = frappe.get_value(
+                    "Task",
+                    log.task,
+                    ["subject", "name", "project.project_name", "custom_is_billable"],
+                )
+                if not subject:
+                    continue
+                if subject not in data:
+                    data[subject] = {
+                        "name": task_name,
+                        "data": [],
+                        "is_billable": is_billable,
+                        "project_name": project_name,
+                    }
 
-            data[subject]["data"].append(log.as_dict())
+                data[subject]["data"].append(log.as_dict())
     return [data, total_hours]
 
 
