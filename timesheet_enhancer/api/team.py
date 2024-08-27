@@ -3,6 +3,7 @@ from frappe.utils import nowdate
 from frappe.utils.data import add_days, getdate
 from hrms.hr.utils import get_holiday_dates_for_employee
 
+from .timesheet import get_timesheet_state
 from .utils import get_employee_working_hours, get_week_dates
 
 now = nowdate()
@@ -73,19 +74,12 @@ def get_compact_view_data(
         working_hours = get_employee_working_hours(employee.name)
         local_data = {**employee, **working_hours}
         employee_timesheets = timesheet_map.get(employee.name, [])
-
-        is_approved = sum(
-            1 for ts in employee_timesheets if ts.custom_approval_status == "Approved"
-        )
-        is_pending = sum(
-            1
-            for ts in employee_timesheets
-            if ts.custom_approval_status == "Approval Pending"
+        status = get_timesheet_state(
+            employee=employee.name,
+            dates=[dates[0].get("start_date"), dates[-1].get("end_date")],
         )
 
-        local_data["status"] = "Approved" if is_approved > is_pending else "Pending"
-        if is_approved == 0 and is_pending == 0:
-            local_data["status"] = "Not Submitted"
+        local_data["status"] = status
         local_data["data"] = []
 
         leaves = get_leaves_for_employee(

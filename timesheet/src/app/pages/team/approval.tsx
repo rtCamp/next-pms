@@ -257,7 +257,7 @@ export const Approval = () => {
                         hours: task.hours,
                         isUpdate: task.hours > 0 ? true : false,
                       };
-                      const description = preProcessLink(task.description);
+                      const description = preProcessLink(task.description ?? "");
                       return (
                         <div className="flex gap-x-2 py-1 pl-1 border-b last:border-b-0" key={index}>
                           <TimeInput

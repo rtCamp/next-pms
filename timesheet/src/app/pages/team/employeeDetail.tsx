@@ -325,7 +325,7 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
                                   </Typography>
 
                                   <p
-                                    dangerouslySetInnerHTML={{ __html: preProcessLink(task.description) }}
+                                    dangerouslySetInnerHTML={{ __html: preProcessLink(task.description ?? "") }}
                                     className="text-sm font-normal col-span-2"
                                   ></p>
                                 </div>
