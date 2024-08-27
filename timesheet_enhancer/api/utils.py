@@ -244,3 +244,21 @@ def filter_employees(
 
     total_count = frappe.db.count("Employee", filters=filters)
     return employees, total_count
+
+
+@frappe.whitelist()
+def get_employee(filters=None, fieldname=None):
+    import json
+
+    if not fieldname:
+        fieldname = ["name", "employee_name", "image"]
+
+    if fieldname and isinstance(fieldname, str):
+        fieldname = json.loads(fieldname)
+
+    if filters and isinstance(filters, str):
+        filters = json.loads(filters)
+
+    return frappe.db.get_value(
+        "Employee", filters=filters, fieldname=fieldname, as_dict=True
+    )

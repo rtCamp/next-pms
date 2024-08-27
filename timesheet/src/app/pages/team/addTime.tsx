@@ -27,7 +27,7 @@ export const AddTime = () => {
   const teamState = useSelector((state: RootState) => state.team);
   const { call: deleteCall } = useFrappePostCall("timesheet_enhancer.api.timesheet.delete");
   const dispatch = useDispatch();
-  const [searchTerm, setSearchTerm] = useState(teamState.timesheet.task??"");
+  const [searchTerm, setSearchTerm] = useState(teamState.timesheet.task ?? "");
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
   const { toast } = useToast();
   const form = useForm<z.infer<typeof TimesheetSchema>>({
@@ -68,9 +68,7 @@ export const AddTime = () => {
     data: employeeDetail,
     isLoading: employeeDetailLoading,
     error: employeeDetailError,
-  } = useFrappeGetCall("frappe.client.get_value", {
-    doctype: "Employee",
-    fieldname: ["name", "employee_name", "image"],
+  } = useFrappeGetCall("timesheet_enhancer.api.utils.get_employee", {
     filters: [["name", "=", teamState.employee]],
   });
   const handleOpenChange = () => {
@@ -120,7 +118,7 @@ export const AddTime = () => {
       name: form.getValues("name"),
       parent: form.getValues("parent"),
     };
-    
+
     deleteCall(data)
       .then((res) => {
         toast({
@@ -295,7 +293,7 @@ export const AddTime = () => {
                       Cancel
                     </Button>
                   </div>
-                    {teamState.timesheet.hours>0 && <DeleteConfirmation onDelete={handleDelete} />}
+                  {teamState.timesheet.hours > 0 && <DeleteConfirmation onDelete={handleDelete} />}
                 </DialogFooter>
               </div>
             </form>
