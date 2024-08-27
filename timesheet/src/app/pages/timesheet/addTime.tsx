@@ -164,12 +164,20 @@ export const AddTime = () => {
     const data = timesheetState.data.leaves.find((data: LeaveProps) => {
       return selectedDate >= data.from_date && selectedDate <= data.to_date;
     });
-    
-    if(data){
-      const leaveHour = data?.half_day && data?.half_day_date==selectedDate ? (expectatedHours(timesheetState.data.working_hour, timesheetState.data.working_frequency)/2) : 0;
+    const holidayData = timesheetState.data.holidays.find((data: string) => {
+      return selectedDate === data;
+    });
+    if(holidayData){
+      return 0;
+    }
+    if (data) {
+      const leaveHour =
+        data?.half_day && data?.half_day_date == selectedDate
+          ? expectatedHours(timesheetState.data.working_hour, timesheetState.data.working_frequency) / 2
+          : 0;
       return leaveHour;
     }
-    
+
     return expectatedHours(timesheetState.data.working_hour, timesheetState.data.working_frequency);
   }, [selectedDate]);
   return (
