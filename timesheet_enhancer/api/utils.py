@@ -124,8 +124,8 @@ def app_logo():
 def get_task_for_employee(search: str = None, page_length: int = 20, start: int = 0):
 
     projects = frappe.get_list("Project", pluck="name")
-    search_filter = {"project": ["in", projects]}
-
+    filter = {"project": ["in", projects]}
+    search_filter = {}
     if search:
         search_filter.update(
             {
@@ -136,6 +136,7 @@ def get_task_for_employee(search: str = None, page_length: int = 20, start: int 
 
     project_task = frappe.get_all(
         "Task",
+        filters=filter,
         or_filters=search_filter,
         fields=["name", "subject", "status", "project.project_name"],
         page_length=page_length,
