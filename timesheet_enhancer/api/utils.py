@@ -205,9 +205,6 @@ def filter_employees(
     if isinstance(department, str):
         department = json.loads(department)
 
-    if "Timesheet User" in roles:
-        current_employee = get_employee_from_user()
-        department = frappe.get_value("Employee", current_employee, "department")
     if isinstance(project, str):
         project = json.loads(project)
 
@@ -242,7 +239,7 @@ def filter_employees(
     if len(employee_ids) > 0:
         filters["name"] = ["in", employee_ids]
 
-    if "Timesheet User" in roles:
+    if "Timesheet Manager" in roles:
 
         employees = frappe.get_all(
             "Employee",
