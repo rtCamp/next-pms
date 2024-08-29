@@ -100,39 +100,44 @@ const TimesheetTable = ({
               let totalHours = 0;
               return (
                 <TableRow key={task} className="border-b border-slate-200">
-                  <HoverCard openDelay={0} closeDelay={0}>
-                    <HoverCardTrigger asChild>
-                      <TableCell className="cursor-pointer max-w-sm">
+                  <TableCell className="cursor-pointer max-w-sm">
+                    <HoverCard openDelay={0} closeDelay={0}>
+                      <HoverCardTrigger>
                         <Typography variant="p" className="text-slate-800 truncate overflow-hidden ">
                           {task}
                         </Typography>
-                        <HoverCardContent className="max-w-72">{task}</HoverCardContent>
-                        <Typography
-                          variant="small"
-                          className="text-slate-500 whitespace-nowrap text-ellipsis overflow-hidden "
-                        >
-                          {taskData.project_name}
-                        </Typography>
-                      </TableCell>
-                    </HoverCardTrigger>
-                  </HoverCard>
+                      </HoverCardTrigger>
+                      <Typography
+                        variant="small"
+                        className="text-slate-500 whitespace-nowrap text-ellipsis overflow-hidden "
+                      >
+                        {taskData.project_name}
+                      </Typography>
+
+                      <HoverCardContent className="max-w-72">{task}</HoverCardContent>
+                    </HoverCard>
+                  </TableCell>
                   {dates.map((date: string) => {
-                    let data = taskData.data.find(
+                    let data = taskData.data.filter(
                       (data: TaskDataItemProps) => getDateFromDateAndTime(data.from_time) === date
                     );
-                    if (data && data.hours) {
-                      totalHours += data.hours;
-                    }
-                    if (!data) {
-                      data = {
-                        hours: 0,
-                        description: "",
-                        name: "",
-                        parent: "",
-                        task: taskData.name,
-                        from_time: date,
-                        docstatus: 0,
-                      };
+                    data.forEach((item: TaskDataItemProps) => {
+                      totalHours += item.hours;
+                    });
+
+                    if (data.length === 0) {
+                      data = [
+                        {
+                          hours: 0,
+                          description: "",
+                          name: "",
+                          parent: "",
+                          task: taskData.name,
+                          from_time: date,
+                          docstatus: 0,
+                          is_billable: false,
+                        },
+                      ];
                     }
                     const isHoliday = holidays.includes(date);
                     return (
@@ -248,7 +253,7 @@ const TotalHourRow = ({
         const dateObj = new Date(date);
         const isWeekend = dateObj.getDay() === 0 || dateObj.getDay() === 6;
         if (isHoliday) {
-          if(!isWeekend) total += working_hour
+          if (!isWeekend) total += working_hour;
           return (
             <TableCell key={date} className="text-center">
               <Typography variant="p" className={cn("text-slate-400")}>
@@ -261,12 +266,12 @@ const TotalHourRow = ({
         if (tasks) {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           Object.entries(tasks).map(([task, taskData]: [string, TaskDataProps]) => {
-            const data = taskData.data.find((data: TaskDataItemProps) => {
+            const data = taskData.data.filter((data: TaskDataItemProps) => {
               return getDateFromDateAndTime(data.from_time) === date;
             });
-            if (data && data.hours) {
-              total_hours += data.hours;
-            }
+            data.forEach((item: TaskDataItemProps) => {
+              total_hours += item.hours;
+            });
           });
         }
         const leaveData = leaves.find((data: LeaveProps) => {
@@ -274,7 +279,7 @@ const TotalHourRow = ({
         });
         if (leaveData) {
           if (leaveData.half_day || (leaveData.half_day_date && leaveData.half_day_date == date)) {
-            total_hours += working_hour/2;
+            total_hours += working_hour / 2;
           } else {
             total_hours += working_hour;
             isLeave = true;
@@ -328,26 +333,37 @@ const Cell = ({
   disabled,
 }: {
   date: string;
-  data: TaskDataItemProps | undefined;
+  data: TaskDataItemProps[];
   isHoliday: boolean;
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   onCellClick?: (val) => void;
   disabled?: boolean;
 }) => {
-  const isDisabled = disabled || data?.docstatus === 1;
+  let hours = 0;
+  let description = "";
+  let isTimeBothBillableAndNonBillable = false;
+  let isTimeBillable = false;
+  if (data) {
+    hours = data.reduce((sum, item) => sum + (item.hours || 0), 0);
+    description = data.reduce((desc, item) => desc + (item.description ? item.description + "\n" : ""), "").trim();
+  }
+  if (data && data.length > 0) {
+    isTimeBothBillableAndNonBillable =
+      data.some((item) => item.is_billable == false) && data.some((item) => item.is_billable == true);
+    isTimeBillable = data.every((item) => item.is_billable == true);
+  }
+  const isDisabled = disabled || data?.[0]?.docstatus === 1;
+
   const handleClick = () => {
     if (isDisabled) return;
     const value = {
       date: date,
-      hours: data?.hours ?? "",
-      description: data?.description ?? "",
-      isUpdate: data?.hours && data?.hours > 0 ? true : false,
-      name: data?.name ?? "",
-      parent: data?.parent ?? "",
-      task: data?.task ?? "",
+      hours: hours,
+      description: "",
+      name: "",
+      task: data[0].task ?? "",
     };
-
     onCellClick && onCellClick(value);
   };
 
@@ -362,33 +378,35 @@ const Cell = ({
           "hover:h-full hover:bg-slate-100 hover:cursor-pointer"
         )}
       >
-        <HoverCardTrigger className={cn(isDisabled && "cursor-default")}>
+        <HoverCardTrigger className={cn("", isDisabled && "cursor-default")}>
           <span className="flex flex-col items-center ">
             <Typography
               variant="p"
               className={cn(
                 "text-slate-600",
                 isHoliday || (isDisabled && "text-slate-400"),
-                !data?.hours && "group-hover:hidden"
+                !hours && "group-hover:hidden"
               )}
             >
-              {data?.hours && data?.hours > 0 ? floatToTime(data?.hours || 0) : "-"}
+              {hours > 0 ? floatToTime(hours || 0) : "-"}
             </Typography>
             {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
             {/* @ts-ignore */}
+            {(isTimeBothBillableAndNonBillable || isTimeBillable) && (
+              <CircleDollarSign
+                className={cn("stroke-slate-500 w-4 h-4  group-hover:hidden", isTimeBillable && "stroke-success")}
+              />
+            )}
             <PencilLine
-              className={cn("text-center hidden", (data?.hours > 0 && !isDisabled) && "group-hover:block")}
+              className={cn("text-center hidden", hours > 0 && !isDisabled && "group-hover:block")}
               size={16}
             />
-            <CirclePlus
-              className={cn("text-center hidden", (!data?.hours && !isDisabled) && "group-hover:block ")}
-              size={16}
-            />
+            <CirclePlus className={cn("text-center hidden", !hours && !isDisabled && "group-hover:block ")} size={16} />
           </span>
         </HoverCardTrigger>
-        {data?.description && (
+        {description && (
           <HoverCardContent className="text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto">
-            <p dangerouslySetInnerHTML={{ __html: preProcessLink(data?.description) }}></p>
+            <p dangerouslySetInnerHTML={{ __html: preProcessLink(description) }}></p>
           </HoverCardContent>
         )}
       </TableCell>
@@ -418,11 +436,23 @@ const EmptyRow = ({
       </TableCell>
       {dates.map((date: string) => {
         const isHoliday = holidays.includes(date);
+        const value = [
+          {
+            hours: 0,
+            description: "",
+            name: "",
+            docstatus: 0 as 0 | 1,
+            is_billable: false,
+            from_time: date,
+            task: "",
+            parent: "",
+          },
+        ];
         return (
           <Cell
             key={date}
             date={date}
-            data={undefined}
+            data={value}
             isHoliday={isHoliday}
             onCellClick={onCellClick}
             disabled={disabled}
@@ -455,12 +485,12 @@ export const SubmitButton = ({
         "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm  ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground mr-1 text-primary font-normal gap-x-2 p-2",
         (status == "Approved" || status == "Partially Approved") && "bg-green-50",
         (status == "Rejected" || status == "Partially Rejected") && "bg-red-50",
-        status == "Approval Pending"  && "bg-orange-50",
+        status == "Approval Pending" && "bg-orange-50",
         status == "Not Submitted" && "text-slate-400"
       )}
-      onClick={status != "Approved"  ? handleClick : undefined}
+      onClick={status != "Approved" ? handleClick : undefined}
     >
-      {(status == "Approved" || status == "Partially Approved" )&& <CircleCheck className="stroke-success w-4 h-4" />}
+      {(status == "Approved" || status == "Partially Approved") && <CircleCheck className="stroke-success w-4 h-4" />}
       {(status == "Rejected" || status == "Partially Rejected") && <CircleX className="stroke-destructive w-4 h-4" />}
       {status == "Approval Pending" && <Clock3 className="stroke-warning w-4 h-4" />}
       {status == "Not Submitted" && <CircleCheck className="w-4 h-4" />}

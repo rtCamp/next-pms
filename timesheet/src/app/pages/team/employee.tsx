@@ -29,7 +29,14 @@ export const Employee = ({ employee }: EmployeeProps) => {
     <div>
       <Table>
         <TableBody>
-          {leaves.length > 0 && <LeaveRow dates={timesheetData.dates} holidays={holidays} leaves={leaves} expectedHours={expectatedHours(timesheetData.working_hour, timesheetData.working_frequency)} />}
+          {leaves.length > 0 && (
+            <LeaveRow
+              dates={timesheetData.dates}
+              holidays={holidays}
+              leaves={leaves}
+              expectedHours={expectatedHours(data?.message.working_hour, data?.message.working_frequency)}
+            />
+          )}
           {Object.keys(timesheetData.tasks).length == 0 && <EmptyRow dates={timesheetData.dates} holidays={holidays} />}
           {Object.keys(timesheetData.tasks).length > 0 &&
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -46,16 +53,29 @@ export const Employee = ({ employee }: EmployeeProps) => {
                       {taskData.project_name}
                     </Typography>
                   </TableCell>
-                  {timesheetData.dates.map((date: string,key:number) => {
-                    const data = taskData.data.find(
+                  {timesheetData.dates.map((date: string, key: number) => {
+                    let data = taskData.data.filter(
                       (data: TaskDataItemProps) => getDateFromDateAndTime(data.from_time) === date
                     );
-                    if (data && data.hours) {
-                      totalHours += data.hours;
+                    data.forEach((item: TaskDataItemProps) => {
+                      totalHours += item.hours;
+                    });
+                    if (data.length === 0) {
+                      data = [
+                        {
+                          hours: 0,
+                          description: "",
+                          name: "",
+                          parent: "",
+                          task: taskData.name,
+                          from_time: date,
+                          docstatus: 0,
+                          is_billable: false,
+                        },
+                      ];
                     }
                     const isHoliday = holidays.includes(date);
                     return <Cell key={key} date={date} data={data} isHoliday={isHoliday} disabled />;
-                    return <Cell date={date} data={data} isHoliday={isHoliday} />;
                   })}
                   <TableCell
                     className={cn(
@@ -97,17 +117,19 @@ export const EmptyRow = ({
           Add Task
         </Typography>
       </TableCell>
-      {dates.map((date: string,key) => {
+      {dates.map((date: string, key) => {
         const isHoliday = holidays.includes(date);
-        const value = {
-          date,
-          hours: "",
-          description: "",
-          isUpdate: false,
-          name: "",
-          parent: "",
-          task: "",
-        };
+        const value = [
+          {
+            date,
+            hours: "",
+            description: "",
+            isUpdate: false,
+            name: "",
+            parent: "",
+            task: "",
+          },
+        ];
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //   @ts-ignore
         return <Cell key={key} date={date} data={value} isHoliday={isHoliday} onCellClick={onCellClick} disabled />;
@@ -125,27 +147,34 @@ const Cell = ({
   disabled,
 }: {
   date: string;
-  data: TaskDataItemProps | undefined;
+  data: TaskDataItemProps[];
   isHoliday: boolean;
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   onCellClick?: (val) => void;
   disabled?: boolean;
 }) => {
-  const isDisabled = disabled || data?.docstatus === 1;
+  let hours = 0;
+  let description = "";
+  if (data) {
+    hours = data.reduce((sum, item) => sum + (item.hours || 0), 0);
+    description = data.reduce((desc, item) => desc + (item.description ? item.description + "\n" : ""), "").trim();
+  }
+  const isDisabled = disabled || data?.[0]?.docstatus === 1;
   const handleClick = () => {
-    if (isDisabled || !data) return;
-    const value = {
-      date: date,
-      hours: data?.hours ?? "",
-      description: data?.description ?? "",
-      isUpdate: data?.hours > 0 ? true : false,
-      name: data?.name ?? "",
-      parent: data?.parent ?? "",
-      task: data?.task ?? "",
-    };
-
-    onCellClick && onCellClick(value);
+    if (isDisabled) return;
+    if (hours === 0) {
+      const value = {
+        date: date,
+        hours: 0,
+        description: "",
+        name: "",
+        parent: "",
+        task: data?.[0]?.task ?? "",
+      };
+      onCellClick && onCellClick(value);
+      return;
+    }
   };
 
   return (
@@ -159,32 +188,29 @@ const Cell = ({
         )}
       >
         <HoverCardTrigger className={cn("h-full", isDisabled && "cursor-default")} asChild>
-          <span className="flex flex-col items-center ">
+          <span className="flex flex-col items-center justify-center ">
             <Typography
               variant="p"
               className={cn(
                 "text-slate-600",
                 isHoliday || (isDisabled && "text-slate-400"),
-                !data?.hours && "group-hover:hidden"
+                !hours && "group-hover:hidden"
               )}
             >
-              {data?.hours ? floatToTime(data?.hours || 0) : "-"}
+              {hours > 0 ? floatToTime(hours || 0) : "-"}
             </Typography>
             {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
             {/* @ts-ignore */}
             <PencilLine
-              className={cn("text-center hidden", data?.hours > 0 && !isDisabled && "group-hover:block")}
+              className={cn("text-center hidden", hours > 0 && !isDisabled && "group-hover:block")}
               size={16}
             />
-            <CirclePlus
-              className={cn("text-center hidden", !data?.hours && !isDisabled && "group-hover:block ")}
-              size={16}
-            />
+            <CirclePlus className={cn("text-center hidden", !hours && !isDisabled && "group-hover:block ")} size={16} />
           </span>
         </HoverCardTrigger>
-        {data?.description && (
+        {description && (
           <HoverCardContent className="whitespace-pre text-left w-full max-w-96 max-h-52 overflow-auto text-wrap">
-            <p dangerouslySetInnerHTML={{ __html: preProcessLink(data?.description) }}></p>
+            <p dangerouslySetInnerHTML={{ __html: preProcessLink(description) }}></p>
           </HoverCardContent>
         )}
       </TableCell>
@@ -192,7 +218,17 @@ const Cell = ({
   );
 };
 
-const LeaveRow = ({ leaves, dates, holidays ,expectedHours }: { leaves: Array<LeaveProps>; dates: string[]; holidays: string[],expectedHours:number }) => {
+const LeaveRow = ({
+  leaves,
+  dates,
+  holidays,
+  expectedHours,
+}: {
+  leaves: Array<LeaveProps>;
+  dates: string[];
+  holidays: string[];
+  expectedHours: number;
+}) => {
   let total_hours = 0;
   const leaveData = dates.map((date: string) => {
     if (holidays.includes(date)) {
@@ -201,7 +237,7 @@ const LeaveRow = ({ leaves, dates, holidays ,expectedHours }: { leaves: Array<Le
     const data = leaves.find((data: LeaveProps) => {
       return date >= data.from_date && date <= data.to_date;
     });
-    const hour = data?.half_day && data?.half_day_date == date ? (expectedHours/2) : expectedHours;
+    const hour = data?.half_day && data?.half_day_date == date ? expectedHours / 2 : expectedHours;
     if (data) {
       total_hours += hour;
     }
@@ -214,7 +250,7 @@ const LeaveRow = ({ leaves, dates, holidays ,expectedHours }: { leaves: Array<Le
   if (!hasLeaves) {
     return null;
   }
-
+  console.log(expectedHours, leaveData);
   return (
     <TableRow className="flex">
       <TableCell className="w-full min-w-md text-left max-w-md">

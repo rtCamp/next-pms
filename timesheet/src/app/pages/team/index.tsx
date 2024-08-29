@@ -18,6 +18,7 @@ import {
   setUserGroupSearch,
   setProjectSearch,
   setStatusFilter,
+  setEmployeeName,
   setFilters,
 } from "@/store/team";
 import { useToast } from "@/app/components/ui/use-toast";
@@ -29,8 +30,9 @@ import {
   cn,
   calculateWeeklyHour,
   preProcessLink,
+  deBounce,
 } from "@/lib/utils";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Table, TableHead, TableHeader, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
 import { Typography } from "@/app/components/typography";
@@ -45,6 +47,7 @@ import { Spinner } from "@/app/components/spinner";
 import { WorkingFrequency } from "@/types";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { ProjectProps } from "@/types";
+import { Input } from "@/app/components/ui/input";
 
 type UserGroupProps = {
   name: string;
@@ -65,12 +68,14 @@ const Team = () => {
   const [projectParam, setProjectParam] = useQueryParamsState<string[]>("project", []);
   const [userGroupParam, setUserGroupParam] = useQueryParamsState<string[]>("user-group", []);
   const [statusParam, setStatusParam] = useQueryParamsState<string[]>("status", []);
-
+  const [employeeNameParam, setEmployeeNameParam] = useQueryParamsState<string>("employee-name", "");
+  const [employee, setEmployee] = useState(employeeNameParam);
   useEffect(() => {
     const payload = {
       project: projectParam,
       userGroup: userGroupParam,
       statusFilter: statusParam,
+      employeeName: employeeNameParam,
     };
     dispatch(setFilters(payload));
   }, []);
@@ -115,6 +120,7 @@ const Team = () => {
     date: teamState.weekDate,
     max_week: 1,
     page_length: 20,
+    employee_name: teamState.employeeName,
     project: teamState.project,
     user_group: teamState.userGroup,
     start: teamState.start,
@@ -165,6 +171,12 @@ const Team = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teamState.projectSearch, projectError]);
+
+  useEffect(() => {
+    if (employeeNameParam !== "") {
+      dispatch(setEmployeeName(employeeNameParam));
+    }
+  }, [dispatch, employeeNameParam]);
 
   useEffect(() => {
     if (teamState.userGroupSearch !== "") {
@@ -246,14 +258,32 @@ const Team = () => {
     },
     [dispatch]
   );
-
-  if (isLoading) return <Spinner isFull />;
-
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const onInputChange = useCallback(
+    deBounce((e: React.ChangeEvent<HTMLInputElement>) => {
+      dispatch(setEmployeeName(e.target.value));
+      setEmployeeNameParam(e.target.value);
+    }, 700),
+    [dispatch]
+  );
+  const handleEmployeeChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setEmployee(e.target.value);
+      onInputChange(e);
+    },
+    [onInputChange]
+  );
   return (
     <>
       <div className="flex gap-x-2 items-center justify-between mb-3">
         {teamState.isAprrovalDialogOpen && <Approval />}
         <div id="filters" className="flex gap-x-2 max-md:gap-x-5 max-md:w-4/5 max-md:overflow-scroll">
+          <Input
+            placeholder="Employee name"
+            value={employee}
+            onChange={handleEmployeeChange}
+            className="placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-slate-800"
+          />
           <ComboxBox
             value={teamState.statusFilter}
             label="Approval"
@@ -264,7 +294,7 @@ const Team = () => {
             rightIcon={
               teamState.statusFilter.length > 0 && <Badge className="px-1.5">{teamState.statusFilter.length}</Badge>
             }
-            className="text-primary border-dashed gap-x-2 font-normal"
+            className="text-primary border-dashed gap-x-1 font-normal w-fit"
           />
           <ComboxBox
             value={teamState.project}
@@ -279,7 +309,7 @@ const Team = () => {
               label: item.project_name,
               value: item.name,
             }))}
-            className="text-primary border-dashed gap-x-2 font-normal"
+            className="text-primary border-dashed gap-x-2 font-normal w-fit"
           />
           <ComboxBox
             value={teamState.userGroup}
@@ -294,7 +324,7 @@ const Team = () => {
             isMulti
             leftIcon={<Filter className={cn("h-4 w-4", teamState.userGroup.length != 0 && "fill-primary")} />}
             onSelect={handleUserGroupChange}
-            className="text-primary border-dashed gap-x-2 font-normal"
+            className="text-primary border-dashed gap-x-2 font-normal w-fit"
           />
         </div>
         <div id="date-filter" className="flex gap-x-2">
@@ -306,114 +336,124 @@ const Team = () => {
           </Button>
         </div>
       </div>
-      <div className="overflow-y-scroll mb-2 " style={{ height: "calc(100vh - 8rem)" }}>
-        <Table>
-          <TableHeader>
-            <TableRow className="flex items-center w-full">
-              <TableHead className="w-full max-w-md flex items-center">Members</TableHead>
-              {teamState.data?.dates.map((item: DateProps) => {
-                return item?.dates?.map((date) => {
-                  const { date: dateStr, day } = prettyDate(date);
-                  return (
-                    <TableHead key={date} className="flex flex-col max-w-20 w-full text-center">
-                      <Typography variant="p" className="text-slate-600">
-                        {day}
-                      </Typography>
-                      <Typography variant="small" className="text-slate-500 max-lg:text-[0.65rem]">
-                        {dateStr}
-                      </Typography>
-                    </TableHead>
-                  );
-                });
-              })}
-              <TableHead className="w-full max-w-24 flex items-center justify-end">Total</TableHead>
-              <TableHead className="w-full max-w-20 flex items-center justify-center">
-                <CircleCheck className="w-4 h-4" />
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-            {/* @ts-ignore */}
-            {Object.entries(teamState.data?.data).map(([key, item]: [string, ItemProps]) => {
-              let total = 0;
-              return (
-                <TableRow key={key} className="flex items-center w-full">
-                  <Accordion type="multiple" key={key} className="w-full">
-                    <AccordionItem value={key} className="border-b-0">
-                      <AccordionTrigger className="hover:no-underline py-0">
-                        <span className="w-full flex ">
-                          <TableCell className="w-full min-w-24 max-w-md overflow-hidden">
-                            <span
-                              className="flex  gap-x-2 items-center font-normal hover:underline w-full"
+      {isLoading ? (
+        <Spinner isFull />
+      ) : (
+        <div className="overflow-y-scroll mb-2 " style={{ height: "calc(100vh - 8rem)" }}>
+          <Table>
+            <TableHeader>
+              <TableRow className="flex items-center w-full">
+                <TableHead className="w-full max-w-md flex items-center">Members</TableHead>
+                {teamState.data?.dates.map((item: DateProps) => {
+                  return item?.dates?.map((date) => {
+                    const { date: dateStr, day } = prettyDate(date);
+                    return (
+                      <TableHead key={date} className="flex flex-col max-w-20 w-full text-center">
+                        <Typography variant="p" className="text-slate-600">
+                          {day}
+                        </Typography>
+                        <Typography variant="small" className="text-slate-500 max-lg:text-[0.65rem]">
+                          {dateStr}
+                        </Typography>
+                      </TableHead>
+                    );
+                  });
+                })}
+                <TableHead className="w-full max-w-24 flex items-center justify-end">Total</TableHead>
+                <TableHead className="w-full max-w-20 flex items-center justify-center">
+                  <CircleCheck className="w-4 h-4" />
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+              {/* @ts-ignore */}
+              {Object.entries(teamState.data?.data).map(([key, item]: [string, ItemProps]) => {
+                let total = 0;
+                return (
+                  <TableRow key={key} className="flex items-center w-full">
+                    <Accordion type="multiple" key={key} className="w-full">
+                      <AccordionItem value={key} className="border-b-0">
+                        <AccordionTrigger className="hover:no-underline py-0">
+                          <span className="w-full flex ">
+                            <TableCell className="w-full min-w-24 max-w-md overflow-hidden">
+                              <span
+                                className="flex  gap-x-2 items-center font-normal hover:underline w-full"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`${TEAM}${EMPLOYEE}/${item.name}`);
+                                }}
+                              >
+                                <Avatar className="w-6 h-6">
+                                  <AvatarImage src={decodeURIComponent(item.image)} />
+                                  <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
+                                </Avatar>
+                                <Typography
+                                  variant="p"
+                                  className="w-full text-left text-ellipsis whitespace-nowrap overflow-hidden "
+                                >
+                                  {item.employee_name}
+                                </Typography>
+                              </span>
+                            </TableCell>
+                            {item.data.map((data: dataItem, key) => {
+                              total += data.hour;
+                              return (
+                                <HoverCard key={`${data.hour}-id-${Math.random()}`} openDelay={0}>
+                                  <TableCell
+                                    key={key}
+                                    className={cn("flex max-w-20 w-full justify-center items-center")}
+                                  >
+                                    <HoverCardTrigger>
+                                      <Typography
+                                        className={cn(
+                                          data.is_leave && "text-warning",
+                                          data.hour == 0 && "text-primary"
+                                        )}
+                                        variant="p"
+                                      >
+                                        {data.hour ? floatToTime(data.hour) : "-"}
+                                      </Typography>
+                                    </HoverCardTrigger>
+                                    {data.note && (
+                                      <HoverCardContent className="text-sm font-normal text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto">
+                                        <p dangerouslySetInnerHTML={{ __html: preProcessLink(data.note) }}></p>
+                                      </HoverCardContent>
+                                    )}
+                                  </TableCell>
+                                </HoverCard>
+                              );
+                            })}
+
+                            <WeekTotal
+                              total={total}
+                              expected_hour={item.working_hour}
+                              frequency={item.working_frequency}
+                            />
+
+                            <TableCell
+                              className="w-full max-w-16 flex items-center justify-end"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                navigate(`${TEAM}${EMPLOYEE}/${item.name}`);
+                                onStatusClick(item.data[0].date, item.data[item.data.length - 1].date, item.name);
                               }}
                             >
-                              <Avatar className="w-6 h-6">
-                                <AvatarImage src={decodeURIComponent(item.image)} />
-                                <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
-                              </Avatar>
-                              <Typography
-                                variant="p"
-                                className="w-full text-left text-ellipsis whitespace-nowrap overflow-hidden "
-                              >
-                                {item.employee_name}
-                              </Typography>
-                            </span>
-                          </TableCell>
-                          {item.data.map((data: dataItem, key) => {
-                            total += data.hour;
-                            return (
-                              <HoverCard key={`${data.hour}-id-${Math.random()}`} openDelay={0}>
-                                <TableCell key={key} className={cn("flex max-w-20 w-full justify-center items-center")}>
-                                  <HoverCardTrigger>
-                                    <Typography
-                                      className={cn(data.is_leave && "text-warning", data.hour == 0 && "text-primary")}
-                                      variant="p"
-                                    >
-                                      {data.hour ? floatToTime(data.hour) : "-"}
-                                    </Typography>
-                                  </HoverCardTrigger>
-                                  {data.note && (
-                                    <HoverCardContent className="text-sm font-normal text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto">
-                                      <p dangerouslySetInnerHTML={{ __html: preProcessLink(data.note) }}></p>
-                                    </HoverCardContent>
-                                  )}
-                                </TableCell>
-                              </HoverCard>
-                            );
-                          })}
-
-                          <WeekTotal
-                            total={total}
-                            expected_hour={item.working_hour}
-                            frequency={item.working_frequency}
-                          />
-
-                          <TableCell
-                            className="w-full max-w-16 flex items-center justify-end"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onStatusClick(item.data[0].date, item.data[item.data.length - 1].date, item.name);
-                            }}
-                          >
-                            <Status status={item.status} />
-                          </TableCell>
-                        </span>
-                      </AccordionTrigger>
-                      <AccordionContent className="pb-0">
-                        <Employee employee={item.name} />
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </div>
+                              <Status status={item.status} />
+                            </TableCell>
+                          </span>
+                        </AccordionTrigger>
+                        <AccordionContent className="pb-0">
+                          <Employee employee={item.name} />
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      )}
       <div className="flex justify-between items-center">
         <Button variant="outline" onClick={handleLoadMore} disabled={!teamState.hasMore}>
           Load More

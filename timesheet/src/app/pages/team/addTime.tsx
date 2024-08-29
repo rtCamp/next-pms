@@ -21,18 +21,16 @@ import { Textarea } from "@/app/components/ui/textarea";
 import { useToast } from "@/app/components/ui/use-toast";
 import { setFetchAgain } from "@/store/team";
 import { Spinner } from "@/app/components/spinner";
-import { DeleteConfirmation } from "@/app/pages/timesheet/addTime";
 import { LeaveProps } from "@/types/timesheet";
 
 export const AddTime = () => {
   const teamState = useSelector((state: RootState) => state.team);
-  const { call: deleteCall } = useFrappePostCall("timesheet_enhancer.api.timesheet.delete");
   const dispatch = useDispatch();
   const [searchTerm, setSearchTerm] = useState(teamState.timesheet.task ?? "");
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
   const [selectedDate, setSelectedDate] = useState(getFormatedDate(teamState.timesheet.date));
-  const userState = useSelector((state: RootState) => state.user);
   const { toast } = useToast();
+
   const form = useForm<z.infer<typeof TimesheetSchema>>({
     resolver: zodResolver(TimesheetSchema),
     defaultValues: {
@@ -43,8 +41,6 @@ export const AddTime = () => {
       hours: floatToTime(teamState.timesheet.hours),
       description: teamState.timesheet.description,
       date: teamState.timesheet.date,
-      parent: teamState.timesheet.parent,
-      is_update: teamState.timesheet.isUpdate,
       employee: teamState.employee,
     },
     mode: "onSubmit",
@@ -118,29 +114,7 @@ export const AddTime = () => {
         });
       });
   };
-  const handleDelete = () => {
-    const data = {
-      name: form.getValues("name"),
-      parent: form.getValues("parent"),
-    };
 
-    deleteCall(data)
-      .then((res) => {
-        toast({
-          variant: "success",
-          description: res.message,
-        });
-        dispatch(setFetchAgain(true));
-        handleOpenChange();
-      })
-      .catch((err) => {
-        const error = parseFrappeErrorMsg(err);
-        toast({
-          variant: "destructive",
-          description: error,
-        });
-      });
-  };
   useEffect(() => {
     mutateTask();
   }, [searchTerm, mutateTask]);
@@ -166,7 +140,7 @@ export const AddTime = () => {
   const { data: perDayEmpHours, mutate: mutatePerDayHrs } = useFrappeGetCall(
     "timesheet_enhancer.api.timesheet.get_remaining_hour_for_employee",
     {
-      employee: userState.employee,
+      employee: teamState.employee,
       date: selectedDate,
     }
   );
@@ -197,7 +171,7 @@ export const AddTime = () => {
   return (
     <Dialog open={teamState.isDialogOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-xl">
-      <DialogTitle className="pb-6">{teamState.timesheet.hours > 0 ? "Edit Time" : "Add Time"}</DialogTitle>
+        <DialogTitle className="pb-6">Add Time</DialogTitle>
         {taskLoading || employeeDetailLoading ? (
           <Spinner />
         ) : (
@@ -215,8 +189,8 @@ export const AddTime = () => {
                           <div className="relative flex items-center">
                             <Button
                               variant="outline"
-                              disabled
                               className="justify-start gap-x-3 font-normal w-full truncate"
+                              disabled
                             >
                               {employeeDetail && employeeDetail.message ? (
                                 <>
@@ -356,7 +330,6 @@ export const AddTime = () => {
                       Cancel
                     </Button>
                   </div>
-                  {teamState.timesheet.hours > 0 && <DeleteConfirmation onDelete={handleDelete} />}
                 </DialogFooter>
               </div>
             </form>

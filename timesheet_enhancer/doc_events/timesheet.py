@@ -20,14 +20,12 @@ def set_date(doc):
 
 
 def validate(doc, method=None):
-    validate_is_time_billable(doc)
     validate_time(doc)
     update_note(doc)
 
 
 def before_insert(doc, method=None):
     set_date(doc)
-    validate_existing_timesheet(doc)
     validate_dates(doc)
 
 

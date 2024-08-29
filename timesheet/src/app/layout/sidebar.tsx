@@ -57,7 +57,7 @@ const Sidebar = () => {
   const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
   const { toast } = useToast();
-  const hasPmRole = user.roles.includes("Projects Manager") || user.roles.includes("Timesheet User");
+  const hasPmRole = user.roles.includes("Projects Manager") || user.roles.includes("Timesheet Manager");
   const screenSize = useSelector((state: RootState) => state.app.screenSize);
   useEffect(() => {
     if (!user.appLogo) {

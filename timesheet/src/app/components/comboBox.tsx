@@ -10,7 +10,7 @@ import {
 } from "@/app/components/ui/command";
 import { Check } from "lucide-react";
 import { Typography } from "./typography";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { cn, deBounce } from "@/lib/utils";
 
@@ -70,6 +70,7 @@ export const ComboxBox = ({
       values.push(value);
     }
     setSelectedValues(values);
+    onSelect && onSelect(values);
   };
   const hasValue = selectedValues.length > 0;
   const selectedValue = () => {
@@ -82,12 +83,7 @@ export const ComboxBox = ({
   const onInputChange = deBounce((search) => {
     onSearch && onSearch(search);
   }, 700);
-  useEffect(() => {
-    if (open) return;
-    if (isMulti) {
-      onSelect && onSelect(selectedValues);
-    }
-  }, [isMulti, onSelect, open, selectedValues]);
+
   return (
     <Popover modal open={open} onOpenChange={handleComboClose}>
       <PopoverTrigger asChild>
@@ -138,7 +134,7 @@ export const ComboxBox = ({
             </CommandList>
           </CommandGroup>
           <Button variant="ghost" onClick={clearFilter} className="border-t rounded-none font-normal w-full">
-            Clear Filters
+            Clear Selection
           </Button>
         </Command>
       </PopoverContent>

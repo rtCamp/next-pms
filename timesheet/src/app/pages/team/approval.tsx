@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useToast } from "@/app/components/ui/use-toast";
 import { RootState } from "@/store";
 import { useSelector, useDispatch } from "react-redux";
@@ -26,7 +25,7 @@ import { WorkingFrequency } from "@/types";
 import { TimeInput } from "@/app/pages/team/employeeDetail";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { Separator } from "@/app/components/ui/separator";
-import { Check, X } from "lucide-react";
+import { Check, CircleDollarSign, X } from "lucide-react";
 import { Textarea } from "@/app/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog";
 import { TimesheetRejectionSchema } from "@/schema/timesheet";
@@ -206,9 +205,9 @@ export const Approval = () => {
                 const isHalfDayLeave = leave?.half_day && leave?.half_day_date == date ? true : false;
                 if (leave && !isHoliday) {
                   if (isHalfDayLeave) {
-                    totalHours += (expectatedHours(working_hour, working_frequency)/2) ;
+                    totalHours += expectatedHours(working_hour, working_frequency) / 2;
                   } else {
-                    totalHours +=  expectatedHours(working_hour, working_frequency);
+                    totalHours += expectatedHours(working_hour, working_frequency);
                   }
                 }
 
@@ -268,8 +267,8 @@ export const Approval = () => {
                             callback={handleTimeChange}
                             employee={teamState.employee}
                           />
-                          <div className="grid w-full grid-cols-3 ">
-                            <Typography variant="p" className="font-bold ">
+                          <div className="grid w-full grid-cols-3 gap-x-2">
+                            <Typography variant="p" className="font-bold text-xs truncate">
                               {task.taskName}
                             </Typography>
 

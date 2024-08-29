@@ -14,8 +14,10 @@ export interface TaskDataItemProps {
     description: string
     name: string
     parent: string
+    is_billable: boolean
     task: string
     from_time: string
+    to_time?: string
     docstatus: 0 | 1 | 2
     taskName?: string
     projectName?: string
@@ -52,11 +54,10 @@ export interface timesheet {
 
 export interface NewTimesheetProps {
     name: string;
-    parent: string;
+    parent?: string;
     task: string;
     date: string;
     description: string;
     hours: number;
-    isUpdate: boolean;
-    employee?: string;
+    employee: string;
 }

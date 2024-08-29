@@ -5,19 +5,17 @@ import { DataProp } from "@/types/timesheet";
 export interface TimesheetState {
     timesheet: {
         name: string;
-        parent: string;
         task: string;
         date: string;
         description: string;
         hours: number;
-        isUpdate: boolean;
-        employee?: string;
+        employee: string;
     },
     dateRange: { start_date: string; end_date: string };
-    isFetching: boolean;
     isFetchAgain: boolean;
     data: DataProp;
     isDialogOpen: boolean;
+    isEditDialogOpen: boolean;
     isAprrovalDialogOpen: boolean;
     weekDate: string;
 }
@@ -26,16 +24,13 @@ export interface TimesheetState {
 export const initialState: TimesheetState = {
     timesheet: {
         name: "",
-        parent: "",
         task: "",
         date: "",
         description: "",
         hours: 0,
-        isUpdate: false,
         employee: "",
     },
     dateRange: { start_date: "", end_date: "" },
-    isFetching: false,
     isFetchAgain: false,
     data: {
         working_hour: 0,
@@ -45,6 +40,7 @@ export const initialState: TimesheetState = {
         holidays: [],
     },
     isDialogOpen: false,
+    isEditDialogOpen: false,
     isAprrovalDialogOpen: false,
     weekDate: getTodayDate()
 }
@@ -56,9 +52,6 @@ const timesheetSlice = createSlice({
     reducers: {
         setData: (state, action: PayloadAction<DataProp>) => {
             state.data = action.payload;
-        },
-        SetFetching: (state, action: PayloadAction<boolean>) => {
-            state.isFetching = action.payload;
         },
         SetFetchAgain: (state, action: PayloadAction<boolean>) => {
             state.isFetchAgain = action.payload;
@@ -87,11 +80,19 @@ const timesheetSlice = createSlice({
         resetState: (state) => {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             state = initialState;
+        },
+        setEditDialog: (state, action: PayloadAction<boolean>) => {
+            state.isEditDialogOpen = action.payload;
+            if (!action.payload) {
+                state.timesheet = initialState.timesheet;
+                state.isFetchAgain = true;
+            }
         }
+
     },
 
 });
 
 
-export const { setData, SetFetching, SetFetchAgain, setDateRange, SetTimesheet, SetWeekDate, SetAddTimeDialog, setApprovalDialog, AppendData, resetState } = timesheetSlice.actions;
+export const { setData, SetFetchAgain, setDateRange, SetTimesheet, SetWeekDate, SetAddTimeDialog, setApprovalDialog, AppendData, resetState, setEditDialog } = timesheetSlice.actions;
 export default timesheetSlice.reducer;

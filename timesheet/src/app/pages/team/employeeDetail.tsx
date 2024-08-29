@@ -31,7 +31,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/app/components/ui/command";
-import { ChevronDown, Check } from "lucide-react";
+import { ChevronDown, Check, CircleDollarSign } from "lucide-react";
 import { addDays } from "date-fns";
 import { AddTime } from "./addTime";
 import {
@@ -42,6 +42,8 @@ import {
   setEmployeeWeekDate,
   resetTimesheetDataState,
   setEmployee,
+  setDialog,
+  setEditDialog,
 } from "@/store/team";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
@@ -50,6 +52,7 @@ import { LeaveProps, NewTimesheetProps, TaskDataItemProps, timesheet } from "@/t
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/app/components/ui/input";
 import { timeFormatRegex } from "@/schema/timesheet";
+import { EditTime } from "@/app/pages/timesheet/editTime";
 
 const EmployeeDetail = () => {
   const { id } = useParams();
@@ -65,7 +68,6 @@ const EmployeeDetail = () => {
   const handleAddTime = () => {
     const timesheet = {
       name: "",
-      parent: "",
       task: "",
       date: getFormatedDate(new Date()),
       description: "",
@@ -91,18 +93,9 @@ const EmployeeDetail = () => {
   }, [id]);
 
   useEffect(() => {
-    if (error) {
-      const err = parseFrappeErrorMsg(error);
-      toast({
-        variant: "destructive",
-        description: err,
-      });
-      setFetchAgain(false);
-      return;
-    }
     if (teamState.isFetchAgain) {
       mutate();
-      setFetchAgain(false);
+      dispatch(setFetchAgain(false));
     }
     if (data) {
       if (teamState.timesheetData.data && Object.keys(teamState.timesheetData.data).length > 0) {
@@ -111,12 +104,30 @@ const EmployeeDetail = () => {
         dispatch(setTimesheetData(data.message));
       }
     }
-
+    if (error) {
+      const err = parseFrappeErrorMsg(error);
+      toast({
+        variant: "destructive",
+        description: err,
+      });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, teamState.employeeWeekDate, error, teamState.isFetchAgain]);
   return (
     <>
       {teamState.isDialogOpen && <AddTime />}
+      {teamState.isEditDialogOpen && (
+        <EditTime
+          open={teamState.isEditDialogOpen}
+          employee={teamState.employee}
+          date={teamState.timesheet.date}
+          task={teamState.timesheet.task}
+          onClose={() => {
+            dispatch(setEditDialog(false));
+            dispatch(setFetchAgain(true));
+          }}
+        />
+      )}
       <EmployeeCombo />
       <Tabs defaultValue="timesheet" className="mt-3">
         <div className="flex gap-x-4">
@@ -162,8 +173,12 @@ const Timesheet = () => {
   const dispatch = useDispatch();
 
   const onCellClick = (timesheet: NewTimesheetProps) => {
-    timesheet.isUpdate = timesheet?.hours && timesheet?.hours > 0 ? true : false;
     dispatch(setTimesheet({ timesheet, id }));
+    if (timesheet.hours > 0) {
+      dispatch(setEditDialog(true));
+    } else {
+      dispatch(setDialog(true));
+    }
   };
 
   return (
@@ -305,10 +320,11 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
                               name: task.name,
                               parent: task.parent,
                               task: task.task,
+                              employee: teamState.employee,
                               date: getDateFromDateAndTime(task.from_time),
                               description: task.description,
                               hours: task.hours,
-                              isUpdate: task.hours > 0 ? true : false,
+                              is_billable: task.is_billable,
                             };
                             return (
                               <div className="flex gap-x-4 p-2 border-b last:border-b-0" key={index}>
@@ -320,8 +336,11 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
                                   className="w-12 p-1 h-8"
                                 />
                                 <div className="grid w-full grid-cols-3">
-                                  <Typography variant="p" className="font-bold ">
+                                  <Typography variant="p" className="font-bold flex">
                                     {task.taskName}
+                                    {task.is_billable == true && (
+                                      <CircleDollarSign className="w-4 h-4 ml-1 stroke-success" />
+                                    )}
                                   </Typography>
 
                                   <p
@@ -361,6 +380,7 @@ const EmployeeCombo = () => {
       doctype: "Employee",
       fields: ["name", "employee_name", "image"],
       filters: [["status", "=", "Active"]],
+      limit_page_length: "null",
     },
     { shouldRetryOnError: false }
   );
@@ -402,9 +422,11 @@ const EmployeeCombo = () => {
                 return (
                   <CommandItem
                     key={index}
-                    onSelect={onEmployeeChange}
+                    onSelect={() => {
+                      onEmployeeChange(item.name);
+                    }}
                     className="flex gap-x-2 text-primary font-normal"
-                    value={item.name}
+                    value={item.employee_name}
                   >
                     <Check className={cn("mr-2 h-4 w-4", isActive ? "opacity-100" : "opacity-0")} />
                     <Avatar>

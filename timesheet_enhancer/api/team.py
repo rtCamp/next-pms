@@ -33,6 +33,8 @@ def get_compact_view_data(
         page_length=page_length,
         start=start,
     )
+    status_counter = 0
+    employee_status = {}
     dates = []
     data = {}
     if status_filter and isinstance(status_filter, str):
@@ -70,15 +72,22 @@ def get_compact_view_data(
             timesheet_map[ts.employee] = []
         timesheet_map[ts.employee].append(ts)
 
+    emps = frappe.db.sql('Select name from `tabEmployee` where status = "Active"')
+    for emp in emps:
+        status = get_timesheet_state(
+            employee=emp[0],
+            dates=[dates[0].get("start_date"), dates[-1].get("end_date")],
+        )
+        employee_status[emp[0]] = status
+        if status_filter and status in status_filter:
+            status_counter += 1
+
     for employee in employees:
         working_hours = get_employee_working_hours(employee.name)
         local_data = {**employee, **working_hours}
         employee_timesheets = timesheet_map.get(employee.name, [])
-        status = get_timesheet_state(
-            employee=employee.name,
-            dates=[dates[0].get("start_date"), dates[-1].get("end_date")],
-        )
 
+        status = employee_status.get(employee.name)
         local_data["status"] = status
         local_data["data"] = []
 
@@ -111,27 +120,20 @@ def get_compact_view_data(
                 if date in holidays:
                     hour = 0
                     on_leave = False
-                total_hours = next(
-                    (
-                        ts
-                        for ts in employee_timesheets
-                        if ts.start_date == date and ts.end_date == date
-                    ),
-                    None,
-                )
-                if total_hours:
-                    hour += total_hours.get("total_hours")
+                total_hours = 0
+                notes = ""
+                for ts in employee_timesheets:
+                    if ts.start_date == date and ts.end_date == date:
+                        total_hours += ts.get("total_hours")
+                        notes += ts.get("note", "")
+                hour += total_hours
 
                 local_data["data"].append(
                     {
                         "date": date,
                         "hour": hour,
                         "is_leave": on_leave,
-                        "note": (
-                            total_hours.get("note").replace("<br>", "\n")
-                            if total_hours and total_hours.get("note")
-                            else ""
-                        ),
+                        "note": notes.replace("<br>", "\n"),
                     }
                 )
 
@@ -142,8 +144,11 @@ def get_compact_view_data(
             data[employee.name] = local_data
 
     res["data"] = data
-    res["total_count"] = len(data)
-    res["has_more"] = int(start) + int(page_length) < total_count
+    res["total_count"] = total_count if not status_filter else status_counter
+    if not status_filter:
+        res["has_more"] = int(start) + int(page_length) < total_count
+    else:
+        res["has_more"] = int(start) + int(page_length) < status_counter
     return res
 
 
