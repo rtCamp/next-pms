@@ -37,13 +37,16 @@ const Home = () => {
   const [employee, setEmployee] = useState(employeeNameParam);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    dispatch(setEmployeeName(employeeNameParam));
+  }, []);
+
   const { data, error, mutate, isLoading } = useFrappeGetCall("timesheet_enhancer.api.team.get_compact_view_data", {
     date: homeState.weekDate,
     employee_name: homeState.employeeName,
     page_length: 20,
     start: homeState.start,
   });
-
   useEffect(() => {
     if (homeState.isFetchAgain) {
       mutate();
