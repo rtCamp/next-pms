@@ -42,13 +42,10 @@ export const AddTime = () => {
     defaultValues: {
       name: timesheetState.timesheet.name,
       task: timesheetState.timesheet.task,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       hours: floatToTime(timesheetState.timesheet.hours),
       description: timesheetState.timesheet.description,
       date: timesheetState.timesheet.date,
       parent: timesheetState.timesheet.parent,
-      is_update: timesheetState.timesheet.isUpdate,
       employee: timesheetState.timesheet?.employee ?? userState.employee,
     },
     mode: "onSubmit",
@@ -167,7 +164,7 @@ export const AddTime = () => {
     const holidayData = timesheetState.data.holidays.find((data: string) => {
       return selectedDate === data;
     });
-    if(holidayData){
+    if (holidayData) {
       return 0;
     }
     if (data) {
@@ -184,7 +181,7 @@ export const AddTime = () => {
     <Dialog open={timesheetState.isDialogOpen} onOpenChange={handleOpen}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle className="pb-6">{timesheetState.timesheet.hours > 0 ? "Edit Time" : "Add Time"}</DialogTitle>
+          <DialogTitle className="pb-6">Add Time</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)}>
@@ -308,7 +305,7 @@ export const AddTime = () => {
                 <div className="flex gap-x-4 w-full">
                   <Button disabled={form.formState.isSubmitting}>
                     {form.formState.isSubmitting && <LoaderCircle className="animate-spin w-4 h-4" />}
-                    {timesheetState.timesheet.hours > 0 ? "Edit Time" : "Add Time"}
+                    Add Time
                   </Button>
                   <Button variant="secondary" type="button" onClick={handleOpen}>
                     Cancel

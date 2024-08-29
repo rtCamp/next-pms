@@ -17,6 +17,7 @@ export interface TaskDataItemProps {
     is_billable: boolean
     task: string
     from_time: string
+    to_time?: string
     docstatus: 0 | 1 | 2
     taskName?: string
     projectName?: string
@@ -58,6 +59,5 @@ export interface NewTimesheetProps {
     date: string;
     description: string;
     hours: number;
-    isUpdate: boolean;
-    employee?: string;
+    employee: string;
 }

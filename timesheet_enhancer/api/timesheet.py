@@ -113,23 +113,15 @@ def save(
     date: str,
     description: str,
     task: str,
-    name: str = None,
     hours: float = 0,
     parent: str = None,
-    is_update: bool = False,
     employee: str = None,
 ):
     """Updates/create time entry in Timesheet Detail child table."""
     if not employee:
         employee = get_employee_from_user()
-    if is_update and not name:
-        throw(_("Timesheet is required for update"))
-    if is_update:
-        update_timesheet_detail(name, parent, hours, description, task)
-        return _("Timesheet updated successfully.")
-
-    if not name and not task:
-        throw(_("Task is required for new entry."))
+    if not task:
+        throw(_("Task is mandatory."))
 
     project = frappe.get_value("Task", task, "project")
     parent = frappe.db.get_value(
@@ -143,13 +135,6 @@ def save(
         },
         "name",
     )
-    if parent:
-        existing_log = frappe.db.get_value(
-            "Timesheet Detail", {"parent": parent, "task": task}, "name"
-        )
-        if existing_log:
-            update_timesheet_detail(existing_log, parent, hours, description, task)
-            return _("Timesheet updated successfully.")
     create_timesheet_detail(date, hours, description, task, employee, parent)
     return _("New Timesheet created successfully.")
 
@@ -203,20 +188,37 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
     return _(f"Timesheet has been set for Approval to {reporting_manager}.")
 
 
+@frappe.whitelist()
 def update_timesheet_detail(
-    name: str, parent: str, hours: float, description: str, task: str
+    name: str,
+    parent: str,
+    hours: float,
+    description: str,
+    task: str,
+    date: str | None = None,
+    is_billable: bool = False,
 ):
     parent_doc = frappe.get_doc("Timesheet", parent)
     for log in parent_doc.time_logs:
-        if log.name != name:
+        if not name:
             continue
-        if log.task != task:
-            throw(_("No matching task found for update."))
-        if hours == 0:
-            parent_doc.remove(log)
-            continue
-        log.hours = hours
-        log.description = description
+        if log.name == name:
+            log.hours = hours
+            log.description = description
+            log.is_billable = is_billable
+    if not name:
+        parent_doc.append(
+            "time_logs",
+            {
+                "task": task,
+                "hours": hours,
+                "description": description,
+                "from_time": getdate(date),
+                "to_time": getdate(date),
+                "project": frappe.get_value("Task", task, "project"),
+                "is_billable": is_billable,
+            },
+        )
     if not parent_doc.time_logs:
         parent_doc.delete(ignore_permissions=True)
     else:
@@ -226,6 +228,8 @@ def update_timesheet_detail(
         if parent_doc.total_hours == 0:
             parent_doc.delete(ignore_permissions=True)
 
+    return _("Time entry updated successfully.")
+
 
 def create_timesheet_detail(
     date: str,
@@ -233,12 +237,15 @@ def create_timesheet_detail(
     description: str,
     task: str,
     employee: str,
-    parent: str = None,
+    parent: str | None = None,
 ):
-    if not parent:
-        timehseet = frappe.get_doc({"doctype": "Timesheet", "employee": employee})
-    else:
+    if parent:
         timehseet = frappe.get_doc("Timesheet", parent)
+    else:
+        timehseet = frappe.get_doc({"doctype": "Timesheet", "employee": employee})
+
+    project = frappe.get_value("Task", task, "project")
+    timehseet.update({"parent_project": project})
     timehseet.append(
         "time_logs",
         {
@@ -247,6 +254,7 @@ def create_timesheet_detail(
             "description": description,
             "from_time": getdate(date),
             "to_time": getdate(date),
+            "project": project,
         },
     )
     timehseet.save()
@@ -391,3 +399,31 @@ def get_remaining_hour_for_employee(employee: str, date: str):
     if timesheet:
         return timesheet
     return 0
+
+
+@frappe.whitelist()
+def get_timesheet_details(date: str, task: str, employee: str):
+    """Return the time entry from Timesheet Detail child table based on the list of dates and for the given employee."""
+    pass
+    timesheet_detail = frappe.qb.DocType("Timesheet Detail")
+    timesheet = frappe.qb.DocType("Timesheet")
+
+    res = (
+        frappe.qb.from_(timesheet_detail)
+        .inner_join(timesheet)
+        .on(timesheet_detail.parent == timesheet.name)
+        .select(
+            timesheet_detail.name,
+            timesheet_detail.hours,
+            timesheet_detail.description,
+            timesheet_detail.task,
+            timesheet_detail.from_time,
+            timesheet_detail.to_time,
+            timesheet_detail.parent,
+            timesheet_detail.is_billable,
+        )
+        .where(timesheet_detail.task == task)
+        .where(timesheet.employee == employee)
+        .where(timesheet.start_date == getdate(date))
+    )
+    return res.run(as_dict=True)

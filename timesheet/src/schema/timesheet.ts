@@ -76,7 +76,7 @@ export const TimesheetApprovalSchema = z.object({
   employee: z.string({
     required_error: "Please select a employee.",
   }),
-});
+})
 
 export const TimesheetRejectionSchema = z.object({
   dates: z.array(z.string()).nonempty({
@@ -91,6 +91,34 @@ export const TimesheetRejectionSchema = z.object({
     required_error: "Please select a employee.",
   }),
 });
+
+export const TimesheetUpdateSchema = z.object({
+  name: z.string({}),
+  hours: hourSchema,
+  description: z.string({
+    required_error: "Please enter description.",
+  }).min(4, "Please enter description."),
+  date: z.string({}),
+  task: z.string({}),
+  parent: z.string({}),
+  is_billable: z.boolean({}),
+}).superRefine((v, ctx) => {
+  if (v.hours == 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["hours"],
+      message: "Hour should be greater than 0",
+    });
+  }
+  if (Number(v.hours) > 24) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["hours"],
+      message: "Hour should be less than 24",
+    });
+  }
+});
+
 
 // Preprocessing time function to convert "HH:MM" format to float
 const timeStringToFloat = (value: string) => {

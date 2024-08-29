@@ -11,6 +11,7 @@ import {
   SetWeekDate,
   AppendData,
   setDateRange,
+  setEditDialog,
   setApprovalDialog,
 } from "@/store/timesheet";
 import { Button } from "@/app/components/ui/button";
@@ -21,6 +22,7 @@ import { parseFrappeErrorMsg, getFormatedDate, floatToTime } from "@/lib/utils";
 import { addDays } from "date-fns";
 import { Spinner } from "@/app/components/spinner";
 import { AddTime } from "./addTime";
+import { EditTime } from "./editTime";
 import { Approval } from "./Approval";
 import { NewTimesheetProps, timesheet } from "@/types/timesheet";
 import { WorkingFrequency } from "@/types";
@@ -67,7 +69,6 @@ function Timesheet() {
       date: getFormatedDate(new Date()),
       description: "",
       hours: 0,
-      isUpdate: false,
       employee: user.employee,
     };
     dispatch(SetTimesheet(timesheetData));
@@ -76,9 +77,12 @@ function Timesheet() {
 
   const onCellClick = (data: NewTimesheetProps) => {
     data.employee = user.employee;
-    data.isUpdate = data.hours > 0;
     dispatch(SetTimesheet(data));
-    dispatch(SetAddTimeDialog(true));
+    if (data.hours > 0) {
+      dispatch(setEditDialog(true));
+    } else {
+      dispatch(SetAddTimeDialog(true));
+    }
   };
   const loadData = () => {
     const data = timesheet.data.data;
@@ -115,9 +119,9 @@ function Timesheet() {
           {timesheet.data?.data &&
             Object.keys(timesheet.data?.data).length > 0 &&
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            Object.entries(timesheet.data?.data).map(([key, value]: [string, timesheet]) => {
+            Object.entries(timesheet.data?.data).map(([key, value]: [string, timesheet], index: number) => {
               return (
-                <Accordion type="multiple" key={key} defaultValue={[key]}>
+                <Accordion type="multiple" key={key} defaultValue={index === 0 ? [key] : undefined}>
                   <AccordionItem value={key}>
                     <AccordionTrigger className="hover:no-underline w-full py-2">
                       <div className="flex justify-between items-center w-full">
@@ -155,6 +159,15 @@ function Timesheet() {
         </Button>
       </div>
       {timesheet.isDialogOpen && <AddTime />}
+      {timesheet.isEditDialogOpen && (
+        <EditTime
+          employee={timesheet.timesheet.employee as string}
+          date={timesheet.timesheet.date}
+          task={timesheet.timesheet.task}
+          open={timesheet.isEditDialogOpen}
+          onClose={() => dispatch(setEditDialog(false))}
+        />
+      )}
       {timesheet.isAprrovalDialogOpen && <Approval />}
     </div>
   );
