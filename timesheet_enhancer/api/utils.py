@@ -127,26 +127,58 @@ def get_project_task(project=None):
     filter = {}
     if isinstance(project, str):
         project = json.loads(project)
-        filter.update({"project": ["in", project]})
+        filter.update({"name": ["in", project]})
 
     projects = frappe.get_list(
         "Project", fields=["name", "project_name"], filters=filter
     )
+    fields = [
+        "name",
+        "subject",
+        "status",
+        "priority",
+        "description",
+        "custom_is_billable as is_billable",
+        "actual_time",
+        "exp_end_date as due_date",
+        "expected_time",
+        "_liked_by",
+    ]
     for project in projects:
-        project["tasks"] = get_task_for_employee(project=[project["name"]])
-
-    return projects
+        data = get_task_for_employee(project=[project["name"]], fields=fields)
+        project["tasks"] = data.get("task")
+    count = frappe.db.count("Project", filters=filter)
+    return {"projects": projects, "count": count}
 
 
 @frappe.whitelist()
 def get_task_for_employee(
-    search: str = None, page_length: int = 20, start: int = 0, project=None
+    search: str = None,
+    page_length: int = 20,
+    start: int = 0,
+    project=None,
+    fields: list | str | None = None,
 ):
     import json
 
     if isinstance(project, str):
         project = json.loads(project)
-
+    if fields is None:
+        fields = [
+            "name",
+            "subject",
+            "status",
+            "priority",
+            "description",
+            "custom_is_billable as is_billable",
+            "project.project_name",
+            "actual_time",
+            "exp_end_date as due_date",
+            "expected_time",
+            "_liked_by",
+        ]
+    if isinstance(fields, str):
+        fields = json.loads(fields)
     if project:
         filter = {"project": ["in", project]}
     else:
@@ -166,19 +198,7 @@ def get_task_for_employee(
         "Task",
         filters=filter,
         or_filters=search_filter,
-        fields=[
-            "name",
-            "subject",
-            "status",
-            "priority",
-            "description",
-            "custom_is_billable as is_billable",
-            "project.project_name",
-            "actual_time",
-            "exp_end_date as due_date",
-            "expected_time",
-            "_liked_by",
-        ],
+        fields=fields,
         page_length=page_length,
         start=start,
         order_by="name desc",
