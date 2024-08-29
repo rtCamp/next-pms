@@ -31,7 +31,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/app/components/ui/command";
-import { ChevronDown, Check } from "lucide-react";
+import { ChevronDown, Check, CircleDollarSign } from "lucide-react";
 import { addDays } from "date-fns";
 import { AddTime } from "./addTime";
 import {
@@ -320,8 +320,11 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
                                   className="w-12 p-1 h-8"
                                 />
                                 <div className="grid w-full grid-cols-3">
-                                  <Typography variant="p" className="font-bold ">
+                                  <Typography variant="p" className="font-bold flex">
                                     {task.taskName}
+                                    {task.is_billable == true && (
+                                      <CircleDollarSign className="w-4 h-4 ml-1 stroke-success" />
+                                    )}
                                   </Typography>
 
                                   <p
@@ -361,6 +364,7 @@ const EmployeeCombo = () => {
       doctype: "Employee",
       fields: ["name", "employee_name", "image"],
       filters: [["status", "=", "Active"]],
+      limit_page_length: "null",
     },
     { shouldRetryOnError: false }
   );
@@ -402,9 +406,11 @@ const EmployeeCombo = () => {
                 return (
                   <CommandItem
                     key={index}
-                    onSelect={onEmployeeChange}
+                    onSelect={() => {
+                      onEmployeeChange(item.name);
+                    }}
                     className="flex gap-x-2 text-primary font-normal"
-                    value={item.name}
+                    value={item.employee_name}
                   >
                     <Check className={cn("mr-2 h-4 w-4", isActive ? "opacity-100" : "opacity-0")} />
                     <Avatar>
