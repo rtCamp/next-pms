@@ -49,7 +49,7 @@ export const ComboxBox = ({
   const [open, setOpen] = useState(isOpen);
   const clearFilter = () => {
     setSelectedValues([]);
-    onSelect && onSelect(isMulti ? [] : "");
+    onSelect && onSelect([]);
     setOpen(!open);
   };
   const handleComboClose = () => {
@@ -57,8 +57,9 @@ export const ComboxBox = ({
   };
   const handleSelect = (value: string) => {
     if (!isMulti) {
+      if (selectedValues.includes(value)) return clearFilter();
       setSelectedValues([value]);
-      onSelect && onSelect(value);
+      onSelect && onSelect([value]);
       setOpen(false);
       return;
     }
@@ -110,7 +111,7 @@ export const ComboxBox = ({
                   <CommandItem
                     key={index}
                     onSelect={handleSelect}
-                    className="flex gap-x-2 text-primary"
+                    className="flex gap-x-2 text-primary cursor-pointer"
                     value={item.value}
                   >
                     {!isMulti ? (
@@ -120,10 +121,10 @@ export const ComboxBox = ({
                     )}
 
                     <div className="flex flex-col w-full overflow-hidden">
-                      <Typography className="truncate cursor-pointer" variant="p">
+                      <Typography className="truncate" variant="p">
                         {item.label}
                       </Typography>
-                      <Typography className="truncate cursor-pointer" variant="small">
+                      <Typography className="truncate" variant="small">
                         {item.description}
                       </Typography>
                     </div>

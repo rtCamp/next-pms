@@ -24,3 +24,14 @@ export type ProjectProps = {
     project_name: string;
     name: string;
 };
+
+export interface ProjectNestedTaskData {
+    project_name: string;
+    name: string;
+    tasks:TaskData[];
+}
+
+export interface ProjectData {
+    projects:ProjectNestedTaskData[];
+    count:number;
+}

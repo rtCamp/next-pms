@@ -53,6 +53,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           <Sidebar />
         </GenWrapper>
         <div
+        className="w-full overflow-hidden"
           style={{
             width: `${screenSize === "sm" || screenSize === "md" ? "calc(100% - 64px)" : "100%"}`,
             display: "flex",
