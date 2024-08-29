@@ -125,13 +125,12 @@ const TimesheetTable = ({
                       totalHours += item.hours;
                     });
 
-                    if (!data) {
+                    if (data.length === 0) {
                       data = [
                         {
                           hours: 0,
                           description: "",
                           name: "",
-                          parent: "",
                           task: taskData.name,
                           from_time: date,
                           docstatus: 0,
@@ -333,7 +332,7 @@ const Cell = ({
   disabled,
 }: {
   date: string;
-  data: TaskDataItemProps[] | undefined;
+  data: TaskDataItemProps[];
   isHoliday: boolean;
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -355,21 +354,18 @@ const Cell = ({
     isTimeBillable = data.every((item) => item.is_billable == true);
   }
   const isDisabled = disabled || data?.[0]?.docstatus === 1;
+
   const handleClick = () => {
     if (isDisabled) return;
-    if (hours === 0) {
-      const value = {
-        date: date,
-        hours: 0,
-        description: "",
-        isUpdate: false,
-        name: "",
-        parent: "",
-        task: data?.[0]?.task ?? "",
-      };
-      onCellClick && onCellClick(value);
-      return;
-    }
+    const value = {
+      date: date,
+      hours: hours,
+      description: "",
+      isUpdate: hours > 0,
+      name: "",
+      task: data[0].task ?? "",
+    };
+    onCellClick && onCellClick(value);
   };
 
   return (
@@ -441,11 +437,22 @@ const EmptyRow = ({
       </TableCell>
       {dates.map((date: string) => {
         const isHoliday = holidays.includes(date);
+        const value = [
+          {
+            hours: 0,
+            description: "",
+            name: "",
+            docstatus: 0 as 0 | 1,
+            is_billable: false,
+            from_time: date,
+            task: "",
+          },
+        ];
         return (
           <Cell
             key={date}
             date={date}
-            data={undefined}
+            data={value}
             isHoliday={isHoliday}
             onCellClick={onCellClick}
             disabled={disabled}

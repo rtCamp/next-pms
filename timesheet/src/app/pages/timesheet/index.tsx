@@ -64,7 +64,6 @@ function Timesheet() {
   const handleAddTime = () => {
     const timesheetData = {
       name: "",
-      parent: "",
       task: "",
       date: getFormatedDate(new Date()),
       description: "",

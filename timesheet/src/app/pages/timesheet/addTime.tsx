@@ -45,7 +45,6 @@ export const AddTime = () => {
       hours: floatToTime(timesheetState.timesheet.hours),
       description: timesheetState.timesheet.description,
       date: timesheetState.timesheet.date,
-      parent: timesheetState.timesheet.parent,
       employee: timesheetState.timesheet?.employee ?? userState.employee,
     },
     mode: "onSubmit",

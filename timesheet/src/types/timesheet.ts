@@ -13,7 +13,7 @@ export interface TaskDataItemProps {
     hours: number
     description: string
     name: string
-    parent: string
+    parent?: string
     is_billable: boolean
     task: string
     from_time: string
@@ -54,7 +54,7 @@ export interface timesheet {
 
 export interface NewTimesheetProps {
     name: string;
-    parent: string;
+    parent?: string;
     task: string;
     date: string;
     description: string;

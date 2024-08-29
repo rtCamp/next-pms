@@ -5,7 +5,6 @@ import { DataProp } from "@/types/timesheet";
 export interface TimesheetState {
     timesheet: {
         name: string;
-        parent: string;
         task: string;
         date: string;
         description: string;
@@ -25,7 +24,6 @@ export interface TimesheetState {
 export const initialState: TimesheetState = {
     timesheet: {
         name: "",
-        parent: "",
         task: "",
         date: "",
         description: "",
