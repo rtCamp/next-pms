@@ -248,6 +248,7 @@ def filter_employees(
             page_length=page_length,
             start=start,
         )
+        total_count = len(frappe.get_all("Employee", pluck="name", filters=filters))
     else:
         employees = frappe.get_list(
             "Employee",
@@ -256,8 +257,8 @@ def filter_employees(
             page_length=page_length,
             start=start,
         )
+        total_count = len(frappe.get_list("Employee", pluck="name", filters=filters))
 
-    total_count = frappe.db.count("Employee", filters=filters)
     return employees, total_count
 
 
