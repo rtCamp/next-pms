@@ -29,7 +29,6 @@ import { LeaveProps } from "@/types/timesheet";
 
 export const AddTime = () => {
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
-  const { call: deleteCall } = useFrappePostCall("timesheet_enhancer.api.timesheet.delete");
   const timesheetState = useSelector((state: RootState) => state.timesheet);
   const [searchTerm, setSearchTerm] = useState(timesheetState.timesheet.task ?? "");
   const [selectedDate, setSelectedDate] = useState(getFormatedDate(timesheetState.timesheet.date));
@@ -127,28 +126,7 @@ export const AddTime = () => {
         });
       });
   };
-  const handleDelete = () => {
-    const data = {
-      name: form.getValues("name"),
-      parent: form.getValues("parent"),
-    };
-    deleteCall(data)
-      .then((res) => {
-        toast({
-          variant: "success",
-          description: res.message,
-        });
-        dispatch(SetFetchAgain(true));
-        handleOpen();
-      })
-      .catch((err) => {
-        const error = parseFrappeErrorMsg(err);
-        toast({
-          variant: "destructive",
-          description: error,
-        });
-      });
-  };
+
   useEffect(() => {
     mutateTask();
   }, [searchTerm, mutateTask]);
@@ -310,7 +288,6 @@ export const AddTime = () => {
                     Cancel
                   </Button>
                 </div>
-                {timesheetState.timesheet.hours > 0 && <DeleteConfirmation onDelete={handleDelete} />}
               </DialogFooter>
             </div>
           </form>

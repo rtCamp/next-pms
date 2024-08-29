@@ -39,9 +39,6 @@ export const TimesheetSchema = z
     date: z.string({
       required_error: "Please enter date.",
     }),
-
-    parent: z.string({}).optional(),
-    is_update: z.boolean({}),
     employee: z.string({}),
   })
   .superRefine((v, ctx) => {

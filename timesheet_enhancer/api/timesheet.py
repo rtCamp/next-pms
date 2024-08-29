@@ -114,8 +114,10 @@ def save(
     description: str,
     task: str,
     hours: float = 0,
+    name: str = None,
     parent: str = None,
     employee: str = None,
+    is_billable: bool = False,
 ):
     """Updates/create time entry in Timesheet Detail child table."""
     if not employee:
@@ -124,19 +126,23 @@ def save(
         throw(_("Task is mandatory."))
 
     project = frappe.get_value("Task", task, "project")
-    parent = frappe.db.get_value(
-        "Timesheet",
-        {
-            "employee": employee,
-            "start_date": [">=", getdate(date)],
-            "end_date": ["<=", getdate(date)],
-            "parent_project": project,
-            "docstatus": ["!=", 2],
-        },
-        "name",
+    if not name and not parent:
+        parent = frappe.db.get_value(
+            "Timesheet",
+            {
+                "employee": employee,
+                "start_date": [">=", getdate(date)],
+                "end_date": ["<=", getdate(date)],
+                "parent_project": project,
+                "docstatus": ["!=", 2],
+            },
+            "name",
+        )
+        create_timesheet_detail(date, hours, description, task, employee, parent)
+        return _("New Timesheet created successfully.")
+    return update_timesheet_detail(
+        name, parent, hours, description, task, date, is_billable
     )
-    create_timesheet_detail(date, hours, description, task, employee, parent)
-    return _("New Timesheet created successfully.")
 
 
 @frappe.whitelist()
@@ -244,7 +250,9 @@ def create_timesheet_detail(
     else:
         timehseet = frappe.get_doc({"doctype": "Timesheet", "employee": employee})
 
-    project = frappe.get_value("Task", task, "project")
+    project, custom_is_billable = frappe.get_value(
+        "Task", task, ["project", "custom_is_billable"]
+    )
     timehseet.update({"parent_project": project})
     timehseet.append(
         "time_logs",
@@ -255,6 +263,7 @@ def create_timesheet_detail(
             "from_time": getdate(date),
             "to_time": getdate(date),
             "project": project,
+            "is_billable": custom_is_billable,
         },
     )
     timehseet.save()

@@ -31,11 +31,14 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
   const { toast } = useToast();
   const { call: updateTimesheet } = useFrappePostCall("timesheet_enhancer.api.timesheet.update_timesheet_detail");
   const { call: deleteTimesheet } = useFrappePostCall("timesheet_enhancer.api.timesheet.delete");
-  const { data, isLoading,mutate } = useFrappeGetCall("timesheet_enhancer.api.timesheet.get_timesheet_details", {
-    employee: employee,
-    date: date,
-    task: task,
-  });
+  const { data, isLoading, mutate } = useFrappeGetCall(
+    "timesheet_enhancer.api.timesheet.get_timesheet_details",
+    {
+      employee: employee,
+      date: date,
+      task: task,
+    }
+  );
 
   useEffect(() => {
     if (data) {

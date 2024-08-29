@@ -30,7 +30,7 @@ import {
   calculateWeeklyHour,
   preProcessLink,
 } from "@/lib/utils";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Table, TableHead, TableHeader, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
 import { Typography } from "@/app/components/typography";
@@ -45,6 +45,7 @@ import { Spinner } from "@/app/components/spinner";
 import { WorkingFrequency } from "@/types";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { ProjectProps } from "@/types";
+import { Input } from "@/app/components/ui/input";
 
 type UserGroupProps = {
   name: string;
@@ -65,7 +66,8 @@ const Team = () => {
   const [projectParam, setProjectParam] = useQueryParamsState<string[]>("project", []);
   const [userGroupParam, setUserGroupParam] = useQueryParamsState<string[]>("user-group", []);
   const [statusParam, setStatusParam] = useQueryParamsState<string[]>("status", []);
-
+  const [employeeNameParam, setEmployeeNameParam] = useQueryParamsState<string>("employee-name", "");
+  const [employee, setEmployee] = useState(employeeNameParam);
   useEffect(() => {
     const payload = {
       project: projectParam,
@@ -254,6 +256,12 @@ const Team = () => {
       <div className="flex gap-x-2 items-center justify-between mb-3">
         {teamState.isAprrovalDialogOpen && <Approval />}
         <div id="filters" className="flex gap-x-2 max-md:gap-x-5 max-md:w-4/5 max-md:overflow-scroll">
+          <Input
+            placeholder="Employee name"
+            value={employee}
+            className="placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-slate-800"
+            
+          />
           <ComboxBox
             value={teamState.statusFilter}
             label="Approval"
@@ -264,7 +272,7 @@ const Team = () => {
             rightIcon={
               teamState.statusFilter.length > 0 && <Badge className="px-1.5">{teamState.statusFilter.length}</Badge>
             }
-            className="text-primary border-dashed gap-x-2 font-normal"
+            className="text-primary border-dashed gap-x-1 font-normal w-fit"
           />
           <ComboxBox
             value={teamState.project}
@@ -279,7 +287,7 @@ const Team = () => {
               label: item.project_name,
               value: item.name,
             }))}
-            className="text-primary border-dashed gap-x-2 font-normal"
+            className="text-primary border-dashed gap-x-2 font-normal w-fit"
           />
           <ComboxBox
             value={teamState.userGroup}
@@ -294,7 +302,7 @@ const Team = () => {
             isMulti
             leftIcon={<Filter className={cn("h-4 w-4", teamState.userGroup.length != 0 && "fill-primary")} />}
             onSelect={handleUserGroupChange}
-            className="text-primary border-dashed gap-x-2 font-normal"
+            className="text-primary border-dashed gap-x-2 font-normal w-fit"
           />
         </div>
         <div id="date-filter" className="flex gap-x-2">

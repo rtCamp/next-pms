@@ -131,6 +131,7 @@ const TimesheetTable = ({
                           hours: 0,
                           description: "",
                           name: "",
+                          parent: "",
                           task: taskData.name,
                           from_time: date,
                           docstatus: 0,
@@ -361,7 +362,6 @@ const Cell = ({
       date: date,
       hours: hours,
       description: "",
-      isUpdate: hours > 0,
       name: "",
       task: data[0].task ?? "",
     };
@@ -446,6 +446,7 @@ const EmptyRow = ({
             is_billable: false,
             from_time: date,
             task: "",
+            parent: "",
           },
         ];
         return (

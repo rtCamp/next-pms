@@ -79,7 +79,7 @@ const Home = () => {
     deBounce((e: React.ChangeEvent<HTMLInputElement>) => {
       dispatch(setEmployeeName(e.target.value));
       setEmployeeNameParam(e.target.value);
-    }, 1000),
+    }, 700),
     [dispatch]
   );
 

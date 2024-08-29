@@ -34,7 +34,7 @@ export const Employee = ({ employee }: EmployeeProps) => {
               dates={timesheetData.dates}
               holidays={holidays}
               leaves={leaves}
-              expectedHours={expectatedHours(timesheetData.working_hour, timesheetData.working_frequency)}
+              expectedHours={expectatedHours(data?.message.working_hour, data?.message.working_frequency)}
             />
           )}
           {Object.keys(timesheetData.tasks).length == 0 && <EmptyRow dates={timesheetData.dates} holidays={holidays} />}
@@ -54,13 +54,26 @@ export const Employee = ({ employee }: EmployeeProps) => {
                     </Typography>
                   </TableCell>
                   {timesheetData.dates.map((date: string, key: number) => {
-                    const data = taskData.data.filter(
+                    let data = taskData.data.filter(
                       (data: TaskDataItemProps) => getDateFromDateAndTime(data.from_time) === date
                     );
                     data.forEach((item: TaskDataItemProps) => {
                       totalHours += item.hours;
                     });
-
+                    if (data.length === 0) {
+                      data = [
+                        {
+                          hours: 0,
+                          description: "",
+                          name: "",
+                          parent: "",
+                          task: taskData.name,
+                          from_time: date,
+                          docstatus: 0,
+                          is_billable: false,
+                        },
+                      ];
+                    }
                     const isHoliday = holidays.includes(date);
                     return <Cell key={key} date={date} data={data} isHoliday={isHoliday} disabled />;
                   })}
@@ -106,15 +119,17 @@ export const EmptyRow = ({
       </TableCell>
       {dates.map((date: string, key) => {
         const isHoliday = holidays.includes(date);
-        const value = {
-          date,
-          hours: "",
-          description: "",
-          isUpdate: false,
-          name: "",
-          parent: "",
-          task: "",
-        };
+        const value = [
+          {
+            date,
+            hours: "",
+            description: "",
+            isUpdate: false,
+            name: "",
+            parent: "",
+            task: "",
+          },
+        ];
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //   @ts-ignore
         return <Cell key={key} date={date} data={value} isHoliday={isHoliday} onCellClick={onCellClick} disabled />;
@@ -132,7 +147,7 @@ const Cell = ({
   disabled,
 }: {
   date: string;
-  data: TaskDataItemProps[] | undefined;
+  data: TaskDataItemProps[];
   isHoliday: boolean;
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -153,7 +168,6 @@ const Cell = ({
         date: date,
         hours: 0,
         description: "",
-        isUpdate: false,
         name: "",
         parent: "",
         task: data?.[0]?.task ?? "",
@@ -236,7 +250,7 @@ const LeaveRow = ({
   if (!hasLeaves) {
     return null;
   }
-
+  console.log(expectedHours, leaveData);
   return (
     <TableRow className="flex">
       <TableCell className="w-full min-w-md text-left max-w-md">
