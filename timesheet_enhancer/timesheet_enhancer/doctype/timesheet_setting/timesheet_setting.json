@@ -29,6 +29,7 @@
    "label": "Allow Future Entries"
   },
   {
+   "default": "1",
    "depends_on": "eval:doc.allow_backdated_entries",
    "description": "Restrict past entries before certain days. For example if 1 then restrict entries before Today - 1 days.",
    "fieldname": "allow_backdated_entries_till_employee",
@@ -36,6 +37,7 @@
    "label": "Allow Backdated Entries Till (Employee)"
   },
   {
+   "default": "5",
    "depends_on": "eval:doc.allow_backdated_entries",
    "description": "Restrict past entries before certain days. For example if 1 then restrict entries before Today - 1 days.",
    "fieldname": "allow_backdated_entries_till_manager",
@@ -46,7 +48,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-08-25 14:19:47.451742",
+ "modified": "2024-08-29 19:58:14.802667",
  "modified_by": "Administrator",
  "module": "Timesheet Enhancer",
  "name": "Timesheet Setting",
