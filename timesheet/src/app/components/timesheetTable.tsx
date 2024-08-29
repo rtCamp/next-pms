@@ -348,10 +348,9 @@ const Cell = ({
     hours = data.reduce((sum, item) => sum + (item.hours || 0), 0);
     description = data.reduce((desc, item) => desc + (item.description ? item.description + "\n" : ""), "").trim();
   }
-  if (data && data.length > 1) {
+  if (data && data.length > 0) {
     isTimeBothBillableAndNonBillable =
       data.some((item) => item.is_billable == false) && data.some((item) => item.is_billable == true);
-
     isTimeBillable = data.every((item) => item.is_billable == true);
   }
   const isDisabled = disabled || data?.[0]?.docstatus === 1;
