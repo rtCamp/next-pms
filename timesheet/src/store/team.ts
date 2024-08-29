@@ -10,6 +10,7 @@ export interface TeamState {
     isFetchAgain: boolean;
     data: dataProps;
     statusFilter: Array<string>;
+    employeeName?: string;
     isDialogOpen: boolean;
     isEditDialogOpen: boolean;
     isAprrovalDialogOpen: boolean;
@@ -59,6 +60,7 @@ export const initialState: TeamState = {
         hours: 0,
     },
     employee: "",
+    employeeName: "",
     projectSearch: "",
     userGroupSearch: "",
     isEditDialogOpen: false,
@@ -99,6 +101,12 @@ const TeamSlice = createSlice({
         setData: (state, action: PayloadAction<any>) => {
             state.data = action.payload;
             state.hasMore = action.payload.has_more;
+        },
+        setEmployeeName: (state, action: PayloadAction<string>) => {
+            state.employeeName = action.payload;
+            state.data = initialState.data;
+            state.start = 0;
+            state.isFetchAgain = true;
         },
         setStatusFilter: (state, action: PayloadAction<Array<string>>) => {
             state.statusFilter = action.payload;
@@ -192,10 +200,11 @@ const TeamSlice = createSlice({
         setProjectSearch: (state, action: PayloadAction<string>) => {
             state.projectSearch = action.payload;
         },
-        setFilters: (state, action: PayloadAction<{ project: Array<string>; userGroup: Array<string>; statusFilter: Array<string> }>) => {
+        setFilters: (state, action: PayloadAction<{ project: Array<string>; userGroup: Array<string>; statusFilter: Array<string>,employeeName:string }>) => {
             state.project = action.payload.project;
             state.userGroup = action.payload.userGroup;
             state.statusFilter = action.payload.statusFilter;
+            state.employeeName = action.payload.employeeName;
             state.start = 0;
             state.data = initialState.data;
             state.isFetchAgain = true;
@@ -204,5 +213,5 @@ const TeamSlice = createSlice({
     }
 });
 
-export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData, setDateRange, setApprovalDialog, setEmployee, setDialog, resetState, setTimesheetData, updateTimesheetData, setUsergroup, setUserGroupSearch, setProjectSearch, resetTimesheetDataState, setStatusFilter, setFilters, setEmployeeWeekDate, setEditDialog } = TeamSlice.actions;
+export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData, setDateRange, setApprovalDialog, setEmployee, setDialog, resetState, setTimesheetData, updateTimesheetData, setUsergroup, setUserGroupSearch, setProjectSearch, resetTimesheetDataState, setStatusFilter, setFilters, setEmployeeWeekDate, setEditDialog,setEmployeeName } = TeamSlice.actions;
 export default TeamSlice.reducer;
