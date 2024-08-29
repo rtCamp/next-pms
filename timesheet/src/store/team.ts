@@ -20,6 +20,7 @@ export interface TeamState {
     projectSearch: string;
     userGroup: Array<string>;
     userGroupSearch: string;
+    approvalSearch:string;
     timesheet: {
         name: string;
         parent: string;
@@ -63,6 +64,7 @@ export const initialState: TeamState = {
     employeeName: "",
     projectSearch: "",
     userGroupSearch: "",
+    approvalSearch:"",
     isEditDialogOpen: false,
     isFetchAgain: false,
     data: {
@@ -77,7 +79,8 @@ export const initialState: TeamState = {
     employeeWeekDate: getFormatedDate(getTodayDate()),
     project: [],
     userGroup: [],
-    statusFilter: ["Not Submitted"],
+    // statusFilter: ["Not Submitted"], old
+    statusFilter: [],
     start: 0,
     hasMore: true,
     dateRange: {
@@ -200,6 +203,9 @@ const TeamSlice = createSlice({
         setProjectSearch: (state, action: PayloadAction<string>) => {
             state.projectSearch = action.payload;
         },
+        setApprovalSearch: (state, action: PayloadAction<string>) => {
+            state.approvalSearch = action.payload;
+        },
         setFilters: (state, action: PayloadAction<{ project: Array<string>; userGroup: Array<string>; statusFilter: Array<string>,employeeName:string }>) => {
             state.project = action.payload.project;
             state.userGroup = action.payload.userGroup;
@@ -213,5 +219,5 @@ const TeamSlice = createSlice({
     }
 });
 
-export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData, setDateRange, setApprovalDialog, setEmployee, setDialog, resetState, setTimesheetData, updateTimesheetData, setUsergroup, setUserGroupSearch, setProjectSearch, resetTimesheetDataState, setStatusFilter, setFilters, setEmployeeWeekDate, setEditDialog,setEmployeeName } = TeamSlice.actions;
+export const { setData, setFetchAgain, setTimesheet, setWeekDate, setProject, setStart, setHasMore, updateData, setDateRange, setApprovalDialog, setEmployee, setDialog, resetState, setTimesheetData, updateTimesheetData, setUsergroup, setUserGroupSearch, setProjectSearch, resetTimesheetDataState, setStatusFilter, setFilters, setEmployeeWeekDate, setEditDialog,setEmployeeName,setApprovalSearch } = TeamSlice.actions;
 export default TeamSlice.reducer;
