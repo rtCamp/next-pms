@@ -15,7 +15,16 @@ import { RootState } from "@/store";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useCallback, useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { setData, setFetchAgain, setWeekDate, setEmployeeName, DateProps, setStart, updateData } from "@/store/home";
+import {
+  setData,
+  setFetchAgain,
+  setWeekDate,
+  setEmployeeName,
+  DateProps,
+  setStart,
+  updateData,
+  resetState,
+} from "@/store/home";
 import { Spinner } from "@/app/components/spinner";
 import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
 import { addDays, isToday } from "date-fns";
@@ -37,13 +46,19 @@ const Home = () => {
   const [employee, setEmployee] = useState(employeeNameParam);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    dispatch(setEmployeeName(employeeNameParam));
+    return () => {
+      dispatch(resetState());
+    };
+  }, []);
+
   const { data, error, mutate, isLoading } = useFrappeGetCall("timesheet_enhancer.api.team.get_compact_view_data", {
     date: homeState.weekDate,
     employee_name: homeState.employeeName,
     page_length: 20,
     start: homeState.start,
   });
-
   useEffect(() => {
     if (homeState.isFetchAgain) {
       mutate();
@@ -76,7 +91,7 @@ const Home = () => {
     deBounce((e: React.ChangeEvent<HTMLInputElement>) => {
       dispatch(setEmployeeName(e.target.value));
       setEmployeeNameParam(e.target.value);
-    }, 1000),
+    }, 700),
     [dispatch]
   );
 
@@ -99,12 +114,10 @@ const Home = () => {
   }, [dispatch, homeState.weekDate]);
 
   const handleLoadMore = useCallback(() => {
-    if (!homeState.hasMore) return;
+    if (!homeState.data.has_more) return;
     dispatch(setStart(homeState.start + 20));
     dispatch(setFetchAgain(true));
-  }, [dispatch, homeState.hasMore, homeState.start]);
-
-  if (isLoading) return <Spinner isFull />;
+  }, [dispatch, homeState.data.has_more, homeState.start]);
 
   return (
     <>
@@ -140,97 +153,101 @@ const Home = () => {
           </div>
         </div>
       </section>
-      <div className="overflow-y-scroll mb-2" style={{ height: "calc(100vh - 8rem)" }}>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="max-w-sm w-full"></TableHead>
-              {homeState.data?.dates?.map((item: DateProps, index: number) => {
-                const dates = item.dates;
-                return dates.map((date: string) => {
-                  const formattedDate = prettyDate(date);
-                  return (
-                    <TableHead
-                      key={`${index}-${date}`}
-                      className={cn(
-                        "text-slate-600 font-medium max-w-20 ",
-                        index != 0 && "bg-slate-200",
-                        isToday(date) && "bg-slate-300"
-                      )}
-                    >
-                      {formattedDate.day}
-                    </TableHead>
-                  );
-                });
-              })}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {Object.entries(homeState.data?.data).map(([key, item]: [string, any]) => {
-              return (
-                <TableRow key={key}>
-                  <TableCell className="flex items-center gap-x-2 max-w-sm w-full">
-                    <span
-                      className="flex gap-x-2 items-center font-normal hover:underline hover:cursor-pointer w-full"
-                      onClick={() => {
-                        navigate(`${TEAM}${EMPLOYEE}/${item.name}`);
-                      }}
-                    >
-                      <Avatar className="w-6 h-6">
-                        <AvatarImage src={decodeURIComponent(item.image)} alt={item.employee_name} />
-                        <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
-                      </Avatar>
-                      <Typography
-                        variant="p"
-                        className="w-full text-left text-ellipsis whitespace-nowrap overflow-hidden "
-                      >
-                        {item.employee_name}
-                      </Typography>
-                    </span>
-                  </TableCell>
-                  {item.data.map((data: dataItem, index: number) => {
-                    const expectedTime = calculateExtendedWorkingHour(
-                      data.hour,
-                      item.working_hour,
-                      item.working_frequency
-                    );
-
+      {isLoading ? (
+        <Spinner isFull />
+      ) : (
+        <div className="overflow-y-scroll mb-2" style={{ height: "calc(100vh - 8rem)" }}>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="max-w-sm w-full"></TableHead>
+                {homeState.data?.dates?.map((item: DateProps, index: number) => {
+                  const dates = item.dates;
+                  return dates.map((date: string) => {
+                    const formattedDate = prettyDate(date);
                     return (
-                      <HoverCard key={`${data.hour}-id-${Math.random()}`} openDelay={0}>
-                        <TableCell
-                          className={cn(
-                            "text-xs hover:cursor-pointer bg-transparent",
-                            expectedTime == 2 && "bg-warning/40",
-                            expectedTime == 1 && "bg-success/20",
-                            expectedTime == 0 && data.hour != 0 && "bg-destructive/10",
-                            data.is_leave && "bg-warning/20",
-                            isToday(data.date) && "bg-slate-50",
-                            data.hour == 0 && "text-center"
-                          )}
-                          key={`${key}-${index}`}
-                        >
-                          <HoverCardTrigger>{data.hour > 0 ? floatToTime(data.hour) : "-"}</HoverCardTrigger>
-                          {data.note && (
-                            <HoverCardContent className="text-sm text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto">
-                              <p dangerouslySetInnerHTML={{ __html: preProcessLink(data.note) }}></p>
-                            </HoverCardContent>
-                          )}
-                        </TableCell>
-                      </HoverCard>
+                      <TableHead
+                        key={`${index}-${date}`}
+                        className={cn(
+                          "text-slate-600 font-medium max-w-20 ",
+                          index != 0 && "bg-slate-200",
+                          isToday(date) && "bg-slate-300"
+                        )}
+                      >
+                        {formattedDate.day}
+                      </TableHead>
                     );
-                  })}
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </div>
+                  });
+                })}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Object.entries(homeState.data?.data).map(([key, item]: [string, any]) => {
+                return (
+                  <TableRow key={key}>
+                    <TableCell className="flex items-center gap-x-2 max-w-sm w-full">
+                      <span
+                        className="flex gap-x-2 items-center font-normal hover:underline hover:cursor-pointer w-full"
+                        onClick={() => {
+                          navigate(`${TEAM}${EMPLOYEE}/${item.name}`);
+                        }}
+                      >
+                        <Avatar className="w-6 h-6">
+                          <AvatarImage src={decodeURIComponent(item.image)} alt={item.employee_name} />
+                          <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
+                        </Avatar>
+                        <Typography
+                          variant="p"
+                          className="w-full text-left text-ellipsis whitespace-nowrap overflow-hidden "
+                        >
+                          {item.employee_name}
+                        </Typography>
+                      </span>
+                    </TableCell>
+                    {item.data.map((data: dataItem, index: number) => {
+                      const expectedTime = calculateExtendedWorkingHour(
+                        data.hour,
+                        item.working_hour,
+                        item.working_frequency
+                      );
+
+                      return (
+                        <HoverCard key={`${data.hour}-id-${Math.random()}`} openDelay={0}>
+                          <TableCell
+                            className={cn(
+                              "text-xs hover:cursor-pointer bg-transparent",
+                              expectedTime == 2 && "bg-warning/40",
+                              expectedTime == 1 && "bg-success/20",
+                              expectedTime == 0 && data.hour != 0 && "bg-destructive/10",
+                              data.is_leave && "bg-warning/20",
+                              isToday(data.date) && "bg-slate-50",
+                              data.hour == 0 && "text-center"
+                            )}
+                            key={`${key}-${index}`}
+                          >
+                            <HoverCardTrigger>{data.hour > 0 ? floatToTime(data.hour) : "-"}</HoverCardTrigger>
+                            {data.note && (
+                              <HoverCardContent className="text-sm text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto">
+                                <p dangerouslySetInnerHTML={{ __html: preProcessLink(data.note) }}></p>
+                              </HoverCardContent>
+                            )}
+                          </TableCell>
+                        </HoverCard>
+                      );
+                    })}
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      )}
       <div className="w-full flex justify-between items-center">
-        <Button variant="outline" onClick={handleLoadMore} disabled={!homeState.hasMore}>
+        <Button variant="outline" onClick={handleLoadMore} disabled={!homeState.data.has_more}>
           Load More
         </Button>
         <Typography variant="p" className="px-5 font-semibold">
-          {`${Object.keys(data?.message?.data).length | 0} of ${data?.message?.total_count | 0}`}
+          {`${Object.keys(homeState.data.data).length | 0} of ${homeState.data.total_count | 0}`}
         </Typography>
       </div>
     </>

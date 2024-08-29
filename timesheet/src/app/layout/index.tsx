@@ -53,6 +53,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           <Sidebar />
         </GenWrapper>
         <div
+        className="w-full overflow-hidden"
           style={{
             width: `${screenSize === "sm" || screenSize === "md" ? "calc(100% - 64px)" : "100%"}`,
             display: "flex",
@@ -76,7 +77,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 export const PmRoute = () => {
   const user = useSelector((state: RootState) => state.user);
 
-  if (!user.roles.includes("Projects Manager")) {
+  if (!user.roles.includes("Projects Manager") && !user.roles.includes("Timesheet Manager")) {
     return <Navigate to={TIMESHEET} />;
   }
   return <Outlet />;

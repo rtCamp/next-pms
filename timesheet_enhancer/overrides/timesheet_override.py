@@ -13,8 +13,7 @@ class TimesheetOverride(Timesheet):
         for data in self.get("time_logs"):
             self.validate_overlap(data)
             self.set_project(data)
-            #  we do not need to set the parent project as time log can be against multiple project.
-            # self.validate_project(data)
+            self.validate_project(data)
 
     def validate_mandatory_fields(self):
         for data in self.time_logs:

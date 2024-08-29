@@ -1,16 +1,6 @@
-import React, { ElementType } from "react";
+import React, { ElementType, HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
-type Variant =
-  | "h1"
-  | "h2"
-  | "h3"
-  | "h4"
-  | "h5"
-  | "h6"
-  | "p"
-  | "large"
-  | "small"
-  | "muted";
+type Variant = "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p" | "large" | "small" | "muted";
 
 interface Props {
   variant: Variant;
@@ -45,9 +35,13 @@ const sizes: Record<Variant, string> = {
   small: "text-xs font-normal",
 };
 
-export const Typography = ({ variant, children, className="", as }: Props) => {
+export const Typography = ({ variant, children, className = "", as, ...props }: Props & HTMLAttributes<Variant>) => {
   const sizeClasses = sizes[variant];
   const Tag = as || tags[variant];
 
-  return <Tag className={cn("text-primary",sizeClasses,className)}>{children}</Tag>;
+  return (
+    <Tag className={cn("text-primary", sizeClasses, className)} {...props}>
+      {children}
+    </Tag>
+  );
 };

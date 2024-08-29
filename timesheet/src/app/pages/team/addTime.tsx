@@ -7,7 +7,7 @@ import { Button } from "@/app/components/ui/button";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { TimesheetSchema } from "@/schema/timesheet";
 import { Typography } from "@/app/components/typography";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -15,21 +15,22 @@ import { Input } from "@/app/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
 import { Clock3, Search, LoaderCircle } from "lucide-react";
 import { DatePicker } from "@/app/components/datePicker";
-import { getFormatedDate, parseFrappeErrorMsg, floatToTime } from "@/lib/utils";
+import { getFormatedDate, parseFrappeErrorMsg, floatToTime, expectatedHours, cn } from "@/lib/utils";
 import { ComboxBox } from "@/app/components/comboBox";
 import { Textarea } from "@/app/components/ui/textarea";
 import { useToast } from "@/app/components/ui/use-toast";
 import { setFetchAgain } from "@/store/team";
 import { Spinner } from "@/app/components/spinner";
-import { DeleteConfirmation } from "@/app/pages/timesheet/addTime";
+import { LeaveProps } from "@/types/timesheet";
 
 export const AddTime = () => {
   const teamState = useSelector((state: RootState) => state.team);
-  const { call: deleteCall } = useFrappePostCall("timesheet_enhancer.api.timesheet.delete");
   const dispatch = useDispatch();
-  const [searchTerm, setSearchTerm] = useState(teamState.timesheet.task??"");
+  const [searchTerm, setSearchTerm] = useState(teamState.timesheet.task ?? "");
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
+  const [selectedDate, setSelectedDate] = useState(getFormatedDate(teamState.timesheet.date));
   const { toast } = useToast();
+
   const form = useForm<z.infer<typeof TimesheetSchema>>({
     resolver: zodResolver(TimesheetSchema),
     defaultValues: {
@@ -40,8 +41,6 @@ export const AddTime = () => {
       hours: floatToTime(teamState.timesheet.hours),
       description: teamState.timesheet.description,
       date: teamState.timesheet.date,
-      parent: teamState.timesheet.parent,
-      is_update: teamState.timesheet.isUpdate,
       employee: teamState.employee,
     },
     mode: "onSubmit",
@@ -68,9 +67,7 @@ export const AddTime = () => {
     data: employeeDetail,
     isLoading: employeeDetailLoading,
     error: employeeDetailError,
-  } = useFrappeGetCall("frappe.client.get_value", {
-    doctype: "Employee",
-    fieldname: ["name", "employee_name", "image"],
+  } = useFrappeGetCall("timesheet_enhancer.api.utils.get_employee", {
     filters: [["name", "=", teamState.employee]],
   });
   const handleOpenChange = () => {
@@ -84,7 +81,9 @@ export const AddTime = () => {
     form.setValue("hours", value);
   };
   const handleDateChange = (date: Date) => {
+    if (!date) return;
     form.setValue("date", getFormatedDate(date));
+    setSelectedDate(getFormatedDate(date));
   };
   const handleTaskSearch = (searchTerm: string) => {
     setSearchTerm(searchTerm);
@@ -115,29 +114,7 @@ export const AddTime = () => {
         });
       });
   };
-  const handleDelete = () => {
-    const data = {
-      name: form.getValues("name"),
-      parent: form.getValues("parent"),
-    };
-    
-    deleteCall(data)
-      .then((res) => {
-        toast({
-          variant: "success",
-          description: res.message,
-        });
-        dispatch(setFetchAgain(true));
-        handleOpenChange();
-      })
-      .catch((err) => {
-        const error = parseFrappeErrorMsg(err);
-        toast({
-          variant: "destructive",
-          description: error,
-        });
-      });
-  };
+
   useEffect(() => {
     mutateTask();
   }, [searchTerm, mutateTask]);
@@ -158,10 +135,43 @@ export const AddTime = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [taskError, employeeDetailError]);
+
+  // For Task remaining hour indicator
+  const { data: perDayEmpHours, mutate: mutatePerDayHrs } = useFrappeGetCall(
+    "timesheet_enhancer.api.timesheet.get_remaining_hour_for_employee",
+    {
+      employee: teamState.employee,
+      date: selectedDate,
+    }
+  );
+  const expected_Hour_of_emp = useMemo(() => {
+    const data = teamState.timesheetData.leaves.find((data: LeaveProps) => {
+      return selectedDate >= data.from_date && selectedDate <= data.to_date;
+    });
+    const holidayData = teamState.timesheetData.holidays.find((data: string) => {
+      return selectedDate === data;
+    });
+    if (holidayData) {
+      return 0;
+    }
+    if (data) {
+      const leaveHour =
+        data?.half_day && data?.half_day_date == selectedDate
+          ? expectatedHours(teamState.timesheetData.working_hour, teamState.timesheetData.working_frequency) / 2
+          : 0;
+      return leaveHour;
+    }
+
+    return expectatedHours(teamState.timesheetData.working_hour, teamState.timesheetData.working_frequency);
+  }, [selectedDate]);
+
+  useEffect(() => {
+    mutatePerDayHrs();
+  }, [selectedDate]);
   return (
     <Dialog open={teamState.isDialogOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-xl">
-        <DialogTitle>Add Time</DialogTitle>
+        <DialogTitle className="pb-6">Add Time</DialogTitle>
         {taskLoading || employeeDetailLoading ? (
           <Spinner />
         ) : (
@@ -174,13 +184,13 @@ export const AddTime = () => {
                     name="employee"
                     render={() => (
                       <FormItem className="w-full">
-                        <FormLabel>Employee</FormLabel>
+                        <FormLabel className="flex gap-2 items-center text-sm">Employee</FormLabel>
                         <FormControl>
                           <div className="relative flex items-center">
                             <Button
                               variant="outline"
-                              disabled
                               className="justify-start gap-x-3 font-normal w-full truncate"
+                              disabled
                             >
                               {employeeDetail && employeeDetail.message ? (
                                 <>
@@ -207,7 +217,32 @@ export const AddTime = () => {
                     name="hours"
                     render={({ field }) => (
                       <FormItem className="w-full">
-                        <FormLabel>Time</FormLabel>
+                        <FormLabel className="flex gap-2 items-center">
+                          <p className="text-sm">Time</p>
+                          {/* Task: Remaining hours indicator */}
+                          {perDayEmpHours && (
+                            <div className="flex gap-x-4">
+                              <div className="flex gap-1 justify-center items-center ">
+                                <Typography
+                                  variant="p"
+                                  className={cn(
+                                    Number(perDayEmpHours?.message) < expected_Hour_of_emp
+                                      ? "text-success"
+                                      : "text-destructive" + " text-xs"
+                                  )}
+                                >
+                                  {`${floatToTime(
+                                    Math.abs(expected_Hour_of_emp - Number(perDayEmpHours?.message))
+                                  )} hrs ${
+                                    expected_Hour_of_emp - Number(perDayEmpHours?.message) >= 0
+                                      ? "remaining"
+                                      : "extended"
+                                  }`}
+                                </Typography>
+                              </div>
+                            </div>
+                          )}
+                        </FormLabel>
                         <FormControl>
                           <div className="relative flex items-center">
                             <Input
@@ -229,7 +264,7 @@ export const AddTime = () => {
                     name="date"
                     render={({ field }) => (
                       <FormItem className="w-full">
-                        <FormLabel>Date</FormLabel>
+                        <FormLabel className="flex gap-2 items-center text-sm">Date</FormLabel>
                         <FormControl>
                           <DatePicker date={field.value} onDateChange={handleDateChange} />
                         </FormControl>
@@ -251,7 +286,7 @@ export const AddTime = () => {
                           value={form.getValues("task") ? [form.getValues("task")] : []}
                           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                           //  @ts-expect-error
-                          data={tasks?.message.map((item) => ({
+                          data={tasks?.message.task.map((item) => ({
                             label: item.subject,
                             value: item.name,
                             description: item.project_name,
@@ -295,7 +330,6 @@ export const AddTime = () => {
                       Cancel
                     </Button>
                   </div>
-                    {teamState.timesheet.hours>0 && <DeleteConfirmation onDelete={handleDelete} />}
                 </DialogFooter>
               </div>
             </form>

@@ -29,7 +29,6 @@ import { LeaveProps } from "@/types/timesheet";
 
 export const AddTime = () => {
   const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
-  const { call: deleteCall } = useFrappePostCall("timesheet_enhancer.api.timesheet.delete");
   const timesheetState = useSelector((state: RootState) => state.timesheet);
   const [searchTerm, setSearchTerm] = useState(timesheetState.timesheet.task ?? "");
   const [selectedDate, setSelectedDate] = useState(getFormatedDate(timesheetState.timesheet.date));
@@ -42,13 +41,9 @@ export const AddTime = () => {
     defaultValues: {
       name: timesheetState.timesheet.name,
       task: timesheetState.timesheet.task,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       hours: floatToTime(timesheetState.timesheet.hours),
       description: timesheetState.timesheet.description,
       date: timesheetState.timesheet.date,
-      parent: timesheetState.timesheet.parent,
-      is_update: timesheetState.timesheet.isUpdate,
       employee: timesheetState.timesheet?.employee ?? userState.employee,
     },
     mode: "onSubmit",
@@ -131,28 +126,7 @@ export const AddTime = () => {
         });
       });
   };
-  const handleDelete = () => {
-    const data = {
-      name: form.getValues("name"),
-      parent: form.getValues("parent"),
-    };
-    deleteCall(data)
-      .then((res) => {
-        toast({
-          variant: "success",
-          description: res.message,
-        });
-        dispatch(SetFetchAgain(true));
-        handleOpen();
-      })
-      .catch((err) => {
-        const error = parseFrappeErrorMsg(err);
-        toast({
-          variant: "destructive",
-          description: error,
-        });
-      });
-  };
+
   useEffect(() => {
     mutateTask();
   }, [searchTerm, mutateTask]);
@@ -164,19 +138,27 @@ export const AddTime = () => {
     const data = timesheetState.data.leaves.find((data: LeaveProps) => {
       return selectedDate >= data.from_date && selectedDate <= data.to_date;
     });
-    
-    if(data){
-      const leaveHour = data?.half_day && data?.half_day_date==selectedDate ? (expectatedHours(timesheetState.data.working_hour, timesheetState.data.working_frequency)/2) : 0;
+    const holidayData = timesheetState.data.holidays.find((data: string) => {
+      return selectedDate === data;
+    });
+    if (holidayData) {
+      return 0;
+    }
+    if (data) {
+      const leaveHour =
+        data?.half_day && data?.half_day_date == selectedDate
+          ? expectatedHours(timesheetState.data.working_hour, timesheetState.data.working_frequency) / 2
+          : 0;
       return leaveHour;
     }
-    
+
     return expectatedHours(timesheetState.data.working_hour, timesheetState.data.working_frequency);
   }, [selectedDate]);
   return (
     <Dialog open={timesheetState.isDialogOpen} onOpenChange={handleOpen}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle className="pb-6">{timesheetState.timesheet.hours > 0 ? "Edit Time" : "Add Time"}</DialogTitle>
+          <DialogTitle className="pb-6">Add Time</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)}>
@@ -261,7 +243,7 @@ export const AddTime = () => {
                         value={form.getValues("task") ? [form.getValues("task")] : []}
                         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         //  @ts-expect-error
-                        data={tasks?.message.map((item) => ({
+                        data={tasks?.message.task.map((item) => ({
                           label: item.subject,
                           value: item.name,
                           description: item.project_name,
@@ -300,13 +282,12 @@ export const AddTime = () => {
                 <div className="flex gap-x-4 w-full">
                   <Button disabled={form.formState.isSubmitting}>
                     {form.formState.isSubmitting && <LoaderCircle className="animate-spin w-4 h-4" />}
-                    {timesheetState.timesheet.hours > 0 ? "Edit Time" : "Add Time"}
+                    Add Time
                   </Button>
                   <Button variant="secondary" type="button" onClick={handleOpen}>
                     Cancel
                   </Button>
                 </div>
-                {timesheetState.timesheet.hours > 0 && <DeleteConfirmation onDelete={handleDelete} />}
               </DialogFooter>
             </div>
           </form>

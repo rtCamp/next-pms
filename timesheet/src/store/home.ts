@@ -20,7 +20,7 @@ export interface HomeState {
         employee?: string;
     },
     start: number;
-    hasMore: boolean;
+
 }
 
 export interface dataProps {
@@ -59,16 +59,18 @@ export const initialState: HomeState = {
     employeeName: "",
     weekDate: getTodayDate(),
     start: 0,
-    hasMore: true,
+
 }
 
 const homeSlice = createSlice({
     name: 'home',
     initialState,
     reducers: {
+        resetState() {
+            return initialState;
+        },
         setData: (state, action: PayloadAction<any>) => {
             state.data = action.payload;
-            state.hasMore = action.payload.has_more;
         },
         setFetchAgain: (state, action: PayloadAction<boolean>) => {
             state.isFetchAgain = action.payload;
@@ -91,17 +93,14 @@ const homeSlice = createSlice({
         setStart: (state, action: PayloadAction<number>) => {
             state.start = action.payload;
         },
-        setHasMore: (state, action: PayloadAction<boolean>) => {
-            state.hasMore = action.payload;
-        },
         updateData: (state, action: PayloadAction<any>) => {
             const data = state.data.data;
             state.data.data = { ...data, ...action.payload.data };
             state.data.dates = action.payload.dates;
-            state.hasMore = action.payload.has_more;
+            state.data.total_count = action.payload.total_count;
         },
     }
 });
 
-export const { setData, setFetchAgain, setTimesheet, setWeekDate, setEmployeeName, setStart, setHasMore, updateData } = homeSlice.actions;
+export const { setData, setFetchAgain, setTimesheet, setWeekDate, setEmployeeName, setStart, updateData,resetState } = homeSlice.actions;
 export default homeSlice.reducer;

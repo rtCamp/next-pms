@@ -10,7 +10,7 @@ import {
 } from "@/app/components/ui/command";
 import { Check } from "lucide-react";
 import { Typography } from "./typography";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { cn, deBounce } from "@/lib/utils";
 
@@ -43,13 +43,13 @@ export const ComboxBox = ({
   rightIcon,
   className = "",
   showSelected = false,
-  shouldFilter=false
+  shouldFilter = false,
 }: ComboBoxProps) => {
   const [selectedValues, setSelectedValues] = useState<string[]>(value ?? []);
   const [open, setOpen] = useState(isOpen);
   const clearFilter = () => {
     setSelectedValues([]);
-    onSelect && onSelect(isMulti ? [] : "");
+    onSelect && onSelect([]);
     setOpen(!open);
   };
   const handleComboClose = () => {
@@ -57,8 +57,9 @@ export const ComboxBox = ({
   };
   const handleSelect = (value: string) => {
     if (!isMulti) {
+      if (selectedValues.includes(value)) return clearFilter();
       setSelectedValues([value]);
-      onSelect && onSelect(value);
+      onSelect && onSelect([value]);
       setOpen(false);
       return;
     }
@@ -69,6 +70,7 @@ export const ComboxBox = ({
       values.push(value);
     }
     setSelectedValues(values);
+    onSelect && onSelect(values);
   };
   const hasValue = selectedValues.length > 0;
   const selectedValue = () => {
@@ -80,13 +82,8 @@ export const ComboxBox = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const onInputChange = deBounce((search) => {
     onSearch && onSearch(search);
-  }, 1000);
-  useEffect(() => {
-    if (open) return;
-    if (isMulti && selectedValues.length > 0) {
-      onSelect && onSelect(selectedValues);
-    }
-  }, [isMulti, onSelect, open, selectedValues]);
+  }, 700);
+
   return (
     <Popover modal open={open} onOpenChange={handleComboClose}>
       <PopoverTrigger asChild>
@@ -114,7 +111,7 @@ export const ComboxBox = ({
                   <CommandItem
                     key={index}
                     onSelect={handleSelect}
-                    className="flex gap-x-2 text-primary"
+                    className="flex gap-x-2 text-primary cursor-pointer"
                     value={item.value}
                   >
                     {!isMulti ? (
@@ -124,10 +121,10 @@ export const ComboxBox = ({
                     )}
 
                     <div className="flex flex-col w-full overflow-hidden">
-                      <Typography className="truncate cursor-pointer" variant="p">
+                      <Typography className="truncate" variant="p">
                         {item.label}
                       </Typography>
-                      <Typography className="truncate cursor-pointer" variant="small">
+                      <Typography className="truncate" variant="small">
                         {item.description}
                       </Typography>
                     </div>
@@ -137,7 +134,7 @@ export const ComboxBox = ({
             </CommandList>
           </CommandGroup>
           <Button variant="ghost" onClick={clearFilter} className="border-t rounded-none font-normal w-full">
-            Clear Filters
+            Clear Selection
           </Button>
         </Command>
       </PopoverContent>
