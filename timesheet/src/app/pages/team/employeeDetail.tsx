@@ -105,7 +105,6 @@ const EmployeeDetail = () => {
       }
     }
     if (error) {
-      console.log(error);
       const err = parseFrappeErrorMsg(error);
       toast({
         variant: "destructive",

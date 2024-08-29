@@ -41,8 +41,6 @@ export const AddTime = () => {
       hours: floatToTime(teamState.timesheet.hours),
       description: teamState.timesheet.description,
       date: teamState.timesheet.date,
-      parent: teamState.timesheet.parent,
-      is_update: teamState.timesheet.isUpdate,
       employee: teamState.employee,
     },
     mode: "onSubmit",
@@ -189,7 +187,11 @@ export const AddTime = () => {
                         <FormLabel className="flex gap-2 items-center text-sm">Employee</FormLabel>
                         <FormControl>
                           <div className="relative flex items-center">
-                            <Button variant="outline" className="justify-start gap-x-3 font-normal w-full truncate">
+                            <Button
+                              variant="outline"
+                              className="justify-start gap-x-3 font-normal w-full truncate"
+                              disabled
+                            >
                               {employeeDetail && employeeDetail.message ? (
                                 <>
                                   <Avatar className="w-8 h-8">
