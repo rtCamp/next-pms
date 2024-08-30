@@ -63,6 +63,7 @@ const EmployeeDetail = () => {
     employee: id,
     start_date: teamState.employeeWeekDate,
     max_week: 4,
+    holiday_with_description: true,
   });
 
   const handleAddTime = () => {
@@ -180,7 +181,7 @@ const Timesheet = () => {
       dispatch(setDialog(true));
     }
   };
-
+  const holidays = teamState.timesheetData.holidays.map((holiday) => holiday.holiday_date);
   return (
     <div className="flex flex-col">
       {teamState.timesheetData.data &&
@@ -201,7 +202,7 @@ const Timesheet = () => {
                   <AccordionContent className="pb-0">
                     <TimesheetTable
                       dates={value.dates}
-                      holidays={teamState.timesheetData.holidays}
+                      holidays={holidays}
                       leaves={teamState.timesheetData.leaves}
                       tasks={value.tasks}
                       onCellClick={onCellClick}
@@ -272,7 +273,8 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
                               projectName: task.project_name,
                             }))
                       );
-                      const isHoliday = teamState.timesheetData.holidays.includes(date);
+                      const holiday = teamState.timesheetData.holidays.find((holiday) => holiday.holiday_date === date);
+                      const isHoliday = !!holiday;
                       let totalHours = matchingTasks.reduce((sum, task) => sum + task.hours, 0);
                       const leave = teamState.timesheetData.leaves.find((data: LeaveProps) => {
                         return date >= data.from_date && date <= data.to_date;
@@ -306,7 +308,7 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
                             <Typography variant="p">{formattedDate}</Typography>
                             {isHoliday && (
                               <Typography variant="p" className="text-gray-600">
-                                (Holiday)
+                                {holiday.description}
                               </Typography>
                             )}
                             {leave && !isHoliday && (

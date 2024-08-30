@@ -253,6 +253,7 @@ def create_timesheet_detail(
     project, custom_is_billable = frappe.get_value(
         "Task", task, ["project", "custom_is_billable"]
     )
+
     timehseet.update({"parent_project": project})
     timehseet.append(
         "time_logs",
@@ -400,14 +401,19 @@ def get_timesheet_state(dates: list, employee: str):
 @frappe.whitelist()
 def get_remaining_hour_for_employee(employee: str, date: str):
     """Return the working hours for the given employee on the given date."""
-    timesheet = frappe.get_value(
+    timesheets = frappe.get_all(
         "Timesheet",
-        {"employee": employee, "start_date": getdate(date), "end_date": getdate(date)},
-        "total_hours",
+        filters={
+            "employee": employee,
+            "start_date": getdate(date),
+            "end_date": getdate(date),
+        },
+        fields=["total_hours"],
     )
-    if timesheet:
-        return timesheet
-    return 0
+    total_hours = 0
+    for timesheet in timesheets:
+        total_hours += timesheet.total_hours
+    return total_hours
 
 
 @frappe.whitelist()
