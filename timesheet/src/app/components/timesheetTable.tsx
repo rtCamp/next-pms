@@ -101,7 +101,7 @@ const TimesheetTable = ({
               return (
                 <TableRow key={task} className="border-b border-slate-200">
                   <TableCell className="cursor-pointer max-w-sm">
-                    <HoverCard openDelay={0} closeDelay={0}>
+                    <HoverCard openDelay={1000} closeDelay={0}>
                       <HoverCardTrigger>
                         <Typography variant="p" className="text-slate-800 truncate overflow-hidden ">
                           {task}
@@ -368,7 +368,7 @@ const Cell = ({
   };
 
   return (
-    <HoverCard openDelay={0} closeDelay={0}>
+    <HoverCard openDelay={1000} closeDelay={0}>
       <TableCell
         key={date}
         onClick={handleClick}

@@ -272,7 +272,7 @@ export const Approval = () => {
                               {task.taskName}
                             </Typography>
 
-                            <HoverCard openDelay={50} closeDelay={50}>
+                            <HoverCard openDelay={1000} closeDelay={0}>
                               <HoverCardTrigger className="text-sm font-normal col-span-2 hover:cursor-pointer">
                                 <p dangerouslySetInnerHTML={{ __html: truncateText(description, 150) }}></p>
                               </HoverCardTrigger>

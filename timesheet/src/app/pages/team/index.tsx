@@ -399,7 +399,7 @@ const Team = () => {
                             {item.data.map((data: dataItem, key) => {
                               total += data.hour;
                               return (
-                                <HoverCard key={`${data.hour}-id-${Math.random()}`} openDelay={0}>
+                                <HoverCard key={`${data.hour}-id-${Math.random()}`} openDelay={1000}>
                                   <TableCell
                                     key={key}
                                     className={cn("flex max-w-20 w-full justify-center items-center")}
