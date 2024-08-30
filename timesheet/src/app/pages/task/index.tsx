@@ -255,7 +255,7 @@ const Task = () => {
       },
       cell: ({ row }) => {
         return (
-          <Typography variant="p" className="max-w-sm truncate">
+          <Typography title={row.original.project_name} variant="p" className="max-w-sm truncate cursor-pointer">
             {row.original.project_name}
           </Typography>
         );
@@ -284,6 +284,7 @@ const Task = () => {
         return (
           <Typography
             variant="p"
+            title={row.original.subject}
             className="max-w-sm truncate cursor-pointer"
             onClick={() => {
               handleAddTime(row.original.name);
@@ -481,6 +482,7 @@ const Task = () => {
         return (
           <Typography
             variant="p"
+            title={getValue()}
             className="truncate cursor-pointer"
             onClick={() => {
               handleAddTime(getValue());
