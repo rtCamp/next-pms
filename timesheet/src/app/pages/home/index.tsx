@@ -212,7 +212,7 @@ const Home = () => {
                       );
 
                       return (
-                        <HoverCard key={`${data.hour}-id-${Math.random()}`} openDelay={0}>
+                        <HoverCard key={`${data.hour}-id-${Math.random()}`} openDelay={1000}>
                           <TableCell
                             className={cn(
                               "text-xs hover:cursor-pointer bg-transparent",

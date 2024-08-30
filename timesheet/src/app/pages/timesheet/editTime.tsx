@@ -24,21 +24,24 @@ interface EditTimeProps {
   open: boolean;
   onClose: () => void;
 }
-
+interface TaskProps {
+  data: TaskDataItemProps[];
+  task: string;
+}
 export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps) => {
-  const [employeeData, setEmployeeData] = useState<TaskDataItemProps[]>([]);
+  const [employeeData, setEmployeeData] = useState<TaskProps>({
+    data: [],
+    task: "",
+  });
   const columns = ["Hours", "Description", "Billable", "Action"];
   const { toast } = useToast();
   const { call: updateTimesheet } = useFrappePostCall("timesheet_enhancer.api.timesheet.update_timesheet_detail");
   const { call: deleteTimesheet } = useFrappePostCall("timesheet_enhancer.api.timesheet.delete");
-  const { data, isLoading, mutate } = useFrappeGetCall(
-    "timesheet_enhancer.api.timesheet.get_timesheet_details",
-    {
-      employee: employee,
-      date: date,
-      task: task,
-    }
-  );
+  const { data, isLoading, mutate } = useFrappeGetCall("timesheet_enhancer.api.timesheet.get_timesheet_details", {
+    employee: employee,
+    date: date,
+    task: task,
+  });
 
   useEffect(() => {
     if (data) {
@@ -47,7 +50,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
   }, [data]);
 
   const addEmptyFormRow = () => {
-    const parent = employeeData[0].parent;
+    const parent = employeeData.data[0].parent;
     const emptyRow: TaskDataItemProps = {
       hours: 0,
       description: "",
@@ -59,14 +62,15 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
       to_time: date,
       docstatus: 0 as 0 | 2 | 1,
     };
-    setEmployeeData([...employeeData, emptyRow]);
+    setEmployeeData({ ...employeeData, data: [...employeeData.data, emptyRow] });
   };
   const removeFormRow = (index: number) => {
-    setEmployeeData(employeeData.filter((_, i) => i !== index));
+    setEmployeeData({ ...employeeData, data: employeeData.data.filter((_, i) => i !== index) });
   };
   const handleUpdate = (data: z.infer<typeof TimesheetUpdateSchema>) => {
     updateTimesheet(data)
       .then((res) => {
+        mutate();
         toast({
           variant: "success",
           description: res.message,
@@ -104,7 +108,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
           <DialogTitle>Edit Time</DialogTitle>
           <Separator />
           <div className="flex justify-between">
-            <Typography variant="h6"> {task}</Typography>
+            <Typography variant="h6"> {employeeData.task}</Typography>
             <Typography variant="h5"> {prettyDate(date).date}</Typography>
           </div>
         </DialogHeader>
@@ -131,7 +135,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
               </div>
             </div>
 
-            {employeeData?.map((item: TaskDataItemProps, index: number) => (
+            {employeeData.data?.map((item: TaskDataItemProps, index: number) => (
               <FormRow
                 data={item}
                 onRemove={() => removeFormRow(index)}
@@ -184,7 +188,7 @@ const FormRow = ({ data, onRemove, onUpdate, onDelete }: FormRowProps) => {
   return (
     <Form {...form}>
       <form className="pt-2" onSubmit={form.handleSubmit(handleSubmit)}>
-        <div className="flex gap-2 border-b pb-1 items-center">
+        <div className="flex gap-2 border-b pb-1 items-start">
           <FormField
             control={form.control}
             name="hours"
@@ -220,7 +224,7 @@ const FormRow = ({ data, onRemove, onUpdate, onDelete }: FormRowProps) => {
                       {...field}
                       onChange={field.onChange}
                       className={cn(
-                        "focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[50px]",
+                        "focus-visible:ring-0 focus-visible:ring-offset-0 min-h-10",
                         form.formState.errors.description && "border-red-500"
                       )}
                     />
@@ -230,13 +234,12 @@ const FormRow = ({ data, onRemove, onUpdate, onDelete }: FormRowProps) => {
               );
             }}
           />
-
           <FormField
             control={form.control}
             name="is_billable"
             render={({ field }) => {
               return (
-                <FormItem className="w-full max-w-24 px-2 text-center">
+                <FormItem className="w-full flex justify-center items-center min-h-10 max-w-24 px-2 text-center">
                   <FormControl>
                     <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
@@ -246,7 +249,7 @@ const FormRow = ({ data, onRemove, onUpdate, onDelete }: FormRowProps) => {
             }}
           />
 
-          <div className="w-full max-w-28 flex gap-2 px-2">
+          <div className="w-full max-w-28 flex justify-center items-center min-h-10 gap-2 px-2">
             <Button variant="success" className="p-1 h-fit" disabled={!form.formState.isValid}>
               Save
             </Button>

@@ -121,7 +121,7 @@ def app_logo():
 
 
 @frappe.whitelist()
-def get_project_task(project=None):
+def get_project_task(project=None, task_search=None):
     import json
 
     filter = {}
@@ -145,7 +145,9 @@ def get_project_task(project=None):
         "_liked_by",
     ]
     for project in projects:
-        data = get_task_for_employee(project=[project["name"]], fields=fields)
+        data = get_task_for_employee(
+            project=[project["name"]], fields=fields, search=task_search
+        )
         project["tasks"] = data.get("task")
     count = frappe.db.count("Project", filters=filter)
     return {"projects": projects, "count": count}
@@ -203,7 +205,7 @@ def get_task_for_employee(
         start=start,
         order_by="name desc",
     )
-    count = frappe.db.count("Task", filters={**filter, **search_filter})
+    count = len(frappe.get_all("Task", filters=filter, or_filters=search_filter))
     return {"task": project_task, "total_count": count}
 
 
