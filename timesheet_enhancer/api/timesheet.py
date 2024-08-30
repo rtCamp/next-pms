@@ -441,4 +441,9 @@ def get_timesheet_details(date: str, task: str, employee: str):
         .where(timesheet.employee == employee)
         .where(timesheet.start_date == getdate(date))
     )
-    return res.run(as_dict=True)
+    data = res.run(as_dict=True)
+    subject = frappe.get_value("Task", task, "subject")
+    return {
+        "task": subject,
+        "data": data,
+    }
