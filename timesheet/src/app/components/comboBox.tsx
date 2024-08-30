@@ -45,7 +45,7 @@ export const ComboxBox = ({
   showSelected = false,
   shouldFilter = false,
 }: ComboBoxProps) => {
-  const [selectedValues, setSelectedValues] = useState<string[]>(value ?? []);
+  const [selectedValues, setSelectedValues] = useState<string[]>(typeof value === "string" ? [value] : value ?? []);
   const [open, setOpen] = useState(isOpen);
   const clearFilter = () => {
     setSelectedValues([]);

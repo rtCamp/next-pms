@@ -170,7 +170,7 @@ export const AddTime = () => {
   }, [selectedDate]);
   return (
     <Dialog open={teamState.isDialogOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="max-w-xl overflow-hidden">
         <DialogTitle className="pb-6">Add Time</DialogTitle>
         {taskLoading || employeeDetailLoading ? (
           <Spinner />
@@ -186,7 +186,7 @@ export const AddTime = () => {
                       <FormItem className="w-full">
                         <FormLabel className="flex gap-2 items-center text-sm">Employee</FormLabel>
                         <FormControl>
-                          <div className="relative flex items-center">
+                          <div className="relative flex items-center max-w-48 overflow-hidden">
                             <Button
                               variant="outline"
                               className="justify-start gap-x-3 font-normal w-full truncate"
@@ -217,15 +217,15 @@ export const AddTime = () => {
                     name="hours"
                     render={({ field }) => (
                       <FormItem className="w-full">
-                        <FormLabel className="flex gap-2 items-center">
+                        <FormLabel className="flex gap-2 items-center ">
                           <p className="text-sm">Time</p>
                           {/* Task: Remaining hours indicator */}
                           {perDayEmpHours && (
                             <div className="flex gap-x-4">
-                              <div className="flex gap-1 justify-center items-center ">
+                              <div className="flex gap-1 justify-center items-center max-w-32">
                                 <Typography
                                   variant="p"
-                                  className={cn(
+                                  className={cn("truncate",
                                     Number(perDayEmpHours?.message) < expected_Hour_of_emp
                                       ? "text-success"
                                       : "text-destructive" + " text-xs"

@@ -16,6 +16,7 @@ import {
   setDateRange,
   setUsergroup,
   setUserGroupSearch,
+  setApprovalSearch,
   setProjectSearch,
   setStatusFilter,
   setEmployeeName,
@@ -135,6 +136,7 @@ const Team = () => {
     { label: "Partially Approved", value: "Partially Approved" },
     { label: "Partially Rejected", value: "Partially Rejected" },
   ];
+  const [approvalsData, setApprovalsData] = useState(approvals);
 
   useEffect(() => {
     if (teamState.isFetchAgain) {
@@ -159,9 +161,7 @@ const Team = () => {
   }, [data, error, teamState.isFetchAgain]);
 
   useEffect(() => {
-    if (teamState.projectSearch !== "") {
-      projectMutate();
-    }
+    projectMutate();
     if (projectError) {
       const err = parseFrappeErrorMsg(projectError);
       toast({
@@ -179,9 +179,11 @@ const Team = () => {
   }, [dispatch, employeeNameParam]);
 
   useEffect(() => {
-    if (teamState.userGroupSearch !== "") {
-      userGroupMutate();
-    }
+    //old
+    // if (teamState.userGroupSearch !== "") {
+    //   userGroupMutate();
+    // }
+    userGroupMutate();
     if (groupError) {
       const err = parseFrappeErrorMsg(groupError);
       toast({
@@ -191,6 +193,13 @@ const Team = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teamState.userGroupSearch, groupError]);
+
+  useEffect(() => {
+    if (!teamState.approvalSearch) return setApprovalsData(approvals);
+    setApprovalsData(approvals.filter((approval) => approval.label.toLowerCase().includes(teamState.approvalSearch)));
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [teamState.approvalSearch]);
 
   useEffect(() => {
     setProjectParam(teamState.project);
@@ -258,6 +267,14 @@ const Team = () => {
     },
     [dispatch]
   );
+
+  const onApprovalSearch = useCallback(
+    (searchTerm: string) => {
+      dispatch(setApprovalSearch(searchTerm));
+    },
+    [dispatch]
+  );
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const onInputChange = useCallback(
     deBounce((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -287,9 +304,10 @@ const Team = () => {
           <ComboxBox
             value={teamState.statusFilter}
             label="Approval"
-            data={approvals}
+            data={approvalsData}
             isMulti
             onSelect={handleStatusChange}
+            onSearch={onApprovalSearch}
             leftIcon={<Filter className={cn("h-4 w-4", teamState.statusFilter.length != 0 && "fill-primary")} />}
             rightIcon={
               teamState.statusFilter.length > 0 && <Badge className="px-1.5">{teamState.statusFilter.length}</Badge>

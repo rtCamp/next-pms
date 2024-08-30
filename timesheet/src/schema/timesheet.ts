@@ -88,13 +88,16 @@ export const TimesheetRejectionSchema = z.object({
     required_error: "Please select a employee.",
   }),
 });
-
+const descriptionSchema = z.preprocess(
+  (val) => (typeof val === 'string' ? val.trim() : val),
+  z.string({
+    required_error: "Please enter description.",
+  }).min(4, "Please enter a description with at least 4 characters.")
+);
 export const TimesheetUpdateSchema = z.object({
   name: z.string({}),
   hours: hourSchema,
-  description: z.string({
-    required_error: "Please enter description.",
-  }).min(4, "Please enter description."),
+  description: descriptionSchema,
   date: z.string({}),
   task: z.string({}),
   parent: z.string({}),

@@ -199,7 +199,7 @@ const LeaveRow = ({
   });
 
   // Check if there are any leaves
-  const hasLeaves = leaveData.some(({ data, isHoliday }) => data || isHoliday);
+  const hasLeaves = leaveData.some(({ data, isHoliday, hour }) => (data || isHoliday)&& (hour>0) );
 
   if (!hasLeaves) {
     return null;
