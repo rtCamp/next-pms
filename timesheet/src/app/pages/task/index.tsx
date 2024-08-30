@@ -70,7 +70,6 @@ const Task = () => {
   }, 700),[]);
 
   const handleSubjectSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    // console.log(e.target.value.trim());
     updateSubjectSearch(e.target.value.trim());
   },[]);
 
