@@ -107,9 +107,9 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
         <DialogHeader>
           <DialogTitle>Edit Time</DialogTitle>
           <Separator />
-          <div className="flex justify-between">
-            <Typography variant="h6"> {employeeData.task}</Typography>
-            <Typography variant="h5"> {prettyDate(date).date}</Typography>
+          <div className="flex justify-between w-full overflow-hidden">
+            <Typography title={employeeData.task} variant="h6" className="max-w-80 truncate font-normal"> {employeeData.task}</Typography>
+            <Typography variant="h5" className="max-w-80 truncate font-normal"> {prettyDate(date).date}</Typography>
           </div>
         </DialogHeader>
         {isLoading ? (
