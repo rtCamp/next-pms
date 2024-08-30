@@ -67,6 +67,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
   const handleUpdate = (data: z.infer<typeof TimesheetUpdateSchema>) => {
     updateTimesheet(data)
       .then((res) => {
+        mutate();
         toast({
           variant: "success",
           description: res.message,
@@ -184,7 +185,7 @@ const FormRow = ({ data, onRemove, onUpdate, onDelete }: FormRowProps) => {
   return (
     <Form {...form}>
       <form className="pt-2" onSubmit={form.handleSubmit(handleSubmit)}>
-        <div className="flex gap-2 border-b pb-1 items-center">
+        <div className="flex gap-2 border-b pb-1 items-start">
           <FormField
             control={form.control}
             name="hours"
@@ -220,7 +221,7 @@ const FormRow = ({ data, onRemove, onUpdate, onDelete }: FormRowProps) => {
                       {...field}
                       onChange={field.onChange}
                       className={cn(
-                        "focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[50px]",
+                        "focus-visible:ring-0 focus-visible:ring-offset-0 min-h-10",
                         form.formState.errors.description && "border-red-500"
                       )}
                     />
@@ -230,13 +231,12 @@ const FormRow = ({ data, onRemove, onUpdate, onDelete }: FormRowProps) => {
               );
             }}
           />
-
           <FormField
             control={form.control}
             name="is_billable"
             render={({ field }) => {
               return (
-                <FormItem className="w-full max-w-24 px-2 text-center">
+                <FormItem className="w-full flex justify-center items-center min-h-10 max-w-24 px-2 text-center">
                   <FormControl>
                     <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
@@ -246,7 +246,7 @@ const FormRow = ({ data, onRemove, onUpdate, onDelete }: FormRowProps) => {
             }}
           />
 
-          <div className="w-full max-w-28 flex gap-2 px-2">
+          <div className="w-full max-w-28 flex justify-center items-center min-h-10 gap-2 px-2">
             <Button variant="success" className="p-1 h-fit" disabled={!form.formState.isValid}>
               Save
             </Button>
