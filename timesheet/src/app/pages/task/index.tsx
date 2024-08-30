@@ -729,7 +729,7 @@ const Task = () => {
         {isLoading || nestedProjectIsLoading ? (
           <Spinner isFull />
         ) : (
-          <div className="overflow-hidden w-full" style={{ height: "calc(100vh - 8rem)" }}>
+          <div className="overflow-hidden w-full overflow-y-scroll" style={{ height: "calc(100vh - 8rem)" }}>
             {groupByParam.length === 0 ? (
               <Table className="[&_td]:px-2  [&_th]:px-2 table-fixed">
                 <TableHeader className="[&_th]:h-10">
@@ -869,7 +869,7 @@ const Task = () => {
           </Button>
           <Typography variant="p" className="px-5 font-semibold">
             {`${task.groupBy.length === 0 ? task.task.length | 0 : task.project.length | 0} of ${
-              task.groupBy.length === 0 ? task.total_count | 0 : task.project.length | 0
+              task.groupBy.length === 0 ? task.total_count | 0 : task.total_project_count | 0
             }`}
           </Typography>
         </div>
