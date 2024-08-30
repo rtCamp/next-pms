@@ -14,7 +14,7 @@ import {
   updateProjectData,
   setProjectData,
 } from "@/store/task";
-import { cn, parseFrappeErrorMsg, floatToTime, getFormatedDate } from "@/lib/utils";
+import { cn, parseFrappeErrorMsg, floatToTime, getFormatedDate, deBounce } from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
 import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
@@ -58,18 +58,22 @@ const Task = () => {
   const [projectParam, setProjectParam] = useQueryParamsState<string[]>("project", []);
   const [groupByParam, setGroupByParam] = useQueryParamsState<string[]>("groupby", []);
   const [subjectSearch, setSubjectSearch] = useState<string>("");
-  const [projectSearch, setProjectSearch] = useState<string>("");
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
   //task search change (input)
-  const handleSubjectSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSubjectSearch(e.target.value);
-  };
+  const updateSubjectSearch = useCallback(deBounce((searchStr) => {
+    setSubjectSearch(searchStr);
+    if (groupByParam.length === 0) mutate();
+    else {
+      nestedProjectMutate();
+    }
+  }, 700),[]);
 
-  //project search change (input)
-  const handleProjectSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setProjectSearch(e.target.value);
-  };
+  const handleSubjectSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    // console.log(e.target.value.trim());
+    updateSubjectSearch(e.target.value.trim());
+  },[]);
+
 
   // GroupBy Data for ComboBox
   const groupByData = [
@@ -119,6 +123,7 @@ const Task = () => {
     page_length: 20,
     start: task.start,
     project: task.selectedProject,
+    search: subjectSearch,
   });
   //nested project task call
   const {
@@ -128,6 +133,7 @@ const Task = () => {
     mutate: nestedProjectMutate,
   } = useFrappeGetCall("timesheet_enhancer.api.utils.get_project_task", {
     project: task.selectedProject.length == 0 ? null : task.selectedProject,
+    task_search: subjectSearch,
   });
 
   const loadMore = () => {
@@ -222,7 +228,7 @@ const Task = () => {
     [dispatch]
   );
   const handleGroupByChange = useCallback(
-    (value:string|string[]) => {
+    (value: string | string[]) => {
       dispatch(setGroupBy(value as string[]));
     },
     [dispatch]
@@ -626,7 +632,7 @@ const Task = () => {
     state: {
       sorting,
       columnVisibility,
-      columnFilters
+      columnFilters,
     },
   });
   // Nested Table instance
@@ -647,10 +653,6 @@ const Task = () => {
       columnVisibility: { ...columnVisibility, project_name: true },
     },
   });
-  // spinners on API call loading
-  if (isLoading || nestedProjectIsLoading) {
-    return <Spinner isFull />;
-  }
 
   return (
     <>
@@ -685,16 +687,8 @@ const Task = () => {
             {/* Task Search Filter */}
             <Input
               placeholder="Search Subject..."
-              value={subjectSearch}
-              className="placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-slate-800 max-w-sm max-md:w-60 "
+              className="placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-slate-800 w-full min-w-40"
               onChange={handleSubjectSearchChange}
-            />
-            {/* Task Search Filter */}
-            <Input
-              placeholder="Search Project..."
-              value={projectSearch}
-              className="placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-slate-800 max-w-sm max-md:w-60 "
-              onChange={handleProjectSearchChange}
             />
           </div>
 
@@ -733,16 +727,75 @@ const Task = () => {
           <HideColumn table={table} groupBy={groupByParam} />
         </div>
         {/* tables */}
-        <div className="overflow-hidden w-full" style={{ height: "calc(100vh - 8rem)" }}>
-          {groupByParam.length === 0 ? (
-            <Table className="[&_td]:px-2  [&_th]:px-2 table-fixed">
-              <TableHeader className="[&_th]:h-10">
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      return (
+        {isLoading || nestedProjectIsLoading ? (
+          <Spinner isFull />
+        ) : (
+          <div className="overflow-hidden w-full" style={{ height: "calc(100vh - 8rem)" }}>
+            {groupByParam.length === 0 ? (
+              <Table className="[&_td]:px-2  [&_th]:px-2 table-fixed">
+                <TableHeader className="[&_th]:h-10">
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => {
+                        return (
+                          <TableHead
+                            className={cn("resizer", header.column.getIsResizing() && "isResizing")}
+                            key={header.id}
+                            style={{
+                              width: header.getSize(),
+                              position: "relative",
+                            }}
+                          >
+                            <div className="w-full h-full flex items-center justify-between group">
+                              <div className="w-full">
+                                {flexRender(header.column.columnDef.header, header.getContext())}
+                              </div>
+                              {header.id !== "#" && (
+                                <div
+                                  {...{
+                                    onMouseDown: header.getResizeHandler(),
+                                    onTouchStart: header.getResizeHandler(),
+                                    className: `cursor-col-resize flex justify-center items-center h-full`,
+                                  }}
+                                >
+                                  <GripVertical className="w-4 h-4 max-lg:hidden" />
+                                </div>
+                              )}
+                            </div>
+                          </TableHead>
+                        );
+                      })}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows?.length ? (
+                    table.getRowModel().rows.map((row) => (
+                      <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell className="overflow-hidden" key={cell.id}>
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={columns.length} className="h-24 text-center">
+                        No results.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            ) : (
+              <Table className="[&_td]:px-2  [&_th]:px-2 table-fixed">
+                <TableHeader>
+                  {nestedProjectTable.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
                         <TableHead
-                          className={cn("resizer", header.column.getIsResizing() && "isResizing")}
+                          className={`resizer overflow-hidden ${header.column.getIsResizing() ? "isResizing" : null}`}
                           key={header.id}
                           style={{
                             width: header.getSize(),
@@ -766,96 +819,41 @@ const Task = () => {
                             )}
                           </div>
                         </TableHead>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell className="overflow-hidden" key={cell.id}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
                       ))}
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={columns.length} className="h-24 text-center">
-                      No results.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          ) : (
-            <Table className="[&_td]:px-2  [&_th]:px-2 table-fixed">
-              <TableHeader>
-                {nestedProjectTable.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <TableHead
-                        className={`resizer overflow-hidden ${header.column.getIsResizing() ? "isResizing" : null}`}
-                        key={header.id}
-                        style={{
-                          width: header.getSize(),
-                          position: "relative",
-                        }}
-                      >
-                        <div className="w-full h-full flex items-center justify-between group">
-                          <div className="w-full">
-                            {flexRender(header.column.columnDef.header, header.getContext())}
-                          </div>
-                          {header.id !== "#" && (
-                            <div
-                              {...{
-                                onMouseDown: header.getResizeHandler(),
-                                onTouchStart: header.getResizeHandler(),
-                                className: `cursor-col-resize flex justify-center items-center h-full`,
-                              }}
-                            >
-                              <GripVertical className="w-4 h-4 max-lg:hidden" />
-                            </div>
-                          )}
-                        </div>
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody className="relative">
-                {nestedProjectTable.getRowModel().rows?.length ? (
-                  nestedProjectTable.getRowModel().rows.map((row) => {
-                    return (
-                      <React.Fragment key={row.id}>
-                        <TableRow
-                          style={{
-                            width: `${table.getState().columnSizingInfo.deltaOffset}px)`,
-                          }}
-                        >
-                          {row.getVisibleCells().map((cell) => (
-                            <TableCell className="overflow-hidden" key={cell.id}>
-                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      </React.Fragment>
-                    );
-                  })
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={columns.length} className="h-24 text-center">
-                      No results.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          )}
-        </div>
+                  ))}
+                </TableHeader>
+                <TableBody className="relative">
+                  {nestedProjectTable.getRowModel().rows?.length ? (
+                    nestedProjectTable.getRowModel().rows.map((row) => {
+                      return (
+                        <React.Fragment key={row.id}>
+                          <TableRow
+                            style={{
+                              width: `${table.getState().columnSizingInfo.deltaOffset}px)`,
+                            }}
+                          >
+                            {row.getVisibleCells().map((cell) => (
+                              <TableCell className="overflow-hidden" key={cell.id}>
+                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        </React.Fragment>
+                      );
+                    })
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={columns.length} className="h-24 text-center">
+                        No results.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+        )}
         {/* footer */}
         <div className="w-full flex justify-between items-center mt-5">
           <Button
