@@ -113,7 +113,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
           </div>
         </DialogHeader>
         {isLoading ? (
-          <Spinner isFull />
+          <Spinner />
         ) : (
           <div>
             <div className="flex flex-col ">
