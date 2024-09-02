@@ -1,5 +1,5 @@
 app_name = "frappe_pms"
-app_title = "Frappe Pms"
+app_title = "Frappe PMS"
 app_publisher = "rtCamp"
 app_description = "The PMS in Frappe."
 app_email = "erp@rtcamp.com"
