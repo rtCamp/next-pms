@@ -1,30 +1,24 @@
-app_name = "timesheet_enhancer"
-app_title = "Timesheet Enhancer"
+app_name = "frappe_pms"
+app_title = "Frappe Pms"
 app_publisher = "rtCamp"
-app_description = "Frappe app for Timesheet enhancements"
-app_email = "sys@rtcamp.com"
+app_description = "The PMS in Frappe."
+app_email = "erp@rtcamp.com"
 app_license = "mit"
 # required_apps = []
 
-website_route_rules = [
-    {
-        "from_route": "/timesheet/<path:app_path>",
-        "to_route": "/timesheet",
-    },
-]
 # Includes in <head>
 # ------------------
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/timesheet_enhancer/css/timesheet_enhancer.css"
-# app_include_js = "/assets/timesheet_enhancer/js/timesheet_enhancer.js"
+# app_include_css = "/assets/frappe_pms/css/frappe_pms.css"
+# app_include_js = "/assets/frappe_pms/js/frappe_pms.js"
 
 # include js, css files in header of web template
-# web_include_css = "/assets/timesheet_enhancer/css/timesheet_enhancer.css"
-# web_include_js = "/assets/timesheet_enhancer/js/timesheet_enhancer.js"
+# web_include_css = "/assets/frappe_pms/css/frappe_pms.css"
+# web_include_js = "/assets/frappe_pms/js/frappe_pms.js"
 
 # include custom scss in every website theme (without file extension ".scss")
-# website_theme_scss = "timesheet_enhancer/public/scss/website"
+# website_theme_scss = "frappe_pms/public/scss/website"
 
 # include js, css files in header of web form
 # webform_include_js = {"doctype": "public/js/doctype.js"}
@@ -34,10 +28,7 @@ website_route_rules = [
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-doctype_js = {
-    "Timesheet": "public/js/timesheet.js",
-    "Employee": "public/js/employee.js",
-}
+# doctype_js = {"doctype" : "public/js/doctype.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -45,7 +36,7 @@ doctype_js = {
 # Svg Icons
 # ------------------
 # include app icons in desk
-# app_include_icons = "timesheet_enhancer/public/icons.svg"
+# app_include_icons = "frappe_pms/public/icons.svg"
 
 # Home Pages
 # ----------
@@ -69,73 +60,43 @@ doctype_js = {
 
 # add methods and filters to jinja environment
 # jinja = {
-# 	"methods": "timesheet_enhancer.utils.jinja_methods",
-# 	"filters": "timesheet_enhancer.utils.jinja_filters"
+# 	"methods": "frappe_pms.utils.jinja_methods",
+# 	"filters": "frappe_pms.utils.jinja_filters"
 # }
-fixtures = [
-    {
-        "dt": "Custom Field",
-        "filters": [
-            [
-                "name",
-                "in",
-                {
-                    "Task-custom_is_billable",
-                    "Timesheet-custom_approval_status",
-                    "Employee-custom_working_hours",
-                    "Employee-custom_work_schedule",
-                },
-            ]
-        ],
-    },
-    {
-        "dt": "Property Setter",
-        "filters": [
-            [
-                "name",
-                "in",
-                {
-                    "Task-total_billing_amount-permlevel",
-                    "Task-total_expense_claim-permlevel",
-                    "Task-total_costing_amount-permlevel",
-                },
-            ]
-        ],
-    },
-]
+
 # Installation
 # ------------
 
-# before_install = "timesheet_enhancer.install.before_install"
-after_install = "timesheet_enhancer.install.after_install"
+# before_install = "frappe_pms.install.before_install"
+# after_install = "frappe_pms.install.after_install"
 
 # Uninstallation
 # ------------
 
-# before_uninstall = "timesheet_enhancer.uninstall.before_uninstall"
-# after_uninstall = "timesheet_enhancer.uninstall.after_uninstall"
+# before_uninstall = "frappe_pms.uninstall.before_uninstall"
+# after_uninstall = "frappe_pms.uninstall.after_uninstall"
 
 # Integration Setup
 # ------------------
 # To set up dependencies/integrations with other apps
 # Name of the app being installed is passed as an argument
 
-# before_app_install = "timesheet_enhancer.utils.before_app_install"
-# after_app_install = "timesheet_enhancer.utils.after_app_install"
+# before_app_install = "frappe_pms.utils.before_app_install"
+# after_app_install = "frappe_pms.utils.after_app_install"
 
 # Integration Cleanup
 # -------------------
 # To clean up dependencies/integrations with other apps
 # Name of the app being uninstalled is passed as an argument
 
-# before_app_uninstall = "timesheet_enhancer.utils.before_app_uninstall"
-# after_app_uninstall = "timesheet_enhancer.utils.after_app_uninstall"
+# before_app_uninstall = "frappe_pms.utils.before_app_uninstall"
+# after_app_uninstall = "frappe_pms.utils.after_app_uninstall"
 
 # Desk Notifications
 # ------------------
 # See frappe.core.notifications.get_notification_config
 
-# notification_config = "timesheet_enhancer.notifications.get_notification_config"
+# notification_config = "frappe_pms.notifications.get_notification_config"
 
 # Permissions
 # -----------
@@ -153,60 +114,60 @@ after_install = "timesheet_enhancer.install.after_install"
 # ---------------
 # Override standard doctype classes
 
-override_doctype_class = {
-    "Timesheet": "timesheet_enhancer.overrides.timesheet_override.TimesheetOverride",
-}
+# override_doctype_class = {
+# 	"ToDo": "custom_app.overrides.CustomToDo"
+# }
 
 # Document Events
 # ---------------
 # Hook on document methods and events
 
-doc_events = {
-    "Timesheet": {
-        "validate": "timesheet_enhancer.doc_events.timesheet.validate",
-        "before_save": "timesheet_enhancer.doc_events.timesheet.before_save",
-        "before_insert": "timesheet_enhancer.doc_events.timesheet.before_insert",
-    },
-}
+# doc_events = {
+# 	"*": {
+# 		"on_update": "method",
+# 		"on_cancel": "method",
+# 		"on_trash": "method"
+# 	}
+# }
 
 # Scheduled Tasks
 # ---------------
 
 # scheduler_events = {
 # 	"all": [
-# 		"timesheet_enhancer.tasks.all"
+# 		"frappe_pms.tasks.all"
 # 	],
 # 	"daily": [
-# 		"timesheet_enhancer.tasks.daily"
+# 		"frappe_pms.tasks.daily"
 # 	],
 # 	"hourly": [
-# 		"timesheet_enhancer.tasks.hourly"
+# 		"frappe_pms.tasks.hourly"
 # 	],
 # 	"weekly": [
-# 		"timesheet_enhancer.tasks.weekly"
+# 		"frappe_pms.tasks.weekly"
 # 	],
 # 	"monthly": [
-# 		"timesheet_enhancer.tasks.monthly"
+# 		"frappe_pms.tasks.monthly"
 # 	],
 # }
 
 # Testing
 # -------
 
-# before_tests = "timesheet_enhancer.install.before_tests"
+# before_tests = "frappe_pms.install.before_tests"
 
 # Overriding Methods
 # ------------------------------
 #
 # override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "timesheet_enhancer.event.get_events"
+# 	"frappe.desk.doctype.event.event.get_events": "frappe_pms.event.get_events"
 # }
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
 # along with any modifications made in other Frappe apps
 # override_doctype_dashboards = {
-# 	"Task": "timesheet_enhancer.task.get_dashboard_data"
+# 	"Task": "frappe_pms.task.get_dashboard_data"
 # }
 
 # exempt linked doctypes from being automatically cancelled
@@ -220,13 +181,13 @@ doc_events = {
 
 # Request Events
 # ----------------
-# before_request = ["timesheet_enhancer.utils.before_request"]
-# after_request = ["timesheet_enhancer.utils.after_request"]
+# before_request = ["frappe_pms.utils.before_request"]
+# after_request = ["frappe_pms.utils.after_request"]
 
 # Job Events
 # ----------
-# before_job = ["timesheet_enhancer.utils.before_job"]
-# after_job = ["timesheet_enhancer.utils.after_job"]
+# before_job = ["frappe_pms.utils.before_job"]
+# after_job = ["frappe_pms.utils.after_job"]
 
 # User Data Protection
 # --------------------
@@ -256,7 +217,7 @@ doc_events = {
 # --------------------------------
 
 # auth_hooks = [
-# 	"timesheet_enhancer.auth.validate"
+# 	"frappe_pms.auth.validate"
 # ]
 
 # Automatically update python controller files with type annotations for this app.
@@ -265,3 +226,4 @@ doc_events = {
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
+

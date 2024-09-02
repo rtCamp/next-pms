@@ -1,9 +1,9 @@
 [project]
-name = "timesheet_enhancer"
+name = "frappe_pms"
 authors = [
-    { name = "rtCamp", email = "sys@rtcamp.com"}
+    { name = "rtCamp", email = "erp@rtcamp.com"}
 ]
-description = "Frappe app for Timesheet enhancements"
+description = "The PMS in Frappe."
 requires-python = ">=3.10"
 readme = "README.md"
 dynamic = ["version"]

@@ -1,6 +1,6 @@
-## Timesheet Enhancer
+## Frappe Pms
 
-Frappe app for Timesheet enhancements
+The PMS in Frappe.
 
 #### License
 
