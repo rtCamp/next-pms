@@ -151,42 +151,6 @@ class TimesheetOverwrite(Timesheet):
         return {"costing_rate": costing_rate, "billing_rate": billing_rate}
 
 
-# def get_employee_billing_rate(
-#     project_hourly_billing_rate: float,
-#     employee_custom_hourly_billing_rate: float,
-#     employee_salary_currency: str,
-#     project_currency: str,
-#     timesheet_currency: str,
-# ):
-
-#     billing_rate, currency = 0, None
-
-#     billing_type = "Member Rate"
-
-#     if not project_hourly_billing_rate:
-#         billing_rate = "Default Hourly Rate"
-
-#     if billing_type == "Member Rate":
-#         if not project_hourly_billing_rate:
-#             return frappe.throw(
-#                 "Invalid information for project billing. Please contact the Project Manager for assistance."
-#             )
-#         billing_rate = project_hourly_billing_rate
-#         currency = project_currency
-#     else:
-#         if not employee_custom_hourly_billing_rate:
-#             return frappe.throw(
-#                 "Invalid information for project billing. Please contact the Project Manager for assistance."
-#             )
-#         billing_rate = employee_custom_hourly_billing_rate
-#         currency = employee_salary_currency
-
-#     if currency != timesheet_currency:
-#         rate = get_exchange_rate(currency, timesheet_currency)
-#         return billing_rate * rate
-
-#     return billing_rate
-
 
 def get_employee_billing_rate(
     project_hourly_billing_rate: float,

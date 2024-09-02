@@ -128,7 +128,7 @@ fixtures = [
             [
                 "module",
                 "in",
-                {"Project Currency"},
+                ["Project Currency","Timesheet"],
             ]
         ],
     },
@@ -138,43 +138,12 @@ fixtures = [
             [
                 "module",
                 "in",
-                {"Project Currency"},
+                ["Project Currency","Timesheet"],
             ]
         ],
     },
 ]
 
-# fixtures = [
-#     {
-#         "dt": "Custom Field",
-#         "filters": [
-#             [
-#                 "name",
-#                 "in",
-#                 {
-#                     "Task-custom_is_billable",
-#                     "Timesheet-custom_approval_status",
-#                     "Employee-custom_working_hours",
-#                     "Employee-custom_work_schedule",
-#                 },
-#             ]
-#         ],
-#     },
-#     {
-#         "dt": "Property Setter",
-#         "filters": [
-#             [
-#                 "name",
-#                 "in",
-#                 {
-#                     "Task-total_billing_amount-permlevel",
-#                     "Task-total_expense_claim-permlevel",
-#                     "Task-total_costing_amount-permlevel",
-#                 },
-#             ]
-#         ],
-#     },
-# ]
 
 # DocType Class
 # ---------------
@@ -186,18 +155,6 @@ override_doctype_class = {
     "Timesheet": "frappe_pms.project_currency.overrides.timesheet.TimesheetOverwrite",
 }
 
-
-# Document Events
-# ---------------
-# Hook on document methods and events
-
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
 
 # Scheduled Tasks
 # ---------------

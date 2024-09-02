@@ -1,14 +1,14 @@
 {
-  "name": "timesheet_enhancer",
+  "name": "frappe-pms",
   "version": "1.0.0",
   "main": "index.js",
-  "repository": "git@github.com:rtCamp/timesheet-enhancer.git",
+  "repository": "git@github.com:rtCamp/Frappe-PMS.git",
   "author": "rtCamp",
   "license": "MIT",
   "private": true,
   "scripts": {
-    "dev": "cd timesheet && npm run dev",
-    "build": "cd timesheet && npm run build"
+    "dev": "cd frontend/timesheet && npm run dev",
+    "build": "cd frontend/timesheet && npm install && npm run build"
   },
   "dependencies": {
   }

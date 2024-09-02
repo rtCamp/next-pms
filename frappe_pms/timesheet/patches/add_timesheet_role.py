@@ -6,7 +6,7 @@ def execute():
 
 
 def add_role():
-    roles = ["Timesheet Manager", "Timesheet User"]
+    roles = ["Timesheet Manager"]
 
     for role in roles:
         if not frappe.db.exists("Role", role):
