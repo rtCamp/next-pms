@@ -1,0 +1,20 @@
+{
+ "content": null,
+ "creation": "2024-04-18 12:06:27.371075",
+ "docstatus": 0,
+ "doctype": "Page",
+ "icon": "",
+ "idx": 0,
+ "modified": "2024-04-19 13:38:38.026862",
+ "modified_by": "Administrator",
+ "module": "Timesheet Enhancer",
+ "name": "time-entry",
+ "owner": "Administrator",
+ "page_name": "time-entry",
+ "roles": [],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "Time Entry"
+}

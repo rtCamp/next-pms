@@ -1,0 +1,131 @@
+import frappe
+from erpnext import get_company_currency
+from erpnext.setup.utils import get_exchange_rate
+from frappe import _
+from frappe.query_builder.functions import Max, Min, Sum
+from hrms.overrides.employee_project import EmployeeProject
+
+
+class ProjectOverwrite(EmployeeProject):
+    def validate(self):
+        super().validate()
+        self.validate_overlap_project_billing()
+
+    def validate_overlap_project_billing(self):
+        custom_project_billing_team = self.custom_project_billing_team
+
+        for index in range(len(custom_project_billing_team)):
+            for index2 in range(index + 1, len(custom_project_billing_team)):
+                if (
+                    custom_project_billing_team[index].employee
+                    == custom_project_billing_team[index2].employee
+                ):
+                    if (
+                        custom_project_billing_team[index].valid_from
+                        == custom_project_billing_team[index2].valid_from
+                    ):
+                        frappe.throw(
+                            _(
+                                "Employee {} has overlapping date range in Project Billing Team".format(
+                                    custom_project_billing_team[index].employee
+                                )
+                            )
+                        )
+
+    def update_costing(self):
+        TimesheetDetail = frappe.qb.DocType("Timesheet Detail")
+        from_time_sheet = (
+            frappe.qb.from_(TimesheetDetail)
+            .select(
+                Sum(TimesheetDetail.costing_amount).as_("costing_amount"),
+                Sum(TimesheetDetail.billing_amount).as_("billing_amount"),
+                Min(TimesheetDetail.from_time).as_("start_date"),
+                Max(TimesheetDetail.to_time).as_("end_date"),
+                Sum(TimesheetDetail.hours).as_("time"),
+            )
+            .where(
+                (TimesheetDetail.project == self.name)
+                & (TimesheetDetail.docstatus == 1)
+            )
+        ).run(as_dict=True)[0]
+
+        self.actual_start_date = from_time_sheet.start_date
+        self.actual_end_date = from_time_sheet.end_date
+
+        self.total_costing_amount = from_time_sheet.costing_amount
+        self.total_billable_amount = from_time_sheet.billing_amount
+        self.actual_time = from_time_sheet.time
+
+        self.update_purchase_costing()
+        self.update_sales_amount()
+        self.update_billed_amount()
+        self.calculate_gross_margin()
+        self.update_expense_claim()
+
+    def update_sales_amount(self):
+        total_sales_amount = frappe.db.sql(
+            """select sum(net_total)
+            from `tabSales Order` where project = %s and docstatus=1""",
+            self.name,
+        )
+
+        self.total_sales_amount = total_sales_amount and total_sales_amount[0][0] or 0
+
+    def update_billed_amount(self):
+        total_billed_amount = frappe.db.sql(
+            """select sum(net_total)
+            from `tabSales Invoice` where project = %s and docstatus=1""",
+            self.name,
+        )
+
+        self.total_billed_amount = (
+            total_billed_amount and total_billed_amount[0][0] or 0
+        )
+
+    def update_purchase_costing(self):
+        total_purchase_cost = frappe.db.get_all(
+            "Purchase Invoice",
+            filters={"project": self.name, "docstatus": 1},
+            fields=["net_total", "currency", "posting_date"],
+        )
+
+        total_amount = 0
+
+        for purchase_cost in total_purchase_cost:
+            rate = get_exchange_rate(
+                from_currency=purchase_cost.currency,
+                to_currency=self.custom_currency,
+                transaction_date=purchase_cost.posting_date,
+            )
+
+            total_amount += purchase_cost.net_total * rate
+
+        self.total_purchase_cost = total_amount
+
+    def update_expense_claim(self):
+        total_expense_claim = frappe.db.get_all(
+            "Expense Claim",
+            filters={"project": self.name, "docstatus": 1},
+            fields=["total_sanctioned_amount", "company", "posting_date"],
+        )
+
+        total_amount = 0
+
+        for expense_claim in total_expense_claim:
+
+            rate = get_exchange_rate(
+                from_currency=get_company_currency(company=expense_claim.company),
+                to_currency=self.custom_currency,
+                transaction_date=expense_claim.posting_date,
+            )
+
+            total_amount += expense_claim.total_sanctioned_amount * rate
+
+        self.total_expense_claim = total_amount
+
+
+@frappe.whitelist()
+def recalculate_project_total_purchase_cost(project: str | None = None):
+    if project:
+        project = frappe.get_doc("Project", project)
+        project.update_purchase_costing()

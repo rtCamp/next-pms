@@ -9,6 +9,13 @@ app_license = "mit"
 # Includes in <head>
 # ------------------
 
+website_route_rules = [
+    {
+        "from_route": "/timesheet/<path:app_path>",
+        "to_route": "/timesheet",
+    },
+]
+
 # include js, css files in header of desk.html
 # app_include_css = "/assets/frappe_pms/css/frappe_pms.css"
 # app_include_js = "/assets/frappe_pms/js/frappe_pms.js"
@@ -28,7 +35,10 @@ app_license = "mit"
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
+doctype_js = {
+    "Timesheet": "public/js/timesheet.js",
+    "Employee": "public/js/employee.js",
+}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -110,13 +120,72 @@ app_license = "mit"
 # 	"Event": "frappe.desk.doctype.event.event.has_permission",
 # }
 
+
+fixtures = [
+    {
+        "dt": "Property Setter",
+        "filters": [
+            [
+                "module",
+                "in",
+                {"Project Currency"},
+            ]
+        ],
+    },
+    {
+        "dt": "Custom Field",
+        "filters": [
+            [
+                "module",
+                "in",
+                {"Project Currency"},
+            ]
+        ],
+    },
+]
+
+# fixtures = [
+#     {
+#         "dt": "Custom Field",
+#         "filters": [
+#             [
+#                 "name",
+#                 "in",
+#                 {
+#                     "Task-custom_is_billable",
+#                     "Timesheet-custom_approval_status",
+#                     "Employee-custom_working_hours",
+#                     "Employee-custom_work_schedule",
+#                 },
+#             ]
+#         ],
+#     },
+#     {
+#         "dt": "Property Setter",
+#         "filters": [
+#             [
+#                 "name",
+#                 "in",
+#                 {
+#                     "Task-total_billing_amount-permlevel",
+#                     "Task-total_expense_claim-permlevel",
+#                     "Task-total_costing_amount-permlevel",
+#                 },
+#             ]
+#         ],
+#     },
+# ]
+
 # DocType Class
 # ---------------
 # Override standard doctype classes
 
-# override_doctype_class = {
-# 	"ToDo": "custom_app.overrides.CustomToDo"
-# }
+override_doctype_class = {
+    "Project": "frappe_pms.project_currency.overrides.project.ProjectOverwrite",
+    "Customize Form": "frappe_pms.project_currency.overrides.customize_form_override.CareersOverrideCustomizeForm",
+    "Timesheet": "frappe_pms.project_currency.overrides.timesheet.TimesheetOverwrite",
+}
+
 
 # Document Events
 # ---------------
@@ -156,12 +225,23 @@ app_license = "mit"
 
 # before_tests = "frappe_pms.install.before_tests"
 
+after_install = "timesheet_enhancer.install.after_install"
+
+
 # Overriding Methods
 # ------------------------------
 #
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "frappe_pms.event.get_events"
-# }
+override_whitelisted_methods = {
+    "erpnext.projects.doctype.project.project.recalculate_project_total_purchase_cost": "frappe_pms.project_currency.overrides.project.recalculate_project_total_purchase_cost"
+}
+
+doc_events = {
+    "Timesheet": {
+        "validate": "timesheet_enhancer.doc_events.timesheet.validate",
+        "before_save": "timesheet_enhancer.doc_events.timesheet.before_save",
+        "before_insert": "timesheet_enhancer.doc_events.timesheet.before_insert",
+    },
+}
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
@@ -226,4 +306,3 @@ app_license = "mit"
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
-
