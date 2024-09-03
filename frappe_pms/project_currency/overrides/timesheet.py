@@ -1,7 +1,5 @@
 import frappe
-from erpnext.accounts.report.consolidated_financial_statement.consolidated_financial_statement import (
-    get_company_currency,
-)
+from erpnext import get_company_currency
 from erpnext.projects.doctype.timesheet.timesheet import Timesheet
 from erpnext.setup.utils import get_exchange_rate
 from frappe.utils.data import flt, nowdate
@@ -89,22 +87,6 @@ class TimesheetOverwrite(Timesheet):
                     data.base_billing_rate = base_rate.get("billing_rate")
                     data.base_billing_amount = data.base_billing_rate * hours
 
-    def validate_mandatory_fields(self):
-        for data in self.time_logs:
-            if not data.from_time and not data.to_time:
-                frappe.throw(
-                    frappe._("Row {0}: From Time and To Time is mandatory.").format(
-                        data.idx
-                    )
-                )
-
-            if flt(data.hours) == 0.0:
-                frappe.throw(
-                    frappe._("Row {0}: Hours value must be greater than zero.").format(
-                        data.idx
-                    )
-                )
-
     def get_activity_cost(self, currency=None, valid_from_date=None):
         if not self.parent_project:
             return frappe.throw("Project is not defined in Timesheet.")
@@ -149,7 +131,6 @@ class TimesheetOverwrite(Timesheet):
         )
 
         return {"costing_rate": costing_rate, "billing_rate": billing_rate}
-
 
 
 def get_employee_billing_rate(

@@ -86,7 +86,7 @@ def get_data(filters):
         .where(timesheet.employee.isin(employees))
         .where(timesheet.start_date >= filters.get("from_date"))
         .where(timesheet.end_date <= filters.get("to_date"))
-        .groupby(timesheet_details.task, timesheet.employee)
+        .groupby(timesheet.start_date, timesheet_details.task)
     )
 
     if filters.get("task", None) is not None:
