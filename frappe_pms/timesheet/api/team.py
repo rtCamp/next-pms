@@ -154,7 +154,7 @@ def get_compact_view_data(
 
 @frappe.whitelist()
 def get_timesheet_for_employee(employee: str, date: str):
-    from timesheet_enhancer.api.timesheet import get_timesheet_data
+    from .timesheet import get_timesheet_data
 
     date = getdate(date)
     return get_timesheet_data(employee=employee, start_date=date, max_week=1)

@@ -29,7 +29,6 @@ import {
   floatToTime,
   getFormatedDate,
   cn,
-  calculateWeeklyHour,
   preProcessLink,
   deBounce,
 } from "@/lib/utils";
@@ -45,7 +44,7 @@ import { Approval } from "./approval";
 import { TEAM, EMPLOYEE } from "@/lib/constant";
 import { ItemProps, dataItem } from "@/types/team";
 import { Spinner } from "@/app/components/spinner";
-import { WorkingFrequency } from "@/types";
+import { WeekTotal } from "@/app/components/timesheetTable";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { ProjectProps } from "@/types";
 import { Input } from "@/app/components/ui/input";
@@ -447,6 +446,7 @@ const Team = () => {
                               total={total}
                               expected_hour={item.working_hour}
                               frequency={item.working_frequency}
+                              className="w-full max-w-24 flex items-center justify-end"
                             />
 
                             <TableCell
@@ -497,27 +497,3 @@ const Status = ({ status }: { status: string }) => {
   return <CircleCheck className="w-4 h-4 " />;
 };
 export default Team;
-
-const WeekTotal = ({
-  total,
-  expected_hour,
-  frequency,
-}: {
-  total: number;
-  expected_hour: number;
-  frequency: WorkingFrequency;
-}) => {
-  const expectedTime = calculateWeeklyHour(total, expected_hour, frequency);
-  return (
-    <TableCell
-      className={cn(
-        "w-full max-w-24 flex items-center justify-end",
-        expectedTime == 1 && "text-success",
-        expectedTime == 2 && "text-warning",
-        expectedTime == 0 && "text-destructive",
-      )}
-    >
-      {floatToTime(total)}
-    </TableCell>
-  );
-};

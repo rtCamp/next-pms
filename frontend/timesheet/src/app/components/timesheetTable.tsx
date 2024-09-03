@@ -119,7 +119,7 @@ const TimesheetTable = ({
                   </TableCell>
                   {dates.map((date: string) => {
                     let data = taskData.data.filter(
-                      (data: TaskDataItemProps) => getDateFromDateAndTime(data.from_time) === date
+                      (data: TaskDataItemProps) => getDateFromDateAndTime(data.from_time) === date,
                     );
                     data.forEach((item: TaskDataItemProps) => {
                       totalHours += item.hours;
@@ -156,7 +156,7 @@ const TimesheetTable = ({
                       variant="p"
                       className={cn(
                         "text-slate-800 font-medium text-right flex justify-between items-center",
-                        !taskData.is_billable && "justify-end"
+                        !taskData.is_billable && "justify-end",
                       )}
                     >
                       {taskData.is_billable == true && <CircleDollarSign className="stroke-success w-4 h-4" />}
@@ -172,16 +172,24 @@ const TimesheetTable = ({
   );
 };
 
-const LeaveRow = ({
+export const LeaveRow = ({
   leaves,
   dates,
   holidays,
   expectedHours,
+  rowClassName,
+  headingClassName,
+  dataCellClassName,
+  totalCellClassName,
 }: {
   leaves: Array<LeaveProps>;
   dates: string[];
   holidays: string[];
   expectedHours: number;
+  rowClassName?: string;
+  headingClassName?: string;
+  dataCellClassName?: string;
+  totalCellClassName?: string;
 }) => {
   let total_hours = 0;
   const leaveData = dates.map((date: string) => {
@@ -199,27 +207,27 @@ const LeaveRow = ({
   });
 
   // Check if there are any leaves
-  const hasLeaves = leaveData.some(({ data, isHoliday, hour }) => (data || isHoliday)&& (hour>0) );
+  const hasLeaves = leaveData.some(({ data, isHoliday, hour }) => (data || isHoliday) && hour > 0);
 
   if (!hasLeaves) {
     return null;
   }
 
   return (
-    <TableRow>
-      <TableCell>
+    <TableRow className={cn(rowClassName)}>
+      <TableCell className={cn(headingClassName)}>
         <Typography variant="p" className="text-slate-800">
           Time Off
         </Typography>
       </TableCell>
       {leaveData.map(({ date, data, hour, isHoliday }) => (
-        <TableCell key={date} className="text-center">
+        <TableCell key={date} className={cn("text-center", dataCellClassName)}>
           <Typography variant="p" className={isHoliday ? "text-white" : "text-warning"}>
             {data ? floatToTime(hour) : ""}
           </Typography>
         </TableCell>
       ))}
-      <TableCell>
+      <TableCell className={cn(totalCellClassName)}>
         <Typography variant="p" className="text-slate-800 font-medium text-right">
           {floatToTime(total_hours)}
         </Typography>
@@ -227,7 +235,7 @@ const LeaveRow = ({
     </TableRow>
   );
 };
-const TotalHourRow = ({
+export const TotalHourRow = ({
   leaves,
   dates,
   tasks,
@@ -298,25 +306,27 @@ const TotalHourRow = ({
     </TableRow>
   );
 };
-const WeekTotal = ({
+export const WeekTotal = ({
   total,
   expected_hour,
   frequency,
+  className,
 }: {
   total: number;
   expected_hour: number;
   frequency: WorkingFrequency;
+  className?: string;
 }) => {
   const expectedTime = calculateWeeklyHour(total, expected_hour, frequency);
   return (
-    <TableCell>
+    <TableCell className={cn(className)}>
       <Typography
         variant="p"
         className={cn(
           "text-right font-medium",
           expectedTime == 1 && "text-success",
           expectedTime == 2 && "text-warning",
-          expectedTime == 0 && "text-destructive"
+          expectedTime == 0 && "text-destructive",
         )}
       >
         {floatToTime(total)}
@@ -325,12 +335,13 @@ const WeekTotal = ({
   );
 };
 
-const Cell = ({
+export const Cell = ({
   date,
   data,
   isHoliday,
   onCellClick,
   disabled,
+  className,
 }: {
   date: string;
   data: TaskDataItemProps[];
@@ -339,6 +350,7 @@ const Cell = ({
   // @ts-ignore
   onCellClick?: (val) => void;
   disabled?: boolean;
+  className?: string;
 }) => {
   let hours = 0;
   let description = "";
@@ -375,17 +387,18 @@ const Cell = ({
         className={cn(
           "text-center group",
           isDisabled && "cursor-default",
-          "hover:h-full hover:bg-slate-100 hover:cursor-pointer"
+          "hover:h-full hover:bg-slate-100 hover:cursor-pointer",
+          className,
         )}
       >
-        <HoverCardTrigger className={cn("", isDisabled && "cursor-default")}>
-          <span className="flex flex-col items-center ">
+        <HoverCardTrigger className={cn(isDisabled && "cursor-default")}>
+          <span className="flex flex-col items-center justify-center ">
             <Typography
               variant="p"
               className={cn(
                 "text-slate-600",
                 isHoliday || (isDisabled && "text-slate-400"),
-                !hours && "group-hover:hidden"
+                !hours && !isDisabled && "group-hover:hidden",
               )}
             >
               {hours > 0 ? floatToTime(hours || 0) : "-"}
@@ -394,7 +407,11 @@ const Cell = ({
             {/* @ts-ignore */}
             {(isTimeBothBillableAndNonBillable || isTimeBillable) && (
               <CircleDollarSign
-                className={cn("stroke-slate-500 w-4 h-4  group-hover:hidden", isTimeBillable && "stroke-success")}
+                className={cn(
+                  "stroke-slate-500 w-4 h-4 ",
+                  !isDisabled && "group-hover:hidden",
+                  isTimeBillable && "stroke-success",
+                )}
               />
             )}
             <PencilLine
@@ -414,11 +431,15 @@ const Cell = ({
   );
 };
 
-const EmptyRow = ({
+export const EmptyRow = ({
   dates,
   holidays,
   onCellClick,
   disabled,
+  rowClassName,
+  headingCellClassName,
+  totalCellClassName,
+  cellClassName,
 }: {
   dates: string[];
   holidays: string[];
@@ -426,10 +447,14 @@ const EmptyRow = ({
   // @ts-ignore
   onCellClick?: (data) => void;
   disabled?: boolean;
+  rowClassName?: string;
+  headingCellClassName?: string;
+  totalCellClassName?: string;
+  cellClassName?: string;
 }) => {
   return (
-    <TableRow>
-      <TableCell className="min-w-[24rem]">
+    <TableRow className={cn(rowClassName)}>
+      <TableCell className={cn("min-w-[24rem]", headingCellClassName)}>
         <Typography variant="p" className="text-destructive">
           Add Task
         </Typography>
@@ -456,10 +481,11 @@ const EmptyRow = ({
             isHoliday={isHoliday}
             onCellClick={onCellClick}
             disabled={disabled}
+            className={cellClassName}
           />
         );
       })}
-      <TableCell></TableCell>
+      <TableCell className={cn(totalCellClassName)}></TableCell>
     </TableRow>
   );
 };
@@ -486,7 +512,7 @@ export const SubmitButton = ({
         (status == "Approved" || status == "Partially Approved") && "bg-green-50",
         (status == "Rejected" || status == "Partially Rejected") && "bg-red-50",
         status == "Approval Pending" && "bg-orange-50",
-        status == "Not Submitted" && "text-slate-400"
+        status == "Not Submitted" && "text-slate-400",
       )}
       onClick={status != "Approved" ? handleClick : undefined}
     >
