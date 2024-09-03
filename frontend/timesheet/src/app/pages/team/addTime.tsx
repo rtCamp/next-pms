@@ -27,7 +27,7 @@ export const AddTime = () => {
   const teamState = useSelector((state: RootState) => state.team);
   const dispatch = useDispatch();
   const [searchTerm, setSearchTerm] = useState(teamState.timesheet.task ?? "");
-  const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
+  const { call } = useFrappePostCall("frappe_pms.timesheet.api.timesheet.save");
   const [selectedDate, setSelectedDate] = useState(getFormatedDate(teamState.timesheet.date));
   const { toast } = useToast();
 
@@ -52,7 +52,7 @@ export const AddTime = () => {
     mutate: mutateTask,
     error: taskError,
   } = useFrappeGetCall(
-    "timesheet_enhancer.api.utils.get_task_for_employee",
+    "frappe_pms.timesheet.api.utils.get_task_for_employee",
     {
       search: searchTerm,
     },
@@ -61,13 +61,13 @@ export const AddTime = () => {
       shouldRetryOnError: false,
       errorRetryCount: 0,
       keepPreviousData: true,
-    }
+    },
   );
   const {
     data: employeeDetail,
     isLoading: employeeDetailLoading,
     error: employeeDetailError,
-  } = useFrappeGetCall("timesheet_enhancer.api.utils.get_employee", {
+  } = useFrappeGetCall("frappe_pms.timesheet.api.utils.get_employee", {
     filters: [["name", "=", teamState.employee]],
   });
   const handleOpenChange = () => {
@@ -138,11 +138,11 @@ export const AddTime = () => {
 
   // For Task remaining hour indicator
   const { data: perDayEmpHours, mutate: mutatePerDayHrs } = useFrappeGetCall(
-    "timesheet_enhancer.api.timesheet.get_remaining_hour_for_employee",
+    "frappe_pms.timesheet.api.timesheet.get_remaining_hour_for_employee",
     {
       employee: teamState.employee,
       date: selectedDate,
-    }
+    },
   );
   const expected_Hour_of_emp = useMemo(() => {
     const data = teamState.timesheetData.leaves.find((data: LeaveProps) => {
@@ -225,14 +225,15 @@ export const AddTime = () => {
                               <div className="flex gap-1 justify-center items-center max-w-32">
                                 <Typography
                                   variant="p"
-                                  className={cn("truncate",
+                                  className={cn(
+                                    "truncate",
                                     Number(perDayEmpHours?.message) < expected_Hour_of_emp
                                       ? "text-success"
-                                      : "text-destructive" + " text-xs"
+                                      : "text-destructive" + " text-xs",
                                   )}
                                 >
                                   {`${floatToTime(
-                                    Math.abs(expected_Hour_of_emp - Number(perDayEmpHours?.message))
+                                    Math.abs(expected_Hour_of_emp - Number(perDayEmpHours?.message)),
                                   )} hrs ${
                                     expected_Hour_of_emp - Number(perDayEmpHours?.message) >= 0
                                       ? "remaining"

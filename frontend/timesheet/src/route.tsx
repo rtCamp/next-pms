@@ -37,7 +37,7 @@ export const AuthenticatedRoute = () => {
   const dispatch = useDispatch();
 
   if (user.roles.length < 1) {
-    call.get("timesheet_enhancer.api.utils.get_current_user_roles").then((res) => {
+    call.get("frappe_pms.timesheet.api.utils.get_current_user_roles").then((res) => {
       dispatch(setRole(res.message));
     });
   }

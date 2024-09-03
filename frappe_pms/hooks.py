@@ -128,7 +128,7 @@ fixtures = [
             [
                 "module",
                 "in",
-                ["Project Currency","Timesheet"],
+                ["Project Currency", "Timesheet"],
             ]
         ],
     },
@@ -138,7 +138,7 @@ fixtures = [
             [
                 "module",
                 "in",
-                ["Project Currency","Timesheet"],
+                ["Project Currency", "Timesheet"],
             ]
         ],
     },
@@ -151,7 +151,7 @@ fixtures = [
 
 override_doctype_class = {
     "Project": "frappe_pms.project_currency.overrides.project.ProjectOverwrite",
-    "Customize Form": "frappe_pms.project_currency.overrides.customize_form_override.CareersOverrideCustomizeForm",
+    "Customize Form": "frappe_pms.project_currency.overrides.customize_form.CustomizeFormOverride",
     "Timesheet": "frappe_pms.project_currency.overrides.timesheet.TimesheetOverwrite",
 }
 
@@ -182,7 +182,7 @@ override_doctype_class = {
 
 # before_tests = "frappe_pms.install.before_tests"
 
-after_install = "timesheet_enhancer.install.after_install"
+after_install = "frappe_pms.install.after_install"
 
 
 # Overriding Methods
@@ -194,9 +194,9 @@ override_whitelisted_methods = {
 
 doc_events = {
     "Timesheet": {
-        "validate": "timesheet_enhancer.doc_events.timesheet.validate",
-        "before_save": "timesheet_enhancer.doc_events.timesheet.before_save",
-        "before_insert": "timesheet_enhancer.doc_events.timesheet.before_insert",
+        "validate": "frappe_pms.timesheet.doc_events.timesheet.validate",
+        "before_save": "frappe_pms.timesheet.doc_events.timesheet.before_save",
+        "before_insert": "frappe_pms.timesheet.doc_events.timesheet.before_insert",
     },
 }
 #

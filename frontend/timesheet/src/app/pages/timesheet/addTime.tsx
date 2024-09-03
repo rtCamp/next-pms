@@ -28,7 +28,7 @@ import { Typography } from "@/app/components/typography";
 import { LeaveProps } from "@/types/timesheet";
 
 export const AddTime = () => {
-  const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
+  const { call } = useFrappePostCall("frappe_pms.timesheet.api.timesheet.save");
   const timesheetState = useSelector((state: RootState) => state.timesheet);
   const [searchTerm, setSearchTerm] = useState(timesheetState.timesheet.task ?? "");
   const [selectedDate, setSelectedDate] = useState(getFormatedDate(timesheetState.timesheet.date));
@@ -54,22 +54,22 @@ export const AddTime = () => {
     mutate: mutateTask,
     error: errorTask,
   } = useFrappeGetCall(
-    "timesheet_enhancer.api.utils.get_task_for_employee",
+    "frappe_pms.timesheet.api.utils.get_task_for_employee",
     {
       search: searchTerm,
     },
     "task_for_employee",
     {
       errorRetryCount: 1,
-    }
+    },
   );
 
   const { data: perDayEmpHours, mutate: mutatePerDayHrs } = useFrappeGetCall(
-    "timesheet_enhancer.api.timesheet.get_remaining_hour_for_employee",
+    "frappe_pms.timesheet.api.timesheet.get_remaining_hour_for_employee",
     {
       employee: userState.employee,
       date: selectedDate,
-    }
+    },
   );
   useEffect(() => {
     if (errorTask) {
@@ -180,11 +180,11 @@ export const AddTime = () => {
                                 className={cn(
                                   Number(perDayEmpHours?.message) < expected_Hour_of_emp
                                     ? "text-success"
-                                    : "text-destructive"
+                                    : "text-destructive",
                                 )}
                               >
                                 {`${floatToTime(
-                                  Math.abs(expected_Hour_of_emp - Number(perDayEmpHours?.message))
+                                  Math.abs(expected_Hour_of_emp - Number(perDayEmpHours?.message)),
                                 )} hrs ${
                                   expected_Hour_of_emp - Number(perDayEmpHours?.message) >= 0 ? "remaining" : "extended"
                                 }`}

@@ -33,7 +33,7 @@ function Timesheet() {
   const timesheet = useSelector((state: RootState) => state.timesheet);
   const dispatch = useDispatch();
 
-  const { data, isLoading, error, mutate } = useFrappeGetCall("timesheet_enhancer.api.timesheet.get_timesheet_data", {
+  const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.timesheet.get_timesheet_data", {
     employee: user.employee,
     start_date: timesheet.weekDate,
     max_week: 4,

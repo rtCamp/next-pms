@@ -35,9 +35,9 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
   });
   const columns = ["Hours", "Description", "Billable", "Action"];
   const { toast } = useToast();
-  const { call: updateTimesheet } = useFrappePostCall("timesheet_enhancer.api.timesheet.update_timesheet_detail");
-  const { call: deleteTimesheet } = useFrappePostCall("timesheet_enhancer.api.timesheet.delete");
-  const { data, isLoading, mutate } = useFrappeGetCall("timesheet_enhancer.api.timesheet.get_timesheet_details", {
+  const { call: updateTimesheet } = useFrappePostCall("frappe_pms.timesheet.api.timesheet.update_timesheet_detail");
+  const { call: deleteTimesheet } = useFrappePostCall("frappe_pms.timesheet.api.timesheet.delete");
+  const { data, isLoading, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.timesheet.get_timesheet_details", {
     employee: employee,
     date: date,
     task: task,
@@ -108,8 +108,14 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
           <DialogTitle>Edit Time</DialogTitle>
           <Separator />
           <div className="flex justify-between w-full overflow-hidden">
-            <Typography title={employeeData.task} variant="h6" className="max-w-80 truncate font-normal"> {employeeData.task}</Typography>
-            <Typography variant="h5" className="max-w-80 truncate font-normal"> {prettyDate(date).date}</Typography>
+            <Typography title={employeeData.task} variant="h6" className="max-w-80 truncate font-normal">
+              {" "}
+              {employeeData.task}
+            </Typography>
+            <Typography variant="h5" className="max-w-80 truncate font-normal">
+              {" "}
+              {prettyDate(date).date}
+            </Typography>
           </div>
         </DialogHeader>
         {isLoading ? (
@@ -126,7 +132,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
                       key == 1 && "max-w-sm",
                       key != 1 && "max-w-28",
                       key == 0 && "max-w-16",
-                      key == 2 && "text-center max-w-24"
+                      key == 2 && "text-center max-w-24",
                     )}
                   >
                     {column}
@@ -202,7 +208,7 @@ const FormRow = ({ data, onRemove, onUpdate, onDelete }: FormRowProps) => {
                       {...field}
                       className={cn(
                         "p-1 max-w-12 focus-visible:ring-0 focus-visible:ring-offset-0",
-                        form.formState.errors.hours && "border-red-500"
+                        form.formState.errors.hours && "border-red-500",
                       )}
                     />
                   </FormControl>
@@ -225,7 +231,7 @@ const FormRow = ({ data, onRemove, onUpdate, onDelete }: FormRowProps) => {
                       onChange={field.onChange}
                       className={cn(
                         "focus-visible:ring-0 focus-visible:ring-offset-0 min-h-10",
-                        form.formState.errors.description && "border-red-500"
+                        form.formState.errors.description && "border-red-500",
                       )}
                     />
                   </FormControl>

@@ -25,7 +25,7 @@ import { WorkingFrequency } from "@/types";
 import { TimeInput } from "@/app/pages/team/employeeDetail";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { Separator } from "@/app/components/ui/separator";
-import { Check, CircleDollarSign, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { Textarea } from "@/app/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog";
 import { TimesheetRejectionSchema } from "@/schema/timesheet";
@@ -49,8 +49,8 @@ export const Approval = () => {
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const dispatch = useDispatch();
 
-  const { call } = useFrappePostCall("timesheet_enhancer.api.team.update_timesheet_status");
-  const { call: updateTime } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
+  const { call } = useFrappePostCall("frappe_pms.timesheet.api.team.update_timesheet_status");
+  const { call: updateTime } = useFrappePostCall("frappe_pms.timesheet.api.timesheet.save");
   const { data: timesheetList, isLoading: isTimesheetListLoading } = useFrappeGetDocList("Timesheet", {
     fields: ["docstatus", "start_date"],
     filters: [
@@ -76,7 +76,7 @@ export const Approval = () => {
         });
       });
   };
-  const { data, isLoading, error, mutate } = useFrappeGetCall("timesheet_enhancer.api.timesheet.get_timesheet_data", {
+  const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.timesheet.get_timesheet_data", {
     employee: teamState.employee,
     start_date: teamState.weekDate,
     max_week: 1,
@@ -134,7 +134,7 @@ export const Approval = () => {
   };
   const handleCheckboxChange = (date: string) => {
     setSelectedDates((prevSelectedDates) =>
-      prevSelectedDates.includes(date) ? prevSelectedDates.filter((d) => d !== date) : [...prevSelectedDates, date]
+      prevSelectedDates.includes(date) ? prevSelectedDates.filter((d) => d !== date) : [...prevSelectedDates, date],
     );
   };
   useEffect(() => {
@@ -190,14 +190,14 @@ export const Approval = () => {
                         ...taskItem,
                         taskName,
                         projectName: task.project_name,
-                      }))
+                      })),
                 );
                 let totalHours = matchingTasks.reduce((sum, task) => sum + task.hours, 0);
                 const isChecked = selectedDates.includes(date);
                 const holiday = holidays.find((holiday) => holiday.holiday_date === date);
                 const isHoliday = !!holiday;
                 const submittedTime = timesheetList?.some(
-                  (timesheet) => timesheet.start_date === date && timesheet.docstatus === 1
+                  (timesheet) => timesheet.start_date === date && timesheet.docstatus === 1,
                 );
                 const leave = leaves.find((data: LeaveProps) => {
                   return date >= data.from_date && date <= data.to_date;
@@ -230,7 +230,7 @@ export const Approval = () => {
                         className={cn(
                           isExtended == 0 && "text-destructive",
                           isExtended && "text-success",
-                          isExtended == 2 && "text-warning"
+                          isExtended == 2 && "text-warning",
                         )}
                       >
                         {floatToTime(totalHours)}h

@@ -20,7 +20,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     (async () => {
       call
-        .get("timesheet_enhancer.api.utils.get_employee_from_user")
+        .get("frappe_pms.timesheet.api.utils.get_employee_from_user")
         .then((res) => {
           dispatch(setEmployee(res?.message));
         })
@@ -53,7 +53,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           <Sidebar />
         </GenWrapper>
         <div
-        className="w-full overflow-hidden"
+          className="w-full overflow-hidden"
           style={{
             width: `${screenSize === "sm" || screenSize === "md" ? "calc(100% - 64px)" : "100%"}`,
             display: "flex",

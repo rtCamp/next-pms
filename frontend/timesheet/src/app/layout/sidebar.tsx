@@ -68,7 +68,7 @@ const Sidebar = () => {
 
   const fetchAppLogo = () => {
     call
-      .get("timesheet_enhancer.api.utils.app_logo")
+      .get("frappe_pms.timesheet.api.utils.app_logo")
       .then((res) => {
         dispatch(setAppLogo(res.message));
       })
@@ -126,7 +126,7 @@ const Sidebar = () => {
       <aside
         className={cn(
           "bg-slate-100  w-1/5 transition-all duration-300 ease-in-out p-4 flex flex-col",
-          user.isSidebarCollapsed && "w-16 items-center"
+          user.isSidebarCollapsed && "w-16 items-center",
         )}
       >
         <div
@@ -142,7 +142,7 @@ const Sidebar = () => {
             variant="h2"
             className={cn(
               "transition-all duration-300 ease-in-out max-md:hidden text-[1.65vw]",
-              user.isSidebarCollapsed && "hidden"
+              user.isSidebarCollapsed && "hidden",
             )}
           >
             Timesheet
@@ -158,7 +158,7 @@ const Sidebar = () => {
                   variant="ghost"
                   className={cn(
                     "flex items-center gap-x-2 w-full text-left p-2 hover:bg-slate-200 rounded-lg",
-                    openRoutes[route.key] && "bg-slate-200 "
+                    openRoutes[route.key] && "bg-slate-200 ",
                   )}
                   onClick={() => toggleNestedRoutes(route.key)}
                 >
@@ -178,7 +178,7 @@ const Sidebar = () => {
                 <div
                   className={cn(
                     "pl-4 pt-2 transition-all duration-300 ease-in-out flex flex-col gap-y-1",
-                    openRoutes[route.key] ? "flex" : "hidden"
+                    openRoutes[route.key] ? "flex" : "hidden",
                   )}
                 >
                   {route.children.map((child: NestedRoute) => (
@@ -192,7 +192,7 @@ const Sidebar = () => {
                         <div
                           className={cn(
                             "flex w-full pl-2 rounded-lg items-center px-3 py-2 hover:bg-slate-200 text-primary gap-x-2 overflow-hidden",
-                            isActive && "bg-primary shadow-md hover:bg-slate-700 "
+                            isActive && "bg-primary shadow-md hover:bg-slate-700 ",
                           )}
                         >
                           {child.icon && (
@@ -205,7 +205,7 @@ const Sidebar = () => {
                             className={cn(
                               "transition-all duration-300 ease-in-out text-white",
                               !isActive && "text-primary",
-                              user.isSidebarCollapsed && "hidden"
+                              user.isSidebarCollapsed && "hidden",
                             )}
                           >
                             {child.label}
@@ -227,7 +227,7 @@ const Sidebar = () => {
                   <div
                     className={cn(
                       "flex w-full pl-2 rounded-lg items-center px-3 py-2 hover:bg-slate-200 text-primary gap-x-2 overflow-hidden",
-                      isActive && "bg-primary shadow-md hover:bg-slate-700 "
+                      isActive && "bg-primary shadow-md hover:bg-slate-700 ",
                     )}
                   >
                     <route.icon className={cn("shrink-0 stroke-primary h-4 w-4", isActive && "stroke-background")} />
@@ -236,7 +236,7 @@ const Sidebar = () => {
                       className={cn(
                         "transition-all duration-300 ease-in-out text-white",
                         !isActive && "text-primary",
-                        user.isSidebarCollapsed && "hidden"
+                        user.isSidebarCollapsed && "hidden",
                       )}
                     >
                       {route.label}
@@ -259,7 +259,7 @@ const Sidebar = () => {
               <ArrowLeftToLine
                 className={cn(
                   "stroke-primary h-4 w-4 transition-all duration-600",
-                  user.isSidebarCollapsed && "rotate-180"
+                  user.isSidebarCollapsed && "rotate-180",
                 )}
               />
             </Button>
@@ -283,7 +283,10 @@ const Navigation = () => {
           </Avatar>
           <Typography
             variant="p"
-            className={cn("transition-all duration-800 max-md:hidden overflow-hidden max-w-full max-lg:1/3 truncate", user.isSidebarCollapsed && "hidden")}
+            className={cn(
+              "transition-all duration-800 max-md:hidden overflow-hidden max-w-full max-lg:1/3 truncate",
+              user.isSidebarCollapsed && "hidden",
+            )}
           >
             {user.userName}
           </Typography>

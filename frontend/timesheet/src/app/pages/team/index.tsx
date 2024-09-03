@@ -98,7 +98,7 @@ const Team = () => {
     "projects",
     {
       shouldRetryOnError: false,
-    }
+    },
   );
 
   const {
@@ -114,10 +114,10 @@ const Team = () => {
     "user_group",
     {
       shouldRetryOnError: false,
-    }
+    },
   );
 
-  const { data, isLoading, error, mutate } = useFrappeGetCall("timesheet_enhancer.api.team.get_compact_view_data", {
+  const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.team.get_compact_view_data", {
     date: teamState.weekDate,
     max_week: 1,
     page_length: 20,
@@ -227,21 +227,21 @@ const Team = () => {
     (value: string | string[]) => {
       dispatch(setProject(value as string[]));
     },
-    [dispatch]
+    [dispatch],
   );
 
   const handleUserGroupChange = useCallback(
     (value: string | string[]) => {
       dispatch(setUsergroup(value as string[]));
     },
-    [dispatch]
+    [dispatch],
   );
   const handleStatusChange = useCallback(
     (filters: string | string[]) => {
       const normalizedFilters = Array.isArray(filters) ? filters : [filters];
       dispatch(setStatusFilter(normalizedFilters));
     },
-    [dispatch]
+    [dispatch],
   );
   const handleLoadMore = () => {
     if (!teamState.hasMore) return;
@@ -258,21 +258,21 @@ const Team = () => {
     (searchTerm: string) => {
       dispatch(setProjectSearch(searchTerm));
     },
-    [dispatch]
+    [dispatch],
   );
 
   const onUserGroupSearch = useCallback(
     (searchTerm: string) => {
       dispatch(setUserGroupSearch(searchTerm));
     },
-    [dispatch]
+    [dispatch],
   );
 
   const onApprovalSearch = useCallback(
     (searchTerm: string) => {
       dispatch(setApprovalSearch(searchTerm));
     },
-    [dispatch]
+    [dispatch],
   );
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -281,14 +281,14 @@ const Team = () => {
       dispatch(setEmployeeName(e.target.value));
       setEmployeeNameParam(e.target.value);
     }, 700),
-    [dispatch]
+    [dispatch],
   );
   const handleEmployeeChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setEmployee(e.target.value);
       onInputChange(e);
     },
-    [onInputChange]
+    [onInputChange],
   );
   return (
     <>
@@ -426,7 +426,7 @@ const Team = () => {
                                       <Typography
                                         className={cn(
                                           data.is_leave && "text-warning",
-                                          data.hour == 0 && "text-primary"
+                                          data.hour == 0 && "text-primary",
                                         )}
                                         variant="p"
                                       >
@@ -514,7 +514,7 @@ const WeekTotal = ({
         "w-full max-w-24 flex items-center justify-end",
         expectedTime == 1 && "text-success",
         expectedTime == 2 && "text-warning",
-        expectedTime == 0 && "text-destructive"
+        expectedTime == 0 && "text-destructive",
       )}
     >
       {floatToTime(total)}

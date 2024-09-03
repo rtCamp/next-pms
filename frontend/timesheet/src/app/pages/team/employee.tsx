@@ -14,7 +14,7 @@ interface EmployeeProps {
 
 export const Employee = ({ employee }: EmployeeProps) => {
   const teamState = useSelector((state: RootState) => state.team);
-  const { data, isLoading } = useFrappeGetCall("timesheet_enhancer.api.team.get_timesheet_for_employee", {
+  const { data, isLoading } = useFrappeGetCall("frappe_pms.timesheet.api.team.get_timesheet_for_employee", {
     employee: employee,
     date: teamState.weekDate,
   });
@@ -55,7 +55,7 @@ export const Employee = ({ employee }: EmployeeProps) => {
                   </TableCell>
                   {timesheetData.dates.map((date: string, key: number) => {
                     let data = taskData.data.filter(
-                      (data: TaskDataItemProps) => getDateFromDateAndTime(data.from_time) === date
+                      (data: TaskDataItemProps) => getDateFromDateAndTime(data.from_time) === date,
                     );
                     data.forEach((item: TaskDataItemProps) => {
                       totalHours += item.hours;
@@ -80,7 +80,7 @@ export const Employee = ({ employee }: EmployeeProps) => {
                   <TableCell
                     className={cn(
                       "max-w-24 w-full  flex justify-between items-center",
-                      !taskData.is_billable && "justify-end"
+                      !taskData.is_billable && "justify-end",
                     )}
                   >
                     {taskData.is_billable == true && <CircleDollarSign className="stroke-success w-4 h-4" />}
@@ -184,7 +184,7 @@ const Cell = ({
         onClick={handleClick}
         className={cn(
           "max-w-20 w-full group text-center hover:bg-slate-100 hover:text-center hover:cursor-pointer",
-          isDisabled && "cursor-default"
+          isDisabled && "cursor-default",
         )}
       >
         <HoverCardTrigger className={cn("h-full", isDisabled && "cursor-default")} asChild>
@@ -194,7 +194,7 @@ const Cell = ({
               className={cn(
                 "text-slate-600",
                 isHoliday || (isDisabled && "text-slate-400"),
-                !hours && "group-hover:hidden"
+                !hours && "group-hover:hidden",
               )}
             >
               {hours > 0 ? floatToTime(hours || 0) : "-"}

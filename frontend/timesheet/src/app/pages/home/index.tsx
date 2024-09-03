@@ -53,7 +53,7 @@ const Home = () => {
     };
   }, []);
 
-  const { data, error, mutate, isLoading } = useFrappeGetCall("timesheet_enhancer.api.team.get_compact_view_data", {
+  const { data, error, mutate, isLoading } = useFrappeGetCall("frappe_pms.timesheet.api.team.get_compact_view_data", {
     date: homeState.weekDate,
     employee_name: homeState.employeeName,
     page_length: 20,
@@ -92,7 +92,7 @@ const Home = () => {
       dispatch(setEmployeeName(e.target.value));
       setEmployeeNameParam(e.target.value);
     }, 700),
-    [dispatch]
+    [dispatch],
   );
 
   const handleEmployeeChange = useCallback(
@@ -100,7 +100,7 @@ const Home = () => {
       setEmployee(e.target.value);
       onInputChange(e);
     },
-    [onInputChange]
+    [onInputChange],
   );
 
   const handleprevWeek = useCallback(() => {
@@ -171,7 +171,7 @@ const Home = () => {
                         className={cn(
                           "text-slate-600 font-medium max-w-20 ",
                           index != 0 && "bg-slate-200",
-                          isToday(date) && "bg-slate-300"
+                          isToday(date) && "bg-slate-300",
                         )}
                       >
                         {formattedDate.day}
@@ -208,7 +208,7 @@ const Home = () => {
                       const expectedTime = calculateExtendedWorkingHour(
                         data.hour,
                         item.working_hour,
-                        item.working_frequency
+                        item.working_frequency,
                       );
 
                       return (
@@ -221,7 +221,7 @@ const Home = () => {
                               expectedTime == 0 && data.hour != 0 && "bg-destructive/10",
                               data.is_leave && "bg-warning/20",
                               isToday(data.date) && "bg-slate-50",
-                              data.hour == 0 && "text-center"
+                              data.hour == 0 && "text-center",
                             )}
                             key={`${key}-${index}`}
                           >

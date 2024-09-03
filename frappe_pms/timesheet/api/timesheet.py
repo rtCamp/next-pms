@@ -11,7 +11,7 @@ from frappe.utils import (
 )
 from hrms.hr.utils import get_holiday_dates_for_employee, get_holidays_for_employee
 
-from timesheet_enhancer.api.utils import (
+from .utils import (
     get_employee_from_user,
     get_employee_working_hours,
     get_leaves_for_employee,

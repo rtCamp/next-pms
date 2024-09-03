@@ -59,7 +59,7 @@ const EmployeeDetail = () => {
   const teamState = useSelector((state: RootState) => state.team);
   const dispatch = useDispatch();
   const { toast } = useToast();
-  const { data, isLoading, error, mutate } = useFrappeGetCall("timesheet_enhancer.api.timesheet.get_timesheet_data", {
+  const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.timesheet.get_timesheet_data", {
     employee: id,
     start_date: teamState.employeeWeekDate,
     max_week: 4,
@@ -221,7 +221,7 @@ const Timesheet = () => {
 
 export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?: () => void }) => {
   const teamState = useSelector((state: RootState) => state.team);
-  const { call } = useFrappePostCall("timesheet_enhancer.api.timesheet.save");
+  const { call } = useFrappePostCall("frappe_pms.timesheet.api.timesheet.save");
   const { toast } = useToast();
   const updateTime = (value: NewTimesheetProps) => {
     call(value)
@@ -265,13 +265,13 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
                         ([taskName, task]: [string, TaskDataItemProps]) =>
                           task.data
                             .filter(
-                              (taskItem: TaskDataItemProps[]) => getDateFromDateAndTime(taskItem.from_time) === date
+                              (taskItem: TaskDataItemProps[]) => getDateFromDateAndTime(taskItem.from_time) === date,
                             )
                             .map((taskItem: TaskDataItemProps) => ({
                               ...taskItem,
                               taskName,
                               projectName: task.project_name,
-                            }))
+                            })),
                       );
                       const holiday = teamState.timesheetData.holidays.find((holiday) => holiday.holiday_date === date);
                       const isHoliday = !!holiday;
@@ -290,7 +290,7 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
                       const isExtended = calculateExtendedWorkingHour(
                         totalHours,
                         teamState.timesheetData.working_hour,
-                        teamState.timesheetData.working_frequency
+                        teamState.timesheetData.working_frequency,
                       );
                       return (
                         <div key={index} className="flex flex-col">
@@ -300,7 +300,7 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
                               className={cn(
                                 isExtended == 0 && "text-destructive",
                                 isExtended && "text-success",
-                                isExtended == 2 && "text-warning"
+                                isExtended == 2 && "text-warning",
                               )}
                             >
                               {floatToTime(totalHours)}h
@@ -384,7 +384,7 @@ const EmployeeCombo = () => {
       filters: [["status", "=", "Active"]],
       limit_page_length: "null",
     },
-    { shouldRetryOnError: false }
+    { shouldRetryOnError: false },
   );
   const onEmployeeChange = (name: string) => {
     setSelectedValues(name);
