@@ -226,7 +226,10 @@ const FormRow = ({ data, onRemove, onUpdate, onDelete }: FormRowProps) => {
                 <FormItem className="w-full max-w-sm px-2">
                   <FormControl>
                     <Textarea
-                      rows={1}
+                      rows={field.value ? 3 : 1}
+                      style={{
+                        height: +"px",
+                      }}
                       {...field}
                       onChange={field.onChange}
                       className={cn(

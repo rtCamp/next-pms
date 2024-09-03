@@ -7,10 +7,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import {
   setStart,
+  setProjectStart,
   setTaskData,
   setSelectedProject,
   setFetchAgain,
+  setProjectFetchAgain,
   setGroupBy,
+  updateTaskData,
   updateProjectData,
   setProjectData,
 } from "@/store/task";
@@ -21,7 +24,7 @@ import { Button } from "@/app/components/ui/button";
 import { Typography } from "@/app/components/typography";
 import { ComboxBox } from "@/app/components/comboBox";
 import { useQueryParamsState } from "@/lib/queryParam";
-import { ArrowUpDown, ChevronDown, ChevronUp, Filter, GripVertical, Heart } from "lucide-react";
+import { ArrowUpDown, ChevronDown, ChevronUp, Clock, Filter, GripVertical, Heart } from "lucide-react";
 import {
   ColumnDef,
   flexRender,
@@ -40,7 +43,6 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
-import { updateData } from "@/store/team";
 import { SetAddTimeDialog, SetTimesheet } from "@/store/timesheet";
 import { AddTime } from "@/app/pages/timesheet/addTime";
 import React from "react";
@@ -53,13 +55,34 @@ const Task = () => {
   const { call } = useFrappePostCall("frappe.desk.like.toggle_like");
   // States for maintaining tables and filters
   const [expanded, setExpanded] = useState<boolean>(true);
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const localStorageTaskDataMap = {
+    hideColumn: [],
+    groupBy: [],
+    projects: [],
+    columnWidth: [],
+    columnSort: [],
+  };
+  const [localStorageTaskState, setLocalStorageTaskState] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("task"));
+    } catch (error) {
+      return localStorageTaskDataMap;
+    }
+  });
+  const [sorting, setSorting] = useState<SortingState>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("task")).columnSort;
+    } catch (error) {
+      return [];
+    }
+  });
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+    createFalseValuedObject(localStorageTaskState?.hideColumn ?? {}),
+  );
   const [projectParam, setProjectParam] = useQueryParamsState<string[]>("project", []);
   const [groupByParam, setGroupByParam] = useQueryParamsState<string[]>("groupby", []);
   const [subjectSearch, setSubjectSearch] = useState<string>("");
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-
   //task search change (input)
   const updateSubjectSearch = useCallback(
     deBounce((searchStr) => {
@@ -93,7 +116,10 @@ const Task = () => {
   }, []);
   useEffect(() => {
     dispatch(setGroupBy(groupByParam));
-  }, []);
+    if (groupByParam.length === 0) {
+      dispatch(setFetchAgain(true));
+    }
+  }, [groupByParam]);
 
   const handleAddTime = (taskName: string) => {
     const timesheetData = {
@@ -109,6 +135,7 @@ const Task = () => {
     dispatch(SetTimesheet(timesheetData));
     dispatch(SetAddTimeDialog(true));
   };
+  // Frappe Call for Project comboBox Data
   const { data: projects } = useFrappeGetCall(
     "frappe.client.get_list",
     {
@@ -120,67 +147,13 @@ const Task = () => {
       shouldRetryOnError: false,
     },
   );
-  const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.utils.get_task_for_employee", {
-    page_length: 20,
-    start: task.start,
-    project: task.selectedProject,
-    search: subjectSearch,
-  });
-  //nested project task call
-  const {
-    data: nestedProjectData,
-    isLoading: nestedProjectIsLoading,
-    error: nestedProjectError,
-    mutate: nestedProjectMutate,
-  } = useFrappeGetCall("frappe_pms.timesheet.api.utils.get_project_task", {
-    project: task.selectedProject.length == 0 ? null : task.selectedProject,
-    task_search: subjectSearch,
-  });
 
   const loadMore = () => {
+    if (groupByParam.length > 0) {
+      return dispatch(setProjectStart(task.projectStart + 20));
+    }
     dispatch(setStart(task.start + 20));
   };
-
-  useEffect(() => {
-    if (task.isFetchAgain) {
-      mutate();
-      dispatch(setFetchAgain(false));
-    }
-    if (data) {
-      if (task.start !== 0) {
-        dispatch(updateData(data.message));
-      }
-      dispatch(setTaskData(data.message));
-    }
-    if (error) {
-      const err = parseFrappeErrorMsg(error);
-      toast({
-        variant: "destructive",
-        description: err,
-      });
-    }
-  }, [data, dispatch, error, mutate, task.isFetchAgain, task.start, toast]);
-
-  //nested projectdata side-effects
-  useEffect(() => {
-    if (task.isFetchAgain) {
-      mutate();
-      dispatch(setFetchAgain(false));
-    }
-    if (nestedProjectData) {
-      if (task.start !== 0) {
-        dispatch(updateProjectData(nestedProjectData.message));
-      }
-      dispatch(setProjectData(nestedProjectData.message));
-    }
-    if (nestedProjectError) {
-      const err = parseFrappeErrorMsg(nestedProjectError);
-      toast({
-        variant: "destructive",
-        description: err,
-      });
-    }
-  }, [nestedProjectData, dispatch, nestedProjectError, nestedProjectMutate, task.isFetchAgain, task.start, toast]);
 
   useEffect(() => {
     setProjectParam(task.selectedProject);
@@ -188,8 +161,9 @@ const Task = () => {
 
   useEffect(() => {
     setGroupByParam(task.groupBy);
-    nestedProjectMutate();
   }, [setGroupByParam, task.groupBy]);
+  const [nestedProjectMutateCall, setNestedProjectMutateCall] = useState();
+  const [flatTaskMutateCall, setFlatTaskMutateCall] = useState();
 
   const handleLike = (e: React.MouseEvent<SVGSVGElement>) => {
     const taskName = e.currentTarget.dataset.task;
@@ -209,13 +183,14 @@ const Task = () => {
     call(data)
       .then(() => {
         if (groupByParam.length > 0) {
-          nestedProjectMutate();
+          nestedProjectMutateCall();
         } else {
-          mutate();
+          flatTaskMutateCall();
         }
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
+        console.log(err);
         toast({
           variant: "destructive",
           description: error,
@@ -238,20 +213,23 @@ const Task = () => {
   const columns: ColumnDef<TaskData>[] = [
     {
       accessorKey: "project_name",
+      size: localStorageTaskState?.columnWidth["project_name"] ?? "150",
       header: ({ column }) => {
         return (
           <div
             className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
             title={column.id}
             onClick={() => {
-              if (!column.getIsSorted()) {
-                return column.toggleSorting(true);
-              }
-              column.toggleSorting(column.getIsSorted() === "asc");
+              column.toggleSorting();
             }}
           >
             <p className="truncate">Project Name</p>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
@@ -265,6 +243,7 @@ const Task = () => {
     },
     {
       accessorKey: "subject",
+      size: localStorageTaskState?.columnWidth["subject"] ?? "150",
       header: ({ column }) => {
         return (
           <div
@@ -278,20 +257,18 @@ const Task = () => {
             }}
           >
             <p className="truncate">Subject</p>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
       cell: ({ row }) => {
         return (
-          <Typography
-            variant="p"
-            title={row.original.subject}
-            className="max-w-sm truncate cursor-pointer"
-            onClick={() => {
-              handleAddTime(row.original.name);
-            }}
-          >
+          <Typography variant="p" title={row.original.subject} className="max-w-sm truncate cursor-pointer">
             {row.original.subject}
           </Typography>
         );
@@ -299,14 +276,22 @@ const Task = () => {
     },
     {
       accessorKey: "due_date",
+      size: localStorageTaskState?.columnWidth["due_date"] ?? "150",
       header: ({ column }) => {
         return (
           <div
             className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            onClick={() => {
+              column.toggleSorting();
+            }}
           >
             <p className="truncate">Due Date</p>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
@@ -320,14 +305,22 @@ const Task = () => {
     },
     {
       accessorKey: "status",
+      size: localStorageTaskState?.columnWidth["status"] ?? "150",
       header: ({ column }) => {
         return (
           <div
             className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            onClick={() => {
+              column.toggleSorting(column.getIsSorted() === "asc");
+            }}
           >
             <p className="truncate">Status</p>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
@@ -337,14 +330,22 @@ const Task = () => {
     },
     {
       accessorKey: "priority",
+      size: localStorageTaskState?.columnWidth["priority"] ?? "150",
       header: ({ column }) => {
         return (
           <div
             className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            onClick={() => {
+              column.toggleSorting(column.getIsSorted() === "asc");
+            }}
           >
             <p className="truncate">Priority</p>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
@@ -354,14 +355,22 @@ const Task = () => {
     },
     {
       accessorKey: "expected_time",
+      size: localStorageTaskState?.columnWidth["expected_time"] ?? "150",
       header: ({ column }) => {
         return (
           <div
             className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            onClick={() => {
+              column.toggleSorting(column.getIsSorted() === "asc");
+            }}
           >
             <p className="truncate">Expected Hours</p>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
@@ -375,14 +384,22 @@ const Task = () => {
     },
     {
       accessorKey: "actual_time",
+      size: localStorageTaskState?.columnWidth["actual_time"] ?? "150",
       header: ({ column }) => {
         return (
           <div
             className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            onClick={() => {
+              column.toggleSorting(column.getIsSorted() === "asc");
+            }}
           >
             <p className="truncate">Hour Spent</p>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
@@ -416,10 +433,30 @@ const Task = () => {
         );
       },
     },
+    {
+      accessorKey: "timesheetAction",
+      header: "",
+      size: 60, // Default size
+      minSize: 60, // Minimum size
+      maxSize: 60, // Maximum size
+      cell: ({ row }) => {
+        return (
+          <div title="Add Timesheet" className="w-full flex justify-center items-center">
+            <Clock
+              className={"w-4 h-4 hover:cursor-pointer hover:text-blue-600"}
+              onClick={() => {
+                handleAddTime(row.original.name);
+              }}
+            />
+          </div>
+        );
+      },
+    },
   ];
   const nestedProjectColumns: ColumnDef<ProjectNestedTaskData>[] = [
     {
       accessorKey: "project_name",
+      size: localStorageTaskState?.columnWidth["project_name"] ?? "150",
       enableHiding: false,
       header: ({ column }) => {
         return (
@@ -434,7 +471,12 @@ const Task = () => {
             }}
           >
             <p className="truncate">Project Name</p>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
@@ -463,6 +505,7 @@ const Task = () => {
     },
     {
       accessorKey: "subject",
+      size: localStorageTaskState?.columnWidth["subject"] ?? "150",
       header: ({ column }) => {
         return (
           <div
@@ -476,20 +519,18 @@ const Task = () => {
             }}
           >
             <p className="truncate">Subject</p>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
       cell: ({ row, getValue }) => {
         return (
-          <Typography
-            variant="p"
-            title={getValue()}
-            className="truncate cursor-pointer"
-            onClick={() => {
-              handleAddTime(getValue());
-            }}
-          >
+          <Typography variant="p" title={getValue()} className="truncate cursor-pointer">
             {getValue()}
           </Typography>
         );
@@ -497,6 +538,7 @@ const Task = () => {
     },
     {
       accessorKey: "due_date",
+      size: localStorageTaskState?.columnWidth["due_date"] ?? "150",
       header: ({ column }) => {
         return (
           <div
@@ -504,7 +546,12 @@ const Task = () => {
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             <div className="truncate w-4/5">Due Date</div>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
@@ -518,6 +565,7 @@ const Task = () => {
     },
     {
       accessorKey: "status",
+      size: localStorageTaskState?.columnWidth["status"] ?? "150",
       header: ({ column }) => {
         return (
           <div
@@ -525,7 +573,12 @@ const Task = () => {
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             <div className="truncate w-4/5">Status</div>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
@@ -535,6 +588,7 @@ const Task = () => {
     },
     {
       id: "priority",
+      size: localStorageTaskState?.columnWidth["priority"] ?? "150",
       accessorKey: "priority",
       header: ({ column }) => {
         return (
@@ -543,7 +597,12 @@ const Task = () => {
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             <div className="truncate w-4/5">Priority</div>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
@@ -553,6 +612,7 @@ const Task = () => {
     },
     {
       id: "expected_time",
+      size: localStorageTaskState?.columnWidth["expected_time"] ?? "150",
       accessorKey: "expected_time",
       header: ({ column }) => {
         return (
@@ -561,7 +621,12 @@ const Task = () => {
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             <div className="truncate w-4/5">Expected Hours</div>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
@@ -576,6 +641,7 @@ const Task = () => {
     },
     {
       id: "actual_time",
+      size: localStorageTaskState?.columnWidth["actual_time"] ?? "150",
       accessorKey: "actual_time",
       header: ({ column }) => {
         return (
@@ -585,7 +651,12 @@ const Task = () => {
           >
             <div className="truncate w-4/5">Hour Spent</div>
 
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
@@ -616,6 +687,27 @@ const Task = () => {
               data-liked-by={row.original._liked_by}
               onClick={handleLike}
             />
+          )
+        );
+      },
+    },
+    {
+      accessorKey: "timesheetAction",
+      header: "",
+      size: 60, // Default size
+      minSize: 60, // Minimum size
+      maxSize: 60, // Maximum size
+      cell: ({ row }) => {
+        return (
+          row.depth !== 0 && (
+            <div title="Add Timesheet" className="w-full flex justify-center items-center">
+              <Clock
+                className={"w-4 h-4 hover:cursor-pointer hover:text-blue-600"}
+                onClick={() => {
+                  handleAddTime(row.original.name);
+                }}
+              />
+            </div>
           )
         );
       },
@@ -657,6 +749,28 @@ const Task = () => {
     },
   });
 
+  const columnsToExcludeActionsInTables: string[] = ["#", "timesheetAction"];
+
+  // LocalStorage related functions and utilities
+
+  useEffect(() => {
+    // set localStorage Map for Task
+    if (!localStorage.getItem("task")) {
+      localStorage.setItem("task", JSON.stringify(localStorageTaskDataMap));
+      setLocalStorageTaskState(localStorageTaskDataMap);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("task", JSON.stringify(localStorageTaskState));
+  }, [localStorageTaskState]);
+
+  useEffect(() => {
+    setLocalStorageTaskState((prev) => {
+      return { ...prev, columnSort: sorting };
+    });
+  }, [sorting]);
+
   return (
     <>
       {/* Styles for table column-resizing */}
@@ -685,7 +799,7 @@ const Task = () => {
       </style>
       <div className="md:w-full h-full justify-between flex flex-col relative">
         {/* filters and combo boxes */}
-        <div id="filters" className="flex gap-x-2 mb-3 w-full overflow-hidden p-1 max-md:overflow-scroll">
+        <div id="filters" className="flex gap-x-2 mb-3 w-full overflow-hidden p-1 max-md:overflow-x-scroll">
           <div className="flex gap-2 xl:w-2/5">
             {/* Task Search Filter */}
             <Input
@@ -698,7 +812,7 @@ const Task = () => {
           {/* Projects comboBox */}
           <ComboxBox
             label="Projects"
-            value={task.selectedProject}
+            value={projectParam}
             isMulti
             showSelected={false}
             leftIcon={<Filter className={cn("h-4 w-4", task.selectedProject.length != 0 && "fill-primary")} />}
@@ -715,7 +829,7 @@ const Task = () => {
           {/* GroupBy comboBox */}
           <ComboxBox
             label="GroupBy"
-            value={task.groupBy}
+            value={groupByParam}
             showSelected={false}
             leftIcon={<Filter className={cn("h-4 w-4", task.groupBy.length != 0 && "fill-primary")} />}
             rightIcon={task.groupBy.length > 0 && <Badge className="px-1.5">{task.groupBy.length}</Badge>}
@@ -727,136 +841,39 @@ const Task = () => {
             onSelect={handleGroupByChange}
           />
           {/* Hide Column select */}
-          <HideColumn table={table} groupBy={groupByParam} />
+          <HideColumn
+            table={table}
+            groupBy={groupByParam}
+            columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
+            setLocalStorageTaskState={setLocalStorageTaskState}
+          />
         </div>
         {/* tables */}
-        {isLoading || nestedProjectIsLoading ? (
-          <Spinner isFull />
-        ) : (
-          <div className="overflow-hidden w-full overflow-y-scroll" style={{ height: "calc(100vh - 8rem)" }}>
-            {groupByParam.length === 0 ? (
-              <Table className="[&_td]:px-2  [&_th]:px-2 table-fixed">
-                <TableHeader className="[&_th]:h-10">
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => {
-                        return (
-                          <TableHead
-                            className={cn("resizer", header.column.getIsResizing() && "isResizing")}
-                            key={header.id}
-                            style={{
-                              width: header.getSize(),
-                              position: "relative",
-                            }}
-                          >
-                            <div className="w-full h-full flex items-center justify-between group">
-                              <div className="w-full">
-                                {flexRender(header.column.columnDef.header, header.getContext())}
-                              </div>
-                              {header.id !== "#" && (
-                                <div
-                                  {...{
-                                    onMouseDown: header.getResizeHandler(),
-                                    onTouchStart: header.getResizeHandler(),
-                                    className: `cursor-col-resize flex justify-center items-center h-full`,
-                                  }}
-                                >
-                                  <GripVertical className="w-4 h-4 max-lg:hidden" />
-                                </div>
-                              )}
-                            </div>
-                          </TableHead>
-                        );
-                      })}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows?.length ? (
-                    table.getRowModel().rows.map((row) => (
-                      <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell className="overflow-hidden" key={cell.id}>
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={columns.length} className="h-24 text-center">
-                        No results.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            ) : (
-              <Table className="[&_td]:px-2  [&_th]:px-2 table-fixed">
-                <TableHeader>
-                  {nestedProjectTable.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <TableHead
-                          className={`resizer overflow-hidden ${header.column.getIsResizing() ? "isResizing" : null}`}
-                          key={header.id}
-                          style={{
-                            width: header.getSize(),
-                            position: "relative",
-                          }}
-                        >
-                          <div className="w-full h-full flex items-center justify-between group">
-                            <div className="w-full">
-                              {flexRender(header.column.columnDef.header, header.getContext())}
-                            </div>
-                            {header.id !== "#" && (
-                              <div
-                                {...{
-                                  onMouseDown: header.getResizeHandler(),
-                                  onTouchStart: header.getResizeHandler(),
-                                  className: `cursor-col-resize flex justify-center items-center h-full`,
-                                }}
-                              >
-                                <GripVertical className="w-4 h-4 max-lg:hidden" />
-                              </div>
-                            )}
-                          </div>
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody className="relative">
-                  {nestedProjectTable.getRowModel().rows?.length ? (
-                    nestedProjectTable.getRowModel().rows.map((row) => {
-                      return (
-                        <React.Fragment key={row.id}>
-                          <TableRow
-                            style={{
-                              width: `${table.getState().columnSizingInfo.deltaOffset}px)`,
-                            }}
-                          >
-                            {row.getVisibleCells().map((cell) => (
-                              <TableCell className="overflow-hidden" key={cell.id}>
-                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                              </TableCell>
-                            ))}
-                          </TableRow>
-                        </React.Fragment>
-                      );
-                    })
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={columns.length} className="h-24 text-center">
-                        No results.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            )}
-          </div>
-        )}
+        <div className="overflow-hidden w-full overflow-y-scroll" style={{ height: "calc(100vh - 8rem)" }}>
+          {groupByParam.length === 0 && task.groupBy ? (
+            <FlatTable
+              table={table}
+              columns={columns}
+              columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
+              setLocalStorageTaskState={setLocalStorageTaskState}
+              task={task}
+              subjectSearch={subjectSearch}
+              toast={toast}
+              setMutateCall={setFlatTaskMutateCall}
+            />
+          ) : (
+            <RowGroupedTable
+              table={nestedProjectTable}
+              columns={nestedProjectColumns}
+              columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
+              setLocalStorageTaskState={setLocalStorageTaskState}
+              task={task}
+              subjectSearch={subjectSearch}
+              toast={toast}
+              setMutateCall={setNestedProjectMutateCall}
+            />
+          )}
+        </div>
         {/* footer */}
         <div className="w-full flex justify-between items-center mt-5">
           <Button
@@ -916,7 +933,7 @@ const TaskStatus = ({ status }: { status: TaskData["status"] }) => {
   return <Badge className={cn(statusCss[status])}>{status}</Badge>;
 };
 
-const HideColumn = ({ table, groupBy }) => {
+const HideColumn = ({ table, groupBy, columnsToExcludeActionsInTables, setLocalStorageTaskState }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -929,7 +946,7 @@ const HideColumn = ({ table, groupBy }) => {
           .getAllColumns()
           .filter((column) => column.getCanHide())
           .map((column) => {
-            if (column.id === "#") {
+            if (columnsToExcludeActionsInTables?.includes(column.id)) {
               return null;
             }
             if (groupBy.length > 0 && column.id === "project_name") {
@@ -938,11 +955,25 @@ const HideColumn = ({ table, groupBy }) => {
             return (
               <DropdownMenuCheckboxItem
                 key={column.id}
-                className="capitalize"
+                className="capitalize cursor-pointer"
                 checked={column.getIsVisible()}
-                onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                onCheckedChange={(value) => {
+                  column.toggleVisibility(!!value);
+                  setLocalStorageTaskState((prev) => {
+                    if (prev.hideColumn.includes(column.id)) {
+                      const mutatedHideColumn = [...prev.hideColumn];
+                      const index = mutatedHideColumn.indexOf(column.id);
+                      if (index > -1) {
+                        mutatedHideColumn.splice(index, 1);
+                      }
+                      return { ...prev, hideColumn: mutatedHideColumn };
+                    }
+                    const mutatedHideColumnSet = new Set([...prev.hideColumn, column.id]);
+                    return { ...prev, hideColumn: [...mutatedHideColumnSet] };
+                  });
+                }}
               >
-                {column.id}
+                {column.id.replace("_", " ")}
               </DropdownMenuCheckboxItem>
             );
           })}
@@ -951,3 +982,282 @@ const HideColumn = ({ table, groupBy }) => {
   );
 };
 export default Task;
+
+//one time utility for asssigning All keys of an object to false
+const createFalseValuedObject = (obj) => {
+  const newFalseValueObject = {};
+  if (Object.keys(obj).length > 0) {
+    for (const key of obj) {
+      newFalseValueObject[key] = false;
+    }
+  }
+  return newFalseValueObject;
+};
+
+const FlatTable = ({
+  table,
+  columns,
+  columnsToExcludeActionsInTables,
+  setLocalStorageTaskState,
+  task,
+  subjectSearch,
+  toast,
+  setMutateCall,
+}) => {
+  const dispatch = useDispatch();
+  let resizeObserver;
+  const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.utils.get_task_for_employee", {
+    page_length: 20,
+    start: task.start,
+    project: task.selectedProject,
+    search: subjectSearch,
+  });
+  useEffect(() => {
+    if (task.isFetchAgain) {
+      mutate();
+      dispatch(setFetchAgain(false));
+    }
+    if (data) {
+      if (task.start !== 0) {
+        dispatch(updateTaskData(data.message));
+      } else {
+        dispatch(setTaskData(data.message));
+      }
+    }
+    if (error) {
+      const err = parseFrappeErrorMsg(error);
+      toast({
+        variant: "destructive",
+        description: err,
+      });
+    }
+  }, [data, dispatch, error, mutate, task.isFetchAgain, task.start, toast]);
+  useEffect(() => {
+    setMutateCall(() => mutate);
+  }, []);
+  return (
+    <>
+      {isLoading ? (
+        <Spinner isFull />
+      ) : (
+        <Table className="[&_td]:px-2  [&_th]:px-2 table-fixed">
+          <TableHeader className="[&_th]:h-10">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead
+                      className={cn("resizer", header.column.getIsResizing() && "isResizing")}
+                      key={header.id}
+                      onMouseDown={(event) => {
+                        const container = event.currentTarget;
+                        resizeObserver = new ResizeObserver((entries) => {
+                          for (const entry of entries) {
+                            setLocalStorageTaskState((prev) => {
+                              return {
+                                ...prev,
+                                columnWidth: { ...prev.columnWidth, [header.id]: header.getSize() },
+                              };
+                            });
+                          }
+                        });
+                        resizeObserver.observe(container);
+                      }}
+                      onMouseUp={() => {
+                        if (resizeObserver) {
+                          resizeObserver.disconnect();
+                        }
+                      }}
+                      style={{
+                        width: header.getSize(),
+                        position: "relative",
+                      }}
+                    >
+                      <div className="w-full h-full flex items-center justify-between group">
+                        <div className="w-full">{flexRender(header.column.columnDef.header, header.getContext())}</div>
+                        {!columnsToExcludeActionsInTables.includes(header.id) && (
+                          <div
+                            {...{
+                              onMouseDown: header.getResizeHandler(),
+                              onTouchStart: header.getResizeHandler(),
+                              className: `cursor-col-resize flex justify-center items-center h-full`,
+                            }}
+                          >
+                            <GripVertical className="w-4 h-4 max-lg:hidden" />
+                          </div>
+                        )}
+                      </div>
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell className="overflow-hidden" key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      )}
+    </>
+  );
+};
+
+const RowGroupedTable = ({
+  table,
+  columns,
+  columnsToExcludeActionsInTables,
+  setLocalStorageTaskState,
+  task,
+  subjectSearch,
+  toast,
+  setMutateCall,
+}) => {
+  const dispatch = useDispatch();
+  let resizeObserver;
+  //nested project task call
+  const {
+    data: nestedProjectData,
+    isLoading: nestedProjectIsLoading,
+    error: nestedProjectError,
+    mutate: nestedProjectMutate,
+  } = useFrappeGetCall("frappe_pms.timesheet.api.utils.get_project_task", {
+    page_length: 20,
+    project: task.selectedProject.length == 0 ? null : task.selectedProject,
+    task_search: subjectSearch,
+  });
+  useEffect(() => {
+    setMutateCall(() => nestedProjectMutate);
+  }, []);
+  //nested projectdata side-effects
+  useEffect(() => {
+    if (task.projectIsFetchAgain) {
+      nestedProjectMutate();
+      dispatch(setProjectFetchAgain(false));
+    }
+    if (nestedProjectData) {
+      if (task.projectStart !== 0) {
+        dispatch(updateProjectData(nestedProjectData.message));
+      } else {
+        dispatch(setProjectData(nestedProjectData.message));
+      }
+    }
+    if (nestedProjectError) {
+      const err = parseFrappeErrorMsg(nestedProjectError);
+      toast({
+        variant: "destructive",
+        description: err,
+      });
+    }
+  }, [
+    nestedProjectData,
+    dispatch,
+    nestedProjectError,
+    nestedProjectMutate,
+    task.projectIsFetchAgain,
+    task.projectStart,
+    toast,
+  ]);
+  return (
+    <>
+      {nestedProjectIsLoading ? (
+        <Spinner isFull />
+      ) : (
+        <Table className="[&_td]:px-2  [&_th]:px-2 table-fixed">
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    className={`resizer overflow-hidden ${header.column.getIsResizing() ? "isResizing" : null}`}
+                    key={header.id}
+                    style={{
+                      width: header.getSize(),
+                      position: "relative",
+                    }}
+                    onMouseDown={(event) => {
+                      const container = event.currentTarget;
+                      resizeObserver = new ResizeObserver((entries) => {
+                        for (const entry of entries) {
+                          setLocalStorageTaskState((prev) => {
+                            return {
+                              ...prev,
+                              columnWidth: { ...prev.columnWidth, [header.id]: header.getSize() },
+                            };
+                          });
+                        }
+                      });
+                      resizeObserver.observe(container);
+                    }}
+                    onMouseUp={() => {
+                      if (resizeObserver) {
+                        resizeObserver.disconnect();
+                      }
+                    }}
+                  >
+                    <div className="w-full h-full flex items-center justify-between group">
+                      <div className="w-full">{flexRender(header.column.columnDef.header, header.getContext())}</div>
+                      {!columnsToExcludeActionsInTables.includes(header.id) && (
+                        <div
+                          {...{
+                            onMouseDown: header.getResizeHandler(),
+                            onTouchStart: header.getResizeHandler(),
+                            className: `cursor-col-resize flex justify-center items-center h-full`,
+                          }}
+                        >
+                          <GripVertical className="w-4 h-4 max-lg:hidden" />
+                        </div>
+                      )}
+                    </div>
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody className="relative">
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => {
+                return (
+                  <React.Fragment key={row.id}>
+                    <TableRow
+                      style={{
+                        width: `${table.getState().columnSizingInfo.deltaOffset}px)`,
+                      }}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell className="overflow-hidden" key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  </React.Fragment>
+                );
+              })
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      )}
+    </>
+  );
+};
