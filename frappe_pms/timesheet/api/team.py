@@ -78,7 +78,11 @@ def get_compact_view_data(
         local_data = {**employee, **working_hours}
         employee_timesheets = timesheet_map.get(employee.name, [])
 
-        status = get_timesheet_state(employee.name, date=dates[0].get("start_date"))
+        status = get_timesheet_state(
+            employee.name,
+            start_date=dates[0].get("start_date"),
+            end_date=dates[-1].get("end_date"),
+        )
         local_data["status"] = status
         local_data["data"] = []
 
@@ -217,7 +221,7 @@ def update_timesheet_status(
 
     for timesheet in timesheets:
         frappe.db.set_value(
-            "Timesheet", timesheet.name, "custom_weekly_approval_status_", week_status
+            "Timesheet", timesheet.name, "custom_weekly_approval_status", week_status
         )
 
     return frappe._("Timesheet status updated successfully")
@@ -263,7 +267,7 @@ def filter_employee_by_timesheet_status(
         .select("employee")
         .where(timesheet.start_date >= getdate(start_date))
         .where(timesheet.end_date <= getdate(end_date))
-        .where(timesheet.custom_weekly_approval_status_.isin(timesheet_status))
+        .where(timesheet.custom_weekly_approval_status.isin(timesheet_status))
         .groupby("employee")
     ).run(as_dict=True)
 

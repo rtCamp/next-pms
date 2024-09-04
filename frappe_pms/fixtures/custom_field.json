@@ -150,7 +150,7 @@
     "name": "Timesheet-custom_weekly_approval_status",
     "no_copy": 1,
     "non_negative": 0,
-    "options": "Not Submitted\r\nApproval Pending\r\nApproved\r\nPartially Approved\r\nPartially Rejected\r\nRejected",
+    "options": "Not Submitted\nApproval Pending\nApproved\nPartially Approved\nPartially Rejected\nRejected",
     "permlevel": 0,
     "precision": "",
     "print_hide": 0,

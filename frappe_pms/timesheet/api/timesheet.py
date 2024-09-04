@@ -66,7 +66,11 @@ def get_timesheet_data(
         week_key = week_dates["key"]
 
         tasks, total_hours = get_timesheet(week_dates["dates"], employee)
-        status = get_timesheet_state(date=week_dates["dates"][0], employee=employee)
+        status = get_timesheet_state(
+            start_date=week_dates["dates"][0],
+            end_date=week_dates["dates"][-1],
+            employee=employee,
+        )
 
         data[week_key] = {
             **week_dates,
@@ -330,13 +334,21 @@ def get_timesheet(dates: list, employee: str):
     return [data, total_hours]
 
 
-def get_timesheet_state(employee: str, date: str):
+def get_timesheet_state(employee: str, start_date: str, end_date: str):
 
-    return frappe.db.get_value(
+    statuses = frappe.db.get_all(
         "Timesheet",
-        {"employee": employee, "start_date": date},
-        "custom_weekly_approval_status_",
+        {
+            "employee": employee,
+            "start_date": [">=", getdate(start_date)],
+            "end_date": ["<=", getdate(end_date)],
+        },
+        "custom_weekly_approval_status",
     )
+    for status in statuses:
+        if status.custom_weekly_approval_status:
+            return status.custom_weekly_approval_status
+    return "Not Submitted"
 
 
 @frappe.whitelist()
