@@ -66,7 +66,7 @@ def get_timesheet_data(
         week_key = week_dates["key"]
 
         tasks, total_hours = get_timesheet(week_dates["dates"], employee)
-        status = get_timesheet_state(week_dates["dates"], employee)
+        status = get_timesheet_state(date=week_dates["dates"][0], employee=employee)
 
         data[week_key] = {
             **week_dates,
@@ -330,72 +330,13 @@ def get_timesheet(dates: list, employee: str):
     return [data, total_hours]
 
 
-def get_timesheet_state(dates: list, employee: str):
-    from frappe.query_builder.functions import Count
+def get_timesheet_state(employee: str, date: str):
 
-    timesheet = frappe.qb.DocType("Timesheet")
-    res = "Not Submitted"
-    status_counts = {
-        "Approved": 0,
-        "Approval Pending": 0,
-        "Not Submitted": 0,
-        "Rejected": 0,
-    }
-    status_count = (
-        frappe.qb.from_(timesheet)
-        .select(
-            timesheet.custom_approval_status,
-            Count("custom_approval_status").as_("count"),
-        )
-        .where(timesheet.employee == employee)
-        .where(timesheet.start_date >= dates[0])
-        .where(timesheet.end_date <= dates[-1])
-        .groupby(timesheet.custom_approval_status)
-    ).run(as_dict=True)
-
-    for status in status_count:
-        status_counts[status["custom_approval_status"]] = status["count"]
-
-    if (
-        status_counts.get("Approved") == 0
-        and status_counts.get("Rejected") == 0
-        and status_counts.get("Approval Pending") == 0
-        and status_counts.get("Not Submitted") > 0
-    ):
-        res = "Not Submitted"
-
-    if status_counts.get("Approved") > 0 and (
-        status_counts.get("Approval Pending") > 0
-        or status_counts.get("Rejected") > 0
-        or status_counts.get("Not Submitted") > 0
-    ):
-        res = "Partially Approved"
-
-    if status_counts.get("Rejected") > 0 and (
-        status_counts.get("Approval Pending") > 0
-        or status_counts.get("Approved") > 0
-        or status_counts.get("Not Submitted") > 0
-    ):
-        res = "Partially Rejected"
-
-    if (
-        status_counts.get("Approval Pending") == 0
-        and status_counts.get("Not Submitted") == 0
-        and status_counts.get("Rejected") > 0
-    ):
-        res = "Rejected"
-
-    if (
-        status_counts.get("Approved") > 0
-        and status_counts.get("Approval Pending") == 0
-        and status_counts.get("Rejected") == 0
-        and status_counts.get("Not Submitted") == 0
-    ):
-        res = "Approved"
-
-    if status_counts.get("Approval Pending") > 0:
-        res = "Approval Pending"
-    return res
+    return frappe.db.get_value(
+        "Timesheet",
+        {"employee": employee, "start_date": date},
+        "custom_weekly_approval_status_",
+    )
 
 
 @frappe.whitelist()

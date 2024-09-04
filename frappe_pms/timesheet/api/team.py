@@ -23,18 +23,8 @@ def get_compact_view_data(
 ):
     import json
 
-    from .utils import filter_employees, get_leaves_for_employee
+    from .utils import get_leaves_for_employee
 
-    employees, total_count = filter_employees(
-        employee_name,
-        department,
-        project,
-        user_group=user_group,
-        page_length=page_length,
-        start=start,
-    )
-    status_counter = 0
-    employee_status = {}
     dates = []
     data = {}
     if status_filter and isinstance(status_filter, str):
@@ -48,6 +38,17 @@ def get_compact_view_data(
     dates.reverse()
     res = {"dates": dates}
 
+    employees, total_count = filter_employee_by_timesheet_status(
+        employee_name,
+        department,
+        project,
+        user_group=user_group,
+        page_length=page_length,
+        start=start,
+        timesheet_status=status_filter,
+        start_date=dates[0].get("start_date"),
+        end_date=dates[-1].get("end_date"),
+    )
     employee_names = [employee.name for employee in employees]
     timesheet_data = frappe.get_all(
         "Timesheet",
@@ -72,22 +73,12 @@ def get_compact_view_data(
             timesheet_map[ts.employee] = []
         timesheet_map[ts.employee].append(ts)
 
-    emps = frappe.db.sql('Select name from `tabEmployee` where status = "Active"')
-    for emp in emps:
-        status = get_timesheet_state(
-            employee=emp[0],
-            dates=[dates[0].get("start_date"), dates[-1].get("end_date")],
-        )
-        employee_status[emp[0]] = status
-        if status_filter and status in status_filter:
-            status_counter += 1
-
     for employee in employees:
         working_hours = get_employee_working_hours(employee.name)
         local_data = {**employee, **working_hours}
         employee_timesheets = timesheet_map.get(employee.name, [])
 
-        status = employee_status.get(employee.name)
+        status = get_timesheet_state(employee.name, date=dates[0].get("start_date"))
         local_data["status"] = status
         local_data["data"] = []
 
@@ -137,18 +128,12 @@ def get_compact_view_data(
                     }
                 )
 
-        if status_filter and local_data["status"] in status_filter:
-            data[employee.name] = local_data
-
-        if not status_filter:
-            data[employee.name] = local_data
+        data[employee.name] = local_data
 
     res["data"] = data
-    res["total_count"] = total_count if not status_filter else status_counter
-    if not status_filter:
-        res["has_more"] = int(start) + int(page_length) < total_count
-    else:
-        res["has_more"] = int(start) + int(page_length) < status_counter
+    res["total_count"] = total_count
+    res["has_more"] = int(start) + int(page_length) < total_count
+
     return res
 
 
@@ -166,23 +151,29 @@ def update_timesheet_status(
 ):
     import json
 
+    from .utils import get_week_dates
+
     if isinstance(dates, str):
         dates = json.loads(dates)
+
+    current_week = get_week_dates(dates[0])
 
     timesheets = frappe.get_all(
         "Timesheet",
         {
             "employee": employee,
-            "start_date": [">=", dates[0]],
-            "end_date": ["<=", dates[-1]],
+            "start_date": [">=", current_week.get("start_date")],
+            "end_date": ["<=", current_week.get("end_date")],
             "docstatus": ["=", 0],
         },
-        ["name"],
+        ["name", "start_date"],
     )
     if not timesheets:
         return frappe._("No timesheet found for the given date range.")
 
     for timesheet in timesheets:
+        if str(timesheet.start_date) not in dates:
+            continue
         doc = frappe.get_doc("Timesheet", timesheet.name)
         doc.custom_approval_status = status
         doc.save()
@@ -191,4 +182,101 @@ def update_timesheet_status(
         if note:
             doc.add_comment(text=note)
 
+    current_week_timesheet = frappe.get_all(
+        "Timesheet",
+        {
+            "employee": employee,
+            "start_date": [">=", current_week.get("start_date")],
+            "end_date": ["<=", current_week.get("end_date")],
+        },
+        ["name", "custom_approval_status", "start_date"],
+        group_by="start_date",
+    )
+
+    week_status = "Approval Pending"
+
+    status_count = {
+        "Not Submitted": 0,
+        "Approved": 0,
+        "Rejected": 0,
+        "Partially Approved": 0,
+        "Partially Rejected": 0,
+    }
+
+    for timesheet in current_week_timesheet:
+        status_count[timesheet.custom_approval_status] += 1
+
+    if status_count["Rejected"] == len(current_week_timesheet):
+        week_status = "Rejected"
+    elif status_count["Approved"] == len(current_week_timesheet):
+        week_status = "Approved"
+    elif status_count["Rejected"] > 0:
+        week_status = "Partially Rejected"
+    elif status_count["Approved"] > 0:
+        week_status = "Partially Approved"
+
+    for timesheet in timesheets:
+        frappe.db.set_value(
+            "Timesheet", timesheet.name, "custom_weekly_approval_status_", week_status
+        )
+
     return frappe._("Timesheet status updated successfully")
+
+
+def filter_employee_by_timesheet_status(
+    employee_name=None,
+    department=None,
+    project=None,
+    page_length=10,
+    start=0,
+    user_group=None,
+    timesheet_status=None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+):
+    import json
+
+    from .utils import filter_employees
+
+    start = int(start)
+    page_length = int(page_length)
+
+    if not timesheet_status:
+        employees, count = filter_employees(
+            employee_name,
+            department,
+            project,
+            page_length=page_length,
+            start=start,
+            user_group=user_group,
+        )
+
+        return employees, count
+
+    if timesheet_status and isinstance(timesheet_status, str):
+        timesheet_status = json.loads(timesheet_status)
+
+    timesheet = frappe.qb.DocType("Timesheet")
+
+    employees = (
+        frappe.qb.from_(timesheet)
+        .select("employee")
+        .where(timesheet.start_date >= getdate(start_date))
+        .where(timesheet.end_date <= getdate(end_date))
+        .where(timesheet.custom_weekly_approval_status_.isin(timesheet_status))
+        .groupby("employee")
+    ).run(as_dict=True)
+
+    employees = [emp.employee for emp in employees]
+    employees = employees[start : start + page_length]
+    employee = frappe.get_all(
+        "Employee",
+        filters={"name": ["in", employees]},
+        fields=["name", "employee_name", "department", "designation"],
+    )
+    count = len(employees)
+
+    if start + page_length > count:
+        page_length = count - start
+
+    return employee, count

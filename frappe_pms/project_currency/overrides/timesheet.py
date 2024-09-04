@@ -14,6 +14,7 @@ class TimesheetOverwrite(Timesheet):
         if not self.get("time_logs"):
             return
         for data in self.get("time_logs"):
+            self.update_billing_hours(data)
             self.validate_overlap(data)
             self.set_project(data)
             self.validate_project(data)

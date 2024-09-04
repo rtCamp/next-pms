@@ -262,7 +262,6 @@ def filter_employees(
         filters["name"] = ["in", employee_ids]
 
     if "Timesheet Manager" in roles:
-
         employees = frappe.get_all(
             "Employee",
             fields=fields,
@@ -270,7 +269,7 @@ def filter_employees(
             page_length=page_length,
             start=start,
         )
-        total_count = len(frappe.get_all("Employee", pluck="name", filters=filters))
+        total_count = get_count("Employee", filters=filters, ignore_permissions=True)
     else:
         employees = frappe.get_list(
             "Employee",
@@ -279,7 +278,7 @@ def filter_employees(
             page_length=page_length,
             start=start,
         )
-        total_count = len(frappe.get_list("Employee", pluck="name", filters=filters))
+        total_count = get_count("Employee", filters=filters)
 
     return employees, total_count
 
@@ -300,6 +299,42 @@ def get_employee(filters=None, fieldname=None):
     return frappe.db.get_value(
         "Employee", filters=filters, fieldname=fieldname, as_dict=True
     )
+
+
+def get_count(
+    doctype: str,
+    limit: int | None = None,
+    distinct: bool = False,
+    filters=None,
+    ignore_permissions=False,
+) -> int:
+    from frappe.desk.reportview import execute
+
+    distinct = "distinct " if distinct else ""
+    fieldname = f"{distinct}`tab{doctype}`.name"
+    if limit:
+        fieldname = [fieldname]
+        partial_query = execute(
+            doctype,
+            distinct=distinct,
+            limit=limit,
+            fields=fieldname,
+            filters=filters,
+            ignore_permissions=ignore_permissions,
+            run=0,
+        )
+        count = frappe.db.sql(f"""select count(*) from ( {partial_query} ) p""")[0][0]
+    else:
+        fieldname = [f"count({fieldname}) as total_count"]
+        count = execute(
+            doctype,
+            distinct=distinct,
+            limit=limit,
+            fields=fieldname,
+            filters=filters,
+            ignore_permissions=ignore_permissions,
+        )[0].get("total_count")
+    return count
 
 
 # API for Adding New Tasks (ignores Permissions)
