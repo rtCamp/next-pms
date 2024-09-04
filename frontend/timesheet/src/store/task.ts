@@ -12,6 +12,7 @@ export interface TaskState {
   total_project_count: number;
   projectStart: number;
   projectIsFetchAgain: boolean;
+  isAddTaskDialogBoxOpen: boolean;
 }
 
 export const initialState: TaskState = {
@@ -25,6 +26,14 @@ export const initialState: TaskState = {
   projectStart: 0,
   projectIsFetchAgain: false,
   total_project_count: 0,
+  isAddTaskDialogBoxOpen: false,
+};
+
+export type AddTaskType = {
+  subject: string;
+  project: string;
+  expected_time: string;
+  description: string;
 };
 
 export const taskSlice = createSlice({
@@ -84,6 +93,13 @@ export const taskSlice = createSlice({
       state.total_project_count = action.payload.count;
       state.projectIsFetchAgain = false;
     },
+    setAddTaskDialog: (state, action: PayloadAction<boolean>) => {
+      state.isAddTaskDialogBoxOpen = action.payload;
+      state.start = 0;
+      state.isFetchAgain = true;
+      state.projectStart = 0;
+      state.projectIsFetchAgain = true;
+    },
   },
 });
 
@@ -98,5 +114,6 @@ export const {
   updateTaskData,
   setProjectStart,
   setProjectFetchAgain,
+  setAddTaskDialog,
 } = taskSlice.actions;
 export default taskSlice.reducer;

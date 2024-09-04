@@ -16,6 +16,9 @@ import {
   updateTaskData,
   updateProjectData,
   setProjectData,
+  setAddTaskDialog,
+  TaskState,
+  AddTaskType,
 } from "@/store/task";
 import { cn, parseFrappeErrorMsg, floatToTime, getFormatedDate, deBounce } from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
@@ -24,7 +27,18 @@ import { Button } from "@/app/components/ui/button";
 import { Typography } from "@/app/components/typography";
 import { ComboxBox } from "@/app/components/comboBox";
 import { useQueryParamsState } from "@/lib/queryParam";
-import { ArrowUpDown, ChevronDown, ChevronUp, Clock, Filter, GripVertical, Heart } from "lucide-react";
+import {
+  ArrowUpDown,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  Filter,
+  GripVertical,
+  Heart,
+  LoaderCircle,
+  Plus,
+  Search,
+} from "lucide-react";
 import {
   ColumnDef,
   flexRender,
@@ -47,6 +61,12 @@ import { SetAddTimeDialog, SetTimesheet } from "@/store/timesheet";
 import { AddTime } from "@/app/pages/timesheet/addTime";
 import React from "react";
 import { Input } from "@/app/components/ui/input";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Textarea } from "@/app/components/ui/textarea";
 
 const Task = () => {
   const task = useSelector((state: RootState) => state.task);
@@ -136,17 +156,25 @@ const Task = () => {
     dispatch(SetAddTimeDialog(true));
   };
   // Frappe Call for Project comboBox Data
-  const { data: projects } = useFrappeGetCall(
+  const [projectSearch, setProjectSearch] = useState("");
+  const { data: projects, mutate: projectSearchMutate } = useFrappeGetCall(
     "frappe.client.get_list",
     {
       doctype: "Project",
       fields: ["name", "project_name"],
+      or_filters: [
+        ["name", "like", `%${projectSearch}%`],
+        ["project_name", "like", `%${projectSearch}%`],
+      ],
     },
     "projects",
     {
       shouldRetryOnError: false,
     },
   );
+  useEffect(() => {
+    projectSearchMutate();
+  }, [projectSearch]);
 
   const loadMore = () => {
     if (groupByParam.length > 0) {
@@ -412,6 +440,25 @@ const Task = () => {
       },
     },
     {
+      accessorKey: "timesheetAction",
+      header: "",
+      size: 60, // Default size
+      minSize: 60, // Minimum size
+      maxSize: 60, // Maximum size
+      cell: ({ row }) => {
+        return (
+          <div title="Add Timesheet" className="w-full flex justify-center items-center">
+            <Clock
+              className={"w-4 h-4 hover:cursor-pointer hover:text-blue-600"}
+              onClick={() => {
+                handleAddTime(row.original.name);
+              }}
+            />
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: "#",
       header: "",
       size: 30, // Default size
@@ -430,25 +477,6 @@ const Task = () => {
               onClick={handleLike}
             />
           </span>
-        );
-      },
-    },
-    {
-      accessorKey: "timesheetAction",
-      header: "",
-      size: 60, // Default size
-      minSize: 60, // Minimum size
-      maxSize: 60, // Maximum size
-      cell: ({ row }) => {
-        return (
-          <div title="Add Timesheet" className="w-full flex justify-center items-center">
-            <Clock
-              className={"w-4 h-4 hover:cursor-pointer hover:text-blue-600"}
-              onClick={() => {
-                handleAddTime(row.original.name);
-              }}
-            />
-          </div>
         );
       },
     },
@@ -670,6 +698,27 @@ const Task = () => {
       },
     },
     {
+      accessorKey: "timesheetAction",
+      header: "",
+      size: 60, // Default size
+      minSize: 60, // Minimum size
+      maxSize: 60, // Maximum size
+      cell: ({ row }) => {
+        return (
+          row.depth !== 0 && (
+            <div title="Add Timesheet" className="w-full flex justify-center items-center">
+              <Clock
+                className={"w-4 h-4 hover:cursor-pointer hover:text-blue-600"}
+                onClick={() => {
+                  handleAddTime(row.original.name);
+                }}
+              />
+            </div>
+          )
+        );
+      },
+    },
+    {
       accessorKey: "#",
       header: "",
       size: 30, // Default size
@@ -687,27 +736,6 @@ const Task = () => {
               data-liked-by={row.original._liked_by}
               onClick={handleLike}
             />
-          )
-        );
-      },
-    },
-    {
-      accessorKey: "timesheetAction",
-      header: "",
-      size: 60, // Default size
-      minSize: 60, // Minimum size
-      maxSize: 60, // Maximum size
-      cell: ({ row }) => {
-        return (
-          row.depth !== 0 && (
-            <div title="Add Timesheet" className="w-full flex justify-center items-center">
-              <Clock
-                className={"w-4 h-4 hover:cursor-pointer hover:text-blue-600"}
-                onClick={() => {
-                  handleAddTime(row.original.name);
-                }}
-              />
-            </div>
           )
         );
       },
@@ -771,6 +799,15 @@ const Task = () => {
     });
   }, [sorting]);
 
+  // handle ad Task
+  const handleAddTask = () => {
+    dispatch(setAddTaskDialog(true));
+  };
+  // handle project search combo box
+  const handleProjectSearch = (searchString: string) => {
+    setProjectSearch(searchString);
+  };
+
   return (
     <>
       {/* Styles for table column-resizing */}
@@ -825,6 +862,7 @@ const Task = () => {
             }))}
             className="text-primary border-dashed gap-x-2 font-normal w-fit"
             onSelect={handleProjectChange}
+            onSearch={handleProjectSearch}
           />
           {/* GroupBy comboBox */}
           <ComboxBox
@@ -847,6 +885,11 @@ const Task = () => {
             columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
             setLocalStorageTaskState={setLocalStorageTaskState}
           />
+          {/* Add Task Button */}
+          <Button onClick={handleAddTask} title="Add task" className="ml-auto">
+            {" "}
+            <Plus className="h-4 w-4 mr-2" /> Add Task
+          </Button>
         </div>
         {/* tables */}
         <div className="overflow-hidden w-full overflow-y-scroll" style={{ height: "calc(100vh - 8rem)" }}>
@@ -896,6 +939,10 @@ const Task = () => {
         </div>
         {/* addTime */}
         {timesheet.isDialogOpen && <AddTime />}
+        {/* addTask */}
+        {task.isAddTaskDialogBoxOpen && (
+          <AddTask task={task} projects={projects} setProjectSearch={setProjectSearch} toast={toast} />
+        )}
       </div>
     </>
   );
@@ -937,7 +984,7 @@ const HideColumn = ({ table, groupBy, columnsToExcludeActionsInTables, setLocalS
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="ml-auto focus-visible:ring-0">
+        <Button variant="outline" className=" focus-visible:ring-0">
           Columns
         </Button>
       </DropdownMenuTrigger>
@@ -1258,6 +1305,240 @@ const RowGroupedTable = ({
           </TableBody>
         </Table>
       )}
+    </>
+  );
+};
+
+const AddTask = ({ task, projects, setProjectSearch, toast }) => {
+  const dispatch = useDispatch();
+  const expectedTimeSchema = z.preprocess(
+    (val, ctx) => {
+      if (!val.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["expected_time"],
+          message: "Please enter a valid time in Hours",
+        });
+        return null;
+      }
+      const processedValue = Number(val);
+      if (isNaN(processedValue)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["expected_time"],
+          message: "Invalid Time format. Please enter a valid time in Hours",
+        });
+        return null;
+      }
+      return processedValue;
+    },
+    z.union([
+      z.string({
+        invalid_type_error: "Please enter a valid number for hours.",
+      }),
+      z.number({
+        invalid_type_error: "Please enter a valid number for hours.",
+      }),
+    ]),
+  );
+  const TaskSchema = z.object({
+    subject: z
+      .string({
+        required_error: "Please add a subject.",
+      })
+      .trim()
+      .min(1, { message: "Please add a subject." }),
+    project: z
+      .string({
+        required_error: "Please select a project.",
+      })
+      .trim()
+      .min(1, { message: "Please select a project." }),
+    expected_time: expectedTimeSchema,
+    description: z
+      .string({
+        required_error: "Please enter description.",
+      })
+      .trim()
+      .min(4, "Please enter valid description."),
+  });
+  const { call } = useFrappePostCall("frappe_pms.timesheet.api.utils.add_task");
+  const form = useForm<z.infer<typeof TaskSchema>>({
+    resolver: zodResolver(TaskSchema),
+    defaultValues: {
+      subject: "",
+      project: "",
+      expected_time: "",
+      description: "",
+    },
+    mode: "onSubmit",
+  });
+  const handleSubmit = (data: z.infer<typeof TaskSchema>) => {
+    const sanitizedTaskData: AddTaskType = {
+      subject: data.subject.trim(),
+      description: data.description.trim(),
+      expected_time: String(data.expected_time),
+      project: data.project.trim(),
+    };
+    call(sanitizedTaskData)
+      .then((res) => {
+        toast({
+          variant: "success",
+          description: res.message,
+        });
+        dispatch(setProjectFetchAgain(true));
+        closeAddTaskDialog();
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          description: error,
+        });
+      });
+  };
+  const closeAddTaskDialog = () => {
+    dispatch(setAddTaskDialog(false));
+    setProjectSearch("");
+    form.reset();
+  };
+  const handleSubjectChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    form.setValue("subject", event.target.value);
+  };
+  const handleTimeChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    form.setValue("expected_time", event.target.value);
+  };
+  const handleProjectChange = (data: string[] | string) => {
+    form.setValue("project", data[0]);
+  };
+  const handleProjectSearch = (searchString: string) => {
+    setProjectSearch(searchString);
+  };
+  return (
+    <>
+      <Dialog onOpenChange={closeAddTaskDialog} open={task.isAddTaskDialogBoxOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="pb-6">Add Task</DialogTitle>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)}>
+              <div className="flex flex-col gap-y-6">
+                <div className="flex gap-x-4 items-start">
+                  {/* subject field */}
+                  <FormField
+                    control={form.control}
+                    name="subject"
+                    render={({ field }) => (
+                      <FormItem className="w-full">
+                        <FormLabel className="flex gap-2 items-center">
+                          <p className="text-sm">Subject</p>
+                        </FormLabel>
+                        <FormControl>
+                          <>
+                            <div className="relative flex items-center">
+                              <Input
+                                placeholder="New subject"
+                                className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                {...field}
+                                type="text"
+                                onChange={handleSubjectChange}
+                              />
+                            </div>
+                          </>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  {/* expected time  */}
+                  <FormField
+                    control={form.control}
+                    name="expected_time"
+                    render={({ field }) => (
+                      <FormItem className="w-full">
+                        <FormLabel className="flex gap-2 items-center text-sm">Expected Time</FormLabel>
+                        <FormControl>
+                          <FormControl>
+                            <>
+                              <div className="relative flex items-center">
+                                <Input
+                                  placeholder="Time(in hours)"
+                                  className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                  {...field}
+                                  type="text"
+                                  onChange={handleTimeChange}
+                                />
+                              </div>
+                            </>
+                          </FormControl>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                {/* project combobox */}
+                <FormField
+                  control={form.control}
+                  name="project"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>Projects</FormLabel>
+                      <FormControl>
+                        <ComboxBox
+                          label="Search Project"
+                          showSelected
+                          value={form.getValues("project") ? [form.getValues("project")] : []}
+                          data={projects?.message?.map((item: ProjectProps) => ({
+                            label: item.project_name,
+                            value: item.name,
+                          }))}
+                          onSelect={handleProjectChange}
+                          onSearch={handleProjectSearch}
+                          rightIcon={<Search className="h-4 w-4 stroke-slate-400" />}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Explain the subject"
+                          rows={4}
+                          className="w-full placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <DialogFooter className="sm:justify-start w-full">
+                  <div className="flex gap-x-4 w-full">
+                    <Button disabled={form.formState.isSubmitting}>
+                      {form.formState.isSubmitting && <LoaderCircle className="animate-spin w-4 h-4" />}
+                      Add Task
+                    </Button>
+                    <Button variant="secondary" type="button" onClick={closeAddTaskDialog}>
+                      Cancel
+                    </Button>
+                  </div>
+                </DialogFooter>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

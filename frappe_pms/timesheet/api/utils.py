@@ -300,3 +300,18 @@ def get_employee(filters=None, fieldname=None):
     return frappe.db.get_value(
         "Employee", filters=filters, fieldname=fieldname, as_dict=True
     )
+
+
+# API for Adding New Tasks (ignores Permissions)
+@frappe.whitelist()
+def add_task(subject: str, expected_time: str, project: str, description: str):
+    frappe.get_doc(
+        {
+            "doctype": "Task",
+            "subject": subject,
+            "expected_time": expected_time,
+            "project": project,
+            "description": description,
+        }
+    ).insert(ignore_permissions=True)
+    return frappe._("Task Created Successfully")

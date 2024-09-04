@@ -1,11 +1,4 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/app/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
 import { RootState } from "@/store";
 import { useDispatch, useSelector } from "react-redux";
 import { SetAddTimeDialog, SetFetchAgain } from "@/store/timesheet";
@@ -19,7 +12,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
 import { Input } from "@/app/components/ui/input";
-import { Clock3, Search, LoaderCircle, Trash2 } from "lucide-react";
+import { Clock3, Search, LoaderCircle } from "lucide-react";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { getFormatedDate, parseFrappeErrorMsg, expectatedHours, floatToTime, cn } from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
@@ -163,7 +156,7 @@ export const AddTime = () => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)}>
             <div className="flex flex-col gap-y-6">
-              <div className="flex gap-x-4 items-center">
+              <div className="flex gap-x-4 items-start">
                 <FormField
                   control={form.control}
                   name="hours"
@@ -292,33 +285,6 @@ export const AddTime = () => {
             </div>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-export const DeleteConfirmation = ({ onDelete }: { onDelete: () => void }) => {
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="destructive" className="float-right gap-x-1" type="button">
-          <Trash2 className="h-4 w-4 stroke-white" />
-          Delete
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <DialogTitle>Delete Time</DialogTitle>
-        </DialogHeader>
-        <div className="flex flex-col gap-y-4">
-          <Typography variant="p">Are you sure you want to delete this time entry?</Typography>
-          <div className="flex gap-x-4">
-            <Button variant="destructive" className="float-right px-2 gap-x-1" type="button" onClick={onDelete}>
-              <Trash2 className="h-4 w-4 stroke-white" />
-              Delete
-            </Button>
-          </div>
-        </div>
       </DialogContent>
     </Dialog>
   );

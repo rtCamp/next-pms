@@ -16,9 +16,10 @@ import {
   ChevronUp,
   ChevronDown,
   ClipboardList,
+  FilePieChart,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
-import { TIMESHEET, HOME, TEAM, DESK, TASK } from "@/lib/constant";
+import { TIMESHEET, HOME, TEAM, DESK, TASK, REPORT } from "@/lib/constant";
 import { FrappeContext, FrappeConfig } from "frappe-react-sdk";
 import { useToast } from "@/app/components/ui/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
@@ -112,6 +113,13 @@ const Sidebar = () => {
       label: "Tasks",
       key: "tasks",
       isPmRoute: false,
+    },
+    {
+      to: REPORT,
+      icon: FilePieChart,
+      label: "Reports",
+      key: "reports",
+      isPmRoute: true,
     },
   ];
   useEffect(() => {
