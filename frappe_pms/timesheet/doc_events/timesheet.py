@@ -98,7 +98,7 @@ def validate_dates(doc):
     from frappe import get_roles
     from hrms.hr.utils import get_holiday_dates_for_employee
 
-    from timesheet_enhancer.api.utils import (
+    from frappe_pms.timesheet.api.utils import (
         get_employee_from_user,
         get_leaves_for_employee,
     )
