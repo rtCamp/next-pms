@@ -389,8 +389,7 @@ def get_timesheet_details(date: str, task: str, employee: str):
             timesheet_detail.hours,
             timesheet_detail.description,
             timesheet_detail.task,
-            timesheet_detail.from_time,
-            timesheet_detail.to_time,
+            timesheet_detail.from_time.as_("date"),
             timesheet_detail.parent,
             timesheet_detail.is_billable,
         )
