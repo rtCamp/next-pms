@@ -33,7 +33,6 @@
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
     "frappe-react-sdk": "^1.7.1",
-    "lucide": "^0.433.0",
     "lucide-react": "^0.408.0",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",

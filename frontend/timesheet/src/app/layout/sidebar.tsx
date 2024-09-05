@@ -17,6 +17,10 @@ import {
   ChevronDown,
   ClipboardList,
   FilePieChart,
+  ContactRound,
+  UsersRound,
+  PersonStanding,
+  FerrisWheel,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { TIMESHEET, HOME, TEAM, DESK, TASK, REPORT } from "@/lib/constant";
@@ -45,6 +49,32 @@ type Route = {
   children?: NestedRoute[];
   isPmRoute: boolean;
 };
+const dummyNestedReprtRoutes: NestedRoute[] = [
+  {
+    to: "https://google.com",
+    label: "Employee",
+    key: "Employee",
+    icon: ContactRound,
+  },
+  {
+    to: "https://google.com",
+    label: "Project",
+    key: "Project",
+    icon: FerrisWheel,
+  },
+  {
+    to: "https://google.com",
+    label: "Customer",
+    key: "Customer",
+    icon: PersonStanding,
+  },
+  {
+    to: "https://google.com",
+    label: "Team",
+    key: "Team",
+    icon: UsersRound,
+  },
+];
 
 const Sidebar = () => {
   const { call } = useContext(FrappeContext) as FrappeConfig;
@@ -120,6 +150,7 @@ const Sidebar = () => {
       label: "Reports",
       key: "reports",
       isPmRoute: true,
+      children: dummyNestedReprtRoutes,
     },
   ];
   useEffect(() => {
@@ -156,7 +187,7 @@ const Sidebar = () => {
             Timesheet
           </Typography>
         </div>
-        <div className="pt-10 flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
+        <div className="pt-10 h-full overflow-y-scroll flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
           {routes.map((route: Route) => {
             if (route.isPmRoute && !hasPmRole) return null;
 

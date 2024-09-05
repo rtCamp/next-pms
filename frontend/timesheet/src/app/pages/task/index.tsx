@@ -36,7 +36,9 @@ import {
   GripVertical,
   Heart,
   LoaderCircle,
+  MoreVertical,
   Plus,
+  RotateCcw,
   Search,
 } from "lucide-react";
 import {
@@ -50,14 +52,16 @@ import {
   getExpandedRowModel,
   ColumnFiltersState,
   getFilteredRowModel,
+  ColumnSizing,
 } from "@tanstack/react-table";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
-import { SetAddTimeDialog, SetTimesheet } from "@/store/timesheet";
+import { AppendData, SetAddTimeDialog, setData, SetFetchAgain, SetTimesheet } from "@/store/timesheet";
 import { AddTime } from "@/app/pages/timesheet/addTime";
 import React from "react";
 import { Input } from "@/app/components/ui/input";
@@ -126,7 +130,6 @@ const Task = () => {
       value: "project",
     },
   ];
-  //
 
   const dispatch = useDispatch();
   const { toast } = useToast();
@@ -807,6 +810,21 @@ const Task = () => {
   const handleProjectSearch = (searchString: string) => {
     setProjectSearch(searchString);
   };
+  // More DropDown Items here
+  const MoreTableOptionsDropDownData = [
+    {
+      title: "Reset table",
+      icon: RotateCcw,
+      iconClass: "h-4 w-4 text-blue-500",
+      handleClick: () => {
+        setLocalStorageTaskState(localStorageTaskDataMap);
+        // update All Sort,filter and columnWidth States when localStorage Changes (table config reset)
+        setSorting([]);
+        setColumnVisibility({});
+        table.setColumnSizing([]);
+      },
+    },
+  ];
 
   return (
     <>
@@ -885,8 +903,31 @@ const Task = () => {
             columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
             setLocalStorageTaskState={setLocalStorageTaskState}
           />
+          {/* more button */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="icon" variant="outline" className="h-8 w-8 cursor-pointer ml-auto">
+                <MoreVertical className="h-3.5 w-3.5" />
+                <span className="sr-only">More</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {MoreTableOptionsDropDownData?.map((dropdownItem) => {
+                return (
+                  <DropdownMenuItem
+                    key={dropdownItem.title}
+                    onClick={dropdownItem.handleClick}
+                    className="cursor-pointer flex gap-2 items-center justify-center"
+                  >
+                    <dropdownItem.icon className={cn(dropdownItem.iconClass)} />
+                    <Typography variant="p">{dropdownItem.title}</Typography>
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
           {/* Add Task Button */}
-          <Button onClick={handleAddTask} title="Add task" className="ml-auto">
+          <Button onClick={handleAddTask} title="Add task">
             {" "}
             <Plus className="h-4 w-4 mr-2" /> Add Task
           </Button>
@@ -977,7 +1018,17 @@ const TaskStatus = ({ status }: { status: TaskData["status"] }) => {
     Completed: "bg-success/20 text-success hover:bg-success/20",
     Cancelled: "bg-destructive/20 text-destructive hover:bg-destructive/20",
   };
-  return <Badge className={cn(statusCss[status])}>{status}</Badge>;
+  return (
+    <div
+      title={status}
+      className={cn(
+        statusCss[status],
+        "py-1 px-2 truncate  w-fit max-w-40 text-xs font-bold text-center cursor-pointer rounded-full ",
+      )}
+    >
+      {status}
+    </div>
+  );
 };
 
 const HideColumn = ({ table, groupBy, columnsToExcludeActionsInTables, setLocalStorageTaskState }) => {

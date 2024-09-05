@@ -211,11 +211,7 @@ export const AddTime = () => {
                     <FormItem className="w-full">
                       <FormLabel className="flex gap-2 items-center text-sm">Date</FormLabel>
                       <FormControl>
-                        <DatePicker
-                          date={field.value}
-                          onDateChange={handleDateChange}
-                          disabled={timesheetState.timesheet.task.length > 0}
-                        />
+                        <DatePicker date={field.value} onDateChange={handleDateChange} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
