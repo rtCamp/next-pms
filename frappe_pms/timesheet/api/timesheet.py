@@ -66,7 +66,11 @@ def get_timesheet_data(
         week_key = week_dates["key"]
 
         tasks, total_hours = get_timesheet(week_dates["dates"], employee)
-        status = get_timesheet_state(date=week_dates["dates"][0], employee=employee)
+        status = get_timesheet_state(
+            start_date=week_dates["dates"][0],
+            end_date=week_dates["dates"][-1],
+            employee=employee,
+        )
 
         data[week_key] = {
             **week_dates,
@@ -161,13 +165,16 @@ def delete(parent: str, name: str):
 
 @frappe.whitelist()
 def submit_for_approval(start_date: str, notes: str = None, employee: str = None):
+    from .utils import update_weekly_status_of_timesheet
+
     if not employee:
         employee = get_employee_from_user()
     reporting_manager = frappe.get_value("Employee", employee, "reports_to")
+
     if not reporting_manager:
         throw(_("Reporting Manager not found for the employee."))
     reporting_manager = frappe.get_value("Employee", reporting_manager, "employee_name")
-    #  get the timesheet for whole week.
+
     start_date = get_first_day_of_week(start_date)
     end_date = get_last_day_of_week(start_date)
 
@@ -191,6 +198,7 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
         if index == length - 1 and notes:
             doc.add_comment("Comment", text=notes)
 
+    update_weekly_status_of_timesheet(employee, start_date)
     return _(f"Timesheet has been set for Approval to {reporting_manager}.")
 
 
@@ -330,13 +338,21 @@ def get_timesheet(dates: list, employee: str):
     return [data, total_hours]
 
 
-def get_timesheet_state(employee: str, date: str):
+def get_timesheet_state(employee: str, start_date: str, end_date: str):
 
-    return frappe.db.get_value(
+    statuses = frappe.db.get_all(
         "Timesheet",
-        {"employee": employee, "start_date": date},
-        "custom_weekly_approval_status_",
+        {
+            "employee": employee,
+            "start_date": [">=", getdate(start_date)],
+            "end_date": ["<=", getdate(end_date)],
+        },
+        "custom_weekly_approval_status",
     )
+    for status in statuses:
+        if status.custom_weekly_approval_status:
+            return status.custom_weekly_approval_status
+    return "Not Submitted"
 
 
 @frappe.whitelist()
@@ -373,8 +389,7 @@ def get_timesheet_details(date: str, task: str, employee: str):
             timesheet_detail.hours,
             timesheet_detail.description,
             timesheet_detail.task,
-            timesheet_detail.from_time,
-            timesheet_detail.to_time,
+            timesheet_detail.from_time.as_("date"),
             timesheet_detail.parent,
             timesheet_detail.is_billable,
         )
@@ -388,3 +403,20 @@ def get_timesheet_details(date: str, task: str, employee: str):
         "task": subject,
         "data": data,
     }
+
+
+@frappe.whitelist()
+def bulk_update_timesheet_detail(data):
+    for entry in data:
+        if isinstance(entry, str):
+            entry = frappe.parse_json(entry)
+        update_timesheet_detail(
+            entry.get("name"),
+            entry.get("parent"),
+            entry.get("hours"),
+            entry.get("description"),
+            entry.get("task"),
+            entry.get("date"),
+            entry.get("is_billable"),
+        )
+    return _("Time entry updated successfully.")

@@ -78,7 +78,11 @@ def get_compact_view_data(
         local_data = {**employee, **working_hours}
         employee_timesheets = timesheet_map.get(employee.name, [])
 
-        status = get_timesheet_state(employee.name, date=dates[0].get("start_date"))
+        status = get_timesheet_state(
+            employee.name,
+            start_date=dates[0].get("start_date"),
+            end_date=dates[-1].get("end_date"),
+        )
         local_data["status"] = status
         local_data["data"] = []
 
@@ -151,7 +155,7 @@ def update_timesheet_status(
 ):
     import json
 
-    from .utils import get_week_dates
+    from .utils import get_week_dates, update_weekly_status_of_timesheet
 
     if isinstance(dates, str):
         dates = json.loads(dates)
@@ -182,43 +186,7 @@ def update_timesheet_status(
         if note:
             doc.add_comment(text=note)
 
-    current_week_timesheet = frappe.get_all(
-        "Timesheet",
-        {
-            "employee": employee,
-            "start_date": [">=", current_week.get("start_date")],
-            "end_date": ["<=", current_week.get("end_date")],
-        },
-        ["name", "custom_approval_status", "start_date"],
-        group_by="start_date",
-    )
-
-    week_status = "Approval Pending"
-
-    status_count = {
-        "Not Submitted": 0,
-        "Approved": 0,
-        "Rejected": 0,
-        "Partially Approved": 0,
-        "Partially Rejected": 0,
-    }
-
-    for timesheet in current_week_timesheet:
-        status_count[timesheet.custom_approval_status] += 1
-
-    if status_count["Rejected"] == len(current_week_timesheet):
-        week_status = "Rejected"
-    elif status_count["Approved"] == len(current_week_timesheet):
-        week_status = "Approved"
-    elif status_count["Rejected"] > 0:
-        week_status = "Partially Rejected"
-    elif status_count["Approved"] > 0:
-        week_status = "Partially Approved"
-
-    for timesheet in timesheets:
-        frappe.db.set_value(
-            "Timesheet", timesheet.name, "custom_weekly_approval_status_", week_status
-        )
+    update_weekly_status_of_timesheet(employee, current_week.get("start_date"))
 
     return frappe._("Timesheet status updated successfully")
 
@@ -263,7 +231,7 @@ def filter_employee_by_timesheet_status(
         .select("employee")
         .where(timesheet.start_date >= getdate(start_date))
         .where(timesheet.end_date <= getdate(end_date))
-        .where(timesheet.custom_weekly_approval_status_.isin(timesheet_status))
+        .where(timesheet.custom_weekly_approval_status.isin(timesheet_status))
         .groupby("employee")
     ).run(as_dict=True)
 

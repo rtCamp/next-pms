@@ -198,6 +198,7 @@ doc_events = {
         "before_save": "frappe_pms.timesheet.doc_events.timesheet.before_save",
         "before_insert": "frappe_pms.timesheet.doc_events.timesheet.before_insert",
     },
+    "Task": {"after_insert": "frappe_pms.project_currency.overrides.task.after_insert"},
 }
 #
 # each overriding function accepts a `data` argument;

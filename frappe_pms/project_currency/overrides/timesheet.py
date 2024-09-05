@@ -62,33 +62,49 @@ class TimesheetOverwrite(Timesheet):
                 )
 
         for data in self.time_logs:
-            rate = self.get_activity_cost(
-                currency=self.currency, valid_from_date=data.from_time
-            )
-            base_rate = self.get_activity_cost(
-                currency=frappe.defaults.get_global_default("currency"),
-                valid_from_date=data.from_time,
+            costing_rate = self.get_activity_costing_rate(currency=self.currency)
+            base_costing_rate = self.get_activity_costing_rate(
+                currency=frappe.defaults.get_global_default("currency")
             )
             costing_hours = data.billing_hours or data.hours or 0
 
-            if rate:
-                data.costing_rate = rate.get("costing_rate")
+            if costing_rate:
+                data.costing_rate = costing_rate
                 data.costing_amount = data.costing_rate * costing_hours
 
-            if base_rate:
-                data.base_costing_rate = base_rate.get("costing_rate")
+            if base_costing_rate:
+                data.base_costing_rate = base_costing_rate
                 data.base_costing_amount = data.base_costing_rate * costing_hours
 
             if data.activity_type or data.is_billable:
                 hours = data.billing_hours or 0
-                if rate:
-                    data.billing_rate = rate.get("billing_rate")
+
+                billing_rate = self.get_activity_billing_rate(currency=self.currency)
+                base_billing_rate = self.get_activity_billing_rate(
+                    currency=frappe.defaults.get_global_default("currency")
+                )
+                if billing_rate:
+                    data.billing_rate = billing_rate
                     data.billing_amount = data.billing_rate * hours
-                if base_rate:
-                    data.base_billing_rate = base_rate.get("billing_rate")
+                if base_billing_rate:
+                    data.base_billing_rate = base_billing_rate
                     data.base_billing_amount = data.base_billing_rate * hours
 
-    def get_activity_cost(self, currency=None, valid_from_date=None):
+    def get_activity_costing_rate(self, currency=None):
+        if not self.parent_project:
+            return frappe.throw("Project is not defined in Timesheet.")
+
+        employee = frappe.get_doc(
+            "Employee",
+            self.employee,
+            ["ctc", "custom_hourly_billing_rate", "salary_currency"],
+        )
+
+        return get_employee_costing_rate(
+            employee.salary_currency, employee.ctc, currency
+        )
+
+    def get_activity_billing_rate(self, currency=None, valid_from_date=None):
         if not self.parent_project:
             return frappe.throw("Project is not defined in Timesheet.")
 
@@ -105,33 +121,32 @@ class TimesheetOverwrite(Timesheet):
             ["hourly_billing_rate"],
             order_by="valid_from desc",
         )
-
-        if len(employee_project_billing) == 0:
-            return frappe.throw(
-                "Invalid information for project billing. Please contact the Project Manager for assistance."
-            )
-
-        employee_project_billing = employee_project_billing[0]
-
         employee = frappe.get_doc(
             "Employee",
             self.employee,
             ["ctc", "custom_hourly_billing_rate", "salary_currency"],
         )
 
-        costing_rate = get_employee_costing_rate(
-            employee.salary_currency, employee.ctc, currency
-        )
+        employee_project_billing_hourly_billing_rate = 0
 
-        billing_rate = get_employee_billing_rate(
-            employee_project_billing.hourly_billing_rate,
+        if len(employee_project_billing) == 0:
+            if not employee.custom_hourly_billing_rate:
+                return frappe.throw(
+                    "Invalid information for project billing. Please contact the Project Manager for assistance."
+                )
+        else:
+            employee_project_billing = employee_project_billing[0]
+            employee_project_billing_hourly_billing_rate = (
+                employee_project_billing.hourly_billing_rate
+            )
+
+        return get_employee_billing_rate(
+            employee_project_billing_hourly_billing_rate,
             employee.custom_hourly_billing_rate,
             employee.salary_currency,
             frappe.db.get_value("Project", self.parent_project, "custom_currency"),
             currency,
         )
-
-        return {"costing_rate": costing_rate, "billing_rate": billing_rate}
 
 
 def get_employee_billing_rate(
@@ -167,6 +182,11 @@ def get_employee_costing_rate(salary_currency: float, ctc: float, currency: floa
 
     salary = calculate_monthly_and_hourly_salary(salary=ctc)
     costing_rate = salary.get("hourly_salary")
+
+    if not costing_rate:
+        return frappe.throw(
+            "Project costing rates are not set. Please contact the Project Manager for assistance."
+        )
 
     if salary_currency != currency:
         rate = get_exchange_rate(salary_currency, currency)
