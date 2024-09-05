@@ -301,7 +301,7 @@ const Team = () => {
             className="placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-slate-800"
           />
           <ComboxBox
-            value={teamState.statusFilter}
+            value={statusParam}
             label="Approval"
             data={approvalsData}
             isMulti
@@ -314,7 +314,7 @@ const Team = () => {
             className="text-primary border-dashed gap-x-1 font-normal w-fit"
           />
           <ComboxBox
-            value={teamState.project}
+            value={projectParam}
             label="Projects"
             isMulti
             showSelected={false}
@@ -329,7 +329,7 @@ const Team = () => {
             className="text-primary border-dashed gap-x-2 font-normal w-fit"
           />
           <ComboxBox
-            value={teamState.userGroup}
+            value={userGroupParam}
             label="User Groups"
             onSearch={onUserGroupSearch}
             showSelected={false}

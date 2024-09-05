@@ -5,7 +5,7 @@ type UseQueryParamsStateReturnType<T> = [T, Dispatch<SetStateAction<T>>];
 
 export const useQueryParamsState = <T>(
   param: string,
-  initialState: T
+  initialState: T,
 ): UseQueryParamsStateReturnType<T> => {
   const location = useLocation();
 
@@ -16,16 +16,29 @@ export const useQueryParamsState = <T>(
     // Parse query parameter value from the URL
     const { search } = window.location;
     const searchParams = new URLSearchParams(search);
+    for (const [key, value] of searchParams.entries()) {
+      if (value === "null") searchParams.delete(key);
+      try {
+        JSON.parse(value);
+      } catch (error) {
+        searchParams.delete(key);
+      }
+    }
+
     const paramValue = searchParams.get(param);
-
-    return paramValue !== null ? JSON.parse(paramValue) as T : initialState;
+    return paramValue !== null
+      ? (JSON.parse(paramValue || "[]") as T)
+      : initialState;
   });
-
   useEffect(() => {
     const currentSearchParams = new URLSearchParams(window.location.search);
 
     // Update the query parameter with the current state value
-    if (value !== null && value !== "" && !(Array.isArray(value) && value.length === 0)) {
+    if (
+      value !== null &&
+      value !== "" &&
+      !(Array.isArray(value) && value.length === 0)
+    ) {
       currentSearchParams.set(param, JSON.stringify(value));
     } else {
       // Remove the query parameter if the value is null or empty

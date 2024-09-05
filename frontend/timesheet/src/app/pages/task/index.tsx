@@ -7,12 +7,18 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import {
   setStart,
+  setProjectStart,
   setTaskData,
   setSelectedProject,
   setFetchAgain,
+  setProjectFetchAgain,
   setGroupBy,
+  updateTaskData,
   updateProjectData,
   setProjectData,
+  setAddTaskDialog,
+  TaskState,
+  AddTaskType,
 } from "@/store/task";
 import { cn, parseFrappeErrorMsg, floatToTime, getFormatedDate, deBounce } from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
@@ -21,7 +27,20 @@ import { Button } from "@/app/components/ui/button";
 import { Typography } from "@/app/components/typography";
 import { ComboxBox } from "@/app/components/comboBox";
 import { useQueryParamsState } from "@/lib/queryParam";
-import { ArrowUpDown, ChevronDown, ChevronUp, Filter, GripVertical, Heart } from "lucide-react";
+import {
+  ArrowUpDown,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  Filter,
+  GripVertical,
+  Heart,
+  LoaderCircle,
+  MoreVertical,
+  Plus,
+  RotateCcw,
+  Search,
+} from "lucide-react";
 import {
   ColumnDef,
   flexRender,
@@ -33,18 +52,25 @@ import {
   getExpandedRowModel,
   ColumnFiltersState,
   getFilteredRowModel,
+  ColumnSizing,
 } from "@tanstack/react-table";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
-import { updateData } from "@/store/team";
-import { SetAddTimeDialog, SetTimesheet } from "@/store/timesheet";
+import { AppendData, SetAddTimeDialog, setData, SetFetchAgain, SetTimesheet } from "@/store/timesheet";
 import { AddTime } from "@/app/pages/timesheet/addTime";
 import React from "react";
 import { Input } from "@/app/components/ui/input";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Textarea } from "@/app/components/ui/textarea";
 
 const Task = () => {
   const task = useSelector((state: RootState) => state.task);
@@ -53,13 +79,34 @@ const Task = () => {
   const { call } = useFrappePostCall("frappe.desk.like.toggle_like");
   // States for maintaining tables and filters
   const [expanded, setExpanded] = useState<boolean>(true);
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const localStorageTaskDataMap = {
+    hideColumn: [],
+    groupBy: [],
+    projects: [],
+    columnWidth: [],
+    columnSort: [],
+  };
+  const [localStorageTaskState, setLocalStorageTaskState] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("task"));
+    } catch (error) {
+      return localStorageTaskDataMap;
+    }
+  });
+  const [sorting, setSorting] = useState<SortingState>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("task")).columnSort;
+    } catch (error) {
+      return [];
+    }
+  });
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+    createFalseValuedObject(localStorageTaskState?.hideColumn ?? {}),
+  );
   const [projectParam, setProjectParam] = useQueryParamsState<string[]>("project", []);
   const [groupByParam, setGroupByParam] = useQueryParamsState<string[]>("groupby", []);
   const [subjectSearch, setSubjectSearch] = useState<string>("");
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-
   //task search change (input)
   const updateSubjectSearch = useCallback(
     deBounce((searchStr) => {
@@ -83,7 +130,6 @@ const Task = () => {
       value: "project",
     },
   ];
-  //
 
   const dispatch = useDispatch();
   const { toast } = useToast();
@@ -93,7 +139,10 @@ const Task = () => {
   }, []);
   useEffect(() => {
     dispatch(setGroupBy(groupByParam));
-  }, []);
+    if (groupByParam.length === 0) {
+      dispatch(setFetchAgain(true));
+    }
+  }, [groupByParam]);
 
   const handleAddTime = (taskName: string) => {
     const timesheetData = {
@@ -109,78 +158,33 @@ const Task = () => {
     dispatch(SetTimesheet(timesheetData));
     dispatch(SetAddTimeDialog(true));
   };
-  const { data: projects } = useFrappeGetCall(
+  // Frappe Call for Project comboBox Data
+  const [projectSearch, setProjectSearch] = useState("");
+  const { data: projects, mutate: projectSearchMutate } = useFrappeGetCall(
     "frappe.client.get_list",
     {
       doctype: "Project",
       fields: ["name", "project_name"],
+      or_filters: [
+        ["name", "like", `%${projectSearch}%`],
+        ["project_name", "like", `%${projectSearch}%`],
+      ],
     },
     "projects",
     {
       shouldRetryOnError: false,
     },
   );
-  const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.utils.get_task_for_employee", {
-    page_length: 20,
-    start: task.start,
-    project: task.selectedProject,
-    search: subjectSearch,
-  });
-  //nested project task call
-  const {
-    data: nestedProjectData,
-    isLoading: nestedProjectIsLoading,
-    error: nestedProjectError,
-    mutate: nestedProjectMutate,
-  } = useFrappeGetCall("frappe_pms.timesheet.api.utils.get_project_task", {
-    project: task.selectedProject.length == 0 ? null : task.selectedProject,
-    task_search: subjectSearch,
-  });
+  useEffect(() => {
+    projectSearchMutate();
+  }, [projectSearch]);
 
   const loadMore = () => {
+    if (groupByParam.length > 0) {
+      return dispatch(setProjectStart(task.projectStart + 20));
+    }
     dispatch(setStart(task.start + 20));
   };
-
-  useEffect(() => {
-    if (task.isFetchAgain) {
-      mutate();
-      dispatch(setFetchAgain(false));
-    }
-    if (data) {
-      if (task.start !== 0) {
-        dispatch(updateData(data.message));
-      }
-      dispatch(setTaskData(data.message));
-    }
-    if (error) {
-      const err = parseFrappeErrorMsg(error);
-      toast({
-        variant: "destructive",
-        description: err,
-      });
-    }
-  }, [data, dispatch, error, mutate, task.isFetchAgain, task.start, toast]);
-
-  //nested projectdata side-effects
-  useEffect(() => {
-    if (task.isFetchAgain) {
-      mutate();
-      dispatch(setFetchAgain(false));
-    }
-    if (nestedProjectData) {
-      if (task.start !== 0) {
-        dispatch(updateProjectData(nestedProjectData.message));
-      }
-      dispatch(setProjectData(nestedProjectData.message));
-    }
-    if (nestedProjectError) {
-      const err = parseFrappeErrorMsg(nestedProjectError);
-      toast({
-        variant: "destructive",
-        description: err,
-      });
-    }
-  }, [nestedProjectData, dispatch, nestedProjectError, nestedProjectMutate, task.isFetchAgain, task.start, toast]);
 
   useEffect(() => {
     setProjectParam(task.selectedProject);
@@ -188,8 +192,9 @@ const Task = () => {
 
   useEffect(() => {
     setGroupByParam(task.groupBy);
-    nestedProjectMutate();
   }, [setGroupByParam, task.groupBy]);
+  const [nestedProjectMutateCall, setNestedProjectMutateCall] = useState();
+  const [flatTaskMutateCall, setFlatTaskMutateCall] = useState();
 
   const handleLike = (e: React.MouseEvent<SVGSVGElement>) => {
     const taskName = e.currentTarget.dataset.task;
@@ -209,13 +214,14 @@ const Task = () => {
     call(data)
       .then(() => {
         if (groupByParam.length > 0) {
-          nestedProjectMutate();
+          nestedProjectMutateCall();
         } else {
-          mutate();
+          flatTaskMutateCall();
         }
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
+        console.log(err);
         toast({
           variant: "destructive",
           description: error,
@@ -238,20 +244,23 @@ const Task = () => {
   const columns: ColumnDef<TaskData>[] = [
     {
       accessorKey: "project_name",
+      size: localStorageTaskState?.columnWidth["project_name"] ?? "150",
       header: ({ column }) => {
         return (
           <div
             className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
             title={column.id}
             onClick={() => {
-              if (!column.getIsSorted()) {
-                return column.toggleSorting(true);
-              }
-              column.toggleSorting(column.getIsSorted() === "asc");
+              column.toggleSorting();
             }}
           >
             <p className="truncate">Project Name</p>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
@@ -265,6 +274,7 @@ const Task = () => {
     },
     {
       accessorKey: "subject",
+      size: localStorageTaskState?.columnWidth["subject"] ?? "150",
       header: ({ column }) => {
         return (
           <div
@@ -278,20 +288,18 @@ const Task = () => {
             }}
           >
             <p className="truncate">Subject</p>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
       cell: ({ row }) => {
         return (
-          <Typography
-            variant="p"
-            title={row.original.subject}
-            className="max-w-sm truncate cursor-pointer"
-            onClick={() => {
-              handleAddTime(row.original.name);
-            }}
-          >
+          <Typography variant="p" title={row.original.subject} className="max-w-sm truncate cursor-pointer">
             {row.original.subject}
           </Typography>
         );
@@ -299,14 +307,22 @@ const Task = () => {
     },
     {
       accessorKey: "due_date",
+      size: localStorageTaskState?.columnWidth["due_date"] ?? "150",
       header: ({ column }) => {
         return (
           <div
             className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            onClick={() => {
+              column.toggleSorting();
+            }}
           >
             <p className="truncate">Due Date</p>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
@@ -320,14 +336,22 @@ const Task = () => {
     },
     {
       accessorKey: "status",
+      size: localStorageTaskState?.columnWidth["status"] ?? "150",
       header: ({ column }) => {
         return (
           <div
             className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            onClick={() => {
+              column.toggleSorting(column.getIsSorted() === "asc");
+            }}
           >
             <p className="truncate">Status</p>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
@@ -337,14 +361,22 @@ const Task = () => {
     },
     {
       accessorKey: "priority",
+      size: localStorageTaskState?.columnWidth["priority"] ?? "150",
       header: ({ column }) => {
         return (
           <div
             className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            onClick={() => {
+              column.toggleSorting(column.getIsSorted() === "asc");
+            }}
           >
             <p className="truncate">Priority</p>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
@@ -354,14 +386,22 @@ const Task = () => {
     },
     {
       accessorKey: "expected_time",
+      size: localStorageTaskState?.columnWidth["expected_time"] ?? "150",
       header: ({ column }) => {
         return (
           <div
             className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            onClick={() => {
+              column.toggleSorting(column.getIsSorted() === "asc");
+            }}
           >
             <p className="truncate">Expected Hours</p>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
@@ -375,14 +415,22 @@ const Task = () => {
     },
     {
       accessorKey: "actual_time",
+      size: localStorageTaskState?.columnWidth["actual_time"] ?? "150",
       header: ({ column }) => {
         return (
           <div
             className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            onClick={() => {
+              column.toggleSorting(column.getIsSorted() === "asc");
+            }}
           >
             <p className="truncate">Hour Spent</p>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
@@ -391,6 +439,25 @@ const Task = () => {
           <Typography variant="p" className="text-center truncate">
             {floatToTime(row.original.actual_time)}
           </Typography>
+        );
+      },
+    },
+    {
+      accessorKey: "timesheetAction",
+      header: "",
+      size: 60, // Default size
+      minSize: 60, // Minimum size
+      maxSize: 60, // Maximum size
+      cell: ({ row }) => {
+        return (
+          <div title="Add Timesheet" className="w-full flex justify-center items-center">
+            <Clock
+              className={"w-4 h-4 hover:cursor-pointer hover:text-blue-600"}
+              onClick={() => {
+                handleAddTime(row.original.name);
+              }}
+            />
+          </div>
         );
       },
     },
@@ -420,6 +487,7 @@ const Task = () => {
   const nestedProjectColumns: ColumnDef<ProjectNestedTaskData>[] = [
     {
       accessorKey: "project_name",
+      size: localStorageTaskState?.columnWidth["project_name"] ?? "150",
       enableHiding: false,
       header: ({ column }) => {
         return (
@@ -434,7 +502,12 @@ const Task = () => {
             }}
           >
             <p className="truncate">Project Name</p>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
@@ -463,6 +536,7 @@ const Task = () => {
     },
     {
       accessorKey: "subject",
+      size: localStorageTaskState?.columnWidth["subject"] ?? "150",
       header: ({ column }) => {
         return (
           <div
@@ -476,20 +550,18 @@ const Task = () => {
             }}
           >
             <p className="truncate">Subject</p>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
       cell: ({ row, getValue }) => {
         return (
-          <Typography
-            variant="p"
-            title={getValue()}
-            className="truncate cursor-pointer"
-            onClick={() => {
-              handleAddTime(getValue());
-            }}
-          >
+          <Typography variant="p" title={getValue()} className="truncate cursor-pointer">
             {getValue()}
           </Typography>
         );
@@ -497,6 +569,7 @@ const Task = () => {
     },
     {
       accessorKey: "due_date",
+      size: localStorageTaskState?.columnWidth["due_date"] ?? "150",
       header: ({ column }) => {
         return (
           <div
@@ -504,7 +577,12 @@ const Task = () => {
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             <div className="truncate w-4/5">Due Date</div>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
@@ -518,6 +596,7 @@ const Task = () => {
     },
     {
       accessorKey: "status",
+      size: localStorageTaskState?.columnWidth["status"] ?? "150",
       header: ({ column }) => {
         return (
           <div
@@ -525,7 +604,12 @@ const Task = () => {
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             <div className="truncate w-4/5">Status</div>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
@@ -535,6 +619,7 @@ const Task = () => {
     },
     {
       id: "priority",
+      size: localStorageTaskState?.columnWidth["priority"] ?? "150",
       accessorKey: "priority",
       header: ({ column }) => {
         return (
@@ -543,7 +628,12 @@ const Task = () => {
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             <div className="truncate w-4/5">Priority</div>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
@@ -553,6 +643,7 @@ const Task = () => {
     },
     {
       id: "expected_time",
+      size: localStorageTaskState?.columnWidth["expected_time"] ?? "150",
       accessorKey: "expected_time",
       header: ({ column }) => {
         return (
@@ -561,7 +652,12 @@ const Task = () => {
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             <div className="truncate w-4/5">Expected Hours</div>
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
@@ -576,6 +672,7 @@ const Task = () => {
     },
     {
       id: "actual_time",
+      size: localStorageTaskState?.columnWidth["actual_time"] ?? "150",
       accessorKey: "actual_time",
       header: ({ column }) => {
         return (
@@ -585,7 +682,12 @@ const Task = () => {
           >
             <div className="truncate w-4/5">Hour Spent</div>
 
-            <ArrowUpDown className="h-4 w-4 group-hover:text-orange-500 transition-colors ease duration-200 hover:cursor-pointer" />
+            <ArrowUpDown
+              className={cn(
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                column.getIsSorted() === "desc" && "text-orange-500",
+              )}
+            />
           </div>
         );
       },
@@ -595,6 +697,27 @@ const Task = () => {
           <Typography variant="p" className="text-center truncate">
             {hour !== undefined && floatToTime(getValue())}
           </Typography>
+        );
+      },
+    },
+    {
+      accessorKey: "timesheetAction",
+      header: "",
+      size: 60, // Default size
+      minSize: 60, // Minimum size
+      maxSize: 60, // Maximum size
+      cell: ({ row }) => {
+        return (
+          row.depth !== 0 && (
+            <div title="Add Timesheet" className="w-full flex justify-center items-center">
+              <Clock
+                className={"w-4 h-4 hover:cursor-pointer hover:text-blue-600"}
+                onClick={() => {
+                  handleAddTime(row.original.name);
+                }}
+              />
+            </div>
+          )
         );
       },
     },
@@ -657,6 +780,52 @@ const Task = () => {
     },
   });
 
+  const columnsToExcludeActionsInTables: string[] = ["#", "timesheetAction"];
+
+  // LocalStorage related functions and utilities
+
+  useEffect(() => {
+    // set localStorage Map for Task
+    if (!localStorage.getItem("task")) {
+      localStorage.setItem("task", JSON.stringify(localStorageTaskDataMap));
+      setLocalStorageTaskState(localStorageTaskDataMap);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("task", JSON.stringify(localStorageTaskState));
+  }, [localStorageTaskState]);
+
+  useEffect(() => {
+    setLocalStorageTaskState((prev) => {
+      return { ...prev, columnSort: sorting };
+    });
+  }, [sorting]);
+
+  // handle ad Task
+  const handleAddTask = () => {
+    dispatch(setAddTaskDialog(true));
+  };
+  // handle project search combo box
+  const handleProjectSearch = (searchString: string) => {
+    setProjectSearch(searchString);
+  };
+  // More DropDown Items here
+  const MoreTableOptionsDropDownData = [
+    {
+      title: "Reset table",
+      icon: RotateCcw,
+      iconClass: "h-4 w-4 text-blue-500",
+      handleClick: () => {
+        setLocalStorageTaskState(localStorageTaskDataMap);
+        // update All Sort,filter and columnWidth States when localStorage Changes (table config reset)
+        setSorting([]);
+        setColumnVisibility({});
+        table.setColumnSizing([]);
+      },
+    },
+  ];
+
   return (
     <>
       {/* Styles for table column-resizing */}
@@ -685,7 +854,7 @@ const Task = () => {
       </style>
       <div className="md:w-full h-full justify-between flex flex-col relative">
         {/* filters and combo boxes */}
-        <div id="filters" className="flex gap-x-2 mb-3 w-full overflow-hidden p-1 max-md:overflow-scroll">
+        <div id="filters" className="flex gap-x-2 mb-3 w-full overflow-hidden p-1 max-md:overflow-x-scroll">
           <div className="flex gap-2 xl:w-2/5">
             {/* Task Search Filter */}
             <Input
@@ -698,7 +867,7 @@ const Task = () => {
           {/* Projects comboBox */}
           <ComboxBox
             label="Projects"
-            value={task.selectedProject}
+            value={projectParam}
             isMulti
             showSelected={false}
             leftIcon={<Filter className={cn("h-4 w-4", task.selectedProject.length != 0 && "fill-primary")} />}
@@ -711,11 +880,12 @@ const Task = () => {
             }))}
             className="text-primary border-dashed gap-x-2 font-normal w-fit"
             onSelect={handleProjectChange}
+            onSearch={handleProjectSearch}
           />
           {/* GroupBy comboBox */}
           <ComboxBox
             label="GroupBy"
-            value={task.groupBy}
+            value={groupByParam}
             showSelected={false}
             leftIcon={<Filter className={cn("h-4 w-4", task.groupBy.length != 0 && "fill-primary")} />}
             rightIcon={task.groupBy.length > 0 && <Badge className="px-1.5">{task.groupBy.length}</Badge>}
@@ -727,136 +897,67 @@ const Task = () => {
             onSelect={handleGroupByChange}
           />
           {/* Hide Column select */}
-          <HideColumn table={table} groupBy={groupByParam} />
+          <HideColumn
+            table={table}
+            groupBy={groupByParam}
+            columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
+            setLocalStorageTaskState={setLocalStorageTaskState}
+          />
+          {/* more button */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="icon" variant="outline" className="h-8 w-8 cursor-pointer ml-auto">
+                <MoreVertical className="h-3.5 w-3.5" />
+                <span className="sr-only">More</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {MoreTableOptionsDropDownData?.map((dropdownItem) => {
+                return (
+                  <DropdownMenuItem
+                    key={dropdownItem.title}
+                    onClick={dropdownItem.handleClick}
+                    className="cursor-pointer flex gap-2 items-center justify-center"
+                  >
+                    <dropdownItem.icon className={cn(dropdownItem.iconClass)} />
+                    <Typography variant="p">{dropdownItem.title}</Typography>
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {/* Add Task Button */}
+          <Button onClick={handleAddTask} title="Add task">
+            {" "}
+            <Plus className="h-4 w-4 mr-2" /> Add Task
+          </Button>
         </div>
         {/* tables */}
-        {isLoading || nestedProjectIsLoading ? (
-          <Spinner isFull />
-        ) : (
-          <div className="overflow-hidden w-full overflow-y-scroll" style={{ height: "calc(100vh - 8rem)" }}>
-            {groupByParam.length === 0 ? (
-              <Table className="[&_td]:px-2  [&_th]:px-2 table-fixed">
-                <TableHeader className="[&_th]:h-10">
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => {
-                        return (
-                          <TableHead
-                            className={cn("resizer", header.column.getIsResizing() && "isResizing")}
-                            key={header.id}
-                            style={{
-                              width: header.getSize(),
-                              position: "relative",
-                            }}
-                          >
-                            <div className="w-full h-full flex items-center justify-between group">
-                              <div className="w-full">
-                                {flexRender(header.column.columnDef.header, header.getContext())}
-                              </div>
-                              {header.id !== "#" && (
-                                <div
-                                  {...{
-                                    onMouseDown: header.getResizeHandler(),
-                                    onTouchStart: header.getResizeHandler(),
-                                    className: `cursor-col-resize flex justify-center items-center h-full`,
-                                  }}
-                                >
-                                  <GripVertical className="w-4 h-4 max-lg:hidden" />
-                                </div>
-                              )}
-                            </div>
-                          </TableHead>
-                        );
-                      })}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows?.length ? (
-                    table.getRowModel().rows.map((row) => (
-                      <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell className="overflow-hidden" key={cell.id}>
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={columns.length} className="h-24 text-center">
-                        No results.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            ) : (
-              <Table className="[&_td]:px-2  [&_th]:px-2 table-fixed">
-                <TableHeader>
-                  {nestedProjectTable.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <TableHead
-                          className={`resizer overflow-hidden ${header.column.getIsResizing() ? "isResizing" : null}`}
-                          key={header.id}
-                          style={{
-                            width: header.getSize(),
-                            position: "relative",
-                          }}
-                        >
-                          <div className="w-full h-full flex items-center justify-between group">
-                            <div className="w-full">
-                              {flexRender(header.column.columnDef.header, header.getContext())}
-                            </div>
-                            {header.id !== "#" && (
-                              <div
-                                {...{
-                                  onMouseDown: header.getResizeHandler(),
-                                  onTouchStart: header.getResizeHandler(),
-                                  className: `cursor-col-resize flex justify-center items-center h-full`,
-                                }}
-                              >
-                                <GripVertical className="w-4 h-4 max-lg:hidden" />
-                              </div>
-                            )}
-                          </div>
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody className="relative">
-                  {nestedProjectTable.getRowModel().rows?.length ? (
-                    nestedProjectTable.getRowModel().rows.map((row) => {
-                      return (
-                        <React.Fragment key={row.id}>
-                          <TableRow
-                            style={{
-                              width: `${table.getState().columnSizingInfo.deltaOffset}px)`,
-                            }}
-                          >
-                            {row.getVisibleCells().map((cell) => (
-                              <TableCell className="overflow-hidden" key={cell.id}>
-                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                              </TableCell>
-                            ))}
-                          </TableRow>
-                        </React.Fragment>
-                      );
-                    })
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={columns.length} className="h-24 text-center">
-                        No results.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            )}
-          </div>
-        )}
+        <div className="overflow-hidden w-full overflow-y-scroll" style={{ height: "calc(100vh - 8rem)" }}>
+          {groupByParam.length === 0 && task.groupBy ? (
+            <FlatTable
+              table={table}
+              columns={columns}
+              columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
+              setLocalStorageTaskState={setLocalStorageTaskState}
+              task={task}
+              subjectSearch={subjectSearch}
+              toast={toast}
+              setMutateCall={setFlatTaskMutateCall}
+            />
+          ) : (
+            <RowGroupedTable
+              table={nestedProjectTable}
+              columns={nestedProjectColumns}
+              columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
+              setLocalStorageTaskState={setLocalStorageTaskState}
+              task={task}
+              subjectSearch={subjectSearch}
+              toast={toast}
+              setMutateCall={setNestedProjectMutateCall}
+            />
+          )}
+        </div>
         {/* footer */}
         <div className="w-full flex justify-between items-center mt-5">
           <Button
@@ -879,6 +980,10 @@ const Task = () => {
         </div>
         {/* addTime */}
         {timesheet.isDialogOpen && <AddTime />}
+        {/* addTask */}
+        {task.isAddTaskDialogBoxOpen && (
+          <AddTask task={task} projects={projects} setProjectSearch={setProjectSearch} toast={toast} />
+        )}
       </div>
     </>
   );
@@ -913,14 +1018,24 @@ const TaskStatus = ({ status }: { status: TaskData["status"] }) => {
     Completed: "bg-success/20 text-success hover:bg-success/20",
     Cancelled: "bg-destructive/20 text-destructive hover:bg-destructive/20",
   };
-  return <Badge className={cn(statusCss[status])}>{status}</Badge>;
+  return (
+    <div
+      title={status}
+      className={cn(
+        statusCss[status],
+        "py-1 px-2 truncate  w-fit max-w-40 text-xs font-bold text-center cursor-pointer rounded-full ",
+      )}
+    >
+      {status}
+    </div>
+  );
 };
 
-const HideColumn = ({ table, groupBy }) => {
+const HideColumn = ({ table, groupBy, columnsToExcludeActionsInTables, setLocalStorageTaskState }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="ml-auto focus-visible:ring-0">
+        <Button variant="outline" className=" focus-visible:ring-0">
           Columns
         </Button>
       </DropdownMenuTrigger>
@@ -929,7 +1044,7 @@ const HideColumn = ({ table, groupBy }) => {
           .getAllColumns()
           .filter((column) => column.getCanHide())
           .map((column) => {
-            if (column.id === "#") {
+            if (columnsToExcludeActionsInTables?.includes(column.id)) {
               return null;
             }
             if (groupBy.length > 0 && column.id === "project_name") {
@@ -938,11 +1053,25 @@ const HideColumn = ({ table, groupBy }) => {
             return (
               <DropdownMenuCheckboxItem
                 key={column.id}
-                className="capitalize"
+                className="capitalize cursor-pointer"
                 checked={column.getIsVisible()}
-                onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                onCheckedChange={(value) => {
+                  column.toggleVisibility(!!value);
+                  setLocalStorageTaskState((prev) => {
+                    if (prev.hideColumn.includes(column.id)) {
+                      const mutatedHideColumn = [...prev.hideColumn];
+                      const index = mutatedHideColumn.indexOf(column.id);
+                      if (index > -1) {
+                        mutatedHideColumn.splice(index, 1);
+                      }
+                      return { ...prev, hideColumn: mutatedHideColumn };
+                    }
+                    const mutatedHideColumnSet = new Set([...prev.hideColumn, column.id]);
+                    return { ...prev, hideColumn: [...mutatedHideColumnSet] };
+                  });
+                }}
               >
-                {column.id}
+                {column.id.replace("_", " ")}
               </DropdownMenuCheckboxItem>
             );
           })}
@@ -951,3 +1080,516 @@ const HideColumn = ({ table, groupBy }) => {
   );
 };
 export default Task;
+
+//one time utility for asssigning All keys of an object to false
+const createFalseValuedObject = (obj) => {
+  const newFalseValueObject = {};
+  if (Object.keys(obj).length > 0) {
+    for (const key of obj) {
+      newFalseValueObject[key] = false;
+    }
+  }
+  return newFalseValueObject;
+};
+
+const FlatTable = ({
+  table,
+  columns,
+  columnsToExcludeActionsInTables,
+  setLocalStorageTaskState,
+  task,
+  subjectSearch,
+  toast,
+  setMutateCall,
+}) => {
+  const dispatch = useDispatch();
+  let resizeObserver;
+  const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.utils.get_task_for_employee", {
+    page_length: 20,
+    start: task.start,
+    project: task.selectedProject,
+    search: subjectSearch,
+  });
+  useEffect(() => {
+    if (task.isFetchAgain) {
+      mutate();
+      dispatch(setFetchAgain(false));
+    }
+    if (data) {
+      if (task.start !== 0) {
+        dispatch(updateTaskData(data.message));
+      } else {
+        dispatch(setTaskData(data.message));
+      }
+    }
+    if (error) {
+      const err = parseFrappeErrorMsg(error);
+      toast({
+        variant: "destructive",
+        description: err,
+      });
+    }
+  }, [data, dispatch, error, mutate, task.isFetchAgain, task.start, toast]);
+  useEffect(() => {
+    setMutateCall(() => mutate);
+  }, []);
+  return (
+    <>
+      {isLoading ? (
+        <Spinner isFull />
+      ) : (
+        <Table className="[&_td]:px-2  [&_th]:px-2 table-fixed">
+          <TableHeader className="[&_th]:h-10">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead
+                      className={cn("resizer", header.column.getIsResizing() && "isResizing")}
+                      key={header.id}
+                      onMouseDown={(event) => {
+                        const container = event.currentTarget;
+                        resizeObserver = new ResizeObserver((entries) => {
+                          for (const entry of entries) {
+                            setLocalStorageTaskState((prev) => {
+                              return {
+                                ...prev,
+                                columnWidth: { ...prev.columnWidth, [header.id]: header.getSize() },
+                              };
+                            });
+                          }
+                        });
+                        resizeObserver.observe(container);
+                      }}
+                      onMouseUp={() => {
+                        if (resizeObserver) {
+                          resizeObserver.disconnect();
+                        }
+                      }}
+                      style={{
+                        width: header.getSize(),
+                        position: "relative",
+                      }}
+                    >
+                      <div className="w-full h-full flex items-center justify-between group">
+                        <div className="w-full">{flexRender(header.column.columnDef.header, header.getContext())}</div>
+                        {!columnsToExcludeActionsInTables.includes(header.id) && (
+                          <div
+                            {...{
+                              onMouseDown: header.getResizeHandler(),
+                              onTouchStart: header.getResizeHandler(),
+                              className: `cursor-col-resize flex justify-center items-center h-full`,
+                            }}
+                          >
+                            <GripVertical className="w-4 h-4 max-lg:hidden" />
+                          </div>
+                        )}
+                      </div>
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell className="overflow-hidden" key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      )}
+    </>
+  );
+};
+
+const RowGroupedTable = ({
+  table,
+  columns,
+  columnsToExcludeActionsInTables,
+  setLocalStorageTaskState,
+  task,
+  subjectSearch,
+  toast,
+  setMutateCall,
+}) => {
+  const dispatch = useDispatch();
+  let resizeObserver;
+  //nested project task call
+  const {
+    data: nestedProjectData,
+    isLoading: nestedProjectIsLoading,
+    error: nestedProjectError,
+    mutate: nestedProjectMutate,
+  } = useFrappeGetCall("frappe_pms.timesheet.api.utils.get_project_task", {
+    page_length: 20,
+    project: task.selectedProject.length == 0 ? null : task.selectedProject,
+    task_search: subjectSearch,
+  });
+  useEffect(() => {
+    setMutateCall(() => nestedProjectMutate);
+  }, []);
+  //nested projectdata side-effects
+  useEffect(() => {
+    if (task.projectIsFetchAgain) {
+      nestedProjectMutate();
+      dispatch(setProjectFetchAgain(false));
+    }
+    if (nestedProjectData) {
+      if (task.projectStart !== 0) {
+        dispatch(updateProjectData(nestedProjectData.message));
+      } else {
+        dispatch(setProjectData(nestedProjectData.message));
+      }
+    }
+    if (nestedProjectError) {
+      const err = parseFrappeErrorMsg(nestedProjectError);
+      toast({
+        variant: "destructive",
+        description: err,
+      });
+    }
+  }, [
+    nestedProjectData,
+    dispatch,
+    nestedProjectError,
+    nestedProjectMutate,
+    task.projectIsFetchAgain,
+    task.projectStart,
+    toast,
+  ]);
+  return (
+    <>
+      {nestedProjectIsLoading ? (
+        <Spinner isFull />
+      ) : (
+        <Table className="[&_td]:px-2  [&_th]:px-2 table-fixed">
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    className={`resizer overflow-hidden ${header.column.getIsResizing() ? "isResizing" : null}`}
+                    key={header.id}
+                    style={{
+                      width: header.getSize(),
+                      position: "relative",
+                    }}
+                    onMouseDown={(event) => {
+                      const container = event.currentTarget;
+                      resizeObserver = new ResizeObserver((entries) => {
+                        for (const entry of entries) {
+                          setLocalStorageTaskState((prev) => {
+                            return {
+                              ...prev,
+                              columnWidth: { ...prev.columnWidth, [header.id]: header.getSize() },
+                            };
+                          });
+                        }
+                      });
+                      resizeObserver.observe(container);
+                    }}
+                    onMouseUp={() => {
+                      if (resizeObserver) {
+                        resizeObserver.disconnect();
+                      }
+                    }}
+                  >
+                    <div className="w-full h-full flex items-center justify-between group">
+                      <div className="w-full">{flexRender(header.column.columnDef.header, header.getContext())}</div>
+                      {!columnsToExcludeActionsInTables.includes(header.id) && (
+                        <div
+                          {...{
+                            onMouseDown: header.getResizeHandler(),
+                            onTouchStart: header.getResizeHandler(),
+                            className: `cursor-col-resize flex justify-center items-center h-full`,
+                          }}
+                        >
+                          <GripVertical className="w-4 h-4 max-lg:hidden" />
+                        </div>
+                      )}
+                    </div>
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody className="relative">
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => {
+                return (
+                  <React.Fragment key={row.id}>
+                    <TableRow
+                      style={{
+                        width: `${table.getState().columnSizingInfo.deltaOffset}px)`,
+                      }}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell className="overflow-hidden" key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  </React.Fragment>
+                );
+              })
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      )}
+    </>
+  );
+};
+
+const AddTask = ({ task, projects, setProjectSearch, toast }) => {
+  const dispatch = useDispatch();
+  const expectedTimeSchema = z.preprocess(
+    (val, ctx) => {
+      if (!val.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["expected_time"],
+          message: "Please enter a valid time in Hours",
+        });
+        return null;
+      }
+      const processedValue = Number(val);
+      if (isNaN(processedValue)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["expected_time"],
+          message: "Invalid Time format. Please enter a valid time in Hours",
+        });
+        return null;
+      }
+      return processedValue;
+    },
+    z.union([
+      z.string({
+        invalid_type_error: "Please enter a valid number for hours.",
+      }),
+      z.number({
+        invalid_type_error: "Please enter a valid number for hours.",
+      }),
+    ]),
+  );
+  const TaskSchema = z.object({
+    subject: z
+      .string({
+        required_error: "Please add a subject.",
+      })
+      .trim()
+      .min(1, { message: "Please add a subject." }),
+    project: z
+      .string({
+        required_error: "Please select a project.",
+      })
+      .trim()
+      .min(1, { message: "Please select a project." }),
+    expected_time: expectedTimeSchema,
+    description: z
+      .string({
+        required_error: "Please enter description.",
+      })
+      .trim()
+      .min(4, "Please enter valid description."),
+  });
+  const { call } = useFrappePostCall("frappe_pms.timesheet.api.utils.add_task");
+  const form = useForm<z.infer<typeof TaskSchema>>({
+    resolver: zodResolver(TaskSchema),
+    defaultValues: {
+      subject: "",
+      project: "",
+      expected_time: "",
+      description: "",
+    },
+    mode: "onSubmit",
+  });
+  const handleSubmit = (data: z.infer<typeof TaskSchema>) => {
+    const sanitizedTaskData: AddTaskType = {
+      subject: data.subject.trim(),
+      description: data.description.trim(),
+      expected_time: String(data.expected_time),
+      project: data.project.trim(),
+    };
+    call(sanitizedTaskData)
+      .then((res) => {
+        toast({
+          variant: "success",
+          description: res.message,
+        });
+        dispatch(setProjectFetchAgain(true));
+        closeAddTaskDialog();
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          description: error,
+        });
+      });
+  };
+  const closeAddTaskDialog = () => {
+    dispatch(setAddTaskDialog(false));
+    setProjectSearch("");
+    form.reset();
+  };
+  const handleSubjectChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    form.setValue("subject", event.target.value);
+  };
+  const handleTimeChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    form.setValue("expected_time", event.target.value);
+  };
+  const handleProjectChange = (data: string[] | string) => {
+    form.setValue("project", data[0]);
+  };
+  const handleProjectSearch = (searchString: string) => {
+    setProjectSearch(searchString);
+  };
+  return (
+    <>
+      <Dialog onOpenChange={closeAddTaskDialog} open={task.isAddTaskDialogBoxOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="pb-6">Add Task</DialogTitle>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)}>
+              <div className="flex flex-col gap-y-6">
+                <div className="flex gap-x-4 items-start">
+                  {/* subject field */}
+                  <FormField
+                    control={form.control}
+                    name="subject"
+                    render={({ field }) => (
+                      <FormItem className="w-full">
+                        <FormLabel className="flex gap-2 items-center">
+                          <p className="text-sm">Subject</p>
+                        </FormLabel>
+                        <FormControl>
+                          <>
+                            <div className="relative flex items-center">
+                              <Input
+                                placeholder="New subject"
+                                className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                {...field}
+                                type="text"
+                                onChange={handleSubjectChange}
+                              />
+                            </div>
+                          </>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  {/* expected time  */}
+                  <FormField
+                    control={form.control}
+                    name="expected_time"
+                    render={({ field }) => (
+                      <FormItem className="w-full">
+                        <FormLabel className="flex gap-2 items-center text-sm">Expected Time</FormLabel>
+                        <FormControl>
+                          <FormControl>
+                            <>
+                              <div className="relative flex items-center">
+                                <Input
+                                  placeholder="Time(in hours)"
+                                  className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                  {...field}
+                                  type="text"
+                                  onChange={handleTimeChange}
+                                />
+                              </div>
+                            </>
+                          </FormControl>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                {/* project combobox */}
+                <FormField
+                  control={form.control}
+                  name="project"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>Projects</FormLabel>
+                      <FormControl>
+                        <ComboxBox
+                          label="Search Project"
+                          showSelected
+                          value={form.getValues("project") ? [form.getValues("project")] : []}
+                          data={projects?.message?.map((item: ProjectProps) => ({
+                            label: item.project_name,
+                            value: item.name,
+                          }))}
+                          onSelect={handleProjectChange}
+                          onSearch={handleProjectSearch}
+                          rightIcon={<Search className="h-4 w-4 stroke-slate-400" />}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Explain the subject"
+                          rows={4}
+                          className="w-full placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <DialogFooter className="sm:justify-start w-full">
+                  <div className="flex gap-x-4 w-full">
+                    <Button disabled={form.formState.isSubmitting}>
+                      {form.formState.isSubmitting && <LoaderCircle className="animate-spin w-4 h-4" />}
+                      Add Task
+                    </Button>
+                    <Button variant="secondary" type="button" onClick={closeAddTaskDialog}>
+                      Cancel
+                    </Button>
+                  </div>
+                </DialogFooter>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};

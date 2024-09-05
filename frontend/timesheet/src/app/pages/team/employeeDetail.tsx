@@ -338,12 +338,22 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
                                   className="w-12 p-1 h-8"
                                 />
                                 <div className="grid w-full grid-cols-3">
-                                  <Typography variant="p" className="font-bold flex">
-                                    {task.taskName}
-                                    {task.is_billable == true && (
-                                      <CircleDollarSign className="w-4 h-4 ml-1 stroke-success" />
-                                    )}
-                                  </Typography>
+                                  <div className="flex gap-1">
+                                    <div
+                                      title={task.is_billable === 1 && "Task is billable"}
+                                      className={cn(
+                                        task.is_billable === 1 && "cursor-pointer",
+                                        "w-6 h-full flex justify-center flex-none",
+                                      )}
+                                    >
+                                      {task.is_billable === 1 && (
+                                        <CircleDollarSign className="w-4 h-5 ml-1 stroke-success" />
+                                      )}
+                                    </div>
+                                    <Typography variant="p" className="font-bold flex">
+                                      {task.taskName}
+                                    </Typography>
+                                  </div>
 
                                   <p
                                     dangerouslySetInnerHTML={{ __html: preProcessLink(task.description ?? "") }}
@@ -354,7 +364,7 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
                             );
                           })}
                           {matchingTasks.length == 0 && (
-                            <Typography variant="p" className="text-center p-3">
+                            <Typography variant="p" className="text-center p-3 text-gray-400">
                               No data.
                             </Typography>
                           )}

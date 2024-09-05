@@ -25,7 +25,7 @@ import { WorkingFrequency } from "@/types";
 import { TimeInput } from "@/app/pages/team/employeeDetail";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { Separator } from "@/app/components/ui/separator";
-import { Check, X } from "lucide-react";
+import { Check, CircleDollarSign, X } from "lucide-react";
 import { Textarea } from "@/app/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog";
 import { TimesheetRejectionSchema } from "@/schema/timesheet";
@@ -268,9 +268,20 @@ export const Approval = () => {
                             employee={teamState.employee}
                           />
                           <div className="grid w-full grid-cols-3 gap-x-2">
-                            <Typography variant="p" className="font-bold text-xs truncate">
-                              {task.taskName}
-                            </Typography>
+                            <div className="flex gap-1">
+                              <div
+                                title={task.is_billable === 1 && "Task is billable"}
+                                className={cn(
+                                  task.is_billable === 1 && "cursor-pointer",
+                                  "w-6 h-full flex justify-center flex-none",
+                                )}
+                              >
+                                {task.is_billable === 1 && <CircleDollarSign className="w-4 h-4 ml-1 stroke-success" />}
+                              </div>
+                              <Typography variant="p" className="font-bold text-xs truncate">
+                                {task.taskName}
+                              </Typography>
+                            </div>
 
                             <HoverCard openDelay={1000} closeDelay={0}>
                               <HoverCardTrigger className="text-sm font-normal col-span-2 hover:cursor-pointer">
@@ -285,7 +296,7 @@ export const Approval = () => {
                       );
                     })}
                     {matchingTasks.length == 0 && (
-                      <Typography variant="p" className="text-center p-3">
+                      <Typography variant="p" className="text-center p-3 text-gray-400">
                         No data
                       </Typography>
                     )}

@@ -394,3 +394,18 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
         frappe.db.set_value(
             "Timesheet", timesheet.name, "custom_weekly_approval_status", week_status
         )
+
+
+# API for Adding New Tasks (ignores Permissions)
+@frappe.whitelist()
+def add_task(subject: str, expected_time: str, project: str, description: str):
+    frappe.get_doc(
+        {
+            "doctype": "Task",
+            "subject": subject,
+            "expected_time": expected_time,
+            "project": project,
+            "description": description,
+        }
+    ).insert(ignore_permissions=True)
+    return frappe._("Task Created Successfully")
