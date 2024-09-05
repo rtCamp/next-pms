@@ -165,13 +165,16 @@ def delete(parent: str, name: str):
 
 @frappe.whitelist()
 def submit_for_approval(start_date: str, notes: str = None, employee: str = None):
+    from .utils import update_weekly_status_of_timesheet
+
     if not employee:
         employee = get_employee_from_user()
     reporting_manager = frappe.get_value("Employee", employee, "reports_to")
+
     if not reporting_manager:
         throw(_("Reporting Manager not found for the employee."))
     reporting_manager = frappe.get_value("Employee", reporting_manager, "employee_name")
-    #  get the timesheet for whole week.
+
     start_date = get_first_day_of_week(start_date)
     end_date = get_last_day_of_week(start_date)
 
@@ -195,6 +198,7 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
         if index == length - 1 and notes:
             doc.add_comment("Comment", text=notes)
 
+    update_weekly_status_of_timesheet(employee, start_date)
     return _(f"Timesheet has been set for Approval to {reporting_manager}.")
 
 
