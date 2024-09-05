@@ -5,5 +5,5 @@
 tags
 node_modules
 __pycache__
-timesheet_enhancer/www/timesheet/index.html
-timesheet_enhancer/public/timesheet
+frappe_pms/www/timesheet/index.html
+frappe_pms/public/timesheet
