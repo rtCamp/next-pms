@@ -9,7 +9,16 @@ from hrms.overrides.employee_project import EmployeeProject
 class ProjectOverwrite(EmployeeProject):
     def validate(self):
         super().validate()
+        self.update_project_currency()
         self.validate_overlap_project_billing()
+
+    def update_project_currency(self):
+        if self.customer:
+            self.custom_currency = frappe.db.get_value(
+                "Customer", self.customer, "default_currency"
+            )
+        elif self.company:
+            self.custom_currency = get_company_currency(self.company)
 
     def validate_overlap_project_billing(self):
         custom_project_billing_team = self.custom_project_billing_team
