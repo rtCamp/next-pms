@@ -139,7 +139,9 @@ export const TimesheetSingleRowSchema = z
       });
     }
   });
-export const TimesheetUpdateSchema = z.array(TimesheetSingleRowSchema);
+export const TimesheetUpdateSchema = z.object({
+  data: z.array(TimesheetSingleRowSchema),
+});
 
 // Preprocessing time function to convert "HH:MM" format to float
 const timeStringToFloat = (value: string) => {

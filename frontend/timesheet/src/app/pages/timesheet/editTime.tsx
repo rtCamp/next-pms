@@ -6,10 +6,10 @@ import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { Button } from "@/app/components/ui/button";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { cn, floatToTime, parseFrappeErrorMsg, prettyDate } from "@/lib/utils";
-import { TimesheetUpdateSchema, TimesheetSingleRowSchema } from "@/schema/timesheet";
+import { TimesheetUpdateSchema } from "@/schema/timesheet";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/app/components/ui/form";
 import { Typography } from "@/app/components/typography";
@@ -35,13 +35,17 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
   });
   const form = useForm<z.infer<typeof TimesheetUpdateSchema>>({
     resolver: zodResolver(TimesheetUpdateSchema),
-    defaultValues: [], // Empty array by default
+    defaultValues: {
+      data: [],
+    }, // Empty array by default
     mode: "onBlur",
   });
 
   const columns = ["Hours", "Description", "Billable", "Action"];
   const { toast } = useToast();
-  const { call: updateTimesheet } = useFrappePostCall("frappe_pms.timesheet.api.timesheet.update_timesheet_detail");
+  const { call: updateTimesheet } = useFrappePostCall(
+    "frappe_pms.timesheet.api.timesheet.bulk_update_timesheet_detail",
+  );
   const { call: deleteTimesheet } = useFrappePostCall("frappe_pms.timesheet.api.timesheet.delete");
   const { data, isLoading, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.timesheet.get_timesheet_details", {
     employee: employee,
@@ -56,56 +60,62 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
   }, [data]);
 
   useEffect(() => {
-    form.reset(employeeData.data);
+    const data = {
+      data: employeeData.data.map((item) => {
+        return {
+          ...item,
+          hours: floatToTime(item.hours),
+        };
+      }),
+    };
+
+    form.reset(data);
   }, [employeeData]);
 
   const addEmptyFormRow = () => {
     const parent = employeeData.data[0].parent;
-    const emptyRow: TaskDataItemProps = {
+    const emptyRow = {
       hours: 0,
       description: "",
       is_billable: false,
       name: "",
       parent: parent,
       task: task,
-      from_time: date,
-      to_time: date,
-      docstatus: 0 as 0 | 2 | 1,
+      date: date,
     };
+    // @ts-ignore
     setEmployeeData({ ...employeeData, data: [...employeeData.data, emptyRow] });
   };
-  const updateDescription = (index: number, value: string) => {
-    const key = `${index}.description`;
-    console.log(key);
-    form.setValue(key, value);
-  };
+
   const removeFormRow = (index: number) => {
-    // const values = form.getValues();
-    // const data = values[index];
-    // if (data.name.length == 0) {
-    //   setEmployeeData({ ...employeeData, data: employeeData.data.filter((_, i) => i !== index) });
-    // } else {
-    //   handleDelete(data.parent, data.name);
-    // }
+    const values = form.getValues();
+    const data = values.data[index];
+    if (data.name.length == 0) {
+      setEmployeeData({ ...employeeData, data: employeeData.data.filter((_, i) => i !== index) });
+    } else {
+      handleDelete(data.parent, data.name);
+    }
   };
 
-  const handleUpdate = (data: z.infer<typeof TimesheetUpdateSchema>) => {
-    console.log(data);
-    // updateTimesheet(data)
-    //   .then((res) => {
-    //     mutate();
-    //     toast({
-    //       variant: "success",
-    //       description: res.message,
-    //     });
-    //   })
-    //   .catch((err) => {
-    //     const error = parseFrappeErrorMsg(err);
-    //     toast({
-    //       variant: "destructive",
-    //       description: error,
-    //     });
-    //   });
+  const handleUpdate = (formData: z.infer<typeof TimesheetUpdateSchema>) => {
+    const data = {
+      data: formData.data,
+    };
+    updateTimesheet(data)
+      .then((res) => {
+        mutate();
+        toast({
+          variant: "success",
+          description: res.message,
+        });
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          description: error,
+        });
+      });
   };
   const handleDelete = (parent: string, name: string) => {
     deleteTimesheet({ parent, name })
@@ -124,7 +134,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
         });
       });
   };
-  console.log(form);
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
@@ -166,13 +176,12 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
                   </div>
                 </div>
 
-                {employeeData.data?.map((item: TaskDataItemProps, index: number) => (
+                {employeeData.data.map((item, index: number) => (
                   <div className="flex gap-2 border-b pb-1 items-start pt-1" key={index}>
                     <FormField
                       control={form.control}
-                      name={`${index}.hours`}
+                      name={`data.${index}.hours`}
                       render={({ field }) => {
-                        field.value = floatToTime(field.value);
                         return (
                           <FormItem className="w-full max-w-16 px-2">
                             <FormControl>
@@ -190,7 +199,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
                     />
                     <FormField
                       control={form.control}
-                      name={`${index}.description`}
+                      name={`data.${index}.description`}
                       render={({ field }) => {
                         return (
                           <FormItem className="w-full max-w-sm px-2">
@@ -198,9 +207,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
                               <Textarea
                                 rows={1}
                                 {...field}
-                                onChange={(e) => {
-                                  form.setValue(`${index}.description`, e.target.value);
-                                }}
+                                onChange={field.onChange}
                                 className={cn("focus-visible:ring-0 focus-visible:ring-offset-0 min-h-10")}
                               />
                             </FormControl>
@@ -211,7 +218,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
                     />
                     <FormField
                       control={form.control}
-                      name={`${index}.is_billable`}
+                      name={`data.${index}.is_billable`}
                       render={({ field }) => {
                         return (
                           <FormItem className="w-full flex justify-center items-center min-h-10 max-w-24 px-2 text-center">
@@ -234,15 +241,19 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
                       </Button>
                     </div>
                   </div>
-                  // <FormRow data={item} onRemove={() => removeFormRow(index)} onDelete={handleDelete} />
                 ))}
               </div>
             )}
-            <DialogFooter className="sm:justify-between">
+            <DialogFooter className="sm:justify-between mt-2">
               <Button variant="outline" onClick={addEmptyFormRow}>
                 Add Row
               </Button>
-              <Button variant="success">Save</Button>
+              <Button
+                variant="success"
+                disabled={!form.formState.isValid || !form.formState.isDirty || form.formState.isSubmitting}
+              >
+                Save
+              </Button>
             </DialogFooter>
           </form>
         </Form>

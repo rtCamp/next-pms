@@ -403,3 +403,20 @@ def get_timesheet_details(date: str, task: str, employee: str):
         "task": subject,
         "data": data,
     }
+
+
+@frappe.whitelist()
+def bulk_update_timesheet_detail(data):
+    for entry in data:
+        if isinstance(entry, str):
+            entry = frappe.parse_json(entry)
+        update_timesheet_detail(
+            entry.get("name"),
+            entry.get("parent"),
+            entry.get("hours"),
+            entry.get("description"),
+            entry.get("task"),
+            entry.get("date"),
+            entry.get("is_billable"),
+        )
+    return _("Time entry updated successfully.")
