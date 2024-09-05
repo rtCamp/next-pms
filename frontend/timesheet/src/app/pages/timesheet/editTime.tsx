@@ -16,6 +16,7 @@ import { Typography } from "@/app/components/typography";
 import { useEffect, useState } from "react";
 import { Separator } from "@/app/components/ui/separator";
 import { useToast } from "@/app/components/ui/use-toast";
+import { Trash2 } from "lucide-react";
 
 interface EditTimeProps {
   employee: string;
@@ -41,7 +42,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
     mode: "onBlur",
   });
 
-  const columns = ["Hours", "Description", "Billable", "Action"];
+  const columns = ["Hours", "Description", "Billable", ""];
   const { toast } = useToast();
   const { call: updateTimesheet } = useFrappePostCall(
     "frappe_pms.timesheet.api.timesheet.bulk_update_timesheet_detail",
@@ -164,10 +165,9 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
                         variant="p"
                         className={cn(
                           "w-full px-2 text-slate-600 font-medium ",
-                          key == 1 && "max-w-sm",
-                          key != 1 && "max-w-28",
+                          key != 1 && "max-w-16",
                           key == 0 && "max-w-16",
-                          key == 2 && "text-center max-w-24",
+                          key == 2 && "max-w-8",
                         )}
                       >
                         {column}
@@ -202,7 +202,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
                       name={`data.${index}.description`}
                       render={({ field }) => {
                         return (
-                          <FormItem className="w-full max-w-sm px-2">
+                          <FormItem className="w-full  px-2">
                             <FormControl>
                               <Textarea
                                 rows={1}
@@ -221,7 +221,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
                       name={`data.${index}.is_billable`}
                       render={({ field }) => {
                         return (
-                          <FormItem className="w-full flex justify-center items-center min-h-10 max-w-24 px-2 text-center">
+                          <FormItem className="w-full flex justify-center items-center min-h-10 max-w-12 px-2 text-center">
                             <FormControl>
                               <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                             </FormControl>
@@ -230,14 +230,14 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
                         );
                       }}
                     />
-                    <div className="w-full max-w-28 flex items-center min-h-10 gap-2 px-2">
+                    <div className=" flex items-center min-h-10 gap-2 px-2">
                       <Button
                         variant="destructive"
                         className="p-1 h-fit"
                         type="button"
                         onClick={() => removeFormRow(index)}
                       >
-                        Delete
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
