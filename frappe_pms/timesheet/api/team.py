@@ -3,8 +3,9 @@ from frappe.utils import nowdate
 from frappe.utils.data import add_days, getdate
 from hrms.hr.utils import get_holiday_dates_for_employee
 
+from .employee import get_employee_working_hours
 from .timesheet import get_timesheet_state
-from .utils import get_employee_working_hours, get_week_dates
+from .utils import get_week_dates
 
 now = nowdate()
 

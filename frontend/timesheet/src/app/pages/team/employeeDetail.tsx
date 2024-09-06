@@ -260,7 +260,7 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
                   </AccordionTrigger>
                   <AccordionContent className="pb-0">
                     {value.dates.map((date: string, index: number) => {
-                      const { date: formattedDate, day } = prettyDate(date, true);
+                      const { date: formattedDate } = prettyDate(date, true);
                       const matchingTasks = Object.entries(value.tasks).flatMap(
                         ([taskName, task]: [string, TaskDataItemProps]) =>
                           task.data
@@ -386,23 +386,15 @@ const EmployeeCombo = () => {
   const [employee, setEmployee] = useState<Employee | undefined>();
   const navigate = useNavigate();
 
-  const { data: employees } = useFrappeGetCall(
-    "frappe.client.get_list",
-    {
-      doctype: "Employee",
-      fields: ["name", "employee_name", "image"],
-      filters: [["status", "=", "Active"]],
-      limit_page_length: "null",
-    },
-    { shouldRetryOnError: false },
-  );
+  const { data: employees } = useFrappeGetCall("frappe_pms.timesheet.api.employee.get_employee_list");
   const onEmployeeChange = (name: string) => {
     setSelectedValues(name);
     navigate(`/team/employee/${name}`);
   };
 
   useEffect(() => {
-    const res = employees?.message.find((item: Employee) => item.name === selectedValues);
+    if (!employees) return;
+    const res = employees?.message.data.find((item: Employee) => item.name === selectedValues);
     setEmployee(res);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [employees, id]);
@@ -429,7 +421,7 @@ const EmployeeCombo = () => {
           <CommandEmpty>No data.</CommandEmpty>
           <CommandGroup>
             <CommandList>
-              {employees?.message.map((item: Employee, index: number) => {
+              {employees?.message.data.map((item: Employee, index: number) => {
                 const isActive = selectedValues == item.name;
                 return (
                   <CommandItem

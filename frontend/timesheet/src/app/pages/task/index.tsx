@@ -2,7 +2,7 @@ import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { Spinner } from "@/app/components/spinner";
 import { TaskData, ProjectProps, ProjectNestedTaskData } from "@/types";
-import { useCallback, useEffect, useState } from "react";
+import { ReactNode, useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import {
@@ -17,8 +17,8 @@ import {
   updateProjectData,
   setProjectData,
   setAddTaskDialog,
-  TaskState,
   AddTaskType,
+  TaskState,
 } from "@/store/task";
 import { cn, parseFrappeErrorMsg, floatToTime, getFormatedDate, deBounce } from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
@@ -33,9 +33,11 @@ import {
   ChevronUp,
   Clock,
   Filter,
+  Grid2X2,
   GripVertical,
   Heart,
   LoaderCircle,
+  LucideProps,
   MoreVertical,
   Plus,
   RotateCcw,
@@ -52,16 +54,22 @@ import {
   getExpandedRowModel,
   ColumnFiltersState,
   getFilteredRowModel,
-  ColumnSizing,
+  Row,
+  ExpandedState,
+  Table as TanStackTable,
 } from "@tanstack/react-table";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
-import { AppendData, SetAddTimeDialog, setData, SetFetchAgain, SetTimesheet } from "@/store/timesheet";
+import { SetAddTimeDialog, SetTimesheet } from "@/store/timesheet";
 import { AddTime } from "@/app/pages/timesheet/addTime";
 import React from "react";
 import { Input } from "@/app/components/ui/input";
@@ -72,30 +80,72 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Textarea } from "@/app/components/ui/textarea";
 
+// Types
+type FlatTableType = TanStackTable<TaskData>;
+type NestedRowTableType = TanStackTable<ProjectNestedTaskData>;
+type ColumnsType = ColumnDef<TaskData>[];
+type ProjectNestedColumnsType = ColumnDef<ProjectNestedTaskData>[];
+type subjectSearchType = string;
+type GroupByParamType = string[];
+type columnsToExcludeActionsInTablesType = string[];
+type localStorageTaskType = {
+  /* eslint-disable-next-line */
+  hideColumn: any[];
+  /* eslint-disable-next-line */
+  groupBy: any[];
+  /* eslint-disable-next-line */
+  projects: any[];
+  /* eslint-disable-next-line */
+  columnWidth: {
+    subject: string;
+    due_date: string;
+    project_name: string;
+    status: string;
+    priority: string;
+    expected_time: string;
+    actual_time: string;
+  };
+  /* eslint-disable-next-line */
+  columnSort: any[];
+};
+type setLocalStorageTaskStateType = React.Dispatch<React.SetStateAction<localStorageTaskType>>;
+type setNestedProjectMutateCallType = React.Dispatch<React.SetStateAction<() => void>>;
+type setFlatTaskMutateCallType = React.Dispatch<React.SetStateAction<() => void>>;
+type setProjectSearchType = React.Dispatch<React.SetStateAction<string>>;
+
 const Task = () => {
   const task = useSelector((state: RootState) => state.task);
   const user = useSelector((state: RootState) => state.user);
   const timesheet = useSelector((state: RootState) => state.timesheet);
   const { call } = useFrappePostCall("frappe.desk.like.toggle_like");
   // States for maintaining tables and filters
-  const [expanded, setExpanded] = useState<boolean>(true);
+  const [expanded, setExpanded] = useState<ExpandedState>(true);
+  // LocalStorage States
   const localStorageTaskDataMap = {
     hideColumn: [],
     groupBy: [],
     projects: [],
-    columnWidth: [],
-    columnSort: [],
+    columnWidth: {
+      subject: "150",
+      due_date: "150",
+      project_name: "150",
+      status: "150",
+      priority: "150",
+      expected_time: "150",
+      actual_time: "150",
+    },
+    columnSort: [{ id: "liked", desc: false }],
   };
-  const [localStorageTaskState, setLocalStorageTaskState] = useState(() => {
+  const [localStorageTaskState, setLocalStorageTaskState] = useState<localStorageTaskType>(() => {
     try {
-      return JSON.parse(localStorage.getItem("task"));
+      return JSON.parse(String(localStorage.getItem("task")));
     } catch (error) {
       return localStorageTaskDataMap;
     }
   });
   const [sorting, setSorting] = useState<SortingState>(() => {
     try {
-      return JSON.parse(localStorage.getItem("task")).columnSort;
+      return JSON.parse(String(localStorage.getItem("task"))).columnSort;
     } catch (error) {
       return [];
     }
@@ -104,18 +154,21 @@ const Task = () => {
     createFalseValuedObject(localStorageTaskState?.hideColumn ?? {}),
   );
   const [projectParam, setProjectParam] = useQueryParamsState<string[]>("project", []);
-  const [groupByParam, setGroupByParam] = useQueryParamsState<string[]>("groupby", []);
-  const [subjectSearch, setSubjectSearch] = useState<string>("");
+  const [groupByParam, setGroupByParam] = useQueryParamsState<GroupByParamType>("groupby", []);
+  const [subjectSearch, setSubjectSearch] = useState<subjectSearchType>("");
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   //task search change (input)
   const updateSubjectSearch = useCallback(
     deBounce((searchStr) => {
       setSubjectSearch(searchStr);
-      if (groupByParam.length === 0) mutate();
-      else {
-        nestedProjectMutate();
+      if (groupByParam.length === 0) {
+        dispatch(setStart(0));
+        flatTaskMutateCall();
+      } else {
+        dispatch(setProjectStart(0));
+        nestedProjectMutateCall();
       }
-    }, 700),
+    }, 500),
     [],
   );
 
@@ -159,7 +212,7 @@ const Task = () => {
     dispatch(SetAddTimeDialog(true));
   };
   // Frappe Call for Project comboBox Data
-  const [projectSearch, setProjectSearch] = useState("");
+  const [projectSearch, setProjectSearch] = useState<string>("");
   const { data: projects, mutate: projectSearchMutate } = useFrappeGetCall(
     "frappe.client.get_list",
     {
@@ -193,8 +246,8 @@ const Task = () => {
   useEffect(() => {
     setGroupByParam(task.groupBy);
   }, [setGroupByParam, task.groupBy]);
-  const [nestedProjectMutateCall, setNestedProjectMutateCall] = useState();
-  const [flatTaskMutateCall, setFlatTaskMutateCall] = useState();
+  const [nestedProjectMutateCall, setNestedProjectMutateCall] = useState(() => () => {});
+  const [flatTaskMutateCall, setFlatTaskMutateCall] = useState(() => () => {});
 
   const handleLike = (e: React.MouseEvent<SVGSVGElement>) => {
     const taskName = e.currentTarget.dataset.task;
@@ -240,11 +293,58 @@ const Task = () => {
     },
     [dispatch],
   );
-  // coumn definitions
-  const columns: ColumnDef<TaskData>[] = [
+  // custom sort functions for Status and Priority columns
+  const statusOrder = ["Completed", "Pending Review", "Working", "Overdue", "Open", "Template", "Cancelled"];
+  const customStatusSort = (rowA: Row<any>, rowB: Row<any>, columnId: string) => {
+    const statusA = String(rowA.getValue(columnId));
+    const statusB = String(rowB.getValue(columnId));
+
+    // Determine the index in the custom order or assign a high index if not in the list
+    const indexA = statusOrder.indexOf(statusA) === -1 ? statusOrder.length : statusOrder.indexOf(statusA);
+    const indexB = statusOrder.indexOf(statusB) === -1 ? statusOrder.length : statusOrder.indexOf(statusB);
+
+    return indexA - indexB;
+  };
+
+  const priorityOrder = ["Low", "Medium", "High", "Urgent"];
+
+  const customPrioritySort = (rowA: Row<any>, rowB: Row<any>, columnId: string) => {
+    const priorityA = String(rowA.getValue(columnId));
+    const priorityB = String(rowB.getValue(columnId));
+    // Determine the index in the custom order or assign a high index if not in the list
+    const indexA = priorityOrder.indexOf(priorityA) === -1 ? priorityOrder.length : priorityOrder.indexOf(priorityA);
+    const indexB = priorityOrder.indexOf(priorityB) === -1 ? priorityOrder.length : priorityOrder.indexOf(priorityB);
+
+    return indexA - indexB;
+  };
+  const customLikeSortingFn = (rowA: Row<any>, rowB: Row<any>, columnId: string): number => {
+    let rowAValue = rowA.original._liked_by;
+    let rowBValue = rowB.original._liked_by;
+    if (typeof rowAValue === "string") {
+      rowAValue = JSON.parse(rowAValue);
+    }
+    if (typeof rowBValue === "string") {
+      rowBValue = JSON.parse(rowBValue);
+    }
+    if (!rowAValue) {
+      rowAValue = [];
+    }
+    if (!rowBValue) {
+      rowBValue = [];
+    }
+
+    const containsUserA = rowAValue.includes(user.user);
+    const containsUserB = rowBValue.includes(user.user);
+
+    if (containsUserA && !containsUserB) return -1;
+    if (!containsUserA && containsUserB) return 1; // Other comes after
+    return 0; // Equal
+  };
+  // column definitions
+  const columns: ColumnsType = [
     {
       accessorKey: "project_name",
-      size: localStorageTaskState?.columnWidth["project_name"] ?? "150",
+      size: Number(localStorageTaskState?.columnWidth["project_name"] ?? "150"),
       header: ({ column }) => {
         return (
           <div
@@ -266,7 +366,11 @@ const Task = () => {
       },
       cell: ({ row }) => {
         return (
-          <Typography title={row.original.project_name} variant="p" className="max-w-sm truncate cursor-pointer">
+          <Typography
+            title={String(row.original.project_name ?? "")}
+            variant="p"
+            className="max-w-sm truncate cursor-pointer"
+          >
             {row.original.project_name}
           </Typography>
         );
@@ -274,7 +378,7 @@ const Task = () => {
     },
     {
       accessorKey: "subject",
-      size: localStorageTaskState?.columnWidth["subject"] ?? "150",
+      size: Number(localStorageTaskState?.columnWidth["subject"] ?? "150"),
       header: ({ column }) => {
         return (
           <div
@@ -307,7 +411,7 @@ const Task = () => {
     },
     {
       accessorKey: "due_date",
-      size: localStorageTaskState?.columnWidth["due_date"] ?? "150",
+      size: Number(localStorageTaskState?.columnWidth["due_date"] ?? "150"),
       header: ({ column }) => {
         return (
           <div
@@ -326,17 +430,18 @@ const Task = () => {
           </div>
         );
       },
-      cell: ({ row, getValue }) => {
+      cell: ({ getValue }) => {
         return (
           <Typography variant="p" className="truncate w-4/5">
-            {getValue()}
+            {getValue() as ReactNode}
           </Typography>
         );
       },
     },
     {
       accessorKey: "status",
-      size: localStorageTaskState?.columnWidth["status"] ?? "150",
+      size: Number(localStorageTaskState?.columnWidth["status"] ?? "150"),
+      sortingFn: customStatusSort,
       header: ({ column }) => {
         return (
           <div
@@ -361,7 +466,8 @@ const Task = () => {
     },
     {
       accessorKey: "priority",
-      size: localStorageTaskState?.columnWidth["priority"] ?? "150",
+      sortingFn: customPrioritySort,
+      size: Number(localStorageTaskState?.columnWidth["priority"] ?? "150"),
       header: ({ column }) => {
         return (
           <div
@@ -386,7 +492,7 @@ const Task = () => {
     },
     {
       accessorKey: "expected_time",
-      size: localStorageTaskState?.columnWidth["expected_time"] ?? "150",
+      size: Number(localStorageTaskState?.columnWidth["expected_time"] ?? "150"),
       header: ({ column }) => {
         return (
           <div
@@ -415,7 +521,7 @@ const Task = () => {
     },
     {
       accessorKey: "actual_time",
-      size: localStorageTaskState?.columnWidth["actual_time"] ?? "150",
+      size: Number(localStorageTaskState?.columnWidth["actual_time"] ?? "150"),
       header: ({ column }) => {
         return (
           <div
@@ -462,11 +568,17 @@ const Task = () => {
       },
     },
     {
-      accessorKey: "#",
-      header: "",
+      accessorKey: "liked",
+      header: ({ column }) => {
+        if (!column.getIsSorted()) {
+          return column.toggleSorting(false);
+        }
+        return <></>;
+      },
       size: 30, // Default size
       minSize: 20, // Minimum size
       maxSize: 30, // Maximum size
+      sortingFn: customLikeSortingFn,
       cell: ({ row }) => {
         return (
           <span title="Like">
@@ -484,10 +596,10 @@ const Task = () => {
       },
     },
   ];
-  const nestedProjectColumns: ColumnDef<ProjectNestedTaskData>[] = [
+  const nestedProjectColumns: ProjectNestedColumnsType = [
     {
       accessorKey: "project_name",
-      size: localStorageTaskState?.columnWidth["project_name"] ?? "150",
+      size: Number(localStorageTaskState?.columnWidth["project_name"] ?? "150"),
       enableHiding: false,
       header: ({ column }) => {
         return (
@@ -528,7 +640,7 @@ const Task = () => {
                   <ChevronDown className="h-4 w-4" />
                 )
               ) : null}
-              <div className="truncate w-4/5">{getValue()}</div>
+              <div className="truncate w-4/5">{getValue() as ReactNode}</div>
             </div>
           </>
         );
@@ -536,7 +648,7 @@ const Task = () => {
     },
     {
       accessorKey: "subject",
-      size: localStorageTaskState?.columnWidth["subject"] ?? "150",
+      size: Number(localStorageTaskState?.columnWidth["subject"] ?? "150"),
       header: ({ column }) => {
         return (
           <div
@@ -559,17 +671,17 @@ const Task = () => {
           </div>
         );
       },
-      cell: ({ row, getValue }) => {
+      cell: ({ getValue }) => {
         return (
-          <Typography variant="p" title={getValue()} className="truncate cursor-pointer">
-            {getValue()}
+          <Typography variant="p" title={String(getValue())} className="truncate cursor-pointer">
+            {getValue() as ReactNode}
           </Typography>
         );
       },
     },
     {
       accessorKey: "due_date",
-      size: localStorageTaskState?.columnWidth["due_date"] ?? "150",
+      size: Number(localStorageTaskState?.columnWidth["due_date"] ?? "150"),
       header: ({ column }) => {
         return (
           <div
@@ -586,17 +698,18 @@ const Task = () => {
           </div>
         );
       },
-      cell: ({ row, getValue }) => {
+      cell: ({ getValue }) => {
         return (
           <Typography variant="p" className="truncate w-4/5">
-            {getValue()}
+            {getValue() as ReactNode}
           </Typography>
         );
       },
     },
     {
       accessorKey: "status",
-      size: localStorageTaskState?.columnWidth["status"] ?? "150",
+      sortingFn: customStatusSort,
+      size: Number(localStorageTaskState?.columnWidth["status"] ?? "150"),
       header: ({ column }) => {
         return (
           <div
@@ -613,13 +726,14 @@ const Task = () => {
           </div>
         );
       },
-      cell: ({ row, getValue }) => {
-        return getValue() && <TaskStatus status={getValue()} />;
+      cell: ({ getValue }) => {
+        return getValue() && <TaskStatus status={getValue() as TaskData["status"]} />;
       },
     },
     {
       id: "priority",
-      size: localStorageTaskState?.columnWidth["priority"] ?? "150",
+      sortingFn: customPrioritySort,
+      size: Number(localStorageTaskState?.columnWidth["priority"] ?? "150"),
       accessorKey: "priority",
       header: ({ column }) => {
         return (
@@ -637,13 +751,13 @@ const Task = () => {
           </div>
         );
       },
-      cell: ({ row, getValue }) => {
-        return getValue() && <TaskPriority priority={getValue()} />;
+      cell: ({ getValue }) => {
+        return getValue() && <TaskPriority priority={getValue() as TaskData["priority"]} />;
       },
     },
     {
       id: "expected_time",
-      size: localStorageTaskState?.columnWidth["expected_time"] ?? "150",
+      size: Number(localStorageTaskState?.columnWidth["expected_time"] ?? "150"),
       accessorKey: "expected_time",
       header: ({ column }) => {
         return (
@@ -661,18 +775,18 @@ const Task = () => {
           </div>
         );
       },
-      cell: ({ row, getValue }) => {
+      cell: ({ getValue }) => {
         const hour = getValue();
         return (
           <Typography variant="p" className="text-center truncate">
-            {hour !== undefined && floatToTime(getValue())}
+            {hour !== undefined && floatToTime(Number(getValue()))}
           </Typography>
         );
       },
     },
     {
       id: "actual_time",
-      size: localStorageTaskState?.columnWidth["actual_time"] ?? "150",
+      size: Number(localStorageTaskState?.columnWidth["actual_time"] ?? "150"),
       accessorKey: "actual_time",
       header: ({ column }) => {
         return (
@@ -691,11 +805,11 @@ const Task = () => {
           </div>
         );
       },
-      cell: ({ row, getValue }) => {
+      cell: ({ getValue }) => {
         const hour = getValue();
         return (
           <Typography variant="p" className="text-center truncate">
-            {hour !== undefined && floatToTime(getValue())}
+            {hour !== undefined && floatToTime(Number(getValue()))}
           </Typography>
         );
       },
@@ -722,21 +836,22 @@ const Task = () => {
       },
     },
     {
-      accessorKey: "#",
+      accessorKey: "liked",
       header: "",
       size: 30, // Default size
       minSize: 20, // Minimum size
       maxSize: 30, // Maximum size
+      sortingFn: customLikeSortingFn,
       cell: ({ row }) => {
         return (
           row.depth !== 0 && (
             <Heart
               className={cn(
                 "w-4 h-4 hover:cursor-pointer",
-                isLiked(row.original._liked_by, user.user) && "fill-red-600",
+                isLiked(row.original?._liked_by, user.user) && "fill-red-600",
               )}
               data-task={row.original.name}
-              data-liked-by={row.original._liked_by}
+              data-liked-by={row.original?._liked_by}
               onClick={handleLike}
             />
           )
@@ -755,6 +870,9 @@ const Task = () => {
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     columnResizeMode: "onChange",
+    initialState: {
+      sorting: [{ id: "liked", desc: false }],
+    },
     state: {
       sorting,
       columnVisibility,
@@ -780,7 +898,7 @@ const Task = () => {
     },
   });
 
-  const columnsToExcludeActionsInTables: string[] = ["#", "timesheetAction"];
+  const columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType = ["liked", "timesheetAction"];
 
   // LocalStorage related functions and utilities
 
@@ -797,7 +915,7 @@ const Task = () => {
   }, [localStorageTaskState]);
 
   useEffect(() => {
-    setLocalStorageTaskState((prev) => {
+    setLocalStorageTaskState((prev: localStorageTaskType) => {
       return { ...prev, columnSort: sorting };
     });
   }, [sorting]);
@@ -811,9 +929,59 @@ const Task = () => {
     setProjectSearch(searchString);
   };
   // More DropDown Items here
-  const MoreTableOptionsDropDownData = [
+  const renderColumnFilterList = (
+    table: FlatTableType,
+    groupBy: GroupByParamType,
+    columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType,
+    setLocalStorageTaskState: setLocalStorageTaskStateType,
+  ): ReactNode => {
+    return table
+      .getAllColumns()
+      .filter((column) => column.getCanHide())
+      .map((column) => {
+        if (columnsToExcludeActionsInTables?.includes(column.id)) {
+          return null;
+        }
+        if (groupBy.length > 0 && column.id === "project_name") {
+          return null;
+        }
+        return (
+          <DropdownMenuCheckboxItem
+            key={column.id}
+            className="capitalize cursor-pointer"
+            checked={column.getIsVisible()}
+            onCheckedChange={(value) => {
+              column.toggleVisibility(!!value);
+              setLocalStorageTaskState((prev) => {
+                if (prev.hideColumn.includes(column.id)) {
+                  const mutatedHideColumn = [...prev.hideColumn];
+                  const index = mutatedHideColumn.indexOf(column.id);
+                  if (index > -1) {
+                    mutatedHideColumn.splice(index, 1);
+                  }
+                  return { ...prev, hideColumn: mutatedHideColumn };
+                }
+                const mutatedHideColumnSet = new Set([...prev.hideColumn, column.id]);
+                return { ...prev, hideColumn: [...mutatedHideColumnSet] };
+              });
+            }}
+          >
+            {column.id.replace("_", " ")}
+          </DropdownMenuCheckboxItem>
+        );
+      });
+  };
+  type MoreTableOptionsDropDownType = "normal" | "nestedSubMenu";
+  const MoreTableOptionsDropDownData: {
+    title: string;
+    icon: React.ForwardRefExoticComponent<Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>>;
+    iconClass: string;
+    handleClick?: () => void;
+    type: MoreTableOptionsDropDownType;
+    render?: () => ReactNode;
+  }[] = [
     {
-      title: "Reset table",
+      title: "Reset Table",
       icon: RotateCcw,
       iconClass: "h-4 w-4 text-blue-500",
       handleClick: () => {
@@ -821,7 +989,18 @@ const Task = () => {
         // update All Sort,filter and columnWidth States when localStorage Changes (table config reset)
         setSorting([]);
         setColumnVisibility({});
-        table.setColumnSizing([]);
+        table.setColumnSizing({});
+        nestedProjectTable.setColumnSizing({});
+      },
+      type: "normal",
+    },
+    {
+      title: "Columns",
+      icon: Grid2X2,
+      iconClass: "h-4 w-4 text-blue-500",
+      type: "nestedSubMenu",
+      render: () => {
+        return renderColumnFilterList(table, groupByParam, columnsToExcludeActionsInTables, setLocalStorageTaskState);
       },
     },
   ];
@@ -854,7 +1033,7 @@ const Task = () => {
       </style>
       <div className="md:w-full h-full justify-between flex flex-col relative">
         {/* filters and combo boxes */}
-        <div id="filters" className="flex gap-x-2 mb-3 w-full overflow-hidden p-1 max-md:overflow-x-scroll">
+        <div id="filters" className="flex gap-x-2 mb-3 w-full overflow-hidden p-1 overflow-x-scroll">
           <div className="flex gap-2 xl:w-2/5">
             {/* Task Search Filter */}
             <Input
@@ -896,41 +1075,51 @@ const Task = () => {
             className="text-primary border-dashed gap-x-2 font-normal w-fit"
             onSelect={handleGroupByChange}
           />
-          {/* Hide Column select */}
-          <HideColumn
-            table={table}
-            groupBy={groupByParam}
-            columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
-            setLocalStorageTaskState={setLocalStorageTaskState}
-          />
           {/* more button */}
+          {/* Add Task Button */}
+          <Button onClick={handleAddTask} className="ml-auto" title="Add task">
+            {" "}
+            <Plus className="h-4 w-4 mr-2" /> Add Task
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="icon" variant="outline" className="h-8 w-8 cursor-pointer ml-auto">
-                <MoreVertical className="h-3.5 w-3.5" />
+              <Button
+                size="icon"
+                variant="outline"
+                className="h-full w-fit min-w-10 cursor-pointer border-0 outline-none"
+              >
+                <MoreVertical className="h-4 w-4" />
                 <span className="sr-only">More</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {MoreTableOptionsDropDownData?.map((dropdownItem) => {
+                if (dropdownItem.type === "normal") {
+                  return (
+                    <DropdownMenuItem
+                      key={dropdownItem.title}
+                      onClick={dropdownItem.handleClick}
+                      className="cursor-pointer flex gap-2 items-center justify-start"
+                    >
+                      <dropdownItem.icon className={cn(dropdownItem.iconClass)} />
+                      <Typography variant="p">{dropdownItem.title}</Typography>
+                    </DropdownMenuItem>
+                  );
+                }
                 return (
-                  <DropdownMenuItem
-                    key={dropdownItem.title}
-                    onClick={dropdownItem.handleClick}
-                    className="cursor-pointer flex gap-2 items-center justify-center"
-                  >
-                    <dropdownItem.icon className={cn(dropdownItem.iconClass)} />
-                    <Typography variant="p">{dropdownItem.title}</Typography>
-                  </DropdownMenuItem>
+                  <DropdownMenuSub key={dropdownItem.title}>
+                    <DropdownMenuSubTrigger className="cursor-pointer flex gap-2 items-center justify-start">
+                      <dropdownItem.icon className={cn(dropdownItem.iconClass)} />
+                      <Typography variant="p">{dropdownItem.title}</Typography>
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuPortal>
+                      <DropdownMenuSubContent>{dropdownItem.render()}</DropdownMenuSubContent>
+                    </DropdownMenuPortal>
+                  </DropdownMenuSub>
                 );
               })}
             </DropdownMenuContent>
           </DropdownMenu>
-          {/* Add Task Button */}
-          <Button onClick={handleAddTask} title="Add task">
-            {" "}
-            <Plus className="h-4 w-4 mr-2" /> Add Task
-          </Button>
         </div>
         {/* tables */}
         <div className="overflow-hidden w-full overflow-y-scroll" style={{ height: "calc(100vh - 8rem)" }}>
@@ -942,7 +1131,6 @@ const Task = () => {
               setLocalStorageTaskState={setLocalStorageTaskState}
               task={task}
               subjectSearch={subjectSearch}
-              toast={toast}
               setMutateCall={setFlatTaskMutateCall}
             />
           ) : (
@@ -953,7 +1141,6 @@ const Task = () => {
               setLocalStorageTaskState={setLocalStorageTaskState}
               task={task}
               subjectSearch={subjectSearch}
-              toast={toast}
               setMutateCall={setNestedProjectMutateCall}
             />
           )}
@@ -981,9 +1168,7 @@ const Task = () => {
         {/* addTime */}
         {timesheet.isDialogOpen && <AddTime />}
         {/* addTask */}
-        {task.isAddTaskDialogBoxOpen && (
-          <AddTask task={task} projects={projects} setProjectSearch={setProjectSearch} toast={toast} />
-        )}
+        {task.isAddTaskDialogBoxOpen && <AddTask task={task} projects={projects} setProjectSearch={setProjectSearch} />}
       </div>
     </>
   );
@@ -1010,9 +1195,9 @@ const TaskPriority = ({ priority }: { priority: TaskData["priority"] }) => {
 
 const TaskStatus = ({ status }: { status: TaskData["status"] }) => {
   const statusCss = {
-    Open: "bg-slate-200 text-slate-900 hover:bg-slate-200",
+    Open: "bg-blue-100 text-blue-500 hover:bg-blue-200",
     Working: "bg-warning/20 text-warning hover:bg-warning/20",
-    "Pending Review": "bg-warning/20 text-warning hover:bg-warning/20",
+    "Pending Review": "bg-orange-100 text-orange-400 hover:bg-warning/20",
     Overdue: "bg-destructive/20 text-destructive hover:bg-destructive/20",
     Template: "bg-slate-200 text-slate-900 hover:bg-slate-200",
     Completed: "bg-success/20 text-success hover:bg-success/20",
@@ -1031,59 +1216,11 @@ const TaskStatus = ({ status }: { status: TaskData["status"] }) => {
   );
 };
 
-const HideColumn = ({ table, groupBy, columnsToExcludeActionsInTables, setLocalStorageTaskState }) => {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" className=" focus-visible:ring-0">
-          Columns
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {table
-          .getAllColumns()
-          .filter((column) => column.getCanHide())
-          .map((column) => {
-            if (columnsToExcludeActionsInTables?.includes(column.id)) {
-              return null;
-            }
-            if (groupBy.length > 0 && column.id === "project_name") {
-              return null;
-            }
-            return (
-              <DropdownMenuCheckboxItem
-                key={column.id}
-                className="capitalize cursor-pointer"
-                checked={column.getIsVisible()}
-                onCheckedChange={(value) => {
-                  column.toggleVisibility(!!value);
-                  setLocalStorageTaskState((prev) => {
-                    if (prev.hideColumn.includes(column.id)) {
-                      const mutatedHideColumn = [...prev.hideColumn];
-                      const index = mutatedHideColumn.indexOf(column.id);
-                      if (index > -1) {
-                        mutatedHideColumn.splice(index, 1);
-                      }
-                      return { ...prev, hideColumn: mutatedHideColumn };
-                    }
-                    const mutatedHideColumnSet = new Set([...prev.hideColumn, column.id]);
-                    return { ...prev, hideColumn: [...mutatedHideColumnSet] };
-                  });
-                }}
-              >
-                {column.id.replace("_", " ")}
-              </DropdownMenuCheckboxItem>
-            );
-          })}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-};
 export default Task;
 
 //one time utility for asssigning All keys of an object to false
 const createFalseValuedObject = (obj) => {
-  const newFalseValueObject = {};
+  const newFalseValueObject: { [key: string]: boolean } = {};
   if (Object.keys(obj).length > 0) {
     for (const key of obj) {
       newFalseValueObject[key] = false;
@@ -1099,12 +1236,20 @@ const FlatTable = ({
   setLocalStorageTaskState,
   task,
   subjectSearch,
-  toast,
   setMutateCall,
+}: {
+  table: FlatTableType;
+  columns: ColumnsType;
+  columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType;
+  setLocalStorageTaskState: setLocalStorageTaskStateType;
+  task: TaskState;
+  subjectSearch: subjectSearchType;
+  setMutateCall: setFlatTaskMutateCallType;
 }) => {
   const dispatch = useDispatch();
-  let resizeObserver;
-  const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.utils.get_task_for_employee", {
+  const { toast } = useToast();
+  let resizeObserver: ResizeObserver;
+  const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.task.get_task_list", {
     page_length: 20,
     start: task.start,
     project: task.selectedProject,
@@ -1150,14 +1295,14 @@ const FlatTable = ({
                       onMouseDown={(event) => {
                         const container = event.currentTarget;
                         resizeObserver = new ResizeObserver((entries) => {
-                          for (const entry of entries) {
+                          entries.forEach(() => {
                             setLocalStorageTaskState((prev) => {
                               return {
                                 ...prev,
                                 columnWidth: { ...prev.columnWidth, [header.id]: header.getSize() },
                               };
                             });
-                          }
+                          });
                         });
                         resizeObserver.observe(container);
                       }}
@@ -1223,18 +1368,26 @@ const RowGroupedTable = ({
   setLocalStorageTaskState,
   task,
   subjectSearch,
-  toast,
   setMutateCall,
+}: {
+  table: NestedRowTableType;
+  columns: ProjectNestedColumnsType;
+  columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType;
+  setLocalStorageTaskState: setLocalStorageTaskStateType;
+  task: TaskState;
+  subjectSearch: subjectSearchType;
+  setMutateCall: setNestedProjectMutateCallType;
 }) => {
   const dispatch = useDispatch();
-  let resizeObserver;
+  const { toast } = useToast();
+  let resizeObserver: ResizeObserver;
   //nested project task call
   const {
     data: nestedProjectData,
     isLoading: nestedProjectIsLoading,
     error: nestedProjectError,
     mutate: nestedProjectMutate,
-  } = useFrappeGetCall("frappe_pms.timesheet.api.utils.get_project_task", {
+  } = useFrappeGetCall("frappe_pms.timesheet.api.task.get_task_list_by_project", {
     page_length: 20,
     project: task.selectedProject.length == 0 ? null : task.selectedProject,
     task_search: subjectSearch,
@@ -1291,14 +1444,14 @@ const RowGroupedTable = ({
                     onMouseDown={(event) => {
                       const container = event.currentTarget;
                       resizeObserver = new ResizeObserver((entries) => {
-                        for (const entry of entries) {
+                        entries.forEach(() => {
                           setLocalStorageTaskState((prev) => {
                             return {
                               ...prev,
                               columnWidth: { ...prev.columnWidth, [header.id]: header.getSize() },
                             };
                           });
-                        }
+                        });
                       });
                       resizeObserver.observe(container);
                     }}
@@ -1360,11 +1513,20 @@ const RowGroupedTable = ({
   );
 };
 
-const AddTask = ({ task, projects, setProjectSearch, toast }) => {
+const AddTask = ({
+  task,
+  projects,
+  setProjectSearch,
+}: {
+  task: TaskState;
+  projects: any;
+  setProjectSearch: setProjectSearchType;
+}) => {
   const dispatch = useDispatch();
+  const { toast } = useToast();
   const expectedTimeSchema = z.preprocess(
     (val, ctx) => {
-      if (!val.trim()) {
+      if (typeof val === "string" && !val.trim()) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["expected_time"],
@@ -1413,7 +1575,7 @@ const AddTask = ({ task, projects, setProjectSearch, toast }) => {
       .trim()
       .min(4, "Please enter valid description."),
   });
-  const { call } = useFrappePostCall("frappe_pms.timesheet.api.utils.add_task");
+  const { call } = useFrappePostCall("frappe_pms.timesheet.api.task.add_task");
   const form = useForm<z.infer<typeof TaskSchema>>({
     resolver: zodResolver(TaskSchema),
     defaultValues: {

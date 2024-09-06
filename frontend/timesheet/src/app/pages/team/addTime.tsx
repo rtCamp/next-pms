@@ -52,7 +52,7 @@ export const AddTime = () => {
     mutate: mutateTask,
     error: taskError,
   } = useFrappeGetCall(
-    "frappe_pms.timesheet.api.utils.get_task_for_employee",
+    "frappe_pms.timesheet.api.task.get_task_list",
     {
       search: searchTerm,
     },
@@ -67,7 +67,7 @@ export const AddTime = () => {
     data: employeeDetail,
     isLoading: employeeDetailLoading,
     error: employeeDetailError,
-  } = useFrappeGetCall("frappe_pms.timesheet.api.utils.get_employee", {
+  } = useFrappeGetCall("frappe_pms.timesheet.api.employee.get_employee", {
     filters: [["name", "=", teamState.employee]],
   });
   const handleOpenChange = () => {

@@ -4,46 +4,6 @@ from frappe.utils import add_days, get_first_day_of_week, get_last_day_of_week, 
 now = nowdate()
 
 
-@frappe.whitelist()
-def get_employee_from_user(user: str = None):
-    user = frappe.session.user
-    employee = frappe.db.get_value("Employee", {"user_id": user})
-
-    if not employee:
-        frappe.throw(frappe._("Employee not found"))
-    return employee
-
-
-def get_user_from_employee(employee: str):
-    return frappe.get_value("Employee", employee, "user_id")
-
-
-@frappe.whitelist()
-def get_employee_working_hours(employee: str = None):
-    if not employee:
-        employee = get_employee_from_user()
-    working_hour, working_frequency = frappe.get_value(
-        "Employee",
-        employee,
-        ["custom_working_hours", "custom_work_schedule"],
-    )
-    if not working_hour:
-        working_hour = frappe.db.get_single_value(
-            "HR Settings", "standard_working_hours"
-        )
-    if not working_frequency:
-        working_frequency = "Per Day"
-    return {"working_hour": working_hour or 8, "working_frequency": working_frequency}
-
-
-@frappe.whitelist()
-def get_current_user_roles(user: str = None):
-    if not user:
-        user = frappe.session.user
-    roles = frappe.get_roles(user)
-    return roles
-
-
 def get_leaves_for_employee(from_date: str, to_date: str, employee: str):
     leave_application = frappe.qb.DocType("Leave Application")
     filtered_data = (
@@ -58,23 +18,6 @@ def get_leaves_for_employee(from_date: str, to_date: str, employee: str):
     ).run(as_dict=True)
 
     return filtered_data
-
-
-def weekly_working_hours_for_employee(employee: str, start_date: str, end_date: str):
-    from hrms.hr.utils import get_holiday_dates_for_employee
-
-    timesheets = frappe.get_list(
-        "Timesheet",
-        filters={
-            "employee": employee,
-            "start_date": [">=", start_date],
-            "end_date": ["<=", end_date],
-        },
-        fields=["total_hours", "start_date", "end_date", "status", "name"],
-    )
-    leaves = get_leaves_for_employee(start_date, end_date, employee)
-    holidays = get_holiday_dates_for_employee(employee, start_date, end_date)
-    return {"timesheets": timesheets, "leaves": leaves, "holidays": holidays}
 
 
 def get_week_dates(date, current_week: bool = False):
@@ -113,102 +56,6 @@ def get_week_dates(date, current_week: bool = False):
     return data
 
 
-@frappe.whitelist()
-def app_logo():
-    from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo
-
-    return get_app_logo()
-
-
-@frappe.whitelist()
-def get_project_task(project=None, task_search=None):
-    import json
-
-    filter = {}
-    if isinstance(project, str):
-        project = json.loads(project)
-        filter.update({"name": ["in", project]})
-
-    projects = frappe.get_list(
-        "Project", fields=["name", "project_name"], filters=filter
-    )
-    fields = [
-        "name",
-        "subject",
-        "status",
-        "priority",
-        "description",
-        "custom_is_billable as is_billable",
-        "actual_time",
-        "exp_end_date as due_date",
-        "expected_time",
-        "_liked_by",
-    ]
-    for project in projects:
-        data = get_task_for_employee(
-            project=[project["name"]], fields=fields, search=task_search
-        )
-        project["tasks"] = data.get("task")
-    count = frappe.db.count("Project", filters=filter)
-    return {"projects": projects, "count": count}
-
-
-@frappe.whitelist()
-def get_task_for_employee(
-    search: str = None,
-    page_length: int = 20,
-    start: int = 0,
-    project=None,
-    fields: list | str | None = None,
-):
-    import json
-
-    if isinstance(project, str):
-        project = json.loads(project)
-    if fields is None:
-        fields = [
-            "name",
-            "subject",
-            "status",
-            "priority",
-            "description",
-            "custom_is_billable as is_billable",
-            "project.project_name",
-            "actual_time",
-            "exp_end_date as due_date",
-            "expected_time",
-            "_liked_by",
-        ]
-    if isinstance(fields, str):
-        fields = json.loads(fields)
-    if project:
-        filter = {"project": ["in", project]}
-    else:
-        projects = frappe.get_list("Project", pluck="name")
-        filter = {"project": ["in", projects]}
-
-    search_filter = {}
-    if search:
-        search_filter.update(
-            {
-                "name": ["like", f"%{search}%"],
-                "subject": ["like", f"%{search}%"],
-            }
-        )
-
-    project_task = frappe.get_all(
-        "Task",
-        filters=filter,
-        or_filters=search_filter,
-        fields=fields,
-        page_length=page_length,
-        start=start,
-        order_by="name desc",
-    )
-    count = len(frappe.get_all("Task", filters=filter, or_filters=search_filter))
-    return {"task": project_task, "total_count": count}
-
-
 def filter_employees(
     employee_name=None,
     department=None,
@@ -216,6 +63,7 @@ def filter_employees(
     page_length=10,
     start=0,
     user_group=None,
+    ignore_permissions=False,
 ):
     import json
 
@@ -261,7 +109,7 @@ def filter_employees(
     if len(employee_ids) > 0:
         filters["name"] = ["in", employee_ids]
 
-    if "Timesheet Manager" in roles:
+    if "Timesheet Manager" in roles or ignore_permissions:
         employees = frappe.get_all(
             "Employee",
             fields=fields,
@@ -283,29 +131,12 @@ def filter_employees(
     return employees, total_count
 
 
-@frappe.whitelist()
-def get_employee(filters=None, fieldname=None):
-    import json
-
-    if not fieldname:
-        fieldname = ["name", "employee_name", "image"]
-
-    if fieldname and isinstance(fieldname, str):
-        fieldname = json.loads(fieldname)
-
-    if filters and isinstance(filters, str):
-        filters = json.loads(filters)
-
-    return frappe.db.get_value(
-        "Employee", filters=filters, fieldname=fieldname, as_dict=True
-    )
-
-
 def get_count(
     doctype: str,
     limit: int | None = None,
     distinct: bool = False,
     filters=None,
+    or_filters=None,
     ignore_permissions=False,
 ) -> int:
     from frappe.desk.reportview import execute
@@ -320,6 +151,7 @@ def get_count(
             limit=limit,
             fields=fieldname,
             filters=filters,
+            or_filters=or_filters,
             ignore_permissions=ignore_permissions,
             run=0,
         )
@@ -332,6 +164,7 @@ def get_count(
             limit=limit,
             fields=fieldname,
             filters=filters,
+            or_filters=or_filters,
             ignore_permissions=ignore_permissions,
         )[0].get("total_count")
     return count
@@ -394,18 +227,3 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
         frappe.db.set_value(
             "Timesheet", timesheet.name, "custom_weekly_approval_status", week_status
         )
-
-
-# API for Adding New Tasks (ignores Permissions)
-@frappe.whitelist()
-def add_task(subject: str, expected_time: str, project: str, description: str):
-    frappe.get_doc(
-        {
-            "doctype": "Task",
-            "subject": subject,
-            "expected_time": expected_time,
-            "project": project,
-            "description": description,
-        }
-    ).insert(ignore_permissions=True)
-    return frappe._("Task Created Successfully")
