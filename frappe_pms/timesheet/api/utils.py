@@ -164,6 +164,7 @@ def get_count(
             limit=limit,
             fields=fieldname,
             filters=filters,
+            or_filters=or_filters,
             ignore_permissions=ignore_permissions,
         )[0].get("total_count")
     return count

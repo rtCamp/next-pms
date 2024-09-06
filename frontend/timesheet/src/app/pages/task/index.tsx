@@ -134,7 +134,7 @@ const Task = () => {
       expected_time: "150",
       actual_time: "150",
     },
-    columnSort: [],
+    columnSort: [{ id: "liked", desc: false }],
   };
   const [localStorageTaskState, setLocalStorageTaskState] = useState<localStorageTaskType>(() => {
     try {
@@ -161,11 +161,14 @@ const Task = () => {
   const updateSubjectSearch = useCallback(
     deBounce((searchStr) => {
       setSubjectSearch(searchStr);
-      if (groupByParam.length === 0) flatTaskMutateCall();
-      else {
+      if (groupByParam.length === 0) {
+        dispatch(setStart(0));
+        flatTaskMutateCall();
+      } else {
+        dispatch(setProjectStart(0));
         nestedProjectMutateCall();
       }
-    }, 700),
+    }, 500),
     [],
   );
 
@@ -317,7 +320,6 @@ const Task = () => {
   const customLikeSortingFn = (rowA: Row<any>, rowB: Row<any>, columnId: string): number => {
     let rowAValue = rowA.original._liked_by;
     let rowBValue = rowB.original._liked_by;
-
     if (typeof rowAValue === "string") {
       rowAValue = JSON.parse(rowAValue);
     }
@@ -567,12 +569,16 @@ const Task = () => {
     },
     {
       accessorKey: "liked",
-      header: "",
+      header: ({ column }) => {
+        if (!column.getIsSorted()) {
+          return column.toggleSorting(false);
+        }
+        return <></>;
+      },
       size: 30, // Default size
       minSize: 20, // Minimum size
       maxSize: 30, // Maximum size
       sortingFn: customLikeSortingFn,
-
       cell: ({ row }) => {
         return (
           <span title="Like">
@@ -835,6 +841,7 @@ const Task = () => {
       size: 30, // Default size
       minSize: 20, // Minimum size
       maxSize: 30, // Maximum size
+      sortingFn: customLikeSortingFn,
       cell: ({ row }) => {
         return (
           row.depth !== 0 && (
@@ -863,6 +870,9 @@ const Task = () => {
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     columnResizeMode: "onChange",
+    initialState: {
+      sorting: [{ id: "liked", desc: false }],
+    },
     state: {
       sorting,
       columnVisibility,
@@ -1206,65 +1216,6 @@ const TaskStatus = ({ status }: { status: TaskData["status"] }) => {
   );
 };
 
-const HideColumn = ({
-  table,
-  groupBy,
-  columnsToExcludeActionsInTables,
-  setLocalStorageTaskState,
-}: {
-  table: FlatTableType;
-  groupBy: GroupByParamType;
-  columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType;
-  setLocalStorageTaskState: setLocalStorageTaskStateType;
-}) => {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <p className="flex gap-1 justify-center items-center focus-visible:ring-0">
-          <Grid2X2 className="h-4 w-4 mr-1" />
-          Columns
-        </p>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {table
-          .getAllColumns()
-          .filter((column) => column.getCanHide())
-          .map((column) => {
-            if (columnsToExcludeActionsInTables?.includes(column.id)) {
-              return null;
-            }
-            if (groupBy.length > 0 && column.id === "project_name") {
-              return null;
-            }
-            return (
-              <DropdownMenuCheckboxItem
-                key={column.id}
-                className="capitalize cursor-pointer"
-                checked={column.getIsVisible()}
-                onCheckedChange={(value) => {
-                  column.toggleVisibility(!!value);
-                  setLocalStorageTaskState((prev) => {
-                    if (prev.hideColumn.includes(column.id)) {
-                      const mutatedHideColumn = [...prev.hideColumn];
-                      const index = mutatedHideColumn.indexOf(column.id);
-                      if (index > -1) {
-                        mutatedHideColumn.splice(index, 1);
-                      }
-                      return { ...prev, hideColumn: mutatedHideColumn };
-                    }
-                    const mutatedHideColumnSet = new Set([...prev.hideColumn, column.id]);
-                    return { ...prev, hideColumn: [...mutatedHideColumnSet] };
-                  });
-                }}
-              >
-                {column.id.replace("_", " ")}
-              </DropdownMenuCheckboxItem>
-            );
-          })}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-};
 export default Task;
 
 //one time utility for asssigning All keys of an object to false
@@ -1296,7 +1247,8 @@ const FlatTable = ({
   setMutateCall: setFlatTaskMutateCallType;
 }) => {
   const dispatch = useDispatch();
-  let resizeObserver;
+  const { toast } = useToast();
+  let resizeObserver: ResizeObserver;
   const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.task.get_task_list", {
     page_length: 20,
     start: task.start,
