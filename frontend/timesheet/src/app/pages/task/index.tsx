@@ -37,6 +37,7 @@ import {
   GripVertical,
   Heart,
   LoaderCircle,
+  LucideProps,
   MoreVertical,
   Plus,
   RotateCcw,
@@ -62,6 +63,10 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
 import { SetAddTimeDialog, SetTimesheet } from "@/store/timesheet";
@@ -309,6 +314,30 @@ const Task = () => {
 
     return indexA - indexB;
   };
+  const customLikeSortingFn = (rowA: Row<any>, rowB: Row<any>, columnId: string): number => {
+    let rowAValue = rowA.original._liked_by;
+    let rowBValue = rowB.original._liked_by;
+
+    if (typeof rowAValue === "string") {
+      rowAValue = JSON.parse(rowAValue);
+    }
+    if (typeof rowBValue === "string") {
+      rowBValue = JSON.parse(rowBValue);
+    }
+    if (!rowAValue) {
+      rowAValue = [];
+    }
+    if (!rowBValue) {
+      rowBValue = [];
+    }
+
+    const containsUserA = rowAValue.includes(user.user);
+    const containsUserB = rowBValue.includes(user.user);
+
+    if (containsUserA && !containsUserB) return -1;
+    if (!containsUserA && containsUserB) return 1; // Other comes after
+    return 0; // Equal
+  };
   // column definitions
   const columns: ColumnsType = [
     {
@@ -537,11 +566,13 @@ const Task = () => {
       },
     },
     {
-      accessorKey: "#",
+      accessorKey: "liked",
       header: "",
       size: 30, // Default size
       minSize: 20, // Minimum size
       maxSize: 30, // Maximum size
+      sortingFn: customLikeSortingFn,
+
       cell: ({ row }) => {
         return (
           <span title="Like">
@@ -799,7 +830,7 @@ const Task = () => {
       },
     },
     {
-      accessorKey: "#",
+      accessorKey: "liked",
       header: "",
       size: 30, // Default size
       minSize: 20, // Minimum size
@@ -857,7 +888,7 @@ const Task = () => {
     },
   });
 
-  const columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType = ["#", "timesheetAction"];
+  const columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType = ["liked", "timesheetAction"];
 
   // LocalStorage related functions and utilities
 
@@ -888,7 +919,57 @@ const Task = () => {
     setProjectSearch(searchString);
   };
   // More DropDown Items here
-  const MoreTableOptionsDropDownData = [
+  const renderColumnFilterList = (
+    table: FlatTableType,
+    groupBy: GroupByParamType,
+    columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType,
+    setLocalStorageTaskState: setLocalStorageTaskStateType,
+  ): ReactNode => {
+    return table
+      .getAllColumns()
+      .filter((column) => column.getCanHide())
+      .map((column) => {
+        if (columnsToExcludeActionsInTables?.includes(column.id)) {
+          return null;
+        }
+        if (groupBy.length > 0 && column.id === "project_name") {
+          return null;
+        }
+        return (
+          <DropdownMenuCheckboxItem
+            key={column.id}
+            className="capitalize cursor-pointer"
+            checked={column.getIsVisible()}
+            onCheckedChange={(value) => {
+              column.toggleVisibility(!!value);
+              setLocalStorageTaskState((prev) => {
+                if (prev.hideColumn.includes(column.id)) {
+                  const mutatedHideColumn = [...prev.hideColumn];
+                  const index = mutatedHideColumn.indexOf(column.id);
+                  if (index > -1) {
+                    mutatedHideColumn.splice(index, 1);
+                  }
+                  return { ...prev, hideColumn: mutatedHideColumn };
+                }
+                const mutatedHideColumnSet = new Set([...prev.hideColumn, column.id]);
+                return { ...prev, hideColumn: [...mutatedHideColumnSet] };
+              });
+            }}
+          >
+            {column.id.replace("_", " ")}
+          </DropdownMenuCheckboxItem>
+        );
+      });
+  };
+  type MoreTableOptionsDropDownType = "normal" | "nestedSubMenu";
+  const MoreTableOptionsDropDownData: {
+    title: string;
+    icon: React.ForwardRefExoticComponent<Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>>;
+    iconClass: string;
+    handleClick?: () => void;
+    type: MoreTableOptionsDropDownType;
+    render?: () => ReactNode;
+  }[] = [
     {
       title: "Reset Table",
       icon: RotateCcw,
@@ -900,6 +981,16 @@ const Task = () => {
         setColumnVisibility({});
         table.setColumnSizing({});
         nestedProjectTable.setColumnSizing({});
+      },
+      type: "normal",
+    },
+    {
+      title: "Columns",
+      icon: Grid2X2,
+      iconClass: "h-4 w-4 text-blue-500",
+      type: "nestedSubMenu",
+      render: () => {
+        return renderColumnFilterList(table, groupByParam, columnsToExcludeActionsInTables, setLocalStorageTaskState);
       },
     },
   ];
@@ -974,41 +1065,51 @@ const Task = () => {
             className="text-primary border-dashed gap-x-2 font-normal w-fit"
             onSelect={handleGroupByChange}
           />
-          {/* Hide Column select */}
-          <HideColumn
-            table={table}
-            groupBy={groupByParam}
-            columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
-            setLocalStorageTaskState={setLocalStorageTaskState}
-          />
           {/* more button */}
+          {/* Add Task Button */}
+          <Button onClick={handleAddTask} className="ml-auto" title="Add task">
+            {" "}
+            <Plus className="h-4 w-4 mr-2" /> Add Task
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="icon" variant="outline" className="h-full w-fit min-w-10 cursor-pointer ml-auto">
+              <Button
+                size="icon"
+                variant="outline"
+                className="h-full w-fit min-w-10 cursor-pointer border-0 outline-none"
+              >
                 <MoreVertical className="h-4 w-4" />
                 <span className="sr-only">More</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {MoreTableOptionsDropDownData?.map((dropdownItem) => {
+                if (dropdownItem.type === "normal") {
+                  return (
+                    <DropdownMenuItem
+                      key={dropdownItem.title}
+                      onClick={dropdownItem.handleClick}
+                      className="cursor-pointer flex gap-2 items-center justify-start"
+                    >
+                      <dropdownItem.icon className={cn(dropdownItem.iconClass)} />
+                      <Typography variant="p">{dropdownItem.title}</Typography>
+                    </DropdownMenuItem>
+                  );
+                }
                 return (
-                  <DropdownMenuItem
-                    key={dropdownItem.title}
-                    onClick={dropdownItem.handleClick}
-                    className="cursor-pointer flex gap-2 items-center justify-center"
-                  >
-                    <dropdownItem.icon className={cn(dropdownItem.iconClass)} />
-                    <Typography variant="p">{dropdownItem.title}</Typography>
-                  </DropdownMenuItem>
+                  <DropdownMenuSub key={dropdownItem.title}>
+                    <DropdownMenuSubTrigger className="cursor-pointer flex gap-2 items-center justify-start">
+                      <dropdownItem.icon className={cn(dropdownItem.iconClass)} />
+                      <Typography variant="p">{dropdownItem.title}</Typography>
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuPortal>
+                      <DropdownMenuSubContent>{dropdownItem.render()}</DropdownMenuSubContent>
+                    </DropdownMenuPortal>
+                  </DropdownMenuSub>
                 );
               })}
             </DropdownMenuContent>
           </DropdownMenu>
-          {/* Add Task Button */}
-          <Button onClick={handleAddTask} title="Add task">
-            {" "}
-            <Plus className="h-4 w-4 mr-2" /> Add Task
-          </Button>
         </div>
         {/* tables */}
         <div className="overflow-hidden w-full overflow-y-scroll" style={{ height: "calc(100vh - 8rem)" }}>
@@ -1119,10 +1220,10 @@ const HideColumn = ({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className=" focus-visible:ring-0">
+        <p className="flex gap-1 justify-center items-center focus-visible:ring-0">
           <Grid2X2 className="h-4 w-4 mr-1" />
           Columns
-        </Button>
+        </p>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {table

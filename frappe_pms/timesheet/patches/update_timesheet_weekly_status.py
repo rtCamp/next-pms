@@ -8,7 +8,7 @@ from frappe_pms.timesheet.api.utils import update_weekly_status_of_timesheet
 def execute():
     timesheet_meta = frappe.get_meta("Timesheet")
 
-    if not timesheet_meta.has_field("custom_approval_status"):
+    if not timesheet_meta.has_field("custom_weekly_approval_statuscl"):
         sync_fixtures()
     today_date = getdate(today())
     base_date = add_months(getdate(today_date), -2)
