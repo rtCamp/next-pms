@@ -20,7 +20,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     (async () => {
       call
-        .get("frappe_pms.timesheet.api.utils.get_employee_from_user")
+        .get("frappe_pms.timesheet.api.employee.get_employee_from_user")
         .then((res) => {
           dispatch(setEmployee(res?.message));
         })

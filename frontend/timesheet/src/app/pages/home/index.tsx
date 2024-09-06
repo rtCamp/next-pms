@@ -153,7 +153,7 @@ const Home = () => {
           </div>
         </div>
       </section>
-      {isLoading ? (
+      {isLoading && Object.keys(homeState.data.data).length == 0 ? (
         <Spinner isFull />
       ) : (
         <div className="overflow-y-scroll mb-2" style={{ height: "calc(100vh - 8rem)" }}>
