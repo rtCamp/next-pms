@@ -91,7 +91,15 @@ type localStorageTaskType = {
   /* eslint-disable-next-line */
   projects: any[];
   /* eslint-disable-next-line */
-  columnWidth: any[];
+  columnWidth: {
+    subject: string;
+    due_date: string;
+    project_name: string;
+    status: string;
+    priority: string;
+    expected_time: string;
+    actual_time: string;
+  };
   /* eslint-disable-next-line */
   columnSort: any[];
 };
@@ -112,7 +120,15 @@ const Task = () => {
     hideColumn: [],
     groupBy: [],
     projects: [],
-    columnWidth: [],
+    columnWidth: {
+      subject: "150",
+      due_date: "150",
+      project_name: "150",
+      status: "150",
+      priority: "150",
+      expected_time: "150",
+      actual_time: "150",
+    },
     columnSort: [],
   };
   const [localStorageTaskState, setLocalStorageTaskState] = useState<localStorageTaskType>(() => {
@@ -297,7 +313,7 @@ const Task = () => {
   const columns: ColumnsType = [
     {
       accessorKey: "project_name",
-      size: localStorageTaskState?.columnWidth["project_name"] ?? "150",
+      size: Number(localStorageTaskState?.columnWidth["project_name"] ?? "150"),
       header: ({ column }) => {
         return (
           <div
@@ -331,7 +347,7 @@ const Task = () => {
     },
     {
       accessorKey: "subject",
-      size: localStorageTaskState?.columnWidth["subject"] ?? "150",
+      size: Number(localStorageTaskState?.columnWidth["subject"] ?? "150"),
       header: ({ column }) => {
         return (
           <div
@@ -364,7 +380,7 @@ const Task = () => {
     },
     {
       accessorKey: "due_date",
-      size: localStorageTaskState?.columnWidth["due_date"] ?? "150",
+      size: Number(localStorageTaskState?.columnWidth["due_date"] ?? "150"),
       header: ({ column }) => {
         return (
           <div
@@ -393,7 +409,7 @@ const Task = () => {
     },
     {
       accessorKey: "status",
-      size: localStorageTaskState?.columnWidth["status"] ?? "150",
+      size: Number(localStorageTaskState?.columnWidth["status"] ?? "150"),
       sortingFn: customStatusSort,
       header: ({ column }) => {
         return (
@@ -420,7 +436,7 @@ const Task = () => {
     {
       accessorKey: "priority",
       sortingFn: customPrioritySort,
-      size: localStorageTaskState?.columnWidth["priority"] ?? "150",
+      size: Number(localStorageTaskState?.columnWidth["priority"] ?? "150"),
       header: ({ column }) => {
         return (
           <div
@@ -445,7 +461,7 @@ const Task = () => {
     },
     {
       accessorKey: "expected_time",
-      size: localStorageTaskState?.columnWidth["expected_time"] ?? "150",
+      size: Number(localStorageTaskState?.columnWidth["expected_time"] ?? "150"),
       header: ({ column }) => {
         return (
           <div
@@ -474,7 +490,7 @@ const Task = () => {
     },
     {
       accessorKey: "actual_time",
-      size: localStorageTaskState?.columnWidth["actual_time"] ?? "150",
+      size: Number(localStorageTaskState?.columnWidth["actual_time"] ?? "150"),
       header: ({ column }) => {
         return (
           <div
@@ -546,7 +562,7 @@ const Task = () => {
   const nestedProjectColumns: ProjectNestedColumnsType = [
     {
       accessorKey: "project_name",
-      size: localStorageTaskState?.columnWidth["project_name"] ?? "150",
+      size: Number(localStorageTaskState?.columnWidth["project_name"] ?? "150"),
       enableHiding: false,
       header: ({ column }) => {
         return (
@@ -595,7 +611,7 @@ const Task = () => {
     },
     {
       accessorKey: "subject",
-      size: localStorageTaskState?.columnWidth["subject"] ?? "150",
+      size: Number(localStorageTaskState?.columnWidth["subject"] ?? "150"),
       header: ({ column }) => {
         return (
           <div
@@ -628,7 +644,7 @@ const Task = () => {
     },
     {
       accessorKey: "due_date",
-      size: localStorageTaskState?.columnWidth["due_date"] ?? "150",
+      size: Number(localStorageTaskState?.columnWidth["due_date"] ?? "150"),
       header: ({ column }) => {
         return (
           <div
@@ -656,7 +672,7 @@ const Task = () => {
     {
       accessorKey: "status",
       sortingFn: customStatusSort,
-      size: localStorageTaskState?.columnWidth["status"] ?? "150",
+      size: Number(localStorageTaskState?.columnWidth["status"] ?? "150"),
       header: ({ column }) => {
         return (
           <div
@@ -680,7 +696,7 @@ const Task = () => {
     {
       id: "priority",
       sortingFn: customPrioritySort,
-      size: localStorageTaskState?.columnWidth["priority"] ?? "150",
+      size: Number(localStorageTaskState?.columnWidth["priority"] ?? "150"),
       accessorKey: "priority",
       header: ({ column }) => {
         return (
@@ -704,7 +720,7 @@ const Task = () => {
     },
     {
       id: "expected_time",
-      size: localStorageTaskState?.columnWidth["expected_time"] ?? "150",
+      size: Number(localStorageTaskState?.columnWidth["expected_time"] ?? "150"),
       accessorKey: "expected_time",
       header: ({ column }) => {
         return (
@@ -733,7 +749,7 @@ const Task = () => {
     },
     {
       id: "actual_time",
-      size: localStorageTaskState?.columnWidth["actual_time"] ?? "150",
+      size: Number(localStorageTaskState?.columnWidth["actual_time"] ?? "150"),
       accessorKey: "actual_time",
       header: ({ column }) => {
         return (
