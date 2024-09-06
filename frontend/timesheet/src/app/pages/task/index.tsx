@@ -1296,9 +1296,8 @@ const FlatTable = ({
   setMutateCall: setFlatTaskMutateCallType;
 }) => {
   const dispatch = useDispatch();
-  const { toast } = useToast();
-  let resizeObserver: ResizeObserver;
-  const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.utils.get_task_for_employee", {
+  let resizeObserver;
+  const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.task.get_task_list", {
     page_length: 20,
     start: task.start,
     project: task.selectedProject,
@@ -1436,7 +1435,7 @@ const RowGroupedTable = ({
     isLoading: nestedProjectIsLoading,
     error: nestedProjectError,
     mutate: nestedProjectMutate,
-  } = useFrappeGetCall("frappe_pms.timesheet.api.utils.get_project_task", {
+  } = useFrappeGetCall("frappe_pms.timesheet.api.task.get_task_list_by_project", {
     page_length: 20,
     project: task.selectedProject.length == 0 ? null : task.selectedProject,
     task_search: subjectSearch,
@@ -1624,7 +1623,7 @@ const AddTask = ({
       .trim()
       .min(4, "Please enter valid description."),
   });
-  const { call } = useFrappePostCall("frappe_pms.timesheet.api.utils.add_task");
+  const { call } = useFrappePostCall("frappe_pms.timesheet.api.task.add_task");
   const form = useForm<z.infer<typeof TaskSchema>>({
     resolver: zodResolver(TaskSchema),
     defaultValues: {

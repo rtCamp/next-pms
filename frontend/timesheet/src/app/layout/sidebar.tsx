@@ -68,7 +68,7 @@ const Sidebar = () => {
 
   const fetchAppLogo = () => {
     call
-      .get("frappe_pms.timesheet.api.utils.app_logo")
+      .get("frappe_pms.timesheet.api.app.app_logo")
       .then((res) => {
         dispatch(setAppLogo(res.message));
       })
