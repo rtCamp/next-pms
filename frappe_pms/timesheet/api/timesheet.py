@@ -164,7 +164,7 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
             doc.add_comment("Comment", text=notes)
 
     update_weekly_status_of_timesheet(employee, start_date)
-    return _(f"Timesheet has been set for Approval to {reporting_manager}.")
+    return _(f"Timesheet has been sent for Approval to {reporting_manager}.")
 
 
 @frappe.whitelist()
