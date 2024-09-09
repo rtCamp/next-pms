@@ -120,6 +120,7 @@ const Task = () => {
   const { call } = useFrappePostCall("frappe.desk.like.toggle_like");
   // States for maintaining tables and filters
   const [expanded, setExpanded] = useState<ExpandedState>(true);
+  const [likeSorted, setLikeSorted] = useState(true);
   // LocalStorage States
   const localStorageTaskDataMap = {
     hideColumn: [],
@@ -570,7 +571,7 @@ const Task = () => {
     {
       accessorKey: "liked",
       header: ({ column }) => {
-        if (!column.getIsSorted()) {
+        if (!column.getIsSorted() && likeSorted) {
           return column.toggleSorting(false);
         }
         return <></>;
@@ -915,6 +916,10 @@ const Task = () => {
   }, [localStorageTaskState]);
 
   useEffect(() => {
+    if (sorting.length === 0) setLikeSorted(true);
+    else {
+      if (sorting[0]?.id !== "liked") setLikeSorted(false);
+    }
     setLocalStorageTaskState((prev: localStorageTaskType) => {
       return { ...prev, columnSort: sorting };
     });
@@ -1033,7 +1038,7 @@ const Task = () => {
       </style>
       <div className="md:w-full h-full justify-between flex flex-col relative">
         {/* filters and combo boxes */}
-        <div id="filters" className="flex gap-x-2 mb-3 w-full overflow-hidden p-1 overflow-x-scroll">
+        <div id="filters" className="flex gap-x-2 mb-3 w-full overflow-hidden p-1 overflow-x-auto">
           <div className="flex gap-2 xl:w-2/5">
             {/* Task Search Filter */}
             <Input
