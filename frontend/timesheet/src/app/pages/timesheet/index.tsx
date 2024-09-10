@@ -18,12 +18,12 @@ import { Button } from "@/app/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Typography } from "@/app/components/typography";
 import TimesheetTable, { SubmitButton } from "@/app/components/timesheetTable";
-import { parseFrappeErrorMsg, getFormatedDate, floatToTime } from "@/lib/utils";
+import { parseFrappeErrorMsg, getFormatedDate, floatToTime, expectatedHours } from "@/lib/utils";
 import { addDays } from "date-fns";
 import { Spinner } from "@/app/components/spinner";
 import { EditTime } from "./editTime";
 import { Approval } from "./Approval";
-import { NewTimesheetProps, timesheet } from "@/types/timesheet";
+import { LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
 import { WorkingFrequency } from "@/types";
 import AddTime from "@/app/components/addTime";
 
@@ -32,7 +32,7 @@ function Timesheet() {
   const user = useSelector((state: RootState) => state.user);
   const timesheet = useSelector((state: RootState) => state.timesheet);
   const dispatch = useDispatch();
-
+  const working_hour = expectatedHours(user.workingHours, user.workingFrequency);
   const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.timesheet.get_timesheet_data", {
     employee: user.employee,
     start_date: timesheet.weekDate,
@@ -119,13 +119,28 @@ function Timesheet() {
             Object.keys(timesheet.data?.data).length > 0 &&
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             Object.entries(timesheet.data?.data).map(([key, value]: [string, timesheet], index: number) => {
+              let total_hours = value.total_hours;
+              value.dates.map((date) => {
+                const leaveData = timesheet.data.leaves.find((data: LeaveProps) => {
+                  return date >= data.from_date && date <= data.to_date;
+                });
+                const isHoliday = timesheet.data.holidays.includes(date);
+                if (leaveData && !isHoliday) {
+                  if (leaveData.half_day || (leaveData.half_day_date && leaveData.half_day_date == date)) {
+                    total_hours += working_hour / 2;
+                  } else {
+                    total_hours += working_hour;
+                  }
+                }
+              });
+
               return (
                 <Accordion type="multiple" key={key} defaultValue={index === 0 ? [key] : undefined}>
                   <AccordionItem value={key}>
                     <AccordionTrigger className="hover:no-underline w-full py-2">
                       <div className="flex justify-between items-center w-full">
                         <Typography variant="h6" className="font-normal">
-                          {key}: {floatToTime(value.total_hours)}h
+                          {key}: {floatToTime(total_hours)}h
                         </Typography>
                         <SubmitButton
                           start_date={value.start_date}
