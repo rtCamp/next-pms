@@ -8,36 +8,35 @@ def get_task_list(
     search: str = None,
     page_length: int = 20,
     start: int = 0,
-    project=None,
-    fields: list | str | None = None,
+    projects=None,
 ):
     import json
 
-    if isinstance(project, str):
-        project = json.loads(project)
-    if fields is None:
-        fields = [
-            "name",
-            "subject",
-            "status",
-            "priority",
-            "description",
-            "custom_is_billable as is_billable",
-            "project.project_name",
-            "actual_time",
-            "exp_end_date as due_date",
-            "expected_time",
-            "_liked_by",
-        ]
-    if isinstance(fields, str):
-        fields = json.loads(fields)
-    if project:
-        filter = {"project": ["in", project]}
+    from frappe.query_builder import Case, DocType
+    from frappe.query_builder import functions as fn
+    from pypika import Order
+
+    search_filter = {}
+    if isinstance(projects, str):
+        projects = json.loads(projects)
+
+    fields = [
+        "name",
+        "subject",
+        "status",
+        "priority",
+        "description",
+        "actual_time",
+        "expected_time",
+        "_liked_by",
+    ]
+
+    if projects:
+        filter = {"project": ["in", projects]}
     else:
         projects = frappe.get_list("Project", pluck="name")
         filter = {"project": ["in", projects]}
 
-    search_filter = {}
     if search:
         search_filter.update(
             {
@@ -46,15 +45,39 @@ def get_task_list(
             }
         )
 
-    project_task = frappe.get_all(
-        "Task",
-        filters=filter,
-        or_filters=search_filter,
-        fields=fields,
-        page_length=page_length,
-        start=start,
-        order_by="name desc",
+    doctype = DocType("Task")
+    doctype_project = DocType("Project")
+    tasks = (
+        frappe.qb.from_(doctype)
+        .join(doctype_project)
+        .on(doctype.project == doctype_project.name)
+        .select(
+            *fields,
+            doctype_project.project_name,
+            doctype.custom_is_billable.as_("is_billable"),
+            doctype.exp_end_date.as_("due_date"),
+        )
+        .where(doctype.project.isin(projects))
     )
+    if search:
+        tasks = tasks.where(
+            doctype.name.like(f"%{search}%") | doctype.subject.like(f"%{search}%")
+        )
+
+    tasks = (
+        tasks.limit(page_length)
+        .offset(start)
+        .orderby(
+            Case()
+            .when(
+                fn.Function("INSTR", doctype._liked_by, f'"{frappe.session.user}"') > 0,
+                1,
+            )
+            .else_(0),
+            order=Order.desc,
+        )
+    ).run(as_dict=True)
+
     count = get_count(
         doctype="Task",
         filters=filter,
@@ -62,7 +85,7 @@ def get_task_list(
         ignore_permissions=True,
     )
 
-    return {"task": project_task, "total_count": count}
+    return {"task": tasks, "total_count": count}
 
 
 @frappe.whitelist()
@@ -77,22 +100,9 @@ def get_task_list_by_project(project=None, task_search=None):
     projects = frappe.get_list(
         "Project", fields=["name", "project_name"], filters=filter
     )
-    fields = [
-        "name",
-        "subject",
-        "status",
-        "priority",
-        "description",
-        "custom_is_billable as is_billable",
-        "actual_time",
-        "exp_end_date as due_date",
-        "expected_time",
-        "_liked_by",
-    ]
+
     for project in projects:
-        data = get_task_list(
-            project=[project["name"]], fields=fields, search=task_search
-        )
+        data = get_task_list(projects=[project["name"]], search=task_search)
         project["tasks"] = data.get("task")
     count = frappe.db.count("Project", filters=filter)
     return {"projects": projects, "count": count}

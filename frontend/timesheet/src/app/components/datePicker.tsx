@@ -1,6 +1,6 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
 import { Button } from "@/app/components/ui/button";
-import { Calendar ,CalendarProps} from "@/app/components/ui/calendar";
+import { Calendar, CalendarProps } from "@/app/components/ui/calendar";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { format, isToday, isYesterday } from "date-fns";
@@ -14,7 +14,13 @@ interface DatePickerProps {
   onDateChange?: (date: Date) => void;
 }
 
-export const DatePicker = ({ date, disabled, onDateChange,disabledDates,...props }: DatePickerProps & CalendarProps) => {
+export const DatePicker = ({
+  date,
+  disabled,
+  onDateChange,
+  disabledDates,
+  ...props
+}: DatePickerProps & CalendarProps) => {
   const [pickerDate, setPickerDate] = useState<Date>();
   const [isOpen, setIsOpen] = useState(false);
   useEffect(() => {
@@ -55,5 +61,5 @@ export const DatePicker = ({ date, disabled, onDateChange,disabledDates,...props
 const formateDate = (date: Date) => {
   if (isToday(date)) return "Today";
   if (isYesterday(date)) return "Yesterday";
-  return format(date, "do MMMM");
+  return format(date, "MMM d");
 };

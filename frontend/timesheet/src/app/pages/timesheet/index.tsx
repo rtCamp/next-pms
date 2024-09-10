@@ -21,11 +21,11 @@ import TimesheetTable, { SubmitButton } from "@/app/components/timesheetTable";
 import { parseFrappeErrorMsg, getFormatedDate, floatToTime } from "@/lib/utils";
 import { addDays } from "date-fns";
 import { Spinner } from "@/app/components/spinner";
-import { AddTime } from "./addTime";
 import { EditTime } from "./editTime";
 import { Approval } from "./Approval";
 import { NewTimesheetProps, timesheet } from "@/types/timesheet";
 import { WorkingFrequency } from "@/types";
+import AddTime from "@/app/components/addTime";
 
 function Timesheet() {
   const { toast } = useToast();
@@ -157,7 +157,21 @@ function Timesheet() {
           Load More
         </Button>
       </div>
-      {timesheet.isDialogOpen && <AddTime />}
+      {timesheet.isDialogOpen && (
+        <AddTime
+          open={timesheet.isDialogOpen}
+          onOpenChange={() => {
+            dispatch(SetAddTimeDialog(false));
+          }}
+          onSuccess={() => {
+            dispatch(SetFetchAgain(true));
+          }}
+          initialDate={timesheet.timesheet.date}
+          employee={user.employee}
+          workingFrequency={user.workingFrequency}
+          workingHours={user.workingHours}
+        />
+      )}
       {timesheet.isEditDialogOpen && (
         <EditTime
           employee={timesheet.timesheet.employee as string}

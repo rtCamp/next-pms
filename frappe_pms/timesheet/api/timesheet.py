@@ -323,19 +323,45 @@ def get_timesheet_state(employee: str, start_date: str, end_date: str):
 @frappe.whitelist()
 def get_remaining_hour_for_employee(employee: str, date: str):
     """Return the working hours for the given employee on the given date."""
+    from .employee import get_employee_working_hours
+
+    working_hours = get_employee_working_hours(employee)
+    if not working_hours.get("working_frequency") == "Per Day":
+        working_hours.update({"working_hour": working_hours.get("working_hour") / 5})
+
+    date = getdate(date)
     timesheets = frappe.get_all(
         "Timesheet",
         filters={
             "employee": employee,
-            "start_date": getdate(date),
-            "end_date": getdate(date),
+            "start_date": date,
+            "end_date": date,
         },
         fields=["total_hours"],
     )
     total_hours = 0
     for timesheet in timesheets:
         total_hours += timesheet.total_hours
-    return total_hours
+
+    leaves = get_leaves_for_employee(
+        add_days(date, -4 * 7),
+        add_days(date, 4 * 7),
+        employee,
+    )
+    data = next(
+        (
+            leave
+            for leave in leaves
+            if leave.get("from_date") <= date <= leave.get("to_date")
+        ),
+        None,
+    )
+    if data:
+        if data.get("half_day") and data.get("half_day_date") == date:
+            total_hours += 4
+        else:
+            total_hours += 8
+    return working_hours.get("working_hour") - total_hours
 
 
 @frappe.whitelist()

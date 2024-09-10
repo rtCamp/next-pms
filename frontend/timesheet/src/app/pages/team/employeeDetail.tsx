@@ -33,7 +33,7 @@ import {
 } from "@/app/components/ui/command";
 import { ChevronDown, Check, CircleDollarSign } from "lucide-react";
 import { addDays } from "date-fns";
-import { AddTime } from "./addTime";
+import AddTime from "@/app/components/addTime";
 import {
   setTimesheet,
   setFetchAgain,
@@ -116,7 +116,21 @@ const EmployeeDetail = () => {
   }, [data, teamState.employeeWeekDate, error, teamState.isFetchAgain]);
   return (
     <>
-      {teamState.isDialogOpen && <AddTime />}
+      {teamState.isDialogOpen && (
+        <AddTime
+          open={teamState.isDialogOpen}
+          onOpenChange={() => {
+            dispatch(setDialog(false));
+          }}
+          onSuccess={() => {
+            dispatch(setFetchAgain(true));
+          }}
+          initialDate={teamState.timesheet.date}
+          employee={teamState.employee}
+          workingFrequency={teamState.timesheetData.working_frequency}
+          workingHours={teamState.timesheetData.working_hour}
+        />
+      )}
       {teamState.isEditDialogOpen && (
         <EditTime
           open={teamState.isEditDialogOpen}
@@ -340,15 +354,13 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
                                 <div className="grid w-full grid-cols-3">
                                   <div className="flex gap-1">
                                     <div
-                                      title={task.is_billable === 1 && "Task is billable"}
+                                      title={task.is_billable && "Task is billable"}
                                       className={cn(
-                                        task.is_billable === 1 && "cursor-pointer",
+                                        task.is_billable && "cursor-pointer",
                                         "w-6 h-full flex justify-center flex-none",
                                       )}
                                     >
-                                      {task.is_billable === 1 && (
-                                        <CircleDollarSign className="w-4 h-5 ml-1 stroke-success" />
-                                      )}
+                                      {task.is_billable && <CircleDollarSign className="w-4 h-5 ml-1 stroke-success" />}
                                     </div>
                                     <Typography variant="p" className="font-bold flex">
                                       {task.taskName}
