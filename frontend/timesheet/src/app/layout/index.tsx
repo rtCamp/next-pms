@@ -19,20 +19,18 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   const dispatch = useDispatch();
   const { toast } = useToast();
   useEffect(() => {
-    (async () => {
-      call
-        .get("frappe_pms.timesheet.api.employee.get_employee_from_user")
-        .then((res) => {
-          dispatch(setEmployee(res?.message));
-        })
-        .catch((err) => {
-          const error = parseFrappeErrorMsg(err);
-          toast({
-            variant: "destructive",
-            description: error,
-          });
+    call
+      .get("frappe_pms.timesheet.api.employee.get_employee_from_user")
+      .then((res) => {
+        dispatch(setEmployee(res?.message));
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          description: error,
         });
-    })();
+      });
 
     call
       .get("frappe_pms.timesheet.api.employee.get_employee_working_hours")

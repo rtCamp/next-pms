@@ -1,4 +1,4 @@
-import { lazy, useContext } from "react";
+import { lazy, useContext, useEffect } from "react";
 import { Route, Outlet } from "react-router-dom";
 import { TIMESHEET, HOME, TEAM, TASK } from "@/lib/constant";
 import { Layout, PmRoute } from "@/app/layout/index";
@@ -35,12 +35,14 @@ export const AuthenticatedRoute = () => {
   const { call } = useContext(FrappeContext) as FrappeConfig;
   const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
+  useEffect(() => {
+    if (user.roles.length < 1) {
+      call.get("frappe_pms.timesheet.api.app.get_current_user_roles").then((res) => {
+        dispatch(setRole(res.message));
+      });
+    }
+  }, []);
 
-  if (user.roles.length < 1) {
-    call.get("frappe_pms.timesheet.api.app.get_current_user_roles").then((res) => {
-      dispatch(setRole(res.message));
-    });
-  }
   if (isLoading) {
     return <></>;
   } else if (!currentUser || currentUser === "Guest") {

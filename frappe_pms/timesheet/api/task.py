@@ -6,8 +6,8 @@ from .utils import get_count
 @frappe.whitelist()
 def get_task_list(
     search: str = None,
-    page_length: int = 20,
-    start: int = 0,
+    page_length: int | bool = 20,
+    start: int | None = 0,
     projects=None,
 ):
     import json
@@ -53,6 +53,7 @@ def get_task_list(
         .on(doctype.project == doctype_project.name)
         .select(
             *fields,
+            doctype_project.name.as_("project"),
             doctype_project.project_name,
             doctype.custom_is_billable.as_("is_billable"),
             doctype.exp_end_date.as_("due_date"),
@@ -63,11 +64,10 @@ def get_task_list(
         tasks = tasks.where(
             doctype.name.like(f"%{search}%") | doctype.subject.like(f"%{search}%")
         )
-
+    if page_length:
+        tasks = tasks.limit(page_length)
     tasks = (
-        tasks.limit(page_length)
-        .offset(start)
-        .orderby(
+        tasks.offset(start).orderby(
             Case()
             .when(
                 fn.Function("INSTR", doctype._liked_by, f'"{frappe.session.user}"') > 0,
