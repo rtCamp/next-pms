@@ -10,7 +10,7 @@ import {
 } from "@/app/components/ui/command";
 import { Check } from "lucide-react";
 import { Typography } from "./typography";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { cn, deBounce } from "@/lib/utils";
 
@@ -28,6 +28,7 @@ interface ComboBoxProps {
   className?: string;
   showSelected?: boolean;
   shouldFilter?: boolean;
+  deBounceTime?: number;
 }
 
 export const ComboxBox = ({
@@ -44,8 +45,12 @@ export const ComboxBox = ({
   className = "",
   showSelected = false,
   shouldFilter = false,
+  deBounceTime = 700,
 }: ComboBoxProps) => {
   const [selectedValues, setSelectedValues] = useState<string[]>(typeof value === "string" ? [value] : value ?? []);
+  useEffect(() => {
+    setSelectedValues(typeof value === "string" ? [value] : value ?? []);
+  }, [value]);
   const [open, setOpen] = useState(isOpen);
   const clearFilter = () => {
     setSelectedValues([]);
@@ -82,7 +87,7 @@ export const ComboxBox = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const onInputChange = deBounce((search) => {
     onSearch && onSearch(search);
-  }, 700);
+  }, deBounceTime);
 
   return (
     <Popover modal open={open} onOpenChange={handleComboClose}>
@@ -100,7 +105,17 @@ export const ComboxBox = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0 w-96">
-        <Command shouldFilter={shouldFilter}>
+        <Command
+          shouldFilter={shouldFilter}
+          filter={(value: string, search: string, keywords?: string[]) => {
+            if (!keywords) return 0;
+            const extendValue = value + " " + keywords.join(" ");
+            if (extendValue.toLowerCase().includes(search.toLowerCase())) {
+              return 1;
+            }
+            return 0;
+          }}
+        >
           <CommandInput placeholder={label} onValueChange={onInputChange} />
           <CommandEmpty>No data.</CommandEmpty>
           <CommandGroup>
@@ -110,6 +125,7 @@ export const ComboxBox = ({
                 return (
                   <CommandItem
                     key={index}
+                    keywords={[item.label, item.value]}
                     onSelect={handleSelect}
                     className="flex gap-x-2 text-primary cursor-pointer"
                     value={item.value}

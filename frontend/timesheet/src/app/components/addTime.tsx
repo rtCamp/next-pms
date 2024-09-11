@@ -50,7 +50,7 @@ const AddTime = ({
     userState.roles.includes("Timesheet Manager") ||
     userState.roles.includes("System Manager");
   const { call: save } = useFrappePostCall("frappe_pms.timesheet.api.timesheet.save");
-  const [searchTask, setSearchTask] = useState("");
+  const [searchTask, setSearchTask] = useState(task);
   const [tasks, setTask] = useState([]);
   const [selectedProject, setSelectedProject] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState(getFormatedDate(initialDate));
@@ -86,6 +86,17 @@ const AddTime = ({
     } else {
       form.setValue("task", value);
     }
+    updateProject(value[0]);
+  };
+  const updateProject = (value: string) => {
+    if (selectedProject.length === 0) {
+      tasks.find((item: TaskData) => {
+        if (item.name == value) {
+          console.log("value", value);
+          setSelectedProject([item.project]);
+        }
+      });
+    }
   };
   const handleProjectChange = (value: string | string[]) => {
     if (value instanceof Array) {
@@ -93,6 +104,7 @@ const AddTime = ({
     } else {
       setSelectedProject([value]);
     }
+    setSearchTask("");
     form.setValue("task", "");
   };
   const handleSubmit = (data: z.infer<typeof TimesheetSchema>) => {
@@ -118,6 +130,7 @@ const AddTime = ({
       .get("frappe_pms.timesheet.api.task.get_task_list", {
         search: searchTask,
         projects: selectedProject,
+        page_length: 100,
       })
       .then((res) => {
         setTask(res.message.task);
@@ -143,9 +156,7 @@ const AddTime = ({
   });
 
   useEffect(() => {
-    if (selectedProject.length > 0 || task.length > 0) {
-      fetchTask();
-    }
+    fetchTask();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTask, selectedProject]);
 
@@ -153,6 +164,7 @@ const AddTime = ({
     mutatePerDayHrs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
+
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
       <DialogContent className="max-w-xl">
@@ -281,6 +293,7 @@ const AddTime = ({
                         <ComboxBox
                           label="Search Task"
                           showSelected
+                          deBounceTime={200}
                           value={form.getValues("task").length > 0 ? [form.getValues("task")] : []}
                           data={
                             tasks.map((item: TaskData) => ({
