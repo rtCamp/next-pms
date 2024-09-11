@@ -30,6 +30,7 @@ interface AddTimeProps {
   workingHours: number;
   onSuccess?: () => void;
   workingFrequency: WorkingFrequency;
+  task?: string;
 }
 
 const AddTime = ({
@@ -40,6 +41,7 @@ const AddTime = ({
   workingFrequency,
   workingHours,
   onSuccess,
+  task = "",
 }: AddTimeProps) => {
   const { call } = useContext(FrappeContext) as FrappeConfig;
   const userState = useSelector((state: RootState) => state.user);
@@ -58,7 +60,7 @@ const AddTime = ({
     resolver: zodResolver(TimesheetSchema),
     defaultValues: {
       name: "",
-      task: "",
+      task: task,
       hours: floatToTime(0),
       description: "",
       date: initialDate,
@@ -141,7 +143,9 @@ const AddTime = ({
   });
 
   useEffect(() => {
-    fetchTask();
+    if (selectedProject.length > 0 || task.length > 0) {
+      fetchTask();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTask, selectedProject]);
 

@@ -70,7 +70,7 @@ import {
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
 import { SetAddTimeDialog, SetTimesheet } from "@/store/timesheet";
-import { AddTime } from "@/app/pages/timesheet/addTime";
+import AddTime from "@/app/components/addTime";
 import React from "react";
 import { Input } from "@/app/components/ui/input";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
@@ -1166,7 +1166,19 @@ const Task = () => {
           </Typography>
         </div>
         {/* addTime */}
-        {timesheet.isDialogOpen && <AddTime />}
+        {timesheet.isDialogOpen && (
+          <AddTime
+            employee={user.employee}
+            task={timesheet.timesheet.task}
+            initialDate={timesheet.timesheet.date}
+            open={timesheet.isDialogOpen}
+            onOpenChange={() => {
+              dispatch(SetAddTimeDialog(false));
+            }}
+            workingFrequency={user.workingFrequency}
+            workingHours={user.workingHours}
+          />
+        )}
         {/* addTask */}
         {task.isAddTaskDialogBoxOpen && <AddTask task={task} projects={projects} setProjectSearch={setProjectSearch} />}
       </div>
