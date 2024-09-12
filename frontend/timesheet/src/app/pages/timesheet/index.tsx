@@ -117,9 +117,15 @@ function Timesheet() {
         <div className="overflow-y-scroll" style={{ height: "calc(100vh - 8rem)" }}>
           {timesheet.data?.data &&
             Object.keys(timesheet.data?.data).length > 0 &&
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             Object.entries(timesheet.data?.data).map(([key, value]: [string, timesheet], index: number) => {
               let total_hours = value.total_hours;
+              const holidays = timesheet.data.holidays.map((holiday) => {
+                if (typeof holiday === "object" && "holiday_date" in holiday) {
+                  return holiday.holiday_date;
+                } else {
+                  return holiday;
+                }
+              });
               value.dates.map((date) => {
                 const leaveData = timesheet.data.leaves.find((data: LeaveProps) => {
                   return date >= data.from_date && date <= data.to_date;
@@ -155,7 +161,7 @@ function Timesheet() {
                         working_hour={timesheet.data.working_hour}
                         working_frequency={timesheet.data.working_frequency as WorkingFrequency}
                         dates={value.dates}
-                        holidays={timesheet.data.holidays}
+                        holidays={holidays}
                         leaves={timesheet.data.leaves}
                         tasks={value.tasks}
                         onCellClick={onCellClick}
