@@ -291,15 +291,16 @@ def get_timesheet(dates: list, employee: str):
                 )
                 if not subject:
                     continue
-                if subject not in data:
-                    data[subject] = {
+                if task_name not in data:
+                    data[task_name] = {
                         "name": task_name,
+                        "subject": subject,
                         "data": [],
                         "is_billable": is_billable,
                         "project_name": project_name,
                     }
 
-                data[subject]["data"].append(log.as_dict())
+                data[task_name]["data"].append(log.as_dict())
     return [data, total_hours]
 
 
