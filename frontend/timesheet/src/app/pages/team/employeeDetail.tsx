@@ -76,6 +76,7 @@ const EmployeeDetail = () => {
       isUpdate: false,
     };
     dispatch(setTimesheet({ timesheet, id }));
+    dispatch(setDialog(true));
   };
   const handleLoadData = () => {
     if (teamState.timesheetData.data == undefined || Object.keys(teamState.timesheetData.data).length == 0) return;

@@ -185,6 +185,7 @@ function Timesheet() {
           employee={user.employee}
           workingFrequency={user.workingFrequency}
           workingHours={user.workingHours}
+          task={timesheet.timesheet.task}
         />
       )}
       {timesheet.isEditDialogOpen && (

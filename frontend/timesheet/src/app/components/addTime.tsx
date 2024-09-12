@@ -91,8 +91,7 @@ const AddTime = ({
   const updateProject = (value: string) => {
     if (selectedProject.length === 0) {
       tasks.find((item: TaskData) => {
-        if (item.name == value) {
-          console.log("value", value);
+        if (item.name === value) {
           setSelectedProject([item.project]);
         }
       });
