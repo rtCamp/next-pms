@@ -16,6 +16,7 @@ def get_user_from_employee(employee: str):
     return frappe.get_value("Employee", employee, "user_id")
 
 
+@frappe.whitelist()
 def get_employee_working_hours(employee: str = None):
     if not employee:
         employee = get_employee_from_user()

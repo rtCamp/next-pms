@@ -11,6 +11,7 @@ import { Navigate, Outlet } from "react-router-dom";
 import { TIMESHEET } from "@/lib/constant";
 import GenWrapper from "../components/GenWrapper";
 import { updateScreenSize } from "@/store/app";
+import { setWorkingDetail } from "@/store/user";
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const { call } = useContext(FrappeContext) as FrappeConfig;
@@ -18,20 +19,36 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   const dispatch = useDispatch();
   const { toast } = useToast();
   useEffect(() => {
-    (async () => {
-      call
-        .get("frappe_pms.timesheet.api.employee.get_employee_from_user")
-        .then((res) => {
-          dispatch(setEmployee(res?.message));
-        })
-        .catch((err) => {
-          const error = parseFrappeErrorMsg(err);
-          toast({
-            variant: "destructive",
-            description: error,
-          });
+    call
+      .get("frappe_pms.timesheet.api.employee.get_employee_from_user")
+      .then((res) => {
+        dispatch(setEmployee(res?.message));
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          description: error,
         });
-    })();
+      });
+
+    call
+      .get("frappe_pms.timesheet.api.employee.get_employee_working_hours")
+      .then((res) => {
+        const data = {
+          workingHours: res?.message.working_hour,
+          workingFrequency: res?.message.working_frequency,
+        };
+        dispatch(setWorkingDetail(data));
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          description: error,
+        });
+      });
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const screenSize = useSelector((state: RootState) => state.app.screenSize);

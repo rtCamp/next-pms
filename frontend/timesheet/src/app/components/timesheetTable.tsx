@@ -104,7 +104,7 @@ const TimesheetTable = ({
                     <HoverCard openDelay={1000} closeDelay={0}>
                       <HoverCardTrigger>
                         <Typography variant="p" className="text-slate-800 truncate overflow-hidden ">
-                          {task}
+                          {taskData.subject}
                         </Typography>
                       </HoverCardTrigger>
                       <Typography
@@ -114,7 +114,7 @@ const TimesheetTable = ({
                         {taskData.project_name}
                       </Typography>
 
-                      <HoverCardContent className="max-w-72">{task}</HoverCardContent>
+                      <HoverCardContent className="max-w-72">{taskData.subject}</HoverCardContent>
                     </HoverCard>
                   </TableCell>
                   {dates.map((date: string) => {

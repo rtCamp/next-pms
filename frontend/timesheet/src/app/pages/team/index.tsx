@@ -70,6 +70,16 @@ const Team = () => {
   const [statusParam, setStatusParam] = useQueryParamsState<string[]>("status", []);
   const [employeeNameParam, setEmployeeNameParam] = useQueryParamsState<string>("employee-name", "");
   const [employee, setEmployee] = useState(employeeNameParam);
+  const approvals = [
+    { label: "Not Submitted", value: "Not Submitted" },
+    { label: "Approval Pending", value: "Approval Pending" },
+    { label: "Approved", value: "Approved" },
+    { label: "Rejected", value: "Rejected" },
+    { label: "Partially Approved", value: "Partially Approved" },
+    { label: "Partially Rejected", value: "Partially Rejected" },
+  ];
+  const [approvalsData, setApprovalsData] = useState(approvals);
+
   useEffect(() => {
     const payload = {
       project: projectParam,
@@ -79,6 +89,27 @@ const Team = () => {
     };
     dispatch(setFilters(payload));
   }, []);
+
+  const { data, mutate, isLoading, isValidating, error } = useFrappeGetCall(
+    "frappe_pms.timesheet.api.team.get_compact_view_data",
+    {
+      date: teamState.weekDate,
+      max_week: 1,
+      page_length: 20,
+      employee_name: teamState.employeeName,
+      project: teamState.project,
+      user_group: teamState.userGroup,
+      start: teamState.start,
+      status_filter: teamState.statusFilter,
+    },
+    undefined,
+    {
+      shouldRetryOnError: false,
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnMount: false,
+    },
+  );
 
   const {
     data: projects,
@@ -97,6 +128,9 @@ const Team = () => {
     "projects",
     {
       shouldRetryOnError: false,
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnMount: false,
     },
   );
 
@@ -113,32 +147,14 @@ const Team = () => {
     "user_group",
     {
       shouldRetryOnError: false,
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnMount: false,
     },
   );
 
-  const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.team.get_compact_view_data", {
-    date: teamState.weekDate,
-    max_week: 1,
-    page_length: 20,
-    employee_name: teamState.employeeName,
-    project: teamState.project,
-    user_group: teamState.userGroup,
-    start: teamState.start,
-    status_filter: teamState.statusFilter,
-  });
-
-  const approvals = [
-    { label: "Not Submitted", value: "Not Submitted" },
-    { label: "Approval Pending", value: "Approval Pending" },
-    { label: "Approved", value: "Approved" },
-    { label: "Rejected", value: "Rejected" },
-    { label: "Partially Approved", value: "Partially Approved" },
-    { label: "Partially Rejected", value: "Partially Rejected" },
-  ];
-  const [approvalsData, setApprovalsData] = useState(approvals);
-
   useEffect(() => {
-    if (teamState.isFetchAgain) {
+    if (teamState.isFetchAgain == true) {
       mutate();
       dispatch(setFetchAgain(false));
     }
@@ -157,7 +173,7 @@ const Team = () => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, error, teamState.isFetchAgain]);
+  }, [teamState.isFetchAgain, data, error]);
 
   useEffect(() => {
     projectMutate();
@@ -279,7 +295,7 @@ const Team = () => {
     deBounce((e: React.ChangeEvent<HTMLInputElement>) => {
       dispatch(setEmployeeName(e.target.value));
       setEmployeeNameParam(e.target.value);
-    }, 700),
+    }, 500),
     [dispatch],
   );
   const handleEmployeeChange = useCallback(
@@ -353,7 +369,7 @@ const Team = () => {
           </Button>
         </div>
       </div>
-      {isLoading ? (
+      {isLoading || isValidating ? (
         <Spinner isFull />
       ) : (
         <div className="overflow-y-scroll mb-2 " style={{ height: "calc(100vh - 8rem)" }}>
@@ -477,7 +493,7 @@ const Team = () => {
           Load More
         </Button>
         <Typography variant="p" className="px-5 font-semibold">
-          {`${Object.keys(teamState.data.data).length | 0} of ${data?.message?.total_count | 0}`}
+          {`${Object.keys(teamState.data.data).length | 0} of ${teamState.data.total_count | 0}`}
         </Typography>
       </div>
     </>

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Button } from "@/app/components/ui/button";
 import { useParams } from "react-router-dom";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
@@ -14,26 +13,17 @@ import {
   deBounce,
   floatToTime,
   preProcessLink,
+  expectatedHours,
 } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useToast } from "@/app/components/ui/use-toast";
 import { Spinner } from "@/app/components/spinner";
 import { Typography } from "@/app/components/typography";
 import TimesheetTable from "@/app/components/timesheetTable";
-import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
-import { Avatar, AvatarImage, AvatarFallback } from "@/app/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/app/components/ui/command";
-import { ChevronDown, Check, CircleDollarSign } from "lucide-react";
+import { CircleDollarSign } from "lucide-react";
 import { addDays } from "date-fns";
-import { AddTime } from "./addTime";
+import AddTime from "@/app/components/addTime";
 import {
   setTimesheet,
   setFetchAgain,
@@ -47,18 +37,19 @@ import {
 } from "@/store/team";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { Employee } from "@/types";
-import { LeaveProps, NewTimesheetProps, TaskDataItemProps, timesheet } from "@/types/timesheet";
+
+import { LeaveProps, NewTimesheetProps, TaskDataItemProps, TaskDataProps, timesheet } from "@/types/timesheet";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/app/components/ui/input";
 import { timeFormatRegex } from "@/schema/timesheet";
 import { EditTime } from "@/app/pages/timesheet/editTime";
-
+import EmployeeCombo from "@/app/components/employeeComboBox";
 const EmployeeDetail = () => {
   const { id } = useParams();
   const teamState = useSelector((state: RootState) => state.team);
   const dispatch = useDispatch();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.timesheet.get_timesheet_data", {
     employee: id,
     start_date: teamState.employeeWeekDate,
@@ -76,6 +67,7 @@ const EmployeeDetail = () => {
       isUpdate: false,
     };
     dispatch(setTimesheet({ timesheet, id }));
+    dispatch(setDialog(true));
   };
   const handleLoadData = () => {
     if (teamState.timesheetData.data == undefined || Object.keys(teamState.timesheetData.data).length == 0) return;
@@ -114,9 +106,26 @@ const EmployeeDetail = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, teamState.employeeWeekDate, error, teamState.isFetchAgain]);
+  const onEmployeeChange = (name: string) => {
+    navigate(`/team/employee/${name}`);
+  };
   return (
     <>
-      {teamState.isDialogOpen && <AddTime />}
+      {teamState.isDialogOpen && (
+        <AddTime
+          open={teamState.isDialogOpen}
+          onOpenChange={() => {
+            dispatch(setDialog(false));
+          }}
+          onSuccess={() => {
+            dispatch(setFetchAgain(true));
+          }}
+          initialDate={teamState.timesheet.date}
+          employee={teamState.employee}
+          workingFrequency={teamState.timesheetData.working_frequency}
+          workingHours={teamState.timesheetData.working_hour}
+        />
+      )}
       {teamState.isEditDialogOpen && (
         <EditTime
           open={teamState.isEditDialogOpen}
@@ -129,7 +138,7 @@ const EmployeeDetail = () => {
           }}
         />
       )}
-      <EmployeeCombo />
+      <EmployeeCombo onSelect={onEmployeeChange} value={id as string} className="w-fit" />
       <Tabs defaultValue="timesheet" className="mt-3">
         <div className="flex gap-x-4">
           <TabsList className="w-full justify-start">
@@ -181,13 +190,34 @@ const Timesheet = () => {
       dispatch(setDialog(true));
     }
   };
-  const holidays = teamState.timesheetData.holidays.map((holiday) => holiday.holiday_date);
+  const holidays = teamState.timesheetData.holidays.map((holiday) => {
+    if (typeof holiday === "object" && "holiday_date" in holiday) {
+      return holiday.holiday_date;
+    } else {
+      return holiday;
+    }
+  });
+  const working_hour = expectatedHours(teamState.timesheetData.working_hour, teamState.timesheetData.working_frequency);
   return (
     <div className="flex flex-col">
       {teamState.timesheetData.data &&
         Object.keys(teamState.timesheetData.data).length > 0 &&
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet]) => {
+          let total_hours = value.total_hours;
+
+          value.dates.map((date) => {
+            const leaveData = teamState.timesheetData.leaves.find((data: LeaveProps) => {
+              return date >= data.from_date && date <= data.to_date;
+            });
+            const isHoliday = holidays.includes(date);
+            if (leaveData && !isHoliday) {
+              if (leaveData.half_day || (leaveData.half_day_date && leaveData.half_day_date == date)) {
+                total_hours += working_hour / 2;
+              } else {
+                total_hours += working_hour;
+              }
+            }
+          });
           return (
             <>
               <Accordion type="multiple" key={key} defaultValue={[key]}>
@@ -195,7 +225,7 @@ const Timesheet = () => {
                   <AccordionTrigger className="hover:no-underline w-full">
                     <div className="flex justify-between w-full">
                       <Typography variant="h6" className="font-normal">
-                        {key}: {floatToTime(value.total_hours)}h
+                        {key}: {floatToTime(total_hours)}h
                       </Typography>
                     </div>
                   </AccordionTrigger>
@@ -240,13 +270,35 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
         });
       });
   };
-
+  const holidays = teamState.timesheetData.holidays.map((holiday) => {
+    if (typeof holiday === "object" && "holiday_date" in holiday) {
+      return holiday.holiday_date;
+    } else {
+      return holiday;
+    }
+  });
+  const working_hour = expectatedHours(teamState.timesheetData.working_hour, teamState.timesheetData.working_frequency);
   return (
     <div>
       {teamState.timesheetData.data &&
         Object.keys(teamState.timesheetData.data).length > 0 &&
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet]) => {
+          let total_hours = value.total_hours;
+
+          value.dates.map((date) => {
+            const leaveData = teamState.timesheetData.leaves.find((data: LeaveProps) => {
+              return date >= data.from_date && date <= data.to_date;
+            });
+            const isHoliday = holidays.includes(date);
+            if (leaveData && !isHoliday) {
+              if (leaveData.half_day || (leaveData.half_day_date && leaveData.half_day_date == date)) {
+                total_hours += working_hour / 2;
+              } else {
+                total_hours += working_hour;
+              }
+            }
+          });
           return (
             <>
               <Accordion type="multiple" key={key} defaultValue={isOpen ? [key] : []}>
@@ -254,26 +306,25 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
                   <AccordionTrigger className="hover:no-underline w-full">
                     <div className="flex justify-between w-full">
                       <Typography variant="h6" className="font-normal">
-                        {key}: {floatToTime(value.total_hours)}h
+                        {key}: {floatToTime(total_hours)}h
                       </Typography>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="pb-0">
                     {value.dates.map((date: string, index: number) => {
                       const { date: formattedDate } = prettyDate(date, true);
-                      const matchingTasks = Object.entries(value.tasks).flatMap(
-                        ([taskName, task]: [string, TaskDataItemProps]) =>
-                          task.data
-                            .filter(
-                              (taskItem: TaskDataItemProps[]) => getDateFromDateAndTime(taskItem.from_time) === date,
-                            )
-                            .map((taskItem: TaskDataItemProps) => ({
-                              ...taskItem,
-                              taskName,
-                              projectName: task.project_name,
-                            })),
+                      const matchingTasks = Object.entries(value.tasks).flatMap(([, task]: [string, TaskDataProps]) =>
+                        task.data
+                          .filter((taskItem: TaskDataItemProps) => getDateFromDateAndTime(taskItem.from_time) === date)
+                          .map((taskItem: TaskDataItemProps) => ({
+                            ...taskItem,
+                            subject: task.subject,
+                            project_name: task.project_name,
+                          })),
                       );
-                      const holiday = teamState.timesheetData.holidays.find((holiday) => holiday.holiday_date === date);
+                      const holiday = teamState.timesheetData.holidays.find(
+                        (holiday) => typeof holiday !== "string" && holiday.holiday_date === date,
+                      );
                       const isHoliday = !!holiday;
                       let totalHours = matchingTasks.reduce((sum, task) => sum + task.hours, 0);
                       const leave = teamState.timesheetData.leaves.find((data: LeaveProps) => {
@@ -294,7 +345,7 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
                       );
                       return (
                         <div key={index} className="flex flex-col">
-                          <div className="bg-gray-100 p-1 rounded border-b flex items-center gap-x-2">
+                          <div className="bg-gray-100 p-1 pl-2.5 rounded border-b flex items-center gap-x-2">
                             <Typography
                               variant="p"
                               className={cn(
@@ -308,6 +359,8 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
                             <Typography variant="p">{formattedDate}</Typography>
                             {isHoliday && (
                               <Typography variant="p" className="text-gray-600">
+                                {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+                                {/* @ts-ignore */}
                                 {holiday.description}
                               </Typography>
                             )}
@@ -340,19 +393,24 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
                                 <div className="grid w-full grid-cols-3">
                                   <div className="flex gap-1">
                                     <div
-                                      title={task.is_billable === 1 && "Task is billable"}
+                                      title={task.is_billable == 1 ? "Billable task" : ""}
                                       className={cn(
-                                        task.is_billable === 1 && "cursor-pointer",
+                                        task.is_billable && "cursor-pointer",
                                         "w-6 h-full flex justify-center flex-none",
                                       )}
                                     >
-                                      {task.is_billable === 1 && (
+                                      {task.is_billable == 1 && (
                                         <CircleDollarSign className="w-4 h-5 ml-1 stroke-success" />
                                       )}
                                     </div>
-                                    <Typography variant="p" className="font-bold flex">
-                                      {task.taskName}
-                                    </Typography>
+                                    <div className="flex flex-col max-w-xs">
+                                      <Typography variant="p" className="truncate">
+                                        {task.subject}
+                                      </Typography>
+                                      <Typography variant="small" className="truncate text-slate-500">
+                                        {task.project_name}
+                                      </Typography>
+                                    </div>
                                   </div>
 
                                   <p
@@ -378,74 +436,6 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
           );
         })}
     </div>
-  );
-};
-const EmployeeCombo = () => {
-  const { id } = useParams();
-  const [selectedValues, setSelectedValues] = useState<string>(id ?? "");
-  const [employee, setEmployee] = useState<Employee | undefined>();
-  const navigate = useNavigate();
-
-  const { data: employees } = useFrappeGetCall("frappe_pms.timesheet.api.employee.get_employee_list");
-  const onEmployeeChange = (name: string) => {
-    setSelectedValues(name);
-    navigate(`/team/employee/${name}`);
-  };
-
-  useEffect(() => {
-    if (!employees) return;
-    const res = employees?.message.data.find((item: Employee) => item.name === selectedValues);
-    setEmployee(res);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [employees, id]);
-  return (
-    <Popover modal>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className={cn("items-center gap-x-4 px-2 justify-between [&[data-state=open]>svg]:rotate-180")}
-        >
-          <span className="flex gap-x-2 items-center">
-            <Avatar className="w-8 h-8">
-              <AvatarImage src={employee?.image} alt="image" />
-              <AvatarFallback>{employee?.employee_name[0]}</AvatarFallback>
-            </Avatar>
-            {employee?.employee_name}
-          </span>
-          <ChevronDown size={24} className="w-4 h-4 transition-transform duration-400" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="p-0">
-        <Command>
-          <CommandInput placeholder="Search Employee" />
-          <CommandEmpty>No data.</CommandEmpty>
-          <CommandGroup>
-            <CommandList>
-              {employees?.message.data.map((item: Employee, index: number) => {
-                const isActive = selectedValues == item.name;
-                return (
-                  <CommandItem
-                    key={index}
-                    onSelect={() => {
-                      onEmployeeChange(item.name);
-                    }}
-                    className="flex gap-x-2 text-primary font-normal"
-                    value={item.employee_name}
-                  >
-                    <Check className={cn("mr-2 h-4 w-4", isActive ? "opacity-100" : "opacity-0")} />
-                    <Avatar>
-                      <AvatarImage src={item.image} alt={item.employee_name} />
-                      <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
-                    </Avatar>
-                    <Typography variant="p">{item.employee_name}</Typography>
-                  </CommandItem>
-                );
-              })}
-            </CommandList>
-          </CommandGroup>
-        </Command>
-      </PopoverContent>
-    </Popover>
   );
 };
 

@@ -15,9 +15,9 @@ def get_columns():
             "fieldtype": "Date",
         },
         {
-            "fieldname": "employee",
+            "fieldname": "employee_name",
             "label": _("Employee"),
-            "fieldtype": "Link",
+            "fieldtype": "Data",
             "options": "Employee",
             "width": 200,
         },
@@ -65,7 +65,6 @@ def get_data(filters):
         .on(task.name == timesheet_details.task)
         .select(
             timesheet.start_date.as_("from_date"),
-            timesheet.employee,
             timesheet.employee_name,
             timesheet_details.project,
             task.subject.as_("task_subject"),

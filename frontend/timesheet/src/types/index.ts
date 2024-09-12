@@ -1,37 +1,44 @@
 export type Employee = {
-    name: string;
-    image: string;
-    employee_name: string;
+  name: string;
+  image: string;
+  employee_name: string;
 };
 export type WorkingFrequency = "Per Day" | "Per Week";
 
-
 export interface TaskData {
-    name: string;
-    subject: string;
-    project_name: string | null;
-    priority: "Low" | "Medium" | "High" | "Urgent";
-    status: "Open" | "Working" | "Pending Review" | 'Overdue' | "Template" | "Completed" | "Cancelled";
-    description: string | null;
-    custom_is_billable: boolean;
-    actual_time: number;
-    due_date: string;
-    expected_time: number;
-    _liked_by: string;
+  name: string;
+  project: string;
+  subject: string;
+  project_name: string | null;
+  priority: "Low" | "Medium" | "High" | "Urgent";
+  status:
+    | "Open"
+    | "Working"
+    | "Pending Review"
+    | "Overdue"
+    | "Template"
+    | "Completed"
+    | "Cancelled";
+  description: string | null;
+  custom_is_billable: boolean;
+  actual_time: number;
+  due_date: string;
+  expected_time: number;
+  _liked_by: string;
 }
 
 export type ProjectProps = {
-    project_name: string;
-    name: string;
+  project_name: string;
+  name: string;
 };
 
 export interface ProjectNestedTaskData {
-    project_name: string;
-    name: string;
-    tasks:TaskData[];
+  project_name: string;
+  name: string;
+  tasks: TaskData[];
 }
 
 export interface ProjectData {
-    projects:ProjectNestedTaskData[];
-    count:number;
+  projects: ProjectNestedTaskData[];
+  count: number;
 }

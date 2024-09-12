@@ -19,7 +19,7 @@ import { useEffect, useState } from "react";
 import { useFrappeGetCall, useFrappePostCall, useFrappeGetDocList } from "frappe-react-sdk";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/app/components/ui/sheet";
 import { Spinner } from "@/app/components/spinner";
-import { LeaveProps, NewTimesheetProps, TaskDataItemProps, timesheet } from "@/types/timesheet";
+import { LeaveProps, NewTimesheetProps, TaskDataItemProps, TaskDataProps, timesheet } from "@/types/timesheet";
 import { Typography } from "@/app/components/typography";
 import { WorkingFrequency } from "@/types";
 import { TimeInput } from "@/app/pages/team/employeeDetail";
@@ -157,13 +157,20 @@ export const Approval = () => {
   useEffect(() => {
     if (timesheetData && timesheetList) {
       const validDates = timesheetList.filter((dateObj) => dateObj.docstatus == 1).map((dateObj) => dateObj.start_date);
-      const filteredDates = timesheetData.dates.filter((date) => {
-        const isLeaveDate = leaves.some((leave: LeaveProps) => {
-          return date >= leave.from_date && date <= leave.to_date && leave.half_day == false;
+      const filteredDates = timesheetData.dates
+        .filter((date) => {
+          const isLeaveDate = leaves.some((leave: LeaveProps) => {
+            return date >= leave.from_date && date <= leave.to_date && leave.half_day == false;
+          });
+          const isHoliday = holidays.some((holiday) => holiday.holiday_date === date);
+          return !validDates.includes(date) && !isHoliday && !isLeaveDate;
+        })
+        .filter((date) => {
+          const hasTime = Object.values(timesheetData.tasks).some((task) =>
+            task.data.some((entry) => getDateFromDateAndTime(entry.from_time) === date),
+          );
+          return hasTime;
         });
-        const isHoliday = holidays.some((holiday) => holiday.holiday_date === date);
-        return !validDates.includes(date) && !isHoliday && !isLeaveDate;
-      });
       setSelectedDates(filteredDates ?? []);
     }
   }, [holidays, leaves, timesheetData, timesheetList]);
@@ -182,15 +189,14 @@ export const Approval = () => {
           <div className="flex flex-col gap-y-4 mt-6">
             <div>
               {timesheetData.dates.map((date: string, index: number) => {
-                const matchingTasks = Object.entries(timesheetData.tasks).flatMap(
-                  ([taskName, task]: [string, TaskDataItemProps]) =>
-                    task.data
-                      .filter((taskItem: TaskDataItemProps[]) => getDateFromDateAndTime(taskItem.from_time) === date)
-                      .map((taskItem: TaskDataItemProps) => ({
-                        ...taskItem,
-                        taskName,
-                        projectName: task.project_name,
-                      })),
+                const matchingTasks = Object.entries(timesheetData.tasks).flatMap(([, task]: [string, TaskDataProps]) =>
+                  task.data
+                    .filter((taskItem: TaskDataItemProps) => getDateFromDateAndTime(taskItem.from_time) === date)
+                    .map((taskItem: TaskDataItemProps) => ({
+                      ...taskItem,
+                      subject: task.subject,
+                      project_name: task.project_name,
+                    })),
                 );
                 let totalHours = matchingTasks.reduce((sum, task) => sum + task.hours, 0);
                 const isChecked = selectedDates.includes(date);
@@ -252,10 +258,11 @@ export const Approval = () => {
                         name: task.name,
                         parent: task.parent,
                         task: task.task,
+                        employee: teamState.employee,
                         date: getDateFromDateAndTime(task.from_time),
                         description: task.description,
                         hours: task.hours,
-                        isUpdate: task.hours > 0 ? true : false,
+                        is_billable: task.is_billable,
                       };
                       const description = preProcessLink(task.description ?? "");
                       return (
@@ -268,23 +275,28 @@ export const Approval = () => {
                             employee={teamState.employee}
                           />
                           <div className="grid w-full grid-cols-3 gap-x-2">
-                            <div className="flex gap-1">
+                            <div className="flex gap-1 ">
                               <div
-                                title={task.is_billable === 1 && "Task is billable"}
+                                title={task.is_billable == 1 ? "Billable task" : ""}
                                 className={cn(
                                   task.is_billable === 1 && "cursor-pointer",
-                                  "w-6 h-full flex justify-center flex-none",
+                                  "w-4  flex justify-center flex-none",
                                 )}
                               >
                                 {task.is_billable === 1 && <CircleDollarSign className="w-4 h-4 ml-1 stroke-success" />}
                               </div>
-                              <Typography variant="p" className="font-bold text-xs truncate">
-                                {task.taskName}
-                              </Typography>
+                              <div className="flex flex-col max-w-52">
+                                <Typography variant="p" className="truncate">
+                                  {task.subject}
+                                </Typography>
+                                <Typography variant="small" className="truncate text-slate-500">
+                                  {task.project_name}
+                                </Typography>
+                              </div>
                             </div>
 
                             <HoverCard openDelay={1000} closeDelay={0}>
-                              <HoverCardTrigger className="text-sm font-normal col-span-2 hover:cursor-pointer">
+                              <HoverCardTrigger className="text-sm font-normal  col-span-2 hover:cursor-pointer">
                                 <p dangerouslySetInnerHTML={{ __html: truncateText(description, 150) }}></p>
                               </HoverCardTrigger>
                               <HoverCardContent className="text-sm font-normal overflow-auto max-h-72 max-w-lg w-full">
@@ -347,6 +359,7 @@ const TimesheetRejectConfirmationDialog = ({
   };
 
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     form.setValue("dates", dates);
   }, [dates, form]);
