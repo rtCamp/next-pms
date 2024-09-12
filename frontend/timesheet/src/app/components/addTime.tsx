@@ -18,9 +18,7 @@ import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { useToast } from "./ui/use-toast";
-import { useSelector } from "react-redux";
-import { RootState } from "@/store";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import EmployeeCombo from "@/app/components/employeeComboBox";
 
 interface AddTimeProps {
   initialDate: string;
@@ -44,16 +42,13 @@ const AddTime = ({
   task = "",
 }: AddTimeProps) => {
   const { call } = useContext(FrappeContext) as FrappeConfig;
-  const userState = useSelector((state: RootState) => state.user);
-  const hasAccess =
-    userState.roles.includes("Projects Manager") ||
-    userState.roles.includes("Timesheet Manager") ||
-    userState.roles.includes("System Manager");
+
   const { call: save } = useFrappePostCall("frappe_pms.timesheet.api.timesheet.save");
   const [searchTask, setSearchTask] = useState(task);
   const [tasks, setTask] = useState([]);
   const [selectedProject, setSelectedProject] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState(getFormatedDate(initialDate));
+  const [selectedEmployee, setSelectedEmployee] = useState(employee);
   const expectedHours = expectatedHours(workingHours, workingFrequency);
   const { toast } = useToast();
   const form = useForm<z.infer<typeof TimesheetSchema>>({
@@ -145,14 +140,14 @@ const AddTime = ({
   const { data: perDayEmpHours, mutate: mutatePerDayHrs } = useFrappeGetCall(
     "frappe_pms.timesheet.api.timesheet.get_remaining_hour_for_employee",
     {
-      employee: employee,
+      employee: selectedEmployee,
       date: selectedDate,
     },
   );
-
-  const { data: employeeDetail } = useFrappeGetCall("frappe_pms.timesheet.api.employee.get_employee", {
-    filters: [["name", "=", employee]],
-  });
+  const onEmployeeChange = (value: string) => {
+    setSelectedEmployee(value);
+    form.setValue("employee", value);
+  };
 
   useEffect(() => {
     fetchTask();
@@ -162,109 +157,91 @@ const AddTime = ({
   useEffect(() => {
     mutatePerDayHrs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate]);
+  }, [selectedDate, selectedEmployee]);
 
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>Add Time</DialogTitle>
+          <DialogTitle className="flex gap-x-2">
+            Add Time
+            {perDayEmpHours && (
+              <Typography
+                variant="p"
+                className={cn(
+                  Number(perDayEmpHours?.message) >= 0 && Number(perDayEmpHours?.message) <= expectedHours
+                    ? "text-success"
+                    : "text-destructive",
+                )}
+              >
+                {`${floatToTime(Math.abs(perDayEmpHours?.message))} hrs ${
+                  perDayEmpHours?.message < 0 ? "extended" : "remaining"
+                }`}
+              </Typography>
+            )}
+          </DialogTitle>
           <Separator />
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)}>
-            <div className="flex flex-col gap-y-1">
-              <div className={cn("grid gap-x-4 grid-cols-2", hasAccess && "grid-cols-3")}>
-                {hasAccess && (
+            <div className="flex flex-col gap-y-4">
+              <div className={cn("grid gap-x-4 grid-cols-2")}>
+                <FormField
+                  control={form.control}
+                  name="employee"
+                  render={() => (
+                    <FormItem className="w-full space-y-1">
+                      <FormLabel className="flex gap-2 items-center text-sm">Employee</FormLabel>
+                      <FormControl>
+                        <EmployeeCombo onSelect={onEmployeeChange} value={selectedEmployee} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="grid grid-cols-2 gap-x-4">
                   <FormField
                     control={form.control}
-                    name="employee"
-                    render={() => (
-                      <FormItem className="w-full">
-                        <FormLabel className="flex gap-2 items-center text-sm">Employee</FormLabel>
+                    name="hours"
+                    render={({ field }) => (
+                      <FormItem className="w-full space-y-1">
+                        <FormLabel className="flex gap-2 items-center">
+                          <p className="text-sm">Time</p>
+                        </FormLabel>
                         <FormControl>
-                          <div className="relative flex items-center max-w-48 overflow-hidden">
-                            <Button
-                              variant="outline"
-                              className="justify-start gap-x-3 font-normal w-full truncate"
-                              disabled
-                            >
-                              {employeeDetail && employeeDetail.message ? (
-                                <>
-                                  <Avatar className="w-8 h-8">
-                                    <AvatarImage src={employeeDetail.message?.image} alt="image" />
-                                    <AvatarFallback>{employeeDetail.message?.employee_name[0]}</AvatarFallback>
-                                  </Avatar>
-                                  <Typography variant="p" className="truncate">
-                                    {employeeDetail.message?.employee_name}
-                                  </Typography>
-                                </>
-                              ) : (
-                                "select employee"
-                              )}
-                            </Button>
-                          </div>
+                          <>
+                            <div className="relative flex items-center">
+                              <Input
+                                placeholder="00:00"
+                                className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                {...field}
+                                type="text"
+                              />
+                              <Clock3 className="h-4 w-4 absolute right-0 m-3 top-0 stroke-slate-400" />
+                            </div>
+                          </>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                )}
-                <FormField
-                  control={form.control}
-                  name="hours"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel className="flex gap-2 items-center">
-                        <p className="text-sm">Time</p>
-                        {perDayEmpHours && (
-                          <Typography
-                            variant="p"
-                            className={cn(
-                              Number(perDayEmpHours?.message) >= 0 && Number(perDayEmpHours?.message) <= expectedHours
-                                ? "text-success"
-                                : "text-destructive",
-                            )}
-                          >
-                            {`${floatToTime(Math.abs(perDayEmpHours?.message))} hrs ${
-                              perDayEmpHours?.message < 0 ? "extended" : "remaining"
-                            }`}
-                          </Typography>
-                        )}
-                      </FormLabel>
-                      <FormControl>
-                        <>
-                          <div className="relative flex items-center">
-                            <Input
-                              placeholder="00:00"
-                              className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
-                              {...field}
-                              type="text"
-                            />
-                            <Clock3 className="h-4 w-4 absolute right-0 m-3 top-0 stroke-slate-400" />
-                          </div>
-                        </>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="date"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel className="flex gap-2 items-center text-sm">Date</FormLabel>
-                      <FormControl>
-                        <DatePicker date={field.value} onDateChange={handleDateChange} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="date"
+                    render={({ field }) => (
+                      <FormItem className="w-full space-y-1">
+                        <FormLabel className="flex gap-2 items-center text-sm">Date</FormLabel>
+                        <FormControl>
+                          <DatePicker date={field.value} onDateChange={handleDateChange} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
               <div className="grid gap-x-4 grid-cols-2">
-                <FormItem>
+                <FormItem className="space-y-1">
                   <FormLabel>Projects</FormLabel>
                   <ComboxBox
                     label="Search Projects"
@@ -286,7 +263,7 @@ const AddTime = ({
                   control={form.control}
                   name="task"
                   render={() => (
-                    <FormItem>
+                    <FormItem className="space-y-1">
                       <FormLabel>Tasks</FormLabel>
                       <FormControl>
                         <ComboxBox
@@ -316,7 +293,7 @@ const AddTime = ({
                 control={form.control}
                 name="description"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="space-y-1">
                     <FormLabel>Comment</FormLabel>
                     <FormControl>
                       <Textarea
