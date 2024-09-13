@@ -56,10 +56,24 @@ function removeHtmlString(data: string) {
   return data.replace(/<\/?[^>]+(>|$)/g, "");
 }
 
-export function getFormatedDate(date: string | Date) {
-  if (typeof date == "string") {
-    date = new Date(date);
+export function getDateTimeForMultipleTimeZoneSupport(
+  date: string | Date = "",
+): Date {
+  if (!date) {
+    return getUTCDateTime();
   }
+  if (typeof date == "string") {
+    date = new Date(date + "T00:00:00");
+  }
+  return date;
+}
+
+export function getUTCDateTime() {
+  return new Date();
+}
+
+export function getFormatedDate(date: string | Date) {
+  date = getDateTimeForMultipleTimeZoneSupport(date);
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
@@ -71,7 +85,7 @@ export function getTodayDate() {
 }
 
 export function prettyDate(dateString: string, isLong: boolean = false) {
-  const date = new Date(dateString);
+  const date = getDateTimeForMultipleTimeZoneSupport(dateString);
 
   const month = date.toLocaleString("default", { month: "short" });
   const dayOfMonth = date.getDate();

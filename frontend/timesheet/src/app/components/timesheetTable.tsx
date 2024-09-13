@@ -7,6 +7,7 @@ import {
   calculateWeeklyHour,
   expectatedHours,
   preProcessLink,
+  getDateTimeForMultipleTimeZoneSupport,
 } from "@/lib/utils";
 import { Typography } from "./typography";
 import { CircleCheck, CirclePlus, CircleX, Clock3, PencilLine, CircleDollarSign } from "lucide-react";
@@ -258,7 +259,7 @@ export const TotalHourRow = ({
         let isLeave = false;
         const isHoliday = holidays.includes(date);
         // weekends here mean is the day a saturday/sunday or not
-        const dateObj = new Date(date);
+        const dateObj = getDateTimeForMultipleTimeZoneSupport(date);
         const isWeekend = dateObj.getDay() === 0 || dateObj.getDay() === 6;
         if (isHoliday) {
           if (!isWeekend) total += working_hour;

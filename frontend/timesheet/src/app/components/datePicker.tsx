@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { format, isToday, isYesterday } from "date-fns";
 import { Typography } from "./typography";
 import { Matcher } from "react-day-picker";
+import { getDateTimeForMultipleTimeZoneSupport } from "@/lib/utils";
 
 interface DatePickerProps {
   date?: Date | string;
@@ -24,10 +25,10 @@ export const DatePicker = ({
   const [pickerDate, setPickerDate] = useState<Date>();
   const [isOpen, setIsOpen] = useState(false);
   useEffect(() => {
-    if (!date) setPickerDate(new Date());
+    if (!date) setPickerDate(getDateTimeForMultipleTimeZoneSupport() as Date);
 
     if (date && typeof date === "string") {
-      setPickerDate(new Date(date));
+      setPickerDate(getDateTimeForMultipleTimeZoneSupport(date) as Date);
     } else {
       setPickerDate(date as Date);
     }

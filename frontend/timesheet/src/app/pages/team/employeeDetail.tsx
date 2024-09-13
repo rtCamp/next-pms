@@ -14,6 +14,7 @@ import {
   floatToTime,
   preProcessLink,
   expectatedHours,
+  getDateTimeForMultipleTimeZoneSupport,
 } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useToast } from "@/app/components/ui/use-toast";
@@ -61,7 +62,7 @@ const EmployeeDetail = () => {
     const timesheet = {
       name: "",
       task: "",
-      date: getFormatedDate(new Date()),
+      date: getFormatedDate(getDateTimeForMultipleTimeZoneSupport()),
       description: "",
       hours: 0,
       isUpdate: false,

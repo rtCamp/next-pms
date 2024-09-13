@@ -18,7 +18,13 @@ import { Button } from "@/app/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Typography } from "@/app/components/typography";
 import TimesheetTable, { SubmitButton } from "@/app/components/timesheetTable";
-import { parseFrappeErrorMsg, getFormatedDate, floatToTime, expectatedHours } from "@/lib/utils";
+import {
+  parseFrappeErrorMsg,
+  getFormatedDate,
+  floatToTime,
+  expectatedHours,
+  getDateTimeForMultipleTimeZoneSupport,
+} from "@/lib/utils";
 import { addDays } from "date-fns";
 import { Spinner } from "@/app/components/spinner";
 import { EditTime } from "./editTime";
@@ -65,7 +71,7 @@ function Timesheet() {
     const timesheetData = {
       name: "",
       task: "",
-      date: getFormatedDate(new Date()),
+      date: getFormatedDate(getDateTimeForMultipleTimeZoneSupport()),
       description: "",
       hours: 0,
       employee: user.employee,
