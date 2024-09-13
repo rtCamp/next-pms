@@ -1,6 +1,6 @@
 ## Frappe Pms
 
-The PMS in Frappe.
+The app includes the timesheet and project billing features of ERP.
 
 #### License
 
