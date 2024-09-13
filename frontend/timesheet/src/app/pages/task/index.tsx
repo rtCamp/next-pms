@@ -20,7 +20,13 @@ import {
   AddTaskType,
   TaskState,
 } from "@/store/task";
-import { cn, parseFrappeErrorMsg, floatToTime, getFormatedDate } from "@/lib/utils";
+import {
+  cn,
+  parseFrappeErrorMsg,
+  floatToTime,
+  getFormatedDate,
+  getDateTimeForMultipleTimeZoneSupport,
+} from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
 import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
@@ -196,7 +202,7 @@ const Task = () => {
       name: "",
       parent: "",
       task: taskName,
-      date: getFormatedDate(new Date()),
+      date: getFormatedDate(getDateTimeForMultipleTimeZoneSupport()),
       description: "",
       hours: 0,
       isUpdate: false,
