@@ -293,7 +293,7 @@ const Team = () => {
           <DeBounceInput
             placeholder="Employee name"
             value={employeeNameParam}
-            deBounceValue={200}
+            deBounceValue={400}
             callback={handleEmployeeChange}
           />
           <ComboxBox

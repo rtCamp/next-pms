@@ -20,7 +20,7 @@ import {
   AddTaskType,
   TaskState,
 } from "@/store/task";
-import { cn, parseFrappeErrorMsg, floatToTime, getFormatedDate, deBounce } from "@/lib/utils";
+import { cn, parseFrappeErrorMsg, floatToTime, getFormatedDate } from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
 import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
@@ -79,7 +79,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Textarea } from "@/app/components/ui/textarea";
-
+import { DeBounceInput } from "@/app/components/deBounceInput";
 // Types
 type FlatTableType = TanStackTable<TaskData>;
 type NestedRowTableType = TanStackTable<ProjectNestedTaskData>;
@@ -155,25 +155,19 @@ const Task = () => {
   );
   const [projectParam, setProjectParam] = useQueryParamsState<string[]>("project", []);
   const [groupByParam, setGroupByParam] = useQueryParamsState<GroupByParamType>("groupby", []);
-  const [subjectSearch, setSubjectSearch] = useState<subjectSearchType>("");
+  const [subjectSearchParam, setSubjectSearchParam] = useQueryParamsState<subjectSearchType>("search", "");
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  //task search change (input)
-  const updateSubjectSearch = useCallback(
-    deBounce((searchStr) => {
-      setSubjectSearch(searchStr);
-      if (groupByParam.length === 0) {
-        dispatch(setStart(0));
-        flatTaskMutateCall();
-      } else {
-        dispatch(setProjectStart(0));
-        nestedProjectMutateCall();
-      }
-    }, 500),
-    [],
-  );
 
   const handleSubjectSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    updateSubjectSearch(e.target.value.trim());
+    const searchStr = e.target.value.trim();
+    setSubjectSearchParam(searchStr);
+    if (groupByParam.length === 0) {
+      dispatch(setStart(0));
+      flatTaskMutateCall();
+    } else {
+      dispatch(setProjectStart(0));
+      nestedProjectMutateCall();
+    }
   }, []);
 
   // GroupBy Data for ComboBox
@@ -1007,10 +1001,12 @@ const Task = () => {
         <div id="filters" className="flex gap-x-2 mb-3 w-full overflow-hidden p-1 md:overflow-x-auto overflow-x-scroll">
           <div className="flex gap-2 xl:w-2/5">
             {/* Task Search Filter */}
-            <Input
+            <DeBounceInput
               placeholder="Search Subject..."
-              className="placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-slate-800 w-full min-w-40"
-              onChange={handleSubjectSearchChange}
+              className="w-full"
+              deBounceValue={400}
+              value={subjectSearchParam}
+              callback={handleSubjectSearchChange}
             />
           </div>
 
@@ -1101,7 +1097,7 @@ const Task = () => {
               columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
               setLocalStorageTaskState={setLocalStorageTaskState}
               task={task}
-              subjectSearch={subjectSearch}
+              subjectSearch={subjectSearchParam}
               setMutateCall={setFlatTaskMutateCall}
             />
           ) : (
@@ -1111,7 +1107,7 @@ const Task = () => {
               columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
               setLocalStorageTaskState={setLocalStorageTaskState}
               task={task}
-              subjectSearch={subjectSearch}
+              subjectSearch={subjectSearchParam}
               setMutateCall={setNestedProjectMutateCall}
             />
           )}
@@ -1263,7 +1259,7 @@ const FlatTable = ({
   }, []);
   return (
     <>
-      {isLoading ? (
+      {isLoading && task.task.length == 0 ? (
         <Spinner isFull />
       ) : (
         <Table className="[&_td]:px-2  [&_th]:px-2 table-fixed">
@@ -1409,7 +1405,7 @@ const RowGroupedTable = ({
   ]);
   return (
     <>
-      {nestedProjectIsLoading ? (
+      {nestedProjectIsLoading && task.project.length == 0 ? (
         <Spinner isFull />
       ) : (
         <Table className="[&_td]:px-2  [&_th]:px-2 table-fixed">
