@@ -20,7 +20,7 @@ import {
   AddTaskType,
   TaskState,
 } from "@/store/task";
-import { cn, parseFrappeErrorMsg, floatToTime, getFormatedDate, deBounce } from "@/lib/utils";
+import { cn, parseFrappeErrorMsg, floatToTime, getFormatedDate } from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
 import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
@@ -79,7 +79,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Textarea } from "@/app/components/ui/textarea";
-
+import { DeBounceInput } from "@/app/components/deBounceInput";
 // Types
 type FlatTableType = TanStackTable<TaskData>;
 type NestedRowTableType = TanStackTable<ProjectNestedTaskData>;
@@ -134,7 +134,7 @@ const Task = () => {
       expected_time: "150",
       actual_time: "150",
     },
-    columnSort: [{ id: "liked", desc: false }],
+    columnSort: [],
   };
   const [localStorageTaskState, setLocalStorageTaskState] = useState<localStorageTaskType>(() => {
     try {
@@ -155,25 +155,19 @@ const Task = () => {
   );
   const [projectParam, setProjectParam] = useQueryParamsState<string[]>("project", []);
   const [groupByParam, setGroupByParam] = useQueryParamsState<GroupByParamType>("groupby", []);
-  const [subjectSearch, setSubjectSearch] = useState<subjectSearchType>("");
+  const [subjectSearchParam, setSubjectSearchParam] = useQueryParamsState<subjectSearchType>("search", "");
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  //task search change (input)
-  const updateSubjectSearch = useCallback(
-    deBounce((searchStr) => {
-      setSubjectSearch(searchStr);
-      if (groupByParam.length === 0) {
-        dispatch(setStart(0));
-        flatTaskMutateCall();
-      } else {
-        dispatch(setProjectStart(0));
-        nestedProjectMutateCall();
-      }
-    }, 500),
-    [],
-  );
 
   const handleSubjectSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    updateSubjectSearch(e.target.value.trim());
+    const searchStr = e.target.value.trim();
+    setSubjectSearchParam(searchStr);
+    if (groupByParam.length === 0) {
+      dispatch(setStart(0));
+      flatTaskMutateCall();
+    } else {
+      dispatch(setProjectStart(0));
+      nestedProjectMutateCall();
+    }
   }, []);
 
   // GroupBy Data for ComboBox
@@ -274,7 +268,6 @@ const Task = () => {
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
-        console.log(err);
         toast({
           variant: "destructive",
           description: error,
@@ -317,29 +310,7 @@ const Task = () => {
 
     return indexA - indexB;
   };
-  const customLikeSortingFn = (rowA: Row<any>, rowB: Row<any>, columnId: string): number => {
-    let rowAValue = rowA.original._liked_by;
-    let rowBValue = rowB.original._liked_by;
-    if (typeof rowAValue === "string") {
-      rowAValue = JSON.parse(rowAValue);
-    }
-    if (typeof rowBValue === "string") {
-      rowBValue = JSON.parse(rowBValue);
-    }
-    if (!rowAValue) {
-      rowAValue = [];
-    }
-    if (!rowBValue) {
-      rowBValue = [];
-    }
 
-    const containsUserA = rowAValue.includes(user.user);
-    const containsUserB = rowBValue.includes(user.user);
-
-    if (containsUserA && !containsUserB) return -1;
-    if (!containsUserA && containsUserB) return 1; // Other comes after
-    return 0; // Equal
-  };
   // column definitions
   const columns: ColumnsType = [
     {
@@ -569,16 +540,10 @@ const Task = () => {
     },
     {
       accessorKey: "liked",
-      header: ({ column }) => {
-        if (!column.getIsSorted()) {
-          return column.toggleSorting(false);
-        }
-        return <></>;
-      },
+      header: "",
       size: 30, // Default size
       minSize: 20, // Minimum size
       maxSize: 30, // Maximum size
-      sortingFn: customLikeSortingFn,
       cell: ({ row }) => {
         return (
           <span title="Like">
@@ -624,6 +589,7 @@ const Task = () => {
         );
       },
       cell: ({ row, getValue }) => {
+        if (row.depth !== 0) return null;
         return (
           <>
             <div
@@ -841,7 +807,6 @@ const Task = () => {
       size: 30, // Default size
       minSize: 20, // Minimum size
       maxSize: 30, // Maximum size
-      sortingFn: customLikeSortingFn,
       cell: ({ row }) => {
         return (
           row.depth !== 0 && (
@@ -1033,13 +998,15 @@ const Task = () => {
       </style>
       <div className="md:w-full h-full justify-between flex flex-col relative">
         {/* filters and combo boxes */}
-        <div id="filters" className="flex gap-x-2 mb-3 w-full overflow-hidden p-1 overflow-x-scroll">
+        <div id="filters" className="flex gap-x-2 mb-3 w-full overflow-hidden p-1 md:overflow-x-auto overflow-x-scroll">
           <div className="flex gap-2 xl:w-2/5">
             {/* Task Search Filter */}
-            <Input
+            <DeBounceInput
               placeholder="Search Subject..."
-              className="placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-slate-800 w-full min-w-40"
-              onChange={handleSubjectSearchChange}
+              className="w-full"
+              deBounceValue={400}
+              value={subjectSearchParam}
+              callback={handleSubjectSearchChange}
             />
           </div>
 
@@ -1122,7 +1089,7 @@ const Task = () => {
           </DropdownMenu>
         </div>
         {/* tables */}
-        <div className="overflow-hidden w-full overflow-y-scroll" style={{ height: "calc(100vh - 8rem)" }}>
+        <div className="overflow-hidden w-full overflow-y-auto" style={{ height: "calc(100vh - 8rem)" }}>
           {groupByParam.length === 0 && task.groupBy ? (
             <FlatTable
               table={table}
@@ -1130,7 +1097,7 @@ const Task = () => {
               columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
               setLocalStorageTaskState={setLocalStorageTaskState}
               task={task}
-              subjectSearch={subjectSearch}
+              subjectSearch={subjectSearchParam}
               setMutateCall={setFlatTaskMutateCall}
             />
           ) : (
@@ -1140,7 +1107,7 @@ const Task = () => {
               columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
               setLocalStorageTaskState={setLocalStorageTaskState}
               task={task}
-              subjectSearch={subjectSearch}
+              subjectSearch={subjectSearchParam}
               setMutateCall={setNestedProjectMutateCall}
             />
           )}
@@ -1264,7 +1231,7 @@ const FlatTable = ({
   const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.task.get_task_list", {
     page_length: 20,
     start: task.start,
-    project: task.selectedProject,
+    projects: task.selectedProject,
     search: subjectSearch,
   });
   useEffect(() => {
@@ -1292,7 +1259,7 @@ const FlatTable = ({
   }, []);
   return (
     <>
-      {isLoading ? (
+      {isLoading && task.task.length == 0 ? (
         <Spinner isFull />
       ) : (
         <Table className="[&_td]:px-2  [&_th]:px-2 table-fixed">
@@ -1438,7 +1405,7 @@ const RowGroupedTable = ({
   ]);
   return (
     <>
-      {nestedProjectIsLoading ? (
+      {nestedProjectIsLoading && task.project.length == 0 ? (
         <Spinner isFull />
       ) : (
         <Table className="[&_td]:px-2  [&_th]:px-2 table-fixed">

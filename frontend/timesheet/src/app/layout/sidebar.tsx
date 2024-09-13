@@ -148,7 +148,7 @@ const Sidebar = () => {
             Timesheet
           </Typography>
         </div>
-        <div className="pt-10 h-full overflow-y-scroll flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
+        <div className="pt-10 h-full overflow-y-auto flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
           {routes.map((route: Route) => {
             if (route.isPmRoute && !hasPmRole) return null;
 

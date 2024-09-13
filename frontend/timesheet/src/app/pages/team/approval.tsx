@@ -177,161 +177,168 @@ export const Approval = () => {
 
   return (
     <Sheet open={teamState.isAprrovalDialogOpen} onOpenChange={handleOpen} modal={true}>
-      {(isLoading || isTimesheetListLoading) && <Spinner />}
-      {timesheetData && (
-        <SheetContent className="sm:max-w-4xl overflow-auto">
-          <SheetHeader>
-            <SheetTitle>
-              Week of {prettyDate(teamState.dateRange.start_date).date} -{" "}
-              {prettyDate(teamState.dateRange.end_date).date}
-            </SheetTitle>
-          </SheetHeader>
-          <div className="flex flex-col gap-y-4 mt-6">
-            <div>
-              {timesheetData.dates.map((date: string, index: number) => {
-                const matchingTasks = Object.entries(timesheetData.tasks).flatMap(([, task]: [string, TaskDataProps]) =>
-                  task.data
-                    .filter((taskItem: TaskDataItemProps) => getDateFromDateAndTime(taskItem.from_time) === date)
-                    .map((taskItem: TaskDataItemProps) => ({
-                      ...taskItem,
-                      subject: task.subject,
-                      project_name: task.project_name,
-                    })),
-                );
-                let totalHours = matchingTasks.reduce((sum, task) => sum + task.hours, 0);
-                const isChecked = selectedDates.includes(date);
-                const holiday = holidays.find((holiday) => holiday.holiday_date === date);
-                const isHoliday = !!holiday;
-                const submittedTime = timesheetList?.some(
-                  (timesheet) => timesheet.start_date === date && timesheet.docstatus === 1,
-                );
-                const leave = leaves.find((data: LeaveProps) => {
-                  return date >= data.from_date && date <= data.to_date;
-                });
-                const isHalfDayLeave = leave?.half_day && leave?.half_day_date == date ? true : false;
-                if (leave && !isHoliday) {
-                  if (isHalfDayLeave) {
-                    totalHours += expectatedHours(working_hour, working_frequency) / 2;
-                  } else {
-                    totalHours += expectatedHours(working_hour, working_frequency);
-                  }
-                }
+      <SheetContent className="sm:max-w-4xl overflow-auto">
+        {isLoading || isTimesheetListLoading ? (
+          <Spinner />
+        ) : (
+          <>
+            <SheetHeader>
+              <SheetTitle>
+                Week of {prettyDate(teamState.dateRange.start_date).date} -{" "}
+                {prettyDate(teamState.dateRange.end_date).date}
+              </SheetTitle>
+            </SheetHeader>
+            <div className="flex flex-col gap-y-4 mt-6">
+              <div>
+                {timesheetData &&
+                  timesheetData.dates.map((date: string, index: number) => {
+                    const matchingTasks = Object.entries(timesheetData.tasks).flatMap(
+                      ([, task]: [string, TaskDataProps]) =>
+                        task.data
+                          .filter((taskItem: TaskDataItemProps) => getDateFromDateAndTime(taskItem.from_time) === date)
+                          .map((taskItem: TaskDataItemProps) => ({
+                            ...taskItem,
+                            subject: task.subject,
+                            project_name: task.project_name,
+                          })),
+                    );
+                    let totalHours = matchingTasks.reduce((sum, task) => sum + task.hours, 0);
+                    const isChecked = selectedDates.includes(date);
+                    const holiday = holidays.find((holiday) => holiday.holiday_date === date);
+                    const isHoliday = !!holiday;
+                    const submittedTime = timesheetList?.some(
+                      (timesheet) => timesheet.start_date === date && timesheet.docstatus === 1,
+                    );
+                    const leave = leaves.find((data: LeaveProps) => {
+                      return date >= data.from_date && date <= data.to_date;
+                    });
+                    const isHalfDayLeave = leave?.half_day && leave?.half_day_date == date ? true : false;
+                    if (leave && !isHoliday) {
+                      if (isHalfDayLeave) {
+                        totalHours += expectatedHours(working_hour, working_frequency) / 2;
+                      } else {
+                        totalHours += expectatedHours(working_hour, working_frequency);
+                      }
+                    }
 
-                const isExtended = calculateExtendedWorkingHour(totalHours, working_hour, working_frequency);
-                return (
-                  <div key={index} className="flex flex-col ">
-                    <div className="bg-gray-100 rounded p-1 border-b flex items-center gap-x-2">
-                      <Checkbox
-                        disabled={
-                          submittedTime ||
-                          (isHoliday && matchingTasks.length == 0) ||
-                          (leave && !isHalfDayLeave && !isHoliday)
-                        }
-                        checked={isChecked || submittedTime || isHalfDayLeave}
-                        className={cn(submittedTime && "data-[state=checked]:bg-success border-success")}
-                        onCheckedChange={() => handleCheckboxChange(date)}
-                      />
-                      <Typography
-                        variant="p"
-                        className={cn(
-                          isExtended == 0 && "text-destructive",
-                          isExtended && "text-success",
-                          isExtended == 2 && "text-warning",
-                        )}
-                      >
-                        {floatToTime(totalHours)}h
-                      </Typography>
-                      <Typography variant="p">{prettyDate(date).date}</Typography>
-                      {isHoliday && (
-                        <Typography variant="p" className="text-gray-600">
-                          {holiday.description}
-                        </Typography>
-                      )}
-                      {leave && !isHoliday && (
-                        <Typography variant="p" className="text-gray-600">
-                          ({isHalfDayLeave ? "Half day leave" : "Full Day Leave"})
-                        </Typography>
-                      )}
-                    </div>
-                    {matchingTasks?.map((task: TaskDataItemProps, index: number) => {
-                      const data = {
-                        name: task.name,
-                        parent: task.parent,
-                        task: task.task,
-                        employee: teamState.employee,
-                        date: getDateFromDateAndTime(task.from_time),
-                        description: task.description,
-                        hours: task.hours,
-                        is_billable: task.is_billable,
-                      };
-                      const description = preProcessLink(task.description ?? "");
-                      return (
-                        <div className="flex gap-x-2 py-1 pl-1 border-b last:border-b-0" key={index}>
-                          <TimeInput
-                            disabled={task.docstatus == 1}
-                            data={data}
-                            className="w-10 p-1 ml-6  h-8"
-                            callback={handleTimeChange}
-                            employee={teamState.employee}
+                    const isExtended = calculateExtendedWorkingHour(totalHours, working_hour, working_frequency);
+                    return (
+                      <div key={index} className="flex flex-col ">
+                        <div className="bg-gray-100 rounded p-1 border-b flex items-center gap-x-2">
+                          <Checkbox
+                            disabled={
+                              submittedTime ||
+                              (isHoliday && matchingTasks.length == 0) ||
+                              (leave && !isHalfDayLeave && !isHoliday)
+                            }
+                            checked={isChecked || submittedTime || isHalfDayLeave}
+                            className={cn(submittedTime && "data-[state=checked]:bg-success border-success")}
+                            onCheckedChange={() => handleCheckboxChange(date)}
                           />
-                          <div className="grid w-full grid-cols-3 gap-x-2">
-                            <div className="flex gap-1 ">
-                              <div
-                                title={task.is_billable == 1 ? "Billable task" : ""}
-                                className={cn(
-                                  task.is_billable === 1 && "cursor-pointer",
-                                  "w-4  flex justify-center flex-none",
-                                )}
-                              >
-                                {task.is_billable === 1 && <CircleDollarSign className="w-4 h-4 ml-1 stroke-success" />}
-                              </div>
-                              <div className="flex flex-col max-w-52">
-                                <Typography variant="p" className="truncate">
-                                  {task.subject}
-                                </Typography>
-                                <Typography variant="small" className="truncate text-slate-500">
-                                  {task.project_name}
-                                </Typography>
+                          <Typography
+                            variant="p"
+                            className={cn(
+                              isExtended == 0 && "text-destructive",
+                              isExtended && "text-success",
+                              isExtended == 2 && "text-warning",
+                            )}
+                          >
+                            {floatToTime(totalHours)}h
+                          </Typography>
+                          <Typography variant="p">{prettyDate(date).date}</Typography>
+                          {isHoliday && (
+                            <Typography variant="p" className="text-gray-600">
+                              {holiday.description}
+                            </Typography>
+                          )}
+                          {leave && !isHoliday && (
+                            <Typography variant="p" className="text-gray-600">
+                              ({isHalfDayLeave ? "Half day leave" : "Full Day Leave"})
+                            </Typography>
+                          )}
+                        </div>
+                        {matchingTasks?.map((task: TaskDataItemProps, index: number) => {
+                          const data = {
+                            name: task.name,
+                            parent: task.parent,
+                            task: task.task,
+                            employee: teamState.employee,
+                            date: getDateFromDateAndTime(task.from_time),
+                            description: task.description,
+                            hours: task.hours,
+                            is_billable: task.is_billable,
+                          };
+                          const description = preProcessLink(task.description ?? "");
+                          return (
+                            <div className="flex gap-x-2 py-1 pl-1 border-b last:border-b-0" key={index}>
+                              <TimeInput
+                                disabled={task.docstatus == 1}
+                                data={data}
+                                className="w-10 p-1 ml-6  h-8"
+                                callback={handleTimeChange}
+                                employee={teamState.employee}
+                              />
+                              <div className="grid w-full grid-cols-3 gap-x-2">
+                                <div className="flex gap-1 ">
+                                  <div
+                                    title={task.is_billable == 1 ? "Billable task" : ""}
+                                    className={cn(
+                                      task.is_billable === 1 && "cursor-pointer",
+                                      "w-4  flex justify-center flex-none",
+                                    )}
+                                  >
+                                    {task.is_billable === 1 && (
+                                      <CircleDollarSign className="w-4 h-4 ml-1 stroke-success" />
+                                    )}
+                                  </div>
+                                  <div className="flex flex-col max-w-52">
+                                    <Typography variant="p" className="truncate">
+                                      {task.subject}
+                                    </Typography>
+                                    <Typography variant="small" className="truncate text-slate-500">
+                                      {task.project_name}
+                                    </Typography>
+                                  </div>
+                                </div>
+
+                                <HoverCard openDelay={1000} closeDelay={0}>
+                                  <HoverCardTrigger className="text-sm font-normal  col-span-2 hover:cursor-pointer">
+                                    <p dangerouslySetInnerHTML={{ __html: truncateText(description, 150) }}></p>
+                                  </HoverCardTrigger>
+                                  <HoverCardContent className="text-sm font-normal overflow-auto max-h-72 max-w-lg w-full">
+                                    <p dangerouslySetInnerHTML={{ __html: description }}></p>
+                                  </HoverCardContent>
+                                </HoverCard>
                               </div>
                             </div>
-
-                            <HoverCard openDelay={1000} closeDelay={0}>
-                              <HoverCardTrigger className="text-sm font-normal  col-span-2 hover:cursor-pointer">
-                                <p dangerouslySetInnerHTML={{ __html: truncateText(description, 150) }}></p>
-                              </HoverCardTrigger>
-                              <HoverCardContent className="text-sm font-normal overflow-auto max-h-72 max-w-lg w-full">
-                                <p dangerouslySetInnerHTML={{ __html: description }}></p>
-                              </HoverCardContent>
-                            </HoverCard>
-                          </div>
-                        </div>
-                      );
-                    })}
-                    {matchingTasks.length == 0 && (
-                      <Typography variant="p" className="text-center p-3 text-gray-400">
-                        No data
-                      </Typography>
-                    )}
-                  </div>
-                );
-              })}
+                          );
+                        })}
+                        {matchingTasks.length == 0 && (
+                          <Typography variant="p" className="text-center p-3 text-gray-400">
+                            No data
+                          </Typography>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+              <Separator />
             </div>
-            <Separator />
-          </div>
-          <SheetFooter className="sm:justify-start mt-5 flex-col gap-y-4 w-full">
-            <Button onClick={handleApproval} variant="success" className="items-center px-2 gap-x-1">
-              <Check className="w-4 h-4" />
-              Approve
-            </Button>
+            <SheetFooter className="sm:justify-start mt-5 flex-col gap-y-4 w-full">
+              <Button onClick={handleApproval} variant="success" className="items-center px-2 gap-x-1">
+                <Check className="w-4 h-4" />
+                Approve
+              </Button>
 
-            <TimesheetRejectConfirmationDialog
-              onRejection={handleRejection}
-              dates={selectedDates}
-              employee={teamState.employee}
-            />
-          </SheetFooter>
-        </SheetContent>
-      )}
+              <TimesheetRejectConfirmationDialog
+                onRejection={handleRejection}
+                dates={selectedDates}
+                employee={teamState.employee}
+              />
+            </SheetFooter>
+          </>
+        )}
+      </SheetContent>
     </Sheet>
   );
 };

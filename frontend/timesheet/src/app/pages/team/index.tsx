@@ -23,15 +23,7 @@ import {
   setFilters,
 } from "@/store/team";
 import { useToast } from "@/app/components/ui/use-toast";
-import {
-  parseFrappeErrorMsg,
-  prettyDate,
-  floatToTime,
-  getFormatedDate,
-  cn,
-  preProcessLink,
-  deBounce,
-} from "@/lib/utils";
+import { parseFrappeErrorMsg, prettyDate, floatToTime, getFormatedDate, cn, preProcessLink } from "@/lib/utils";
 import { useEffect, useCallback, useState } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Table, TableHead, TableHeader, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
@@ -47,7 +39,7 @@ import { Spinner } from "@/app/components/spinner";
 import { WeekTotal } from "@/app/components/timesheetTable";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { ProjectProps } from "@/types";
-import { Input } from "@/app/components/ui/input";
+import { DeBounceInput } from "@/app/components/deBounceInput";
 
 type UserGroupProps = {
   name: string;
@@ -69,7 +61,7 @@ const Team = () => {
   const [userGroupParam, setUserGroupParam] = useQueryParamsState<string[]>("user-group", []);
   const [statusParam, setStatusParam] = useQueryParamsState<string[]>("status", []);
   const [employeeNameParam, setEmployeeNameParam] = useQueryParamsState<string>("employee-name", "");
-  const [employee, setEmployee] = useState(employeeNameParam);
+
   const approvals = [
     { label: "Not Submitted", value: "Not Submitted" },
     { label: "Approval Pending", value: "Approval Pending" },
@@ -194,10 +186,6 @@ const Team = () => {
   }, [dispatch, employeeNameParam]);
 
   useEffect(() => {
-    //old
-    // if (teamState.userGroupSearch !== "") {
-    //   userGroupMutate();
-    // }
     userGroupMutate();
     if (groupError) {
       const err = parseFrappeErrorMsg(groupError);
@@ -290,31 +278,23 @@ const Team = () => {
     [dispatch],
   );
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const onInputChange = useCallback(
-    deBounce((e: React.ChangeEvent<HTMLInputElement>) => {
-      dispatch(setEmployeeName(e.target.value));
-      setEmployeeNameParam(e.target.value);
-    }, 500),
-    [dispatch],
-  );
   const handleEmployeeChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      setEmployee(e.target.value);
-      onInputChange(e);
+      dispatch(setEmployeeName(e.target.value));
+      setEmployeeNameParam(e.target.value);
     },
-    [onInputChange],
+    [dispatch, setEmployeeNameParam],
   );
   return (
     <>
       <div className="flex gap-x-2 items-center justify-between mb-3">
         {teamState.isAprrovalDialogOpen && <Approval />}
         <div id="filters" className="flex gap-x-2 max-md:gap-x-5 max-md:w-4/5 max-md:overflow-scroll">
-          <Input
+          <DeBounceInput
             placeholder="Employee name"
-            value={employee}
-            onChange={handleEmployeeChange}
-            className="placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-slate-800"
+            value={employeeNameParam}
+            deBounceValue={400}
+            callback={handleEmployeeChange}
           />
           <ComboxBox
             value={statusParam}
@@ -369,7 +349,7 @@ const Team = () => {
           </Button>
         </div>
       </div>
-      {isLoading || isValidating ? (
+      {(isLoading || isValidating) && Object.keys(teamState.data.data).length == 0 ? (
         <Spinner isFull />
       ) : (
         <div className="overflow-y-scroll mb-2 " style={{ height: "calc(100vh - 8rem)" }}>
@@ -489,7 +469,11 @@ const Team = () => {
         </div>
       )}
       <div className="flex justify-between items-center">
-        <Button variant="outline" onClick={handleLoadMore} disabled={!teamState.hasMore}>
+        <Button
+          variant="outline"
+          onClick={handleLoadMore}
+          disabled={!teamState.hasMore || ((isLoading || isValidating) && Object.keys(teamState.data.data).length != 0)}
+        >
           Load More
         </Button>
         <Typography variant="p" className="px-5 font-semibold">

@@ -92,14 +92,9 @@ export function floatToTime(
   minutePadding: number = 2,
 ) {
   const totalMinutes = Math.round(float * 60);
-  let hours = Math.floor(totalMinutes / 60);
-  let minutes = totalMinutes % 60;
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
 
-  if (minutes >= 60) {
-    hours += 1;
-    minutes = 0;
-  }
-  // Format hours and minutes to always be two digits
   const formattedHours = String(hours).padStart(hourPadding, "0");
   const formattedMinutes = String(minutes).padStart(minutePadding, "0");
 
