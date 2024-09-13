@@ -1,11 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useToast } from "@/app/components/ui/use-toast";
 import {
   cn,
   parseFrappeErrorMsg,
   prettyDate,
   floatToTime,
-  deBounce,
   getFormatedDate,
   calculateExtendedWorkingHour,
   preProcessLink,
@@ -13,7 +11,7 @@ import {
 import { TEAM, EMPLOYEE } from "@/lib/constant";
 import { RootState } from "@/store";
 import { useFrappeGetCall } from "frappe-react-sdk";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   setData,
@@ -29,7 +27,6 @@ import { Spinner } from "@/app/components/spinner";
 import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
 import { addDays, isToday } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
-import { Input } from "@/app/components/ui/input";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { Typography } from "@/app/components/typography";
@@ -37,13 +34,12 @@ import { dataItem } from "@/types/team";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { useNavigate } from "react-router-dom";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
-
+import { DeBounceInput } from "@/app/components/deBounceInput";
 const Home = () => {
   const { toast } = useToast();
   const homeState = useSelector((state: RootState) => state.home);
   const dispatch = useDispatch();
   const [employeeNameParam, setEmployeeNameParam] = useQueryParamsState<string>("employee-name", "");
-  const [employee, setEmployee] = useState(employeeNameParam);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -86,21 +82,12 @@ const Home = () => {
     }
   }, [dispatch, employeeNameParam]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const onInputChange = useCallback(
-    deBounce((e: React.ChangeEvent<HTMLInputElement>) => {
-      dispatch(setEmployeeName(e.target.value));
-      setEmployeeNameParam(e.target.value);
-    }, 500),
-    [dispatch],
-  );
-
   const handleEmployeeChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      setEmployee(e.target.value);
-      onInputChange(e);
+      dispatch(setEmployeeName(e.target.value));
+      setEmployeeNameParam(e.target.value);
     },
-    [onInputChange],
+    [dispatch, setEmployeeNameParam],
   );
 
   const handleprevWeek = useCallback(() => {
@@ -123,11 +110,11 @@ const Home = () => {
     <>
       <section id="filter-section" className="flex gap-x-3 mb-3">
         <div className="pr-4 max-md:pr-2 max-w-sm w-full max-md:w-3/6 max-sm:w-4/6">
-          <Input
+          <DeBounceInput
             placeholder="Employee name"
-            value={employee}
-            className="placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-slate-800 max-w-sm"
-            onChange={handleEmployeeChange}
+            value={employeeNameParam}
+            deBounceValue={200}
+            callback={handleEmployeeChange}
           />
         </div>
         <div className="w-full flex">
@@ -182,6 +169,7 @@ const Home = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
               {Object.entries(homeState.data?.data).map(([key, item]: [string, any]) => {
                 return (
                   <TableRow key={key}>
@@ -243,7 +231,11 @@ const Home = () => {
         </div>
       )}
       <div className="w-full flex justify-between items-center">
-        <Button variant="outline" onClick={handleLoadMore} disabled={!homeState.data.has_more}>
+        <Button
+          variant="outline"
+          onClick={handleLoadMore}
+          disabled={!homeState.data.has_more || (isLoading && Object.keys(homeState.data.data).length != 0)}
+        >
           Load More
         </Button>
         <Typography variant="p" className="px-5 font-semibold">
