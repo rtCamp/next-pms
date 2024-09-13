@@ -274,7 +274,6 @@ const Task = () => {
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
-        console.log(err);
         toast({
           variant: "destructive",
           description: error,
@@ -596,6 +595,7 @@ const Task = () => {
         );
       },
       cell: ({ row, getValue }) => {
+        if (row.depth !== 0) return null;
         return (
           <>
             <div
@@ -1235,7 +1235,7 @@ const FlatTable = ({
   const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.task.get_task_list", {
     page_length: 20,
     start: task.start,
-    project: task.selectedProject,
+    projects: task.selectedProject,
     search: subjectSearch,
   });
   useEffect(() => {
