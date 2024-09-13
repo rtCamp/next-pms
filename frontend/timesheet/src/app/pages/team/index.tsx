@@ -469,7 +469,11 @@ const Team = () => {
         </div>
       )}
       <div className="flex justify-between items-center">
-        <Button variant="outline" onClick={handleLoadMore} disabled={!teamState.hasMore}>
+        <Button
+          variant="outline"
+          onClick={handleLoadMore}
+          disabled={!teamState.hasMore || ((isLoading || isValidating) && Object.keys(teamState.data.data).length != 0)}
+        >
           Load More
         </Button>
         <Typography variant="p" className="px-5 font-semibold">

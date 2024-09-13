@@ -169,6 +169,7 @@ const Home = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
               {Object.entries(homeState.data?.data).map(([key, item]: [string, any]) => {
                 return (
                   <TableRow key={key}>
@@ -230,7 +231,11 @@ const Home = () => {
         </div>
       )}
       <div className="w-full flex justify-between items-center">
-        <Button variant="outline" onClick={handleLoadMore} disabled={!homeState.data.has_more}>
+        <Button
+          variant="outline"
+          onClick={handleLoadMore}
+          disabled={!homeState.data.has_more || (isLoading && Object.keys(homeState.data.data).length != 0)}
+        >
           Load More
         </Button>
         <Typography variant="p" className="px-5 font-semibold">

@@ -24,7 +24,7 @@ const hourSchema = z.preprocess(
         invalid_type_error: "Please enter a valid number for hours.",
       }),
     ])
-    .refine((val) => /^\d+(\.\d{1,2})?$/.test(val.toString()), {
+    .refine((val) => /^\d+(\.\d{1,3})?$/.test(val.toString()), {
       message: "Hours must be a number with at most two decimal places.",
     }),
 );
@@ -172,7 +172,7 @@ const timeStringToFloat = (value: string) => {
   const matchMinutesOnly = /^:([0-5]\d)$/.exec(value);
   if (matchMinutesOnly) {
     const minutes = parseInt(matchMinutesOnly[1], 10);
-    return parseFloat((minutes / 60).toFixed(2));
+    return parseFloat((minutes / 60).toFixed(3));
   }
 
   // Check if the input is in "HH:MM" or "H:M" format
@@ -180,10 +180,10 @@ const timeStringToFloat = (value: string) => {
   if (matchFullTime) {
     const hours = parseInt(matchFullTime[1], 10);
     const minutes = parseInt(matchFullTime[2], 10);
-    return parseFloat((hours + minutes / 60).toFixed(2));
+    return parseFloat((hours + minutes / 60).toFixed(3));
   }
 
   // Attempt to parse as a float for direct float input
   const parsed = parseFloat(value);
-  return isNaN(parsed) ? NaN : parseFloat(parsed.toFixed(2));
+  return isNaN(parsed) ? NaN : parseFloat(parsed.toFixed(3));
 };
