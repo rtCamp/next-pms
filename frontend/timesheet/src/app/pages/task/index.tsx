@@ -134,7 +134,7 @@ const Task = () => {
       expected_time: "150",
       actual_time: "150",
     },
-    columnSort: [{ id: "liked", desc: false }],
+    columnSort: [],
   };
   const [localStorageTaskState, setLocalStorageTaskState] = useState<localStorageTaskType>(() => {
     try {
@@ -317,29 +317,7 @@ const Task = () => {
 
     return indexA - indexB;
   };
-  const customLikeSortingFn = (rowA: Row<any>, rowB: Row<any>, columnId: string): number => {
-    let rowAValue = rowA.original._liked_by;
-    let rowBValue = rowB.original._liked_by;
-    if (typeof rowAValue === "string") {
-      rowAValue = JSON.parse(rowAValue);
-    }
-    if (typeof rowBValue === "string") {
-      rowBValue = JSON.parse(rowBValue);
-    }
-    if (!rowAValue) {
-      rowAValue = [];
-    }
-    if (!rowBValue) {
-      rowBValue = [];
-    }
 
-    const containsUserA = rowAValue.includes(user.user);
-    const containsUserB = rowBValue.includes(user.user);
-
-    if (containsUserA && !containsUserB) return -1;
-    if (!containsUserA && containsUserB) return 1; // Other comes after
-    return 0; // Equal
-  };
   // column definitions
   const columns: ColumnsType = [
     {
@@ -569,16 +547,10 @@ const Task = () => {
     },
     {
       accessorKey: "liked",
-      header: ({ column }) => {
-        if (!column.getIsSorted()) {
-          return column.toggleSorting(false);
-        }
-        return <></>;
-      },
+      header: "",
       size: 30, // Default size
       minSize: 20, // Minimum size
       maxSize: 30, // Maximum size
-      sortingFn: customLikeSortingFn,
       cell: ({ row }) => {
         return (
           <span title="Like">
@@ -841,7 +813,6 @@ const Task = () => {
       size: 30, // Default size
       minSize: 20, // Minimum size
       maxSize: 30, // Maximum size
-      sortingFn: customLikeSortingFn,
       cell: ({ row }) => {
         return (
           row.depth !== 0 && (
@@ -1033,7 +1004,7 @@ const Task = () => {
       </style>
       <div className="md:w-full h-full justify-between flex flex-col relative">
         {/* filters and combo boxes */}
-        <div id="filters" className="flex gap-x-2 mb-3 w-full overflow-hidden p-1 overflow-x-scroll">
+        <div id="filters" className="flex gap-x-2 mb-3 w-full overflow-hidden p-1 md:overflow-x-auto overflow-x-scroll">
           <div className="flex gap-2 xl:w-2/5">
             {/* Task Search Filter */}
             <Input
@@ -1122,7 +1093,7 @@ const Task = () => {
           </DropdownMenu>
         </div>
         {/* tables */}
-        <div className="overflow-hidden w-full overflow-y-scroll" style={{ height: "calc(100vh - 8rem)" }}>
+        <div className="overflow-hidden w-full overflow-y-auto" style={{ height: "calc(100vh - 8rem)" }}>
           {groupByParam.length === 0 && task.groupBy ? (
             <FlatTable
               table={table}
