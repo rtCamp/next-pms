@@ -21,6 +21,7 @@ def get_compact_view_data(
     page_length=10,
     start=0,
     status_filter=None,
+    reports_to: str | None = None,
 ):
     import json
 
@@ -46,6 +47,7 @@ def get_compact_view_data(
         user_group=user_group,
         page_length=page_length,
         start=start,
+        reports_to=reports_to,
         timesheet_status=status_filter,
         start_date=dates[0].get("start_date"),
         end_date=dates[-1].get("end_date"),
@@ -200,6 +202,7 @@ def filter_employee_by_timesheet_status(
     start=0,
     user_group=None,
     timesheet_status=None,
+    reports_to: str | None = None,
     start_date: str | None = None,
     end_date: str | None = None,
 ):
@@ -218,6 +221,7 @@ def filter_employee_by_timesheet_status(
             page_length=page_length,
             start=start,
             user_group=user_group,
+            reports_to=reports_to,
         )
 
         return employees, count

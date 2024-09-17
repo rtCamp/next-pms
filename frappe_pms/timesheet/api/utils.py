@@ -64,6 +64,7 @@ def filter_employees(
     start=0,
     user_group=None,
     ignore_permissions=False,
+    reports_to: None | str = None,
 ):
     import json
 
@@ -71,6 +72,9 @@ def filter_employees(
     fields = ["name", "image", "employee_name", "department", "designation"]
     employee_ids = []
     filters = {"status": "Active"}
+
+    if reports_to:
+        filters["reports_to"] = reports_to
 
     if isinstance(department, str):
         department = json.loads(department)
