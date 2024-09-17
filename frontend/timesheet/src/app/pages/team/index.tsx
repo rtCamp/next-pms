@@ -20,6 +20,7 @@ import {
   setProjectSearch,
   setStatusFilter,
   setEmployeeName,
+  setReportsTo,
   setFilters,
 } from "@/store/team";
 import { useToast } from "@/app/components/ui/use-toast";
@@ -40,6 +41,7 @@ import { WeekTotal } from "@/app/components/timesheetTable";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { ProjectProps } from "@/types";
 import { DeBounceInput } from "@/app/components/deBounceInput";
+import EmployeeCombo from "@/app/components/employeeComboBox";
 
 type UserGroupProps = {
   name: string;
@@ -61,6 +63,7 @@ const Team = () => {
   const [userGroupParam, setUserGroupParam] = useQueryParamsState<string[]>("user-group", []);
   const [statusParam, setStatusParam] = useQueryParamsState<string[]>("status", []);
   const [employeeNameParam, setEmployeeNameParam] = useQueryParamsState<string>("employee-name", "");
+  const [reportsToParam, setReportsToParam] = useQueryParamsState<string>("reports-to", "");
 
   const approvals = [
     { label: "Not Submitted", value: "Not Submitted" },
@@ -78,8 +81,10 @@ const Team = () => {
       userGroup: userGroupParam,
       statusFilter: statusParam,
       employeeName: employeeNameParam,
+      reportsTo: reportsToParam,
     };
     dispatch(setFilters(payload));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const { data, mutate, isLoading, isValidating, error } = useFrappeGetCall(
@@ -93,6 +98,7 @@ const Team = () => {
       user_group: teamState.userGroup,
       start: teamState.start,
       status_filter: teamState.statusFilter,
+      reports_to: teamState.reportsTo,
     },
     undefined,
     {
@@ -204,18 +210,6 @@ const Team = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teamState.approvalSearch]);
 
-  useEffect(() => {
-    setProjectParam(teamState.project);
-  }, [setProjectParam, teamState.project]);
-
-  useEffect(() => {
-    setStatusParam(teamState.statusFilter);
-  }, [setStatusParam, teamState.statusFilter]);
-
-  useEffect(() => {
-    setUserGroupParam(teamState.userGroup);
-  }, [setUserGroupParam, teamState.userGroup]);
-
   const handleprevWeek = useCallback(() => {
     const date = getFormatedDate(addDays(teamState.weekDate, -6));
     dispatch(setWeekDate(date));
@@ -229,21 +223,27 @@ const Team = () => {
   const handleProjectChange = useCallback(
     (value: string | string[]) => {
       dispatch(setProject(value as string[]));
+      setProjectParam(value as string[]);
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [dispatch],
   );
 
   const handleUserGroupChange = useCallback(
     (value: string | string[]) => {
       dispatch(setUsergroup(value as string[]));
+      setUserGroupParam(value as string[]);
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [dispatch],
   );
   const handleStatusChange = useCallback(
     (filters: string | string[]) => {
       const normalizedFilters = Array.isArray(filters) ? filters : [filters];
       dispatch(setStatusFilter(normalizedFilters));
+      setStatusParam(normalizedFilters);
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [dispatch],
   );
   const handleLoadMore = () => {
@@ -284,6 +284,13 @@ const Team = () => {
       setEmployeeNameParam(e.target.value);
     },
     [dispatch, setEmployeeNameParam],
+  );
+  const handleReportsToChange = useCallback(
+    (name: string) => {
+      dispatch(setReportsTo(name));
+      setReportsToParam(name);
+    },
+    [dispatch, setReportsToParam],
   );
   return (
     <>
@@ -338,6 +345,12 @@ const Team = () => {
             leftIcon={<Filter className={cn("h-4 w-4", teamState.userGroup.length != 0 && "fill-primary")} />}
             onSelect={handleUserGroupChange}
             className="text-primary border-dashed gap-x-2 font-normal w-fit"
+          />
+          <EmployeeCombo
+            value={reportsToParam}
+            label="Reporting Manager"
+            onSelect={handleReportsToChange}
+            className="border-dashed min-w-48 w-full max-w-48"
           />
         </div>
         <div id="date-filter" className="flex gap-x-2">
@@ -464,6 +477,11 @@ const Team = () => {
                   </TableRow>
                 );
               })}
+              {Object.entries(teamState.data?.data).length == 0 && (
+                <TableRow>
+                  <TableCell className="w-full flex items-center justify-center">No data found</TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>
