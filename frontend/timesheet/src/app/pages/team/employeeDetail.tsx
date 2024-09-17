@@ -35,16 +35,18 @@ import {
   setEmployee,
   setDialog,
   setEditDialog,
+  setDateRange,
 } from "@/store/team";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
-
+import { Status } from "@/app/pages/team";
 import { LeaveProps, NewTimesheetProps, TaskDataItemProps, TaskDataProps, timesheet } from "@/types/timesheet";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/app/components/ui/input";
 import { timeFormatRegex } from "@/schema/timesheet";
 import { EditTime } from "@/app/pages/timesheet/editTime";
 import EmployeeCombo from "@/app/components/employeeComboBox";
+import { Approval } from "./approval";
 const EmployeeDetail = () => {
   const { id } = useParams();
   const teamState = useSelector((state: RootState) => state.team);
@@ -112,6 +114,7 @@ const EmployeeDetail = () => {
   };
   return (
     <>
+      {teamState.isAprrovalDialogOpen && <Approval />}
       {teamState.isDialogOpen && (
         <AddTime
           open={teamState.isDialogOpen}
@@ -121,6 +124,7 @@ const EmployeeDetail = () => {
           onSuccess={() => {
             dispatch(setFetchAgain(true));
           }}
+          task={teamState.timesheet.task}
           initialDate={teamState.timesheet.date}
           employee={teamState.employee}
           workingFrequency={teamState.timesheetData.working_frequency}
@@ -198,12 +202,19 @@ const Timesheet = () => {
       return holiday;
     }
   });
+  const handleStatusClick = (start_date: string, end_date: string) => {
+    const data = {
+      start_date: start_date,
+      end_date: end_date,
+    };
+    dispatch(setDateRange({ dateRange: data, employee: teamState.employee, isAprrovalDialogOpen: true }));
+  };
   const working_hour = expectatedHours(teamState.timesheetData.working_hour, teamState.timesheetData.working_frequency);
   return (
     <div className="flex flex-col">
       {teamState.timesheetData.data &&
         Object.keys(teamState.timesheetData.data).length > 0 &&
-        Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet]) => {
+        Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet], index: number) => {
           let total_hours = value.total_hours;
 
           value.dates.map((date) => {
@@ -221,13 +232,23 @@ const Timesheet = () => {
           });
           return (
             <>
-              <Accordion type="multiple" key={key} defaultValue={[key]}>
+              <Accordion type="multiple" key={key} defaultValue={index === 0 || index === 1 ? [key] : undefined}>
                 <AccordionItem value={key}>
                   <AccordionTrigger className="hover:no-underline w-full">
-                    <div className="flex justify-between w-full">
+                    <div className="flex justify-between items-center w-full pr-2">
                       <Typography variant="h6" className="font-normal">
                         {key}: {floatToTime(total_hours)}h
                       </Typography>
+                      <Button
+                        variant="ghost"
+                        className="p-1 h-fit"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStatusClick(value.start_date, value.end_date);
+                        }}
+                      >
+                        <Status status={value.status} />
+                      </Button>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="pb-0">
@@ -250,10 +271,11 @@ const Timesheet = () => {
   );
 };
 
-export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?: () => void }) => {
+export const Time = ({ callback }: { callback?: () => void }) => {
   const teamState = useSelector((state: RootState) => state.team);
   const { call } = useFrappePostCall("frappe_pms.timesheet.api.timesheet.save");
   const { toast } = useToast();
+  const dispatch = useDispatch();
   const updateTime = (value: NewTimesheetProps) => {
     call(value)
       .then((res) => {
@@ -271,6 +293,13 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
         });
       });
   };
+  const handleStatusClick = (start_date: string, end_date: string) => {
+    const data = {
+      start_date: start_date,
+      end_date: end_date,
+    };
+    dispatch(setDateRange({ dateRange: data, employee: teamState.employee, isAprrovalDialogOpen: true }));
+  };
   const holidays = teamState.timesheetData.holidays.map((holiday) => {
     if (typeof holiday === "object" && "holiday_date" in holiday) {
       return holiday.holiday_date;
@@ -283,8 +312,7 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
     <div>
       {teamState.timesheetData.data &&
         Object.keys(teamState.timesheetData.data).length > 0 &&
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet]) => {
+        Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet], index: number) => {
           let total_hours = value.total_hours;
 
           value.dates.map((date) => {
@@ -302,13 +330,23 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
           });
           return (
             <>
-              <Accordion type="multiple" key={key} defaultValue={isOpen ? [key] : []}>
+              <Accordion type="multiple" key={key} defaultValue={index === 0 || index === 1 ? [key] : undefined}>
                 <AccordionItem value={key}>
                   <AccordionTrigger className="hover:no-underline w-full">
-                    <div className="flex justify-between w-full">
+                    <div className="flex justify-between w-full pr-2">
                       <Typography variant="h6" className="font-normal">
                         {key}: {floatToTime(total_hours)}h
                       </Typography>
+                      <Button
+                        variant="ghost"
+                        className="p-1 h-fit"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStatusClick(value.start_date, value.end_date);
+                        }}
+                      >
+                        <Status status={value.status} />
+                      </Button>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="pb-0">

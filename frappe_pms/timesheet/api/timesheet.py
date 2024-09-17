@@ -390,9 +390,13 @@ def get_timesheet_details(date: str, task: str, employee: str):
         .where(timesheet.start_date == getdate(date))
     )
     data = res.run(as_dict=True)
-    subject = frappe.get_value("Task", task, "subject")
+    subject, project_name = frappe.get_value(
+        "Task", task, ["subject", "project.project_name"]
+    )
+
     return {
         "task": subject,
+        "project": project_name,
         "data": data,
     }
 
