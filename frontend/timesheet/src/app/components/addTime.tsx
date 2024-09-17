@@ -128,6 +128,10 @@ const AddTime = ({
       })
       .then((res) => {
         setTask(res.message.task);
+        const project = res.message.task.filter((task: TaskData) => task.name === searchTask);
+        if (project.length > 0) {
+          setSelectedProject([project[0].project]);
+        }
       });
   };
 

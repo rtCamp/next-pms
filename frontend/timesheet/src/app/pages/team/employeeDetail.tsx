@@ -121,6 +121,7 @@ const EmployeeDetail = () => {
           onSuccess={() => {
             dispatch(setFetchAgain(true));
           }}
+          task={teamState.timesheet.task}
           initialDate={teamState.timesheet.date}
           employee={teamState.employee}
           workingFrequency={teamState.timesheetData.working_frequency}
