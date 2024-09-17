@@ -144,7 +144,7 @@ export const TimesheetUpdateSchema = z.object({
 });
 
 // Preprocessing time function to convert "HH:MM" format to float
-const timeStringToFloat = (value: string) => {
+export const timeStringToFloat = (value: string) => {
   // First,check if characters other than [0-9,:,.] are not present in string else throw error
   if (/[^0-9:.]/.test(value)) {
     return NaN;

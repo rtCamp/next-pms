@@ -9,7 +9,7 @@ import { Button } from "@/app/components/ui/button";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { cn, floatToTime, parseFrappeErrorMsg, prettyDate } from "@/lib/utils";
-import { TimesheetUpdateSchema } from "@/schema/timesheet";
+import { TimesheetUpdateSchema, timeStringToFloat } from "@/schema/timesheet";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/app/components/ui/form";
 import { Typography } from "@/app/components/typography";
@@ -28,11 +28,13 @@ interface EditTimeProps {
 interface TaskProps {
   data: TaskDataItemProps[];
   task: string;
+  project: string;
 }
 export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps) => {
   const [employeeData, setEmployeeData] = useState<TaskProps>({
     data: [],
     task: "",
+    project: "",
   });
   const form = useForm<z.infer<typeof TimesheetUpdateSchema>>({
     resolver: zodResolver(TimesheetUpdateSchema),
@@ -69,8 +71,10 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
         };
       }),
     };
-
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     form.reset(data);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [employeeData]);
 
   const addEmptyFormRow = () => {
@@ -84,8 +88,15 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
       task: task,
       date: date,
     };
+    const updatedData = form.getValues().data;
+    updatedData.forEach((item) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      item.hours = timeStringToFloat(item.hours);
+    });
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    setEmployeeData({ ...employeeData, data: [...employeeData.data, emptyRow] });
+    setEmployeeData({ ...employeeData, data: [...updatedData, emptyRow] });
   };
 
   const removeFormRow = (index: number) => {
@@ -143,10 +154,15 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
           <DialogTitle>Edit Time</DialogTitle>
           <Separator />
           <div className="flex justify-between w-full overflow-hidden">
-            <Typography title={employeeData.task} variant="h6" className="max-w-80 truncate font-normal">
-              {employeeData.task}
-            </Typography>
-            <Typography variant="h5" className="max-w-80 truncate font-normal">
+            <span className="flex flex-col">
+              <Typography title={employeeData.task} variant="p" className="max-w-80 truncate font-semibold">
+                {employeeData.task}
+              </Typography>
+              <Typography title={employeeData.project} variant="small" className="max-w-80 truncate">
+                {employeeData.project}
+              </Typography>
+            </span>
+            <Typography variant="h6" className="max-w-80 truncate font-normal">
               {prettyDate(date).date}
             </Typography>
           </div>
@@ -205,7 +221,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
                           <FormItem className="w-full  px-2">
                             <FormControl>
                               <Textarea
-                                rows={1}
+                                rows={3}
                                 {...field}
                                 onChange={field.onChange}
                                 className={cn("focus-visible:ring-0 focus-visible:ring-offset-0 min-h-10")}
@@ -223,7 +239,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
                         return (
                           <FormItem className="w-full flex justify-center items-center min-h-10 max-w-12 px-2 text-center">
                             <FormControl>
-                              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                              <Checkbox checked={Boolean(field.value)} onCheckedChange={field.onChange} />
                             </FormControl>
                             <FormMessage className="text-xs" />
                           </FormItem>
