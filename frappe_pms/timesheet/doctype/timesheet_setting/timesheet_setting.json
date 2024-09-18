@@ -12,7 +12,10 @@
     "allow_future_entries",
     "reminder_setting_section",
     "send_daily_reminder",
-    "send_reminder_for"
+    "daily_reminder_template",
+    "column_break_udik",
+    "send_reminder_on_approval_request",
+    "approval_request_reminder_template"
   ],
   "fields": [
     {
@@ -60,9 +63,29 @@
       "label": "Send Daily Reminder"
     },
     {
+      "depends_on": "eval:doc.send_daily_reminder",
+      "fieldname": "daily_reminder_template",
+      "fieldtype": "Link",
+      "label": "Daily Reminder Template",
+      "mandatory_depends_on": "eval:doc.send_daily_reminder",
+      "options": "Email Template"
+    },
+    {
+      "fieldname": "column_break_udik",
+      "fieldtype": "Column Break"
+    },
+    {
+      "depends_on": "eval:doc.send_reminder_on_approval_request",
+      "fieldname": "approval_request_reminder_template",
+      "fieldtype": "Link",
+      "label": "Approval Request Reminder Template",
+      "mandatory_depends_on": "eval:doc.send_reminder_on_approval_request",
+      "options": "Email Template"
+    },
+    {
       "default": "0",
       "description": "When timesheet sent for Approval.",
-      "fieldname": "send_reminder_for",
+      "fieldname": "send_reminder_on_approval_request",
       "fieldtype": "Check",
       "label": "Send Reminder On Approval Request"
     }
@@ -70,7 +93,7 @@
   "index_web_pages_for_search": 1,
   "issingle": 1,
   "links": [],
-  "modified": "2024-09-18 17:04:10.638431",
+  "modified": "2024-09-18 17:21:51.625279",
   "modified_by": "Administrator",
   "module": "Timesheet",
   "name": "Timesheet Setting",
