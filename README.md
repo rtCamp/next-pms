@@ -26,7 +26,9 @@ Upon installation completion,follow the below setup for project & timesheet.
 
 2.  If you want to allow employees to make backdated or future time entries, you can set it in `Timesheet Setting`.
     - You can restrict the users from logging time entries for dates prior to the current day based on the `Allow Backdated Entries` field.
+
     <img width="1402" src="screenshots/timesheet-setting.png" alt="Timesheet Setting" />
+
     - You can have separate setting for both Employees & Projects Manager. For example: Employees can be log past days time where Projects Manager can log for past 30 days. 
 
 ## Local development setup
@@ -42,6 +44,7 @@ If you are using [Frappe Manager](https://github.com/rtCamp/Frappe-Manager) for 
     ln -sfn <sitename> localhost # ln -sfn ./erp.localhost ./localhost
     ```
 2.  Update the dockor compose for your `fm` site, generally all site create under `/frappe/sites/sitename/docker-compose.yml` in system root.
+
     - Update VIRTUAL_HOST in nginx
     ```yml
     environment:
@@ -50,11 +53,11 @@ If you are using [Frappe Manager](https://github.com/rtCamp/Frappe-Manager) for 
       VIRTUAL_PORT: 80
       HSTS: off
     ```
-3.  Expose port for frontend in nginx, usually it will be `5173`, but if react app is using other port it can be found in `vite.config.ts`
-   ```yml
-   expose:
-    - 80,5173
-   ```
+    - Expose port for frontend in nginx, usually it will be `5173`, but if react app is using other port it can be found in `vite.config.ts`
+    ```yml
+    expose:
+     - 80,5173
+    ```
 4.  Save the `docker-compose.yml` and restart nginx.
 5.  Go to `frappe-bench/apps/frappe_pms/frontend/timesheet` and create the `.env` from sample file.
 6.  Run the dev server:
