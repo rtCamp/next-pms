@@ -35,8 +35,6 @@ Before you begin, make sure you have met the following apps installed on your si
 
     - You can restrict the users from logging time entries for dates prior to the current day based on the `Allow Backdated Entries` field.
 
-    <img width="1402" src="screenshots/timesheet-settings.png" alt="Timesheet Setting" />
-
     - You can have separate setting for both Employees & Projects Manager. For example: Employees can be log past days time where Projects Manager can log for past 30 days.
 
 ## Local development setup
@@ -88,29 +86,6 @@ If you are using [Frappe Manager](https://github.com/rtCamp/Frappe-Manager) for 
     </figcaption>
 </figure>
 
-<details>
-  <summary>Show more views</summary>
-  <figure>
-      <img width="1402" src="screenshots/add-time.png" alt="Add time dialog" />
-      <figcaption align="center"><b>Add Time Dialog</b></figcaption>
-  </figure>
-  <figure>
-      <img width="1402" src="screenshots/task.png" alt="Task page" />
-      <figcaption align="center"><b>Task page</b></figcaption>
-  </figure>
-  <figure>
-      <img width="1402" src="screenshots/home.png" alt="Home View" />
-      <figcaption align="center"><b>Home page</b></figcaption>
-  </figure>
-  <figure>
-      <img width="1402" src="screenshots/team.png" alt="Team View" />
-      <figcaption align="center"><b>Team page</b></figcaption>
-  </figure>
-  <figure>
-      <img width="1402" src="screenshots/approval-dialog.png" alt="Team View" />
-      <figcaption align="center"><b>Approval dialog</b></figcaption>
-  </figure>
-</details>
 
 ## License
 
