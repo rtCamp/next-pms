@@ -75,6 +75,7 @@ function Timesheet() {
       description: "",
       hours: 0,
       employee: user.employee,
+      project: "",
     };
     dispatch(SetTimesheet(timesheetData));
     dispatch(SetAddTimeDialog(true));
@@ -198,6 +199,7 @@ function Timesheet() {
           workingFrequency={user.workingFrequency}
           workingHours={user.workingHours}
           task={timesheet.timesheet.task}
+          project={timesheet.timesheet.project}
         />
       )}
       {timesheet.isEditDialogOpen && (

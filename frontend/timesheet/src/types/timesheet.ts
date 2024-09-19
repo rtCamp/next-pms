@@ -7,6 +7,7 @@ export interface TaskDataProps {
   subject: string;
   project_name: string | null;
   is_billable: boolean;
+  project: string;
   data: Array<TaskDataItemProps>;
 }
 
@@ -21,6 +22,7 @@ export interface TaskDataItemProps {
   to_time?: string;
   docstatus: 0 | 1 | 2;
   subject?: string;
+  project?: string;
   project_name?: string | null;
 }
 

@@ -291,10 +291,18 @@ def get_timesheet(dates: list, employee: str):
             for log in timesheet.time_logs:
                 if not log.task:
                     continue
-                subject, task_name, project_name, is_billable = frappe.get_value(
-                    "Task",
-                    log.task,
-                    ["subject", "name", "project.project_name", "custom_is_billable"],
+                subject, task_name, project_name, project, is_billable = (
+                    frappe.get_value(
+                        "Task",
+                        log.task,
+                        [
+                            "subject",
+                            "name",
+                            "project.project_name",
+                            "project",
+                            "custom_is_billable",
+                        ],
+                    )
                 )
                 if not subject:
                     continue
@@ -305,6 +313,7 @@ def get_timesheet(dates: list, employee: str):
                         "data": [],
                         "is_billable": is_billable,
                         "project_name": project_name,
+                        "project": project,
                     }
 
                 data[task_name]["data"].append(log.as_dict())

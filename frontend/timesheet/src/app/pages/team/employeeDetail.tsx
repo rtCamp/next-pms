@@ -129,6 +129,7 @@ const EmployeeDetail = () => {
           employee={teamState.employee}
           workingFrequency={teamState.timesheetData.working_frequency}
           workingHours={teamState.timesheetData.working_hour}
+          project={teamState.timesheet.project}
         />
       )}
       {teamState.isEditDialogOpen && (

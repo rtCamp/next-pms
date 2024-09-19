@@ -122,7 +122,7 @@ def validate_dates(doc):
     allow_back_dated_entry = frappe.db.get_single_value(
         "Timesheet Settings", "allow_backdated_entries"
     )
-    if not allow_back_dated_entry:
+    if not allow_back_dated_entry and date_gap < 0:
         throw(_("Backdated time entries are not allowed."))
 
     # validate backdated entries as per the setting
