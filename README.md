@@ -83,10 +83,34 @@ If you are using [Frappe Manager](https://github.com/rtCamp/Frappe-Manager) for 
 
 <figure>
     <img width="1402" src="screenshots/timesheet-view.png" alt="Timesheet" />
-        <figcaption >
-        <b>Private channels in Raven</b>
+        <figcaption  align="center">
+        <b>Time entry view</b>
     </figcaption>
 </figure>
+
+<details>
+  <summary>Show more views</summary>
+  <figure>
+      <img width="1402" src="screenshots/add-time.png" alt="Add time dialog" />
+      <figcaption align="center"><b>Add Time Dialog</b></figcaption>
+  </figure>
+  <figure>
+      <img width="1402" src="screenshots/task.png" alt="Task page" />
+      <figcaption align="center"><b>Task page</b></figcaption>
+  </figure>
+  <figure>
+      <img width="1402" src="screenshots/home.png" alt="Home View" />
+      <figcaption align="center"><b>Home page</b></figcaption>
+  </figure>
+  <figure>
+      <img width="1402" src="screenshots/team.png" alt="Team View" />
+      <figcaption align="center"><b>Team page</b></figcaption>
+  </figure>
+  <figure>
+      <img width="1402" src="screenshots/approval-dialog.png" alt="Team View" />
+      <figcaption align="center"><b>Approval dialog</b></figcaption>
+  </figure>
+</details>
 
 ## License
 
