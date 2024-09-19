@@ -136,6 +136,7 @@ const TimesheetTable = ({
                           task: taskData.name,
                           from_time: date,
                           docstatus: 0,
+                          project: taskData.project,
                           is_billable: false,
                         },
                       ];
@@ -376,6 +377,7 @@ export const Cell = ({
       description: "",
       name: "",
       task: data[0].task ?? "",
+      project: data[0].project ?? "",
     };
     onCellClick && onCellClick(value);
   };
@@ -472,6 +474,7 @@ export const EmptyRow = ({
             from_time: date,
             task: "",
             parent: "",
+            project: "",
           },
         ];
         return (

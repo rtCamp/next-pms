@@ -29,6 +29,7 @@ export interface TeamState {
     date: string;
     description: string;
     hours: number;
+    project?: string;
   };
   timesheetData: timesheetDataProps;
   start: number;
@@ -59,6 +60,7 @@ export const initialState: TeamState = {
     date: "",
     description: "",
     hours: 0,
+    project: "",
   },
   employee: "",
   employeeName: "",

@@ -29,6 +29,7 @@ interface AddTimeProps {
   onSuccess?: () => void;
   workingFrequency: WorkingFrequency;
   task?: string;
+  project?: string;
 }
 
 const AddTime = ({
@@ -40,13 +41,13 @@ const AddTime = ({
   workingHours,
   onSuccess,
   task = "",
+  project = "",
 }: AddTimeProps) => {
   const { call } = useContext(FrappeContext) as FrappeConfig;
-
   const { call: save } = useFrappePostCall("frappe_pms.timesheet.api.timesheet.save");
   const [searchTask, setSearchTask] = useState(task);
   const [tasks, setTask] = useState([]);
-  const [selectedProject, setSelectedProject] = useState<string[]>([]);
+  const [selectedProject, setSelectedProject] = useState<string[]>(project ? [project] : []);
   const [selectedDate, setSelectedDate] = useState(getFormatedDate(initialDate));
   const [selectedEmployee, setSelectedEmployee] = useState(employee);
   const expectedHours = expectatedHours(workingHours, workingFrequency);
@@ -128,10 +129,10 @@ const AddTime = ({
       })
       .then((res) => {
         setTask(res.message.task);
-        const project = res.message.task.filter((task: TaskData) => task.name === searchTask);
-        if (project.length > 0) {
-          setSelectedProject([project[0].project]);
-        }
+        // const project = res.message.task.filter((task: TaskData) => task.name === searchTask);
+        // if (project.length > 0) {
+        //   setSelectedProject([project[0].project]);
+        // }
       });
   };
 
@@ -158,6 +159,7 @@ const AddTime = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTask, selectedProject]);
 
+  useEffect(() => {}, [tasks]);
   useEffect(() => {
     mutatePerDayHrs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
