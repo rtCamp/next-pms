@@ -13,9 +13,12 @@
     "reminder_setting_section",
     "send_daily_reminder",
     "daily_reminder_template",
-    "column_break_udik",
     "send_reminder_on_approval_request",
-    "approval_request_reminder_template"
+    "approval_request_reminder_template",
+    "column_break_udik",
+    "send_weekly_approval_reminder",
+    "day_to_send_reminder",
+    "weekly_approval_reminder_template"
   ],
   "fields": [
     {
@@ -53,7 +56,7 @@
     {
       "fieldname": "reminder_setting_section",
       "fieldtype": "Section Break",
-      "label": "Reminder Setting"
+      "label": "Reminder Settings"
     },
     {
       "default": "0",
@@ -84,19 +87,41 @@
     },
     {
       "default": "0",
-      "description": "When timesheet sent for Approval.",
+      "description": "Send reminder when timesheet submitted for Approval.",
       "fieldname": "send_reminder_on_approval_request",
       "fieldtype": "Check",
       "label": "Send Reminder On Approval Request"
+    },
+    {
+      "default": "0",
+      "description": "Send reminder to all the Projects Manager to approve/reject time entries.",
+      "fieldname": "send_weekly_approval_reminder",
+      "fieldtype": "Check",
+      "label": "Send Weekly Approval Reminder"
+    },
+    {
+      "default": "Monday",
+      "fieldname": "day_to_send_reminder",
+      "fieldtype": "Select",
+      "label": "Day To Send Reminder",
+      "options": "Monday\nTuesday\nWednesday\nThursday\nFriday\nSaturday\nSunday"
+    },
+    {
+      "depends_on": "eval:doc.send_weekly_approval_reminder",
+      "fieldname": "weekly_approval_reminder_template",
+      "fieldtype": "Link",
+      "label": "Weekly Approval Reminder Template",
+      "mandatory_depends_on": "eval:doc.send_weekly_approval_reminder",
+      "options": "Email Template"
     }
   ],
   "index_web_pages_for_search": 1,
   "issingle": 1,
   "links": [],
-  "modified": "2024-09-18 17:21:51.625279",
+  "modified": "2024-09-19 13:07:38.204140",
   "modified_by": "Administrator",
   "module": "Timesheet",
-  "name": "Timesheet Setting",
+  "name": "Timesheet Settings",
   "owner": "Administrator",
   "permissions": [
     {

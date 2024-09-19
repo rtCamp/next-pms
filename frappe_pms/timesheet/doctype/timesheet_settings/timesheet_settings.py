@@ -5,5 +5,5 @@
 from frappe.model.document import Document
 
 
-class TimesheetSetting(Document):
+class TimesheetSettings(Document):
     pass
