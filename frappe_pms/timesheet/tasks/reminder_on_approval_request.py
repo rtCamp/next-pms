@@ -4,6 +4,17 @@ import frappe
 def send_approval_reminder(
     employee: str, reporting_manager: str, start_date: str, end_date: str
 ):
+    frappe.enqueue(
+        send_mail,
+        employee=employee,
+        job_name=f"send_approval_reminder from {employee} to {reporting_manager} for {start_date} to {end_date}",
+        reporting_manager=reporting_manager,
+        start_date=start_date,
+        end_date=end_date,
+    )
+
+
+def send_mail(employee: str, reporting_manager: str, start_date: str, end_date: str):
     send_reminder = frappe.db.get_single_value(
         fieldname="send_reminder_on_approval_request", doctype="Timesheet Setting"
     )
