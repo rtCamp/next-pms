@@ -159,23 +159,12 @@ override_doctype_class = {
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"frappe_pms.tasks.all"
-# 	],
-# 	"daily": [
-# 		"frappe_pms.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"frappe_pms.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"frappe_pms.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"frappe_pms.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+    "daily_long": [
+        "frappe_pms.timesheet.tasks.daily_reminder_for_time_entry.send_reminder",
+        "frappe_pms.timesheet.tasks.send_weekly_reminder.send_reminder",
+    ],
+}
 
 # Testing
 # -------

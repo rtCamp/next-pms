@@ -130,6 +130,10 @@ def delete(parent: str, name: str):
 
 @frappe.whitelist()
 def submit_for_approval(start_date: str, notes: str = None, employee: str = None):
+    from frappe_pms.timesheet.tasks.reminder_on_approval_request import (
+        send_approval_reminder,
+    )
+
     from .utils import update_weekly_status_of_timesheet
 
     if not employee:
@@ -138,7 +142,9 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
 
     if not reporting_manager:
         throw(_("Reporting Manager not found for the employee."))
-    reporting_manager = frappe.get_value("Employee", reporting_manager, "employee_name")
+    reporting_manager_name = frappe.get_value(
+        "Employee", reporting_manager, "employee_name"
+    )
 
     start_date = get_first_day_of_week(start_date)
     end_date = get_last_day_of_week(start_date)
@@ -164,7 +170,8 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
             doc.add_comment("Comment", text=notes)
 
     update_weekly_status_of_timesheet(employee, start_date)
-    return _(f"Timesheet has been sent for Approval to {reporting_manager}.")
+    send_approval_reminder(employee, reporting_manager, start_date, end_date)
+    return _(f"Timesheet has been sent for Approval to {reporting_manager_name}.")
 
 
 @frappe.whitelist()
@@ -359,9 +366,9 @@ def get_remaining_hour_for_employee(employee: str, date: str):
     )
     if data:
         if data.get("half_day") and data.get("half_day_date") == date:
-            total_hours += 4
+            total_hours += working_hours.get("working_hour") / 2
         else:
-            total_hours += 8
+            total_hours += working_hours.get("working_hour")
     return working_hours.get("working_hour") - total_hours
 
 
