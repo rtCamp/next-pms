@@ -101,9 +101,10 @@
     },
     {
       "default": "Monday",
+      "depends_on": "eval:doc.send_weekly_approval_reminder",
       "fieldname": "day_to_send_reminder",
       "fieldtype": "Select",
-      "label": "Day To Send Reminder",
+      "label": "Day To Send Weekly Reminder",
       "options": "Monday\nTuesday\nWednesday\nThursday\nFriday\nSaturday\nSunday"
     },
     {
@@ -118,7 +119,7 @@
   "index_web_pages_for_search": 1,
   "issingle": 1,
   "links": [],
-  "modified": "2024-09-19 14:14:30.042537",
+  "modified": "2024-09-19 14:59:57.769010",
   "modified_by": "Administrator",
   "module": "Timesheet",
   "name": "Timesheet Settings",
