@@ -366,9 +366,9 @@ def get_remaining_hour_for_employee(employee: str, date: str):
     )
     if data:
         if data.get("half_day") and data.get("half_day_date") == date:
-            total_hours += 4
+            total_hours += working_hours.get("working_hour") / 2
         else:
-            total_hours += 8
+            total_hours += working_hours.get("working_hour")
     return working_hours.get("working_hour") - total_hours
 
 

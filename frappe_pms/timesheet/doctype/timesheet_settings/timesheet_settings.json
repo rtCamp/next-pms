@@ -60,7 +60,7 @@
     },
     {
       "default": "0",
-      "description": "Timesheet entry missed for previous day.",
+      "description": "Timesheet entry missed for previous day or recorded less hours then usual.",
       "fieldname": "send_daily_reminder",
       "fieldtype": "Check",
       "label": "Send Daily Reminder"
@@ -118,7 +118,7 @@
   "index_web_pages_for_search": 1,
   "issingle": 1,
   "links": [],
-  "modified": "2024-09-19 13:07:38.204140",
+  "modified": "2024-09-19 14:14:30.042537",
   "modified_by": "Administrator",
   "module": "Timesheet",
   "name": "Timesheet Settings",

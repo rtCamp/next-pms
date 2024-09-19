@@ -34,29 +34,42 @@ def send_reminder():
     for employee in employees:
         if check_if_date_is_holiday(date, employee.name):
             continue
+        hour = reported_time_by_employee(employee.name, date)
         user = employee.user_id
-        args = {
-            "date": date,
-            "employee": employee,
-        }
+        args = {"date": date, "employee": employee, "hour": hour}
         message = frappe.render_template(email_message, args)
         subject = frappe.render_template(email_subject, args)
-        if not check_if_timesheet_exists(employee.name, date):
-            send_mail(user, subject, message)
+        send_mail(user, subject, message)
 
 
 def send_mail(recipients, subject, message):
     frappe.sendmail(recipients=recipients, subject=subject, message=message)
 
 
-def check_if_timesheet_exists(employee: str, date: datetime.date) -> bool:
-    return frappe.db.exists(
+def reported_time_by_employee(employee: str, date: datetime.date) -> bool:
+    if_exists = frappe.db.exists(
         "Timesheet",
         {
             "employee": employee,
             "start_date": date,
         },
     )
+    if not if_exists:
+        return 0
+
+    timesheets = frappe.get_all(
+        "Timesheet",
+        filters={
+            "employee": employee,
+            "start_date": date,
+            "end_date": date,
+        },
+        fields=["total_hours"],
+    )
+    total_hours = 0
+    for timesheet in timesheets:
+        total_hours += timesheet.total_hours
+    return total_hours
 
 
 def check_if_date_is_holiday(date: datetime.date, employee: str) -> bool:
