@@ -8,12 +8,12 @@ def send_reminder():
     date = add_days(current_date, -1)
 
     send_reminder = frappe.db.get_single_value(
-        fieldname="send_daily_reminder", doctype="Timesheet Setting"
+        fieldname="send_daily_reminder", doctype="Timesheet Settings"
     )
     if not send_reminder:
         return
     reminder_template_name = frappe.db.get_single_value(
-        fieldname="daily_reminder_template", doctype="Timesheet Setting"
+        fieldname="daily_reminder_template", doctype="Timesheet Settings"
     )
 
     reminder_template = frappe.get_doc("Email Template", reminder_template_name)

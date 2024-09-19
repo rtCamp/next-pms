@@ -16,13 +16,13 @@ def send_approval_reminder(
 
 def send_mail(employee: str, reporting_manager: str, start_date: str, end_date: str):
     send_reminder = frappe.db.get_single_value(
-        fieldname="send_reminder_on_approval_request", doctype="Timesheet Setting"
+        fieldname="send_reminder_on_approval_request", doctype="Timesheet Settings"
     )
     if not send_reminder:
         return
 
     reminder_template_name = frappe.db.get_single_value(
-        fieldname="approval_request_reminder_template", doctype="Timesheet Setting"
+        fieldname="approval_request_reminder_template", doctype="Timesheet Settings"
     )
     reminder_template = frappe.get_doc("Email Template", reminder_template_name)
 
