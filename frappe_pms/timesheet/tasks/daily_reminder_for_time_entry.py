@@ -38,6 +38,8 @@ def send_reminder():
             continue
         daily_norm = get_employee_daily_working_norm(employee.name)
         hour = reported_time_by_employee(employee.name, date)
+        if hour == daily_norm:
+            continue
         user = employee.user_id
         args = {
             "date": date,
