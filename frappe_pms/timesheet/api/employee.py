@@ -34,6 +34,13 @@ def get_employee_working_hours(employee: str = None):
     return {"working_hour": working_hour or 8, "working_frequency": working_frequency}
 
 
+def get_employee_daily_working_norm(employee: str):
+    working_details = get_employee_working_hours(employee)
+    if working_details.get("working_frequency") != "Per Day":
+        return working_details.get("working_hour") / 5
+    return working_details.get("working_hour")
+
+
 @frappe.whitelist()
 def get_employee(filters=None, fieldname=None):
     import json
