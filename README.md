@@ -1,3 +1,8 @@
+<div align="center">
+<img src="frappe-pms-logo.png" height="128" alt="Frappe HR Logo">
+<h2>Frappe PMS</h2>
+</div>
+
 ## Introduction
 
 Frappe PMS designed to enhance project management capabilities within Frappe. The app offers suite of additonal features tailored to improve timesheet management, streamlined project billing, and dedicated React app for timesheets.
