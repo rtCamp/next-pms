@@ -15,7 +15,7 @@ Frappe-PMS is a project management system built on the Frappe framework, with Re
 
 ## Prerequisite
 
-Before you begin, make sure you have met the following apps installed on your site:
+Before you begin, make sure you have following apps installed on your site:
 
 - [ERPNext](https://github.com/frappe/erpnext)
 - [Frappe HR](https://github.com/frappe/hrms)
