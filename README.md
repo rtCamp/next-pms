@@ -5,13 +5,13 @@
 
 ## Introduction
 
-Frappe PMS designed to enhance project management capabilities within Frappe. The app offers suite of additonal features tailored to improve timesheet management, streamlined project billing, and dedicated React app for timesheets.
+Frappe-PMS is a project management system built on the Frappe framework, with React components for a modern front-end experience. The app includes additional features to improve timesheet management and streamline project billing. 
 
 ## Key Features
 
-- React app for Timesheet.
-- Project billing customizations for easier billing.
-- Specialized reports for projects & timesheet
+1. Enhanced Timesheet Management: Manage and track timesheets more effectively with additional tools to log and review time entries.
+2. Streamlined Project Billing: Simplifies the billing process by integrating project-specific rates and billing information.
+3. React-Powered Timesheet App: A dedicated front-end app built with React for a smooth and responsive timesheet experience.
 
 ## Prerequisite
 
