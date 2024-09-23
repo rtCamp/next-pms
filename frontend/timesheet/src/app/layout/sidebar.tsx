@@ -18,7 +18,7 @@ import {
   ClipboardList,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
-import { TIMESHEET, HOME, TEAM, DESK, TASK } from "@/lib/constant";
+import { TIMESHEET, HOME, TEAM, DESK, TASK, PROJECT } from "@/lib/constant";
 import { FrappeContext, FrappeConfig } from "frappe-react-sdk";
 import { useToast } from "@/app/components/ui/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
@@ -102,15 +102,22 @@ const Sidebar = () => {
     {
       to: TEAM,
       icon: Users,
-      label: "Teams",
-      key: "teams",
+      label: "Team",
+      key: "team",
+      isPmRoute: true,
+    },
+    {
+      to: PROJECT,
+      icon: Users,
+      label: "Project",
+      key: "project",
       isPmRoute: true,
     },
     {
       to: TASK,
       icon: ClipboardList,
-      label: "Tasks",
-      key: "tasks",
+      label: "Task",
+      key: "task",
       isPmRoute: false,
     },
   ];
