@@ -104,16 +104,14 @@ def get_compact_view_data(
             for date in date_info.get("dates"):
                 hour = 0
                 on_leave = False
-                leave = next(
-                    (l for l in leaves if l["from_date"] <= date <= l["to_date"]), None
-                )
 
-                if leave:
-                    if leave.get("half_day") and leave.get("half_day_date") == date:
-                        hour += 4
-                    else:
-                        hour += 8
-                    on_leave = True
+                for leave in leaves:
+                    if leave["from_date"] <= date <= leave["to_date"]:
+                        if leave.get("half_day") and leave.get("half_day_date") == date:
+                            hour += 4
+                        else:
+                            hour += 8
+                        on_leave = True
 
                 if date in holidays:
                     hour = 0
