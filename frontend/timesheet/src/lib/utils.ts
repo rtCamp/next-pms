@@ -217,3 +217,22 @@ export function truncateText(text: string, maxLength: number) {
   }
   return text.substring(0, maxLength) + "...";
 }
+
+export const createFalseValuedObject = (obj) => {
+  const newFalseValueObject: { [key: string]: boolean } = {};
+  if (Object.keys(obj).length > 0) {
+    for (const key of obj) {
+      newFalseValueObject[key] = false;
+    }
+  }
+  return newFalseValueObject;
+};
+export const isLiked = (likedBy: string, user: string) => {
+  if (likedBy) {
+    likedBy = JSON.parse(likedBy);
+    if (likedBy && likedBy.includes(user)) {
+      return true;
+    }
+  }
+  return false;
+};
