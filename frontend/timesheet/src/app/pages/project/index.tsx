@@ -2,7 +2,7 @@ import { DeBounceInput } from "@/app/components/deBounceInput";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { RootState } from "@/store";
 import { useFrappeGetDocList, useFrappeGetDocCount } from "frappe-react-sdk";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   ProjectState,
@@ -17,10 +17,26 @@ import {
   setFilters,
 } from "@/store/project";
 import { ComboxBox } from "@/app/components/comboBox";
-import { cn, parseFrappeErrorMsg } from "@/lib/utils";
+import { cn, parseFrappeErrorMsg, createFalseValuedObject } from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
-import { ColumnDef, flexRender, getCoreRowModel, getSortedRowModel, Row, useReactTable } from "@tanstack/react-table";
-import { CircleDollarSign, Filter, GripVertical, Ellipsis, Share2, Users, ArrowUpDown } from "lucide-react";
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  Row,
+  useReactTable,
+  Table as T,
+} from "@tanstack/react-table";
+import {
+  CircleDollarSign,
+  Filter,
+  GripVertical,
+  ArrowUpDown,
+  EllipsisVertical,
+  Columns2,
+  RotateCcw,
+} from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { Progress } from "@/app/components/ui/progress";
 import { Badge } from "@/app/components/ui/badge";
@@ -29,22 +45,43 @@ import { Spinner } from "@/app/components/spinner";
 import { Button } from "@/app/components/ui/button";
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
-
+const projectTableMap = {
+  hideColumn: [],
+  columnWidth: {
+    project_name: "180",
+    status: "100",
+    project_type: "100",
+    percent_complete: "150",
+    custom_budget_in_hours: "80",
+    custom_budget_spent_in_hours: "80",
+    custom_budget_remaining_in_hours: "80",
+  },
+  columnSort: [],
+};
 const Project = () => {
   const projectState = useSelector((state: RootState) => state.project);
   const dispatch = useDispatch();
   const { toast } = useToast();
-  const tableprop = getTableProps();
+  let resizeObserver: ResizeObserver;
+  const tableprop = useMemo(() => {
+    return getTableProps();
+  }, []);
   const [tableAttributeProps, setTableAttributeProps] = useState(tableprop);
+  const [columnVisibility, setColumnVisibility] = useState(createFalseValuedObject(tableprop.hideColumn));
   const [sorting, setSorting] = useState(tableprop.columnSort);
   const [searchParam, setSearchParam] = useQueryParamsState("search", "");
   const [projectTypeParam, setProjectTypeParam] = useQueryParamsState<Array<string>>("project-type", []);
   const [statusParam, setStatusParam] = useQueryParamsState<Array<Status>>("status", []);
-  const excludeColumns = ["Actions"];
+
   useEffect(() => {
     const payload = {
       selectedProjectType: projectTypeParam,
@@ -143,13 +180,6 @@ const Project = () => {
   }, [data, projectState.isFetchAgain, error]);
 
   useEffect(() => {
-    const map = getTableProps();
-    if (!localStorage.getItem("project")) {
-      localStorage.setItem("project", JSON.stringify(map));
-      setTableAttributeProps(map);
-    }
-  }, []);
-  useEffect(() => {
     const updatedTableProp = {
       ...tableprop,
       columnSort: sorting,
@@ -167,13 +197,36 @@ const Project = () => {
     data: projectState.data,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
     columnResizeMode: "onChange",
     getSortedRowModel: getSortedRowModel(),
     state: {
       sorting,
+      columnVisibility,
     },
   });
-  let resizeObserver: ResizeObserver;
+
+  const resetTable = () => {
+    setTableAttributeProps(projectTableMap);
+  };
+
+  const handleColumnHide = (id: string) => {
+    const prev = tableAttributeProps;
+    if (prev.hideColumn.includes(id)) {
+      const mutatedHideColumn = [...prev.hideColumn];
+      const index = mutatedHideColumn.indexOf(id);
+      if (index > -1) {
+        mutatedHideColumn.splice(index, 1);
+      }
+      const attr = { ...prev, hideColumn: mutatedHideColumn };
+      setTableAttributeProps(attr);
+    } else {
+      const mutatedHideColumnSet = new Set([...prev.hideColumn, id]);
+      const attr = { ...prev, hideColumn: [...mutatedHideColumnSet] };
+      setTableAttributeProps(attr);
+    }
+  };
+
   return (
     <>
       <section id="filter-section" className="flex gap-x-3 mb-3">
@@ -216,6 +269,7 @@ const Project = () => {
           }))}
           className="text-primary border-dashed gap-x-1 font-normal w-fit"
         />
+        <PageAction table={table} resetTable={resetTable} onColumnHide={handleColumnHide} />
       </section>
       {(isLoading || countIsLoading) && projectState.data.length == 0 ? (
         <Spinner isFull />
@@ -256,12 +310,11 @@ const Project = () => {
                       >
                         <div className="grid grid-cols-[80%_20%] place-items-center h-full gap-1 group">
                           {flexRender(header.column.columnDef.header, header.getContext())}
-                          {!excludeColumns.includes(header.id) && (
-                            <GripVertical
-                              className="w-4 h-4 max-lg:hidden cursor-col-resize flex justify-center items-center "
-                              {...{ onMouseDown: header.getResizeHandler(), onTouchStart: header.getResizeHandler() }}
-                            />
-                          )}
+
+                          <GripVertical
+                            className="w-4 h-4 max-lg:hidden cursor-col-resize flex justify-center items-center "
+                            {...{ onMouseDown: header.getResizeHandler(), onTouchStart: header.getResizeHandler() }}
+                          />
                         </div>
                       </TableHead>
                     );
@@ -591,49 +644,11 @@ const getColumns = (tableAttributeProps: any) => {
         );
       },
     },
-    {
-      accessorKey: "Actions",
-      header: "",
-      size: 50,
-      cell: ({ row }) => {
-        const name = row.original.name;
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Ellipsis className="w-4 h-4" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="[&_div]:cursor-pointer">
-              <DropdownMenuItem className="flex gap-x-2">
-                <Share2 className="h-4 w-4" />
-                <Typography variant="p">Share</Typography>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="flex gap-x-2">
-                <Users className="h-4 w-4" />
-                <Typography variant="p">Billing Team</Typography>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
-    },
   ];
   return columns;
 };
 
 const getTableProps = () => {
-  const projectTableMap = {
-    hideColumn: [],
-    columnWidth: {
-      project_name: "180",
-      status: "100",
-      project_type: "100",
-      percent_complete: "150",
-      custom_budget_in_hours: "80",
-      custom_budget_spent_in_hours: "80",
-      custom_budget_remaining_in_hours: "80",
-    },
-    columnSort: [],
-  };
   try {
     const data = JSON.parse(String(localStorage.getItem("project")));
     if (!data) {
@@ -648,5 +663,56 @@ const getTableProps = () => {
 
 const calculatePercentage = (spent: number, budget: number) => {
   return budget == 0 ? 0 : Math.round((spent / budget) * 100);
+};
+const PageAction = ({
+  table,
+  resetTable,
+  onColumnHide,
+}: {
+  table: T<ProjectData>;
+  resetTable: () => void;
+  onColumnHide: (id: string) => void;
+}) => {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger>
+        <EllipsisVertical className="w-4 h-4" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="[&_div]:cursor-pointer">
+        <DropdownMenuItem className="flex items-center gap-x-2" onClick={resetTable}>
+          <RotateCcw className="w-4 h-4" />
+          <Typography variant="p">Reset Table</Typography>
+        </DropdownMenuItem>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger className="flex items-center gap-x-2">
+            <Columns2 className="w-4 h-4" />
+            <Typography variant="p">Columns</Typography>
+          </DropdownMenuSubTrigger>
+          <DropdownMenuPortal>
+            <DropdownMenuSubContent>
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize cursor-pointer"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) => {
+                        column.toggleVisibility(!!value);
+                        onColumnHide(column.id);
+                      }}
+                    >
+                      {column.id.replace("_", " ")}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+            </DropdownMenuSubContent>
+          </DropdownMenuPortal>
+        </DropdownMenuSub>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 };
 export default Project;
