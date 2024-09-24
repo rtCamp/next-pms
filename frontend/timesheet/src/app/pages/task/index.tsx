@@ -934,7 +934,7 @@ const Task = () => {
             {/* Task Search Filter */}
             <DeBounceInput
               placeholder="Search Subject..."
-              className="w-full"
+              className="max-w-full min-w-40"
               deBounceValue={400}
               value={subjectSearchParam}
               callback={handleSubjectSearchChange}
@@ -1050,8 +1050,8 @@ const Task = () => {
             onClick={loadMore}
             disabled={
               task.groupBy.length === 0
-                ? task.task.length == task.total_count
-                : task.project.length == task.total_project_count
+                ? task.task.length === task.total_count
+                : task.project.length === task.total_project_count
             }
           >
             Load More
