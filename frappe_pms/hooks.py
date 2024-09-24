@@ -191,7 +191,8 @@ doc_events = {
         "after_insert": "frappe_pms.project_currency.doc_events.task.after_insert"
     },
     "Project": {
-        "on_update": "frappe_pms.project_currency.doc_events.project.on_update"
+        "on_update": "frappe_pms.project_currency.doc_events.project.on_update",
+        "onload": "frappe_pms.project_currency.doc_events.project.onload",
     },
 }
 #
