@@ -19,14 +19,21 @@ import {
 import { ComboxBox } from "@/app/components/comboBox";
 import { cn, parseFrappeErrorMsg } from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
-import { ColumnDef, flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
-import { ArrowUpDown, Filter } from "lucide-react";
+import { ColumnDef, flexRender, getCoreRowModel, getSortedRowModel, Row, useReactTable } from "@tanstack/react-table";
+import { CircleDollarSign, Filter, GripVertical, Ellipsis, Share2, Users, ArrowUpDown } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { Progress } from "@/app/components/ui/progress";
 import { Badge } from "@/app/components/ui/badge";
 import { Typography } from "@/app/components/typography";
 import { Spinner } from "@/app/components/spinner";
 import { Button } from "@/app/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/app/components/ui/dropdown-menu";
+
 const Project = () => {
   const projectState = useSelector((state: RootState) => state.project);
   const dispatch = useDispatch();
@@ -37,7 +44,7 @@ const Project = () => {
   const [searchParam, setSearchParam] = useQueryParamsState("search", "");
   const [projectTypeParam, setProjectTypeParam] = useQueryParamsState<Array<string>>("project-type", []);
   const [statusParam, setStatusParam] = useQueryParamsState<Array<Status>>("status", []);
-
+  const excludeColumns = ["Actions"];
   useEffect(() => {
     const payload = {
       selectedProjectType: projectTypeParam,
@@ -68,6 +75,7 @@ const Project = () => {
       "custom_budget_in_hours",
       "custom_budget_spent_in_hours",
       "custom_budget_remaining_in_hours",
+      "custom_is_billable",
     ],
     // eslint-disable-next-line
     //   @ts-ignore
@@ -146,21 +154,26 @@ const Project = () => {
       ...tableprop,
       columnSort: sorting,
     };
-    localStorage.setItem("project", JSON.stringify(updatedTableProp));
+    setTableAttributeProps(updatedTableProp);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sorting]);
+  useEffect(() => {
+    localStorage.setItem("project", JSON.stringify(tableAttributeProps));
+  }, [tableAttributeProps]);
+
   const columns = getColumns(tableAttributeProps);
   const table = useReactTable({
     columns: columns,
     data: projectState.data,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
+    columnResizeMode: "onChange",
     getSortedRowModel: getSortedRowModel(),
     state: {
       sorting,
     },
   });
-
+  let resizeObserver: ResizeObserver;
   return (
     <>
       <section id="filter-section" className="flex gap-x-3 mb-3">
@@ -208,20 +221,48 @@ const Project = () => {
         <Spinner isFull />
       ) : (
         <div className="overflow-hidden w-full overflow-y-auto" style={{ height: "calc(100vh - 8rem)" }}>
-          <Table className="[&_td]:px-2  [&_th]:px-2 table-fixed">
+          <Table className="[&_td]:px-1 [&_th]:px-1 table-fixed">
             <TableHeader className="[&_th]:h-10">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     return (
                       <TableHead
+                        className={cn("resizer", header.column.getIsResizing() && "isResizing")}
                         key={header.id}
                         style={{
                           width: header.getSize(),
                           position: "relative",
                         }}
+                        onMouseDown={(event) => {
+                          const container = event.currentTarget;
+                          resizeObserver = new ResizeObserver((entries) => {
+                            entries.forEach(() => {
+                              setTableAttributeProps((prev: typeof tableAttributeProps) => {
+                                return {
+                                  ...prev,
+                                  columnWidth: { ...prev.columnWidth, [header.id]: header.getSize() },
+                                };
+                              });
+                            });
+                          });
+                          resizeObserver.observe(container);
+                        }}
+                        onMouseUp={() => {
+                          if (resizeObserver) {
+                            resizeObserver.disconnect();
+                          }
+                        }}
                       >
-                        {flexRender(header.column.columnDef.header, header.getContext())}
+                        <div className="grid grid-cols-[80%_20%] place-items-center h-full gap-1 group">
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                          {!excludeColumns.includes(header.id) && (
+                            <GripVertical
+                              className="w-4 h-4 max-lg:hidden cursor-col-resize flex justify-center items-center "
+                              {...{ onMouseDown: header.getResizeHandler(), onTouchStart: header.getResizeHandler() }}
+                            />
+                          )}
+                        </div>
                       </TableHead>
                     );
                   })}
@@ -285,6 +326,24 @@ const getFilter = (projectState: ProjectState) => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getColumns = (tableAttributeProps: any) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const sortPercentageComplete = (rowA: Row<ProjectData>, rowB: Row<ProjectData>, columnId: string) => {
+    const firstRowPer = calculatePercentage(
+      Number(rowA.getValue("custom_budget_spent_in_hours")),
+      Number(rowA.getValue("custom_budget_in_hours")),
+    );
+    const secondRowPer = calculatePercentage(
+      Number(rowB.getValue("custom_budget_spent_in_hours")),
+      Number(rowB.getValue("custom_budget_in_hours")),
+    );
+    if (firstRowPer > secondRowPer) {
+      return 1;
+    } else if (firstRowPer < secondRowPer) {
+      return -1;
+    } else {
+      return 0;
+    }
+  };
   type ColumnsType = ColumnDef<ProjectData>[];
   const columnWidth = tableAttributeProps?.columnWidth;
 
@@ -295,7 +354,7 @@ const getColumns = (tableAttributeProps: any) => {
       header: ({ column }) => {
         return (
           <div
-            className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
+            className="grid grid-cols-[80%_20%] gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
             title={column.id}
             onClick={() => {
               column.toggleSorting();
@@ -304,19 +363,21 @@ const getColumns = (tableAttributeProps: any) => {
             <p className="truncate">Project Name</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer place-self-center",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
           </div>
         );
       },
-      cell: ({ getValue }) => {
+      cell: ({ getValue, row }) => {
         const value = getValue() as string;
         return (
-          <Typography variant="p" className="truncate" title={value}>
-            {value}
-          </Typography>
+          <a href={`/app/project/${row.original.name}`}>
+            <Typography variant="p" className="truncate" title={value}>
+              {value}
+            </Typography>
+          </a>
         );
       },
     },
@@ -326,7 +387,7 @@ const getColumns = (tableAttributeProps: any) => {
       header: ({ column }) => {
         return (
           <div
-            className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
+            className="grid grid-cols-[80%_20%] gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
             title={column.id}
             onClick={() => {
               column.toggleSorting();
@@ -335,7 +396,7 @@ const getColumns = (tableAttributeProps: any) => {
             <p className="truncate">Status</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer place-self-center",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -357,7 +418,7 @@ const getColumns = (tableAttributeProps: any) => {
       header: ({ column }) => {
         return (
           <div
-            className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
+            className="grid grid-cols-[80%_20%] gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
             title={column.id}
             onClick={() => {
               column.toggleSorting();
@@ -366,7 +427,7 @@ const getColumns = (tableAttributeProps: any) => {
             <p className="truncate">Project Type</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer place-self-center",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -377,10 +438,11 @@ const getColumns = (tableAttributeProps: any) => {
     {
       accessorKey: "percent_complete",
       size: Number(columnWidth["percent_complete"] ?? "150"),
+      sortingFn: sortPercentageComplete,
       header: ({ column }) => {
         return (
           <div
-            className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
+            className="grid grid-cols-[80%_20%] gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
             title={column.id}
             onClick={() => {
               column.toggleSorting();
@@ -389,7 +451,7 @@ const getColumns = (tableAttributeProps: any) => {
             <p className="truncate">% Completed</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer place-self-center",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -399,8 +461,8 @@ const getColumns = (tableAttributeProps: any) => {
       cell: ({ row }) => {
         const budget = Number(row.getValue("custom_budget_in_hours"));
         const spent = Number(row.getValue("custom_budget_spent_in_hours"));
-        const per = budget == 0 ? 0 : Math.round((spent / budget) * 100);
-        return (
+        const per = calculatePercentage(spent, budget);
+        return budget ? (
           <div>
             <Typography
               variant="small"
@@ -414,7 +476,7 @@ const getColumns = (tableAttributeProps: any) => {
               indicatorClassName={cn("bg-success", spent > budget && "bg-destructive")}
             />
           </div>
-        );
+        ) : null;
       },
     },
     {
@@ -423,7 +485,7 @@ const getColumns = (tableAttributeProps: any) => {
       header: ({ column }) => {
         return (
           <div
-            className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
+            className="grid grid-cols-[80%_20%] gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
             title={column.id}
             onClick={() => {
               column.toggleSorting();
@@ -432,7 +494,7 @@ const getColumns = (tableAttributeProps: any) => {
             <p className="truncate">Budget (Hours)</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer place-self-center",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -441,11 +503,11 @@ const getColumns = (tableAttributeProps: any) => {
       },
       cell: ({ getValue }) => {
         const value = Number(getValue());
-        return (
+        return value ? (
           <Typography variant="p" className="text-center">
             {value}h
           </Typography>
-        );
+        ) : null;
       },
     },
     {
@@ -454,7 +516,7 @@ const getColumns = (tableAttributeProps: any) => {
       header: ({ column }) => {
         return (
           <div
-            className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
+            className="grid grid-cols-[80%_20%] gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
             title={column.id}
             onClick={() => {
               column.toggleSorting();
@@ -463,7 +525,7 @@ const getColumns = (tableAttributeProps: any) => {
             <p className="truncate">Budget Spent (Hours)</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer place-self-center",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -472,11 +534,9 @@ const getColumns = (tableAttributeProps: any) => {
       },
       cell: ({ getValue, row }) => {
         const value = Number(getValue());
+        const budget = Number(row.getValue("custom_budget_in_hours"));
         return (
-          <Typography
-            variant="p"
-            className={cn("text-center", value > Number(row.getValue("custom_budget_in_hours")) && "text-warning")}
-          >
+          <Typography variant="p" className={cn("text-center", value > budget && "text-warning")}>
             {value}h
           </Typography>
         );
@@ -488,7 +548,7 @@ const getColumns = (tableAttributeProps: any) => {
       header: ({ column }) => {
         return (
           <div
-            className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
+            className="grid grid-cols-[80%_20%] gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer"
             title={column.id}
             onClick={() => {
               column.toggleSorting();
@@ -497,7 +557,7 @@ const getColumns = (tableAttributeProps: any) => {
             <p className="truncate">Budget Remaining (Hours)</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer place-self-center",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -506,17 +566,53 @@ const getColumns = (tableAttributeProps: any) => {
       },
       cell: ({ getValue, row }) => {
         const value = Number(getValue());
-        return (
+        const budget = Number(row.getValue("custom_budget_in_hours"));
+        return budget ? (
           <Typography
             variant="p"
-            className={cn(
-              "text-center",
-              value < 1 && "text-destructive",
-              value >= Number(row.getValue("custom_budget_in_hours")) && "text-success",
-            )}
+            className={cn("text-center", value < 1 && "text-destructive", value >= budget && "text-success")}
           >
             {value}h
           </Typography>
+        ) : null;
+      },
+    },
+    {
+      accessorKey: "custom_is_billable",
+      size: 50,
+      header: "Billable",
+      cell: ({ getValue }) => {
+        const value = getValue() as boolean;
+
+        return (
+          <span className="flex justify-center">
+            <CircleDollarSign className={cn("w-4 h-4 stroke-gray-400", value && "stroke-success")} />
+          </span>
+        );
+      },
+    },
+    {
+      accessorKey: "Actions",
+      header: "",
+      size: 50,
+      cell: ({ row }) => {
+        const name = row.original.name;
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <Ellipsis className="w-4 h-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="[&_div]:cursor-pointer">
+              <DropdownMenuItem className="flex gap-x-2">
+                <Share2 className="h-4 w-4" />
+                <Typography variant="p">Share</Typography>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="flex gap-x-2">
+                <Users className="h-4 w-4" />
+                <Typography variant="p">Billing Team</Typography>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         );
       },
     },
@@ -528,13 +624,13 @@ const getTableProps = () => {
   const projectTableMap = {
     hideColumn: [],
     columnWidth: {
-      project_name: "250",
-      status: "120",
-      project_type: "150",
+      project_name: "180",
+      status: "100",
+      project_type: "100",
       percent_complete: "150",
-      custom_budget_in_hours: "150",
-      custom_budget_spent_in_hours: "150",
-      custom_budget_remaining_in_hours: "150",
+      custom_budget_in_hours: "80",
+      custom_budget_spent_in_hours: "80",
+      custom_budget_remaining_in_hours: "80",
     },
     columnSort: [],
   };
@@ -548,5 +644,9 @@ const getTableProps = () => {
   } catch (error) {
     return projectTableMap;
   }
+};
+
+const calculatePercentage = (spent: number, budget: number) => {
+  return budget == 0 ? 0 : Math.round((spent / budget) * 100);
 };
 export default Project;

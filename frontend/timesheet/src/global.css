@@ -66,6 +66,18 @@
 .lucide{
   stroke-width: 1.5;
 }
+.resizer {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background-color: transparent;
+}
+
+.isResizing {
+  background-color: #dedfe091;
+}
 @layer base {
   * {
     @apply border-border;

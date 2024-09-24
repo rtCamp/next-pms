@@ -11,6 +11,7 @@ export interface ProjectData {
   custom_budget_in_hours: number;
   custom_budget_spent_in_hours: number;
   custom_budget_remaining_in_hours: number;
+  custom_is_billable: boolean;
 }
 export interface ProjectState {
   isFetchAgain: boolean;
