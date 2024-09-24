@@ -57,13 +57,13 @@ import {
 const projectTableMap = {
   hideColumn: [],
   columnWidth: {
-    project_name: "180",
-    status: "100",
-    project_type: "100",
-    percent_complete: "150",
-    custom_budget_in_hours: "80",
-    custom_budget_spent_in_hours: "80",
-    custom_budget_remaining_in_hours: "80",
+    project_name: 180,
+    status: 100,
+    project_type: 100,
+    percent_complete: 150,
+    custom_budget_in_hours: 80,
+    custom_budget_spent_in_hours: 80,
+    custom_budget_remaining_in_hours: 80,
   },
   columnSort: [],
 };
@@ -208,6 +208,10 @@ const Project = () => {
 
   const resetTable = () => {
     setTableAttributeProps(projectTableMap);
+    // update All Sort,filter and columnWidth States when localStorage Changes (table config reset)
+    setSorting([]);
+    setColumnVisibility({});
+    table.setColumnSizing(projectTableMap.columnWidth);
   };
 
   const handleColumnHide = (id: string) => {
@@ -229,8 +233,16 @@ const Project = () => {
 
   return (
     <>
-      <section id="filter-section" className="flex gap-x-3 mb-3">
-        <DeBounceInput placeholder="Project Name" value={searchParam} deBounceValue={200} callback={handleSearch} />
+      <section id="filter-section" className="flex p-1 gap-x-2 mb-3 overflow-x-auto">
+        <div className="xl:w-2/5">
+          <DeBounceInput
+            placeholder="Project Name"
+            value={searchParam}
+            deBounceValue={200}
+            className="max-w-full min-w-40"
+            callback={handleSearch}
+          />
+        </div>
         <ComboxBox
           isMulti
           label="Project Type"
@@ -407,7 +419,7 @@ const getColumns = (tableAttributeProps: any) => {
       header: ({ column }) => {
         return (
           <div
-            className="grid grid-cols-[80%_20%] gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
+            className="flex items-center gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full overflow-hidden"
             title={column.id}
             onClick={() => {
               column.toggleSorting();
@@ -416,7 +428,7 @@ const getColumns = (tableAttributeProps: any) => {
             <p className="truncate">Project Name</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer place-self-center",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -440,7 +452,7 @@ const getColumns = (tableAttributeProps: any) => {
       header: ({ column }) => {
         return (
           <div
-            className="grid grid-cols-[80%_20%] gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
+            className="flex items-center gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full overflow-hidden "
             title={column.id}
             onClick={() => {
               column.toggleSorting();
@@ -449,7 +461,7 @@ const getColumns = (tableAttributeProps: any) => {
             <p className="truncate">Status</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer place-self-center",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -471,7 +483,7 @@ const getColumns = (tableAttributeProps: any) => {
       header: ({ column }) => {
         return (
           <div
-            className="grid grid-cols-[80%_20%] gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
+            className="flex items-center gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full overflow-hidden "
             title={column.id}
             onClick={() => {
               column.toggleSorting();
@@ -480,7 +492,7 @@ const getColumns = (tableAttributeProps: any) => {
             <p className="truncate">Project Type</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer place-self-center",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -495,7 +507,7 @@ const getColumns = (tableAttributeProps: any) => {
       header: ({ column }) => {
         return (
           <div
-            className="grid grid-cols-[80%_20%] gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
+            className="flex items-center gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full overflow-hidden "
             title={column.id}
             onClick={() => {
               column.toggleSorting();
@@ -504,7 +516,7 @@ const getColumns = (tableAttributeProps: any) => {
             <p className="truncate">% Completed</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer place-self-center",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -538,7 +550,7 @@ const getColumns = (tableAttributeProps: any) => {
       header: ({ column }) => {
         return (
           <div
-            className="grid grid-cols-[80%_20%] gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
+            className="flex items-center gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full overflow-hidden "
             title={column.id}
             onClick={() => {
               column.toggleSorting();
@@ -547,7 +559,7 @@ const getColumns = (tableAttributeProps: any) => {
             <p className="truncate">Budget (Hours)</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer place-self-center",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -569,7 +581,7 @@ const getColumns = (tableAttributeProps: any) => {
       header: ({ column }) => {
         return (
           <div
-            className="grid grid-cols-[80%_20%] gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
+            className="flex items-center gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full overflow-hidden "
             title={column.id}
             onClick={() => {
               column.toggleSorting();
@@ -578,7 +590,7 @@ const getColumns = (tableAttributeProps: any) => {
             <p className="truncate">Budget Spent (Hours)</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer place-self-center",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -601,7 +613,7 @@ const getColumns = (tableAttributeProps: any) => {
       header: ({ column }) => {
         return (
           <div
-            className="grid grid-cols-[80%_20%] gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer"
+            className="flex items-center gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer  w-full overflow-hidden"
             title={column.id}
             onClick={() => {
               column.toggleSorting();
@@ -610,7 +622,7 @@ const getColumns = (tableAttributeProps: any) => {
             <p className="truncate">Budget Remaining (Hours)</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer place-self-center",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -633,7 +645,16 @@ const getColumns = (tableAttributeProps: any) => {
     {
       accessorKey: "custom_is_billable",
       size: 50,
-      header: "Billable",
+      header: ({ column }) => {
+        return (
+          <div
+            className="flex items-center gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer  w-full overflow-hidden"
+            title={column.id}
+          >
+            <p className="truncate">Billable</p>
+          </div>
+        );
+      },
       cell: ({ getValue }) => {
         const value = getValue() as boolean;
 
