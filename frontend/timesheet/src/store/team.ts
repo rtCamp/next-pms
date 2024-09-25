@@ -202,9 +202,15 @@ const TeamSlice = createSlice({
         ...state.timesheetData.holidays,
         ...action.payload.holidays,
       ];
+      const existingLeaveIds = new Set(
+        state.timesheetData.leaves.map((leave) => leave.name),
+      );
+      const newLeaves = action.payload.leaves.filter(
+        (leave) => !existingLeaveIds.has(leave.name),
+      );
       state.timesheetData.leaves = [
         ...state.timesheetData.leaves,
-        ...action.payload.leaves,
+        ...newLeaves,
       ];
     },
     setUsergroup: (state, action: PayloadAction<Array<string>>) => {
