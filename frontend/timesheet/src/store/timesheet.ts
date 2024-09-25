@@ -78,7 +78,13 @@ const timesheetSlice = createSlice({
         ...state.data.holidays,
         ...action.payload.holidays,
       ];
-      state.data.leaves = [...state.data.leaves, ...action.payload.leaves];
+      const existingLeaveIds = new Set(
+        state.data.leaves.map((leave) => leave.name),
+      );
+      const newLeaves = action.payload.leaves.filter(
+        (leave) => !existingLeaveIds.has(leave.name),
+      );
+      state.data.leaves = [...state.data.leaves, ...newLeaves];
     },
     resetState: (state) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars

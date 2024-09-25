@@ -1,6 +1,6 @@
 import { lazy, useContext, useEffect } from "react";
 import { Route, Outlet } from "react-router-dom";
-import { TIMESHEET, HOME, TEAM, TASK } from "@/lib/constant";
+import { TIMESHEET, HOME, TEAM, TASK, PROJECT } from "@/lib/constant";
 import { Layout, PmRoute } from "@/app/layout/index";
 import { RootState } from "./store";
 import { useDispatch, useSelector } from "react-redux";
@@ -13,7 +13,7 @@ const Home = lazy(() => import("@/app/pages/home"));
 const Team = lazy(() => import("@/app/pages/team"));
 const EmployeeDetail = lazy(() => import("@/app/pages/team/employeeDetail"));
 const Task = lazy(() => import("@/app/pages/task"));
-
+const Project = lazy(() => import("@/app/pages/project"));
 export function Router() {
   return (
     <Route element={<AuthenticatedRoute />}>
@@ -24,6 +24,7 @@ export function Router() {
           <Route path={`${TEAM}/`} element={<Team />} />
           <Route path={`${TEAM}/employee/:id`} element={<EmployeeDetail />} />
         </Route>
+        <Route path={PROJECT} element={<Project />} />
       </Route>
       <Route path={TASK} element={<Task />} />
     </Route>

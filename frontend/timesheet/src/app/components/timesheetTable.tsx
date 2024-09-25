@@ -195,16 +195,22 @@ export const LeaveRow = ({
 }) => {
   let total_hours = 0;
   const leaveData = dates.map((date: string) => {
+    let hour = 0;
     if (holidays.includes(date)) {
       return { date, isHoliday: true };
     }
-    const data = leaves.find((data: LeaveProps) => {
+    const data = leaves.filter((data: LeaveProps) => {
       return date >= data.from_date && date <= data.to_date;
     });
-    const hour = data?.half_day && data?.half_day_date == date ? expectedHours / 2 : expectedHours;
-    if (data) {
-      total_hours += hour;
-    }
+
+    data.map((item) => {
+      if (item.half_day || (item.half_day_date && item.half_day_date == date)) {
+        hour += expectedHours / 2;
+      } else {
+        hour += expectedHours;
+      }
+    });
+    total_hours += hour;
     return { date, data, hour, isHoliday: false };
   });
 

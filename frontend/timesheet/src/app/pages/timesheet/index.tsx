@@ -134,16 +134,20 @@ function Timesheet() {
                 }
               });
               value.dates.map((date) => {
-                const leaveData = timesheet.data.leaves.find((data: LeaveProps) => {
+                const leaveData = timesheet.data.leaves.filter((data: LeaveProps) => {
                   return date >= data.from_date && date <= data.to_date;
                 });
                 const isHoliday = timesheet.data.holidays.includes(date);
-                if (leaveData && !isHoliday) {
-                  if (leaveData.half_day || (leaveData.half_day_date && leaveData.half_day_date == date)) {
-                    total_hours += working_hour / 2;
-                  } else {
-                    total_hours += working_hour;
-                  }
+
+                if (leaveData.length > 0 && !isHoliday) {
+                  leaveData.forEach((data: LeaveProps) => {
+                    const isHalfDayLeave = data.half_day && data.half_day_date == date;
+                    if (isHalfDayLeave) {
+                      total_hours += working_hour / 2;
+                    } else {
+                      total_hours += working_hour;
+                    }
+                  });
                 }
               });
 

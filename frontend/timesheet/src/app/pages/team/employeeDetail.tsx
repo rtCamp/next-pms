@@ -219,16 +219,20 @@ const Timesheet = () => {
           let total_hours = value.total_hours;
 
           value.dates.map((date) => {
-            const leaveData = teamState.timesheetData.leaves.find((data: LeaveProps) => {
+            const leaveData = teamState.timesheetData.leaves.filter((data: LeaveProps) => {
               return date >= data.from_date && date <= data.to_date;
             });
             const isHoliday = holidays.includes(date);
-            if (leaveData && !isHoliday) {
-              if (leaveData.half_day || (leaveData.half_day_date && leaveData.half_day_date == date)) {
-                total_hours += working_hour / 2;
-              } else {
-                total_hours += working_hour;
-              }
+
+            if (leaveData.length > 0 && !isHoliday) {
+              leaveData.forEach((data: LeaveProps) => {
+                const isHalfDayLeave = data.half_day && data.half_day_date == date;
+                if (isHalfDayLeave) {
+                  total_hours += working_hour / 2;
+                } else {
+                  total_hours += working_hour;
+                }
+              });
             }
           });
           return (
@@ -317,16 +321,19 @@ export const Time = ({ callback }: { callback?: () => void }) => {
           let total_hours = value.total_hours;
 
           value.dates.map((date) => {
-            const leaveData = teamState.timesheetData.leaves.find((data: LeaveProps) => {
+            const leaveData = teamState.timesheetData.leaves.filter((data: LeaveProps) => {
               return date >= data.from_date && date <= data.to_date;
             });
             const isHoliday = holidays.includes(date);
-            if (leaveData && !isHoliday) {
-              if (leaveData.half_day || (leaveData.half_day_date && leaveData.half_day_date == date)) {
-                total_hours += working_hour / 2;
-              } else {
-                total_hours += working_hour;
-              }
+            if (leaveData.length > 0 && !isHoliday) {
+              leaveData.forEach((data: LeaveProps) => {
+                const isHalfDayLeave = data.half_day && data.half_day_date == date;
+                if (isHalfDayLeave) {
+                  total_hours += working_hour / 2;
+                } else {
+                  total_hours += working_hour;
+                }
+              });
             }
           });
           return (
@@ -367,16 +374,20 @@ export const Time = ({ callback }: { callback?: () => void }) => {
                       );
                       const isHoliday = !!holiday;
                       let totalHours = matchingTasks.reduce((sum, task) => sum + task.hours, 0);
-                      const leave = teamState.timesheetData.leaves.find((data: LeaveProps) => {
+                      const leave = teamState.timesheetData.leaves.filter((data: LeaveProps) => {
                         return date >= data.from_date && date <= data.to_date;
                       });
-                      const isHalfDayLeave = leave?.half_day && leave?.half_day_date == date ? true : false;
-                      if (leave && !isHoliday) {
-                        if (isHalfDayLeave) {
-                          totalHours += 4;
-                        } else {
-                          totalHours += 8;
-                        }
+
+                      let isHalfDayLeave = false;
+                      if (leave.length > 0 && !isHoliday) {
+                        leave.forEach((data: LeaveProps) => {
+                          isHalfDayLeave = data.half_day && data.half_day_date == date;
+                          if (isHalfDayLeave) {
+                            totalHours += 4;
+                          } else {
+                            totalHours += 8;
+                          }
+                        });
                       }
                       const isExtended = calculateExtendedWorkingHour(
                         totalHours,
@@ -404,7 +415,7 @@ export const Time = ({ callback }: { callback?: () => void }) => {
                                 {holiday.description}
                               </Typography>
                             )}
-                            {leave && !isHoliday && (
+                            {leave.length > 0 && !isHoliday && (
                               <Typography variant="p" className="text-gray-600">
                                 ({isHalfDayLeave ? "Half day leave" : "Full Day Leave"})
                               </Typography>

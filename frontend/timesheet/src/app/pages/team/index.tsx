@@ -303,6 +303,12 @@ const Team = () => {
             deBounceValue={400}
             callback={handleEmployeeChange}
           />
+          <EmployeeCombo
+            value={reportsToParam}
+            label="Reporting Manager"
+            onSelect={handleReportsToChange}
+            className="border-dashed min-w-48 w-full max-w-48"
+          />
           <ComboxBox
             value={statusParam}
             label="Approval"
@@ -345,12 +351,6 @@ const Team = () => {
             leftIcon={<Filter className={cn("h-4 w-4", teamState.userGroup.length != 0 && "fill-primary")} />}
             onSelect={handleUserGroupChange}
             className="text-primary border-dashed gap-x-2 font-normal w-fit"
-          />
-          <EmployeeCombo
-            value={reportsToParam}
-            label="Reporting Manager"
-            onSelect={handleReportsToChange}
-            className="border-dashed min-w-48 w-full max-w-48"
           />
         </div>
         <div id="date-filter" className="flex gap-x-2">
