@@ -62,7 +62,7 @@ const projectTableMap = {
     project_type: 100,
     percent_complete: 150,
     custom_budget_in_hours: 80,
-    custom_budget_spent_in_hours: 80,
+    actual_time: 80,
     custom_budget_remaining_in_hours: 80,
   },
   columnSort: [],
@@ -110,7 +110,7 @@ const Project = () => {
       "project_type",
       "percent_complete",
       "custom_budget_in_hours",
-      "custom_budget_spent_in_hours",
+      "actual_time",
       "custom_budget_remaining_in_hours",
       "custom_is_billable",
     ],
@@ -394,11 +394,11 @@ const getColumns = (tableAttributeProps: any) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const sortPercentageComplete = (rowA: Row<ProjectData>, rowB: Row<ProjectData>, columnId: string) => {
     const firstRowPer = calculatePercentage(
-      Number(rowA.getValue("custom_budget_spent_in_hours")),
+      Number(rowA.getValue("actual_time")),
       Number(rowA.getValue("custom_budget_in_hours")),
     );
     const secondRowPer = calculatePercentage(
-      Number(rowB.getValue("custom_budget_spent_in_hours")),
+      Number(rowB.getValue("actual_time")),
       Number(rowB.getValue("custom_budget_in_hours")),
     );
     if (firstRowPer > secondRowPer) {
@@ -525,7 +525,7 @@ const getColumns = (tableAttributeProps: any) => {
       },
       cell: ({ row }) => {
         const budget = Number(row.getValue("custom_budget_in_hours"));
-        const spent = Number(row.getValue("custom_budget_spent_in_hours"));
+        const spent = Number(row.getValue("actual_time"));
         const per = calculatePercentage(spent, budget);
         return budget ? (
           <div>
@@ -576,8 +576,8 @@ const getColumns = (tableAttributeProps: any) => {
       },
     },
     {
-      accessorKey: "custom_budget_spent_in_hours",
-      size: Number(columnWidth["custom_budget_spent_in_hours"] ?? "150"),
+      accessorKey: "actual_time",
+      size: Number(columnWidth["actual_time"] ?? "150"),
       header: ({ column }) => {
         return (
           <div

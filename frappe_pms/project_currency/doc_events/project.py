@@ -10,13 +10,12 @@ def on_update(doc, method=None):
 
 
 def update_budget_in_project(doc):
-    doc.custom_budget_spent_in_hours = doc.actual_time
     if not doc.custom_budget_in_hours:
         return
-    if not doc.custom_budget_spent_in_hours:
-        doc.custom_budget_spent_in_hours = 0
+    if not doc.doc.actual_time:
+        doc.doc.actual_time = 0
     doc.custom_budget_remaining_in_hours = (
-        doc.custom_budget_in_hours - doc.custom_budget_spent_in_hours
+        doc.custom_budget_in_hours - doc.doc.actual_time
     )
 
 
