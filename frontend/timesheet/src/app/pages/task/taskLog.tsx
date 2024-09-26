@@ -37,9 +37,12 @@ export const TaskLog = () => {
   });
   const dateMap = [
     { label: "Last 7 days", value: "7" },
+    { label: "Last 15 days", value: "15" },
     { label: "Last 30 days", value: "30" },
     { label: "Last 60 days", value: "60" },
     { label: "Last 90 days", value: "90" },
+    { label: "Last 180 days", value: "180" },
+    { label: "Last 365 days", value: "365" },
   ];
   const {
     data: logs,
@@ -149,32 +152,30 @@ export const TaskLog = () => {
                 <Separator />
               </>
             )}
+            <span>
+              <ComboxBox
+                className="float-right  p-2 max-w-24"
+                data={dateMap}
+                value={selectedMap}
+                label="Date Range"
+                shouldFilter
+                onSelect={(value: string | string[]) => {
+                  if (typeof value === "string") {
+                    setSelectedMap([value]);
+                    const date = value;
+                    setStartDate(getFormatedDate(addDays(getTodayDate(), -parseInt(date))));
+                  } else {
+                    setSelectedMap([value[0]]);
+                    const date = value[0];
+                    setStartDate(getFormatedDate(addDays(getTodayDate(), -parseInt(date))));
+                  }
+                }}
+              />
+            </span>
             {isLogLoading ? (
               <Spinner />
             ) : (
               <>
-                {Object.keys(logs.message).length != 0 && (
-                  <span>
-                    <ComboxBox
-                      className="float-right  p-2 max-w-24"
-                      data={dateMap}
-                      value={selectedMap}
-                      label="Date Range"
-                      shouldFilter
-                      onSelect={(value: string | string[]) => {
-                        if (typeof value === "string") {
-                          setSelectedMap([value]);
-                          const date = value;
-                          setStartDate(getFormatedDate(addDays(getTodayDate(), -parseInt(date))));
-                        } else {
-                          setSelectedMap([value[0]]);
-                          const date = value[0];
-                          setStartDate(getFormatedDate(addDays(getTodayDate(), -parseInt(date))));
-                        }
-                      }}
-                    />
-                  </span>
-                )}
                 <section id="log" className="max-h-96 overflow-y-auto">
                   <>
                     {logs &&
