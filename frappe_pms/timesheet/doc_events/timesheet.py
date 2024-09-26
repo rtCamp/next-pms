@@ -163,3 +163,7 @@ def validate_dates(doc):
                 holiday_counter += 1
         if abs(date_gap + holiday_counter) > allowed_days:
             throw("Backdated time entries are not allowed.")
+
+
+def on_update(doc, method=None):
+    doc.update_task_and_project()
