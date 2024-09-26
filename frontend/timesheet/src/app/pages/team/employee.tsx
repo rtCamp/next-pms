@@ -61,7 +61,7 @@ export const Employee = ({ employee }: EmployeeProps) => {
                 <TableRow key={task} className="border-b border-slate-200 flex w-full">
                   <TableCell className="w-full min-w-24 max-w-md overflow-hidden">
                     <Typography variant="p" className="text-slate-800  truncate w-full">
-                      {task}
+                      {taskData.subject}
                     </Typography>
                     <Typography variant="small" className="text-slate-500 truncate">
                       {taskData.project_name}

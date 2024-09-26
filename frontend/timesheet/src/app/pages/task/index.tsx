@@ -52,6 +52,7 @@ import {
   getFilteredRowModel,
   ExpandedState,
 } from "@tanstack/react-table";
+import { TaskStatus } from "./taskStatus";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -79,6 +80,7 @@ import {
   localStorageTaskType,
   MoreTableOptionsDropDownType,
 } from "@/types/task";
+import { TaskLog } from "./taskLog";
 
 const Task = () => {
   const task = useSelector((state: RootState) => state.task);
@@ -1019,6 +1021,7 @@ const Task = () => {
           </DropdownMenu>
         </div>
         {/* tables */}
+        {task.isTaskLogDialogBoxOpen && <TaskLog />}
         <div className="overflow-hidden w-full overflow-y-auto" style={{ height: "calc(100vh - 8rem)" }}>
           {groupByParam.length === 0 && task.groupBy ? (
             <FlatTable
@@ -1091,29 +1094,6 @@ const TaskPriority = ({ priority }: { priority: TaskData["priority"] }) => {
     Urgent: "bg-destructive/20 text-destructive hover:bg-destructive/20",
   };
   return <Badge className={cn(priorityCss[priority])}>{priority}</Badge>;
-};
-
-const TaskStatus = ({ status }: { status: TaskData["status"] }) => {
-  const statusCss = {
-    Open: "bg-blue-100 text-blue-500 hover:bg-blue-200",
-    Working: "bg-warning/20 text-warning hover:bg-warning/20",
-    "Pending Review": "bg-orange-100 text-orange-400 hover:bg-warning/20",
-    Overdue: "bg-destructive/20 text-destructive hover:bg-destructive/20",
-    Template: "bg-slate-200 text-slate-900 hover:bg-slate-200",
-    Completed: "bg-success/20 text-success hover:bg-success/20",
-    Cancelled: "bg-destructive/20 text-destructive hover:bg-destructive/20",
-  };
-  return (
-    <div
-      title={status}
-      className={cn(
-        statusCss[status],
-        "py-1 px-2 truncate  w-fit max-w-40 text-xs font-bold text-center cursor-pointer rounded-full ",
-      )}
-    >
-      {status}
-    </div>
-  );
 };
 
 export default Task;

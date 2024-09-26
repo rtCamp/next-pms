@@ -2,7 +2,7 @@ import { Spinner } from "@/app/components/spinner";
 import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table } from "@/app/components/ui/table";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg, cn } from "@/lib/utils";
-import { TaskState, updateTaskData, setTaskData } from "@/store/task";
+import { TaskState, updateTaskData, setTaskData, setSelectedTask } from "@/store/task";
 import { setFetchAgain } from "@/store/team";
 import {
   FlatTableType,
@@ -128,7 +128,18 @@ export const FlatTable = ({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                  onClick={() => {
+                    const data = {
+                      task: row.original.name,
+                      isOpen: true,
+                    };
+                    dispatch(setSelectedTask(data));
+                    console.log(data);
+                  }}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell className="overflow-hidden" key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
