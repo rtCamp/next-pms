@@ -276,7 +276,9 @@ const AddTime = ({
                           label="Search Task"
                           showSelected
                           deBounceTime={200}
-                          value={form.getValues("task").length > 0 ? [form.getValues("task")] : []}
+                          value={
+                            form.getValues("task") && form.getValues("task").length > 0 ? [form.getValues("task")] : []
+                          }
                           data={
                             tasks.map((item: TaskData) => ({
                               label: item.subject,
