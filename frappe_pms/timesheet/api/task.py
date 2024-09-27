@@ -1,4 +1,8 @@
 import frappe
+from frappe.query_builder import Case, DocType
+from frappe.query_builder import functions as fn
+from frappe.utils import getdate
+from pypika import Order
 
 from .utils import get_count
 
@@ -11,10 +15,6 @@ def get_task_list(
     projects=None,
 ):
     import json
-
-    from frappe.query_builder import Case, DocType
-    from frappe.query_builder import functions as fn
-    from pypika import Order
 
     search_filter = {}
     if isinstance(projects, str):
@@ -120,3 +120,98 @@ def add_task(subject: str, expected_time: str, project: str, description: str):
         }
     ).insert(ignore_permissions=True)
     return frappe._("Task Created Successfully")
+
+
+@frappe.whitelist()
+def get_task(task: str):
+    from frappe.query_builder.functions import Sum
+
+    task = frappe.get_doc("Task", task)
+
+    timesheet = DocType("Timesheet")
+    timesheet_detail = DocType("Timesheet Detail")
+    result = (
+        frappe.qb.from_(timesheet)
+        .join(timesheet_detail)
+        .on(timesheet.name == timesheet_detail.parent)
+        .select(Sum(timesheet_detail.hours).as_("total_hour"), timesheet.employee)
+        .where(timesheet_detail.task == task.name)
+        .groupby(timesheet.employee)
+    ).run(as_dict=True)
+
+    for res in result:
+        employee_name, image = frappe.db.get_value(
+            "Employee", res.employee, ["employee_name", "image"]
+        )
+        res["employee_name"] = employee_name
+        res["image"] = image
+
+    return {
+        "subject": task.subject,
+        "expected_time": task.expected_time,
+        "project_name": frappe.db.get_value("Project", task.project, "project_name"),
+        "project": task.project,
+        "actual_time": task.actual_time,
+        "status": task.status,
+        "worked_by": result,
+        "name": task.name,
+    }
+
+
+@frappe.whitelist()
+def get_task_log(task: str, start_date: str = None, end_date: str = None):
+
+    timesheet = DocType("Timesheet")
+    timesheet_detail = DocType("Timesheet Detail")
+    start_date = getdate(start_date)
+    end_date = getdate(end_date)
+    query = (
+        frappe.qb.from_(timesheet)
+        .join(timesheet_detail)
+        .on(timesheet.name == timesheet_detail.parent)
+        .select(
+            timesheet_detail.hours,
+            timesheet.employee,
+            timesheet_detail.description,
+            timesheet.start_date,
+        )
+        .where(
+            (timesheet_detail.task == task)
+            & (timesheet.start_date >= str(start_date))
+            & (timesheet.start_date <= str(end_date))
+        )
+    )
+
+    result = query.run(as_dict=True)
+
+    aggregated_data = {}
+
+    for res in result:
+        employee_name = res.get("employee")
+        start_date = res.get("start_date")
+        hours = res.get("hours")
+        description = res.get("description")
+
+        key = start_date
+
+        if key not in aggregated_data:
+            aggregated_data[key] = {}
+
+        if employee_name not in aggregated_data[key]:
+            aggregated_data[key][employee_name] = {"hours": 0, "description": []}
+
+        aggregated_data[key][employee_name]["hours"] += hours
+        aggregated_data[key][employee_name]["description"].append(description)
+
+    response = {
+        str(key): [
+            {
+                "employee": emp,
+                "hours": data["hours"],
+                "description": data["description"],
+            }
+            for emp, data in value.items()
+        ]
+        for key, value in aggregated_data.items()
+    }
+    return response

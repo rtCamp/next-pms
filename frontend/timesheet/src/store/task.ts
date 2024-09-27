@@ -12,6 +12,8 @@ export interface TaskState {
   total_project_count: number;
   projectStart: number;
   projectIsFetchAgain: boolean;
+  selectedTask: string;
+  isTaskLogDialogBoxOpen: boolean;
   isAddTaskDialogBoxOpen: boolean;
 }
 
@@ -26,6 +28,8 @@ export const initialState: TaskState = {
   projectStart: 0,
   projectIsFetchAgain: false,
   total_project_count: 0,
+  selectedTask: "",
+  isTaskLogDialogBoxOpen: false,
   isAddTaskDialogBoxOpen: false,
 };
 
@@ -110,6 +114,13 @@ export const taskSlice = createSlice({
       state.projectStart = 0;
       state.projectIsFetchAgain = true;
     },
+    setSelectedTask: (
+      state,
+      action: PayloadAction<{ task: string; isOpen: boolean }>,
+    ) => {
+      state.selectedTask = action.payload.task;
+      state.isTaskLogDialogBoxOpen = action.payload.isOpen;
+    },
   },
 });
 
@@ -125,5 +136,6 @@ export const {
   setProjectStart,
   setProjectFetchAgain,
   setAddTaskDialog,
+  setSelectedTask,
 } = taskSlice.actions;
 export default taskSlice.reducer;

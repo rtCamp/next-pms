@@ -43,11 +43,12 @@ export interface DataProp {
   working_frequency: WorkingFrequency;
   data: DynamicKey;
   leaves: Array<LeaveProps>;
-  holidays: Array<string | HolidayProp>;
+  holidays: Array<HolidayProp>;
 }
 export interface HolidayProp {
   description: string;
   holiday_date: string;
+  weekly_off: boolean;
 }
 export interface timesheet {
   start_date: string;

@@ -88,21 +88,23 @@ export const AddTask = ({
     <>
       <Dialog onOpenChange={closeAddTaskDialog} open={task.isAddTaskDialogBoxOpen}>
         <DialogContent className="max-w-xl">
-          <DialogHeader>
-            <DialogTitle className="pb-6">Add Task</DialogTitle>
+          <DialogHeader className="pb-2">
+            <DialogTitle>Add Task</DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)}>
-              <div className="flex flex-col gap-y-6">
-                <div className="flex gap-x-4 items-start">
+              <div className="flex flex-col gap-y-2">
+                <div className="grid grid-cols-12 gap-3">
                   {/* subject field */}
                   <FormField
                     control={form.control}
                     name="subject"
                     render={({ field }) => (
-                      <FormItem className="w-full">
+                      <FormItem className="col-span-9">
                         <FormLabel className="flex gap-2 items-center">
-                          <p className="text-sm">Subject</p>
+                          <p title="subject" className="text-sm truncate">
+                            Subject
+                          </p>
                         </FormLabel>
                         <FormControl>
                           <>
@@ -126,8 +128,10 @@ export const AddTask = ({
                     control={form.control}
                     name="expected_time"
                     render={({ field }) => (
-                      <FormItem className="w-full">
-                        <FormLabel className="flex gap-2 items-center text-sm">Expected Time</FormLabel>
+                      <FormItem className="col-span-3">
+                        <FormLabel title="expected time" className="flex gap-2 items-center text-sm truncate">
+                          Expected Time
+                        </FormLabel>
                         <FormControl>
                           <FormControl>
                             <>
@@ -193,7 +197,7 @@ export const AddTask = ({
                   )}
                 />
 
-                <DialogFooter className="sm:justify-start w-full">
+                <DialogFooter className="sm:justify-start pt-2 w-full">
                   <div className="flex gap-x-4 w-full">
                     <Button disabled={form.formState.isSubmitting}>
                       {form.formState.isSubmitting && <LoaderCircle className="animate-spin w-4 h-4" />}

@@ -1,11 +1,10 @@
 import frappe
 from frappe.utils import nowdate
 from frappe.utils.data import add_days, getdate
-from hrms.hr.utils import get_holiday_dates_for_employee
 
 from .employee import get_employee_working_hours
 from .timesheet import get_timesheet_state
-from .utils import get_week_dates
+from .utils import get_holidays, get_week_dates
 
 now = nowdate()
 
@@ -78,6 +77,11 @@ def get_compact_view_data(
 
     for employee in employees:
         working_hours = get_employee_working_hours(employee.name)
+        daily_working_hours = (
+            working_hours.get("working_hour")
+            if working_hours.get("working_frequency") == "Per Day"
+            else working_hours.get("working_hour") / 5
+        )
         local_data = {**employee, **working_hours}
         employee_timesheets = timesheet_map.get(employee.name, [])
 
@@ -94,12 +98,10 @@ def get_compact_view_data(
             to_date=add_days(dates[-1].get("end_date"), max_week * 7),
             employee=employee.name,
         )
-        holidays = get_holiday_dates_for_employee(
-            employee.name,
-            start_date=dates[0].get("start_date"),
-            end_date=dates[-1].get("end_date"),
+        holidays = get_holidays(
+            employee.name, dates[0].get("start_date"), dates[-1].get("end_date")
         )
-        holidays = [getdate(holiday) for holiday in holidays]
+
         for date_info in dates:
             for date in date_info.get("dates"):
                 hour = 0
@@ -108,14 +110,18 @@ def get_compact_view_data(
                 for leave in leaves:
                     if leave["from_date"] <= date <= leave["to_date"]:
                         if leave.get("half_day") and leave.get("half_day_date") == date:
-                            hour += 4
+                            hour += daily_working_hours / 2
                         else:
-                            hour += 8
+                            hour += daily_working_hours
                         on_leave = True
 
-                if date in holidays:
-                    hour = 0
-                    on_leave = False
+                for holiday in holidays:
+                    if date == holiday.holiday_date:
+                        if not holiday.weekly_off:
+                            hour = daily_working_hours
+                        else:
+                            hour = 0
+                        on_leave = False
                 total_hours = 0
                 notes = ""
                 for ts in employee_timesheets:

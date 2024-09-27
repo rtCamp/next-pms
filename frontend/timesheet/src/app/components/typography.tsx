@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 type Variant = "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p" | "large" | "small" | "muted";
 
 interface Props {
-  variant: Variant;
+  variant?: Variant;
   children: React.ReactNode;
   className?: string;
   as?: ElementType;
@@ -35,7 +35,13 @@ const sizes: Record<Variant, string> = {
   small: "text-xs font-normal",
 };
 
-export const Typography = ({ variant, children, className = "", as, ...props }: Props & HTMLAttributes<Variant>) => {
+export const Typography = ({
+  variant = "p",
+  children,
+  className = "",
+  as,
+  ...props
+}: Props & HTMLAttributes<Variant>) => {
   const sizeClasses = sizes[variant];
   const Tag = as || tags[variant];
 

@@ -438,7 +438,7 @@ const getColumns = (tableAttributeProps: any) => {
       cell: ({ getValue, row }) => {
         const value = getValue() as string;
         return (
-          <a href={`/app/project/${row.original.name}`}>
+          <a href={`/app/project/${row.original.name}`} className="hover:underline">
             <Typography variant="p" className="truncate" title={value}>
               {value}
             </Typography>
