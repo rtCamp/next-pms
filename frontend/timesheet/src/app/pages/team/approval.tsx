@@ -302,14 +302,10 @@ export const Approval = () => {
                                   </div>
                                 </div>
 
-                                <HoverCard openDelay={1000} closeDelay={0}>
-                                  <HoverCardTrigger className="text-sm font-normal  col-span-2 hover:cursor-pointer">
-                                    <p dangerouslySetInnerHTML={{ __html: truncateText(description, 150) }}></p>
-                                  </HoverCardTrigger>
-                                  <HoverCardContent className="text-sm font-normal overflow-auto max-h-72 max-w-lg w-full">
-                                    <p dangerouslySetInnerHTML={{ __html: description }}></p>
-                                  </HoverCardContent>
-                                </HoverCard>
+                                <p
+                                  className="text-sm font-normal  col-span-2"
+                                  dangerouslySetInnerHTML={{ __html: description }}
+                                ></p>
                               </div>
                             </div>
                           );
