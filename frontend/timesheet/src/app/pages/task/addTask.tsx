@@ -40,7 +40,6 @@ export const AddTask = ({
       project: "",
       expected_time: "",
       description: "",
-      custom_is_billable: 0,
     },
     mode: "onSubmit",
   });
