@@ -632,7 +632,7 @@
     "no_copy": 0,
     "non_negative": 0,
     "options": "salary_currency",
-    "permlevel": 0,
+    "permlevel": 1,
     "precision": "",
     "print_hide": 0,
     "print_hide_if_no_value": 0,
