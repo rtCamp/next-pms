@@ -57,7 +57,6 @@ const EmployeeDetail = () => {
     employee: id,
     start_date: teamState.employeeWeekDate,
     max_week: 4,
-    holiday_with_description: true,
   });
 
   const handleAddTime = () => {
@@ -196,13 +195,7 @@ const Timesheet = () => {
       dispatch(setDialog(true));
     }
   };
-  const holidays = teamState.timesheetData.holidays.map((holiday) => {
-    if (typeof holiday === "object" && "holiday_date" in holiday) {
-      return holiday.holiday_date;
-    } else {
-      return holiday;
-    }
-  });
+
   const handleStatusClick = (start_date: string, end_date: string) => {
     const data = {
       start_date: start_date,
@@ -217,12 +210,19 @@ const Timesheet = () => {
         Object.keys(teamState.timesheetData.data).length > 0 &&
         Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet], index: number) => {
           let total_hours = value.total_hours;
-
           value.dates.map((date) => {
+            let isHoliday = false;
             const leaveData = teamState.timesheetData.leaves.filter((data: LeaveProps) => {
               return date >= data.from_date && date <= data.to_date;
             });
-            const isHoliday = holidays.includes(date);
+            const holiday = teamState.timesheetData.holidays.find((holiday) => holiday.holiday_date === date);
+
+            if (holiday) {
+              isHoliday = true;
+              if (!holiday.weekly_off) {
+                total_hours += working_hour;
+              }
+            }
 
             if (leaveData.length > 0 && !isHoliday) {
               leaveData.forEach((data: LeaveProps) => {
@@ -259,7 +259,7 @@ const Timesheet = () => {
                   <AccordionContent className="pb-0">
                     <TimesheetTable
                       dates={value.dates}
-                      holidays={holidays}
+                      holidays={teamState.timesheetData.holidays}
                       leaves={teamState.timesheetData.leaves}
                       tasks={value.tasks}
                       onCellClick={onCellClick}
@@ -383,9 +383,9 @@ export const Time = ({ callback }: { callback?: () => void }) => {
                         leave.forEach((data: LeaveProps) => {
                           isHalfDayLeave = data.half_day && data.half_day_date == date;
                           if (isHalfDayLeave) {
-                            totalHours += 4;
+                            totalHours += working_hour / 2;
                           } else {
-                            totalHours += 8;
+                            totalHours += working_hour;
                           }
                         });
                       }
@@ -417,7 +417,7 @@ export const Time = ({ callback }: { callback?: () => void }) => {
                             )}
                             {leave.length > 0 && !isHoliday && (
                               <Typography variant="p" className="text-gray-600">
-                                ({isHalfDayLeave ? "Half day leave" : "Full Day Leave"})
+                                ({isHalfDayLeave && totalHours != working_hour ? "Half day leave" : "Full Day Leave"})
                               </Typography>
                             )}
                           </div>

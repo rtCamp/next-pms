@@ -3,6 +3,7 @@ import { twMerge } from "tailwind-merge";
 import { Error } from "frappe-js-sdk/lib/frappe_app/types";
 import { WorkingFrequency } from "@/types";
 import { TScreenSize } from "@/store/app";
+import { HolidayProp } from "@/types/timesheet";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -235,4 +236,10 @@ export const isLiked = (likedBy: string, user: string) => {
     }
   }
   return false;
+};
+
+export const getHolidayList = (holidays: Array<HolidayProp>) => {
+  return holidays.map((holiday) => {
+    return holiday.holiday_date;
+  });
 };
