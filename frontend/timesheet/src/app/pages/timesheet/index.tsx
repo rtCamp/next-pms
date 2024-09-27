@@ -118,7 +118,7 @@ function Timesheet() {
           Add Time
         </Button>
       </div>
-      {isLoading ? (
+      {isLoading && Object.keys(timesheet.data?.data).length == 0 ? (
         <Spinner isFull />
       ) : (
         <div className="overflow-y-scroll" style={{ height: "calc(100vh - 8rem)" }}>
@@ -126,18 +126,18 @@ function Timesheet() {
             Object.keys(timesheet.data?.data).length > 0 &&
             Object.entries(timesheet.data?.data).map(([key, value]: [string, timesheet], index: number) => {
               let total_hours = value.total_hours;
-              const holidays = timesheet.data.holidays.map((holiday) => {
-                if (typeof holiday === "object" && "holiday_date" in holiday) {
-                  return holiday.holiday_date;
-                } else {
-                  return holiday;
-                }
-              });
               value.dates.map((date) => {
+                let isHoliday = false;
+                const holiday = timesheet.data.holidays.find((holiday) => holiday.holiday_date === date);
+                if (holiday) {
+                  isHoliday = true;
+                  if (!holiday.weekly_off) {
+                    total_hours += working_hour;
+                  }
+                }
                 const leaveData = timesheet.data.leaves.filter((data: LeaveProps) => {
                   return date >= data.from_date && date <= data.to_date;
                 });
-                const isHoliday = timesheet.data.holidays.includes(date);
 
                 if (leaveData.length > 0 && !isHoliday) {
                   leaveData.forEach((data: LeaveProps) => {
@@ -172,7 +172,7 @@ function Timesheet() {
                         working_hour={timesheet.data.working_hour}
                         working_frequency={timesheet.data.working_frequency as WorkingFrequency}
                         dates={value.dates}
-                        holidays={holidays}
+                        holidays={timesheet.data.holidays}
                         leaves={timesheet.data.leaves}
                         tasks={value.tasks}
                         onCellClick={onCellClick}
@@ -185,7 +185,7 @@ function Timesheet() {
         </div>
       )}
       <div className="mt-5">
-        <Button className="float-left" variant="outline" onClick={loadData}>
+        <Button className="float-left" variant="outline" onClick={loadData} disabled={isLoading}>
           Load More
         </Button>
       </div>
