@@ -1,12 +1,12 @@
 import frappe
-from frappe.utils import DATE_FORMAT, add_days, datetime, getdate
+from frappe.utils import add_days, datetime, getdate
 from hrms.hr.utils import get_holiday_list_for_employee
 
 from frappe_pms.timesheet.api.employee import get_employee_daily_working_norm
 
 
 def send_reminder():
-    current_date = getdate(parse_day_first=True)
+    current_date = getdate()
     date = add_days(current_date, -1)
 
     send_reminder = frappe.db.get_single_value(
@@ -85,9 +85,9 @@ def reported_time_by_employee(employee: str, date: datetime.date) -> bool:
 def check_if_date_is_holiday(date: datetime.date, employee: str) -> bool:
     holiday_list = get_holiday_list_for_employee(employee)
     return frappe.db.exists(
-        "Holiday List",
+        "Holiday",
         {
-            "holiday_date": date.strftime(DATE_FORMAT),
+            "holiday_date": date,
             "parent": holiday_list,
         },
     )
