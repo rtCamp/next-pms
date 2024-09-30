@@ -8,20 +8,9 @@ from hrms.overrides.employee_project import EmployeeProject
 
 class ProjectOverwrite(EmployeeProject):
     def validate(self):
-        self.handle_flat_rate()
         super().validate()
         self.update_project_currency()
         self.validate_overlap_project_billing()
-
-    def handle_flat_rate(self):
-        if self.custom_is_flat_rate_applicable:
-            if not self.custom_flat_rate:
-                return frappe.throw(
-                    "Flat Rate is mandatory for Flat Rate Applicable Projects"
-                )
-
-            for project_billing_team in self.custom_project_billing_team:
-                project_billing_team.hourly_billing_rate = self.custom_flat_rate
 
     def update_project_currency(self):
         if self.customer:

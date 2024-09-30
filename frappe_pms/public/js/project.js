@@ -22,6 +22,7 @@ frappe.ui.form.on("Project", {
       title: "Recalculate timesheet billing for project",
       fields: base_fields,
       size: "small",
+      description: "This will recalculate the billing for all the timesheets of the project from the given date.",
       primary_action_label: "Submit",
       primary_action(values) {
         frappe.call({
@@ -37,6 +38,9 @@ frappe.ui.form.on("Project", {
       },
     });
 
+    recalculate_dialog.$body.append(
+      `<p class="frappe-confirm-message">Note: <br>Make sure all billing information is correct in the Project Billing section before starting the recalculation.</p>`,
+    );
     recalculate_dialog.show();
   },
 });
