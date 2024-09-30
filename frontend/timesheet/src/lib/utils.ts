@@ -3,6 +3,7 @@ import { twMerge } from "tailwind-merge";
 import { Error } from "frappe-js-sdk/lib/frappe_app/types";
 import { WorkingFrequency } from "@/types";
 import { TScreenSize } from "@/store/app";
+import { HolidayProp } from "@/types/timesheet";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -27,32 +28,20 @@ export const getSiteName = () => {
   return window.frappe?.boot?.sitename ?? import.meta.env.VITE_SITE_NAME;
 };
 export function parseFrappeErrorMsg(error: Error) {
-  try {
-    const e = error._server_messages;
-    if (error.exception && !e) {
-      return removeHtmlString(error.exception);
-    }
-
-    if (e) {
-      const jsonMsgArray = JSON.parse(e);
-      if (jsonMsgArray.length > 0) {
-        const jsonObjectStr = jsonMsgArray[0];
-        const e = JSON.parse(jsonObjectStr);
-        return removeHtmlString(e.message);
-      }
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-    } else if (error._error_message) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      return removeHtmlString(error._error_message);
-    }
-  } catch (err) {
-    return "Something went wrong! Please try again later.";
+  const messages = getErrorMessages(error);
+  let message = "";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  messages.forEach((m: any) => {
+    message += `${m.message}\n`;
+  });
+  if (message) {
+    return message;
+  } else {
+    return "Something went wrong. Please try again later.";
   }
 }
 
-function removeHtmlString(data: string) {
+export function removeHtmlString(data: string) {
   return data.replace(/<\/?[^>]+(>|$)/g, "");
 }
 
@@ -217,3 +206,68 @@ export function truncateText(text: string, maxLength: number) {
   }
   return text.substring(0, maxLength) + "...";
 }
+
+export const createFalseValuedObject = (obj) => {
+  const newFalseValueObject: { [key: string]: boolean } = {};
+  if (Object.keys(obj).length > 0) {
+    for (const key of obj) {
+      newFalseValueObject[key] = false;
+    }
+  }
+  return newFalseValueObject;
+};
+export const isLiked = (likedBy: string, user: string) => {
+  if (likedBy) {
+    likedBy = JSON.parse(likedBy);
+    if (likedBy && likedBy.includes(user)) {
+      return true;
+    }
+  }
+  return false;
+};
+
+export const getHolidayList = (holidays: Array<HolidayProp>) => {
+  return holidays.map((holiday) => {
+    return holiday.holiday_date;
+  });
+};
+
+export const getErrorMessages = (error: Error) => {
+  let eMessages = error?._server_messages
+    ? JSON.parse(error?._server_messages)
+    : [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  eMessages = eMessages.map((m: any) => {
+    try {
+      return JSON.parse(m);
+    } catch (e) {
+      return m;
+    }
+  });
+
+  if (eMessages.length === 0) {
+    // Get the message from the exception by removing the exc_type
+    const index = error?.exception?.indexOf(":");
+    if (index) {
+      const exception = error?.exception?.slice(index + 1);
+      if (exception) {
+        eMessages = [
+          {
+            message: exception,
+            title: "Error",
+          },
+        ];
+      }
+    }
+
+    if (eMessages.length === 0) {
+      eMessages = [
+        {
+          message: error?.message,
+          title: "Error",
+        },
+      ];
+    }
+  }
+  return eMessages;
+};

@@ -3,7 +3,7 @@
 
 
 import frappe
-from frappe import _, get_list
+from frappe import _, get_all, get_list
 from frappe.query_builder import DocType
 
 
@@ -47,9 +47,15 @@ def get_columns():
 
 
 def get_employee_list(employee: str | None = None):
+    current_user_roles = frappe.get_roles()
+    filters = {}
     if employee:
-        return get_list("Employee", filters={"name": employee}, pluck="name")
-    return get_list("Employee", pluck="name")
+        filters["name"] = employee
+
+    if "Timesheet Manager" in current_user_roles:
+        return get_all("Employee", filters=filters, pluck="name")
+    else:
+        return get_list("Employee", filters=filters, pluck="name")
 
 
 def get_data(filters):

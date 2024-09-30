@@ -113,16 +113,16 @@ def validate_dates(doc):
 
     #  Check if the future time entry is allowed.
     allow_future_entry = frappe.db.get_single_value(
-        "Timesheet Setting", "allow_future_entries"
+        "Timesheet Settings", "allow_future_entries"
     )
     if not allow_future_entry and date_gap > 0:
         throw(_("Future time entries are not allowed."))
 
     #  Check if the back dated time entry is allowed.
     allow_back_dated_entry = frappe.db.get_single_value(
-        "Timesheet Setting", "allow_backdated_entries"
+        "Timesheet Settings", "allow_backdated_entries"
     )
-    if not allow_back_dated_entry:
+    if not allow_back_dated_entry and date_gap < 0:
         throw(_("Backdated time entries are not allowed."))
 
     # validate backdated entries as per the setting
@@ -132,11 +132,11 @@ def validate_dates(doc):
 
         if has_access and employee != doc.employee:
             allowed_days = frappe.db.get_single_value(
-                "Timesheet Setting", "allow_backdated_entries_till_manager"
+                "Timesheet Settings", "allow_backdated_entries_till_manager"
             )
         else:
             allowed_days = frappe.db.get_single_value(
-                "Timesheet Setting", "allow_backdated_entries_till_employee"
+                "Timesheet Settings", "allow_backdated_entries_till_employee"
             )
         holidays = get_holiday_dates_for_employee(
             doc.employee, doc.start_date, today_date
@@ -163,3 +163,7 @@ def validate_dates(doc):
                 holiday_counter += 1
         if abs(date_gap + holiday_counter) > allowed_days:
             throw("Backdated time entries are not allowed.")
+
+
+def on_update(doc, method=None):
+    doc.update_task_and_project()

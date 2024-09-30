@@ -10,6 +10,20 @@ class TimesheetOverwrite(Timesheet):
     def calculate_hours(self):
         return
 
+    def update_billing_hours(self, args):
+        if args.is_billable:
+            if flt(args.billing_hours) > flt(args.hours):
+                frappe.msgprint(
+                    frappe._(
+                        "Warning - Row {0}: Billing Hours are more than Actual Hours"
+                    ).format(args.idx),
+                    indicator="orange",
+                    alert=True,
+                )
+            args.billing_hours = args.hours
+        else:
+            args.billing_hours = 0
+
     def validate_time_logs(self):
         if not self.get("time_logs"):
             return

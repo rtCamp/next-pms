@@ -1,5 +1,7 @@
 import frappe
+from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
 from frappe.utils import add_days, get_first_day_of_week, get_last_day_of_week, nowdate
+from frappe.utils.data import getdate
 
 now = nowdate()
 
@@ -64,6 +66,7 @@ def filter_employees(
     start=0,
     user_group=None,
     ignore_permissions=False,
+    reports_to: None | str = None,
 ):
     import json
 
@@ -71,6 +74,9 @@ def filter_employees(
     fields = ["name", "image", "employee_name", "department", "designation"]
     employee_ids = []
     filters = {"status": "Active"}
+
+    if reports_to:
+        filters["reports_to"] = reports_to
 
     if isinstance(department, str):
         department = json.loads(department)
@@ -227,3 +233,18 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
         frappe.db.set_value(
             "Timesheet", timesheet.name, "custom_weekly_approval_status", week_status
         )
+
+
+def get_holidays(employee: str, start_date: str, end_date: str):
+    holiday_name = get_holiday_list_for_employee(employee)
+    if not holiday_name:
+        return []
+    holidays = frappe.get_all(
+        "Holiday",
+        filters={
+            "parent": holiday_name,
+            "holiday_date": ["between", (getdate(start_date), getdate(end_date))],
+        },
+        fields=["holiday_date", "description", "weekly_off"],
+    )
+    return holidays

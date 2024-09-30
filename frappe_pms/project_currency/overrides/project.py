@@ -52,10 +52,8 @@ class ProjectOverwrite(EmployeeProject):
                 Max(TimesheetDetail.to_time).as_("end_date"),
                 Sum(TimesheetDetail.hours).as_("time"),
             )
-            .where(
-                (TimesheetDetail.project == self.name)
-                & (TimesheetDetail.docstatus == 1)
-            )
+            .where(TimesheetDetail.project == self.name)
+            .where((TimesheetDetail.docstatus == 1) | (TimesheetDetail.docstatus == 0))
         ).run(as_dict=True)[0]
 
         self.actual_start_date = from_time_sheet.start_date

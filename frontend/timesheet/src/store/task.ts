@@ -12,6 +12,8 @@ export interface TaskState {
   total_project_count: number;
   projectStart: number;
   projectIsFetchAgain: boolean;
+  selectedTask: string;
+  isTaskLogDialogBoxOpen: boolean;
   isAddTaskDialogBoxOpen: boolean;
 }
 
@@ -26,6 +28,8 @@ export const initialState: TaskState = {
   projectStart: 0,
   projectIsFetchAgain: false,
   total_project_count: 0,
+  selectedTask: "",
+  isTaskLogDialogBoxOpen: false,
   isAddTaskDialogBoxOpen: false,
 };
 
@@ -46,7 +50,11 @@ export const taskSlice = createSlice({
       state.isFetchAgain = false;
     },
     updateTaskData: (state, action: PayloadAction<TaskState>) => {
-      state.task = [...state.task, ...action.payload.task];
+      const existingTaskIds = new Set(state.task.map((task) => task.name));
+      const newTasks = action.payload.task.filter(
+        (task) => !existingTaskIds.has(task.name),
+      );
+      state.task = [...state.task, ...newTasks];
       state.total_count = action.payload.total_count;
       state.isFetchAgain = false;
     },
@@ -89,7 +97,13 @@ export const taskSlice = createSlice({
       state.projectIsFetchAgain = false;
     },
     updateProjectData: (state, action: PayloadAction<ProjectData>) => {
-      state.project = [...state.project, ...action.payload.projects];
+      const existingProjectIds = new Set(
+        state.project.map((project) => project.name),
+      );
+      const newProjects = action.payload.projects.filter(
+        (project) => !existingProjectIds.has(project.name),
+      );
+      state.project = [...state.project, ...newProjects];
       state.total_project_count = action.payload.count;
       state.projectIsFetchAgain = false;
     },
@@ -99,6 +113,13 @@ export const taskSlice = createSlice({
       state.isFetchAgain = true;
       state.projectStart = 0;
       state.projectIsFetchAgain = true;
+    },
+    setSelectedTask: (
+      state,
+      action: PayloadAction<{ task: string; isOpen: boolean }>,
+    ) => {
+      state.selectedTask = action.payload.task;
+      state.isTaskLogDialogBoxOpen = action.payload.isOpen;
     },
   },
 });
@@ -115,5 +136,6 @@ export const {
   setProjectStart,
   setProjectFetchAgain,
   setAddTaskDialog,
+  setSelectedTask,
 } = taskSlice.actions;
 export default taskSlice.reducer;

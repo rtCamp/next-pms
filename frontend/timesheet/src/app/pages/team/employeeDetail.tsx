@@ -35,16 +35,18 @@ import {
   setEmployee,
   setDialog,
   setEditDialog,
+  setDateRange,
 } from "@/store/team";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
-
+import { Status } from "@/app/pages/team";
 import { LeaveProps, NewTimesheetProps, TaskDataItemProps, TaskDataProps, timesheet } from "@/types/timesheet";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/app/components/ui/input";
 import { timeFormatRegex } from "@/schema/timesheet";
 import { EditTime } from "@/app/pages/timesheet/editTime";
 import EmployeeCombo from "@/app/components/employeeComboBox";
+import { Approval } from "./approval";
 const EmployeeDetail = () => {
   const { id } = useParams();
   const teamState = useSelector((state: RootState) => state.team);
@@ -55,7 +57,6 @@ const EmployeeDetail = () => {
     employee: id,
     start_date: teamState.employeeWeekDate,
     max_week: 4,
-    holiday_with_description: true,
   });
 
   const handleAddTime = () => {
@@ -112,6 +113,7 @@ const EmployeeDetail = () => {
   };
   return (
     <>
+      {teamState.isAprrovalDialogOpen && <Approval />}
       {teamState.isDialogOpen && (
         <AddTime
           open={teamState.isDialogOpen}
@@ -121,10 +123,12 @@ const EmployeeDetail = () => {
           onSuccess={() => {
             dispatch(setFetchAgain(true));
           }}
+          task={teamState.timesheet.task}
           initialDate={teamState.timesheet.date}
           employee={teamState.employee}
           workingFrequency={teamState.timesheetData.working_frequency}
           workingHours={teamState.timesheetData.working_hour}
+          project={teamState.timesheet.project}
         />
       )}
       {teamState.isEditDialogOpen && (
@@ -191,49 +195,71 @@ const Timesheet = () => {
       dispatch(setDialog(true));
     }
   };
-  const holidays = teamState.timesheetData.holidays.map((holiday) => {
-    if (typeof holiday === "object" && "holiday_date" in holiday) {
-      return holiday.holiday_date;
-    } else {
-      return holiday;
-    }
-  });
+
+  const handleStatusClick = (start_date: string, end_date: string) => {
+    const data = {
+      start_date: start_date,
+      end_date: end_date,
+    };
+    dispatch(setDateRange({ dateRange: data, employee: teamState.employee, isAprrovalDialogOpen: true }));
+  };
   const working_hour = expectatedHours(teamState.timesheetData.working_hour, teamState.timesheetData.working_frequency);
   return (
     <div className="flex flex-col">
       {teamState.timesheetData.data &&
         Object.keys(teamState.timesheetData.data).length > 0 &&
-        Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet]) => {
+        Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet], index: number) => {
           let total_hours = value.total_hours;
-
           value.dates.map((date) => {
-            const leaveData = teamState.timesheetData.leaves.find((data: LeaveProps) => {
+            let isHoliday = false;
+            const leaveData = teamState.timesheetData.leaves.filter((data: LeaveProps) => {
               return date >= data.from_date && date <= data.to_date;
             });
-            const isHoliday = holidays.includes(date);
-            if (leaveData && !isHoliday) {
-              if (leaveData.half_day || (leaveData.half_day_date && leaveData.half_day_date == date)) {
-                total_hours += working_hour / 2;
-              } else {
+            const holiday = teamState.timesheetData.holidays.find((holiday) => holiday.holiday_date === date);
+
+            if (holiday) {
+              isHoliday = true;
+              if (!holiday.weekly_off) {
                 total_hours += working_hour;
               }
+            }
+
+            if (leaveData.length > 0 && !isHoliday) {
+              leaveData.forEach((data: LeaveProps) => {
+                const isHalfDayLeave = data.half_day && data.half_day_date == date;
+                if (isHalfDayLeave) {
+                  total_hours += working_hour / 2;
+                } else {
+                  total_hours += working_hour;
+                }
+              });
             }
           });
           return (
             <>
-              <Accordion type="multiple" key={key} defaultValue={[key]}>
+              <Accordion type="multiple" key={key} defaultValue={index === 0 || index === 1 ? [key] : undefined}>
                 <AccordionItem value={key}>
                   <AccordionTrigger className="hover:no-underline w-full">
-                    <div className="flex justify-between w-full">
+                    <div className="flex justify-between items-center w-full pr-2">
                       <Typography variant="h6" className="font-normal">
                         {key}: {floatToTime(total_hours)}h
                       </Typography>
+                      <Button
+                        variant="ghost"
+                        className="p-1 h-fit"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStatusClick(value.start_date, value.end_date);
+                        }}
+                      >
+                        <Status status={value.status} />
+                      </Button>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="pb-0">
                     <TimesheetTable
                       dates={value.dates}
-                      holidays={holidays}
+                      holidays={teamState.timesheetData.holidays}
                       leaves={teamState.timesheetData.leaves}
                       tasks={value.tasks}
                       onCellClick={onCellClick}
@@ -250,10 +276,11 @@ const Timesheet = () => {
   );
 };
 
-export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?: () => void }) => {
+export const Time = ({ callback }: { callback?: () => void }) => {
   const teamState = useSelector((state: RootState) => state.team);
   const { call } = useFrappePostCall("frappe_pms.timesheet.api.timesheet.save");
   const { toast } = useToast();
+  const dispatch = useDispatch();
   const updateTime = (value: NewTimesheetProps) => {
     call(value)
       .then((res) => {
@@ -271,6 +298,13 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
         });
       });
   };
+  const handleStatusClick = (start_date: string, end_date: string) => {
+    const data = {
+      start_date: start_date,
+      end_date: end_date,
+    };
+    dispatch(setDateRange({ dateRange: data, employee: teamState.employee, isAprrovalDialogOpen: true }));
+  };
   const holidays = teamState.timesheetData.holidays.map((holiday) => {
     if (typeof holiday === "object" && "holiday_date" in holiday) {
       return holiday.holiday_date;
@@ -283,32 +317,44 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
     <div>
       {teamState.timesheetData.data &&
         Object.keys(teamState.timesheetData.data).length > 0 &&
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet]) => {
+        Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet], index: number) => {
           let total_hours = value.total_hours;
 
           value.dates.map((date) => {
-            const leaveData = teamState.timesheetData.leaves.find((data: LeaveProps) => {
+            const leaveData = teamState.timesheetData.leaves.filter((data: LeaveProps) => {
               return date >= data.from_date && date <= data.to_date;
             });
             const isHoliday = holidays.includes(date);
-            if (leaveData && !isHoliday) {
-              if (leaveData.half_day || (leaveData.half_day_date && leaveData.half_day_date == date)) {
-                total_hours += working_hour / 2;
-              } else {
-                total_hours += working_hour;
-              }
+            if (leaveData.length > 0 && !isHoliday) {
+              leaveData.forEach((data: LeaveProps) => {
+                const isHalfDayLeave = data.half_day && data.half_day_date == date;
+                if (isHalfDayLeave) {
+                  total_hours += working_hour / 2;
+                } else {
+                  total_hours += working_hour;
+                }
+              });
             }
           });
           return (
             <>
-              <Accordion type="multiple" key={key} defaultValue={isOpen ? [key] : []}>
+              <Accordion type="multiple" key={key} defaultValue={index === 0 || index === 1 ? [key] : undefined}>
                 <AccordionItem value={key}>
                   <AccordionTrigger className="hover:no-underline w-full">
-                    <div className="flex justify-between w-full">
+                    <div className="flex justify-between w-full pr-2">
                       <Typography variant="h6" className="font-normal">
                         {key}: {floatToTime(total_hours)}h
                       </Typography>
+                      <Button
+                        variant="ghost"
+                        className="p-1 h-fit"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStatusClick(value.start_date, value.end_date);
+                        }}
+                      >
+                        <Status status={value.status} />
+                      </Button>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="pb-0">
@@ -328,16 +374,20 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
                       );
                       const isHoliday = !!holiday;
                       let totalHours = matchingTasks.reduce((sum, task) => sum + task.hours, 0);
-                      const leave = teamState.timesheetData.leaves.find((data: LeaveProps) => {
+                      const leave = teamState.timesheetData.leaves.filter((data: LeaveProps) => {
                         return date >= data.from_date && date <= data.to_date;
                       });
-                      const isHalfDayLeave = leave?.half_day && leave?.half_day_date == date ? true : false;
-                      if (leave && !isHoliday) {
-                        if (isHalfDayLeave) {
-                          totalHours += 4;
-                        } else {
-                          totalHours += 8;
-                        }
+
+                      let isHalfDayLeave = false;
+                      if (leave.length > 0 && !isHoliday) {
+                        leave.forEach((data: LeaveProps) => {
+                          isHalfDayLeave = data.half_day && data.half_day_date == date;
+                          if (isHalfDayLeave) {
+                            totalHours += working_hour / 2;
+                          } else {
+                            totalHours += working_hour;
+                          }
+                        });
                       }
                       const isExtended = calculateExtendedWorkingHour(
                         totalHours,
@@ -365,9 +415,9 @@ export const Time = ({ callback, isOpen = false }: { isOpen?: boolean; callback?
                                 {holiday.description}
                               </Typography>
                             )}
-                            {leave && !isHoliday && (
+                            {leave.length > 0 && !isHoliday && (
                               <Typography variant="p" className="text-gray-600">
-                                ({isHalfDayLeave ? "Half day leave" : "Full Day Leave"})
+                                ({isHalfDayLeave && totalHours != working_hour ? "Half day leave" : "Full Day Leave"})
                               </Typography>
                             )}
                           </div>

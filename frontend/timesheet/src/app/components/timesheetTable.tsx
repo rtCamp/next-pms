@@ -7,18 +7,18 @@ import {
   calculateWeeklyHour,
   expectatedHours,
   preProcessLink,
-  getDateTimeForMultipleTimeZoneSupport,
+  getHolidayList,
 } from "@/lib/utils";
 import { Typography } from "./typography";
 import { CircleCheck, CirclePlus, CircleX, Clock3, PencilLine, CircleDollarSign } from "lucide-react";
-import { TaskDataProps, TaskProps, TaskDataItemProps, LeaveProps } from "@/types/timesheet";
+import { TaskDataProps, TaskProps, TaskDataItemProps, LeaveProps, HolidayProp } from "@/types/timesheet";
 import { WorkingFrequency } from "@/types";
 import GenWrapper from "./GenWrapper";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
 
 interface TimesheetTableProps {
   dates: string[];
-  holidays: string[];
+  holidays: Array<HolidayProp>;
   tasks: TaskProps;
   leaves: Array<LeaveProps>;
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -41,6 +41,7 @@ const TimesheetTable = ({
   working_frequency,
   disabled,
 }: TimesheetTableProps) => {
+  const holiday_list = getHolidayList(holidays);
   return (
     <GenWrapper>
       <Table>
@@ -54,7 +55,7 @@ const TimesheetTable = ({
               </TableHead>
               {dates?.map((date: string) => {
                 const { date: formattedDate, day } = prettyDate(date);
-                const isHoliday = holidays.includes(date);
+                const isHoliday = holiday_list.includes(date);
                 return (
                   <TableHead key={date} className="max-w-20 text-center">
                     <Typography variant="p" className={cn("text-slate-600 font-medium", isHoliday && "text-slate-400")}>
@@ -75,16 +76,15 @@ const TimesheetTable = ({
           </TableHeader>
         )}
         <TableBody>
-          {Object.keys(tasks).length > 0 && (
-            <TotalHourRow
-              dates={dates}
-              leaves={leaves}
-              tasks={tasks}
-              holidays={holidays}
-              working_frequency={working_frequency}
-              working_hour={working_hour}
-            />
-          )}
+          <TotalHourRow
+            dates={dates}
+            leaves={leaves}
+            tasks={tasks}
+            holidays={holidays}
+            working_frequency={working_frequency}
+            working_hour={working_hour}
+          />
+
           {leaves.length > 0 && (
             <LeaveRow
               dates={dates}
@@ -136,11 +136,12 @@ const TimesheetTable = ({
                           task: taskData.name,
                           from_time: date,
                           docstatus: 0,
+                          project: taskData.project,
                           is_billable: false,
                         },
                       ];
                     }
-                    const isHoliday = holidays.includes(date);
+                    const isHoliday = holiday_list.includes(date);
                     return (
                       <Cell
                         key={date}
@@ -185,25 +186,34 @@ export const LeaveRow = ({
 }: {
   leaves: Array<LeaveProps>;
   dates: string[];
-  holidays: string[];
+  holidays: Array<HolidayProp>;
   expectedHours: number;
   rowClassName?: string;
   headingClassName?: string;
   dataCellClassName?: string;
   totalCellClassName?: string;
 }) => {
+  const holiday_list = holidays.map((holiday) => {
+    return holiday.holiday_date;
+  });
   let total_hours = 0;
   const leaveData = dates.map((date: string) => {
-    if (holidays.includes(date)) {
+    let hour = 0;
+    if (holiday_list.includes(date)) {
       return { date, isHoliday: true };
     }
-    const data = leaves.find((data: LeaveProps) => {
+    const data = leaves.filter((data: LeaveProps) => {
       return date >= data.from_date && date <= data.to_date;
     });
-    const hour = data?.half_day && data?.half_day_date == date ? expectedHours / 2 : expectedHours;
-    if (data) {
-      total_hours += hour;
-    }
+
+    data.map((item) => {
+      if (item.half_day || (item.half_day_date && item.half_day_date == date)) {
+        hour += expectedHours / 2;
+      } else {
+        hour += expectedHours;
+      }
+    });
+    total_hours += hour;
     return { date, data, hour, isHoliday: false };
   });
 
@@ -247,29 +257,32 @@ export const TotalHourRow = ({
   leaves: Array<LeaveProps>;
   dates: string[];
   tasks: TaskProps;
-  holidays: string[];
+  holidays: Array<HolidayProp>;
   working_hour: number;
   working_frequency: WorkingFrequency;
 }) => {
   let total = 0;
+
   return (
     <TableRow>
       <TableCell></TableCell>
       {dates.map((date: string) => {
-        let isLeave = false;
-        const isHoliday = holidays.includes(date);
-        // weekends here mean is the day a saturday/sunday or not
-        const dateObj = getDateTimeForMultipleTimeZoneSupport(date);
-        const isWeekend = dateObj.getDay() === 0 || dateObj.getDay() === 6;
-        if (isHoliday) {
-          if (!isWeekend) total += working_hour;
-          return (
-            <TableCell key={date} className="text-center">
-              <Typography variant="p" className={cn("text-slate-400")}>
-                {isWeekend ? "-" : floatToTime(working_hour)}
-              </Typography>
-            </TableCell>
-          );
+        let isHoliday = false;
+        const holiday = holidays.find((holiday) => holiday.holiday_date === date);
+        if (holiday) {
+          isHoliday = true;
+          if (!holiday.weekly_off) {
+            total += working_hour;
+          }
+          if (isHoliday) {
+            return (
+              <TableCell key={date} className="text-center">
+                <Typography variant="p" className={cn("text-slate-400")}>
+                  {holiday.weekly_off ? "-" : floatToTime(working_hour)}
+                </Typography>
+              </TableCell>
+            );
+          }
         }
         let total_hours = 0;
         if (tasks) {
@@ -283,21 +296,22 @@ export const TotalHourRow = ({
             });
           });
         }
-        const leaveData = leaves.find((data: LeaveProps) => {
+        const leaveData = leaves.filter((data: LeaveProps) => {
           return date >= data.from_date && date <= data.to_date;
         });
         if (leaveData) {
-          if (leaveData.half_day || (leaveData.half_day_date && leaveData.half_day_date == date)) {
-            total_hours += working_hour / 2;
-          } else {
-            total_hours += working_hour;
-            isLeave = true;
-          }
+          leaveData.map((item) => {
+            if (item.half_day || (item.half_day_date && item.half_day_date == date)) {
+              total_hours += working_hour / 2;
+            } else {
+              total_hours += working_hour;
+            }
+          });
         }
         total += total_hours;
         return (
           <TableCell key={date} className="text-center">
-            <Typography variant="p" className={cn("text-slate-600 ", isLeave && "text-warning")}>
+            <Typography variant="p" className={cn("text-slate-600 ")}>
               {floatToTime(total_hours)}
             </Typography>
           </TableCell>
@@ -376,6 +390,7 @@ export const Cell = ({
       description: "",
       name: "",
       task: data[0].task ?? "",
+      project: data[0].project ?? "",
     };
     onCellClick && onCellClick(value);
   };
@@ -443,7 +458,7 @@ export const EmptyRow = ({
   cellClassName,
 }: {
   dates: string[];
-  holidays: string[];
+  holidays: Array<HolidayProp>;
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   onCellClick?: (data) => void;
@@ -453,6 +468,7 @@ export const EmptyRow = ({
   totalCellClassName?: string;
   cellClassName?: string;
 }) => {
+  const holiday_list = getHolidayList(holidays);
   return (
     <TableRow className={cn(rowClassName)}>
       <TableCell className={cn("min-w-[24rem]", headingCellClassName)}>
@@ -461,7 +477,7 @@ export const EmptyRow = ({
         </Typography>
       </TableCell>
       {dates.map((date: string) => {
-        const isHoliday = holidays.includes(date);
+        const isHoliday = holiday_list.includes(date);
         const value = [
           {
             hours: 0,
@@ -472,6 +488,7 @@ export const EmptyRow = ({
             from_time: date,
             task: "",
             parent: "",
+            project: "",
           },
         ];
         return (

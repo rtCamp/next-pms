@@ -1,29 +1,24 @@
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
-import { Spinner } from "@/app/components/spinner";
-import { TaskData, ProjectProps, ProjectNestedTaskData } from "@/types";
+import { TaskData, ProjectProps } from "@/types";
 import { ReactNode, useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import {
   setStart,
   setProjectStart,
-  setTaskData,
   setSelectedProject,
   setFetchAgain,
-  setProjectFetchAgain,
   setGroupBy,
-  updateTaskData,
-  updateProjectData,
-  setProjectData,
   setAddTaskDialog,
-  AddTaskType,
-  TaskState,
 } from "@/store/task";
+import { AddTask } from "./addTask";
+import { FlatTable } from "./flatTable";
 import {
   cn,
   parseFrappeErrorMsg,
+  isLiked,
   floatToTime,
+  createFalseValuedObject,
   getFormatedDate,
   getDateTimeForMultipleTimeZoneSupport,
 } from "@/lib/utils";
@@ -38,20 +33,15 @@ import {
   ChevronDown,
   ChevronUp,
   Clock,
+  Columns2,
   Filter,
-  Grid2X2,
-  GripVertical,
   Heart,
-  LoaderCircle,
   LucideProps,
   MoreVertical,
   Plus,
   RotateCcw,
-  Search,
 } from "lucide-react";
 import {
-  ColumnDef,
-  flexRender,
   getCoreRowModel,
   getSortedRowModel,
   useReactTable,
@@ -60,10 +50,9 @@ import {
   getExpandedRowModel,
   ColumnFiltersState,
   getFilteredRowModel,
-  Row,
   ExpandedState,
-  Table as TanStackTable,
 } from "@tanstack/react-table";
+import { TaskStatus } from "./taskStatus";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -77,47 +66,21 @@ import {
 } from "@/app/components/ui/dropdown-menu";
 import { SetAddTimeDialog, SetTimesheet } from "@/store/timesheet";
 import AddTime from "@/app/components/addTime";
+import { RowGroupedTable } from "./groupTable";
 import React from "react";
-import { Input } from "@/app/components/ui/input";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Textarea } from "@/app/components/ui/textarea";
 import { DeBounceInput } from "@/app/components/deBounceInput";
-// Types
-type FlatTableType = TanStackTable<TaskData>;
-type NestedRowTableType = TanStackTable<ProjectNestedTaskData>;
-type ColumnsType = ColumnDef<TaskData>[];
-type ProjectNestedColumnsType = ColumnDef<ProjectNestedTaskData>[];
-type subjectSearchType = string;
-type GroupByParamType = string[];
-type columnsToExcludeActionsInTablesType = string[];
-type localStorageTaskType = {
-  /* eslint-disable-next-line */
-  hideColumn: any[];
-  /* eslint-disable-next-line */
-  groupBy: any[];
-  /* eslint-disable-next-line */
-  projects: any[];
-  /* eslint-disable-next-line */
-  columnWidth: {
-    subject: string;
-    due_date: string;
-    project_name: string;
-    status: string;
-    priority: string;
-    expected_time: string;
-    actual_time: string;
-  };
-  /* eslint-disable-next-line */
-  columnSort: any[];
-};
-type setLocalStorageTaskStateType = React.Dispatch<React.SetStateAction<localStorageTaskType>>;
-type setNestedProjectMutateCallType = React.Dispatch<React.SetStateAction<() => void>>;
-type setFlatTaskMutateCallType = React.Dispatch<React.SetStateAction<() => void>>;
-type setProjectSearchType = React.Dispatch<React.SetStateAction<string>>;
+import {
+  setLocalStorageTaskStateType,
+  FlatTableType,
+  ColumnsType,
+  ProjectNestedColumnsType,
+  subjectSearchType,
+  GroupByParamType,
+  columnsToExcludeActionsInTablesType,
+  localStorageTaskType,
+  MoreTableOptionsDropDownType,
+} from "@/types/task";
+import { TaskLog } from "./taskLog";
 
 const Task = () => {
   const task = useSelector((state: RootState) => state.task);
@@ -190,6 +153,7 @@ const Task = () => {
   useEffect(() => {
     dispatch(setSelectedProject(projectParam));
   }, []);
+
   useEffect(() => {
     dispatch(setGroupBy(groupByParam));
     if (groupByParam.length === 0) {
@@ -292,30 +256,6 @@ const Task = () => {
     },
     [dispatch],
   );
-  // custom sort functions for Status and Priority columns
-  const statusOrder = ["Completed", "Pending Review", "Working", "Overdue", "Open", "Template", "Cancelled"];
-  const customStatusSort = (rowA: Row<any>, rowB: Row<any>, columnId: string) => {
-    const statusA = String(rowA.getValue(columnId));
-    const statusB = String(rowB.getValue(columnId));
-
-    // Determine the index in the custom order or assign a high index if not in the list
-    const indexA = statusOrder.indexOf(statusA) === -1 ? statusOrder.length : statusOrder.indexOf(statusA);
-    const indexB = statusOrder.indexOf(statusB) === -1 ? statusOrder.length : statusOrder.indexOf(statusB);
-
-    return indexA - indexB;
-  };
-
-  const priorityOrder = ["Low", "Medium", "High", "Urgent"];
-
-  const customPrioritySort = (rowA: Row<any>, rowB: Row<any>, columnId: string) => {
-    const priorityA = String(rowA.getValue(columnId));
-    const priorityB = String(rowB.getValue(columnId));
-    // Determine the index in the custom order or assign a high index if not in the list
-    const indexA = priorityOrder.indexOf(priorityA) === -1 ? priorityOrder.length : priorityOrder.indexOf(priorityA);
-    const indexB = priorityOrder.indexOf(priorityB) === -1 ? priorityOrder.length : priorityOrder.indexOf(priorityB);
-
-    return indexA - indexB;
-  };
 
   // column definitions
   const columns: ColumnsType = [
@@ -334,7 +274,7 @@ const Task = () => {
             <p className="truncate">Project Name</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -371,7 +311,7 @@ const Task = () => {
             <p className="truncate">Subject</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -400,7 +340,7 @@ const Task = () => {
             <p className="truncate">Due Date</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -418,7 +358,7 @@ const Task = () => {
     {
       accessorKey: "status",
       size: Number(localStorageTaskState?.columnWidth["status"] ?? "150"),
-      sortingFn: customStatusSort,
+
       header: ({ column }) => {
         return (
           <div
@@ -430,7 +370,7 @@ const Task = () => {
             <p className="truncate">Status</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -443,7 +383,7 @@ const Task = () => {
     },
     {
       accessorKey: "priority",
-      sortingFn: customPrioritySort,
+
       size: Number(localStorageTaskState?.columnWidth["priority"] ?? "150"),
       header: ({ column }) => {
         return (
@@ -456,7 +396,7 @@ const Task = () => {
             <p className="truncate">Priority</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -481,7 +421,7 @@ const Task = () => {
             <p className="truncate">Expected Hours</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -510,7 +450,7 @@ const Task = () => {
             <p className="truncate">Hour Spent</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -587,7 +527,7 @@ const Task = () => {
             <p className="truncate">Project Name</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -636,7 +576,7 @@ const Task = () => {
             <p className="truncate">Subject</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -663,7 +603,7 @@ const Task = () => {
             <div className="truncate w-4/5">Due Date</div>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -680,7 +620,7 @@ const Task = () => {
     },
     {
       accessorKey: "status",
-      sortingFn: customStatusSort,
+
       size: Number(localStorageTaskState?.columnWidth["status"] ?? "150"),
       header: ({ column }) => {
         return (
@@ -691,7 +631,7 @@ const Task = () => {
             <div className="truncate w-4/5">Status</div>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -704,7 +644,7 @@ const Task = () => {
     },
     {
       id: "priority",
-      sortingFn: customPrioritySort,
+
       size: Number(localStorageTaskState?.columnWidth["priority"] ?? "150"),
       accessorKey: "priority",
       header: ({ column }) => {
@@ -716,7 +656,7 @@ const Task = () => {
             <div className="truncate w-4/5">Priority</div>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -740,7 +680,7 @@ const Task = () => {
             <div className="truncate w-4/5">Expected Hours</div>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -770,7 +710,7 @@ const Task = () => {
 
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer",
+                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -942,7 +882,7 @@ const Task = () => {
         );
       });
   };
-  type MoreTableOptionsDropDownType = "normal" | "nestedSubMenu";
+
   const MoreTableOptionsDropDownData: {
     title: string;
     icon: React.ForwardRefExoticComponent<Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>>;
@@ -954,7 +894,7 @@ const Task = () => {
     {
       title: "Reset Table",
       icon: RotateCcw,
-      iconClass: "h-4 w-4 text-blue-500",
+      iconClass: "h-4 w-4 ",
       handleClick: () => {
         setLocalStorageTaskState(localStorageTaskDataMap);
         // update All Sort,filter and columnWidth States when localStorage Changes (table config reset)
@@ -967,8 +907,8 @@ const Task = () => {
     },
     {
       title: "Columns",
-      icon: Grid2X2,
-      iconClass: "h-4 w-4 text-blue-500",
+      icon: Columns2,
+      iconClass: "h-4 w-4 ",
       type: "nestedSubMenu",
       render: () => {
         return renderColumnFilterList(table, groupByParam, columnsToExcludeActionsInTables, setLocalStorageTaskState);
@@ -987,19 +927,6 @@ const Task = () => {
               text-align: left;
               border-bottom: 1px solid #ddd;
             }
-
-            .resizer {
-              position: absolute;
-              right: 0;
-              top: 0;
-              bottom: 0;
-              width: 5px;
-              background-color: transparent;
-            }
-
-            .isResizing {
-              background-color: #dedfe091;
-            }
       `}
       </style>
       <div className="md:w-full h-full justify-between flex flex-col relative">
@@ -1009,7 +936,7 @@ const Task = () => {
             {/* Task Search Filter */}
             <DeBounceInput
               placeholder="Search Subject..."
-              className="w-full"
+              className="max-w-full min-w-40"
               deBounceValue={400}
               value={subjectSearchParam}
               callback={handleSubjectSearchChange}
@@ -1051,7 +978,6 @@ const Task = () => {
           {/* more button */}
           {/* Add Task Button */}
           <Button onClick={handleAddTask} className="ml-auto" title="Add task">
-            {" "}
             <Plus className="h-4 w-4 mr-2" /> Add Task
           </Button>
           <DropdownMenu>
@@ -1095,6 +1021,7 @@ const Task = () => {
           </DropdownMenu>
         </div>
         {/* tables */}
+        {task.isTaskLogDialogBoxOpen && <TaskLog />}
         <div className="overflow-hidden w-full overflow-y-auto" style={{ height: "calc(100vh - 8rem)" }}>
           {groupByParam.length === 0 && task.groupBy ? (
             <FlatTable
@@ -1126,8 +1053,8 @@ const Task = () => {
             onClick={loadMore}
             disabled={
               task.groupBy.length === 0
-                ? task.task.length == task.total_count
-                : task.project.length == task.total_project_count
+                ? task.task.length === task.total_count
+                : task.project.length === task.total_project_count
             }
           >
             Load More
@@ -1152,22 +1079,13 @@ const Task = () => {
             workingHours={user.workingHours}
           />
         )}
-        {/* addTask */}
+
         {task.isAddTaskDialogBoxOpen && <AddTask task={task} projects={projects} setProjectSearch={setProjectSearch} />}
       </div>
     </>
   );
 };
 
-const isLiked = (likedBy: string, user: string) => {
-  if (likedBy) {
-    likedBy = JSON.parse(likedBy);
-    if (likedBy && likedBy.includes(user)) {
-      return true;
-    }
-  }
-  return false;
-};
 const TaskPriority = ({ priority }: { priority: TaskData["priority"] }) => {
   const priorityCss = {
     Low: "bg-slate-200 text-slate-900 hover:bg-slate-200",
@@ -1178,565 +1096,4 @@ const TaskPriority = ({ priority }: { priority: TaskData["priority"] }) => {
   return <Badge className={cn(priorityCss[priority])}>{priority}</Badge>;
 };
 
-const TaskStatus = ({ status }: { status: TaskData["status"] }) => {
-  const statusCss = {
-    Open: "bg-blue-100 text-blue-500 hover:bg-blue-200",
-    Working: "bg-warning/20 text-warning hover:bg-warning/20",
-    "Pending Review": "bg-orange-100 text-orange-400 hover:bg-warning/20",
-    Overdue: "bg-destructive/20 text-destructive hover:bg-destructive/20",
-    Template: "bg-slate-200 text-slate-900 hover:bg-slate-200",
-    Completed: "bg-success/20 text-success hover:bg-success/20",
-    Cancelled: "bg-destructive/20 text-destructive hover:bg-destructive/20",
-  };
-  return (
-    <div
-      title={status}
-      className={cn(
-        statusCss[status],
-        "py-1 px-2 truncate  w-fit max-w-40 text-xs font-bold text-center cursor-pointer rounded-full ",
-      )}
-    >
-      {status}
-    </div>
-  );
-};
-
 export default Task;
-
-//one time utility for asssigning All keys of an object to false
-const createFalseValuedObject = (obj) => {
-  const newFalseValueObject: { [key: string]: boolean } = {};
-  if (Object.keys(obj).length > 0) {
-    for (const key of obj) {
-      newFalseValueObject[key] = false;
-    }
-  }
-  return newFalseValueObject;
-};
-
-const FlatTable = ({
-  table,
-  columns,
-  columnsToExcludeActionsInTables,
-  setLocalStorageTaskState,
-  task,
-  subjectSearch,
-  setMutateCall,
-}: {
-  table: FlatTableType;
-  columns: ColumnsType;
-  columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType;
-  setLocalStorageTaskState: setLocalStorageTaskStateType;
-  task: TaskState;
-  subjectSearch: subjectSearchType;
-  setMutateCall: setFlatTaskMutateCallType;
-}) => {
-  const dispatch = useDispatch();
-  const { toast } = useToast();
-  let resizeObserver: ResizeObserver;
-  const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.task.get_task_list", {
-    page_length: 20,
-    start: task.start,
-    projects: task.selectedProject,
-    search: subjectSearch,
-  });
-  useEffect(() => {
-    if (task.isFetchAgain) {
-      mutate();
-      dispatch(setFetchAgain(false));
-    }
-    if (data) {
-      if (task.start !== 0) {
-        dispatch(updateTaskData(data.message));
-      } else {
-        dispatch(setTaskData(data.message));
-      }
-    }
-    if (error) {
-      const err = parseFrappeErrorMsg(error);
-      toast({
-        variant: "destructive",
-        description: err,
-      });
-    }
-  }, [data, dispatch, error, mutate, task.isFetchAgain, task.start, toast]);
-  useEffect(() => {
-    setMutateCall(() => mutate);
-  }, []);
-  return (
-    <>
-      {isLoading && task.task.length == 0 ? (
-        <Spinner isFull />
-      ) : (
-        <Table className="[&_td]:px-2  [&_th]:px-2 table-fixed">
-          <TableHeader className="[&_th]:h-10">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead
-                      className={cn("resizer", header.column.getIsResizing() && "isResizing")}
-                      key={header.id}
-                      onMouseDown={(event) => {
-                        const container = event.currentTarget;
-                        resizeObserver = new ResizeObserver((entries) => {
-                          entries.forEach(() => {
-                            setLocalStorageTaskState((prev) => {
-                              return {
-                                ...prev,
-                                columnWidth: { ...prev.columnWidth, [header.id]: header.getSize() },
-                              };
-                            });
-                          });
-                        });
-                        resizeObserver.observe(container);
-                      }}
-                      onMouseUp={() => {
-                        if (resizeObserver) {
-                          resizeObserver.disconnect();
-                        }
-                      }}
-                      style={{
-                        width: header.getSize(),
-                        position: "relative",
-                      }}
-                    >
-                      <div className="w-full h-full flex items-center justify-between group">
-                        <div className="w-full">{flexRender(header.column.columnDef.header, header.getContext())}</div>
-                        {!columnsToExcludeActionsInTables.includes(header.id) && (
-                          <div
-                            {...{
-                              onMouseDown: header.getResizeHandler(),
-                              onTouchStart: header.getResizeHandler(),
-                              className: `cursor-col-resize flex justify-center items-center h-full`,
-                            }}
-                          >
-                            <GripVertical className="w-4 h-4 max-lg:hidden" />
-                          </div>
-                        )}
-                      </div>
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell className="overflow-hidden" key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      )}
-    </>
-  );
-};
-
-const RowGroupedTable = ({
-  table,
-  columns,
-  columnsToExcludeActionsInTables,
-  setLocalStorageTaskState,
-  task,
-  subjectSearch,
-  setMutateCall,
-}: {
-  table: NestedRowTableType;
-  columns: ProjectNestedColumnsType;
-  columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType;
-  setLocalStorageTaskState: setLocalStorageTaskStateType;
-  task: TaskState;
-  subjectSearch: subjectSearchType;
-  setMutateCall: setNestedProjectMutateCallType;
-}) => {
-  const dispatch = useDispatch();
-  const { toast } = useToast();
-  let resizeObserver: ResizeObserver;
-  //nested project task call
-  const {
-    data: nestedProjectData,
-    isLoading: nestedProjectIsLoading,
-    error: nestedProjectError,
-    mutate: nestedProjectMutate,
-  } = useFrappeGetCall("frappe_pms.timesheet.api.task.get_task_list_by_project", {
-    page_length: 20,
-    project: task.selectedProject.length == 0 ? null : task.selectedProject,
-    task_search: subjectSearch,
-  });
-  useEffect(() => {
-    setMutateCall(() => nestedProjectMutate);
-  }, []);
-  //nested projectdata side-effects
-  useEffect(() => {
-    if (task.projectIsFetchAgain) {
-      nestedProjectMutate();
-      dispatch(setProjectFetchAgain(false));
-    }
-    if (nestedProjectData) {
-      if (task.projectStart !== 0) {
-        dispatch(updateProjectData(nestedProjectData.message));
-      } else {
-        dispatch(setProjectData(nestedProjectData.message));
-      }
-    }
-    if (nestedProjectError) {
-      const err = parseFrappeErrorMsg(nestedProjectError);
-      toast({
-        variant: "destructive",
-        description: err,
-      });
-    }
-  }, [
-    nestedProjectData,
-    dispatch,
-    nestedProjectError,
-    nestedProjectMutate,
-    task.projectIsFetchAgain,
-    task.projectStart,
-    toast,
-  ]);
-  return (
-    <>
-      {nestedProjectIsLoading && task.project.length == 0 ? (
-        <Spinner isFull />
-      ) : (
-        <Table className="[&_td]:px-2  [&_th]:px-2 table-fixed">
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead
-                    className={`resizer overflow-hidden ${header.column.getIsResizing() ? "isResizing" : null}`}
-                    key={header.id}
-                    style={{
-                      width: header.getSize(),
-                      position: "relative",
-                    }}
-                    onMouseDown={(event) => {
-                      const container = event.currentTarget;
-                      resizeObserver = new ResizeObserver((entries) => {
-                        entries.forEach(() => {
-                          setLocalStorageTaskState((prev) => {
-                            return {
-                              ...prev,
-                              columnWidth: { ...prev.columnWidth, [header.id]: header.getSize() },
-                            };
-                          });
-                        });
-                      });
-                      resizeObserver.observe(container);
-                    }}
-                    onMouseUp={() => {
-                      if (resizeObserver) {
-                        resizeObserver.disconnect();
-                      }
-                    }}
-                  >
-                    <div className="w-full h-full flex items-center justify-between group">
-                      <div className="w-full">{flexRender(header.column.columnDef.header, header.getContext())}</div>
-                      {!columnsToExcludeActionsInTables.includes(header.id) && (
-                        <div
-                          {...{
-                            onMouseDown: header.getResizeHandler(),
-                            onTouchStart: header.getResizeHandler(),
-                            className: `cursor-col-resize flex justify-center items-center h-full`,
-                          }}
-                        >
-                          <GripVertical className="w-4 h-4 max-lg:hidden" />
-                        </div>
-                      )}
-                    </div>
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody className="relative">
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => {
-                return (
-                  <React.Fragment key={row.id}>
-                    <TableRow
-                      style={{
-                        width: `${table.getState().columnSizingInfo.deltaOffset}px)`,
-                      }}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell className="overflow-hidden" key={cell.id}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  </React.Fragment>
-                );
-              })
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      )}
-    </>
-  );
-};
-
-const AddTask = ({
-  task,
-  projects,
-  setProjectSearch,
-}: {
-  task: TaskState;
-  projects: any;
-  setProjectSearch: setProjectSearchType;
-}) => {
-  const dispatch = useDispatch();
-  const { toast } = useToast();
-  const expectedTimeSchema = z.preprocess(
-    (val, ctx) => {
-      if (typeof val === "string" && !val.trim()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["expected_time"],
-          message: "Please enter a valid time in Hours",
-        });
-        return null;
-      }
-      const processedValue = Number(val);
-      if (isNaN(processedValue)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["expected_time"],
-          message: "Invalid Time format. Please enter a valid time in Hours",
-        });
-        return null;
-      }
-      return processedValue;
-    },
-    z.union([
-      z.string({
-        invalid_type_error: "Please enter a valid number for hours.",
-      }),
-      z.number({
-        invalid_type_error: "Please enter a valid number for hours.",
-      }),
-    ]),
-  );
-  const TaskSchema = z.object({
-    subject: z
-      .string({
-        required_error: "Please add a subject.",
-      })
-      .trim()
-      .min(1, { message: "Please add a subject." }),
-    project: z
-      .string({
-        required_error: "Please select a project.",
-      })
-      .trim()
-      .min(1, { message: "Please select a project." }),
-    expected_time: expectedTimeSchema,
-    description: z
-      .string({
-        required_error: "Please enter description.",
-      })
-      .trim()
-      .min(4, "Please enter valid description."),
-  });
-  const { call } = useFrappePostCall("frappe_pms.timesheet.api.task.add_task");
-  const form = useForm<z.infer<typeof TaskSchema>>({
-    resolver: zodResolver(TaskSchema),
-    defaultValues: {
-      subject: "",
-      project: "",
-      expected_time: "",
-      description: "",
-    },
-    mode: "onSubmit",
-  });
-  const handleSubmit = (data: z.infer<typeof TaskSchema>) => {
-    const sanitizedTaskData: AddTaskType = {
-      subject: data.subject.trim(),
-      description: data.description.trim(),
-      expected_time: String(data.expected_time),
-      project: data.project.trim(),
-    };
-    call(sanitizedTaskData)
-      .then((res) => {
-        toast({
-          variant: "success",
-          description: res.message,
-        });
-        dispatch(setProjectFetchAgain(true));
-        closeAddTaskDialog();
-      })
-      .catch((err) => {
-        const error = parseFrappeErrorMsg(err);
-        toast({
-          variant: "destructive",
-          description: error,
-        });
-      });
-  };
-  const closeAddTaskDialog = () => {
-    dispatch(setAddTaskDialog(false));
-    setProjectSearch("");
-    form.reset();
-  };
-  const handleSubjectChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
-    form.setValue("subject", event.target.value);
-  };
-  const handleTimeChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
-    form.setValue("expected_time", event.target.value);
-  };
-  const handleProjectChange = (data: string[] | string) => {
-    form.setValue("project", data[0]);
-  };
-  const handleProjectSearch = (searchString: string) => {
-    setProjectSearch(searchString);
-  };
-  return (
-    <>
-      <Dialog onOpenChange={closeAddTaskDialog} open={task.isAddTaskDialogBoxOpen}>
-        <DialogContent className="max-w-xl">
-          <DialogHeader>
-            <DialogTitle className="pb-6">Add Task</DialogTitle>
-          </DialogHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)}>
-              <div className="flex flex-col gap-y-6">
-                <div className="flex gap-x-4 items-start">
-                  {/* subject field */}
-                  <FormField
-                    control={form.control}
-                    name="subject"
-                    render={({ field }) => (
-                      <FormItem className="w-full">
-                        <FormLabel className="flex gap-2 items-center">
-                          <p className="text-sm">Subject</p>
-                        </FormLabel>
-                        <FormControl>
-                          <>
-                            <div className="relative flex items-center">
-                              <Input
-                                placeholder="New subject"
-                                className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
-                                {...field}
-                                type="text"
-                                onChange={handleSubjectChange}
-                              />
-                            </div>
-                          </>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  {/* expected time  */}
-                  <FormField
-                    control={form.control}
-                    name="expected_time"
-                    render={({ field }) => (
-                      <FormItem className="w-full">
-                        <FormLabel className="flex gap-2 items-center text-sm">Expected Time</FormLabel>
-                        <FormControl>
-                          <FormControl>
-                            <>
-                              <div className="relative flex items-center">
-                                <Input
-                                  placeholder="Time(in hours)"
-                                  className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
-                                  {...field}
-                                  type="text"
-                                  onChange={handleTimeChange}
-                                />
-                              </div>
-                            </>
-                          </FormControl>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                {/* project combobox */}
-                <FormField
-                  control={form.control}
-                  name="project"
-                  render={() => (
-                    <FormItem>
-                      <FormLabel>Projects</FormLabel>
-                      <FormControl>
-                        <ComboxBox
-                          label="Search Project"
-                          showSelected
-                          value={form.getValues("project") ? [form.getValues("project")] : []}
-                          data={projects?.message?.map((item: ProjectProps) => ({
-                            label: item.project_name,
-                            value: item.name,
-                          }))}
-                          onSelect={handleProjectChange}
-                          onSearch={handleProjectSearch}
-                          rightIcon={<Search className="h-4 w-4 stroke-slate-400" />}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Explain the subject"
-                          rows={4}
-                          className="w-full placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <DialogFooter className="sm:justify-start w-full">
-                  <div className="flex gap-x-4 w-full">
-                    <Button disabled={form.formState.isSubmitting}>
-                      {form.formState.isSubmitting && <LoaderCircle className="animate-spin w-4 h-4" />}
-                      Add Task
-                    </Button>
-                    <Button variant="secondary" type="button" onClick={closeAddTaskDialog}>
-                      Cancel
-                    </Button>
-                  </div>
-                </DialogFooter>
-              </div>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-};

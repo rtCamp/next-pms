@@ -22,18 +22,21 @@ frappe.query_reports["Employee Billable Hour"] = {
       label: __("Employee"),
       fieldtype: "Link",
       options: "Employee",
+      ignore_user_permissions: frappe.user_roles.includes("Timesheet Manager"),
     },
     {
       fieldname: "project",
       label: __("Project"),
       fieldtype: "Link",
       options: "Project",
+      ignore_user_permissions: frappe.user_roles.includes("Timesheet Manager"),
     },
     {
       fieldname: "task",
       label: __("Task"),
       fieldtype: "Link",
       options: "Task",
+      ignore_user_permissions: frappe.user_roles.includes("Timesheet Manager"),
     },
   ],
 };

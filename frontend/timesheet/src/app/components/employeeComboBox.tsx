@@ -21,11 +21,13 @@ const EmployeeCombo = ({
   value = "",
   onSelect,
   className,
+  label = "Select Employee",
 }: {
   disabled?: boolean;
   value: string;
   onSelect: (name: string) => void;
   className?: string;
+  label?: string;
 }) => {
   const [selectedValues, setSelectedValues] = useState<string>(value);
   const [employee, setEmployee] = useState<Employee | undefined>();
@@ -35,13 +37,17 @@ const EmployeeCombo = ({
     setSelectedValues(name);
     onSelect(name);
   };
-
+  const resetState = () => { 
+    setSelectedValues("");
+    onSelect("");
+  }
   useEffect(() => {
     if (!employees) return;
     const res = employees?.message.data.find((item: Employee) => item.name === selectedValues);
     setEmployee(res);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [employees, value]);
+  }, [employees, selectedValues]);
+
   return (
     <Popover modal>
       <PopoverTrigger asChild>
@@ -50,18 +56,25 @@ const EmployeeCombo = ({
           disabled={disabled}
           className={cn(
             "items-center w-full gap-x-4 px-2 justify-between [&[data-state=open]>svg]:rotate-180 truncate",
-            className,
+            className
           )}
         >
-          <span className="flex gap-x-2 items-center">
-            <Avatar className="w-8 h-8">
-              <AvatarImage src={employee?.image} alt="image" />
-              <AvatarFallback>{employee?.employee_name[0]}</AvatarFallback>
-            </Avatar>
-            <Typography variant="p" className="truncate">
-              {employee?.employee_name}
+          {employee ? (
+            <span className="flex gap-x-2 items-center truncate">
+              <Avatar className="w-8 h-8">
+                <AvatarImage src={employee?.image} alt="image" />
+                <AvatarFallback>{employee?.employee_name[0]}</AvatarFallback>
+              </Avatar>
+              <Typography variant="p" className="truncate">
+                {employee?.employee_name}
+              </Typography>
+            </span>
+          ) : (
+            <Typography variant="p" className="text-gray-400 truncate">
+              {label}
             </Typography>
-          </span>
+          )}
+
           <ChevronDown size={24} className="w-4 h-4 transition-transform duration-400" />
         </Button>
       </PopoverTrigger>
@@ -93,6 +106,9 @@ const EmployeeCombo = ({
               })}
             </CommandList>
           </CommandGroup>
+          <Button variant="ghost" onClick={resetState} className="border-t rounded-none font-normal w-full">
+            Clear Selection
+          </Button>
         </Command>
       </PopoverContent>
     </Popover>

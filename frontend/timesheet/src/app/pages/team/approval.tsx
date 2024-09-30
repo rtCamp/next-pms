@@ -78,7 +78,7 @@ export const Approval = () => {
   };
   const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.timesheet.get_timesheet_data", {
     employee: teamState.employee,
-    start_date: teamState.weekDate,
+    start_date: teamState.dateRange.start_date,
     max_week: 1,
     holiday_with_description: true,
   });
@@ -222,6 +222,7 @@ export const Approval = () => {
                     }
 
                     const isExtended = calculateExtendedWorkingHour(totalHours, working_hour, working_frequency);
+
                     return (
                       <div key={index} className="flex flex-col ">
                         <div className="bg-gray-100 rounded p-1 border-b flex items-center gap-x-2">
@@ -301,14 +302,10 @@ export const Approval = () => {
                                   </div>
                                 </div>
 
-                                <HoverCard openDelay={1000} closeDelay={0}>
-                                  <HoverCardTrigger className="text-sm font-normal  col-span-2 hover:cursor-pointer">
-                                    <p dangerouslySetInnerHTML={{ __html: truncateText(description, 150) }}></p>
-                                  </HoverCardTrigger>
-                                  <HoverCardContent className="text-sm font-normal overflow-auto max-h-72 max-w-lg w-full">
-                                    <p dangerouslySetInnerHTML={{ __html: description }}></p>
-                                  </HoverCardContent>
-                                </HoverCard>
+                                <p
+                                  className="text-sm font-normal  col-span-2"
+                                  dangerouslySetInnerHTML={{ __html: description }}
+                                ></p>
                               </div>
                             </div>
                           );
