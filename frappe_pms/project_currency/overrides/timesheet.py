@@ -133,6 +133,7 @@ class TimesheetOverwrite(Timesheet):
             "Employee Promotion",
             {
                 "employee": self.employee,
+                "docstatus": 1,
                 "promotion_date": ["<=", self.start_date],
                 "revised_ctc": ["is", "set"],
             },
