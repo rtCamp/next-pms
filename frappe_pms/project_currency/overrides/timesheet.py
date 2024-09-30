@@ -59,21 +59,32 @@ class TimesheetOverwrite(Timesheet):
             self.customer = frappe.db.get_value(
                 "Project", self.parent_project, "customer"
             )
+
+        if not self.company:
             self.company = frappe.db.get_value(
                 "Project", self.parent_project, "company"
             )
-            if self.customer:
-                self.currency = frappe.db.get_value(
-                    "Customer", self.customer, "default_currency"
-                )
-                self.exchange_rate = get_exchange_rate(
-                    self.currency, frappe.defaults.get_global_default("currency")
-                )
-            elif self.company:
-                self.currency = get_company_currency(self.company)
-                self.exchange_rate = get_exchange_rate(
-                    self.currency, frappe.defaults.get_global_default("currency")
-                )
+
+        if self.customer:
+            self.currency = frappe.db.get_value(
+                "Customer", self.customer, "default_currency"
+            )
+            self.exchange_rate = get_exchange_rate(
+                self.currency,
+                frappe.defaults.get_global_default("currency"),
+                self.start_date,
+            )
+        elif self.company:
+            self.currency = get_company_currency(self.company)
+            self.exchange_rate = get_exchange_rate(
+                self.currency,
+                frappe.defaults.get_global_default("currency"),
+                self.start_date,
+            )
+
+        custom_is_flat_rate_applicable = frappe.db.get_value(
+            "Project", self.parent_project, "custom_is_flat_rate_applicable"
+        )
 
         for data in self.time_logs:
             costing_rate = self.get_activity_costing_rate(currency=self.currency)
@@ -93,10 +104,18 @@ class TimesheetOverwrite(Timesheet):
             if data.activity_type or data.is_billable:
                 hours = data.billing_hours or 0
 
-                billing_rate = self.get_activity_billing_rate(currency=self.currency)
-                base_billing_rate = self.get_activity_billing_rate(
-                    currency=frappe.defaults.get_global_default("currency")
-                )
+                if custom_is_flat_rate_applicable:
+                    billing_rate = costing_rate
+                    base_billing_rate = base_costing_rate
+
+                else:
+                    billing_rate = self.get_activity_billing_rate(
+                        currency=self.currency
+                    )
+
+                    base_billing_rate = self.get_activity_billing_rate(
+                        currency=frappe.defaults.get_global_default("currency")
+                    )
                 if billing_rate:
                     data.billing_rate = billing_rate
                     data.billing_amount = data.billing_rate * hours
@@ -108,14 +127,34 @@ class TimesheetOverwrite(Timesheet):
         if not self.parent_project:
             return frappe.throw("Project is not defined in Timesheet.")
 
-        employee = frappe.get_doc(
-            "Employee",
-            self.employee,
-            ["ctc", "custom_hourly_billing_rate", "salary_currency"],
+        employee_salary, employee_currency = 0, ""
+
+        employee_promotion = frappe.db.get_all(
+            "Employee Promotion",
+            {
+                "employee": self.employee,
+                "promotion_date": ["<=", self.start_date],
+                "revised_ctc": ["is", "set"],
+            },
+            ["salary_currency", "revised_ctc"],
+            order_by="promotion_date desc",
         )
 
+        if len(employee_promotion) == 0:
+            employee = frappe.get_doc(
+                "Employee",
+                self.employee,
+                ["ctc", "custom_hourly_billing_rate", "salary_currency"],
+            )
+            employee_salary = employee.ctc
+            employee_currency = employee.salary_currency
+        else:
+            employee_promotion = employee_promotion[0]
+            employee_salary = employee_promotion.revised_ctc
+            employee_currency = employee_promotion.salary_currency
+
         return get_employee_costing_rate(
-            employee.salary_currency, employee.ctc, currency
+            employee_currency, employee_salary, currency, self.start_date
         )
 
     def get_activity_billing_rate(self, currency=None, valid_from_date=None):
@@ -160,6 +199,7 @@ class TimesheetOverwrite(Timesheet):
             employee.salary_currency,
             frappe.db.get_value("Project", self.parent_project, "custom_currency"),
             currency,
+            self.start_date,
         )
 
 
@@ -169,6 +209,7 @@ def get_employee_billing_rate(
     employee_salary_currency: str,
     project_currency: str,
     timesheet_currency: str,
+    start_date: str = None,
 ):
 
     billing_rate = project_hourly_billing_rate
@@ -184,13 +225,15 @@ def get_employee_billing_rate(
         )
 
     if currency != timesheet_currency:
-        rate = get_exchange_rate(currency, timesheet_currency)
+        rate = get_exchange_rate(currency, timesheet_currency, start_date)
         return billing_rate * rate
 
     return billing_rate
 
 
-def get_employee_costing_rate(salary_currency: float, ctc: float, currency: float):
+def get_employee_costing_rate(
+    salary_currency: float, ctc: float, currency: float, start_date: any
+):
     if not salary_currency:
         return frappe.throw("Please set salary currency for the employee.")
 
@@ -203,7 +246,7 @@ def get_employee_costing_rate(salary_currency: float, ctc: float, currency: floa
         )
 
     if salary_currency != currency:
-        rate = get_exchange_rate(salary_currency, currency)
+        rate = get_exchange_rate(salary_currency, currency, start_date)
         costing_rate = costing_rate * rate
     return costing_rate
 

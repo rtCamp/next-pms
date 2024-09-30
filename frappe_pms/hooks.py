@@ -38,6 +38,7 @@ website_route_rules = [
 doctype_js = {
     "Timesheet": "public/js/timesheet.js",
     "Employee": "public/js/employee.js",
+    "Project": "public/js/project.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
