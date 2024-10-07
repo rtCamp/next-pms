@@ -16,7 +16,7 @@ import {
   expectatedHours,
   getDateTimeForMultipleTimeZoneSupport,
 } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { useToast } from "@/app/components/ui/use-toast";
 import { Spinner } from "@/app/components/spinner";
 import { Typography } from "@/app/components/typography";
@@ -53,11 +53,29 @@ const EmployeeDetail = () => {
   const dispatch = useDispatch();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.timesheet.get_timesheet_data", {
-    employee: id,
-    start_date: teamState.employeeWeekDate,
-    max_week: 4,
-  });
+
+  useLayoutEffect(() => {
+    if (!id) {
+      const EMPLOYEE_ID_NOT_FOUND = "Please pick an employee from the combo box.";
+      toast({
+        variant: "destructive",
+        description: EMPLOYEE_ID_NOT_FOUND,
+      });
+    }
+  }, [id]);
+
+  const { data, isLoading, error, mutate } = useFrappeGetCall(
+    "frappe_pms.timesheet.api.timesheet.get_timesheet_data",
+    {
+      employee: id,
+      start_date: teamState.employeeWeekDate,
+      max_week: 4,
+    },
+    undefined,
+    {
+      errorRetryCount: 1,
+    },
+  );
 
   const handleAddTime = () => {
     const timesheet = {
@@ -143,7 +161,7 @@ const EmployeeDetail = () => {
           }}
         />
       )}
-      <EmployeeCombo onSelect={onEmployeeChange} value={id as string} className="w-fit" />
+      <EmployeeCombo onSelect={onEmployeeChange} value={id as string} className="lg:max-w-xs max-md:w-full" />
       <Tabs defaultValue="timesheet" className="mt-3">
         <div className="flex gap-x-4">
           <TabsList className="w-full justify-start">
@@ -158,7 +176,7 @@ const EmployeeDetail = () => {
           <Spinner isFull />
         ) : (
           <>
-            <div className="overflow-y-scroll" style={{ height: "calc(100vh - 11rem)" }}>
+            <div className="overflow-y-auto" style={{ height: "calc(100vh - 11rem)" }}>
               <TabsContent value="timesheet" className="mt-0">
                 <Timesheet />
               </TabsContent>

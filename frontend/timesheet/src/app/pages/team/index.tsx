@@ -296,12 +296,13 @@ const Team = () => {
     <>
       <div className="flex gap-x-2 items-center justify-between mb-3">
         {teamState.isAprrovalDialogOpen && <Approval />}
-        <div id="filters" className="flex gap-x-2 max-md:gap-x-5 max-md:w-4/5 max-md:overflow-scroll">
+        <div id="filters" className="flex gap-x-2 max-md:gap-x-5 max-md:w-4/5 max-md:overflow-x-auto">
           <DeBounceInput
             placeholder="Employee name"
             value={employeeNameParam}
             deBounceValue={400}
             callback={handleEmployeeChange}
+            className="max-w-full min-w-40"
           />
           <EmployeeCombo
             value={reportsToParam}
@@ -365,7 +366,7 @@ const Team = () => {
       {(isLoading || isValidating) && Object.keys(teamState.data.data).length == 0 ? (
         <Spinner isFull />
       ) : (
-        <div className="overflow-y-scroll mb-2 " style={{ height: "calc(100vh - 8rem)" }}>
+        <div className="overflow-y-auto mb-2 " style={{ height: "calc(100vh - 8rem)" }}>
           <Table>
             <TableHeader>
               <TableRow className="flex items-center w-full">

@@ -121,7 +121,7 @@ function Timesheet() {
       {isLoading && Object.keys(timesheet.data?.data).length == 0 ? (
         <Spinner isFull />
       ) : (
-        <div className="overflow-y-scroll" style={{ height: "calc(100vh - 8rem)" }}>
+        <div className="overflow-y-auto" style={{ height: "calc(100vh - 8rem)" }}>
           {timesheet.data?.data &&
             Object.keys(timesheet.data?.data).length > 0 &&
             Object.entries(timesheet.data?.data).map(([key, value]: [string, timesheet], index: number) => {

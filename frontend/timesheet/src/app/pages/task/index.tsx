@@ -931,7 +931,7 @@ const Task = () => {
       </style>
       <div className="md:w-full h-full justify-between flex flex-col relative">
         {/* filters and combo boxes */}
-        <div id="filters" className="flex gap-x-2 mb-3 w-full overflow-hidden p-1 md:overflow-x-auto overflow-x-scroll">
+        <div id="filters" className="flex gap-x-2 mb-3 w-full overflow-hidden p-1 md:overflow-x-auto overflow-x-auto">
           <div className="flex gap-2 xl:w-2/5">
             {/* Task Search Filter */}
             <DeBounceInput
