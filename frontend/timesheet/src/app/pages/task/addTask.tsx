@@ -17,6 +17,7 @@ import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { z } from "zod";
 import { setProjectSearchType } from "@/types/task";
+import { useState } from "react";
 
 export const AddTask = ({
   task,
@@ -28,7 +29,7 @@ export const AddTask = ({
   projects: any;
   setProjectSearch: setProjectSearchType;
 }) => {
-  console.log(task, projects, setProjectSearch);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const dispatch = useDispatch();
   const { toast } = useToast();
 
@@ -43,7 +44,11 @@ export const AddTask = ({
     },
     mode: "onSubmit",
   });
+  const {
+    formState: { isDirty, isValid },
+  } = form;
   const handleSubmit = (data: z.infer<typeof TaskSchema>) => {
+    setIsSubmitting(true);
     const sanitizedTaskData: AddTaskType = {
       subject: data.subject.trim(),
       description: data.description.trim(),
@@ -57,6 +62,7 @@ export const AddTask = ({
           description: res.message,
         });
         dispatch(setProjectFetchAgain(true));
+        setIsSubmitting(false);
         closeAddTaskDialog();
       })
       .catch((err) => {
@@ -65,12 +71,14 @@ export const AddTask = ({
           variant: "destructive",
           description: error,
         });
+        setIsSubmitting(false);
       });
   };
   const closeAddTaskDialog = () => {
-    dispatch(setAddTaskDialog(false));
+    if (isSubmitting) return;
     setProjectSearch("");
     form.reset();
+    dispatch(setAddTaskDialog(false));
   };
   const handleSubjectChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     form.setValue("subject", event.target.value);
@@ -199,11 +207,11 @@ export const AddTask = ({
 
                 <DialogFooter className="sm:justify-start pt-2 w-full">
                   <div className="flex gap-x-4 w-full">
-                    <Button disabled={form.formState.isSubmitting}>
-                      {form.formState.isSubmitting && <LoaderCircle className="animate-spin w-4 h-4" />}
+                    <Button disabled={isSubmitting || !isDirty || !isValid}>
+                      {isSubmitting && <LoaderCircle className="animate-spin w-4 h-4" />}
                       Add Task
                     </Button>
-                    <Button variant="secondary" type="button" onClick={closeAddTaskDialog}>
+                    <Button variant="secondary" type="button" onClick={closeAddTaskDialog} disabled={isSubmitting}>
                       Cancel
                     </Button>
                   </div>

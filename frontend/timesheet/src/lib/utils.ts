@@ -35,7 +35,7 @@ export function parseFrappeErrorMsg(error: Error) {
     message += `${m.message}\n`;
   });
   if (message) {
-    return message;
+    return removeHtmlString(message);
   } else {
     return "Something went wrong. Please try again later.";
   }

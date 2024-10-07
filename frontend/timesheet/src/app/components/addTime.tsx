@@ -47,6 +47,7 @@ const AddTime = ({
   const { call: save } = useFrappePostCall("frappe_pms.timesheet.api.timesheet.save");
   const [searchTask, setSearchTask] = useState(task);
   const [tasks, setTask] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
   const [selectedProject, setSelectedProject] = useState<string[]>(project ? [project] : []);
   const [selectedDate, setSelectedDate] = useState(getFormatedDate(initialDate));
   const [selectedEmployee, setSelectedEmployee] = useState(employee);
@@ -65,6 +66,7 @@ const AddTime = ({
     mode: "onSubmit",
   });
   const handleOpen = () => {
+    if (submitting) return;
     form.reset();
     onOpenChange();
   };
@@ -103,6 +105,7 @@ const AddTime = ({
     form.setValue("task", "");
   };
   const handleSubmit = (data: z.infer<typeof TimesheetSchema>) => {
+    setSubmitting(true);
     save(data)
       .then((res) => {
         toast({
@@ -110,9 +113,11 @@ const AddTime = ({
           description: res.message,
         });
         onSuccess && onSuccess();
+        setSubmitting(false);
         handleOpen();
       })
       .catch((err) => {
+        setSubmitting(false);
         const error = parseFrappeErrorMsg(err);
         toast({
           variant: "destructive",
@@ -129,10 +134,6 @@ const AddTime = ({
       })
       .then((res) => {
         setTask(res.message.task);
-        // const project = res.message.task.filter((task: TaskData) => task.name === searchTask);
-        // if (project.length > 0) {
-        //   setSelectedProject([project[0].project]);
-        // }
       });
   };
 
@@ -148,6 +149,10 @@ const AddTime = ({
       employee: selectedEmployee,
       date: selectedDate,
     },
+    undefined,
+    {
+      revalidateOnFocus: false,
+    },
   );
   const onEmployeeChange = (value: string) => {
     setSelectedEmployee(value);
@@ -159,11 +164,14 @@ const AddTime = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTask, selectedProject]);
 
-  useEffect(() => {}, [tasks]);
   useEffect(() => {
     mutatePerDayHrs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate, selectedEmployee]);
+
+  const {
+    formState: { isDirty, isValid },
+  } = form;
 
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
@@ -171,20 +179,20 @@ const AddTime = ({
         <DialogHeader>
           <DialogTitle className="flex gap-x-2">
             Add Time
-            {perDayEmpHours && (
-              <Typography
-                variant="p"
-                className={cn(
-                  Number(perDayEmpHours?.message) >= 0 && Number(perDayEmpHours?.message) <= expectedHours
-                    ? "text-success"
-                    : "text-destructive",
-                )}
-              >
-                {`${floatToTime(Math.abs(perDayEmpHours?.message))} hrs ${
-                  perDayEmpHours?.message < 0 ? "extended" : "remaining"
-                }`}
-              </Typography>
-            )}
+            <Typography
+              variant="p"
+              className={cn(
+                Number(perDayEmpHours?.message) >= 0 && Number(perDayEmpHours?.message) <= expectedHours
+                  ? "text-success"
+                  : "text-destructive",
+              )}
+            >
+              {perDayEmpHours
+                ? `${floatToTime(Math.abs(perDayEmpHours?.message))} hrs ${
+                    perDayEmpHours?.message < 0 ? "extended" : "remaining"
+                  }`
+                : ""}
+            </Typography>
           </DialogTitle>
           <Separator />
         </DialogHeader>
@@ -220,8 +228,8 @@ const AddTime = ({
                               <Input
                                 placeholder="00:00"
                                 className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
-                                {...field}
                                 type="text"
+                                {...field}
                               />
                               <Clock3 className="h-4 w-4 absolute right-0 m-3 top-0 stroke-slate-400" />
                             </div>
@@ -317,11 +325,11 @@ const AddTime = ({
               />
               <DialogFooter className="sm:justify-start w-full pt-3">
                 <div className="flex gap-x-4 w-full">
-                  <Button disabled={form.formState.isSubmitting}>
-                    {form.formState.isSubmitting && <LoaderCircle className="animate-spin w-4 h-4" />}
+                  <Button disabled={!isDirty || !isValid || submitting} className="gap-x-2">
+                    {submitting && <LoaderCircle className="animate-spin w-4 h-4" />}
                     Add Time
                   </Button>
-                  <Button variant="secondary" type="button">
+                  <Button variant="secondary" type="button" onClick={handleOpen} disabled={submitting}>
                     Cancel
                   </Button>
                 </div>
