@@ -1,12 +1,12 @@
 def onload(doc, method=None):
-    update_budget_in_project(doc)
+    # update_budget_in_project(doc)
     doc.update_costing()
     doc.db_update()
 
 
 def on_update(doc, method=None):
     share_project_with_employee(doc)
-    update_budget_in_project(doc)
+    # update_budget_in_project(doc)
 
 
 def update_budget_in_project(doc):

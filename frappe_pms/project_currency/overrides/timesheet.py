@@ -82,8 +82,8 @@ class TimesheetOverwrite(Timesheet):
                 self.start_date,
             )
 
-        custom_is_flat_rate_applicable = frappe.db.get_value(
-            "Project", self.parent_project, "custom_is_flat_rate_applicable"
+        custom_billing_type = frappe.db.get_value(
+            "Project", self.parent_project, "custom_billing_type"
         )
 
         for data in self.time_logs:
@@ -104,11 +104,7 @@ class TimesheetOverwrite(Timesheet):
             if data.activity_type or data.is_billable:
                 hours = data.billing_hours or 0
 
-                if custom_is_flat_rate_applicable:
-                    billing_rate = costing_rate
-                    base_billing_rate = base_costing_rate
-
-                else:
+                if custom_billing_type == "Time and Material":
                     billing_rate = self.get_activity_billing_rate(
                         currency=self.currency
                     )
@@ -116,6 +112,11 @@ class TimesheetOverwrite(Timesheet):
                     base_billing_rate = self.get_activity_billing_rate(
                         currency=frappe.defaults.get_global_default("currency")
                     )
+
+                else:
+                    billing_rate = 3 * costing_rate
+                    base_billing_rate = 3 * base_costing_rate
+
                 if billing_rate:
                     data.billing_rate = billing_rate
                     data.billing_amount = data.billing_rate * hours
@@ -175,19 +176,13 @@ class TimesheetOverwrite(Timesheet):
             ["hourly_billing_rate"],
             order_by="valid_from desc",
         )
-        employee = frappe.get_doc(
-            "Employee",
-            self.employee,
-            ["ctc", "custom_hourly_billing_rate", "salary_currency"],
-        )
 
         employee_project_billing_hourly_billing_rate = 0
 
         if len(employee_project_billing) == 0:
-            if not employee.custom_hourly_billing_rate:
-                return frappe.throw(
-                    "Invalid information for project billing. Please contact the Project Manager for assistance."
-                )
+            return frappe.throw(
+                "Invalid information for project billing. Please contact the Project Manager for assistance."
+            )
         else:
             employee_project_billing = employee_project_billing[0]
             employee_project_billing_hourly_billing_rate = (
@@ -196,8 +191,6 @@ class TimesheetOverwrite(Timesheet):
 
         return get_employee_billing_rate(
             employee_project_billing_hourly_billing_rate,
-            employee.custom_hourly_billing_rate,
-            employee.salary_currency,
             frappe.db.get_value("Project", self.parent_project, "custom_currency"),
             currency,
             self.start_date,
@@ -206,8 +199,6 @@ class TimesheetOverwrite(Timesheet):
 
 def get_employee_billing_rate(
     project_hourly_billing_rate: float,
-    employee_custom_hourly_billing_rate: float,
-    employee_salary_currency: str,
     project_currency: str,
     timesheet_currency: str,
     start_date: str = None,
@@ -215,10 +206,6 @@ def get_employee_billing_rate(
 
     billing_rate = project_hourly_billing_rate
     currency = project_currency
-
-    if not billing_rate:
-        billing_rate = employee_custom_hourly_billing_rate
-        currency = employee_salary_currency
 
     if not billing_rate:
         return frappe.throw(

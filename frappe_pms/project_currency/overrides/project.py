@@ -69,6 +69,9 @@ class ProjectOverwrite(EmployeeProject):
         self.calculate_gross_margin()
         self.update_expense_claim()
 
+        if self.custom_billing_type == "Fixed Cost":
+            self.update_project_cost_rate()
+
     def update_sales_amount(self):
         total_sales_amount = frappe.db.sql(
             """select sum(net_total)
@@ -129,6 +132,10 @@ class ProjectOverwrite(EmployeeProject):
             total_amount += expense_claim.total_sanctioned_amount * rate
 
         self.total_expense_claim = total_amount
+
+    def update_project_cost_rate(self):
+        if self.estimated_costing:
+            self.custom__cost = self.total_costing_amount * 100 / self.estimated_costing
 
 
 @frappe.whitelist()
