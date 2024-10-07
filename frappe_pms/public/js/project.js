@@ -39,7 +39,7 @@ frappe.ui.form.on("Project", {
     });
 
     recalculate_dialog.$body.append(
-      `<p class="frappe-confirm-message">Note: <br>Make sure all billing information is correct in the Project Billing section before starting the recalculation.</p>`,
+      `<p class="frappe-confirm-message">Please ensure all billing information is accurate before initiating the recalculation.</p>`,
     );
     recalculate_dialog.show();
   },
