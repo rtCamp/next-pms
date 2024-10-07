@@ -7,6 +7,23 @@ frappe.ui.form.on("Project", {
         frm.events.recalculate_timesheet_billing(frm);
       });
     }
+
+    frm.events.update_custom_table_project();
+    document
+      .querySelector('[data-fieldname="project_details"]')
+      .removeEventListener("click", frm.events.update_custom_table_project);
+    document
+      .querySelector('[data-fieldname="project_details"]')
+      .addEventListener("click", frm.events.update_custom_table_project);
+  },
+  update_custom_table_project: function () {
+    const section = document.querySelector('[data-fieldname="project_details"] .section-head');
+    const table_section = document.querySelector('[data-fieldname="custom_section_break_ca8jh"]');
+    if (section.classList.contains("collapsed")) {
+      table_section.classList.add("hidden");
+    } else {
+      table_section.classList.remove("hidden");
+    }
   },
   recalculate_timesheet_billing: function (frm) {
     const base_fields = [
