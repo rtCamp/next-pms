@@ -108,12 +108,13 @@ const Home = () => {
 
   return (
     <>
-      <section id="filter-section" className="flex gap-x-3 mb-3">
-        <div className="pr-4 max-md:pr-2 max-w-sm w-full max-md:w-3/6 max-sm:w-4/6">
+      <section id="filter-section" className="flex max-md:flex-col gap-x-3 mb-3">
+        <div className="lg:pr-4  w-full max-md:mb-3">
           <DeBounceInput
             placeholder="Employee name"
             value={employeeNameParam}
             deBounceValue={400}
+            className="max-w-full"
             callback={handleEmployeeChange}
           />
         </div>
@@ -122,14 +123,20 @@ const Home = () => {
             <Button title="prev" variant="outline" className="p-1 h-fit" onClick={handleprevWeek}>
               <ChevronLeft className="w-4 h-4 max-sm:w-3 max-sm:h-3" />
             </Button>
-            <Typography className="w-full text-center  max-sm:text-sm  max-md:text-[2vw]" variant="h6">
+            <Typography
+              className="w-full text-center max-md:text-left mx-3  max-sm:text-sm  max-md:text-[2vw]"
+              variant="h6"
+            >
               {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
               {/* @ts-ignore */}
               {homeState.data.dates.length > 0 && homeState.data.dates[0].key}
             </Typography>
           </div>
           <div className="grow flex items-center w-full">
-            <Typography className="w-full text-center  max-sm:text-sm max-md:text-[2vw]" variant="h6">
+            <Typography
+              className="w-full text-center max-md:text-right mx-3  max-sm:text-sm max-md:text-[2vw]"
+              variant="h6"
+            >
               {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
               {/* @ts-ignore */}
               {homeState.data.dates.length > 0 && homeState.data.dates[1].key}
@@ -143,7 +150,7 @@ const Home = () => {
       {isLoading && Object.keys(homeState.data.data).length == 0 ? (
         <Spinner isFull />
       ) : (
-        <div className="overflow-y-scroll mb-2" style={{ height: "calc(100vh - 8rem)" }}>
+        <div className="overflow-y-auto mb-2" style={{ height: "calc(100vh - 8rem)" }}>
           <Table>
             <TableHeader>
               <TableRow>
