@@ -28,7 +28,6 @@ export const AddTask = ({
   projects: any;
   setProjectSearch: setProjectSearchType;
 }) => {
-  console.log(task, projects, setProjectSearch);
   const dispatch = useDispatch();
   const { toast } = useToast();
 
@@ -87,7 +86,7 @@ export const AddTask = ({
   return (
     <>
       <Dialog onOpenChange={closeAddTaskDialog} open={task.isAddTaskDialogBoxOpen}>
-        <DialogContent className="max-w-xl">
+        <DialogContent aria-description="" aria-describedby="" className="max-w-xl">
           <DialogHeader className="pb-2">
             <DialogTitle>Add Task</DialogTitle>
           </DialogHeader>
