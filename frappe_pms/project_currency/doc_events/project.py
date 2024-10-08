@@ -1,20 +1,10 @@
 def onload(doc, method=None):
-    # update_budget_in_project(doc)
     doc.update_costing()
     doc.db_update()
 
 
 def on_update(doc, method=None):
     share_project_with_employee(doc)
-    # update_budget_in_project(doc)
-
-
-def update_budget_in_project(doc):
-    if not doc.custom_budget_in_hours:
-        return
-    if not doc.actual_time:
-        doc.actual_time = 0
-    doc.custom_budget_remaining_in_hours = doc.custom_budget_in_hours - doc.actual_time
 
 
 def share_project_with_employee(doc):
