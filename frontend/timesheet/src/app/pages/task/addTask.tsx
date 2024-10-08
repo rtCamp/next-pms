@@ -6,7 +6,7 @@ import { Textarea } from "@/app/components/ui/textarea";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { TaskSchema } from "@/schema/task";
-import { TaskState, AddTaskType, setProjectFetchAgain, setAddTaskDialog } from "@/store/task";
+import { TaskState, AddTaskType, setAddTaskDialog, setFetchAgain } from "@/store/task";
 import { ProjectProps } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Dialog, DialogContent, DialogTitle } from "@/app/components/ui/dialog";
@@ -55,7 +55,7 @@ export const AddTask = ({
           variant: "success",
           description: res.message,
         });
-        dispatch(setProjectFetchAgain(true));
+        dispatch(setFetchAgain(true));
         closeAddTaskDialog();
       })
       .catch((err) => {

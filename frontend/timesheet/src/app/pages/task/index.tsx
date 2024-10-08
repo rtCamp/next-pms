@@ -5,11 +5,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import {
   setStart,
-  setProjectStart,
   setSelectedProject,
   setFetchAgain,
   setGroupBy,
   setAddTaskDialog,
+  updateTaskData,
+  setTaskData,
+  updateProjectData,
+  setProjectData,
 } from "@/store/task";
 import { AddTask } from "./addTask";
 import { FlatTable } from "./flatTable";
@@ -130,13 +133,8 @@ const Task = () => {
   const handleSubjectSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const searchStr = e.target.value.trim();
     setSubjectSearchParam(searchStr);
-    if (groupByParam.length === 0) {
-      dispatch(setStart(0));
-      flatTaskMutateCall();
-    } else {
-      dispatch(setProjectStart(0));
-      nestedProjectMutateCall();
-    }
+    dispatch(setStart(0));
+    mutate();
   }, []);
 
   // GroupBy Data for ComboBox
@@ -197,9 +195,6 @@ const Task = () => {
   }, [projectSearch]);
 
   const loadMore = () => {
-    if (groupByParam.length > 0) {
-      return dispatch(setProjectStart(task.projectStart + 20));
-    }
     dispatch(setStart(task.start + 20));
   };
 
@@ -210,10 +205,39 @@ const Task = () => {
   useEffect(() => {
     setGroupByParam(task.groupBy);
   }, [setGroupByParam, task.groupBy]);
-  const [nestedProjectMutateCall, setNestedProjectMutateCall] = useState(() => () => {});
-  const [flatTaskMutateCall, setFlatTaskMutateCall] = useState(() => () => {});
+
+  // call to fetch task list from DB ( single data source for flat and nested table)
+  const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.task.get_task_list", {
+    page_length: 20,
+    start: task.start,
+    projects: task.selectedProject,
+    search: subjectSearchParam,
+  });
+  useEffect(() => {
+    if (task.isFetchAgain) {
+      mutate();
+      dispatch(setFetchAgain(false));
+    }
+    if (data) {
+      if (task.start !== 0) {
+        dispatch(updateTaskData(data.message));
+        dispatch(updateProjectData());
+      } else {
+        dispatch(setTaskData(data.message));
+        dispatch(setProjectData());
+      }
+    }
+    if (error) {
+      const err = parseFrappeErrorMsg(error);
+      toast({
+        variant: "destructive",
+        description: err,
+      });
+    }
+  }, [data, dispatch, error, mutate, task.isFetchAgain, task.start, toast, groupByParam]);
 
   const handleLike = (e: React.MouseEvent<SVGSVGElement>) => {
+    e.stopPropagation();
     const taskName = e.currentTarget.dataset.task;
     let likedBy = e.currentTarget.dataset.likedBy;
     let add = "Yes";
@@ -230,11 +254,7 @@ const Task = () => {
     };
     call(data)
       .then(() => {
-        if (groupByParam.length > 0) {
-          nestedProjectMutateCall();
-        } else {
-          flatTaskMutateCall();
-        }
+        mutate();
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
@@ -1012,7 +1032,7 @@ const Task = () => {
                       <Typography variant="p">{dropdownItem.title}</Typography>
                     </DropdownMenuSubTrigger>
                     <DropdownMenuPortal>
-                      <DropdownMenuSubContent>{dropdownItem.render()}</DropdownMenuSubContent>
+                      <DropdownMenuSubContent>{dropdownItem?.render()}</DropdownMenuSubContent>
                     </DropdownMenuPortal>
                   </DropdownMenuSub>
                 );
@@ -1030,8 +1050,7 @@ const Task = () => {
               columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
               setLocalStorageTaskState={setLocalStorageTaskState}
               task={task}
-              subjectSearch={subjectSearchParam}
-              setMutateCall={setFlatTaskMutateCall}
+              isLoading={isLoading}
             />
           ) : (
             <RowGroupedTable
@@ -1040,8 +1059,7 @@ const Task = () => {
               columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
               setLocalStorageTaskState={setLocalStorageTaskState}
               task={task}
-              subjectSearch={subjectSearchParam}
-              setMutateCall={setNestedProjectMutateCall}
+              isLoading={isLoading}
             />
           )}
         </div>

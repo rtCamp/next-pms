@@ -1,21 +1,15 @@
 import { Spinner } from "@/app/components/spinner";
 import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table } from "@/app/components/ui/table";
-import { useToast } from "@/app/components/ui/use-toast";
-import { parseFrappeErrorMsg, cn } from "@/lib/utils";
-import { TaskState, updateTaskData, setTaskData, setSelectedTask } from "@/store/task";
-import { setFetchAgain } from "@/store/team";
+import { cn } from "@/lib/utils";
+import { TaskState, setSelectedTask } from "@/store/task";
 import {
   FlatTableType,
   ColumnsType,
   columnsToExcludeActionsInTablesType,
   setLocalStorageTaskStateType,
-  subjectSearchType,
-  setFlatTaskMutateCallType,
 } from "@/types/task";
 import { flexRender } from "@tanstack/react-table";
-import { useFrappeGetCall } from "frappe-react-sdk";
 import { GripVertical } from "lucide-react";
-import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 
 export const FlatTable = ({
@@ -24,49 +18,17 @@ export const FlatTable = ({
   columnsToExcludeActionsInTables,
   setLocalStorageTaskState,
   task,
-  subjectSearch,
-  setMutateCall,
+  isLoading,
 }: {
   table: FlatTableType;
   columns: ColumnsType;
   columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType;
   setLocalStorageTaskState: setLocalStorageTaskStateType;
   task: TaskState;
-  subjectSearch: subjectSearchType;
-  setMutateCall: setFlatTaskMutateCallType;
+  isLoading: boolean;
 }) => {
   const dispatch = useDispatch();
-  const { toast } = useToast();
   let resizeObserver: ResizeObserver;
-  const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.task.get_task_list", {
-    page_length: 20,
-    start: task.start,
-    projects: task.selectedProject,
-    search: subjectSearch,
-  });
-  useEffect(() => {
-    if (task.isFetchAgain) {
-      mutate();
-      dispatch(setFetchAgain(false));
-    }
-    if (data) {
-      if (task.start !== 0) {
-        dispatch(updateTaskData(data.message));
-      } else {
-        dispatch(setTaskData(data.message));
-      }
-    }
-    if (error) {
-      const err = parseFrappeErrorMsg(error);
-      toast({
-        variant: "destructive",
-        description: err,
-      });
-    }
-  }, [data, dispatch, error, mutate, task.isFetchAgain, task.start, toast]);
-  useEffect(() => {
-    setMutateCall(() => mutate);
-  }, []);
   return (
     <>
       {isLoading && task.task.length == 0 ? (
@@ -137,7 +99,6 @@ export const FlatTable = ({
                       isOpen: true,
                     };
                     dispatch(setSelectedTask(data));
-                    console.log(data);
                   }}
                 >
                   {row.getVisibleCells().map((cell) => (

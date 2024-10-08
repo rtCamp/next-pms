@@ -1,7 +1,7 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { Error } from "frappe-js-sdk/lib/frappe_app/types";
-import { WorkingFrequency } from "@/types";
+import { TaskData, WorkingFrequency } from "@/types";
 import { TScreenSize } from "@/store/app";
 import { HolidayProp } from "@/types/timesheet";
 
@@ -270,4 +270,28 @@ export const getErrorMessages = (error: Error) => {
     }
   }
   return eMessages;
+};
+
+export const flatTableDataToNestedProjectDataConversion = (
+  tasks: TaskData[],
+): ProjectNestedTaskData[] => {
+  const projectMap = tasks.reduce(
+    (acc, task) => {
+      const projectName = task.project_name || "Unnamed Project";
+
+      if (!acc[projectName]) {
+        acc[projectName] = {
+          project_name: projectName,
+          name: task.project, // Assuming `name` is the project identifier
+          tasks: [],
+        };
+      }
+
+      acc[projectName].tasks.push(task);
+      return acc;
+    },
+    {} as Record<string, ProjectNestedTaskData>,
+  );
+
+  return Object.values(projectMap);
 };
