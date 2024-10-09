@@ -84,7 +84,7 @@ import {
   MoreTableOptionsDropDownType,
 } from "@/types/task";
 import { TaskLog } from "./taskLog";
-import { Footer, Header, Main } from "@/app/layout/root";
+import { Footer, Header } from "@/app/layout/root";
 
 const Task = () => {
   const task = useSelector((state: RootState) => state.task);
@@ -505,9 +505,9 @@ const Task = () => {
     {
       accessorKey: "liked",
       header: "",
-      size: 30, // Default size
-      minSize: 20, // Minimum size
-      maxSize: 30, // Maximum size
+      size: 50, // Default size
+      minSize: 50, // Minimum size
+      maxSize: 50, // Maximum size
       cell: ({ row }) => {
         return (
           <span title="Like">
@@ -768,9 +768,9 @@ const Task = () => {
     {
       accessorKey: "liked",
       header: "",
-      size: 30, // Default size
-      minSize: 20, // Minimum size
-      maxSize: 30, // Maximum size
+      size: 50, // Default size
+      minSize: 50, // Minimum size
+      maxSize: 50, // Maximum size
       cell: ({ row }) => {
         return (
           row.depth !== 0 && (
@@ -1000,11 +1000,11 @@ const Task = () => {
               <Plus className="h-4 w-4 mr-1" /> Add Task
             </Button>
             <DropdownMenu>
-              <DropdownMenuTrigger className="outline-none h-full">
+              <DropdownMenuTrigger className="outline-none">
                 <Button
                   size="icon"
-                  variant="outline"
-                  className="h-full w-fit min-w-10 cursor-pointer border-0 outline-none"
+                  variant="ghost"
+                  className="h-full hover:bg-transparent bg-transparent w-fit min-w-10 cursor-pointer border-0 outline-none"
                 >
                   <MoreVertical className="h-4 w-4" />
                   <span className="sr-only">More</span>
@@ -1063,7 +1063,7 @@ const Task = () => {
         />
       )}
       {/* footer */}
-      <Footer>
+      <Footer className="bg-blue-500">
         <div className="flex justify-between items-center">
           <Button
             className="float-left"
@@ -1092,7 +1092,6 @@ const Task = () => {
           workingHours={user.workingHours}
         />
       )}
-
       {task.isAddTaskDialogBoxOpen && <AddTask task={task} projects={projects} setProjectSearch={setProjectSearch} />}
     </>
   );

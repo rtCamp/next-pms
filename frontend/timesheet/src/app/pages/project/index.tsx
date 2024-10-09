@@ -289,8 +289,8 @@ const Project = () => {
       {(isLoading || countIsLoading) && projectState.data.length == 0 ? (
         <Spinner isFull />
       ) : (
-        <Table className="[&_td]:px-4 [&_th]:px-4 [&_th]:py-4 table-fixed w-full">
-          <TableHeader className="[&_th]:h-10 border-t-0">
+        <Table className="[&_td]:px-4 [&_th]:px-4 [&_th]:py-4 table-fixed w-full relative">
+          <TableHeader className="[&_th]:h-10 border-t-0 sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {

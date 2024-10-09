@@ -359,7 +359,7 @@ const Team = () => {
               className="text-primary border-dashed gap-x-2 font-normal w-fit"
             />
           </div>
-          <div id="date-filter" className="flex gap-x-2 max-md:w-full max-md:justify-between">
+          <div id="date-filter" className="flex gap-x-2 max-md:w-full max-md:justify-between max-md:m-2">
             <Button title="prev" className="p-1 h-fit" variant="outline" onClick={handleprevWeek}>
               <ChevronLeft className="w-4 max-md:w-3 h-4 max-md:h-3" />
             </Button>
@@ -372,8 +372,8 @@ const Team = () => {
       {(isLoading || isValidating) && Object.keys(teamState.data.data).length == 0 ? (
         <Spinner isFull />
       ) : (
-        <Table className="[&_tr]:pr-3">
-          <TableHeader className="border-t-0">
+        <Table className="[&_tr]:pr-3 relative">
+          <TableHeader className="border-t-0 sticky top-0 z-10">
             <TableRow className="flex items-center w-full">
               <TableHead className="w-full max-w-md flex items-center">Members</TableHead>
               {teamState.data?.dates.map((item: DateProps) => {
