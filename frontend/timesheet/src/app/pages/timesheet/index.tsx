@@ -117,8 +117,9 @@ function Timesheet() {
   return (
     <>
       <Header>
-        <Button className="float-right px-3" onClick={handleAddTime}>
-          <Plus className="h-4 w-4 mr-2 " /> Add Time
+        <Button className="float-right" onClick={handleAddTime}>
+          <Plus className="w-4 h-4" />
+          Add Time
         </Button>
       </Header>
 

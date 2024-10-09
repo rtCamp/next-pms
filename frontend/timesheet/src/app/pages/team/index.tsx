@@ -18,16 +18,16 @@ import {
   setDateRange,
   setUsergroup,
   setUserGroupSearch,
-  setApprovalSearch,
   setProjectSearch,
   setStatusFilter,
   setEmployeeName,
   setReportsTo,
   setFilters,
+  setStatus,
 } from "@/store/team";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg, prettyDate, floatToTime, getFormatedDate, cn, preProcessLink } from "@/lib/utils";
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Table, TableHead, TableHeader, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
 import { Typography } from "@/app/components/typography";
@@ -66,8 +66,9 @@ const Team = () => {
   const [statusParam, setStatusParam] = useQueryParamsState<string[]>("status", []);
   const [employeeNameParam, setEmployeeNameParam] = useQueryParamsState<string>("employee-name", "");
   const [reportsToParam, setReportsToParam] = useQueryParamsState<string>("reports-to", "");
+  const [employeeStatusParam, setEmployeeStatusParam] = useQueryParamsState<Array<string>>("emp-status", []);
 
-  const approvals = [
+  const approvalsData = [
     { label: "Not Submitted", value: "Not Submitted" },
     { label: "Approval Pending", value: "Approval Pending" },
     { label: "Approved", value: "Approved" },
@@ -75,8 +76,12 @@ const Team = () => {
     { label: "Partially Approved", value: "Partially Approved" },
     { label: "Partially Rejected", value: "Partially Rejected" },
   ];
-  const [approvalsData, setApprovalsData] = useState(approvals);
-
+  const empStatus = [
+    { label: "Active", value: "Active" },
+    { label: "Inactive", value: "Inactive" },
+    { label: "Suspended", value: "Suspended" },
+    { label: "Left", value: "Left" },
+  ];
   useEffect(() => {
     const payload = {
       project: projectParam,
@@ -84,6 +89,7 @@ const Team = () => {
       statusFilter: statusParam,
       employeeName: employeeNameParam,
       reportsTo: reportsToParam,
+      status: employeeStatusParam,
     };
     dispatch(setFilters(payload));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -101,6 +107,7 @@ const Team = () => {
       start: teamState.start,
       status_filter: teamState.statusFilter,
       reports_to: teamState.reportsTo,
+      status: teamState.status,
     },
     undefined,
     {
@@ -205,13 +212,6 @@ const Team = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teamState.userGroupSearch, groupError]);
 
-  useEffect(() => {
-    if (!teamState.approvalSearch) return setApprovalsData(approvals);
-    setApprovalsData(approvals.filter((approval) => approval.label.toLowerCase().includes(teamState.approvalSearch)));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [teamState.approvalSearch]);
-
   const handleprevWeek = useCallback(() => {
     const date = getFormatedDate(addDays(teamState.weekDate, -6));
     dispatch(setWeekDate(date));
@@ -273,19 +273,19 @@ const Team = () => {
     [dispatch],
   );
 
-  const onApprovalSearch = useCallback(
-    (searchTerm: string) => {
-      dispatch(setApprovalSearch(searchTerm));
-    },
-    [dispatch],
-  );
-
   const handleEmployeeChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       dispatch(setEmployeeName(e.target.value));
       setEmployeeNameParam(e.target.value);
     },
     [dispatch, setEmployeeNameParam],
+  );
+  const handleEmployeeStatusChange = useCallback(
+    (value: string | string[]) => {
+      dispatch(setStatus(value as string[]));
+      setEmployeeStatusParam(value as string[]);
+    },
+    [dispatch, setEmployeeStatusParam],
   );
   const handleReportsToChange = useCallback(
     (name: string) => {
@@ -314,12 +314,23 @@ const Team = () => {
               className="border-dashed min-w-48 w-full max-w-48"
             />
             <ComboxBox
+              value={employeeStatusParam}
+              label="Employee Status"
+              data={empStatus}
+              shouldFilter
+              isMulti
+              onSelect={handleEmployeeStatusChange}
+              leftIcon={<Filter className={cn("h-4 w-4", teamState.status.length != 0 && "fill-primary")} />}
+              rightIcon={teamState.status.length > 0 && <Badge className="px-1.5">{teamState.status.length}</Badge>}
+              className="text-primary border-dashed gap-x-1 font-normal w-fit"
+            />
+            <ComboxBox
               value={statusParam}
               label="Approval"
               data={approvalsData}
               isMulti
+              shouldFilter
               onSelect={handleStatusChange}
-              onSearch={onApprovalSearch}
               leftIcon={<Filter className={cn("h-4 w-4", teamState.statusFilter.length != 0 && "fill-primary")} />}
               rightIcon={
                 teamState.statusFilter.length > 0 && <Badge className="px-1.5">{teamState.statusFilter.length}</Badge>
@@ -397,6 +408,7 @@ const Team = () => {
               </TableHead>
             </TableRow>
           </TableHeader>
+
           <TableBody>
             {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
             {/* @ts-ignore */}

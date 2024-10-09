@@ -71,7 +71,7 @@ const EmployeeCombo = ({
             </span>
           ) : (
             <Typography variant="p" className="text-gray-400 truncate">
-              {label}1
+              {label}
             </Typography>
           )}
 

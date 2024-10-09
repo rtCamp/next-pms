@@ -4,7 +4,7 @@ import { RootState } from "@/store";
 import { useFrappeGetDocList, useFrappeGetDocCount } from "frappe-react-sdk";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Header, Footer, Main } from "@/app/layout/root";
+import { Header, Footer } from "@/app/layout/root";
 import { LoadMore } from "@/app/components/loadMore";
 import {
   ProjectState,
@@ -120,8 +120,8 @@ const Project = () => {
     filters: getFilter(projectState),
     limit_start: projectState.start,
     orderBy: {
-      field: "creation",
-      order: "asc",
+      field: "modified",
+      order: "desc",
     },
   });
 
@@ -163,6 +163,10 @@ const Project = () => {
     if (projectState.isFetchAgain) {
       mutate();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectState.isFetchAgain]);
+
+  useEffect(() => {
     if (data) {
       if (projectState.data.length === 0) {
         dispatch(setProjectData(data));
@@ -178,7 +182,7 @@ const Project = () => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, projectState.isFetchAgain, error]);
+  }, [data, error]);
 
   useEffect(() => {
     const updatedTableProp = {

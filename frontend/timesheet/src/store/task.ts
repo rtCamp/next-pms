@@ -63,8 +63,6 @@ export const taskSlice = createSlice({
       state.project = [];
       state.start = 0;
       state.isFetchAgain = true;
-      state.start = 0;
-      state.isFetchAgain = true;
     },
     setFetchAgain: (state, action: PayloadAction<boolean>) => {
       state.isFetchAgain = action.payload;
@@ -74,8 +72,6 @@ export const taskSlice = createSlice({
       state.task = [];
       state.start = 0;
       state.project = [];
-      state.start = 0;
-      state.isFetchAgain = false; // as we dont want data to load for flat structure table
       state.start = 0;
       state.isFetchAgain = true;
     },
@@ -89,8 +85,6 @@ export const taskSlice = createSlice({
     },
     setAddTaskDialog: (state, action: PayloadAction<boolean>) => {
       state.isAddTaskDialogBoxOpen = action.payload;
-      state.start = 0;
-      state.isFetchAgain = true;
       state.start = 0;
       state.isFetchAgain = true;
     },

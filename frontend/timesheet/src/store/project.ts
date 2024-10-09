@@ -42,13 +42,7 @@ export const projectSlice = createSlice({
       state.isFetchAgain = false;
     },
     updateProjectData: (state, action: PayloadAction<Array<ProjectData>>) => {
-      const existingProjectIds = new Set(
-        state.data.map((project) => project.name),
-      );
-      const newProjects = action.payload.filter(
-        (project) => !existingProjectIds.has(project.name),
-      );
-      state.data = [...state.data, ...newProjects];
+      state.data = [...state.data, ...action.payload];
       state.isFetchAgain = false;
     },
     setStart: (state, action: PayloadAction<number>) => {
