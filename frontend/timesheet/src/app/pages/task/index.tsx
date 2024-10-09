@@ -154,7 +154,6 @@ const Task = () => {
 
   useEffect(() => {
     dispatch(setGroupBy(groupByParam));
-    dispatch(setFetchAgain(true));
   }, [groupByParam]);
 
   const handleAddTime = (taskName: string) => {
