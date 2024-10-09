@@ -4,6 +4,8 @@ import { RootState } from "@/store";
 import { useFrappeGetDocList, useFrappeGetDocCount } from "frappe-react-sdk";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Header, Footer } from "@/app/layout/root";
+import { LoadMore } from "@/app/components/loadMore";
 import {
   ProjectState,
   setProjectData,
@@ -42,7 +44,6 @@ import { Progress } from "@/app/components/ui/progress";
 import { Badge } from "@/app/components/ui/badge";
 import { Typography } from "@/app/components/typography";
 import { Spinner } from "@/app/components/spinner";
-import { Button } from "@/app/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -233,142 +234,141 @@ const Project = () => {
 
   return (
     <>
-      <section id="filter-section" className="flex p-1 gap-x-2 mb-3 overflow-x-auto">
-        <div className="xl:w-2/5">
-          <DeBounceInput
-            placeholder="Project Name"
-            value={searchParam}
-            deBounceValue={200}
-            className="max-w-full min-w-40"
-            callback={handleSearch}
+      <Header>
+        <section id="filter-section" className="flex p-1 gap-x-2 overflow-x-auto">
+          <div className="xl:w-2/5">
+            <DeBounceInput
+              placeholder="Project Name"
+              value={searchParam}
+              deBounceValue={200}
+              className="max-w-full min-w-40"
+              callback={handleSearch}
+            />
+          </div>
+          <ComboxBox
+            isMulti
+            label="Project Type"
+            shouldFilter
+            value={projectTypeParam}
+            onSelect={handleProjectTypeChange}
+            leftIcon={
+              <Filter className={cn("h-4 w-4", projectState.selectedProjectType.length != 0 && "fill-primary")} />
+            }
+            rightIcon={
+              projectState.selectedProjectType.length > 0 && (
+                <Badge className="px-1.5">{projectState.selectedProjectType.length}</Badge>
+              )
+            }
+            data={projectType?.map((d: { name: string }) => ({
+              label: d.name,
+              value: d.name,
+            }))}
+            className="text-primary border-dashed gap-x-1 font-normal w-fit"
           />
-        </div>
-        <ComboxBox
-          isMulti
-          label="Project Type"
-          shouldFilter
-          value={projectTypeParam}
-          onSelect={handleProjectTypeChange}
-          leftIcon={
-            <Filter className={cn("h-4 w-4", projectState.selectedProjectType.length != 0 && "fill-primary")} />
-          }
-          rightIcon={
-            projectState.selectedProjectType.length > 0 && (
-              <Badge className="px-1.5">{projectState.selectedProjectType.length}</Badge>
-            )
-          }
-          data={projectType?.map((d: { name: string }) => ({
-            label: d.name,
-            value: d.name,
-          }))}
-          className="text-primary border-dashed gap-x-1 font-normal w-fit"
-        />
-        <ComboxBox
-          isMulti
-          label="Status"
-          shouldFilter
-          value={statusParam}
-          onSelect={handleStatusChange}
-          leftIcon={<Filter className={cn("h-4 w-4", projectState.selectedStatus.length != 0 && "fill-primary")} />}
-          rightIcon={
-            projectState.selectedStatus.length > 0 && (
-              <Badge className="px-1.5">{projectState.selectedStatus.length}</Badge>
-            )
-          }
-          data={projectState.statusList.map((d: string) => ({
-            label: d,
-            value: d,
-          }))}
-          className="text-primary border-dashed gap-x-1 font-normal w-fit"
-        />
-        <PageAction table={table} resetTable={resetTable} onColumnHide={handleColumnHide} />
-      </section>
+          <ComboxBox
+            isMulti
+            label="Status"
+            shouldFilter
+            value={statusParam}
+            onSelect={handleStatusChange}
+            leftIcon={<Filter className={cn("h-4 w-4", projectState.selectedStatus.length != 0 && "fill-primary")} />}
+            rightIcon={
+              projectState.selectedStatus.length > 0 && (
+                <Badge className="px-1.5">{projectState.selectedStatus.length}</Badge>
+              )
+            }
+            data={projectState.statusList.map((d: string) => ({
+              label: d,
+              value: d,
+            }))}
+            className="text-primary border-dashed gap-x-1 font-normal w-fit"
+          />
+          <PageAction table={table} resetTable={resetTable} onColumnHide={handleColumnHide} />
+        </section>
+      </Header>
       {(isLoading || countIsLoading) && projectState.data.length == 0 ? (
         <Spinner isFull />
       ) : (
-        <div className="overflow-hidden w-full overflow-y-auto" style={{ height: "calc(100vh - 8rem)" }}>
-          <Table className="[&_td]:px-1 [&_th]:px-1 table-fixed">
-            <TableHeader className="[&_th]:h-10">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead
-                        className={cn("resizer", header.column.getIsResizing() && "isResizing")}
-                        key={header.id}
-                        style={{
-                          width: header.getSize(),
-                          position: "relative",
-                        }}
-                        onMouseDown={(event) => {
-                          const container = event.currentTarget;
-                          resizeObserver = new ResizeObserver((entries) => {
-                            entries.forEach(() => {
-                              setTableAttributeProps((prev: typeof tableAttributeProps) => {
-                                return {
-                                  ...prev,
-                                  columnWidth: { ...prev.columnWidth, [header.id]: header.getSize() },
-                                };
-                              });
+        <Table className="[&_td]:px-4 [&_th]:px-4 table-fixed ">
+          <TableHeader className="[&_th]:h-10 border-t-0">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead
+                      className={cn("resizer", header.column.getIsResizing() && "isResizing")}
+                      key={header.id}
+                      style={{
+                        width: header.getSize(),
+                        position: "relative",
+                      }}
+                      onMouseDown={(event) => {
+                        const container = event.currentTarget;
+                        resizeObserver = new ResizeObserver((entries) => {
+                          entries.forEach(() => {
+                            setTableAttributeProps((prev: typeof tableAttributeProps) => {
+                              return {
+                                ...prev,
+                                columnWidth: { ...prev.columnWidth, [header.id]: header.getSize() },
+                              };
                             });
                           });
-                          resizeObserver.observe(container);
-                        }}
-                        onMouseUp={() => {
-                          if (resizeObserver) {
-                            resizeObserver.disconnect();
-                          }
-                        }}
-                      >
-                        <div className="grid grid-cols-[80%_20%] place-items-center h-full gap-1 group">
-                          {flexRender(header.column.columnDef.header, header.getContext())}
+                        });
+                        resizeObserver.observe(container);
+                      }}
+                      onMouseUp={() => {
+                        if (resizeObserver) {
+                          resizeObserver.disconnect();
+                        }
+                      }}
+                    >
+                      <div className="grid grid-cols-[80%_20%] place-items-center h-full gap-1 group">
+                        {flexRender(header.column.columnDef.header, header.getContext())}
 
-                          <GripVertical
-                            className="w-4 h-4 max-lg:hidden cursor-col-resize flex justify-center items-center "
-                            {...{ onMouseDown: header.getResizeHandler(), onTouchStart: header.getResizeHandler() }}
-                          />
-                        </div>
-                      </TableHead>
-                    );
-                  })}
+                        <GripVertical
+                          className="w-4 h-4 max-lg:hidden cursor-col-resize flex justify-center items-center "
+                          {...{ onMouseDown: header.getResizeHandler(), onTouchStart: header.getResizeHandler() }}
+                        />
+                      </div>
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow className="px-3" key={row.id} data-state={row.getIsSelected() && "selected"}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell className="overflow-hidden" key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
                 </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell className="overflow-hidden" key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell className="h-24 text-center">No results.</TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell className="h-24 text-center">No results.</TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       )}
-
-      <div className="flex  justify-between items-center mt-3">
-        <Button
-          variant="outline"
-          disabled={projectState.data.length == (count ?? 0) || isLoading || countIsLoading}
-          onClick={() => {
-            dispatch(setStart(projectState.start + 20));
-          }}
-        >
-          Load More
-        </Button>
-        <Typography variant="p" className="px-5 font-semibold">
-          {`${projectState.data.length} of ${count ?? 0}`}
-        </Typography>
-      </div>
+      <Footer>
+        <div className="flex  justify-between items-center ">
+          <LoadMore
+            variant="outline"
+            disabled={projectState.data.length == (count ?? 0) || isLoading || countIsLoading}
+            onClick={() => {
+              dispatch(setStart(projectState.start + 20));
+            }}
+          />
+          <Typography variant="p" className="px-5 font-semibold">
+            {`${projectState.data.length} of ${count ?? 0}`}
+          </Typography>
+        </div>
+      </Footer>
     </>
   );
 };
