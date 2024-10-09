@@ -37,10 +37,10 @@ const EmployeeCombo = ({
     setSelectedValues(name);
     onSelect(name);
   };
-  const resetState = () => { 
+  const resetState = () => {
     setSelectedValues("");
     onSelect("");
-  }
+  };
   useEffect(() => {
     if (!employees) return;
     const res = employees?.message.data.find((item: Employee) => item.name === selectedValues);
@@ -56,11 +56,11 @@ const EmployeeCombo = ({
           disabled={disabled}
           className={cn(
             "items-center w-full gap-x-4 px-2 justify-between [&[data-state=open]>svg]:rotate-180 truncate",
-            className
+            className,
           )}
         >
           {employee ? (
-            <span className="flex gap-x-2 items-center truncate">
+            <span className="flex gap-x-2 items-center truncate pointer">
               <Avatar className="w-8 h-8">
                 <AvatarImage src={employee?.image} alt="image" />
                 <AvatarFallback>{employee?.employee_name[0]}</AvatarFallback>
@@ -71,7 +71,7 @@ const EmployeeCombo = ({
             </span>
           ) : (
             <Typography variant="p" className="text-gray-400 truncate">
-              {label}
+              {label}1
             </Typography>
           )}
 
@@ -92,7 +92,7 @@ const EmployeeCombo = ({
                     onSelect={() => {
                       onEmployeeChange(item.name);
                     }}
-                    className="flex gap-x-2 text-primary font-normal"
+                    className="flex gap-x-2 text-primary font-normal cursor-pointer"
                     value={item.employee_name}
                   >
                     <Check className={cn("mr-2 h-4 w-4", isActive ? "opacity-100" : "opacity-0")} />

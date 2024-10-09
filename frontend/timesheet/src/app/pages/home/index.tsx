@@ -132,12 +132,13 @@ const Home = () => {
   return (
     <>
       <Header>
-        <section id="filter-section" className="flex gap-x-3">
-          <div className="flex gap-x-2 max-md:pr-2 max-w-sm w-full max-md:w-3/6 max-sm:w-4/6">
+        <section id="filter-section" className="flex max-md:flex-col gap-x-3 ">
+          <div className="lg:pr-4  w-full max-md:mb-3">
             <DeBounceInput
               placeholder="Employee name"
               value={employeeNameParam}
               deBounceValue={400}
+              className="max-w-full m-1"
               callback={handleEmployeeChange}
             />
             <ComboxBox
@@ -153,18 +154,26 @@ const Home = () => {
             />
           </div>
           <div className="w-full flex">
-            <div className="grow flex items-center w-full">
+            <div className="grow flex items-center w-full overflow-x-auto">
               <Button title="prev" variant="outline" className="p-1 h-fit" onClick={handleprevWeek}>
                 <ChevronLeft className="w-4 h-4 max-sm:w-3 max-sm:h-3" />
               </Button>
-              <Typography className="w-full text-center  max-sm:text-sm  max-md:text-[2vw]" variant="h6">
+              <Typography
+                className="w-full text-center max-md:text-left mx-3  max-sm:text-sm  max-md:text-[2vw] truncate cursor-pointer"
+                variant="h6"
+                title={homeState.data.dates.length > 0 ? homeState.data.dates[0].key : ""}
+              >
                 {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
                 {/* @ts-ignore */}
                 {homeState.data.dates.length > 0 && homeState.data.dates[0].key}
               </Typography>
             </div>
             <div className="grow flex items-center w-full">
-              <Typography className="w-full text-center  max-sm:text-sm max-md:text-[2vw]" variant="h6">
+              <Typography
+                className="w-full text-center max-md:text-right mx-3  max-sm:text-sm max-md:text-[2vw] truncate cursor-pointer"
+                variant="h6"
+                title={homeState.data.dates.length > 0 ? homeState.data.dates[1].key : ""}
+              >
                 {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
                 {/* @ts-ignore */}
                 {homeState.data.dates.length > 0 && homeState.data.dates[1].key}
@@ -179,8 +188,8 @@ const Home = () => {
       {isLoading && Object.keys(homeState.data.data).length == 0 ? (
         <Spinner isFull />
       ) : (
-        <Table className="[&_tr]:pr-3">
-          <TableHeader className="border-t-0">
+        <Table className="[&_tr]:pr-3 relative">
+          <TableHeader className="border-t-0 sticky top-0 w-full z-10">
             <TableRow>
               <TableHead className="max-w-sm w-full"></TableHead>
               {homeState.data?.dates?.map((item: DateProps, index: number) => {
@@ -206,62 +215,70 @@ const Home = () => {
 
           <TableBody>
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            {Object.entries(homeState.data?.data).map(([key, item]: [string, any]) => {
-              return (
-                <TableRow key={key}>
-                  <TableCell className="flex items-center gap-x-2 max-w-sm w-full">
-                    <span
-                      className="flex gap-x-2 items-center font-normal hover:underline hover:cursor-pointer w-full"
-                      onClick={() => {
-                        navigate(`${TEAM}${EMPLOYEE}/${item.name}`);
-                      }}
-                    >
-                      <Avatar className="w-6 h-6">
-                        <AvatarImage src={decodeURIComponent(item.image)} alt={item.employee_name} />
-                        <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
-                      </Avatar>
-                      <Typography
-                        variant="p"
-                        className="w-full text-left text-ellipsis whitespace-nowrap overflow-hidden "
+            {Object.entries(homeState.data?.data).length > 0 ? (
+              Object.entries(homeState.data?.data).map(([key, item]: [string, any]) => {
+                return (
+                  <TableRow key={key}>
+                    <TableCell className="flex items-center gap-x-2 max-w-sm w-full">
+                      <span
+                        className="flex gap-x-2 items-center font-normal hover:underline hover:cursor-pointer w-full"
+                        onClick={() => {
+                          navigate(`${TEAM}${EMPLOYEE}/${item.name}`);
+                        }}
                       >
-                        {item.employee_name}
-                      </Typography>
-                    </span>
-                  </TableCell>
-                  {item.data.map((data: dataItem, index: number) => {
-                    const expectedTime = calculateExtendedWorkingHour(
-                      data.hour,
-                      item.working_hour,
-                      item.working_frequency,
-                    );
-
-                    return (
-                      <HoverCard key={`${data.hour}-id-${Math.random()}`} openDelay={1000}>
-                        <TableCell
-                          className={cn(
-                            "text-xs hover:cursor-pointer bg-transparent",
-                            expectedTime == 2 && "bg-warning/40",
-                            expectedTime == 1 && "bg-success/20",
-                            expectedTime == 0 && data.hour != 0 && "bg-destructive/10",
-                            data.is_leave && "bg-warning/20",
-                            isToday(data.date) && "bg-slate-50",
-                            data.hour == 0 && "text-center",
-                          )}
-                          key={`${key}-${index}`}
+                        <Avatar className="w-6 h-6">
+                          <AvatarImage src={decodeURIComponent(item.image)} alt={item.employee_name} />
+                          <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
+                        </Avatar>
+                        <Typography
+                          variant="p"
+                          className="w-full text-left text-ellipsis whitespace-nowrap overflow-hidden "
                         >
-                          <HoverCardTrigger>{data.hour > 0 ? floatToTime(data.hour) : "-"}</HoverCardTrigger>
-                          {data.note && (
-                            <HoverCardContent className="text-sm text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto">
-                              <p dangerouslySetInnerHTML={{ __html: preProcessLink(data.note) }}></p>
-                            </HoverCardContent>
-                          )}
-                        </TableCell>
-                      </HoverCard>
-                    );
-                  })}
-                </TableRow>
-              );
-            })}
+                          {item.employee_name}
+                        </Typography>
+                      </span>
+                    </TableCell>
+                    {item.data.map((data: dataItem, index: number) => {
+                      const expectedTime = calculateExtendedWorkingHour(
+                        data.hour,
+                        item.working_hour,
+                        item.working_frequency,
+                      );
+
+                      return (
+                        <HoverCard key={`${data.hour}-id-${Math.random()}`} openDelay={1000}>
+                          <TableCell
+                            className={cn(
+                              "text-xs hover:cursor-pointer bg-transparent",
+                              expectedTime == 2 && "bg-warning/40",
+                              expectedTime == 1 && "bg-success/20",
+                              expectedTime == 0 && data.hour != 0 && "bg-destructive/10",
+                              data.is_leave && "bg-warning/20",
+                              isToday(data.date) && "bg-slate-50",
+                              data.hour == 0 && "text-center",
+                            )}
+                            key={`${key}-${index}`}
+                          >
+                            <HoverCardTrigger>{data.hour > 0 ? floatToTime(data.hour) : "-"}</HoverCardTrigger>
+                            {data.note && (
+                              <HoverCardContent className="text-sm text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto">
+                                <p dangerouslySetInnerHTML={{ __html: preProcessLink(data.note) }}></p>
+                              </HoverCardContent>
+                            )}
+                          </TableCell>
+                        </HoverCard>
+                      );
+                    })}
+                  </TableRow>
+                );
+              })
+            ) : (
+              <TableRow>
+                <TableCell colSpan={15} className="h-24 text-center">
+                  No results
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       )}
@@ -273,7 +290,7 @@ const Home = () => {
             disabled={!homeState.data.has_more || (isLoading && Object.keys(homeState.data.data).length != 0)}
           />
 
-          <Typography variant="p" className="px-5 font-semibold">
+          <Typography variant="p" className="lg:px-5 font-semibold">
             {`${Object.keys(homeState.data.data).length | 0} of ${homeState.data.total_count | 0}`}
           </Typography>
         </div>

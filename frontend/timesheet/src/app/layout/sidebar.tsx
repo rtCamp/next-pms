@@ -16,6 +16,7 @@ import {
   ChevronUp,
   ChevronDown,
   ClipboardList,
+  FolderDot,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { TIMESHEET, HOME, TEAM, DESK, TASK, PROJECT } from "@/lib/constant";
@@ -83,7 +84,7 @@ const Sidebar = () => {
     },
     {
       to: PROJECT,
-      icon: Users,
+      icon: FolderDot,
       label: "Project",
       key: "project",
       isPmRoute: true,
@@ -118,9 +119,10 @@ const Sidebar = () => {
             className=" w-8 h-auto max-xl:w-7 max-xl:h-7 transition-all duration-300 ease-in-out max-lg:w-7 max-lg:h-7 max-md:w-7 max-md:h-7"
           />
           <Typography
+            title="Project Management"
             variant="h5"
             className={cn(
-              "transition-all duration-300 ease-in-out max-md:hidden ",
+              "transition-all cursor-pointer duration-300 truncate ease-in-out max-md:hidden ",
               user.isSidebarCollapsed && "hidden",
             )}
           >

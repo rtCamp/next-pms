@@ -6,7 +6,7 @@ import { Textarea } from "@/app/components/ui/textarea";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { TaskSchema } from "@/schema/task";
-import { TaskState, AddTaskType, setProjectFetchAgain, setAddTaskDialog } from "@/store/task";
+import { TaskState, AddTaskType, setAddTaskDialog, setFetchAgain } from "@/store/task";
 import { ProjectProps } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Dialog, DialogContent, DialogTitle } from "@/app/components/ui/dialog";
@@ -61,7 +61,7 @@ export const AddTask = ({
           variant: "success",
           description: res.message,
         });
-        dispatch(setProjectFetchAgain(true));
+        dispatch(setFetchAgain(true));
         setIsSubmitting(false);
         closeAddTaskDialog();
       })
@@ -95,7 +95,7 @@ export const AddTask = ({
   return (
     <>
       <Dialog onOpenChange={closeAddTaskDialog} open={task.isAddTaskDialogBoxOpen}>
-        <DialogContent className="max-w-xl">
+        <DialogContent aria-description="" aria-describedby="" className="max-w-xl">
           <DialogHeader className="pb-2">
             <DialogTitle>Add Task</DialogTitle>
           </DialogHeader>

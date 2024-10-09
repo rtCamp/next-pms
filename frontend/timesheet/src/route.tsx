@@ -1,5 +1,5 @@
 import { lazy, useContext, useEffect } from "react";
-import { Route, Outlet } from "react-router-dom";
+import { Route, Outlet, Navigate } from "react-router-dom";
 import { TIMESHEET, HOME, TEAM, TASK, PROJECT } from "@/lib/constant";
 import { Layout, PmRoute } from "@/app/layout/index";
 import { RootState } from "./store";
@@ -22,7 +22,7 @@ export function Router() {
         <Route path={HOME} element={<Home />} />
         <Route path={TEAM}>
           <Route path={`${TEAM}/`} element={<Team />} />
-          <Route path={`${TEAM}/employee/:id`} element={<EmployeeDetail />} />
+          <Route path={`${TEAM}/employee/:id?`} element={<EmployeeDetail />} />
         </Route>
         <Route path={PROJECT} element={<Project />} />
       </Route>

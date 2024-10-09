@@ -4,7 +4,7 @@ import { RootState } from "@/store";
 import { useFrappeGetDocList, useFrappeGetDocCount } from "frappe-react-sdk";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Header, Footer } from "@/app/layout/root";
+import { Header, Footer, Main } from "@/app/layout/root";
 import { LoadMore } from "@/app/components/loadMore";
 import {
   ProjectState,
@@ -235,13 +235,13 @@ const Project = () => {
   return (
     <>
       <Header>
-        <section id="filter-section" className="flex p-1 gap-x-2 overflow-x-auto">
+        <section id="filter-section" className="flex gap-x-2 overflow-x-auto items-center">
           <div className="xl:w-2/5">
             <DeBounceInput
               placeholder="Project Name"
               value={searchParam}
               deBounceValue={200}
-              className="max-w-full min-w-40"
+              className="max-w-full min-w-40 m-1"
               callback={handleSearch}
             />
           </div>
@@ -289,8 +289,8 @@ const Project = () => {
       {(isLoading || countIsLoading) && projectState.data.length == 0 ? (
         <Spinner isFull />
       ) : (
-        <Table className="[&_td]:px-4 [&_th]:px-4 table-fixed ">
-          <TableHeader className="[&_th]:h-10 border-t-0">
+        <Table className="[&_td]:px-4 [&_th]:px-4 [&_th]:py-4 table-fixed w-full relative">
+          <TableHeader className="[&_th]:h-10 border-t-0 sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -348,8 +348,10 @@ const Project = () => {
                 </TableRow>
               ))
             ) : (
-              <TableRow>
-                <TableCell className="h-24 text-center">No results.</TableCell>
+              <TableRow className="w-full">
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  No results
+                </TableCell>
               </TableRow>
             )}
           </TableBody>
@@ -364,7 +366,7 @@ const Project = () => {
               dispatch(setStart(projectState.start + 20));
             }}
           />
-          <Typography variant="p" className="px-5 font-semibold">
+          <Typography variant="p" className="lg:px-5 font-semibold">
             {`${projectState.data.length} of ${count ?? 0}`}
           </Typography>
         </div>
