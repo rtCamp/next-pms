@@ -364,7 +364,7 @@ const Project = () => {
               dispatch(setStart(projectState.start + 20));
             }}
           />
-          <Typography variant="p" className="px-5 font-semibold">
+          <Typography variant="p" className="lg:px-5 font-semibold">
             {`${projectState.data.length} of ${count ?? 0}`}
           </Typography>
         </div>

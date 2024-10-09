@@ -85,6 +85,7 @@ import {
 } from "@/types/task";
 import { TaskLog } from "./taskLog";
 import { Footer, Header } from "@/app/layout/root";
+import { LoadMore } from "@/app/components/loadMore";
 
 const Task = () => {
   const task = useSelector((state: RootState) => state.task);
@@ -1065,15 +1066,15 @@ const Task = () => {
       {/* footer */}
       <Footer className="bg-blue-500">
         <div className="flex justify-between items-center">
-          <Button
+          <LoadMore
             className="float-left"
             variant="outline"
             onClick={loadMore}
             disabled={task.task.length === task.total_count}
           >
             Load More
-          </Button>
-          <Typography variant="p" className="px-5 font-semibold">
+          </LoadMore>
+          <Typography variant="p" className="lg:px-5 font-semibold">
             {`${task.task.length | 0} of ${task.total_count | 0}`}
           </Typography>
         </div>

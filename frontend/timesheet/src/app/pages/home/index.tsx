@@ -249,7 +249,7 @@ const Home = () => {
             disabled={!homeState.data.has_more || (isLoading && Object.keys(homeState.data.data).length != 0)}
           />
 
-          <Typography variant="p" className="px-5 font-semibold">
+          <Typography variant="p" className="lg:px-5 font-semibold">
             {`${Object.keys(homeState.data.data).length | 0} of ${homeState.data.total_count | 0}`}
           </Typography>
         </div>

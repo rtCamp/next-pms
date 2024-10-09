@@ -494,7 +494,7 @@ const Team = () => {
               !teamState.hasMore || ((isLoading || isValidating) && Object.keys(teamState.data.data).length != 0)
             }
           />
-          <Typography variant="p" className="px-5 font-semibold">
+          <Typography variant="p" className="lg:px-5 font-semibold">
             {`${Object.keys(teamState.data.data).length | 0} of ${teamState.data.total_count | 0}`}
           </Typography>
         </div>
