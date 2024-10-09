@@ -348,8 +348,10 @@ const Project = () => {
                 </TableRow>
               ))
             ) : (
-              <TableRow>
-                <TableCell className="h-24 text-center">No results.</TableCell>
+              <TableRow className="w-full">
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  No results
+                </TableCell>
               </TableRow>
             )}
           </TableBody>

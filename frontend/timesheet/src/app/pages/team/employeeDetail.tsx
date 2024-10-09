@@ -525,7 +525,7 @@ export const TimeInput = ({
   callback: (data: NewTimesheetProps) => void;
 }) => {
   const [hour, setHour] = useState(String(floatToTime(data.hours)));
-  const inputRef = useRef(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const handleHourChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const hour = e.target.value;
     let time = 0;
