@@ -78,12 +78,12 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           }}
         >
           {user.employee && (
-            <div className="h-full p-3">
+            <>
               <Suspense fallback={<></>}>
                 <GenWrapper>{children}</GenWrapper>
               </Suspense>
               <Toaster />
-            </div>
+            </>
           )}
         </div>
       </div>

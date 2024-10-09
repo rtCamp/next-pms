@@ -6,6 +6,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 import { useSelector, useDispatch } from "react-redux";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
 import { RootState } from "@/store";
+import { Header, Footer, Main } from "@/app/layout/root";
 import {
   setData,
   setFetchAgain,
@@ -294,210 +295,210 @@ const Team = () => {
   );
   return (
     <>
-      <div className="flex gap-x-2 items-center justify-between mb-3">
-        {teamState.isAprrovalDialogOpen && <Approval />}
-        <div id="filters" className="flex gap-x-2 max-md:gap-x-5 max-md:w-4/5 max-md:overflow-scroll">
-          <DeBounceInput
-            placeholder="Employee name"
-            value={employeeNameParam}
-            deBounceValue={400}
-            callback={handleEmployeeChange}
-          />
-          <EmployeeCombo
-            value={reportsToParam}
-            label="Reporting Manager"
-            onSelect={handleReportsToChange}
-            className="border-dashed min-w-48 w-full max-w-48"
-          />
-          <ComboxBox
-            value={statusParam}
-            label="Approval"
-            data={approvalsData}
-            isMulti
-            onSelect={handleStatusChange}
-            onSearch={onApprovalSearch}
-            leftIcon={<Filter className={cn("h-4 w-4", teamState.statusFilter.length != 0 && "fill-primary")} />}
-            rightIcon={
-              teamState.statusFilter.length > 0 && <Badge className="px-1.5">{teamState.statusFilter.length}</Badge>
-            }
-            className="text-primary border-dashed gap-x-1 font-normal w-fit"
-          />
-          <ComboxBox
-            value={projectParam}
-            label="Projects"
-            isMulti
-            showSelected={false}
-            onSelect={handleProjectChange}
-            onSearch={onProjectSearch}
-            rightIcon={teamState.project.length > 0 && <Badge className="px-1.5">{teamState.project.length}</Badge>}
-            leftIcon={<Filter className={cn("h-4 w-4", teamState.project.length != 0 && "fill-primary")} />}
-            data={projects?.message.map((item: ProjectProps) => ({
-              label: item.project_name,
-              value: item.name,
-            }))}
-            className="text-primary border-dashed gap-x-2 font-normal w-fit"
-          />
-          <ComboxBox
-            value={userGroupParam}
-            label="User Groups"
-            onSearch={onUserGroupSearch}
-            showSelected={false}
-            data={userGroups?.message.map((item: UserGroupProps) => ({
-              label: item.name,
-              value: item.name,
-            }))}
-            rightIcon={teamState.userGroup.length > 0 && <Badge className="px-1.5">{teamState.userGroup.length}</Badge>}
-            isMulti
-            leftIcon={<Filter className={cn("h-4 w-4", teamState.userGroup.length != 0 && "fill-primary")} />}
-            onSelect={handleUserGroupChange}
-            className="text-primary border-dashed gap-x-2 font-normal w-fit"
-          />
+      <Header>
+        <div className="flex gap-x-2 items-center justify-between">
+          {teamState.isAprrovalDialogOpen && <Approval />}
+          <div id="filters" className="flex gap-x-2 max-md:gap-x-5 max-md:w-4/5 max-md:overflow-scroll">
+            <DeBounceInput
+              placeholder="Employee name"
+              value={employeeNameParam}
+              deBounceValue={400}
+              callback={handleEmployeeChange}
+            />
+            <EmployeeCombo
+              value={reportsToParam}
+              label="Reporting Manager"
+              onSelect={handleReportsToChange}
+              className="border-dashed min-w-48 w-full max-w-48"
+            />
+            <ComboxBox
+              value={statusParam}
+              label="Approval"
+              data={approvalsData}
+              isMulti
+              onSelect={handleStatusChange}
+              onSearch={onApprovalSearch}
+              leftIcon={<Filter className={cn("h-4 w-4", teamState.statusFilter.length != 0 && "fill-primary")} />}
+              rightIcon={
+                teamState.statusFilter.length > 0 && <Badge className="px-1.5">{teamState.statusFilter.length}</Badge>
+              }
+              className="text-primary border-dashed gap-x-1 font-normal w-fit"
+            />
+            <ComboxBox
+              value={projectParam}
+              label="Projects"
+              isMulti
+              showSelected={false}
+              onSelect={handleProjectChange}
+              onSearch={onProjectSearch}
+              rightIcon={teamState.project.length > 0 && <Badge className="px-1.5">{teamState.project.length}</Badge>}
+              leftIcon={<Filter className={cn("h-4 w-4", teamState.project.length != 0 && "fill-primary")} />}
+              data={projects?.message.map((item: ProjectProps) => ({
+                label: item.project_name,
+                value: item.name,
+              }))}
+              className="text-primary border-dashed gap-x-2 font-normal w-fit"
+            />
+            <ComboxBox
+              value={userGroupParam}
+              label="User Groups"
+              onSearch={onUserGroupSearch}
+              showSelected={false}
+              data={userGroups?.message.map((item: UserGroupProps) => ({
+                label: item.name,
+                value: item.name,
+              }))}
+              rightIcon={
+                teamState.userGroup.length > 0 && <Badge className="px-1.5">{teamState.userGroup.length}</Badge>
+              }
+              isMulti
+              leftIcon={<Filter className={cn("h-4 w-4", teamState.userGroup.length != 0 && "fill-primary")} />}
+              onSelect={handleUserGroupChange}
+              className="text-primary border-dashed gap-x-2 font-normal w-fit"
+            />
+          </div>
+          <div id="date-filter" className="flex gap-x-2">
+            <Button title="prev" className="p-1 h-fit" variant="outline" onClick={handleprevWeek}>
+              <ChevronLeft className="w-4 max-md:w-3 h-4 max-md:h-3" />
+            </Button>
+            <Button title="next" className="p-1 h-fit" variant="outline" onClick={handlenextWeek}>
+              <ChevronRight className="w-4 max-md:w-3 h-4 max-md:h-3" />
+            </Button>
+          </div>
         </div>
-        <div id="date-filter" className="flex gap-x-2">
-          <Button title="prev" className="p-1 h-fit" variant="outline" onClick={handleprevWeek}>
-            <ChevronLeft className="w-4 max-md:w-3 h-4 max-md:h-3" />
-          </Button>
-          <Button title="next" className="p-1 h-fit" variant="outline" onClick={handlenextWeek}>
-            <ChevronRight className="w-4 max-md:w-3 h-4 max-md:h-3" />
-          </Button>
-        </div>
-      </div>
+      </Header>
       {(isLoading || isValidating) && Object.keys(teamState.data.data).length == 0 ? (
         <Spinner isFull />
       ) : (
-        <div className="overflow-y-scroll mb-2 " style={{ height: "calc(100vh - 8rem)" }}>
-          <Table>
-            <TableHeader>
-              <TableRow className="flex items-center w-full">
-                <TableHead className="w-full max-w-md flex items-center">Members</TableHead>
-                {teamState.data?.dates.map((item: DateProps) => {
-                  return item?.dates?.map((date) => {
-                    const { date: dateStr, day } = prettyDate(date);
-                    return (
-                      <TableHead key={date} className="flex flex-col max-w-20 w-full text-center">
-                        <Typography variant="p" className="text-slate-600">
-                          {day}
-                        </Typography>
-                        <Typography variant="small" className="text-slate-500 max-lg:text-[0.65rem]">
-                          {dateStr}
-                        </Typography>
-                      </TableHead>
-                    );
-                  });
-                })}
-                <TableHead className="w-full max-w-24 flex items-center justify-end">Total</TableHead>
-                <TableHead className="w-full max-w-20 flex items-center justify-center">
-                  <CircleCheck className="w-4 h-4" />
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-              {/* @ts-ignore */}
-              {Object.entries(teamState.data?.data).map(([key, item]: [string, ItemProps]) => {
-                let total = 0;
-                return (
-                  <TableRow key={key} className="flex items-center w-full">
-                    <Accordion type="multiple" key={key} className="w-full">
-                      <AccordionItem value={key} className="border-b-0">
-                        <AccordionTrigger className="hover:no-underline py-0">
-                          <span className="w-full flex ">
-                            <TableCell className="w-full min-w-24 max-w-md overflow-hidden">
-                              <span
-                                className="flex  gap-x-2 items-center font-normal hover:underline w-full"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  navigate(`${TEAM}${EMPLOYEE}/${item.name}`);
-                                }}
-                              >
-                                <Avatar className="w-6 h-6">
-                                  <AvatarImage src={decodeURIComponent(item.image)} />
-                                  <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
-                                </Avatar>
-                                <Typography
-                                  variant="p"
-                                  className="w-full text-left text-ellipsis whitespace-nowrap overflow-hidden "
-                                >
-                                  {item.employee_name}
-                                </Typography>
-                              </span>
-                            </TableCell>
-                            {item.data.map((data: dataItem, key) => {
-                              total += data.hour;
-                              return (
-                                <HoverCard key={`${data.hour}-id-${Math.random()}`} openDelay={1000}>
-                                  <TableCell
-                                    key={key}
-                                    className={cn("flex max-w-20 w-full justify-center items-center")}
-                                  >
-                                    <HoverCardTrigger>
-                                      <Typography
-                                        className={cn(
-                                          data.is_leave && "text-warning",
-                                          data.hour == 0 && "text-primary",
-                                        )}
-                                        variant="p"
-                                      >
-                                        {data.hour ? floatToTime(data.hour) : "-"}
-                                      </Typography>
-                                    </HoverCardTrigger>
-                                    {data.note && (
-                                      <HoverCardContent className="text-sm font-normal text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto">
-                                        <p dangerouslySetInnerHTML={{ __html: preProcessLink(data.note) }}></p>
-                                      </HoverCardContent>
-                                    )}
-                                  </TableCell>
-                                </HoverCard>
-                              );
-                            })}
-
-                            <WeekTotal
-                              total={total}
-                              expected_hour={item.working_hour}
-                              frequency={item.working_frequency}
-                              className="w-full max-w-24 flex items-center justify-end"
-                            />
-
-                            <TableCell
-                              className="w-full max-w-16 flex items-center justify-end"
+        <Table className="[&_tr]:pr-3">
+          <TableHeader className="border-t-0">
+            <TableRow className="flex items-center w-full">
+              <TableHead className="w-full max-w-md flex items-center">Members</TableHead>
+              {teamState.data?.dates.map((item: DateProps) => {
+                return item?.dates?.map((date) => {
+                  const { date: dateStr, day } = prettyDate(date);
+                  return (
+                    <TableHead key={date} className="flex flex-col max-w-20 w-full text-center">
+                      <Typography variant="p" className="text-slate-600">
+                        {day}
+                      </Typography>
+                      <Typography variant="small" className="text-slate-500 max-lg:text-[0.65rem]">
+                        {dateStr}
+                      </Typography>
+                    </TableHead>
+                  );
+                });
+              })}
+              <TableHead className="w-full max-w-24 flex items-center justify-end">Total</TableHead>
+              <TableHead className="w-full max-w-20 flex items-center justify-center">
+                <CircleCheck className="w-4 h-4" />
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+            {/* @ts-ignore */}
+            {Object.entries(teamState.data?.data).map(([key, item]: [string, ItemProps]) => {
+              let total = 0;
+              return (
+                <TableRow key={key} className="flex items-center w-full">
+                  <Accordion type="multiple" key={key} className="w-full">
+                    <AccordionItem value={key} className="border-b-0">
+                      <AccordionTrigger className="hover:no-underline py-0">
+                        <span className="w-full flex ">
+                          <TableCell className="w-full min-w-24 max-w-md overflow-hidden">
+                            <span
+                              className="flex  gap-x-2 items-center font-normal hover:underline w-full"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                onStatusClick(item.data[0].date, item.data[item.data.length - 1].date, item.name);
+                                navigate(`${TEAM}${EMPLOYEE}/${item.name}`);
                               }}
                             >
-                              <Status status={item.status} />
-                            </TableCell>
-                          </span>
-                        </AccordionTrigger>
-                        <AccordionContent className="pb-0">
-                          <Employee employee={item.name} />
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                  </TableRow>
-                );
-              })}
-              {Object.entries(teamState.data?.data).length == 0 && (
-                <TableRow>
-                  <TableCell className="w-full flex items-center justify-center">No data found</TableCell>
+                              <Avatar className="w-6 h-6">
+                                <AvatarImage src={decodeURIComponent(item.image)} />
+                                <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
+                              </Avatar>
+                              <Typography
+                                variant="p"
+                                className="w-full text-left text-ellipsis whitespace-nowrap overflow-hidden "
+                              >
+                                {item.employee_name}
+                              </Typography>
+                            </span>
+                          </TableCell>
+                          {item.data.map((data: dataItem, key) => {
+                            total += data.hour;
+                            return (
+                              <HoverCard key={`${data.hour}-id-${Math.random()}`} openDelay={1000}>
+                                <TableCell key={key} className={cn("flex max-w-20 w-full justify-center items-center")}>
+                                  <HoverCardTrigger>
+                                    <Typography
+                                      className={cn(data.is_leave && "text-warning", data.hour == 0 && "text-primary")}
+                                      variant="p"
+                                    >
+                                      {data.hour ? floatToTime(data.hour) : "-"}
+                                    </Typography>
+                                  </HoverCardTrigger>
+                                  {data.note && (
+                                    <HoverCardContent className="text-sm font-normal text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto">
+                                      <p dangerouslySetInnerHTML={{ __html: preProcessLink(data.note) }}></p>
+                                    </HoverCardContent>
+                                  )}
+                                </TableCell>
+                              </HoverCard>
+                            );
+                          })}
+
+                          <WeekTotal
+                            total={total}
+                            expected_hour={item.working_hour}
+                            frequency={item.working_frequency}
+                            className="w-full max-w-24 flex items-center justify-end"
+                          />
+
+                          <TableCell
+                            className="w-full max-w-16 flex items-center justify-end"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onStatusClick(item.data[0].date, item.data[item.data.length - 1].date, item.name);
+                            }}
+                          >
+                            <Status status={item.status} />
+                          </TableCell>
+                        </span>
+                      </AccordionTrigger>
+                      <AccordionContent className="pb-0">
+                        <Employee employee={item.name} />
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+              );
+            })}
+            {Object.entries(teamState.data?.data).length == 0 && (
+              <TableRow>
+                <TableCell className="w-full flex items-center justify-center">No data found</TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       )}
-      <div className="flex justify-between items-center">
-        <Button
-          variant="outline"
-          onClick={handleLoadMore}
-          disabled={!teamState.hasMore || ((isLoading || isValidating) && Object.keys(teamState.data.data).length != 0)}
-        >
-          Load More
-        </Button>
-        <Typography variant="p" className="px-5 font-semibold">
-          {`${Object.keys(teamState.data.data).length | 0} of ${teamState.data.total_count | 0}`}
-        </Typography>
-      </div>
+      <Footer>
+        <div className="flex justify-between items-center">
+          <Button
+            variant="outline"
+            onClick={handleLoadMore}
+            disabled={
+              !teamState.hasMore || ((isLoading || isValidating) && Object.keys(teamState.data.data).length != 0)
+            }
+          >
+            Load More
+          </Button>
+          <Typography variant="p" className="px-5 font-semibold">
+            {`${Object.keys(teamState.data.data).length | 0} of ${teamState.data.total_count | 0}`}
+          </Typography>
+        </div>
+      </Footer>
     </>
   );
 };

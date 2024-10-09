@@ -13,6 +13,7 @@ import { RootState } from "@/store";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useCallback, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { Header, Footer } from "@/app/layout/root";
 import {
   setData,
   setFetchAgain,
@@ -108,140 +109,142 @@ const Home = () => {
 
   return (
     <>
-      <section id="filter-section" className="flex gap-x-3 mb-3">
-        <div className="pr-4 max-md:pr-2 max-w-sm w-full max-md:w-3/6 max-sm:w-4/6">
-          <DeBounceInput
-            placeholder="Employee name"
-            value={employeeNameParam}
-            deBounceValue={400}
-            callback={handleEmployeeChange}
-          />
-        </div>
-        <div className="w-full flex">
-          <div className="grow flex items-center w-full">
-            <Button title="prev" variant="outline" className="p-1 h-fit" onClick={handleprevWeek}>
-              <ChevronLeft className="w-4 h-4 max-sm:w-3 max-sm:h-3" />
-            </Button>
-            <Typography className="w-full text-center  max-sm:text-sm  max-md:text-[2vw]" variant="h6">
-              {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-              {/* @ts-ignore */}
-              {homeState.data.dates.length > 0 && homeState.data.dates[0].key}
-            </Typography>
+      <Header>
+        <section id="filter-section" className="flex gap-x-3">
+          <div className="pr-4 max-md:pr-2 max-w-sm w-full max-md:w-3/6 max-sm:w-4/6">
+            <DeBounceInput
+              placeholder="Employee name"
+              value={employeeNameParam}
+              deBounceValue={400}
+              callback={handleEmployeeChange}
+            />
           </div>
-          <div className="grow flex items-center w-full">
-            <Typography className="w-full text-center  max-sm:text-sm max-md:text-[2vw]" variant="h6">
-              {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-              {/* @ts-ignore */}
-              {homeState.data.dates.length > 0 && homeState.data.dates[1].key}
-            </Typography>
-            <Button title="next" variant="outline" className="p-1 h-fit" onClick={handlenextWeek}>
-              <ChevronRight className="w-4 h-4 max-sm:w-3 max-sm:h-3" />
-            </Button>
+          <div className="w-full flex">
+            <div className="grow flex items-center w-full">
+              <Button title="prev" variant="outline" className="p-1 h-fit" onClick={handleprevWeek}>
+                <ChevronLeft className="w-4 h-4 max-sm:w-3 max-sm:h-3" />
+              </Button>
+              <Typography className="w-full text-center  max-sm:text-sm  max-md:text-[2vw]" variant="h6">
+                {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+                {/* @ts-ignore */}
+                {homeState.data.dates.length > 0 && homeState.data.dates[0].key}
+              </Typography>
+            </div>
+            <div className="grow flex items-center w-full">
+              <Typography className="w-full text-center  max-sm:text-sm max-md:text-[2vw]" variant="h6">
+                {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+                {/* @ts-ignore */}
+                {homeState.data.dates.length > 0 && homeState.data.dates[1].key}
+              </Typography>
+              <Button title="next" variant="outline" className="p-1 h-fit" onClick={handlenextWeek}>
+                <ChevronRight className="w-4 h-4 max-sm:w-3 max-sm:h-3" />
+              </Button>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </Header>
       {isLoading && Object.keys(homeState.data.data).length == 0 ? (
         <Spinner isFull />
       ) : (
-        <div className="overflow-y-scroll mb-2" style={{ height: "calc(100vh - 8rem)" }}>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="max-w-sm w-full"></TableHead>
-                {homeState.data?.dates?.map((item: DateProps, index: number) => {
-                  const dates = item.dates;
-                  return dates.map((date: string) => {
-                    const formattedDate = prettyDate(date);
-                    return (
-                      <TableHead
-                        key={`${index}-${date}`}
-                        className={cn(
-                          "text-slate-600 font-medium max-w-20 ",
-                          index != 0 && "bg-slate-200",
-                          isToday(date) && "bg-slate-300",
-                        )}
-                      >
-                        {formattedDate.day}
-                      </TableHead>
-                    );
-                  });
-                })}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {Object.entries(homeState.data?.data).map(([key, item]: [string, any]) => {
-                return (
-                  <TableRow key={key}>
-                    <TableCell className="flex items-center gap-x-2 max-w-sm w-full">
-                      <span
-                        className="flex gap-x-2 items-center font-normal hover:underline hover:cursor-pointer w-full"
-                        onClick={() => {
-                          navigate(`${TEAM}${EMPLOYEE}/${item.name}`);
-                        }}
-                      >
-                        <Avatar className="w-6 h-6">
-                          <AvatarImage src={decodeURIComponent(item.image)} alt={item.employee_name} />
-                          <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
-                        </Avatar>
-                        <Typography
-                          variant="p"
-                          className="w-full text-left text-ellipsis whitespace-nowrap overflow-hidden "
-                        >
-                          {item.employee_name}
-                        </Typography>
-                      </span>
-                    </TableCell>
-                    {item.data.map((data: dataItem, index: number) => {
-                      const expectedTime = calculateExtendedWorkingHour(
-                        data.hour,
-                        item.working_hour,
-                        item.working_frequency,
-                      );
-
-                      return (
-                        <HoverCard key={`${data.hour}-id-${Math.random()}`} openDelay={1000}>
-                          <TableCell
-                            className={cn(
-                              "text-xs hover:cursor-pointer bg-transparent",
-                              expectedTime == 2 && "bg-warning/40",
-                              expectedTime == 1 && "bg-success/20",
-                              expectedTime == 0 && data.hour != 0 && "bg-destructive/10",
-                              data.is_leave && "bg-warning/20",
-                              isToday(data.date) && "bg-slate-50",
-                              data.hour == 0 && "text-center",
-                            )}
-                            key={`${key}-${index}`}
-                          >
-                            <HoverCardTrigger>{data.hour > 0 ? floatToTime(data.hour) : "-"}</HoverCardTrigger>
-                            {data.note && (
-                              <HoverCardContent className="text-sm text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto">
-                                <p dangerouslySetInnerHTML={{ __html: preProcessLink(data.note) }}></p>
-                              </HoverCardContent>
-                            )}
-                          </TableCell>
-                        </HoverCard>
-                      );
-                    })}
-                  </TableRow>
-                );
+        <Table className="[&_tr]:pr-3">
+          <TableHeader className="border-t-0">
+            <TableRow>
+              <TableHead className="max-w-sm w-full"></TableHead>
+              {homeState.data?.dates?.map((item: DateProps, index: number) => {
+                const dates = item.dates;
+                return dates.map((date: string) => {
+                  const formattedDate = prettyDate(date);
+                  return (
+                    <TableHead
+                      key={`${index}-${date}`}
+                      className={cn(
+                        "text-slate-600 font-medium max-w-20 ",
+                        index != 0 && "bg-slate-200",
+                        isToday(date) && "bg-slate-300",
+                      )}
+                    >
+                      {formattedDate.day}
+                    </TableHead>
+                  );
+                });
               })}
-            </TableBody>
-          </Table>
-        </div>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            {Object.entries(homeState.data?.data).map(([key, item]: [string, any]) => {
+              return (
+                <TableRow key={key}>
+                  <TableCell className="flex items-center gap-x-2 max-w-sm w-full">
+                    <span
+                      className="flex gap-x-2 items-center font-normal hover:underline hover:cursor-pointer w-full"
+                      onClick={() => {
+                        navigate(`${TEAM}${EMPLOYEE}/${item.name}`);
+                      }}
+                    >
+                      <Avatar className="w-6 h-6">
+                        <AvatarImage src={decodeURIComponent(item.image)} alt={item.employee_name} />
+                        <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
+                      </Avatar>
+                      <Typography
+                        variant="p"
+                        className="w-full text-left text-ellipsis whitespace-nowrap overflow-hidden "
+                      >
+                        {item.employee_name}
+                      </Typography>
+                    </span>
+                  </TableCell>
+                  {item.data.map((data: dataItem, index: number) => {
+                    const expectedTime = calculateExtendedWorkingHour(
+                      data.hour,
+                      item.working_hour,
+                      item.working_frequency,
+                    );
+
+                    return (
+                      <HoverCard key={`${data.hour}-id-${Math.random()}`} openDelay={1000}>
+                        <TableCell
+                          className={cn(
+                            "text-xs hover:cursor-pointer bg-transparent",
+                            expectedTime == 2 && "bg-warning/40",
+                            expectedTime == 1 && "bg-success/20",
+                            expectedTime == 0 && data.hour != 0 && "bg-destructive/10",
+                            data.is_leave && "bg-warning/20",
+                            isToday(data.date) && "bg-slate-50",
+                            data.hour == 0 && "text-center",
+                          )}
+                          key={`${key}-${index}`}
+                        >
+                          <HoverCardTrigger>{data.hour > 0 ? floatToTime(data.hour) : "-"}</HoverCardTrigger>
+                          {data.note && (
+                            <HoverCardContent className="text-sm text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto">
+                              <p dangerouslySetInnerHTML={{ __html: preProcessLink(data.note) }}></p>
+                            </HoverCardContent>
+                          )}
+                        </TableCell>
+                      </HoverCard>
+                    );
+                  })}
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
       )}
-      <div className="w-full flex justify-between items-center">
-        <Button
-          variant="outline"
-          onClick={handleLoadMore}
-          disabled={!homeState.data.has_more || (isLoading && Object.keys(homeState.data.data).length != 0)}
-        >
-          Load More
-        </Button>
-        <Typography variant="p" className="px-5 font-semibold">
-          {`${Object.keys(homeState.data.data).length | 0} of ${homeState.data.total_count | 0}`}
-        </Typography>
-      </div>
+      <Footer>
+        <div className="w-full flex justify-between items-center">
+          <Button
+            variant="outline"
+            onClick={handleLoadMore}
+            disabled={!homeState.data.has_more || (isLoading && Object.keys(homeState.data.data).length != 0)}
+          >
+            Load More
+          </Button>
+          <Typography variant="p" className="px-5 font-semibold">
+            {`${Object.keys(homeState.data.data).length | 0} of ${homeState.data.total_count | 0}`}
+          </Typography>
+        </div>
+      </Footer>
     </>
   );
 };

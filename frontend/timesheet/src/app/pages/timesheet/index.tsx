@@ -14,6 +14,7 @@ import {
   setEditDialog,
   setApprovalDialog,
 } from "@/store/timesheet";
+import { Header, Footer, Main } from "@/app/layout/root";
 import { Button } from "@/app/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Typography } from "@/app/components/typography";
@@ -112,16 +113,17 @@ function Timesheet() {
     return <></>;
   }
   return (
-    <div className="flex flex-col">
-      <div>
-        <Button className="float-right mb-1" onClick={handleAddTime}>
+    <>
+      <Header>
+        <Button className="float-right" onClick={handleAddTime}>
           Add Time
         </Button>
-      </div>
+      </Header>
+
       {isLoading && Object.keys(timesheet.data?.data).length == 0 ? (
         <Spinner isFull />
       ) : (
-        <div className="overflow-y-scroll" style={{ height: "calc(100vh - 8rem)" }}>
+        <Main>
           {timesheet.data?.data &&
             Object.keys(timesheet.data?.data).length > 0 &&
             Object.entries(timesheet.data?.data).map(([key, value]: [string, timesheet], index: number) => {
@@ -182,13 +184,13 @@ function Timesheet() {
                 </Accordion>
               );
             })}
-        </div>
+        </Main>
       )}
-      <div className="mt-5">
+      <Footer>
         <Button className="float-left" variant="outline" onClick={loadData} disabled={isLoading}>
           Load More
         </Button>
-      </div>
+      </Footer>
       {timesheet.isDialogOpen && (
         <AddTime
           open={timesheet.isDialogOpen}
@@ -216,7 +218,7 @@ function Timesheet() {
         />
       )}
       {timesheet.isAprrovalDialogOpen && <Approval />}
-    </div>
+    </>
   );
 }
 
