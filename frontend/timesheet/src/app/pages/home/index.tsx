@@ -119,13 +119,14 @@ const Home = () => {
           />
         </div>
         <div className="w-full flex">
-          <div className="grow flex items-center w-full">
+          <div className="grow flex items-center w-full overflow-x-auto">
             <Button title="prev" variant="outline" className="p-1 h-fit" onClick={handleprevWeek}>
               <ChevronLeft className="w-4 h-4 max-sm:w-3 max-sm:h-3" />
             </Button>
             <Typography
-              className="w-full text-center max-md:text-left mx-3  max-sm:text-sm  max-md:text-[2vw]"
+              className="w-full text-center max-md:text-left mx-3  max-sm:text-sm  max-md:text-[2vw] truncate cursor-pointer"
               variant="h6"
+              title={homeState.data.dates.length > 0 ? homeState.data.dates[0].key : ""}
             >
               {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
               {/* @ts-ignore */}
@@ -134,8 +135,9 @@ const Home = () => {
           </div>
           <div className="grow flex items-center w-full">
             <Typography
-              className="w-full text-center max-md:text-right mx-3  max-sm:text-sm max-md:text-[2vw]"
+              className="w-full text-center max-md:text-right mx-3  max-sm:text-sm max-md:text-[2vw] truncate cursor-pointer"
               variant="h6"
+              title={homeState.data.dates.length > 0 ? homeState.data.dates[1].key : ""}
             >
               {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
               {/* @ts-ignore */}
