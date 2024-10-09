@@ -297,13 +297,14 @@ const Team = () => {
   return (
     <>
       <Header>
-        <div className="flex gap-x-2 items-center justify-between">
+        <div className="flex gap-x-2 items-center justify-between max-md:flex-col max-md:justify-between">
           {teamState.isAprrovalDialogOpen && <Approval />}
-          <div id="filters" className="flex gap-x-2 max-md:gap-x-5 max-md:w-4/5 max-md:overflow-scroll">
+          <div id="filters" className="flex gap-x-2 max-md:gap-x-5  overflow-y-hidden max-md:w-full items-center">
             <DeBounceInput
               placeholder="Employee name"
               value={employeeNameParam}
               deBounceValue={400}
+              className="max-w-full min-w-40 m-1"
               callback={handleEmployeeChange}
             />
             <EmployeeCombo
@@ -358,7 +359,7 @@ const Team = () => {
               className="text-primary border-dashed gap-x-2 font-normal w-fit"
             />
           </div>
-          <div id="date-filter" className="flex gap-x-2">
+          <div id="date-filter" className="flex gap-x-2 max-md:w-full max-md:justify-between max-md:m-2">
             <Button title="prev" className="p-1 h-fit" variant="outline" onClick={handleprevWeek}>
               <ChevronLeft className="w-4 max-md:w-3 h-4 max-md:h-3" />
             </Button>
@@ -371,8 +372,8 @@ const Team = () => {
       {(isLoading || isValidating) && Object.keys(teamState.data.data).length == 0 ? (
         <Spinner isFull />
       ) : (
-        <Table className="[&_tr]:pr-3">
-          <TableHeader className="border-t-0">
+        <Table className="[&_tr]:pr-3 relative">
+          <TableHeader className="border-t-0 sticky top-0 z-10">
             <TableRow className="flex items-center w-full">
               <TableHead className="w-full max-w-md flex items-center">Members</TableHead>
               {teamState.data?.dates.map((item: DateProps) => {
@@ -478,7 +479,9 @@ const Team = () => {
             })}
             {Object.entries(teamState.data?.data).length == 0 && (
               <TableRow>
-                <TableCell className="w-full flex items-center justify-center">No data found</TableCell>
+                <TableCell colSpan={15} className="h-24 text-center">
+                  No results
+                </TableCell>
               </TableRow>
             )}
           </TableBody>
@@ -493,7 +496,7 @@ const Team = () => {
               !teamState.hasMore || ((isLoading || isValidating) && Object.keys(teamState.data.data).length != 0)
             }
           />
-          <Typography variant="p" className="px-5 font-semibold">
+          <Typography variant="p" className="lg:px-5 font-semibold">
             {`${Object.keys(teamState.data.data).length | 0} of ${teamState.data.total_count | 0}`}
           </Typography>
         </div>

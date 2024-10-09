@@ -5,11 +5,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import {
   setStart,
-  setProjectStart,
   setSelectedProject,
   setFetchAgain,
   setGroupBy,
   setAddTaskDialog,
+  updateTaskData,
+  setTaskData,
+  updateProjectData,
+  setProjectData,
 } from "@/store/task";
 import { AddTask } from "./addTask";
 import { FlatTable } from "./flatTable";
@@ -81,6 +84,8 @@ import {
   MoreTableOptionsDropDownType,
 } from "@/types/task";
 import { TaskLog } from "./taskLog";
+import { Footer, Header } from "@/app/layout/root";
+import { LoadMore } from "@/app/components/loadMore";
 
 const Task = () => {
   const task = useSelector((state: RootState) => state.task);
@@ -130,13 +135,8 @@ const Task = () => {
   const handleSubjectSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const searchStr = e.target.value.trim();
     setSubjectSearchParam(searchStr);
-    if (groupByParam.length === 0) {
-      dispatch(setStart(0));
-      flatTaskMutateCall();
-    } else {
-      dispatch(setProjectStart(0));
-      nestedProjectMutateCall();
-    }
+    dispatch(setStart(0));
+    mutate();
   }, []);
 
   // GroupBy Data for ComboBox
@@ -156,9 +156,6 @@ const Task = () => {
 
   useEffect(() => {
     dispatch(setGroupBy(groupByParam));
-    if (groupByParam.length === 0) {
-      dispatch(setFetchAgain(true));
-    }
   }, [groupByParam]);
 
   const handleAddTime = (taskName: string) => {
@@ -197,9 +194,6 @@ const Task = () => {
   }, [projectSearch]);
 
   const loadMore = () => {
-    if (groupByParam.length > 0) {
-      return dispatch(setProjectStart(task.projectStart + 20));
-    }
     dispatch(setStart(task.start + 20));
   };
 
@@ -210,10 +204,39 @@ const Task = () => {
   useEffect(() => {
     setGroupByParam(task.groupBy);
   }, [setGroupByParam, task.groupBy]);
-  const [nestedProjectMutateCall, setNestedProjectMutateCall] = useState(() => () => {});
-  const [flatTaskMutateCall, setFlatTaskMutateCall] = useState(() => () => {});
+
+  // call to fetch task list from DB ( single data source for flat and nested table)
+  const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.task.get_task_list", {
+    page_length: 20,
+    start: task.start,
+    projects: task.selectedProject,
+    search: subjectSearchParam,
+  });
+  useEffect(() => {
+    if (task.isFetchAgain) {
+      mutate();
+      dispatch(setFetchAgain(false));
+    }
+    if (data) {
+      if (task.start !== 0) {
+        dispatch(updateTaskData(data.message));
+        dispatch(updateProjectData());
+      } else {
+        dispatch(setTaskData(data.message));
+        dispatch(setProjectData());
+      }
+    }
+    if (error) {
+      const err = parseFrappeErrorMsg(error);
+      toast({
+        variant: "destructive",
+        description: err,
+      });
+    }
+  }, [data, dispatch, error, mutate, task.isFetchAgain, task.start, toast, groupByParam]);
 
   const handleLike = (e: React.MouseEvent<SVGSVGElement>) => {
+    e.stopPropagation();
     const taskName = e.currentTarget.dataset.task;
     let likedBy = e.currentTarget.dataset.likedBy;
     let add = "Yes";
@@ -230,11 +253,7 @@ const Task = () => {
     };
     call(data)
       .then(() => {
-        if (groupByParam.length > 0) {
-          nestedProjectMutateCall();
-        } else {
-          flatTaskMutateCall();
-        }
+        mutate();
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
@@ -487,9 +506,9 @@ const Task = () => {
     {
       accessorKey: "liked",
       header: "",
-      size: 30, // Default size
-      minSize: 20, // Minimum size
-      maxSize: 30, // Maximum size
+      size: 50, // Default size
+      minSize: 50, // Minimum size
+      maxSize: 50, // Maximum size
       cell: ({ row }) => {
         return (
           <span title="Like">
@@ -750,9 +769,9 @@ const Task = () => {
     {
       accessorKey: "liked",
       header: "",
-      size: 30, // Default size
-      minSize: 20, // Minimum size
-      maxSize: 30, // Maximum size
+      size: 50, // Default size
+      minSize: 50, // Minimum size
+      maxSize: 50, // Maximum size
       cell: ({ row }) => {
         return (
           row.depth !== 0 && (
@@ -929,14 +948,17 @@ const Task = () => {
             }
       `}
       </style>
-      <div className="md:w-full h-full justify-between flex flex-col relative">
-        {/* filters and combo boxes */}
-        <div id="filters" className="flex gap-x-2 mb-3 w-full overflow-hidden p-1 md:overflow-x-auto overflow-x-scroll">
+      {/* filters and combo boxes */}
+      <Header>
+        <div
+          id="filters"
+          className="flex gap-x-2 w-full overflow-hidden md:overflow-x-auto h-full items-center overflow-x-auto"
+        >
           <div className="flex gap-2 xl:w-2/5">
             {/* Task Search Filter */}
             <DeBounceInput
               placeholder="Search Subject..."
-              className="max-w-full min-w-40"
+              className="max-w-full min-w-40 m-1"
               deBounceValue={400}
               value={subjectSearchParam}
               callback={handleSubjectSearchChange}
@@ -975,113 +997,106 @@ const Task = () => {
             className="text-primary border-dashed gap-x-2 font-normal w-fit"
             onSelect={handleGroupByChange}
           />
-          {/* more button */}
-          {/* Add Task Button */}
-          <Button onClick={handleAddTask} className="ml-auto" title="Add task">
-            <Plus className="h-4 w-4 mr-2" /> Add Task
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                size="icon"
-                variant="outline"
-                className="h-full w-fit min-w-10 cursor-pointer border-0 outline-none"
-              >
-                <MoreVertical className="h-4 w-4" />
-                <span className="sr-only">More</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {MoreTableOptionsDropDownData?.map((dropdownItem) => {
-                if (dropdownItem.type === "normal") {
+          <div className="ml-auto flex h-full gap-x-2 justify-center items-center">
+            {/* more button */}
+            {/* Add Task Button */}
+            <Button onClick={handleAddTask} className="px-3" title="Add task">
+              <Plus className="h-4 w-4 mr-1" /> Add Task
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="outline-none">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-full hover:bg-transparent bg-transparent w-fit min-w-10 cursor-pointer border-0 outline-none"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                  <span className="sr-only">More</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {MoreTableOptionsDropDownData?.map((dropdownItem) => {
+                  if (dropdownItem.type === "normal") {
+                    return (
+                      <DropdownMenuItem
+                        key={dropdownItem.title}
+                        onClick={dropdownItem.handleClick}
+                        className="cursor-pointer flex gap-2 items-center justify-start"
+                      >
+                        <dropdownItem.icon className={cn(dropdownItem.iconClass)} />
+                        <Typography variant="p">{dropdownItem.title}</Typography>
+                      </DropdownMenuItem>
+                    );
+                  }
                   return (
-                    <DropdownMenuItem
-                      key={dropdownItem.title}
-                      onClick={dropdownItem.handleClick}
-                      className="cursor-pointer flex gap-2 items-center justify-start"
-                    >
-                      <dropdownItem.icon className={cn(dropdownItem.iconClass)} />
-                      <Typography variant="p">{dropdownItem.title}</Typography>
-                    </DropdownMenuItem>
+                    <DropdownMenuSub key={dropdownItem.title}>
+                      <DropdownMenuSubTrigger className="cursor-pointer flex gap-2 items-center justify-start">
+                        <dropdownItem.icon className={cn(dropdownItem.iconClass)} />
+                        <Typography variant="p">{dropdownItem.title}</Typography>
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuPortal>
+                        <DropdownMenuSubContent>{dropdownItem?.render()}</DropdownMenuSubContent>
+                      </DropdownMenuPortal>
+                    </DropdownMenuSub>
                   );
-                }
-                return (
-                  <DropdownMenuSub key={dropdownItem.title}>
-                    <DropdownMenuSubTrigger className="cursor-pointer flex gap-2 items-center justify-start">
-                      <dropdownItem.icon className={cn(dropdownItem.iconClass)} />
-                      <Typography variant="p">{dropdownItem.title}</Typography>
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuPortal>
-                      <DropdownMenuSubContent>{dropdownItem.render()}</DropdownMenuSubContent>
-                    </DropdownMenuPortal>
-                  </DropdownMenuSub>
-                );
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
-        {/* tables */}
-        {task.isTaskLogDialogBoxOpen && <TaskLog />}
-        <div className="overflow-hidden w-full overflow-y-auto" style={{ height: "calc(100vh - 8rem)" }}>
-          {groupByParam.length === 0 && task.groupBy ? (
-            <FlatTable
-              table={table}
-              columns={columns}
-              columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
-              setLocalStorageTaskState={setLocalStorageTaskState}
-              task={task}
-              subjectSearch={subjectSearchParam}
-              setMutateCall={setFlatTaskMutateCall}
-            />
-          ) : (
-            <RowGroupedTable
-              table={nestedProjectTable}
-              columns={nestedProjectColumns}
-              columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
-              setLocalStorageTaskState={setLocalStorageTaskState}
-              task={task}
-              subjectSearch={subjectSearchParam}
-              setMutateCall={setNestedProjectMutateCall}
-            />
-          )}
-        </div>
-        {/* footer */}
-        <div className="w-full flex justify-between items-center mt-5">
-          <Button
+      </Header>
+      {/* tables */}
+      {task.isTaskLogDialogBoxOpen && <TaskLog />}
+      {groupByParam.length === 0 && task.groupBy ? (
+        <FlatTable
+          table={table}
+          columns={columns}
+          columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
+          setLocalStorageTaskState={setLocalStorageTaskState}
+          task={task}
+          isLoading={isLoading}
+        />
+      ) : (
+        <RowGroupedTable
+          table={nestedProjectTable}
+          columns={nestedProjectColumns}
+          columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
+          setLocalStorageTaskState={setLocalStorageTaskState}
+          task={task}
+          isLoading={isLoading}
+        />
+      )}
+      {/* footer */}
+      <Footer className="bg-blue-500">
+        <div className="flex justify-between items-center">
+          <LoadMore
             className="float-left"
             variant="outline"
             onClick={loadMore}
-            disabled={
-              task.groupBy.length === 0
-                ? task.task.length === task.total_count
-                : task.project.length === task.total_project_count
-            }
+            disabled={task.task.length === task.total_count}
           >
             Load More
-          </Button>
-          <Typography variant="p" className="px-5 font-semibold">
-            {`${task.groupBy.length === 0 ? task.task.length | 0 : task.project.length | 0} of ${
-              task.groupBy.length === 0 ? task.total_count | 0 : task.total_project_count | 0
-            }`}
+          </LoadMore>
+          <Typography variant="p" className="lg:px-5 font-semibold">
+            {`${task.task.length | 0} of ${task.total_count | 0}`}
           </Typography>
         </div>
-        {/* addTime */}
-        {timesheet.isDialogOpen && (
-          <AddTime
-            employee={user.employee}
-            task={timesheet.timesheet.task}
-            initialDate={timesheet.timesheet.date}
-            open={timesheet.isDialogOpen}
-            onOpenChange={() => {
-              dispatch(SetAddTimeDialog(false));
-            }}
-            workingFrequency={user.workingFrequency}
-            workingHours={user.workingHours}
-          />
-        )}
-
-        {task.isAddTaskDialogBoxOpen && <AddTask task={task} projects={projects} setProjectSearch={setProjectSearch} />}
-      </div>
+      </Footer>
+      {/* addTime */}
+      {timesheet.isDialogOpen && (
+        <AddTime
+          employee={user.employee}
+          task={timesheet.timesheet.task}
+          initialDate={timesheet.timesheet.date}
+          open={timesheet.isDialogOpen}
+          onOpenChange={() => {
+            dispatch(SetAddTimeDialog(false));
+          }}
+          workingFrequency={user.workingFrequency}
+          workingHours={user.workingHours}
+        />
+      )}
+      {task.isAddTaskDialogBoxOpen && <AddTask task={task} projects={projects} setProjectSearch={setProjectSearch} />}
     </>
   );
 };

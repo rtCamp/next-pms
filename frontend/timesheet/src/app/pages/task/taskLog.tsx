@@ -80,13 +80,13 @@ export const TaskLog = () => {
   }, [error, logError]);
   return (
     <Dialog open={task.isTaskLogDialogBoxOpen} modal={true} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-2xl overflow-auto gap-2">
+      <DialogContent aria-describedby="" aria-description="" className="sm:max-w-2xl overflow-auto gap-2">
         {isLoading ? (
           <Spinner />
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-x-2">
+              <DialogTitle title={data?.message.subject} className="flex items-center gap-x-2">
                 <Typography variant="h2" className="max-w-sm truncate" title={data?.message.subject}>
                   {data?.message.subject}
                 </Typography>
@@ -165,6 +165,12 @@ export const TaskLog = () => {
                     const date = value;
                     setStartDate(getFormatedDate(addDays(getTodayDate(), -parseInt(date))));
                   } else {
+                    if (value.length === 0) {
+                      setSelectedMap([dateMap[0].value]);
+                      const date = dateMap[0].value;
+                      setStartDate(getFormatedDate(addDays(getTodayDate(), -parseInt(date))));
+                      return;
+                    }
                     setSelectedMap([value[0]]);
                     const date = value[0];
                     setStartDate(getFormatedDate(addDays(getTodayDate(), -parseInt(date))));

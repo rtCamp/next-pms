@@ -1,5 +1,6 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { ProjectData, ProjectNestedTaskData, TaskData } from "@/types";
+import { ProjectNestedTaskData, TaskData } from "@/types";
+import { flatTableDataToNestedProjectDataConversion } from "@/lib/utils";
 
 export interface TaskState {
   task: TaskData[];
@@ -9,9 +10,6 @@ export interface TaskState {
   isFetchAgain?: boolean;
   selectedProject: Array<string>;
   groupBy: Array<string>;
-  total_project_count: number;
-  projectStart: number;
-  projectIsFetchAgain: boolean;
   selectedTask: string;
   isTaskLogDialogBoxOpen: boolean;
   isAddTaskDialogBoxOpen: boolean;
@@ -25,9 +23,6 @@ export const initialState: TaskState = {
   selectedProject: [],
   groupBy: [],
   project: [],
-  projectStart: 0,
-  projectIsFetchAgain: false,
-  total_project_count: 0,
   selectedTask: "",
   isTaskLogDialogBoxOpen: false,
   isAddTaskDialogBoxOpen: false,
@@ -62,24 +57,17 @@ export const taskSlice = createSlice({
       state.start = action.payload;
       state.isFetchAgain = true;
     },
-    setProjectStart: (state, action: PayloadAction<number>) => {
-      state.projectStart = action.payload;
-      state.projectIsFetchAgain = true;
-    },
     setSelectedProject: (state, action: PayloadAction<Array<string>>) => {
       state.selectedProject = action.payload;
       state.task = [];
       state.project = [];
       state.start = 0;
       state.isFetchAgain = true;
-      state.projectStart = 0;
-      state.projectIsFetchAgain = true;
+      state.start = 0;
+      state.isFetchAgain = true;
     },
     setFetchAgain: (state, action: PayloadAction<boolean>) => {
       state.isFetchAgain = action.payload;
-    },
-    setProjectFetchAgain: (state, action: PayloadAction<boolean>) => {
-      state.projectIsFetchAgain = action.payload;
     },
     setGroupBy: (state, action: PayloadAction<Array<string>>) => {
       state.groupBy = action.payload;
@@ -88,31 +76,23 @@ export const taskSlice = createSlice({
       state.project = [];
       state.start = 0;
       state.isFetchAgain = false; // as we dont want data to load for flat structure table
-      state.projectStart = 0;
-      state.projectIsFetchAgain = true;
+      state.start = 0;
+      state.isFetchAgain = true;
     },
-    setProjectData: (state, action: PayloadAction<ProjectData>) => {
-      state.project = action.payload.projects;
-      state.total_project_count = action.payload.count;
-      state.projectIsFetchAgain = false;
+    setProjectData: (state) => {
+      state.project = flatTableDataToNestedProjectDataConversion(state.task);
+      state.isFetchAgain = false;
     },
-    updateProjectData: (state, action: PayloadAction<ProjectData>) => {
-      const existingProjectIds = new Set(
-        state.project.map((project) => project.name),
-      );
-      const newProjects = action.payload.projects.filter(
-        (project) => !existingProjectIds.has(project.name),
-      );
-      state.project = [...state.project, ...newProjects];
-      state.total_project_count = action.payload.count;
-      state.projectIsFetchAgain = false;
+    updateProjectData: (state) => {
+      state.project = flatTableDataToNestedProjectDataConversion(state.task);
+      state.isFetchAgain = false;
     },
     setAddTaskDialog: (state, action: PayloadAction<boolean>) => {
       state.isAddTaskDialogBoxOpen = action.payload;
       state.start = 0;
       state.isFetchAgain = true;
-      state.projectStart = 0;
-      state.projectIsFetchAgain = true;
+      state.start = 0;
+      state.isFetchAgain = true;
     },
     setSelectedTask: (
       state,
@@ -133,8 +113,6 @@ export const {
   setProjectData,
   updateProjectData,
   updateTaskData,
-  setProjectStart,
-  setProjectFetchAgain,
   setAddTaskDialog,
   setSelectedTask,
 } = taskSlice.actions;

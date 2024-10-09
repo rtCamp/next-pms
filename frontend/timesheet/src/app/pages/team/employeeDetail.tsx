@@ -16,7 +16,7 @@ import {
   getDateTimeForMultipleTimeZoneSupport,
 } from "@/lib/utils";
 import { LoadMore } from "@/app/components/loadMore";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useToast } from "@/app/components/ui/use-toast";
 import { Spinner } from "@/app/components/spinner";
 import { Typography } from "@/app/components/typography";
@@ -54,11 +54,29 @@ const EmployeeDetail = () => {
   const dispatch = useDispatch();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.timesheet.get_timesheet_data", {
-    employee: id,
-    start_date: teamState.employeeWeekDate,
-    max_week: 4,
-  });
+
+  useLayoutEffect(() => {
+    if (!id) {
+      const EMPLOYEE_ID_NOT_FOUND = "Please pick an employee from the combo box.";
+      toast({
+        variant: "destructive",
+        description: EMPLOYEE_ID_NOT_FOUND,
+      });
+    }
+  }, [id]);
+
+  const { data, isLoading, error, mutate } = useFrappeGetCall(
+    "frappe_pms.timesheet.api.timesheet.get_timesheet_data",
+    {
+      employee: id,
+      start_date: teamState.employeeWeekDate,
+      max_week: 4,
+    },
+    undefined,
+    {
+      errorRetryCount: 1,
+    },
+  );
 
   const handleAddTime = () => {
     const timesheet = {
@@ -145,36 +163,38 @@ const EmployeeDetail = () => {
         />
       )}
       <Header>
-        <EmployeeCombo onSelect={onEmployeeChange} value={id as string} className="w-fit" />
+        <EmployeeCombo onSelect={onEmployeeChange} value={id as string} className="w-full lg:w-fit" />
       </Header>
 
-      <Tabs defaultValue="timesheet" className="overflow-auto scroll-smooth">
-        <div className="flex gap-x-4 mt-3 px-3 sticky top-0 z-10 transition-shadow duration-300 backdrop-blur-sm">
-          <TabsList className="w-full justify-start">
-            <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
-            <TabsTrigger value="time">Time</TabsTrigger>
-          </TabsList>
-          <Button className="float-right mb-1" onClick={handleAddTime}>
-            Add Time
-          </Button>
-        </div>
-        {isLoading ? (
-          <Spinner isFull />
-        ) : (
-          <Main>
-            <TabsContent value="timesheet" className="mt-0">
-              <Timesheet />
-            </TabsContent>
-            <TabsContent value="time" className="mt-0">
-              <Time
-                callback={() => {
-                  dispatch(setFetchAgain(true));
-                }}
-              />
-            </TabsContent>
-          </Main>
-        )}
-      </Tabs>
+      <Main>
+        <Tabs defaultValue="timesheet" className="relative">
+          <div className="flex gap-x-4 mt-3 px-0 sticky top-3 z-10 transition-shadow duration-300 backdrop-blur-sm">
+            <TabsList className="w-full justify-start">
+              <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
+              <TabsTrigger value="time">Time</TabsTrigger>
+            </TabsList>
+            <Button className="float-right mb-1" onClick={handleAddTime}>
+              Add Time
+            </Button>
+          </div>
+          {isLoading ? (
+            <Spinner isFull />
+          ) : (
+            <>
+              <TabsContent value="timesheet" className="mt-0">
+                <Timesheet />
+              </TabsContent>
+              <TabsContent value="time" className="mt-0">
+                <Time
+                  callback={() => {
+                    dispatch(setFetchAgain(true));
+                  }}
+                />
+              </TabsContent>
+            </>
+          )}
+        </Tabs>
+      </Main>
 
       <Footer>
         <LoadMore className="float-left" variant="outline" onClick={handleLoadData} disabled={isLoading} />
@@ -504,43 +524,40 @@ export const TimeInput = ({
   disabled?: boolean;
   callback: (data: NewTimesheetProps) => void;
 }) => {
-  const [hour, setHour] = useState(data.hours);
+  const [hour, setHour] = useState(String(floatToTime(data.hours)));
+  const inputRef = useRef<HTMLInputElement>(null);
   const handleHourChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const hour = e.target.value;
-    if (!hour) return;
     let time = 0;
+    if (!hour) {
+      return setHour(hour);
+    }
     if (timeFormatRegex.test(hour)) {
       const [hours, minutes] = hour.split(":").map(Number);
       time = hours + minutes / 60;
     } else {
       time = parseFloat(hour);
     }
-    console.log(e.target.value);
-    setHour(time);
+    setHour(String(time));
   };
-  const updateTime = (hour: string) => {
-    let time = 0;
-    if (timeFormatRegex.test(hour)) {
-      const [hours, minutes] = hour.split(":").map(Number);
-      time = hours + minutes / 60;
-    } else {
-      time = parseFloat(hour);
-    }
-    if (time == 0 || Number.isNaN(time)) return;
+  const updateTime = () => {
+    if (hour.trim() == "" || Number.isNaN(hour)) return;
     const value = {
       ...data,
-      hours: time,
+      hours: Number(hour),
       employee: employee,
     };
-    // callback(value);
+    callback(value);
+    if (inputRef.current) {
+      inputRef.current.value = String(floatToTime(parseFloat(hour)));
+    }
   };
   return (
     <Input
-      value={hour}
+      ref={inputRef}
+      defaultValue={hour}
       className={cn("w-20", className)}
-      onBlur={(e) => {
-        updateTime(e.target.value);
-      }}
+      onBlur={updateTime}
       onChange={handleHourChange}
       disabled={disabled}
     />
