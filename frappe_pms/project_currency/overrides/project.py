@@ -11,6 +11,7 @@ class ProjectOverwrite(EmployeeProject):
         super().validate()
         self.update_project_currency()
         self.validate_overlap_project_billing()
+        self.validate_overlap_project_budget()
 
     def update_project_currency(self):
         if self.customer:
@@ -41,6 +42,30 @@ class ProjectOverwrite(EmployeeProject):
                             )
                         )
 
+    def validate_overlap_project_budget(self):
+        custom_project_budget = self.custom_project_budget
+
+        for index in range(len(custom_project_budget)):
+            if (
+                custom_project_budget[index].start_date
+                > custom_project_budget[index].end_date
+            ):
+                frappe.throw(
+                    _("End date should be greater than start date in project budget.")
+                )
+
+        for index in range(len(custom_project_budget)):
+
+            for index2 in range(index + 1, len(custom_project_budget)):
+                if (
+                    custom_project_budget[index].start_date
+                    <= custom_project_budget[index2].start_date
+                    <= custom_project_budget[index].end_date
+                ):
+                    frappe.throw(
+                        _("Budget has an overlapping date range in project budget.")
+                    )
+
     def update_costing(self):
         TimesheetDetail = frappe.qb.DocType("Timesheet Detail")
         from_time_sheet = (
@@ -68,6 +93,12 @@ class ProjectOverwrite(EmployeeProject):
         self.update_billed_amount()
         self.calculate_gross_margin()
         self.update_expense_claim()
+
+        if self.custom_billing_type == "Fixed Cost":
+            self.update_project_cost_rate()
+
+        if self.custom_billing_type == "Retainer":
+            self.update_retainer_project_budget()
 
     def update_sales_amount(self):
         total_sales_amount = frappe.db.sql(
@@ -129,6 +160,38 @@ class ProjectOverwrite(EmployeeProject):
             total_amount += expense_claim.total_sanctioned_amount * rate
 
         self.total_expense_claim = total_amount
+
+    def update_project_cost_rate(self):
+        if self.estimated_costing:
+            self.custom__cost = self.total_costing_amount * 100 / self.estimated_costing
+
+    def update_retainer_project_budget(self):
+        custom_project_budget = self.custom_project_budget
+
+        self.custom_total_hours_purchased = 0
+        self.custom_total_hours_remaining = 0
+
+        for budget in custom_project_budget:
+            TimesheetDetail = frappe.qb.DocType("Timesheet Detail")
+            from_time_sheet = (
+                frappe.qb.from_(TimesheetDetail)
+                .select(
+                    Sum(TimesheetDetail.hours).as_("time"),
+                )
+                .where(TimesheetDetail.project == self.name)
+                .where(
+                    (TimesheetDetail.docstatus == 1) | (TimesheetDetail.docstatus == 0)
+                )
+                .where(TimesheetDetail.from_time >= budget.start_date)
+                .where(TimesheetDetail.to_time <= budget.end_date)
+            ).run(as_dict=True)[0]
+            if not from_time_sheet.time:
+                from_time_sheet.time = 0
+            budget.consumed_hours = from_time_sheet.time
+            budget.remaining_hours = budget.hours_purchased - from_time_sheet.time
+
+            self.custom_total_hours_purchased += budget.hours_purchased
+            self.custom_total_hours_remaining += budget.remaining_hours
 
 
 @frappe.whitelist()

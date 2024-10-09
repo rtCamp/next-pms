@@ -10,12 +10,12 @@ import {
   parseFrappeErrorMsg,
   prettyDate,
   calculateExtendedWorkingHour,
-  deBounce,
   floatToTime,
   preProcessLink,
   expectatedHours,
   getDateTimeForMultipleTimeZoneSupport,
 } from "@/lib/utils";
+import { LoadMore } from "@/app/components/loadMore";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { useToast } from "@/app/components/ui/use-toast";
 import { Spinner } from "@/app/components/spinner";
@@ -37,6 +37,7 @@ import {
   setEditDialog,
   setDateRange,
 } from "@/store/team";
+import { Header, Footer, Main } from "@/app/layout/root";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { Status } from "@/app/pages/team";
@@ -161,9 +162,12 @@ const EmployeeDetail = () => {
           }}
         />
       )}
-      <EmployeeCombo onSelect={onEmployeeChange} value={id as string} className="lg:max-w-xs max-md:w-full" />
-      <Tabs defaultValue="timesheet" className="mt-3">
-        <div className="flex gap-x-4">
+      <Header>
+        <EmployeeCombo onSelect={onEmployeeChange} value={id as string} className="w-fit" />
+      </Header>
+
+      <Tabs defaultValue="timesheet" className="overflow-auto scroll-smooth">
+        <div className="flex gap-x-4 mt-3 px-3 sticky top-0 z-10 transition-shadow duration-300 backdrop-blur-sm">
           <TabsList className="w-full justify-start">
             <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
             <TabsTrigger value="time">Time</TabsTrigger>
@@ -175,27 +179,24 @@ const EmployeeDetail = () => {
         {isLoading ? (
           <Spinner isFull />
         ) : (
-          <>
-            <div className="overflow-y-auto" style={{ height: "calc(100vh - 11rem)" }}>
-              <TabsContent value="timesheet" className="mt-0">
-                <Timesheet />
-              </TabsContent>
-              <TabsContent value="time" className="mt-0">
-                <Time
-                  callback={() => {
-                    dispatch(setFetchAgain(true));
-                  }}
-                />
-              </TabsContent>
-            </div>
-            <div className="mt-5">
-              <Button className="float-left" variant="outline" onClick={handleLoadData}>
-                Load More
-              </Button>
-            </div>
-          </>
+          <Main>
+            <TabsContent value="timesheet" className="mt-0">
+              <Timesheet />
+            </TabsContent>
+            <TabsContent value="time" className="mt-0">
+              <Time
+                callback={() => {
+                  dispatch(setFetchAgain(true));
+                }}
+              />
+            </TabsContent>
+          </Main>
         )}
       </Tabs>
+
+      <Footer>
+        <LoadMore className="float-left" variant="outline" onClick={handleLoadData} disabled={isLoading} />
+      </Footer>
     </>
   );
 };
@@ -521,12 +522,22 @@ export const TimeInput = ({
   disabled?: boolean;
   callback: (data: NewTimesheetProps) => void;
 }) => {
-  const [hour, setHour] = useState(floatToTime(data.hours));
+  const [hour, setHour] = useState(data.hours);
   const handleHourChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let time = 0;
     const hour = e.target.value;
-    setHour(hour);
-
+    if (!hour) return;
+    let time = 0;
+    if (timeFormatRegex.test(hour)) {
+      const [hours, minutes] = hour.split(":").map(Number);
+      time = hours + minutes / 60;
+    } else {
+      time = parseFloat(hour);
+    }
+    console.log(e.target.value);
+    setHour(time);
+  };
+  const updateTime = (hour: string) => {
+    let time = 0;
     if (timeFormatRegex.test(hour)) {
       const [hours, minutes] = hour.split(":").map(Number);
       time = hours + minutes / 60;
@@ -534,16 +545,23 @@ export const TimeInput = ({
       time = parseFloat(hour);
     }
     if (time == 0 || Number.isNaN(time)) return;
-    timeUpdate(time);
-  };
-  const timeUpdate = deBounce((hour: number) => {
     const value = {
       ...data,
-      hours: hour,
+      hours: time,
       employee: employee,
     };
-    callback(value);
-  }, 1500);
-  return <Input value={hour} className={cn("w-20", className)} onChange={handleHourChange} disabled={disabled} />;
+    // callback(value);
+  };
+  return (
+    <Input
+      value={hour}
+      className={cn("w-20", className)}
+      onBlur={(e) => {
+        updateTime(e.target.value);
+      }}
+      onChange={handleHourChange}
+      disabled={disabled}
+    />
+  );
 };
 export default EmployeeDetail;

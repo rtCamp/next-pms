@@ -3,7 +3,6 @@ import { RootState } from "@/store";
 import { useSelector, useDispatch } from "react-redux";
 import { setDateRange, setFetchAgain } from "@/store/team";
 import { Button } from "@/app/components/ui/button";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
 import {
   calculateExtendedWorkingHour,
   cn,
@@ -11,7 +10,6 @@ import {
   parseFrappeErrorMsg,
   prettyDate,
   floatToTime,
-  truncateText,
   preProcessLink,
   expectatedHours,
 } from "@/lib/utils";
@@ -25,7 +23,7 @@ import { WorkingFrequency } from "@/types";
 import { TimeInput } from "@/app/pages/team/employeeDetail";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { Separator } from "@/app/components/ui/separator";
-import { Check, CircleDollarSign, X } from "lucide-react";
+import { Check, CircleDollarSign, LoaderCircle, X } from "lucide-react";
 import { Textarea } from "@/app/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog";
 import { TimesheetRejectionSchema } from "@/schema/timesheet";
@@ -38,10 +36,13 @@ type Holiday = {
   holiday_date: string;
   description: string;
 };
+
 export const Approval = () => {
   const { toast } = useToast();
   const teamState = useSelector((state: RootState) => state.team);
   const [timesheetData, setTimesheetData] = useState<timesheet>();
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isRejecting, setIsRejecting] = useState<boolean>(false);
   const [working_hour, setWorkingHour] = useState<number>(0);
   const [working_frequency, setWorkingFrequency] = useState<WorkingFrequency>("Per Day");
   const [holidays, setHoliday] = useState<Array<Holiday>>([]);
@@ -83,11 +84,13 @@ export const Approval = () => {
     holiday_with_description: true,
   });
   const handleOpen = () => {
+    if (isRejecting || isSubmitting) return;
     const data = { start_date: "", end_date: "" };
     dispatch(setDateRange({ dateRange: data, employee: "", isAprrovalDialogOpen: false }));
     dispatch(setFetchAgain(true));
   };
   const handleApproval = () => {
+    setIsSubmitting(true);
     const data = {
       dates: selectedDates,
       status: "Approved",
@@ -99,6 +102,7 @@ export const Approval = () => {
           variant: "success",
           description: res.message,
         });
+        setIsSubmitting(false);
         handleOpen();
       })
       .catch((err) => {
@@ -107,9 +111,11 @@ export const Approval = () => {
           variant: "destructive",
           description: error,
         });
+        setIsSubmitting(false);
       });
   };
   const handleRejection = (reason: string) => {
+    setIsRejecting(true);
     const data = {
       dates: selectedDates,
       status: "Rejected",
@@ -122,6 +128,7 @@ export const Approval = () => {
           variant: "success",
           description: res.message,
         });
+        setIsRejecting(false);
         handleOpen();
       })
       .catch((err) => {
@@ -130,6 +137,7 @@ export const Approval = () => {
           variant: "destructive",
           description: error,
         });
+        setIsRejecting(false);
       });
   };
   const handleCheckboxChange = (date: string) => {
@@ -229,7 +237,8 @@ export const Approval = () => {
                           <Checkbox
                             disabled={
                               submittedTime ||
-                              (isHoliday && matchingTasks.length == 0) ||
+                              isHoliday ||
+                              matchingTasks.length == 0 ||
                               (leave && !isHalfDayLeave && !isHoliday)
                             }
                             checked={isChecked || submittedTime || isHalfDayLeave}
@@ -322,15 +331,17 @@ export const Approval = () => {
               <Separator />
             </div>
             <SheetFooter className="sm:justify-start mt-5 flex-col gap-y-4 w-full">
-              <Button onClick={handleApproval} variant="success" className="items-center px-2 gap-x-1">
-                <Check className="w-4 h-4" />
+              <Button onClick={handleApproval} variant="success" disabled={selectedDates.length == 0 || isSubmitting}>
+                {isSubmitting ? <LoaderCircle className="animate-spin w-4 h-4" /> : <Check className="w-4 h-4" />}
                 Approve
               </Button>
 
               <TimesheetRejectConfirmationDialog
                 onRejection={handleRejection}
+                isSubmitting={isRejecting}
                 dates={selectedDates}
                 employee={teamState.employee}
+                disabled={selectedDates.length == 0 || isRejecting}
               />
             </SheetFooter>
           </>
@@ -344,10 +355,14 @@ const TimesheetRejectConfirmationDialog = ({
   onRejection,
   dates,
   employee,
+  disabled,
+  isSubmitting,
 }: {
   onRejection: (reason: string) => void;
   dates: Array<string>;
   employee: string;
+  disabled: boolean;
+  isSubmitting: boolean;
 }) => {
   const form = useForm<z.infer<typeof TimesheetRejectionSchema>>({
     resolver: zodResolver(TimesheetRejectionSchema),
@@ -370,8 +385,8 @@ const TimesheetRejectConfirmationDialog = ({
 
   return (
     <Dialog>
-      <DialogTrigger>
-        <Button variant="destructive" className="items-center px-2 gap-x-1">
+      <DialogTrigger asChild>
+        <Button variant="destructive" className="gap-x-2" disabled={disabled}>
           <X className="w-4 h-4" />
           Reject
         </Button>
@@ -406,8 +421,8 @@ const TimesheetRejectConfirmationDialog = ({
               )}
             />
             <DialogFooter className="sm:justify-start my-2">
-              <Button variant="destructive" type="submit" className="items-center px-2 gap-x-1">
-                <X className="w-4 h-4" />
+              <Button variant="destructive" type="submit" className="gap-x-1" disabled={isSubmitting}>
+                {isSubmitting ? <LoaderCircle className="animate-spin w-4 h-4" /> : <X className="w-4 h-4" />}
                 Reject
               </Button>
             </DialogFooter>

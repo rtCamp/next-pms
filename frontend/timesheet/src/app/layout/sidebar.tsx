@@ -1,11 +1,11 @@
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useContext, useEffect, useState } from "react";
-import { setAppLogo, setSidebarCollapsed } from "@/store/user";
+import { setSidebarCollapsed } from "@/store/user";
 import { useDispatch } from "react-redux";
 import { Typography } from "@/app/components/typography";
 import { NavLink } from "react-router-dom";
-import { cn, parseFrappeErrorMsg } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import {
   Home,
   Users,
@@ -19,13 +19,12 @@ import {
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { TIMESHEET, HOME, TEAM, DESK, TASK, PROJECT } from "@/lib/constant";
-import { FrappeContext, FrappeConfig } from "frappe-react-sdk";
-import { useToast } from "@/app/components/ui/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 import { UserContext } from "@/lib/UserProvider";
 import { Separator } from "@radix-ui/react-separator";
 import GenWrapper from "../components/GenWrapper";
+import logo from "@/logo.svg";
 
 type NestedRoute = {
   to: string;
@@ -46,8 +45,6 @@ type Route = {
 };
 
 const Sidebar = () => {
-  const { call } = useContext(FrappeContext) as FrappeConfig;
-
   const [openRoutes, setOpenRoutes] = useState<{ [key: string]: boolean }>({
     reports: false,
   });
@@ -56,30 +53,8 @@ const Sidebar = () => {
   };
   const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
-  const { toast } = useToast();
   const hasPmRole = user.roles.includes("Projects Manager") || user.roles.includes("Timesheet Manager");
   const screenSize = useSelector((state: RootState) => state.app.screenSize);
-  useEffect(() => {
-    if (!user.appLogo) {
-      fetchAppLogo();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const fetchAppLogo = () => {
-    call
-      .get("frappe_pms.timesheet.api.app.app_logo")
-      .then((res) => {
-        dispatch(setAppLogo(res.message));
-      })
-      .catch((err) => {
-        const error = parseFrappeErrorMsg(err);
-        toast({
-          variant: "destructive",
-          description: error,
-        });
-      });
-  };
 
   const handleCollapse = () => {
     dispatch(setSidebarCollapsed(!user.isSidebarCollapsed));
@@ -136,23 +111,20 @@ const Sidebar = () => {
           user.isSidebarCollapsed && "w-16 items-center",
         )}
       >
-        <div
-          className={cn("flex gap-x-2 items-center overflow-hidden", !user.isSidebarCollapsed && "pl-3")}
-          id="app-logo"
-        >
+        <div className={cn("flex shrink-0 gap-x-2 items-center justify-center overflow-hidden")} id="app-logo">
           <img
-            src={decodeURIComponent(user.appLogo)}
+            src={logo}
             alt="app-logo"
-            className="w-8 h-8 max-xl:w-7 max-xl:h-7 transition-all duration-300 ease-in-out max-lg:w-7 max-lg:h-7 max-md:w-7 max-md:h-7 object-cover"
+            className=" w-8 h-auto max-xl:w-7 max-xl:h-7 transition-all duration-300 ease-in-out max-lg:w-7 max-lg:h-7 max-md:w-7 max-md:h-7"
           />
           <Typography
-            variant="h2"
+            variant="h5"
             className={cn(
-              "transition-all duration-300 ease-in-out max-md:hidden text-[1.65vw]",
+              "transition-all duration-300 ease-in-out max-md:hidden ",
               user.isSidebarCollapsed && "hidden",
             )}
           >
-            Timesheet
+            Project Management
           </Typography>
         </div>
         <div className="pt-10 h-full overflow-y-auto flex flex-col gap-y-2 transition-all duration-300 ease-in-out">

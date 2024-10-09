@@ -51,6 +51,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
   const screenSize = useSelector((state: RootState) => state.app.screenSize);
   const handleScreenSize = () => {
     dispatch(updateScreenSize(checkScreenSize()));
@@ -58,7 +59,6 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     window.addEventListener("resize", handleScreenSize);
     () => {
-      // cleanups
       window.removeEventListener("resize", handleScreenSize);
     };
   }, []);
@@ -78,12 +78,12 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           }}
         >
           {user.employee && (
-            <div className="h-full p-3">
+            <>
               <Suspense fallback={<></>}>
                 <GenWrapper>{children}</GenWrapper>
               </Suspense>
               <Toaster />
-            </div>
+            </>
           )}
         </div>
       </div>

@@ -34,8 +34,8 @@ export const FlatTable = ({
       {isLoading && task.task.length == 0 ? (
         <Spinner isFull />
       ) : (
-        <Table className="[&_td]:px-2  [&_th]:px-2 table-fixed">
-          <TableHeader className="[&_th]:h-10">
+        <Table className="[&_td]:px-4 [&_th]:px-4 [&_th]:py-4 table-fixed w-full">
+          <TableHeader className="[&_th]:h-10 border-t-0">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {

@@ -84,6 +84,7 @@ import {
   MoreTableOptionsDropDownType,
 } from "@/types/task";
 import { TaskLog } from "./taskLog";
+import { Footer, Header, Main } from "@/app/layout/root";
 
 const Task = () => {
   const task = useSelector((state: RootState) => state.task);
@@ -946,9 +947,9 @@ const Task = () => {
             }
       `}
       </style>
-      <div className="md:w-full h-full justify-between flex flex-col relative">
-        {/* filters and combo boxes */}
-        <div id="filters" className="flex gap-x-2 mb-3 w-full overflow-hidden p-1 md:overflow-x-auto overflow-x-auto">
+      {/* filters and combo boxes */}
+      <Header>
+        <div id="filters" className="flex gap-x-2 w-full overflow-hidden md:overflow-x-auto h-full overflow-x-auto">
           <div className="flex gap-2 xl:w-2/5">
             {/* Task Search Filter */}
             <DeBounceInput
@@ -992,76 +993,78 @@ const Task = () => {
             className="text-primary border-dashed gap-x-2 font-normal w-fit"
             onSelect={handleGroupByChange}
           />
-          {/* more button */}
-          {/* Add Task Button */}
-          <Button onClick={handleAddTask} className="ml-auto" title="Add task">
-            <Plus className="h-4 w-4 mr-2" /> Add Task
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                size="icon"
-                variant="outline"
-                className="h-full w-fit min-w-10 cursor-pointer border-0 outline-none"
-              >
-                <MoreVertical className="h-4 w-4" />
-                <span className="sr-only">More</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {MoreTableOptionsDropDownData?.map((dropdownItem) => {
-                if (dropdownItem.type === "normal") {
+          <div className="ml-auto flex h-full gap-x-2 justify-center items-center">
+            {/* more button */}
+            {/* Add Task Button */}
+            <Button onClick={handleAddTask} className="px-3" title="Add task">
+              <Plus className="h-4 w-4 mr-1" /> Add Task
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="outline-none h-full">
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="h-full w-fit min-w-10 cursor-pointer border-0 outline-none"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                  <span className="sr-only">More</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {MoreTableOptionsDropDownData?.map((dropdownItem) => {
+                  if (dropdownItem.type === "normal") {
+                    return (
+                      <DropdownMenuItem
+                        key={dropdownItem.title}
+                        onClick={dropdownItem.handleClick}
+                        className="cursor-pointer flex gap-2 items-center justify-start"
+                      >
+                        <dropdownItem.icon className={cn(dropdownItem.iconClass)} />
+                        <Typography variant="p">{dropdownItem.title}</Typography>
+                      </DropdownMenuItem>
+                    );
+                  }
                   return (
-                    <DropdownMenuItem
-                      key={dropdownItem.title}
-                      onClick={dropdownItem.handleClick}
-                      className="cursor-pointer flex gap-2 items-center justify-start"
-                    >
-                      <dropdownItem.icon className={cn(dropdownItem.iconClass)} />
-                      <Typography variant="p">{dropdownItem.title}</Typography>
-                    </DropdownMenuItem>
+                    <DropdownMenuSub key={dropdownItem.title}>
+                      <DropdownMenuSubTrigger className="cursor-pointer flex gap-2 items-center justify-start">
+                        <dropdownItem.icon className={cn(dropdownItem.iconClass)} />
+                        <Typography variant="p">{dropdownItem.title}</Typography>
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuPortal>
+                        <DropdownMenuSubContent>{dropdownItem?.render()}</DropdownMenuSubContent>
+                      </DropdownMenuPortal>
+                    </DropdownMenuSub>
                   );
-                }
-                return (
-                  <DropdownMenuSub key={dropdownItem.title}>
-                    <DropdownMenuSubTrigger className="cursor-pointer flex gap-2 items-center justify-start">
-                      <dropdownItem.icon className={cn(dropdownItem.iconClass)} />
-                      <Typography variant="p">{dropdownItem.title}</Typography>
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuPortal>
-                      <DropdownMenuSubContent>{dropdownItem?.render()}</DropdownMenuSubContent>
-                    </DropdownMenuPortal>
-                  </DropdownMenuSub>
-                );
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
-        {/* tables */}
-        {task.isTaskLogDialogBoxOpen && <TaskLog />}
-        <div className="overflow-hidden w-full overflow-y-auto" style={{ height: "calc(100vh - 8rem)" }}>
-          {groupByParam.length === 0 && task.groupBy ? (
-            <FlatTable
-              table={table}
-              columns={columns}
-              columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
-              setLocalStorageTaskState={setLocalStorageTaskState}
-              task={task}
-              isLoading={isLoading}
-            />
-          ) : (
-            <RowGroupedTable
-              table={nestedProjectTable}
-              columns={nestedProjectColumns}
-              columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
-              setLocalStorageTaskState={setLocalStorageTaskState}
-              task={task}
-              isLoading={isLoading}
-            />
-          )}
-        </div>
-        {/* footer */}
-        <div className="w-full flex justify-between items-center mt-5">
+      </Header>
+      {/* tables */}
+      {task.isTaskLogDialogBoxOpen && <TaskLog />}
+      {groupByParam.length === 0 && task.groupBy ? (
+        <FlatTable
+          table={table}
+          columns={columns}
+          columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
+          setLocalStorageTaskState={setLocalStorageTaskState}
+          task={task}
+          isLoading={isLoading}
+        />
+      ) : (
+        <RowGroupedTable
+          table={nestedProjectTable}
+          columns={nestedProjectColumns}
+          columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
+          setLocalStorageTaskState={setLocalStorageTaskState}
+          task={task}
+          isLoading={isLoading}
+        />
+      )}
+      {/* footer */}
+      <Footer>
+        <div className="flex justify-between items-center">
           <Button
             className="float-left"
             variant="outline"
@@ -1074,23 +1077,23 @@ const Task = () => {
             {`${task.task.length | 0} of ${task.total_count | 0}`}
           </Typography>
         </div>
-        {/* addTime */}
-        {timesheet.isDialogOpen && (
-          <AddTime
-            employee={user.employee}
-            task={timesheet.timesheet.task}
-            initialDate={timesheet.timesheet.date}
-            open={timesheet.isDialogOpen}
-            onOpenChange={() => {
-              dispatch(SetAddTimeDialog(false));
-            }}
-            workingFrequency={user.workingFrequency}
-            workingHours={user.workingHours}
-          />
-        )}
+      </Footer>
+      {/* addTime */}
+      {timesheet.isDialogOpen && (
+        <AddTime
+          employee={user.employee}
+          task={timesheet.timesheet.task}
+          initialDate={timesheet.timesheet.date}
+          open={timesheet.isDialogOpen}
+          onOpenChange={() => {
+            dispatch(SetAddTimeDialog(false));
+          }}
+          workingFrequency={user.workingFrequency}
+          workingHours={user.workingHours}
+        />
+      )}
 
-        {task.isAddTaskDialogBoxOpen && <AddTask task={task} projects={projects} setProjectSearch={setProjectSearch} />}
-      </div>
+      {task.isAddTaskDialogBoxOpen && <AddTask task={task} projects={projects} setProjectSearch={setProjectSearch} />}
     </>
   );
 };

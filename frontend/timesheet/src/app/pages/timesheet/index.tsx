@@ -14,6 +14,8 @@ import {
   setEditDialog,
   setApprovalDialog,
 } from "@/store/timesheet";
+import { LoadMore } from "@/app/components/loadMore";
+import { Header, Footer, Main } from "@/app/layout/root";
 import { Button } from "@/app/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Typography } from "@/app/components/typography";
@@ -32,6 +34,7 @@ import { Approval } from "./Approval";
 import { LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
 import { WorkingFrequency } from "@/types";
 import AddTime from "@/app/components/addTime";
+import { Plus } from "lucide-react";
 
 function Timesheet() {
   const { toast } = useToast();
@@ -112,16 +115,17 @@ function Timesheet() {
     return <></>;
   }
   return (
-    <div className="flex flex-col">
-      <div>
-        <Button className="float-right mb-1" onClick={handleAddTime}>
-          Add Time
+    <>
+      <Header>
+        <Button className="float-right px-3" onClick={handleAddTime}>
+          <Plus className="h-4 w-4 mr-2 " /> Add Time
         </Button>
-      </div>
+      </Header>
+
       {isLoading && Object.keys(timesheet.data?.data).length == 0 ? (
         <Spinner isFull />
       ) : (
-        <div className="overflow-y-auto" style={{ height: "calc(100vh - 8rem)" }}>
+        <Main>
           {timesheet.data?.data &&
             Object.keys(timesheet.data?.data).length > 0 &&
             Object.entries(timesheet.data?.data).map(([key, value]: [string, timesheet], index: number) => {
@@ -156,8 +160,11 @@ function Timesheet() {
                   <AccordionItem value={key}>
                     <AccordionTrigger className="hover:no-underline w-full py-2">
                       <div className="flex justify-between items-center w-full">
-                        <Typography variant="h6" className="font-normal">
-                          {key}: {floatToTime(total_hours)}h
+                        <Typography
+                          variant="h6"
+                          className="font-normal text-xs sm:text-base flex items-center gap-x-1 flex-col sm:flex-row"
+                        >
+                          {key}:<Typography className="text-xs sm:text-base">{floatToTime(total_hours)}h</Typography>
                         </Typography>
                         <SubmitButton
                           start_date={value.start_date}
@@ -182,13 +189,11 @@ function Timesheet() {
                 </Accordion>
               );
             })}
-        </div>
+        </Main>
       )}
-      <div className="mt-5">
-        <Button className="float-left" variant="outline" onClick={loadData} disabled={isLoading}>
-          Load More
-        </Button>
-      </div>
+      <Footer>
+        <LoadMore className="float-left" variant="outline" onClick={loadData} disabled={isLoading} />
+      </Footer>
       {timesheet.isDialogOpen && (
         <AddTime
           open={timesheet.isDialogOpen}
@@ -216,7 +221,7 @@ function Timesheet() {
         />
       )}
       {timesheet.isAprrovalDialogOpen && <Approval />}
-    </div>
+    </>
   );
 }
 

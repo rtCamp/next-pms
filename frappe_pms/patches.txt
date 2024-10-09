@@ -6,3 +6,5 @@
 # Patches added in this section will be executed after doctypes are migrated
 frappe_pms.timesheet.patches.add_timesheet_role
 frappe_pms.timesheet.patches.update_timesheet_weekly_status
+
+# frappe_pms.project_currency.patches.update_project_billing_type Need to run this manually
