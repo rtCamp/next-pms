@@ -16,6 +16,7 @@ import {
   ChevronUp,
   ChevronDown,
   ClipboardList,
+  FolderDot,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { TIMESHEET, HOME, TEAM, DESK, TASK, PROJECT } from "@/lib/constant";
@@ -83,7 +84,7 @@ const Sidebar = () => {
     },
     {
       to: PROJECT,
-      icon: Users,
+      icon: FolderDot,
       label: "Project",
       key: "project",
       isPmRoute: true,
