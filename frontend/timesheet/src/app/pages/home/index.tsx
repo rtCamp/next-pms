@@ -156,8 +156,8 @@ const Home = () => {
       {isLoading && Object.keys(homeState.data.data).length == 0 ? (
         <Spinner isFull />
       ) : (
-        <Table className="[&_tr]:pr-3">
-          <TableHeader className="border-t-0">
+        <Table className="[&_tr]:pr-3 relative">
+          <TableHeader className="border-t-0 sticky top-0 w-full z-10">
             <TableRow>
               <TableHead className="max-w-sm w-full"></TableHead>
               {homeState.data?.dates?.map((item: DateProps, index: number) => {
