@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
-import { Clock3, LoaderCircle, Search } from "lucide-react";
+import { Clock3, LoaderCircle, Save, Search, X } from "lucide-react";
 import { DatePicker } from "./datePicker";
 import { Typography } from "./typography";
 import { Input } from "@/app/components/ui/input";
@@ -58,7 +58,7 @@ const AddTime = ({
     defaultValues: {
       name: "",
       task: task,
-      hours: floatToTime(0),
+      hours: "",
       description: "",
       date: initialDate,
       employee: employee,
@@ -325,11 +325,12 @@ const AddTime = ({
               />
               <DialogFooter className="sm:justify-start w-full pt-3">
                 <div className="flex gap-x-4 w-full">
-                  <Button disabled={!isDirty || !isValid || submitting} className="gap-x-2">
-                    {submitting && <LoaderCircle className="animate-spin w-4 h-4" />}
+                  <Button disabled={!isDirty || !isValid || submitting}>
+                    {submitting ? <LoaderCircle className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
                     Add Time
                   </Button>
                   <Button variant="secondary" type="button" onClick={handleOpen} disabled={submitting}>
+                    <X className="w-4 h-4" />
                     Cancel
                   </Button>
                 </div>

@@ -22,7 +22,7 @@ import { Spinner } from "@/app/components/spinner";
 import { Typography } from "@/app/components/typography";
 import TimesheetTable from "@/app/components/timesheetTable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
-import { CircleDollarSign } from "lucide-react";
+import { CircleDollarSign, Plus } from "lucide-react";
 import { addDays } from "date-fns";
 import AddTime from "@/app/components/addTime";
 import {
@@ -154,7 +154,8 @@ const EmployeeDetail = () => {
             <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
             <TabsTrigger value="time">Time</TabsTrigger>
           </TabsList>
-          <Button className="float-right mb-1" onClick={handleAddTime}>
+          <Button className="float-right" onClick={handleAddTime}>
+            <Plus className="w-4 h-4" />
             Add Time
           </Button>
         </div>

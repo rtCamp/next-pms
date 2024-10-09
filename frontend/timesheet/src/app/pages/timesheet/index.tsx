@@ -34,6 +34,7 @@ import { Approval } from "./Approval";
 import { LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
 import { WorkingFrequency } from "@/types";
 import AddTime from "@/app/components/addTime";
+import { Plus } from "lucide-react";
 
 function Timesheet() {
   const { toast } = useToast();
@@ -117,6 +118,7 @@ function Timesheet() {
     <>
       <Header>
         <Button className="float-right" onClick={handleAddTime}>
+          <Plus className="w-4 h-4" />
           Add Time
         </Button>
       </Header>

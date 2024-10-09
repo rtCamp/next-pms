@@ -11,7 +11,7 @@ import { ProjectProps } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Dialog, DialogContent, DialogTitle } from "@/app/components/ui/dialog";
 import { useFrappePostCall } from "frappe-react-sdk";
-import { Search, LoaderCircle } from "lucide-react";
+import { Search, LoaderCircle, Save, X } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
@@ -208,10 +208,11 @@ export const AddTask = ({
                 <DialogFooter className="sm:justify-start pt-2 w-full">
                   <div className="flex gap-x-4 w-full">
                     <Button disabled={isSubmitting || !isDirty || !isValid}>
-                      {isSubmitting && <LoaderCircle className="animate-spin w-4 h-4" />}
+                      {isSubmitting ? <LoaderCircle className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
                       Add Task
                     </Button>
                     <Button variant="secondary" type="button" onClick={closeAddTaskDialog} disabled={isSubmitting}>
+                      <X className="w-4 h-4" />
                       Cancel
                     </Button>
                   </div>

@@ -16,7 +16,7 @@ import { Typography } from "@/app/components/typography";
 import { useEffect, useState } from "react";
 import { Separator } from "@/app/components/ui/separator";
 import { useToast } from "@/app/components/ui/use-toast";
-import { Trash2 } from "lucide-react";
+import { Plus, Save, Trash2 } from "lucide-react";
 
 interface EditTimeProps {
   employee: string;
@@ -41,7 +41,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
     defaultValues: {
       data: [],
     }, // Empty array by default
-    mode: "onBlur",
+    mode: "onSubmit",
   });
 
   const columns = ["Hours", "Description", "Billable", ""];
@@ -262,12 +262,14 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
             )}
             <DialogFooter className="sm:justify-between mt-2">
               <Button variant="outline" onClick={addEmptyFormRow}>
+                <Plus className="w-4 h-4" />
                 Add Row
               </Button>
               <Button
                 variant="success"
                 disabled={!form.formState.isValid || !form.formState.isDirty || form.formState.isSubmitting}
               >
+                <Save className="w-4 h-4" />
                 Save
               </Button>
             </DialogFooter>
