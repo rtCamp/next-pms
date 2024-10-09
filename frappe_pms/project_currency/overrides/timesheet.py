@@ -147,13 +147,9 @@ class TimesheetOverwrite(Timesheet):
         )
 
         if len(employee_promotion) == 0:
-            employee = frappe.get_doc(
-                "Employee",
-                self.employee,
-                ["ctc", "custom_hourly_billing_rate", "salary_currency"],
+            return frappe.throw(
+                "Invalid information for employee costing. Please contact the Project Manager for assistance."
             )
-            employee_salary = employee.ctc
-            employee_currency = employee.salary_currency
         else:
             employee_promotion = employee_promotion[0]
             employee_salary = employee_promotion.revised_ctc
