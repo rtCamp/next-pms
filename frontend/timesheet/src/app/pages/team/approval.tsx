@@ -386,7 +386,7 @@ const TimesheetRejectConfirmationDialog = ({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="destructive" className="gap-x-2" disabled={disabled}>
+        <Button variant="destructive" disabled={disabled}>
           <X className="w-4 h-4" />
           Reject
         </Button>
@@ -421,7 +421,7 @@ const TimesheetRejectConfirmationDialog = ({
               )}
             />
             <DialogFooter className="sm:justify-start my-2">
-              <Button variant="destructive" type="submit" className="gap-x-1" disabled={isSubmitting}>
+              <Button variant="destructive" type="submit" disabled={isSubmitting}>
                 {isSubmitting ? <LoaderCircle className="animate-spin w-4 h-4" /> : <X className="w-4 h-4" />}
                 Reject
               </Button>

@@ -133,12 +133,12 @@ const Home = () => {
     <>
       <Header>
         <section id="filter-section" className="flex max-md:flex-col gap-x-3 ">
-          <div className="lg:pr-4  w-full max-md:mb-3">
+          <div className="lg:pr-4 flex gap-x-1 w-full max-w-md">
             <DeBounceInput
               placeholder="Employee name"
               value={employeeNameParam}
               deBounceValue={400}
-              className="max-w-full m-1"
+              className="w-full"
               callback={handleEmployeeChange}
             />
             <ComboxBox
@@ -214,8 +214,8 @@ const Home = () => {
           </TableHeader>
 
           <TableBody>
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             {Object.entries(homeState.data?.data).length > 0 ? (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               Object.entries(homeState.data?.data).map(([key, item]: [string, any]) => {
                 return (
                   <TableRow key={key}>
