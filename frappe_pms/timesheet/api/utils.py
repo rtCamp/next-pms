@@ -65,6 +65,7 @@ def filter_employees(
     start=0,
     user_group=None,
     ignore_permissions=False,
+    status=None,
     reports_to: None | str = None,
 ):
     import json
@@ -72,13 +73,21 @@ def filter_employees(
     roles = frappe.get_roles()
     fields = ["name", "image", "employee_name", "department", "designation"]
     employee_ids = []
-    filters = {"status": "Active"}
+
+    filters = {}
 
     if reports_to:
         filters["reports_to"] = reports_to
 
     if isinstance(department, str):
         department = json.loads(department)
+
+    if isinstance(status, str):
+        status = json.loads(status)
+        if len(status) > 0:
+            filters["status"] = ["in", status]
+        else:
+            filters["status"] = ["in", ["Active"]]
 
     if isinstance(project, str):
         project = json.loads(project)

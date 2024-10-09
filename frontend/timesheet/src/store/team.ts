@@ -10,6 +10,7 @@ export interface TeamState {
   isFetchAgain: boolean;
   data: dataProps;
   statusFilter: Array<string>;
+  status: Array<string>;
   employeeName?: string;
   isDialogOpen: boolean;
   isEditDialogOpen: boolean;
@@ -21,7 +22,7 @@ export interface TeamState {
   userGroup: Array<string>;
   userGroupSearch: string;
   reportsTo: string;
-  approvalSearch: string;
+
   timesheet: {
     name: string;
     parent: string;
@@ -67,7 +68,7 @@ export const initialState: TeamState = {
   reportsTo: "",
   projectSearch: "",
   userGroupSearch: "",
-  approvalSearch: "",
+  status: ["Active"],
   isEditDialogOpen: false,
   isFetchAgain: false,
   data: {
@@ -225,15 +226,19 @@ const TeamSlice = createSlice({
       state.start = 0;
       state.isFetchAgain = true;
     },
+    setStatus: (state, action: PayloadAction<Array<string>>) => {
+      state.status = action.payload;
+      state.data = initialState.data;
+      state.start = 0;
+      state.isFetchAgain = true;
+    },
     setUserGroupSearch: (state, action: PayloadAction<string>) => {
       state.userGroupSearch = action.payload;
     },
     setProjectSearch: (state, action: PayloadAction<string>) => {
       state.projectSearch = action.payload;
     },
-    setApprovalSearch: (state, action: PayloadAction<string>) => {
-      state.approvalSearch = action.payload;
-    },
+
     setFilters: (
       state,
       action: PayloadAction<{
@@ -242,11 +247,13 @@ const TeamSlice = createSlice({
         statusFilter: Array<string>;
         employeeName: string;
         reportsTo: string;
+        status: Array<string>;
       }>,
     ) => {
       state.project = action.payload.project;
       state.userGroup = action.payload.userGroup;
       state.statusFilter = action.payload.statusFilter;
+      state.status = action.payload.status;
       state.employeeName = action.payload.employeeName;
       state.reportsTo = action.payload.reportsTo;
       state.start = 0;
@@ -281,7 +288,7 @@ export const {
   setEmployeeWeekDate,
   setEditDialog,
   setEmployeeName,
-  setApprovalSearch,
+  setStatus,
   setReportsTo,
 } = TeamSlice.actions;
 export default TeamSlice.reducer;

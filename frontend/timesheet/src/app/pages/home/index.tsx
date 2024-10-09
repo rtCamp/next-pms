@@ -24,12 +24,14 @@ import {
   setStart,
   updateData,
   resetState,
+  setFilters,
+  setStatus,
 } from "@/store/home";
 import { Spinner } from "@/app/components/spinner";
 import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
 import { addDays, isToday } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronRight, ChevronLeft, Filter } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { Typography } from "@/app/components/typography";
 import { dataItem } from "@/types/team";
@@ -37,18 +39,33 @@ import { useQueryParamsState } from "@/lib/queryParam";
 import { useNavigate } from "react-router-dom";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
 import { DeBounceInput } from "@/app/components/deBounceInput";
+import { ComboxBox } from "@/app/components/comboBox";
+import { Badge } from "@/app/components/ui/badge";
+
 const Home = () => {
   const { toast } = useToast();
   const homeState = useSelector((state: RootState) => state.home);
   const dispatch = useDispatch();
   const [employeeNameParam, setEmployeeNameParam] = useQueryParamsState<string>("employee-name", "");
+  const [employeeStatusParam, setEmployeeStatusParam] = useQueryParamsState<Array<string>>("status", []);
   const navigate = useNavigate();
+  const empStatus = [
+    { label: "Active", value: "Active" },
+    { label: "Inactive", value: "Inactive" },
+    { label: "Suspended", value: "Suspended" },
+    { label: "Left", value: "Left" },
+  ];
 
   useEffect(() => {
-    dispatch(setEmployeeName(employeeNameParam));
+    const payload = {
+      employeeName: employeeNameParam,
+      status: employeeStatusParam,
+    };
+    dispatch(setFilters(payload));
     return () => {
       dispatch(resetState());
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const { data, error, mutate, isLoading } = useFrappeGetCall("frappe_pms.timesheet.api.team.get_compact_view_data", {
@@ -56,6 +73,7 @@ const Home = () => {
     employee_name: homeState.employeeName,
     page_length: 20,
     start: homeState.start,
+    status: homeState.status,
   });
   useEffect(() => {
     if (homeState.isFetchAgain) {
@@ -78,11 +96,6 @@ const Home = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, homeState.isFetchAgain, error]);
-  useEffect(() => {
-    if (employeeNameParam !== "") {
-      dispatch(setEmployeeName(employeeNameParam));
-    }
-  }, [dispatch, employeeNameParam]);
 
   const handleEmployeeChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,6 +103,14 @@ const Home = () => {
       setEmployeeNameParam(e.target.value);
     },
     [dispatch, setEmployeeNameParam],
+  );
+
+  const handleStatusChange = useCallback(
+    (value: string | string[]) => {
+      dispatch(setStatus(value as string[]));
+      setEmployeeStatusParam(value as string[]);
+    },
+    [dispatch, setEmployeeStatusParam],
   );
 
   const handleprevWeek = useCallback(() => {
@@ -112,12 +133,23 @@ const Home = () => {
     <>
       <Header>
         <section id="filter-section" className="flex gap-x-3">
-          <div className="pr-4 max-md:pr-2 max-w-sm w-full max-md:w-3/6 max-sm:w-4/6">
+          <div className="flex gap-x-2 max-md:pr-2 max-w-sm w-full max-md:w-3/6 max-sm:w-4/6">
             <DeBounceInput
               placeholder="Employee name"
               value={employeeNameParam}
               deBounceValue={400}
               callback={handleEmployeeChange}
+            />
+            <ComboxBox
+              value={employeeStatusParam}
+              label="Employee Status"
+              data={empStatus}
+              shouldFilter
+              isMulti
+              onSelect={handleStatusChange}
+              leftIcon={<Filter className={cn("h-4 w-4", homeState.status.length != 0 && "fill-primary")} />}
+              rightIcon={homeState.status.length > 0 && <Badge className="px-1.5">{homeState.status.length}</Badge>}
+              className="text-primary border-dashed gap-x-1 font-normal w-fit"
             />
           </div>
           <div className="w-full flex">
@@ -171,6 +203,7 @@ const Home = () => {
               })}
             </TableRow>
           </TableHeader>
+
           <TableBody>
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             {Object.entries(homeState.data?.data).map(([key, item]: [string, any]) => {

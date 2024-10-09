@@ -20,6 +20,7 @@ def get_compact_view_data(
     page_length=10,
     start=0,
     status_filter=None,
+    status=None,
     reports_to: str | None = None,
 ):
     import json
@@ -47,6 +48,7 @@ def get_compact_view_data(
         page_length=page_length,
         start=start,
         reports_to=reports_to,
+        status=status,
         timesheet_status=status_filter,
         start_date=dates[0].get("start_date"),
         end_date=dates[-1].get("end_date"),
@@ -209,6 +211,7 @@ def filter_employee_by_timesheet_status(
     reports_to: str | None = None,
     start_date: str | None = None,
     end_date: str | None = None,
+    status=None,
 ):
     import json
 
@@ -222,6 +225,7 @@ def filter_employee_by_timesheet_status(
             employee_name,
             department,
             project,
+            status=status,
             page_length=page_length,
             start=start,
             user_group=user_group,
