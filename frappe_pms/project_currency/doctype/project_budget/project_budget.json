@@ -1,0 +1,82 @@
+{
+  "actions": [],
+  "allow_rename": 1,
+  "creation": "2024-10-07 11:52:49.608158",
+  "doctype": "DocType",
+  "editable_grid": 1,
+  "engine": "InnoDB",
+  "field_order": [
+    "start_date",
+    "end_date",
+    "hours_purchased",
+    "consumed_hours",
+    "remaining_hours",
+    "sales_order",
+    "sales_invoice"
+  ],
+  "fields": [
+    {
+      "default": "Today",
+      "fieldname": "start_date",
+      "fieldtype": "Date",
+      "in_list_view": 1,
+      "label": "Start Date",
+      "reqd": 1
+    },
+    {
+      "default": "Today",
+      "fieldname": "end_date",
+      "fieldtype": "Date",
+      "in_list_view": 1,
+      "label": "End Date",
+      "reqd": 1
+    },
+    {
+      "fieldname": "hours_purchased",
+      "fieldtype": "Int",
+      "in_list_view": 1,
+      "label": "Hours Purchased",
+      "reqd": 1
+    },
+    {
+      "fieldname": "consumed_hours",
+      "fieldtype": "Int",
+      "in_list_view": 1,
+      "label": "Consumed Hours",
+      "read_only": 1
+    },
+    {
+      "fieldname": "remaining_hours",
+      "fieldtype": "Int",
+      "in_list_view": 1,
+      "label": "Remaining Hours",
+      "read_only": 1
+    },
+    {
+      "fieldname": "sales_order",
+      "fieldtype": "Link",
+      "in_list_view": 1,
+      "label": "Sales Order",
+      "options": "Sales Order"
+    },
+    {
+      "fieldname": "sales_invoice",
+      "fieldtype": "Link",
+      "in_list_view": 1,
+      "label": "Sales Invoice",
+      "options": "Sales Invoice"
+    }
+  ],
+  "index_web_pages_for_search": 1,
+  "istable": 1,
+  "links": [],
+  "modified": "2024-10-07 12:43:15.704349",
+  "modified_by": "Administrator",
+  "module": "Project Currency",
+  "name": "Project Budget",
+  "owner": "Administrator",
+  "permissions": [],
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": []
+}

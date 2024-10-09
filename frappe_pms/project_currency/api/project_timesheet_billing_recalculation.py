@@ -16,9 +16,7 @@ def calculate(project_id: str, valid_from_date: str):
         valid_from_date=valid_from_date,
     )
 
-    return frappe.msgprint(
-        frappe._("TimeSheet billing recalculation has been started.")
-    )
+    return frappe.msgprint(frappe._("Timesheet billing recalculation has started."))
 
 
 def recalculate_timesheet_billing(
@@ -42,7 +40,7 @@ def recalculate_timesheet_billing(
                 )
             else:
                 return frappe.msgprint(
-                    f"Timesheet billing recalculation has been completed for the project: {project_id}-{project_name}.",
+                    f"Timesheet billing recalculation completed for project: {project_id}-{project_name}.",
                     realtime=True,
                 )
 
