@@ -154,9 +154,7 @@ const Task = () => {
 
   useEffect(() => {
     dispatch(setGroupBy(groupByParam));
-    if (groupByParam.length === 0) {
-      dispatch(setFetchAgain(true));
-    }
+    dispatch(setFetchAgain(true));
   }, [groupByParam]);
 
   const handleAddTime = (taskName: string) => {
@@ -1069,18 +1067,12 @@ const Task = () => {
             className="float-left"
             variant="outline"
             onClick={loadMore}
-            disabled={
-              task.groupBy.length === 0
-                ? task.task.length === task.total_count
-                : task.project.length === task.total_project_count
-            }
+            disabled={task.task.length === task.total_count}
           >
             Load More
           </Button>
           <Typography variant="p" className="px-5 font-semibold">
-            {`${task.groupBy.length === 0 ? task.task.length | 0 : task.project.length | 0} of ${
-              task.groupBy.length === 0 ? task.total_count | 0 : task.total_project_count | 0
-            }`}
+            {`${task.task.length | 0} of ${task.total_count | 0}`}
           </Typography>
         </div>
         {/* addTime */}

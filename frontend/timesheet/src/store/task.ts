@@ -10,7 +10,6 @@ export interface TaskState {
   isFetchAgain?: boolean;
   selectedProject: Array<string>;
   groupBy: Array<string>;
-  total_project_count: number;
   selectedTask: string;
   isTaskLogDialogBoxOpen: boolean;
   isAddTaskDialogBoxOpen: boolean;
@@ -24,7 +23,6 @@ export const initialState: TaskState = {
   selectedProject: [],
   groupBy: [],
   project: [],
-  total_project_count: 0,
   selectedTask: "",
   isTaskLogDialogBoxOpen: false,
   isAddTaskDialogBoxOpen: false,
@@ -83,21 +81,10 @@ export const taskSlice = createSlice({
     },
     setProjectData: (state) => {
       state.project = flatTableDataToNestedProjectDataConversion(state.task);
-      state.total_project_count = flatTableDataToNestedProjectDataConversion(
-        state.task,
-      ).length;
       state.isFetchAgain = false;
     },
     updateProjectData: (state) => {
-      const existingProjectIds = new Set(
-        state.project.map((project) => project.name),
-      );
-      const newProjects = flatTableDataToNestedProjectDataConversion(
-        state.task,
-      ).filter((project) => !existingProjectIds.has(project.name));
-      state.project = [...state.project, ...newProjects];
-      state.total_project_count = state.total_project_count =
-        flatTableDataToNestedProjectDataConversion(state.task).length;
+      state.project = flatTableDataToNestedProjectDataConversion(state.task);
       state.isFetchAgain = false;
     },
     setAddTaskDialog: (state, action: PayloadAction<boolean>) => {
