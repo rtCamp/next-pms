@@ -479,7 +479,9 @@ const Team = () => {
             })}
             {Object.entries(teamState.data?.data).length == 0 && (
               <TableRow>
-                <TableCell className="w-full flex items-center justify-center">No data found</TableCell>
+                <TableCell colSpan={15} className="h-24 text-center">
+                  No results
+                </TableCell>
               </TableRow>
             )}
           </TableBody>
