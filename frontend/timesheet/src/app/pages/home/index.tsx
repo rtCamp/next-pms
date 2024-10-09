@@ -117,7 +117,7 @@ const Home = () => {
               placeholder="Employee name"
               value={employeeNameParam}
               deBounceValue={400}
-              className="max-w-full"
+              className="max-w-full m-1"
               callback={handleEmployeeChange}
             />
           </div>

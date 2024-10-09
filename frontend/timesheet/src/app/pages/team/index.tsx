@@ -299,12 +299,12 @@ const Team = () => {
       <Header>
         <div className="flex gap-x-2 items-center justify-between max-md:flex-col max-md:justify-between">
           {teamState.isAprrovalDialogOpen && <Approval />}
-          <div id="filters" className="flex gap-x-2 max-md:gap-x-5  overflow-y-hidden max-md:w-full">
+          <div id="filters" className="flex gap-x-2 max-md:gap-x-5  overflow-y-hidden max-md:w-full items-center">
             <DeBounceInput
               placeholder="Employee name"
               value={employeeNameParam}
               deBounceValue={400}
-              className="max-w-full min-w-40"
+              className="max-w-full min-w-40 m-1"
               callback={handleEmployeeChange}
             />
             <EmployeeCombo

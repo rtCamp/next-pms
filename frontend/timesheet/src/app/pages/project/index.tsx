@@ -235,13 +235,13 @@ const Project = () => {
   return (
     <>
       <Header>
-        <section id="filter-section" className="flex gap-x-2 overflow-x-auto">
+        <section id="filter-section" className="flex gap-x-2 overflow-x-auto items-center">
           <div className="xl:w-2/5">
             <DeBounceInput
               placeholder="Project Name"
               value={searchParam}
               deBounceValue={200}
-              className="max-w-full min-w-40"
+              className="max-w-full min-w-40 m-1"
               callback={handleSearch}
             />
           </div>

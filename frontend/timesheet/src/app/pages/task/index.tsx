@@ -950,12 +950,15 @@ const Task = () => {
       </style>
       {/* filters and combo boxes */}
       <Header>
-        <div id="filters" className="flex gap-x-2 w-full overflow-hidden md:overflow-x-auto h-full overflow-x-auto">
+        <div
+          id="filters"
+          className="flex gap-x-2 w-full overflow-hidden md:overflow-x-auto h-full items-center overflow-x-auto"
+        >
           <div className="flex gap-2 xl:w-2/5">
             {/* Task Search Filter */}
             <DeBounceInput
               placeholder="Search Subject..."
-              className="max-w-full min-w-40"
+              className="max-w-full min-w-40 m-1"
               deBounceValue={400}
               value={subjectSearchParam}
               callback={handleSubjectSearchChange}
