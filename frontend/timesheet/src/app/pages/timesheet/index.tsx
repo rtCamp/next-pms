@@ -14,6 +14,7 @@ import {
   setEditDialog,
   setApprovalDialog,
 } from "@/store/timesheet";
+import { LoadMore } from "@/app/components/loadMore";
 import { Header, Footer, Main } from "@/app/layout/root";
 import { Button } from "@/app/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
@@ -158,8 +159,11 @@ function Timesheet() {
                   <AccordionItem value={key}>
                     <AccordionTrigger className="hover:no-underline w-full py-2">
                       <div className="flex justify-between items-center w-full">
-                        <Typography variant="h6" className="font-normal">
-                          {key}: {floatToTime(total_hours)}h
+                        <Typography
+                          variant="h6"
+                          className="font-normal text-xs sm:text-base flex items-center gap-x-1 flex-col sm:flex-row"
+                        >
+                          {key}:<Typography className="text-xs sm:text-base">{floatToTime(total_hours)}h</Typography>
                         </Typography>
                         <SubmitButton
                           start_date={value.start_date}
@@ -187,9 +191,7 @@ function Timesheet() {
         </Main>
       )}
       <Footer>
-        <Button className="float-left" variant="outline" onClick={loadData} disabled={isLoading}>
-          Load More
-        </Button>
+        <LoadMore className="float-left" variant="outline" onClick={loadData} disabled={isLoading} />
       </Footer>
       {timesheet.isDialogOpen && (
         <AddTime

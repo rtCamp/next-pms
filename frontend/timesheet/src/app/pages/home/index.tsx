@@ -14,6 +14,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 import { useCallback, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Header, Footer } from "@/app/layout/root";
+import { LoadMore } from "@/app/components/loadMore";
 import {
   setData,
   setFetchAgain,
@@ -233,13 +234,12 @@ const Home = () => {
       )}
       <Footer>
         <div className="w-full flex justify-between items-center">
-          <Button
+          <LoadMore
             variant="outline"
             onClick={handleLoadMore}
             disabled={!homeState.data.has_more || (isLoading && Object.keys(homeState.data.data).length != 0)}
-          >
-            Load More
-          </Button>
+          />
+
           <Typography variant="p" className="px-5 font-semibold">
             {`${Object.keys(homeState.data.data).length | 0} of ${homeState.data.total_count | 0}`}
           </Typography>

@@ -15,6 +15,7 @@ import {
   expectatedHours,
   getDateTimeForMultipleTimeZoneSupport,
 } from "@/lib/utils";
+import { LoadMore } from "@/app/components/loadMore";
 import { useEffect, useState } from "react";
 import { useToast } from "@/app/components/ui/use-toast";
 import { Spinner } from "@/app/components/spinner";
@@ -176,9 +177,7 @@ const EmployeeDetail = () => {
       </Tabs>
 
       <Footer>
-        <Button className="float-left" variant="outline" onClick={handleLoadData}>
-          Load More
-        </Button>
+        <LoadMore className="float-left" variant="outline" onClick={handleLoadData} disabled={isLoading} />
       </Footer>
     </>
   );

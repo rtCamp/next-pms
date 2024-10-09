@@ -6,7 +6,8 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 import { useSelector, useDispatch } from "react-redux";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
 import { RootState } from "@/store";
-import { Header, Footer, Main } from "@/app/layout/root";
+import { Header, Footer } from "@/app/layout/root";
+import { LoadMore } from "@/app/components/loadMore";
 import {
   setData,
   setFetchAgain,
@@ -485,15 +486,13 @@ const Team = () => {
       )}
       <Footer>
         <div className="flex justify-between items-center">
-          <Button
+          <LoadMore
             variant="outline"
             onClick={handleLoadMore}
             disabled={
               !teamState.hasMore || ((isLoading || isValidating) && Object.keys(teamState.data.data).length != 0)
             }
-          >
-            Load More
-          </Button>
+          />
           <Typography variant="p" className="px-5 font-semibold">
             {`${Object.keys(teamState.data.data).length | 0} of ${teamState.data.total_count | 0}`}
           </Typography>

@@ -526,7 +526,7 @@ export const SubmitButton = ({
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm  ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground mr-1 text-primary font-normal gap-x-2 p-2",
+        "inline-flex items-center justify-center whitespace-nowrap rounded-md  ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground mr-1 text-primary font-normal gap-x-1 p-2 text-xs sm:text-sm",
         (status == "Approved" || status == "Partially Approved") && "bg-green-50",
         (status == "Rejected" || status == "Partially Rejected") && "bg-red-50",
         status == "Approval Pending" && "bg-orange-50",
