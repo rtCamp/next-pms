@@ -163,36 +163,38 @@ const EmployeeDetail = () => {
         />
       )}
       <Header>
-        <EmployeeCombo onSelect={onEmployeeChange} value={id as string} className="w-fit" />
+        <EmployeeCombo onSelect={onEmployeeChange} value={id as string} className="w-full lg:w-fit" />
       </Header>
 
-      <Tabs defaultValue="timesheet" className="overflow-auto scroll-smooth">
-        <div className="flex gap-x-4 mt-3 px-3 sticky top-0 z-10 transition-shadow duration-300 backdrop-blur-sm">
-          <TabsList className="w-full justify-start">
-            <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
-            <TabsTrigger value="time">Time</TabsTrigger>
-          </TabsList>
-          <Button className="float-right mb-1" onClick={handleAddTime}>
-            Add Time
-          </Button>
-        </div>
-        {isLoading ? (
-          <Spinner isFull />
-        ) : (
-          <Main>
-            <TabsContent value="timesheet" className="mt-0">
-              <Timesheet />
-            </TabsContent>
-            <TabsContent value="time" className="mt-0">
-              <Time
-                callback={() => {
-                  dispatch(setFetchAgain(true));
-                }}
-              />
-            </TabsContent>
-          </Main>
-        )}
-      </Tabs>
+      <Main>
+        <Tabs defaultValue="timesheet" className="relative">
+          <div className="flex gap-x-4 mt-3 px-0 sticky top-3 z-10 transition-shadow duration-300 backdrop-blur-sm">
+            <TabsList className="w-full justify-start">
+              <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
+              <TabsTrigger value="time">Time</TabsTrigger>
+            </TabsList>
+            <Button className="float-right mb-1" onClick={handleAddTime}>
+              Add Time
+            </Button>
+          </div>
+          {isLoading ? (
+            <Spinner isFull />
+          ) : (
+            <>
+              <TabsContent value="timesheet" className="mt-0">
+                <Timesheet />
+              </TabsContent>
+              <TabsContent value="time" className="mt-0">
+                <Time
+                  callback={() => {
+                    dispatch(setFetchAgain(true));
+                  }}
+                />
+              </TabsContent>
+            </>
+          )}
+        </Tabs>
+      </Main>
 
       <Footer>
         <LoadMore className="float-left" variant="outline" onClick={handleLoadData} disabled={isLoading} />
