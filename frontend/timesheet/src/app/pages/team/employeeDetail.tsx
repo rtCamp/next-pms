@@ -16,7 +16,7 @@ import {
   getDateTimeForMultipleTimeZoneSupport,
 } from "@/lib/utils";
 import { LoadMore } from "@/app/components/loadMore";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useToast } from "@/app/components/ui/use-toast";
 import { Spinner } from "@/app/components/spinner";
 import { Typography } from "@/app/components/typography";
@@ -524,43 +524,40 @@ export const TimeInput = ({
   disabled?: boolean;
   callback: (data: NewTimesheetProps) => void;
 }) => {
-  const [hour, setHour] = useState(data.hours);
+  const [hour, setHour] = useState(String(floatToTime(data.hours)));
+  const inputRef = useRef(null);
   const handleHourChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const hour = e.target.value;
-    if (!hour) return;
     let time = 0;
+    if (!hour) {
+      return setHour(hour);
+    }
     if (timeFormatRegex.test(hour)) {
       const [hours, minutes] = hour.split(":").map(Number);
       time = hours + minutes / 60;
     } else {
       time = parseFloat(hour);
     }
-    console.log(e.target.value);
-    setHour(time);
+    setHour(String(time));
   };
-  const updateTime = (hour: string) => {
-    let time = 0;
-    if (timeFormatRegex.test(hour)) {
-      const [hours, minutes] = hour.split(":").map(Number);
-      time = hours + minutes / 60;
-    } else {
-      time = parseFloat(hour);
-    }
-    if (time == 0 || Number.isNaN(time)) return;
+  const updateTime = () => {
+    if (hour.trim() == "" || Number.isNaN(hour)) return;
     const value = {
       ...data,
-      hours: time,
+      hours: Number(hour),
       employee: employee,
     };
-    // callback(value);
+    callback(value);
+    if (inputRef.current) {
+      inputRef.current.value = String(floatToTime(parseFloat(hour)));
+    }
   };
   return (
     <Input
-      value={hour}
+      ref={inputRef}
+      defaultValue={hour}
       className={cn("w-20", className)}
-      onBlur={(e) => {
-        updateTime(e.target.value);
-      }}
+      onBlur={updateTime}
       onChange={handleHourChange}
       disabled={disabled}
     />
