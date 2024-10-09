@@ -18,7 +18,7 @@ export const Header = ({ children, className }: Props) => {
 
 export const Footer = ({ children }: Props) => {
   return (
-    <footer className="flex border-t h-14 max-md:h-fit items-center justify-between px-3 py-2 w-full sticky bottom-0">
+    <footer className="flex border-t h-14 max-md:h-fit items-center justify-between px-3 py-2 w-full mt-auto">
       <div className="w-full">{children}</div>
     </footer>
   );
