@@ -168,7 +168,7 @@ const EmployeeDetail = () => {
 
       <Main>
         <Tabs defaultValue="timesheet" className="relative">
-          <div className="flex gap-x-4 mt-3 px-0 sticky top-3 z-10 transition-shadow duration-300 backdrop-blur-sm">
+          <div className="flex gap-x-4 pt-3 px-0 sticky top-0 z-10 transition-shadow duration-300 backdrop-blur-sm bg-background">
             <TabsList className="w-full justify-start">
               <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
               <TabsTrigger value="time">Time</TabsTrigger>
