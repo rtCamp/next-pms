@@ -114,8 +114,12 @@ class TimesheetOverwrite(Timesheet):
                     )
 
                 else:
-                    billing_rate = 3 * costing_rate
-                    base_billing_rate = 3 * base_costing_rate
+                    if custom_billing_type == "Fixed Cost":
+                        billing_rate = costing_rate
+                        base_billing_rate = base_costing_rate
+                    else:
+                        billing_rate = 3 * costing_rate
+                        base_billing_rate = 3 * base_costing_rate
 
                 if billing_rate:
                     data.billing_rate = billing_rate
