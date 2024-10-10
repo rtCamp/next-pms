@@ -103,27 +103,34 @@ const Project = () => {
       revalidateIfStale: false,
     },
   );
-  const { data, error, isLoading, mutate } = useFrappeGetDocList("Project", {
-    fields: [
-      "name",
-      "project_name",
-      "status",
-      "project_type",
-      "percent_complete",
-      "custom_budget_in_hours",
-      "actual_time",
-      "custom_budget_remaining_in_hours",
-      "custom_is_billable",
-    ],
-    // eslint-disable-next-line
-    //   @ts-ignore
-    filters: getFilter(projectState),
-    limit_start: projectState.start,
-    orderBy: {
-      field: "modified",
-      order: "desc",
+  const { data, error, isLoading, mutate } = useFrappeGetDocList(
+    "Project",
+    {
+      fields: [
+        "name",
+        "project_name",
+        "status",
+        "project_type",
+        "percent_complete",
+        "custom_budget_in_hours",
+        "actual_time",
+        "custom_budget_remaining_in_hours",
+        "custom_is_billable",
+      ],
+      // eslint-disable-next-line
+      //   @ts-ignore
+      filters: getFilter(projectState),
+      limit_start: projectState.start,
+      orderBy: {
+        field: "modified",
+        order: "desc",
+      },
     },
-  });
+    undefined,
+    {
+      shouldRetryOnError: false,
+    },
+  );
 
   const {
     data: count,

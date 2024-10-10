@@ -35,7 +35,8 @@ def get_task_list(
         filter = {"project": ["in", projects]}
     else:
         projects = frappe.get_list("Project", pluck="name")
-        filter = {"project": ["in", projects]}
+        if projects:
+            filter = {"project": ["in", projects]}
 
     if search:
         search_filter.update(
