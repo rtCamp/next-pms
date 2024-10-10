@@ -288,8 +288,8 @@ export const Approval = () => {
                                 callback={handleTimeChange}
                                 employee={teamState.employee}
                               />
-                              <div className="grid w-full grid-cols-3 gap-x-2">
-                                <div className="flex gap-1 ">
+                              <div className="md:grid w-full md:grid-cols-3 gap-x-2 flex flex-col max-md:overflow-hidden max-md:text-wrap ">
+                                <div className="flex gap-1">
                                   <div
                                     title={task.is_billable == 1 ? "Billable task" : ""}
                                     className={cn(
@@ -312,7 +312,7 @@ export const Approval = () => {
                                 </div>
 
                                 <p
-                                  className="text-sm font-normal  col-span-2"
+                                  className="text-sm font-normal  col-span-2 max-md:px-4 my-1"
                                   dangerouslySetInnerHTML={{ __html: description }}
                                 ></p>
                               </div>
