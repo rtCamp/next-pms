@@ -3,7 +3,7 @@
 
 
 import frappe
-from frappe import _, get_all, get_list
+from frappe import _
 from frappe.query_builder import DocType
 
 
@@ -46,20 +46,8 @@ def get_columns():
     ]
 
 
-def get_employee_list(employee: str | None = None):
-    current_user_roles = frappe.get_roles()
-    filters = {}
-    if employee:
-        filters["name"] = employee
-
-    if "Timesheet Manager" in current_user_roles:
-        return get_all("Employee", filters=filters, pluck="name")
-    else:
-        return get_list("Employee", filters=filters, pluck="name")
-
-
 def get_data(filters):
-    employees = get_employee_list(filters.get("employee", None))
+
     timesheet = DocType("Timesheet")
     timesheet_details = DocType("Timesheet Detail")
     task = DocType("Task")
@@ -77,11 +65,13 @@ def get_data(filters):
             timesheet_details.hours,
             timesheet_details.description,
         )
-        .where(timesheet.employee.isin(employees))
         .where(timesheet.start_date >= filters.get("from_date"))
         .where(timesheet.end_date <= filters.get("to_date"))
         .where(timesheet_details.is_billable == 1)
+        .where(timesheet.docstatus.isin([0, 1]))
     )
+    if filters.get("employee", None) is not None:
+        query = query.where(timesheet.employee == filters.get("employee"))
     if filters.get("task", None) is not None:
         query = query.where(timesheet_details.task == filters.get("task"))
 
