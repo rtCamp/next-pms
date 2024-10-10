@@ -7,7 +7,6 @@ import {
   calculateWeeklyHour,
   expectatedHours,
   preProcessLink,
-  getFormatedDate,
   getHolidayList,
 } from "@/lib/utils";
 import { Typography } from "./typography";
@@ -208,7 +207,6 @@ export const LeaveRow = ({
     });
 
     data.map((item) => {
-      console.log(item.name, item.half_day_date, date);
       if (item.half_day && item.half_day_date && item.half_day_date === date) {
         hour += expectedHours / 2;
       } else {
