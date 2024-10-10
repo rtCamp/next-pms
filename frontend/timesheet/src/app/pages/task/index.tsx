@@ -13,6 +13,7 @@ import {
   setTaskData,
   updateProjectData,
   setProjectData,
+  setSelectedTask,
 } from "@/store/task";
 import { AddTask } from "./addTask";
 import { FlatTable } from "./flatTable";
@@ -187,6 +188,7 @@ const Task = () => {
     "projects",
     {
       shouldRetryOnError: false,
+      revalidateOnFocus: false,
     },
   );
   useEffect(() => {
@@ -217,6 +219,10 @@ const Task = () => {
       mutate();
       dispatch(setFetchAgain(false));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [task.isFetchAgain]);
+
+  useEffect(() => {
     if (data) {
       if (task.start !== 0) {
         dispatch(updateTaskData(data.message));
@@ -233,7 +239,8 @@ const Task = () => {
         description: err,
       });
     }
-  }, [data, dispatch, error, mutate, task.isFetchAgain, task.start, toast, groupByParam]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, error]);
 
   const handleLike = (e: React.MouseEvent<SVGSVGElement>) => {
     e.stopPropagation();
@@ -276,6 +283,9 @@ const Task = () => {
     [dispatch],
   );
 
+  const openTaskLog = (taskName: string) => {
+    dispatch(setSelectedTask({ task: taskName, isOpen: true }));
+  };
   // column definitions
   const columns: ColumnsType = [
     {
@@ -339,7 +349,14 @@ const Task = () => {
       },
       cell: ({ row }) => {
         return (
-          <Typography variant="p" title={row.original.subject} className="max-w-sm truncate cursor-pointer">
+          <Typography
+            variant="p"
+            title={row.original.subject}
+            className="max-w-sm truncate cursor-pointer"
+            onClick={() => {
+              openTaskLog(row.original.name);
+            }}
+          >
             {row.original.subject}
           </Typography>
         );
@@ -602,9 +619,16 @@ const Task = () => {
           </div>
         );
       },
-      cell: ({ getValue }) => {
+      cell: ({ getValue, row }) => {
         return (
-          <Typography variant="p" title={String(getValue())} className="truncate cursor-pointer">
+          <Typography
+            variant="p"
+            title={String(getValue())}
+            className="truncate cursor-pointer"
+            onClick={() => {
+              openTaskLog(row.original.name);
+            }}
+          >
             {getValue() as ReactNode}
           </Typography>
         );
@@ -959,7 +983,7 @@ const Task = () => {
             <DeBounceInput
               placeholder="Search Subject..."
               className="max-w-full min-w-40 m-1"
-              deBounceValue={400}
+              deBounceValue={300}
               value={subjectSearchParam}
               callback={handleSubjectSearchChange}
             />
@@ -1073,10 +1097,9 @@ const Task = () => {
             className="float-left"
             variant="outline"
             onClick={loadMore}
-            disabled={task.task.length === task.total_count}
-          >
-            Load More
-          </LoadMore>
+            disabled={task.task.length === task.total_count || isLoading}
+          />
+
           <Typography variant="p" className="lg:px-5 font-semibold">
             {`${task.task.length | 0} of ${task.total_count | 0}`}
           </Typography>
