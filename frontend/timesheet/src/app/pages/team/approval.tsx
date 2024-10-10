@@ -332,7 +332,7 @@ export const Approval = () => {
             </div>
             <SheetFooter className="sm:justify-start mt-5 flex-col gap-y-4 w-full">
               <Button onClick={handleApproval} variant="success" disabled={selectedDates.length == 0 || isSubmitting}>
-                {isSubmitting ? <LoaderCircle className="animate-spin w-4 h-4" /> : <Check className="w-4 h-4" />}
+                {isSubmitting ? <LoaderCircle className="animate-spin w-4 h-4" /> : <Check />}
                 Approve
               </Button>
 
@@ -387,7 +387,7 @@ const TimesheetRejectConfirmationDialog = ({
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="destructive" disabled={disabled}>
-          <X className="w-4 h-4" />
+          <X />
           Reject
         </Button>
       </DialogTrigger>
@@ -422,7 +422,7 @@ const TimesheetRejectConfirmationDialog = ({
             />
             <DialogFooter className="sm:justify-start my-2">
               <Button variant="destructive" type="submit" disabled={isSubmitting}>
-                {isSubmitting ? <LoaderCircle className="animate-spin w-4 h-4" /> : <X className="w-4 h-4" />}
+                {isSubmitting ? <LoaderCircle className="animate-spin w-4 h-4" /> : <X />}
                 Reject
               </Button>
             </DialogFooter>

@@ -303,7 +303,7 @@ const Task = () => {
             <p className="truncate">Project Name</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
+                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -340,7 +340,7 @@ const Task = () => {
             <p className="truncate">Subject</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
+                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -376,7 +376,7 @@ const Task = () => {
             <p className="truncate">Due Date</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
+                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -406,7 +406,7 @@ const Task = () => {
             <p className="truncate">Status</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
+                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -432,7 +432,7 @@ const Task = () => {
             <p className="truncate">Priority</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
+                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -457,7 +457,7 @@ const Task = () => {
             <p className="truncate">Expected Hours</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
+                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -486,7 +486,7 @@ const Task = () => {
             <p className="truncate">Hour Spent</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
+                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -563,7 +563,7 @@ const Task = () => {
             <p className="truncate">Project Name</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
+                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -612,7 +612,7 @@ const Task = () => {
             <p className="truncate">Subject</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
+                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -646,7 +646,7 @@ const Task = () => {
             <div className="truncate w-4/5">Due Date</div>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
+                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -674,7 +674,7 @@ const Task = () => {
             <div className="truncate w-4/5">Status</div>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
+                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -699,7 +699,7 @@ const Task = () => {
             <div className="truncate w-4/5">Priority</div>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
+                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -723,7 +723,7 @@ const Task = () => {
             <div className="truncate w-4/5">Expected Hours</div>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
+                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -753,7 +753,7 @@ const Task = () => {
 
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
+                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -937,7 +937,7 @@ const Task = () => {
     {
       title: "Reset Table",
       icon: RotateCcw,
-      iconClass: "h-4 w-4 ",
+      iconClass: "",
       handleClick: () => {
         setLocalStorageTaskState(localStorageTaskDataMap);
         // update All Sort,filter and columnWidth States when localStorage Changes (table config reset)
@@ -951,7 +951,7 @@ const Task = () => {
     {
       title: "Columns",
       icon: Columns2,
-      iconClass: "h-4 w-4 ",
+      iconClass: "",
       type: "nestedSubMenu",
       render: () => {
         return renderColumnFilterList(table, groupByParam, columnsToExcludeActionsInTables, setLocalStorageTaskState);
@@ -1022,10 +1022,8 @@ const Task = () => {
             onSelect={handleGroupByChange}
           />
           <div className="ml-auto flex h-full gap-x-2 justify-center items-center">
-            {/* more button */}
-            {/* Add Task Button */}
-            <Button onClick={handleAddTask} className="px-3" title="Add task">
-              <Plus className="h-4 w-4 mr-1" /> Add Task
+            <Button onClick={handleAddTask} title="Add task">
+              <Plus /> Add Task
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger className="outline-none">
@@ -1034,7 +1032,7 @@ const Task = () => {
                   variant="ghost"
                   className="h-full hover:bg-transparent bg-transparent w-fit min-w-10 cursor-pointer border-0 outline-none"
                 >
-                  <MoreVertical className="h-4 w-4" />
+                  <MoreVertical />
                   <span className="sr-only">More</span>
                 </Button>
               </DropdownMenuTrigger>

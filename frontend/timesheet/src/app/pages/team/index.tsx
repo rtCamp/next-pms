@@ -404,7 +404,7 @@ const Team = () => {
               })}
               <TableHead className="w-full max-w-24 flex items-center justify-end">Total</TableHead>
               <TableHead className="w-full max-w-20 flex items-center justify-center">
-                <CircleCheck className="w-4 h-4" />
+                <CircleCheck />
               </TableHead>
             </TableRow>
           </TableHeader>

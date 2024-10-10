@@ -16,7 +16,7 @@ import { Typography } from "@/app/components/typography";
 import { useEffect, useState } from "react";
 import { Separator } from "@/app/components/ui/separator";
 import { useToast } from "@/app/components/ui/use-toast";
-import { Plus, Save, Trash2 } from "lucide-react";
+import { LoaderCircle, Plus, Save, Trash2 } from "lucide-react";
 
 interface EditTimeProps {
   employee: string;
@@ -31,6 +31,7 @@ interface TaskProps {
   project: string;
 }
 export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [employeeData, setEmployeeData] = useState<TaskProps>({
     data: [],
     task: "",
@@ -110,6 +111,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
   };
 
   const handleUpdate = (formData: z.infer<typeof TimesheetUpdateSchema>) => {
+    setIsSubmitting(true);
     const data = {
       data: formData.data,
     };
@@ -120,6 +122,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
           variant: "success",
           description: res.message,
         });
+        setIsSubmitting(false);
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
@@ -127,6 +130,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
           variant: "destructive",
           description: error,
         });
+        setIsSubmitting(false);
       });
   };
   const handleDelete = (parent: string, name: string) => {
@@ -253,7 +257,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
                         type="button"
                         onClick={() => removeFormRow(index)}
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 />
                       </Button>
                     </div>
                   </div>
@@ -262,14 +266,11 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
             )}
             <DialogFooter className="sm:justify-between mt-2">
               <Button variant="outline" onClick={addEmptyFormRow}>
-                <Plus className="w-4 h-4" />
+                <Plus />
                 Add Row
               </Button>
-              <Button
-                variant="success"
-                disabled={!form.formState.isValid || !form.formState.isDirty || form.formState.isSubmitting}
-              >
-                <Save className="w-4 h-4" />
+              <Button variant="success" disabled={!form.formState.isValid || !form.formState.isDirty || isSubmitting}>
+                {isSubmitting ? <LoaderCircle className="animate-spin" /> : <Save />}
                 Save
               </Button>
             </DialogFooter>

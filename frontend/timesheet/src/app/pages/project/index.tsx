@@ -213,7 +213,6 @@ const Project = () => {
 
   const resetTable = () => {
     setTableAttributeProps(projectTableMap);
-    // update All Sort,filter and columnWidth States when localStorage Changes (table config reset)
     setSorting([]);
     setColumnVisibility({});
     table.setColumnSizing(projectTableMap.columnWidth);
@@ -245,7 +244,7 @@ const Project = () => {
               placeholder="Project Name"
               value={searchParam}
               deBounceValue={200}
-              className="max-w-full min-w-40 m-1"
+              className="max-w-full min-w-40"
               callback={handleSearch}
             />
           </div>
@@ -255,9 +254,7 @@ const Project = () => {
             shouldFilter
             value={projectTypeParam}
             onSelect={handleProjectTypeChange}
-            leftIcon={
-              <Filter className={cn("h-4 w-4", projectState.selectedProjectType.length != 0 && "fill-primary")} />
-            }
+            leftIcon={<Filter className={cn(projectState.selectedProjectType.length != 0 && "fill-primary")} />}
             rightIcon={
               projectState.selectedProjectType.length > 0 && (
                 <Badge className="px-1.5">{projectState.selectedProjectType.length}</Badge>
@@ -275,7 +272,7 @@ const Project = () => {
             shouldFilter
             value={statusParam}
             onSelect={handleStatusChange}
-            leftIcon={<Filter className={cn("h-4 w-4", projectState.selectedStatus.length != 0 && "fill-primary")} />}
+            leftIcon={<Filter className={cn(projectState.selectedStatus.length != 0 && "fill-primary")} />}
             rightIcon={
               projectState.selectedStatus.length > 0 && (
                 <Badge className="px-1.5">{projectState.selectedStatus.length}</Badge>
@@ -285,7 +282,7 @@ const Project = () => {
               label: d,
               value: d,
             }))}
-            className="text-primary border-dashed gap-x-1 font-normal w-fit"
+            className="text-primary border-dashed  font-normal w-fit"
           />
           <PageAction table={table} resetTable={resetTable} onColumnHide={handleColumnHide} />
         </section>
@@ -434,7 +431,7 @@ const getColumns = (tableAttributeProps: any) => {
             <p className="truncate">Project Name</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
+                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -467,7 +464,7 @@ const getColumns = (tableAttributeProps: any) => {
             <p className="truncate">Status</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
+                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -498,7 +495,7 @@ const getColumns = (tableAttributeProps: any) => {
             <p className="truncate">Project Type</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
+                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -522,7 +519,7 @@ const getColumns = (tableAttributeProps: any) => {
             <p className="truncate">% Completed</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
+                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -565,7 +562,7 @@ const getColumns = (tableAttributeProps: any) => {
             <p className="truncate">Budget (Hours)</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
+                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -596,7 +593,7 @@ const getColumns = (tableAttributeProps: any) => {
             <p className="truncate">Budget Spent (Hours)</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
+                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -628,7 +625,7 @@ const getColumns = (tableAttributeProps: any) => {
             <p className="truncate">Budget Remaining (Hours)</p>
             <ArrowUpDown
               className={cn(
-                "h-4 w-4 transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
+                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
                 column.getIsSorted() === "desc" && "text-orange-500",
               )}
             />
@@ -703,16 +700,16 @@ const PageAction = ({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
-        <EllipsisVertical className="w-4 h-4" />
+        <EllipsisVertical />
       </DropdownMenuTrigger>
       <DropdownMenuContent className="[&_div]:cursor-pointer">
         <DropdownMenuItem className="flex items-center gap-x-2" onClick={resetTable}>
-          <RotateCcw className="w-4 h-4" />
+          <RotateCcw />
           <Typography variant="p">Reset Table</Typography>
         </DropdownMenuItem>
         <DropdownMenuSub>
           <DropdownMenuSubTrigger className="flex items-center gap-x-2">
-            <Columns2 className="w-4 h-4" />
+            <Columns2 />
             <Typography variant="p">Columns</Typography>
           </DropdownMenuSubTrigger>
           <DropdownMenuPortal>
