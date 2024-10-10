@@ -207,7 +207,7 @@ export const LeaveRow = ({
     });
 
     data.map((item) => {
-      if (item.half_day || (item.half_day_date && item.half_day_date == date)) {
+      if (item.half_day && item.half_day_date && item.half_day_date === date) {
         hour += expectedHours / 2;
       } else {
         hour += expectedHours;
