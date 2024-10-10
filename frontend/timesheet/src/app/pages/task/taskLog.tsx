@@ -11,9 +11,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar"
 import { setSelectedTask } from "@/store/task";
 import { useEffect, useState } from "react";
 import { addDays } from "date-fns";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { ComboxBox } from "@/app/components/comboBox";
 import { useToast } from "@/app/components/ui/use-toast";
+
 type Employee = {
   employee: string;
   employee_name: string;
@@ -85,52 +85,80 @@ export const TaskLog = () => {
           <Spinner />
         ) : (
           <>
-            <DialogHeader>
+            <DialogHeader className="space-y-0">
               <DialogTitle title={data?.message.subject} className="flex items-center gap-x-2">
                 <Typography variant="h2" className="max-w-sm truncate" title={data?.message.subject}>
                   {data?.message.subject}
                 </Typography>
                 <TaskStatus status={data?.message.status} />
               </DialogTitle>
-              <div className="flex gap-x-2">
-                <Typography as="p" className="flex items-center gap-x-1">
-                  Time:
-                  <Typography
-                    variant="p"
-                    className={cn(
-                      "font-semibold",
-                      data?.message.actual_time > data?.message.expected_time && "text-destructive",
-                    )}
-                  >
-                    {data?.message.actual_time}h
+              <div className="flex justify-between max-w-full">
+                <div className="flex gap-x-2 w-4/5 overflow-hidden">
+                  <Typography as="span" className="flex items-center gap-x-1 shrink-0">
+                    Time:
+                    <Typography
+                      variant="p"
+                      className={cn(
+                        "font-semibold",
+                        data?.message.actual_time > data?.message.expected_time && "text-destructive",
+                      )}
+                    >
+                      {floatToTime(data?.message.actual_time)}h
+                    </Typography>
                   </Typography>
-                </Typography>
 
-                <Typography as="p" className="flex items-center gap-x-1">
-                  Estimate:
-                  <Typography variant="p" className={cn("font-semibold")}>
-                    {data?.message.expected_time}h
+                  <Typography as="span" className="flex items-center gap-x-1 shrink-0">
+                    Estimate:
+                    <Typography variant="p" className={cn("font-semibold")}>
+                      {floatToTime(data?.message.expected_time)}h
+                    </Typography>
                   </Typography>
-                </Typography>
-                <Typography as="p" className="flex items-center gap-x-1">
-                  Project:
-                  <Typography
-                    variant="p"
-                    className="font-semibold max-w-xs truncate"
-                    title={data?.message.project_name}
-                  >
-                    {data?.message.project_name}
+                  <Typography as="span" className="flex items-center gap-x-1">
+                    Project:
+                    <Typography
+                      variant="p"
+                      className="font-semibold max-w-64 truncate"
+                      title={data?.message.project_name}
+                    >
+                      {data?.message.project_name}
+                    </Typography>
                   </Typography>
-                </Typography>
+                </div>
+                <div className="w-1/5">
+                  <ComboxBox
+                    className="float-right w-24 p-2"
+                    data={dateMap}
+                    value={selectedMap}
+                    label="Date Range"
+                    shouldFilter
+                    onSelect={(value: string | string[]) => {
+                      if (typeof value === "string") {
+                        setSelectedMap([value]);
+                        const date = value;
+                        setStartDate(getFormatedDate(addDays(getTodayDate(), -parseInt(date))));
+                      } else {
+                        if (value.length === 0) {
+                          setSelectedMap([dateMap[0].value]);
+                          const date = dateMap[0].value;
+                          setStartDate(getFormatedDate(addDays(getTodayDate(), -parseInt(date))));
+                          return;
+                        }
+                        setSelectedMap([value[0]]);
+                        const date = value[0];
+                        setStartDate(getFormatedDate(addDays(getTodayDate(), -parseInt(date))));
+                      }
+                    }}
+                  />
+                </div>
               </div>
             </DialogHeader>
             <Separator />
             {data?.message.worked_by?.length != 0 && (
               <>
-                <section id="worked_by">
-                  <div className="flex gap-x-2 max-w-md overflow-x-auto">
+                <section id="worked_by w-full ">
+                  <div className="flex gap-x-4 overflow-x-auto">
                     {data?.message.worked_by?.map((employee: Employee) => (
-                      <div key={employee.employee} className="flex items-center gap-x-2">
+                      <div key={employee.employee} className="flex items-center gap-x-2 shrink-0">
                         <Avatar className="w-6 h-6">
                           <AvatarImage src={employee.image} alt={employee.employee_name} />
                           <AvatarFallback>
@@ -142,7 +170,7 @@ export const TaskLog = () => {
                         <span>
                           <Typography variant="p">{employee.employee_name}</Typography>
                           <Typography variant="p" className="font-semibold">
-                            {employee.total_hour}h
+                            {floatToTime(employee.total_hour)}h
                           </Typography>
                         </span>
                       </div>
@@ -152,32 +180,7 @@ export const TaskLog = () => {
                 <Separator />
               </>
             )}
-            <span>
-              <ComboxBox
-                className="float-right  p-2 max-w-24"
-                data={dateMap}
-                value={selectedMap}
-                label="Date Range"
-                shouldFilter
-                onSelect={(value: string | string[]) => {
-                  if (typeof value === "string") {
-                    setSelectedMap([value]);
-                    const date = value;
-                    setStartDate(getFormatedDate(addDays(getTodayDate(), -parseInt(date))));
-                  } else {
-                    if (value.length === 0) {
-                      setSelectedMap([dateMap[0].value]);
-                      const date = dateMap[0].value;
-                      setStartDate(getFormatedDate(addDays(getTodayDate(), -parseInt(date))));
-                      return;
-                    }
-                    setSelectedMap([value[0]]);
-                    const date = value[0];
-                    setStartDate(getFormatedDate(addDays(getTodayDate(), -parseInt(date))));
-                  }
-                }}
-              />
-            </span>
+
             {isLogLoading ? (
               <Spinner />
             ) : (
@@ -187,41 +190,38 @@ export const TaskLog = () => {
                     {logs &&
                       Object.entries(logs.message as Record<string, LogData[]>).map(([key, value], index: number) => {
                         return (
-                          <div key={index} className="py-1">
+                          <div key={index}>
                             {value.map((log: LogData, i: number) => {
                               const employee = data?.message.worked_by?.find(
                                 (emp: Employee) => emp.employee === log.employee,
                               );
-
                               return (
-                                <Accordion key={`${log.employee}-${i}-${index}`} type="multiple">
-                                  <AccordionItem value={`${log.employee}-${i}-${index}`}>
-                                    <AccordionTrigger className="hover:no-underline py-1">
-                                      <div className="flex justify-between w-full">
-                                        <span className="flex gap-x-2 items-center">
-                                          <Avatar className="w-6 h-6">
-                                            <AvatarImage src={employee?.image} alt={employee?.employee_name} />
-                                            <AvatarFallback>
-                                              <Typography variant="p" className="font-semibold">
-                                                {employee?.employee_name[0]}
-                                              </Typography>
-                                            </AvatarFallback>
-                                          </Avatar>
-                                          <Typography variant="p">{employee?.employee_name}</Typography>
-                                          <Typography variant="small">{prettyDate(key).date}</Typography>
-                                        </span>
-                                        <Typography variant="p">{floatToTime(log.hours, 1, 1)}</Typography>
-                                      </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent className="pl-8 pb-0">
-                                      {log.description.map((description: string) => (
-                                        <Typography key={description} variant="p">
-                                          {description}
-                                        </Typography>
-                                      ))}
-                                    </AccordionContent>
-                                  </AccordionItem>
-                                </Accordion>
+                                <div className="border-b border-dashed py-1">
+                                  <div className="flex justify-between w-full">
+                                    <span className="flex gap-x-2 items-start">
+                                      <Avatar className="w-6 h-6">
+                                        <AvatarImage src={employee?.image} alt={employee?.employee_name} />
+                                        <AvatarFallback>
+                                          <Typography variant="p" className="font-semibold">
+                                            {employee?.employee_name[0]}
+                                          </Typography>
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <Typography variant="p">{employee?.employee_name}</Typography>
+                                      <Typography variant="p">{prettyDate(key).date}</Typography>
+                                    </span>
+                                    <Typography variant="p">{floatToTime(log.hours)}h</Typography>
+                                  </div>
+                                  {log.description.map((description: string) => (
+                                    <Typography
+                                      key={description}
+                                      variant="p"
+                                      className="pl-8 py-1 rounded pb-0 bg-gray-50"
+                                    >
+                                      {description}
+                                    </Typography>
+                                  ))}
+                                </div>
                               );
                             })}
                           </div>
