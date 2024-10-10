@@ -1,7 +1,7 @@
 import { Spinner } from "@/app/components/spinner";
 import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table } from "@/app/components/ui/table";
 import { cn } from "@/lib/utils";
-import { TaskState, setSelectedTask } from "@/store/task";
+import { TaskState } from "@/store/task";
 import {
   FlatTableType,
   ColumnsType,
@@ -10,7 +10,6 @@ import {
 } from "@/types/task";
 import { flexRender } from "@tanstack/react-table";
 import { GripVertical } from "lucide-react";
-import { useDispatch } from "react-redux";
 
 export const FlatTable = ({
   table,
@@ -27,7 +26,6 @@ export const FlatTable = ({
   task: TaskState;
   isLoading: boolean;
 }) => {
-  const dispatch = useDispatch();
   let resizeObserver: ResizeObserver;
   return (
     <>
@@ -90,17 +88,7 @@ export const FlatTable = ({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  onClick={() => {
-                    const data = {
-                      task: row.original.name,
-                      isOpen: true,
-                    };
-                    dispatch(setSelectedTask(data));
-                  }}
-                >
+                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell className="overflow-hidden" key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}

@@ -12,9 +12,11 @@ import { z } from "zod";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/app/components/ui/form";
 import { Textarea } from "@/app/components/ui/textarea";
 import { Button } from "@/app/components/ui/button";
-import { LoaderCircle } from "lucide-react";
+import { LoaderCircle, Send } from "lucide-react";
+import { useState } from "react";
 
 export const Approval = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const timesheetState = useSelector((state: RootState) => state.timesheet);
   const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
@@ -33,6 +35,7 @@ export const Approval = () => {
   });
 
   const handleOpen = () => {
+    if (isSubmitting) return;
     form.reset();
     const data = { start_date: "", end_date: "" };
     dispatch(setDateRange(data));
@@ -40,12 +43,14 @@ export const Approval = () => {
     dispatch(setApprovalDialog(false));
   };
   const handleSubmit = (data: z.infer<typeof TimesheetApprovalSchema>) => {
+    setIsSubmitting(true);
     call(data)
       .then((res) => {
         toast({
           variant: "success",
           description: res.message,
         });
+        setIsSubmitting(false);
         handleOpen();
       })
       .catch((err) => {
@@ -54,15 +59,16 @@ export const Approval = () => {
           variant: "destructive",
           description: error,
         });
+        setIsSubmitting(false);
       });
   };
   return (
     <Dialog open={timesheetState.isAprrovalDialogOpen} onOpenChange={handleOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="pb-6">
-            Week of {prettyDate(timesheetState.dateRange.start_date).date} -
-            {prettyDate(timesheetState.dateRange.end_date).date}
+          <DialogTitle>
+            {`Week of ${prettyDate(timesheetState.dateRange.start_date).date} -
+             ${prettyDate(timesheetState.dateRange.end_date).date}`}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -77,7 +83,7 @@ export const Approval = () => {
                     <Textarea
                       placeholder="Add a note"
                       rows={4}
-                      className="w-full placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                      className="w-full placeholder:text-slate-400"
                       {...field}
                     />
                   </FormControl>
@@ -86,8 +92,8 @@ export const Approval = () => {
               )}
             />
             <DialogFooter className="sm:justify-start mt-6">
-              <Button disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting && <LoaderCircle className="animate-spin w-4 h-4" />}
+              <Button disabled={isSubmitting || !form.formState.isDirty || !form.formState.isValid}>
+                {isSubmitting ? <LoaderCircle className="animate-spin" /> : <Send />}
                 Submit For Approval
               </Button>
             </DialogFooter>

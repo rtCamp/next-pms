@@ -208,11 +208,11 @@ export const AddTask = ({
                 <DialogFooter className="sm:justify-start pt-2 w-full">
                   <div className="flex gap-x-4 w-full">
                     <Button disabled={isSubmitting || !isDirty || !isValid}>
-                      {isSubmitting ? <LoaderCircle className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
+                      {isSubmitting ? <LoaderCircle className="animate-spin w-4 h-4" /> : <Save />}
                       Add Task
                     </Button>
                     <Button variant="secondary" type="button" onClick={closeAddTaskDialog} disabled={isSubmitting}>
-                      <X className="w-4 h-4" />
+                      <X />
                       Cancel
                     </Button>
                   </div>

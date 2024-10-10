@@ -1,6 +1,6 @@
 import { Spinner } from "@/app/components/spinner";
 import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table } from "@/app/components/ui/table";
-import { TaskState, setSelectedTask } from "@/store/task";
+import { TaskState } from "@/store/task";
 import {
   NestedRowTableType,
   ProjectNestedColumnsType,
@@ -10,7 +10,6 @@ import {
 import { flexRender } from "@tanstack/react-table";
 import { GripVertical } from "lucide-react";
 import React from "react";
-import { useDispatch } from "react-redux";
 
 export const RowGroupedTable = ({
   table,
@@ -27,7 +26,6 @@ export const RowGroupedTable = ({
   task: TaskState;
   isLoading: boolean;
 }) => {
-  const dispatch = useDispatch();
   let resizeObserver: ResizeObserver;
   return (
     <>
@@ -95,15 +93,6 @@ export const RowGroupedTable = ({
                         width: `${table.getState().columnSizingInfo.deltaOffset}px)`,
                       }}
                       data-state={row.depth !== 0 && row.getIsSelected() ? "selected" : ""}
-                      onClick={() => {
-                        if (row.depth !== 0) {
-                          const data = {
-                            task: row.original.name,
-                            isOpen: true,
-                          };
-                          dispatch(setSelectedTask(data));
-                        }
-                      }}
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell className="overflow-hidden" key={cell.id}>

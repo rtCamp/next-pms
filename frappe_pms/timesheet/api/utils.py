@@ -244,7 +244,7 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
 
 
 def get_holidays(employee: str, start_date: str, end_date: str):
-    holiday_name = get_holiday_list_for_employee(employee)
+    holiday_name = get_holiday_list_for_employee(employee, raise_exception=False)
     if not holiday_name:
         return []
     holidays = frappe.get_all(

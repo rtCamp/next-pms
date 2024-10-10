@@ -2,21 +2,9 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe import _, get_all, get_list
+from frappe import _
 from frappe.query_builder import Case, DocType
 from frappe.query_builder.functions import Sum
-
-
-def get_employee_list(employee: str | None = None):
-    current_user_roles = frappe.get_roles()
-    filters = {}
-    if employee:
-        filters["name"] = employee
-
-    if "Timesheet Manager" in current_user_roles:
-        return get_all("Employee", filters=filters, pluck="name")
-    else:
-        return get_list("Employee", filters=filters, pluck="name")
 
 
 def get_columns():
@@ -58,7 +46,6 @@ def get_columns():
 
 
 def get_data(filters):
-    employees = get_employee_list(filters.get("employee", None))
     timesheet = DocType("Timesheet")
     timesheet_details = DocType("Timesheet Detail")
     task = DocType("Task")
@@ -88,17 +75,19 @@ def get_data(filters):
             billable_hours,
             non_billable_hours,
         )
-        .where(timesheet.employee.isin(employees))
         .where(timesheet.start_date >= filters.get("from_date"))
         .where(timesheet.end_date <= filters.get("to_date"))
-        .groupby(timesheet.start_date, timesheet_details.task)
+        .where(timesheet.docstatus.isin([0, 1]))
     )
-
+    if filters.get("employee", None) is not None:
+        query = query.where(timesheet.employee == filters.get("employee"))
     if filters.get("task", None) is not None:
         query = query.where(timesheet_details.task == filters.get("task"))
 
     if filters.get("project", None) is not None:
         query = query.where(timesheet_details.project == filters.get("project"))
+
+    query = query.groupby(timesheet.start_date, timesheet_details.task)
 
     return query.run(as_dict=True)
 
@@ -107,15 +96,3 @@ def execute(filters=None):
     columns = get_columns()
     data = get_data(filters)
     return columns, data
-
-
-# def get_employee_list(employee: str | None = None):
-# current_user_roles = frappe.get_roles()
-# filters = {}
-# if employee:
-#     filters["name"] = employee
-
-# if "Timesheet Manager" in current_user_roles:
-#     return get_all("Employee", filters=filters, pluck="name")
-# else:
-#     return get_list("Employee", filters=filters, pluck="name")
