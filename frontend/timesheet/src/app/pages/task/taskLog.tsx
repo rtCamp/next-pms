@@ -191,6 +191,7 @@ export const TaskLog = () => {
                       Object.entries(logs.message as Record<string, LogData[]>).map(([key, value], index: number) => {
                         return (
                           <div key={index}>
+                            {/* eslint-disable-next-line @typescript-eslint/no-unused-vars */}
                             {value.map((log: LogData, i: number) => {
                               const employee = data?.message.worked_by?.find(
                                 (emp: Employee) => emp.employee === log.employee,
