@@ -44,7 +44,7 @@ import { Status } from "@/app/pages/team";
 import { LeaveProps, NewTimesheetProps, TaskDataItemProps, TaskDataProps, timesheet } from "@/types/timesheet";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/app/components/ui/input";
-import { timeFormatRegex } from "@/schema/timesheet";
+import { timeFormatRegex, timeStringToFloat } from "@/schema/timesheet";
 import { EditTime } from "@/app/pages/timesheet/editTime";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import { Approval } from "./approval";
@@ -168,7 +168,7 @@ const EmployeeDetail = () => {
 
       <Main>
         <Tabs defaultValue="timesheet" className="relative">
-          <div className="flex gap-x-4 mt-3 px-0 sticky top-3 z-10 transition-shadow duration-300 backdrop-blur-sm">
+          <div className="flex gap-x-4 pt-3 px-0 sticky top-0 z-10 transition-shadow duration-300 backdrop-blur-sm bg-background">
             <TabsList className="w-full justify-start">
               <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
               <TabsTrigger value="time">Time</TabsTrigger>
@@ -528,28 +528,21 @@ export const TimeInput = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const handleHourChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const hour = e.target.value;
-    let time = 0;
     if (!hour) {
       return setHour(hour);
     }
-    if (timeFormatRegex.test(hour)) {
-      const [hours, minutes] = hour.split(":").map(Number);
-      time = hours + minutes / 60;
-    } else {
-      time = parseFloat(hour);
-    }
-    setHour(String(time));
+    setHour(String(timeStringToFloat(hour)));
   };
   const updateTime = () => {
     if (hour.trim() == "" || Number.isNaN(hour)) return;
     const value = {
       ...data,
-      hours: Number(hour),
+      hours: timeStringToFloat(hour),
       employee: employee,
     };
     callback(value);
     if (inputRef.current) {
-      inputRef.current.value = String(floatToTime(parseFloat(hour)));
+      inputRef.current.value = String(floatToTime(timeStringToFloat(hour)));
     }
   };
   return (
