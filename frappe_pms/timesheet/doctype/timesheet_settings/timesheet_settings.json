@@ -15,6 +15,7 @@
     "daily_reminder_template",
     "send_reminder_on_approval_request",
     "approval_request_reminder_template",
+    "allowed_departments",
     "column_break_udik",
     "send_weekly_approval_reminder",
     "day_to_send_reminder",
@@ -114,12 +115,21 @@
       "label": "Weekly Approval Reminder Template",
       "mandatory_depends_on": "eval:doc.send_weekly_approval_reminder",
       "options": "Email Template"
+    },
+    {
+      "depends_on": "eval:doc.send_daily_reminder||doc.send_weekly_approval_reminder",
+      "description": "This field will be used to filter the employee based on department to whom the Daily/Weekly reminder will be sent.",
+      "fieldname": "allowed_departments",
+      "fieldtype": "Table MultiSelect",
+      "label": "Allowed Departments",
+      "mandatory_depends_on": "eval:doc.send_daily_reminder||doc.send_weekly_approval_reminder",
+      "options": "Timesheet Department"
     }
   ],
   "index_web_pages_for_search": 1,
   "issingle": 1,
   "links": [],
-  "modified": "2024-09-19 14:59:57.769010",
+  "modified": "2024-10-11 12:17:02.888856",
   "modified_by": "Administrator",
   "module": "Timesheet",
   "name": "Timesheet Settings",
