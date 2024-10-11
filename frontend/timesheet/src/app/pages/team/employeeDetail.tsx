@@ -44,7 +44,7 @@ import { Status } from "@/app/pages/team";
 import { LeaveProps, NewTimesheetProps, TaskDataItemProps, TaskDataProps, timesheet } from "@/types/timesheet";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/app/components/ui/input";
-import { timeFormatRegex, timeStringToFloat } from "@/schema/timesheet";
+import { timeStringToFloat } from "@/schema/timesheet";
 import { EditTime } from "@/app/pages/timesheet/editTime";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import { Approval } from "./approval";
@@ -222,7 +222,7 @@ const Timesheet = () => {
       start_date: start_date,
       end_date: end_date,
     };
-    dispatch(setDateRange({ dateRange: data, employee: teamState.employee, isAprrovalDialogOpen: true }));
+    dispatch(setDateRange({ dateRange: data, isAprrovalDialogOpen: true }));
   };
   const working_hour = expectatedHours(teamState.timesheetData.working_hour, teamState.timesheetData.working_frequency);
   return (
@@ -324,7 +324,7 @@ export const Time = ({ callback }: { callback?: () => void }) => {
       start_date: start_date,
       end_date: end_date,
     };
-    dispatch(setDateRange({ dateRange: data, employee: teamState.employee, isAprrovalDialogOpen: true }));
+    dispatch(setDateRange({ dateRange: data, isAprrovalDialogOpen: true }));
   };
   const holidays = teamState.timesheetData.holidays.map((holiday) => {
     if (typeof holiday === "object" && "holiday_date" in holiday) {

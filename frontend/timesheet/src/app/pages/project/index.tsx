@@ -30,15 +30,7 @@ import {
   useReactTable,
   Table as T,
 } from "@tanstack/react-table";
-import {
-  CircleDollarSign,
-  Filter,
-  GripVertical,
-  ArrowUpDown,
-  EllipsisVertical,
-  Columns2,
-  RotateCcw,
-} from "lucide-react";
+import { Filter, GripVertical, ArrowUpDown, EllipsisVertical, Columns2, RotateCcw } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { Progress } from "@/app/components/ui/progress";
 import { Badge } from "@/app/components/ui/badge";
@@ -62,9 +54,9 @@ const projectTableMap = {
     status: 100,
     project_type: 100,
     percent_complete: 150,
-    custom_budget_in_hours: 80,
+    custom_total_hours_purchased: 80,
     actual_time: 80,
-    custom_budget_remaining_in_hours: 80,
+    custom_total_hours_remaining: 80,
   },
   columnSort: [],
 };
@@ -112,10 +104,9 @@ const Project = () => {
         "status",
         "project_type",
         "percent_complete",
-        "custom_budget_in_hours",
+        "custom_total_hours_purchased",
         "actual_time",
-        "custom_budget_remaining_in_hours",
-        "custom_is_billable",
+        "custom_total_hours_remaining",
       ],
       // eslint-disable-next-line
       //   @ts-ignore
@@ -405,11 +396,11 @@ const getColumns = (tableAttributeProps: any) => {
   const sortPercentageComplete = (rowA: Row<ProjectData>, rowB: Row<ProjectData>, columnId: string) => {
     const firstRowPer = calculatePercentage(
       Number(rowA.getValue("actual_time")),
-      Number(rowA.getValue("custom_budget_in_hours")),
+      Number(rowA.getValue("custom_total_hours_purchased")),
     );
     const secondRowPer = calculatePercentage(
       Number(rowB.getValue("actual_time")),
-      Number(rowB.getValue("custom_budget_in_hours")),
+      Number(rowB.getValue("custom_total_hours_purchased")),
     );
     if (firstRowPer > secondRowPer) {
       return 1;
@@ -534,7 +525,7 @@ const getColumns = (tableAttributeProps: any) => {
         );
       },
       cell: ({ row }) => {
-        const budget = Number(row.getValue("custom_budget_in_hours"));
+        const budget = Number(row.getValue("custom_total_hours_purchased"));
         const spent = Number(row.getValue("actual_time"));
         const per = calculatePercentage(spent, budget);
         return budget ? (
@@ -555,8 +546,8 @@ const getColumns = (tableAttributeProps: any) => {
       },
     },
     {
-      accessorKey: "custom_budget_in_hours",
-      size: Number(columnWidth["custom_budget_in_hours"] ?? "150"),
+      accessorKey: "custom_total_hours_purchased",
+      size: Number(columnWidth["custom_total_hours_purchased"] ?? "150"),
       header: ({ column }) => {
         return (
           <div
@@ -609,7 +600,7 @@ const getColumns = (tableAttributeProps: any) => {
       },
       cell: ({ getValue, row }) => {
         const value = Number(getValue());
-        const budget = Number(row.getValue("custom_budget_in_hours"));
+        const budget = Number(row.getValue("custom_total_hours_purchased"));
         return (
           <Typography variant="p" className={cn("text-center", value > budget && "text-warning")}>
             {value}h
@@ -618,8 +609,8 @@ const getColumns = (tableAttributeProps: any) => {
       },
     },
     {
-      accessorKey: "custom_budget_remaining_in_hours",
-      size: Number(columnWidth["custom_budget_remaining_in_hours"] ?? "150"),
+      accessorKey: "custom_total_hours_remaining",
+      size: Number(columnWidth["custom_total_hours_remaining"] ?? "150"),
       header: ({ column }) => {
         return (
           <div
@@ -641,7 +632,7 @@ const getColumns = (tableAttributeProps: any) => {
       },
       cell: ({ getValue, row }) => {
         const value = Number(getValue());
-        const budget = Number(row.getValue("custom_budget_in_hours"));
+        const budget = Number(row.getValue("custom_total_hours_purchased"));
         return budget ? (
           <Typography
             variant="p"
@@ -650,29 +641,6 @@ const getColumns = (tableAttributeProps: any) => {
             {value}h
           </Typography>
         ) : null;
-      },
-    },
-    {
-      accessorKey: "custom_is_billable",
-      size: 50,
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer  w-full overflow-hidden"
-            title={column.id}
-          >
-            <p className="truncate">Billable</p>
-          </div>
-        );
-      },
-      cell: ({ getValue }) => {
-        const value = getValue() as boolean;
-
-        return (
-          <span className="flex justify-center">
-            <CircleDollarSign className={cn("w-4 h-4 stroke-gray-400", value && "stroke-success")} />
-          </span>
-        );
       },
     },
   ];

@@ -163,12 +163,10 @@ const TeamSlice = createSlice({
       state,
       action: PayloadAction<{
         dateRange: DateRange;
-        employee: string;
         isAprrovalDialogOpen: boolean;
       }>,
     ) => {
       state.dateRange = action.payload.dateRange;
-      state.employee = action.payload.employee;
       state.isAprrovalDialogOpen = action.payload.isAprrovalDialogOpen;
     },
     setApprovalDialog: (state, action: PayloadAction<boolean>) => {
