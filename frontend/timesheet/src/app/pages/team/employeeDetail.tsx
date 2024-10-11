@@ -22,7 +22,7 @@ import { Spinner } from "@/app/components/spinner";
 import { Typography } from "@/app/components/typography";
 import TimesheetTable from "@/app/components/timesheetTable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
-import { CircleDollarSign, Plus } from "lucide-react";
+import { CircleDollarSign } from "lucide-react";
 import { addDays } from "date-fns";
 import AddTime from "@/app/components/addTime";
 import {
