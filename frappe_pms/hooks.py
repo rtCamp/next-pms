@@ -1,9 +1,9 @@
 app_name = "frappe_pms"
 app_title = "Frappe PMS"
 app_publisher = "rtCamp"
-app_description = "The PMS in Frappe."
+app_description = "Simplified Project Management System"
 app_email = "erp@rtcamp.com"
-app_license = "mit"
+app_license = "AGPLv3"
 # required_apps = []
 
 # Includes in <head>
