@@ -8,20 +8,17 @@ from frappe_pms.timesheet.api.employee import get_employee_daily_working_norm
 def send_reminder():
     current_date = getdate()
     date = add_days(current_date, -1)
+    setting = frappe.get_doc("Timesheet Settings")
+    send_reminder = setting.send_daily_reminder
 
-    send_reminder = frappe.db.get_single_value(
-        fieldname="send_daily_reminder", doctype="Timesheet Settings"
-    )
     if not send_reminder:
         return
-    reminder_template_name = frappe.db.get_single_value(
-        fieldname="daily_reminder_template", doctype="Timesheet Settings"
-    )
-
+    reminder_template_name = setting.daily_reminder_template
+    allowed_departments = [doc.department for doc in setting.allowed_departments]
     reminder_template = frappe.get_doc("Email Template", reminder_template_name)
     employees = frappe.get_all(
         "Employee",
-        filters={"status": "Active"},
+        filters={"status": "Active", "department": ["in", allowed_departments]},
         fields="*",
     )
 
