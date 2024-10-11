@@ -214,15 +214,11 @@ const Task = () => {
     projects: task.selectedProject,
     search: subjectSearchParam,
   });
+
   useEffect(() => {
     if (task.isFetchAgain) {
       mutate();
-      dispatch(setFetchAgain(false));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [task.isFetchAgain]);
-
-  useEffect(() => {
     if (data) {
       if (task.start !== 0) {
         dispatch(updateTaskData(data.message));
@@ -231,6 +227,7 @@ const Task = () => {
         dispatch(setTaskData(data.message));
         dispatch(setProjectData());
       }
+      dispatch(setFetchAgain(false));
     }
     if (error) {
       const err = parseFrappeErrorMsg(error);
@@ -238,9 +235,10 @@ const Task = () => {
         variant: "destructive",
         description: err,
       });
+      dispatch(setFetchAgain(false));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, error]);
+  }, [data, error, task.isFetchAgain]);
 
   const handleLike = (e: React.MouseEvent<SVGSVGElement>) => {
     e.stopPropagation();
