@@ -1,7 +1,7 @@
 import { useToast } from "@/app/components/ui/use-toast";
 import { RootState } from "@/store";
 import { useSelector, useDispatch } from "react-redux";
-import { setDateRange, setFetchAgain } from "@/store/team";
+import { setDateRange, setEmployee, setFetchAgain } from "@/store/team";
 import { Button } from "@/app/components/ui/button";
 import {
   calculateExtendedWorkingHour,
@@ -86,7 +86,8 @@ export const Approval = () => {
   const handleOpen = () => {
     if (isRejecting || isSubmitting) return;
     const data = { start_date: "", end_date: "" };
-    dispatch(setDateRange({ dateRange: data, employee: "", isAprrovalDialogOpen: false }));
+    dispatch(setEmployee(""));
+    dispatch(setDateRange({ dateRange: data, isAprrovalDialogOpen: false }));
     dispatch(setFetchAgain(true));
   };
   const handleApproval = () => {

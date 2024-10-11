@@ -24,6 +24,7 @@ import {
   setReportsTo,
   setFilters,
   setStatus,
+  setEmployee,
 } from "@/store/team";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg, prettyDate, floatToTime, getFormatedDate, cn, preProcessLink } from "@/lib/utils";
@@ -257,7 +258,8 @@ const Team = () => {
       start_date,
       end_date,
     };
-    dispatch(setDateRange({ dateRange: data, employee, isAprrovalDialogOpen: true }));
+    dispatch(setEmployee(employee));
+    dispatch(setDateRange({ dateRange: data, isAprrovalDialogOpen: true }));
   };
   const onProjectSearch = useCallback(
     (searchTerm: string) => {
