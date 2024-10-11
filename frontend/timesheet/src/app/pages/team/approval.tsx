@@ -86,7 +86,7 @@ export const Approval = () => {
   const handleOpen = () => {
     if (isRejecting || isSubmitting) return;
     const data = { start_date: "", end_date: "" };
-    dispatch(setEmployee(""));
+    // dispatch(setEmployee(""));
     dispatch(setDateRange({ dateRange: data, isAprrovalDialogOpen: false }));
     dispatch(setFetchAgain(true));
   };
