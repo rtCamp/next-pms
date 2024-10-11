@@ -26,17 +26,20 @@ def execute():
 
         project.save()
 
-        if project.custom_billing_type == "Retainer" and project.custom_budget_in_hours:
-            custom_project_budget = frappe.get_doc(
+        if (
+            project.custom_billing_type == "Retainer"
+            or project.custom_billing_type == "Fixed Cost"
+        ) and project.custom_budget_in_hours:
+            custom_project_budget_hours = frappe.get_doc(
                 {
                     "doctype": "Project Budget",
                     "parent": project.name,
                     "parenttype": "Project",
-                    "parentfield": "custom_project_budget",
+                    "parentfield": "custom_project_budget_hours",
                     "start_date": "2024-10-01",
                     "end_date": "2025-10-01",
                     "hours_purchased": project.custom_budget_in_hours,
                 }
             )
-            custom_project_budget.insert()
+            custom_project_budget_hours.insert()
         frappe.db.commit()

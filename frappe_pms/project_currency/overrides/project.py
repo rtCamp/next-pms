@@ -43,24 +43,24 @@ class ProjectOverwrite(EmployeeProject):
                         )
 
     def validate_overlap_project_budget(self):
-        custom_project_budget = self.custom_project_budget
+        custom_project_budget_hours = self.custom_project_budget_hours
 
-        for index in range(len(custom_project_budget)):
+        for index in range(len(custom_project_budget_hours)):
             if (
-                custom_project_budget[index].start_date
-                > custom_project_budget[index].end_date
+                custom_project_budget_hours[index].start_date
+                > custom_project_budget_hours[index].end_date
             ):
                 frappe.throw(
                     _("End date should be greater than start date in project budget.")
                 )
 
-        for index in range(len(custom_project_budget)):
+        for index in range(len(custom_project_budget_hours)):
 
-            for index2 in range(index + 1, len(custom_project_budget)):
+            for index2 in range(index + 1, len(custom_project_budget_hours)):
                 if (
-                    custom_project_budget[index].start_date
-                    <= custom_project_budget[index2].start_date
-                    <= custom_project_budget[index].end_date
+                    custom_project_budget_hours[index].start_date
+                    <= custom_project_budget_hours[index2].start_date
+                    <= custom_project_budget_hours[index].end_date
                 ):
                     frappe.throw(
                         _("Budget has an overlapping date range in project budget.")
@@ -97,7 +97,10 @@ class ProjectOverwrite(EmployeeProject):
         if self.custom_billing_type == "Fixed Cost":
             self.update_project_cost_rate()
 
-        if self.custom_billing_type == "Retainer":
+        if (
+            self.custom_billing_type == "Retainer"
+            or self.custom_billing_type == "Fixed Cost"
+        ):
             self.update_retainer_project_budget()
 
     def update_sales_amount(self):
@@ -163,20 +166,22 @@ class ProjectOverwrite(EmployeeProject):
 
     def update_project_cost_rate(self):
         if self.estimated_costing:
-            self.custom__cost = self.total_costing_amount * 100 / self.estimated_costing
+            self.custom_percentage_estimated_cost = (
+                self.total_costing_amount * 100 / self.estimated_costing
+            )
 
     def update_retainer_project_budget(self):
-        custom_project_budget = self.custom_project_budget
+        custom_project_budget_hours = self.custom_project_budget_hours
 
         self.custom_total_hours_purchased = 0
         self.custom_total_hours_remaining = 0
 
-        for budget in custom_project_budget:
+        for budget in custom_project_budget_hours:
             TimesheetDetail = frappe.qb.DocType("Timesheet Detail")
             from_time_sheet = (
                 frappe.qb.from_(TimesheetDetail)
                 .select(
-                    Sum(TimesheetDetail.hours).as_("time"),
+                    Sum(TimesheetDetail.billing_hours).as_("time"),
                 )
                 .where(TimesheetDetail.project == self.name)
                 .where(
