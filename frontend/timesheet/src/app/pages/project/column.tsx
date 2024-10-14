@@ -1,9 +1,8 @@
 import { Billability, Priority, ProjectData, Status } from "@/store/project";
 import { ColumnDef } from "@tanstack/react-table";
-
 import { getTableProps, calculatePercentage, sortPercentageComplete, currencyFormat } from "./helper";
 import { Typography } from "@/app/components/typography";
-import { cn, floatToTime, getDateTimeForMultipleTimeZoneSupport } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { ArrowUpDown } from "lucide-react";
 import { Progress } from "@/app/components/ui/progress";
 import { Badge } from "@/app/components/ui/badge";
@@ -16,6 +15,7 @@ export const getColumn = () => {
   const columns: ColumnsType = [
     {
       accessorKey: "project_name",
+      size: Number(columnWidth["project_name"]),
       header: ({ column }) => {
         return (
           <Header column={column}>
@@ -36,6 +36,7 @@ export const getColumn = () => {
     },
     {
       accessorKey: "customer",
+      size: Number(columnWidth["customer"]),
       header: ({ column }) => {
         return (
           <Header column={column}>
@@ -56,6 +57,7 @@ export const getColumn = () => {
     },
     {
       accessorKey: "status",
+      size: Number(columnWidth["status"]),
       header: ({ column }) => {
         return (
           <Header column={column}>
@@ -74,6 +76,7 @@ export const getColumn = () => {
     },
     {
       accessorKey: "project_type",
+      size: Number(columnWidth["project_type"]),
       header: ({ column }) => {
         return (
           <Header column={column}>
@@ -84,6 +87,7 @@ export const getColumn = () => {
     },
     {
       accessorKey: "custom_business_unit",
+      size: Number(columnWidth["custom_business_unit"]),
       header: ({ column }) => {
         return (
           <Header column={column}>
@@ -104,6 +108,7 @@ export const getColumn = () => {
     },
     {
       accessorKey: "priority",
+      size: Number(columnWidth["priority"]),
       header: ({ column }) => {
         return (
           <Header column={column}>
@@ -120,6 +125,7 @@ export const getColumn = () => {
     },
     {
       accessorKey: "company",
+      size: Number(columnWidth["company"]),
       header: ({ column }) => {
         return (
           <Header column={column}>
@@ -140,6 +146,7 @@ export const getColumn = () => {
     },
     {
       accessorKey: "custom_billing_type",
+      size: Number(columnWidth["custom_billing_type"]),
       header: ({ column }) => {
         return (
           <Header column={column}>
@@ -154,6 +161,7 @@ export const getColumn = () => {
     },
     {
       accessorKey: "custom_currency",
+      size: Number(columnWidth["custom_currency"]),
       header: ({ column }) => {
         return (
           <Header column={column}>
@@ -164,6 +172,7 @@ export const getColumn = () => {
     },
     {
       accessorKey: "estimated_costing",
+      size: Number(columnWidth["estimated_costing"]),
       header: ({ column }) => {
         return (
           <Header column={column}>
@@ -173,12 +182,13 @@ export const getColumn = () => {
       },
       cell: ({ getValue, row }) => {
         const formatter = currencyFormat(row.original.custom_currency);
-        const value = getValue();
+        const value = getValue() as number;
         return formatter.format(value);
       },
     },
     {
       accessorKey: "percent_complete_method",
+      size: Number(columnWidth["percent_complete_method"]),
       header: ({ column }) => {
         return (
           <Header column={column}>
@@ -189,6 +199,7 @@ export const getColumn = () => {
     },
     {
       accessorKey: "actual_start_date",
+      size: Number(columnWidth["actual_start_date"]),
       header: ({ column }) => {
         return (
           <Header column={column}>
@@ -199,6 +210,7 @@ export const getColumn = () => {
     },
     {
       accessorKey: "actual_end_date",
+      size: Number(columnWidth["actual_end_date"]),
       header: ({ column }) => {
         return (
           <Header column={column}>
@@ -209,6 +221,7 @@ export const getColumn = () => {
     },
     {
       accessorKey: "actual_time",
+      size: Number(columnWidth["actual_time"]),
       header: ({ column }) => {
         return (
           <Header column={column}>
@@ -228,6 +241,7 @@ export const getColumn = () => {
     },
     {
       accessorKey: "total_sales_amount",
+      size: Number(columnWidth["total_sales_amount"]),
       header: ({ column }) => {
         return (
           <Header column={column}>
@@ -237,12 +251,13 @@ export const getColumn = () => {
       },
       cell: ({ getValue, row }) => {
         const formatter = currencyFormat(row.original.custom_currency);
-        const value = getValue();
+        const value = getValue() as number;
         return formatter.format(value);
       },
     },
     {
       accessorKey: "total_billable_amount",
+      size: Number(columnWidth["total_billable_amount"]),
       header: ({ column }) => {
         return (
           <Header column={column}>
@@ -252,12 +267,13 @@ export const getColumn = () => {
       },
       cell: ({ getValue, row }) => {
         const formatter = currencyFormat(row.original.custom_currency);
-        const value = getValue();
+        const value = getValue() as number;
         return formatter.format(value);
       },
     },
     {
       accessorKey: "total_billed_amount",
+      size: Number(columnWidth["total_billed_amount"]),
       header: ({ column }) => {
         return (
           <Header column={column}>
@@ -267,12 +283,13 @@ export const getColumn = () => {
       },
       cell: ({ getValue, row }) => {
         const formatter = currencyFormat(row.original.custom_currency);
-        const value = getValue();
+        const value = getValue() as number;
         return formatter.format(value);
       },
     },
     {
       accessorKey: "total_costing_amount",
+      size: Number(columnWidth["total_costing_amount"]),
       header: ({ column }) => {
         return (
           <Header column={column}>
@@ -282,12 +299,13 @@ export const getColumn = () => {
       },
       cell: ({ getValue, row }) => {
         const formatter = currencyFormat(row.original.custom_currency);
-        const value = getValue();
+        const value = getValue() as number;
         return formatter.format(value);
       },
     },
     {
       accessorKey: "total_expense_claim",
+      size: Number(columnWidth["total_expense_claim"]),
       header: ({ column }) => {
         return (
           <Header column={column}>
@@ -297,12 +315,13 @@ export const getColumn = () => {
       },
       cell: ({ getValue, row }) => {
         const formatter = currencyFormat(row.original.custom_currency);
-        const value = getValue();
+        const value = getValue() as number;
         return formatter.format(value);
       },
     },
     {
       accessorKey: "custom_total_hours_purchased",
+      size: Number(columnWidth["custom_total_hours_purchased"]),
       header: ({ column }) => {
         return (
           <Header column={column}>
@@ -313,6 +332,7 @@ export const getColumn = () => {
     },
     {
       accessorKey: "custom_total_hours_remaining",
+      size: Number(columnWidth["custom_total_hours_remaining"]),
       header: ({ column }) => {
         return (
           <Header column={column}>
@@ -323,6 +343,7 @@ export const getColumn = () => {
     },
     {
       accessorKey: "custom_percentage_estimated_cost",
+      size: Number(columnWidth["custom_percentage_estimated_cost"]),
       header: ({ column }) => {
         return (
           <Header column={column}>
@@ -331,7 +352,7 @@ export const getColumn = () => {
         );
       },
       cell: ({ getValue }) => {
-        const value = getValue();
+        const value = getValue() as string;
         return <Typography variant="p">{value}%</Typography>;
       },
     },
@@ -368,6 +389,7 @@ export const getColumn = () => {
     },
     {
       accessorKey: "gross_margin",
+      size: Number(columnWidth["gross_margin"]),
       header: ({ column }) => {
         return (
           <Header column={column}>
@@ -377,12 +399,13 @@ export const getColumn = () => {
       },
       cell: ({ getValue, row }) => {
         const formatter = currencyFormat(row.original.custom_currency);
-        const value = getValue();
+        const value = getValue() as number;
         return formatter.format(value);
       },
     },
     {
       accessorKey: "per_gross_margin",
+      size: Number(columnWidth["per_gross_margin"]),
       header: ({ column }) => {
         return (
           <Header column={column}>
@@ -391,15 +414,15 @@ export const getColumn = () => {
         );
       },
       cell: ({ getValue }) => {
-        const value = getValue();
-        return <Typography variant="p">{value}%</Typography>;
+        const value = getValue() as string;
+        return <Typography variant="p">{parseFloat(value).toFixed(2)}%</Typography>;
       },
     },
   ];
   return columns;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, react-refresh/only-export-components
 const Header = ({ column, children }: { column: any; children: any }) => {
   return (
     <div

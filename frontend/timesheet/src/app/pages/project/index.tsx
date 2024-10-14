@@ -20,7 +20,14 @@ import {
 import { ComboxBox } from "@/app/components/comboBox";
 import { cn, parseFrappeErrorMsg, createFalseValuedObject } from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
-import { flexRender, getCoreRowModel, getSortedRowModel, useReactTable, Table as T } from "@tanstack/react-table";
+import {
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+  Table as T,
+  ColumnSizingState,
+} from "@tanstack/react-table";
 import { Filter, GripVertical, EllipsisVertical, Columns2, RotateCcw } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { Badge } from "@/app/components/ui/badge";
@@ -44,11 +51,11 @@ const Project = () => {
   const projectState = useSelector((state: RootState) => state.project);
   const dispatch = useDispatch();
   const { toast } = useToast();
-  let resizeObserver: ResizeObserver;
+
   const tableprop = useMemo(() => {
     return getTableProps();
   }, []);
-
+  const [colSizing, setColSizing] = useState<ColumnSizingState>({});
   const [tableAttributeProps, setTableAttributeProps] = useState(tableprop);
   const [columnVisibility, setColumnVisibility] = useState(createFalseValuedObject(tableprop.hideColumn));
   const [sorting, setSorting] = useState(tableprop.columnSort);
@@ -136,6 +143,7 @@ const Project = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [dispatch],
   );
+
   useEffect(() => {
     if (projectState.isFetchAgain) {
       mutate();
@@ -162,13 +170,16 @@ const Project = () => {
   }, [data, error]);
 
   useEffect(() => {
+    const updatedWidth = { ...tableAttributeProps.columnWidth, ...colSizing };
     const updatedTableProp = {
       ...tableprop,
       columnSort: sorting,
+      columnWidth: updatedWidth,
     };
     setTableAttributeProps(updatedTableProp);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sorting]);
+  }, [sorting, colSizing]);
+
   useEffect(() => {
     localStorage.setItem("project", JSON.stringify(tableAttributeProps));
   }, [tableAttributeProps]);
@@ -177,14 +188,17 @@ const Project = () => {
   const table = useReactTable({
     columns: columns,
     data: projectState.data,
+    enableColumnResizing: true,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     columnResizeMode: "onChange",
     getSortedRowModel: getSortedRowModel(),
+    onColumnSizingChange: setColSizing,
     state: {
       sorting,
       columnVisibility,
+      columnSizing: colSizing,
     },
   });
 
@@ -267,41 +281,25 @@ const Project = () => {
       {isLoading && projectState.data.length == 0 ? (
         <Spinner isFull />
       ) : (
-        <Table className=" [&_td]:px-4 [&_th]:px-4 [&_th]:py-4 relative">
-          <TableHeader className=" border-t-0 sticky top-0 z-10">
+        <Table className=" [&_td]:px-4 [&_th]:px-4 [&_th]:py-4 table-fixed" style={{ width: table.getTotalSize() }}>
+          <TableHeader className=" border-t-0 sticky top-0 z-10 ">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead
-                      className={cn("resizer relative", header.column.getIsResizing() && "isResizing")}
-                      key={header.id}
-                      onMouseDown={(event) => {
-                        const container = event.currentTarget;
-                        resizeObserver = new ResizeObserver((entries) => {
-                          entries.forEach(() => {
-                            setTableAttributeProps((prev: typeof tableAttributeProps) => {
-                              return {
-                                ...prev,
-                                columnWidth: { ...prev.columnWidth, [header.id]: header.getSize() },
-                              };
-                            });
-                          });
-                        });
-                        resizeObserver.observe(container);
-                      }}
-                      onMouseUp={() => {
-                        if (resizeObserver) {
-                          resizeObserver.disconnect();
-                        }
-                      }}
-                    >
-                      <div className="grid grid-cols-[80%_20%] place-items-center h-full gap-1 group">
+                    <TableHead key={header.id} className="relative" style={{ width: header.getSize() }}>
+                      <div className="flex items-center h-full gap-1 group">
                         {flexRender(header.column.columnDef.header, header.getContext())}
-
                         <GripVertical
-                          className="w-4 h-4 max-lg:hidden cursor-col-resize flex justify-center items-center "
-                          {...{ onMouseDown: header.getResizeHandler(), onTouchStart: header.getResizeHandler() }}
+                          className="w-4 h-4 max-lg:hidden cursor-col-resize flex justify-center items-center shrink-0"
+                          {...{
+                            onMouseDown: header.getResizeHandler(),
+                            onTouchStart: header.getResizeHandler(),
+                            style: {
+                              userSelect: "none",
+                              touchAction: "none",
+                            },
+                          }}
                         />
                       </div>
                     </TableHead>
@@ -315,7 +313,15 @@ const Project = () => {
               table.getRowModel().rows.map((row) => (
                 <TableRow className="px-3" key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                    <TableCell
+                      key={cell.id}
+                      style={{
+                        width: cell.column.getSize(),
+                        minWidth: cell.column.columnDef.minSize,
+                      }}
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
                   ))}
                 </TableRow>
               ))

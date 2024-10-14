@@ -4,13 +4,30 @@ import { Row } from "@tanstack/react-table";
 export const projectTableMap = {
   hideColumn: [],
   columnWidth: {
-    project_name: 280,
-    status: 200,
-    project_type: 200,
-    percent_complete: 200,
-    custom_total_hours_purchased: 180,
-    actual_time: 280,
-    custom_total_hours_remaining: 180,
+    project_name: 300,
+    customer: 250,
+    project_type: 250,
+    custom_business_unit: 150,
+    priority: 200,
+    company: 300,
+    custom_billing_type: 200,
+    custom_currency: 100,
+    estimated_costing: 200,
+    percent_complete_method: 200,
+    actual_start_date: 250,
+    actual_end_date: 250,
+    actual_time: 150,
+    total_sales_amount: 250,
+    total_billable_amount: 250,
+    total_billed_amount: 250,
+    total_costing_amount: 250,
+    total_expense_claim: 250,
+    custom_total_hours_purchased: 250,
+    custom_total_hours_remaining: 250,
+    custom_percentage_estimated_cost: 250,
+    gross_margin: 150,
+    per_gross_margin: 150,
+    status: 150,
   },
   columnSort: [],
 };
@@ -32,6 +49,7 @@ export const getTableProps = () => {
 export const sortPercentageComplete = (
   rowA: Row<ProjectData>,
   rowB: Row<ProjectData>,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   columnId: string,
 ) => {
   const firstRowPer = calculatePercentage(
