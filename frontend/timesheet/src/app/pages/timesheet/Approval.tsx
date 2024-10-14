@@ -92,7 +92,7 @@ export const Approval = () => {
               )}
             />
             <DialogFooter className="sm:justify-start mt-6">
-              <Button disabled={isSubmitting || !form.formState.isDirty || !form.formState.isValid}>
+              <Button disabled={isSubmitting}>
                 {isSubmitting ? <LoaderCircle className="animate-spin" /> : <Send />}
                 Submit For Approval
               </Button>
