@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Header, Footer } from "@/app/layout/root";
 import { LoadMore } from "@/app/components/loadMore";
+
 import {
   setProjectData,
   setSearch,
@@ -28,8 +29,8 @@ import {
   Table as T,
   ColumnSizingState,
 } from "@tanstack/react-table";
-import { Filter, GripVertical, EllipsisVertical, Columns2, RotateCcw } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
+import { Filter, EllipsisVertical, Columns2, RotateCcw } from "lucide-react";
+import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/app/components/ui/table";
 import { Badge } from "@/app/components/ui/badge";
 import { Typography } from "@/app/components/typography";
 import { Spinner } from "@/app/components/spinner";
@@ -45,7 +46,10 @@ import {
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
 import { getFilter, getTableProps, projectTableMap } from "./helper";
-import { getColumn } from "./column";
+import { DraggableColumnHeader, getColumn } from "./column";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import { Export } from "@/app/components/export";
 
 const Project = () => {
   const projectState = useSelector((state: RootState) => state.project);
@@ -56,6 +60,7 @@ const Project = () => {
     return getTableProps();
   }, []);
   const [colSizing, setColSizing] = useState<ColumnSizingState>({});
+  const [columnOrder, setColumnOrder] = useState<string[]>(tableprop.columnOrder);
   const [tableAttributeProps, setTableAttributeProps] = useState(tableprop);
   const [columnVisibility, setColumnVisibility] = useState(createFalseValuedObject(tableprop.hideColumn));
   const [sorting, setSorting] = useState(tableprop.columnSort);
@@ -175,10 +180,11 @@ const Project = () => {
       ...tableprop,
       columnSort: sorting,
       columnWidth: updatedWidth,
+      columnOrder: columnOrder,
     };
     setTableAttributeProps(updatedTableProp);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sorting, colSizing]);
+  }, [sorting, colSizing, columnOrder]);
 
   useEffect(() => {
     localStorage.setItem("project", JSON.stringify(tableAttributeProps));
@@ -195,9 +201,11 @@ const Project = () => {
     columnResizeMode: "onChange",
     getSortedRowModel: getSortedRowModel(),
     onColumnSizingChange: setColSizing,
+    onColumnOrderChange: setColumnOrder,
     state: {
       sorting,
       columnVisibility,
+      columnOrder,
       columnSizing: colSizing,
     },
   });
@@ -275,65 +283,57 @@ const Project = () => {
             }))}
             className="text-primary border-dashed  font-normal w-fit"
           />
+          <Export
+            headers={table.getHeaderGroups()[0].headers.map((header) => ({
+              value: header.column.id,
+              label: header.column.id.replace(/_/g, " "),
+            }))}
+            rows={projectState.data}
+          />
           <PageAction table={table} resetTable={resetTable} onColumnHide={handleColumnHide} />
         </section>
       </Header>
       {isLoading && projectState.data.length == 0 ? (
         <Spinner isFull />
       ) : (
-        <Table className=" [&_td]:px-4 [&_th]:px-4 [&_th]:py-4 table-fixed" style={{ width: table.getTotalSize() }}>
-          <TableHeader className=" border-t-0 sticky top-0 z-10 ">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id} className="relative" style={{ width: header.getSize() }}>
-                      <div className="flex items-center h-full gap-1 group">
-                        {flexRender(header.column.columnDef.header, header.getContext())}
-                        <GripVertical
-                          className="w-4 h-4 max-lg:hidden cursor-col-resize flex justify-center items-center shrink-0"
-                          {...{
-                            onMouseDown: header.getResizeHandler(),
-                            onTouchStart: header.getResizeHandler(),
-                            style: {
-                              userSelect: "none",
-                              touchAction: "none",
-                            },
-                          }}
-                        />
-                      </div>
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow className="px-3" key={row.id} data-state={row.getIsSelected() && "selected"}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      style={{
-                        width: cell.column.getSize(),
-                        minWidth: cell.column.columnDef.minSize,
-                      }}
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
+        <DndProvider backend={HTML5Backend}>
+          <Table className=" [&_td]:px-4 [&_th]:px-4 [&_th]:py-4 table-fixed" style={{ width: table.getTotalSize() }}>
+            <TableHeader className=" border-t-0 sticky top-0 z-10 ">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return <DraggableColumnHeader key={header.id} header={header} reorder={setColumnOrder} />;
+                  })}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow className="w-full">
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow className="px-3" key={row.id} data-state={row.getIsSelected() && "selected"}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        style={{
+                          width: cell.column.getSize(),
+                          minWidth: cell.column.columnDef.minSize,
+                        }}
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow className="w-full">
+                  <TableCell colSpan={columns.length} className="h-24 text-center">
+                    No results
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </DndProvider>
       )}
       <Footer>
         <div className="flex  justify-between items-center ">
@@ -393,7 +393,7 @@ const PageAction = ({
                         onColumnHide(column.id);
                       }}
                     >
-                      {column.id.replace("_", " ")}
+                      {column.id.replace(/_/g, " ")}
                     </DropdownMenuCheckboxItem>
                   );
                 })}

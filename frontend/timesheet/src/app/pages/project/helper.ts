@@ -1,8 +1,36 @@
 import { ProjectData, ProjectState } from "@/store/project";
-import { Row } from "@tanstack/react-table";
+import { ColumnDef, Row } from "@tanstack/react-table";
 
+export const colOrder: string[] = [
+  "name",
+  "project_name",
+  "project_type",
+  "custom_business_unit",
+  "status",
+  "priority",
+  "customer",
+  "company",
+  "custom_billing_type",
+  "custom_currency",
+  "estimated_costing",
+  "custom_percentage_estimated_cost",
+  "percent_complete_method",
+  "actual_start_date",
+  "actual_end_date",
+  "actual_time",
+  "total_sales_amount",
+  "total_billable_amount",
+  "total_billed_amount",
+  "total_costing_amount",
+  "total_expense_claim",
+  "custom_total_hours_purchased",
+  "custom_total_hours_remaining",
+  "gross_margin",
+  "per_gross_margin",
+];
 export const projectTableMap = {
   hideColumn: [],
+  columnOrder: colOrder,
   columnWidth: {
     project_name: 300,
     customer: 250,

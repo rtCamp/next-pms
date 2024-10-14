@@ -1,11 +1,13 @@
 import { Billability, Priority, ProjectData, Status } from "@/store/project";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, flexRender } from "@tanstack/react-table";
 import { getTableProps, calculatePercentage, sortPercentageComplete, currencyFormat } from "./helper";
 import { Typography } from "@/app/components/typography";
 import { cn } from "@/lib/utils";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, GripVertical } from "lucide-react";
 import { Progress } from "@/app/components/ui/progress";
 import { Badge } from "@/app/components/ui/badge";
+import { useDrag, useDrop } from "react-dnd";
+import { TableHead } from "@/app/components/ui/table";
 
 export const getColumn = () => {
   const tableAttributeProps = getTableProps();
@@ -440,5 +442,59 @@ const Header = ({ column, children }: { column: any; children: any }) => {
         )}
       />
     </div>
+  );
+};
+
+export const DraggableColumnHeader = ({ header, reorder }) => {
+  const [{ isDragging }, dragRef] = useDrag({
+    type: "COLUMN",
+    item: { id: header.id },
+    collect: (monitor) => ({
+      isDragging: !!monitor.isDragging(),
+    }),
+  });
+  const [, dropRef] = useDrop({
+    accept: "COLUMN",
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    hover: (draggedColumn: any) => {
+      if (draggedColumn.id !== header.id) {
+        reorder((old: string[]) => {
+          const newOrder = [...old];
+          const fromIndex = newOrder.indexOf(draggedColumn.id);
+          const toIndex = newOrder.indexOf(header.id);
+          newOrder.splice(fromIndex, 1);
+          newOrder.splice(toIndex, 0, draggedColumn.id);
+          return newOrder;
+        });
+      }
+    },
+  });
+
+  return (
+    <TableHead
+      key={header.id}
+      className="relative"
+      style={{
+        width: header.getSize(),
+        opacity: isDragging ? 0.5 : 1,
+      }}
+    >
+      <div className="flex items-center h-full gap-1 group">
+        <span ref={(node) => dragRef(dropRef(node))} className="w-full">
+          {flexRender(header.column.columnDef.header, header.getContext())}
+        </span>
+        <GripVertical
+          className="w-4 h-4 max-lg:hidden cursor-col-resize flex justify-center items-center shrink-0"
+          {...{
+            onMouseDown: header.getResizeHandler(),
+            onTouchStart: header.getResizeHandler(),
+            style: {
+              userSelect: "none",
+              touchAction: "none",
+            },
+          }}
+        />
+      </div>
+    </TableHead>
   );
 };
