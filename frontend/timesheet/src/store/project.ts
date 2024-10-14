@@ -1,18 +1,45 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
 export type Status = "Open" | "Completed" | "Cancelled";
-
+export type Priority = "Low" | "Medium" | "High";
+export type Billability =
+  | "Non-Billable"
+  | "Fixed Cost"
+  | "Retainer"
+  | "Time and Material";
+export type CompletionMethod =
+  | "Manual"
+  | "Task Completion"
+  | "Task Progress"
+  | "Task Weight";
 export interface ProjectData {
   name: string;
   project_name: string;
-  status: Status;
+  customer: string;
   project_type: string;
-  percent_complete: number;
-  custom_budget_in_hours: number;
-  custom_budget_spent_in_hours: number;
-  custom_budget_remaining_in_hours: number;
-  custom_is_billable: boolean;
+  custom_business_unit: string;
+  priority: Priority;
+  company: string;
+  custom_billing_type: Billability;
+  custom_currency: string;
+  estimated_costing: number;
+  percent_complete_method: CompletionMethod;
+  actual_start_date: string;
+  actual_end_date: string;
+  actual_time: number;
+  total_sales_amount: number;
+  total_billable_amount: number;
+  total_billed_amount: number;
+  total_costing_amount: number;
+  total_expense_claim: number;
+  custom_total_hours_purchased: number;
+  custom_total_hours_remaining: number;
+  custom_percentage_estimated_cost: number;
+  gross_margin: number;
+  per_gross_margin: number;
+  status: Status;
 }
+
 export interface ProjectState {
   isFetchAgain: boolean;
   data: ProjectData[];

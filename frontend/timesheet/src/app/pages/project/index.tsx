@@ -1,13 +1,12 @@
 import { DeBounceInput } from "@/app/components/deBounceInput";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { RootState } from "@/store";
-import { useFrappeGetDocList, useFrappeGetDocCount } from "frappe-react-sdk";
+import { useFrappeGetDocList, useFrappePostCall, useFrappeGetCall } from "frappe-react-sdk";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Header, Footer } from "@/app/layout/root";
 import { LoadMore } from "@/app/components/loadMore";
 import {
-  ProjectState,
   setProjectData,
   setSearch,
   setSelectedProjectType,
@@ -21,18 +20,9 @@ import {
 import { ComboxBox } from "@/app/components/comboBox";
 import { cn, parseFrappeErrorMsg, createFalseValuedObject } from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
-import {
-  ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  getSortedRowModel,
-  Row,
-  useReactTable,
-  Table as T,
-} from "@tanstack/react-table";
-import { Filter, GripVertical, ArrowUpDown, EllipsisVertical, Columns2, RotateCcw } from "lucide-react";
+import { flexRender, getCoreRowModel, getSortedRowModel, useReactTable, Table as T } from "@tanstack/react-table";
+import { Filter, GripVertical, EllipsisVertical, Columns2, RotateCcw } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
-import { Progress } from "@/app/components/ui/progress";
 import { Badge } from "@/app/components/ui/badge";
 import { Typography } from "@/app/components/typography";
 import { Spinner } from "@/app/components/spinner";
@@ -47,19 +37,9 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
-const projectTableMap = {
-  hideColumn: [],
-  columnWidth: {
-    project_name: 180,
-    status: 100,
-    project_type: 100,
-    percent_complete: 150,
-    custom_total_hours_purchased: 80,
-    actual_time: 80,
-    custom_total_hours_remaining: 80,
-  },
-  columnSort: [],
-};
+import { getFilter, getTableProps, projectTableMap } from "./helper";
+import { getColumn } from "./column";
+
 const Project = () => {
   const projectState = useSelector((state: RootState) => state.project);
   const dispatch = useDispatch();
@@ -68,12 +48,23 @@ const Project = () => {
   const tableprop = useMemo(() => {
     return getTableProps();
   }, []);
+
   const [tableAttributeProps, setTableAttributeProps] = useState(tableprop);
   const [columnVisibility, setColumnVisibility] = useState(createFalseValuedObject(tableprop.hideColumn));
   const [sorting, setSorting] = useState(tableprop.columnSort);
+  const [count, setCount] = useState<number>(0);
   const [searchParam, setSearchParam] = useQueryParamsState("search", "");
   const [projectTypeParam, setProjectTypeParam] = useQueryParamsState<Array<string>>("project-type", []);
   const [statusParam, setStatusParam] = useQueryParamsState<Array<Status>>("status", []);
+  const { call } = useFrappePostCall("frappe.desk.reportview.get_count");
+
+  const getCount = () => {
+    call({ doctype: "Project", ...getFilter(projectState) })
+      .then((res) => {
+        setCount(res.message);
+      })
+      .catch(() => {});
+  };
 
   useEffect(() => {
     const payload = {
@@ -82,12 +73,16 @@ const Project = () => {
       selectedStatus: statusParam,
     };
     dispatch(setFilters(payload));
+    getCount();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const { data: projectType } = useFrappeGetDocList(
-    "Project Type",
+
+  const { data: projectType } = useFrappeGetCall(
+    "frappe.client.get_list",
     {
-      limit: 100,
+      doctype: "Project Type",
+      fields: ["name"],
+      limit_page_length: "null",
     },
     undefined,
     {
@@ -98,16 +93,7 @@ const Project = () => {
   const { data, error, isLoading, mutate } = useFrappeGetDocList(
     "Project",
     {
-      fields: [
-        "name",
-        "project_name",
-        "status",
-        "project_type",
-        "percent_complete",
-        "custom_total_hours_purchased",
-        "actual_time",
-        "custom_total_hours_remaining",
-      ],
+      fields: ["*"],
       // eslint-disable-next-line
       //   @ts-ignore
       filters: getFilter(projectState),
@@ -122,13 +108,6 @@ const Project = () => {
       shouldRetryOnError: false,
     },
   );
-
-  const {
-    data: count,
-    isLoading: countIsLoading,
-    // eslint-disable-next-line
-    //   @ts-ignore
-  } = useFrappeGetDocCount("Project", getFilter(projectState));
 
   const handleSearch = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -194,7 +173,7 @@ const Project = () => {
     localStorage.setItem("project", JSON.stringify(tableAttributeProps));
   }, [tableAttributeProps]);
 
-  const columns = getColumns(tableAttributeProps);
+  const columns = getColumn();
   const table = useReactTable({
     columns: columns,
     data: projectState.data,
@@ -258,7 +237,7 @@ const Project = () => {
                 <Badge className="px-1.5">{projectState.selectedProjectType.length}</Badge>
               )
             }
-            data={projectType?.map((d: { name: string }) => ({
+            data={projectType?.message.map((d: { name: string }) => ({
               label: d.name,
               value: d.name,
             }))}
@@ -285,22 +264,18 @@ const Project = () => {
           <PageAction table={table} resetTable={resetTable} onColumnHide={handleColumnHide} />
         </section>
       </Header>
-      {(isLoading || countIsLoading) && projectState.data.length == 0 ? (
+      {isLoading && projectState.data.length == 0 ? (
         <Spinner isFull />
       ) : (
-        <Table className="[&_td]:px-4 [&_th]:px-4 [&_th]:py-4 table-fixed w-full relative">
-          <TableHeader className="[&_th]:h-10 border-t-0 sticky top-0 z-10">
+        <Table className=" [&_td]:px-4 [&_th]:px-4 [&_th]:py-4 relative">
+          <TableHeader className=" border-t-0 sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead
-                      className={cn("resizer", header.column.getIsResizing() && "isResizing")}
+                      className={cn("resizer relative", header.column.getIsResizing() && "isResizing")}
                       key={header.id}
-                      style={{
-                        width: header.getSize(),
-                        position: "relative",
-                      }}
                       onMouseDown={(event) => {
                         const container = event.currentTarget;
                         resizeObserver = new ResizeObserver((entries) => {
@@ -340,9 +315,7 @@ const Project = () => {
               table.getRowModel().rows.map((row) => (
                 <TableRow className="px-3" key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell className="overflow-hidden" key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
+                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                   ))}
                 </TableRow>
               ))
@@ -360,7 +333,7 @@ const Project = () => {
         <div className="flex  justify-between items-center ">
           <LoadMore
             variant="outline"
-            disabled={projectState.data.length == (count ?? 0) || isLoading || countIsLoading}
+            disabled={projectState.data.length == (count ?? 0) || isLoading}
             onClick={() => {
               dispatch(setStart(projectState.start + 20));
             }}
@@ -374,295 +347,6 @@ const Project = () => {
   );
 };
 
-const getFilter = (projectState: ProjectState) => {
-  const filters = [];
-
-  if (projectState.search) {
-    filters.push(["project_name", "like", `%${projectState.search}%`]);
-  }
-  if (projectState.selectedProjectType.length > 0) {
-    filters.push(["project_type", "in", projectState.selectedProjectType]);
-  }
-  if (projectState.selectedStatus.length > 0) {
-    filters.push(["status", "in", projectState.selectedStatus]);
-  }
-
-  return filters;
-};
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const getColumns = (tableAttributeProps: any) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const sortPercentageComplete = (rowA: Row<ProjectData>, rowB: Row<ProjectData>, columnId: string) => {
-    const firstRowPer = calculatePercentage(
-      Number(rowA.getValue("actual_time")),
-      Number(rowA.getValue("custom_total_hours_purchased")),
-    );
-    const secondRowPer = calculatePercentage(
-      Number(rowB.getValue("actual_time")),
-      Number(rowB.getValue("custom_total_hours_purchased")),
-    );
-    if (firstRowPer > secondRowPer) {
-      return 1;
-    } else if (firstRowPer < secondRowPer) {
-      return -1;
-    } else {
-      return 0;
-    }
-  };
-  type ColumnsType = ColumnDef<ProjectData>[];
-  const columnWidth = tableAttributeProps?.columnWidth;
-
-  const columns: ColumnsType = [
-    {
-      accessorKey: "project_name",
-      size: Number(columnWidth["project_name"] ?? "350"),
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full overflow-hidden"
-            title={column.id}
-            onClick={() => {
-              column.toggleSorting();
-            }}
-          >
-            <p className="truncate">Project Name</p>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
-          </div>
-        );
-      },
-      cell: ({ getValue, row }) => {
-        const value = getValue() as string;
-        return (
-          <a href={`/app/project/${row.original.name}`} className="hover:underline">
-            <Typography variant="p" className="truncate" title={value}>
-              {value}
-            </Typography>
-          </a>
-        );
-      },
-    },
-    {
-      accessorKey: "status",
-      size: Number(columnWidth["status"] ?? "150"),
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full overflow-hidden "
-            title={column.id}
-            onClick={() => {
-              column.toggleSorting();
-            }}
-          >
-            <p className="truncate">Status</p>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
-          </div>
-        );
-      },
-      cell: ({ getValue }) => {
-        const value = getValue() as Status;
-        return (
-          <Badge variant={value === "Open" ? "secondary" : value === "Completed" ? "success" : "destructive"}>
-            {value}
-          </Badge>
-        );
-      },
-    },
-    {
-      accessorKey: "project_type",
-      size: Number(columnWidth["project_type"] ?? "150"),
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full overflow-hidden "
-            title={column.id}
-            onClick={() => {
-              column.toggleSorting();
-            }}
-          >
-            <p className="truncate">Project Type</p>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "percent_complete",
-      size: Number(columnWidth["percent_complete"] ?? "150"),
-      sortingFn: sortPercentageComplete,
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full overflow-hidden "
-            title={column.id}
-            onClick={() => {
-              column.toggleSorting();
-            }}
-          >
-            <p className="truncate">% Completed</p>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
-          </div>
-        );
-      },
-      cell: ({ row }) => {
-        const budget = Number(row.getValue("custom_total_hours_purchased"));
-        const spent = Number(row.getValue("actual_time"));
-        const per = calculatePercentage(spent, budget);
-        return budget ? (
-          <div>
-            <Typography
-              variant="small"
-              className={cn("text-primary float-right", spent > budget && "text-destructive")}
-            >
-              {per}%
-            </Typography>
-            <Progress
-              value={per}
-              className={cn("h-2 bg-success/20", spent > budget && "bg-destructive/20", budget == 0 && "bg-secondary")}
-              indicatorClassName={cn("bg-success", spent > budget && "bg-destructive")}
-            />
-          </div>
-        ) : null;
-      },
-    },
-    {
-      accessorKey: "custom_total_hours_purchased",
-      size: Number(columnWidth["custom_total_hours_purchased"] ?? "150"),
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full overflow-hidden "
-            title={column.id}
-            onClick={() => {
-              column.toggleSorting();
-            }}
-          >
-            <p className="truncate">Budget (Hours)</p>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
-          </div>
-        );
-      },
-      cell: ({ getValue }) => {
-        const value = Number(getValue());
-        return value ? (
-          <Typography variant="p" className="text-center">
-            {value}h
-          </Typography>
-        ) : null;
-      },
-    },
-    {
-      accessorKey: "actual_time",
-      size: Number(columnWidth["actual_time"] ?? "150"),
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full overflow-hidden "
-            title={column.id}
-            onClick={() => {
-              column.toggleSorting();
-            }}
-          >
-            <p className="truncate">Budget Spent (Hours)</p>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
-          </div>
-        );
-      },
-      cell: ({ getValue, row }) => {
-        const value = Number(getValue());
-        const budget = Number(row.getValue("custom_total_hours_purchased"));
-        return (
-          <Typography variant="p" className={cn("text-center", value > budget && "text-warning")}>
-            {value}h
-          </Typography>
-        );
-      },
-    },
-    {
-      accessorKey: "custom_total_hours_remaining",
-      size: Number(columnWidth["custom_total_hours_remaining"] ?? "150"),
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer  w-full overflow-hidden"
-            title={column.id}
-            onClick={() => {
-              column.toggleSorting();
-            }}
-          >
-            <p className="truncate">Budget Remaining (Hours)</p>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
-          </div>
-        );
-      },
-      cell: ({ getValue, row }) => {
-        const value = Number(getValue());
-        const budget = Number(row.getValue("custom_total_hours_purchased"));
-        return budget ? (
-          <Typography
-            variant="p"
-            className={cn("text-center", value < 1 && "text-destructive", value >= budget && "text-success")}
-          >
-            {value}h
-          </Typography>
-        ) : null;
-      },
-    },
-  ];
-  return columns;
-};
-
-const getTableProps = () => {
-  try {
-    const data = JSON.parse(String(localStorage.getItem("project")));
-    if (!data) {
-      return projectTableMap;
-    } else {
-      return data;
-    }
-  } catch (error) {
-    return projectTableMap;
-  }
-};
-
-const calculatePercentage = (spent: number, budget: number) => {
-  return budget == 0 ? 0 : Math.round((spent / budget) * 100);
-};
 const PageAction = ({
   table,
   resetTable,
@@ -688,7 +372,7 @@ const PageAction = ({
             <Typography variant="p">Columns</Typography>
           </DropdownMenuSubTrigger>
           <DropdownMenuPortal>
-            <DropdownMenuSubContent>
+            <DropdownMenuSubContent className="max-h-96 overflow-y-auto">
               {table
                 .getAllColumns()
                 .filter((column) => column.getCanHide())
