@@ -8,17 +8,19 @@ now = nowdate()
 
 def get_leaves_for_employee(from_date: str, to_date: str, employee: str):
 
-    from_date = getdate(from_date)
-    to_date = getdate(to_date)
-    return frappe.get_list(
-        "Leave Application",
-        filters={
-            "employee": employee,
-            "creation": ["between", [from_date, to_date]],
-            "status": ["in", ["Open", "Approved"]],
-        },
-        fields=["*", "leave_type.include_holiday"],
-    )
+    leave_application = frappe.qb.DocType("Leave Application")
+    filtered_data = (
+        frappe.qb.from_(leave_application)
+        .select("*")
+        .where(leave_application.employee == employee)
+        .where(
+            (leave_application.from_date >= from_date)
+            & (leave_application.to_date <= to_date)
+        )
+        .where(leave_application.status.isin(["Open", "Approved"]))
+    ).run(as_dict=True)
+
+    return filtered_data
 
 
 def get_week_dates(date, current_week: bool = False):
