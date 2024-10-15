@@ -9,6 +9,8 @@ frappe.ui.form.on("Project", {
     }
 
     frm.events.update_custom_table_project();
+    frm.events.custom_send_reminder_when_approaching_project_threshold_limit(frm);
+
     document
       .querySelector('[data-fieldname="project_details"]')
       .removeEventListener("click", frm.events.update_custom_table_project);
@@ -23,6 +25,24 @@ frappe.ui.form.on("Project", {
       table_section.classList.add("hidden");
     } else {
       table_section.classList.remove("hidden");
+    }
+  },
+  custom_billing_type: function (frm) {
+    frm.events.custom_send_reminder_when_approaching_project_threshold_limit(frm);
+  },
+  custom_send_reminder_when_approaching_project_threshold_limit: function (frm) {
+    if (frm.doc.custom_billing_type == "Retainer") {
+      frm.set_df_property(
+        "custom_send_reminder_when_approaching_project_threshold_limit",
+        "description",
+        "For retainer project, reminder is sent based on Latest Hours Purchased vs Latest Hours Remaining.",
+      );
+    } else if (frm.doc.custom_billing_type == "Time and Material") {
+      frm.set_df_property(
+        "custom_send_reminder_when_approaching_project_threshold_limit",
+        "description",
+        "For time and material project, reminder is sent based on Total Billable Amount (via Timesheet) vs Estimated Cost.",
+      );
     }
   },
   recalculate_timesheet_billing: function (frm) {

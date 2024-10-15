@@ -1,0 +1,3 @@
+PROJECT_THRESHOLD_REMINDER_EMAIL_TEMPLATE = (
+    "Project Threshold Reached Reminder Notification"
+)
