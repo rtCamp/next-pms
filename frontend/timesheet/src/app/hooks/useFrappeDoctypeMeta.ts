@@ -1,6 +1,7 @@
 import { useFrappeGetCall } from "frappe-react-sdk";
 
 const useFrappeDoctypeMeta = (doctype: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, isLoading } = useFrappeGetCall<{ docs: any[] }>(
     "frappe.desk.form.load.getdoctype",
     {
