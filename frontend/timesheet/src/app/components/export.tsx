@@ -23,6 +23,8 @@ interface ExportProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rows: any[];
   headers: Array<{ label: string; value: string }>;
+  doctype?: string;
+  fields?: string[];
 }
 enum fileType {
   Excel = "Excel",
@@ -36,42 +38,62 @@ const schema = z.object({
   file_type: z.enum([fileType.CSV, fileType.Excel], {
     required_error: "Please select a file type.",
   }),
-  export_type: z.enum([exportType.Filter, exportType.All], {
+  export_type: z.enum([exportType.All], {
     required_error: "Please select a export type.",
   }),
 });
 // used to export the table data to csv or excel.
-export const Export = ({ rows = [], headers }: ExportProps) => {
+export const Export = ({ rows = [], headers, doctype, fields }: ExportProps) => {
   const [columns, setColumns] = useState(headers);
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     mode: "onSubmit",
+    defaultValues: {
+      file_type: fileType.Excel,
+      export_type: exportType.All,
+    },
   });
   const handleSubmit = (data: z.infer<typeof schema>) => {
     if (data.file_type === "Excel") {
       excelExport();
+    } else {
+      csvExport();
     }
   };
   const handleCancel = () => {
     form.reset();
   };
-  const excelExport = () => {
-    const filteredData = rows.map((row) =>
-      columns.reduce(
-        (acc, col) => {
-          if (col.value in row) {
-            acc[col.value] = row[col.value];
-          }
-          return acc;
-        },
-        {} as Record<string, any>,
-      ),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const filterRowData = (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    row: Record<string, any>,
+    columns: Array<{ value: string; label: string }>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ): Record<string, any> => {
+    return columns.reduce(
+      (acc, col) => {
+        if (col.value in row) {
+          acc[col.label] = row[col.value];
+        }
+        return acc;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      },
+      {} as Record<string, any>,
     );
-
+  };
+  const excelExport = () => {
+    const filteredData = rows.map((row) => filterRowData(row, columns));
     const worksheet = XLSX.utils.json_to_sheet(filteredData, { header: columns.map((col) => col.label) });
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
     XLSX.writeFile(workbook, "data.xlsx");
+  };
+  const csvExport = () => {
+    const filteredData = rows.map((row) => filterRowData(row, columns));
+    const workbook = XLSX.utils.book_new();
+    const sheet = XLSX.utils.json_to_sheet(filteredData, { header: columns.map((col) => col.label) });
+    XLSX.utils.book_append_sheet(workbook, sheet, "sheet1");
+    XLSX.writeFile(workbook, "data.csv");
   };
   return (
     <Dialog>
@@ -87,7 +109,7 @@ export const Export = ({ rows = [], headers }: ExportProps) => {
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)}>
-            <div className="flex gap-x-4 pb-3">
+            <div className="flex gap-x-4 ">
               <FormField
                 control={form.control}
                 name="file_type"
@@ -119,7 +141,7 @@ export const Export = ({ rows = [], headers }: ExportProps) => {
                           <SelectValue placeholder="Export Type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="filter">Filtered Records</SelectItem>
+                          {/* <SelectItem value="filter">Filtered Records</SelectItem> */}
                           <SelectItem value="all">All Records</SelectItem>
                         </SelectContent>
                       </Select>
@@ -129,8 +151,8 @@ export const Export = ({ rows = [], headers }: ExportProps) => {
                 )}
               />
             </div>
-            <Separator />
-            <div id="column-selector" className="grid grid-cols-3 gap-2 pt-3">
+            <Separator className="my-3" />
+            <div id="column-selector" className="grid grid-cols-2 gap-2  max-h-96 overflow-y-auto">
               {headers.map((header) => {
                 return (
                   <div className="flex gap-x-1 text-sm items-center">
@@ -145,11 +167,14 @@ export const Export = ({ rows = [], headers }: ExportProps) => {
                         }
                       }}
                     />
-                    <label htmlFor={header.value}>{header.label}</label>
+                    <label htmlFor={header.value} className="capitalize">
+                      {header.label}
+                    </label>
                   </div>
                 );
               })}
             </div>
+            <Separator className="my-3" />
             <DialogFooter>
               <Button>
                 <FileDown /> Export

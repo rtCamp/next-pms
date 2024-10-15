@@ -1,7 +1,7 @@
 import { DeBounceInput } from "@/app/components/deBounceInput";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { RootState } from "@/store";
-import { useFrappeGetDocList, useFrappePostCall, useFrappeGetCall } from "frappe-react-sdk";
+import { useFrappeGetDocList, useFrappeGetCall } from "frappe-react-sdk";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Header, Footer } from "@/app/layout/root";
@@ -50,6 +50,7 @@ import { DraggableColumnHeader, getColumn } from "./column";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { Export } from "@/app/components/export";
+import { useFrappeDocTypeCount } from "@/app/hooks/useFrappeDocCount";
 
 const Project = () => {
   const projectState = useSelector((state: RootState) => state.project);
@@ -64,19 +65,10 @@ const Project = () => {
   const [tableAttributeProps, setTableAttributeProps] = useState(tableprop);
   const [columnVisibility, setColumnVisibility] = useState(createFalseValuedObject(tableprop.hideColumn));
   const [sorting, setSorting] = useState(tableprop.columnSort);
-  const [count, setCount] = useState<number>(0);
+  // const [count, setCount] = useState<number>(0);
   const [searchParam, setSearchParam] = useQueryParamsState("search", "");
   const [projectTypeParam, setProjectTypeParam] = useQueryParamsState<Array<string>>("project-type", []);
   const [statusParam, setStatusParam] = useQueryParamsState<Array<Status>>("status", []);
-  const { call } = useFrappePostCall("frappe.desk.reportview.get_count");
-
-  const getCount = () => {
-    call({ doctype: "Project", ...getFilter(projectState) })
-      .then((res) => {
-        setCount(res.message);
-      })
-      .catch(() => {});
-  };
 
   useEffect(() => {
     const payload = {
@@ -85,7 +77,6 @@ const Project = () => {
       selectedStatus: statusParam,
     };
     dispatch(setFilters(payload));
-    getCount();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -118,6 +109,17 @@ const Project = () => {
     undefined,
     {
       shouldRetryOnError: false,
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+    },
+  );
+  const { data: count, mutate: countMutate } = useFrappeDocTypeCount(
+    "Project",
+    { filters: getFilter(projectState) },
+    undefined,
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
     },
   );
 
@@ -152,6 +154,7 @@ const Project = () => {
   useEffect(() => {
     if (projectState.isFetchAgain) {
       mutate();
+      countMutate();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectState.isFetchAgain]);
@@ -286,7 +289,7 @@ const Project = () => {
           <Export
             headers={table.getHeaderGroups()[0].headers.map((header) => ({
               value: header.column.id,
-              label: header.column.id.replace(/_/g, " "),
+              label: header.column.id.replace("custom_", "").replace(/_/g, " "),
             }))}
             rows={projectState.data}
           />
