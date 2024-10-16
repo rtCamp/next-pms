@@ -3,7 +3,8 @@ app_title = "Frappe PMS"
 app_publisher = "rtCamp"
 app_description = "Simplified Project Management System"
 app_email = "erp@rtcamp.com"
-app_license = "AGPLv3"
+app_license = "GNU AFFERO GENERAL PUBLIC LICENSE (v3)"
+
 # required_apps = []
 
 # Includes in <head>

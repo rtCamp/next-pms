@@ -5,5 +5,5 @@
 tags
 node_modules
 __pycache__
-frappe_pms/www/timesheet/index.html
-frappe_pms/public/timesheet
+dist/
+.frappe-semgrep
