@@ -299,7 +299,7 @@ const Team = () => {
   return (
     <>
       {teamState.isAprrovalDialogOpen && <Approval />}
-      <Header>
+      <Header className="flex items-center max-md:flex-col">
         <div id="filters" className="flex gap-x-2 max-md:gap-x-5  overflow-y-hidden max-md:w-full items-center">
           <DeBounceInput
             placeholder="Employee name"
@@ -369,7 +369,7 @@ const Team = () => {
             className="text-primary border-dashed gap-x-2 font-normal w-fit"
           />
         </div>
-        <div id="date-filter" className="flex gap-x-2 max-md:w-full max-md:justify-between max-md:m-2 t">
+        <div id="date-filter" className="flex gap-x-2 max-md:p-1 max-md:w-full max-md:justify-between max-md:m-2 t">
           <Button title="prev" className="p-1 h-fit" variant="outline" onClick={handleprevWeek}>
             <ChevronLeft className="w-4 max-md:w-3 h-4 max-md:h-3" />
           </Button>

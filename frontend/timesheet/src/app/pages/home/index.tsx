@@ -132,13 +132,13 @@ const Home = () => {
   return (
     <>
       <Header>
-        <section id="filter-section" className="flex max-md:flex-col gap-x-3  w-full">
-          <div className="lg:pr-4 flex gap-x-1 w-full max-w-md">
+        <section id="filter-section" className="flex max-md:flex-col gap-x-3  w-full items-center">
+          <div className="lg:pr-4 flex gap-x-1 w-full max-w-md items-center max-md:overflow-x-scroll p-1">
             <DeBounceInput
               placeholder="Employee name"
               value={employeeNameParam}
               deBounceValue={400}
-              className="w-full"
+              className="w-full max-md:w-48"
               callback={handleEmployeeChange}
             />
             <ComboxBox
@@ -153,7 +153,7 @@ const Home = () => {
               className="text-primary border-dashed gap-x-1 font-normal w-fit"
             />
           </div>
-          <div className="w-full flex">
+          <div className="w-full flex items-center  max-md:mt-2 max-md:p-1">
             <div className="grow flex items-center w-full overflow-x-auto">
               <Button title="prev" variant="outline" className="p-1 h-fit" onClick={handleprevWeek}>
                 <ChevronLeft className="w-4 h-4 max-sm:w-3 max-sm:h-3" />

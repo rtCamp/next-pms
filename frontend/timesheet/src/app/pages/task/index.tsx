@@ -1,6 +1,6 @@
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { TaskData, ProjectProps } from "@/types";
-import { ReactNode, useCallback, useEffect, useState } from "react";
+import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import {
@@ -33,15 +33,15 @@ import { Typography } from "@/app/components/typography";
 import { ComboxBox } from "@/app/components/comboBox";
 import { useQueryParamsState } from "@/lib/queryParam";
 import {
-  ArrowUpDown,
   ChevronDown,
   ChevronUp,
   Clock,
   Columns2,
+  Ellipsis,
   Filter,
+  GripVertical,
   Heart,
   LucideProps,
-  MoreVertical,
   Plus,
   RotateCcw,
 } from "lucide-react";
@@ -49,17 +49,16 @@ import {
   getCoreRowModel,
   getSortedRowModel,
   useReactTable,
-  SortingState,
   VisibilityState,
   getExpandedRowModel,
   ColumnFiltersState,
   getFilteredRowModel,
   ExpandedState,
+  Table as T,
 } from "@tanstack/react-table";
 import { TaskStatus } from "./taskStatus";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuPortal,
@@ -74,59 +73,38 @@ import { RowGroupedTable } from "./groupTable";
 import React from "react";
 import { DeBounceInput } from "@/app/components/deBounceInput";
 import {
-  setLocalStorageTaskStateType,
-  FlatTableType,
   ColumnsType,
   ProjectNestedColumnsType,
   subjectSearchType,
   GroupByParamType,
   columnsToExcludeActionsInTablesType,
-  localStorageTaskType,
   MoreTableOptionsDropDownType,
+  tableAttributePropsType,
 } from "@/types/task";
 import { TaskLog } from "./taskLog";
 import { Footer, Header } from "@/app/layout/root";
 import { LoadMore } from "@/app/components/loadMore";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import { DndProvider, useDrag, useDrop } from "react-dnd";
+import { Checkbox } from "@/app/components/ui/checkbox";
+import { columnMap, getTableProps, localStorageTaskDataMap } from "./helper";
+import { LOCAL_STORAGE_TASK } from "@/lib/constant";
 
 const Task = () => {
   const task = useSelector((state: RootState) => state.task);
   const user = useSelector((state: RootState) => state.user);
   const timesheet = useSelector((state: RootState) => state.timesheet);
+  const tableprop = useMemo(() => {
+    return getTableProps();
+  }, []);
+  const [tableAttributeProps, setTableAttributeProps] = useState<tableAttributePropsType>(tableprop);
+  const [columnOrder, setColumnOrder] = useState<string[]>(tableprop.columnOrder);
   const { call } = useFrappePostCall("frappe.desk.like.toggle_like");
   // States for maintaining tables and filters
   const [expanded, setExpanded] = useState<ExpandedState>(true);
   // LocalStorage States
-  const localStorageTaskDataMap = {
-    hideColumn: [],
-    groupBy: [],
-    projects: [],
-    columnWidth: {
-      subject: "150",
-      due_date: "150",
-      project_name: "150",
-      status: "150",
-      priority: "150",
-      expected_time: "150",
-      actual_time: "150",
-    },
-    columnSort: [],
-  };
-  const [localStorageTaskState, setLocalStorageTaskState] = useState<localStorageTaskType>(() => {
-    try {
-      return JSON.parse(String(localStorage.getItem("task")));
-    } catch (error) {
-      return localStorageTaskDataMap;
-    }
-  });
-  const [sorting, setSorting] = useState<SortingState>(() => {
-    try {
-      return JSON.parse(String(localStorage.getItem("task"))).columnSort;
-    } catch (error) {
-      return [];
-    }
-  });
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
-    createFalseValuedObject(localStorageTaskState?.hideColumn ?? {}),
+    createFalseValuedObject(tableAttributeProps?.hideColumn ?? {})
   );
   const [projectParam, setProjectParam] = useQueryParamsState<string[]>("project", []);
   const [groupByParam, setGroupByParam] = useQueryParamsState<GroupByParamType>("groupby", []);
@@ -189,7 +167,7 @@ const Task = () => {
     {
       shouldRetryOnError: false,
       revalidateOnFocus: false,
-    },
+    }
   );
   useEffect(() => {
     projectSearchMutate();
@@ -272,39 +250,31 @@ const Task = () => {
     (value: string | string[]) => {
       dispatch(setSelectedProject(value as string[]));
     },
-    [dispatch],
+    [dispatch]
   );
   const handleGroupByChange = useCallback(
     (value: string | string[]) => {
       dispatch(setGroupBy(value as string[]));
     },
-    [dispatch],
+    [dispatch]
   );
 
   const openTaskLog = (taskName: string) => {
     dispatch(setSelectedTask({ task: taskName, isOpen: true }));
   };
   // column definitions
+  const columnWidth = tableAttributeProps?.columnWidth;
   const columns: ColumnsType = [
     {
       accessorKey: "project_name",
-      size: Number(localStorageTaskState?.columnWidth["project_name"] ?? "150"),
+      size: Number(columnWidth["project_name"] ?? "150"),
       header: ({ column }) => {
         return (
           <div
             className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
             title={column.id}
-            onClick={() => {
-              column.toggleSorting();
-            }}
           >
-            <p className="truncate">Project Name</p>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
+            <p className="truncate">{columnMap["project_name"]}</p>
           </div>
         );
       },
@@ -322,26 +292,14 @@ const Task = () => {
     },
     {
       accessorKey: "subject",
-      size: Number(localStorageTaskState?.columnWidth["subject"] ?? "150"),
+      size: Number(columnWidth["subject"] ?? "150"),
       header: ({ column }) => {
         return (
           <div
             className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full"
             title={column.id}
-            onClick={() => {
-              if (!column.getIsSorted()) {
-                return column.toggleSorting(true);
-              }
-              column.toggleSorting(column.getIsSorted() === "asc");
-            }}
           >
-            <p className="truncate">Subject</p>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
+            <p className="truncate">{columnMap["subject"]}</p>
           </div>
         );
       },
@@ -362,22 +320,11 @@ const Task = () => {
     },
     {
       accessorKey: "due_date",
-      size: Number(localStorageTaskState?.columnWidth["due_date"] ?? "150"),
-      header: ({ column }) => {
+      size: Number(columnWidth["due_date"] ?? "150"),
+      header: () => {
         return (
-          <div
-            className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer"
-            onClick={() => {
-              column.toggleSorting();
-            }}
-          >
-            <p className="truncate">Due Date</p>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
+          <div className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer">
+            <p className="truncate">{columnMap["due_date"]}</p>
           </div>
         );
       },
@@ -391,23 +338,12 @@ const Task = () => {
     },
     {
       accessorKey: "status",
-      size: Number(localStorageTaskState?.columnWidth["status"] ?? "150"),
+      size: Number(columnWidth["status"] ?? "150"),
 
-      header: ({ column }) => {
+      header: () => {
         return (
-          <div
-            className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer"
-            onClick={() => {
-              column.toggleSorting(column.getIsSorted() === "asc");
-            }}
-          >
-            <p className="truncate">Status</p>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
+          <div className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer">
+            <p className="truncate">{columnMap["status"]}</p>
           </div>
         );
       },
@@ -418,22 +354,11 @@ const Task = () => {
     {
       accessorKey: "priority",
 
-      size: Number(localStorageTaskState?.columnWidth["priority"] ?? "150"),
-      header: ({ column }) => {
+      size: Number(columnWidth["priority"] ?? "150"),
+      header: () => {
         return (
-          <div
-            className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer"
-            onClick={() => {
-              column.toggleSorting(column.getIsSorted() === "asc");
-            }}
-          >
+          <div className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer">
             <p className="truncate">Priority</p>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
           </div>
         );
       },
@@ -443,22 +368,11 @@ const Task = () => {
     },
     {
       accessorKey: "expected_time",
-      size: Number(localStorageTaskState?.columnWidth["expected_time"] ?? "150"),
-      header: ({ column }) => {
+      size: Number(columnWidth["expected_time"] ?? "150"),
+      header: () => {
         return (
-          <div
-            className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer"
-            onClick={() => {
-              column.toggleSorting(column.getIsSorted() === "asc");
-            }}
-          >
-            <p className="truncate">Expected Hours</p>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
+          <div className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer">
+            <p className="truncate">{columnMap["expected_time"]}</p>
           </div>
         );
       },
@@ -472,22 +386,11 @@ const Task = () => {
     },
     {
       accessorKey: "actual_time",
-      size: Number(localStorageTaskState?.columnWidth["actual_time"] ?? "150"),
-      header: ({ column }) => {
+      size: Number(columnWidth["actual_time"] ?? "150"),
+      header: () => {
         return (
-          <div
-            className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer"
-            onClick={() => {
-              column.toggleSorting(column.getIsSorted() === "asc");
-            }}
-          >
-            <p className="truncate">Hour Spent</p>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
+          <div className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer">
+            <p className="truncate">{columnMap["actual_time"]}</p>
           </div>
         );
       },
@@ -502,6 +405,7 @@ const Task = () => {
     {
       accessorKey: "timesheetAction",
       header: "",
+      enableHiding: false,
       size: 60, // Default size
       minSize: 60, // Minimum size
       maxSize: 60, // Maximum size
@@ -521,6 +425,7 @@ const Task = () => {
     {
       accessorKey: "liked",
       header: "",
+      enableHiding: false,
       size: 50, // Default size
       minSize: 50, // Minimum size
       maxSize: 50, // Maximum size
@@ -530,7 +435,7 @@ const Task = () => {
             <Heart
               className={cn(
                 "w-4 h-4 hover:cursor-pointer",
-                isLiked(row.original._liked_by, user.user) && "fill-red-600",
+                isLiked(row.original._liked_by, user.user) && "fill-red-600"
               )}
               data-task={row.original.name}
               data-liked-by={row.original._liked_by}
@@ -544,27 +449,15 @@ const Task = () => {
   const nestedProjectColumns: ProjectNestedColumnsType = [
     {
       accessorKey: "project_name",
-      size: Number(localStorageTaskState?.columnWidth["project_name"] ?? "150"),
+      size: Number(columnWidth["project_name"] ?? "150"),
       enableHiding: false,
       header: ({ column }) => {
         return (
           <div
             className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
             title={column.id}
-            onClick={() => {
-              if (!column.getIsSorted()) {
-                return column.toggleSorting(true);
-              }
-              column.toggleSorting(column.getIsSorted() === "asc");
-            }}
           >
-            <p className="truncate">Project Name</p>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
+            <p className="truncate">{columnMap["project_name"]}</p>
           </div>
         );
       },
@@ -594,26 +487,14 @@ const Task = () => {
     },
     {
       accessorKey: "subject",
-      size: Number(localStorageTaskState?.columnWidth["subject"] ?? "150"),
+      size: Number(columnWidth["subject"] ?? "150"),
       header: ({ column }) => {
         return (
           <div
             className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full"
             title={column.id}
-            onClick={() => {
-              if (!column.getIsSorted()) {
-                return column.toggleSorting(true);
-              }
-              column.toggleSorting(column.getIsSorted() === "asc");
-            }}
           >
-            <p className="truncate">Subject</p>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
+            <p className="truncate">{columnMap["subject"]}</p>
           </div>
         );
       },
@@ -634,20 +515,11 @@ const Task = () => {
     },
     {
       accessorKey: "due_date",
-      size: Number(localStorageTaskState?.columnWidth["due_date"] ?? "150"),
-      header: ({ column }) => {
+      size: Number(columnWidth["due_date"] ?? "150"),
+      header: () => {
         return (
-          <div
-            className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            <div className="truncate w-4/5">Due Date</div>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
+          <div className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer">
+            <div className="truncate w-4/5">{columnMap["due_date"]}</div>
           </div>
         );
       },
@@ -662,20 +534,11 @@ const Task = () => {
     {
       accessorKey: "status",
 
-      size: Number(localStorageTaskState?.columnWidth["status"] ?? "150"),
-      header: ({ column }) => {
+      size: Number(columnWidth["status"] ?? "150"),
+      header: () => {
         return (
-          <div
-            className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            <div className="truncate w-4/5">Status</div>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
+          <div className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer">
+            <div className="truncate w-4/5">{columnMap["status"]}</div>
           </div>
         );
       },
@@ -686,21 +549,12 @@ const Task = () => {
     {
       id: "priority",
 
-      size: Number(localStorageTaskState?.columnWidth["priority"] ?? "150"),
+      size: Number(columnWidth["priority"] ?? "150"),
       accessorKey: "priority",
-      header: ({ column }) => {
+      header: () => {
         return (
-          <div
-            className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            <div className="truncate w-4/5">Priority</div>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
+          <div className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer">
+            <div className="truncate w-4/5">{columnMap["priority"]}</div>
           </div>
         );
       },
@@ -710,21 +564,12 @@ const Task = () => {
     },
     {
       id: "expected_time",
-      size: Number(localStorageTaskState?.columnWidth["expected_time"] ?? "150"),
+      size: Number(columnWidth["expected_time"] ?? "150"),
       accessorKey: "expected_time",
-      header: ({ column }) => {
+      header: () => {
         return (
-          <div
-            className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            <div className="truncate w-4/5">Expected Hours</div>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
+          <div className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer">
+            <div className="truncate w-4/5">{columnMap["expected_time"]}</div>
           </div>
         );
       },
@@ -739,22 +584,12 @@ const Task = () => {
     },
     {
       id: "actual_time",
-      size: Number(localStorageTaskState?.columnWidth["actual_time"] ?? "150"),
+      size: Number(columnWidth["actual_time"] ?? "150"),
       accessorKey: "actual_time",
-      header: ({ column }) => {
+      header: () => {
         return (
-          <div
-            className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            <div className="truncate w-4/5">Hour Spent</div>
-
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
+          <div className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer">
+            <div className="truncate w-4/5">{columnMap["actual_time"]}</div>
           </div>
         );
       },
@@ -770,6 +605,7 @@ const Task = () => {
     {
       accessorKey: "timesheetAction",
       header: "",
+      enableHiding: false,
       size: 60, // Default size
       minSize: 60, // Minimum size
       maxSize: 60, // Maximum size
@@ -791,6 +627,7 @@ const Task = () => {
     {
       accessorKey: "liked",
       header: "",
+      enableHiding: false,
       size: 50, // Default size
       minSize: 50, // Minimum size
       maxSize: 50, // Maximum size
@@ -800,7 +637,7 @@ const Task = () => {
             <Heart
               className={cn(
                 "w-4 h-4 hover:cursor-pointer",
-                isLiked(row.original?._liked_by, user.user) && "fill-red-600",
+                isLiked(row.original?._liked_by, user.user) && "fill-red-600"
               )}
               data-task={row.original.name}
               data-liked-by={row.original?._liked_by}
@@ -815,19 +652,19 @@ const Task = () => {
   const table = useReactTable({
     data: task.task,
     columns,
-    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     columnResizeMode: "onChange",
+    onColumnOrderChange: setColumnOrder,
     initialState: {
       sorting: [{ id: "liked", desc: false }],
     },
     state: {
-      sorting,
       columnVisibility,
+      columnOrder,
       columnFilters,
     },
   });
@@ -841,11 +678,11 @@ const Task = () => {
     getExpandedRowModel: getExpandedRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onExpandedChange: setExpanded,
-    onSortingChange: setSorting,
+    onColumnOrderChange: setColumnOrder,
     columnResizeMode: "onChange",
     state: {
-      sorting,
       expanded,
+      columnOrder,
       columnVisibility: { ...columnVisibility, project_name: true },
     },
   });
@@ -856,21 +693,23 @@ const Task = () => {
 
   useEffect(() => {
     // set localStorage Map for Task
-    if (!localStorage.getItem("task")) {
-      localStorage.setItem("task", JSON.stringify(localStorageTaskDataMap));
-      setLocalStorageTaskState(localStorageTaskDataMap);
+    if (!localStorage.getItem(LOCAL_STORAGE_TASK)) {
+      localStorage.setItem(LOCAL_STORAGE_TASK, JSON.stringify(localStorageTaskDataMap));
+      setTableAttributeProps(localStorageTaskDataMap);
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("task", JSON.stringify(localStorageTaskState));
-  }, [localStorageTaskState]);
+    localStorage.setItem(LOCAL_STORAGE_TASK, JSON.stringify(tableAttributeProps));
+  }, [tableAttributeProps]);
 
   useEffect(() => {
-    setLocalStorageTaskState((prev: localStorageTaskType) => {
-      return { ...prev, columnSort: sorting };
-    });
-  }, [sorting]);
+    const updatedTableProp = {
+      ...tableprop,
+      columnOrder: columnOrder,
+    };
+    setTableAttributeProps(updatedTableProp);
+  }, [columnOrder]);
 
   // handle ad Task
   const handleAddTask = () => {
@@ -879,49 +718,6 @@ const Task = () => {
   // handle project search combo box
   const handleProjectSearch = (searchString: string) => {
     setProjectSearch(searchString);
-  };
-  // More DropDown Items here
-  const renderColumnFilterList = (
-    table: FlatTableType,
-    groupBy: GroupByParamType,
-    columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType,
-    setLocalStorageTaskState: setLocalStorageTaskStateType,
-  ): ReactNode => {
-    return table
-      .getAllColumns()
-      .filter((column) => column.getCanHide())
-      .map((column) => {
-        if (columnsToExcludeActionsInTables?.includes(column.id)) {
-          return null;
-        }
-        if (groupBy.length > 0 && column.id === "project_name") {
-          return null;
-        }
-        return (
-          <DropdownMenuCheckboxItem
-            key={column.id}
-            className="capitalize cursor-pointer"
-            checked={column.getIsVisible()}
-            onCheckedChange={(value) => {
-              column.toggleVisibility(!!value);
-              setLocalStorageTaskState((prev) => {
-                if (prev.hideColumn.includes(column.id)) {
-                  const mutatedHideColumn = [...prev.hideColumn];
-                  const index = mutatedHideColumn.indexOf(column.id);
-                  if (index > -1) {
-                    mutatedHideColumn.splice(index, 1);
-                  }
-                  return { ...prev, hideColumn: mutatedHideColumn };
-                }
-                const mutatedHideColumnSet = new Set([...prev.hideColumn, column.id]);
-                return { ...prev, hideColumn: [...mutatedHideColumnSet] };
-              });
-            }}
-          >
-            {column.id.replace("_", " ")}
-          </DropdownMenuCheckboxItem>
-        );
-      });
   };
 
   const MoreTableOptionsDropDownData: {
@@ -937,25 +733,45 @@ const Task = () => {
       icon: RotateCcw,
       iconClass: "",
       handleClick: () => {
-        setLocalStorageTaskState(localStorageTaskDataMap);
         // update All Sort,filter and columnWidth States when localStorage Changes (table config reset)
-        setSorting([]);
         setColumnVisibility({});
         table.setColumnSizing({});
+        table.setColumnOrder(localStorageTaskDataMap.columnOrder)
         nestedProjectTable.setColumnSizing({});
+        nestedProjectTable.setColumnSizing({});
+        nestedProjectTable.setColumnOrder(localStorageTaskDataMap.columnOrder)
+        setTableAttributeProps(localStorageTaskDataMap);
       },
       type: "normal",
     },
-    {
-      title: "Columns",
-      icon: Columns2,
-      iconClass: "",
-      type: "nestedSubMenu",
-      render: () => {
-        return renderColumnFilterList(table, groupByParam, columnsToExcludeActionsInTables, setLocalStorageTaskState);
-      },
-    },
+    // Example to add nested submenu in more options
+    // {
+    //   title: "Columns",
+    //   icon: Columns2,
+    //   iconClass: "",
+    //   type: "nestedSubMenu",
+    //   render: () => {
+    //     return renderColumnFilterList(table, groupByParam, columnsToExcludeActionsInTables, setLocalStorageTaskState);
+    //   },
+    // },
   ];
+
+  const handleColumnHide = (id: string) => {
+    const prev = tableAttributeProps;
+    if (prev.hideColumn.includes(id)) {
+      const mutatedHideColumn = [...prev.hideColumn];
+      const index = mutatedHideColumn.indexOf(id);
+      if (index > -1) {
+        mutatedHideColumn.splice(index, 1);
+      }
+      const attr = { ...prev, hideColumn: mutatedHideColumn };
+      setTableAttributeProps(attr);
+    } else {
+      const mutatedHideColumnSet = new Set([...prev.hideColumn, id]);
+      const attr = { ...prev, hideColumn: [...mutatedHideColumnSet] };
+      setTableAttributeProps(attr);
+    }
+  };
 
   return (
     <>
@@ -976,16 +792,14 @@ const Task = () => {
           id="filters"
           className="flex gap-x-2 w-full overflow-hidden md:overflow-x-auto h-full items-center overflow-x-auto"
         >
-          <div className="flex gap-2 xl:w-2/5">
-            {/* Task Search Filter */}
-            <DeBounceInput
-              placeholder="Search Subject..."
-              className="max-w-full min-w-40 m-1"
-              deBounceValue={300}
-              value={subjectSearchParam}
-              callback={handleSubjectSearchChange}
-            />
-          </div>
+          {/* Task Search Filter */}
+          <DeBounceInput
+            placeholder="Search Subject..."
+            className="max-w-40 max-md:w-40 m-1 focus-visible:ring-offset-0 focus-visible:ring-0"
+            deBounceValue={300}
+            value={subjectSearchParam}
+            callback={handleSubjectSearchChange}
+          />
 
           {/* Projects comboBox */}
           <ComboxBox
@@ -1023,15 +837,18 @@ const Task = () => {
             <Button onClick={handleAddTask} title="Add task">
               <Plus /> Add Task
             </Button>
+            <ColumnSelector
+              table={table}
+              onColumnHide={handleColumnHide}
+              setColumnOrder={setColumnOrder}
+              columnOrder={columnOrder}
+              groupByParam={groupByParam}
+            />
+            {/* More options */}
             <DropdownMenu>
-              <DropdownMenuTrigger className="outline-none">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-full hover:bg-transparent bg-transparent w-fit min-w-10 cursor-pointer border-0 outline-none"
-                >
-                  <MoreVertical />
-                  <span className="sr-only">More</span>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="focus-visible:ring-0">
+                  <Ellipsis />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -1072,7 +889,7 @@ const Task = () => {
           table={table}
           columns={columns}
           columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
-          setLocalStorageTaskState={setLocalStorageTaskState}
+          setTableAttributeProps={setTableAttributeProps}
           task={task}
           isLoading={isLoading}
         />
@@ -1081,7 +898,7 @@ const Task = () => {
           table={nestedProjectTable}
           columns={nestedProjectColumns}
           columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
-          setLocalStorageTaskState={setLocalStorageTaskState}
+          setTableAttributeProps={setTableAttributeProps}
           task={task}
           isLoading={isLoading}
         />
@@ -1128,6 +945,120 @@ const TaskPriority = ({ priority }: { priority: TaskData["priority"] }) => {
     Urgent: "bg-destructive/20 text-destructive hover:bg-destructive/20",
   };
   return <Badge className={cn(priorityCss[priority])}>{priority}</Badge>;
+};
+
+const ColumnSelector = ({
+  table,
+  onColumnHide,
+  setColumnOrder,
+  columnOrder,
+  groupByParam
+}: {
+  table: T<TaskData>;
+  onColumnHide: (id: string) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  setColumnOrder: any;
+  columnOrder: string[];
+  groupByParam: string[],
+}) => {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" className="focus-visible:ring-0">
+          <Columns2 />
+          <Typography variant="p">Columns</Typography>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="[&_div]:cursor-pointer max-h-96 overflow-y-auto">
+        <DndProvider backend={HTML5Backend}>
+          {table
+            .getAllColumns()
+            .filter((column) => column.getCanHide())
+            .sort((a, b) => columnOrder.indexOf(a.id) - columnOrder.indexOf(b.id))
+            .map((column) => {
+              if(groupByParam.length>0&&column.id==="project_name") return null;
+              return (
+                <ColumnItem
+                  key={column.id}
+                  id={column.id}
+                  onColumnHide={onColumnHide}
+                  getIsVisible={column.getIsVisible}
+                  toggleVisibility={column.toggleVisibility}
+                  reOrder={setColumnOrder}
+                />
+              );
+            })}
+        </DndProvider>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+const ColumnItem = ({
+  id,
+  onColumnHide,
+  reOrder,
+  getIsVisible,
+  toggleVisibility,
+}: {
+  id: string;
+  onColumnHide: (id: string) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  reOrder: any;
+  getIsVisible: () => boolean;
+  toggleVisibility: (value?: boolean) => void;
+}) => {
+  const [{ isDragging }, dragRef] = useDrag({
+    type: "COLUMN",
+    item: { id: id },
+    collect: (monitor) => ({
+      isDragging: !!monitor.isDragging(),
+    }),
+  });
+  const [, dropRef] = useDrop({
+    accept: "COLUMN",
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    hover: (draggedColumn: any) => {
+      if (draggedColumn.id !== id) {
+        reOrder((old: string[]) => {
+          const newOrder = [...old];
+          const fromIndex = newOrder.indexOf(draggedColumn.id);
+          const toIndex = newOrder.indexOf(id);
+          newOrder.splice(fromIndex, 1);
+          newOrder.splice(toIndex, 0, draggedColumn.id);
+          return newOrder;
+        });
+      }
+    },
+  });
+  return (
+    <DropdownMenuItem
+      key={id}
+      className="capitalize cursor-pointer flex gap-x-2 items-center"
+      ref={(node) => dragRef(dropRef(node))}
+    >
+      <Checkbox
+        checked={getIsVisible()}
+        onCheckedChange={(value) => {
+          toggleVisibility(!!value);
+          onColumnHide(id);
+        }}
+      />
+      <div
+        className="w-full flex justify-between items-center"
+        onClick={() => {
+          toggleVisibility(!getIsVisible());
+          onColumnHide(id);
+        }}
+        style={{
+          opacity: isDragging ? 0.5 : 1,
+        }}
+      >
+        <span className="mr-1">{columnMap[id as keyof typeof columnMap]}</span>
+        <GripVertical className="flex-shrink-0"/>
+      </div>
+    </DropdownMenuItem>
+  );
 };
 
 export default Task;
