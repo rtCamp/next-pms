@@ -1,9 +1,8 @@
 import { Billability, Priority, ProjectData, Status } from "@/store/project";
 import { ColumnDef } from "@tanstack/react-table";
-import { getTableProps, calculatePercentage, sortPercentageComplete, currencyFormat, columnMap } from "./helper";
+import { getTableProps, currencyFormat, columnMap } from "./helper";
 import { Typography } from "@/app/components/typography";
 import { cn } from "@/lib/utils";
-import { Progress } from "@/app/components/ui/progress";
 import { Badge } from "@/app/components/ui/badge";
 
 export const getColumn = () => {

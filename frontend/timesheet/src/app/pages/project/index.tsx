@@ -60,7 +60,6 @@ const Project = () => {
   const [columnOrder, setColumnOrder] = useState<string[]>(tableprop.columnOrder);
   const [tableAttributeProps, setTableAttributeProps] = useState(tableprop);
   const [columnVisibility, setColumnVisibility] = useState(createFalseValuedObject(tableprop.hideColumn));
-  const [sorting, setSorting] = useState(tableprop.columnSort);
 
   const [searchParam, setSearchParam] = useQueryParamsState("search", "");
   const [projectTypeParam, setProjectTypeParam] = useQueryParamsState<Array<string>>("project-type", []);
@@ -177,16 +176,16 @@ const Project = () => {
     const updatedWidth = { ...tableAttributeProps.columnWidth, ...colSizing };
     const updatedTableProp = {
       ...tableprop,
-      columnSort: sorting,
+
       columnWidth: updatedWidth,
       columnOrder: columnOrder,
     };
     setTableAttributeProps(updatedTableProp);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sorting, colSizing, columnOrder]);
+  }, [colSizing, columnOrder]);
 
   useEffect(() => {
-    localStorage.setItem("project", JSON.stringify(tableAttributeProps));
+    localStorage.setItem("project_list", JSON.stringify(tableAttributeProps));
   }, [tableAttributeProps]);
 
   const columns = getColumn();
@@ -194,7 +193,6 @@ const Project = () => {
     columns: columns,
     data: projectState.data,
     enableColumnResizing: true,
-    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     columnResizeMode: "onChange",
@@ -202,7 +200,6 @@ const Project = () => {
     onColumnSizingChange: setColSizing,
     onColumnOrderChange: setColumnOrder,
     state: {
-      sorting,
       columnVisibility,
       columnOrder,
       columnSizing: colSizing,
@@ -211,8 +208,8 @@ const Project = () => {
 
   const resetTable = () => {
     setTableAttributeProps(projectTableMap);
-    setSorting([]);
     setColumnVisibility({});
+    setColumnOrder(projectTableMap.columnOrder);
     table.setColumnSizing(projectTableMap.columnWidth);
   };
 
@@ -235,13 +232,13 @@ const Project = () => {
 
   return (
     <>
-      <Header>
-        <section id="filter-section" className="flex gap-x-2 overflow-x-auto items-center">
+      <Header className="gap-x-3 flex items-center overflow-x-auto">
+        <section id="filter-section" className="flex gap-x-2 items-center">
           <DeBounceInput
             placeholder="Project Name"
             value={searchParam}
             deBounceValue={200}
-            className="max-w-40"
+            className="max-w-40 min-w-40 m-1"
             callback={handleSearch}
           />
 
@@ -319,7 +316,7 @@ const Project = () => {
                           {flexRender(header.column.columnDef.header, header.getContext())}
                         </span>
                         <GripVertical
-                          className="w-4 h-4 max-lg:hidden cursor-col-resize flex justify-center items-center shrink-0"
+                          className="  cursor-col-resize flex justify-center items-center shrink-0"
                           {...{
                             onMouseDown: header.getResizeHandler(),
                             onTouchStart: header.getResizeHandler(),

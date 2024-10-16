@@ -132,8 +132,8 @@ const Home = () => {
   return (
     <>
       <Header>
-        <section id="filter-section" className="flex max-md:flex-col gap-x-3  w-full items-center">
-          <div className="lg:pr-4 flex gap-x-1 w-full max-w-md items-center max-md:overflow-x-scroll p-1">
+        <section id="filter-section" className="flex max-md:flex-col gap-x-3  w-full md:items-center ">
+          <div className="lg:pr-4 flex gap-x-1 w-full  items-center max-md:overflow-x-auto p-1">
             <DeBounceInput
               placeholder="Employee name"
               value={employeeNameParam}
@@ -150,7 +150,7 @@ const Home = () => {
               onSelect={handleStatusChange}
               leftIcon={<Filter className={cn("h-4 w-4", homeState.status.length != 0 && "fill-primary")} />}
               rightIcon={homeState.status.length > 0 && <Badge className="px-1.5">{homeState.status.length}</Badge>}
-              className="text-primary border-dashed gap-x-1 font-normal w-fit"
+              className="text-primary w-full border-dashed gap-x-1 font-normal w-fit"
             />
           </div>
           <div className="w-full flex items-center  max-md:mt-2 max-md:p-1">

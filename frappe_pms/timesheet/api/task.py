@@ -32,11 +32,19 @@ def get_task_list(
     ]
 
     if projects:
-        filter = {"project": ["in", projects]}
+        projects = frappe.get_list(
+            "Project", pluck="name", filters={"name": ["in", projects]}
+        )
     else:
         projects = frappe.get_list("Project", pluck="name")
-        if projects:
-            filter = {"project": ["in", projects]}
+    if not projects:
+        frappe.throw(
+            frappe._(
+                f"User {frappe.session.user} does not have doctype access via role permission for document Project"
+            ),
+            frappe.PermissionError,
+        )
+    filter = {"project": ["in", projects]}
 
     if search:
         search_filter.update(
@@ -90,26 +98,6 @@ def get_task_list(
 
 
 @frappe.whitelist()
-def get_task_list_by_project(project=None, task_search=None):
-    import json
-
-    filter = {}
-    if isinstance(project, str):
-        project = json.loads(project)
-        filter.update({"name": ["in", project]})
-
-    projects = frappe.get_list(
-        "Project", fields=["name", "project_name"], filters=filter
-    )
-
-    for project in projects:
-        data = get_task_list(projects=[project["name"]], search=task_search)
-        project["tasks"] = data.get("task")
-    count = frappe.db.count("Project", filters=filter)
-    return {"projects": projects, "count": count}
-
-
-@frappe.whitelist()
 def add_task(subject: str, expected_time: str, project: str, description: str):
     frappe.get_doc(
         {
@@ -127,8 +115,16 @@ def add_task(subject: str, expected_time: str, project: str, description: str):
 def get_task(task: str):
     from frappe.query_builder.functions import Sum
 
-    task = frappe.get_doc("Task", task)
+    project = frappe.db.get_value("Task", task, "project")
+    if project and not frappe.has_permission(doctype="Project", doc=project):
+        frappe.throw(
+            frappe._(
+                f"User {frappe.session.user} does not have doctype access via role permission for document Project"
+            ),
+            frappe.PermissionError,
+        )
 
+    task = frappe.get_doc("Task", task)
     timesheet = DocType("Timesheet")
     timesheet_detail = DocType("Timesheet Detail")
     result = (
@@ -162,6 +158,15 @@ def get_task(task: str):
 @frappe.whitelist()
 def get_task_log(task: str, start_date: str = None, end_date: str = None):
 
+    project = frappe.db.get_value("Task", task, "project")
+
+    if project and not frappe.has_permission(doctype="Project", doc=project):
+        frappe.throw(
+            frappe._(
+                f"User {frappe.session.user} does not have doctype access via role permission for document Project"
+            ),
+            frappe.PermissionError,
+        )
     timesheet = DocType("Timesheet")
     timesheet_detail = DocType("Timesheet Detail")
     start_date = getdate(start_date)

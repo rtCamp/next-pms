@@ -86,14 +86,13 @@ export const projectTableMap = {
     per_gross_margin: 100,
     status: 100,
   },
-  columnSort: [],
 };
 export const calculatePercentage = (spent: number, budget: number) => {
   return budget == 0 ? 0 : Math.round((spent / budget) * 100);
 };
 export const getTableProps = () => {
   try {
-    const data = JSON.parse(String(localStorage.getItem("project")));
+    const data = JSON.parse(String(localStorage.getItem("project_list")));
     if (!data) {
       return projectTableMap;
     } else {

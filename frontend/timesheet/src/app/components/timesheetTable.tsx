@@ -301,7 +301,7 @@ export const TotalHourRow = ({
         });
         if (leaveData) {
           leaveData.map((item) => {
-            if (item.half_day || (item.half_day_date && item.half_day_date == date)) {
+            if (item.half_day && item.half_day_date && item.half_day_date == date) {
               total_hours += working_hour / 2;
             } else {
               total_hours += working_hour;
@@ -472,9 +472,7 @@ export const EmptyRow = ({
   return (
     <TableRow className={cn(rowClassName)}>
       <TableCell className={cn("min-w-[24rem]", headingCellClassName)}>
-        <Typography variant="p" className="text-destructive">
-          Add Task
-        </Typography>
+        <span className="text-destructive"></span>
       </TableCell>
       {dates.map((date: string) => {
         const isHoliday = holiday_list.includes(date);

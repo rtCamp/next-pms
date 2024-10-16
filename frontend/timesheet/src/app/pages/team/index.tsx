@@ -305,7 +305,7 @@ const Team = () => {
             placeholder="Employee name"
             value={employeeNameParam}
             deBounceValue={400}
-            className="max-w-full min-w-40 m-1"
+            className="max-w-40 min-w-40 m-1"
             callback={handleEmployeeChange}
           />
           <EmployeeCombo
@@ -381,7 +381,7 @@ const Team = () => {
       {(isLoading || isValidating) && Object.keys(teamState.data.data).length == 0 ? (
         <Spinner isFull />
       ) : (
-        <Table className="[&_tr]:pr-3 relative">
+        <Table className="lg:[&_tr]:pr-3 relative">
           <TableHeader className="border-t-0 sticky top-0 z-10">
             <TableRow className="flex items-center w-full">
               <TableHead className="w-full max-w-md flex items-center">Members</TableHead>
@@ -389,7 +389,7 @@ const Team = () => {
                 return item?.dates?.map((date) => {
                   const { date: dateStr, day } = prettyDate(date);
                   return (
-                    <TableHead key={date} className="flex flex-col max-w-20 w-full text-center">
+                    <TableHead key={date} className="flex flex-col max-w-20 w-full items-center justify-center">
                       <Typography variant="p" className="text-slate-600">
                         {day}
                       </Typography>
@@ -419,20 +419,18 @@ const Team = () => {
                       <AccordionTrigger className="hover:no-underline py-0">
                         <span className="w-full flex ">
                           <TableCell className="w-full min-w-24 max-w-md overflow-hidden">
-                            <span
-                              className="flex  gap-x-2 items-center font-normal hover:underline w-full"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`${TEAM}${EMPLOYEE}/${item.name}`);
-                              }}
-                            >
+                            <span className="flex  gap-x-2 items-center font-normal hover:underline w-full">
                               <Avatar className="w-6 h-6">
                                 <AvatarImage src={decodeURIComponent(item.image)} />
                                 <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
                               </Avatar>
                               <Typography
                                 variant="p"
-                                className="w-full text-left text-ellipsis whitespace-nowrap overflow-hidden "
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`${TEAM}${EMPLOYEE}/${item.name}`);
+                                }}
+                                className="text-left text-ellipsis whitespace-nowrap overflow-hidden "
                               >
                                 {item.employee_name}
                               </Typography>
