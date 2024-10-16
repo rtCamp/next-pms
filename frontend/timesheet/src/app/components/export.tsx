@@ -43,7 +43,7 @@ const schema = z.object({
   }),
 });
 // used to export the table data to csv or excel.
-export const Export = ({ rows = [], headers, doctype, fields }: ExportProps) => {
+export const Export = ({ rows = [], headers }: ExportProps) => {
   const [columns, setColumns] = useState(headers);
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -98,7 +98,7 @@ export const Export = ({ rows = [], headers, doctype, fields }: ExportProps) => 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button>
+        <Button variant="ghost" className="font-normal p-0 h-fit">
           <Download /> Export
         </Button>
       </DialogTrigger>
