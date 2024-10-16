@@ -32,7 +32,9 @@ const EmployeeCombo = ({
   const [selectedValues, setSelectedValues] = useState<string>(value);
   const [employee, setEmployee] = useState<Employee | undefined>();
 
-  const { data: employees } = useFrappeGetCall("frappe_pms.timesheet.api.employee.get_employee_list");
+  const { data: employees } = useFrappeGetCall("frappe_pms.timesheet.api.employee.get_employee_list", {}, undefined, {
+    revalidateOnFocus: false,
+  });
   const onEmployeeChange = (name: string) => {
     setSelectedValues(name);
     onSelect(name);

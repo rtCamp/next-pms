@@ -18,6 +18,7 @@ import { useDispatch } from "react-redux";
 import { z } from "zod";
 import { setProjectSearchType } from "@/types/task";
 import { useState } from "react";
+import { Separator } from "@/app/components/ui/separator";
 
 export const AddTask = ({
   task,
@@ -98,17 +99,18 @@ export const AddTask = ({
         <DialogContent aria-description="" aria-describedby="" className="max-w-xl">
           <DialogHeader className="pb-2">
             <DialogTitle>Add Task</DialogTitle>
+            <Separator />
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)}>
               <div className="flex flex-col gap-y-2">
-                <div className="grid grid-cols-12 gap-3">
+                <div className="grid max-sm:grid-rows-2 sm:grid-cols-12 gap-3">
                   {/* subject field */}
                   <FormField
                     control={form.control}
                     name="subject"
                     render={({ field }) => (
-                      <FormItem className="col-span-9">
+                      <FormItem className="sm:col-span-9">
                         <FormLabel className="flex gap-2 items-center">
                           <p title="subject" className="text-sm truncate">
                             Subject
@@ -136,7 +138,7 @@ export const AddTask = ({
                     control={form.control}
                     name="expected_time"
                     render={({ field }) => (
-                      <FormItem className="col-span-3">
+                      <FormItem className="sm:col-span-3">
                         <FormLabel title="expected time" className="flex gap-2 items-center text-sm truncate">
                           Expected Time
                         </FormLabel>
