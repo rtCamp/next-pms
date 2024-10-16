@@ -298,88 +298,84 @@ const Team = () => {
   );
   return (
     <>
+      {teamState.isAprrovalDialogOpen && <Approval />}
       <Header>
-        <div className="flex gap-x-2 items-center justify-between max-md:flex-col max-md:justify-between">
-          {teamState.isAprrovalDialogOpen && <Approval />}
-          <div id="filters" className="flex gap-x-2 max-md:gap-x-5  overflow-y-hidden max-md:w-full items-center">
-            <DeBounceInput
-              placeholder="Employee name"
-              value={employeeNameParam}
-              deBounceValue={400}
-              className="max-w-full min-w-40 m-1"
-              callback={handleEmployeeChange}
-            />
-            <EmployeeCombo
-              value={reportsToParam}
-              label="Reporting Manager"
-              onSelect={handleReportsToChange}
-              className="border-dashed min-w-48 w-full max-w-48"
-            />
-            <ComboxBox
-              value={employeeStatusParam}
-              label="Employee Status"
-              data={empStatus}
-              shouldFilter
-              isMulti
-              onSelect={handleEmployeeStatusChange}
-              leftIcon={<Filter className={cn("h-4 w-4", teamState.status.length != 0 && "fill-primary")} />}
-              rightIcon={teamState.status.length > 0 && <Badge className="px-1.5">{teamState.status.length}</Badge>}
-              className="text-primary border-dashed gap-x-1 font-normal w-fit"
-            />
-            <ComboxBox
-              value={statusParam}
-              label="Approval"
-              data={approvalsData}
-              isMulti
-              shouldFilter
-              onSelect={handleStatusChange}
-              leftIcon={<Filter className={cn("h-4 w-4", teamState.statusFilter.length != 0 && "fill-primary")} />}
-              rightIcon={
-                teamState.statusFilter.length > 0 && <Badge className="px-1.5">{teamState.statusFilter.length}</Badge>
-              }
-              className="text-primary border-dashed gap-x-1 font-normal w-fit"
-            />
-            <ComboxBox
-              value={projectParam}
-              label="Projects"
-              isMulti
-              showSelected={false}
-              onSelect={handleProjectChange}
-              onSearch={onProjectSearch}
-              rightIcon={teamState.project.length > 0 && <Badge className="px-1.5">{teamState.project.length}</Badge>}
-              leftIcon={<Filter className={cn("h-4 w-4", teamState.project.length != 0 && "fill-primary")} />}
-              data={projects?.message.map((item: ProjectProps) => ({
-                label: item.project_name,
-                value: item.name,
-              }))}
-              className="text-primary border-dashed gap-x-2 font-normal w-fit"
-            />
-            <ComboxBox
-              value={userGroupParam}
-              label="User Groups"
-              onSearch={onUserGroupSearch}
-              showSelected={false}
-              data={userGroups?.message.map((item: UserGroupProps) => ({
-                label: item.name,
-                value: item.name,
-              }))}
-              rightIcon={
-                teamState.userGroup.length > 0 && <Badge className="px-1.5">{teamState.userGroup.length}</Badge>
-              }
-              isMulti
-              leftIcon={<Filter className={cn("h-4 w-4", teamState.userGroup.length != 0 && "fill-primary")} />}
-              onSelect={handleUserGroupChange}
-              className="text-primary border-dashed gap-x-2 font-normal w-fit"
-            />
-          </div>
-          <div id="date-filter" className="flex gap-x-2 max-md:w-full max-md:justify-between max-md:m-2">
-            <Button title="prev" className="p-1 h-fit" variant="outline" onClick={handleprevWeek}>
-              <ChevronLeft className="w-4 max-md:w-3 h-4 max-md:h-3" />
-            </Button>
-            <Button title="next" className="p-1 h-fit" variant="outline" onClick={handlenextWeek}>
-              <ChevronRight className="w-4 max-md:w-3 h-4 max-md:h-3" />
-            </Button>
-          </div>
+        <div id="filters" className="flex gap-x-2 max-md:gap-x-5  overflow-y-hidden max-md:w-full items-center">
+          <DeBounceInput
+            placeholder="Employee name"
+            value={employeeNameParam}
+            deBounceValue={400}
+            className="max-w-full min-w-40 m-1"
+            callback={handleEmployeeChange}
+          />
+          <EmployeeCombo
+            value={reportsToParam}
+            label="Reporting Manager"
+            onSelect={handleReportsToChange}
+            className="border-dashed min-w-48 w-full max-w-48"
+          />
+          <ComboxBox
+            value={employeeStatusParam}
+            label="Employee Status"
+            data={empStatus}
+            shouldFilter
+            isMulti
+            onSelect={handleEmployeeStatusChange}
+            leftIcon={<Filter className={cn("h-4 w-4", teamState.status.length != 0 && "fill-primary")} />}
+            rightIcon={teamState.status.length > 0 && <Badge className="px-1.5">{teamState.status.length}</Badge>}
+            className="text-primary border-dashed gap-x-1 font-normal w-fit"
+          />
+          <ComboxBox
+            value={statusParam}
+            label="Approval"
+            data={approvalsData}
+            isMulti
+            shouldFilter
+            onSelect={handleStatusChange}
+            leftIcon={<Filter className={cn("h-4 w-4", teamState.statusFilter.length != 0 && "fill-primary")} />}
+            rightIcon={
+              teamState.statusFilter.length > 0 && <Badge className="px-1.5">{teamState.statusFilter.length}</Badge>
+            }
+            className="text-primary border-dashed gap-x-1 font-normal w-fit"
+          />
+          <ComboxBox
+            value={projectParam}
+            label="Projects"
+            isMulti
+            showSelected={false}
+            onSelect={handleProjectChange}
+            onSearch={onProjectSearch}
+            rightIcon={teamState.project.length > 0 && <Badge className="px-1.5">{teamState.project.length}</Badge>}
+            leftIcon={<Filter className={cn("h-4 w-4", teamState.project.length != 0 && "fill-primary")} />}
+            data={projects?.message.map((item: ProjectProps) => ({
+              label: item.project_name,
+              value: item.name,
+            }))}
+            className="text-primary border-dashed gap-x-2 font-normal w-fit"
+          />
+          <ComboxBox
+            value={userGroupParam}
+            label="User Groups"
+            onSearch={onUserGroupSearch}
+            showSelected={false}
+            data={userGroups?.message.map((item: UserGroupProps) => ({
+              label: item.name,
+              value: item.name,
+            }))}
+            rightIcon={teamState.userGroup.length > 0 && <Badge className="px-1.5">{teamState.userGroup.length}</Badge>}
+            isMulti
+            leftIcon={<Filter className={cn("h-4 w-4", teamState.userGroup.length != 0 && "fill-primary")} />}
+            onSelect={handleUserGroupChange}
+            className="text-primary border-dashed gap-x-2 font-normal w-fit"
+          />
+        </div>
+        <div id="date-filter" className="flex gap-x-2 max-md:w-full max-md:justify-between max-md:m-2 t">
+          <Button title="prev" className="p-1 h-fit" variant="outline" onClick={handleprevWeek}>
+            <ChevronLeft className="w-4 max-md:w-3 h-4 max-md:h-3" />
+          </Button>
+          <Button title="next" className="p-1 h-fit" variant="outline" onClick={handlenextWeek}>
+            <ChevronRight className="w-4 max-md:w-3 h-4 max-md:h-3" />
+          </Button>
         </div>
       </Header>
       {(isLoading || isValidating) && Object.keys(teamState.data.data).length == 0 ? (

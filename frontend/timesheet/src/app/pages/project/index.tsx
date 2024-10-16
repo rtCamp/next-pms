@@ -289,6 +289,12 @@ const Project = () => {
             setColumnOrder={setColumnOrder}
             columnOrder={columnOrder}
           />
+          {/* <Export
+            headers={Object.entries(columnMap).map(([key, value]: [string, any]) => {
+              return { label: value, value: key };
+            })}
+            rows={projectState.data}
+          /> */}
           <Action colMap={columnMap} data={projectState.data} resetTable={resetTable} />
         </div>
       </Header>
