@@ -6,7 +6,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Header, Footer } from "@/app/layout/root";
 import { LoadMore } from "@/app/components/loadMore";
-
 import {
   setProjectData,
   setSearch,
@@ -29,28 +28,25 @@ import {
   Table as T,
   ColumnSizingState,
 } from "@tanstack/react-table";
-import { Filter, EllipsisVertical, Columns2, RotateCcw } from "lucide-react";
-import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/app/components/ui/table";
+import { Filter, Columns2, RotateCcw, GripVertical, Ellipsis } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { Badge } from "@/app/components/ui/badge";
 import { Typography } from "@/app/components/typography";
 import { Spinner } from "@/app/components/spinner";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuPortal,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
-import { getFilter, getTableProps, projectTableMap } from "./helper";
-import { DraggableColumnHeader, getColumn } from "./column";
-import { DndProvider } from "react-dnd";
+import { getFilter, getTableProps, projectTableMap, columnMap } from "./helper";
+import { getColumn } from "./column";
+import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { Export } from "@/app/components/export";
 import { useFrappeDocTypeCount } from "@/app/hooks/useFrappeDocCount";
+import { Button } from "@/app/components/ui/button";
+import { Checkbox } from "@/app/components/ui/checkbox";
 
 const Project = () => {
   const projectState = useSelector((state: RootState) => state.project);
@@ -65,7 +61,7 @@ const Project = () => {
   const [tableAttributeProps, setTableAttributeProps] = useState(tableprop);
   const [columnVisibility, setColumnVisibility] = useState(createFalseValuedObject(tableprop.hideColumn));
   const [sorting, setSorting] = useState(tableprop.columnSort);
-  // const [count, setCount] = useState<number>(0);
+
   const [searchParam, setSearchParam] = useQueryParamsState("search", "");
   const [projectTypeParam, setProjectTypeParam] = useQueryParamsState<Array<string>>("project-type", []);
   const [statusParam, setStatusParam] = useQueryParamsState<Array<Status>>("status", []);
@@ -241,15 +237,14 @@ const Project = () => {
     <>
       <Header>
         <section id="filter-section" className="flex gap-x-2 overflow-x-auto items-center">
-          <div className="xl:w-2/5">
-            <DeBounceInput
-              placeholder="Project Name"
-              value={searchParam}
-              deBounceValue={200}
-              className="max-w-full min-w-40"
-              callback={handleSearch}
-            />
-          </div>
+          <DeBounceInput
+            placeholder="Project Name"
+            value={searchParam}
+            deBounceValue={200}
+            className="max-w-40"
+            callback={handleSearch}
+          />
+
           <ComboxBox
             isMulti
             label="Project Type"
@@ -286,57 +281,81 @@ const Project = () => {
             }))}
             className="text-primary border-dashed  font-normal w-fit"
           />
-          <Export
-            headers={table.getHeaderGroups()[0].headers.map((header) => ({
-              value: header.column.id,
-              label: header.column.id.replace("custom_", "").replace(/_/g, " "),
-            }))}
-            rows={projectState.data}
-          />
-          <PageAction table={table} resetTable={resetTable} onColumnHide={handleColumnHide} />
         </section>
+        <div className="flex gap-x-2">
+          <ColumnSelector
+            table={table}
+            onColumnHide={handleColumnHide}
+            setColumnOrder={setColumnOrder}
+            columnOrder={columnOrder}
+          />
+          <Action colMap={columnMap} data={projectState.data} resetTable={resetTable} />
+        </div>
       </Header>
       {isLoading && projectState.data.length == 0 ? (
         <Spinner isFull />
       ) : (
-        <DndProvider backend={HTML5Backend}>
-          <Table className=" [&_td]:px-4 [&_th]:px-4 [&_th]:py-4 table-fixed" style={{ width: table.getTotalSize() }}>
-            <TableHeader className=" border-t-0 sticky top-0 z-10 ">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return <DraggableColumnHeader key={header.id} header={header} reorder={setColumnOrder} />;
-                  })}
+        <Table className=" [&_td]:px-4 [&_th]:px-4 [&_th]:py-4 table-fixed" style={{ width: table.getTotalSize() }}>
+          <TableHeader className=" border-t-0 sticky top-0 z-10 ">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead
+                      key={header.id}
+                      className="relative"
+                      style={{
+                        width: header.getSize(),
+                      }}
+                    >
+                      <div className="flex items-center h-full gap-1 group">
+                        <span className="w-full">
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                        </span>
+                        <GripVertical
+                          className="w-4 h-4 max-lg:hidden cursor-col-resize flex justify-center items-center shrink-0"
+                          {...{
+                            onMouseDown: header.getResizeHandler(),
+                            onTouchStart: header.getResizeHandler(),
+                            style: {
+                              userSelect: "none",
+                              touchAction: "none",
+                            },
+                          }}
+                        />
+                      </div>
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow className="px-3" key={row.id} data-state={row.getIsSelected() && "selected"}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell
+                      key={cell.id}
+                      style={{
+                        width: cell.column.getSize(),
+                        minWidth: cell.column.columnDef.minSize,
+                      }}
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
                 </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow className="px-3" key={row.id} data-state={row.getIsSelected() && "selected"}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        style={{
-                          width: cell.column.getSize(),
-                          minWidth: cell.column.columnDef.minSize,
-                        }}
-                      >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow className="w-full">
-                  <TableCell colSpan={columns.length} className="h-24 text-center">
-                    No results
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </DndProvider>
+              ))
+            ) : (
+              <TableRow className="w-full">
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  No results
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       )}
       <Footer>
         <div className="flex  justify-between items-center ">
@@ -356,55 +375,134 @@ const Project = () => {
   );
 };
 
-const PageAction = ({
-  table,
-  resetTable,
-  onColumnHide,
-}: {
-  table: T<ProjectData>;
-  resetTable: () => void;
-  onColumnHide: (id: string) => void;
-}) => {
+const Action = ({ colMap, data, resetTable }: { colMap: any; data: ProjectData[]; resetTable: () => void }) => {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
-        <EllipsisVertical />
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline">
+          <Ellipsis />
+        </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="[&_div]:cursor-pointer">
-        <DropdownMenuItem className="flex items-center gap-x-2" onClick={resetTable}>
+      <DropdownMenuContent className="mr-2 [&_div]:cursor-pointer">
+        {/* <DropdownMenuItem> */}
+        {/* <Export
+            headers={Object.entries(colMap).map(([key, value]: [string, any]) => {
+              return { label: value, value: key };
+            })}
+            rows={data}
+          /> */}
+        {/* </DropdownMenuItem> */}
+        <DropdownMenuItem onClick={resetTable}>
           <RotateCcw />
           <Typography variant="p">Reset Table</Typography>
         </DropdownMenuItem>
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger className="flex items-center gap-x-2">
-            <Columns2 />
-            <Typography variant="p">Columns</Typography>
-          </DropdownMenuSubTrigger>
-          <DropdownMenuPortal>
-            <DropdownMenuSubContent className="max-h-96 overflow-y-auto">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize cursor-pointer"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) => {
-                        column.toggleVisibility(!!value);
-                        onColumnHide(column.id);
-                      }}
-                    >
-                      {column.id.replace(/_/g, " ")}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuSubContent>
-          </DropdownMenuPortal>
-        </DropdownMenuSub>
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+};
+
+const ColumnSelector = ({
+  table,
+  onColumnHide,
+  setColumnOrder,
+  columnOrder,
+}: {
+  table: T<ProjectData>;
+  onColumnHide: (id: string) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  setColumnOrder: any;
+  columnOrder: string[];
+}) => {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline">
+          <Columns2 />
+          <Typography variant="p">Columns</Typography>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="[&_div]:cursor-pointer max-h-96 overflow-y-auto">
+        <DndProvider backend={HTML5Backend}>
+          {table
+            .getAllColumns()
+            .filter((column) => column.getCanHide())
+            .sort((a, b) => columnOrder.indexOf(a.id) - columnOrder.indexOf(b.id))
+            .map((column) => {
+              return (
+                <ColumnItem
+                  id={column.id}
+                  onColumnHide={onColumnHide}
+                  getIsVisible={column.getIsVisible}
+                  toggleVisibility={column.toggleVisibility}
+                  reOrder={setColumnOrder}
+                />
+              );
+            })}
+        </DndProvider>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+const ColumnItem = ({
+  id,
+  onColumnHide,
+  reOrder,
+  getIsVisible,
+  toggleVisibility,
+}: {
+  id: string;
+  onColumnHide: (id: string) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  reOrder: any;
+  getIsVisible: () => boolean;
+  toggleVisibility: (value?: boolean) => void;
+}) => {
+  const [{ isDragging }, dragRef] = useDrag({
+    type: "COLUMN",
+    item: { id: id },
+    collect: (monitor) => ({
+      isDragging: !!monitor.isDragging(),
+    }),
+  });
+  const [, dropRef] = useDrop({
+    accept: "COLUMN",
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    hover: (draggedColumn: any) => {
+      if (draggedColumn.id !== id) {
+        reOrder((old: string[]) => {
+          const newOrder = [...old];
+          const fromIndex = newOrder.indexOf(draggedColumn.id);
+          const toIndex = newOrder.indexOf(id);
+          newOrder.splice(fromIndex, 1);
+          newOrder.splice(toIndex, 0, draggedColumn.id);
+          return newOrder;
+        });
+      }
+    },
+  });
+  return (
+    <DropdownMenuItem
+      key={id}
+      className="capitalize cursor-pointer flex gap-x-2 items-center"
+      ref={(node) => dragRef(dropRef(node))}
+    >
+      <Checkbox
+        checked={getIsVisible()}
+        onCheckedChange={(value) => {
+          toggleVisibility(!!value);
+          onColumnHide(id);
+        }}
+      />
+      <span
+        className="w-full flex justify-between"
+        style={{
+          opacity: isDragging ? 0.5 : 1,
+        }}
+      >
+        {columnMap[id as keyof typeof columnMap]}
+        <GripVertical />
+      </span>
+    </DropdownMenuItem>
   );
 };
 export default Project;

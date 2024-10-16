@@ -1,13 +1,10 @@
 import { Billability, Priority, ProjectData, Status } from "@/store/project";
-import { ColumnDef, flexRender } from "@tanstack/react-table";
-import { getTableProps, calculatePercentage, sortPercentageComplete, currencyFormat } from "./helper";
+import { ColumnDef } from "@tanstack/react-table";
+import { getTableProps, calculatePercentage, sortPercentageComplete, currencyFormat, columnMap } from "./helper";
 import { Typography } from "@/app/components/typography";
 import { cn } from "@/lib/utils";
-import { ArrowUpDown, GripVertical } from "lucide-react";
 import { Progress } from "@/app/components/ui/progress";
 import { Badge } from "@/app/components/ui/badge";
-import { useDrag, useDrop } from "react-dnd";
-import { TableHead } from "@/app/components/ui/table";
 
 export const getColumn = () => {
   const tableAttributeProps = getTableProps();
@@ -20,9 +17,9 @@ export const getColumn = () => {
       size: Number(columnWidth["project_name"]),
       header: ({ column }) => {
         return (
-          <Header column={column}>
-            <p className="truncate">Project Name</p>
-          </Header>
+          <p className="truncate" id={column.id}>
+            {columnMap["project_name"]}
+          </p>
         );
       },
       cell: ({ getValue, row }) => {
@@ -41,9 +38,9 @@ export const getColumn = () => {
       size: Number(columnWidth["customer"]),
       header: ({ column }) => {
         return (
-          <Header column={column}>
-            <p className="truncate">Customer Name</p>
-          </Header>
+          <p className="truncate" id={column.id}>
+            {columnMap["customer"]}
+          </p>
         );
       },
       cell: ({ getValue }) => {
@@ -62,9 +59,9 @@ export const getColumn = () => {
       size: Number(columnWidth["status"]),
       header: ({ column }) => {
         return (
-          <Header column={column}>
-            <p className="truncate">Status</p>
-          </Header>
+          <p className="truncate" id={column.id}>
+            {columnMap["status"]}
+          </p>
         );
       },
       cell: ({ getValue }) => {
@@ -81,9 +78,9 @@ export const getColumn = () => {
       size: Number(columnWidth["project_type"]),
       header: ({ column }) => {
         return (
-          <Header column={column}>
-            <p className="truncate">Project Type</p>
-          </Header>
+          <p className="truncate" id={column.id}>
+            {columnMap["project_type"]}
+          </p>
         );
       },
     },
@@ -92,9 +89,9 @@ export const getColumn = () => {
       size: Number(columnWidth["custom_business_unit"]),
       header: ({ column }) => {
         return (
-          <Header column={column}>
-            <p className="truncate">Businees Unit</p>
-          </Header>
+          <p className="truncate" id={column.id}>
+            {columnMap["custom_business_unit"]}
+          </p>
         );
       },
       cell: ({ getValue }) => {
@@ -113,9 +110,9 @@ export const getColumn = () => {
       size: Number(columnWidth["priority"]),
       header: ({ column }) => {
         return (
-          <Header column={column}>
-            <p className="truncate">Priority</p>
-          </Header>
+          <p className="truncate" id={column.id}>
+            {columnMap["priority"]}
+          </p>
         );
       },
       cell: ({ getValue }) => {
@@ -130,15 +127,15 @@ export const getColumn = () => {
       size: Number(columnWidth["company"]),
       header: ({ column }) => {
         return (
-          <Header column={column}>
-            <p className="truncate">Company</p>
-          </Header>
+          <p className="truncate" id={column.id}>
+            {columnMap["company"]}
+          </p>
         );
       },
       cell: ({ getValue }) => {
         const value = getValue() as string;
         return (
-          <a href={`/app/company/$value}`} className="hover:underline">
+          <a href={`/app/company/${value}`} className="hover:underline">
             <Typography variant="p" className="truncate" title={value}>
               {value}
             </Typography>
@@ -151,9 +148,9 @@ export const getColumn = () => {
       size: Number(columnWidth["custom_billing_type"]),
       header: ({ column }) => {
         return (
-          <Header column={column}>
-            <p className="truncate">Billing type</p>
-          </Header>
+          <p className="truncate" id={column.id}>
+            {columnMap["custom_billing_type"]}
+          </p>
         );
       },
       cell: ({ getValue }) => {
@@ -166,9 +163,9 @@ export const getColumn = () => {
       size: Number(columnWidth["custom_currency"]),
       header: ({ column }) => {
         return (
-          <Header column={column}>
-            <p className="truncate">Currency</p>
-          </Header>
+          <p className="truncate" id={column.id}>
+            {columnMap["custom_currency"]}
+          </p>
         );
       },
     },
@@ -177,9 +174,9 @@ export const getColumn = () => {
       size: Number(columnWidth["estimated_costing"]),
       header: ({ column }) => {
         return (
-          <Header column={column}>
-            <p className="truncate">Estimated Cost</p>
-          </Header>
+          <p className="truncate" id={column.id}>
+            {columnMap["estimated_costing"]}
+          </p>
         );
       },
       cell: ({ getValue, row }) => {
@@ -193,9 +190,9 @@ export const getColumn = () => {
       size: Number(columnWidth["percent_complete_method"]),
       header: ({ column }) => {
         return (
-          <Header column={column}>
-            <p className="truncate">Completion Method</p>
-          </Header>
+          <p className="truncate" id={column.id}>
+            {columnMap["percent_complete_method"]}
+          </p>
         );
       },
     },
@@ -204,9 +201,9 @@ export const getColumn = () => {
       size: Number(columnWidth["actual_start_date"]),
       header: ({ column }) => {
         return (
-          <Header column={column}>
-            <p className="truncate">Start Date (via Timesheet)</p>
-          </Header>
+          <p className="truncate" id={column.id}>
+            {columnMap["actual_start_date"]}
+          </p>
         );
       },
     },
@@ -215,9 +212,9 @@ export const getColumn = () => {
       size: Number(columnWidth["actual_end_date"]),
       header: ({ column }) => {
         return (
-          <Header column={column}>
-            <p className="truncate">End Date (via Timesheet)</p>
-          </Header>
+          <p className="truncate" id={column.id}>
+            {columnMap["actual_end_date"]}
+          </p>
         );
       },
     },
@@ -226,9 +223,9 @@ export const getColumn = () => {
       size: Number(columnWidth["actual_time"]),
       header: ({ column }) => {
         return (
-          <Header column={column}>
-            <p className="truncate">Budget Spent (Hours)</p>
-          </Header>
+          <p className="truncate" id={column.id}>
+            {columnMap["actual_time"]}
+          </p>
         );
       },
       cell: ({ getValue, row }) => {
@@ -246,9 +243,9 @@ export const getColumn = () => {
       size: Number(columnWidth["total_sales_amount"]),
       header: ({ column }) => {
         return (
-          <Header column={column}>
-            <p className="truncate">Total Sales Amount</p>
-          </Header>
+          <p className="truncate" id={column.id}>
+            {columnMap["total_sales_amount"]}
+          </p>
         );
       },
       cell: ({ getValue, row }) => {
@@ -262,9 +259,9 @@ export const getColumn = () => {
       size: Number(columnWidth["total_billable_amount"]),
       header: ({ column }) => {
         return (
-          <Header column={column}>
-            <p className="truncate">Total Billing Amount</p>
-          </Header>
+          <p className="truncate" id={column.id}>
+            {columnMap["total_billable_amount"]}
+          </p>
         );
       },
       cell: ({ getValue, row }) => {
@@ -278,9 +275,9 @@ export const getColumn = () => {
       size: Number(columnWidth["total_billed_amount"]),
       header: ({ column }) => {
         return (
-          <Header column={column}>
-            <p className="truncate">Total Billed Amount</p>
-          </Header>
+          <p className="truncate" id={column.id}>
+            {columnMap["total_billed_amount"]}
+          </p>
         );
       },
       cell: ({ getValue, row }) => {
@@ -294,9 +291,9 @@ export const getColumn = () => {
       size: Number(columnWidth["total_costing_amount"]),
       header: ({ column }) => {
         return (
-          <Header column={column}>
-            <p className="truncate">Total Costing Amount</p>
-          </Header>
+          <p className="truncate" id={column.id}>
+            {columnMap["total_costing_amount"]}
+          </p>
         );
       },
       cell: ({ getValue, row }) => {
@@ -310,9 +307,9 @@ export const getColumn = () => {
       size: Number(columnWidth["total_expense_claim"]),
       header: ({ column }) => {
         return (
-          <Header column={column}>
-            <p className="truncate">Total Expense Claim</p>
-          </Header>
+          <p className="truncate" id={column.id}>
+            {columnMap["total_expense_claim"]}
+          </p>
         );
       },
       cell: ({ getValue, row }) => {
@@ -326,9 +323,9 @@ export const getColumn = () => {
       size: Number(columnWidth["custom_total_hours_purchased"]),
       header: ({ column }) => {
         return (
-          <Header column={column}>
-            <p className="truncate">Total Hours Purchased</p>
-          </Header>
+          <p className="truncate" id={column.id}>
+            {columnMap["custom_total_hours_purchased"]}
+          </p>
         );
       },
     },
@@ -337,9 +334,9 @@ export const getColumn = () => {
       size: Number(columnWidth["custom_total_hours_remaining"]),
       header: ({ column }) => {
         return (
-          <Header column={column}>
-            <p className="truncate">Total Hours Remaining</p>
-          </Header>
+          <p className="truncate" id={column.id}>
+            {columnMap["custom_total_hours_remaining"]}
+          </p>
         );
       },
     },
@@ -348,9 +345,9 @@ export const getColumn = () => {
       size: Number(columnWidth["custom_percentage_estimated_cost"]),
       header: ({ column }) => {
         return (
-          <Header column={column}>
-            <p className="truncate">% Estimated Cost</p>
-          </Header>
+          <p className="truncate" id={column.id}>
+            {columnMap["custom_percentage_estimated_cost"]}
+          </p>
         );
       },
       cell: ({ getValue }) => {
@@ -358,45 +355,45 @@ export const getColumn = () => {
         return <Typography variant="p">{value}%</Typography>;
       },
     },
-    {
-      accessorKey: "percent_complete",
-      sortingFn: sortPercentageComplete,
-      header: ({ column }) => {
-        return (
-          <Header column={column}>
-            <p className="truncate">% Completed</p>
-          </Header>
-        );
-      },
-      cell: ({ row }) => {
-        const budget = Number(row.getValue("custom_total_hours_purchased"));
-        const spent = Number(row.getValue("actual_time"));
-        const per = calculatePercentage(spent, budget);
-        return budget ? (
-          <div>
-            <Typography
-              variant="small"
-              className={cn("text-primary float-right", spent > budget && "text-destructive")}
-            >
-              {per}%
-            </Typography>
-            <Progress
-              value={per}
-              className={cn("h-2 bg-success/20", spent > budget && "bg-destructive/20", budget == 0 && "bg-secondary")}
-              indicatorClassName={cn("bg-success", spent > budget && "bg-destructive")}
-            />
-          </div>
-        ) : null;
-      },
-    },
+    // {
+    //   accessorKey: "percent_complete",
+    //   sortingFn: sortPercentageComplete,
+    //   header: ({ column }) => {
+    //     return (
+    //       <p className="truncate" id={column.id}>
+    //         {columnMap["percent_complete"]}
+    //       </p>
+    //     );
+    //   },
+    //   cell: ({ row }) => {
+    //     const budget = Number(row.getValue("custom_total_hours_purchased"));
+    //     const spent = Number(row.getValue("actual_time"));
+    //     const per = calculatePercentage(spent, budget);
+    //     return budget ? (
+    //       <div>
+    //         <Typography
+    //           variant="small"
+    //           className={cn("text-primary float-right", spent > budget && "text-destructive")}
+    //         >
+    //           {per}%
+    //         </Typography>
+    //         <Progress
+    //           value={per}
+    //           className={cn("h-2 bg-success/20", spent > budget && "bg-destructive/20", budget == 0 && "bg-secondary")}
+    //           indicatorClassName={cn("bg-success", spent > budget && "bg-destructive")}
+    //         />
+    //       </div>
+    //     ) : null;
+    //   },
+    // },
     {
       accessorKey: "gross_margin",
       size: Number(columnWidth["gross_margin"]),
       header: ({ column }) => {
         return (
-          <Header column={column}>
-            <p className="truncate">Gross Margin</p>
-          </Header>
+          <p className="truncate" id={column.id}>
+            {columnMap["gross_margin"]}
+          </p>
         );
       },
       cell: ({ getValue, row }) => {
@@ -410,9 +407,9 @@ export const getColumn = () => {
       size: Number(columnWidth["per_gross_margin"]),
       header: ({ column }) => {
         return (
-          <Header column={column}>
-            <p className="truncate">%Gross Margin</p>
-          </Header>
+          <p className="truncate" id={column.id}>
+            {columnMap["per_gross_margin"]}
+          </p>
         );
       },
       cell: ({ getValue }) => {
@@ -422,79 +419,4 @@ export const getColumn = () => {
     },
   ];
   return columns;
-};
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, react-refresh/only-export-components
-const Header = ({ column, children }: { column: any; children: any }) => {
-  return (
-    <div
-      className="flex items-center gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
-      title={column.id}
-      onClick={() => {
-        column.toggleSorting();
-      }}
-    >
-      {children}
-      <ArrowUpDown
-        className={cn(
-          "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-          column.getIsSorted() === "desc" && "text-orange-500",
-        )}
-      />
-    </div>
-  );
-};
-
-export const DraggableColumnHeader = ({ header, reorder }) => {
-  const [{ isDragging }, dragRef] = useDrag({
-    type: "COLUMN",
-    item: { id: header.id },
-    collect: (monitor) => ({
-      isDragging: !!monitor.isDragging(),
-    }),
-  });
-  const [, dropRef] = useDrop({
-    accept: "COLUMN",
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    hover: (draggedColumn: any) => {
-      if (draggedColumn.id !== header.id) {
-        reorder((old: string[]) => {
-          const newOrder = [...old];
-          const fromIndex = newOrder.indexOf(draggedColumn.id);
-          const toIndex = newOrder.indexOf(header.id);
-          newOrder.splice(fromIndex, 1);
-          newOrder.splice(toIndex, 0, draggedColumn.id);
-          return newOrder;
-        });
-      }
-    },
-  });
-
-  return (
-    <TableHead
-      key={header.id}
-      className="relative"
-      style={{
-        width: header.getSize(),
-        opacity: isDragging ? 0.5 : 1,
-      }}
-    >
-      <div className="flex items-center h-full gap-1 group">
-        <span ref={(node) => dragRef(dropRef(node))} className="w-full">
-          {flexRender(header.column.columnDef.header, header.getContext())}
-        </span>
-        <GripVertical
-          className="w-4 h-4 max-lg:hidden cursor-col-resize flex justify-center items-center shrink-0"
-          {...{
-            onMouseDown: header.getResizeHandler(),
-            onTouchStart: header.getResizeHandler(),
-            style: {
-              userSelect: "none",
-              touchAction: "none",
-            },
-          }}
-        />
-      </div>
-    </TableHead>
-  );
 };
