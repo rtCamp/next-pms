@@ -209,6 +209,7 @@ const Project = () => {
   const resetTable = () => {
     setTableAttributeProps(projectTableMap);
     setColumnVisibility({});
+    setColumnOrder(projectTableMap.columnOrder);
     table.setColumnSizing(projectTableMap.columnWidth);
   };
 
