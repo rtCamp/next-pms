@@ -185,7 +185,7 @@ const Project = () => {
   }, [colSizing, columnOrder]);
 
   useEffect(() => {
-    localStorage.setItem("project", JSON.stringify(tableAttributeProps));
+    localStorage.setItem("project_list", JSON.stringify(tableAttributeProps));
   }, [tableAttributeProps]);
 
   const columns = getColumn();

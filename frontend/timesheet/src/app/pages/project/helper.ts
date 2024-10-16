@@ -92,7 +92,7 @@ export const calculatePercentage = (spent: number, budget: number) => {
 };
 export const getTableProps = () => {
   try {
-    const data = JSON.parse(String(localStorage.getItem("project")));
+    const data = JSON.parse(String(localStorage.getItem("project_list")));
     if (!data) {
       return projectTableMap;
     } else {
