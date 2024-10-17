@@ -5,11 +5,7 @@ import frappe
 def get_employee_from_user(user=None):
 
     user = frappe.session.user
-    employee = frappe.db.get_value("Employee", {"user_id": user})
-
-    if not employee:
-        frappe.throw(frappe._("Employee not found"))
-    return employee
+    return frappe.db.get_value("Employee", {"user_id": user})
 
 
 def get_user_from_employee(employee: str):
@@ -20,6 +16,8 @@ def get_user_from_employee(employee: str):
 def get_employee_working_hours(employee: str = None):
     if not employee:
         employee = get_employee_from_user()
+    if not employee:
+        return {"working_hour": 0, "working_frequency": "Per Day"}
     working_hour, working_frequency = frappe.get_value(
         "Employee",
         employee,
