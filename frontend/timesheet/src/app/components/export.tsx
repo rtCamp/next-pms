@@ -12,13 +12,13 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
 import { Download, FileDown, X } from "lucide-react";
 import { Separator } from "./ui/separator";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "./ui/form";
-
+import { useFrappePostCall } from "frappe-react-sdk";
 interface ExportProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rows: any[];
@@ -38,13 +38,21 @@ const schema = z.object({
   file_type: z.enum([fileType.CSV, fileType.Excel], {
     required_error: "Please select a file type.",
   }),
-  export_type: z.enum([exportType.All], {
+  export_type: z.enum([exportType.All, exportType.Filter], {
     required_error: "Please select a export type.",
   }),
 });
 // used to export the table data to csv or excel.
 export const Export = ({ rows = [], headers }: ExportProps) => {
   const [columns, setColumns] = useState(headers);
+  const [data, setData] = useState([]);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  useEffect(() => {
+    setData(rows);
+  }, [rows]);
+
+  const { call } = useFrappePostCall("frappe.client.get_list");
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     mode: "onSubmit",
@@ -53,11 +61,37 @@ export const Export = ({ rows = [], headers }: ExportProps) => {
       export_type: exportType.All,
     },
   });
-  const handleSubmit = (data: z.infer<typeof schema>) => {
-    if (data.file_type === "Excel") {
-      excelExport();
-    } else {
-      csvExport();
+  const handleSubmit = async (formData: z.infer<typeof schema>) => {
+    setIsDownloading(true);
+
+    try {
+      if (formData.export_type === exportType.All) {
+        await fetchData();
+      }
+
+      if (formData.file_type === fileType.Excel) {
+        excelExport();
+      } else {
+        csvExport();
+      }
+    } catch (error) {
+      console.error("Error exporting data:", error);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+  const fetchData = async () => {
+    const fields = columns.map((column) => column.value);
+
+    try {
+      const res = await call({
+        doctype: "Project",
+        fields: fields,
+        limit_page_length: "null",
+      });
+      setData(res.message);
+    } catch (err) {
+      console.error(err);
     }
   };
   const handleCancel = () => {
@@ -82,23 +116,24 @@ export const Export = ({ rows = [], headers }: ExportProps) => {
     );
   };
   const excelExport = () => {
-    const filteredData = rows.map((row) => filterRowData(row, columns));
+    const filteredData = data.map((row) => filterRowData(row, columns));
     const worksheet = XLSX.utils.json_to_sheet(filteredData, { header: columns.map((col) => col.label) });
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
     XLSX.writeFile(workbook, "data.xlsx");
   };
   const csvExport = () => {
-    const filteredData = rows.map((row) => filterRowData(row, columns));
+    const filteredData = data.map((row) => filterRowData(row, columns));
     const workbook = XLSX.utils.book_new();
     const sheet = XLSX.utils.json_to_sheet(filteredData, { header: columns.map((col) => col.label) });
     XLSX.utils.book_append_sheet(workbook, sheet, "sheet1");
     XLSX.writeFile(workbook, "data.csv");
   };
+
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" className="font-normal p-0 h-fit">
+        <Button variant="outline" className="font-normal">
           <Download /> Export
         </Button>
       </DialogTrigger>
@@ -141,7 +176,7 @@ export const Export = ({ rows = [], headers }: ExportProps) => {
                           <SelectValue placeholder="Export Type" />
                         </SelectTrigger>
                         <SelectContent>
-                          {/* <SelectItem value="filter">Filtered Records</SelectItem> */}
+                          <SelectItem value="filter">Filtered Records</SelectItem>
                           <SelectItem value="all">All Records</SelectItem>
                         </SelectContent>
                       </Select>
@@ -176,7 +211,7 @@ export const Export = ({ rows = [], headers }: ExportProps) => {
             </div>
             <Separator className="my-3" />
             <DialogFooter>
-              <Button>
+              <Button disabled={isDownloading}>
                 <FileDown /> Export
               </Button>
               <DialogClose onClick={handleCancel} type="button" asChild>
