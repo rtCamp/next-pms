@@ -4,7 +4,7 @@ from frappe_pms.project_currency.api.project_timesheet_billing_recalculation imp
     generate_the_error_log,
 )
 from frappe_pms.project_currency.patches.project_threshold_limit_reminder_email_template import (
-    setup_reminder_project_template,
+    execute as setup_reminder_project_template,
 )
 
 

@@ -28,7 +28,7 @@ export const Employee = ({ employee }: EmployeeProps) => {
   return (
     <div>
       <Table>
-        <TableBody>
+        <TableBody className="[&_tr]:pr-0">
           {leaves.length > 0 && (
             <LeaveRow
               dates={timesheetData.dates}

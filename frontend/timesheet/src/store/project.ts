@@ -1,18 +1,46 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-
+import { sortOrder } from "@/types";
+import { getTableProps } from "@/app/pages/project/helper";
 export type Status = "Open" | "Completed" | "Cancelled";
-
+export type Priority = "Low" | "Medium" | "High";
+export type Billability =
+  | "Non-Billable"
+  | "Fixed Cost"
+  | "Retainer"
+  | "Time and Material";
+export type CompletionMethod =
+  | "Manual"
+  | "Task Completion"
+  | "Task Progress"
+  | "Task Weight";
 export interface ProjectData {
   name: string;
   project_name: string;
-  status: Status;
+  customer: string;
   project_type: string;
-  percent_complete: number;
-  custom_budget_in_hours: number;
-  custom_budget_spent_in_hours: number;
-  custom_budget_remaining_in_hours: number;
-  custom_is_billable: boolean;
+  custom_business_unit: string;
+  priority: Priority;
+  company: string;
+  custom_billing_type: Billability;
+  custom_currency: string;
+  estimated_costing: number;
+  percent_complete_method: CompletionMethod;
+  actual_start_date: string;
+  actual_end_date: string;
+  actual_time: number;
+  total_sales_amount: number;
+  total_billable_amount: number;
+  total_billed_amount: number;
+  total_costing_amount: number;
+  total_expense_claim: number;
+  custom_total_hours_purchased: number;
+  custom_total_hours_remaining: number;
+  custom_percentage_estimated_cost: number;
+  gross_margin: number;
+  per_gross_margin: number;
+  status: Status;
 }
+
 export interface ProjectState {
   isFetchAgain: boolean;
   data: ProjectData[];
@@ -21,16 +49,22 @@ export interface ProjectState {
   search: string;
   selectedStatus: Array<Status>;
   statusList: Array<Status>;
+  order: sortOrder;
+  orderColumn: string;
+  pageLength: number;
 }
 
 export const initialState: ProjectState = {
   isFetchAgain: false,
   data: [],
   start: 0,
+  pageLength: 20,
   selectedProjectType: [],
   search: "",
   selectedStatus: [],
   statusList: ["Open", "Completed", "Cancelled"],
+  order: getTableProps().order,
+  orderColumn: getTableProps().orderColumn,
 };
 
 export const projectSlice = createSlice({
@@ -47,6 +81,7 @@ export const projectSlice = createSlice({
     },
     setStart: (state, action: PayloadAction<number>) => {
       state.start = action.payload;
+      state.pageLength = initialState.pageLength;
       state.isFetchAgain = true;
     },
     setSearch: (state, action: PayloadAction<string>) => {
@@ -78,6 +113,18 @@ export const projectSlice = createSlice({
       state.data = initialState.data;
       state.isFetchAgain = true;
     },
+    setOrderBy: (
+      state,
+      action: PayloadAction<{ order: sortOrder; orderColumn: string }>,
+    ) => {
+      const pageLength = state.data.length;
+      state.pageLength = pageLength;
+      state.start = 0;
+      state.order = action.payload.order;
+      state.orderColumn = action.payload.orderColumn;
+      state.data = initialState.data;
+      state.isFetchAgain = true;
+    },
   },
 });
 export const {
@@ -88,5 +135,6 @@ export const {
   setSelectedProjectType,
   setSelectedStatus,
   setFilters,
+  setOrderBy,
 } = projectSlice.actions;
 export default projectSlice.reducer;

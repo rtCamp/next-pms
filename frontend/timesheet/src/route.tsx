@@ -1,5 +1,5 @@
 import { lazy, useContext, useEffect } from "react";
-import { Route, Outlet, Navigate } from "react-router-dom";
+import { Route, Outlet } from "react-router-dom";
 import { TIMESHEET, HOME, TEAM, TASK, PROJECT } from "@/lib/constant";
 import { Layout, PmRoute } from "@/app/layout/index";
 import { RootState } from "./store";
@@ -8,25 +8,25 @@ import { UserContext } from "@/lib/UserProvider";
 
 import { FrappeConfig, FrappeContext } from "frappe-react-sdk";
 import { setRole } from "./store/user";
-const Timesheet = lazy(() => import("@/app/pages/timesheet"));
-const Home = lazy(() => import("@/app/pages/home"));
-const Team = lazy(() => import("@/app/pages/team"));
-const EmployeeDetail = lazy(() => import("@/app/pages/team/employeeDetail"));
-const Task = lazy(() => import("@/app/pages/task"));
-const Project = lazy(() => import("@/app/pages/project"));
+const TimesheetComponent = lazy(() => import("@/app/pages/timesheet"));
+const HomeComponent = lazy(() => import("@/app/pages/home"));
+const TeamComponent = lazy(() => import("@/app/pages/team"));
+const EmployeeDetailComponent = lazy(() => import("@/app/pages/team/employeeDetail"));
+const TaskComponent = lazy(() => import("@/app/pages/task"));
+const ProjectComponent = lazy(() => import("@/app/pages/project"));
 export function Router() {
   return (
     <Route element={<AuthenticatedRoute />}>
-      <Route path={TIMESHEET} element={<Timesheet />} />
+      <Route path={TIMESHEET} element={<TimesheetComponent />} />
       <Route element={<PmRoute />}>
-        <Route path={HOME} element={<Home />} />
+        <Route path={HOME} element={<HomeComponent />} />
         <Route path={TEAM}>
-          <Route path={`${TEAM}/`} element={<Team />} />
-          <Route path={`${TEAM}/employee/:id?`} element={<EmployeeDetail />} />
+          <Route path={`${TEAM}/`} element={<TeamComponent />} />
+          <Route path={`${TEAM}/employee/:id?`} element={<EmployeeDetailComponent />} />
         </Route>
-        <Route path={PROJECT} element={<Project />} />
+        <Route path={PROJECT} element={<ProjectComponent />} />
       </Route>
-      <Route path={TASK} element={<Task />} />
+      <Route path={TASK} element={<TaskComponent />} />
     </Route>
   );
 }
@@ -42,6 +42,7 @@ export const AuthenticatedRoute = () => {
         dispatch(setRole(res.message));
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (isLoading) {
@@ -49,6 +50,7 @@ export const AuthenticatedRoute = () => {
   } else if (!currentUser || currentUser === "Guest") {
     window.location.replace("/login?redirect-to=/timesheet");
   }
+
   if (!isLoading && currentUser && currentUser !== "Guest") {
     return (
       <Layout>

@@ -1,7 +1,7 @@
 import Sidebar from "./sidebar";
 import { Toaster } from "@/app/components/ui/toaster";
 import { Suspense, useContext, useEffect } from "react";
-import { FrappeConfig, FrappeContext } from "frappe-react-sdk";
+import { FrappeConfig, FrappeContext, useFrappeGetCall } from "frappe-react-sdk";
 import { setEmployee } from "@/store/user";
 import { useDispatch, useSelector } from "react-redux";
 import { useToast } from "@/app/components/ui/use-toast";
@@ -14,43 +14,65 @@ import { updateScreenSize } from "@/store/app";
 import { setWorkingDetail } from "@/store/user";
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
-  const { call } = useContext(FrappeContext) as FrappeConfig;
+  // const { call } = useContext(FrappeContext) as FrappeConfig;
   const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
   const { toast } = useToast();
+  const { data: workingDetail, error: workingError } = useFrappeGetCall(
+    "frappe_pms.timesheet.api.employee.get_employee_working_hours",
+    {},
+    undefined,
+    {
+      refreshWhenHidden: false,
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+    },
+  );
+  const { data: employeeUser, error } = useFrappeGetCall(
+    "frappe_pms.timesheet.api.employee.get_employee_from_user",
+    {},
+    undefined,
+    {
+      refreshWhenHidden: false,
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+    },
+  );
   useEffect(() => {
-    call
-      .get("frappe_pms.timesheet.api.employee.get_employee_from_user")
-      .then((res) => {
-        dispatch(setEmployee(res?.message));
-      })
-      .catch((err) => {
-        const error = parseFrappeErrorMsg(err);
-        toast({
-          variant: "destructive",
-          description: error,
-        });
+    if (employeeUser) {
+      if (employeeUser.message) {
+        dispatch(setEmployee(employeeUser.message));
+      } else {
+        dispatch(setEmployee(""));
+      }
+    }
+    if (error) {
+      const err = parseFrappeErrorMsg(error);
+      toast({
+        variant: "destructive",
+        description: err,
       });
-
-    call
-      .get("frappe_pms.timesheet.api.employee.get_employee_working_hours")
-      .then((res) => {
-        const data = {
-          workingHours: res?.message.working_hour,
-          workingFrequency: res?.message.working_frequency,
-        };
-        dispatch(setWorkingDetail(data));
-      })
-      .catch((err) => {
-        const error = parseFrappeErrorMsg(err);
-        toast({
-          variant: "destructive",
-          description: error,
-        });
-      });
-
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [employeeUser, error]);
+
+  useEffect(() => {
+    if (workingDetail) {
+      const data = {
+        workingHours: workingDetail.message.working_hour,
+        workingFrequency: workingDetail.message.working_frequency,
+      };
+      dispatch(setWorkingDetail(data));
+    }
+    if (workingError) {
+      const error = parseFrappeErrorMsg(workingError);
+      toast({
+        variant: "destructive",
+        description: error,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workingDetail, workingError]);
 
   const screenSize = useSelector((state: RootState) => state.app.screenSize);
   const handleScreenSize = () => {
@@ -77,7 +99,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             flexDirection: "column",
           }}
         >
-          {user.employee && (
+          {(user.employee || user.user == "Administrator") && (
             <>
               <Suspense fallback={<></>}>
                 <GenWrapper>{children}</GenWrapper>

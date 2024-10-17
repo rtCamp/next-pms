@@ -17,14 +17,43 @@ now = nowdate()
 @frappe.whitelist()
 def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
     """Get timesheet data for the given employee for the given number of weeks."""
-    if not employee:
-        employee = get_employee_from_user()
-    if not frappe.db.exists("Employee", employee):
-        throw(_("Employee not found."))
+
+    def generate_week_data(start_date, max_week, employee=None):
+        data = {}
+        for i in range(max_week):
+            current_week = start_date == now
+            week_dates = get_week_dates(start_date, current_week=current_week)
+            week_key = week_dates["key"]
+            tasks, total_hours, status = {}, 0, "Not Submitted"
+            if employee:
+                tasks, total_hours = get_timesheet(week_dates["dates"], employee)
+                status = get_timesheet_state(
+                    start_date=week_dates["dates"][0],
+                    end_date=week_dates["dates"][-1],
+                    employee=employee,
+                )
+            data[week_key] = {
+                **week_dates,
+                "total_hours": total_hours,
+                "tasks": tasks,
+                "status": status,
+            }
+            start_date = add_days(getdate(week_dates["start_date"]), -1)
+        return data
 
     hour_detail = get_employee_working_hours(employee)
     res = {**hour_detail}
-    data = {}
+    if not employee:
+        employee = get_employee_from_user()
+
+    if not employee and frappe.session.user == "Administrator":
+        res["data"] = generate_week_data(start_date, max_week)
+        res["holidays"] = []
+        res["leaves"] = []
+        return res
+
+    if not frappe.db.exists("Employee", employee):
+        throw(_("No employee found for current user."), frappe.DoesNotExistError)
 
     res["holidays"] = get_holidays(
         employee,
@@ -38,27 +67,7 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
         employee,
     )
 
-    for i in range(max_week):
-        current_week = start_date == now
-
-        week_dates = get_week_dates(start_date, current_week=current_week)
-        week_key = week_dates["key"]
-
-        tasks, total_hours = get_timesheet(week_dates["dates"], employee)
-        status = get_timesheet_state(
-            start_date=week_dates["dates"][0],
-            end_date=week_dates["dates"][-1],
-            employee=employee,
-        )
-
-        data[week_key] = {
-            **week_dates,
-            "total_hours": total_hours,
-            "tasks": tasks,
-            "status": status,
-        }
-        start_date = add_days(getdate(week_dates["start_date"]), -1)
-    res["data"] = data
+    res["data"] = generate_week_data(start_date, max_week, employee)
     return res
 
 
