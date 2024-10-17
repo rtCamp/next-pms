@@ -444,8 +444,8 @@ const Task = () => {
             onSelect={handleGroupByChange}
           />
           <div className="ml-auto flex h-full gap-x-2 justify-center items-center">
-            <Button onClick={handleAddTask} title="Add task">
-              <Plus /> Add Task
+            <Button onClick={handleAddTask} className="px-3" title="Add task">
+              <Plus /> <span className="border border-l-0 h-4/5 border-gray-500 mx-1"></span> Task
             </Button>
             <ColumnSelector
               table={table}
