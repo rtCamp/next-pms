@@ -92,6 +92,10 @@ If you are using [Frappe Manager](https://github.com/rtCamp/Frappe-Manager) for 
 </figure>
 
 
+## Contribution Guide
+
+Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
+
 ## License
 
-AGPLv3
+This project is licensed under the [AGPLv3 License](./LICENSE).
