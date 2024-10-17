@@ -103,9 +103,7 @@ def save(
         )
         create_timesheet_detail(date, hours, description, task, employee, parent)
         return _("New Timesheet created successfully.")
-    return update_timesheet_detail(
-        name, parent, hours, description, task, date, is_billable
-    )
+    return update_timesheet_detail(name, parent, hours, description, task, date, is_billable)
 
 
 @frappe.whitelist()
@@ -136,9 +134,7 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
 
     if not reporting_manager:
         throw(_("Reporting Manager not found for the employee."))
-    reporting_manager_name = frappe.get_value(
-        "Employee", reporting_manager, "employee_name"
-    )
+    reporting_manager_name = frappe.get_value("Employee", reporting_manager, "employee_name")
 
     start_date = get_first_day_of_week(start_date)
     end_date = get_last_day_of_week(start_date)
@@ -165,7 +161,7 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
 
     update_weekly_status_of_timesheet(employee, start_date)
     send_approval_reminder(employee, reporting_manager, start_date, end_date)
-    return _(f"Timesheet has been sent for Approval to {reporting_manager_name}.")
+    return f"Timesheet has been sent for Approval to {reporting_manager_name}."
 
 
 @frappe.whitelist()
@@ -224,9 +220,7 @@ def create_timesheet_detail(
     else:
         timehseet = frappe.get_doc({"doctype": "Timesheet", "employee": employee})
 
-    project, custom_is_billable = frappe.get_value(
-        "Task", task, ["project", "custom_is_billable"]
-    )
+    project, custom_is_billable = frappe.get_value("Task", task, ["project", "custom_is_billable"])
 
     timehseet.update({"parent_project": project})
     timehseet.append(
@@ -285,18 +279,16 @@ def get_timesheet(dates: list, employee: str):
             for log in timesheet.time_logs:
                 if not log.task:
                     continue
-                subject, task_name, project_name, project, is_billable = (
-                    frappe.get_value(
-                        "Task",
-                        log.task,
-                        [
-                            "subject",
-                            "name",
-                            "project.project_name",
-                            "project",
-                            "custom_is_billable",
-                        ],
-                    )
+                subject, task_name, project_name, project, is_billable = frappe.get_value(
+                    "Task",
+                    log.task,
+                    [
+                        "subject",
+                        "name",
+                        "project.project_name",
+                        "project",
+                        "custom_is_billable",
+                    ],
                 )
                 if not subject:
                     continue
@@ -315,7 +307,6 @@ def get_timesheet(dates: list, employee: str):
 
 
 def get_timesheet_state(employee: str, start_date: str, end_date: str):
-
     statuses = frappe.db.get_all(
         "Timesheet",
         {
@@ -360,11 +351,7 @@ def get_remaining_hour_for_employee(employee: str, date: str):
         employee,
     )
     data = next(
-        (
-            leave
-            for leave in leaves
-            if leave.get("from_date") <= date <= leave.get("to_date")
-        ),
+        (leave for leave in leaves if leave.get("from_date") <= date <= leave.get("to_date")),
         None,
     )
     if data:
@@ -400,9 +387,7 @@ def get_timesheet_details(date: str, task: str, employee: str):
         .where(timesheet.start_date == getdate(date))
     )
     data = res.run(as_dict=True)
-    subject, project_name = frappe.get_value(
-        "Task", task, ["subject", "project.project_name"]
-    )
+    subject, project_name = frappe.get_value("Task", task, ["subject", "project.project_name"])
 
     return {
         "task": subject,
