@@ -20,8 +20,6 @@ import { FlatTable } from "./flatTable";
 import {
   cn,
   parseFrappeErrorMsg,
-  isLiked,
-  floatToTime,
   createFalseValuedObject,
   getFormatedDate,
   getDateTimeForMultipleTimeZoneSupport,
@@ -32,19 +30,7 @@ import { Button } from "@/app/components/ui/button";
 import { Typography } from "@/app/components/typography";
 import { ComboxBox } from "@/app/components/comboBox";
 import { useQueryParamsState } from "@/lib/queryParam";
-import {
-  ChevronDown,
-  ChevronUp,
-  Clock,
-  Columns2,
-  Ellipsis,
-  Filter,
-  GripVertical,
-  Heart,
-  LucideProps,
-  Plus,
-  RotateCcw,
-} from "lucide-react";
+import { Columns2, Ellipsis, Filter, GripVertical, LucideProps, Plus, RotateCcw } from "lucide-react";
 import {
   getCoreRowModel,
   getSortedRowModel,
@@ -56,7 +42,6 @@ import {
   ExpandedState,
   Table as T,
 } from "@tanstack/react-table";
-import { TaskStatus } from "./taskStatus";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -89,6 +74,7 @@ import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { columnMap, getTableProps, localStorageTaskDataMap } from "./helper";
 import { LOCAL_STORAGE_TASK } from "@/lib/constant";
+import { flatTableColumnDefinition, nestedTableColumnDefinition } from "./columns";
 
 const Task = () => {
   const task = useSelector((state: RootState) => state.task);
@@ -264,390 +250,14 @@ const Task = () => {
   };
   // column definitions
   const columnWidth = tableAttributeProps?.columnWidth;
-  const columns: ColumnsType = [
-    {
-      accessorKey: "project_name",
-      size: Number(columnWidth["project_name"] ?? "150"),
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
-            title={column.id}
-          >
-            <p className="truncate">{columnMap["project_name"]}</p>
-          </div>
-        );
-      },
-      cell: ({ row }) => {
-        return (
-          <Typography
-            title={String(row.original.project_name ?? "")}
-            variant="p"
-            className="max-w-sm truncate cursor-pointer"
-          >
-            {row.original.project_name}
-          </Typography>
-        );
-      },
-    },
-    {
-      accessorKey: "subject",
-      size: Number(columnWidth["subject"] ?? "150"),
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full"
-            title={column.id}
-          >
-            <p className="truncate">{columnMap["subject"]}</p>
-          </div>
-        );
-      },
-      cell: ({ row }) => {
-        return (
-          <Typography
-            variant="p"
-            title={row.original.subject}
-            className="max-w-sm truncate cursor-pointer"
-            onClick={() => {
-              openTaskLog(row.original.name);
-            }}
-          >
-            {row.original.subject}
-          </Typography>
-        );
-      },
-    },
-    {
-      accessorKey: "due_date",
-      size: Number(columnWidth["due_date"] ?? "150"),
-      header: () => {
-        return (
-          <div className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer">
-            <p className="truncate">{columnMap["due_date"]}</p>
-          </div>
-        );
-      },
-      cell: ({ getValue }) => {
-        return (
-          <Typography variant="p" className="truncate w-4/5">
-            {getValue() as ReactNode}
-          </Typography>
-        );
-      },
-    },
-    {
-      accessorKey: "status",
-      size: Number(columnWidth["status"] ?? "150"),
-
-      header: () => {
-        return (
-          <div className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer">
-            <p className="truncate">{columnMap["status"]}</p>
-          </div>
-        );
-      },
-      cell: ({ row }) => {
-        return <TaskStatus status={row.original.status} />;
-      },
-    },
-    {
-      accessorKey: "priority",
-
-      size: Number(columnWidth["priority"] ?? "150"),
-      header: () => {
-        return (
-          <div className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer">
-            <p className="truncate">Priority</p>
-          </div>
-        );
-      },
-      cell: ({ row }) => {
-        return <TaskPriority priority={row.original.priority} />;
-      },
-    },
-    {
-      accessorKey: "expected_time",
-      size: Number(columnWidth["expected_time"] ?? "150"),
-      header: () => {
-        return (
-          <div className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer">
-            <p className="truncate">{columnMap["expected_time"]}</p>
-          </div>
-        );
-      },
-      cell: ({ row }) => {
-        return (
-          <Typography variant="p" className="text-center truncate">
-            {floatToTime(row.original.expected_time)}
-          </Typography>
-        );
-      },
-    },
-    {
-      accessorKey: "actual_time",
-      size: Number(columnWidth["actual_time"] ?? "150"),
-      header: () => {
-        return (
-          <div className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer">
-            <p className="truncate">{columnMap["actual_time"]}</p>
-          </div>
-        );
-      },
-      cell: ({ row }) => {
-        return (
-          <Typography variant="p" className="text-center truncate">
-            {floatToTime(row.original.actual_time)}
-          </Typography>
-        );
-      },
-    },
-    {
-      accessorKey: "timesheetAction",
-      header: "",
-      enableHiding: false,
-      size: 60, // Default size
-      minSize: 60, // Minimum size
-      maxSize: 60, // Maximum size
-      cell: ({ row }) => {
-        return (
-          <div title="Add Timesheet" className="w-full flex justify-center items-center">
-            <Clock
-              className={"w-4 h-4 hover:cursor-pointer hover:text-blue-600"}
-              onClick={() => {
-                handleAddTime(row.original.name);
-              }}
-            />
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "liked",
-      header: "",
-      enableHiding: false,
-      size: 50, // Default size
-      minSize: 50, // Minimum size
-      maxSize: 50, // Maximum size
-      cell: ({ row }) => {
-        return (
-          <span title="Like">
-            <Heart
-              className={cn(
-                "w-4 h-4 hover:cursor-pointer",
-                isLiked(row.original._liked_by, user.user) && "fill-red-600"
-              )}
-              data-task={row.original.name}
-              data-liked-by={row.original._liked_by}
-              onClick={handleLike}
-            />
-          </span>
-        );
-      },
-    },
-  ];
-  const nestedProjectColumns: ProjectNestedColumnsType = [
-    {
-      accessorKey: "project_name",
-      size: Number(columnWidth["project_name"] ?? "150"),
-      enableHiding: false,
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
-            title={column.id}
-          >
-            <p className="truncate">{columnMap["project_name"]}</p>
-          </div>
-        );
-      },
-      cell: ({ row, getValue }) => {
-        if (row.depth !== 0) return null;
-        return (
-          <>
-            <div
-              title={`${row.getIsExpanded() ? "Collapse" : "Expand"}`}
-              onClick={() => {
-                row.toggleExpanded();
-              }}
-              className="flex gap-1 cursor-pointer items-center "
-            >
-              {getValue() ? (
-                row.getIsExpanded() ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )
-              ) : null}
-              <div className="truncate w-4/5">{getValue() as ReactNode}</div>
-            </div>
-          </>
-        );
-      },
-    },
-    {
-      accessorKey: "subject",
-      size: Number(columnWidth["subject"] ?? "150"),
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full"
-            title={column.id}
-          >
-            <p className="truncate">{columnMap["subject"]}</p>
-          </div>
-        );
-      },
-      cell: ({ getValue, row }) => {
-        return (
-          <Typography
-            variant="p"
-            title={String(getValue())}
-            className="truncate cursor-pointer"
-            onClick={() => {
-              openTaskLog(row.original.name);
-            }}
-          >
-            {getValue() as ReactNode}
-          </Typography>
-        );
-      },
-    },
-    {
-      accessorKey: "due_date",
-      size: Number(columnWidth["due_date"] ?? "150"),
-      header: () => {
-        return (
-          <div className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer">
-            <div className="truncate w-4/5">{columnMap["due_date"]}</div>
-          </div>
-        );
-      },
-      cell: ({ getValue }) => {
-        return (
-          <Typography variant="p" className="truncate w-4/5">
-            {getValue() as ReactNode}
-          </Typography>
-        );
-      },
-    },
-    {
-      accessorKey: "status",
-
-      size: Number(columnWidth["status"] ?? "150"),
-      header: () => {
-        return (
-          <div className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer">
-            <div className="truncate w-4/5">{columnMap["status"]}</div>
-          </div>
-        );
-      },
-      cell: ({ getValue }) => {
-        return getValue() && <TaskStatus status={getValue() as TaskData["status"]} />;
-      },
-    },
-    {
-      id: "priority",
-
-      size: Number(columnWidth["priority"] ?? "150"),
-      accessorKey: "priority",
-      header: () => {
-        return (
-          <div className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer">
-            <div className="truncate w-4/5">{columnMap["priority"]}</div>
-          </div>
-        );
-      },
-      cell: ({ getValue }) => {
-        return getValue() && <TaskPriority priority={getValue() as TaskData["priority"]} />;
-      },
-    },
-    {
-      id: "expected_time",
-      size: Number(columnWidth["expected_time"] ?? "150"),
-      accessorKey: "expected_time",
-      header: () => {
-        return (
-          <div className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer">
-            <div className="truncate w-4/5">{columnMap["expected_time"]}</div>
-          </div>
-        );
-      },
-      cell: ({ getValue }) => {
-        const hour = getValue();
-        return (
-          <Typography variant="p" className="text-center truncate">
-            {hour !== undefined && floatToTime(Number(getValue()))}
-          </Typography>
-        );
-      },
-    },
-    {
-      id: "actual_time",
-      size: Number(columnWidth["actual_time"] ?? "150"),
-      accessorKey: "actual_time",
-      header: () => {
-        return (
-          <div className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer">
-            <div className="truncate w-4/5">{columnMap["actual_time"]}</div>
-          </div>
-        );
-      },
-      cell: ({ getValue }) => {
-        const hour = getValue();
-        return (
-          <Typography variant="p" className="text-center truncate">
-            {hour !== undefined && floatToTime(Number(getValue()))}
-          </Typography>
-        );
-      },
-    },
-    {
-      accessorKey: "timesheetAction",
-      header: "",
-      enableHiding: false,
-      size: 60, // Default size
-      minSize: 60, // Minimum size
-      maxSize: 60, // Maximum size
-      cell: ({ row }) => {
-        return (
-          row.depth !== 0 && (
-            <div title="Add Timesheet" className="w-full flex justify-center items-center">
-              <Clock
-                className={"w-4 h-4 hover:cursor-pointer hover:text-blue-600"}
-                onClick={() => {
-                  handleAddTime(row.original.name);
-                }}
-              />
-            </div>
-          )
-        );
-      },
-    },
-    {
-      accessorKey: "liked",
-      header: "",
-      enableHiding: false,
-      size: 50, // Default size
-      minSize: 50, // Minimum size
-      maxSize: 50, // Maximum size
-      cell: ({ row }) => {
-        return (
-          row.depth !== 0 && (
-            <Heart
-              className={cn(
-                "w-4 h-4 hover:cursor-pointer",
-                isLiked(row.original?._liked_by, user.user) && "fill-red-600"
-              )}
-              data-task={row.original.name}
-              data-liked-by={row.original?._liked_by}
-              onClick={handleLike}
-            />
-          )
-        );
-      },
-    },
-  ];
+  const columns: ColumnsType = flatTableColumnDefinition(columnWidth, openTaskLog, handleAddTime, user, handleLike);
+  const nestedProjectColumns: ProjectNestedColumnsType = nestedTableColumnDefinition(
+    columnWidth,
+    openTaskLog,
+    handleAddTime,
+    user,
+    handleLike
+  );
   // Flat Table instance
   const table = useReactTable({
     data: task.task,
@@ -734,13 +344,13 @@ const Task = () => {
       iconClass: "",
       handleClick: () => {
         // update All Sort,filter and columnWidth States when localStorage Changes (table config reset)
+        setTableAttributeProps(localStorageTaskDataMap);
         setColumnVisibility({});
         table.setColumnSizing({});
-        table.setColumnOrder(localStorageTaskDataMap.columnOrder)
+        table.setColumnOrder(localStorageTaskDataMap.columnOrder);
         nestedProjectTable.setColumnSizing({});
         nestedProjectTable.setColumnSizing({});
-        nestedProjectTable.setColumnOrder(localStorageTaskDataMap.columnOrder)
-        setTableAttributeProps(localStorageTaskDataMap);
+        nestedProjectTable.setColumnOrder(localStorageTaskDataMap.columnOrder);
       },
       type: "normal",
     },
@@ -937,7 +547,7 @@ const Task = () => {
   );
 };
 
-const TaskPriority = ({ priority }: { priority: TaskData["priority"] }) => {
+export const TaskPriority = ({ priority }: { priority: TaskData["priority"] }) => {
   const priorityCss = {
     Low: "bg-slate-200 text-slate-900 hover:bg-slate-200",
     Medium: "bg-warning/20 text-warning hover:bg-warning/20",
@@ -952,14 +562,14 @@ const ColumnSelector = ({
   onColumnHide,
   setColumnOrder,
   columnOrder,
-  groupByParam
+  groupByParam,
 }: {
   table: T<TaskData>;
   onColumnHide: (id: string) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setColumnOrder: any;
   columnOrder: string[];
-  groupByParam: string[],
+  groupByParam: string[];
 }) => {
   return (
     <DropdownMenu>
@@ -976,7 +586,7 @@ const ColumnSelector = ({
             .filter((column) => column.getCanHide())
             .sort((a, b) => columnOrder.indexOf(a.id) - columnOrder.indexOf(b.id))
             .map((column) => {
-              if(groupByParam.length>0&&column.id==="project_name") return null;
+              if (groupByParam.length > 0 && column.id === "project_name") return null;
               return (
                 <ColumnItem
                   key={column.id}
@@ -1055,7 +665,7 @@ const ColumnItem = ({
         }}
       >
         <span className="mr-1">{columnMap[id as keyof typeof columnMap]}</span>
-        <GripVertical className="flex-shrink-0"/>
+        <GripVertical className="flex-shrink-0" />
       </div>
     </DropdownMenuItem>
   );
