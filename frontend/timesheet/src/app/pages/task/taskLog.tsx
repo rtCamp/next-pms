@@ -80,7 +80,7 @@ export const TaskLog = () => {
   }, [error, logError]);
   return (
     <Dialog open={task.isTaskLogDialogBoxOpen} modal={true} onOpenChange={handleClose}>
-      <DialogContent aria-describedby="" aria-description="" className="sm:max-w-2xl overflow-auto gap-2">
+      <DialogContent aria-describedby="" aria-description="" className="sm:max-w-2xl gap-2 overflow-hidden flex flex-col">
         {isLoading ? (
           <Spinner />
         ) : (
@@ -155,7 +155,7 @@ export const TaskLog = () => {
             <Separator />
             {data?.message.worked_by?.length != 0 && (
               <>
-                <section id="worked_by w-full ">
+                <section id="worked_by w-full bg-red-500">
                   <div className="flex gap-x-4 overflow-x-auto">
                     {data?.message.worked_by?.map((employee: Employee) => (
                       <div key={employee.employee} className="flex items-center gap-x-2 shrink-0">
@@ -185,7 +185,7 @@ export const TaskLog = () => {
               <Spinner />
             ) : (
               <>
-                <section id="log" className="max-h-96 overflow-y-auto">
+                <section id="log" className="max-h-96 overflow-y-auto flex flex-col gap-3">
                   <>
                     {logs &&
                       Object.entries(logs.message as Record<string, LogData[]>).map(([key, value], index: number) => {
@@ -197,7 +197,7 @@ export const TaskLog = () => {
                                 (emp: Employee) => emp.employee === log.employee,
                               );
                               return (
-                                <div className="border-b border-dashed py-1">
+                                <div className="border-b border-dashed p-2 bg-gray-50 ">
                                   <div className="flex justify-between w-full">
                                     <span className="flex gap-x-2 items-start">
                                       <Avatar className="w-6 h-6">
@@ -217,7 +217,7 @@ export const TaskLog = () => {
                                     <Typography
                                       key={description}
                                       variant="p"
-                                      className="pl-8 py-1 rounded pb-0 bg-gray-50"
+                                      className="pl-8 py-1 rounded pb-0 w-full overflow-x-auto"
                                     >
                                       {description}
                                     </Typography>
