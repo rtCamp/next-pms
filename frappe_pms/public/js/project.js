@@ -35,7 +35,7 @@ frappe.ui.form.on("Project", {
       frm.set_df_property(
         "custom_send_reminder_when_approaching_project_threshold_limit",
         "description",
-        "For retainer project, reminder is sent based on Latest Hours Purchased vs Latest Hours Remaining.",
+        "For retainer project, reminder is sent based on Latest Consumed Hours vs Latest Hours Purchased.",
       );
     } else if (frm.doc.custom_billing_type == "Time and Material") {
       frm.set_df_property(

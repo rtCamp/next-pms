@@ -165,6 +165,8 @@ scheduler_events = {
     "daily_long": [
         "frappe_pms.timesheet.tasks.daily_reminder_for_time_entry.send_reminder",
         "frappe_pms.timesheet.tasks.send_weekly_reminder.send_reminder",
+    ],
+    "weekly": [
         "frappe_pms.project_currency.tasks.reminde_project_threshold.send_reminder_mail",
     ],
 }

@@ -23,5 +23,6 @@ def setup_reminder_project_template():
                     {"default_outgoing": 1, "enable_outgoing": 1},
                     "email_id",
                 ),
+                "enabled": 1,
             }
         ).insert(ignore_permissions=True)

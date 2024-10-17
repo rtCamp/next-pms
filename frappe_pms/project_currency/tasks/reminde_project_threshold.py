@@ -1,7 +1,7 @@
 import frappe
 
-from frappe_pms.project_currency.constant import (
-    PROJECT_THRESHOLD_REMINDER_EMAIL_TEMPLATE,
+from frappe_pms.project_currency.api.project_timesheet_billing_recalculation import (
+    generate_the_error_log,
 )
 from frappe_pms.project_currency.patches.project_threshold_limit_reminder_email_template import (
     setup_reminder_project_template,
@@ -9,16 +9,26 @@ from frappe_pms.project_currency.patches.project_threshold_limit_reminder_email_
 
 
 def send_reminder_mail():
-    project_list = frappe.get_all(
-        "Project",
-        filters={"custom_send_reminder_when_approaching_project_threshold_limit": 1},
-        fields=["name"],
-    )
+    try:
+        setup_reminder_project_template()
 
-    need_to_send_reminder_project_list = filter_project_list(project_list)
+        project_list = frappe.get_all(
+            "Project",
+            filters={
+                "custom_send_reminder_when_approaching_project_threshold_limit": 1,
+                "status": "Open",
+            },
+            fields=["name"],
+        )
 
-    for project in need_to_send_reminder_project_list:
-        send_reminder_mail_for_project(project)
+        need_to_send_reminder_project_list = filter_project_list(project_list)
+
+        for project in need_to_send_reminder_project_list:
+            send_reminder_mail_for_project(project)
+    except Exception:
+        generate_the_error_log(
+            "send_reminder_project_threshold_mail_failed",
+        )
 
 
 def send_reminder_mail_for_project(project: str):
@@ -49,11 +59,7 @@ def send_reminder_mail_for_project(project: str):
         )
     ]
 
-    setup_reminder_project_template()
-
-    reminder_template = frappe.get_doc(
-        "Email Template", PROJECT_THRESHOLD_REMINDER_EMAIL_TEMPLATE
-    )
+    reminder_template = frappe.get_doc("Email Template", project.custom_email_template)
 
     email_message = ""
     if reminder_template.use_html:
@@ -72,8 +78,6 @@ def send_reminder_mail_for_project(project: str):
     subject = frappe.render_template(email_subject, args)
 
     frappe.sendmail(recipients=recipients, subject=subject, message=message)
-
-    frappe.db.commit()
 
 
 def filter_project_list(project_list: list):
@@ -106,4 +110,5 @@ def filter_project_list(project_list: list):
             and project.custom_email_template
         ):
             need_to_send_reminder_project_list.append(project)
+
     return need_to_send_reminder_project_list
