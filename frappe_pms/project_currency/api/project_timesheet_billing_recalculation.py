@@ -6,7 +6,7 @@ from frappe_pms.project_currency.helpers.error import generate_the_error_log
 @frappe.whitelist()
 def calculate(project_id: str, valid_from_date: str):
     if not project_id:
-        return frappe.throw("Please select a project.")
+        return frappe.throw(frappe._("Please select a project."))
 
     frappe.enqueue(
         recalculate_timesheet_billing,
@@ -19,9 +19,7 @@ def calculate(project_id: str, valid_from_date: str):
     return frappe.msgprint(frappe._("Timesheet billing recalculation has started."))
 
 
-def recalculate_timesheet_billing(
-    project_id: str, valid_from_date: str, start: int = 0
-):
+def recalculate_timesheet_billing(project_id: str, valid_from_date: str, start: int = 0):
     try:
         timsheets = frappe.get_all(
             "Timesheet",

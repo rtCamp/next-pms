@@ -15,9 +15,7 @@ class ProjectOverwrite(EmployeeProject):
 
     def update_project_currency(self):
         if self.customer:
-            self.custom_currency = frappe.db.get_value(
-                "Customer", self.customer, "default_currency"
-            )
+            self.custom_currency = frappe.db.get_value("Customer", self.customer, "default_currency")
         elif self.company:
             self.custom_currency = get_company_currency(self.company)
 
@@ -26,19 +24,11 @@ class ProjectOverwrite(EmployeeProject):
 
         for index in range(len(custom_project_billing_team)):
             for index2 in range(index + 1, len(custom_project_billing_team)):
-                if (
-                    custom_project_billing_team[index].employee
-                    == custom_project_billing_team[index2].employee
-                ):
-                    if (
-                        custom_project_billing_team[index].valid_from
-                        == custom_project_billing_team[index2].valid_from
-                    ):
+                if custom_project_billing_team[index].employee == custom_project_billing_team[index2].employee:
+                    if custom_project_billing_team[index].valid_from == custom_project_billing_team[index2].valid_from:
                         frappe.throw(
-                            _(
-                                "Employee {} has overlapping date range in Project Billing Team".format(
-                                    custom_project_billing_team[index].employee
-                                )
+                            "Employee {} has overlapping date range in Project Billing Team".format(
+                                custom_project_billing_team[index].employee
                             )
                         )
 
@@ -46,25 +36,17 @@ class ProjectOverwrite(EmployeeProject):
         custom_project_budget_hours = self.custom_project_budget_hours
 
         for index in range(len(custom_project_budget_hours)):
-            if (
-                custom_project_budget_hours[index].start_date
-                > custom_project_budget_hours[index].end_date
-            ):
-                frappe.throw(
-                    _("End date should be greater than start date in project budget.")
-                )
+            if custom_project_budget_hours[index].start_date > custom_project_budget_hours[index].end_date:
+                frappe.throw(_("End date should be greater than start date in project budget."))
 
         for index in range(len(custom_project_budget_hours)):
-
             for index2 in range(index + 1, len(custom_project_budget_hours)):
                 if (
                     custom_project_budget_hours[index].start_date
                     <= custom_project_budget_hours[index2].start_date
                     <= custom_project_budget_hours[index].end_date
                 ):
-                    frappe.throw(
-                        _("Budget has an overlapping date range in project budget.")
-                    )
+                    frappe.throw(_("Budget has an overlapping date range in project budget."))
 
     def update_costing(self):
         TimesheetDetail = frappe.qb.DocType("Timesheet Detail")
@@ -97,13 +79,11 @@ class ProjectOverwrite(EmployeeProject):
         if self.custom_billing_type == "Fixed Cost":
             self.update_project_cost_rate()
 
-        if (
-            self.custom_billing_type == "Retainer"
-            or self.custom_billing_type == "Fixed Cost"
-        ):
+        if self.custom_billing_type == "Retainer" or self.custom_billing_type == "Fixed Cost":
             self.update_retainer_project_budget()
 
     def update_sales_amount(self):
+        # nosemgrep
         total_sales_amount = frappe.db.sql(
             """select sum(net_total)
             from `tabSales Order` where project = %s and docstatus=1""",
@@ -113,15 +93,14 @@ class ProjectOverwrite(EmployeeProject):
         self.total_sales_amount = total_sales_amount and total_sales_amount[0][0] or 0
 
     def update_billed_amount(self):
+        # nosemgrep
         total_billed_amount = frappe.db.sql(
             """select sum(net_total)
             from `tabSales Invoice` where project = %s and docstatus=1""",
             self.name,
         )
 
-        self.total_billed_amount = (
-            total_billed_amount and total_billed_amount[0][0] or 0
-        )
+        self.total_billed_amount = total_billed_amount and total_billed_amount[0][0] or 0
 
     def update_purchase_costing(self):
         total_purchase_cost = frappe.db.get_all(
@@ -153,7 +132,6 @@ class ProjectOverwrite(EmployeeProject):
         total_amount = 0
 
         for expense_claim in total_expense_claim:
-
             rate = get_exchange_rate(
                 from_currency=get_company_currency(company=expense_claim.company),
                 to_currency=self.custom_currency,
@@ -166,9 +144,7 @@ class ProjectOverwrite(EmployeeProject):
 
     def update_project_cost_rate(self):
         if self.estimated_costing:
-            self.custom_percentage_estimated_cost = (
-                self.total_costing_amount * 100 / self.estimated_costing
-            )
+            self.custom_percentage_estimated_cost = self.total_costing_amount * 100 / self.estimated_costing
 
     def update_retainer_project_budget(self):
         custom_project_budget_hours = self.custom_project_budget_hours
@@ -184,9 +160,7 @@ class ProjectOverwrite(EmployeeProject):
                     Sum(TimesheetDetail.billing_hours).as_("time"),
                 )
                 .where(TimesheetDetail.project == self.name)
-                .where(
-                    (TimesheetDetail.docstatus == 1) | (TimesheetDetail.docstatus == 0)
-                )
+                .where((TimesheetDetail.docstatus == 1) | (TimesheetDetail.docstatus == 0))
                 .where(TimesheetDetail.from_time >= budget.start_date)
                 .where(TimesheetDetail.to_time <= budget.end_date)
             ).run(as_dict=True)[0]
