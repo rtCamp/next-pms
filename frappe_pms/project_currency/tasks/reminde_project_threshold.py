@@ -33,7 +33,7 @@ def send_reminder_mail():
 
 def send_reminder_mail_for_project(project: str):
     if not project:
-        return frappe.throw("Project not found")
+        return frappe.throw(frappe._("Project not found"))
 
     if not project.custom_email_template:
         return
@@ -105,10 +105,7 @@ def filter_project_list(project_list: list):
         else:
             continue
 
-        if (
-            project.custom_reminder_threshold_percentage <= project_threshold
-            and project.custom_email_template
-        ):
+        if project.custom_reminder_threshold_percentage <= project_threshold and project.custom_email_template:
             need_to_send_reminder_project_list.append(project)
 
     return need_to_send_reminder_project_list

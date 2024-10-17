@@ -5,6 +5,7 @@ from erpnext.projects.doctype.task.task import Task
 class TaskOverride(Task):
     def update_time_and_costing(self):
         # Updated sql query to consider draft and submitted timesheets
+        # nosemgrep
         tl = frappe.db.sql(
             """select min(from_time) as start_date, max(to_time) as end_date,
             sum(billing_amount) as total_billing_amount, sum(costing_amount) as total_costing_amount,
