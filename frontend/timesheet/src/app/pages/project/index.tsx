@@ -47,6 +47,7 @@ import { Export } from "@/app/components/export";
 import { useFrappeDocTypeCount } from "@/app/hooks/useFrappeDocCount";
 import { Button } from "@/app/components/ui/button";
 import { Checkbox } from "@/app/components/ui/checkbox";
+import Sort from "./sort";
 
 const Project = () => {
   const projectState = useSelector((state: RootState) => state.project);
@@ -96,9 +97,10 @@ const Project = () => {
       //   @ts-ignore
       filters: getFilter(projectState),
       limit_start: projectState.start,
+      limit: projectState.pageLength,
       orderBy: {
-        field: "modified",
-        order: "desc",
+        field: projectState.orderColumn,
+        order: projectState.order as "asc" | "desc" | undefined,
       },
     },
     undefined,
@@ -183,6 +185,16 @@ const Project = () => {
     setTableAttributeProps(updatedTableProp);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [colSizing, columnOrder]);
+
+  useEffect(() => {
+    const updateTableProps = {
+      ...tableAttributeProps,
+      order: projectState.order,
+      orderColumn: projectState.orderColumn,
+    };
+    setTableAttributeProps(updateTableProps);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectState.order, projectState.orderColumn]);
 
   useEffect(() => {
     localStorage.setItem("project_list", JSON.stringify(tableAttributeProps));
@@ -292,6 +304,7 @@ const Project = () => {
             })}
             rows={projectState.data}
           /> */}
+          <Sort />
           <Action colMap={columnMap} data={projectState.data} resetTable={resetTable} />
         </div>
       </Header>
@@ -366,7 +379,7 @@ const Project = () => {
             variant="outline"
             disabled={projectState.data.length == (count ?? 0) || isLoading}
             onClick={() => {
-              dispatch(setStart(projectState.start + 20));
+              dispatch(setStart(projectState.start + projectState.pageLength));
             }}
           />
           <Typography variant="p" className="lg:px-5 font-semibold">

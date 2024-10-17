@@ -42,3 +42,5 @@ export interface ProjectData {
   projects: ProjectNestedTaskData[];
   count: number;
 }
+
+export type sortOrder = "asc" | "desc";
