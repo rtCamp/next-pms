@@ -66,7 +66,6 @@ export const {
   setRole,
   setImage,
   setUserName,
-
   setSidebarCollapsed,
   setEmployee,
   setWorkingDetail,

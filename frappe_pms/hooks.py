@@ -3,7 +3,8 @@ app_title = "Frappe PMS"
 app_publisher = "rtCamp"
 app_description = "Simplified Project Management System"
 app_email = "erp@rtcamp.com"
-app_license = "AGPLv3"
+app_license = "GNU AFFERO GENERAL PUBLIC LICENSE (v3)"
+
 # required_apps = []
 
 # Includes in <head>
@@ -165,6 +166,9 @@ scheduler_events = {
     "daily_long": [
         "frappe_pms.timesheet.tasks.daily_reminder_for_time_entry.send_reminder",
         "frappe_pms.timesheet.tasks.send_weekly_reminder.send_reminder",
+    ],
+    "weekly": [
+        "frappe_pms.project_currency.tasks.reminde_project_threshold.send_reminder_mail",
     ],
 }
 
