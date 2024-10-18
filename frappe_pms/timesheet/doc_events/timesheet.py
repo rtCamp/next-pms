@@ -151,3 +151,17 @@ def validate_dates(doc):
 
 def on_update(doc, method=None):
     doc.update_task_and_project()
+
+
+def before_validate(doc, method=None):
+    set_parent_project(doc)
+
+
+def set_parent_project(doc):
+    if doc.parent_project:
+        return
+
+    if not doc.time_logs:
+        return
+
+    doc.parent_project = doc.time_logs[0].project
