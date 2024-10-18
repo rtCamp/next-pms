@@ -407,7 +407,7 @@ const Project = () => {
                 <TableRow className="px-3" key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
-                      className="overflow-hidden"
+                      className="truncate"
                       key={cell.id}
                       style={{
                         width: cell.column.getSize(),
@@ -566,6 +566,10 @@ const ColumnItem = ({
         }}
       />
       <span
+        onClick={() => {
+          toggleVisibility(!getIsVisible());
+          onColumnHide(id);
+        }}
         className="w-full flex justify-between"
         style={{
           opacity: isDragging ? 0.5 : 1,
