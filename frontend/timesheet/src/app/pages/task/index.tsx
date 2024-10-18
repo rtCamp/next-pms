@@ -179,10 +179,10 @@ const Task = () => {
     search: subjectSearchParam,
     limit_start: task.start,
     limit: task.pageLength,
-      orderBy: {
-        field: task.orderColumn,
-        order: task.order as "asc" | "desc" | undefined,
-      },
+    order_by: {
+      field: task.orderColumn,
+      order: task.order as "asc" | "desc" | undefined,
+    },
   });
 
   useEffect(() => {
@@ -461,7 +461,7 @@ const Task = () => {
             className="text-primary border-dashed gap-x-2 font-normal w-fit"
             onSelect={handleGroupByChange}
           />
-          <div className="ml-auto flex gap-x-2 items-center">
+          <div className="ml-auto flex gap-x-2 ">
             <Button onClick={handleAddTask} className="px-3" title="Add task">
               <Plus /> Task
             </Button>

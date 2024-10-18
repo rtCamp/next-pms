@@ -13,7 +13,6 @@ import { ArrowDownAZ, ArrowDownZA } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { setOrderBy } from "@/store/project";
-import { Separator } from "@/app/components/ui/separator";
 
 const Sort = () => {
   const dispatch = useDispatch();
@@ -33,13 +32,13 @@ const Sort = () => {
   };
   return (
     <DropdownMenu>
-      <div className="flex items-center border rounded-md">
-        <Button variant="ghost" className="rounded-none" onClick={handleOrderChange}>
+      <div className="flex items-center">
+        <Button variant="outline" className=" rounded-tr-none rounded-br-none ring-0 outline-0 ring-offset-0" onClick={handleOrderChange}>
           {order === "asc" ? <ArrowDownAZ /> : <ArrowDownZA />}
         </Button>
-        <Separator orientation="vertical" />
+
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="font-normal rounded-none">
+          <Button variant="outline" className="font-normal rounded-tl-none border-l-0 rounded-bl-none ring-0 outline-0 ring-offset-0">
             {colMap[orderColumn] ?? "Sort"}
           </Button>
         </DropdownMenuTrigger>

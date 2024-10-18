@@ -20,6 +20,7 @@ const Sort = () => {
   const task = useSelector((state: RootState) => state.task);
   const [order, setOrder] = useState<sortOrder>(task.order);
   const [orderColumn, setOrderColumn] = useState<string>(task.orderColumn);
+
   const colMap = { ...columnMap, modified: "modified", creation: "creation" };
 
   const handleColumnChange = (key: string) => {
@@ -33,13 +34,13 @@ const Sort = () => {
   };
   return (
     <DropdownMenu>
-      <div className="flex items-center border rounded-md">
-        <Button variant="ghost" className="rounded-none" onClick={handleOrderChange}>
+      <div className="flex items-center">
+        <Button variant="outline" className=" rounded-tr-none rounded-br-none ring-0" onClick={handleOrderChange}>
           {order === "asc" ? <ArrowDownAZ /> : <ArrowDownZA />}
         </Button>
-        <Separator orientation="vertical" />
+
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="font-normal rounded-none">
+          <Button variant="outline" className="font-normal rounded-tl-none border-l-0 rounded-bl-none ring-0 ">
             {colMap[orderColumn] ?? "Sort"}
           </Button>
         </DropdownMenuTrigger>
