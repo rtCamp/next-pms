@@ -101,7 +101,6 @@ const Task = () => {
     const searchStr = e.target.value.trim();
     setSubjectSearchParam(searchStr);
     dispatch(setStart(0));
-    mutate();
   }, []);
 
   // GroupBy Data for ComboBox
@@ -183,6 +182,9 @@ const Task = () => {
     if (task.isFetchAgain) {
       mutate();
     }
+  }, [task.isFetchAgain]);
+
+  useEffect(() => {
     if (data) {
       if (task.start !== 0) {
         dispatch(updateTaskData(data.message));
@@ -191,7 +193,6 @@ const Task = () => {
         dispatch(setTaskData(data.message));
         dispatch(setProjectData());
       }
-      dispatch(setFetchAgain(false));
     }
     if (error) {
       const err = parseFrappeErrorMsg(error);
@@ -199,10 +200,9 @@ const Task = () => {
         variant: "destructive",
         description: err,
       });
-      dispatch(setFetchAgain(false));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, error, task.isFetchAgain]);
+  }, [data, error]);
 
   const handleLike = (e: React.MouseEvent<SVGSVGElement>) => {
     e.stopPropagation();

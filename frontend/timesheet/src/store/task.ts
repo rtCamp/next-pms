@@ -45,10 +45,6 @@ export const taskSlice = createSlice({
       state.isFetchAgain = false;
     },
     updateTaskData: (state, action: PayloadAction<TaskState>) => {
-      // const existingTaskIds = new Set(state.task.map((task) => task.name));
-      // const newTasks = action.payload.task.filter(
-      //   (task) => !existingTaskIds.has(task.name),
-      // );
       state.task = [...state.task, ...action.payload.task];
       state.total_count = action.payload.total_count;
       state.isFetchAgain = false;
