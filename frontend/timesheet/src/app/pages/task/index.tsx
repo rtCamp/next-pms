@@ -472,7 +472,8 @@ const Task = () => {
               columnOrder={columnOrder}
               groupByParam={groupByParam}
             />
-            <Sort />
+            {/* This component is archived for next itteration */}
+            {/* <Sort /> */}
             {/* More options */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

@@ -188,7 +188,7 @@ export const TaskLog = () => {
                 <section id="log" className="max-h-96 overflow-y-auto flex flex-col gap-3">
                   <>
                     {logs &&
-                      Object.entries(logs.message as Record<string, LogData[]>).map(([key, value], index: number) => {
+                      Object.entries(logs.message as Record<string, LogData[]>).slice().reverse().map(([key, value], index: number) => {
                         return (
                           <div key={index}>
                             {/* eslint-disable-next-line @typescript-eslint/no-unused-vars */}
