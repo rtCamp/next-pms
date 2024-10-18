@@ -104,11 +104,11 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               <Suspense fallback={<></>}>
                 <GenWrapper>{children}</GenWrapper>
               </Suspense>
-              <Toaster />
             </>
           )}
         </div>
       </div>
+      <Toaster />
     </GenWrapper>
   );
 };
