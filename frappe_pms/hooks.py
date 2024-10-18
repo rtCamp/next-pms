@@ -193,10 +193,9 @@ doc_events = {
         "before_save": "frappe_pms.timesheet.doc_events.timesheet.before_save",
         "before_insert": "frappe_pms.timesheet.doc_events.timesheet.before_insert",
         "on_update": "frappe_pms.timesheet.doc_events.timesheet.on_update",
+        "before_validate": "frappe_pms.timesheet.doc_events.timesheet.before_validate",
     },
-    "Task": {
-        "after_insert": "frappe_pms.project_currency.doc_events.task.after_insert"
-    },
+    "Task": {"after_insert": "frappe_pms.project_currency.doc_events.task.after_insert"},
     "Project": {
         "on_update": "frappe_pms.project_currency.doc_events.project.on_update",
         "onload": "frappe_pms.project_currency.doc_events.project.onload",
