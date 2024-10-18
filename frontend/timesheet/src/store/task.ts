@@ -74,11 +74,6 @@ export const taskSlice = createSlice({
     },
     setGroupBy: (state, action: PayloadAction<Array<string>>) => {
       state.groupBy = action.payload;
-      state.task = [];
-      state.start = 0;
-      state.project = [];
-      state.start = 0;
-      state.isFetchAgain = true;
     },
     setProjectData: (state) => {
       state.project = flatTableDataToNestedProjectDataConversion(state.task);

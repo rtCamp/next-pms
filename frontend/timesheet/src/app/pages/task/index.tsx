@@ -418,7 +418,7 @@ const Task = () => {
       <Header>
         <div
           id="filters"
-          className="flex gap-x-2 w-full overflow-hidden md:overflow-x-auto h-full items-center overflow-x-auto"
+          className="flex gap-x-2 w-full overflow-hidden md:overflow-x-auto items-center overflow-x-auto"
         >
           {/* Task Search Filter */}
           <DeBounceInput
@@ -461,9 +461,9 @@ const Task = () => {
             className="text-primary border-dashed gap-x-2 font-normal w-fit"
             onSelect={handleGroupByChange}
           />
-          <div className="ml-auto flex h-full gap-x-2 justify-center items-center">
+          <div className="ml-auto flex gap-x-2 items-center">
             <Button onClick={handleAddTask} className="px-3" title="Add task">
-              <Plus /> <span className="border border-l-0 h-4/5 border-gray-500 mx-1"></span> Task
+              <Plus /> Task
             </Button>
             <ColumnSelector
               table={table}
