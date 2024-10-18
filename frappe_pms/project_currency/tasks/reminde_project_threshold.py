@@ -3,15 +3,10 @@ import frappe
 from frappe_pms.project_currency.api.project_timesheet_billing_recalculation import (
     generate_the_error_log,
 )
-from frappe_pms.project_currency.patches.project_threshold_limit_reminder_email_template import (
-    execute as setup_reminder_project_template,
-)
 
 
 def send_reminder_mail():
     try:
-        setup_reminder_project_template()
-
         project_list = frappe.get_all(
             "Project",
             filters={
