@@ -305,7 +305,7 @@ const Team = () => {
             placeholder="Employee name"
             value={employeeNameParam}
             deBounceValue={400}
-            className="max-w-40 min-w-40 m-1"
+            className="max-w-40 min-w-40 "
             callback={handleEmployeeChange}
           />
           <EmployeeCombo

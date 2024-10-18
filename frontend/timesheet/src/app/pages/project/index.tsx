@@ -285,7 +285,7 @@ const Project = () => {
             placeholder="Project Name"
             value={searchParam}
             deBounceValue={200}
-            className="max-w-40 min-w-40 m-1"
+            className="max-w-40 min-w-40 "
             callback={handleSearch}
           />
 
