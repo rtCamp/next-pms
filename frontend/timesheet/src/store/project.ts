@@ -52,6 +52,7 @@ export interface ProjectState {
   order: sortOrder;
   orderColumn: string;
   pageLength: number;
+  selectedBusinessUnit: Array<string>;
 }
 
 export const initialState: ProjectState = {
@@ -62,6 +63,7 @@ export const initialState: ProjectState = {
   selectedProjectType: [],
   search: "",
   selectedStatus: [],
+  selectedBusinessUnit: [],
   statusList: ["Open", "Completed", "Cancelled"],
   order: getTableProps().order,
   orderColumn: getTableProps().orderColumn,
@@ -105,16 +107,23 @@ export const projectSlice = createSlice({
       state.pageLength = initialState.pageLength;
       state.isFetchAgain = true;
     },
+    setSelectedBusinessUnit: (state, action: PayloadAction<Array<string>>) => {
+      state.selectedBusinessUnit = action.payload;
+      state.data = initialState.data;
+      state.isFetchAgain = true;
+    },
     setFilters: (
       state,
       action: PayloadAction<{
         selectedProjectType: Array<string>;
         selectedStatus: Array<Status>;
         search: string;
+        selectedBusinessUnit: Array<string>;
       }>,
     ) => {
       state.selectedProjectType = action.payload.selectedProjectType;
       state.selectedStatus = action.payload.selectedStatus;
+      state.selectedBusinessUnit = action.payload.selectedBusinessUnit;
       state.search = action.payload.search;
       state.data = initialState.data;
       state.start = initialState.start;
@@ -144,5 +153,6 @@ export const {
   setSelectedStatus,
   setFilters,
   setOrderBy,
+  setSelectedBusinessUnit
 } = projectSlice.actions;
 export default projectSlice.reducer;

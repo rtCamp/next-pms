@@ -16,6 +16,7 @@ import {
   ProjectData,
   setStart,
   setFilters,
+  setSelectedBusinessUnit,
 } from "@/store/project";
 import { ComboxBox } from "@/app/components/comboBox";
 import { cn, parseFrappeErrorMsg, createFalseValuedObject } from "@/lib/utils";
@@ -43,7 +44,6 @@ import { getFilter, getTableProps, projectTableMap, columnMap } from "./helper";
 import { getColumn } from "./column";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import { Export } from "@/app/components/export";
 import { useFrappeDocTypeCount } from "@/app/hooks/useFrappeDocCount";
 import { Button } from "@/app/components/ui/button";
 import { Checkbox } from "@/app/components/ui/checkbox";
@@ -65,12 +65,14 @@ const Project = () => {
   const [searchParam, setSearchParam] = useQueryParamsState("search", "");
   const [projectTypeParam, setProjectTypeParam] = useQueryParamsState<Array<string>>("project-type", []);
   const [statusParam, setStatusParam] = useQueryParamsState<Array<Status>>("status", []);
+  const [businessUnitParam, setBusinessUnitParam] = useQueryParamsState<Array<string>>("business-unit", []);
 
   useEffect(() => {
     const payload = {
       selectedProjectType: projectTypeParam,
       search: searchParam,
       selectedStatus: statusParam,
+      selectedBusinessUnit: businessUnitParam,
     };
     dispatch(setFilters(payload));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -87,7 +89,20 @@ const Project = () => {
     {
       revalidateOnFocus: false,
       revalidateIfStale: false,
+    }
+  );
+  const { data: businessUnit, error: buError } = useFrappeGetCall(
+    "frappe.client.get_list",
+    {
+      doctype: "Business Unit",
+      fields: ["name"],
+      limit_page_length: "null",
     },
+    undefined,
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+    }
   );
   const { data, error, isLoading, mutate } = useFrappeGetDocList(
     "Project",
@@ -108,7 +123,7 @@ const Project = () => {
       shouldRetryOnError: false,
       revalidateOnFocus: false,
       revalidateIfStale: false,
-    },
+    }
   );
   const { data: count, mutate: countMutate } = useFrappeDocTypeCount(
     "Project",
@@ -117,7 +132,7 @@ const Project = () => {
     {
       revalidateOnFocus: false,
       revalidateIfStale: false,
-    },
+    }
   );
 
   const handleSearch = useCallback(
@@ -126,7 +141,7 @@ const Project = () => {
       dispatch(setSearch(value));
       setSearchParam(value);
     },
-    [dispatch, setSearchParam],
+    [dispatch, setSearchParam]
   );
   const handleProjectTypeChange = useCallback(
     (filters: string | string[]) => {
@@ -135,7 +150,7 @@ const Project = () => {
       setProjectTypeParam(normalizedFilters);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch],
+    [dispatch]
   );
 
   const handleStatusChange = useCallback(
@@ -145,7 +160,17 @@ const Project = () => {
       setStatusParam(normalizedFilters as Status[]);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch],
+    [dispatch]
+  );
+
+  const handleBuChange = useCallback(
+    (filters: string | string[]) => {
+      const normalizedFilters = Array.isArray(filters) ? filters : [filters];
+      dispatch(setSelectedBusinessUnit(normalizedFilters));
+      setBusinessUnitParam(normalizedFilters);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [dispatch]
   );
 
   useEffect(() => {
@@ -174,6 +199,16 @@ const Project = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, error]);
 
+  useEffect(() => {
+    if (buError) {
+      const err = parseFrappeErrorMsg(buError);
+      toast({
+        variant: "destructive",
+        description: err,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [buError]);
   useEffect(() => {
     const updatedWidth = { ...tableAttributeProps.columnWidth, ...colSizing };
     const updatedTableProp = {
@@ -290,6 +325,26 @@ const Project = () => {
             }))}
             className="text-primary border-dashed  font-normal w-fit"
           />
+          <ComboxBox
+            isMulti
+            label="Business Unit"
+            shouldFilter
+            value={businessUnitParam}
+            onSelect={handleBuChange}
+            leftIcon={<Filter className={cn(projectState.selectedBusinessUnit.length != 0 && "fill-primary")} />}
+            rightIcon={
+              projectState.selectedBusinessUnit.length > 0 && (
+                <Badge className="px-1.5">{projectState.selectedBusinessUnit.length}</Badge>
+              )
+            }
+            data={
+              businessUnit?.message?.map((d: { name: string }) => ({
+                label: d.name,
+                value: d.name,
+              })) ?? []
+            }
+            className="text-primary border-dashed  font-normal w-fit"
+          />
         </section>
         <div className="flex gap-x-2">
           <ColumnSelector
@@ -352,6 +407,7 @@ const Project = () => {
                 <TableRow className="px-3" key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
+                      className="overflow-hidden"
                       key={cell.id}
                       style={{
                         width: cell.column.getSize(),
@@ -391,7 +447,7 @@ const Project = () => {
   );
 };
 
-const Action = ({ colMap, data, resetTable }: { colMap: any; data: ProjectData[]; resetTable: () => void }) => {
+const Action = ({ resetTable }: { colMap: any; data: ProjectData[]; resetTable: () => void }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

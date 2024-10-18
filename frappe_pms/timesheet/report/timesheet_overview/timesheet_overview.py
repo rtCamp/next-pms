@@ -49,17 +49,13 @@ def get_data(filters):
     timesheet = DocType("Timesheet")
     timesheet_details = DocType("Timesheet Detail")
     task = DocType("Task")
-    billable_hours = Sum(
-        Case()
-        .when(timesheet_details.is_billable == 1, timesheet_details.hours)
-        .else_(0)
-    ).as_("billable_hours")
+    billable_hours = Sum(Case().when(timesheet_details.is_billable == 1, timesheet_details.hours).else_(0)).as_(
+        "billable_hours"
+    )
 
-    non_billable_hours = Sum(
-        Case()
-        .when(timesheet_details.is_billable == 0, timesheet_details.hours)
-        .else_(0)
-    ).as_("non_billable_hours")
+    non_billable_hours = Sum(Case().when(timesheet_details.is_billable == 0, timesheet_details.hours).else_(0)).as_(
+        "non_billable_hours"
+    )
 
     query = (
         frappe.qb.from_(timesheet)
@@ -86,8 +82,6 @@ def get_data(filters):
 
     if filters.get("project", None) is not None:
         query = query.where(timesheet_details.project == filters.get("project"))
-
-    query = query.groupby(timesheet.start_date, timesheet_details.task)
 
     return query.run(as_dict=True)
 

@@ -139,6 +139,9 @@ export const getFilter = (projectState: ProjectState) => {
   if (projectState.selectedStatus.length > 0) {
     filters.push(["status", "in", projectState.selectedStatus]);
   }
+  if (projectState.selectedBusinessUnit.length > 0) {
+    filters.push(["custom_business_unit", "in", projectState.selectedBusinessUnit]);
+  }
 
   return filters;
 };

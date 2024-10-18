@@ -120,33 +120,34 @@ export const ComboxBox = ({
           <CommandEmpty>No data.</CommandEmpty>
           <CommandGroup>
             <CommandList>
-              {data.map((item, index) => {
-                const isActive = selectedValues.includes(item.value);
-                return (
-                  <CommandItem
-                    key={index}
-                    keywords={[item.label, item.value]}
-                    onSelect={handleSelect}
-                    className="flex gap-x-2 text-primary cursor-pointer"
-                    value={item.value}
-                  >
-                    {!isMulti ? (
-                      <Check className={cn("mr-2 h-4 w-4", isActive ? "opacity-100" : "opacity-0")} />
-                    ) : (
-                      <Checkbox checked={isActive} />
-                    )}
+              {data.length != 0 &&
+                data.map((item, index) => {
+                  const isActive = selectedValues.includes(item.value);
+                  return (
+                    <CommandItem
+                      key={index}
+                      keywords={[item.label, item.value]}
+                      onSelect={handleSelect}
+                      className="flex gap-x-2 text-primary cursor-pointer"
+                      value={item.value}
+                    >
+                      {!isMulti ? (
+                        <Check className={cn("mr-2 h-4 w-4", isActive ? "opacity-100" : "opacity-0")} />
+                      ) : (
+                        <Checkbox checked={isActive} />
+                      )}
 
-                    <div className="flex flex-col w-full overflow-hidden">
-                      <Typography className="truncate" variant="p">
-                        {item.label}
-                      </Typography>
-                      <Typography className="truncate" variant="small">
-                        {item.description}
-                      </Typography>
-                    </div>
-                  </CommandItem>
-                );
-              })}
+                      <div className="flex flex-col w-full overflow-hidden">
+                        <Typography className="truncate" variant="p">
+                          {item.label}
+                        </Typography>
+                        <Typography className="truncate" variant="small">
+                          {item.description}
+                        </Typography>
+                      </div>
+                    </CommandItem>
+                  );
+                })}
             </CommandList>
           </CommandGroup>
           <Button variant="ghost" onClick={clearFilter} className="border-t rounded-none font-normal w-full">
