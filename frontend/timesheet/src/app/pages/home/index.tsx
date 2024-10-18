@@ -133,12 +133,12 @@ const Home = () => {
     <>
       <Header>
         <section id="filter-section" className="flex max-md:flex-col gap-x-3  w-full md:items-center ">
-          <div className="lg:pr-4 flex gap-x-1 w-full  items-center max-md:overflow-x-auto p-1">
+          <div className=" flex gap-x-2 w-full  items-center max-md:overflow-x-auto">
             <DeBounceInput
               placeholder="Employee name"
               value={employeeNameParam}
               deBounceValue={400}
-              className="w-full max-md:w-48"
+              className="min-w-40 max-w-40"
               callback={handleEmployeeChange}
             />
             <ComboxBox
