@@ -1,5 +1,5 @@
 import { ColumnDef, Table as TanStackTable } from "@tanstack/react-table";
-import { TaskData, ProjectNestedTaskData } from "@/types";
+import { TaskData, ProjectNestedTaskData, sortOrder } from "@/types";
 
 
 export type setTableAttributePropsType = React.Dispatch<
@@ -42,5 +42,7 @@ export type tableAttributePropsType = {
   };
   /* eslint-disable-next-line */
   columnSort: any[];
-  columnOrder:string[]
+  columnOrder:string[];
+  order: sortOrder,
+  orderColumn: string,
 };

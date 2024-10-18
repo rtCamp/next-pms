@@ -1,6 +1,7 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { ProjectNestedTaskData, TaskData } from "@/types";
+import { ProjectNestedTaskData, sortOrder, TaskData } from "@/types";
 import { flatTableDataToNestedProjectDataConversion } from "@/lib/utils";
+import { getTableProps } from "@/app/pages/task/helper";
 
 export interface TaskState {
   task: TaskData[];
@@ -13,6 +14,9 @@ export interface TaskState {
   selectedTask: string;
   isTaskLogDialogBoxOpen: boolean;
   isAddTaskDialogBoxOpen: boolean;
+  pageLength: number,
+  order: sortOrder;
+  orderColumn: string;
 }
 
 export const initialState: TaskState = {
@@ -26,6 +30,10 @@ export const initialState: TaskState = {
   selectedTask: "",
   isTaskLogDialogBoxOpen: false,
   isAddTaskDialogBoxOpen: false,
+  pageLength: 20,
+  order: getTableProps().order,
+  orderColumn: getTableProps().orderColumn,
+  
 };
 
 export type AddTaskType = {
@@ -51,6 +59,7 @@ export const taskSlice = createSlice({
     },
     setStart: (state, action: PayloadAction<number>) => {
       state.start = action.payload;
+      state.pageLength = initialState.pageLength;
       state.isFetchAgain = true;
     },
     setSelectedProject: (state, action: PayloadAction<Array<string>>) => {
@@ -91,6 +100,18 @@ export const taskSlice = createSlice({
       state.selectedTask = action.payload.task;
       state.isTaskLogDialogBoxOpen = action.payload.isOpen;
     },
+    setOrderBy: (
+      state,
+      action: PayloadAction<{ order: sortOrder; orderColumn: string }>,
+    ) => {
+      const pageLength = state.task.length;
+      state.pageLength = pageLength;
+      state.start = 0;
+      state.order = action.payload.order;
+      state.orderColumn = action.payload.orderColumn;
+      state.task = initialState.task;
+      state.isFetchAgain = true;
+    },
   },
 });
 
@@ -105,5 +126,6 @@ export const {
   updateTaskData,
   setAddTaskDialog,
   setSelectedTask,
+  setOrderBy,
 } = taskSlice.actions;
 export default taskSlice.reducer;

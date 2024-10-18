@@ -40,6 +40,8 @@ export const localStorageTaskDataMap:tableAttributePropsType = {
   },
   columnOrder: colOrder,
   columnSort: [],
+  order: "desc",
+  orderColumn: "modified",
 };
 
 export const getTableProps = ():tableAttributePropsType => {

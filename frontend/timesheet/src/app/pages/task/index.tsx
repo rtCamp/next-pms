@@ -75,6 +75,7 @@ import { Checkbox } from "@/app/components/ui/checkbox";
 import { columnMap, getTableProps, localStorageTaskDataMap } from "./helper";
 import { LOCAL_STORAGE_TASK } from "@/lib/constant";
 import { flatTableColumnDefinition, nestedTableColumnDefinition } from "./columns";
+import Sort from "./sort";
 
 const Task = () => {
   const task = useSelector((state: RootState) => state.task);
@@ -176,6 +177,12 @@ const Task = () => {
     start: task.start,
     projects: task.selectedProject,
     search: subjectSearchParam,
+    limit_start: task.start,
+    limit: task.pageLength,
+      orderBy: {
+        field: task.orderColumn,
+        order: task.order as "asc" | "desc" | undefined,
+      },
   });
 
   useEffect(() => {
@@ -383,6 +390,17 @@ const Task = () => {
     }
   };
 
+  // for sorting columns
+  useEffect(() => {
+    const updateTableProps = {
+      ...tableAttributeProps,
+      order: task.order,
+      orderColumn: task.orderColumn,
+    };
+    setTableAttributeProps(updateTableProps);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [task.order, task.orderColumn]);
+
   return (
     <>
       {/* Styles for table column-resizing */}
@@ -454,6 +472,7 @@ const Task = () => {
               columnOrder={columnOrder}
               groupByParam={groupByParam}
             />
+            <Sort />
             {/* More options */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
