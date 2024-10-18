@@ -6,7 +6,7 @@ import {
   FlatTableType,
   ColumnsType,
   columnsToExcludeActionsInTablesType,
-  setLocalStorageTaskStateType,
+  setTableAttributePropsType,
 } from "@/types/task";
 import { flexRender } from "@tanstack/react-table";
 import { GripVertical } from "lucide-react";
@@ -15,14 +15,14 @@ export const FlatTable = ({
   table,
   columns,
   columnsToExcludeActionsInTables,
-  setLocalStorageTaskState,
+  setTableAttributeProps,
   task,
   isLoading,
 }: {
   table: FlatTableType;
   columns: ColumnsType;
   columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType;
-  setLocalStorageTaskState: setLocalStorageTaskStateType;
+  setTableAttributeProps: setTableAttributePropsType;
   task: TaskState;
   isLoading: boolean;
 }) => {
@@ -45,7 +45,7 @@ export const FlatTable = ({
                         const container = event.currentTarget;
                         resizeObserver = new ResizeObserver((entries) => {
                           entries.forEach(() => {
-                            setLocalStorageTaskState((prev) => {
+                            setTableAttributeProps((prev) => {
                               return {
                                 ...prev,
                                 columnWidth: { ...prev.columnWidth, [header.id]: header.getSize() },

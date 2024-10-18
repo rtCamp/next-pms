@@ -88,17 +88,23 @@ export const projectSlice = createSlice({
     },
     setSearch: (state, action: PayloadAction<string>) => {
       state.search = action.payload;
+      state.start = initialState.start;
+      state.pageLength = initialState.pageLength;
       state.data = initialState.data;
       state.isFetchAgain = true;
     },
     setSelectedProjectType: (state, action: PayloadAction<Array<string>>) => {
       state.selectedProjectType = action.payload;
       state.data = initialState.data;
+      state.start = initialState.start;
+      state.pageLength = initialState.pageLength;
       state.isFetchAgain = true;
     },
     setSelectedStatus: (state, action: PayloadAction<Array<Status>>) => {
       state.selectedStatus = action.payload;
       state.data = initialState.data;
+      state.start = initialState.start;
+      state.pageLength = initialState.pageLength;
       state.isFetchAgain = true;
     },
     setSelectedBusinessUnit: (state, action: PayloadAction<Array<string>>) => {
@@ -120,6 +126,8 @@ export const projectSlice = createSlice({
       state.selectedBusinessUnit = action.payload.selectedBusinessUnit;
       state.search = action.payload.search;
       state.data = initialState.data;
+      state.start = initialState.start;
+      state.pageLength = initialState.pageLength;
       state.isFetchAgain = true;
     },
     setOrderBy: (

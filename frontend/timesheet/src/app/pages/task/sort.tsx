@@ -12,13 +12,15 @@ import { Button } from "@/app/components/ui/button";
 import { ArrowDownAZ, ArrowDownZA } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { setOrderBy } from "@/store/project";
+import { setOrderBy } from "@/store/task";
+import { Separator } from "@/app/components/ui/separator";
 
 const Sort = () => {
   const dispatch = useDispatch();
-  const projectState = useSelector((state: RootState) => state.project);
-  const [order, setOrder] = useState<sortOrder>(projectState.order);
-  const [orderColumn, setOrderColumn] = useState<string>(projectState.orderColumn);
+  const task = useSelector((state: RootState) => state.task);
+  const [order, setOrder] = useState<sortOrder>(task.order);
+  const [orderColumn, setOrderColumn] = useState<string>(task.orderColumn);
+
   const colMap = { ...columnMap, modified: "modified", creation: "creation" };
 
   const handleColumnChange = (key: string) => {
@@ -33,12 +35,12 @@ const Sort = () => {
   return (
     <DropdownMenu>
       <div className="flex items-center">
-        <Button variant="outline" className=" rounded-tr-none rounded-br-none ring-0 outline-0 ring-offset-0" onClick={handleOrderChange}>
+        <Button variant="outline" className=" rounded-tr-none rounded-br-none ring-0" onClick={handleOrderChange}>
           {order === "asc" ? <ArrowDownAZ /> : <ArrowDownZA />}
         </Button>
 
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="font-normal rounded-tl-none border-l-0 rounded-bl-none ring-0 outline-0 ring-offset-0">
+          <Button variant="outline" className="font-normal rounded-tl-none border-l-0 rounded-bl-none ring-0 ">
             {colMap[orderColumn] ?? "Sort"}
           </Button>
         </DropdownMenuTrigger>

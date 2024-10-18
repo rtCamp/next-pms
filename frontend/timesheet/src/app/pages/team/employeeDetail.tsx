@@ -22,7 +22,7 @@ import { Spinner } from "@/app/components/spinner";
 import { Typography } from "@/app/components/typography";
 import TimesheetTable from "@/app/components/timesheetTable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
-import { CircleDollarSign } from "lucide-react";
+import { CircleDollarSign, Plus } from "lucide-react";
 import { addDays } from "date-fns";
 import AddTime from "@/app/components/addTime";
 import {
@@ -173,8 +173,8 @@ const EmployeeDetail = () => {
               <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
               <TabsTrigger value="time">Time</TabsTrigger>
             </TabsList>
-            <Button className="float-right mb-1" onClick={handleAddTime}>
-              Add Time
+            <Button title="Add Time" className="float-right mb-1 px-3" onClick={handleAddTime}>
+              <Plus /> Time
             </Button>
           </div>
           {isLoading ? (
@@ -462,7 +462,7 @@ export const Time = ({ callback }: { callback?: () => void }) => {
                                   employee={teamState.employee}
                                   className="w-12 p-1 h-8"
                                 />
-                                <div className="grid w-full grid-cols-3">
+                                <div className="grid w-full grid-cols-3 max-md:flex max-md:flex-col max-md:gap-3">
                                   <div className="flex gap-1">
                                     <div
                                       title={task.is_billable == 1 ? "Billable task" : ""}
@@ -487,7 +487,7 @@ export const Time = ({ callback }: { callback?: () => void }) => {
 
                                   <p
                                     dangerouslySetInnerHTML={{ __html: preProcessLink(task.description ?? "") }}
-                                    className="text-sm font-normal col-span-2"
+                                    className="text-sm max-md:pl-6 font-normal col-span-2"
                                   ></p>
                                 </div>
                               </div>

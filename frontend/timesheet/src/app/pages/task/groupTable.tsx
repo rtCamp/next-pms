@@ -5,7 +5,7 @@ import {
   NestedRowTableType,
   ProjectNestedColumnsType,
   columnsToExcludeActionsInTablesType,
-  setLocalStorageTaskStateType,
+  setTableAttributePropsType,
 } from "@/types/task";
 import { flexRender } from "@tanstack/react-table";
 import { GripVertical } from "lucide-react";
@@ -15,14 +15,14 @@ export const RowGroupedTable = ({
   table,
   columns,
   columnsToExcludeActionsInTables,
-  setLocalStorageTaskState,
+  setTableAttributeProps,
   task,
   isLoading,
 }: {
   table: NestedRowTableType;
   columns: ProjectNestedColumnsType;
   columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType;
-  setLocalStorageTaskState: setLocalStorageTaskStateType;
+  setTableAttributeProps: setTableAttributePropsType;
   task: TaskState;
   isLoading: boolean;
 }) => {
@@ -48,7 +48,7 @@ export const RowGroupedTable = ({
                       const container = event.currentTarget;
                       resizeObserver = new ResizeObserver((entries) => {
                         entries.forEach(() => {
-                          setLocalStorageTaskState((prev) => {
+                          setTableAttributeProps((prev) => {
                             return {
                               ...prev,
                               columnWidth: { ...prev.columnWidth, [header.id]: header.getSize() },

@@ -279,13 +279,13 @@ const Project = () => {
 
   return (
     <>
-      <Header className="gap-x-4">
-        <section id="filter-section" className="flex gap-x-2 overflow-x-auto items-center">
+      <Header className="gap-x-3 flex items-center overflow-x-auto">
+        <section id="filter-section" className="flex gap-x-2 items-center">
           <DeBounceInput
             placeholder="Project Name"
             value={searchParam}
             deBounceValue={200}
-            className="max-w-40 min-w-40"
+            className="max-w-40 min-w-40 m-1"
             callback={handleSearch}
           />
 
@@ -407,7 +407,7 @@ const Project = () => {
                 <TableRow className="px-3" key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
-                      className="overflow-hidden"
+                      className="truncate"
                       key={cell.id}
                       style={{
                         width: cell.column.getSize(),
@@ -566,6 +566,10 @@ const ColumnItem = ({
         }}
       />
       <span
+        onClick={() => {
+          toggleVisibility(!getIsVisible());
+          onColumnHide(id);
+        }}
         className="w-full flex justify-between"
         style={{
           opacity: isDragging ? 0.5 : 1,

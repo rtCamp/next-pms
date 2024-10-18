@@ -67,7 +67,7 @@ export const projectTableMap = {
     custom_business_unit: 150,
     priority: 100,
     company: 200,
-    custom_billing_type: 150,
+    custom_billing_type: 200,
     custom_currency: 100,
     estimated_costing: 100,
     percent_complete_method: 200,

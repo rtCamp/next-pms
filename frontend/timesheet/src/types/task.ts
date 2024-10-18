@@ -1,8 +1,9 @@
 import { ColumnDef, Table as TanStackTable } from "@tanstack/react-table";
-import { TaskData, ProjectNestedTaskData } from "@/types";
+import { TaskData, ProjectNestedTaskData, sortOrder } from "@/types";
 
-export type setLocalStorageTaskStateType = React.Dispatch<
-  React.SetStateAction<localStorageTaskType>
+
+export type setTableAttributePropsType = React.Dispatch<
+  React.SetStateAction<tableAttributePropsType>
 >;
 export type setNestedProjectMutateCallType = React.Dispatch<
   React.SetStateAction<() => void>
@@ -19,7 +20,10 @@ export type ProjectNestedColumnsType = ColumnDef<ProjectNestedTaskData>[];
 export type subjectSearchType = string;
 export type GroupByParamType = string[];
 export type columnsToExcludeActionsInTablesType = string[];
-export type localStorageTaskType = {
+
+export type MoreTableOptionsDropDownType = "normal" | "nestedSubMenu";
+
+export type tableAttributePropsType = {
   /* eslint-disable-next-line */
   hideColumn: any[];
   /* eslint-disable-next-line */
@@ -38,5 +42,7 @@ export type localStorageTaskType = {
   };
   /* eslint-disable-next-line */
   columnSort: any[];
+  columnOrder:string[];
+  order: sortOrder,
+  orderColumn: string,
 };
-export type MoreTableOptionsDropDownType = "normal" | "nestedSubMenu";
