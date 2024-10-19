@@ -26,7 +26,7 @@ export const Footer = ({ children }: Props) => {
 
 export const Main = ({ children, className }: Props) => {
   return (
-    <div className="overflow-auto h-screen w-full">
+    <div className="overflow-auto h-full w-full">
       <div className={cn("px-3 flex flex-col", className)}>
         <div className="w-full">{children}</div>
       </div>
