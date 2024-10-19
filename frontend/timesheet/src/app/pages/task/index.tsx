@@ -6,7 +6,7 @@ import { RootState } from "@/store";
 import {
   setStart,
   setSelectedProject,
-  setFetchAgain,
+  // setFetchAgain,
   setGroupBy,
   setAddTaskDialog,
   updateTaskData,
@@ -23,6 +23,7 @@ import {
   createFalseValuedObject,
   getFormatedDate,
   getDateTimeForMultipleTimeZoneSupport,
+  checkIsMobile,
 } from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
 import { Badge } from "@/app/components/ui/badge";
@@ -75,7 +76,8 @@ import { Checkbox } from "@/app/components/ui/checkbox";
 import { columnMap, getTableProps, localStorageTaskDataMap } from "./helper";
 import { LOCAL_STORAGE_TASK } from "@/lib/constant";
 import { flatTableColumnDefinition, nestedTableColumnDefinition } from "./columns";
-import Sort from "./sort";
+// import Sort from "./sort";
+import { TouchBackend } from "react-dnd-touch-backend";
 
 const Task = () => {
   const task = useSelector((state: RootState) => state.task);
@@ -600,7 +602,7 @@ const ColumnSelector = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="[&_div]:cursor-pointer max-h-96 overflow-y-auto">
-        <DndProvider backend={HTML5Backend}>
+        <DndProvider backend={checkIsMobile()?TouchBackend : HTML5Backend}>
           {table
             .getAllColumns()
             .filter((column) => column.getCanHide())

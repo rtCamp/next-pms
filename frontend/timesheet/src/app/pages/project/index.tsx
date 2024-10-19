@@ -19,7 +19,7 @@ import {
   setSelectedBusinessUnit,
 } from "@/store/project";
 import { ComboxBox } from "@/app/components/comboBox";
-import { cn, parseFrappeErrorMsg, createFalseValuedObject } from "@/lib/utils";
+import { cn, parseFrappeErrorMsg, createFalseValuedObject, checkIsMobile } from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
 import {
   flexRender,
@@ -48,6 +48,7 @@ import { useFrappeDocTypeCount } from "@/app/hooks/useFrappeDocCount";
 import { Button } from "@/app/components/ui/button";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import Sort from "./sort";
+import { TouchBackend } from 'react-dnd-touch-backend';
 
 const Project = () => {
   const projectState = useSelector((state: RootState) => state.project);
@@ -76,6 +77,7 @@ const Project = () => {
     };
     dispatch(setFilters(payload));
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, []);
 
   const { data: projectType } = useFrappeGetCall(
@@ -494,7 +496,7 @@ const ColumnSelector = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="[&_div]:cursor-pointer max-h-96 overflow-y-auto">
-        <DndProvider backend={HTML5Backend}>
+        <DndProvider backend={checkIsMobile()?TouchBackend : HTML5Backend}>
           {table
             .getAllColumns()
             .filter((column) => column.getCanHide())
@@ -502,6 +504,7 @@ const ColumnSelector = ({
             .map((column) => {
               return (
                 <ColumnItem
+                  key={column.id}
                   id={column.id}
                   onColumnHide={onColumnHide}
                   getIsVisible={column.getIsVisible}
