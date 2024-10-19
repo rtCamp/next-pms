@@ -179,7 +179,7 @@ export const getColumn = () => {
         );
       },
       cell: ({ getValue, row }) => {
-        if (!getValue()) return <PermissionRequiredStatus/>;
+        if (!getValue()) return <NoValue />;
         const formatter = currencyFormat(row.original.custom_currency);
         const value = getValue() as number;
         return formatter.format(value);
@@ -249,7 +249,7 @@ export const getColumn = () => {
         );
       },
       cell: ({ getValue, row }) => {
-        if (!getValue()) return <PermissionRequiredStatus/>;
+        if (!getValue()) return <NoValue />;
         const formatter = currencyFormat(row.original.custom_currency);
         const value = getValue() as number;
         return formatter.format(value);
@@ -266,7 +266,7 @@ export const getColumn = () => {
         );
       },
       cell: ({ getValue, row }) => {
-        if (!getValue()) return <PermissionRequiredStatus/>;
+        if (!getValue()) return <NoValue />;
         const formatter = currencyFormat(row.original.custom_currency);
         const value = getValue() as number;
         return formatter.format(value);
@@ -283,7 +283,7 @@ export const getColumn = () => {
         );
       },
       cell: ({ getValue, row }) => {
-        if (!getValue()) return <PermissionRequiredStatus/>;
+        if (!getValue()) return <NoValue />;
         const formatter = currencyFormat(row.original.custom_currency);
         const value = getValue() as number;
         return formatter.format(value);
@@ -300,7 +300,7 @@ export const getColumn = () => {
         );
       },
       cell: ({ getValue, row }) => {
-        if (!getValue()) return <PermissionRequiredStatus/>;
+        if (!getValue()) return <NoValue />;
         const formatter = currencyFormat(row.original.custom_currency);
         const value = getValue() as number;
         return formatter.format(value);
@@ -317,7 +317,7 @@ export const getColumn = () => {
         );
       },
       cell: ({ getValue, row }) => {
-        if (!getValue()) return <PermissionRequiredStatus/>;
+        if (!getValue()) return <NoValue />;
         const formatter = currencyFormat(row.original.custom_currency);
         const value = getValue() as number;
         return formatter.format(value);
@@ -402,7 +402,7 @@ export const getColumn = () => {
         );
       },
       cell: ({ getValue, row }) => {
-        if (!getValue()) return <PermissionRequiredStatus/>;
+        if (!getValue()) return <NoValue />;
         const formatter = currencyFormat(row.original.custom_currency);
         const value = getValue() as number;
         return formatter.format(value);
@@ -419,7 +419,7 @@ export const getColumn = () => {
         );
       },
       cell: ({ getValue }) => {
-        if (!getValue()) return <PermissionRequiredStatus/>;
+        if (!getValue()) return <NoValue />;
         const value = getValue() as string;
         return <Typography variant="p">{parseFloat(value).toFixed(2)}%</Typography>;
       },
@@ -428,6 +428,6 @@ export const getColumn = () => {
   return columns;
 };
 
-export const PermissionRequiredStatus = () => {
-  return <Badge variant={"destructive"}>Permission required</Badge>;
+export const NoValue = () => {
+  return <span></span>;
 };
