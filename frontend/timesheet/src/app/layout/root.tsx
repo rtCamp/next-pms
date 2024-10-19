@@ -10,7 +10,7 @@ export const Header = ({ children, className }: Props) => {
   return (
     <div className="flex border-b">
       <header className={cn("flex h-14 max-md:h-fit items-center justify-between px-3 py-2 w-full", className)}>
-        <div className="w-full">{children}</div>
+        {children}
       </header>
     </div>
   );
@@ -26,7 +26,7 @@ export const Footer = ({ children }: Props) => {
 
 export const Main = ({ children, className }: Props) => {
   return (
-    <div className="overflow-auto h-screen w-full">
+    <div className="overflow-auto h-full w-full">
       <div className={cn("px-3 flex flex-col", className)}>
         <div className="w-full">{children}</div>
       </div>

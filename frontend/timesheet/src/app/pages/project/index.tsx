@@ -1,13 +1,12 @@
 import { DeBounceInput } from "@/app/components/deBounceInput";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { RootState } from "@/store";
-import { useFrappeGetDocList, useFrappeGetDocCount } from "frappe-react-sdk";
+import { useFrappeGetDocList, useFrappeGetCall } from "frappe-react-sdk";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Header, Footer } from "@/app/layout/root";
 import { LoadMore } from "@/app/components/loadMore";
 import {
-  ProjectState,
   setProjectData,
   setSearch,
   setSelectedProjectType,
@@ -17,118 +16,126 @@ import {
   ProjectData,
   setStart,
   setFilters,
+  setSelectedBusinessUnit,
 } from "@/store/project";
 import { ComboxBox } from "@/app/components/comboBox";
-import { cn, parseFrappeErrorMsg, createFalseValuedObject } from "@/lib/utils";
+import { cn, parseFrappeErrorMsg, createFalseValuedObject, checkIsMobile } from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
 import {
-  ColumnDef,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
-  Row,
   useReactTable,
   Table as T,
+  ColumnSizingState,
 } from "@tanstack/react-table";
-import { Filter, GripVertical, ArrowUpDown, EllipsisVertical, Columns2, RotateCcw } from "lucide-react";
+import { Filter, Columns2, RotateCcw, GripVertical, Ellipsis } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
-import { Progress } from "@/app/components/ui/progress";
 import { Badge } from "@/app/components/ui/badge";
 import { Typography } from "@/app/components/typography";
 import { Spinner } from "@/app/components/spinner";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuPortal,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
-const projectTableMap = {
-  hideColumn: [],
-  columnWidth: {
-    project_name: 180,
-    status: 100,
-    project_type: 100,
-    percent_complete: 150,
-    custom_total_hours_purchased: 80,
-    actual_time: 80,
-    custom_total_hours_remaining: 80,
-  },
-  columnSort: [],
-};
+import { getFilter, getTableProps, projectTableMap, columnMap } from "./helper";
+import { getColumn } from "./column";
+import { DndProvider, useDrag, useDrop } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import { useFrappeDocTypeCount } from "@/app/hooks/useFrappeDocCount";
+import { Button } from "@/app/components/ui/button";
+import { Checkbox } from "@/app/components/ui/checkbox";
+import Sort from "./sort";
+import { TouchBackend } from 'react-dnd-touch-backend';
+
 const Project = () => {
   const projectState = useSelector((state: RootState) => state.project);
   const dispatch = useDispatch();
   const { toast } = useToast();
-  let resizeObserver: ResizeObserver;
+
   const tableprop = useMemo(() => {
     return getTableProps();
   }, []);
+  const [colSizing, setColSizing] = useState<ColumnSizingState>({});
+  const [columnOrder, setColumnOrder] = useState<string[]>(tableprop.columnOrder);
   const [tableAttributeProps, setTableAttributeProps] = useState(tableprop);
   const [columnVisibility, setColumnVisibility] = useState(createFalseValuedObject(tableprop.hideColumn));
-  const [sorting, setSorting] = useState(tableprop.columnSort);
+
   const [searchParam, setSearchParam] = useQueryParamsState("search", "");
   const [projectTypeParam, setProjectTypeParam] = useQueryParamsState<Array<string>>("project-type", []);
   const [statusParam, setStatusParam] = useQueryParamsState<Array<Status>>("status", []);
+  const [businessUnitParam, setBusinessUnitParam] = useQueryParamsState<Array<string>>("business-unit", []);
 
   useEffect(() => {
     const payload = {
       selectedProjectType: projectTypeParam,
       search: searchParam,
       selectedStatus: statusParam,
+      selectedBusinessUnit: businessUnitParam,
     };
     dispatch(setFilters(payload));
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, []);
-  const { data: projectType } = useFrappeGetDocList(
-    "Project Type",
+
+  const { data: projectType } = useFrappeGetCall(
+    "frappe.client.get_list",
     {
-      limit: 100,
+      doctype: "Project Type",
+      fields: ["name"],
+      limit_page_length: "null",
     },
     undefined,
     {
       revalidateOnFocus: false,
       revalidateIfStale: false,
+    }
+  );
+  const { data: businessUnit, error: buError } = useFrappeGetCall(
+    "frappe.client.get_list",
+    {
+      doctype: "Business Unit",
+      fields: ["name"],
+      limit_page_length: "null",
     },
+    undefined,
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+    }
   );
   const { data, error, isLoading, mutate } = useFrappeGetDocList(
     "Project",
     {
-      fields: [
-        "name",
-        "project_name",
-        "status",
-        "project_type",
-        "percent_complete",
-        "custom_total_hours_purchased",
-        "actual_time",
-        "custom_total_hours_remaining",
-      ],
+      fields: ["*"],
       // eslint-disable-next-line
       //   @ts-ignore
       filters: getFilter(projectState),
       limit_start: projectState.start,
+      limit: projectState.pageLength,
       orderBy: {
-        field: "modified",
-        order: "desc",
+        field: projectState.orderColumn,
+        order: projectState.order as "asc" | "desc" | undefined,
       },
     },
     undefined,
     {
       shouldRetryOnError: false,
-    },
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+    }
   );
-
-  const {
-    data: count,
-    isLoading: countIsLoading,
-    // eslint-disable-next-line
-    //   @ts-ignore
-  } = useFrappeGetDocCount("Project", getFilter(projectState));
+  const { data: count, mutate: countMutate } = useFrappeDocTypeCount(
+    "Project",
+    { filters: getFilter(projectState) },
+    undefined,
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+    }
+  );
 
   const handleSearch = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -136,7 +143,7 @@ const Project = () => {
       dispatch(setSearch(value));
       setSearchParam(value);
     },
-    [dispatch, setSearchParam],
+    [dispatch, setSearchParam]
   );
   const handleProjectTypeChange = useCallback(
     (filters: string | string[]) => {
@@ -145,7 +152,7 @@ const Project = () => {
       setProjectTypeParam(normalizedFilters);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch],
+    [dispatch]
   );
 
   const handleStatusChange = useCallback(
@@ -155,11 +162,23 @@ const Project = () => {
       setStatusParam(normalizedFilters as Status[]);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch],
+    [dispatch]
   );
+
+  const handleBuChange = useCallback(
+    (filters: string | string[]) => {
+      const normalizedFilters = Array.isArray(filters) ? filters : [filters];
+      dispatch(setSelectedBusinessUnit(normalizedFilters));
+      setBusinessUnitParam(normalizedFilters);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [dispatch]
+  );
+
   useEffect(() => {
     if (projectState.isFetchAgain) {
       mutate();
+      countMutate();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectState.isFetchAgain]);
@@ -183,36 +202,63 @@ const Project = () => {
   }, [data, error]);
 
   useEffect(() => {
+    if (buError) {
+      const err = parseFrappeErrorMsg(buError);
+      toast({
+        variant: "destructive",
+        description: err,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [buError]);
+  useEffect(() => {
+    const updatedWidth = { ...tableAttributeProps.columnWidth, ...colSizing };
     const updatedTableProp = {
       ...tableprop,
-      columnSort: sorting,
+
+      columnWidth: updatedWidth,
+      columnOrder: columnOrder,
     };
     setTableAttributeProps(updatedTableProp);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sorting]);
+  }, [colSizing, columnOrder]);
+
   useEffect(() => {
-    localStorage.setItem("project", JSON.stringify(tableAttributeProps));
+    const updateTableProps = {
+      ...tableAttributeProps,
+      order: projectState.order,
+      orderColumn: projectState.orderColumn,
+    };
+    setTableAttributeProps(updateTableProps);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectState.order, projectState.orderColumn]);
+
+  useEffect(() => {
+    localStorage.setItem("project_list", JSON.stringify(tableAttributeProps));
   }, [tableAttributeProps]);
 
-  const columns = getColumns(tableAttributeProps);
+  const columns = getColumn();
   const table = useReactTable({
     columns: columns,
     data: projectState.data,
-    onSortingChange: setSorting,
+    enableColumnResizing: true,
     getCoreRowModel: getCoreRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     columnResizeMode: "onChange",
     getSortedRowModel: getSortedRowModel(),
+    onColumnSizingChange: setColSizing,
+    onColumnOrderChange: setColumnOrder,
     state: {
-      sorting,
       columnVisibility,
+      columnOrder,
+      columnSizing: colSizing,
     },
   });
 
   const resetTable = () => {
     setTableAttributeProps(projectTableMap);
-    setSorting([]);
     setColumnVisibility({});
+    setColumnOrder(projectTableMap.columnOrder);
     table.setColumnSizing(projectTableMap.columnWidth);
   };
 
@@ -235,17 +281,16 @@ const Project = () => {
 
   return (
     <>
-      <Header>
-        <section id="filter-section" className="flex gap-x-2 overflow-x-auto items-center">
-          <div className="xl:w-2/5">
-            <DeBounceInput
-              placeholder="Project Name"
-              value={searchParam}
-              deBounceValue={200}
-              className="max-w-full min-w-40"
-              callback={handleSearch}
-            />
-          </div>
+      <Header className="gap-x-3 flex items-center overflow-x-auto">
+        <section id="filter-section" className="flex gap-x-2 items-center">
+          <DeBounceInput
+            placeholder="Project Name"
+            value={searchParam}
+            deBounceValue={200}
+            className="max-w-40 min-w-40 "
+            callback={handleSearch}
+          />
+
           <ComboxBox
             isMulti
             label="Project Type"
@@ -258,7 +303,7 @@ const Project = () => {
                 <Badge className="px-1.5">{projectState.selectedProjectType.length}</Badge>
               )
             }
-            data={projectType?.map((d: { name: string }) => ({
+            data={projectType?.message.map((d: { name: string }) => ({
               label: d.name,
               value: d.name,
             }))}
@@ -282,51 +327,74 @@ const Project = () => {
             }))}
             className="text-primary border-dashed  font-normal w-fit"
           />
-          <PageAction table={table} resetTable={resetTable} onColumnHide={handleColumnHide} />
+          <ComboxBox
+            isMulti
+            label="Business Unit"
+            shouldFilter
+            value={businessUnitParam}
+            onSelect={handleBuChange}
+            leftIcon={<Filter className={cn(projectState.selectedBusinessUnit.length != 0 && "fill-primary")} />}
+            rightIcon={
+              projectState.selectedBusinessUnit.length > 0 && (
+                <Badge className="px-1.5">{projectState.selectedBusinessUnit.length}</Badge>
+              )
+            }
+            data={
+              businessUnit?.message?.map((d: { name: string }) => ({
+                label: d.name,
+                value: d.name,
+              })) ?? []
+            }
+            className="text-primary border-dashed  font-normal w-fit"
+          />
         </section>
+        <div className="flex gap-x-2">
+          <ColumnSelector
+            table={table}
+            onColumnHide={handleColumnHide}
+            setColumnOrder={setColumnOrder}
+            columnOrder={columnOrder}
+          />
+          {/* <Export
+            headers={Object.entries(columnMap).map(([key, value]: [string, any]) => {
+              return { label: value, value: key };
+            })}
+            rows={projectState.data}
+          /> */}
+          <Sort />
+          <Action colMap={columnMap} data={projectState.data} resetTable={resetTable} />
+        </div>
       </Header>
-      {(isLoading || countIsLoading) && projectState.data.length == 0 ? (
+      {isLoading && projectState.data.length == 0 ? (
         <Spinner isFull />
       ) : (
-        <Table className="[&_td]:px-4 [&_th]:px-4 [&_th]:py-4 table-fixed w-full relative">
-          <TableHeader className="[&_th]:h-10 border-t-0 sticky top-0 z-10">
+        <Table className=" [&_td]:px-4 [&_th]:px-4 [&_th]:py-4 table-fixed" style={{ width: table.getTotalSize() }}>
+          <TableHeader className=" border-t-0 sticky top-0 z-10 ">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead
-                      className={cn("resizer", header.column.getIsResizing() && "isResizing")}
                       key={header.id}
+                      className="relative"
                       style={{
                         width: header.getSize(),
-                        position: "relative",
-                      }}
-                      onMouseDown={(event) => {
-                        const container = event.currentTarget;
-                        resizeObserver = new ResizeObserver((entries) => {
-                          entries.forEach(() => {
-                            setTableAttributeProps((prev: typeof tableAttributeProps) => {
-                              return {
-                                ...prev,
-                                columnWidth: { ...prev.columnWidth, [header.id]: header.getSize() },
-                              };
-                            });
-                          });
-                        });
-                        resizeObserver.observe(container);
-                      }}
-                      onMouseUp={() => {
-                        if (resizeObserver) {
-                          resizeObserver.disconnect();
-                        }
                       }}
                     >
-                      <div className="grid grid-cols-[80%_20%] place-items-center h-full gap-1 group">
-                        {flexRender(header.column.columnDef.header, header.getContext())}
-
+                      <div className="flex items-center h-full gap-1 group">
+                        <span className="w-full">
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                        </span>
                         <GripVertical
-                          className="w-4 h-4 max-lg:hidden cursor-col-resize flex justify-center items-center "
-                          {...{ onMouseDown: header.getResizeHandler(), onTouchStart: header.getResizeHandler() }}
+                          className="  cursor-col-resize flex justify-center items-center shrink-0"
+                          {...{
+                            onMouseDown: header.getResizeHandler(),
+                            onTouchStart: header.getResizeHandler(),
+                            style: {
+                              userSelect: "none",
+                              touchAction: "none",
+                            },
+                          }}
                         />
                       </div>
                     </TableHead>
@@ -340,7 +408,14 @@ const Project = () => {
               table.getRowModel().rows.map((row) => (
                 <TableRow className="px-3" key={row.id} data-state={row.getIsSelected() && "selected"}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell className="overflow-hidden" key={cell.id}>
+                    <TableCell
+                      className="truncate"
+                      key={cell.id}
+                      style={{
+                        width: cell.column.getSize(),
+                        minWidth: cell.column.columnDef.minSize,
+                      }}
+                    >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
@@ -360,9 +435,9 @@ const Project = () => {
         <div className="flex  justify-between items-center ">
           <LoadMore
             variant="outline"
-            disabled={projectState.data.length == (count ?? 0) || isLoading || countIsLoading}
+            disabled={projectState.data.length == (count ?? 0) || isLoading}
             onClick={() => {
-              dispatch(setStart(projectState.start + 20));
+              dispatch(setStart(projectState.start + projectState.pageLength));
             }}
           />
           <Typography variant="p" className="lg:px-5 font-semibold">
@@ -374,344 +449,139 @@ const Project = () => {
   );
 };
 
-const getFilter = (projectState: ProjectState) => {
-  const filters = [];
-
-  if (projectState.search) {
-    filters.push(["project_name", "like", `%${projectState.search}%`]);
-  }
-  if (projectState.selectedProjectType.length > 0) {
-    filters.push(["project_type", "in", projectState.selectedProjectType]);
-  }
-  if (projectState.selectedStatus.length > 0) {
-    filters.push(["status", "in", projectState.selectedStatus]);
-  }
-
-  return filters;
-};
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const getColumns = (tableAttributeProps: any) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const sortPercentageComplete = (rowA: Row<ProjectData>, rowB: Row<ProjectData>, columnId: string) => {
-    const firstRowPer = calculatePercentage(
-      Number(rowA.getValue("actual_time")),
-      Number(rowA.getValue("custom_total_hours_purchased")),
-    );
-    const secondRowPer = calculatePercentage(
-      Number(rowB.getValue("actual_time")),
-      Number(rowB.getValue("custom_total_hours_purchased")),
-    );
-    if (firstRowPer > secondRowPer) {
-      return 1;
-    } else if (firstRowPer < secondRowPer) {
-      return -1;
-    } else {
-      return 0;
-    }
-  };
-  type ColumnsType = ColumnDef<ProjectData>[];
-  const columnWidth = tableAttributeProps?.columnWidth;
-
-  const columns: ColumnsType = [
-    {
-      accessorKey: "project_name",
-      size: Number(columnWidth["project_name"] ?? "350"),
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full overflow-hidden"
-            title={column.id}
-            onClick={() => {
-              column.toggleSorting();
-            }}
-          >
-            <p className="truncate">Project Name</p>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
-          </div>
-        );
-      },
-      cell: ({ getValue, row }) => {
-        const value = getValue() as string;
-        return (
-          <a href={`/app/project/${row.original.name}`} className="hover:underline">
-            <Typography variant="p" className="truncate" title={value}>
-              {value}
-            </Typography>
-          </a>
-        );
-      },
-    },
-    {
-      accessorKey: "status",
-      size: Number(columnWidth["status"] ?? "150"),
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full overflow-hidden "
-            title={column.id}
-            onClick={() => {
-              column.toggleSorting();
-            }}
-          >
-            <p className="truncate">Status</p>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
-          </div>
-        );
-      },
-      cell: ({ getValue }) => {
-        const value = getValue() as Status;
-        return (
-          <Badge variant={value === "Open" ? "secondary" : value === "Completed" ? "success" : "destructive"}>
-            {value}
-          </Badge>
-        );
-      },
-    },
-    {
-      accessorKey: "project_type",
-      size: Number(columnWidth["project_type"] ?? "150"),
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full overflow-hidden "
-            title={column.id}
-            onClick={() => {
-              column.toggleSorting();
-            }}
-          >
-            <p className="truncate">Project Type</p>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "percent_complete",
-      size: Number(columnWidth["percent_complete"] ?? "150"),
-      sortingFn: sortPercentageComplete,
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full overflow-hidden "
-            title={column.id}
-            onClick={() => {
-              column.toggleSorting();
-            }}
-          >
-            <p className="truncate">% Completed</p>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
-          </div>
-        );
-      },
-      cell: ({ row }) => {
-        const budget = Number(row.getValue("custom_total_hours_purchased"));
-        const spent = Number(row.getValue("actual_time"));
-        const per = calculatePercentage(spent, budget);
-        return budget ? (
-          <div>
-            <Typography
-              variant="small"
-              className={cn("text-primary float-right", spent > budget && "text-destructive")}
-            >
-              {per}%
-            </Typography>
-            <Progress
-              value={per}
-              className={cn("h-2 bg-success/20", spent > budget && "bg-destructive/20", budget == 0 && "bg-secondary")}
-              indicatorClassName={cn("bg-success", spent > budget && "bg-destructive")}
-            />
-          </div>
-        ) : null;
-      },
-    },
-    {
-      accessorKey: "custom_total_hours_purchased",
-      size: Number(columnWidth["custom_total_hours_purchased"] ?? "150"),
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full overflow-hidden "
-            title={column.id}
-            onClick={() => {
-              column.toggleSorting();
-            }}
-          >
-            <p className="truncate">Budget (Hours)</p>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
-          </div>
-        );
-      },
-      cell: ({ getValue }) => {
-        const value = Number(getValue());
-        return value ? (
-          <Typography variant="p" className="text-center">
-            {value}h
-          </Typography>
-        ) : null;
-      },
-    },
-    {
-      accessorKey: "actual_time",
-      size: Number(columnWidth["actual_time"] ?? "150"),
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full overflow-hidden "
-            title={column.id}
-            onClick={() => {
-              column.toggleSorting();
-            }}
-          >
-            <p className="truncate">Budget Spent (Hours)</p>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
-          </div>
-        );
-      },
-      cell: ({ getValue, row }) => {
-        const value = Number(getValue());
-        const budget = Number(row.getValue("custom_total_hours_purchased"));
-        return (
-          <Typography variant="p" className={cn("text-center", value > budget && "text-warning")}>
-            {value}h
-          </Typography>
-        );
-      },
-    },
-    {
-      accessorKey: "custom_total_hours_remaining",
-      size: Number(columnWidth["custom_total_hours_remaining"] ?? "150"),
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center gap-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer  w-full overflow-hidden"
-            title={column.id}
-            onClick={() => {
-              column.toggleSorting();
-            }}
-          >
-            <p className="truncate">Budget Remaining (Hours)</p>
-            <ArrowUpDown
-              className={cn(
-                "transition-colors ease duration-200 hover:cursor-pointer flex-shrink-0",
-                column.getIsSorted() === "desc" && "text-orange-500",
-              )}
-            />
-          </div>
-        );
-      },
-      cell: ({ getValue, row }) => {
-        const value = Number(getValue());
-        const budget = Number(row.getValue("custom_total_hours_purchased"));
-        return budget ? (
-          <Typography
-            variant="p"
-            className={cn("text-center", value < 1 && "text-destructive", value >= budget && "text-success")}
-          >
-            {value}h
-          </Typography>
-        ) : null;
-      },
-    },
-  ];
-  return columns;
-};
-
-const getTableProps = () => {
-  try {
-    const data = JSON.parse(String(localStorage.getItem("project")));
-    if (!data) {
-      return projectTableMap;
-    } else {
-      return data;
-    }
-  } catch (error) {
-    return projectTableMap;
-  }
-};
-
-const calculatePercentage = (spent: number, budget: number) => {
-  return budget == 0 ? 0 : Math.round((spent / budget) * 100);
-};
-const PageAction = ({
-  table,
-  resetTable,
-  onColumnHide,
-}: {
-  table: T<ProjectData>;
-  resetTable: () => void;
-  onColumnHide: (id: string) => void;
-}) => {
+const Action = ({ resetTable }: { colMap: any; data: ProjectData[]; resetTable: () => void }) => {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
-        <EllipsisVertical />
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline">
+          <Ellipsis />
+        </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="[&_div]:cursor-pointer">
-        <DropdownMenuItem className="flex items-center gap-x-2" onClick={resetTable}>
+      <DropdownMenuContent className="mr-2 [&_div]:cursor-pointer">
+        {/* <DropdownMenuItem> */}
+        {/* <Export
+            headers={Object.entries(colMap).map(([key, value]: [string, any]) => {
+              return { label: value, value: key };
+            })}
+            rows={data}
+          /> */}
+        {/* </DropdownMenuItem> */}
+        <DropdownMenuItem onClick={resetTable}>
           <RotateCcw />
           <Typography variant="p">Reset Table</Typography>
         </DropdownMenuItem>
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger className="flex items-center gap-x-2">
-            <Columns2 />
-            <Typography variant="p">Columns</Typography>
-          </DropdownMenuSubTrigger>
-          <DropdownMenuPortal>
-            <DropdownMenuSubContent>
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize cursor-pointer"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) => {
-                        column.toggleVisibility(!!value);
-                        onColumnHide(column.id);
-                      }}
-                    >
-                      {column.id.replace("_", " ")}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuSubContent>
-          </DropdownMenuPortal>
-        </DropdownMenuSub>
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+};
+
+const ColumnSelector = ({
+  table,
+  onColumnHide,
+  setColumnOrder,
+  columnOrder,
+}: {
+  table: T<ProjectData>;
+  onColumnHide: (id: string) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  setColumnOrder: any;
+  columnOrder: string[];
+}) => {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline">
+          <Columns2 />
+          <Typography variant="p">Columns</Typography>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="[&_div]:cursor-pointer max-h-96 overflow-y-auto">
+        <DndProvider backend={checkIsMobile()?TouchBackend : HTML5Backend}>
+          {table
+            .getAllColumns()
+            .filter((column) => column.getCanHide())
+            .sort((a, b) => columnOrder.indexOf(a.id) - columnOrder.indexOf(b.id))
+            .map((column) => {
+              return (
+                <ColumnItem
+                  key={column.id}
+                  id={column.id}
+                  onColumnHide={onColumnHide}
+                  getIsVisible={column.getIsVisible}
+                  toggleVisibility={column.toggleVisibility}
+                  reOrder={setColumnOrder}
+                />
+              );
+            })}
+        </DndProvider>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+const ColumnItem = ({
+  id,
+  onColumnHide,
+  reOrder,
+  getIsVisible,
+  toggleVisibility,
+}: {
+  id: string;
+  onColumnHide: (id: string) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  reOrder: any;
+  getIsVisible: () => boolean;
+  toggleVisibility: (value?: boolean) => void;
+}) => {
+  const [{ isDragging }, dragRef] = useDrag({
+    type: "COLUMN",
+    item: { id: id },
+    collect: (monitor) => ({
+      isDragging: !!monitor.isDragging(),
+    }),
+  });
+  const [, dropRef] = useDrop({
+    accept: "COLUMN",
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    hover: (draggedColumn: any) => {
+      if (draggedColumn.id !== id) {
+        reOrder((old: string[]) => {
+          const newOrder = [...old];
+          const fromIndex = newOrder.indexOf(draggedColumn.id);
+          const toIndex = newOrder.indexOf(id);
+          newOrder.splice(fromIndex, 1);
+          newOrder.splice(toIndex, 0, draggedColumn.id);
+          return newOrder;
+        });
+      }
+    },
+  });
+  return (
+    <DropdownMenuItem
+      key={id}
+      className="capitalize cursor-pointer flex gap-x-2 items-center"
+      ref={(node) => dragRef(dropRef(node))}
+    >
+      <Checkbox
+        checked={getIsVisible()}
+        onCheckedChange={(value) => {
+          toggleVisibility(!!value);
+          onColumnHide(id);
+        }}
+      />
+      <span
+        onClick={() => {
+          toggleVisibility(!getIsVisible());
+          onColumnHide(id);
+        }}
+        className="w-full flex justify-between"
+        style={{
+          opacity: isDragging ? 0.5 : 1,
+        }}
+      >
+        {columnMap[id as keyof typeof columnMap]}
+        <GripVertical />
+      </span>
+    </DropdownMenuItem>
   );
 };
 export default Project;

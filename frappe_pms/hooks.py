@@ -3,7 +3,8 @@ app_title = "Frappe PMS"
 app_publisher = "rtCamp"
 app_description = "Simplified Project Management System"
 app_email = "erp@rtcamp.com"
-app_license = "AGPLv3"
+app_license = "GNU AFFERO GENERAL PUBLIC LICENSE (v3)"
+
 # required_apps = []
 
 # Includes in <head>
@@ -166,6 +167,9 @@ scheduler_events = {
         "frappe_pms.timesheet.tasks.daily_reminder_for_time_entry.send_reminder",
         "frappe_pms.timesheet.tasks.send_weekly_reminder.send_reminder",
     ],
+    "weekly": [
+        "frappe_pms.project_currency.tasks.reminde_project_threshold.send_reminder_mail",
+    ],
 }
 
 # Testing
@@ -189,10 +193,9 @@ doc_events = {
         "before_save": "frappe_pms.timesheet.doc_events.timesheet.before_save",
         "before_insert": "frappe_pms.timesheet.doc_events.timesheet.before_insert",
         "on_update": "frappe_pms.timesheet.doc_events.timesheet.on_update",
+        "before_validate": "frappe_pms.timesheet.doc_events.timesheet.before_validate",
     },
-    "Task": {
-        "after_insert": "frappe_pms.project_currency.doc_events.task.after_insert"
-    },
+    "Task": {"after_insert": "frappe_pms.project_currency.doc_events.task.after_insert"},
     "Project": {
         "on_update": "frappe_pms.project_currency.doc_events.project.on_update",
         "onload": "frappe_pms.project_currency.doc_events.project.onload",

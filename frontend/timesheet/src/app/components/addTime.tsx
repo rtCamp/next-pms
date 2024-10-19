@@ -199,7 +199,7 @@ const AddTime = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)}>
             <div className="flex flex-col gap-y-4">
-              <div className={cn("grid gap-x-4 grid-cols-2")}>
+              <div className="grid max-sm:gap-y-4 sm:gap-x-4 max-sm:grid-rows-2 sm:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="employee"

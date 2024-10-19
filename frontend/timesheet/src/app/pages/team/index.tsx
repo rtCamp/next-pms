@@ -298,94 +298,90 @@ const Team = () => {
   );
   return (
     <>
-      <Header>
-        <div className="flex gap-x-2 items-center justify-between max-md:flex-col max-md:justify-between">
-          {teamState.isAprrovalDialogOpen && <Approval />}
-          <div id="filters" className="flex gap-x-2 max-md:gap-x-5  overflow-y-hidden max-md:w-full items-center">
-            <DeBounceInput
-              placeholder="Employee name"
-              value={employeeNameParam}
-              deBounceValue={400}
-              className="max-w-full min-w-40 m-1"
-              callback={handleEmployeeChange}
-            />
-            <EmployeeCombo
-              value={reportsToParam}
-              label="Reporting Manager"
-              onSelect={handleReportsToChange}
-              className="border-dashed min-w-48 w-full max-w-48"
-            />
-            <ComboxBox
-              value={employeeStatusParam}
-              label="Employee Status"
-              data={empStatus}
-              shouldFilter
-              isMulti
-              onSelect={handleEmployeeStatusChange}
-              leftIcon={<Filter className={cn("h-4 w-4", teamState.status.length != 0 && "fill-primary")} />}
-              rightIcon={teamState.status.length > 0 && <Badge className="px-1.5">{teamState.status.length}</Badge>}
-              className="text-primary border-dashed gap-x-1 font-normal w-fit"
-            />
-            <ComboxBox
-              value={statusParam}
-              label="Approval"
-              data={approvalsData}
-              isMulti
-              shouldFilter
-              onSelect={handleStatusChange}
-              leftIcon={<Filter className={cn("h-4 w-4", teamState.statusFilter.length != 0 && "fill-primary")} />}
-              rightIcon={
-                teamState.statusFilter.length > 0 && <Badge className="px-1.5">{teamState.statusFilter.length}</Badge>
-              }
-              className="text-primary border-dashed gap-x-1 font-normal w-fit"
-            />
-            <ComboxBox
-              value={projectParam}
-              label="Projects"
-              isMulti
-              showSelected={false}
-              onSelect={handleProjectChange}
-              onSearch={onProjectSearch}
-              rightIcon={teamState.project.length > 0 && <Badge className="px-1.5">{teamState.project.length}</Badge>}
-              leftIcon={<Filter className={cn("h-4 w-4", teamState.project.length != 0 && "fill-primary")} />}
-              data={projects?.message.map((item: ProjectProps) => ({
-                label: item.project_name,
-                value: item.name,
-              }))}
-              className="text-primary border-dashed gap-x-2 font-normal w-fit"
-            />
-            <ComboxBox
-              value={userGroupParam}
-              label="User Groups"
-              onSearch={onUserGroupSearch}
-              showSelected={false}
-              data={userGroups?.message.map((item: UserGroupProps) => ({
-                label: item.name,
-                value: item.name,
-              }))}
-              rightIcon={
-                teamState.userGroup.length > 0 && <Badge className="px-1.5">{teamState.userGroup.length}</Badge>
-              }
-              isMulti
-              leftIcon={<Filter className={cn("h-4 w-4", teamState.userGroup.length != 0 && "fill-primary")} />}
-              onSelect={handleUserGroupChange}
-              className="text-primary border-dashed gap-x-2 font-normal w-fit"
-            />
-          </div>
-          <div id="date-filter" className="flex gap-x-2 max-md:w-full max-md:justify-between max-md:m-2">
-            <Button title="prev" className="p-1 h-fit" variant="outline" onClick={handleprevWeek}>
-              <ChevronLeft className="w-4 max-md:w-3 h-4 max-md:h-3" />
-            </Button>
-            <Button title="next" className="p-1 h-fit" variant="outline" onClick={handlenextWeek}>
-              <ChevronRight className="w-4 max-md:w-3 h-4 max-md:h-3" />
-            </Button>
-          </div>
+      {teamState.isAprrovalDialogOpen && <Approval />}
+      <Header className="flex items-center max-md:flex-col">
+        <div id="filters" className="flex gap-x-2 max-md:gap-x-5  overflow-y-hidden max-md:w-full items-center">
+          <DeBounceInput
+            placeholder="Employee name"
+            value={employeeNameParam}
+            deBounceValue={400}
+            className="max-w-40 min-w-40 "
+            callback={handleEmployeeChange}
+          />
+          <EmployeeCombo
+            value={reportsToParam}
+            label="Reporting Manager"
+            onSelect={handleReportsToChange}
+            className="border-dashed min-w-48 w-full max-w-48"
+          />
+          <ComboxBox
+            value={employeeStatusParam}
+            label="Employee Status"
+            data={empStatus}
+            shouldFilter
+            isMulti
+            onSelect={handleEmployeeStatusChange}
+            leftIcon={<Filter className={cn("h-4 w-4", teamState.status.length != 0 && "fill-primary")} />}
+            rightIcon={teamState.status.length > 0 && <Badge className="px-1.5">{teamState.status.length}</Badge>}
+            className="text-primary border-dashed gap-x-1 font-normal w-fit"
+          />
+          <ComboxBox
+            value={statusParam}
+            label="Approval"
+            data={approvalsData}
+            isMulti
+            shouldFilter
+            onSelect={handleStatusChange}
+            leftIcon={<Filter className={cn("h-4 w-4", teamState.statusFilter.length != 0 && "fill-primary")} />}
+            rightIcon={
+              teamState.statusFilter.length > 0 && <Badge className="px-1.5">{teamState.statusFilter.length}</Badge>
+            }
+            className="text-primary border-dashed gap-x-1 font-normal w-fit"
+          />
+          <ComboxBox
+            value={projectParam}
+            label="Projects"
+            isMulti
+            showSelected={false}
+            onSelect={handleProjectChange}
+            onSearch={onProjectSearch}
+            rightIcon={teamState.project.length > 0 && <Badge className="px-1.5">{teamState.project.length}</Badge>}
+            leftIcon={<Filter className={cn("h-4 w-4", teamState.project.length != 0 && "fill-primary")} />}
+            data={projects?.message.map((item: ProjectProps) => ({
+              label: item.project_name,
+              value: item.name,
+            }))}
+            className="text-primary border-dashed gap-x-2 font-normal w-fit"
+          />
+          <ComboxBox
+            value={userGroupParam}
+            label="User Groups"
+            onSearch={onUserGroupSearch}
+            showSelected={false}
+            data={userGroups?.message.map((item: UserGroupProps) => ({
+              label: item.name,
+              value: item.name,
+            }))}
+            rightIcon={teamState.userGroup.length > 0 && <Badge className="px-1.5">{teamState.userGroup.length}</Badge>}
+            isMulti
+            leftIcon={<Filter className={cn("h-4 w-4", teamState.userGroup.length != 0 && "fill-primary")} />}
+            onSelect={handleUserGroupChange}
+            className="text-primary border-dashed gap-x-2 font-normal w-fit"
+          />
+        </div>
+        <div id="date-filter" className="flex gap-x-2 max-md:p-1 max-md:w-full max-md:justify-between max-md:m-2 t">
+          <Button title="prev" className="p-1 h-fit" variant="outline" onClick={handleprevWeek}>
+            <ChevronLeft className="w-4 max-md:w-3 h-4 max-md:h-3" />
+          </Button>
+          <Button title="next" className="p-1 h-fit" variant="outline" onClick={handlenextWeek}>
+            <ChevronRight className="w-4 max-md:w-3 h-4 max-md:h-3" />
+          </Button>
         </div>
       </Header>
       {(isLoading || isValidating) && Object.keys(teamState.data.data).length == 0 ? (
         <Spinner isFull />
       ) : (
-        <Table className="[&_tr]:pr-3 relative">
+        <Table className="lg:[&_tr]:pr-3 relative">
           <TableHeader className="border-t-0 sticky top-0 z-10">
             <TableRow className="flex items-center w-full">
               <TableHead className="w-full max-w-md flex items-center">Members</TableHead>
@@ -393,7 +389,7 @@ const Team = () => {
                 return item?.dates?.map((date) => {
                   const { date: dateStr, day } = prettyDate(date);
                   return (
-                    <TableHead key={date} className="flex flex-col max-w-20 w-full text-center">
+                    <TableHead key={date} className="flex flex-col max-w-20 w-full items-center justify-center">
                       <Typography variant="p" className="text-slate-600">
                         {day}
                       </Typography>
@@ -423,20 +419,18 @@ const Team = () => {
                       <AccordionTrigger className="hover:no-underline py-0">
                         <span className="w-full flex ">
                           <TableCell className="w-full min-w-24 max-w-md overflow-hidden">
-                            <span
-                              className="flex  gap-x-2 items-center font-normal hover:underline w-full"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`${TEAM}${EMPLOYEE}/${item.name}`);
-                              }}
-                            >
+                            <span className="flex  gap-x-2 items-center font-normal hover:underline w-full">
                               <Avatar className="w-6 h-6">
                                 <AvatarImage src={decodeURIComponent(item.image)} />
                                 <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
                               </Avatar>
                               <Typography
                                 variant="p"
-                                className="w-full text-left text-ellipsis whitespace-nowrap overflow-hidden "
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`${TEAM}${EMPLOYEE}/${item.name}`);
+                                }}
+                                className="text-left text-ellipsis whitespace-nowrap overflow-hidden "
                               >
                                 {item.employee_name}
                               </Typography>

@@ -17,14 +17,43 @@ now = nowdate()
 @frappe.whitelist()
 def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
     """Get timesheet data for the given employee for the given number of weeks."""
-    if not employee:
-        employee = get_employee_from_user()
-    if not frappe.db.exists("Employee", employee):
-        throw(_("Employee not found."))
+
+    def generate_week_data(start_date, max_week, employee=None):
+        data = {}
+        for i in range(max_week):
+            current_week = start_date == now
+            week_dates = get_week_dates(start_date, current_week=current_week)
+            week_key = week_dates["key"]
+            tasks, total_hours, status = {}, 0, "Not Submitted"
+            if employee:
+                tasks, total_hours = get_timesheet(week_dates["dates"], employee)
+                status = get_timesheet_state(
+                    start_date=week_dates["dates"][0],
+                    end_date=week_dates["dates"][-1],
+                    employee=employee,
+                )
+            data[week_key] = {
+                **week_dates,
+                "total_hours": total_hours,
+                "tasks": tasks,
+                "status": status,
+            }
+            start_date = add_days(getdate(week_dates["start_date"]), -1)
+        return data
 
     hour_detail = get_employee_working_hours(employee)
     res = {**hour_detail}
-    data = {}
+    if not employee:
+        employee = get_employee_from_user()
+
+    if not employee and frappe.session.user == "Administrator":
+        res["data"] = generate_week_data(start_date, max_week)
+        res["holidays"] = []
+        res["leaves"] = []
+        return res
+
+    if not frappe.db.exists("Employee", employee):
+        throw(_("No employee found for current user."), frappe.DoesNotExistError)
 
     res["holidays"] = get_holidays(
         employee,
@@ -38,27 +67,7 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
         employee,
     )
 
-    for i in range(max_week):
-        current_week = start_date == now
-
-        week_dates = get_week_dates(start_date, current_week=current_week)
-        week_key = week_dates["key"]
-
-        tasks, total_hours = get_timesheet(week_dates["dates"], employee)
-        status = get_timesheet_state(
-            start_date=week_dates["dates"][0],
-            end_date=week_dates["dates"][-1],
-            employee=employee,
-        )
-
-        data[week_key] = {
-            **week_dates,
-            "total_hours": total_hours,
-            "tasks": tasks,
-            "status": status,
-        }
-        start_date = add_days(getdate(week_dates["start_date"]), -1)
-    res["data"] = data
+    res["data"] = generate_week_data(start_date, max_week, employee)
     return res
 
 
@@ -94,9 +103,7 @@ def save(
         )
         create_timesheet_detail(date, hours, description, task, employee, parent)
         return _("New Timesheet created successfully.")
-    return update_timesheet_detail(
-        name, parent, hours, description, task, date, is_billable
-    )
+    return update_timesheet_detail(name, parent, hours, description, task, date, is_billable)
 
 
 @frappe.whitelist()
@@ -127,9 +134,7 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
 
     if not reporting_manager:
         throw(_("Reporting Manager not found for the employee."))
-    reporting_manager_name = frappe.get_value(
-        "Employee", reporting_manager, "employee_name"
-    )
+    reporting_manager_name = frappe.get_value("Employee", reporting_manager, "employee_name")
 
     start_date = get_first_day_of_week(start_date)
     end_date = get_last_day_of_week(start_date)
@@ -156,7 +161,7 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
 
     update_weekly_status_of_timesheet(employee, start_date)
     send_approval_reminder(employee, reporting_manager, start_date, end_date)
-    return _(f"Timesheet has been sent for Approval to {reporting_manager_name}.")
+    return f"Timesheet has been sent for Approval to {reporting_manager_name}."
 
 
 @frappe.whitelist()
@@ -215,9 +220,7 @@ def create_timesheet_detail(
     else:
         timehseet = frappe.get_doc({"doctype": "Timesheet", "employee": employee})
 
-    project, custom_is_billable = frappe.get_value(
-        "Task", task, ["project", "custom_is_billable"]
-    )
+    project, custom_is_billable = frappe.get_value("Task", task, ["project", "custom_is_billable"])
 
     timehseet.update({"parent_project": project})
     timehseet.append(
@@ -276,18 +279,16 @@ def get_timesheet(dates: list, employee: str):
             for log in timesheet.time_logs:
                 if not log.task:
                     continue
-                subject, task_name, project_name, project, is_billable = (
-                    frappe.get_value(
-                        "Task",
-                        log.task,
-                        [
-                            "subject",
-                            "name",
-                            "project.project_name",
-                            "project",
-                            "custom_is_billable",
-                        ],
-                    )
+                subject, task_name, project_name, project, is_billable = frappe.get_value(
+                    "Task",
+                    log.task,
+                    [
+                        "subject",
+                        "name",
+                        "project.project_name",
+                        "project",
+                        "custom_is_billable",
+                    ],
                 )
                 if not subject:
                     continue
@@ -306,7 +307,6 @@ def get_timesheet(dates: list, employee: str):
 
 
 def get_timesheet_state(employee: str, start_date: str, end_date: str):
-
     statuses = frappe.db.get_all(
         "Timesheet",
         {
@@ -351,11 +351,7 @@ def get_remaining_hour_for_employee(employee: str, date: str):
         employee,
     )
     data = next(
-        (
-            leave
-            for leave in leaves
-            if leave.get("from_date") <= date <= leave.get("to_date")
-        ),
+        (leave for leave in leaves if leave.get("from_date") <= date <= leave.get("to_date")),
         None,
     )
     if data:
@@ -391,9 +387,7 @@ def get_timesheet_details(date: str, task: str, employee: str):
         .where(timesheet.start_date == getdate(date))
     )
     data = res.run(as_dict=True)
-    subject, project_name = frappe.get_value(
-        "Task", task, ["subject", "project.project_name"]
-    )
+    subject, project_name = frappe.get_value("Task", task, ["subject", "project.project_name"])
 
     return {
         "task": subject,

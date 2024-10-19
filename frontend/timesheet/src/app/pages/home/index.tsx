@@ -132,13 +132,13 @@ const Home = () => {
   return (
     <>
       <Header>
-        <section id="filter-section" className="flex max-md:flex-col gap-x-3 ">
-          <div className="lg:pr-4 flex gap-x-1 w-full max-w-md">
+        <section id="filter-section" className="flex max-md:flex-col gap-x-3  w-full md:items-center ">
+          <div className=" flex gap-x-2 w-full  items-center max-md:overflow-x-auto">
             <DeBounceInput
               placeholder="Employee name"
               value={employeeNameParam}
               deBounceValue={400}
-              className="w-full"
+              className="min-w-40 max-w-40"
               callback={handleEmployeeChange}
             />
             <ComboxBox
@@ -150,10 +150,10 @@ const Home = () => {
               onSelect={handleStatusChange}
               leftIcon={<Filter className={cn("h-4 w-4", homeState.status.length != 0 && "fill-primary")} />}
               rightIcon={homeState.status.length > 0 && <Badge className="px-1.5">{homeState.status.length}</Badge>}
-              className="text-primary border-dashed gap-x-1 font-normal w-fit"
+              className="text-primary w-full border-dashed gap-x-1 font-normal w-fit"
             />
           </div>
-          <div className="w-full flex">
+          <div className="w-full flex items-center  max-md:mt-2 max-md:p-1">
             <div className="grow flex items-center w-full overflow-x-auto">
               <Button title="prev" variant="outline" className="p-1 h-fit" onClick={handleprevWeek}>
                 <ChevronLeft className="w-4 h-4 max-sm:w-3 max-sm:h-3" />
@@ -287,7 +287,7 @@ const Home = () => {
           <LoadMore
             variant="outline"
             onClick={handleLoadMore}
-            disabled={!homeState.data.has_more || (isLoading && Object.keys(homeState.data.data).length != 0)}
+            disabled={(Object.keys(homeState.data.data).length == homeState.data.total_count)|| (isLoading && Object.keys(homeState.data.data).length != 0)}
           />
 
           <Typography variant="p" className="lg:px-5 font-semibold">

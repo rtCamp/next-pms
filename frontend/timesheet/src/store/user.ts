@@ -5,7 +5,7 @@ const userImage = getCookie("user_image");
 const fullName = getCookie("full_name");
 const user = getCookie("user_id");
 
-interface UserState {
+export interface UserState {
   userName: string;
   image: string;
   roles: string[];
@@ -66,7 +66,6 @@ export const {
   setRole,
   setImage,
   setUserName,
-
   setSidebarCollapsed,
   setEmployee,
   setWorkingDetail,

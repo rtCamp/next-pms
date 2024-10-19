@@ -42,7 +42,8 @@ export const TimesheetSchema = z
       .string({
         required_error: "Please enter description.",
       })
-      .min(4, "Please enter description."),
+      .trim()
+      .min(1, { message: "Please enter description." }),
     hours: hourSchema,
     date: z.string({
       required_error: "Please enter date.",
@@ -96,14 +97,12 @@ export const TimesheetRejectionSchema = z.object({
     required_error: "Please select a employee.",
   }),
 });
-const descriptionSchema = z.preprocess(
-  (val) => (typeof val === "string" ? val.trim() : val),
-  z
-    .string({
-      required_error: "Please enter description.",
-    })
-    .min(4, "Please enter a description with at least 4 characters."),
-);
+const descriptionSchema = z
+  .string({
+    required_error: "Please enter description.",
+  })
+  .trim()
+  .min(1, { message: "Please enter description." });
 
 export const TimesheetSingleRowSchema = z
   .object({

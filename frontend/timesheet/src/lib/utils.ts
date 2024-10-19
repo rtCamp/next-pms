@@ -295,3 +295,7 @@ export const flatTableDataToNestedProjectDataConversion = (
 
   return Object.values(projectMap);
 };
+
+export const checkIsMobile =()=>{
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}

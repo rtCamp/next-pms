@@ -7,16 +7,12 @@ now = nowdate()
 
 
 def get_leaves_for_employee(from_date: str, to_date: str, employee: str):
-
     leave_application = frappe.qb.DocType("Leave Application")
     filtered_data = (
         frappe.qb.from_(leave_application)
         .select("*")
         .where(leave_application.employee == employee)
-        .where(
-            (leave_application.from_date >= from_date)
-            & (leave_application.to_date <= to_date)
-        )
+        .where((leave_application.from_date >= from_date) & (leave_application.to_date <= to_date))
         .where(leave_application.status.isin(["Open", "Approved"]))
     ).run(as_dict=True)
 
@@ -44,11 +40,7 @@ def get_week_dates(date, current_week: bool = False):
     start_date = get_first_day_of_week(date)
     end_date = get_last_day_of_week(date)
 
-    key = (
-        f'{start_date.strftime("%b %d")} - {end_date.strftime("%b %d")}'
-        if not current_week
-        else "This Week"
-    )
+    key = f'{start_date.strftime("%b %d")} - {end_date.strftime("%b %d")}' if not current_week else "This Week"
 
     data = {"start_date": start_date, "end_date": end_date, "key": key}
 
@@ -109,16 +101,11 @@ def filter_employees(
             filters={"share_doctype": "Project", "share_name": ["IN", project]},
             pluck="user",
         )
-        ids = [
-            frappe.get_value("Employee", {"user_id": employee})
-            for employee in project_employee
-        ]
+        ids = [frappe.get_value("Employee", {"user_id": employee}) for employee in project_employee]
         employee_ids.extend(ids)
 
     if user_group and len(user_group) > 0:
-        users = frappe.get_all(
-            "User Group Member", pluck="user", filters={"parent": ["in", user_group]}
-        )
+        users = frappe.get_all("User Group Member", pluck="user", filters={"parent": ["in", user_group]})
         ids = [frappe.get_value("Employee", {"user_id": user}) for user in users]
         employee_ids.extend(ids)
 
@@ -171,6 +158,7 @@ def get_count(
             ignore_permissions=ignore_permissions,
             run=0,
         )
+        # nosemgrep
         count = frappe.db.sql(f"""select count(*) from ( {partial_query} ) p""")[0][0]
     else:
         fieldname = [f"count({fieldname}) as total_count"]
@@ -240,9 +228,7 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
         week_status = "Partially Approved"
 
     for timesheet in timesheets:
-        frappe.db.set_value(
-            "Timesheet", timesheet.name, "custom_weekly_approval_status", week_status
-        )
+        frappe.db.set_value("Timesheet", timesheet.name, "custom_weekly_approval_status", week_status)
 
 
 def get_holidays(employee: str, start_date: str, end_date: str):
