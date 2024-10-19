@@ -287,7 +287,7 @@ const Home = () => {
           <LoadMore
             variant="outline"
             onClick={handleLoadMore}
-            disabled={!homeState.data.has_more || (isLoading && Object.keys(homeState.data.data).length != 0)}
+            disabled={(Object.keys(homeState.data.data).length == homeState.data.total_count)|| (isLoading && Object.keys(homeState.data.data).length != 0)}
           />
 
           <Typography variant="p" className="lg:px-5 font-semibold">
