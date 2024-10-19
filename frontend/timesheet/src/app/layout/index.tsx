@@ -87,7 +87,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <GenWrapper>
-      <div className="flex flex-row h-screen w-screen">
+      <div className="flex flex-row h-screen w-full">
         <GenWrapper>
           <Sidebar />
         </GenWrapper>

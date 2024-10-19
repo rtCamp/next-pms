@@ -22,6 +22,7 @@ const Sort = () => {
   const colMap = { ...columnMap, modified: "modified", creation: "creation" };
 
   const handleColumnChange = (key: string) => {
+    if(key === orderColumn) return
     setOrderColumn(key);
     dispatch(setOrderBy({ order, orderColumn: key }));
   };
@@ -33,12 +34,12 @@ const Sort = () => {
   return (
     <DropdownMenu>
       <div className="flex items-center">
-        <Button variant="outline" className=" rounded-tr-none rounded-br-none ring-0 outline-0 ring-offset-0" onClick={handleOrderChange}>
+        <Button variant="outline" className=" rounded-tr-none rounded-br-none ring-0 outline-0 ring-offset-0 focus-visible:ring-0" onClick={handleOrderChange}>
           {order === "asc" ? <ArrowDownAZ /> : <ArrowDownZA />}
         </Button>
 
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="font-normal rounded-tl-none border-l-0 rounded-bl-none ring-0 outline-0 ring-offset-0">
+          <Button variant="outline" className="font-normal rounded-tl-none border-l-0 rounded-bl-none ring-0 outline-0 ring-offset-0 focus-visible:ring-0">
             {colMap[orderColumn] ?? "Sort"}
           </Button>
         </DropdownMenuTrigger>
