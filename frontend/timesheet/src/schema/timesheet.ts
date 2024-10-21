@@ -37,7 +37,6 @@ export const TimesheetSchema = z
       })
       .trim()
       .min(1, { message: "Please select a task." }),
-    name: z.string({}).optional(),
     description: z
       .string({
         required_error: "Please enter description.",
