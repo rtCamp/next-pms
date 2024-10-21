@@ -17,6 +17,7 @@ import {
   setStart,
   setFilters,
   setSelectedBusinessUnit,
+  setTotalCount,
 } from "@/store/project";
 import { ComboxBox } from "@/app/components/comboBox";
 import { cn, parseFrappeErrorMsg, createFalseValuedObject, checkIsMobile } from "@/lib/utils";
@@ -29,7 +30,7 @@ import {
   Table as T,
   ColumnSizingState,
 } from "@tanstack/react-table";
-import { Filter, Columns2, RotateCcw, GripVertical, Ellipsis } from "lucide-react";
+import { Filter, Columns2, RotateCcw, GripVertical, Ellipsis, Download } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { Badge } from "@/app/components/ui/badge";
 import { Typography } from "@/app/components/typography";
@@ -48,7 +49,8 @@ import { useFrappeDocTypeCount } from "@/app/hooks/useFrappeDocCount";
 import { Button } from "@/app/components/ui/button";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import Sort from "./sort";
-import { TouchBackend } from 'react-dnd-touch-backend';
+import { TouchBackend } from "react-dnd-touch-backend";
+import { Export } from "@/app/components/listview/export";
 
 const Project = () => {
   const projectState = useSelector((state: RootState) => state.project);
@@ -62,7 +64,7 @@ const Project = () => {
   const [columnOrder, setColumnOrder] = useState<string[]>(tableprop.columnOrder);
   const [tableAttributeProps, setTableAttributeProps] = useState(tableprop);
   const [columnVisibility, setColumnVisibility] = useState(createFalseValuedObject(tableprop.hideColumn));
-
+  const [isExportOpen, setIsExportOpen] = useState(false);
   const [searchParam, setSearchParam] = useQueryParamsState("search", "");
   const [projectTypeParam, setProjectTypeParam] = useQueryParamsState<Array<string>>("project-type", []);
   const [statusParam, setStatusParam] = useQueryParamsState<Array<Status>>("status", []);
@@ -77,7 +79,6 @@ const Project = () => {
     };
     dispatch(setFilters(payload));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    
   }, []);
 
   const { data: projectType } = useFrappeGetCall(
@@ -202,6 +203,12 @@ const Project = () => {
   }, [data, error]);
 
   useEffect(() => {
+    if (count) {
+      dispatch(setTotalCount(count));
+    }
+  }, [count, dispatch]);
+
+  useEffect(() => {
     if (buError) {
       const err = parseFrappeErrorMsg(buError);
       toast({
@@ -261,7 +268,9 @@ const Project = () => {
     setColumnOrder(projectTableMap.columnOrder);
     table.setColumnSizing(projectTableMap.columnWidth);
   };
-
+  const openExportDialog = () => {
+    setIsExportOpen(true);
+  };
   const handleColumnHide = (id: string) => {
     const prev = tableAttributeProps;
     if (prev.hideColumn.includes(id)) {
@@ -355,93 +364,99 @@ const Project = () => {
             setColumnOrder={setColumnOrder}
             columnOrder={columnOrder}
           />
-          {/* <Export
-            headers={Object.entries(columnMap).map(([key, value]: [string, any]) => {
-              return { label: value, value: key };
-            })}
-            rows={projectState.data}
-          /> */}
           <Sort />
-          <Action colMap={columnMap} data={projectState.data} resetTable={resetTable} />
+          <Action resetTable={resetTable} openExport={openExportDialog} />
         </div>
       </Header>
       {isLoading && projectState.data.length == 0 ? (
         <Spinner isFull />
       ) : (
-        <Table className=" [&_td]:px-4 [&_th]:px-4 [&_th]:py-4 table-fixed" style={{ width: table.getTotalSize() }}>
-          <TableHeader className=" border-t-0 sticky top-0 z-10 ">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead
-                      key={header.id}
-                      className="relative"
-                      style={{
-                        width: header.getSize(),
-                      }}
-                    >
-                      <div className="flex items-center h-full gap-1 group">
-                        <span className="w-full">
-                          {flexRender(header.column.columnDef.header, header.getContext())}
-                        </span>
-                        <GripVertical
-                          className="  cursor-col-resize flex justify-center items-center shrink-0"
-                          {...{
-                            onMouseDown: header.getResizeHandler(),
-                            onTouchStart: header.getResizeHandler(),
-                            style: {
-                              userSelect: "none",
-                              touchAction: "none",
-                            },
-                          }}
-                        />
-                      </div>
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow className="px-3" key={row.id} data-state={row.getIsSelected() && "selected"}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      className="truncate"
-                      key={cell.id}
-                      style={{
-                        width: cell.column.getSize(),
-                        minWidth: cell.column.columnDef.minSize,
-                      }}
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
+        <>
+          <Export
+            doctype="Project"
+            totalCount={projectState.totalCount}
+            orderBy={`${projectState.orderColumn} ${projectState.order}`}
+            pageLength={projectState.data.length}
+            fields={columnMap}
+            isOpen={isExportOpen}
+            setIsOpen={setIsExportOpen}
+            filters={getFilter(projectState)}
+          />
+          <Table className=" [&_td]:px-4 [&_th]:px-4 [&_th]:py-4 table-fixed" style={{ width: table.getTotalSize() }}>
+            <TableHeader className=" border-t-0 sticky top-0 z-10 ">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead
+                        key={header.id}
+                        className="relative"
+                        style={{
+                          width: header.getSize(),
+                        }}
+                      >
+                        <div className="flex items-center h-full gap-1 group">
+                          <span className="w-full">
+                            {flexRender(header.column.columnDef.header, header.getContext())}
+                          </span>
+                          <GripVertical
+                            className="  cursor-col-resize flex justify-center items-center shrink-0"
+                            {...{
+                              onMouseDown: header.getResizeHandler(),
+                              onTouchStart: header.getResizeHandler(),
+                              style: {
+                                userSelect: "none",
+                                touchAction: "none",
+                              },
+                            }}
+                          />
+                        </div>
+                      </TableHead>
+                    );
+                  })}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow className="w-full">
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow className="px-3" key={row.id} data-state={row.getIsSelected() && "selected"}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        className="truncate"
+                        key={cell.id}
+                        style={{
+                          width: cell.column.getSize(),
+                          minWidth: cell.column.columnDef.minSize,
+                        }}
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow className="w-full">
+                  <TableCell colSpan={columns.length} className="h-24 text-center">
+                    No results
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </>
       )}
       <Footer>
         <div className="flex  justify-between items-center ">
           <LoadMore
             variant="outline"
-            disabled={projectState.data.length == (count ?? 0) || isLoading}
+            disabled={projectState.data.length == (projectState.totalCount ?? 0) || isLoading}
             onClick={() => {
               dispatch(setStart(projectState.start + projectState.pageLength));
             }}
           />
           <Typography variant="p" className="lg:px-5 font-semibold">
-            {`${projectState.data.length} of ${count ?? 0}`}
+            {`${projectState.data.length} of ${projectState.totalCount ?? 0}`}
           </Typography>
         </div>
       </Footer>
@@ -449,7 +464,13 @@ const Project = () => {
   );
 };
 
-const Action = ({ resetTable }: { colMap: any; data: ProjectData[]; resetTable: () => void }) => {
+const Action = ({
+  resetTable,
+  openExport,
+}: {
+  openExport: React.Dispatch<React.SetStateAction<boolean>>;
+  resetTable: () => void;
+}) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -457,15 +478,11 @@ const Action = ({ resetTable }: { colMap: any; data: ProjectData[]; resetTable: 
           <Ellipsis />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="mr-2 [&_div]:cursor-pointer">
-        {/* <DropdownMenuItem> */}
-        {/* <Export
-            headers={Object.entries(colMap).map(([key, value]: [string, any]) => {
-              return { label: value, value: key };
-            })}
-            rows={data}
-          /> */}
-        {/* </DropdownMenuItem> */}
+      <DropdownMenuContent className="mr-2 [&_div]:cursor-pointer  [&_div]:gap-x-1">
+        <DropdownMenuItem onClick={openExport}>
+          <Download />
+          <Typography variant="p">Export </Typography>
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={resetTable}>
           <RotateCcw />
           <Typography variant="p">Reset Table</Typography>
@@ -496,7 +513,7 @@ const ColumnSelector = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="[&_div]:cursor-pointer max-h-96 overflow-y-auto">
-        <DndProvider backend={checkIsMobile()?TouchBackend : HTML5Backend}>
+        <DndProvider backend={checkIsMobile() ? TouchBackend : HTML5Backend}>
           {table
             .getAllColumns()
             .filter((column) => column.getCanHide())
