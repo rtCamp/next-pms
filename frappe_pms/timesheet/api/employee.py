@@ -3,7 +3,6 @@ import frappe
 
 @frappe.whitelist()
 def get_employee_from_user(user=None):
-
     user = frappe.session.user
     return frappe.db.get_value("Employee", {"user_id": user})
 
@@ -24,9 +23,7 @@ def get_employee_working_hours(employee: str = None):
         ["custom_working_hours", "custom_work_schedule"],
     )
     if not working_hour:
-        working_hour = frappe.db.get_single_value(
-            "HR Settings", "standard_working_hours"
-        )
+        working_hour = frappe.db.get_single_value("HR Settings", "standard_working_hours")
     if not working_frequency:
         working_frequency = "Per Day"
     return {"working_hour": working_hour or 8, "working_frequency": working_frequency}
@@ -52,9 +49,7 @@ def get_employee(filters=None, fieldname=None):
     if filters and isinstance(filters, str):
         filters = json.loads(filters)
 
-    return frappe.db.get_value(
-        "Employee", filters=filters, fieldname=fieldname, as_dict=True
-    )
+    return frappe.db.get_value("Employee", filters=filters, fieldname=fieldname, as_dict=True)
 
 
 @frappe.whitelist()
@@ -66,7 +61,6 @@ def get_employee_list(
     start=0,
     user_group=None,
     reports_to: str | None = None,
-    ignore_permissions=False,
 ):
     from .utils import filter_employees
 
@@ -78,6 +72,5 @@ def get_employee_list(
         start=start,
         user_group=user_group,
         reports_to=reports_to,
-        ignore_permissions=ignore_permissions,
     )
     return {"data": employees, "count": count}

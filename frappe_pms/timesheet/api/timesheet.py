@@ -9,7 +9,13 @@ from frappe.utils import (
 )
 
 from .employee import get_employee_from_user, get_employee_working_hours
-from .utils import get_holidays, get_leaves_for_employee, get_week_dates
+from .utils import (
+    get_holidays,
+    get_leaves_for_employee,
+    get_week_dates,
+    is_timesheet_manager,
+    is_timesheet_user,
+)
 
 now = nowdate()
 
@@ -144,6 +150,7 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
     length = len(timesheets)
     for index, timesheet in enumerate(timesheets):
         doc = frappe.get_doc("Timesheet", timesheet.name)
+        doc.flags.ignore_permissions = is_timesheet_manager()
         doc.custom_approval_status = "Approval Pending"
         doc.save()
         if index == length - 1 and notes:
@@ -165,6 +172,7 @@ def update_timesheet_detail(
     is_billable: bool = False,
 ):
     parent_doc = frappe.get_doc("Timesheet", parent)
+    parent_doc.flags.ignore_permissions = is_timesheet_manager()
     for log in parent_doc.time_logs:
         if not name:
             continue
@@ -206,14 +214,14 @@ def create_timesheet_detail(
     parent: str | None = None,
 ):
     if parent:
-        timehseet = frappe.get_doc("Timesheet", parent)
+        timesheet = frappe.get_doc("Timesheet", parent)
     else:
-        timehseet = frappe.get_doc({"doctype": "Timesheet", "employee": employee})
+        timesheet = frappe.get_doc({"doctype": "Timesheet", "employee": employee})
 
     project, custom_is_billable = frappe.get_value("Task", task, ["project", "custom_is_billable"])
 
-    timehseet.update({"parent_project": project})
-    timehseet.append(
+    timesheet.update({"parent_project": project})
+    timesheet.append(
         "time_logs",
         {
             "task": task,
@@ -225,7 +233,8 @@ def create_timesheet_detail(
             "is_billable": custom_is_billable,
         },
     )
-    timehseet.save()
+    timesheet.flags.ignore_permissions = is_timesheet_manager()
+    timesheet.save()
 
 
 def get_timesheet(dates: list, employee: str):
@@ -258,6 +267,7 @@ def get_timesheet(dates: list, employee: str):
             "start_date": ["in", dates],
             "docstatus": ["!=", 2],
         },
+        ignore_permissions=is_timesheet_user() or is_timesheet_manager(),
     )
     if not timesheets:
         return [data, total_hours]
