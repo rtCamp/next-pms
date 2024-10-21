@@ -53,6 +53,7 @@ export interface ProjectState {
   orderColumn: string;
   pageLength: number;
   selectedBusinessUnit: Array<string>;
+  totalCount: number;
 }
 
 export const initialState: ProjectState = {
@@ -67,6 +68,7 @@ export const initialState: ProjectState = {
   statusList: ["Open", "Completed", "Cancelled"],
   order: getTableProps().order,
   orderColumn: getTableProps().orderColumn,
+  totalCount: 0,
 };
 
 export const projectSlice = createSlice({
@@ -142,6 +144,9 @@ export const projectSlice = createSlice({
       state.data = initialState.data;
       state.isFetchAgain = true;
     },
+    setTotalCount: (state, action: PayloadAction<number>) => { 
+      state.totalCount = action.payload;
+    }
   },
 });
 export const {
@@ -153,6 +158,7 @@ export const {
   setSelectedStatus,
   setFilters,
   setOrderBy,
+  setTotalCount,
   setSelectedBusinessUnit
 } = projectSlice.actions;
 export default projectSlice.reducer;

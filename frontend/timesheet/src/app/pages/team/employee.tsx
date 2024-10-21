@@ -14,9 +14,10 @@ interface EmployeeProps {
 
 export const Employee = ({ employee }: EmployeeProps) => {
   const teamState = useSelector((state: RootState) => state.team);
-  const { data, isLoading } = useFrappeGetCall("frappe_pms.timesheet.api.team.get_timesheet_for_employee", {
+  const { data, isLoading } = useFrappeGetCall("frappe_pms.timesheet.api.timesheet.get_timesheet_data", {
     employee: employee,
-    date: teamState.weekDate,
+    start_date: teamState.weekDate,
+    max_week:1
   });
   if (isLoading) {
     return <Spinner />;

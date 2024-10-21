@@ -19,7 +19,7 @@ import {
   FolderDot,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
-import { TIMESHEET, HOME, TEAM, DESK, TASK, PROJECT } from "@/lib/constant";
+import { TIMESHEET, HOME, TEAM, DESK, TASK, PROJECT, ROLES } from "@/lib/constant";
 import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 import { UserContext } from "@/lib/UserProvider";
@@ -54,7 +54,7 @@ const Sidebar = () => {
   };
   const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
-  const hasPmRole = user.roles.includes("Projects Manager") || user.roles.includes("Timesheet Manager");
+  const hasPmRole = user.roles.some(role => ROLES.includes(role));
   const screenSize = useSelector((state: RootState) => state.app.screenSize);
 
   const handleCollapse = () => {
