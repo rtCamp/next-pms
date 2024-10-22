@@ -1,7 +1,7 @@
 import { useToast } from "@/app/components/ui/use-toast";
 import { RootState } from "@/store";
 import { useSelector, useDispatch } from "react-redux";
-import { setDateRange, setEmployee, setFetchAgain } from "@/store/team";
+import { setDateRange, setFetchAgain } from "@/store/team";
 import { Button } from "@/app/components/ui/button";
 import {
   calculateExtendedWorkingHour,
@@ -14,7 +14,7 @@ import {
   expectatedHours,
 } from "@/lib/utils";
 import { useEffect, useState } from "react";
-import { useFrappeGetCall, useFrappePostCall, useFrappeGetDocList } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/app/components/ui/sheet";
 import { Spinner } from "@/app/components/spinner";
 import { LeaveProps, NewTimesheetProps, TaskDataItemProps, TaskDataProps, timesheet } from "@/types/timesheet";
@@ -52,14 +52,7 @@ export const Approval = () => {
 
   const { call } = useFrappePostCall("frappe_pms.timesheet.api.team.update_timesheet_status");
   const { call: updateTime } = useFrappePostCall("frappe_pms.timesheet.api.timesheet.save");
-  const { data: timesheetList, isLoading: isTimesheetListLoading } = useFrappeGetDocList("Timesheet", {
-    fields: ["docstatus", "start_date"],
-    filters: [
-      ["start_date", ">=", teamState.dateRange.start_date],
-      ["start_date", "<=", teamState.dateRange.end_date],
-      ["employee", "=", teamState.employee],
-    ],
-  });
+
   const handleTimeChange = (value: NewTimesheetProps) => {
     updateTime(value)
       .then((res) => {
@@ -86,7 +79,7 @@ export const Approval = () => {
   const handleOpen = () => {
     if (isRejecting || isSubmitting) return;
     const data = { start_date: "", end_date: "" };
-    // dispatch(setEmployee(""));
+
     dispatch(setDateRange({ dateRange: data, isAprrovalDialogOpen: false }));
     dispatch(setFetchAgain(true));
   };
@@ -143,7 +136,7 @@ export const Approval = () => {
   };
   const handleCheckboxChange = (date: string) => {
     setSelectedDates((prevSelectedDates) =>
-      prevSelectedDates.includes(date) ? prevSelectedDates.filter((d) => d !== date) : [...prevSelectedDates, date],
+      prevSelectedDates.includes(date) ? prevSelectedDates.filter((d) => d !== date) : [...prevSelectedDates, date]
     );
   };
   useEffect(() => {
@@ -164,30 +157,29 @@ export const Approval = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, error]);
   useEffect(() => {
-    if (timesheetData && timesheetList) {
-      const validDates = timesheetList.filter((dateObj) => dateObj.docstatus == 1).map((dateObj) => dateObj.start_date);
+    if (timesheetData) {
       const filteredDates = timesheetData.dates
         .filter((date) => {
           const isLeaveDate = leaves.some((leave: LeaveProps) => {
             return date >= leave.from_date && date <= leave.to_date && leave.half_day == false;
           });
           const isHoliday = holidays.some((holiday) => holiday.holiday_date === date);
-          return !validDates.includes(date) && !isHoliday && !isLeaveDate;
+          return !isHoliday && !isLeaveDate;
         })
         .filter((date) => {
-          const hasTime = Object.values(timesheetData.tasks).some((task) =>
-            task.data.some((entry) => getDateFromDateAndTime(entry.from_time) === date),
+          const hasTimeOrSubmitted = Object.values(timesheetData.tasks).some((task) =>
+            task.data.some((entry) => getDateFromDateAndTime(entry.from_time) === date)
           );
-          return hasTime;
+          return hasTimeOrSubmitted;
         });
       setSelectedDates(filteredDates ?? []);
     }
-  }, [holidays, leaves, timesheetData, timesheetList]);
+  }, [holidays, leaves, timesheetData]);
 
   return (
     <Sheet open={teamState.isAprrovalDialogOpen} onOpenChange={handleOpen} modal={true}>
       <SheetContent className="sm:max-w-4xl overflow-auto">
-        {isLoading || isTimesheetListLoading ? (
+        {isLoading ? (
           <Spinner />
         ) : (
           <>
@@ -209,14 +201,14 @@ export const Approval = () => {
                             ...taskItem,
                             subject: task.subject,
                             project_name: task.project_name,
-                          })),
+                          }))
                     );
                     let totalHours = matchingTasks.reduce((sum, task) => sum + task.hours, 0);
                     const isChecked = selectedDates.includes(date);
                     const holiday = holidays.find((holiday) => holiday.holiday_date === date);
                     const isHoliday = !!holiday;
-                    const submittedTime = timesheetList?.some(
-                      (timesheet) => timesheet.start_date === date && timesheet.docstatus === 1,
+                    const submittedTime = matchingTasks?.some(
+                      (timesheet) => getDateFromDateAndTime(timesheet.from_time) === date && timesheet.docstatus === 1
                     );
                     const leave = leaves.find((data: LeaveProps) => {
                       return date >= data.from_date && date <= data.to_date;
@@ -229,7 +221,6 @@ export const Approval = () => {
                         totalHours += expectatedHours(working_hour, working_frequency);
                       }
                     }
-
                     const isExtended = calculateExtendedWorkingHour(totalHours, working_hour, working_frequency);
 
                     return (
@@ -251,7 +242,7 @@ export const Approval = () => {
                             className={cn(
                               isExtended == 0 && "text-destructive",
                               isExtended && "text-success",
-                              isExtended == 2 && "text-warning",
+                              isExtended == 2 && "text-warning"
                             )}
                           >
                             {floatToTime(totalHours)}h
@@ -295,7 +286,7 @@ export const Approval = () => {
                                     title={task.is_billable == 1 ? "Billable task" : ""}
                                     className={cn(
                                       task.is_billable === 1 && "cursor-pointer",
-                                      "w-4  flex justify-center flex-none",
+                                      "w-4  flex justify-center flex-none"
                                     )}
                                   >
                                     {task.is_billable === 1 && (

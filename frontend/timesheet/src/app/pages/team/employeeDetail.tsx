@@ -177,7 +177,7 @@ const EmployeeDetail = () => {
               <Plus /> Time
             </Button>
           </div>
-          {isLoading ? (
+          {(isLoading && Object.keys(teamState.timesheetData.data).length == 0) ? (
             <Spinner isFull />
           ) : (
             <>

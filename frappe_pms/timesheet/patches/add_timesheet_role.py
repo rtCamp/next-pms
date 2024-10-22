@@ -6,13 +6,11 @@ def execute():
 
 
 def add_role():
-    roles = ["Timesheet Manager"]
+    roles = ["Timesheet Manager", "Timesheet User"]
 
     for role in roles:
         if not frappe.db.exists("Role", role):
-            role = frappe.get_doc(
-                {"doctype": "Role", "role_name": role, "is_custom": 1}
-            )
+            role = frappe.get_doc({"doctype": "Role", "role_name": role, "is_custom": 1})
             role.insert(ignore_permissions=True)
             frappe.db.commit()
             print(f"Role {role.role_name} created successfully.")
