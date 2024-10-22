@@ -515,7 +515,19 @@ const Task = () => {
         </div>
       </Header>
       {/* tables */}
-      {task.isTaskLogDialogBoxOpen && <TaskLog />}
+      {task.isTaskLogDialogBoxOpen && (
+        <TaskLog
+          isOpen={task.isTaskLogDialogBoxOpen}
+          task={task.selectedTask}
+          onOpenChange={() => {
+            const data = {
+              isOpen: false,
+              task: "",
+            };
+            dispatch(setSelectedTask(data));
+          }}
+        />
+      )}
       {groupByParam.length === 0 && task.groupBy ? (
         <FlatTable
           table={table}
@@ -602,7 +614,7 @@ const ColumnSelector = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="[&_div]:cursor-pointer max-h-96 overflow-y-auto">
-        <DndProvider backend={checkIsMobile()?TouchBackend : HTML5Backend}>
+        <DndProvider backend={checkIsMobile() ? TouchBackend : HTML5Backend}>
           {table
             .getAllColumns()
             .filter((column) => column.getCanHide())
