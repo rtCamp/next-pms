@@ -8,7 +8,7 @@ import { Separator } from "@/app/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Typography } from "../typography";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 
 interface ExportProps {
@@ -46,7 +46,7 @@ export const Export = ({
   setIsOpen,
   filters,
 }: ExportProps) => {
-  const [columns, setColumns] = useState(["name", ...Object.keys(fields), "creation", "modified"]);
+  const [columns, setColumns] = useState(["name", "creation", "modified"]);
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     mode: "onSubmit",
@@ -55,6 +55,9 @@ export const Export = ({
       export_all: false,
     },
   });
+  useEffect(() => {
+    setColumns(["name", ...Object.keys(fields), "creation", "modified"]);
+  }, [fields]);
   const handleSubmit = (data: z.infer<typeof schema>) => {
     const length = data.export_all ? totalCount : pageLength;
     let url = `/api/method/frappe.desk.reportview.export_query?file_format_type=${
@@ -67,7 +70,7 @@ export const Export = ({
     }
     window.location.href = url;
   };
-  
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="max-w-xl">

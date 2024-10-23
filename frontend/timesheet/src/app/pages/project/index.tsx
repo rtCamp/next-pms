@@ -41,7 +41,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
-import { getFilter, getTableProps, projectTableMap, columnMap } from "./helper";
+import { getFilter, getTableProps, projectTableMap, getFieldInfo } from "./helper";
 import { getColumn } from "./column";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -51,14 +51,18 @@ import { Checkbox } from "@/app/components/ui/checkbox";
 import Sort from "./sort";
 import { TouchBackend } from "react-dnd-touch-backend";
 import { Export } from "@/app/components/listview/export";
+import { useParams } from "react-router-dom";
+import useFrappeDoctypeMeta from "@/app/hooks/useFrappeDoctypeMeta";
 
 const Project = () => {
+  const { type } = useParams();
+
   const projectState = useSelector((state: RootState) => state.project);
   const dispatch = useDispatch();
   const { toast } = useToast();
 
   const tableprop = useMemo(() => {
-    return getTableProps();
+    return getTableProps(type);
   }, []);
   const [colSizing, setColSizing] = useState<ColumnSizingState>({});
   const [columnOrder, setColumnOrder] = useState<string[]>(tableprop.columnOrder);
@@ -69,13 +73,16 @@ const Project = () => {
   const [projectTypeParam, setProjectTypeParam] = useQueryParamsState<Array<string>>("project-type", []);
   const [statusParam, setStatusParam] = useQueryParamsState<Array<Status>>("status", []);
   const [businessUnitParam, setBusinessUnitParam] = useQueryParamsState<Array<string>>("business-unit", []);
-
+  const { doc } = useFrappeDoctypeMeta("Project");
+  const rows = getFieldInfo(type);
   useEffect(() => {
     const payload = {
       selectedProjectType: projectTypeParam,
       search: searchParam,
       selectedStatus: statusParam,
       selectedBusinessUnit: businessUnitParam,
+      order: tableAttributeProps.order,
+      orderColumn: tableAttributeProps.orderColumn,
     };
     dispatch(setFilters(payload));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -110,7 +117,7 @@ const Project = () => {
   const { data, error, isLoading, mutate } = useFrappeGetDocList(
     "Project",
     {
-      fields: ["*"],
+      fields: rows,
       // eslint-disable-next-line
       //   @ts-ignore
       filters: getFilter(projectState),
@@ -185,7 +192,7 @@ const Project = () => {
   }, [projectState.isFetchAgain]);
 
   useEffect(() => {
-    if (data) {
+    if (data && projectState.isFetchAgain) {
       if (projectState.data.length === 0) {
         dispatch(setProjectData(data));
       } else {
@@ -241,10 +248,11 @@ const Project = () => {
   }, [projectState.order, projectState.orderColumn]);
 
   useEffect(() => {
-    localStorage.setItem("project_list", JSON.stringify(tableAttributeProps));
+    const key = `__listview::project:${type ? type : "all"}`;
+    localStorage.setItem(key, JSON.stringify(tableAttributeProps));
   }, [tableAttributeProps]);
 
-  const columns = getColumn();
+  const columns = getColumn(type, doc?.fields);
   const table = useReactTable({
     columns: columns,
     data: projectState.data,
@@ -288,6 +296,18 @@ const Project = () => {
     }
   };
 
+  const getRows = () => {
+    const fields: Record<string, string> = {};
+    rows
+      .filter((field) => field !== "name")
+      .forEach((field: string) => {
+        const meta = doc?.fields.find((f: { fieldname: string }) => f.fieldname === field);
+        if (meta) {
+          fields[field] = meta.label;
+        }
+      });
+    return fields;
+  };
   return (
     <>
       <Header className="gap-x-3 flex items-center overflow-x-auto">
@@ -363,8 +383,9 @@ const Project = () => {
             onColumnHide={handleColumnHide}
             setColumnOrder={setColumnOrder}
             columnOrder={columnOrder}
+            metaFields={doc?.fields}
           />
-          <Sort />
+          <Sort metaFields={doc?.fields} type={type} />
           <Action resetTable={resetTable} openExport={openExportDialog} />
         </div>
       </Header>
@@ -377,7 +398,7 @@ const Project = () => {
             totalCount={projectState.totalCount}
             orderBy={`${projectState.orderColumn} ${projectState.order}`}
             pageLength={projectState.data.length}
-            fields={columnMap}
+            fields={getRows()}
             isOpen={isExportOpen}
             setIsOpen={setIsExportOpen}
             filters={getFilter(projectState)}
@@ -497,11 +518,13 @@ const ColumnSelector = ({
   onColumnHide,
   setColumnOrder,
   columnOrder,
+  metaFields,
 }: {
   table: T<ProjectData>;
   onColumnHide: (id: string) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setColumnOrder: any;
+  metaFields: any;
   columnOrder: string[];
 }) => {
   return (
@@ -519,10 +542,13 @@ const ColumnSelector = ({
             .filter((column) => column.getCanHide())
             .sort((a, b) => columnOrder.indexOf(a.id) - columnOrder.indexOf(b.id))
             .map((column) => {
+              const label = metaFields.find((f: { fieldname: string }) => f.fieldname == column.id)?.label;
+
               return (
                 <ColumnItem
                   key={column.id}
                   id={column.id}
+                  label={label}
                   onColumnHide={onColumnHide}
                   getIsVisible={column.getIsVisible}
                   toggleVisibility={column.toggleVisibility}
@@ -541,8 +567,10 @@ const ColumnItem = ({
   reOrder,
   getIsVisible,
   toggleVisibility,
+  label,
 }: {
   id: string;
+  label: string;
   onColumnHide: (id: string) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   reOrder: any;
@@ -595,7 +623,7 @@ const ColumnItem = ({
           opacity: isDragging ? 0.5 : 1,
         }}
       >
-        {columnMap[id as keyof typeof columnMap]}
+        {label}
         <GripVertical />
       </span>
     </DropdownMenuItem>

@@ -66,8 +66,8 @@ export const initialState: ProjectState = {
   selectedStatus: [],
   selectedBusinessUnit: [],
   statusList: ["Open", "Completed", "Cancelled"],
-  order: getTableProps().order,
-  orderColumn: getTableProps().orderColumn,
+  order: "desc",
+  orderColumn: "project_name",
   totalCount: 0,
 };
 
@@ -121,6 +121,8 @@ export const projectSlice = createSlice({
         selectedStatus: Array<Status>;
         search: string;
         selectedBusinessUnit: Array<string>;
+        order: sortOrder;
+        orderColumn: string;
       }>,
     ) => {
       state.selectedProjectType = action.payload.selectedProjectType;
@@ -130,6 +132,8 @@ export const projectSlice = createSlice({
       state.data = initialState.data;
       state.start = initialState.start;
       state.pageLength = initialState.pageLength;
+      state.order = action.payload.order;
+      state.orderColumn = action.payload.orderColumn;
       state.isFetchAgain = true;
     },
     setOrderBy: (
@@ -144,7 +148,7 @@ export const projectSlice = createSlice({
       state.data = initialState.data;
       state.isFetchAgain = true;
     },
-    setTotalCount: (state, action: PayloadAction<number>) => { 
+    setTotalCount: (state, action: PayloadAction<number>) => {
       state.totalCount = action.payload;
     }
   },
