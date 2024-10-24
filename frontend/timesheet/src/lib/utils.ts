@@ -211,7 +211,7 @@ export const createFalseValuedObject = (obj) => {
   const newFalseValueObject: { [key: string]: boolean } = {};
   if (Object.keys(obj).length > 0) {
     for (const key of obj) {
-      newFalseValueObject[key] = false;
+      newFalseValueObject[key] = true;
     }
   }
   return newFalseValueObject;

@@ -1,5 +1,4 @@
-import { columnMap } from "./helper";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,19 +9,37 @@ import {
 import { sortOrder } from "@/types";
 import { Button } from "@/app/components/ui/button";
 import { ArrowDownAZ, ArrowDownZA } from "lucide-react";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/store";
+import { useDispatch } from "react-redux";
+
 import { setOrderBy } from "@/store/project";
 
-const Sort = () => {
+interface SortProps {
+  fieldMeta: Array<any>;
+  rows: Array<string>;
+  orderBy: sortOrder;
+  field: string;
+}
+const Sort = ({ fieldMeta, rows, orderBy, field }: SortProps) => {
   const dispatch = useDispatch();
-  const projectState = useSelector((state: RootState) => state.project);
-  const [order, setOrder] = useState<sortOrder>(projectState.order);
-  const [orderColumn, setOrderColumn] = useState<string>(projectState.orderColumn);
-  const colMap = { ...columnMap, modified: "modified", creation: "creation" };
+  const [order, setOrder] = useState<sortOrder>(orderBy);
+  const [orderColumn, setOrderColumn] = useState<string>(field);
+
+  useEffect(() => {
+    setOrder(orderBy);
+    setOrderColumn(field);
+  }, [orderBy, field]);
+
+  const colMap = Object.fromEntries(
+    rows
+      .filter((value) => value !== "creation" && value !== "modified" && value !== "name")
+      .map((value) => {
+        const meta = fieldMeta.find((f) => f.fieldname === value);
+        return [value, meta?.label ?? value];
+      })
+  );
 
   const handleColumnChange = (key: string) => {
-    if(key === orderColumn) return
+    if (key === orderColumn) return;
     setOrderColumn(key);
     dispatch(setOrderBy({ order, orderColumn: key }));
   };
@@ -34,12 +51,19 @@ const Sort = () => {
   return (
     <DropdownMenu>
       <div className="flex items-center">
-        <Button variant="outline" className=" rounded-tr-none rounded-br-none ring-0 outline-0 ring-offset-0 focus-visible:ring-0" onClick={handleOrderChange}>
+        <Button
+          variant="outline"
+          className=" rounded-tr-none rounded-br-none ring-0 outline-0 ring-offset-0 focus-visible:ring-0"
+          onClick={handleOrderChange}
+        >
           {order === "asc" ? <ArrowDownAZ /> : <ArrowDownZA />}
         </Button>
 
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="font-normal rounded-tl-none border-l-0 rounded-bl-none ring-0 outline-0 ring-offset-0 focus-visible:ring-0">
+          <Button
+            variant="outline"
+            className="font-normal rounded-tl-none border-l-0 rounded-bl-none ring-0 outline-0 ring-offset-0 focus-visible:ring-0"
+          >
             {colMap[orderColumn] ?? "Sort"}
           </Button>
         </DropdownMenuTrigger>

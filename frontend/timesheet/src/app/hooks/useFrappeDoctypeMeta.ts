@@ -11,6 +11,7 @@ const useFrappeDoctypeMeta = (doctype: string) => {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      revalidateIfStale: false,
     },
   );
 
