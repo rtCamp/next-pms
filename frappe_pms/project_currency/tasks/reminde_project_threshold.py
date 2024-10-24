@@ -87,7 +87,7 @@ def filter_project_list(project_list: list):
             if len(custom_project_budget_hours) == 0:
                 continue
 
-            custom_project_budget_hours = custom_project_budget_hours[0]
+            custom_project_budget_hours = custom_project_budget_hours[-1]
             project_threshold = (
                 custom_project_budget_hours.consumed_hours * 100
             ) / custom_project_budget_hours.hours_purchased
