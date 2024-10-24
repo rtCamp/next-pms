@@ -1,0 +1,136 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:naming_series",
+ "creation": "2024-10-22 12:12:33.486532",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "employee",
+  "employee_name",
+  "status",
+  "column_break_wngn",
+  "project",
+  "customer",
+  "naming_series",
+  "section_break_ugdn",
+  "total_allocated_hours",
+  "hours_allocated_per_day",
+  "column_break_wppz",
+  "allocation_start_date",
+  "allocation_end_date",
+  "section_break_dysk",
+  "note"
+ ],
+ "fields": [
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Employee",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "label": "Project",
+   "options": "Project"
+  },
+  {
+   "fetch_from": "project.customer",
+   "fetch_if_empty": 1,
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "total_allocated_hours",
+   "fieldtype": "Float",
+   "label": "Total Allocated Hours"
+  },
+  {
+   "fieldname": "hours_allocated_per_day",
+   "fieldtype": "Float",
+   "label": "Hours Allocated / Day "
+  },
+  {
+   "fieldname": "allocation_start_date",
+   "fieldtype": "Date",
+   "label": "Allocation Start Date"
+  },
+  {
+   "fieldname": "allocation_end_date",
+   "fieldtype": "Date",
+   "label": "Allocation End Date"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Tentative\nConfirmed"
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Text",
+   "label": "Note"
+  },
+  {
+   "fieldname": "column_break_wngn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_ugdn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_dysk",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_wppz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "employee.employee_name",
+   "fetch_if_empty": 1,
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "label": "Employee Name"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Naming Series",
+   "options": "RA-.{employee}.-.YYYY.-.####."
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-10-22 12:45:59.719658",
+ "modified_by": "Administrator",
+ "module": "Resource Management",
+ "name": "Resource Allocation",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
