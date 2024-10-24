@@ -4,7 +4,6 @@
 import frappe
 from frappe import _
 from frappe.query_builder import Case, DocType
-from frappe.query_builder.functions import Sum
 
 
 def get_columns():
@@ -49,14 +48,13 @@ def get_data(filters):
     timesheet = DocType("Timesheet")
     timesheet_details = DocType("Timesheet Detail")
     task = DocType("Task")
-    billable_hours = Sum(Case().when(timesheet_details.is_billable == 1, timesheet_details.hours).else_(0)).as_(
-        "billable_hours"
+    billable_hours = (
+        Case().when(timesheet_details.is_billable == 1, timesheet_details.hours).else_(0).as_("billable_hours")
     )
 
-    non_billable_hours = Sum(Case().when(timesheet_details.is_billable == 0, timesheet_details.hours).else_(0)).as_(
-        "non_billable_hours"
+    non_billable_hours = (
+        Case().when(timesheet_details.is_billable == 0, timesheet_details.hours).else_(0).as_("non_billable_hours")
     )
-
     query = (
         frappe.qb.from_(timesheet)
         .inner_join(timesheet_details)

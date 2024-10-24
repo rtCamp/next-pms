@@ -1,6 +1,4 @@
-import { RootState } from "@/store";
 import { useFrappeGetCall } from "frappe-react-sdk";
-import { useDispatch, useSelector } from "react-redux";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
 import { Separator } from "@/app/components/ui/separator";
 import { Spinner } from "@/app/components/spinner";
@@ -8,7 +6,6 @@ import { TaskStatus } from "./taskStatus";
 import { Typography } from "@/app/components/typography";
 import { cn, getTodayDate, getFormatedDate, floatToTime, prettyDate, parseFrappeErrorMsg } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
-import { setSelectedTask } from "@/store/task";
 import { useEffect, useState } from "react";
 import { addDays } from "date-fns";
 import { ComboxBox } from "@/app/components/comboBox";
@@ -25,15 +22,18 @@ type LogData = {
   hours: number;
   description: string[];
 };
-export const TaskLog = () => {
-  const dispatch = useDispatch();
+type TaskLogProps = {
+  task: string;
+  isOpen: boolean;
+  onOpenChange: () => void;
+};
+export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
   const { toast } = useToast();
   const [startDate, setStartDate] = useState<string>(getFormatedDate(addDays(getTodayDate(), -7)));
   const endDate = getTodayDate();
   const [selectedMap, setSelectedMap] = useState<string[]>(["7"]);
-  const task = useSelector((state: RootState) => state.task);
   const { data, isLoading, error } = useFrappeGetCall("frappe_pms.timesheet.api.task.get_task", {
-    task: task.selectedTask,
+    task: task,
   });
   const dateMap = [
     { label: "Last 7 days", value: "7" },
@@ -49,17 +49,10 @@ export const TaskLog = () => {
     isLoading: isLogLoading,
     error: logError,
   } = useFrappeGetCall("frappe_pms.timesheet.api.task.get_task_log", {
-    task: task.selectedTask,
+    task: task,
     start_date: startDate,
     end_date: endDate,
   });
-  const handleClose = () => {
-    const data = {
-      isOpen: false,
-      task: "",
-    };
-    dispatch(setSelectedTask(data));
-  };
 
   useEffect(() => {
     if (error) {
@@ -78,9 +71,14 @@ export const TaskLog = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [error, logError]);
+
   return (
-    <Dialog open={task.isTaskLogDialogBoxOpen} modal={true} onOpenChange={handleClose}>
-      <DialogContent aria-describedby="" aria-description="" className="sm:max-w-2xl gap-2 overflow-hidden flex flex-col">
+    <Dialog open={isOpen} modal={true} onOpenChange={onOpenChange}>
+      <DialogContent
+        aria-describedby=""
+        aria-description=""
+        className="sm:max-w-2xl gap-2 overflow-hidden flex flex-col"
+      >
         {isLoading ? (
           <Spinner />
         ) : (
@@ -100,7 +98,7 @@ export const TaskLog = () => {
                       variant="p"
                       className={cn(
                         "font-semibold",
-                        data?.message.actual_time > data?.message.expected_time && "text-destructive",
+                        data?.message.actual_time > data?.message.expected_time && "text-destructive"
                       )}
                     >
                       {floatToTime(data?.message.actual_time)}h
@@ -188,46 +186,49 @@ export const TaskLog = () => {
                 <section id="log" className="max-h-96 overflow-y-auto flex flex-col gap-3">
                   <>
                     {logs &&
-                      Object.entries(logs.message as Record<string, LogData[]>).slice().reverse().map(([key, value], index: number) => {
-                        return (
-                          <div key={index}>
-                            {/* eslint-disable-next-line @typescript-eslint/no-unused-vars */}
-                            {value.map((log: LogData, i: number) => {
-                              const employee = data?.message.worked_by?.find(
-                                (emp: Employee) => emp.employee === log.employee,
-                              );
-                              return (
-                                <div className="border-b border-dashed p-2 bg-gray-50 ">
-                                  <div className="flex justify-between w-full">
-                                    <span className="flex gap-x-2 items-start">
-                                      <Avatar className="w-6 h-6">
-                                        <AvatarImage src={employee?.image} alt={employee?.employee_name} />
-                                        <AvatarFallback>
-                                          <Typography variant="p" className="font-semibold">
-                                            {employee?.employee_name[0]}
-                                          </Typography>
-                                        </AvatarFallback>
-                                      </Avatar>
-                                      <Typography variant="p">{employee?.employee_name}</Typography>
-                                      <Typography variant="p">{prettyDate(key).date}</Typography>
-                                    </span>
-                                    <Typography variant="p">{floatToTime(log.hours)}h</Typography>
+                      Object.entries(logs.message as Record<string, LogData[]>)
+                        .slice()
+                        .reverse()
+                        .map(([key, value], index: number) => {
+                          return (
+                            <div key={index}>
+                              {/* eslint-disable-next-line @typescript-eslint/no-unused-vars */}
+                              {value.map((log: LogData, i: number) => {
+                                const employee = data?.message.worked_by?.find(
+                                  (emp: Employee) => emp.employee === log.employee
+                                );
+                                return (
+                                  <div className="border-b border-dashed p-2 bg-gray-50 ">
+                                    <div className="flex justify-between w-full">
+                                      <span className="flex gap-x-2 items-start">
+                                        <Avatar className="w-6 h-6">
+                                          <AvatarImage src={employee?.image} alt={employee?.employee_name} />
+                                          <AvatarFallback>
+                                            <Typography variant="p" className="font-semibold">
+                                              {employee?.employee_name[0]}
+                                            </Typography>
+                                          </AvatarFallback>
+                                        </Avatar>
+                                        <Typography variant="p">{employee?.employee_name}</Typography>
+                                        <Typography variant="p">{prettyDate(key).date}</Typography>
+                                      </span>
+                                      <Typography variant="p">{floatToTime(log.hours)}h</Typography>
+                                    </div>
+                                    {log.description.map((description: string) => (
+                                      <Typography
+                                        key={description}
+                                        variant="p"
+                                        className="pl-8 py-1 rounded pb-0 w-full overflow-x-auto"
+                                      >
+                                        {description}
+                                      </Typography>
+                                    ))}
                                   </div>
-                                  {log.description.map((description: string) => (
-                                    <Typography
-                                      key={description}
-                                      variant="p"
-                                      className="pl-8 py-1 rounded pb-0 w-full overflow-x-auto"
-                                    >
-                                      {description}
-                                    </Typography>
-                                  ))}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        );
-                      })}
+                                );
+                              })}
+                            </div>
+                          );
+                        })}
                   </>
                 </section>
               </>
