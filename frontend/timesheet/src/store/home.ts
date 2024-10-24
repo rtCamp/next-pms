@@ -3,7 +3,6 @@ import { getTodayDate } from "@/lib/utils";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
 export interface HomeState {
-  isFetchAgain: boolean;
   data: dataProps;
   isDialogOpen: boolean;
   isAprrovalDialogOpen: boolean;
@@ -47,7 +46,7 @@ export const initialState: HomeState = {
     isUpdate: false,
     employee: "",
   },
-  isFetchAgain: false,
+
   status: ["Active"],
   data: {
     data: [],
@@ -72,9 +71,7 @@ const homeSlice = createSlice({
     setData: (state, action: PayloadAction<any>) => {
       state.data = action.payload;
     },
-    setFetchAgain: (state, action: PayloadAction<boolean>) => {
-      state.isFetchAgain = action.payload;
-    },
+
     setTimesheet: (state, action: PayloadAction<any>) => {
       state.timesheet = action.payload;
     },
@@ -82,29 +79,25 @@ const homeSlice = createSlice({
       state.weekDate = action.payload;
       state.data = initialState.data;
       state.start = 0;
-      state.isFetchAgain = true;
     },
     setFilters: (
       state,
-      action: PayloadAction<{ employeeName: string; status: Array<string> }>,
+      action: PayloadAction<{ employeeName: string; status: Array<string> }>
     ) => {
       state.employeeName = action.payload.employeeName;
       state.data = initialState.data;
       state.status = action.payload.status;
       state.start = 0;
-      state.isFetchAgain = true;
     },
     setStatus: (state, action: PayloadAction<Array<string>>) => {
       state.status = action.payload;
       state.data = initialState.data;
       state.start = 0;
-      state.isFetchAgain = true;
     },
     setEmployeeName: (state, action: PayloadAction<string>) => {
       state.employeeName = action.payload;
       state.data = initialState.data;
       state.start = 0;
-      state.isFetchAgain = true;
     },
     setStart: (state, action: PayloadAction<number>) => {
       state.start = action.payload;
@@ -121,7 +114,6 @@ const homeSlice = createSlice({
 export const {
   setData,
   setFilters,
-  setFetchAgain,
   setTimesheet,
   setWeekDate,
   setEmployeeName,

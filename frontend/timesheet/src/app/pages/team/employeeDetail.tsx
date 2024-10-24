@@ -28,7 +28,6 @@ import { addDays } from "date-fns";
 import AddTime from "@/app/components/addTime";
 import {
   setTimesheet,
-  setFetchAgain,
   setTimesheetData,
   updateTimesheetData,
   setEmployeeWeekDate,
@@ -108,10 +107,6 @@ const EmployeeDetail = () => {
   }, [id]);
 
   useEffect(() => {
-    if (teamState.isFetchAgain) {
-      mutate();
-      dispatch(setFetchAgain(false));
-    }
     if (data) {
       if (teamState.timesheetData.data && Object.keys(teamState.timesheetData.data).length > 0) {
         dispatch(updateTimesheetData(data.message));
@@ -127,22 +122,22 @@ const EmployeeDetail = () => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, teamState.employeeWeekDate, error, teamState.isFetchAgain]);
+  }, [data, teamState.employeeWeekDate, error]);
   const onEmployeeChange = (name: string) => {
     navigate(`/team/employee/${name}`);
   };
+
   return (
     <>
-      {teamState.isAprrovalDialogOpen && <Approval />}
+      {teamState.isAprrovalDialogOpen && <Approval onClose={mutate} />}
       {teamState.isDialogOpen && (
         <AddTime
           open={teamState.isDialogOpen}
           onOpenChange={() => {
+            mutate();
             dispatch(setDialog(false));
           }}
-          onSuccess={() => {
-            dispatch(setFetchAgain(true));
-          }}
+          onSuccess={mutate}
           task={teamState.timesheet.task}
           initialDate={teamState.timesheet.date}
           employee={teamState.employee}
@@ -159,7 +154,7 @@ const EmployeeDetail = () => {
           task={teamState.timesheet.task}
           onClose={() => {
             dispatch(setEditDialog(false));
-            dispatch(setFetchAgain(true));
+            mutate();
           }}
         />
       )}
@@ -186,11 +181,7 @@ const EmployeeDetail = () => {
                 <Timesheet />
               </TabsContent>
               <TabsContent value="time" className="mt-0">
-                <Time
-                  callback={() => {
-                    dispatch(setFetchAgain(true));
-                  }}
-                />
+                <Time callback={mutate} />
               </TabsContent>
             </>
           )}
@@ -302,7 +293,7 @@ export const Time = ({ callback }: { callback?: () => void }) => {
   const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<string>("");
   const teamState = useSelector((state: RootState) => state.team);
-  const { call } = useFrappePostCall("frappe_pms.timesheet.api.timesheet.save");
+  const { call } = useFrappePostCall("frappe_pms.timesheet.api.timesheet.update_timesheet_detail");
   const { toast } = useToast();
   const dispatch = useDispatch();
   const updateTime = (value: NewTimesheetProps) => {

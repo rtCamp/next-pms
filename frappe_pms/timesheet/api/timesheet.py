@@ -106,6 +106,7 @@ def save(date: str, description: str, task: str, hours: float = 0, employee: str
 def delete(parent: str, name: str):
     """Delete single time entry from timesheet doctype."""
     parent_doc = frappe.get_doc("Timesheet", parent)
+    parent_doc.flags.ignore_permissions = is_timesheet_manager()
     for log in parent_doc.time_logs:
         if log.name == name:
             parent_doc.remove(log)
@@ -118,6 +119,8 @@ def delete(parent: str, name: str):
 
 @frappe.whitelist()
 def submit_for_approval(start_date: str, notes: str = None, employee: str = None):
+    from frappe.desk.form.utils import add_comment
+
     from frappe_pms.timesheet.tasks.reminder_on_approval_request import (
         send_approval_reminder,
     )
@@ -143,18 +146,22 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
             "end_date": ["<=", end_date],
             "docstatus": 0,
         },
+        ignore_permissions=is_timesheet_manager(),
     )
     if not timesheets:
         throw(_("No timesheet found for the given week."))
 
     length = len(timesheets)
     for index, timesheet in enumerate(timesheets):
-        doc = frappe.get_doc("Timesheet", timesheet.name)
-        doc.flags.ignore_permissions = is_timesheet_manager()
-        doc.custom_approval_status = "Approval Pending"
-        doc.save()
+        frappe.db.set_value("Timesheet", timesheet.name, "custom_approval_status", "Approval Pending")
         if index == length - 1 and notes:
-            doc.add_comment("Comment", text=notes)
+            add_comment(
+                "Timesheet",
+                timesheet.name,
+                notes,
+                frappe.session.user,
+                frappe.session.user,
+            )
 
     update_weekly_status_of_timesheet(employee, start_date)
     send_approval_reminder(employee, reporting_manager, start_date, end_date)

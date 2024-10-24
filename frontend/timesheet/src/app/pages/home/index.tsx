@@ -17,7 +17,6 @@ import { Header, Footer } from "@/app/layout/root";
 import { LoadMore } from "@/app/components/loadMore";
 import {
   setData,
-  setFetchAgain,
   setWeekDate,
   setEmployeeName,
   DateProps,
@@ -68,18 +67,21 @@ const Home = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { data, error, mutate, isLoading } = useFrappeGetCall("frappe_pms.timesheet.api.team.get_compact_view_data", {
-    date: homeState.weekDate,
-    employee_name: homeState.employeeName,
-    page_length: 20,
-    start: homeState.start,
-    status: homeState.status,
-  });
-  useEffect(() => {
-    if (homeState.isFetchAgain) {
-      mutate();
-      dispatch(setFetchAgain(false));
+  const { data, error, isLoading } = useFrappeGetCall(
+    "frappe_pms.timesheet.api.team.get_compact_view_data",
+    {
+      date: homeState.weekDate,
+      employee_name: homeState.employeeName,
+      page_length: 20,
+      start: homeState.start,
+      status: homeState.status,
+    },
+    undefined,
+    {
+      revalidateOnFocus: false,
     }
+  );
+  useEffect(() => {
     if (data) {
       if (Object.keys(homeState.data.data).length > 0) {
         dispatch(updateData(data.message));
@@ -95,14 +97,14 @@ const Home = () => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, homeState.isFetchAgain, error]);
+  }, [data, error]);
 
   const handleEmployeeChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       dispatch(setEmployeeName(e.target.value));
       setEmployeeNameParam(e.target.value);
     },
-    [dispatch, setEmployeeNameParam],
+    [dispatch, setEmployeeNameParam]
   );
 
   const handleStatusChange = useCallback(
@@ -110,7 +112,7 @@ const Home = () => {
       dispatch(setStatus(value as string[]));
       setEmployeeStatusParam(value as string[]);
     },
-    [dispatch, setEmployeeStatusParam],
+    [dispatch, setEmployeeStatusParam]
   );
 
   const handleprevWeek = useCallback(() => {
@@ -126,7 +128,6 @@ const Home = () => {
   const handleLoadMore = useCallback(() => {
     if (!homeState.data.has_more) return;
     dispatch(setStart(homeState.start + 20));
-    dispatch(setFetchAgain(true));
   }, [dispatch, homeState.data.has_more, homeState.start]);
 
   return (
@@ -202,7 +203,7 @@ const Home = () => {
                       className={cn(
                         "text-slate-600 font-medium max-w-20 ",
                         index != 0 && "bg-slate-200",
-                        isToday(date) && "bg-slate-300",
+                        isToday(date) && "bg-slate-300"
                       )}
                     >
                       {formattedDate.day}
@@ -242,7 +243,7 @@ const Home = () => {
                       const expectedTime = calculateExtendedWorkingHour(
                         data.hour,
                         item.working_hour,
-                        item.working_frequency,
+                        item.working_frequency
                       );
 
                       return (
@@ -255,7 +256,7 @@ const Home = () => {
                               expectedTime == 0 && data.hour != 0 && "bg-destructive/10",
                               data.is_leave && "bg-warning/20",
                               isToday(data.date) && "bg-slate-50",
-                              data.hour == 0 && "text-center",
+                              data.hour == 0 && "text-center"
                             )}
                             key={`${key}-${index}`}
                           >
@@ -287,7 +288,10 @@ const Home = () => {
           <LoadMore
             variant="outline"
             onClick={handleLoadMore}
-            disabled={(Object.keys(homeState.data.data).length == homeState.data.total_count)|| (isLoading && Object.keys(homeState.data.data).length != 0)}
+            disabled={
+              Object.keys(homeState.data.data).length == homeState.data.total_count ||
+              (isLoading && Object.keys(homeState.data.data).length != 0)
+            }
           />
 
           <Typography variant="p" className="lg:px-5 font-semibold">
