@@ -123,7 +123,7 @@ export const projectSlice = createSlice({
         selectedBusinessUnit: Array<string>;
         order: sortOrder;
         orderColumn: string;
-      }>,
+      }>
     ) => {
       state.selectedProjectType = action.payload.selectedProjectType;
       state.selectedStatus = action.payload.selectedStatus;
@@ -138,7 +138,7 @@ export const projectSlice = createSlice({
     },
     setOrderBy: (
       state,
-      action: PayloadAction<{ order: sortOrder; orderColumn: string }>,
+      action: PayloadAction<{ order: sortOrder; orderColumn: string }>
     ) => {
       const pageLength = state.data.length;
       state.pageLength = pageLength;
@@ -148,16 +148,16 @@ export const projectSlice = createSlice({
       state.data = initialState.data;
       state.isFetchAgain = true;
     },
-    setTotalCount: (state, action: PayloadAction<number>) => { 
+    setTotalCount: (state, action: PayloadAction<number>) => {
       state.totalCount = action.payload;
     },
     refreshData: (state) => {
-      const pageLength = state.data.length;
+      const pageLength = state.data.length == 0 ? 20 : state.data.length;
       state.pageLength = pageLength;
       state.start = 0;
       state.data = initialState.data;
       state.isFetchAgain = true;
-    }
+    },
   },
 });
 export const {
@@ -171,6 +171,6 @@ export const {
   setFilters,
   setOrderBy,
   setTotalCount,
-  setSelectedBusinessUnit
+  setSelectedBusinessUnit,
 } = projectSlice.actions;
 export default projectSlice.reducer;

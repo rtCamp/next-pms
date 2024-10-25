@@ -24,6 +24,7 @@ import {
   setFilters,
   setSelectedBusinessUnit,
   setTotalCount,
+  refreshData,
 } from "@/store/project";
 import { ComboxBox } from "@/app/components/comboBox";
 import { cn, parseFrappeErrorMsg, createFalseValuedObject, checkIsMobile } from "@/lib/utils";
@@ -505,7 +506,7 @@ const ProjectTable = ({ view, viewData, meta, defaultView }: ProjectProps) => {
 
   useEffect(() => {
     updateColumnOrder(columnVisibility);
-    dispatch(setProjectData([]));
+    dispatch(refreshData());
   }, [columnVisibility]);
 
   return (
