@@ -86,7 +86,7 @@ export const projectTableMap = {
     gross_margin: 150,
     per_gross_margin: 100,
     status: 100,
-    percent_complete:100
+    percent_complete: 100
   },
   order: "desc",
   orderColumn: "project_name",
@@ -95,7 +95,7 @@ export const calculatePercentage = (spent: number, budget: number) => {
   return budget == 0 ? 0 : Math.round((spent / budget) * 100);
 };
 export const getTableProps = (type: string | undefined) => {
-  const key = `__listview::project:${type ? type : "all"}`; 
+  const key = `__listview::project:${type ? type : "all"}`;
   try {
     const data = JSON.parse(String(localStorage.getItem(key)));
     if (!data) {
@@ -130,9 +130,11 @@ export const sortPercentageComplete = (
   }
 };
 
-export const getFilter = (projectState: ProjectState) => {
+export const getFilter = (projectState: ProjectState, type: string | undefined) => {
   const filters = [];
-
+  if (type) {
+    filters.push(["custom_billing_type", "=", type == "fixed-cost" ? "Fixed Cost" : type == "retainer" ? "Retainer" : "Time and Material"]);
+  }
   if (projectState.search) {
     filters.push(["project_name", "like", `%${projectState.search}%`]);
   }

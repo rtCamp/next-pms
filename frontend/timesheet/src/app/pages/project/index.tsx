@@ -75,7 +75,8 @@ const Project = () => {
   useEffect(() => {
     const props = getTableProps(type);
     setTableprop(props);
-
+     setColumnOrder(props.columnOrder); 
+     setColumnVisibility(createFalseValuedObject(props.hideColumn));
     const payload = {
       selectedProjectType: projectTypeParam,
       search: searchParam,
@@ -119,7 +120,7 @@ const Project = () => {
     fields: rows,
     // eslint-disable-next-line
     //   @ts-ignore
-    filters: getFilter(projectState),
+    filters: getFilter(projectState,type),
     limit_start: projectState.start,
     limit: projectState.pageLength,
     orderBy: {
@@ -128,7 +129,7 @@ const Project = () => {
     },
   });
 
-  const { data: count } = useFrappeDocTypeCount("Project", { filters: getFilter(projectState) });
+  const { data: count } = useFrappeDocTypeCount("Project", { filters: getFilter(projectState, type) });
 
   const handleSearch = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -379,7 +380,7 @@ const Project = () => {
             fields={getRows()}
             isOpen={isExportOpen}
             setIsOpen={setIsExportOpen}
-            filters={getFilter(projectState)}
+            filters={getFilter(projectState,type)}
           />
           <Table className=" [&_td]:px-4 [&_th]:px-4 [&_th]:py-4 table-fixed" style={{ width: table.getTotalSize() }}>
             <TableHeader className=" border-t-0 sticky top-0 z-10 ">
