@@ -36,7 +36,7 @@ import {
   useReactTable,
   ColumnSizingState,
 } from "@tanstack/react-table";
-import { Filter, Columns2, RotateCcw, GripVertical, Ellipsis, Download, Plus } from "lucide-react";
+import { Filter, Columns2, GripVertical, Ellipsis, Download, Plus } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { Badge } from "@/app/components/ui/badge";
 import { Typography } from "@/app/components/typography";
@@ -273,6 +273,7 @@ interface ProjectProps {
   meta: any;
 }
 const ProjectTable = ({ view, viewData, meta, defaultView }: ProjectProps) => {
+
   const [viewInfo, setViewInfo] = useState<ViewData>(viewData);
 
   const { call } = useFrappePostCall("frappe_pms.timesheet.doctype.pms_view_settings.pms_view_settings.update_view");
@@ -322,7 +323,8 @@ const ProjectTable = ({ view, viewData, meta, defaultView }: ProjectProps) => {
       revalidateIfStale: false,
     }
   );
-  const { data, error, isLoading } = useFrappeGetDocList(
+
+  const { data, error, isLoading, mutate } = useFrappeGetDocList(
     "Project",
     {
       fields: viewInfo.rows ?? ["*"],
@@ -503,6 +505,7 @@ const ProjectTable = ({ view, viewData, meta, defaultView }: ProjectProps) => {
 
   useEffect(() => {
     updateColumnOrder(columnVisibility);
+    dispatch(setProjectData([]));
   }, [columnVisibility]);
 
   return (
@@ -614,11 +617,11 @@ const ProjectTable = ({ view, viewData, meta, defaultView }: ProjectProps) => {
             pageLength={projectState.data.length}
             totalCount={projectState.totalCount}
             orderBy={`${projectState.orderColumn}  ${projectState.order}`}
-              fields={viewInfo.rows.reduce((acc, d) => {
-                if (d !== 'name') {
-                  const m = meta.fields.find((field: { fieldname: string }) => field.fieldname === d);
-                  acc[d] = m?.label ?? d;
-                }
+            fields={viewInfo.rows.reduce((acc, d) => {
+              if (d !== "name") {
+                const m = meta.fields.find((field: { fieldname: string }) => field.fieldname === d);
+                acc[d] = m?.label ?? d;
+              }
               return acc;
             }, {})}
           />
