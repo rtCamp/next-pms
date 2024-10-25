@@ -75,8 +75,8 @@ const Project = () => {
   useEffect(() => {
     const props = getTableProps(type);
     setTableprop(props);
-     setColumnOrder(props.columnOrder); 
-     setColumnVisibility(createFalseValuedObject(props.hideColumn));
+    setColumnOrder(props.columnOrder);
+    setColumnVisibility(createFalseValuedObject(props.hideColumn));
     const payload = {
       selectedProjectType: projectTypeParam,
       search: searchParam,
@@ -120,7 +120,7 @@ const Project = () => {
     fields: rows,
     // eslint-disable-next-line
     //   @ts-ignore
-    filters: getFilter(projectState,type),
+    filters: getFilter(projectState, type),
     limit_start: projectState.start,
     limit: projectState.pageLength,
     orderBy: {
@@ -188,11 +188,9 @@ const Project = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
-  // useEffect(() => {
-  //   if (count) {
-  //     dispatch(setTotalCount(count));
-  //   }
-  // }, [count, dispatch]);
+  useEffect(() => {
+    dispatch(setTotalCount(count));
+  }, [count, dispatch]);
 
   useEffect(() => {
     if (buError) {

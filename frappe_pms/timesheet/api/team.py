@@ -23,6 +23,7 @@ def get_compact_view_data(
     status=None,
     reports_to: str | None = None,
 ):
+    frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
     import json
 
     from .utils import get_leaves_for_employee
@@ -158,8 +159,7 @@ def update_timesheet_status(employee: str, status: str, dates: list[str] | str |
         update_weekly_status_of_timesheet,
     )
 
-    if not is_timesheet_manager() and "Projects Manager" not in frappe.get_roles():
-        frappe.throw(frappe._("You are not allowed to perform this action.", frappe.PermissionError))
+    frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
     if isinstance(dates, str):
         dates = json.loads(dates)
