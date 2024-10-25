@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 import { Typography } from "@/app/components/typography";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useLocation, } from "react-router-dom";
 import {
   Home,
   Users,
@@ -19,7 +20,7 @@ import {
   FolderDot,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
-import { TIMESHEET, HOME, TEAM, DESK, TASK, PROJECT } from "@/lib/constant";
+import { TIMESHEET, HOME, TEAM, DESK, TASK, PROJECT, ROLES } from "@/lib/constant";
 import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 import { UserContext } from "@/lib/UserProvider";
@@ -54,9 +55,9 @@ const Sidebar = () => {
   };
   const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
-  const hasPmRole = user.roles.includes("Projects Manager") || user.roles.includes("Timesheet Manager");
+  const hasPmRole = user.roles.some((role) => ROLES.includes(role));
   const screenSize = useSelector((state: RootState) => state.app.screenSize);
-
+  const location = useLocation();
   const handleCollapse = () => {
     dispatch(setSidebarCollapsed(!user.isSidebarCollapsed));
   };
@@ -88,6 +89,29 @@ const Sidebar = () => {
       label: "Project",
       key: "project",
       isPmRoute: true,
+      children: [
+        {
+          to: PROJECT,
+          label: "Dashboard",
+          key: "dashboard",
+        },
+        {
+          to: `${PROJECT}/fixed-cost`,
+          label: "Fixed Cost",
+          key: "fixed-cost",
+        },
+
+        {
+          to: `${PROJECT}/retainer`,
+          label: "Retainer",
+          key: "retainer",
+        },
+        {
+          to: `${PROJECT}/tnm`,
+          label: "TNM",
+          key: "tnm",
+        },
+      ],
     },
     {
       to: TASK,
@@ -109,7 +133,7 @@ const Sidebar = () => {
       <aside
         className={cn(
           "bg-slate-100  w-1/5 transition-all duration-300 ease-in-out p-4 flex flex-col",
-          user.isSidebarCollapsed && "w-16 items-center",
+          user.isSidebarCollapsed && "w-16 items-center"
         )}
       >
         <div className={cn("flex shrink-0 gap-x-2 items-center justify-center overflow-hidden")} id="app-logo">
@@ -123,7 +147,7 @@ const Sidebar = () => {
             variant="h5"
             className={cn(
               "transition-all cursor-pointer duration-300 truncate ease-in-out max-md:hidden ",
-              user.isSidebarCollapsed && "hidden",
+              user.isSidebarCollapsed && "hidden"
             )}
           >
             Project Management
@@ -132,14 +156,13 @@ const Sidebar = () => {
         <div className="pt-10 h-full overflow-y-auto flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
           {routes.map((route: Route) => {
             if (route.isPmRoute && !hasPmRole) return null;
-
             return route.children ? (
               <div key={route.key}>
                 <Button
                   variant="ghost"
                   className={cn(
                     "flex items-center gap-x-2 w-full text-left p-2 hover:bg-slate-200 rounded-lg",
-                    openRoutes[route.key] && "bg-slate-200 ",
+                    openRoutes[route.key] && "bg-slate-200 "
                   )}
                   onClick={() => toggleNestedRoutes(route.key)}
                 >
@@ -159,42 +182,43 @@ const Sidebar = () => {
                 <div
                   className={cn(
                     "pl-4 pt-2 transition-all duration-300 ease-in-out flex flex-col gap-y-1",
-                    openRoutes[route.key] ? "flex" : "hidden",
+                    openRoutes[route.key] ? "flex" : "hidden"
                   )}
                 >
-                  {route.children.map((child: NestedRoute) => (
-                    <NavLink
-                      to={child.to}
-                      key={child.key}
-                      title={child.label}
-                      className="transition-all duration-300 ease-in-out flex items-center h-9"
-                    >
-                      {({ isActive }) => (
+                  {route.children.map((child: NestedRoute) => {
+                    const isChildActive = child.to === location.pathname;
+                    return (
+                      <NavLink
+                        to={child.to}
+                        key={child.key}
+                        title={child.label}
+                        className="transition-all duration-300 ease-in-out flex items-center h-9"
+                      >
                         <div
                           className={cn(
                             "flex w-full pl-2 rounded-lg items-center px-3 py-2 hover:bg-slate-200 text-primary gap-x-2 overflow-hidden",
-                            isActive && "bg-primary shadow-md hover:bg-slate-700 ",
+                            isChildActive && "bg-primary shadow-md hover:bg-slate-700 "
                           )}
                         >
                           {child.icon && (
                             <child.icon
-                              className={cn("shrink-0 stroke-primary h-4 w-4", isActive && "stroke-background")}
+                              className={cn("shrink-0 stroke-primary h-4 w-4", isChildActive && "stroke-background")}
                             />
                           )}
                           <Typography
                             variant="p"
                             className={cn(
                               "transition-all duration-300 ease-in-out text-white",
-                              !isActive && "text-primary",
-                              user.isSidebarCollapsed && "hidden",
+                              !isChildActive && "text-primary",
+                              user.isSidebarCollapsed && "hidden"
                             )}
                           >
                             {child.label}
                           </Typography>
                         </div>
-                      )}
-                    </NavLink>
-                  ))}
+                      </NavLink>
+                    );
+                  })}
                 </div>
               </div>
             ) : (
@@ -208,7 +232,7 @@ const Sidebar = () => {
                   <div
                     className={cn(
                       "flex w-full pl-2 rounded-lg items-center px-3 py-2 hover:bg-slate-200 text-primary gap-x-2 overflow-hidden",
-                      isActive && "bg-primary shadow-md hover:bg-slate-700 ",
+                      isActive && "bg-primary shadow-md hover:bg-slate-700 "
                     )}
                   >
                     <route.icon className={cn("shrink-0 stroke-primary h-4 w-4", isActive && "stroke-background")} />
@@ -217,7 +241,7 @@ const Sidebar = () => {
                       className={cn(
                         "transition-all duration-300 ease-in-out text-white",
                         !isActive && "text-primary",
-                        user.isSidebarCollapsed && "hidden",
+                        user.isSidebarCollapsed && "hidden"
                       )}
                     >
                       {route.label}
@@ -240,7 +264,7 @@ const Sidebar = () => {
               <ArrowLeftToLine
                 className={cn(
                   "stroke-primary h-4 w-4 transition-all duration-600",
-                  user.isSidebarCollapsed && "rotate-180",
+                  user.isSidebarCollapsed && "rotate-180"
                 )}
               />
             </Button>
@@ -266,7 +290,7 @@ const Navigation = () => {
             variant="p"
             className={cn(
               "transition-all duration-800 max-md:hidden overflow-hidden max-w-full max-lg:1/3 truncate",
-              user.isSidebarCollapsed && "hidden",
+              user.isSidebarCollapsed && "hidden"
             )}
           >
             {user.userName}

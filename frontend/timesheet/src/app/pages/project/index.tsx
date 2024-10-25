@@ -2,7 +2,7 @@ import { DeBounceInput } from "@/app/components/deBounceInput";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { RootState } from "@/store";
 import { useFrappeGetDocList, useFrappeGetCall } from "frappe-react-sdk";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Header, Footer } from "@/app/layout/root";
 import { LoadMore } from "@/app/components/loadMore";
@@ -17,6 +17,7 @@ import {
   setStart,
   setFilters,
   setSelectedBusinessUnit,
+  setTotalCount,
 } from "@/store/project";
 import { ComboxBox } from "@/app/components/comboBox";
 import { cn, parseFrappeErrorMsg, createFalseValuedObject, checkIsMobile } from "@/lib/utils";
@@ -29,7 +30,7 @@ import {
   Table as T,
   ColumnSizingState,
 } from "@tanstack/react-table";
-import { Filter, Columns2, RotateCcw, GripVertical, Ellipsis } from "lucide-react";
+import { Filter, Columns2, RotateCcw, GripVertical, Ellipsis, Download } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { Badge } from "@/app/components/ui/badge";
 import { Typography } from "@/app/components/typography";
@@ -40,7 +41,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
-import { getFilter, getTableProps, projectTableMap, columnMap } from "./helper";
+import { getFilter, getTableProps, projectTableMap, getFieldInfo } from "./helper";
 import { getColumn } from "./column";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -48,37 +49,45 @@ import { useFrappeDocTypeCount } from "@/app/hooks/useFrappeDocCount";
 import { Button } from "@/app/components/ui/button";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import Sort from "./sort";
-import { TouchBackend } from 'react-dnd-touch-backend';
+import { TouchBackend } from "react-dnd-touch-backend";
+import { Export } from "@/app/components/listview/export";
+import { useParams } from "react-router-dom";
+import useFrappeDoctypeMeta from "@/app/hooks/useFrappeDoctypeMeta";
 
 const Project = () => {
+  const { type } = useParams();
   const projectState = useSelector((state: RootState) => state.project);
   const dispatch = useDispatch();
   const { toast } = useToast();
 
-  const tableprop = useMemo(() => {
-    return getTableProps();
-  }, []);
+  const [tableprop, setTableprop] = useState(getTableProps(type));
   const [colSizing, setColSizing] = useState<ColumnSizingState>({});
   const [columnOrder, setColumnOrder] = useState<string[]>(tableprop.columnOrder);
-  const [tableAttributeProps, setTableAttributeProps] = useState(tableprop);
-  const [columnVisibility, setColumnVisibility] = useState(createFalseValuedObject(tableprop.hideColumn));
 
+  const [columnVisibility, setColumnVisibility] = useState(createFalseValuedObject(tableprop.hideColumn));
+  const [isExportOpen, setIsExportOpen] = useState(false);
   const [searchParam, setSearchParam] = useQueryParamsState("search", "");
   const [projectTypeParam, setProjectTypeParam] = useQueryParamsState<Array<string>>("project-type", []);
   const [statusParam, setStatusParam] = useQueryParamsState<Array<Status>>("status", []);
   const [businessUnitParam, setBusinessUnitParam] = useQueryParamsState<Array<string>>("business-unit", []);
-
+  const { doc } = useFrappeDoctypeMeta("Project");
+  const rows = getFieldInfo(type);
   useEffect(() => {
+    const props = getTableProps(type);
+    setTableprop(props);
+    setColumnOrder(props.columnOrder);
+    setColumnVisibility(createFalseValuedObject(props.hideColumn));
     const payload = {
       selectedProjectType: projectTypeParam,
       search: searchParam,
       selectedStatus: statusParam,
       selectedBusinessUnit: businessUnitParam,
+      order: props.order,
+      orderColumn: props.orderColumn,
     };
     dispatch(setFilters(payload));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    
-  }, []);
+  }, [type]);
 
   const { data: projectType } = useFrappeGetCall(
     "frappe.client.get_list",
@@ -106,36 +115,21 @@ const Project = () => {
       revalidateIfStale: false,
     }
   );
-  const { data, error, isLoading, mutate } = useFrappeGetDocList(
-    "Project",
-    {
-      fields: ["*"],
-      // eslint-disable-next-line
-      //   @ts-ignore
-      filters: getFilter(projectState),
-      limit_start: projectState.start,
-      limit: projectState.pageLength,
-      orderBy: {
-        field: projectState.orderColumn,
-        order: projectState.order as "asc" | "desc" | undefined,
-      },
+
+  const { data, isLoading } = useFrappeGetDocList("Project", {
+    fields: rows,
+    // eslint-disable-next-line
+    //   @ts-ignore
+    filters: getFilter(projectState, type),
+    limit_start: projectState.start,
+    limit: projectState.pageLength,
+    orderBy: {
+      field: projectState.orderColumn,
+      order: projectState.order as "asc" | "desc" | undefined,
     },
-    undefined,
-    {
-      shouldRetryOnError: false,
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-    }
-  );
-  const { data: count, mutate: countMutate } = useFrappeDocTypeCount(
-    "Project",
-    { filters: getFilter(projectState) },
-    undefined,
-    {
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-    }
-  );
+  });
+
+  const { data: count } = useFrappeDocTypeCount("Project", { filters: getFilter(projectState, type) });
 
   const handleSearch = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -176,30 +170,27 @@ const Project = () => {
   );
 
   useEffect(() => {
-    if (projectState.isFetchAgain) {
-      mutate();
-      countMutate();
+    if (data) {
+      dispatch(setProjectData(data));
+      // if (projectState.data.length === 0) {
+      // } else {
+      //   dispatch(updateProjectData(data));
+      // }
     }
+
+    // if (error) {
+    //   const err = parseFrappeErrorMsg(error);
+    //   toast({
+    //     variant: "destructive",
+    //     description: err,
+    //   });
+    // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectState.isFetchAgain]);
+  }, [data]);
 
   useEffect(() => {
-    if (data) {
-      if (projectState.data.length === 0) {
-        dispatch(setProjectData(data));
-      } else {
-        dispatch(updateProjectData(data));
-      }
-    }
-    if (error) {
-      const err = parseFrappeErrorMsg(error);
-      toast({
-        variant: "destructive",
-        description: err,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, error]);
+    dispatch(setTotalCount(count));
+  }, [count, dispatch]);
 
   useEffect(() => {
     if (buError) {
@@ -212,32 +203,32 @@ const Project = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [buError]);
   useEffect(() => {
-    const updatedWidth = { ...tableAttributeProps.columnWidth, ...colSizing };
+    const updatedWidth = { ...tableprop.columnWidth, ...colSizing };
     const updatedTableProp = {
       ...tableprop,
-
       columnWidth: updatedWidth,
       columnOrder: columnOrder,
     };
-    setTableAttributeProps(updatedTableProp);
+    setTableprop(updatedTableProp);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [colSizing, columnOrder]);
 
   useEffect(() => {
     const updateTableProps = {
-      ...tableAttributeProps,
+      ...tableprop,
       order: projectState.order,
       orderColumn: projectState.orderColumn,
     };
-    setTableAttributeProps(updateTableProps);
+    setTableprop(updateTableProps);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectState.order, projectState.orderColumn]);
 
   useEffect(() => {
-    localStorage.setItem("project_list", JSON.stringify(tableAttributeProps));
-  }, [tableAttributeProps]);
+    const key = `__listview::project:${type ? type : "all"}`;
+    localStorage.setItem(key, JSON.stringify(tableprop));
+  }, [tableprop]);
 
-  const columns = getColumn();
+  const columns = getColumn(type, doc?.fields);
   const table = useReactTable({
     columns: columns,
     data: projectState.data,
@@ -256,14 +247,16 @@ const Project = () => {
   });
 
   const resetTable = () => {
-    setTableAttributeProps(projectTableMap);
+    setTableprop(projectTableMap);
     setColumnVisibility({});
     setColumnOrder(projectTableMap.columnOrder);
     table.setColumnSizing(projectTableMap.columnWidth);
   };
-
+  const openExportDialog = () => {
+    setIsExportOpen(true);
+  };
   const handleColumnHide = (id: string) => {
-    const prev = tableAttributeProps;
+    const prev = tableprop;
     if (prev.hideColumn.includes(id)) {
       const mutatedHideColumn = [...prev.hideColumn];
       const index = mutatedHideColumn.indexOf(id);
@@ -271,12 +264,25 @@ const Project = () => {
         mutatedHideColumn.splice(index, 1);
       }
       const attr = { ...prev, hideColumn: mutatedHideColumn };
-      setTableAttributeProps(attr);
+      setTableprop(attr);
     } else {
       const mutatedHideColumnSet = new Set([...prev.hideColumn, id]);
       const attr = { ...prev, hideColumn: [...mutatedHideColumnSet] };
-      setTableAttributeProps(attr);
+      setTableprop(attr);
     }
+  };
+
+  const getRows = () => {
+    const fields: Record<string, string> = {};
+    rows
+      .filter((field) => field !== "name")
+      .forEach((field: string) => {
+        const meta = doc?.fields.find((f: { fieldname: string }) => f.fieldname === field);
+        if (meta) {
+          fields[field] = meta.label;
+        }
+      });
+    return fields;
   };
 
   return (
@@ -354,82 +360,89 @@ const Project = () => {
             onColumnHide={handleColumnHide}
             setColumnOrder={setColumnOrder}
             columnOrder={columnOrder}
+            metaFields={doc?.fields}
           />
-          {/* <Export
-            headers={Object.entries(columnMap).map(([key, value]: [string, any]) => {
-              return { label: value, value: key };
-            })}
-            rows={projectState.data}
-          /> */}
-          <Sort />
-          <Action colMap={columnMap} data={projectState.data} resetTable={resetTable} />
+          <Sort metaFields={doc?.fields} type={type} />
+          <Action resetTable={resetTable} openExport={openExportDialog} />
         </div>
       </Header>
       {isLoading && projectState.data.length == 0 ? (
         <Spinner isFull />
       ) : (
-        <Table className=" [&_td]:px-4 [&_th]:px-4 [&_th]:py-4 table-fixed" style={{ width: table.getTotalSize() }}>
-          <TableHeader className=" border-t-0 sticky top-0 z-10 ">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead
-                      key={header.id}
-                      className="relative"
-                      style={{
-                        width: header.getSize(),
-                      }}
-                    >
-                      <div className="flex items-center h-full gap-1 group">
-                        <span className="w-full">
-                          {flexRender(header.column.columnDef.header, header.getContext())}
-                        </span>
-                        <GripVertical
-                          className="  cursor-col-resize flex justify-center items-center shrink-0"
-                          {...{
-                            onMouseDown: header.getResizeHandler(),
-                            onTouchStart: header.getResizeHandler(),
-                            style: {
-                              userSelect: "none",
-                              touchAction: "none",
-                            },
-                          }}
-                        />
-                      </div>
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow className="px-3" key={row.id} data-state={row.getIsSelected() && "selected"}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      className="truncate"
-                      key={cell.id}
-                      style={{
-                        width: cell.column.getSize(),
-                        minWidth: cell.column.columnDef.minSize,
-                      }}
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
+        <>
+          <Export
+            doctype="Project"
+            totalCount={projectState.totalCount}
+            orderBy={`${projectState.orderColumn} ${projectState.order}`}
+            pageLength={projectState.data.length}
+            fields={getRows()}
+            isOpen={isExportOpen}
+            setIsOpen={setIsExportOpen}
+            filters={getFilter(projectState, type)}
+          />
+          <Table className=" [&_td]:px-4 [&_th]:px-4 [&_th]:py-4 table-fixed" style={{ width: table.getTotalSize() }}>
+            <TableHeader className=" border-t-0 sticky top-0 z-10 ">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead
+                        key={header.id}
+                        className="relative"
+                        style={{
+                          width: header.getSize(),
+                        }}
+                      >
+                        <div className="flex items-center h-full gap-1 group">
+                          <span className="w-full">
+                            {flexRender(header.column.columnDef.header, header.getContext())}
+                          </span>
+                          <GripVertical
+                            className="  cursor-col-resize flex justify-center items-center shrink-0"
+                            {...{
+                              onMouseDown: header.getResizeHandler(),
+                              onTouchStart: header.getResizeHandler(),
+                              style: {
+                                userSelect: "none",
+                                touchAction: "none",
+                              },
+                            }}
+                          />
+                        </div>
+                      </TableHead>
+                    );
+                  })}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow className="w-full">
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow className="px-3" key={row.id} data-state={row.getIsSelected() && "selected"}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        className="truncate"
+                        key={cell.id}
+                        style={{
+                          width: cell.column.getSize(),
+                          minWidth: cell.column.columnDef.minSize,
+                        }}
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow className="w-full">
+                  <TableCell colSpan={columns.length} className="h-24 text-center">
+                    No results
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </>
       )}
       <Footer>
         <div className="flex  justify-between items-center ">
@@ -437,7 +450,7 @@ const Project = () => {
             variant="outline"
             disabled={projectState.data.length == (count ?? 0) || isLoading}
             onClick={() => {
-              dispatch(setStart(projectState.start + projectState.pageLength));
+              dispatch(setStart());
             }}
           />
           <Typography variant="p" className="lg:px-5 font-semibold">
@@ -449,7 +462,13 @@ const Project = () => {
   );
 };
 
-const Action = ({ resetTable }: { colMap: any; data: ProjectData[]; resetTable: () => void }) => {
+const Action = ({
+  resetTable,
+  openExport,
+}: {
+  openExport: React.Dispatch<React.SetStateAction<boolean>>;
+  resetTable: () => void;
+}) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -457,15 +476,11 @@ const Action = ({ resetTable }: { colMap: any; data: ProjectData[]; resetTable: 
           <Ellipsis />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="mr-2 [&_div]:cursor-pointer">
-        {/* <DropdownMenuItem> */}
-        {/* <Export
-            headers={Object.entries(colMap).map(([key, value]: [string, any]) => {
-              return { label: value, value: key };
-            })}
-            rows={data}
-          /> */}
-        {/* </DropdownMenuItem> */}
+      <DropdownMenuContent className="mr-2 [&_div]:cursor-pointer  [&_div]:gap-x-1">
+        <DropdownMenuItem onClick={openExport}>
+          <Download />
+          <Typography variant="p">Export </Typography>
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={resetTable}>
           <RotateCcw />
           <Typography variant="p">Reset Table</Typography>
@@ -480,11 +495,13 @@ const ColumnSelector = ({
   onColumnHide,
   setColumnOrder,
   columnOrder,
+  metaFields,
 }: {
   table: T<ProjectData>;
   onColumnHide: (id: string) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setColumnOrder: any;
+  metaFields: any;
   columnOrder: string[];
 }) => {
   return (
@@ -496,16 +513,19 @@ const ColumnSelector = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="[&_div]:cursor-pointer max-h-96 overflow-y-auto">
-        <DndProvider backend={checkIsMobile()?TouchBackend : HTML5Backend}>
+        <DndProvider backend={checkIsMobile() ? TouchBackend : HTML5Backend}>
           {table
             .getAllColumns()
             .filter((column) => column.getCanHide())
             .sort((a, b) => columnOrder.indexOf(a.id) - columnOrder.indexOf(b.id))
             .map((column) => {
+              const label = metaFields.find((f: { fieldname: string }) => f.fieldname == column.id)?.label;
+
               return (
                 <ColumnItem
                   key={column.id}
                   id={column.id}
+                  label={label}
                   onColumnHide={onColumnHide}
                   getIsVisible={column.getIsVisible}
                   toggleVisibility={column.toggleVisibility}
@@ -524,8 +544,10 @@ const ColumnItem = ({
   reOrder,
   getIsVisible,
   toggleVisibility,
+  label,
 }: {
   id: string;
+  label: string;
   onColumnHide: (id: string) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   reOrder: any;
@@ -578,7 +600,7 @@ const ColumnItem = ({
           opacity: isDragging ? 0.5 : 1,
         }}
       >
-        {columnMap[id as keyof typeof columnMap]}
+        {label}
         <GripVertical />
       </span>
     </DropdownMenuItem>

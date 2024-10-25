@@ -15,7 +15,8 @@ import { TaskDataProps, TaskProps, TaskDataItemProps, LeaveProps, HolidayProp } 
 import { WorkingFrequency } from "@/types";
 import GenWrapper from "./GenWrapper";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
-
+import { TaskLog } from "@/app/pages/task/taskLog";
+import { useState } from "react";
 interface TimesheetTableProps {
   dates: string[];
   holidays: Array<HolidayProp>;
@@ -42,8 +43,13 @@ const TimesheetTable = ({
   disabled,
 }: TimesheetTableProps) => {
   const holiday_list = getHolidayList(holidays);
+  const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<string>("");
   return (
     <GenWrapper>
+      {isTaskLogDialogBoxOpen && (
+        <TaskLog task={selectedTask} isOpen={isTaskLogDialogBoxOpen} onOpenChange={setIsTaskLogDialogBoxOpen} />
+      )}
       <Table>
         {hasHeading && (
           <TableHeader>
@@ -104,7 +110,14 @@ const TimesheetTable = ({
                   <TableCell className="cursor-pointer max-w-sm">
                     <HoverCard openDelay={1000} closeDelay={0}>
                       <HoverCardTrigger>
-                        <Typography variant="p" className="text-slate-800 truncate overflow-hidden ">
+                        <Typography
+                          variant="p"
+                          className="text-slate-800 truncate overflow-hidden hover:underline"
+                          onClick={() => {
+                            setSelectedTask(task);
+                            setIsTaskLogDialogBoxOpen(true);
+                          }}
+                        >
                           {taskData.subject}
                         </Typography>
                       </HoverCardTrigger>
@@ -120,7 +133,7 @@ const TimesheetTable = ({
                   </TableCell>
                   {dates.map((date: string) => {
                     let data = taskData.data.filter(
-                      (data: TaskDataItemProps) => getDateFromDateAndTime(data.from_time) === date,
+                      (data: TaskDataItemProps) => getDateFromDateAndTime(data.from_time) === date
                     );
                     data.forEach((item: TaskDataItemProps) => {
                       totalHours += item.hours;
@@ -158,7 +171,7 @@ const TimesheetTable = ({
                       variant="p"
                       className={cn(
                         "text-slate-800 font-medium text-right flex justify-between items-center",
-                        !taskData.is_billable && "justify-end",
+                        !taskData.is_billable && "justify-end"
                       )}
                     >
                       {taskData.is_billable == true && <CircleDollarSign className="stroke-success w-4 h-4" />}
@@ -341,7 +354,7 @@ export const WeekTotal = ({
           "text-right font-medium",
           expectedTime == 1 && "text-success",
           expectedTime == 2 && "text-warning",
-          expectedTime == 0 && "text-destructive",
+          expectedTime == 0 && "text-destructive"
         )}
       >
         {floatToTime(total)}
@@ -404,7 +417,7 @@ export const Cell = ({
           "text-center group",
           isDisabled && "cursor-default",
           "hover:h-full hover:bg-slate-100 hover:cursor-pointer",
-          className,
+          className
         )}
       >
         <HoverCardTrigger className={cn(isDisabled && "cursor-default")}>
@@ -414,7 +427,7 @@ export const Cell = ({
               className={cn(
                 "text-slate-600",
                 isHoliday || (isDisabled && "text-slate-400"),
-                !hours && !isDisabled && "group-hover:hidden",
+                !hours && !isDisabled && "group-hover:hidden"
               )}
             >
               {hours > 0 ? floatToTime(hours || 0) : "-"}
@@ -426,7 +439,7 @@ export const Cell = ({
                 className={cn(
                   "stroke-slate-500 w-4 h-4 ",
                   !isDisabled && "group-hover:hidden",
-                  isTimeBillable && "stroke-success",
+                  isTimeBillable && "stroke-success"
                 )}
               />
             )}
@@ -528,7 +541,7 @@ export const SubmitButton = ({
         (status == "Approved" || status == "Partially Approved") && "bg-green-50",
         (status == "Rejected" || status == "Partially Rejected") && "bg-red-50",
         status == "Approval Pending" && "bg-orange-50",
-        status == "Not Submitted" && "text-slate-400",
+        status == "Not Submitted" && "text-slate-400"
       )}
       onClick={status != "Approved" ? handleClick : undefined}
     >

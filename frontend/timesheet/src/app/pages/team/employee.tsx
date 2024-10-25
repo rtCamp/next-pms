@@ -8,15 +8,20 @@ import { cn, expectatedHours, floatToTime, getDateFromDateAndTime } from "@/lib/
 import { CircleDollarSign } from "lucide-react";
 import { TaskDataProps, TaskDataItemProps } from "@/types/timesheet";
 import { LeaveRow, EmptyRow, Cell } from "@/app/components/timesheetTable";
+import { TaskLog } from "@/app/pages/task/taskLog";
+import { useState } from "react";
 interface EmployeeProps {
   employee: string;
 }
 
 export const Employee = ({ employee }: EmployeeProps) => {
+  const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<string>("");
   const teamState = useSelector((state: RootState) => state.team);
-  const { data, isLoading } = useFrappeGetCall("frappe_pms.timesheet.api.team.get_timesheet_for_employee", {
+  const { data, isLoading } = useFrappeGetCall("frappe_pms.timesheet.api.timesheet.get_timesheet_data", {
     employee: employee,
-    date: teamState.weekDate,
+    start_date: teamState.weekDate,
+    max_week: 1,
   });
   if (isLoading) {
     return <Spinner />;
@@ -27,6 +32,9 @@ export const Employee = ({ employee }: EmployeeProps) => {
   const leaves = data?.message.leaves;
   return (
     <div>
+      {isTaskLogDialogBoxOpen && (
+        <TaskLog task={selectedTask} isOpen={isTaskLogDialogBoxOpen} onOpenChange={setIsTaskLogDialogBoxOpen} />
+      )}
       <Table>
         <TableBody className="[&_tr]:pr-0">
           {leaves.length > 0 && (
@@ -60,7 +68,14 @@ export const Employee = ({ employee }: EmployeeProps) => {
               return (
                 <TableRow key={task} className="border-b border-slate-200 flex w-full">
                   <TableCell className="w-full min-w-24 max-w-md overflow-hidden">
-                    <Typography variant="p" className="text-slate-800  truncate w-full">
+                    <Typography
+                      variant="p"
+                      className="text-slate-800  truncate w-full hover:underline hover:cursor-pointer"
+                      onClick={() => {
+                        setSelectedTask(task);
+                        setIsTaskLogDialogBoxOpen(true);
+                      }}
+                    >
                       {taskData.subject}
                     </Typography>
                     <Typography variant="small" className="text-slate-500 truncate">
@@ -69,7 +84,7 @@ export const Employee = ({ employee }: EmployeeProps) => {
                   </TableCell>
                   {timesheetData.dates.map((date: string, key: number) => {
                     let data = taskData.data.filter(
-                      (data: TaskDataItemProps) => getDateFromDateAndTime(data.from_time) === date,
+                      (data: TaskDataItemProps) => getDateFromDateAndTime(data.from_time) === date
                     );
                     data.forEach((item: TaskDataItemProps) => {
                       totalHours += item.hours;
@@ -98,7 +113,7 @@ export const Employee = ({ employee }: EmployeeProps) => {
                         disabled
                         className={cn(
                           "max-w-20 w-full group text-center hover:bg-slate-100 hover:text-center hover:cursor-default",
-                          "cursor-default",
+                          "cursor-default"
                         )}
                       />
                     );
@@ -106,7 +121,7 @@ export const Employee = ({ employee }: EmployeeProps) => {
                   <TableCell
                     className={cn(
                       "max-w-24 w-full  flex justify-between items-center",
-                      !taskData.is_billable && "justify-end",
+                      !taskData.is_billable && "justify-end"
                     )}
                   >
                     {taskData.is_billable == true && <CircleDollarSign className="stroke-success w-4 h-4" />}

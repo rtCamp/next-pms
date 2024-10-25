@@ -47,7 +47,6 @@ def get_columns():
 
 
 def get_data(filters):
-
     timesheet = DocType("Timesheet")
     timesheet_details = DocType("Timesheet Detail")
     task = DocType("Task")

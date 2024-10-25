@@ -4,6 +4,16 @@ from frappe.utils import add_days, get_first_day_of_week, get_last_day_of_week, 
 from frappe.utils.data import getdate
 
 now = nowdate()
+READ_ONLY_ROLE = "Timesheet User"
+READ_WRITE_ROLE = "Timesheet Manager"
+
+
+def is_timesheet_user():
+    return READ_ONLY_ROLE in frappe.get_roles()
+
+
+def is_timesheet_manager():
+    return READ_WRITE_ROLE in frappe.get_roles()
 
 
 def get_leaves_for_employee(from_date: str, to_date: str, employee: str):
@@ -58,16 +68,17 @@ def filter_employees(
     page_length=10,
     start=0,
     user_group=None,
-    ignore_permissions=False,
     status=None,
     reports_to: None | str = None,
 ):
     import json
 
+    from .utils import READ_ONLY_ROLE, READ_WRITE_ROLE
+
     roles = frappe.get_roles()
+    ignore_permissions = READ_ONLY_ROLE in roles or READ_WRITE_ROLE in roles
     fields = ["name", "image", "employee_name", "department", "designation"]
     employee_ids = []
-
     filters = {}
 
     if reports_to:
@@ -112,24 +123,15 @@ def filter_employees(
     if len(employee_ids) > 0:
         filters["name"] = ["in", employee_ids]
 
-    if "Timesheet Manager" in roles or ignore_permissions:
-        employees = frappe.get_all(
-            "Employee",
-            fields=fields,
-            filters=filters,
-            page_length=page_length,
-            start=start,
-        )
-        total_count = get_count("Employee", filters=filters, ignore_permissions=True)
-    else:
-        employees = frappe.get_list(
-            "Employee",
-            fields=fields,
-            filters=filters,
-            page_length=page_length,
-            start=start,
-        )
-        total_count = get_count("Employee", filters=filters)
+    employees = frappe.get_list(
+        "Employee",
+        fields=fields,
+        filters=filters,
+        page_length=page_length,
+        start=start,
+        ignore_permissions=ignore_permissions,
+    )
+    total_count = get_count("Employee", filters=filters, ignore_permissions=ignore_permissions)
 
     return employees, total_count
 
@@ -146,31 +148,17 @@ def get_count(
 
     distinct = "distinct " if distinct else ""
     fieldname = f"{distinct}`tab{doctype}`.name"
-    if limit:
-        fieldname = [fieldname]
-        partial_query = execute(
-            doctype,
-            distinct=distinct,
-            limit=limit,
-            fields=fieldname,
-            filters=filters,
-            or_filters=or_filters,
-            ignore_permissions=ignore_permissions,
-            run=0,
-        )
-        # nosemgrep
-        count = frappe.db.sql(f"""select count(*) from ( {partial_query} ) p""")[0][0]
-    else:
-        fieldname = [f"count({fieldname}) as total_count"]
-        count = execute(
-            doctype,
-            distinct=distinct,
-            limit=limit,
-            fields=fieldname,
-            filters=filters,
-            or_filters=or_filters,
-            ignore_permissions=ignore_permissions,
-        )[0].get("total_count")
+
+    fieldname = [f"count({fieldname}) as total_count"]
+    count = execute(
+        doctype,
+        distinct=distinct,
+        limit=limit,
+        fields=fieldname,
+        filters=filters,
+        or_filters=or_filters,
+        ignore_permissions=ignore_permissions,
+    )[0].get("total_count")
     return count
 
 

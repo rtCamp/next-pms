@@ -23,6 +23,7 @@ def get_compact_view_data(
     status=None,
     reports_to: str | None = None,
 ):
+    frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
     import json
 
     from .utils import get_leaves_for_employee
@@ -100,9 +101,7 @@ def get_compact_view_data(
             to_date=add_days(dates[-1].get("end_date"), max_week * 7),
             employee=employee.name,
         )
-        holidays = get_holidays(
-            employee.name, dates[0].get("start_date"), dates[-1].get("end_date")
-        )
+        holidays = get_holidays(employee.name, dates[0].get("start_date"), dates[-1].get("end_date"))
 
         for date_info in dates:
             for date in date_info.get("dates"):
@@ -151,26 +150,21 @@ def get_compact_view_data(
 
 
 @frappe.whitelist()
-def get_timesheet_for_employee(employee: str, date: str):
-    from .timesheet import get_timesheet_data
-
-    date = getdate(date)
-    return get_timesheet_data(employee=employee, start_date=date, max_week=1)
-
-
-@frappe.whitelist()
-def update_timesheet_status(
-    employee: str, status: str, dates: list[str] | str | None = None, note: str = ""
-):
+def update_timesheet_status(employee: str, status: str, dates: list[str] | str | None = None, note: str = ""):
     import json
 
-    from .utils import get_week_dates, update_weekly_status_of_timesheet
+    from .utils import (
+        get_week_dates,
+        is_timesheet_manager,
+        update_weekly_status_of_timesheet,
+    )
+
+    frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
     if isinstance(dates, str):
         dates = json.loads(dates)
 
     current_week = get_week_dates(dates[0])
-
     timesheets = frappe.get_all(
         "Timesheet",
         {
@@ -188,6 +182,7 @@ def update_timesheet_status(
         if str(timesheet.start_date) not in dates:
             continue
         doc = frappe.get_doc("Timesheet", timesheet.name)
+        doc.flags.ignore_permissions = is_timesheet_manager()
         doc.custom_approval_status = status
         doc.save()
         if status == "Approved":

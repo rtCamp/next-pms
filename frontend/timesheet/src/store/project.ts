@@ -1,6 +1,6 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { sortOrder } from "@/types";
-import { getTableProps } from "@/app/pages/project/helper";
+
 export type Status = "Open" | "Completed" | "Cancelled";
 export type Priority = "Low" | "Medium" | "High";
 export type Billability =
@@ -42,7 +42,7 @@ export interface ProjectData {
 }
 
 export interface ProjectState {
-  isFetchAgain: boolean;
+
   data: ProjectData[];
   start: number;
   selectedProjectType: Array<string>;
@@ -53,10 +53,11 @@ export interface ProjectState {
   orderColumn: string;
   pageLength: number;
   selectedBusinessUnit: Array<string>;
+  totalCount: number;
 }
 
 export const initialState: ProjectState = {
-  isFetchAgain: false,
+
   data: [],
   start: 0,
   pageLength: 20,
@@ -65,8 +66,9 @@ export const initialState: ProjectState = {
   selectedStatus: [],
   selectedBusinessUnit: [],
   statusList: ["Open", "Completed", "Cancelled"],
-  order: getTableProps().order,
-  orderColumn: getTableProps().orderColumn,
+  order: "desc",
+  orderColumn: "project_name",
+  totalCount: 0,
 };
 
 export const projectSlice = createSlice({
@@ -75,42 +77,35 @@ export const projectSlice = createSlice({
   reducers: {
     setProjectData: (state, action: PayloadAction<Array<ProjectData>>) => {
       state.data = action.payload;
-      state.isFetchAgain = false;
     },
     updateProjectData: (state, action: PayloadAction<Array<ProjectData>>) => {
       state.data = [...state.data, ...action.payload];
-      state.isFetchAgain = false;
     },
-    setStart: (state, action: PayloadAction<number>) => {
-      state.start = action.payload;
-      state.pageLength = initialState.pageLength;
-      state.isFetchAgain = true;
+    setStart: (state) => {
+      state.start = 0;
+      state.pageLength = state.data.length + initialState.pageLength;
     },
     setSearch: (state, action: PayloadAction<string>) => {
       state.search = action.payload;
       state.start = initialState.start;
       state.pageLength = initialState.pageLength;
       state.data = initialState.data;
-      state.isFetchAgain = true;
     },
     setSelectedProjectType: (state, action: PayloadAction<Array<string>>) => {
       state.selectedProjectType = action.payload;
       state.data = initialState.data;
       state.start = initialState.start;
       state.pageLength = initialState.pageLength;
-      state.isFetchAgain = true;
     },
     setSelectedStatus: (state, action: PayloadAction<Array<Status>>) => {
       state.selectedStatus = action.payload;
       state.data = initialState.data;
       state.start = initialState.start;
       state.pageLength = initialState.pageLength;
-      state.isFetchAgain = true;
     },
     setSelectedBusinessUnit: (state, action: PayloadAction<Array<string>>) => {
       state.selectedBusinessUnit = action.payload;
       state.data = initialState.data;
-      state.isFetchAgain = true;
     },
     setFilters: (
       state,
@@ -119,6 +114,8 @@ export const projectSlice = createSlice({
         selectedStatus: Array<Status>;
         search: string;
         selectedBusinessUnit: Array<string>;
+        order: sortOrder;
+        orderColumn: string;
       }>,
     ) => {
       state.selectedProjectType = action.payload.selectedProjectType;
@@ -128,7 +125,9 @@ export const projectSlice = createSlice({
       state.data = initialState.data;
       state.start = initialState.start;
       state.pageLength = initialState.pageLength;
-      state.isFetchAgain = true;
+      state.order = action.payload.order;
+      state.orderColumn = action.payload.orderColumn;
+
     },
     setOrderBy: (
       state,
@@ -140,8 +139,10 @@ export const projectSlice = createSlice({
       state.order = action.payload.order;
       state.orderColumn = action.payload.orderColumn;
       state.data = initialState.data;
-      state.isFetchAgain = true;
     },
+    setTotalCount: (state, action: PayloadAction<number>) => {
+      state.totalCount = action.payload;
+    }
   },
 });
 export const {
@@ -153,6 +154,7 @@ export const {
   setSelectedStatus,
   setFilters,
   setOrderBy,
+  setTotalCount,
   setSelectedBusinessUnit
 } = projectSlice.actions;
 export default projectSlice.reducer;

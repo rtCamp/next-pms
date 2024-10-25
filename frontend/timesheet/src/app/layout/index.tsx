@@ -1,7 +1,8 @@
 import Sidebar from "./sidebar";
 import { Toaster } from "@/app/components/ui/toaster";
-import { Suspense, useContext, useEffect } from "react";
-import { FrappeConfig, FrappeContext, useFrappeGetCall } from "frappe-react-sdk";
+import { Suspense,  useEffect } from "react";
+import { useFrappeGetCall } from "frappe-react-sdk";
+import {ROLES} from "@/lib/constant";
 import { setEmployee } from "@/store/user";
 import { useDispatch, useSelector } from "react-redux";
 import { useToast } from "@/app/components/ui/use-toast";
@@ -14,7 +15,6 @@ import { updateScreenSize } from "@/store/app";
 import { setWorkingDetail } from "@/store/user";
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
-  // const { call } = useContext(FrappeContext) as FrappeConfig;
   const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
   const { toast } = useToast();
@@ -116,7 +116,8 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 export const PmRoute = () => {
   const user = useSelector((state: RootState) => state.user);
 
-  if (!user.roles.includes("Projects Manager") && !user.roles.includes("Timesheet Manager")) {
+  const hasAccess = user.roles.some(role => ROLES.includes(role));
+  if (!hasAccess) {
     return <Navigate to={TIMESHEET} />;
   }
   return <Outlet />;

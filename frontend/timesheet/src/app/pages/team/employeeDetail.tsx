@@ -15,6 +15,7 @@ import {
   expectatedHours,
   getDateTimeForMultipleTimeZoneSupport,
 } from "@/lib/utils";
+import { TaskLog } from "@/app/pages/task/taskLog";
 import { LoadMore } from "@/app/components/loadMore";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useToast } from "@/app/components/ui/use-toast";
@@ -27,7 +28,6 @@ import { addDays } from "date-fns";
 import AddTime from "@/app/components/addTime";
 import {
   setTimesheet,
-  setFetchAgain,
   setTimesheetData,
   updateTimesheetData,
   setEmployeeWeekDate,
@@ -75,7 +75,7 @@ const EmployeeDetail = () => {
     undefined,
     {
       errorRetryCount: 1,
-    },
+    }
   );
 
   const handleAddTime = () => {
@@ -107,10 +107,6 @@ const EmployeeDetail = () => {
   }, [id]);
 
   useEffect(() => {
-    if (teamState.isFetchAgain) {
-      mutate();
-      dispatch(setFetchAgain(false));
-    }
     if (data) {
       if (teamState.timesheetData.data && Object.keys(teamState.timesheetData.data).length > 0) {
         dispatch(updateTimesheetData(data.message));
@@ -126,22 +122,22 @@ const EmployeeDetail = () => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, teamState.employeeWeekDate, error, teamState.isFetchAgain]);
+  }, [data, teamState.employeeWeekDate, error]);
   const onEmployeeChange = (name: string) => {
     navigate(`/team/employee/${name}`);
   };
+
   return (
     <>
-      {teamState.isAprrovalDialogOpen && <Approval />}
+      {teamState.isAprrovalDialogOpen && <Approval onClose={mutate} />}
       {teamState.isDialogOpen && (
         <AddTime
           open={teamState.isDialogOpen}
           onOpenChange={() => {
+            mutate();
             dispatch(setDialog(false));
           }}
-          onSuccess={() => {
-            dispatch(setFetchAgain(true));
-          }}
+          onSuccess={mutate}
           task={teamState.timesheet.task}
           initialDate={teamState.timesheet.date}
           employee={teamState.employee}
@@ -158,7 +154,7 @@ const EmployeeDetail = () => {
           task={teamState.timesheet.task}
           onClose={() => {
             dispatch(setEditDialog(false));
-            dispatch(setFetchAgain(true));
+            mutate();
           }}
         />
       )}
@@ -177,7 +173,7 @@ const EmployeeDetail = () => {
               <Plus /> Time
             </Button>
           </div>
-          {isLoading ? (
+          {isLoading && Object.keys(teamState.timesheetData.data).length == 0 ? (
             <Spinner isFull />
           ) : (
             <>
@@ -185,11 +181,7 @@ const EmployeeDetail = () => {
                 <Timesheet />
               </TabsContent>
               <TabsContent value="time" className="mt-0">
-                <Time
-                  callback={() => {
-                    dispatch(setFetchAgain(true));
-                  }}
-                />
+                <Time callback={mutate} />
               </TabsContent>
             </>
           )}
@@ -298,8 +290,10 @@ const Timesheet = () => {
 };
 
 export const Time = ({ callback }: { callback?: () => void }) => {
+  const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<string>("");
   const teamState = useSelector((state: RootState) => state.team);
-  const { call } = useFrappePostCall("frappe_pms.timesheet.api.timesheet.save");
+  const { call } = useFrappePostCall("frappe_pms.timesheet.api.timesheet.update_timesheet_detail");
   const { toast } = useToast();
   const dispatch = useDispatch();
   const updateTime = (value: NewTimesheetProps) => {
@@ -336,6 +330,9 @@ export const Time = ({ callback }: { callback?: () => void }) => {
   const working_hour = expectatedHours(teamState.timesheetData.working_hour, teamState.timesheetData.working_frequency);
   return (
     <div>
+      {isTaskLogDialogBoxOpen && (
+        <TaskLog task={selectedTask} isOpen={isTaskLogDialogBoxOpen} onOpenChange={setIsTaskLogDialogBoxOpen} />
+      )}
       {teamState.timesheetData.data &&
         Object.keys(teamState.timesheetData.data).length > 0 &&
         Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet], index: number) => {
@@ -388,10 +385,10 @@ export const Time = ({ callback }: { callback?: () => void }) => {
                             ...taskItem,
                             subject: task.subject,
                             project_name: task.project_name,
-                          })),
+                          }))
                       );
                       const holiday = teamState.timesheetData.holidays.find(
-                        (holiday) => typeof holiday !== "string" && holiday.holiday_date === date,
+                        (holiday) => typeof holiday !== "string" && holiday.holiday_date === date
                       );
                       const isHoliday = !!holiday;
                       let totalHours = matchingTasks.reduce((sum, task) => sum + task.hours, 0);
@@ -413,7 +410,7 @@ export const Time = ({ callback }: { callback?: () => void }) => {
                       const isExtended = calculateExtendedWorkingHour(
                         totalHours,
                         teamState.timesheetData.working_hour,
-                        teamState.timesheetData.working_frequency,
+                        teamState.timesheetData.working_frequency
                       );
                       return (
                         <div key={index} className="flex flex-col">
@@ -423,7 +420,7 @@ export const Time = ({ callback }: { callback?: () => void }) => {
                               className={cn(
                                 isExtended == 0 && "text-destructive",
                                 isExtended && "text-success",
-                                isExtended == 2 && "text-warning",
+                                isExtended == 2 && "text-warning"
                               )}
                             >
                               {floatToTime(totalHours)}h
@@ -453,6 +450,7 @@ export const Time = ({ callback }: { callback?: () => void }) => {
                               hours: task.hours,
                               is_billable: task.is_billable,
                             };
+
                             return (
                               <div className="flex gap-x-4 p-2 border-b last:border-b-0" key={index}>
                                 <TimeInput
@@ -468,15 +466,22 @@ export const Time = ({ callback }: { callback?: () => void }) => {
                                       title={task.is_billable == 1 ? "Billable task" : ""}
                                       className={cn(
                                         task.is_billable && "cursor-pointer",
-                                        "w-6 h-full flex justify-center flex-none",
+                                        "w-6 h-full flex justify-center flex-none"
                                       )}
                                     >
                                       {task.is_billable == 1 && (
                                         <CircleDollarSign className="w-4 h-5 ml-1 stroke-success" />
                                       )}
                                     </div>
-                                    <div className="flex flex-col max-w-xs">
-                                      <Typography variant="p" className="truncate">
+                                    <div className="flex flex-col max-w-xs ">
+                                      <Typography
+                                        variant="p"
+                                        className="truncate hover:underline hover:cursor-pointer"
+                                        onClick={() => {
+                                          setSelectedTask(task.task);
+                                          setIsTaskLogDialogBoxOpen(true);
+                                        }}
+                                      >
                                         {task.subject}
                                       </Typography>
                                       <Typography variant="small" className="truncate text-slate-500">

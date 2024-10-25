@@ -3,9 +3,7 @@ import frappe
 
 def after_insert(doc, method=None):
     if doc.project:
-        custom_billing_type = frappe.db.get_value(
-            "Project", doc.project, "custom_billing_type"
-        )
+        custom_billing_type = frappe.db.get_value("Project", doc.project, "custom_billing_type")
 
         is_billable = custom_billing_type != "Non-Billable"
 

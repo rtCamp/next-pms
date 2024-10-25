@@ -56,7 +56,6 @@ const AddTime = ({
   const form = useForm<z.infer<typeof TimesheetSchema>>({
     resolver: zodResolver(TimesheetSchema),
     defaultValues: {
-      name: "",
       task: task,
       hours: "",
       description: "",
@@ -152,7 +151,7 @@ const AddTime = ({
     undefined,
     {
       revalidateOnFocus: false,
-    },
+    }
   );
   const onEmployeeChange = (value: string) => {
     setSelectedEmployee(value);
@@ -184,7 +183,7 @@ const AddTime = ({
               className={cn(
                 Number(perDayEmpHours?.message) >= 0 && Number(perDayEmpHours?.message) <= expectedHours
                   ? "text-success"
-                  : "text-destructive",
+                  : "text-destructive"
               )}
             >
               {perDayEmpHours
