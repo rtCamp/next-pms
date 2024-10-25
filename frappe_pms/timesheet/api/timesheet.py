@@ -23,6 +23,19 @@ now = nowdate()
 @frappe.whitelist()
 def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
     """Get timesheet data for the given employee for the given number of weeks."""
+    user_roles = frappe.get_roles()
+
+    if not employee:
+        employee = get_employee_from_user()
+
+    if frappe.session.user != "Administrator":
+        if not frappe.has_permission("Employee", "read", employee) and (
+            "Timesheet Manager" not in user_roles and "Timesheet User" not in user_roles
+        ):
+            throw(
+                _("You don't have permission to access this employee's timesheet."),
+                frappe.PermissionError,
+            )
 
     def generate_week_data(start_date, max_week, employee=None):
         data = {}
@@ -49,8 +62,6 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
 
     hour_detail = get_employee_working_hours(employee)
     res = {**hour_detail}
-    if not employee:
-        employee = get_employee_from_user()
 
     if not employee and frappe.session.user == "Administrator":
         res["data"] = generate_week_data(start_date, max_week)

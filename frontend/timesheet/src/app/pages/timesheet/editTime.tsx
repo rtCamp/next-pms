@@ -17,6 +17,8 @@ import { useEffect, useState } from "react";
 import { Separator } from "@/app/components/ui/separator";
 import { useToast } from "@/app/components/ui/use-toast";
 import { LoaderCircle, Plus, Save, Trash2 } from "lucide-react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 interface EditTimeProps {
   employee: string;
@@ -32,6 +34,8 @@ interface TaskProps {
 }
 export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const user = useSelector((state: RootState) => state.user);
+  const hasAccess = user.roles.includes("Projects Manager") || user.roles.includes("Timesheet Manager");
   const [employeeData, setEmployeeData] = useState<TaskProps>({
     data: [],
     task: "",
@@ -48,7 +52,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
   const columns = ["Hours", "Description", "Billable", ""];
   const { toast } = useToast();
   const { call: updateTimesheet } = useFrappePostCall(
-    "frappe_pms.timesheet.api.timesheet.bulk_update_timesheet_detail",
+    "frappe_pms.timesheet.api.timesheet.bulk_update_timesheet_detail"
   );
   const { call: deleteTimesheet } = useFrappePostCall("frappe_pms.timesheet.api.timesheet.delete");
   const { data, isLoading, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.timesheet.get_timesheet_details", {
@@ -188,6 +192,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
                           key != 1 && "max-w-16",
                           key == 0 && "max-w-16",
                           key == 2 && "max-w-8",
+                          key == 2 && !hasAccess && "hidden"
                         )}
                       >
                         {column}
@@ -236,20 +241,22 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
                         );
                       }}
                     />
-                    <FormField
-                      control={form.control}
-                      name={`data.${index}.is_billable`}
-                      render={({ field }) => {
-                        return (
-                          <FormItem className="w-full flex justify-center items-center min-h-10 max-w-12 px-2 text-center">
-                            <FormControl>
-                              <Checkbox checked={Boolean(field.value)} onCheckedChange={field.onChange} />
-                            </FormControl>
-                            <FormMessage className="text-xs" />
-                          </FormItem>
-                        );
-                      }}
-                    />
+                    {hasAccess && (
+                      <FormField
+                        control={form.control}
+                        name={`data.${index}.is_billable`}
+                        render={({ field }) => {
+                          return (
+                            <FormItem className="w-full flex justify-center items-center min-h-10 max-w-12 px-2 text-center">
+                              <FormControl>
+                                <Checkbox checked={Boolean(field.value)} onCheckedChange={field.onChange} />
+                              </FormControl>
+                              <FormMessage className="text-xs" />
+                            </FormItem>
+                          );
+                        }}
+                      />
+                    )}
                     <div className=" flex items-center min-h-10 gap-2 px-2">
                       <Button
                         variant="destructive"
