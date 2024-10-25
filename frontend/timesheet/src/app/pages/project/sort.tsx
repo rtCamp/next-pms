@@ -23,6 +23,10 @@ const Sort = ({ metaFields, type }: { metaFields: any; type: string | undefined 
   const [colMap, setColMap] = useState<Array<{ label: string; value: string }>>([]);
 
   useEffect(() => {
+    setOrder(projectState.order);
+    setOrderColumn(projectState.orderColumn);
+  }, [projectState.order, projectState.orderColumn]);
+  useEffect(() => {
     if (!metaFields) return;
     const columns = fields
       .map((field) => {

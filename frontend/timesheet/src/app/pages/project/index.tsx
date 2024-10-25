@@ -2,7 +2,7 @@ import { DeBounceInput } from "@/app/components/deBounceInput";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { RootState } from "@/store";
 import { useFrappeGetDocList, useFrappeGetCall } from "frappe-react-sdk";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Header, Footer } from "@/app/layout/root";
 import { LoadMore } from "@/app/components/loadMore";
@@ -56,17 +56,14 @@ import useFrappeDoctypeMeta from "@/app/hooks/useFrappeDoctypeMeta";
 
 const Project = () => {
   const { type } = useParams();
-
   const projectState = useSelector((state: RootState) => state.project);
   const dispatch = useDispatch();
   const { toast } = useToast();
 
-  const tableprop = useMemo(() => {
-    return getTableProps(type);
-  }, []);
+  const [tableprop, setTableprop] = useState(getTableProps(type));
   const [colSizing, setColSizing] = useState<ColumnSizingState>({});
   const [columnOrder, setColumnOrder] = useState<string[]>(tableprop.columnOrder);
-  const [tableAttributeProps, setTableAttributeProps] = useState(tableprop);
+
   const [columnVisibility, setColumnVisibility] = useState(createFalseValuedObject(tableprop.hideColumn));
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [searchParam, setSearchParam] = useQueryParamsState("search", "");
@@ -76,17 +73,20 @@ const Project = () => {
   const { doc } = useFrappeDoctypeMeta("Project");
   const rows = getFieldInfo(type);
   useEffect(() => {
+    const props = getTableProps(type);
+    setTableprop(props);
+
     const payload = {
       selectedProjectType: projectTypeParam,
       search: searchParam,
       selectedStatus: statusParam,
       selectedBusinessUnit: businessUnitParam,
-      order: tableAttributeProps.order,
-      orderColumn: tableAttributeProps.orderColumn,
+      order: props.order,
+      orderColumn: props.orderColumn,
     };
     dispatch(setFilters(payload));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [type]);
 
   const { data: projectType } = useFrappeGetCall(
     "frappe.client.get_list",
@@ -114,7 +114,8 @@ const Project = () => {
       revalidateIfStale: false,
     }
   );
-  const { data, error, isLoading } = useFrappeGetDocList("Project", {
+
+  const { data, isLoading } = useFrappeGetDocList("Project", {
     fields: rows,
     // eslint-disable-next-line
     //   @ts-ignore
@@ -126,6 +127,7 @@ const Project = () => {
       order: projectState.order as "asc" | "desc" | undefined,
     },
   });
+
   const { data: count } = useFrappeDocTypeCount("Project", { filters: getFilter(projectState) });
 
   const handleSearch = useCallback(
@@ -166,7 +168,6 @@ const Project = () => {
     [dispatch]
   );
 
-
   useEffect(() => {
     if (data) {
       if (projectState.data.length === 0) {
@@ -175,15 +176,16 @@ const Project = () => {
         dispatch(updateProjectData(data));
       }
     }
-    if (error) {
-      const err = parseFrappeErrorMsg(error);
-      toast({
-        variant: "destructive",
-        description: err,
-      });
-    }
+
+    // if (error) {
+    //   const err = parseFrappeErrorMsg(error);
+    //   toast({
+    //     variant: "destructive",
+    //     description: err,
+    //   });
+    // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, error]);
+  }, [data]);
 
   useEffect(() => {
     if (count) {
@@ -202,31 +204,30 @@ const Project = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [buError]);
   useEffect(() => {
-    const updatedWidth = { ...tableAttributeProps.columnWidth, ...colSizing };
+    const updatedWidth = { ...tableprop.columnWidth, ...colSizing };
     const updatedTableProp = {
       ...tableprop,
-
       columnWidth: updatedWidth,
       columnOrder: columnOrder,
     };
-    setTableAttributeProps(updatedTableProp);
+    setTableprop(updatedTableProp);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [colSizing, columnOrder]);
 
   useEffect(() => {
     const updateTableProps = {
-      ...tableAttributeProps,
+      ...tableprop,
       order: projectState.order,
       orderColumn: projectState.orderColumn,
     };
-    setTableAttributeProps(updateTableProps);
+    setTableprop(updateTableProps);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectState.order, projectState.orderColumn]);
 
   useEffect(() => {
     const key = `__listview::project:${type ? type : "all"}`;
-    localStorage.setItem(key, JSON.stringify(tableAttributeProps));
-  }, [tableAttributeProps]);
+    localStorage.setItem(key, JSON.stringify(tableprop));
+  }, [tableprop]);
 
   const columns = getColumn(type, doc?.fields);
   const table = useReactTable({
@@ -247,7 +248,7 @@ const Project = () => {
   });
 
   const resetTable = () => {
-    setTableAttributeProps(projectTableMap);
+    setTableprop(projectTableMap);
     setColumnVisibility({});
     setColumnOrder(projectTableMap.columnOrder);
     table.setColumnSizing(projectTableMap.columnWidth);
@@ -256,7 +257,7 @@ const Project = () => {
     setIsExportOpen(true);
   };
   const handleColumnHide = (id: string) => {
-    const prev = tableAttributeProps;
+    const prev = tableprop;
     if (prev.hideColumn.includes(id)) {
       const mutatedHideColumn = [...prev.hideColumn];
       const index = mutatedHideColumn.indexOf(id);
@@ -264,11 +265,11 @@ const Project = () => {
         mutatedHideColumn.splice(index, 1);
       }
       const attr = { ...prev, hideColumn: mutatedHideColumn };
-      setTableAttributeProps(attr);
+      setTableprop(attr);
     } else {
       const mutatedHideColumnSet = new Set([...prev.hideColumn, id]);
       const attr = { ...prev, hideColumn: [...mutatedHideColumnSet] };
-      setTableAttributeProps(attr);
+      setTableprop(attr);
     }
   };
 
@@ -284,6 +285,7 @@ const Project = () => {
       });
     return fields;
   };
+
   return (
     <>
       <Header className="gap-x-3 flex items-center overflow-x-auto">
