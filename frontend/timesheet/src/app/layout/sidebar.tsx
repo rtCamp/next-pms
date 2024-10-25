@@ -92,8 +92,8 @@ const Sidebar = () => {
       children: [
         {
           to: PROJECT,
-          label: "Project",
-          key: "project",
+          label: "Dashboard",
+          key: "dashboard",
         },
         {
           to: `${PROJECT}/fixed-cost`,
