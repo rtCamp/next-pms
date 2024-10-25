@@ -2,7 +2,7 @@ import { DeBounceInput } from "@/app/components/deBounceInput";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { RootState } from "@/store";
 import { useFrappeGetDocList, useFrappeGetCall } from "frappe-react-sdk";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Header, Footer } from "@/app/layout/root";
 import { LoadMore } from "@/app/components/loadMore";
@@ -41,7 +41,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
-import { getFilter, getTableProps, projectTableMap, columnMap } from "./helper";
+import { getFilter, getTableProps, projectTableMap, getFieldInfo } from "./helper";
 import { getColumn } from "./column";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -51,35 +51,43 @@ import { Checkbox } from "@/app/components/ui/checkbox";
 import Sort from "./sort";
 import { TouchBackend } from "react-dnd-touch-backend";
 import { Export } from "@/app/components/listview/export";
+import { useParams } from "react-router-dom";
+import useFrappeDoctypeMeta from "@/app/hooks/useFrappeDoctypeMeta";
 
 const Project = () => {
+  const { type } = useParams();
   const projectState = useSelector((state: RootState) => state.project);
   const dispatch = useDispatch();
   const { toast } = useToast();
 
-  const tableprop = useMemo(() => {
-    return getTableProps();
-  }, []);
+  const [tableprop, setTableprop] = useState(getTableProps(type));
   const [colSizing, setColSizing] = useState<ColumnSizingState>({});
   const [columnOrder, setColumnOrder] = useState<string[]>(tableprop.columnOrder);
-  const [tableAttributeProps, setTableAttributeProps] = useState(tableprop);
+
   const [columnVisibility, setColumnVisibility] = useState(createFalseValuedObject(tableprop.hideColumn));
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [searchParam, setSearchParam] = useQueryParamsState("search", "");
   const [projectTypeParam, setProjectTypeParam] = useQueryParamsState<Array<string>>("project-type", []);
   const [statusParam, setStatusParam] = useQueryParamsState<Array<Status>>("status", []);
   const [businessUnitParam, setBusinessUnitParam] = useQueryParamsState<Array<string>>("business-unit", []);
-
+  const { doc } = useFrappeDoctypeMeta("Project");
+  const rows = getFieldInfo(type);
   useEffect(() => {
+    const props = getTableProps(type);
+    setTableprop(props);
+     setColumnOrder(props.columnOrder); 
+     setColumnVisibility(createFalseValuedObject(props.hideColumn));
     const payload = {
       selectedProjectType: projectTypeParam,
       search: searchParam,
       selectedStatus: statusParam,
       selectedBusinessUnit: businessUnitParam,
+      order: props.order,
+      orderColumn: props.orderColumn,
     };
     dispatch(setFilters(payload));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [type]);
 
   const { data: projectType } = useFrappeGetCall(
     "frappe.client.get_list",
@@ -107,11 +115,12 @@ const Project = () => {
       revalidateIfStale: false,
     }
   );
-  const { data, error, isLoading } = useFrappeGetDocList("Project", {
-    fields: ["*"],
+
+  const { data, isLoading } = useFrappeGetDocList("Project", {
+    fields: rows,
     // eslint-disable-next-line
     //   @ts-ignore
-    filters: getFilter(projectState),
+    filters: getFilter(projectState,type),
     limit_start: projectState.start,
     limit: projectState.pageLength,
     orderBy: {
@@ -119,7 +128,8 @@ const Project = () => {
       order: projectState.order as "asc" | "desc" | undefined,
     },
   });
-  const { data: count } = useFrappeDocTypeCount("Project", { filters: getFilter(projectState) });
+
+  const { data: count } = useFrappeDocTypeCount("Project", { filters: getFilter(projectState, type) });
 
   const handleSearch = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -161,27 +171,28 @@ const Project = () => {
 
   useEffect(() => {
     if (data) {
-      if (projectState.data.length === 0) {
-        dispatch(setProjectData(data));
-      } else {
-        dispatch(updateProjectData(data));
-      }
+      dispatch(setProjectData(data));
+      // if (projectState.data.length === 0) {
+      // } else {
+      //   dispatch(updateProjectData(data));
+      // }
     }
-    if (error) {
-      const err = parseFrappeErrorMsg(error);
-      toast({
-        variant: "destructive",
-        description: err,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, error]);
 
-  useEffect(() => {
-    if (count) {
-      dispatch(setTotalCount(count));
-    }
-  }, [count, dispatch]);
+    // if (error) {
+    //   const err = parseFrappeErrorMsg(error);
+    //   toast({
+    //     variant: "destructive",
+    //     description: err,
+    //   });
+    // }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
+
+  // useEffect(() => {
+  //   if (count) {
+  //     dispatch(setTotalCount(count));
+  //   }
+  // }, [count, dispatch]);
 
   useEffect(() => {
     if (buError) {
@@ -194,32 +205,32 @@ const Project = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [buError]);
   useEffect(() => {
-    const updatedWidth = { ...tableAttributeProps.columnWidth, ...colSizing };
+    const updatedWidth = { ...tableprop.columnWidth, ...colSizing };
     const updatedTableProp = {
       ...tableprop,
-
       columnWidth: updatedWidth,
       columnOrder: columnOrder,
     };
-    setTableAttributeProps(updatedTableProp);
+    setTableprop(updatedTableProp);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [colSizing, columnOrder]);
 
   useEffect(() => {
     const updateTableProps = {
-      ...tableAttributeProps,
+      ...tableprop,
       order: projectState.order,
       orderColumn: projectState.orderColumn,
     };
-    setTableAttributeProps(updateTableProps);
+    setTableprop(updateTableProps);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectState.order, projectState.orderColumn]);
 
   useEffect(() => {
-    localStorage.setItem("project_list", JSON.stringify(tableAttributeProps));
-  }, [tableAttributeProps]);
+    const key = `__listview::project:${type ? type : "all"}`;
+    localStorage.setItem(key, JSON.stringify(tableprop));
+  }, [tableprop]);
 
-  const columns = getColumn();
+  const columns = getColumn(type, doc?.fields);
   const table = useReactTable({
     columns: columns,
     data: projectState.data,
@@ -238,7 +249,7 @@ const Project = () => {
   });
 
   const resetTable = () => {
-    setTableAttributeProps(projectTableMap);
+    setTableprop(projectTableMap);
     setColumnVisibility({});
     setColumnOrder(projectTableMap.columnOrder);
     table.setColumnSizing(projectTableMap.columnWidth);
@@ -247,7 +258,7 @@ const Project = () => {
     setIsExportOpen(true);
   };
   const handleColumnHide = (id: string) => {
-    const prev = tableAttributeProps;
+    const prev = tableprop;
     if (prev.hideColumn.includes(id)) {
       const mutatedHideColumn = [...prev.hideColumn];
       const index = mutatedHideColumn.indexOf(id);
@@ -255,12 +266,25 @@ const Project = () => {
         mutatedHideColumn.splice(index, 1);
       }
       const attr = { ...prev, hideColumn: mutatedHideColumn };
-      setTableAttributeProps(attr);
+      setTableprop(attr);
     } else {
       const mutatedHideColumnSet = new Set([...prev.hideColumn, id]);
       const attr = { ...prev, hideColumn: [...mutatedHideColumnSet] };
-      setTableAttributeProps(attr);
+      setTableprop(attr);
     }
+  };
+
+  const getRows = () => {
+    const fields: Record<string, string> = {};
+    rows
+      .filter((field) => field !== "name")
+      .forEach((field: string) => {
+        const meta = doc?.fields.find((f: { fieldname: string }) => f.fieldname === field);
+        if (meta) {
+          fields[field] = meta.label;
+        }
+      });
+    return fields;
   };
 
   return (
@@ -338,8 +362,9 @@ const Project = () => {
             onColumnHide={handleColumnHide}
             setColumnOrder={setColumnOrder}
             columnOrder={columnOrder}
+            metaFields={doc?.fields}
           />
-          <Sort />
+          <Sort metaFields={doc?.fields} type={type} />
           <Action resetTable={resetTable} openExport={openExportDialog} />
         </div>
       </Header>
@@ -352,10 +377,10 @@ const Project = () => {
             totalCount={projectState.totalCount}
             orderBy={`${projectState.orderColumn} ${projectState.order}`}
             pageLength={projectState.data.length}
-            fields={columnMap}
+            fields={getRows()}
             isOpen={isExportOpen}
             setIsOpen={setIsExportOpen}
-            filters={getFilter(projectState)}
+            filters={getFilter(projectState, type)}
           />
           <Table className=" [&_td]:px-4 [&_th]:px-4 [&_th]:py-4 table-fixed" style={{ width: table.getTotalSize() }}>
             <TableHeader className=" border-t-0 sticky top-0 z-10 ">
@@ -425,13 +450,13 @@ const Project = () => {
         <div className="flex  justify-between items-center ">
           <LoadMore
             variant="outline"
-            disabled={projectState.data.length == (projectState.totalCount ?? 0) || isLoading}
+            disabled={projectState.data.length == (count ?? 0) || isLoading}
             onClick={() => {
-              dispatch(setStart(projectState.start + projectState.pageLength));
+              dispatch(setStart());
             }}
           />
           <Typography variant="p" className="lg:px-5 font-semibold">
-            {`${projectState.data.length} of ${projectState.totalCount ?? 0}`}
+            {`${projectState.data.length} of ${count ?? 0}`}
           </Typography>
         </div>
       </Footer>
@@ -472,11 +497,13 @@ const ColumnSelector = ({
   onColumnHide,
   setColumnOrder,
   columnOrder,
+  metaFields,
 }: {
   table: T<ProjectData>;
   onColumnHide: (id: string) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setColumnOrder: any;
+  metaFields: any;
   columnOrder: string[];
 }) => {
   return (
@@ -494,10 +521,13 @@ const ColumnSelector = ({
             .filter((column) => column.getCanHide())
             .sort((a, b) => columnOrder.indexOf(a.id) - columnOrder.indexOf(b.id))
             .map((column) => {
+              const label = metaFields.find((f: { fieldname: string }) => f.fieldname == column.id)?.label;
+
               return (
                 <ColumnItem
                   key={column.id}
                   id={column.id}
+                  label={label}
                   onColumnHide={onColumnHide}
                   getIsVisible={column.getIsVisible}
                   toggleVisibility={column.toggleVisibility}
@@ -516,8 +546,10 @@ const ColumnItem = ({
   reOrder,
   getIsVisible,
   toggleVisibility,
+  label,
 }: {
   id: string;
+  label: string;
   onColumnHide: (id: string) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   reOrder: any;
@@ -570,7 +602,7 @@ const ColumnItem = ({
           opacity: isDragging ? 0.5 : 1,
         }}
       >
-        {columnMap[id as keyof typeof columnMap]}
+        {label}
         <GripVertical />
       </span>
     </DropdownMenuItem>
