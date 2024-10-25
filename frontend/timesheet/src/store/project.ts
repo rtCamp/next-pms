@@ -81,9 +81,9 @@ export const projectSlice = createSlice({
     updateProjectData: (state, action: PayloadAction<Array<ProjectData>>) => {
       state.data = [...state.data, ...action.payload];
     },
-    setStart: (state, action: PayloadAction<number>) => {
-      state.start = action.payload;
-      state.pageLength = initialState.pageLength;
+    setStart: (state) => {
+      state.start = 0;
+      state.pageLength = state.data.length + initialState.pageLength;
     },
     setSearch: (state, action: PayloadAction<string>) => {
       state.search = action.payload;

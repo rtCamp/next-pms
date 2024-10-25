@@ -171,11 +171,11 @@ const Project = () => {
 
   useEffect(() => {
     if (data) {
-      if (projectState.data.length === 0) {
-        dispatch(setProjectData(data));
-      } else {
-        dispatch(updateProjectData(data));
-      }
+      dispatch(setProjectData(data));
+      // if (projectState.data.length === 0) {
+      // } else {
+      //   dispatch(updateProjectData(data));
+      // }
     }
 
     // if (error) {
@@ -188,11 +188,11 @@ const Project = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
-  useEffect(() => {
-    if (count) {
-      dispatch(setTotalCount(count));
-    }
-  }, [count, dispatch]);
+  // useEffect(() => {
+  //   if (count) {
+  //     dispatch(setTotalCount(count));
+  //   }
+  // }, [count, dispatch]);
 
   useEffect(() => {
     if (buError) {
@@ -380,7 +380,7 @@ const Project = () => {
             fields={getRows()}
             isOpen={isExportOpen}
             setIsOpen={setIsExportOpen}
-            filters={getFilter(projectState,type)}
+            filters={getFilter(projectState, type)}
           />
           <Table className=" [&_td]:px-4 [&_th]:px-4 [&_th]:py-4 table-fixed" style={{ width: table.getTotalSize() }}>
             <TableHeader className=" border-t-0 sticky top-0 z-10 ">
@@ -450,13 +450,13 @@ const Project = () => {
         <div className="flex  justify-between items-center ">
           <LoadMore
             variant="outline"
-            disabled={projectState.data.length == (projectState.totalCount ?? 0) || isLoading}
+            disabled={projectState.data.length == (count ?? 0) || isLoading}
             onClick={() => {
-              dispatch(setStart(projectState.start + projectState.pageLength));
+              dispatch(setStart());
             }}
           />
           <Typography variant="p" className="lg:px-5 font-semibold">
-            {`${projectState.data.length} of ${projectState.totalCount ?? 0}`}
+            {`${projectState.data.length} of ${count ?? 0}`}
           </Typography>
         </div>
       </Footer>
