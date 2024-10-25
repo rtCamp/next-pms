@@ -229,7 +229,8 @@ export const Approval = ({ onClose }: { onClose: () => void }) => {
                             disabled={
                               submittedTime ||
                               isHoliday ||
-                              (leave && !isHalfDayLeave && !isHoliday && matchingTasks.length == 0)
+                              (leave && !isHalfDayLeave && !isHoliday && matchingTasks.length == 0) ||
+                              matchingTasks.length == 0
                             }
                             checked={isChecked || submittedTime}
                             className={cn(submittedTime && "data-[state=checked]:bg-success border-success")}
