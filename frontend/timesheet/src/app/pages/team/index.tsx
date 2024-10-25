@@ -22,6 +22,7 @@ import {
   setFilters,
   setStatus,
   setEmployee,
+  resetState,
 } from "@/store/team";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg, prettyDate, floatToTime, getFormatedDate, cn, preProcessLink } from "@/lib/utils";
@@ -90,15 +91,18 @@ const Team = () => {
       status: employeeStatusParam,
     };
     dispatch(setFilters(payload));
+     return () => {
+       dispatch(resetState());
+     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { data, isLoading, isValidating, error } = useFrappeGetCall(
+  const { data, isLoading, isValidating,mutate, error } = useFrappeGetCall(
     "frappe_pms.timesheet.api.team.get_compact_view_data",
     {
       date: teamState.weekDate,
       max_week: 1,
-      page_length: 20,
+      page_length: teamState.pageLength,
       employee_name: teamState.employeeName,
       project: teamState.project,
       user_group: teamState.userGroup,
@@ -204,7 +208,7 @@ const Team = () => {
   );
   const handleLoadMore = () => {
     if (!teamState.hasMore) return;
-    dispatch(setStart(teamState.start + 20));
+    dispatch(setStart(teamState.start + teamState.pageLength));
   };
   const onStatusClick = (start_date: string, end_date: string, employee: string) => {
     const data = {
@@ -238,7 +242,7 @@ const Team = () => {
   );
   return (
     <>
-      {teamState.isAprrovalDialogOpen && <Approval />}
+      {teamState.isAprrovalDialogOpen && <Approval onClose={mutate}/>}
       <Header className="flex items-center max-md:flex-col">
         <div id="filters" className="flex gap-x-2 max-md:gap-x-5  overflow-y-hidden max-md:w-full items-center">
           <DeBounceInput

@@ -9,6 +9,7 @@ export interface HomeState {
   employeeName?: string;
   status: Array<string>;
   weekDate: string;
+  pageLength: number;
   timesheet: {
     name: string;
     parent: string;
@@ -54,6 +55,7 @@ export const initialState: HomeState = {
     total_count: 0,
     has_more: true,
   },
+  pageLength: 20,
   isDialogOpen: false,
   isAprrovalDialogOpen: false,
   employeeName: "",
@@ -77,6 +79,8 @@ const homeSlice = createSlice({
     },
     setWeekDate: (state, action: PayloadAction<string>) => {
       state.weekDate = action.payload;
+      const pageLength = Object.keys(state.data.data).length;
+      state.pageLength = pageLength;
       state.data = initialState.data;
       state.start = 0;
     },
@@ -88,19 +92,23 @@ const homeSlice = createSlice({
       state.data = initialState.data;
       state.status = action.payload.status;
       state.start = 0;
+      state.pageLength = initialState.pageLength;
     },
     setStatus: (state, action: PayloadAction<Array<string>>) => {
       state.status = action.payload;
       state.data = initialState.data;
       state.start = 0;
+      state.pageLength = initialState.pageLength;
     },
     setEmployeeName: (state, action: PayloadAction<string>) => {
       state.employeeName = action.payload;
       state.data = initialState.data;
       state.start = 0;
+      state.pageLength = initialState.pageLength;
     },
     setStart: (state, action: PayloadAction<number>) => {
       state.start = action.payload;
+      state.pageLength = initialState.pageLength;
     },
     updateData: (state, action: PayloadAction<any>) => {
       const data = state.data.data;

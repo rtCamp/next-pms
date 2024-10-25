@@ -18,7 +18,7 @@ export interface TeamState {
   employeeWeekDate: string;
   project: Array<string>;
   userGroup: Array<string>;
-
+  pageLength: number;
   reportsTo: string;
   timesheet: {
     name: string;
@@ -65,7 +65,7 @@ export const initialState: TeamState = {
   reportsTo: "",
   status: ["Active"],
   isEditDialogOpen: false,
-
+  pageLength:20,
   data: {
     data: {},
     dates: [],
@@ -103,15 +103,18 @@ const TeamSlice = createSlice({
     setData: (state, action: PayloadAction<any>) => {
       state.data = action.payload;
       state.hasMore = action.payload.has_more;
+      state.pageLength = initialState.pageLength;
     },
     setEmployeeName: (state, action: PayloadAction<string>) => {
       state.employeeName = action.payload;
       state.data = initialState.data;
       state.start = 0;
+      state.pageLength = initialState.pageLength;
     },
     setStatusFilter: (state, action: PayloadAction<Array<string>>) => {
       state.statusFilter = action.payload;
       state.start = 0;
+      state.pageLength = initialState.pageLength;
       state.data = initialState.data;
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -130,8 +133,10 @@ const TeamSlice = createSlice({
     },
     setWeekDate: (state, action: PayloadAction<string>) => {
       state.weekDate = action.payload;
-      state.data = initialState.data;
       state.start = 0;
+      const pageLength = Object.keys(state.data.data).length;
+      state.pageLength = pageLength;
+      state.data = initialState.data;
     },
     setEmployeeWeekDate: (state, action: PayloadAction<string>) => {
       state.employeeWeekDate = action.payload;
@@ -140,9 +145,11 @@ const TeamSlice = createSlice({
       state.project = action.payload;
       state.data = initialState.data;
       state.start = 0;
+      state.pageLength = initialState.pageLength;
     },
     setStart: (state, action: PayloadAction<number>) => {
       state.start = action.payload;
+      state.pageLength = initialState.pageLength;
     },
     setHasMore: (state, action: PayloadAction<boolean>) => {
       state.hasMore = action.payload;
@@ -169,9 +176,8 @@ const TeamSlice = createSlice({
     setDialog: (state, action: PayloadAction<boolean>) => {
       state.isDialogOpen = action.payload;
     },
-    resetState: (state) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      state = initialState;
+    resetState() {
+      return initialState;
     },
     resetTimesheetDataState: (state) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -204,16 +210,19 @@ const TeamSlice = createSlice({
       state.userGroup = action.payload;
       state.data = initialState.data;
       state.start = 0;
+      state.pageLength = initialState.pageLength;
     },
     setReportsTo: (state, action: PayloadAction<string>) => {
       state.reportsTo = action.payload;
       state.data = initialState.data;
       state.start = 0;
+      state.pageLength = initialState.pageLength;
     },
     setStatus: (state, action: PayloadAction<Array<string>>) => {
       state.status = action.payload;
       state.data = initialState.data;
       state.start = 0;
+      state.pageLength = initialState.pageLength;
     },
 
     setFilters: (
@@ -233,6 +242,7 @@ const TeamSlice = createSlice({
       state.status = action.payload.status;
       state.employeeName = action.payload.employeeName;
       state.reportsTo = action.payload.reportsTo;
+      state.pageLength = initialState.pageLength;
       state.start = 0;
       state.data = initialState.data;
     },

@@ -67,20 +67,13 @@ const Home = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { data, error, isLoading } = useFrappeGetCall(
-    "frappe_pms.timesheet.api.team.get_compact_view_data",
-    {
-      date: homeState.weekDate,
-      employee_name: homeState.employeeName,
-      page_length: 20,
-      start: homeState.start,
-      status: homeState.status,
-    },
-    undefined,
-    {
-      revalidateOnFocus: false,
-    }
-  );
+  const { data, error, isLoading } = useFrappeGetCall("frappe_pms.timesheet.api.team.get_compact_view_data", {
+    date: homeState.weekDate,
+    employee_name: homeState.employeeName,
+    page_length: homeState.pageLength,
+    start: homeState.start,
+    status: homeState.status,
+  });
   useEffect(() => {
     if (data) {
       if (Object.keys(homeState.data.data).length > 0) {
@@ -127,7 +120,7 @@ const Home = () => {
 
   const handleLoadMore = useCallback(() => {
     if (!homeState.data.has_more) return;
-    dispatch(setStart(homeState.start + 20));
+    dispatch(setStart(homeState.start + homeState.pageLength));
   }, [dispatch, homeState.data.has_more, homeState.start]);
 
   return (
