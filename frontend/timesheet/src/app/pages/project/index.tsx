@@ -60,8 +60,9 @@ import { setViews, ViewData } from "@/store/view";
 import { createFilter, defaultView } from "./utils";
 import useFrappeDoctypeMeta from "@/app/hooks/useFrappeDoctypeMeta";
 import { getColumnInfo } from "./columns";
+import { Export } from "@/app/components/listview/export";
 
-const Action = ({ createView }: { createView: () => void }) => {
+const Action = ({ createView, openExportDialog }: { createView: () => void; openExportDialog: () => void }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -74,13 +75,9 @@ const Action = ({ createView }: { createView: () => void }) => {
           <Plus />
           <Typography variant="p">Create View </Typography>
         </DropdownMenuItem>
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={openExportDialog}>
           <Download />
           <Typography variant="p">Export </Typography>
-        </DropdownMenuItem>
-        <DropdownMenuItem>
-          <RotateCcw />
-          <Typography variant="p">Reset Table</Typography>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -254,7 +251,7 @@ const Project = () => {
   }, [viewData]);
 
   const { doc } = useFrappeDoctypeMeta("Project");
-  
+
   if (doc && viewData) {
     return (
       <ProjectTable
@@ -280,6 +277,7 @@ const ProjectTable = ({ view, viewData, meta, defaultView }: ProjectProps) => {
 
   const { call } = useFrappePostCall("frappe_pms.timesheet.doctype.pms_view_settings.pms_view_settings.update_view");
   const { toast } = useToast();
+  const [isExportOpen, setIsExportOpen] = useState(false);
   const [hasChanged, setHasChanged] = useState(false);
   const [colSizing, setColSizing] = useState<ColumnSizingState>(viewInfo.columns ?? {});
   const [columnOrder, setColumnOrder] = useState<string[]>(viewInfo.rows ?? []);
@@ -311,7 +309,7 @@ const ProjectTable = ({ view, viewData, meta, defaultView }: ProjectProps) => {
       revalidateIfStale: false,
     }
   );
-  const { data: businessUnit, error: buError } = useFrappeGetCall(
+  const { data: businessUnit } = useFrappeGetCall(
     "frappe.client.get_list",
     {
       doctype: "Business Unit",
@@ -324,7 +322,7 @@ const ProjectTable = ({ view, viewData, meta, defaultView }: ProjectProps) => {
       revalidateIfStale: false,
     }
   );
-  const { data, error, isLoading, mutate } = useFrappeGetDocList(
+  const { data, error, isLoading } = useFrappeGetDocList(
     "Project",
     {
       fields: viewInfo.rows ?? ["*"],
@@ -345,22 +343,10 @@ const ProjectTable = ({ view, viewData, meta, defaultView }: ProjectProps) => {
       revalidateIfStale: false,
     }
   );
-  const { data: count, mutate: countMutate } = useFrappeDocTypeCount(
-    "Project",
-    { filters: getFilter(projectState) },
-    undefined,
-    {
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-    }
-  );
-  // useEffect(() => {
-  //   if (projectState.isFetchAgain) {
-  //     // mutate();
-  //     // countMutate();
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [projectState.isFetchAgain]);
+  const { data: count } = useFrappeDocTypeCount("Project", { filters: getFilter(projectState) }, undefined, {
+    revalidateOnFocus: false,
+    revalidateIfStale: false,
+  });
 
   useEffect(() => {
     if (data) {
@@ -611,6 +597,9 @@ const ProjectTable = ({ view, viewData, meta, defaultView }: ProjectProps) => {
             createView={() => {
               setIsCreateViewOpen(true);
             }}
+            openExportDialog={() => {
+              setIsExportOpen(true);
+            }}
           />
         </div>
       </Header>
@@ -618,6 +607,21 @@ const ProjectTable = ({ view, viewData, meta, defaultView }: ProjectProps) => {
         <Spinner isFull />
       ) : (
         <>
+          <Export
+            isOpen={isExportOpen}
+            setIsOpen={setIsExportOpen}
+            doctype="Project"
+            pageLength={projectState.data.length}
+            totalCount={projectState.totalCount}
+            orderBy={`${projectState.orderColumn}  ${projectState.order}`}
+              fields={viewInfo.rows.reduce((acc, d) => {
+                if (d !== 'name') {
+                  const m = meta.fields.find((field: { fieldname: string }) => field.fieldname === d);
+                  acc[d] = m?.label ?? d;
+                }
+              return acc;
+            }, {})}
+          />
           <CreateView
             isOpen={isCreateViewOpen}
             setIsOpen={setIsCreateViewOpen}

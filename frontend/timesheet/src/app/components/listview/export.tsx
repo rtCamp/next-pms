@@ -21,7 +21,6 @@ interface ExportProps {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   totalCount: number;
-  inDropdown?: boolean;
 }
 
 enum fileType {
