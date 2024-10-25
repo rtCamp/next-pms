@@ -19,9 +19,7 @@ def generate_the_error_log(
     if is_mute_message:
         return
 
-    error_log_link = get_url_to_form(
-        "Error Log", frappe.db.get_value("Error Log", {"method": title}, "name")
-    )
+    error_log_link = get_url_to_form("Error Log", frappe.db.get_value("Error Log", {"method": title}, "name"))
 
     frappe.msgprint(
         f"{user_error_message} Please check the <a href='{error_log_link}'>Error Log</a> for more information.",

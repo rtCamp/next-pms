@@ -35,13 +35,13 @@ frappe.ui.form.on("Project", {
       frm.set_df_property(
         "custom_send_reminder_when_approaching_project_threshold_limit",
         "description",
-        "For retainer project, reminder is sent based on Latest Consumed Hours vs Latest Hours Purchased.",
+        "For retainer project, reminder is sent based on Latest Consumed Hours vs Latest Hours Purchased."
       );
     } else if (frm.doc.custom_billing_type == "Time and Material") {
       frm.set_df_property(
         "custom_send_reminder_when_approaching_project_threshold_limit",
         "description",
-        "For time and material project, reminder is sent based on Total Billable Amount (via Timesheet) vs Estimated Cost.",
+        "For time and material project, reminder is sent based on Total Billable Amount (via Timesheet) vs Estimated Cost."
       );
     }
   },
@@ -76,7 +76,7 @@ frappe.ui.form.on("Project", {
     });
 
     recalculate_dialog.$body.append(
-      `<p class="frappe-confirm-message">Please ensure all billing information is accurate before initiating the recalculation.</p>`,
+      `<p class="frappe-confirm-message">Please ensure all billing information is accurate before initiating the recalculation.</p>`
     );
     recalculate_dialog.show();
   },
@@ -87,7 +87,7 @@ frappe.ui.form.on("Project Billing Team", {
     if (frm.doc.custom_is_flat_rate_applicable && frm.doc.custom_flat_rate) {
       // Find the current row object.
       const custom_project_billing_team = frm.doc.custom_project_billing_team.find(
-        (custom_project_billing_team) => custom_project_billing_team.name == cdn,
+        (custom_project_billing_team) => custom_project_billing_team.name == cdn
       );
 
       // Update the values as well as html of child table.

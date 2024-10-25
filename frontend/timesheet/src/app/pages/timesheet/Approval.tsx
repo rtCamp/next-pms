@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
 import { RootState } from "@/store";
 import { useDispatch, useSelector } from "react-redux";
-import { setApprovalDialog, setDateRange, SetFetchAgain } from "@/store/timesheet";
+import { setApprovalDialog, setDateRange } from "@/store/timesheet";
 import { useToast } from "@/app/components/ui/use-toast";
 import { useFrappePostCall } from "frappe-react-sdk";
 import { useForm } from "react-hook-form";
@@ -15,7 +15,7 @@ import { Button } from "@/app/components/ui/button";
 import { LoaderCircle, Send } from "lucide-react";
 import { useState } from "react";
 
-export const Approval = () => {
+export const Approval = ({ onClose }: { onClose: () => void }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const timesheetState = useSelector((state: RootState) => state.timesheet);
   const user = useSelector((state: RootState) => state.user);
@@ -39,8 +39,8 @@ export const Approval = () => {
     form.reset();
     const data = { start_date: "", end_date: "" };
     dispatch(setDateRange(data));
-    dispatch(SetFetchAgain(true));
     dispatch(setApprovalDialog(false));
+    onClose();
   };
   const handleSubmit = (data: z.infer<typeof TimesheetApprovalSchema>) => {
     setIsSubmitting(true);

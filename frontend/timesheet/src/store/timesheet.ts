@@ -13,7 +13,7 @@ export interface TimesheetState {
     project?: string;
   };
   dateRange: { start_date: string; end_date: string };
-  isFetchAgain: boolean;
+
   data: DataProp;
   isDialogOpen: boolean;
   isEditDialogOpen: boolean;
@@ -32,7 +32,7 @@ export const initialState: TimesheetState = {
     project: "",
   },
   dateRange: { start_date: "", end_date: "" },
-  isFetchAgain: false,
+
   data: {
     working_hour: 0,
     working_frequency: "Per Day",
@@ -53,9 +53,7 @@ const timesheetSlice = createSlice({
     setData: (state, action: PayloadAction<DataProp>) => {
       state.data = action.payload;
     },
-    SetFetchAgain: (state, action: PayloadAction<boolean>) => {
-      state.isFetchAgain = action.payload;
-    },
+
     setDateRange: (state, action: PayloadAction<any>) => {
       state.dateRange = action.payload;
     },
@@ -94,7 +92,7 @@ const timesheetSlice = createSlice({
       state.isEditDialogOpen = action.payload;
       if (!action.payload) {
         state.timesheet = initialState.timesheet;
-        state.isFetchAgain = true;
+
       }
     },
   },
@@ -102,7 +100,6 @@ const timesheetSlice = createSlice({
 
 export const {
   setData,
-  SetFetchAgain,
   setDateRange,
   SetTimesheet,
   SetWeekDate,

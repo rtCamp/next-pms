@@ -114,36 +114,19 @@ const Project = () => {
       revalidateIfStale: false,
     }
   );
-  const { data, error, isLoading, mutate } = useFrappeGetDocList(
-    "Project",
-    {
-      fields: rows,
-      // eslint-disable-next-line
-      //   @ts-ignore
-      filters: getFilter(projectState),
-      limit_start: projectState.start,
-      limit: projectState.pageLength,
-      orderBy: {
-        field: projectState.orderColumn,
-        order: projectState.order as "asc" | "desc" | undefined,
-      },
+  const { data, error, isLoading } = useFrappeGetDocList("Project", {
+    fields: rows,
+    // eslint-disable-next-line
+    //   @ts-ignore
+    filters: getFilter(projectState),
+    limit_start: projectState.start,
+    limit: projectState.pageLength,
+    orderBy: {
+      field: projectState.orderColumn,
+      order: projectState.order as "asc" | "desc" | undefined,
     },
-    undefined,
-    {
-      shouldRetryOnError: false,
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-    }
-  );
-  const { data: count, mutate: countMutate } = useFrappeDocTypeCount(
-    "Project",
-    { filters: getFilter(projectState) },
-    undefined,
-    {
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-    }
-  );
+  });
+  const { data: count } = useFrappeDocTypeCount("Project", { filters: getFilter(projectState) });
 
   const handleSearch = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -183,16 +166,9 @@ const Project = () => {
     [dispatch]
   );
 
-  useEffect(() => {
-    if (projectState.isFetchAgain) {
-      mutate();
-      countMutate();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectState.isFetchAgain]);
 
   useEffect(() => {
-    if (data && projectState.isFetchAgain) {
+    if (data) {
       if (projectState.data.length === 0) {
         dispatch(setProjectData(data));
       } else {

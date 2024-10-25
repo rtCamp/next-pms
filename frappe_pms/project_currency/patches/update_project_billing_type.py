@@ -10,10 +10,7 @@ def execute():
     for project in all_projects:
         project = frappe.get_doc("Project", project.name)
         if project.project_type:
-            if (
-                project.project_type == "TnM"
-                or project.project_type == "Staff Augmentation"
-            ):
+            if project.project_type == "TnM" or project.project_type == "Staff Augmentation":
                 project.custom_billing_type = "Time and Material"
             elif project.project_type == "Retainer":
                 project.custom_billing_type = "Retainer"
@@ -27,8 +24,7 @@ def execute():
         project.save()
 
         if (
-            project.custom_billing_type == "Retainer"
-            or project.custom_billing_type == "Fixed Cost"
+            project.custom_billing_type == "Retainer" or project.custom_billing_type == "Fixed Cost"
         ) and project.custom_budget_in_hours:
             custom_project_budget_hours = frappe.get_doc(
                 {
