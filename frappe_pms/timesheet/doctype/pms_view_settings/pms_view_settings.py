@@ -23,7 +23,11 @@ def get_view(dt: str):
 
 @frappe.whitelist()
 def get_views():
-    views = frappe.get_all("PMS View Settings", fields=["*"])
+    views = frappe.get_all(
+        "PMS View Settings",
+        fields=["*"],
+        or_filters=[{"user": frappe.session.user}, {"public": 1}],
+    )
     for view in views:
         view.filters = frappe.parse_json(view.filters)
         view.order_by = frappe.parse_json(view.order_by)

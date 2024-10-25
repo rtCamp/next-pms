@@ -225,7 +225,7 @@ const Project = () => {
       const viewData = views.views.find((v) => v.name == view);
       setViewData(viewData);
     }
-  }, [view]);
+  }, [view, views.views]);
 
   useEffect(() => {
     const defaultDtView = views.views.find((v) => v.dt === "Project" && v.default);
@@ -254,6 +254,7 @@ const Project = () => {
   }, [viewData]);
 
   const { doc } = useFrappeDoctypeMeta("Project");
+  
   if (doc && viewData) {
     return (
       <ProjectTable
@@ -263,6 +264,8 @@ const Project = () => {
         meta={doc}
       />
     );
+  } else {
+    return <Spinner isFull />;
   }
 };
 
