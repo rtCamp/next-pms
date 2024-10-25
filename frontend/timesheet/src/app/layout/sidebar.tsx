@@ -108,7 +108,7 @@ const Sidebar = () => {
         },
         {
           to: `${PROJECT}/tnm`,
-          label: "TNM",
+          label: "TnM",
           key: "tnm",
         },
       ],
