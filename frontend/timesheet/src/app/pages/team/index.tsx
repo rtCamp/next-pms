@@ -91,13 +91,13 @@ const Team = () => {
       status: employeeStatusParam,
     };
     dispatch(setFilters(payload));
-     return () => {
-       dispatch(resetState());
-     };
+    return () => {
+      dispatch(resetState());
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { data, isLoading, isValidating,mutate, error } = useFrappeGetCall(
+  const { data, isLoading, isValidating, mutate, error } = useFrappeGetCall(
     "frappe_pms.timesheet.api.team.get_compact_view_data",
     {
       date: teamState.weekDate,
@@ -110,6 +110,10 @@ const Team = () => {
       status_filter: teamState.statusFilter,
       reports_to: teamState.reportsTo,
       status: teamState.status,
+    },
+    undefined,
+    {
+      revalidateIfStale: false,
     }
   );
 
@@ -242,7 +246,7 @@ const Team = () => {
   );
   return (
     <>
-      {teamState.isAprrovalDialogOpen && <Approval onClose={mutate}/>}
+      {teamState.isAprrovalDialogOpen && <Approval onClose={mutate} />}
       <Header className="flex items-center max-md:flex-col">
         <div id="filters" className="flex gap-x-2 max-md:gap-x-5  overflow-y-hidden max-md:w-full items-center">
           <DeBounceInput
