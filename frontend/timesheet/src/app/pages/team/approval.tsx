@@ -1,7 +1,7 @@
 import { useToast } from "@/app/components/ui/use-toast";
 import { RootState } from "@/store";
 import { useSelector, useDispatch } from "react-redux";
-import { setDateRange, setFetchAgain } from "@/store/team";
+import { setDateRange } from "@/store/team";
 import { Button } from "@/app/components/ui/button";
 import {
   calculateExtendedWorkingHour,
@@ -37,7 +37,7 @@ type Holiday = {
   description: string;
 };
 
-export const Approval = () => {
+export const Approval = ({ onClose }: { onClose: () => void }) => {
   const { toast } = useToast();
   const teamState = useSelector((state: RootState) => state.team);
   const [timesheetData, setTimesheetData] = useState<timesheet>();
@@ -79,9 +79,8 @@ export const Approval = () => {
   const handleOpen = () => {
     if (isRejecting || isSubmitting) return;
     const data = { start_date: "", end_date: "" };
-
+    onClose();
     dispatch(setDateRange({ dateRange: data, isAprrovalDialogOpen: false }));
-    dispatch(setFetchAgain(true));
   };
   const handleApproval = () => {
     setIsSubmitting(true);
@@ -230,10 +229,9 @@ export const Approval = () => {
                             disabled={
                               submittedTime ||
                               isHoliday ||
-                              matchingTasks.length == 0 ||
-                              (leave && !isHalfDayLeave && !isHoliday)
+                              (leave && !isHalfDayLeave && !isHoliday && matchingTasks.length == 0)
                             }
-                            checked={isChecked || submittedTime || isHalfDayLeave}
+                            checked={isChecked || submittedTime}
                             className={cn(submittedTime && "data-[state=checked]:bg-success border-success")}
                             onCheckedChange={() => handleCheckboxChange(date)}
                           />

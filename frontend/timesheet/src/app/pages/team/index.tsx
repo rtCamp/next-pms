@@ -10,21 +10,19 @@ import { Header, Footer } from "@/app/layout/root";
 import { LoadMore } from "@/app/components/loadMore";
 import {
   setData,
-  setFetchAgain,
   setWeekDate,
   setProject,
   setStart,
   updateData,
   setDateRange,
   setUsergroup,
-  setUserGroupSearch,
-  setProjectSearch,
   setStatusFilter,
   setEmployeeName,
   setReportsTo,
   setFilters,
   setStatus,
   setEmployee,
+  resetState,
 } from "@/store/team";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg, prettyDate, floatToTime, getFormatedDate, cn, preProcessLink } from "@/lib/utils";
@@ -93,15 +91,18 @@ const Team = () => {
       status: employeeStatusParam,
     };
     dispatch(setFilters(payload));
+     return () => {
+       dispatch(resetState());
+     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { data, mutate, isLoading, isValidating, error } = useFrappeGetCall(
+  const { data, isLoading, isValidating,mutate, error } = useFrappeGetCall(
     "frappe_pms.timesheet.api.team.get_compact_view_data",
     {
       date: teamState.weekDate,
       max_week: 1,
-      page_length: 20,
+      page_length: teamState.pageLength,
       employee_name: teamState.employeeName,
       project: teamState.project,
       user_group: teamState.userGroup,
@@ -109,63 +110,21 @@ const Team = () => {
       status_filter: teamState.statusFilter,
       reports_to: teamState.reportsTo,
       status: teamState.status,
-    },
-    undefined,
-    {
-      shouldRetryOnError: false,
-      revalidateIfStale: false,
-      revalidateOnFocus: false,
-      revalidateOnMount: false,
-    },
+    }
   );
 
-  const {
-    data: projects,
-    mutate: projectMutate,
-    error: projectError,
-  } = useFrappeGetCall(
-    "frappe.client.get_list",
-    {
-      doctype: "Project",
-      fields: ["name", "project_name"],
-      or_filters: [
-        ["name", "like", `%${teamState.projectSearch}%`],
-        ["project_name", "like", `%${teamState.projectSearch}%`],
-      ],
-    },
-    "projects",
-    {
-      shouldRetryOnError: false,
-      revalidateIfStale: false,
-      revalidateOnFocus: false,
-      revalidateOnMount: false,
-    },
-  );
+  const { data: projects, error: projectError } = useFrappeGetCall("frappe.client.get_list", {
+    doctype: "Project",
+    fields: ["name", "project_name"],
+    limit_page_length: 0,
+  });
 
-  const {
-    data: userGroups,
-    error: groupError,
-    mutate: userGroupMutate,
-  } = useFrappeGetCall(
-    "frappe.client.get_list",
-    {
-      doctype: "User Group",
-      or_filters: [["name", "like", `%${teamState.userGroupSearch}%`]],
-    },
-    "user_group",
-    {
-      shouldRetryOnError: false,
-      revalidateIfStale: false,
-      revalidateOnFocus: false,
-      revalidateOnMount: false,
-    },
-  );
+  const { data: userGroups, error: groupError } = useFrappeGetCall("frappe.client.get_list", {
+    doctype: "User Group",
+    limit_page_length: 0,
+  });
 
   useEffect(() => {
-    if (teamState.isFetchAgain == true) {
-      mutate();
-      dispatch(setFetchAgain(false));
-    }
     if (data) {
       if (Object.keys(teamState.data.data).length > 0 && teamState.data.dates.length > 0) {
         dispatch(updateData(data.message));
@@ -181,10 +140,9 @@ const Team = () => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [teamState.isFetchAgain, data, error]);
+  }, [data, error]);
 
   useEffect(() => {
-    projectMutate();
     if (projectError) {
       const err = parseFrappeErrorMsg(projectError);
       toast({
@@ -193,7 +151,7 @@ const Team = () => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [teamState.projectSearch, projectError]);
+  }, [projectError]);
 
   useEffect(() => {
     if (employeeNameParam !== "") {
@@ -202,7 +160,6 @@ const Team = () => {
   }, [dispatch, employeeNameParam]);
 
   useEffect(() => {
-    userGroupMutate();
     if (groupError) {
       const err = parseFrappeErrorMsg(groupError);
       toast({
@@ -211,7 +168,7 @@ const Team = () => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [teamState.userGroupSearch, groupError]);
+  }, [groupError]);
 
   const handleprevWeek = useCallback(() => {
     const date = getFormatedDate(addDays(teamState.weekDate, -6));
@@ -229,7 +186,7 @@ const Team = () => {
       setProjectParam(value as string[]);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch],
+    [dispatch]
   );
 
   const handleUserGroupChange = useCallback(
@@ -238,7 +195,7 @@ const Team = () => {
       setUserGroupParam(value as string[]);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch],
+    [dispatch]
   );
   const handleStatusChange = useCallback(
     (filters: string | string[]) => {
@@ -247,11 +204,11 @@ const Team = () => {
       setStatusParam(normalizedFilters);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch],
+    [dispatch]
   );
   const handleLoadMore = () => {
     if (!teamState.hasMore) return;
-    dispatch(setStart(teamState.start + 20));
+    dispatch(setStart(teamState.start + teamState.pageLength));
   };
   const onStatusClick = (start_date: string, end_date: string, employee: string) => {
     const data = {
@@ -261,44 +218,31 @@ const Team = () => {
     dispatch(setEmployee(employee));
     dispatch(setDateRange({ dateRange: data, isAprrovalDialogOpen: true }));
   };
-  const onProjectSearch = useCallback(
-    (searchTerm: string) => {
-      dispatch(setProjectSearch(searchTerm));
-    },
-    [dispatch],
-  );
-
-  const onUserGroupSearch = useCallback(
-    (searchTerm: string) => {
-      dispatch(setUserGroupSearch(searchTerm));
-    },
-    [dispatch],
-  );
 
   const handleEmployeeChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       dispatch(setEmployeeName(e.target.value));
       setEmployeeNameParam(e.target.value);
     },
-    [dispatch, setEmployeeNameParam],
+    [dispatch, setEmployeeNameParam]
   );
   const handleEmployeeStatusChange = useCallback(
     (value: string | string[]) => {
       dispatch(setStatus(value as string[]));
       setEmployeeStatusParam(value as string[]);
     },
-    [dispatch, setEmployeeStatusParam],
+    [dispatch, setEmployeeStatusParam]
   );
   const handleReportsToChange = useCallback(
     (name: string) => {
       dispatch(setReportsTo(name));
       setReportsToParam(name);
     },
-    [dispatch, setReportsToParam],
+    [dispatch, setReportsToParam]
   );
   return (
     <>
-      {teamState.isAprrovalDialogOpen && <Approval />}
+      {teamState.isAprrovalDialogOpen && <Approval onClose={mutate}/>}
       <Header className="flex items-center max-md:flex-col">
         <div id="filters" className="flex gap-x-2 max-md:gap-x-5  overflow-y-hidden max-md:w-full items-center">
           <DeBounceInput
@@ -342,9 +286,9 @@ const Team = () => {
             value={projectParam}
             label="Projects"
             isMulti
+            shouldFilter
             showSelected={false}
             onSelect={handleProjectChange}
-            onSearch={onProjectSearch}
             rightIcon={teamState.project.length > 0 && <Badge className="px-1.5">{teamState.project.length}</Badge>}
             leftIcon={<Filter className={cn("h-4 w-4", teamState.project.length != 0 && "fill-primary")} />}
             data={projects?.message.map((item: ProjectProps) => ({
@@ -356,7 +300,7 @@ const Team = () => {
           <ComboxBox
             value={userGroupParam}
             label="User Groups"
-            onSearch={onUserGroupSearch}
+            shouldFilter
             showSelected={false}
             data={userGroups?.message.map((item: UserGroupProps) => ({
               label: item.name,

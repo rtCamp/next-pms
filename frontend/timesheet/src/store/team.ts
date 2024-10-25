@@ -7,7 +7,6 @@ type DateRange = {
   end_date: string;
 };
 export interface TeamState {
-  isFetchAgain: boolean;
   data: dataProps;
   statusFilter: Array<string>;
   status: Array<string>;
@@ -18,11 +17,9 @@ export interface TeamState {
   weekDate: string;
   employeeWeekDate: string;
   project: Array<string>;
-  projectSearch: string;
   userGroup: Array<string>;
-  userGroupSearch: string;
+  pageLength: number;
   reportsTo: string;
-
   timesheet: {
     name: string;
     parent: string;
@@ -66,11 +63,9 @@ export const initialState: TeamState = {
   employee: "",
   employeeName: "",
   reportsTo: "",
-  projectSearch: "",
-  userGroupSearch: "",
   status: ["Active"],
   isEditDialogOpen: false,
-  isFetchAgain: false,
+  pageLength:20,
   data: {
     data: {},
     dates: [],
@@ -108,29 +103,29 @@ const TeamSlice = createSlice({
     setData: (state, action: PayloadAction<any>) => {
       state.data = action.payload;
       state.hasMore = action.payload.has_more;
+      state.pageLength = initialState.pageLength;
     },
     setEmployeeName: (state, action: PayloadAction<string>) => {
       state.employeeName = action.payload;
       state.data = initialState.data;
       state.start = 0;
-      state.isFetchAgain = true;
+      state.pageLength = initialState.pageLength;
     },
     setStatusFilter: (state, action: PayloadAction<Array<string>>) => {
       state.statusFilter = action.payload;
       state.start = 0;
+      state.pageLength = initialState.pageLength;
       state.data = initialState.data;
-      state.isFetchAgain = true;
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     updateData: (state, action: PayloadAction<any>) => {
       const data = state.data.data;
       state.data.data = { ...data, ...action.payload.data };
-      // state.data.dates = action.payload.dates;
+      state.data.dates = action.payload.dates;
+      state.data.total_count = action.payload.total_count;
       state.hasMore = action.payload.has_more;
     },
-    setFetchAgain: (state, action: PayloadAction<boolean>) => {
-      state.isFetchAgain = action.payload;
-    },
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setTimesheet: (state, action: PayloadAction<any>) => {
       state.timesheet = action.payload.timesheet;
@@ -138,23 +133,23 @@ const TeamSlice = createSlice({
     },
     setWeekDate: (state, action: PayloadAction<string>) => {
       state.weekDate = action.payload;
-      state.data = initialState.data;
       state.start = 0;
-      state.isFetchAgain = true;
+      const pageLength = Object.keys(state.data.data).length;
+      state.pageLength = pageLength;
+      state.data = initialState.data;
     },
     setEmployeeWeekDate: (state, action: PayloadAction<string>) => {
       state.employeeWeekDate = action.payload;
-      state.isFetchAgain = true;
     },
     setProject: (state, action: PayloadAction<Array<string>>) => {
       state.project = action.payload;
       state.data = initialState.data;
       state.start = 0;
-      state.isFetchAgain = true;
+      state.pageLength = initialState.pageLength;
     },
     setStart: (state, action: PayloadAction<number>) => {
       state.start = action.payload;
-      state.isFetchAgain = true;
+      state.pageLength = initialState.pageLength;
     },
     setHasMore: (state, action: PayloadAction<boolean>) => {
       state.hasMore = action.payload;
@@ -164,7 +159,7 @@ const TeamSlice = createSlice({
       action: PayloadAction<{
         dateRange: DateRange;
         isAprrovalDialogOpen: boolean;
-      }>,
+      }>
     ) => {
       state.dateRange = action.payload.dateRange;
       state.isAprrovalDialogOpen = action.payload.isAprrovalDialogOpen;
@@ -181,9 +176,8 @@ const TeamSlice = createSlice({
     setDialog: (state, action: PayloadAction<boolean>) => {
       state.isDialogOpen = action.payload;
     },
-    resetState: (state) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      state = initialState;
+    resetState() {
+      return initialState;
     },
     resetTimesheetDataState: (state) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -202,10 +196,10 @@ const TeamSlice = createSlice({
         ...action.payload.holidays,
       ];
       const existingLeaveIds = new Set(
-        state.timesheetData.leaves.map((leave) => leave.name),
+        state.timesheetData.leaves.map((leave) => leave.name)
       );
       const newLeaves = action.payload.leaves.filter(
-        (leave) => !existingLeaveIds.has(leave.name),
+        (leave) => !existingLeaveIds.has(leave.name)
       );
       state.timesheetData.leaves = [
         ...state.timesheetData.leaves,
@@ -216,25 +210,19 @@ const TeamSlice = createSlice({
       state.userGroup = action.payload;
       state.data = initialState.data;
       state.start = 0;
-      state.isFetchAgain = true;
+      state.pageLength = initialState.pageLength;
     },
     setReportsTo: (state, action: PayloadAction<string>) => {
       state.reportsTo = action.payload;
       state.data = initialState.data;
       state.start = 0;
-      state.isFetchAgain = true;
+      state.pageLength = initialState.pageLength;
     },
     setStatus: (state, action: PayloadAction<Array<string>>) => {
       state.status = action.payload;
       state.data = initialState.data;
       state.start = 0;
-      state.isFetchAgain = true;
-    },
-    setUserGroupSearch: (state, action: PayloadAction<string>) => {
-      state.userGroupSearch = action.payload;
-    },
-    setProjectSearch: (state, action: PayloadAction<string>) => {
-      state.projectSearch = action.payload;
+      state.pageLength = initialState.pageLength;
     },
 
     setFilters: (
@@ -246,7 +234,7 @@ const TeamSlice = createSlice({
         employeeName: string;
         reportsTo: string;
         status: Array<string>;
-      }>,
+      }>
     ) => {
       state.project = action.payload.project;
       state.userGroup = action.payload.userGroup;
@@ -254,16 +242,15 @@ const TeamSlice = createSlice({
       state.status = action.payload.status;
       state.employeeName = action.payload.employeeName;
       state.reportsTo = action.payload.reportsTo;
+      state.pageLength = initialState.pageLength;
       state.start = 0;
       state.data = initialState.data;
-      state.isFetchAgain = true;
     },
   },
 });
 
 export const {
   setData,
-  setFetchAgain,
   setTimesheet,
   setWeekDate,
   setProject,
@@ -278,8 +265,7 @@ export const {
   setTimesheetData,
   updateTimesheetData,
   setUsergroup,
-  setUserGroupSearch,
-  setProjectSearch,
+
   resetTimesheetDataState,
   setStatusFilter,
   setFilters,
