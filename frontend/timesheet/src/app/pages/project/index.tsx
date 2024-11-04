@@ -19,7 +19,6 @@ import {
   setSelectedProjectType,
   setSelectedStatus,
   Status,
-  updateProjectData,
   setStart,
   setFilters,
   setSelectedBusinessUnit,
@@ -59,7 +58,7 @@ import { Button } from "@/app/components/ui/button";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import Sort from "./sort";
 import { TouchBackend } from "react-dnd-touch-backend";
-import { useLocation } from "react-router-dom";
+import _ from "lodash";
 import { setViews, ViewData } from "@/store/view";
 import { createFilter, defaultView } from "./utils";
 import useFrappeDoctypeMeta from "@/app/hooks/useFrappeDoctypeMeta";
@@ -94,14 +93,12 @@ const ColumnSelector = ({
   onColumnHide,
   setColumnOrder,
   columnOrder,
-  defaultColumnOrder,
 }: {
   fieldMeta: Array<any>;
   onColumnHide: (id: string) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setColumnOrder: any;
   columnOrder: string[];
-  defaultColumnOrder: string[];
 }) => {
   const fieldMap = columnOrder
     .map((row) => {
@@ -254,6 +251,15 @@ const Project = () => {
     if (!view) {
       const viewData = views.views.find((v) => v.dt === "Project" && v.default);
       setViewData(viewData);
+      const filters = {
+        search: viewData.filters.search ?? "",
+        selectedProjectType: viewData.filters.project_type ?? JSON.parse(searchParams.get("project-type") ?? "[]"),
+        selectedStatus: viewData.filters.status ?? JSON.parse(searchParams.get("status") ?? "[]"),
+        selectedBusinessUnit: viewData.filters.business_unit ?? JSON.parse(searchParams.get("business-unit") ?? "[]"),
+        order: viewData.order_by.order as "asc" | "desc",
+        orderColumn: viewData.order_by.field,
+      };
+      dispatch(setFilters(filters));
     } else {
       const viewData = views.views.find((v) => v.name == view);
       if (!viewData) {
@@ -261,6 +267,15 @@ const Project = () => {
         setSearchParams(searchParams);
       }
       setViewData(viewData);
+      const filters = {
+        search: viewData.filters.search ?? "",
+        selectedProjectType: viewData.filters.project_type ?? JSON.parse(searchParams.get("project-type") ?? "[]"),
+        selectedStatus: viewData.filters.status ?? JSON.parse(searchParams.get("status") ?? "[]"),
+        selectedBusinessUnit: viewData.filters.business_unit ?? JSON.parse(searchParams.get("business-unit") ?? "[]"),
+        order: viewData.order_by.order as "asc" | "desc",
+        orderColumn: viewData.order_by.field,
+      };
+      dispatch(setFilters(filters));
     }
   }, [view, views.views]);
 
@@ -277,18 +292,6 @@ const Project = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  useEffect(() => {
-    if (!viewData) return;
-    const filters = {
-      search: viewData.filters.search ?? "",
-      selectedProjectType: viewData.filters.project_type ?? JSON.parse(searchParams.get("project-type") ?? "[]"),
-      selectedStatus: viewData.filters.status ?? JSON.parse(searchParams.get("status") ?? "[]"),
-      selectedBusinessUnit: viewData.filters.business_unit ?? JSON.parse(searchParams.get("business-unit") ?? "[]"),
-      order: viewData.order_by.order as "asc" | "desc",
-      orderColumn: viewData.order_by.field,
-    };
-    dispatch(setFilters(filters));
-  }, [viewData]);
 
   const { doc } = useFrappeDoctypeMeta("Project");
 
@@ -310,7 +313,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   const { call } = useFrappePostCall("frappe_pms.timesheet.doctype.pms_view_settings.pms_view_settings.update_view");
   const { toast } = useToast();
   const [isExportOpen, setIsExportOpen] = useState(false);
-
+  const [hasViewUpdated, setHasViewUpdated] = useState(false);
   const [colSizing, setColSizing] = useState<ColumnSizingState>(viewData.columns ?? {});
   const [columnOrder, setColumnOrder] = useState<string[]>(viewData.rows ?? []);
   const [isCreateViewOpen, setIsCreateViewOpen] = useState(false);
@@ -330,6 +333,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
 
   useEffect(() => {
     setViewInfo(viewData);
+    setHasViewUpdated(false);
   }, [viewData]);
 
   const { data: projectType } = useFrappeGetCall(
@@ -359,7 +363,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     }
   );
 
-  const { data, error, isLoading } = useFrappeGetDocList("Project", {
+  const { data, error, isLoading,  } = useFrappeGetDocList("Project", {
     fields: viewData.rows ?? ["*"],
     // eslint-disable-next-line
     //   @ts-ignore
@@ -401,8 +405,10 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
       filters: createFilter(projectState),
       rows: columnOrder,
     };
+    if (!_.isEqual(updateViewData, viewData)) {
+      setHasViewUpdated(true);
+    }
     setViewInfo(updateViewData);
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     colSizing,
@@ -494,6 +500,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
           variant: "success",
           description: "View Updated",
         });
+        setHasViewUpdated(false);
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
@@ -535,6 +542,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   useEffect(() => {
     updateColumnSize(columnOrder);
   }, [columnOrder]);
+
   useEffect(() => {
     updateColumnOrder(columnVisibility);
     dispatch(setProjectData([]));
@@ -610,16 +618,20 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
           />
         </section>
         <div className="flex gap-x-2">
+          {hasViewUpdated && (
+            <Button onClick={updateView} variant="ghost">
+              Save Changes
+            </Button>
+          )}
           <ColumnSelector
             onColumnHide={handleColumnHide}
             fieldMeta={meta?.fields}
             setColumnOrder={setColumnOrder}
-            columnOrder={columnOrder}
-            defaultColumnOrder={viewInfo.rows}
+            columnOrder={viewData.rows}
           />
           <Sort
             fieldMeta={meta.fields}
-            rows={columnOrder}
+            rows={viewData.rows}
             orderBy={projectState.order}
             field={projectState.orderColumn}
           />
