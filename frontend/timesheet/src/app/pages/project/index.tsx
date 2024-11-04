@@ -317,7 +317,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   const projectState = useSelector((state: RootState) => state.project);
   const [columnVisibility, setColumnVisibility] = useState(createFalseValuedObject(viewData.rows));
   const dispatch = useDispatch();
-  const [searchParam, setSearchParam] = useQueryParamsState("search", projectState.search ?? "");
+  const [searchParam, setSearchParam] = useQueryParamsState("search", projectState.search);
   const [projectTypeParam, setProjectTypeParam] = useQueryParamsState<Array<string>>(
     "project-type",
     projectState.selectedProjectType
@@ -375,7 +375,6 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
 
   useEffect(() => {
     if (data) {
-
       dispatch(setProjectData(data));
     }
     if (error) {
@@ -645,7 +644,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
             pageLength={projectState.data.length}
             totalCount={projectState.totalCount}
             orderBy={`${projectState.orderColumn}  ${projectState.order}`}
-            fields={viewInfo.rows.reduce((acc, d) => {
+            fields={viewData.rows.reduce((acc, d) => {
               if (d !== "name") {
                 const m = meta.fields.find((field: { fieldname: string }) => field.fieldname === d);
                 acc[d] = m?.label ?? d;
@@ -662,8 +661,8 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
             route="project"
             isDefault={false}
             isPublic={false}
-            columns={viewInfo?.columns}
-            rows={table.getVisibleFlatColumns().map((d) => d.id)}
+            columns={viewInfo.columns}
+            rows={viewInfo.rows}
           />
           <Table className=" [&_td]:px-4 [&_th]:px-4 [&_th]:py-4 table-fixed" style={{ width: table.getTotalSize() }}>
             <TableHeader className=" border-t-0 sticky top-0 z-10 ">
