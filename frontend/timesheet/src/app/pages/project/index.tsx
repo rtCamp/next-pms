@@ -749,13 +749,13 @@ const ProjectTable = ({ viewData, meta, defaultView }: ProjectProps) => {
         <div className="flex  justify-between items-center ">
           <LoadMore
             variant="outline"
-            disabled={projectState.data.length == (projectState.totalCount ?? 0) || isLoading}
+            disabled={projectState.data.length == (count ?? 0) || isLoading}
             onClick={() => {
-              dispatch(setStart(projectState.start + projectState.pageLength));
+              dispatch(setStart());
             }}
           />
           <Typography variant="p" className="lg:px-5 font-semibold">
-            {`${projectState.data.length} of ${projectState.totalCount ?? 0}`}
+            {`${projectState.data.length} of ${count ?? 0}`}
           </Typography>
         </div>
       </Footer>

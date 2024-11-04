@@ -32,9 +32,7 @@ def get_task_list(
     ]
 
     if projects:
-        projects = frappe.get_list(
-            "Project", pluck="name", filters={"name": ["in", projects]}
-        )
+        projects = frappe.get_list("Project", pluck="name", filters={"name": ["in", projects]})
     else:
         projects = frappe.get_list("Project", pluck="name")
     if not projects:
@@ -70,9 +68,7 @@ def get_task_list(
         .where(doctype.project.isin(projects))
     )
     if search:
-        tasks = tasks.where(
-            doctype.name.like(f"%{search}%") | doctype.subject.like(f"%{search}%")
-        )
+        tasks = tasks.where(doctype.name.like(f"%{search}%") | doctype.subject.like(f"%{search}%"))
     if page_length:
         tasks = tasks.limit(page_length)
     tasks = (
@@ -137,9 +133,7 @@ def get_task(task: str):
     ).run(as_dict=True)
 
     for res in result:
-        employee_name, image = frappe.db.get_value(
-            "Employee", res.employee, ["employee_name", "image"]
-        )
+        employee_name, image = frappe.db.get_value("Employee", res.employee, ["employee_name", "image"])
         res["employee_name"] = employee_name
         res["image"] = image
 
@@ -157,7 +151,6 @@ def get_task(task: str):
 
 @frappe.whitelist()
 def get_task_log(task: str, start_date: str = None, end_date: str = None):
-
     project = frappe.db.get_value("Task", task, "project")
 
     if project and not frappe.has_permission(doctype="Project", doc=project):

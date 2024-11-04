@@ -25,7 +25,7 @@ export function Router() {
           <Route path={`${TEAM}/`} element={<TeamComponent />} />
           <Route path={`${TEAM}/employee/:id?`} element={<EmployeeDetailComponent />} />
         </Route>
-        <Route path={PROJECT} element={<ProjectComponent />} />
+        <Route path={`${PROJECT}/:type?`} element={<ProjectComponent />} />
       </Route>
       <Route path={TASK} element={<TaskComponent />} />
     </Route>

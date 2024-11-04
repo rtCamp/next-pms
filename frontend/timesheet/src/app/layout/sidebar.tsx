@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 import { Typography } from "@/app/components/typography";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useLocation, } from "react-router-dom";
 import {
   Home,
   Users,
@@ -57,8 +58,9 @@ const Sidebar = () => {
   const viewInfo = useSelector((state: RootState) => state.view);
   const dispatch = useDispatch();
   const hasPmRole = user.roles.some((role) => ROLES.includes(role));
-  const screenSize = useSelector((state: RootState) => state.app.screenSize);
 
+  const screenSize = useSelector((state: RootState) => state.app.screenSize);
+  const location = useLocation();
   const handleCollapse = () => {
     dispatch(setSidebarCollapsed(!user.isSidebarCollapsed));
   };
@@ -90,6 +92,29 @@ const Sidebar = () => {
       label: "Project",
       key: "project",
       isPmRoute: true,
+      children: [
+        {
+          to: PROJECT,
+          label: "Dashboard",
+          key: "dashboard",
+        },
+        {
+          to: `${PROJECT}/fixed-cost`,
+          label: "Fixed Cost",
+          key: "fixed-cost",
+        },
+
+        {
+          to: `${PROJECT}/retainer`,
+          label: "Retainer",
+          key: "retainer",
+        },
+        {
+          to: `${PROJECT}/tnm`,
+          label: "TnM",
+          key: "tnm",
+        },
+      ],
     },
     {
       to: TASK,
@@ -134,7 +159,6 @@ const Sidebar = () => {
         <div className="pt-10 h-fit overflow-y-auto flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
           {routes.map((route: Route) => {
             if (route.isPmRoute && !hasPmRole) return null;
-
             return route.children ? (
               <div key={route.key}>
                 <Button
@@ -164,39 +188,40 @@ const Sidebar = () => {
                     openRoutes[route.key] ? "flex" : "hidden"
                   )}
                 >
-                  {route.children.map((child: NestedRoute) => (
-                    <NavLink
-                      to={child.to}
-                      key={child.key}
-                      title={child.label}
-                      className="transition-all duration-300 ease-in-out flex items-center h-9"
-                    >
-                      {({ isActive }) => (
+                  {route.children.map((child: NestedRoute) => {
+                    const isChildActive = child.to === location.pathname;
+                    return (
+                      <NavLink
+                        to={child.to}
+                        key={child.key}
+                        title={child.label}
+                        className="transition-all duration-300 ease-in-out flex items-center h-9"
+                      >
                         <div
                           className={cn(
                             "flex w-full pl-2 rounded-lg items-center px-3 py-2 hover:bg-slate-200 text-primary gap-x-2 overflow-hidden",
-                            isActive && "bg-primary shadow-md hover:bg-slate-700 "
+                            isChildActive && "bg-primary shadow-md hover:bg-slate-700 "
                           )}
                         >
                           {child.icon && (
                             <child.icon
-                              className={cn("shrink-0 stroke-primary h-4 w-4", isActive && "stroke-background")}
+                              className={cn("shrink-0 stroke-primary h-4 w-4", isChildActive && "stroke-background")}
                             />
                           )}
                           <Typography
                             variant="p"
                             className={cn(
                               "transition-all duration-300 ease-in-out text-white",
-                              !isActive && "text-primary",
+                              !isChildActive && "text-primary",
                               user.isSidebarCollapsed && "hidden"
                             )}
                           >
                             {child.label}
                           </Typography>
                         </div>
-                      )}
-                    </NavLink>
-                  ))}
+                      </NavLink>
+                    );
+                  })}
                 </div>
               </div>
             ) : (

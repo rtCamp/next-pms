@@ -7,7 +7,6 @@ import {
   setData,
   SetAddTimeDialog,
   SetTimesheet,
-  SetFetchAgain,
   SetWeekDate,
   AppendData,
   setDateRange,
@@ -49,10 +48,6 @@ function Timesheet() {
   });
 
   useEffect(() => {
-    if (timesheet.isFetchAgain) {
-      mutate();
-      dispatch(SetFetchAgain(false));
-    }
     if (data) {
       if (timesheet.data?.data && Object.keys(timesheet.data?.data).length > 0) {
         dispatch(AppendData(data.message));
@@ -68,7 +63,7 @@ function Timesheet() {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, error, timesheet.isFetchAgain]);
+  }, [data, error]);
 
   const handleAddTime = () => {
     const timesheetData = {
@@ -99,9 +94,7 @@ function Timesheet() {
     // eslint-disable-next-line
     // @ts-expect-error
     const obj = data[Object.keys(data).pop()];
-
     dispatch(SetWeekDate(getFormatedDate(addDays(obj.start_date, -1))));
-    dispatch(SetFetchAgain(true));
   };
   const handleApproval = (start_date: string, end_date: string) => {
     const data = {
@@ -117,8 +110,9 @@ function Timesheet() {
   return (
     <>
       <Header className="justify-end">
-        <Button onClick={handleAddTime}  title="Add Time">
-          <Plus />Time
+        <Button onClick={handleAddTime} title="Add Time">
+          <Plus />
+          Time
         </Button>
       </Header>
 
@@ -199,9 +193,10 @@ function Timesheet() {
           open={timesheet.isDialogOpen}
           onOpenChange={() => {
             dispatch(SetAddTimeDialog(false));
+            mutate();
           }}
           onSuccess={() => {
-            dispatch(SetFetchAgain(true));
+            mutate();
           }}
           initialDate={timesheet.timesheet.date}
           employee={user.employee}
@@ -217,10 +212,13 @@ function Timesheet() {
           date={timesheet.timesheet.date}
           task={timesheet.timesheet.task}
           open={timesheet.isEditDialogOpen}
-          onClose={() => dispatch(setEditDialog(false))}
+          onClose={() => {
+            dispatch(setEditDialog(false));
+            mutate();
+          }}
         />
       )}
-      {timesheet.isAprrovalDialogOpen && <Approval />}
+      {timesheet.isAprrovalDialogOpen && <Approval onClose={mutate} />}
     </>
   );
 }

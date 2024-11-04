@@ -1,9 +1,7 @@
 import frappe
 
 
-def send_approval_reminder(
-    employee: str, reporting_manager: str, start_date: str, end_date: str
-):
+def send_approval_reminder(employee: str, reporting_manager: str, start_date: str, end_date: str):
     frappe.enqueue(
         send_mail,
         employee=employee,

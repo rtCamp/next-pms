@@ -27,6 +27,7 @@ export const colOrder: string[] = [
   "custom_total_hours_remaining",
   "gross_margin",
   "per_gross_margin",
+  "percent_complete"
 ];
 
 export const columnMap = {
@@ -54,7 +55,7 @@ export const columnMap = {
   custom_total_hours_remaining: "Total Hours Remaining",
   gross_margin: "Gross Margin",
   per_gross_margin: "%Gross Margin",
-  // percent_complete: "Percent Complete",
+
 };
 
 export const projectTableMap = {
@@ -85,16 +86,18 @@ export const projectTableMap = {
     gross_margin: 150,
     per_gross_margin: 100,
     status: 100,
+    percent_complete: 100
   },
   order: "desc",
-  orderColumn: "modified",
+  orderColumn: "project_name",
 };
 export const calculatePercentage = (spent: number, budget: number) => {
   return budget == 0 ? 0 : Math.round((spent / budget) * 100);
 };
-export const getTableProps = () => {
+export const getTableProps = (type: string | undefined) => {
+  const key = `__listview::project:${type ? type : "all"}`;
   try {
-    const data = JSON.parse(String(localStorage.getItem("project_list")));
+    const data = JSON.parse(String(localStorage.getItem(key)));
     if (!data) {
       return projectTableMap;
     } else {
@@ -127,9 +130,11 @@ export const sortPercentageComplete = (
   }
 };
 
-export const getFilter = (projectState: ProjectState) => {
+export const getFilter = (projectState: ProjectState, type: string | undefined) => {
   const filters = [];
-
+  if (type) {
+    filters.push(["custom_billing_type", "=", type == "fixed-cost" ? "Fixed Cost" : type == "retainer" ? "Retainer" : "Time and Material"]);
+  }
   if (projectState.search) {
     filters.push(["project_name", "like", `%${projectState.search}%`]);
   }
@@ -146,6 +151,54 @@ export const getFilter = (projectState: ProjectState) => {
   return filters;
 };
 
+export const getFieldInfo = (type: string | undefined) => {
+  if (!type) {
+    return colOrder;
+  }
+  if (type == "fixed-cost" || type == "retainer") {
+    return [
+      "name",
+      "project_name",
+      "custom_business_unit",
+      "status",
+      "custom_billing_type",
+      "custom_currency",
+      "estimated_costing",
+      "percent_complete",
+      "actual_time",
+      "total_sales_amount",
+      "total_billed_amount",
+      "total_costing_amount",
+      "total_expense_claim",
+      "custom_total_hours_purchased",
+      "custom_total_hours_remaining",
+      "custom_percentage_estimated_cost",
+      "gross_margin",
+      "per_gross_margin",
+    ];
+  } else if (type == "tnm") {
+    return [
+      "name",
+      "project_name",
+      "custom_business_unit",
+      "status",
+      "custom_billing_type",
+      "custom_currency",
+      "estimated_costing",
+      "percent_complete",
+      "actual_time",
+      "total_sales_amount",
+      "total_billed_amount",
+      "total_costing_amount",
+      "total_expense_claim",
+      "custom_percentage_estimated_cost",
+      "gross_margin",
+      "per_gross_margin",
+    ];
+  } else {
+    return colOrder;
+  }
+}
 export const currencyFormat = (currency: string) => {
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
