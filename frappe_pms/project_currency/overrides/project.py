@@ -143,7 +143,7 @@ class ProjectOverwrite(EmployeeProject):
         self.total_expense_claim = total_amount
 
     def update_project_cost_rate(self):
-        if self.estimated_costing:
+        if self.estimated_costing and self.total_costing_amount:
             self.custom_percentage_estimated_cost = self.total_costing_amount * 100 / self.estimated_costing
 
     def update_retainer_project_budget(self):
