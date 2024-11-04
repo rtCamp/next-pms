@@ -65,6 +65,7 @@ import { createFilter, defaultView } from "./utils";
 import useFrappeDoctypeMeta from "@/app/hooks/useFrappeDoctypeMeta";
 import { getColumnInfo } from "./columns";
 import { Export } from "@/app/components/listview/export";
+import { useSearchParams } from "react-router-dom";
 
 const Action = ({ createView, openExportDialog }: { createView: () => void; openExportDialog: () => void }) => {
   return (
@@ -242,9 +243,9 @@ const ColumnItem = ({
 
 const Project = () => {
   const views = useSelector((state: RootState) => state.view);
-  const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
-  const view = queryParams.get("view");
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const view = searchParams.get("view");
   const { call } = useContext(FrappeContext) as FrappeConfig;
   const dispatch = useDispatch();
   const [viewData, setViewData] = useState<ViewData | undefined>(undefined);
@@ -255,6 +256,10 @@ const Project = () => {
       setViewData(viewData);
     } else {
       const viewData = views.views.find((v) => v.name == view);
+      if (!viewData) {
+        searchParams.delete("view");
+        setSearchParams(searchParams);
+      }
       setViewData(viewData);
     }
   }, [view, views.views]);
@@ -276,9 +281,9 @@ const Project = () => {
     if (!viewData) return;
     const filters = {
       search: viewData.filters.search ?? "",
-      selectedProjectType: viewData.filters.project_type ?? JSON.parse(queryParams.get("project-type") ?? "[]"),
-      selectedStatus: viewData.filters.status ?? JSON.parse(queryParams.get("status") ?? "[]"),
-      selectedBusinessUnit: viewData.filters.business_unit ?? JSON.parse(queryParams.get("business-unit") ?? "[]"),
+      selectedProjectType: viewData.filters.project_type ?? JSON.parse(searchParams.get("project-type") ?? "[]"),
+      selectedStatus: viewData.filters.status ?? JSON.parse(searchParams.get("status") ?? "[]"),
+      selectedBusinessUnit: viewData.filters.business_unit ?? JSON.parse(searchParams.get("business-unit") ?? "[]"),
       order: viewData.order_by.order as "asc" | "desc",
       orderColumn: viewData.order_by.field,
     };
@@ -288,13 +293,7 @@ const Project = () => {
   const { doc } = useFrappeDoctypeMeta("Project");
 
   if (doc && viewData) {
-    return (
-      <ProjectTable
-        viewData={viewData}
-        defaultView={views.views.find((v) => v.dt === "Project" && v.default) ?? defaultView()}
-        meta={doc}
-      />
-    );
+    return <ProjectTable viewData={viewData} meta={doc} />;
   } else {
     return <Spinner isFull />;
   }
@@ -302,21 +301,21 @@ const Project = () => {
 
 interface ProjectProps {
   viewData: ViewData;
-  defaultView: ViewData;
   meta: any;
 }
-const ProjectTable = ({ viewData, meta, defaultView }: ProjectProps) => {
+
+const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   const [viewInfo, setViewInfo] = useState<ViewData>(viewData);
 
   const { call } = useFrappePostCall("frappe_pms.timesheet.doctype.pms_view_settings.pms_view_settings.update_view");
   const { toast } = useToast();
   const [isExportOpen, setIsExportOpen] = useState(false);
 
-  const [colSizing, setColSizing] = useState<ColumnSizingState>(viewInfo.columns ?? {});
-  const [columnOrder, setColumnOrder] = useState<string[]>(viewInfo.rows ?? []);
+  const [colSizing, setColSizing] = useState<ColumnSizingState>(viewData.columns ?? {});
+  const [columnOrder, setColumnOrder] = useState<string[]>(viewData.rows ?? []);
   const [isCreateViewOpen, setIsCreateViewOpen] = useState(false);
   const projectState = useSelector((state: RootState) => state.project);
-  const [columnVisibility, setColumnVisibility] = useState(createFalseValuedObject(viewInfo.rows));
+  const [columnVisibility, setColumnVisibility] = useState(createFalseValuedObject(viewData.rows));
   const dispatch = useDispatch();
   const [searchParam, setSearchParam] = useQueryParamsState("search", projectState.search ?? "");
   const [projectTypeParam, setProjectTypeParam] = useQueryParamsState<Array<string>>(
@@ -330,9 +329,9 @@ const ProjectTable = ({ viewData, meta, defaultView }: ProjectProps) => {
   );
 
   useEffect(() => {
-    console.log("here");
     setViewInfo(viewData);
-   }, [viewData]);
+  }, [viewData]);
+
   const { data: projectType } = useFrappeGetCall(
     "frappe.client.get_list",
     {
@@ -360,38 +359,24 @@ const ProjectTable = ({ viewData, meta, defaultView }: ProjectProps) => {
     }
   );
 
-  const { data, error, isLoading,mutate } = useFrappeGetDocList(
-    "Project",
-    {
-      fields: viewInfo.rows ?? ["*"],
-      // eslint-disable-next-line
-      //   @ts-ignore
-      filters: getFilter(projectState),
-      limit_start: projectState.start,
-      limit: projectState.pageLength,
-      orderBy: {
-        field: projectState.orderColumn,
-        order: projectState.order as "asc" | "desc" | undefined,
-      },
+  const { data, error, isLoading } = useFrappeGetDocList("Project", {
+    fields: viewData.rows ?? ["*"],
+    // eslint-disable-next-line
+    //   @ts-ignore
+    filters: getFilter(projectState),
+    limit_start: projectState.start,
+    limit: projectState.pageLength,
+    orderBy: {
+      field: projectState.orderColumn,
+      order: projectState.order as "asc" | "desc" | undefined,
     },
-    undefined,
-    {
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-    }
-  );
-  const { data: count } = useFrappeDocTypeCount("Project", { filters: getFilter(projectState) }, undefined, {
-    revalidateOnFocus: false,
-    revalidateIfStale: false,
   });
+  const { data: count } = useFrappeDocTypeCount("Project", { filters: getFilter(projectState) });
 
   useEffect(() => {
     if (data) {
-      if (projectState.data.length === 0) {
-        dispatch(setProjectData(data));
-      } else {
-        dispatch(updateProjectData(data));
-      }
+
+      dispatch(setProjectData(data));
     }
     if (error) {
       const err = parseFrappeErrorMsg(error);
@@ -401,7 +386,7 @@ const ProjectTable = ({ viewData, meta, defaultView }: ProjectProps) => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, error]);
+  }, [data, dispatch, error, toast]);
 
   useEffect(() => {
     if (count) {
@@ -483,9 +468,8 @@ const ProjectTable = ({ viewData, meta, defaultView }: ProjectProps) => {
     [dispatch]
   );
 
-  const columns = getColumnInfo(meta.fields, viewInfo.rows ?? [], viewInfo.columns);
   const table = useReactTable({
-    columns: columns,
+    columns: getColumnInfo(meta.fields, viewData.rows, viewData.columns),
     data: projectState.data,
     enableColumnResizing: true,
     getCoreRowModel: getCoreRowModel(),
@@ -632,7 +616,7 @@ const ProjectTable = ({ viewData, meta, defaultView }: ProjectProps) => {
             fieldMeta={meta?.fields}
             setColumnOrder={setColumnOrder}
             columnOrder={columnOrder}
-            defaultColumnOrder={defaultView.rows}
+            defaultColumnOrder={viewInfo.rows}
           />
           <Sort
             fieldMeta={meta.fields}
@@ -736,7 +720,7 @@ const ProjectTable = ({ viewData, meta, defaultView }: ProjectProps) => {
                 ))
               ) : (
                 <TableRow className="w-full">
-                  <TableCell colSpan={columns.length} className="h-24 text-center">
+                  <TableCell colSpan={viewData.rows.length} className="h-24 text-center">
                     No results
                   </TableCell>
                 </TableRow>

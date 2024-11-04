@@ -30,10 +30,12 @@ const Sort = ({ fieldMeta, rows, orderBy, field }: SortProps) => {
   }, [orderBy, field]);
 
   const colMap = Object.fromEntries(
-    rows.map((value) => {
-      const meta = fieldMeta.find((f) => f.fieldname === value);
-      return [value, meta?.label ?? value];
-    })
+    rows
+      .filter((value) => value !== "creation" && value !== "modified" && value !== "name")
+      .map((value) => {
+        const meta = fieldMeta.find((f) => f.fieldname === value);
+        return [value, meta?.label ?? value];
+      })
   );
 
   const handleColumnChange = (key: string) => {
@@ -54,11 +56,6 @@ const Sort = ({ fieldMeta, rows, orderBy, field }: SortProps) => {
           className=" rounded-tr-none rounded-br-none ring-0 outline-0 ring-offset-0 focus-visible:ring-0"
           onClick={handleOrderChange}
         >
-        <Button
-          variant="outline"
-          className=" rounded-tr-none rounded-br-none ring-0 outline-0 ring-offset-0 focus-visible:ring-0"
-          onClick={handleOrderChange}
-        >
           {order === "asc" ? <ArrowDownAZ /> : <ArrowDownZA />}
         </Button>
 
@@ -72,19 +69,17 @@ const Sort = ({ fieldMeta, rows, orderBy, field }: SortProps) => {
         </DropdownMenuTrigger>
       </div>
       <DropdownMenuContent className="max-h-96 overflow-auto mr-3 [&_div]:hover:cursor-pointer">
-        {colMap.map((i) => {
-          return (
-            <DropdownMenuCheckboxItem
-              key={i.value}
-              checked={i.value == orderColumn}
-              onCheckedChange={() => {
-                handleColumnChange(i.value);
-              }}
-            >
-              {i.label}
-            </DropdownMenuCheckboxItem>
-          );
-        })}
+        {Object.entries(colMap).map(([key, value]: [string, string]) => (
+          <DropdownMenuCheckboxItem
+            key={key}
+            checked={key == orderColumn}
+            onCheckedChange={() => {
+              handleColumnChange(key);
+            }}
+          >
+            {value}
+          </DropdownMenuCheckboxItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );

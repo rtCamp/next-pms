@@ -130,11 +130,9 @@ export const sortPercentageComplete = (
   }
 };
 
-export const getFilter = (projectState: ProjectState, type: string | undefined) => {
+export const getFilter = (projectState: ProjectState) => {
   const filters = [];
-  if (type) {
-    filters.push(["custom_billing_type", "=", type == "fixed-cost" ? "Fixed Cost" : type == "retainer" ? "Retainer" : "Time and Material"]);
-  }
+
   if (projectState.search) {
     filters.push(["project_name", "like", `%${projectState.search}%`]);
   }

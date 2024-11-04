@@ -150,7 +150,7 @@ export const projectSlice = createSlice({
       state.pageLength = pageLength;
       state.start = 0;
       state.data = initialState.data;
-      state.isFetchAgain = true;
+
     }
   },
 });

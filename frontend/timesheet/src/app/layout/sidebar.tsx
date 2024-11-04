@@ -6,7 +6,7 @@ import { useDispatch } from "react-redux";
 import { Typography } from "@/app/components/typography";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useLocation, } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import {
   Home,
   Users,
@@ -92,29 +92,6 @@ const Sidebar = () => {
       label: "Project",
       key: "project",
       isPmRoute: true,
-      children: [
-        {
-          to: PROJECT,
-          label: "Dashboard",
-          key: "dashboard",
-        },
-        {
-          to: `${PROJECT}/fixed-cost`,
-          label: "Fixed Cost",
-          key: "fixed-cost",
-        },
-
-        {
-          to: `${PROJECT}/retainer`,
-          label: "Retainer",
-          key: "retainer",
-        },
-        {
-          to: `${PROJECT}/tnm`,
-          label: "TnM",
-          key: "tnm",
-        },
-      ],
     },
     {
       to: TASK,
