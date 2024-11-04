@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { DeBounceInput } from "@/app/components/deBounceInput";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { RootState } from "@/store";
@@ -11,7 +12,6 @@ import {
 import { useCallback, useContext, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Header, Footer } from "@/app/layout/root";
-import _ from "lodash";
 import { LoadMore } from "@/app/components/loadMore";
 import {
   setProjectData,
@@ -26,7 +26,7 @@ import {
   setTotalCount,
 } from "@/store/project";
 import { ComboxBox } from "@/app/components/comboBox";
-import { cn, parseFrappeErrorMsg, createFalseValuedObject, checkIsMobile } from "@/lib/utils";
+import { cn, parseFrappeErrorMsg, createFalseValuedObject, checkIsMobile, NO_VALUE_FIELDS } from "@/lib/utils";
 import { CreateView } from "@/app/components/listview/createView";
 import { useToast } from "@/app/components/ui/use-toast";
 import {
@@ -45,6 +45,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
 import { getFilter } from "./helper";
@@ -98,12 +102,24 @@ const ColumnSelector = ({
   columnOrder: string[];
   defaultColumnOrder: string[];
 }) => {
-  const fieldMap = defaultColumnOrder
+  const fieldMap = columnOrder
     .map((row) => {
       const d = fieldMeta.find((f: { fieldname: string }) => f.fieldname === row);
       return d !== undefined ? d : null;
     })
     .filter((d) => d !== null);
+
+  const fields = fieldMeta
+    .filter((d) => !NO_VALUE_FIELDS.includes(d.fieldtype))
+    .filter((d) => !columnOrder.includes(d.fieldname));
+
+  const handleColumnAdd = (fieldname: string) => {
+    setColumnOrder((old: string[]) => {
+      const newOrder = [...old];
+      newOrder.push(fieldname);
+      return newOrder;
+    });
+  };
 
   return (
     <DropdownMenu>
@@ -132,6 +148,25 @@ const ColumnSelector = ({
               );
             })}
         </DndProvider>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>Add Columns</DropdownMenuSubTrigger>
+          <DropdownMenuPortal>
+            <DropdownMenuSubContent className="[&_div]:cursor-pointer max-h-96 overflow-y-auto">
+              {fields.map((field: any) => {
+                return (
+                  <DropdownMenuItem
+                    className="capitalize cursor-pointer flex gap-x-2 items-center"
+                    onClick={() => {
+                      handleColumnAdd(field.fieldname);
+                    }}
+                  >
+                    {field.label}
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuSubContent>
+          </DropdownMenuPortal>
+        </DropdownMenuSub>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -255,7 +290,6 @@ const Project = () => {
   if (doc && viewData) {
     return (
       <ProjectTable
-        view={view}
         viewData={viewData}
         defaultView={views.views.find((v) => v.dt === "Project" && v.default) ?? defaultView()}
         meta={doc}
@@ -267,19 +301,17 @@ const Project = () => {
 };
 
 interface ProjectProps {
-  view: string | null;
   viewData: ViewData;
   defaultView: ViewData;
   meta: any;
 }
-const ProjectTable = ({ view, viewData, meta, defaultView }: ProjectProps) => {
-
+const ProjectTable = ({ viewData, meta, defaultView }: ProjectProps) => {
   const [viewInfo, setViewInfo] = useState<ViewData>(viewData);
 
   const { call } = useFrappePostCall("frappe_pms.timesheet.doctype.pms_view_settings.pms_view_settings.update_view");
   const { toast } = useToast();
   const [isExportOpen, setIsExportOpen] = useState(false);
-  const [hasChanged, setHasChanged] = useState(false);
+
   const [colSizing, setColSizing] = useState<ColumnSizingState>(viewInfo.columns ?? {});
   const [columnOrder, setColumnOrder] = useState<string[]>(viewInfo.rows ?? []);
   const [isCreateViewOpen, setIsCreateViewOpen] = useState(false);
@@ -297,6 +329,10 @@ const ProjectTable = ({ view, viewData, meta, defaultView }: ProjectProps) => {
     projectState.selectedBusinessUnit
   );
 
+  useEffect(() => {
+    console.log("here");
+    setViewInfo(viewData);
+   }, [viewData]);
   const { data: projectType } = useFrappeGetCall(
     "frappe.client.get_list",
     {
@@ -324,7 +360,7 @@ const ProjectTable = ({ view, viewData, meta, defaultView }: ProjectProps) => {
     }
   );
 
-  const { data, error, isLoading, mutate } = useFrappeGetDocList(
+  const { data, error, isLoading,mutate } = useFrappeGetDocList(
     "Project",
     {
       fields: viewInfo.rows ?? ["*"],
@@ -340,7 +376,6 @@ const ProjectTable = ({ view, viewData, meta, defaultView }: ProjectProps) => {
     },
     undefined,
     {
-      // shouldRetryOnError: false,
       revalidateOnFocus: false,
       revalidateIfStale: false,
     }
@@ -382,9 +417,8 @@ const ProjectTable = ({ view, viewData, meta, defaultView }: ProjectProps) => {
       filters: createFilter(projectState),
       rows: columnOrder,
     };
-    setHasChanged(true);
     setViewInfo(updateViewData);
-    // dispatch(refreshData());
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     colSizing,
@@ -477,7 +511,6 @@ const ProjectTable = ({ view, viewData, meta, defaultView }: ProjectProps) => {
           variant: "success",
           description: "View Updated",
         });
-        setHasChanged(false);
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
@@ -498,11 +531,27 @@ const ProjectTable = ({ view, viewData, meta, defaultView }: ProjectProps) => {
     if (Object.keys(visibility).length == 0) {
       newColumnOrder = columnOrder;
     } else {
-      newColumnOrder = defaultView.rows.filter((d) => visibility[d]).map((d) => d);
+      newColumnOrder = viewInfo.rows.filter((d) => visibility[d]).map((d) => d);
     }
+
     setColumnOrder(newColumnOrder);
   };
 
+  const updateColumnSize = (columns: Array<string>) => {
+    setColSizing((prevColSizing) => {
+      const newColSizing = { ...prevColSizing };
+      columns.forEach((column) => {
+        if (!Object.prototype.hasOwnProperty.call(newColSizing, column)) {
+          newColSizing[column] = 150;
+        }
+      });
+      return newColSizing;
+    });
+  };
+
+  useEffect(() => {
+    updateColumnSize(columnOrder);
+  }, [columnOrder]);
   useEffect(() => {
     updateColumnOrder(columnVisibility);
     dispatch(setProjectData([]));
@@ -578,11 +627,6 @@ const ProjectTable = ({ view, viewData, meta, defaultView }: ProjectProps) => {
           />
         </section>
         <div className="flex gap-x-2">
-          {!_.isEqual(viewInfo, viewData) && !viewInfo.public && hasChanged && (
-            <Button variant="ghost" onClick={updateView}>
-              Save Changes
-            </Button>
-          )}
           <ColumnSelector
             onColumnHide={handleColumnHide}
             fieldMeta={meta?.fields}
@@ -592,7 +636,7 @@ const ProjectTable = ({ view, viewData, meta, defaultView }: ProjectProps) => {
           />
           <Sort
             fieldMeta={meta.fields}
-            rows={defaultView.rows}
+            rows={columnOrder}
             orderBy={projectState.order}
             field={projectState.orderColumn}
           />
@@ -634,7 +678,7 @@ const ProjectTable = ({ view, viewData, meta, defaultView }: ProjectProps) => {
             route="project"
             isDefault={false}
             isPublic={false}
-            columns={viewData?.columns}
+            columns={viewInfo?.columns}
             rows={table.getVisibleFlatColumns().map((d) => d.id)}
           />
           <Table className=" [&_td]:px-4 [&_th]:px-4 [&_th]:py-4 table-fixed" style={{ width: table.getTotalSize() }}>

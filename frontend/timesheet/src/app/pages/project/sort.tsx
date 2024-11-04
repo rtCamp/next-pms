@@ -30,12 +30,10 @@ const Sort = ({ fieldMeta, rows, orderBy, field }: SortProps) => {
   }, [orderBy, field]);
 
   const colMap = Object.fromEntries(
-    rows
-      .filter((value) => value !== "creation" && value !== "modified" && value !== "name")
-      .map((value) => {
-        const meta = fieldMeta.find((f) => f.fieldname === value);
-        return [value, meta?.label ?? value];
-      })
+    rows.map((value) => {
+      const meta = fieldMeta.find((f) => f.fieldname === value);
+      return [value, meta?.label ?? value];
+    })
   );
 
   const handleColumnChange = (key: string) => {
