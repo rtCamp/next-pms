@@ -124,7 +124,6 @@ export const projectSlice = createSlice({
       state.search = action.payload.search;
       state.order = action.payload.order;
       state.orderColumn = action.payload.orderColumn;
-      state.data = initialState.data;
       state.start = initialState.start;
       state.pageLength = initialState.pageLength;
       state.order = action.payload.order;

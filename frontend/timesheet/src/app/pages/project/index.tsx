@@ -361,8 +361,8 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     }
   );
 
-  const { data, error, isLoading, mutate } = useFrappeGetDocList("Project", {
-    fields: viewData.rows ?? ["*"],
+  const { data, error, isLoading } = useFrappeGetDocList("Project", {
+    fields: viewInfo.rows ?? ["*"],
     // eslint-disable-next-line
     //   @ts-ignore
     filters: getFilter(projectState),
@@ -471,7 +471,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     [dispatch]
   );
 
-  const columns = getColumnInfo(meta.fields, viewData.rows, viewData.columns);
+  const columns = getColumnInfo(meta.fields, viewInfo.rows, viewInfo.columns);
   const table = useReactTable({
     columns: columns,
     data: projectState.data,
@@ -499,7 +499,6 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
           variant: "success",
           description: "View Updated",
         });
-        // mutate();
         setHasViewUpdated(false);
       })
       .catch((err) => {
@@ -545,8 +544,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   useEffect(() => {
     updateColumnOrder(columnVisibility);
   }, [columnVisibility]);
-
-  console.log(viewInfo)
+  console.log(columnOrder)
   return (
     <>
       <Header className="gap-x-3 flex items-center overflow-x-auto">
@@ -617,7 +615,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
           />
         </section>
         <div className="flex gap-x-2">
-          {(hasViewUpdated && (user.user == viewInfo.owner || viewInfo.owner =="Administrator" ) )&& (
+          {hasViewUpdated && (user.user == viewInfo.owner || viewInfo.owner == "Administrator") && (
             <Button onClick={updateView} variant="ghost">
               Save Changes
             </Button>
@@ -626,7 +624,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
             onColumnHide={handleColumnHide}
             fieldMeta={meta?.fields}
             setColumnOrder={setColumnOrder}
-            columnOrder={viewData.rows}
+            columnOrder={viewInfo.rows}
           />
           <Sort
             fieldMeta={meta.fields}
