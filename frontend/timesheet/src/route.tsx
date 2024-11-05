@@ -8,6 +8,7 @@ import { UserContext } from "@/lib/UserProvider";
 
 import { FrappeConfig, FrappeContext } from "frappe-react-sdk";
 import { setRole } from "./store/user";
+import { setViews } from "./store/view";
 const TimesheetComponent = lazy(() => import("@/app/pages/timesheet"));
 const HomeComponent = lazy(() => import("@/app/pages/home"));
 const TeamComponent = lazy(() => import("@/app/pages/team"));
@@ -35,6 +36,7 @@ export const AuthenticatedRoute = () => {
   const { currentUser, isLoading } = useContext(UserContext);
   const { call } = useContext(FrappeContext) as FrappeConfig;
   const user = useSelector((state: RootState) => state.user);
+  const views = useSelector((state: RootState) => state.view);
   const dispatch = useDispatch();
   useEffect(() => {
     if (user.roles.length < 1) {
@@ -42,6 +44,11 @@ export const AuthenticatedRoute = () => {
         dispatch(setRole(res.message));
       });
     }
+     if (views.views.length < 1) {
+       call.get("frappe_pms.timesheet.doctype.pms_view_settings.pms_view_settings.get_views").then((res) => {
+         dispatch(setViews(res.message));
+       });
+     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -1,4 +1,5 @@
 import { Spinner } from "@/app/components/spinner";
+import { Separator } from "@/app/components/ui/separator";
 import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table } from "@/app/components/ui/table";
 import { TaskState } from "@/store/task";
 import {
@@ -67,15 +68,18 @@ export const RowGroupedTable = ({
                     <div className="w-full h-full flex items-center justify-between group">
                       <div className="w-full">{flexRender(header.column.columnDef.header, header.getContext())}</div>
                       {!columnsToExcludeActionsInTables.includes(header.id) && (
-                        <div
+                        <Separator
+                          orientation="vertical"
+                          className="group-hover:w-[3px] w-0 cursor-col-resize"
                           {...{
                             onMouseDown: header.getResizeHandler(),
                             onTouchStart: header.getResizeHandler(),
-                            className: `cursor-col-resize flex justify-center items-center h-full`,
+                            style: {
+                              userSelect: "none",
+                              touchAction: "none",
+                            },
                           }}
-                        >
-                          <GripVertical className="w-4 h-4 max-lg:hidden" />
-                        </div>
+                        />
                       )}
                     </div>
                   </TableHead>

@@ -6,7 +6,7 @@ import { useDispatch } from "react-redux";
 import { Typography } from "@/app/components/typography";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useLocation, } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import {
   Home,
   Users,
@@ -18,13 +18,14 @@ import {
   ChevronDown,
   ClipboardList,
   FolderDot,
+  Circle,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { TIMESHEET, HOME, TEAM, DESK, TASK, PROJECT, ROLES } from "@/lib/constant";
 import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 import { UserContext } from "@/lib/UserProvider";
-import { Separator } from "@radix-ui/react-separator";
+import { Separator } from "@/app/components/ui/separator";
 import GenWrapper from "../components/GenWrapper";
 import logo from "@/logo.svg";
 
@@ -54,8 +55,10 @@ const Sidebar = () => {
     setOpenRoutes((prev) => ({ ...prev, [key]: !prev[key] }));
   };
   const user = useSelector((state: RootState) => state.user);
+  const viewInfo = useSelector((state: RootState) => state.view);
   const dispatch = useDispatch();
   const hasPmRole = user.roles.some((role) => ROLES.includes(role));
+
   const screenSize = useSelector((state: RootState) => state.app.screenSize);
   const location = useLocation();
   const handleCollapse = () => {
@@ -89,29 +92,6 @@ const Sidebar = () => {
       label: "Project",
       key: "project",
       isPmRoute: true,
-      children: [
-        {
-          to: PROJECT,
-          label: "Dashboard",
-          key: "dashboard",
-        },
-        {
-          to: `${PROJECT}/fixed-cost`,
-          label: "Fixed Cost",
-          key: "fixed-cost",
-        },
-
-        {
-          to: `${PROJECT}/retainer`,
-          label: "Retainer",
-          key: "retainer",
-        },
-        {
-          to: `${PROJECT}/tnm`,
-          label: "TnM",
-          key: "tnm",
-        },
-      ],
     },
     {
       to: TASK,
@@ -153,7 +133,7 @@ const Sidebar = () => {
             Project Management
           </Typography>
         </div>
-        <div className="pt-10 h-full overflow-y-auto flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
+        <div className="pt-10 h-fit overflow-y-auto flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
           {routes.map((route: Route) => {
             if (route.isPmRoute && !hasPmRole) return null;
             return route.children ? (
@@ -252,6 +232,134 @@ const Sidebar = () => {
             );
           })}
         </div>
+        {viewInfo.views.filter((view) => view.user === user.user && !view.default).length > 0 ? (
+          <>
+            <Separator />
+            <div className="py-3 h-fit overflow-y-auto flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
+              <Button
+                variant="ghost"
+                className={cn(
+                  "flex items-center gap-x-2 w-full text-left py-2 px-3 hover:bg-slate-200 rounded-lg justify-between",
+                  openRoutes["custom_view"] && "bg-slate-200 "
+                )}
+                onClick={() => toggleNestedRoutes("custom_view")}
+              >
+                <span className="flex items-center gap-x-2">
+                  <Circle />
+                  <Typography
+                    variant="p"
+                    className={cn("transition-all duration-300 ease-in-out ", user.isSidebarCollapsed && "hidden")}
+                  >
+                    Custom View
+                  </Typography>
+                </span>
+                {openRoutes["custom_view"] ? <ChevronUp /> : <ChevronDown />}
+              </Button>
+              <div
+                className={cn(
+                  "pl-4 transition-all duration-300 ease-in-out flex flex-col gap-y-1",
+                  openRoutes["custom_view"] ? "flex" : "hidden"
+                )}
+              >
+                {viewInfo.views.map((view) => {
+                  if (view.default || view.public) return null;
+                  const isActive = view.route === window.location.pathname;
+                  return (
+                    <NavLink
+                      to={`${view.route}?view=${view.name}`}
+                      key={view.name}
+                      title={view.label}
+                      className="transition-all duration-300 ease-in-out flex items-center h-9"
+                    >
+                      <div
+                        className={cn(
+                          "flex w-full pl-2 rounded-lg items-center px-3 py-2 hover:bg-slate-200 text-primary gap-x-2 overflow-hidden",
+                          isActive && "bg-primary shadow-md hover:bg-slate-700 "
+                        )}
+                      >
+                        <Typography
+                          variant="p"
+                          className={cn(
+                            "transition-all duration-300 ease-in-out text-white",
+                            !isActive && "text-primary",
+                            user.isSidebarCollapsed && "hidden"
+                          )}
+                        >
+                          {view.label}
+                        </Typography>
+                      </div>
+                    </NavLink>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        ) : null}
+
+        {viewInfo.views.filter((view) => view.public && !view.default).length > 0 ? (
+          <>
+            <Separator />
+            <div className="py-3 h-fit overflow-y-auto flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
+              <Button
+                variant="ghost"
+                className={cn(
+                  "flex items-center gap-x-2 w-full text-left py-2 px-3 hover:bg-slate-200 rounded-lg justify-between",
+                  openRoutes["public_view"] && "bg-slate-200 "
+                )}
+                onClick={() => toggleNestedRoutes("public_view")}
+              >
+                <span className="flex items-center gap-x-2">
+                  <Circle />
+                  <Typography
+                    variant="p"
+                    className={cn("transition-all duration-300 ease-in-out ", user.isSidebarCollapsed && "hidden")}
+                  >
+                    Public View
+                  </Typography>
+                </span>
+                {openRoutes["public_view"] ? <ChevronUp /> : <ChevronDown />}
+              </Button>
+              <div
+                className={cn(
+                  "pl-4 transition-all duration-300 ease-in-out flex flex-col gap-y-1",
+                  openRoutes["public_view"] ? "flex" : "hidden"
+                )}
+              >
+                {viewInfo.views.map((view) => {
+                  if (view.default || !view.public) return null;
+                  const isActive = view.route === window.location.pathname;
+                  return (
+                    <NavLink
+                      to={`${view.route}?view=${view.name}`}
+                      key={view.name}
+                      title={view.label}
+                      className="transition-all duration-300 ease-in-out flex items-center h-9"
+                    >
+                      <div
+                        className={cn(
+                          "flex w-full pl-2 rounded-lg items-center px-3 py-2 hover:bg-slate-200 text-primary gap-x-2 overflow-hidden",
+                          isActive && "bg-primary shadow-md hover:bg-slate-700 "
+                        )}
+                      >
+                        <Typography
+                          variant="p"
+                          className={cn(
+                            "transition-all duration-300 ease-in-out text-white",
+                            !isActive && "text-primary",
+                            user.isSidebarCollapsed && "hidden"
+                          )}
+                        >
+                          {view.label}
+                        </Typography>
+                      </div>
+                    </NavLink>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        ) : null}
+
         <div className="grow"></div>
         <div className={cn("flex justify-between items-center", user.isSidebarCollapsed && "flex-col ")}>
           <Navigation />

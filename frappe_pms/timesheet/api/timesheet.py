@@ -122,7 +122,7 @@ def delete(parent: str, name: str):
         if log.name == name:
             parent_doc.remove(log)
     if not parent_doc.time_logs:
-        parent_doc.delete(ignore_permissions=True)
+        parent_doc.delete()
     else:
         parent_doc.save()
     return _("Time entry deleted successfully.")

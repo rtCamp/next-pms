@@ -122,7 +122,8 @@ export const projectSlice = createSlice({
       state.selectedStatus = action.payload.selectedStatus;
       state.selectedBusinessUnit = action.payload.selectedBusinessUnit;
       state.search = action.payload.search;
-      state.data = initialState.data;
+      state.order = action.payload.order;
+      state.orderColumn = action.payload.orderColumn;
       state.start = initialState.start;
       state.pageLength = initialState.pageLength;
       state.order = action.payload.order;
@@ -142,12 +143,20 @@ export const projectSlice = createSlice({
     },
     setTotalCount: (state, action: PayloadAction<number>) => {
       state.totalCount = action.payload;
+    },
+    refreshData: (state) => {
+      const pageLength = state.data.length;
+      state.pageLength = pageLength;
+      state.start = 0;
+      state.data = initialState.data;
+
     }
   },
 });
 export const {
   setProjectData,
   updateProjectData,
+  refreshData,
   setStart,
   setSearch,
   setSelectedProjectType,
