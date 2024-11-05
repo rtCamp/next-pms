@@ -1,4 +1,5 @@
 import { Spinner } from "@/app/components/spinner";
+import { Separator } from "@/app/components/ui/separator";
 import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table } from "@/app/components/ui/table";
 import { cn } from "@/lib/utils";
 import { TaskState } from "@/store/task";
@@ -32,8 +33,8 @@ export const FlatTable = ({
       {isLoading && task.task.length == 0 ? (
         <Spinner isFull />
       ) : (
-        <Table className="[&_td]:px-4 [&_th]:px-4 [&_th]:py-4 table-fixed w-full relative">
-          <TableHeader className="[&_th]:h-10 border-t-0 sticky top-0 z-10">
+        <Table className="[&_td]:px-4 [&_th]:px-4 [&_th]:py-2 table-fixed w-full relative">
+          <TableHeader className=" border-t-0 sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -68,15 +69,18 @@ export const FlatTable = ({
                       <div className="w-full h-full flex items-center justify-between group">
                         <div className="w-full">{flexRender(header.column.columnDef.header, header.getContext())}</div>
                         {!columnsToExcludeActionsInTables.includes(header.id) && (
-                          <div
+                          <Separator
+                            orientation="vertical"
+                            className="group-hover:w-[3px] w-0 cursor-col-resize"
                             {...{
                               onMouseDown: header.getResizeHandler(),
                               onTouchStart: header.getResizeHandler(),
-                              className: `cursor-col-resize flex justify-center items-center h-full`,
+                              style: {
+                                userSelect: "none",
+                                touchAction: "none",
+                              },
                             }}
-                          >
-                            <GripVertical className="w-4 h-4 max-lg:hidden" />
-                          </div>
+                          />
                         )}
                       </div>
                     </TableHead>
