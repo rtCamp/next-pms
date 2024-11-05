@@ -6,13 +6,13 @@ from frappe.model.document import Document
 from frappe.utils import parse_json
 
 
-class PMSViewSettings(Document):
+class PMSViewSetting(Document):
     pass
 
 
 @frappe.whitelist()
 def get_view(dt: str):
-    views = frappe.get_all("PMS View Settings", filters={"dt": dt}, fields=["*"])
+    views = frappe.get_all("PMS View Setting", filters={"dt": dt}, fields=["*"])
     for view in views:
         view.filters = frappe.parse_json(view.filters)
         view.order_by = frappe.parse_json(view.order_by)
@@ -24,7 +24,7 @@ def get_view(dt: str):
 @frappe.whitelist()
 def get_views():
     views = frappe.get_all(
-        "PMS View Settings",
+        "PMS View Setting",
         fields=["*"],
         or_filters=[{"user": frappe.session.user}, {"public": 1}],
     )
@@ -46,7 +46,7 @@ def create_view(view):
     view.rows = parse_json(view.rows or "[]")
     view.columns = parse_json(view.columns or "{}")
 
-    doc = frappe.new_doc("PMS View Settings")
+    doc = frappe.new_doc("PMS View Setting")
     user = view.user or frappe.session.user
     doc.label = view.label
     doc.type = view.type or "list"
@@ -75,7 +75,7 @@ def update_view(view):
     view.rows = parse_json(view.rows or "[]")
     view.columns = parse_json(view.columns or "{}")
 
-    doc = frappe.get_doc("PMS View Settings", view.name)
+    doc = frappe.get_doc("PMS View Setting", view.name)
     user = view.user or frappe.session.user
     doc.label = view.label
     doc.type = view.type or "list"

@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestPMSViewSettings(FrappeTestCase):
+class TestPMSViewSetting(FrappeTestCase):
     pass

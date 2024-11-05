@@ -3,6 +3,8 @@ import re
 
 import frappe
 
+from frappe_pms.timesheet.doctype.pms_view_setting.pms_view_setting import get_views
+
 no_cache = 1
 
 SCRIPT_TAG_PATTERN = re.compile(r"\<script[^<]*\</script\>")
@@ -28,7 +30,7 @@ def get_context(context):
     else:
         enabled = True
     boot["server_script_enabled"] = enabled
-
+    boot["views"] = get_views()
     boot_json = frappe.as_json(boot, indent=None, separators=(",", ":"))
     boot_json = SCRIPT_TAG_PATTERN.sub("", boot_json)
 

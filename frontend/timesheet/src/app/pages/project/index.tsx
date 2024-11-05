@@ -278,7 +278,7 @@ const Project = () => {
     const defaultDtView = views.views.find((v) => v.dt === "Project" && v.default);
     if (!defaultDtView) {
       call
-        .post("frappe_pms.timesheet.doctype.pms_view_settings.pms_view_settings.create_view", {
+        .post("frappe_pms.timesheet.doctype.pms_view_setting.pms_view_setting.create_view", {
           view: defaultView(),
         })
         .then((res) => {
@@ -305,7 +305,7 @@ interface ProjectProps {
 const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   const [viewInfo, setViewInfo] = useState<ViewData>(viewData);
   const user = useSelector((state: RootState) => state.user);
-  const { call } = useFrappePostCall("frappe_pms.timesheet.doctype.pms_view_settings.pms_view_settings.update_view");
+  const { call } = useFrappePostCall("frappe_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view");
   const { toast } = useToast();
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [hasViewUpdated, setHasViewUpdated] = useState(false);
@@ -544,7 +544,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   useEffect(() => {
     updateColumnOrder(columnVisibility);
   }, [columnVisibility]);
-  console.log(columnOrder)
+
   return (
     <>
       <Header className="gap-x-3 flex items-center overflow-x-auto">

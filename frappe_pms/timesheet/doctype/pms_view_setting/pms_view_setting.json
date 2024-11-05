@@ -23,6 +23,7 @@
   {
    "fieldname": "label",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Label"
   },
   {
@@ -32,6 +33,7 @@
   {
    "fieldname": "user",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "User",
    "options": "User"
   },
@@ -45,6 +47,7 @@
    "default": "0",
    "fieldname": "public",
    "fieldtype": "Check",
+   "in_list_view": 1,
    "label": "Public"
   },
   {
@@ -78,11 +81,13 @@
    "default": "0",
    "fieldname": "default",
    "fieldtype": "Check",
+   "in_list_view": 1,
    "label": "Default"
   },
   {
    "fieldname": "dt",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "DocType",
    "options": "DocType"
   },
@@ -94,10 +99,10 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-11-05 16:12:49.527924",
+ "modified": "2024-11-05 17:31:03.546785",
  "modified_by": "Administrator",
  "module": "Timesheet",
- "name": "PMS View Settings",
+ "name": "PMS View Setting",
  "naming_rule": "Autoincrement",
  "owner": "Administrator",
  "permissions": [
@@ -123,8 +128,10 @@
    "write": 1
   }
  ],
+ "read_only": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
+ "title_field": "label",
  "track_changes": 1
 }
