@@ -68,7 +68,8 @@ def update_view(view):
     import json
 
     view = frappe._dict(view)
-
+    if view.owner != frappe.session.user and frappe.session.user != "Administrator":
+        frappe.throw(frappe._("Only Administrator or Owner can update the view"), frappe.PermissionError)
     view.filters = parse_json(view.filters) or {}
     view.order_by = parse_json(view.order_by or "[]")
     view.rows = parse_json(view.rows or "[]")
@@ -87,5 +88,5 @@ def update_view(view):
     doc.route = view.route
     doc.default = view.default or 0
     doc.public = view.public or 0
-    doc.save(ignore_permissions=True)
+    doc.save()
     return get_views()

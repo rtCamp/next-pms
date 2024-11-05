@@ -14,6 +14,7 @@ export interface ViewData {
     public: boolean,
     route: string
     order_by: { field: string, order: string },
+    owner?: string
 }
 
 const initialState: ViewState = {
