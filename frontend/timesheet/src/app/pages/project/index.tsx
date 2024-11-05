@@ -65,6 +65,7 @@ import useFrappeDoctypeMeta from "@/app/hooks/useFrappeDoctypeMeta";
 import { getColumnInfo } from "./columns";
 import { Export } from "@/app/components/listview/export";
 import { useSearchParams } from "react-router-dom";
+import { Separator } from "@/app/components/ui/separator";
 
 const Action = ({ createView, openExportDialog }: { createView: () => void; openExportDialog: () => void }) => {
   return (
@@ -250,35 +251,29 @@ const Project = () => {
   useEffect(() => {
     if (!view) {
       const viewData = views.views.find((v) => v.dt === "Project" && v.default);
-      setViewData(viewData);
-      const filters = {
-        search: viewData.filters.search ?? "",
-        selectedProjectType: viewData.filters.project_type ?? JSON.parse(searchParams.get("project-type") ?? "[]"),
-        selectedStatus: viewData.filters.status ?? JSON.parse(searchParams.get("status") ?? "[]"),
-        selectedBusinessUnit: viewData.filters.business_unit ?? JSON.parse(searchParams.get("business-unit") ?? "[]"),
-        order: viewData.order_by.order as "asc" | "desc",
-        orderColumn: viewData.order_by.field,
-      };
-      dispatch(setFilters(filters));
+      updateViewData(viewData ?? defaultView());
     } else {
       const viewData = views.views.find((v) => v.name == view);
       if (!viewData) {
         searchParams.delete("view");
         setSearchParams(searchParams);
       }
-      setViewData(viewData);
-      const filters = {
-        search: viewData.filters.search ?? "",
-        selectedProjectType: viewData.filters.project_type ?? JSON.parse(searchParams.get("project-type") ?? "[]"),
-        selectedStatus: viewData.filters.status ?? JSON.parse(searchParams.get("status") ?? "[]"),
-        selectedBusinessUnit: viewData.filters.business_unit ?? JSON.parse(searchParams.get("business-unit") ?? "[]"),
-        order: viewData.order_by.order as "asc" | "desc",
-        orderColumn: viewData.order_by.field,
-      };
-      dispatch(setFilters(filters));
+      updateViewData(viewData ?? defaultView());
     }
   }, [view, views.views]);
 
+  const updateViewData = (viewData: ViewData) => {
+    setViewData(viewData);
+    const filters = {
+      search: viewData.filters.search ?? "",
+      selectedProjectType: viewData.filters.project_type ?? JSON.parse(searchParams.get("project-type") ?? "[]"),
+      selectedStatus: viewData.filters.status ?? JSON.parse(searchParams.get("status") ?? "[]"),
+      selectedBusinessUnit: viewData.filters.business_unit ?? JSON.parse(searchParams.get("business-unit") ?? "[]"),
+      order: viewData.order_by.order as "asc" | "desc",
+      orderColumn: viewData.order_by.field,
+    };
+    dispatch(setFilters(filters));
+  };
   useEffect(() => {
     const defaultDtView = views.views.find((v) => v.dt === "Project" && v.default);
     if (!defaultDtView) {
@@ -309,7 +304,7 @@ interface ProjectProps {
 
 const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   const [viewInfo, setViewInfo] = useState<ViewData>(viewData);
-
+  const user = useSelector((state: RootState) => state.user);
   const { call } = useFrappePostCall("frappe_pms.timesheet.doctype.pms_view_settings.pms_view_settings.update_view");
   const { toast } = useToast();
   const [isExportOpen, setIsExportOpen] = useState(false);
@@ -333,6 +328,9 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
 
   useEffect(() => {
     setViewInfo(viewData);
+    setColSizing(viewData.columns);
+    setColumnOrder(viewData.rows);
+    setColumnVisibility(createFalseValuedObject(viewData.rows));
     setHasViewUpdated(false);
   }, [viewData]);
 
@@ -363,7 +361,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     }
   );
 
-  const { data, error, isLoading,  } = useFrappeGetDocList("Project", {
+  const { data, error, isLoading, mutate } = useFrappeGetDocList("Project", {
     fields: viewData.rows ?? ["*"],
     // eslint-disable-next-line
     //   @ts-ignore
@@ -473,8 +471,9 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     [dispatch]
   );
 
+  const columns = getColumnInfo(meta.fields, viewData.rows, viewData.columns);
   const table = useReactTable({
-    columns: getColumnInfo(meta.fields, viewData.rows, viewData.columns),
+    columns: columns,
     data: projectState.data,
     enableColumnResizing: true,
     getCoreRowModel: getCoreRowModel(),
@@ -500,6 +499,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
           variant: "success",
           description: "View Updated",
         });
+        // mutate();
         setHasViewUpdated(false);
       })
       .catch((err) => {
@@ -523,7 +523,6 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     } else {
       newColumnOrder = viewInfo.rows.filter((d) => visibility[d]).map((d) => d);
     }
-
     setColumnOrder(newColumnOrder);
   };
 
@@ -545,9 +544,9 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
 
   useEffect(() => {
     updateColumnOrder(columnVisibility);
-    dispatch(setProjectData([]));
   }, [columnVisibility]);
 
+  console.log(viewInfo)
   return (
     <>
       <Header className="gap-x-3 flex items-center overflow-x-auto">
@@ -618,7 +617,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
           />
         </section>
         <div className="flex gap-x-2">
-          {hasViewUpdated && (
+          {(hasViewUpdated && (user.user == viewInfo.owner || viewInfo.owner =="Administrator" ) )&& (
             <Button onClick={updateView} variant="ghost">
               Save Changes
             </Button>
@@ -676,7 +675,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
             columns={viewInfo.columns}
             rows={viewInfo.rows}
           />
-          <Table className=" [&_td]:px-4 [&_th]:px-4 [&_th]:py-4 table-fixed" style={{ width: table.getTotalSize() }}>
+          <Table className=" [&_td]:px-4 [&_th]:px-4 [&_th]:py-2 table-fixed" style={{ width: table.getTotalSize() }}>
             <TableHeader className=" border-t-0 sticky top-0 z-10 ">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
@@ -684,7 +683,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
                     return (
                       <TableHead
                         key={header.id}
-                        className="relative"
+                        className="relative "
                         style={{
                           width: header.getSize(),
                         }}
@@ -693,8 +692,9 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
                           <span className="w-full">
                             {flexRender(header.column.columnDef.header, header.getContext())}
                           </span>
-                          <GripVertical
-                            className="  cursor-col-resize flex justify-center items-center shrink-0"
+                          <Separator
+                            orientation="vertical"
+                            className="group-hover:w-[3px] w-0 cursor-col-resize"
                             {...{
                               onMouseDown: header.getResizeHandler(),
                               onTouchStart: header.getResizeHandler(),

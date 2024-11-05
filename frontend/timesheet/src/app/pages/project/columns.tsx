@@ -65,6 +65,14 @@ export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, c
               {value}
             </Badge>
           );
+        } else if (meta.fieldname === "project_name") {
+          return (
+            <a href={`/app/project/${row.original.name}`} className="hover:underline">
+              <Typography variant="p" className="truncate" title={value}>
+                {value}
+              </Typography>
+            </a>
+          );
         } else {
           return (
             <Typography variant="p" className="truncate" title={value}>

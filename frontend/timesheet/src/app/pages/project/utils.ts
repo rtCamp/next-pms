@@ -41,9 +41,9 @@ export const defaultView = () => {
         route: "project",
         rows: defaultRows,
         columns: columns,
-        filters: [],
-        default: 1,
-        public: 0,
+        filters: { "search": "", "project_type": [], "status": [], "business_unit": [] },
+        default: true,
+        public: false,
         order_by: {
             field: "project_name",
             order: "desc",
