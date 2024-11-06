@@ -46,7 +46,7 @@ const Home = () => {
   const homeState = useSelector((state: RootState) => state.home);
   const dispatch = useDispatch();
   const [employeeNameParam, setEmployeeNameParam] = useQueryParamsState<string>("employee-name", "");
-  const [employeeStatusParam, setEmployeeStatusParam] = useQueryParamsState<Array<string>>("status", []);
+  const [employeeStatusParam, setEmployeeStatusParam] = useQueryParamsState<Array<string>>("status", ["Active"]);
   const navigate = useNavigate();
   const empStatus = [
     { label: "Active", value: "Active" },
@@ -67,20 +67,13 @@ const Home = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { data, error, isLoading } = useFrappeGetCall(
-    "frappe_pms.timesheet.api.team.get_compact_view_data",
-    {
-      date: homeState.weekDate,
-      employee_name: homeState.employeeName,
-      page_length: homeState.pageLength,
-      start: homeState.start,
-      status: homeState.status,
-    },
-    undefined,
-    {
-      revalidateIfStale: false,
-    }
-  );
+  const { data, error, isLoading } = useFrappeGetCall("frappe_pms.timesheet.api.team.get_compact_view_data", {
+    date: homeState.weekDate,
+    employee_name: homeState.employeeName,
+    page_length: homeState.pageLength,
+    start: homeState.start,
+    status: homeState.status,
+  });
   useEffect(() => {
     if (data) {
       if (Object.keys(homeState.data.data).length > 0) {
