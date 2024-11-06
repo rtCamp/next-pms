@@ -3,6 +3,7 @@ from erpnext import get_company_currency
 from erpnext.setup.utils import get_exchange_rate
 from frappe import _
 from frappe.query_builder.functions import Max, Min, Sum
+from frappe.utils import flt
 from hrms.overrides.employee_project import EmployeeProject
 
 
@@ -81,6 +82,8 @@ class ProjectOverwrite(EmployeeProject):
 
         if self.custom_billing_type == "Retainer" or self.custom_billing_type == "Fixed Cost":
             self.update_retainer_project_budget()
+
+        self.calculate_estimated_profit()
 
     def update_sales_amount(self):
         # nosemgrep
@@ -171,6 +174,21 @@ class ProjectOverwrite(EmployeeProject):
 
             self.custom_total_hours_purchased += budget.hours_purchased
             self.custom_total_hours_remaining += budget.remaining_hours
+
+    def calculate_estimated_profit(self):
+        expense_amount = (
+            flt(self.total_costing_amount)
+            # add expense claim amount
+            + flt(self.total_expense_claim)
+            + flt(self.total_purchase_cost)
+            + flt(self.get("total_consumed_material_cost", 0))
+        )
+
+        total_amount = flt(self.estimated_costing) + flt(self.total_sales_amount)
+
+        self.custom_estimated_profit = total_amount - expense_amount
+        if total_amount:
+            self.custom_percentage_estimated_profit = (self.custom_estimated_profit / total_amount) * 100
 
 
 @frappe.whitelist()
