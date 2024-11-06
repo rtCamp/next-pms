@@ -1,8 +1,8 @@
 import { currencyFormat } from "./helper";
 import { Typography } from "@/app/components/typography";
 import { Badge } from "@/app/components/ui/badge";
-import { floatToTime, getDateTimeForMultipleTimeZoneSupport } from "@/lib/utils";
-
+import { cn, floatToTime, getDateTimeForMultipleTimeZoneSupport } from "@/lib/utils";
+import { Progress } from "@/app/components/ui/progress";
 const HOUR_FIELD = ["actual_time", "custom_total_hours_purchased", "custom_total_hours_remaining"];
 
 export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, columnInfo: any) => {
@@ -35,7 +35,7 @@ export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, c
           const formatter = currencyFormat(row.original.custom_currency ?? "INR");
           const value = getValue() as number;
           return (
-            <Typography variant="p" className="truncate" title={value.toString()}>
+            <Typography variant="p" className={ cn("truncate",value<0 &&"text-destructive")} title={value.toString()}>
               {formatter.format(value)}
             </Typography>
           );
@@ -47,10 +47,14 @@ export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, c
             </Typography>
           );
         } else if (meta.fieldtype === "Percent") {
+          const per = Number(parseFloat(value).toFixed(2));
           return (
-            <Typography variant="p" className="truncate" title={value}>
-              {parseFloat(value).toFixed(2)}%
-            </Typography>
+            <span>
+              <Typography variant="small" className={cn("truncate", per < 0 && "text-destructive")} title={value}>
+                {per}%
+              </Typography>
+              <Progress className="h-2" value={per} />
+            </span>
           );
         } else if (HOUR_FIELD.includes(meta.fieldname)) {
           const hour = getValue() as number;
@@ -61,7 +65,13 @@ export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, c
           );
         } else if (meta.fieldname === "status") {
           return (
-            <Badge variant={value === "Open" ? "secondary" : value === "Completed" ? "success" : "destructive"}>
+            <Badge variant={value === "Open" ? "warning" : value === "Completed" ? "success" : "destructive"}>
+              {value}
+            </Badge>
+          );
+        } else if (meta.fieldname === "priority") {
+          return (
+            <Badge variant={value === "Low" ? "success" : value === "Medium" ? "warning" : "destructive"}>
               {value}
             </Badge>
           );
