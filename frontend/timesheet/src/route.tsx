@@ -45,7 +45,7 @@ export const AuthenticatedRoute = () => {
       });
     }
      if (views.views.length < 1) {
-       call.get("frappe_pms.timesheet.doctype.pms_view_settings.pms_view_settings.get_views").then((res) => {
+       call.get("frappe_pms.timesheet.doctype.pms_view_setting.pms_view_setting.get_views").then((res) => {
          dispatch(setViews(res.message));
        });
      }

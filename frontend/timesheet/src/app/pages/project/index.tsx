@@ -35,7 +35,7 @@ import {
   useReactTable,
   ColumnSizingState,
 } from "@tanstack/react-table";
-import { Filter, Columns2, GripVertical, Ellipsis, Download, Plus } from "lucide-react";
+import { Filter, Columns2, GripVertical, Ellipsis, Download, Plus, X } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { Badge } from "@/app/components/ui/badge";
 import { Typography } from "@/app/components/typography";
@@ -48,6 +48,7 @@ import {
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
 import { getFilter } from "./helper";
@@ -121,7 +122,7 @@ const ColumnSelector = ({
   };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal>
       <DropdownMenuTrigger asChild>
         <Button variant="outline">
           <Columns2 />
@@ -147,6 +148,7 @@ const ColumnSelector = ({
               );
             })}
         </DndProvider>
+        <DropdownMenuSeparator />
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>Add Columns</DropdownMenuSubTrigger>
           <DropdownMenuPortal>
@@ -155,6 +157,7 @@ const ColumnSelector = ({
                 return (
                   <DropdownMenuItem
                     className="capitalize cursor-pointer flex gap-x-2 items-center"
+                    onSelect={(event) => event.preventDefault()}
                     onClick={() => {
                       handleColumnAdd(field.fieldname);
                     }}
@@ -214,26 +217,24 @@ const ColumnItem = ({
       key={id}
       className="capitalize cursor-pointer flex gap-x-2 items-center"
       ref={(node) => dragRef(dropRef(node))}
+      onSelect={(event) => event.preventDefault()}
     >
-      <Checkbox
-        checked={isVisible}
-        onCheckedChange={(value) => {
-          toggleVisibility(!!value);
-          onColumnHide(id);
-        }}
-      />
       <span
-        onClick={() => {
-          toggleVisibility(!isVisible);
-          onColumnHide(id);
-        }}
-        className="w-full flex justify-between"
+        className="w-full flex justify-between gap-x-2 items-center"
         style={{
           opacity: isDragging ? 0.5 : 1,
         }}
       >
-        {label}
-        <GripVertical />
+        <Typography className="flex gap-x-2 items-center">
+          <GripVertical />
+          {label}
+        </Typography>
+        <X
+          onClick={() => {
+            toggleVisibility(!isVisible);
+            onColumnHide(id);
+          }}
+        />
       </span>
     </DropdownMenuItem>
   );
