@@ -1,8 +1,8 @@
 import { currencyFormat } from "./helper";
 import { Typography } from "@/app/components/typography";
 import { Badge } from "@/app/components/ui/badge";
-import { floatToTime, getDateTimeForMultipleTimeZoneSupport } from "@/lib/utils";
-
+import { cn, floatToTime, getDateTimeForMultipleTimeZoneSupport } from "@/lib/utils";
+import { Progress } from "@/app/components/ui/progress";
 const HOUR_FIELD = ["actual_time", "custom_total_hours_purchased", "custom_total_hours_remaining"];
 
 export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, columnInfo: any) => {
@@ -22,7 +22,7 @@ export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, c
       },
       cell: ({ getValue, row }) => {
         const value = getValue() as string;
-        if (!value) return <Empty />;
+        if (!value && meta.fieldtype!="Percent") return <Empty />;
         if (meta.fieldtype === "Link") {
           return (
             <a href={`/app/${meta.options.toLowerCase().replace(/ /g, "-")}/${value}`} className="hover:underline">
@@ -35,7 +35,11 @@ export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, c
           const formatter = currencyFormat(row.original.custom_currency ?? "INR");
           const value = getValue() as number;
           return (
-            <Typography variant="p" className="truncate" title={value.toString()}>
+            <Typography
+              variant="p"
+              className={cn("truncate", value < 0 && "text-destructive")}
+              title={value.toString()}
+            >
               {formatter.format(value)}
             </Typography>
           );
@@ -47,10 +51,26 @@ export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, c
             </Typography>
           );
         } else if (meta.fieldtype === "Percent") {
+          const per = Number(parseFloat(value).toFixed(2));
+          let color = "";
+          if (f == "custom_percentage_estimated_cost" && fieldInfo.includes("percent_complete")) {
+            const perEstimatedCost = row.original["custom_percentage_estimated_cost"];
+            const percentComplete = row.original["percent_complete"];
+            const diff = ((percentComplete - perEstimatedCost) / perEstimatedCost) * 100;
+            color =
+              perEstimatedCost < percentComplete
+                ? "bg-success"
+                : diff > 0 && diff <= 10
+                ? "bg-warning"
+                : "bg-destructive";
+          }
           return (
-            <Typography variant="p" className="truncate" title={value}>
-              {parseFloat(value).toFixed(2)}%
-            </Typography>
+            <span>
+              <Typography variant="small" className={cn("truncate", per < 0 && "text-destructive")} title={value}>
+                {per}%
+              </Typography>
+              <Progress className="h-2" indicatorClassName={cn(color)} value={per} />
+            </span>
           );
         } else if (HOUR_FIELD.includes(meta.fieldname)) {
           const hour = getValue() as number;
@@ -61,7 +81,13 @@ export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, c
           );
         } else if (meta.fieldname === "status") {
           return (
-            <Badge variant={value === "Open" ? "secondary" : value === "Completed" ? "success" : "destructive"}>
+            <Badge variant={value === "Open" ? "warning" : value === "Completed" ? "success" : "destructive"}>
+              {value}
+            </Badge>
+          );
+        } else if (meta.fieldname === "priority") {
+          return (
+            <Badge variant={value === "Low" ? "success" : value === "Medium" ? "warning" : "destructive"}>
               {value}
             </Badge>
           );

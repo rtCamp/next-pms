@@ -29,7 +29,7 @@ def get_employee_working_hours(employee: str = None):
     return {"working_hour": working_hour or 8, "working_frequency": working_frequency}
 
 
-def get_employee_daily_working_norm(employee: str):
+def get_employee_daily_working_norm(employee: str) -> int:
     working_details = get_employee_working_hours(employee)
     if working_details.get("working_frequency") != "Per Day":
         return working_details.get("working_hour") / 5

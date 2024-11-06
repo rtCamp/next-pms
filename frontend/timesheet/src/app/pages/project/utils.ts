@@ -24,8 +24,8 @@ export const defaultRows: string[] = [
     "total_expense_claim",
     "custom_total_hours_purchased",
     "custom_total_hours_remaining",
-    "gross_margin",
-    "per_gross_margin",
+    "custom_estimated_profit",
+    "custom_percentage_estimated_profit",
     "percent_complete",
 ];
 
