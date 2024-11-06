@@ -31,10 +31,10 @@ def send_reminder():
     email_subject = reminder_template.subject
 
     for employee in employees:
-        if check_if_date_is_holiday(date, employee.name):
-            continue
         daily_norm = get_employee_daily_working_norm(employee.name)
-        hour = reported_time_by_employee(employee.name, date)
+        if is_holiday_or_leave(date, employee.name, daily_norm):
+            continue
+        hour = reported_time_by_employee(employee.name, date, daily_norm)
         if hour == daily_norm:
             continue
         user = employee.user_id
@@ -53,7 +53,10 @@ def send_mail(recipients, subject, message):
     frappe.sendmail(recipients=recipients, subject=subject, message=message)
 
 
-def reported_time_by_employee(employee: str, date: datetime.date) -> bool:
+def reported_time_by_employee(employee: str, date: datetime.date, daily_norm: int) -> int:
+    total_hours = 0
+    leave_info = get_leave_info(employee, date, daily_norm)
+    total_hours += leave_info.get("hours")
     if_exists = frappe.db.exists(
         "Timesheet",
         {
@@ -62,7 +65,7 @@ def reported_time_by_employee(employee: str, date: datetime.date) -> bool:
         },
     )
     if not if_exists:
-        return 0
+        return total_hours
 
     timesheets = frappe.get_all(
         "Timesheet",
@@ -73,18 +76,45 @@ def reported_time_by_employee(employee: str, date: datetime.date) -> bool:
         },
         fields=["total_hours"],
     )
-    total_hours = 0
-    for timesheet in timesheets:
-        total_hours += timesheet.total_hours
+    total_hours += sum(timesheet.total_hours for timesheet in timesheets)
     return total_hours
 
 
-def check_if_date_is_holiday(date: datetime.date, employee: str) -> bool:
+def is_holiday_or_leave(date: datetime.date, employee: str, daily_norm: int) -> bool:
     holiday_list = get_holiday_list_for_employee(employee)
-    return frappe.db.exists(
+    is_holiday = frappe.db.exists(
         "Holiday",
         {
             "holiday_date": date,
             "parent": holiday_list,
         },
     )
+    if is_holiday:
+        return True
+    leave_info = get_leave_info(employee, date, daily_norm)
+    is_leave = leave_info.get("is_leave")
+    is_half_day = leave_info.get("is_half_day")
+    if is_leave and not is_half_day:
+        return True
+    return False
+
+
+def get_leave_info(employee: str, date: datetime.date, daily_norm: int) -> bool:
+    leave = frappe.db.exists(
+        "Leave Application",
+        {
+            "employee": employee,
+            "from_date": ["<=", date],
+            "to_date": [">=", date],
+            "status": ["in", ["Open", "Approved"]],
+        },
+    )
+    if not leave:
+        return {"is_leave": False, "is_half_day": False, "hours": 0}
+
+    leave_application = frappe.get_doc("Leave Application", leave)
+
+    if leave_application.half_day and getdate(leave_application.half_day_date) == date:
+        return {"is_leave": True, "is_half_day": True, "hours": daily_norm / 2}
+
+    return {"is_leave": True, "is_half_day": False, "hours": daily_norm}
