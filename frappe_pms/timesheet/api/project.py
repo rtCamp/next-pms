@@ -62,5 +62,5 @@ def get_currency_fields(meta_fields):
 
 
 def convert(value, rate):
-    converted_value = flt(value) / (rate or 1)
+    converted_value = flt(value) * (rate or 1)
     return converted_value
