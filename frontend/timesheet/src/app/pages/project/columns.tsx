@@ -1,11 +1,11 @@
-import { currencyFormat } from "./helper";
+import { currencyFormat } from "./utils";
 import { Typography } from "@/app/components/typography";
 import { Badge } from "@/app/components/ui/badge";
 import { cn, floatToTime, getDateTimeForMultipleTimeZoneSupport } from "@/lib/utils";
 import { Progress } from "@/app/components/ui/progress";
 const HOUR_FIELD = ["actual_time", "custom_total_hours_purchased", "custom_total_hours_remaining"];
 
-export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, columnInfo: any) => {
+export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, columnInfo: any, currency: string) => {
   let column = [];
   fieldInfo.forEach((f) => {
     const meta = fieldMeta.find((field) => field.fieldname === f);
@@ -22,7 +22,7 @@ export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, c
       },
       cell: ({ getValue, row }) => {
         const value = getValue() as string;
-        if (!value && meta.fieldtype!="Percent") return <Empty />;
+        if (!value && meta.fieldtype != "Percent") return <Empty />;
         if (meta.fieldtype === "Link") {
           return (
             <a href={`/app/${meta.options.toLowerCase().replace(/ /g, "-")}/${value}`} className="hover:underline">
@@ -32,7 +32,7 @@ export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, c
             </a>
           );
         } else if (meta.fieldtype === "Currency") {
-          const formatter = currencyFormat(row.original.custom_currency ?? "INR");
+          const formatter = currencyFormat(currency ? currency : row.original.custom_currency ?? "INR");
           const value = getValue() as number;
           return (
             <Typography

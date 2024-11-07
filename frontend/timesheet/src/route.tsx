@@ -9,6 +9,7 @@ import { UserContext } from "@/lib/UserProvider";
 import { FrappeConfig, FrappeContext } from "frappe-react-sdk";
 import { setRole } from "./store/user";
 import { setViews } from "./store/view";
+import { setCurrency } from "./store/app";
 const TimesheetComponent = lazy(() => import("@/app/pages/timesheet"));
 const HomeComponent = lazy(() => import("@/app/pages/home"));
 const TeamComponent = lazy(() => import("@/app/pages/team"));
@@ -40,8 +41,9 @@ export const AuthenticatedRoute = () => {
   const dispatch = useDispatch();
   useEffect(() => {
     if (user.roles.length < 1) {
-      call.get("frappe_pms.timesheet.api.app.get_current_user_roles").then((res) => {
-        dispatch(setRole(res.message));
+      call.get("frappe_pms.timesheet.api.app.get_app_data").then((res) => {
+        dispatch(setRole(res.message.roles));
+        dispatch(setCurrency(res.message.currencies));
       });
     }
      if (views.views.length < 1) {

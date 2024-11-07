@@ -5,11 +5,12 @@ export type TScreenSize = "sm" | "md" | "lg" | "xl" | "2xl";
 
 export interface AppState {
   screenSize: TScreenSize;
-  //   add other app related states.
+  currencies:Array<string>
 }
 
 export const initialState: AppState = {
   screenSize: checkScreenSize(),
+  currencies: window.frappe?.boot?.currencies ?? [],
 };
 
 const appSlice = createSlice({
@@ -20,8 +21,11 @@ const appSlice = createSlice({
     updateScreenSize: (state, action: PayloadAction<TScreenSize>) => {
       state.screenSize = action.payload;
     },
+    setCurrency: (state, action: PayloadAction<Array<string>>) => {
+      state.currencies = action.payload;
+    }
   },
 });
 
-export const { updateScreenSize } = appSlice.actions;
+export const { updateScreenSize, setCurrency } = appSlice.actions;
 export default appSlice.reducer;

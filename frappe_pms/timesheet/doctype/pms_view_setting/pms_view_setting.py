@@ -7,7 +7,9 @@ from frappe.utils import parse_json
 
 
 class PMSViewSetting(Document):
-    pass
+    def validate(self):
+        if self.public and self.user:
+            self.user = None
 
 
 @frappe.whitelist()
@@ -68,8 +70,11 @@ def update_view(view):
     import json
 
     view = frappe._dict(view)
-    if view.owner != frappe.session.user and frappe.session.user != "Administrator":
-        frappe.throw(frappe._("Only Administrator or Owner can update the view"), frappe.PermissionError)
+    if view.public and frappe.session.user != "Administrator":
+        frappe.throw(
+            frappe._("Only Administrator or Owner can update public view"),
+            frappe.PermissionError,
+        )
     view.filters = parse_json(view.filters) or {}
     view.order_by = parse_json(view.order_by or "[]")
     view.rows = parse_json(view.rows or "[]")

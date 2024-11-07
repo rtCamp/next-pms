@@ -2,13 +2,7 @@
 import { DeBounceInput } from "@/app/components/deBounceInput";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { RootState } from "@/store";
-import {
-  useFrappeGetDocList,
-  useFrappeGetCall,
-  FrappeContext,
-  FrappeConfig,
-  useFrappePostCall,
-} from "frappe-react-sdk";
+import { useFrappeGetCall, FrappeContext, FrappeConfig, useFrappePostCall } from "frappe-react-sdk";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Header, Footer } from "@/app/layout/root";
@@ -23,6 +17,8 @@ import {
   setFilters,
   setSelectedBusinessUnit,
   setTotalCount,
+  setCurrency,
+  setSelectedBilingType,
 } from "@/store/project";
 import { ComboxBox } from "@/app/components/comboBox";
 import { cn, parseFrappeErrorMsg, createFalseValuedObject, checkIsMobile, NO_VALUE_FIELDS } from "@/lib/utils";
@@ -51,12 +47,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
-import { getFilter } from "./helper";
+import { getFilter } from "./utils";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { useFrappeDocTypeCount } from "@/app/hooks/useFrappeDocCount";
 import { Button } from "@/app/components/ui/button";
-import { Checkbox } from "@/app/components/ui/checkbox";
 import Sort from "./sort";
 import { TouchBackend } from "react-dnd-touch-backend";
 import _ from "lodash";
@@ -266,12 +261,14 @@ const Project = () => {
   const updateViewData = (viewData: ViewData) => {
     setViewData(viewData);
     const filters = {
-      search: viewData.filters.search ?? "",
+      search: viewData.filters.search ?? searchParams.get("search"),
       selectedProjectType: viewData.filters.project_type ?? JSON.parse(searchParams.get("project-type") ?? "[]"),
       selectedStatus: viewData.filters.status ?? JSON.parse(searchParams.get("status") ?? "[]"),
       selectedBusinessUnit: viewData.filters.business_unit ?? JSON.parse(searchParams.get("business-unit") ?? "[]"),
       order: viewData.order_by.order as "asc" | "desc",
       orderColumn: viewData.order_by.field,
+      currency: viewData.filters.currency ?? searchParams.get("currency"),
+      selectedBillingType: viewData.filters.billing_type ?? JSON.parse(searchParams.get("billing-type") ?? "[]"),
     };
     dispatch(setFilters(filters));
   };
@@ -306,6 +303,7 @@ interface ProjectProps {
 const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   const [viewInfo, setViewInfo] = useState<ViewData>(viewData);
   const user = useSelector((state: RootState) => state.user);
+  const appInfo = useSelector((state: RootState) => state.app);
   const { call } = useFrappePostCall("frappe_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view");
   const { toast } = useToast();
   const [isExportOpen, setIsExportOpen] = useState(false);
@@ -322,11 +320,16 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     projectState.selectedProjectType
   );
   const [statusParam, setStatusParam] = useQueryParamsState<Array<Status>>("status", projectState.selectedStatus);
+  const [billingTypeParam, setBillingTypeParam] = useQueryParamsState<Array<string>>(
+    "billing-type",
+    projectState.selectedBillingType
+  );
+  const [currencyParam, setCurrencyParam] = useQueryParamsState<string>("currency", "");
   const [businessUnitParam, setBusinessUnitParam] = useQueryParamsState<Array<string>>(
     "business-unit",
     projectState.selectedBusinessUnit
   );
-
+  const billing_type = ["Non-Billable", "Retainer", "Fixed Cost", "Time and Material"];
   useEffect(() => {
     setViewInfo(viewData);
     setColSizing(viewData.columns);
@@ -362,23 +365,28 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     }
   );
 
-  const { data, error, isLoading } = useFrappeGetDocList("Project", {
-    fields: viewInfo.rows ?? ["*"],
-    // eslint-disable-next-line
-    //   @ts-ignore
-    filters: getFilter(projectState),
-    limit_start: projectState.start,
-    limit: projectState.pageLength,
-    orderBy: {
-      field: projectState.orderColumn,
-      order: projectState.order as "asc" | "desc" | undefined,
+  const { data, error, isLoading } = useFrappeGetCall(
+    "frappe_pms.timesheet.api.project.get_projects",
+    {
+      fields: viewInfo.rows ?? ["*"],
+      // eslint-disable-next-line
+      //   @ts-ignore
+      filters: getFilter(projectState),
+      limit_start: projectState.start,
+      limit: projectState.pageLength,
+      currency: projectState.currency,
+      order_by: `${projectState.orderColumn} ${projectState.order}`,
     },
-  });
+    undefined,
+    {
+      revalidateOnFocus: false,
+    }
+  );
   const { data: count } = useFrappeDocTypeCount("Project", { filters: getFilter(projectState) });
 
   useEffect(() => {
     if (data) {
-      dispatch(setProjectData(data));
+      dispatch(setProjectData(data.message));
     }
     if (error) {
       const err = parseFrappeErrorMsg(error);
@@ -418,27 +426,30 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     projectState.selectedProjectType,
     projectState.selectedStatus,
     projectState.selectedBusinessUnit,
+    projectState.selectedBillingType,
+    projectState.currency,
   ]);
-
   useEffect(() => {
     setStatusParam(projectState.selectedStatus);
     setBusinessUnitParam(projectState.selectedBusinessUnit);
     setSearchParam(projectState.search);
     setProjectTypeParam(projectState.selectedProjectType);
-
+    setBillingTypeParam(projectState.selectedBillingType);
+    setCurrencyParam(projectState.currency);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     projectState.search,
     projectState.selectedProjectType,
     projectState.selectedStatus,
     projectState.selectedBusinessUnit,
+    projectState.selectedBillingType,
+    projectState.currency,
   ]);
 
   const handleSearch = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value.trim();
       dispatch(setSearch(value));
-      setSearchParam(value);
     },
     [dispatch, setSearchParam]
   );
@@ -446,7 +457,6 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     (filters: string | string[]) => {
       const normalizedFilters = Array.isArray(filters) ? filters : [filters];
       dispatch(setSelectedProjectType(normalizedFilters));
-      setProjectTypeParam(normalizedFilters);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [dispatch]
@@ -456,7 +466,22 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     (filters: string | string[]) => {
       const normalizedFilters = Array.isArray(filters) ? filters : [filters];
       dispatch(setSelectedStatus(normalizedFilters as Status[]));
-      setStatusParam(normalizedFilters as Status[]);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [dispatch]
+  );
+  const handleBillingTypeChange = useCallback(
+    (filters: string | string[]) => {
+      const normalizedFilters = Array.isArray(filters) ? filters : [filters];
+      dispatch(setSelectedBilingType(normalizedFilters as Status[]));
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [dispatch]
+  );
+  const handleCurrencyChange = useCallback(
+    (filters: string | string[]) => {
+      const normalizedFilters = Array.isArray(filters) ? filters[0] : filters;
+      dispatch(setCurrency(normalizedFilters ?? ""));
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [dispatch]
@@ -466,13 +491,12 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     (filters: string | string[]) => {
       const normalizedFilters = Array.isArray(filters) ? filters : [filters];
       dispatch(setSelectedBusinessUnit(normalizedFilters));
-      setBusinessUnitParam(normalizedFilters);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [dispatch]
   );
 
-  const columns = getColumnInfo(meta.fields, viewInfo.rows, viewInfo.columns);
+  const columns = getColumnInfo(meta.fields, viewInfo.rows, viewInfo.columns, currencyParam);
   const table = useReactTable({
     columns: columns,
     data: projectState.data,
@@ -614,13 +638,44 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
             }
             className="text-primary border-dashed  font-normal w-fit"
           />
+          <ComboxBox
+            isMulti
+            label="Billing Type"
+            shouldFilter
+            value={billingTypeParam}
+            onSelect={handleBillingTypeChange}
+            leftIcon={<Filter className={cn(projectState.selectedBillingType.length != 0 && "fill-primary")} />}
+            rightIcon={
+              projectState.selectedBillingType.length > 0 && (
+                <Badge className="px-1.5">{projectState.selectedBillingType.length}</Badge>
+              )
+            }
+            data={billing_type.map((d: string) => ({
+              label: d,
+              value: d,
+            }))}
+            className="text-primary border-dashed gap-x-1 font-normal w-fit"
+          />
+          <ComboxBox
+            label="Currency"
+            shouldFilter
+            showSelected
+            value={currencyParam ? [currencyParam] : []}
+            onSelect={handleCurrencyChange}
+            data={appInfo.currencies.map((d: string) => ({
+              label: d,
+              value: d,
+            }))}
+            className="text-primary border-dashed  font-normal w-fit"
+          />
         </section>
         <div className="flex gap-x-2">
-          {hasViewUpdated && (user.user == viewInfo.owner || viewInfo.owner == "Administrator") && (
-            <Button onClick={updateView} variant="ghost">
-              Save Changes
-            </Button>
-          )}
+          {hasViewUpdated &&
+            (user.user == viewInfo.owner || (viewInfo.public == true && user.user == "Administrator")) && (
+              <Button onClick={updateView} variant="ghost">
+                Save Changes
+              </Button>
+            )}
           <ColumnSelector
             onColumnHide={handleColumnHide}
             fieldMeta={meta?.fields}
@@ -682,27 +737,22 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
                     return (
                       <TableHead
                         key={header.id}
-                        className="relative "
-                        style={{
-                          width: header.getSize(),
+                        className="group relative hover:cursor-col-resize"
+                        {...{
+                          onMouseDown: header.getResizeHandler(),
+                          onTouchStart: header.getResizeHandler(),
+                          style: {
+                            userSelect: "none",
+                            touchAction: "none",
+                            width: header.getSize(),
+                          },
                         }}
                       >
                         <div className="flex items-center h-full gap-1 group">
                           <span className="w-full">
                             {flexRender(header.column.columnDef.header, header.getContext())}
                           </span>
-                          <Separator
-                            orientation="vertical"
-                            className="group-hover:w-[3px] w-0 cursor-col-resize"
-                            {...{
-                              onMouseDown: header.getResizeHandler(),
-                              onTouchStart: header.getResizeHandler(),
-                              style: {
-                                userSelect: "none",
-                                touchAction: "none",
-                              },
-                            }}
-                          />
+                          <Separator orientation="vertical" className="group-hover:w-[3px]  cursor-col-resize" />
                         </div>
                       </TableHead>
                     );
