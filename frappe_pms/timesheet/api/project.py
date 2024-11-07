@@ -1,8 +1,8 @@
 import json
 
-from erpnext.accounts.report.utils import convert
+from erpnext.accounts.report.utils import get_rate_as_at
 from frappe import get_list, get_meta, whitelist
-from frappe.utils import getdate
+from frappe.utils import flt, getdate
 
 
 @whitelist()
@@ -40,13 +40,15 @@ def get_projects(
 
     currency_fields = get_currency_fields(meta.fields)
     date = getdate()
+
     for project in project_lists:
         project_currency = project.custom_currency
         if project_currency == currency:
             continue
+        rate = get_rate_as_at(date, project_currency, currency)
         for field in currency_fields:
             if field in project:
-                project[field] = convert(project.get(field), project_currency, currency, date)
+                project[field] = convert(project.get(field), rate)
     return project_lists
 
 
@@ -57,3 +59,8 @@ def get_currency_fields(meta_fields):
         if field.fieldtype == "Currency":
             currency_fields.append(field.fieldname)
     return currency_fields
+
+
+def convert(value, rate):
+    converted_value = flt(value) / (rate or 1)
+    return converted_value
