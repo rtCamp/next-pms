@@ -39,7 +39,7 @@ export const RowGroupedTable = ({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead
-                    className={`resizer overflow-hidden ${header.column.getIsResizing() ? "isResizing" : null}`}
+                    className={`resizer group overflow-hidden ${header.column.getIsResizing() ? "isResizing" : null}`}
                     key={header.id}
                     style={{
                       width: header.getSize(),
@@ -70,7 +70,7 @@ export const RowGroupedTable = ({
                       {!columnsToExcludeActionsInTables.includes(header.id) && (
                         <Separator
                           orientation="vertical"
-                          className="group-hover:w-[3px] w-0 cursor-col-resize"
+                          className="group-hover:w-[3px]  cursor-col-resize"
                           {...{
                             onMouseDown: header.getResizeHandler(),
                             onTouchStart: header.getResizeHandler(),

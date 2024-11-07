@@ -40,7 +40,7 @@ export const FlatTable = ({
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead
-                      className={cn("resizer", header.column.getIsResizing() && "isResizing")}
+                      className={cn("resizer group", header.column.getIsResizing() && "isResizing")}
                       key={header.id}
                       onMouseDown={(event) => {
                         const container = event.currentTarget;
@@ -71,7 +71,7 @@ export const FlatTable = ({
                         {!columnsToExcludeActionsInTables.includes(header.id) && (
                           <Separator
                             orientation="vertical"
-                            className="group-hover:w-[3px] w-0 cursor-col-resize"
+                            className="group-hover:w-[3px]  cursor-col-resize"
                             {...{
                               onMouseDown: header.getResizeHandler(),
                               onTouchStart: header.getResizeHandler(),
