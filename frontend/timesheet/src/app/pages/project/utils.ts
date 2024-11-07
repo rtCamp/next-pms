@@ -41,7 +41,7 @@ export const defaultView = () => {
         route: "project",
         rows: defaultRows,
         columns: columns,
-        filters: { "search": "", "project_type": [], "status": [], "business_unit": [] },
+        filters: { "search": "", "project_type": [], "status": [], "business_unit": [], "currency": "", "billing_type": [] },
         default: true,
         public: false,
         order_by: {
@@ -56,6 +56,35 @@ export const createFilter = (projectState: ProjectState) => {
         search: projectState.search,
         project_type: projectState.selectedProjectType,
         status: projectState.selectedStatus,
-        business_unit: projectState.selectedBusinessUnit
+        business_unit: projectState.selectedBusinessUnit,
+        currency: projectState.currency,
+        billing_type: projectState.selectedBillingType
     }
 }
+
+export const currencyFormat = (currency: string) => {
+    return new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: currency,
+    });
+};
+export const getFilter = (projectState: ProjectState) => {
+    const filters = [];
+
+    if (projectState.search) {
+        filters.push(["project_name", "like", `%${projectState.search}%`]);
+    }
+    if (projectState.selectedProjectType.length > 0) {
+        filters.push(["project_type", "in", projectState.selectedProjectType]);
+    }
+    if (projectState.selectedStatus.length > 0) {
+        filters.push(["status", "in", projectState.selectedStatus]);
+    }
+    if (projectState.selectedBusinessUnit.length > 0) {
+        filters.push(["custom_business_unit", "in", projectState.selectedBusinessUnit]);
+    }
+    if (projectState.selectedBillingType.length > 0) {
+        filters.push(["custom_billing_type", "in", projectState.selectedBillingType]);
+    }
+    return filters;
+};

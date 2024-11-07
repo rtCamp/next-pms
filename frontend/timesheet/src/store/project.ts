@@ -48,16 +48,18 @@ export interface ProjectState {
   selectedProjectType: Array<string>;
   search: string;
   selectedStatus: Array<Status>;
+  selectedBillingType: Array<string>;
   statusList: Array<Status>;
   order: sortOrder;
   orderColumn: string;
   pageLength: number;
   selectedBusinessUnit: Array<string>;
   totalCount: number;
+  currency: string
 }
 
 export const initialState: ProjectState = {
-
+  selectedBillingType: [],
   data: [],
   start: 0,
   pageLength: 20,
@@ -69,6 +71,7 @@ export const initialState: ProjectState = {
   order: "desc",
   orderColumn: "project_name",
   totalCount: 0,
+  currency: ""
 };
 
 export const projectSlice = createSlice({
@@ -93,19 +96,27 @@ export const projectSlice = createSlice({
     },
     setSelectedProjectType: (state, action: PayloadAction<Array<string>>) => {
       state.selectedProjectType = action.payload;
-      state.data = initialState.data;
+      // state.data = initialState.data;
       state.start = initialState.start;
       state.pageLength = initialState.pageLength;
     },
     setSelectedStatus: (state, action: PayloadAction<Array<Status>>) => {
       state.selectedStatus = action.payload;
-      state.data = initialState.data;
+      // state.data = initialState.data;
       state.start = initialState.start;
       state.pageLength = initialState.pageLength;
     },
     setSelectedBusinessUnit: (state, action: PayloadAction<Array<string>>) => {
       state.selectedBusinessUnit = action.payload;
-      state.data = initialState.data;
+      // state.data = initialState.data;
+    },
+    setSelectedBilingType: (state, action: PayloadAction<Array<string>>) => {
+      state.selectedBillingType = action.payload;
+      // state.data = initialState.data;
+    },
+    setCurrency: (state, action: PayloadAction<string>) => {
+      state.currency = action.payload;
+      // state.data = initialState.data;
     },
     setFilters: (
       state,
@@ -116,6 +127,8 @@ export const projectSlice = createSlice({
         selectedBusinessUnit: Array<string>;
         order: sortOrder;
         orderColumn: string;
+        currency: string
+        selectedBillingType: Array<string>
       }>,
     ) => {
       state.selectedProjectType = action.payload.selectedProjectType;
@@ -128,7 +141,8 @@ export const projectSlice = createSlice({
       state.pageLength = initialState.pageLength;
       state.order = action.payload.order;
       state.orderColumn = action.payload.orderColumn;
-
+      state.currency = action.payload.currency;
+      state.selectedBillingType = action.payload.selectedBillingType;
     },
     setOrderBy: (
       state,
@@ -163,7 +177,9 @@ export const {
   setSelectedStatus,
   setFilters,
   setOrderBy,
+  setCurrency,
   setTotalCount,
-  setSelectedBusinessUnit
+  setSelectedBusinessUnit,
+  setSelectedBilingType
 } = projectSlice.actions;
 export default projectSlice.reducer;
