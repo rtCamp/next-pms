@@ -9,4 +9,4 @@ def after_insert(doc, method=None):
 
         if is_billable:
             doc.custom_is_billable = 1
-            doc.save()
+            doc.save(ignore_permissions=True)
