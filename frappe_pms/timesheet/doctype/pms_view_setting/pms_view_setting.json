@@ -1,0 +1,137 @@
+{
+ "actions": [],
+ "autoname": "autoincrement",
+ "creation": "2024-10-22 14:00:16.777234",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "label",
+  "user",
+  "default",
+  "public",
+  "column_break_fljv",
+  "dt",
+  "type",
+  "route",
+  "list_tab",
+  "columns",
+  "rows",
+  "filters",
+  "order_by"
+ ],
+ "fields": [
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label"
+  },
+  {
+   "fieldname": "column_break_fljv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "User",
+   "options": "User"
+  },
+  {
+   "fieldname": "route",
+   "fieldtype": "Text",
+   "label": "Route",
+   "max_height": "30px"
+  },
+  {
+   "default": "0",
+   "fieldname": "public",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Public"
+  },
+  {
+   "fieldname": "list_tab",
+   "fieldtype": "Tab Break",
+   "label": "List"
+  },
+  {
+   "fieldname": "rows",
+   "fieldtype": "Code",
+   "label": "Rows"
+  },
+  {
+   "default": "List",
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "List\nCustom"
+  },
+  {
+   "fieldname": "filters",
+   "fieldtype": "Code",
+   "label": "Filters"
+  },
+  {
+   "fieldname": "order_by",
+   "fieldtype": "Code",
+   "label": "Order By"
+  },
+  {
+   "default": "0",
+   "fieldname": "default",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Default"
+  },
+  {
+   "fieldname": "dt",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "DocType",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "columns",
+   "fieldtype": "Code",
+   "label": "Columns"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-11-05 17:31:03.546785",
+ "modified_by": "Administrator",
+ "module": "Timesheet",
+ "name": "PMS View Setting",
+ "naming_rule": "Autoincrement",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "if_owner": 1,
+   "read": 1,
+   "role": "Projects Manager",
+   "select": 1,
+   "write": 1
+  }
+ ],
+ "read_only": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "label",
+ "track_changes": 1
+}

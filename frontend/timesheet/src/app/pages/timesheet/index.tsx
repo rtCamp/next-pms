@@ -45,6 +45,9 @@ function Timesheet() {
     employee: user.employee,
     start_date: timesheet.weekDate,
     max_week: 4,
+  }, undefined, {
+    revalidateOnFocus: false,
+    revalidateIfStale: false,
   });
 
   useEffect(() => {

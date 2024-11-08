@@ -1,4 +1,3 @@
-import { getFieldInfo } from "./helper";
 import { useEffect, useState } from "react";
 import {
   DropdownMenu,
@@ -10,33 +9,34 @@ import {
 import { sortOrder } from "@/types";
 import { Button } from "@/app/components/ui/button";
 import { ArrowDownAZ, ArrowDownZA } from "lucide-react";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/store";
+import { useDispatch } from "react-redux";
+
 import { setOrderBy } from "@/store/project";
 
-const Sort = ({ metaFields, type }: { metaFields: any; type: string | undefined }) => {
-  const fields = getFieldInfo(type);
+interface SortProps {
+  fieldMeta: Array<any>;
+  rows: Array<string>;
+  orderBy: sortOrder;
+  field: string;
+}
+const Sort = ({ fieldMeta, rows, orderBy, field }: SortProps) => {
   const dispatch = useDispatch();
-  const projectState = useSelector((state: RootState) => state.project);
-  const [order, setOrder] = useState<sortOrder>(projectState.order);
-  const [orderColumn, setOrderColumn] = useState<string>(projectState.orderColumn);
-  const [colMap, setColMap] = useState<Array<{ label: string; value: string }>>([]);
+  const [order, setOrder] = useState<sortOrder>(orderBy);
+  const [orderColumn, setOrderColumn] = useState<string>(field);
 
   useEffect(() => {
-    setOrder(projectState.order);
-    setOrderColumn(projectState.orderColumn);
-  }, [projectState.order, projectState.orderColumn]);
-  useEffect(() => {
-    if (!metaFields) return;
-    const columns = fields
-      .map((field) => {
-        const meta = metaFields.find((f: any) => f.fieldname === field);
-        return { label: meta?.label, value: field };
+    setOrder(orderBy);
+    setOrderColumn(field);
+  }, [orderBy, field]);
+
+  const colMap = Object.fromEntries(
+    rows
+      .filter((value) => value !== "creation" && value !== "modified" && value !== "name")
+      .map((value) => {
+        const meta = fieldMeta.find((f) => f.fieldname === value);
+        return [value, meta?.label ?? value];
       })
-      .filter((i) => i.label);
-
-    setColMap(columns);
-  }, [metaFields]);
+  );
 
   const handleColumnChange = (key: string) => {
     if (key === orderColumn) return;
@@ -64,24 +64,22 @@ const Sort = ({ metaFields, type }: { metaFields: any; type: string | undefined 
             variant="outline"
             className="font-normal rounded-tl-none border-l-0 rounded-bl-none ring-0 outline-0 ring-offset-0 focus-visible:ring-0"
           >
-            {colMap.find((i) => i.value == orderColumn)?.label ?? "Sort"}
+            {colMap[orderColumn] ?? "Sort"}
           </Button>
         </DropdownMenuTrigger>
       </div>
       <DropdownMenuContent className="max-h-96 overflow-auto mr-3 [&_div]:hover:cursor-pointer">
-        {colMap.map((i) => {
-          return (
-            <DropdownMenuCheckboxItem
-              key={i.value}
-              checked={i.value == orderColumn}
-              onCheckedChange={() => {
-                handleColumnChange(i.value);
-              }}
-            >
-              {i.label}
-            </DropdownMenuCheckboxItem>
-          );
-        })}
+        {Object.entries(colMap).map(([key, value]: [string, string]) => (
+          <DropdownMenuCheckboxItem
+            key={key}
+            checked={key == orderColumn}
+            onCheckedChange={() => {
+              handleColumnChange(key);
+            }}
+          >
+            {value}
+          </DropdownMenuCheckboxItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );

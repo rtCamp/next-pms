@@ -144,6 +144,16 @@ fixtures = [
             ]
         ],
     },
+    {
+        "dt": "Custom DocPerm",
+        "filters": [
+            [
+                "role",
+                "in",
+                ["Timesheet Manager", "Timesheet User"],
+            ]
+        ],
+    },
 ]
 
 

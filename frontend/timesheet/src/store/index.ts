@@ -6,6 +6,7 @@ import homeReducer from "./home";
 import appReducer from "./app";
 import taskReducer from "./task";
 import projectReducer from "./project";
+import viewReducer from "./view";
 export const store = configureStore({
   reducer: {
     user: userReducer,
@@ -15,6 +16,7 @@ export const store = configureStore({
     app: appReducer,
     task: taskReducer,
     project: projectReducer,
+    view: viewReducer,
   },
 });
 export type RootState = ReturnType<typeof store.getState>;

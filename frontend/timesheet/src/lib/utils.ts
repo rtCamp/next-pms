@@ -1,9 +1,19 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { Error } from "frappe-js-sdk/lib/frappe_app/types";
-import { TaskData, WorkingFrequency } from "@/types";
+import { TaskData, WorkingFrequency, ProjectNestedTaskData } from "@/types";
 import { TScreenSize } from "@/store/app";
 import { HolidayProp } from "@/types/timesheet";
+
+export const NO_VALUE_FIELDS = ["Section Break", "Column Break",
+  "Tab Break",
+  "HTML",
+  "Table",
+  "Table MultiSelect",
+  "Button",
+  "Image",
+  "Fold",
+  "Heading"]
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -211,7 +221,7 @@ export const createFalseValuedObject = (obj) => {
   const newFalseValueObject: { [key: string]: boolean } = {};
   if (Object.keys(obj).length > 0) {
     for (const key of obj) {
-      newFalseValueObject[key] = false;
+      newFalseValueObject[key] = true;
     }
   }
   return newFalseValueObject;
@@ -296,6 +306,6 @@ export const flatTableDataToNestedProjectDataConversion = (
   return Object.values(projectMap);
 };
 
-export const checkIsMobile =()=>{
+export const checkIsMobile = () => {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
