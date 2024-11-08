@@ -150,7 +150,7 @@ fixtures = [
             [
                 "role",
                 "in",
-                ["Timesheet Manager"],
+                ["Timesheet Manager", "Timesheet User"],
             ]
         ],
     },
