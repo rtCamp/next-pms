@@ -1,6 +1,6 @@
 import { lazy, useContext, useEffect } from "react";
 import { Route, Outlet } from "react-router-dom";
-import { TIMESHEET, HOME, TEAM, TASK, PROJECT } from "@/lib/constant";
+import { TIMESHEET, HOME, TEAM, TASK, PROJECT,RESOURCE_MANAGEMENT } from "@/lib/constant";
 import { Layout, PmRoute } from "@/app/layout/index";
 import { RootState } from "./store";
 import { useDispatch, useSelector } from "react-redux";
@@ -13,6 +13,7 @@ import { setCurrency } from "./store/app";
 const TimesheetComponent = lazy(() => import("@/app/pages/timesheet"));
 const HomeComponent = lazy(() => import("@/app/pages/home"));
 const TeamComponent = lazy(() => import("@/app/pages/team"));
+const TeamResourceComponent = lazy(() => import("@/app/pages/resource_management/team"));
 const EmployeeDetailComponent = lazy(() => import("@/app/pages/team/employeeDetail"));
 const TaskComponent = lazy(() => import("@/app/pages/task"));
 const ProjectComponent = lazy(() => import("@/app/pages/project"));
@@ -28,6 +29,9 @@ export function Router() {
         </Route>
         <Route path={`${PROJECT}/:type?`} element={<ProjectComponent />} />
       </Route>
+      <Route path={RESOURCE_MANAGEMENT}>
+          <Route path={`${RESOURCE_MANAGEMENT}/`} element={<TeamResourceComponent />} />
+        </Route>
       <Route path={TASK} element={<TaskComponent />} />
     </Route>
   );

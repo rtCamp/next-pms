@@ -18,10 +18,10 @@ import {
   ChevronDown,
   ClipboardList,
   FolderDot,
-  Circle,
+  GanttChart
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
-import { TIMESHEET, HOME, TEAM, DESK, TASK, PROJECT, ROLES } from "@/lib/constant";
+import { TIMESHEET, HOME, TEAM, DESK, TASK, PROJECT, ROLES, RESOURCE_MANAGEMENT } from "@/lib/constant";
 import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 import { UserContext } from "@/lib/UserProvider";
@@ -92,6 +92,13 @@ const Sidebar = () => {
       label: "Project",
       key: "project",
       isPmRoute: true,
+    },
+    {
+      to: RESOURCE_MANAGEMENT,
+      icon: GanttChart,
+      label: "Resource Management",
+      key: "resource-management",
+      isPmRoute: false,
     },
     {
       to: TASK,

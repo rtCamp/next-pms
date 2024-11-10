@@ -29,7 +29,7 @@ def get_leaves_for_employee(from_date: str, to_date: str, employee: str):
     return filtered_data
 
 
-def get_week_dates(date, current_week: bool = False):
+def get_week_dates(date, current_week: bool = False, ignore_weekend=False):
     """Returns the dates map with dates and other details.
     example:
         {
@@ -55,6 +55,9 @@ def get_week_dates(date, current_week: bool = False):
     data = {"start_date": start_date, "end_date": end_date, "key": key}
 
     while start_date <= end_date:
+        if ignore_weekend and start_date.weekday() in [5, 6]:
+            start_date = add_days(start_date, 1)
+            continue
         dates.append(start_date)
         start_date = add_days(start_date, 1)
     data["dates"] = dates
@@ -70,6 +73,7 @@ def filter_employees(
     user_group=None,
     status=None,
     reports_to: None | str = None,
+    business_unit=None,
 ):
     import json
 

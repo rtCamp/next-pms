@@ -7,16 +7,19 @@ import appReducer from "./app";
 import taskReducer from "./task";
 import projectReducer from "./project";
 import viewReducer from "./view";
+import resourceTeamReducer from "./resource_management/team";
 export const store = configureStore({
   reducer: {
     user: userReducer,
     timesheet: timesheetReducer,
+    resource_team: resourceTeamReducer,
     team: teamReducer,
     home: homeReducer,
     app: appReducer,
     task: taskReducer,
     project: projectReducer,
     view: viewReducer,
+
   },
 });
 export type RootState = ReturnType<typeof store.getState>;
