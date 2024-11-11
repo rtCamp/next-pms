@@ -6,9 +6,9 @@ import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useEffect } from "react";
 import { Spinner } from "@/app/components/spinner";
-import { ResourceTable } from "./components/table";
-import { HeaderSection } from "./components/header";
-import { FooterSection } from "./components/footer";
+import { ResourceTable } from "./components/Table";
+import { HeaderSection } from "./components/Header";
+import { FooterSection } from "./components/Footer";
 
 const ResourceTeamView = () => {
   const { toast } = useToast();
@@ -22,6 +22,7 @@ const ResourceTeamView = () => {
       max_week: 2,
       page_length: resourceTeamState.pageLength,
       employee_name: resourceTeamState.employeeName,
+      business_unit: resourceTeamState.businessUnit,
       start: resourceTeamState.start,
     },
     undefined,
@@ -31,7 +32,7 @@ const ResourceTeamView = () => {
   );
 
   useEffect(() => {
-    console.log(data)
+
     if (data) {
       if (Object.keys(resourceTeamState.data.data).length > 0 && resourceTeamState.data.dates.length > 0) {
         dispatch(updateData(data.message));

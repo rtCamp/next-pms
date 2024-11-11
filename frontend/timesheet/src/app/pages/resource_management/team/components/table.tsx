@@ -7,7 +7,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Table, TableHead, TableHeader, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
 import { Typography } from "@/app/components/typography";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
-import { Employee } from "../../../team/employee";
+import { Employee } from "./Employee";
 import { useMemo } from "react";
 
 const ResourceTable = () => {
@@ -17,11 +17,11 @@ const ResourceTable = () => {
   return (
     <Table className="lg:[&_tr]:pr-3 relative">
       <TableHeader className="border-t-0 sticky top-0 z-10">
-        <TableRow className="flex items-center w-full">
-          <TableHead className="max-w-md w-full flex items-center">Members</TableHead>
+        <TableRow className="flex items-center  w-[75rem]">
+          <TableHead className="w-[24rem] flex items-center">Members</TableHead>
           <div className="flex flex-col w-[50rem]">
             <div className="flex items-center">
-              <Typography className="w-full text-center truncate cursor-pointer text-lg">
+              <Typography className="w-full text-center truncate cursor-pointer text-lg border-r border-gray-500">
                 {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
                 {/* @ts-ignore */}
                 {resourceTeamState.data.dates.length > 0 && resourceTeamState.data.dates[0].key}
@@ -33,11 +33,17 @@ const ResourceTable = () => {
               </Typography>
             </div>
             <div className="flex items-center">
-              {resourceTeamState.data?.dates.map((item: DateProps) => {
-                return item?.dates?.map((date) => {
+              {resourceTeamState.data?.dates.map((item: DateProps, weekIndex: number) => {
+                return item?.dates?.map((date, index) => {
                   const { date: dateStr, day } = prettyDate(date);
                   return (
-                    <TableHead key={date} className="flex flex-col max-w-20 w-full items-center justify-center">
+                    <TableHead
+                      key={date}
+                      className={cn(
+                        "flex flex-col max-w-20 w-full items-center justify-center",
+                        index == 4 && weekIndex == 0 && "border-r border-gray-500"
+                      )}
+                    >
                       <Typography variant="p" className="text-slate-600">
                         {day}
                       </Typography>
@@ -78,8 +84,8 @@ const ResourceTableRow = ({ employeeData }: { employeeData: EmployeeDataProps })
         <AccordionItem value={employeeData.name} className="border-b-0">
           <AccordionTrigger className="hover:no-underline py-0">
             <span className="w-full flex ">
-              <TableCell className="w-full min-w-24 max-w-md overflow-hidden">
-                <span className="flex  gap-x-2 items-center font-normal hover:underline w-full">
+              <TableCell className="w-[24rem] overflow-hidden">
+                <span className="flex gap-x-2 items-center font-normal hover:underline w-full">
                   <Avatar className="w-6 h-6">
                     <AvatarImage src={decodeURIComponent(employeeData.image)} />
                     <AvatarFallback>{employeeData.employee_name}</AvatarFallback>
@@ -89,18 +95,21 @@ const ResourceTableRow = ({ employeeData }: { employeeData: EmployeeDataProps })
                   </Typography>
                 </span>
               </TableCell>
-              {employeeData.all_dates_data.map((employeeSingleDay: EmployeeSingleDayProps) => {
+              {employeeData.all_dates_data.map((employeeSingleDay: EmployeeSingleDayProps, index: number) => {
                 return (
                   <ResourceTableCell
                     key={`${employeeSingleDay.total_allocated_hours}-id-${Math.random()}`}
                     employeeSingleDay={employeeSingleDay}
+                    allWeekData={employeeData.all_week_data}
+                    rowCount={index}
+                    midIndex={index <= 4 ? 0 : 1}
                   />
                 );
               })}
             </span>
           </AccordionTrigger>
           <AccordionContent className="pb-0">
-            <Employee employee={employeeData.name} />
+            <Employee employeeData={employeeData} />
           </AccordionContent>
         </AccordionItem>
       </Accordion>
@@ -108,14 +117,36 @@ const ResourceTableRow = ({ employeeData }: { employeeData: EmployeeDataProps })
   );
 };
 
-const ResourceTableCell = ({ employeeSingleDay }: { employeeSingleDay: EmployeeSingleDayProps }) => {
+const ResourceTableCell = ({
+  employeeSingleDay,
+  allWeekData,
+  rowCount,
+  midIndex,
+}: {
+  employeeSingleDay: EmployeeSingleDayProps;
+  allWeekData: any;
+  rowCount: number;
+  midIndex: number;
+}) => {
+  const tableView = useSelector((state: RootState) => state.resource_team.tableView);
+
   const allocationPercentage = useMemo(() => {
+    if (tableView.combineWeekHours) {
+      return 100 - (allWeekData[midIndex].total_allocated_hours / allWeekData[midIndex].total_working_hours) * 100;
+    }
+
     return 100 - (employeeSingleDay.total_allocated_hours / employeeSingleDay.total_working_hours) * 100;
-  }, [employeeSingleDay.total_allocated_hours, employeeSingleDay.total_working_hours]);
+  }, [
+    allWeekData,
+    employeeSingleDay.total_allocated_hours,
+    employeeSingleDay.total_working_hours,
+    midIndex,
+    tableView.combineWeekHours,
+  ]);
 
   const cellBackGroundColor = useMemo(() => {
     if (allocationPercentage <= 10) {
-      return "bg-green-300";
+      return "bg-green-500";
     } else if (allocationPercentage <= 20) {
       return "bg-yellow-200";
     } else if (allocationPercentage === 100) {
@@ -127,10 +158,23 @@ const ResourceTableCell = ({ employeeSingleDay }: { employeeSingleDay: EmployeeS
 
   return (
     <HoverCard openDelay={1000}>
-      <TableCell className={cn("flex max-w-20 w-full justify-center items-center", cellBackGroundColor)}>
+      <TableCell
+        className={cn(
+          "flex max-w-20 w-full justify-center items-center",
+          cellBackGroundColor,
+          rowCount == 4 && "border-r border-gray-500"
+        )}
+      >
         <HoverCardTrigger>
           <Typography className={cn("text-black")} variant="p">
-            {employeeSingleDay.total_allocated_hours}
+            {tableView.combineWeekHours &&
+              (rowCount == 2 || rowCount == 7) &&
+              (tableView.view == "planned-vs-capacity"
+                ? `${allWeekData[midIndex].total_allocated_hours} / ${allWeekData[midIndex].total_working_hours}`
+                : `${allWeekData[midIndex].total_worked_hours} / ${allWeekData[midIndex].total_allocated_hours}`)}
+
+            {!tableView.combineWeekHours &&
+              (employeeSingleDay.total_allocated_hours == 0 ? "-" : employeeSingleDay.total_allocated_hours)}
           </Typography>
         </HoverCardTrigger>
         {/* {data.note && (

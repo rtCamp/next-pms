@@ -16,6 +16,7 @@ export interface ResourceTeamState {
   start: number;
   dateRange: DateRange;
   hasMore: boolean;
+  tableView: TableViewProps;
 }
 
 export interface dataProps {
@@ -24,6 +25,11 @@ export interface dataProps {
   dates: DateProps[];
   total_count: number;
   has_more: boolean;
+}
+
+export interface TableViewProps {
+  combineWeekHours: boolean;
+  view: string;
 }
 
 export type EmployeeDataProps = {
@@ -35,14 +41,15 @@ export type EmployeeDataProps = {
   working_hour: string;
   working_frequency: string;
   all_dates_data: EmployeeSingleDayProps[];
-  all_week_data: object[];
+  all_week_data: [];
 };
 
 export type EmployeeSingleDayProps = {
   date: string;
   total_allocated_hours: number;
   total_working_hours: number;
-  employee_resource_allocation_for_given_date: object[];
+  employee_resource_allocation_for_given_date: any;
+  is_last_week_day: boolean;
 };
 
 export type DateProps = {
@@ -62,13 +69,17 @@ export const initialState: ResourceTeamState = {
     has_more: false,
   },
   isDialogOpen: false,
-  weekDate:  getFormatedDate(getTodayDate()),
+  weekDate: getFormatedDate(getTodayDate()),
   employeeWeekDate: getFormatedDate(getTodayDate()),
   start: 0,
   hasMore: true,
   dateRange: {
     start_date: "",
     end_date: "",
+  },
+  tableView: {
+    combineWeekHours: false,
+    view: "planned-vs-capacity",
   },
 };
 
@@ -97,7 +108,7 @@ const ResourceTeamSlice = createSlice({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     updateData: (state, action: PayloadAction<any>) => {
       const data = state.data.data;
-      state.data.data = [ ...data, ...action.payload.data ];
+      state.data.data = [...data, ...action.payload.data];
       state.data.dates = action.payload.dates;
       state.data.total_count = action.payload.total_count;
       state.hasMore = action.payload.has_more;
@@ -147,6 +158,12 @@ const ResourceTeamSlice = createSlice({
       state.start = 0;
       state.data = initialState.data;
     },
+    setCombineWeekHours: (state, action: PayloadAction<boolean>) => {
+      state.tableView.combineWeekHours = action.payload;
+    },
+    setView: (state, action: PayloadAction<string>) => {
+      state.tableView.view = action.payload;
+    },
   },
 });
 
@@ -162,5 +179,7 @@ export const {
   setEmployeeWeekDate,
   setEmployeeName,
   setBusinessUnit,
+  setCombineWeekHours,
+  setView,
 } = ResourceTeamSlice.actions;
 export default ResourceTeamSlice.reducer;

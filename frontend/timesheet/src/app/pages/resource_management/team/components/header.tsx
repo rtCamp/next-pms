@@ -9,6 +9,8 @@ import {
   setBusinessUnit,
   setFilters,
   resetState,
+  setCombineWeekHours,
+  setView,
 } from "@/store/resource_management/team";
 import { getFormatedDate, cn } from "@/lib/utils";
 import { useCallback, useEffect } from "react";
@@ -18,7 +20,17 @@ import { DeBounceInput } from "@/app/components/deBounceInput";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useQueryParamsState } from "@/lib/queryParam";
-import { Typography } from "@/app/components/typography";
+import { Checkbox } from "@/app/components/ui/checkbox";
+import { useFrappeGetCall } from "frappe-react-sdk";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
 
 const HeaderSection = () => {
   const [businessUnitParam, setBusinessUnitParam] = useQueryParamsState<string[]>("business_unit", []);
@@ -38,6 +50,20 @@ const HeaderSection = () => {
 
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
   const dispatch = useDispatch();
+
+  const { data: businessUnit } = useFrappeGetCall(
+    "frappe.client.get_list",
+    {
+      doctype: "Business Unit",
+      fields: ["name"],
+      limit_page_length: 0,
+    },
+    undefined,
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+    }
+  );
 
   const handleprevWeek = useCallback(() => {
     const date = getFormatedDate(addDays(resourceTeamState.weekDate, -6));
@@ -68,7 +94,7 @@ const HeaderSection = () => {
 
   return (
     <Header className="flex items-center max-md:flex-col">
-      <div id="filters" className="flex gap-x-2 max-md:gap-x-5  overflow-y-hidden max-md:w-full items-center">
+      <div id="filters" className="flex gap-x-3 max-md:gap-x-5  overflow-y-hidden max-md:w-full items-center">
         <DeBounceInput
           placeholder="Employee name"
           value={employeeNameParam}
@@ -86,13 +112,17 @@ const HeaderSection = () => {
           rightIcon={[].length > 0 && <Badge className="px-1.5">{0}</Badge>}
           leftIcon={<Filter className={cn("h-4 w-4", [].length != 0 && "fill-primary")} />}
           // Need to fetch this
-          data={[].map((item: ProjectProps) => ({
-            label: item.project_name,
-            value: item.name,
-          }))}
+          data={
+            businessUnit?.message?.map((d: { name: string }) => ({
+              label: d.name,
+              value: d.name,
+            })) ?? []
+          }
           className="text-primary border-dashed gap-x-2 font-normal w-fit"
         />
+        <ViewControl />
       </div>
+
       <div id="date-filter" className="flex gap-x-2 max-md:p-1 max-md:w-full max-md:justify-between max-md:m-2 t">
         <Button title="prev" className="p-1 h-fit" variant="outline" onClick={handleprevWeek}>
           <ChevronLeft className="w-4 max-md:w-3 h-4 max-md:h-3" />
@@ -102,6 +132,63 @@ const HeaderSection = () => {
         </Button>
       </div>
     </Header>
+  );
+};
+
+const ViewControl = () => {
+  const [viewParam, setViewParam] = useQueryParamsState<string>("view_type", "planned-vs-capacity");
+  const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParamsState<boolean>("combine-week-hours", true);
+
+  useEffect(() => {
+    dispatch(setView(viewParam));
+    dispatch(setCombineWeekHours(combineWeekHoursParam));
+    return () => {
+      dispatch(resetState());
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const resourceTeamStateTableView = useSelector((state: RootState) => state.resource_team.tableView);
+  const dispatch = useDispatch();
+
+  return (
+    <div className="flex items-center gap-x-2">
+      <Select
+        defaultValue={resourceTeamStateTableView.view}
+        onValueChange={(value) => {
+          setViewParam(value);
+          dispatch(setView(value));
+        }}
+      >
+        <SelectTrigger className="w-[180px]">
+          <SelectValue placeholder="Select a view type" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectLabel>Views</SelectLabel>
+            <SelectItem value="planned-vs-capacity">Planned vs Capacity</SelectItem>
+            <SelectItem value="actual-vs-planned">Actual vs Planned</SelectItem>
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+
+      <div className="flex items-center gap-x-2">
+        <Checkbox
+          id="combineWeekHours"
+          checked={resourceTeamStateTableView.combineWeekHours}
+          onClick={() => {
+            setCombineWeekHoursParam(!resourceTeamStateTableView.combineWeekHours);
+            dispatch(setCombineWeekHours(!resourceTeamStateTableView.combineWeekHours));
+          }}
+        />
+        <label
+          htmlFor="terms"
+          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        >
+          Combine Week Hours
+        </label>
+      </div>
+    </div>
   );
 };
 

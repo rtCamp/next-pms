@@ -91,6 +91,9 @@ def filter_employees(
     if isinstance(department, str):
         department = json.loads(department)
 
+    if isinstance(business_unit, str):
+        business_unit = json.loads(business_unit)
+
     if isinstance(status, str):
         status = json.loads(status)
         if len(status) > 0:
@@ -109,6 +112,9 @@ def filter_employees(
 
     if department and len(department) > 0:
         filters["department"] = ["in", department]
+
+    if business_unit and len(business_unit) > 0:
+        filters["custom_business_unit"] = ["in", business_unit]
 
     if project and len(project) > 0:
         project_employee = frappe.get_all(

@@ -11,6 +11,7 @@
   "status",
   "column_break_wngn",
   "project",
+  "project_name",
   "customer",
   "naming_series",
   "section_break_ugdn",
@@ -58,11 +59,13 @@
   {
    "fieldname": "allocation_start_date",
    "fieldtype": "Date",
+   "in_list_view": 1,
    "label": "Allocation Start Date"
   },
   {
    "fieldname": "allocation_end_date",
    "fieldtype": "Date",
+   "in_list_view": 1,
    "label": "Allocation End Date"
   },
   {
@@ -97,6 +100,7 @@
    "fetch_if_empty": 1,
    "fieldname": "employee_name",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Employee Name"
   },
   {
@@ -105,12 +109,19 @@
    "hidden": 1,
    "label": "Naming Series",
    "options": "RA-.{employee}.-.YYYY.-.####."
+  },
+  {
+   "fetch_from": "project.project_name",
+   "fieldname": "project_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Project Name",
+   "options": "Project"
   }
  ],
  "index_web_pages_for_search": 1,
- "is_calendar_and_gantt": 1,
  "links": [],
- "modified": "2024-11-05 12:15:21.388432",
+ "modified": "2024-11-11 15:08:12.575017",
  "modified_by": "Administrator",
  "module": "Resource Management",
  "name": "Resource Allocation",
