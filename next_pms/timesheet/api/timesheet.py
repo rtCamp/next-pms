@@ -131,7 +131,6 @@ def delete(parent: str, name: str):
 @frappe.whitelist()
 def submit_for_approval(start_date: str, notes: str = None, employee: str = None):
     from frappe.desk.form.utils import add_comment
-
     from frappe_pms.timesheet.tasks.reminder_on_approval_request import (
         send_approval_reminder,
     )

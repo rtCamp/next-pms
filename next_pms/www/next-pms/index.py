@@ -2,7 +2,6 @@ import json
 import re
 
 import frappe
-
 from frappe_pms.timesheet.doctype.pms_view_setting.pms_view_setting import get_views
 
 no_cache = 1

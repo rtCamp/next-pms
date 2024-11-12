@@ -1,5 +1,4 @@
 import frappe
-
 from frappe_pms.project_currency.constant import (
     PROJECT_THRESHOLD_REMINDER_EMAIL_TEMPLATE,
 )

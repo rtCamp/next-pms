@@ -1,5 +1,4 @@
 import frappe
-
 from frappe_pms.project_currency.api.project_timesheet_billing_recalculation import (
     generate_the_error_log,
 )

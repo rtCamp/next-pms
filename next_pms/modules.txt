@@ -1,4 +1,4 @@
-Frappe PMS
+Next PMS
 Timesheet
 Project Currency
 Resource Management
