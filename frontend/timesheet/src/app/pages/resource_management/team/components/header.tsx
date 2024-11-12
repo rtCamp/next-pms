@@ -66,14 +66,14 @@ const HeaderSection = () => {
   );
 
   const handleprevWeek = useCallback(() => {
-    const date = getFormatedDate(addDays(resourceTeamState.weekDate, -6));
+    const date = getFormatedDate(addDays(resourceTeamState.data.dates[0].start_date, -3));
     dispatch(setWeekDate(date));
-  }, [dispatch, resourceTeamState.weekDate]);
+  }, [dispatch, resourceTeamState.data.dates]);
 
   const handlenextWeek = useCallback(() => {
-    const date = getFormatedDate(addDays(resourceTeamState.weekDate, 6));
+    const date = getFormatedDate(addDays(resourceTeamState.data.dates[0].end_date,+1));
     dispatch(setWeekDate(date));
-  }, [dispatch, resourceTeamState.weekDate]);
+  }, [dispatch, resourceTeamState.data.dates]);
 
   const handleBusinessUnitChange = useCallback(
     (value: string | string[]) => {

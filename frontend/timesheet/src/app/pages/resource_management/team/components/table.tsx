@@ -9,6 +9,7 @@ import { Typography } from "@/app/components/typography";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 import { Employee } from "./Employee";
 import { useMemo } from "react";
+import { getTableCellClass } from "../utils/helper";
 
 const ResourceTable = () => {
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
@@ -21,7 +22,7 @@ const ResourceTable = () => {
           <TableHead className="w-[24rem] flex items-center">Members</TableHead>
           <div className="flex flex-col w-[50rem]">
             <div className="flex items-center">
-              <Typography className="w-full text-center truncate cursor-pointer text-lg border-r border-gray-500">
+              <Typography className="w-full text-center truncate cursor-pointer text-lg border-r border-gray-300">
                 {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
                 {/* @ts-ignore */}
                 {resourceTeamState.data.dates.length > 0 && resourceTeamState.data.dates[0].key}
@@ -40,8 +41,8 @@ const ResourceTable = () => {
                     <TableHead
                       key={date}
                       className={cn(
+                        getTableCellClass(index,weekIndex),
                         "flex flex-col max-w-20 w-full items-center justify-center",
-                        index == 4 && weekIndex == 0 && "border-r border-gray-500"
                       )}
                     >
                       <Typography variant="p" className="text-slate-600">
@@ -132,7 +133,14 @@ const ResourceTableCell = ({
 
   const allocationPercentage = useMemo(() => {
     if (tableView.combineWeekHours) {
+      if (allWeekData[midIndex].total_working_hours == 0) {
+        return -1;
+      }
       return 100 - (allWeekData[midIndex].total_allocated_hours / allWeekData[midIndex].total_working_hours) * 100;
+    }
+
+    if (employeeSingleDay.total_working_hours == 0) {
+      return -1;
     }
 
     return 100 - (employeeSingleDay.total_allocated_hours / employeeSingleDay.total_working_hours) * 100;
@@ -145,28 +153,35 @@ const ResourceTableCell = ({
   ]);
 
   const cellBackGroundColor = useMemo(() => {
-    if (allocationPercentage <= 10) {
-      return "bg-green-500";
-    } else if (allocationPercentage <= 20) {
-      return "bg-yellow-200";
-    } else if (allocationPercentage === 100) {
-      return "bg-orange-200";
-    } else {
-      return "bg-red-300";
+    if (allocationPercentage === -1) {
+      return "bg-warning/20";
     }
+
+    if (allocationPercentage === 100) {
+      return "bg-customAmber";
+    }
+
+    if (allocationPercentage <= 10) {
+      return "bg-customGreen";
+    }
+
+    if (allocationPercentage <= 20) {
+      return "bg-customYellow";
+    }
+
+    return "bg-customPink";
   }, [allocationPercentage]);
 
   return (
     <HoverCard openDelay={1000}>
       <TableCell
         className={cn(
-          "flex max-w-20 w-full justify-center items-center",
+          getTableCellClass(rowCount),
           cellBackGroundColor,
-          rowCount == 4 && "border-r border-gray-500"
         )}
       >
         <HoverCardTrigger>
-          <Typography className={cn("text-black")} variant="p">
+          <Typography className={cn("text-gray-800")} variant="p">
             {tableView.combineWeekHours &&
               (rowCount == 2 || rowCount == 7) &&
               (tableView.view == "planned-vs-capacity"

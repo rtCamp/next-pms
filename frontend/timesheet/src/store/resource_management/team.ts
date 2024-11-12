@@ -42,8 +42,12 @@ export type EmployeeDataProps = {
   working_frequency: string;
   all_dates_data: EmployeeSingleDayProps[];
   all_week_data: [];
+  all_leave_data: EmployeeLeaveProps[];
 };
 
+export type EmployeeLeaveProps = {
+  string: string;
+};
 export type EmployeeSingleDayProps = {
   date: string;
   total_allocated_hours: number;

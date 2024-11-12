@@ -1,11 +1,10 @@
 import frappe
-from frappe.utils import flt, nowdate
+from frappe.utils import DATE_FORMAT, flt, nowdate
 from frappe.utils.data import add_days, getdate
 
 from frappe_pms.timesheet.api.employee import get_employee_working_hours
-from frappe_pms.timesheet.api.team import get_week_dates
-
-# from frappe_pms.timesheet.api.timesheet import get_leaves_for_employee
+from frappe_pms.timesheet.api.team import get_holidays, get_week_dates
+from frappe_pms.timesheet.api.timesheet import get_leaves_for_employee
 
 now = nowdate()
 
@@ -46,7 +45,14 @@ def get_compact_view_data(
             "allocation_start_date": [">=", dates[0].get("start_date")],
             "allocation_end_date": ["<=", dates[-1].get("end_date")],
         },
-        fields="*",
+        fields=[
+            "employee",
+            "allocation_start_date",
+            "allocation_end_date",
+            "hours_allocated_per_day",
+            "project",
+            "project_name",
+        ],
     )
 
     resource_allocation_map = {}
@@ -77,8 +83,16 @@ def get_compact_view_data(
             fields=["employee", "start_date", "end_date", "total_hours", "parent_project", "customer"],
         )
 
+        leaves = get_leaves_for_employee(
+            from_date=add_days(dates[0].get("start_date"), -max_week * 7),
+            to_date=add_days(dates[-1].get("end_date"), max_week * 7),
+            employee=employee.name,
+        )
+        holidays = get_holidays(employee.name, dates[0].get("start_date"), dates[-1].get("end_date"))
+
         all_dates_data = []
         all_week_data = []
+        all_leave_data = {}
 
         for date_info in dates:
             total_working_hours_for_given_week = 0
@@ -87,39 +101,54 @@ def get_compact_view_data(
 
             for date in date_info.get("dates"):
                 total_worked_hours_for_given_date = 0
+                total_working_hours_for_given_date = daily_working_hours
                 total_allocated_hours_for_given_date = 0
                 employee_resource_allocation_for_given_date = []
 
-                for resource_allocation in employee_resource_allocation:
-                    if (
-                        resource_allocation.allocation_start_date <= date
-                        and resource_allocation.allocation_end_date >= date
-                    ):
-                        total_allocated_hours_for_given_date += resource_allocation.get("hours_allocated_per_day")
-                        total_worked_hours_resource_allocation = find_worked_hours(
-                            timesheet_data=timesheet_data, date=date, project=resource_allocation.project
-                        )
-                        total_worked_hours_for_given_date += total_worked_hours_resource_allocation
+                leave_object = is_on_leave(date, daily_working_hours, leaves, holidays)
 
-                        employee_resource_allocation_for_given_date.append(
-                            {
-                                **resource_allocation,
-                                "date": date,
-                                "total_worked_hours_resource_allocation": total_worked_hours_resource_allocation,
-                            }
-                        )
+                if leave_object.get("on_leave") and not leave_object.get("leave_work_hours"):
+                    total_working_hours_for_given_date = 0
+                else:
+                    if leave_object.get("leave_work_hours"):
+                        total_working_hours_for_given_date = leave_object.get("leave_work_hours")
+                    for resource_allocation in employee_resource_allocation:
+                        if (
+                            resource_allocation.allocation_start_date <= date
+                            and resource_allocation.allocation_end_date >= date
+                        ):
+                            total_allocated_hours_for_given_date += resource_allocation.get("hours_allocated_per_day")
+                            total_worked_hours_resource_allocation = find_worked_hours(
+                                timesheet_data=timesheet_data, date=date, project=resource_allocation.project
+                            )
+                            total_worked_hours_for_given_date += total_worked_hours_resource_allocation
+
+                            employee_resource_allocation_for_given_date.append(
+                                {
+                                    **resource_allocation,
+                                    "date": date,
+                                    "total_worked_hours_resource_allocation": total_worked_hours_resource_allocation,
+                                }
+                            )
+
+                if leave_object.get("on_leave"):
+                    all_leave_data[date.strftime(DATE_FORMAT)] = (
+                        daily_working_hours - total_working_hours_for_given_date
+                    )
 
                 all_dates_data.append(
                     {
                         "date": date,
                         "total_allocated_hours": total_allocated_hours_for_given_date,
-                        "total_working_hours": daily_working_hours,
+                        "total_working_hours": total_working_hours_for_given_date,
                         "total_worked_hours": total_worked_hours_for_given_date,
                         "employee_resource_allocation_for_given_date": employee_resource_allocation_for_given_date,
+                        "is_on_leave": leave_object.get("on_leave"),
+                        "total_leave_hours": daily_working_hours - total_working_hours_for_given_date,
                     }
                 )
                 total_allocated_hours_for_given_week += total_allocated_hours_for_given_date
-                total_working_hours_for_given_week += daily_working_hours
+                total_working_hours_for_given_week += total_working_hours_for_given_date
                 total_worked_hours_for_given_week += total_worked_hours_for_given_date
 
             all_week_data.append(
@@ -136,6 +165,7 @@ def get_compact_view_data(
                 **working_hours,
                 "all_dates_data": all_dates_data,
                 "all_week_data": all_week_data,
+                "all_leave_data": all_leave_data,
             }
         )
 
@@ -144,6 +174,25 @@ def get_compact_view_data(
     res["has_more"] = int(start) + int(page_length) < total_count
 
     return res
+
+
+def is_on_leave(date, daily_working_hours, leaves, holidays):
+    leave_work_hours = daily_working_hours
+    on_leave = False
+    for leave in leaves:
+        if leave["from_date"] <= date <= leave["to_date"]:
+            if leave.get("half_day") and leave.get("half_day_date") == date:
+                leave_work_hours = daily_working_hours / 2
+            else:
+                leave_work_hours = 0
+            on_leave = True
+
+    for holiday in holidays:
+        if date == holiday.holiday_date:
+            leave_work_hours = 0
+            on_leave = True
+
+    return {"on_leave": on_leave, "leave_work_hours": leave_work_hours}
 
 
 def find_worked_hours(timesheet_data: list, date: str, project: str = None):

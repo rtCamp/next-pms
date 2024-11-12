@@ -120,8 +120,9 @@
   }
  ],
  "index_web_pages_for_search": 1,
+ "is_calendar_and_gantt": 1,
  "links": [],
- "modified": "2024-11-11 15:08:12.575017",
+ "modified": "2024-11-11 20:44:02.441351",
  "modified_by": "Administrator",
  "module": "Resource Management",
  "name": "Resource Allocation",
