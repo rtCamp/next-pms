@@ -1,5 +1,5 @@
 <div align="center">
-<img src="next_pms/public/next-pms.png" height="128" alt="Next PMS Logo">
+<img src="next_pms/public/next-pms-logo.png" height="128" alt="Next PMS Logo">
 <h2>Next PMS</h2>
 </div>
 

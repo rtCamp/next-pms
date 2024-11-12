@@ -116,21 +116,24 @@ const Sidebar = () => {
           user.isSidebarCollapsed && "w-16 items-center"
         )}
       >
-        <div className={cn("flex shrink-0 gap-x-2 items-center justify-center overflow-hidden")} id="app-logo">
+        <div
+          className={cn("flex shrink-0 gap-x-2 items-center overflow-hidden", !user.isSidebarCollapsed && "px-3")}
+          id="app-logo"
+        >
           <img
             src={logo}
             alt="app-logo"
             className=" w-8 h-auto max-xl:w-7 max-xl:h-7 transition-all duration-300 ease-in-out max-lg:w-7 max-lg:h-7 max-md:w-7 max-md:h-7"
           />
           <Typography
-            title="Project Management"
+            title="Next PMS"
             variant="h5"
             className={cn(
               "transition-all cursor-pointer duration-300 truncate ease-in-out max-md:hidden ",
               user.isSidebarCollapsed && "hidden"
             )}
           >
-            Project Management
+            Next PMS
           </Typography>
         </div>
         <div className="pt-10 h-fit overflow-y-auto flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
@@ -232,7 +235,7 @@ const Sidebar = () => {
             );
           })}
         </div>
-        {hasPmRole &&
+        {hasPmRole && (
           <>
             {viewInfo.views.filter((view) => view.user === user.user && !view.default).length > 0 ? (
               <>
@@ -362,7 +365,7 @@ const Sidebar = () => {
               </>
             ) : null}
           </>
-        }
+        )}
         <div className="grow"></div>
         <div className={cn("flex justify-between items-center", user.isSidebarCollapsed && "flex-col ")}>
           <Navigation />
