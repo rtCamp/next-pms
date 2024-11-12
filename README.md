@@ -1,11 +1,11 @@
 <div align="center">
-<img src="frappe-pms-logo.png" height="128" alt="Frappe HR Logo">
-<h2>Frappe PMS</h2>
+<img src="frappe_pms/public/next-pms.png" height="128" alt="Next PMS Logo">
+<h2>Next PMS</h2>
 </div>
 
 ## Introduction
 
-Frappe-PMS is a project management system built on the Frappe framework, with React components for a modern front-end experience. The app includes additional features to improve timesheet management and streamline project billing. 
+Next-PMS is a project management system built on the Frappe framework, with React components for a modern front-end experience. The app includes additional features to improve timesheet management and streamline project billing. 
 
 ## Key Features
 

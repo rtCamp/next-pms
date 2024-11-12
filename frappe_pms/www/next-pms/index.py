@@ -46,6 +46,6 @@ def get_context(context):
         }
     )
 
-    context["app_name"] = "Frappe PMS"
+    context["app_name"] = "Next PMS"
 
     return context

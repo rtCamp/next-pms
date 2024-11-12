@@ -25,7 +25,7 @@ export default defineConfig(({ command, mode }) => {
       proxy: proxyConfig,
     },
     build: {
-      outDir: "../../frappe_pms/public/timesheet",
+      outDir: "../../frappe_pms/public/pms",
       emptyOutDir: true,
       target: "es2015",
     },

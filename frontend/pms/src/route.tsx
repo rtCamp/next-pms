@@ -1,6 +1,6 @@
 import { lazy, useContext, useEffect } from "react";
 import { Route, Outlet } from "react-router-dom";
-import { TIMESHEET, HOME, TEAM, TASK, PROJECT } from "@/lib/constant";
+import { TIMESHEET, HOME, TEAM, TASK, PROJECT, BASE_ROUTE } from "@/lib/constant";
 import { Layout, PmRoute } from "@/app/layout/index";
 import { RootState } from "./store";
 import { useDispatch, useSelector } from "react-redux";
@@ -46,18 +46,18 @@ export const AuthenticatedRoute = () => {
         dispatch(setCurrency(res.message.currencies));
       });
     }
-     if (views.views.length < 1) {
-       call.get("frappe_pms.timesheet.doctype.pms_view_setting.pms_view_setting.get_views").then((res) => {
-         dispatch(setViews(res.message));
-       });
-     }
+    if (views.views.length < 1) {
+      call.get("frappe_pms.timesheet.doctype.pms_view_setting.pms_view_setting.get_views").then((res) => {
+        dispatch(setViews(res.message));
+      });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (isLoading) {
     return <></>;
   } else if (!currentUser || currentUser === "Guest") {
-    window.location.replace("/login?redirect-to=/timesheet");
+    window.location.replace("/login?redirect-to=/next-pms/timesheet");
   }
 
   if (!isLoading && currentUser && currentUser !== "Guest") {

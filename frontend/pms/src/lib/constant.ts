@@ -1,5 +1,5 @@
-export const BASE_ROUTE = "/timesheet";
-export const TIMESHEET = "/";
+export const BASE_ROUTE = "/next-pms";
+export const TIMESHEET = "/timesheet";
 export const HOME = "/home";
 export const TEAM = "/team";
 export const DESK = "/desk";

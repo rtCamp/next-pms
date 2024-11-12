@@ -12,8 +12,8 @@ app_license = "GNU AFFERO GENERAL PUBLIC LICENSE (v3)"
 
 website_route_rules = [
     {
-        "from_route": "/timesheet/<path:app_path>",
-        "to_route": "/timesheet",
+        "from_route": "/next-pms/<path:app_path>",
+        "to_route": "next-pms",
     },
 ]
 
