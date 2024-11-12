@@ -1,5 +1,5 @@
-app_name = "frappe_pms"
-app_title = "Frappe PMS"
+app_name = "next_pms"
+app_title = "Next PMS"
 app_publisher = "rtCamp"
 app_description = "Simplified Project Management System"
 app_email = "erp@rtcamp.com"
@@ -18,15 +18,15 @@ website_route_rules = [
 ]
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/frappe_pms/css/frappe_pms.css"
-# app_include_js = "/assets/frappe_pms/js/frappe_pms.js"
+# app_include_css = "/assets/next_pms/css/next_pms.css"
+# app_include_js = "/assets/next_pms/js/next_pms.js"
 
 # include js, css files in header of web template
-# web_include_css = "/assets/frappe_pms/css/frappe_pms.css"
-# web_include_js = "/assets/frappe_pms/js/frappe_pms.js"
+# web_include_css = "/assets/next_pms/css/next_pms.css"
+# web_include_js = "/assets/next_pms/js/next_pms.js"
 
 # include custom scss in every website theme (without file extension ".scss")
-# website_theme_scss = "frappe_pms/public/scss/website"
+# website_theme_scss = "next_pms/public/scss/website"
 
 # include js, css files in header of web form
 # webform_include_js = {"doctype": "public/js/doctype.js"}
@@ -48,7 +48,7 @@ doctype_js = {
 # Svg Icons
 # ------------------
 # include app icons in desk
-# app_include_icons = "frappe_pms/public/icons.svg"
+# app_include_icons = "next_pms/public/icons.svg"
 
 # Home Pages
 # ----------
@@ -72,43 +72,43 @@ doctype_js = {
 
 # add methods and filters to jinja environment
 # jinja = {
-# 	"methods": "frappe_pms.utils.jinja_methods",
-# 	"filters": "frappe_pms.utils.jinja_filters"
+# 	"methods": "next_pms.utils.jinja_methods",
+# 	"filters": "next_pms.utils.jinja_filters"
 # }
 
 # Installation
 # ------------
 
-# before_install = "frappe_pms.install.before_install"
-after_install = "frappe_pms.install.after_install"
+# before_install = "next_pms.install.before_install"
+after_install = "next_pms.install.after_install"
 
 # Uninstallation
 # ------------
 
-# before_uninstall = "frappe_pms.uninstall.before_uninstall"
-# after_uninstall = "frappe_pms.uninstall.after_uninstall"
+# before_uninstall = "next_pms.uninstall.before_uninstall"
+# after_uninstall = "next_pms.uninstall.after_uninstall"
 
 # Integration Setup
 # ------------------
 # To set up dependencies/integrations with other apps
 # Name of the app being installed is passed as an argument
 
-# before_app_install = "frappe_pms.utils.before_app_install"
-# after_app_install = "frappe_pms.utils.after_app_install"
+# before_app_install = "next_pms.utils.before_app_install"
+# after_app_install = "next_pms.utils.after_app_install"
 
 # Integration Cleanup
 # -------------------
 # To clean up dependencies/integrations with other apps
 # Name of the app being uninstalled is passed as an argument
 
-# before_app_uninstall = "frappe_pms.utils.before_app_uninstall"
-# after_app_uninstall = "frappe_pms.utils.after_app_uninstall"
+# before_app_uninstall = "next_pms.utils.before_app_uninstall"
+# after_app_uninstall = "next_pms.utils.after_app_uninstall"
 
 # Desk Notifications
 # ------------------
 # See frappe.core.notifications.get_notification_config
 
-# notification_config = "frappe_pms.notifications.get_notification_config"
+# notification_config = "next_pms.notifications.get_notification_config"
 
 # Permissions
 # -----------
@@ -162,10 +162,10 @@ fixtures = [
 # Override standard doctype classes
 
 override_doctype_class = {
-    "Project": "frappe_pms.project_currency.overrides.project.ProjectOverwrite",
-    "Customize Form": "frappe_pms.project_currency.overrides.customize_form.CustomizeFormOverride",
-    "Timesheet": "frappe_pms.project_currency.overrides.timesheet.TimesheetOverwrite",
-    "Task": "frappe_pms.project_currency.overrides.task.TaskOverride",
+    "Project": "next_pms.project_currency.overrides.project.ProjectOverwrite",
+    "Customize Form": "next_pms.project_currency.overrides.customize_form.CustomizeFormOverride",
+    "Timesheet": "next_pms.project_currency.overrides.timesheet.TimesheetOverwrite",
+    "Task": "next_pms.project_currency.overrides.task.TaskOverride",
 }
 
 
@@ -174,41 +174,41 @@ override_doctype_class = {
 
 scheduler_events = {
     "daily_long": [
-        "frappe_pms.timesheet.tasks.daily_reminder_for_time_entry.send_reminder",
-        "frappe_pms.timesheet.tasks.send_weekly_reminder.send_reminder",
+        "next_pms.timesheet.tasks.daily_reminder_for_time_entry.send_reminder",
+        "next_pms.timesheet.tasks.send_weekly_reminder.send_reminder",
     ],
     "weekly": [
-        "frappe_pms.project_currency.tasks.reminde_project_threshold.send_reminder_mail",
+        "next_pms.project_currency.tasks.reminde_project_threshold.send_reminder_mail",
     ],
 }
 
 # Testing
 # -------
 
-# before_tests = "frappe_pms.install.before_tests"
+# before_tests = "next_pms.install.before_tests"
 
-after_install = "frappe_pms.install.after_install"
+after_install = "next_pms.install.after_install"
 
 
 # Overriding Methods
 # ------------------------------
 #
 override_whitelisted_methods = {
-    "erpnext.projects.doctype.project.project.recalculate_project_total_purchase_cost": "frappe_pms.project_currency.overrides.project.recalculate_project_total_purchase_cost"
+    "erpnext.projects.doctype.project.project.recalculate_project_total_purchase_cost": "next_pms.project_currency.overrides.project.recalculate_project_total_purchase_cost"
 }
 
 doc_events = {
     "Timesheet": {
-        "validate": "frappe_pms.timesheet.doc_events.timesheet.validate",
-        "before_save": "frappe_pms.timesheet.doc_events.timesheet.before_save",
-        "before_insert": "frappe_pms.timesheet.doc_events.timesheet.before_insert",
-        "on_update": "frappe_pms.timesheet.doc_events.timesheet.on_update",
-        "before_validate": "frappe_pms.timesheet.doc_events.timesheet.before_validate",
+        "validate": "next_pms.timesheet.doc_events.timesheet.validate",
+        "before_save": "next_pms.timesheet.doc_events.timesheet.before_save",
+        "before_insert": "next_pms.timesheet.doc_events.timesheet.before_insert",
+        "on_update": "next_pms.timesheet.doc_events.timesheet.on_update",
+        "before_validate": "next_pms.timesheet.doc_events.timesheet.before_validate",
     },
-    "Task": {"after_insert": "frappe_pms.project_currency.doc_events.task.after_insert"},
+    "Task": {"after_insert": "next_pms.project_currency.doc_events.task.after_insert"},
     "Project": {
-        "on_update": "frappe_pms.project_currency.doc_events.project.on_update",
-        "onload": "frappe_pms.project_currency.doc_events.project.onload",
+        "on_update": "next_pms.project_currency.doc_events.project.on_update",
+        "onload": "next_pms.project_currency.doc_events.project.onload",
     },
 }
 #
@@ -216,7 +216,7 @@ doc_events = {
 # generated from the base implementation of the doctype dashboard,
 # along with any modifications made in other Frappe apps
 # override_doctype_dashboards = {
-# 	"Task": "frappe_pms.task.get_dashboard_data"
+# 	"Task": "next_pms.task.get_dashboard_data"
 # }
 
 # exempt linked doctypes from being automatically cancelled
@@ -230,13 +230,13 @@ doc_events = {
 
 # Request Events
 # ----------------
-# before_request = ["frappe_pms.utils.before_request"]
-# after_request = ["frappe_pms.utils.after_request"]
+# before_request = ["next_pms.utils.before_request"]
+# after_request = ["next_pms.utils.after_request"]
 
 # Job Events
 # ----------
-# before_job = ["frappe_pms.utils.before_job"]
-# after_job = ["frappe_pms.utils.after_job"]
+# before_job = ["next_pms.utils.before_job"]
+# after_job = ["next_pms.utils.after_job"]
 
 # User Data Protection
 # --------------------
@@ -266,7 +266,7 @@ doc_events = {
 # --------------------------------
 
 # auth_hooks = [
-# 	"frappe_pms.auth.validate"
+# 	"next_pms.auth.validate"
 # ]
 
 # Automatically update python controller files with type annotations for this app.
