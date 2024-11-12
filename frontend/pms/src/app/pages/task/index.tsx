@@ -174,7 +174,7 @@ const Task = () => {
   }, [setGroupByParam, task.groupBy]);
 
   // call to fetch task list from DB ( single data source for flat and nested table)
-  const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.task.get_task_list", {
+  const { data, isLoading, error, mutate } = useFrappeGetCall("next_pms.timesheet.api.task.get_task_list", {
     page_length: 20,
     start: task.start,
     projects: task.selectedProject,

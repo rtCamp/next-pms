@@ -30,7 +30,7 @@ import { addDays } from "date-fns";
 import { Spinner } from "@/app/components/spinner";
 import { EditTime } from "./editTime";
 import { Approval } from "./Approval";
-import { LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
+import { HolidayProp, LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
 import { WorkingFrequency } from "@/types";
 import AddTime from "@/app/components/addTime";
 import { Plus } from "lucide-react";
@@ -41,14 +41,19 @@ function Timesheet() {
   const timesheet = useSelector((state: RootState) => state.timesheet);
   const dispatch = useDispatch();
   const working_hour = expectatedHours(user.workingHours, user.workingFrequency);
-  const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.timesheet.get_timesheet_data", {
-    employee: user.employee,
-    start_date: timesheet.weekDate,
-    max_week: 4,
-  }, undefined, {
-    revalidateOnFocus: false,
-    revalidateIfStale: false,
-  });
+  const { data, isLoading, error, mutate } = useFrappeGetCall(
+    "next_pms.timesheet.api.timesheet.get_timesheet_data",
+    {
+      employee: user.employee,
+      start_date: timesheet.weekDate,
+      max_week: 4,
+    },
+    undefined,
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+    }
+  );
 
   useEffect(() => {
     if (data) {
@@ -129,7 +134,7 @@ function Timesheet() {
               let total_hours = value.total_hours;
               value.dates.map((date) => {
                 let isHoliday = false;
-                const holiday = timesheet.data.holidays.find((holiday) => holiday.holiday_date === date);
+                const holiday = timesheet.data.holidays.find((holiday: HolidayProp) => holiday.holiday_date === date);
                 if (holiday) {
                   isHoliday = true;
                   if (!holiday.weekly_off) {

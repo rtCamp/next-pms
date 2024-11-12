@@ -1,11 +1,10 @@
 import { lazy, useContext, useEffect } from "react";
 import { Route, Outlet } from "react-router-dom";
-import { TIMESHEET, HOME, TEAM, TASK, PROJECT, BASE_ROUTE } from "@/lib/constant";
+import { TIMESHEET, HOME, TEAM, TASK, PROJECT } from "@/lib/constant";
 import { Layout, PmRoute } from "@/app/layout/index";
 import { RootState } from "./store";
 import { useDispatch, useSelector } from "react-redux";
 import { UserContext } from "@/lib/UserProvider";
-
 import { FrappeConfig, FrappeContext } from "frappe-react-sdk";
 import { setRole } from "./store/user";
 import { setViews } from "./store/view";
@@ -41,13 +40,13 @@ export const AuthenticatedRoute = () => {
   const dispatch = useDispatch();
   useEffect(() => {
     if (user.roles.length < 1) {
-      call.get("frappe_pms.timesheet.api.app.get_app_data").then((res) => {
+      call.get("next_pms.timesheet.api.app.get_app_data").then((res) => {
         dispatch(setRole(res.message.roles));
         dispatch(setCurrency(res.message.currencies));
       });
     }
     if (views.views.length < 1) {
-      call.get("frappe_pms.timesheet.doctype.pms_view_setting.pms_view_setting.get_views").then((res) => {
+      call.get("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.get_views").then((res) => {
         dispatch(setViews(res.message));
       });
     }

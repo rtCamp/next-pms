@@ -1,8 +1,8 @@
 import Sidebar from "./sidebar";
 import { Toaster } from "@/app/components/ui/toaster";
-import { Suspense,  useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useFrappeGetCall } from "frappe-react-sdk";
-import {ROLES} from "@/lib/constant";
+import { ROLES } from "@/lib/constant";
 import { setEmployee } from "@/store/user";
 import { useDispatch, useSelector } from "react-redux";
 import { useToast } from "@/app/components/ui/use-toast";
@@ -19,24 +19,24 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   const dispatch = useDispatch();
   const { toast } = useToast();
   const { data: workingDetail, error: workingError } = useFrappeGetCall(
-    "frappe_pms.timesheet.api.employee.get_employee_working_hours",
+    "next_pms.timesheet.api.employee.get_employee_working_hours",
     {},
     undefined,
     {
       refreshWhenHidden: false,
       revalidateOnFocus: false,
       revalidateIfStale: false,
-    },
+    }
   );
   const { data: employeeUser, error } = useFrappeGetCall(
-    "frappe_pms.timesheet.api.employee.get_employee_from_user",
+    "next_pms.timesheet.api.employee.get_employee_from_user",
     {},
     undefined,
     {
       refreshWhenHidden: false,
       revalidateOnFocus: false,
       revalidateIfStale: false,
-    },
+    }
   );
   useEffect(() => {
     if (employeeUser) {
@@ -116,7 +116,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 export const PmRoute = () => {
   const user = useSelector((state: RootState) => state.user);
 
-  const hasAccess = user.roles.some(role => ROLES.includes(role));
+  const hasAccess = user.roles.some((role) => ROLES.includes(role));
   if (!hasAccess) {
     return <Navigate to={TIMESHEET} />;
   }

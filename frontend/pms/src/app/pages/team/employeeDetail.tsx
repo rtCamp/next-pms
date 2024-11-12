@@ -66,7 +66,7 @@ const EmployeeDetail = () => {
   }, [id]);
 
   const { data, isLoading, error, mutate } = useFrappeGetCall(
-    "frappe_pms.timesheet.api.timesheet.get_timesheet_data",
+    "next_pms.timesheet.api.timesheet.get_timesheet_data",
     {
       employee: id,
       start_date: teamState.employeeWeekDate,
@@ -293,7 +293,7 @@ export const Time = ({ callback }: { callback?: () => void }) => {
   const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<string>("");
   const teamState = useSelector((state: RootState) => state.team);
-  const { call } = useFrappePostCall("frappe_pms.timesheet.api.timesheet.update_timesheet_detail");
+  const { call } = useFrappePostCall("next_pms.timesheet.api.timesheet.update_timesheet_detail");
   const { toast } = useToast();
   const dispatch = useDispatch();
   const updateTime = (value: NewTimesheetProps) => {

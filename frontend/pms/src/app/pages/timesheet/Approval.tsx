@@ -21,7 +21,7 @@ export const Approval = ({ onClose }: { onClose: () => void }) => {
   const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
   const { toast } = useToast();
-  const { call } = useFrappePostCall("frappe_pms.timesheet.api.timesheet.submit_for_approval");
+  const { call } = useFrappePostCall("next_pms.timesheet.api.timesheet.submit_for_approval");
 
   const form = useForm<z.infer<typeof TimesheetApprovalSchema>>({
     resolver: zodResolver(TimesheetApprovalSchema),

@@ -18,7 +18,7 @@ export const Employee = ({ employee }: EmployeeProps) => {
   const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<string>("");
   const teamState = useSelector((state: RootState) => state.team);
-  const { data, isLoading } = useFrappeGetCall("frappe_pms.timesheet.api.timesheet.get_timesheet_data", {
+  const { data, isLoading } = useFrappeGetCall("next_pms.timesheet.api.timesheet.get_timesheet_data", {
     employee: employee,
     start_date: teamState.weekDate,
     max_week: 1,

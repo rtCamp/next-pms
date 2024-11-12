@@ -63,7 +63,7 @@ frappe.ui.form.on("Project", {
       primary_action_label: "Submit",
       primary_action(values) {
         frappe.call({
-          method: "frappe_pms.project_currency.api.project_timesheet_billing_recalculation.calculate",
+          method: "next_pms.project_currency.api.project_timesheet_billing_recalculation.calculate",
           args: { project_id: frm.doc.name, valid_from_date: values.valid_from_date },
           callback: function (r) {
             if (r && !r.exc) {

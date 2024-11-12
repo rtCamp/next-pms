@@ -32,7 +32,7 @@ export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
   const [startDate, setStartDate] = useState<string>(getFormatedDate(addDays(getTodayDate(), -7)));
   const endDate = getTodayDate();
   const [selectedMap, setSelectedMap] = useState<string[]>(["7"]);
-  const { data, isLoading, error } = useFrappeGetCall("frappe_pms.timesheet.api.task.get_task", {
+  const { data, isLoading, error } = useFrappeGetCall("next_pms.timesheet.api.task.get_task", {
     task: task,
   });
   const dateMap = [
@@ -48,7 +48,7 @@ export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
     data: logs,
     isLoading: isLogLoading,
     error: logError,
-  } = useFrappeGetCall("frappe_pms.timesheet.api.task.get_task_log", {
+  } = useFrappeGetCall("next_pms.timesheet.api.task.get_task_log", {
     task: task,
     start_date: startDate,
     end_date: endDate,

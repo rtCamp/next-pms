@@ -1,12 +1,12 @@
 {
-  "name": "timesheet",
+  "name": "pms",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "copy-html-entry": "cp ../../frappe_pms/public/pms/index.html ../../frappe_pms/www/next-pms/index.html",
+    "copy-html-entry": "cp ../../next_pms/public/pms/index.html ../../next_pms/www/next-pms/index.html",
     "dev": "vite",
-    "build": "npm install && vite build --base=/assets/frappe_pms/pms/ && npm run copy-html-entry",
+    "build": "npm install && vite build --base=/assets/next_pms/pms/ && npm run copy-html-entry",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
@@ -34,7 +34,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
-    "frappe-react-sdk": "^1.7.1",
+    "frappe-react-sdk": "^1.9.0",
     "lodash": "^4.17.21",
     "lucide-react": "^0.408.0",
     "react": "^18.3.1",

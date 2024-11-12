@@ -276,7 +276,7 @@ const Project = () => {
     const defaultDtView = views.views.find((v) => v.dt === "Project" && v.default);
     if (!defaultDtView) {
       call
-        .post("frappe_pms.timesheet.doctype.pms_view_setting.pms_view_setting.create_view", {
+        .post("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.create_view", {
           view: defaultView(),
         })
         .then((res) => {
@@ -304,7 +304,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   const [viewInfo, setViewInfo] = useState<ViewData>(viewData);
   const user = useSelector((state: RootState) => state.user);
   const appInfo = useSelector((state: RootState) => state.app);
-  const { call } = useFrappePostCall("frappe_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view");
+  const { call } = useFrappePostCall("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view");
   const { toast } = useToast();
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [hasViewUpdated, setHasViewUpdated] = useState(false);
@@ -366,7 +366,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   );
 
   const { data, error, isLoading } = useFrappeGetCall(
-    "frappe_pms.timesheet.api.project.get_projects",
+    "next_pms.timesheet.api.project.get_projects",
     {
       fields: viewInfo.rows ?? ["*"],
       // eslint-disable-next-line

@@ -1,10 +1,10 @@
 import os
 
 from frappe import _, get_app_path, get_doc, read_file
-from frappe.utils import update_progress_bar
 
 
 def after_install():
+    create_roles()
     add_project_manager_perm()
     setup_email_template()
 
@@ -31,7 +31,7 @@ def add_project_manager_perm():
 
 
 def setup_email_template():
-    base_path = get_app_path("frappe_pms", "templates", "timesheet")
+    base_path = get_app_path("next_pms", "templates", "timesheet")
     response = read_file(os.path.join(base_path, "daily_timesheet_reminder.html"))
 
     records = [
@@ -68,7 +68,18 @@ def setup_email_template():
 
 
 def create_docs(records: list):
-    length = len(records)
-    for i, doc in enumerate(records):
-        get_doc(doc).insert(ignore_permissions=True, ignore_mandatory=True, ignore_if_duplicate=True)
-        update_progress_bar("Creating documents for PMS app.", i, length)
+    for doc in records:
+        get_doc(doc).insert(
+            ignore_permissions=True, ignore_mandatory=True, ignore_if_duplicate=True
+        )
+
+
+def create_roles():
+    import frappe
+
+    roles = ["Timesheet Manager", "Timesheet User"]
+
+    for role in roles:
+        role = frappe.get_doc({"doctype": "Role", "role_name": role, "is_custom": 1})
+        role.insert(ignore_permissions=True, ignore_if_duplicate=True)
+        frappe.db.commit()

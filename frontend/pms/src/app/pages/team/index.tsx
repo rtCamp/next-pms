@@ -98,7 +98,7 @@ const Team = () => {
   }, []);
 
   const { data, isLoading, isValidating, mutate, error } = useFrappeGetCall(
-    "frappe_pms.timesheet.api.team.get_compact_view_data",
+    "next_pms.timesheet.api.team.get_compact_view_data",
     {
       date: teamState.weekDate,
       max_week: 1,

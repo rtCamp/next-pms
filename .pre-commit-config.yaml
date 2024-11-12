@@ -7,7 +7,7 @@ repos:
     rev: v4.3.0
     hooks:
       - id: trailing-whitespace
-        files: "frappe_pms.*"
+        files: "next_pms.*"
         exclude: ".*json$|.*txt$|.*csv|.*md|.*svg"
       - id: check-yaml
       - id: check-merge-conflict
@@ -52,11 +52,11 @@ repos:
         # Ignore any files that might contain jinja / bundles
         exclude: |
             (?x)^(
-                frappe_pms/public/dist/.*|
+                next_pms/public/dist/.*|
                 .*node_modules.*|
                 .*boilerplate.*|
-                frappe_pms/templates/includes/.*|
-                frappe_pms/public/js/lib/.*
+                next_pms/templates/includes/.*|
+                next_pms/public/js/lib/.*
             )$
 
 
@@ -69,12 +69,12 @@ repos:
         # Ignore any files that might contain jinja / bundles
         exclude: |
             (?x)^(
-                frappe_pms/public/dist/.*|
+                next_pms/public/dist/.*|
                 cypress/.*|
                 .*node_modules.*|
                 .*boilerplate.*|
-                frappe_pms/templates/includes/.*|
-                frappe_pms/public/js/lib/.*
+                next_pms/templates/includes/.*|
+                next_pms/public/js/lib/.*
             )$
 
 ci:

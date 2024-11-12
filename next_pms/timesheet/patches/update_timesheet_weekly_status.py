@@ -1,7 +1,7 @@
 import frappe
 from frappe.utils import add_days, add_months, getdate, today
 from frappe.utils.fixtures import sync_fixtures
-from frappe_pms.timesheet.api.utils import update_weekly_status_of_timesheet
+from next_pms.timesheet.api.utils import update_weekly_status_of_timesheet
 
 
 def execute():

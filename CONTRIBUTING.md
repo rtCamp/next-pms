@@ -6,7 +6,7 @@
 
 ```bash
 bench get-app https://github.com/rtCamp/frappe-pms
-bench --site [site-name] install-app frappe_pms
+bench --site [site-name] install-app next_pms
 ```
 
 2. Set up [pre-commit](https://pre-commit.com/) in the app.

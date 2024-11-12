@@ -51,11 +51,9 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
 
   const columns = ["Hours", "Description", "Billable", ""];
   const { toast } = useToast();
-  const { call: updateTimesheet } = useFrappePostCall(
-    "frappe_pms.timesheet.api.timesheet.bulk_update_timesheet_detail"
-  );
-  const { call: deleteTimesheet } = useFrappePostCall("frappe_pms.timesheet.api.timesheet.delete");
-  const { data, isLoading, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.timesheet.get_timesheet_details", {
+  const { call: updateTimesheet } = useFrappePostCall("next_pms.timesheet.api.timesheet.bulk_update_timesheet_detail");
+  const { call: deleteTimesheet } = useFrappePostCall("next_pms.timesheet.api.timesheet.delete");
+  const { data, isLoading, mutate } = useFrappeGetCall("next_pms.timesheet.api.timesheet.get_timesheet_details", {
     employee: employee,
     date: date,
     task: task,

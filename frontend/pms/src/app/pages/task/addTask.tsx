@@ -34,7 +34,7 @@ export const AddTask = ({
   const dispatch = useDispatch();
   const { toast } = useToast();
 
-  const { call } = useFrappePostCall("frappe_pms.timesheet.api.task.add_task");
+  const { call } = useFrappePostCall("next_pms.timesheet.api.task.add_task");
   const form = useForm<z.infer<typeof TaskSchema>>({
     resolver: zodResolver(TaskSchema),
     defaultValues: {

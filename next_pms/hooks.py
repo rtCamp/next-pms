@@ -4,7 +4,7 @@ app_publisher = "rtCamp"
 app_description = "Simplified Project Management System"
 app_email = "erp@rtcamp.com"
 app_license = "GNU AFFERO GENERAL PUBLIC LICENSE (v3)"
-
+app_logo_url = "/assets/next_pms/next-pms.svg"
 # required_apps = []
 
 # Includes in <head>
@@ -16,7 +16,17 @@ website_route_rules = [
         "to_route": "next-pms",
     },
 ]
-
+website_redirects = [
+    {
+        "source": "/timesheet",
+        "target": "/next-pms/timesheet",
+    },
+    {
+        "source": r"/timesheet(.*)",
+        "target": r"/next-pms/\1",
+        
+    },
+]
 # include js, css files in header of desk.html
 # app_include_css = "/assets/next_pms/css/next_pms.css"
 # app_include_js = "/assets/next_pms/js/next_pms.js"

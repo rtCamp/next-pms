@@ -32,7 +32,7 @@ const EmployeeCombo = ({
   const [selectedValues, setSelectedValues] = useState<string>(value);
   const [employee, setEmployee] = useState<Employee | undefined>();
 
-  const { data: employees } = useFrappeGetCall("frappe_pms.timesheet.api.employee.get_employee_list", {}, undefined, {
+  const { data: employees } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee_list", {}, undefined, {
     revalidateOnFocus: false,
   });
   const onEmployeeChange = (name: string) => {
@@ -58,7 +58,7 @@ const EmployeeCombo = ({
           disabled={disabled}
           className={cn(
             "items-center w-full gap-x-4 px-2 justify-between [&[data-state=open]>svg]:rotate-180 truncate",
-            className,
+            className
           )}
         >
           {employee ? (

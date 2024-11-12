@@ -1,5 +1,5 @@
 <div align="center">
-<img src="frappe_pms/public/next-pms.png" height="128" alt="Next PMS Logo">
+<img src="next_pms/public/next-pms.png" height="128" alt="Next PMS Logo">
 <h2>Next PMS</h2>
 </div>
 
@@ -28,7 +28,7 @@ Before you begin, make sure you have following apps installed on your site:
     ```
 2.  Install the app on your site and run the migration.
     `bash
-    bench --site [site name] install-app frappe_pms
+    bench --site [site name] install-app next_pms
     bench migrate
     `
     Upon installation completion,follow the below setup for project & timesheet.
@@ -74,10 +74,10 @@ If you are using [Frappe Manager](https://github.com/rtCamp/Frappe-Manager) for 
     ```
 
 3.  Save the `docker-compose.yml` and restart nginx.
-4.  Go to `frappe-bench/apps/frappe_pms/frontend/timesheet` and create the `.env` from sample file.
+4.  Go to `frappe-bench/apps/next_pms/frontend/timesheet` and create the `.env` from sample file.
 5.  Run the dev server:
     `bash
-    cd frappe-bench/apps/frappe_pms
+    cd frappe-bench/apps/next_pms
     npm run dev
     `
     now you frappe site will also be accesible at `http://localhost` and your frontend at `http://localhost:5173`.

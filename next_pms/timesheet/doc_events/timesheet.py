@@ -56,11 +56,17 @@ def before_save(doc, method=None):
         return
     #  Update the from_time and to_time to have only date part and time part as 00:00:00
     for key, data in enumerate(doc.get("time_logs")):
-        from_time = get_datetime(data.from_time).replace(hour=0, minute=0, second=0, microsecond=0)
-        to_time = get_datetime(data.to_time).replace(hour=0, minute=0, second=0, microsecond=0)
+        from_time = get_datetime(data.from_time).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        to_time = get_datetime(data.to_time).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
         doc.time_logs[key].from_time = from_time
         doc.time_logs[key].to_time = to_time
-        doc.time_logs[key].project = get_value("Task", {"name": doc.time_logs[key].task}, "project")
+        doc.time_logs[key].project = get_value(
+            "Task", {"name": doc.time_logs[key].task}, "project"
+        )
 
 
 def validate_existing_timesheet(doc, method=None):
@@ -90,8 +96,8 @@ def validate_dates(doc):
     """Validate if time entry is made for holidays or leave days."""
     # import frappe
     from frappe import get_roles
-    from frappe_pms.timesheet.api.employee import get_employee_from_user
-    from frappe_pms.timesheet.api.utils import get_leaves_for_employee
+    from next_pms.timesheet.api.employee import get_employee_from_user
+    from next_pms.timesheet.api.utils import get_leaves_for_employee
     from hrms.hr.utils import get_holiday_dates_for_employee
 
     if frappe.session.user == "Administrator":
@@ -105,12 +111,16 @@ def validate_dates(doc):
     date_gap = date_diff(doc.start_date, today_date)
 
     #  Check if the future time entry is allowed.
-    allow_future_entry = frappe.db.get_single_value("Timesheet Settings", "allow_future_entries")
+    allow_future_entry = frappe.db.get_single_value(
+        "Timesheet Settings", "allow_future_entries"
+    )
     if not allow_future_entry and date_gap > 0:
         throw(_("Future time entries are not allowed."))
 
     #  Check if the back dated time entry is allowed.
-    allow_back_dated_entry = frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries")
+    allow_back_dated_entry = frappe.db.get_single_value(
+        "Timesheet Settings", "allow_backdated_entries"
+    )
     if not allow_back_dated_entry and date_gap < 0:
         throw(_("Backdated time entries are not allowed."))
 
@@ -120,10 +130,16 @@ def validate_dates(doc):
         employee = get_employee_from_user()
 
         if has_access and employee != doc.employee:
-            allowed_days = frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries_till_manager")
+            allowed_days = frappe.db.get_single_value(
+                "Timesheet Settings", "allow_backdated_entries_till_manager"
+            )
         else:
-            allowed_days = frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries_till_employee")
-        holidays = get_holiday_dates_for_employee(doc.employee, doc.start_date, today_date)
+            allowed_days = frappe.db.get_single_value(
+                "Timesheet Settings", "allow_backdated_entries_till_employee"
+            )
+        holidays = get_holiday_dates_for_employee(
+            doc.employee, doc.start_date, today_date
+        )
         leaves = get_leaves_for_employee(
             str(add_days(doc.start_date, -28)),
             str(add_days(today_date, 28)),

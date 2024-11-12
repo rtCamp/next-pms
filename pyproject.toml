@@ -3,7 +3,7 @@ name = "next_pms"
 authors = [
     { name = "rtCamp", email = "erp@rtcamp.com"}
 ]
-description = "The PMS in Frappe."
+description = "Simplified Project Management System"
 requires-python = ">=3.10"
 readme = "README.md"
 dynamic = ["version"]

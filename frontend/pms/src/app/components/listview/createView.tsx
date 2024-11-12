@@ -16,7 +16,7 @@ interface CreateViewProps {
   orderBy: { field: string; order: string };
   route: string;
   isDefault: boolean;
-  columns:any
+  columns: any;
   isPublic: boolean;
 }
 export const CreateView = ({
@@ -31,7 +31,7 @@ export const CreateView = ({
   columns,
   setIsOpen,
 }: CreateViewProps) => {
-  const { call } = useFrappePostCall("frappe_pms.timesheet.doctype.pms_view_setting.pms_view_setting.create_view");
+  const { call } = useFrappePostCall("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.create_view");
   const user = useSelector((state: RootState) => state.user);
   const defaultRows = ["name", "creation", "modified"];
   const [label, setLabel] = useState("");

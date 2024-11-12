@@ -44,7 +44,7 @@ const AddTime = ({
   project = "",
 }: AddTimeProps) => {
   const { call } = useContext(FrappeContext) as FrappeConfig;
-  const { call: save } = useFrappePostCall("frappe_pms.timesheet.api.timesheet.save");
+  const { call: save } = useFrappePostCall("next_pms.timesheet.api.timesheet.save");
   const [searchTask, setSearchTask] = useState(task);
   const [tasks, setTask] = useState([]);
   const [submitting, setSubmitting] = useState(false);
@@ -126,7 +126,7 @@ const AddTime = ({
   };
   const fetchTask = () => {
     call
-      .get("frappe_pms.timesheet.api.task.get_task_list", {
+      .get("next_pms.timesheet.api.task.get_task_list", {
         search: searchTask,
         projects: selectedProject,
         page_length: 100,
@@ -143,7 +143,7 @@ const AddTime = ({
   });
 
   const { data: perDayEmpHours, mutate: mutatePerDayHrs } = useFrappeGetCall(
-    "frappe_pms.timesheet.api.timesheet.get_remaining_hour_for_employee",
+    "next_pms.timesheet.api.timesheet.get_remaining_hour_for_employee",
     {
       employee: selectedEmployee,
       date: selectedDate,

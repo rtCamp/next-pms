@@ -67,7 +67,7 @@ const Home = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { data, error, isLoading } = useFrappeGetCall("frappe_pms.timesheet.api.team.get_compact_view_data", {
+  const { data, error, isLoading } = useFrappeGetCall("next_pms.timesheet.api.team.get_compact_view_data", {
     date: homeState.weekDate,
     employee_name: homeState.employeeName,
     page_length: homeState.pageLength,

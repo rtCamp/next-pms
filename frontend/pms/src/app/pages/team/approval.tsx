@@ -50,8 +50,8 @@ export const Approval = ({ onClose }: { onClose: () => void }) => {
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const dispatch = useDispatch();
 
-  const { call } = useFrappePostCall("frappe_pms.timesheet.api.team.update_timesheet_status");
-  const { call: updateTime } = useFrappePostCall("frappe_pms.timesheet.api.timesheet.save");
+  const { call } = useFrappePostCall("next_pms.timesheet.api.team.update_timesheet_status");
+  const { call: updateTime } = useFrappePostCall("next_pms.timesheet.api.timesheet.save");
 
   const handleTimeChange = (value: NewTimesheetProps) => {
     updateTime(value)
@@ -70,7 +70,7 @@ export const Approval = ({ onClose }: { onClose: () => void }) => {
         });
       });
   };
-  const { data, isLoading, error, mutate } = useFrappeGetCall("frappe_pms.timesheet.api.timesheet.get_timesheet_data", {
+  const { data, isLoading, error, mutate } = useFrappeGetCall("next_pms.timesheet.api.timesheet.get_timesheet_data", {
     employee: teamState.employee,
     start_date: teamState.dateRange.start_date,
     max_week: 1,
