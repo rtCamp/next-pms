@@ -80,7 +80,7 @@ doctype_js = {
 # ------------
 
 # before_install = "frappe_pms.install.before_install"
-# after_install = "frappe_pms.install.after_install"
+after_install = "frappe_pms.install.after_install"
 
 # Uninstallation
 # ------------
