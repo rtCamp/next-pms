@@ -150,19 +150,13 @@ def get_compact_view_data(
 
 
 @frappe.whitelist()
-def update_timesheet_status(employee: str, status: str, dates: list[str] | str | None = None, note: str = ""):
-    import json
-
+def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | str | None = None, note: str = ""):
+    frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
     from .utils import (
         get_week_dates,
         is_timesheet_manager,
         update_weekly_status_of_timesheet,
     )
-
-    frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
-
-    if isinstance(dates, str):
-        dates = json.loads(dates)
 
     current_week = get_week_dates(dates[0])
     timesheets = frappe.get_all(
@@ -187,11 +181,8 @@ def update_timesheet_status(employee: str, status: str, dates: list[str] | str |
         doc.save()
         if status == "Approved":
             doc.submit()
-        if note:
-            doc.add_comment(text=note)
 
     update_weekly_status_of_timesheet(employee, current_week.get("start_date"))
-
     return frappe._("Timesheet status updated successfully")
 
 
