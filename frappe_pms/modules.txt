@@ -1,4 +1,0 @@
-Frappe PMS
-Timesheet
-Project Currency
-Resource Management

@@ -7,5 +7,5 @@ node_modules
 __pycache__
 dist/
 .frappe-semgrep
-frappe_pms/www/timesheet/index.html
-frappe_pms/public/timesheet
+next_pms/www/next-pms/index.html
+next_pms/public/pms

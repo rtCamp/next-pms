@@ -2,14 +2,15 @@
   "name": "frappe-pms",
   "version": "1.0.0",
   "main": "index.js",
-  "repository": "git@github.com:rtCamp/Frappe-PMS.git",
+  "repository": "git@github.com:rtCamp/frappe-pms.git",
   "author": "rtCamp",
-  "license": "MIT",
+  "license": "AGPLv3",
   "private": true,
   "scripts": {
-    "dev": "cd frontend/timesheet && npm run dev",
-    "build": "cd frontend/timesheet && npm install && npm run build"
+    "dev": "cd frontend/pms && npm run dev",
+    "build": "cd frontend/pms && npm install && npm run build"
   },
-  "dependencies": {
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.14.0"
   }
 }
