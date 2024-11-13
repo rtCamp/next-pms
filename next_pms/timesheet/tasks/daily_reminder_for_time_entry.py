@@ -1,7 +1,8 @@
 import frappe
 from frappe.utils import add_days, datetime, getdate
-from next_pms.timesheet.api.employee import get_employee_daily_working_norm
 from hrms.hr.utils import get_holiday_list_for_employee
+
+from next_pms.timesheet.api.employee import get_employee_daily_working_norm
 
 
 def send_reminder():
@@ -52,9 +53,7 @@ def send_mail(recipients, subject, message):
     frappe.sendmail(recipients=recipients, subject=subject, message=message)
 
 
-def reported_time_by_employee(
-    employee: str, date: datetime.date, daily_norm: int
-) -> int:
+def reported_time_by_employee(employee: str, date: datetime.date, daily_norm: int) -> int:
     total_hours = 0
     leave_info = get_leave_info(employee, date, daily_norm)
     total_hours += leave_info.get("hours")

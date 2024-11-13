@@ -24,7 +24,6 @@ website_redirects = [
     {
         "source": r"/timesheet(.*)",
         "target": r"/next-pms/\1",
-        
     },
 ]
 # include js, css files in header of desk.html

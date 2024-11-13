@@ -1,4 +1,5 @@
 import frappe
+
 from next_pms.project_currency.api.project_timesheet_billing_recalculation import (
     generate_the_error_log,
 )
@@ -99,10 +100,7 @@ def filter_project_list(project_list: list):
         else:
             continue
 
-        if (
-            project.custom_reminder_threshold_percentage <= project_threshold
-            and project.custom_email_template
-        ):
+        if project.custom_reminder_threshold_percentage <= project_threshold and project.custom_email_template:
             need_to_send_reminder_project_list.append(project)
 
     return need_to_send_reminder_project_list
