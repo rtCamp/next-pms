@@ -15,7 +15,6 @@ import {
 import { getFormatedDate, cn } from "@/lib/utils";
 import { useCallback, useEffect } from "react";
 import { addDays } from "date-fns";
-import { ProjectProps } from "@/types";
 import { DeBounceInput } from "@/app/components/deBounceInput";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";

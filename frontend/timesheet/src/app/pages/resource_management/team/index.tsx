@@ -6,7 +6,7 @@ import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useEffect } from "react";
 import { Spinner } from "@/app/components/spinner";
-import { ResourceTable } from "./components/Table";
+import { ResourceTeamTable } from "./components/Table";
 import { HeaderSection } from "./components/Header";
 import { FooterSection } from "./components/Footer";
 
@@ -32,9 +32,13 @@ const ResourceTeamView = () => {
   );
 
   useEffect(() => {
-
     if (data) {
       if (Object.keys(resourceTeamState.data.data).length > 0 && resourceTeamState.data.dates.length > 0) {
+        if (data.message.data.length > 0) {
+          if (data.message.data[0].name == resourceTeamState.data.data[0].name) {
+            return;
+          }
+        }
         dispatch(updateData(data.message));
       } else {
         dispatch(setData(data.message));
@@ -53,7 +57,7 @@ const ResourceTeamView = () => {
   return (
     <>
       <HeaderSection />
-      {(isLoading || isValidating) && resourceTeamState.data.data.length == 0 ? <Spinner isFull /> : <ResourceTable />}
+      {(isLoading || isValidating) && resourceTeamState.data.data.length == 0 ? <Spinner isFull /> : <ResourceTeamTable />}
       <FooterSection isLoading={isLoading} isValidating={isValidating} />
     </>
   );

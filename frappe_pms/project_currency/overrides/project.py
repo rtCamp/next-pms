@@ -145,10 +145,6 @@ class ProjectOverwrite(EmployeeProject):
 
         self.total_expense_claim = total_amount
 
-    def update_project_cost_rate(self):
-        if self.estimated_costing and self.total_costing_amount:
-            self.custom_percentage_estimated_cost = self.total_costing_amount * 100 / self.estimated_costing
-
     def update_retainer_project_budget(self):
         custom_project_budget_hours = self.custom_project_budget_hours
 
@@ -174,6 +170,10 @@ class ProjectOverwrite(EmployeeProject):
 
             self.custom_total_hours_purchased += budget.hours_purchased
             self.custom_total_hours_remaining += budget.remaining_hours
+
+    def update_project_cost_rate(self):
+        if self.estimated_costing and self.total_costing_amount:
+            self.custom_percentage_estimated_cost = self.total_costing_amount * 100 / self.estimated_costing
 
     def calculate_estimated_profit(self):
         expense_amount = (

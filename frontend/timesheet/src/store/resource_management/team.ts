@@ -54,6 +54,8 @@ export type EmployeeSingleDayProps = {
   total_working_hours: number;
   employee_resource_allocation_for_given_date: any;
   is_last_week_day: boolean;
+  is_on_leave: boolean;
+  total_leave_hours: number;
 };
 
 export type DateProps = {

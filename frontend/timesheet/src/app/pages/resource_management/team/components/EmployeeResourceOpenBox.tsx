@@ -1,11 +1,8 @@
 import { Table, TableBody, TableCell, TableRow } from "@/app/components/ui/table";
 import { Typography } from "@/app/components/typography";
-import { cn, floatToTime, getDateFromDateAndTime } from "@/lib/utils";
-import { CircleDollarSign } from "lucide-react";
-import { TaskDataProps, TaskDataItemProps } from "@/types/timesheet";
 import { EmployeeDataProps } from "@/store/resource_management/team";
-import { useCallback, useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useMemo } from "react";
+import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { getTableCellClass } from "../utils/helper";
 
@@ -14,11 +11,10 @@ type EmployeeResourceData = {
   allDates: string[];
 };
 
-export const Employee = ({ employeeData }: { employeeData: EmployeeDataProps }) => {
+export const EmployeeResourceOpenBox = ({ employeeData }: { employeeData: EmployeeDataProps }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
 
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
-  const dispatch = useDispatch();
 
   const employeeResourceData: EmployeeResourceData = useMemo(findCombineData, [
     employeeData,
