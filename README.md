@@ -24,7 +24,7 @@ Before you begin, make sure you have following apps installed on your site:
 
 1.  Download the app using the Bench CLI.
     ```bash
-    bench get-app https://github.com/rtCamp/Frappe-PMS.git
+    bench get-app https://github.com/rtCamp/next-pms.git
     ```
 2.  Install the app on your site and run the migration.
     `bash
