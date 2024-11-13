@@ -1,9 +1,9 @@
 import frappe
 from frappe.utils import DATE_FORMAT, flt, nowdate
 from frappe.utils.data import add_days, getdate
-from frappe_pms.timesheet.api.employee import get_employee_working_hours
-from frappe_pms.timesheet.api.team import get_holidays, get_week_dates
-from frappe_pms.timesheet.api.timesheet import get_leaves_for_employee
+from next_pms.timesheet.api.employee import get_employee_working_hours
+from next_pms.timesheet.api.team import get_holidays, get_week_dates
+from next_pms.timesheet.api.timesheet import get_leaves_for_employee
 
 now = nowdate()
 
@@ -214,7 +214,7 @@ def filter_employee_list(
     page_length=10,
     start=0,
 ):
-    from frappe_pms.timesheet.api.utils import filter_employees
+    from next_pms.timesheet.api.utils import filter_employees
 
     start = int(start)
     page_length = int(page_length)
