@@ -1,0 +1,11 @@
+[pre_model_sync]
+# Patches added in this section will be executed before doctypes are migrated
+# Read docs to understand patches: https://frappeframework.com/docs/v14/user/en/database-migrations
+next_pms.timesheet.patches.add_timesheet_role
+
+[post_model_sync]
+# Patches added in this section will be executed after doctypes are migrated
+next_pms.timesheet.patches.update_timesheet_weekly_status
+
+# next_pms.project_currency.patches.update_project_billing_type Need to run this manually
+# next_pms.project_currency.patches.project_threshold_limit_reminder_email_template
