@@ -183,6 +183,7 @@ def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | s
             doc.submit()
 
     update_weekly_status_of_timesheet(employee, current_week.get("start_date"))
+    trigger_notification_for_approved_or_rejected_timesheet(status, employee, dates, note)
     return frappe._("Timesheet status updated successfully")
 
 
@@ -247,3 +248,35 @@ def filter_employee_by_timesheet_status(
         page_length = count - start
 
     return employee, count
+
+
+def trigger_notification_for_approved_or_rejected_timesheet(
+    status: str, employee: str, dates: list[str] | None = None, note: str = ""
+):
+    if status not in ["Approved", "Rejected"]:
+        return
+    if status == "Approved":
+        template = frappe.db.get_single_value("Timesheet Settings", "timesheet_approval_template")
+    else:
+        template = frappe.db.get_single_value("Timesheet Settings", "timesheet_rejection_template")
+
+    if not template:
+        return
+    template = frappe.get_doc("Email Template", template)
+    employee = frappe.get_doc("Employee", employee)
+    email_message = ""
+    if template.use_html:
+        email_message = template.response_html
+    else:
+        email_message = template.response
+
+    email_subject = template.subject
+    args = {
+        "employee": employee,
+        "note": note,
+        "dates": dates,
+        "updated_by": frappe.get_value("User", frappe.session.user, "full_name"),
+    }
+    message = frappe.render_template(email_message, args)
+    subject = frappe.render_template(email_subject, args)
+    frappe.sendmail(recipients=employee.user_id, subject=subject, message=message)
