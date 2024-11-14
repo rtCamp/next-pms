@@ -29,7 +29,7 @@ def get_leaves_for_employee(from_date: str, to_date: str, employee: str):
     return filtered_data
 
 
-def get_week_dates(date, current_week: bool = False):
+def get_week_dates(date):
     """Returns the dates map with dates and other details.
     example:
         {
@@ -46,11 +46,14 @@ def get_week_dates(date, current_week: bool = False):
 
     dates = []
     data = {}
-
+    now = getdate()
     start_date = get_first_day_of_week(date)
     end_date = get_last_day_of_week(date)
 
-    key = f'{start_date.strftime("%b %d")} - {end_date.strftime("%b %d")}' if not current_week else "This Week"
+    if start_date <= now <= end_date:
+        key = "This Week"
+    else:
+        key = f'{start_date.strftime("%b %d")} - {end_date.strftime("%b %d")}'
 
     data = {"start_date": start_date, "end_date": end_date, "key": key}
 

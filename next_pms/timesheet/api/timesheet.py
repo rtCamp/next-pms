@@ -27,7 +27,6 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
 
     if not employee:
         employee = get_employee_from_user()
-
     if frappe.session.user != "Administrator":
         if not frappe.has_permission("Employee", "read", employee) and (
             "Timesheet Manager" not in user_roles and "Timesheet User" not in user_roles
@@ -40,8 +39,7 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
     def generate_week_data(start_date, max_week, employee=None):
         data = {}
         for i in range(max_week):
-            current_week = start_date == now
-            week_dates = get_week_dates(start_date, current_week=current_week)
+            week_dates = get_week_dates(start_date)
             week_key = week_dates["key"]
             tasks, total_hours, status = {}, 0, "Not Submitted"
             if employee:

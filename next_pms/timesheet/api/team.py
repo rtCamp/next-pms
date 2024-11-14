@@ -34,8 +34,7 @@ def get_compact_view_data(
         status_filter = json.loads(status_filter)
 
     for i in range(max_week):
-        current_week = True if date == now else False
-        week = get_week_dates(date=date, current_week=current_week)
+        week = get_week_dates(date=date)
         dates.append(week)
         date = add_days(getdate(week["start_date"]), -1)
     dates.reverse()
