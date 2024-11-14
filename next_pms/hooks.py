@@ -139,7 +139,7 @@ fixtures = [
             [
                 "module",
                 "in",
-                ["Project Currency", "Timesheet"],
+                ["Project Currency", "Timesheet", "Resource Management"],
             ]
         ],
     },
@@ -149,7 +149,7 @@ fixtures = [
             [
                 "module",
                 "in",
-                ["Project Currency", "Timesheet"],
+                ["Project Currency", "Timesheet", "Resource Management"],
             ]
         ],
     },
@@ -159,7 +159,7 @@ fixtures = [
             [
                 "role",
                 "in",
-                ["Timesheet Manager", "Timesheet User"],
+                ["Timesheet Manager", "Timesheet User", "Resource Management"],
             ]
         ],
     },
@@ -219,6 +219,7 @@ doc_events = {
         "on_update": "next_pms.project_currency.doc_events.project.on_update",
         "onload": "next_pms.project_currency.doc_events.project.onload",
     },
+    "Customer": {"validate": "next_pms.resource_management.doc_events.customer.validate_abbr"},
 }
 #
 # each overriding function accepts a `data` argument;
