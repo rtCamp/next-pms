@@ -1,0 +1,7 @@
+<p>{{ _("Dear") }} {{ employee.employee_name }},</p>
+<p>{{ _("Your Timesheet has been approved by") }} {{ updated_by }} {{ _("for the following dates:") }}</p>
+<ul>
+    {% for date in dates %}
+    <li>{{ frappe.utils.format_date(date) }}</li>
+    {% endfor %}
+</ul>
