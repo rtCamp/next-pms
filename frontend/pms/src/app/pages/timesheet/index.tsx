@@ -67,11 +67,12 @@ function Timesheet() {
     );
   };
 
-  const validateDate = () => {
+  const validateDate = (data) => {
     if (!startDateParam) {
       return true;
     }
-    const timesheetData = timesheet.data?.data;
+
+    const timesheetData = data.data;
     if (timesheetData && Object.keys(timesheetData).length > 0) {
       const keys = Object.keys(timesheetData);
       const firstObject = timesheetData[keys[0]];
@@ -81,7 +82,7 @@ function Timesheet() {
         return true;
       }
     }
-
+    console.log("here");
     return false;
   };
   useEffect(() => {
@@ -101,7 +102,7 @@ function Timesheet() {
       } else {
         dispatch(setData(data.message));
       }
-      if (!validateDate()) {
+      if (!validateDate(data.message)) {
         const obj = data.message.data;
         const info = obj[Object.keys(obj).pop()];
         dispatch(SetWeekDate(getFormatedDate(addDays(info.start_date, -1))));
@@ -168,7 +169,7 @@ function Timesheet() {
         </Button>
       </Header>
 
-      {(isLoading && Object.keys(timesheet.data?.data).length == 0)? (
+      {isLoading && Object.keys(timesheet.data?.data).length == 0 ? (
         <Spinner isFull />
       ) : (
         <Main>
@@ -234,7 +235,11 @@ function Timesheet() {
                     </AccordionTrigger>
                     <AccordionContent
                       className="pb-0"
-                      ref={!isEmpty(startDateParam) && isDateInRange(startDateParam, value.start_date, value.end_date) ? targetRef : null}
+                      ref={
+                        !isEmpty(startDateParam) && isDateInRange(startDateParam, value.start_date, value.end_date)
+                          ? targetRef
+                          : null
+                      }
                     >
                       <TimesheetTable
                         working_hour={timesheet.data.working_hour}

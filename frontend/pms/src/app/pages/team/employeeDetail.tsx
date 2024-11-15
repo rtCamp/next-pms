@@ -67,11 +67,11 @@ const EmployeeDetail = () => {
   const dispatch = useDispatch();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const validateDate = () => {
+  const validateDate = (data) => {
     if (!startDateParam) {
       return true;
     }
-    const timesheetData = teamState.timesheetData?.data;
+    const timesheetData = data.data;
     if (timesheetData && Object.keys(timesheetData).length > 0) {
       const keys = Object.keys(timesheetData);
       const firstObject = timesheetData[keys[0]];
@@ -134,7 +134,7 @@ const EmployeeDetail = () => {
       } else {
         dispatch(setTimesheetData(data.message));
       }
-      if (!validateDate()) {
+      if (!validateDate(data.message)) {
         const obj = data.message.data;
         const info = obj[Object.keys(obj).pop()];
         const date = getFormatedDate(addDays(info.start_date, -1));
