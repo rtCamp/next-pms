@@ -49,7 +49,7 @@ import { EditTime } from "@/app/pages/timesheet/editTime";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import { Approval } from "./approval";
 import { useQueryParamsState } from "@/lib/queryParam";
-import { isEmpty } from "lodash";
+import { isEmpty, set } from "lodash";
 
 const isDateInRange = (date: string, startDate: string, endDate: string) => {
   const targetDate = getDateTimeForMultipleTimeZoneSupport(date);
@@ -116,6 +116,7 @@ const EmployeeDetail = () => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const obj = teamState.timesheetData.data[Object.keys(teamState.timesheetData.data).pop()];
+    setstartDateParam("");
     const date = getFormatedDate(addDays(obj.start_date, -1));
     dispatch(setEmployeeWeekDate(date));
   };

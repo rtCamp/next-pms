@@ -151,6 +151,7 @@ function Timesheet() {
     // eslint-disable-next-line
     // @ts-expect-error
     const obj = data[Object.keys(data).pop()];
+    setstartDateParam("");
     dispatch(SetWeekDate(getFormatedDate(addDays(obj.start_date, -1))));
   };
   const handleApproval = (start_date: string, end_date: string) => {
