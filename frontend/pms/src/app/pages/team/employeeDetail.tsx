@@ -14,6 +14,7 @@ import {
   preProcessLink,
   expectatedHours,
   getDateTimeForMultipleTimeZoneSupport,
+  copyToClipboard,
 } from "@/lib/utils";
 import { TaskLog } from "@/app/pages/task/taskLog";
 import { LoadMore } from "@/app/components/loadMore";
@@ -322,6 +323,9 @@ const Timesheet = ({
                           onClick={(e) => {
                             e.stopPropagation();
                             setStartDateParam(value.start_date);
+                            copyToClipboard(
+                              `${window.location.origin}${window.location.pathname}?date="${value.start_date}"`
+                            );
                           }}
                         />
                       </Typography>
@@ -470,6 +474,9 @@ export const Time = ({
                           onClick={(e) => {
                             e.stopPropagation();
                             setStartDateParam(value.start_date);
+                            copyToClipboard(
+                              `${window.location.origin}${window.location.pathname}?date="${value.start_date}"`
+                            );
                           }}
                         />
                       </Typography>

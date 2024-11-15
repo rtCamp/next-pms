@@ -4,7 +4,7 @@ import { Error } from "frappe-js-sdk/lib/frappe_app/types";
 import { TaskData, WorkingFrequency, ProjectNestedTaskData } from "@/types";
 import { TScreenSize } from "@/store/app";
 import { HolidayProp } from "@/types/timesheet";
-
+import { toast } from "@/app/components/ui/use-toast"
 export const NO_VALUE_FIELDS = ["Section Break", "Column Break",
   "Tab Break",
   "HTML",
@@ -308,4 +308,9 @@ export const flatTableDataToNestedProjectDataConversion = (
 
 export const checkIsMobile = () => {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+export const copyToClipboard = (text: string) => {
+  navigator.clipboard.writeText(text)
+  toast({ title: "Capied to clipboard", variant: "success" })
 }

@@ -25,6 +25,7 @@ import {
   floatToTime,
   expectatedHours,
   getDateTimeForMultipleTimeZoneSupport,
+  copyToClipboard,
 } from "@/lib/utils";
 import { addDays } from "date-fns";
 import { Spinner } from "@/app/components/spinner";
@@ -227,6 +228,9 @@ function Timesheet() {
                             onClick={(e) => {
                               e.stopPropagation();
                               setstartDateParam(value.start_date);
+                              copyToClipboard(
+                                `${window.location.origin}${window.location.pathname}?date="${value.start_date}"`
+                              );
                             }}
                           />
                         </Typography>
