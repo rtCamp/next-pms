@@ -186,7 +186,11 @@ class ProjectOverwrite(EmployeeProject):
 
         total_amount = flt(self.estimated_costing) + flt(self.total_sales_amount)
 
+        if not total_amount:
+            total_amount = flt(self.total_billable_amount)
+
         self.custom_estimated_profit = total_amount - expense_amount
+
         if total_amount:
             self.custom_percentage_estimated_profit = (self.custom_estimated_profit / total_amount) * 100
 
