@@ -14,6 +14,7 @@ import {
   preProcessLink,
   expectatedHours,
   getDateTimeForMultipleTimeZoneSupport,
+  copyToClipboard,
 } from "@/lib/utils";
 import { TaskLog } from "@/app/pages/task/taskLog";
 import { LoadMore } from "@/app/components/loadMore";
@@ -23,7 +24,7 @@ import { Spinner } from "@/app/components/spinner";
 import { Typography } from "@/app/components/typography";
 import TimesheetTable from "@/app/components/timesheetTable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
-import { CircleDollarSign, Plus } from "lucide-react";
+import { CircleDollarSign, Paperclip, Plus } from "lucide-react";
 import { addDays } from "date-fns";
 import AddTime from "@/app/components/addTime";
 import {
@@ -48,13 +49,41 @@ import { timeStringToFloat } from "@/schema/timesheet";
 import { EditTime } from "@/app/pages/timesheet/editTime";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import { Approval } from "./approval";
+import { useQueryParamsState } from "@/lib/queryParam";
+import { isEmpty, set } from "lodash";
+
+const isDateInRange = (date: string, startDate: string, endDate: string) => {
+  const targetDate = getDateTimeForMultipleTimeZoneSupport(date);
+
+  return (
+    getDateTimeForMultipleTimeZoneSupport(startDate) <= targetDate &&
+    targetDate <= getDateTimeForMultipleTimeZoneSupport(endDate)
+  );
+};
+
 const EmployeeDetail = () => {
   const { id } = useParams();
   const teamState = useSelector((state: RootState) => state.team);
+  const [startDateParam, setstartDateParam] = useQueryParamsState<string>("date", "");
   const dispatch = useDispatch();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const validateDate = () => {
+    if (!startDateParam) {
+      return true;
+    }
+    const timesheetData = teamState.timesheetData.data;
+    if (timesheetData && Object.keys(timesheetData).length > 0) {
+      const keys = Object.keys(timesheetData);
+      const firstObject = timesheetData[keys[0]];
+      const lastObject = timesheetData[keys[keys.length - 1]];
+      if (isDateInRange(startDateParam, lastObject.start_date, firstObject.end_date)) {
+        return true;
+      }
+    }
 
+    return false;
+  };
   useLayoutEffect(() => {
     if (!id) {
       const EMPLOYEE_ID_NOT_FOUND = "Please pick an employee from the combo box.";
@@ -65,18 +94,11 @@ const EmployeeDetail = () => {
     }
   }, [id]);
 
-  const { data, isLoading, error, mutate } = useFrappeGetCall(
-    "next_pms.timesheet.api.timesheet.get_timesheet_data",
-    {
-      employee: id,
-      start_date: teamState.employeeWeekDate,
-      max_week: 4,
-    },
-    undefined,
-    {
-      errorRetryCount: 1,
-    }
-  );
+  const { data, isLoading, error, mutate } = useFrappeGetCall("next_pms.timesheet.api.timesheet.get_timesheet_data", {
+    employee: id,
+    start_date: teamState.employeeWeekDate,
+    max_week: 4,
+  });
 
   const handleAddTime = () => {
     const timesheet = {
@@ -95,6 +117,7 @@ const EmployeeDetail = () => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const obj = teamState.timesheetData.data[Object.keys(teamState.timesheetData.data).pop()];
+    setstartDateParam("");
     const date = getFormatedDate(addDays(obj.start_date, -1));
     dispatch(setEmployeeWeekDate(date));
   };
@@ -122,7 +145,18 @@ const EmployeeDetail = () => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, teamState.employeeWeekDate, error]);
+  }, [data, error]);
+
+  useEffect(() => {
+    if (Object.keys(teamState.timesheetData.data).length == 0) return;
+    if (!validateDate()) {
+      const obj = teamState.timesheetData.data;
+      const info = obj[Object.keys(obj).pop()];
+      const date = getFormatedDate(addDays(info.start_date, -1));
+      dispatch(setEmployeeWeekDate(date));
+    }
+  }, [startDateParam, teamState.timesheetData.data]);
+
   const onEmployeeChange = (name: string) => {
     navigate(`/team/employee/${name}`);
   };
@@ -178,10 +212,10 @@ const EmployeeDetail = () => {
           ) : (
             <>
               <TabsContent value="timesheet" className="mt-0">
-                <Timesheet />
+                <Timesheet startDateParam={startDateParam} setStartDateParam={setstartDateParam} />
               </TabsContent>
               <TabsContent value="time" className="mt-0">
-                <Time callback={mutate} />
+                <Time callback={mutate} startDateParam={startDateParam} setStartDateParam={setstartDateParam} />
               </TabsContent>
             </>
           )}
@@ -195,8 +229,15 @@ const EmployeeDetail = () => {
   );
 };
 
-const Timesheet = () => {
+const Timesheet = ({
+  startDateParam,
+  setStartDateParam,
+}: {
+  startDateParam: string;
+  setStartDateParam: React.Dispatch<React.SetStateAction<string>>;
+}) => {
   const { id } = useParams();
+  const targetRef = useRef(null);
   const teamState = useSelector((state: RootState) => state.team);
   const dispatch = useDispatch();
 
@@ -208,6 +249,18 @@ const Timesheet = () => {
       dispatch(setDialog(true));
     }
   };
+
+  useEffect(() => {
+    const scrollToElement = () => {
+      if (targetRef.current) {
+        targetRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+      }
+    };
+
+    const observer = new MutationObserver(scrollToElement);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
 
   const handleStatusClick = (start_date: string, end_date: string) => {
     const data = {
@@ -223,6 +276,7 @@ const Timesheet = () => {
         Object.keys(teamState.timesheetData.data).length > 0 &&
         Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet], index: number) => {
           let total_hours = value.total_hours;
+          let k = "";
           value.dates.map((date) => {
             let isHoliday = false;
             const leaveData = teamState.timesheetData.leaves.filter((data: LeaveProps) => {
@@ -247,15 +301,33 @@ const Timesheet = () => {
                 }
               });
             }
+            if (startDateParam && isDateInRange(startDateParam, value.start_date, value.end_date)) {
+              k = key;
+            } else if (isEmpty(startDateParam) && index === 0) {
+              k = key;
+            }
           });
           return (
             <>
-              <Accordion type="multiple" key={key} defaultValue={index === 0 || index === 1 ? [key] : undefined}>
+              <Accordion type="multiple" key={key} defaultValue={[k]}>
                 <AccordionItem value={key}>
                   <AccordionTrigger className="hover:no-underline w-full">
-                    <div className="flex justify-between items-center w-full pr-2">
-                      <Typography variant="h6" className="font-normal">
-                        {key}: {floatToTime(total_hours)}h
+                    <div className="flex justify-between items-center w-full pr-2 group">
+                      <Typography
+                        variant="h6"
+                        className="font-normal text-xs sm:text-base flex items-center gap-x-1 flex-col sm:flex-row"
+                      >
+                        {key}:<Typography className="text-xs sm:text-base">{floatToTime(total_hours)}h</Typography>
+                        <Paperclip
+                          className="w-3 h-3 hidden group-hover:block"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setStartDateParam(value.start_date);
+                            copyToClipboard(
+                              `${window.location.origin}${window.location.pathname}?date="${value.start_date}"`
+                            );
+                          }}
+                        />
                       </Typography>
                       <Button
                         variant="ghost"
@@ -269,7 +341,14 @@ const Timesheet = () => {
                       </Button>
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="pb-0">
+                  <AccordionContent
+                    className="pb-0"
+                    ref={
+                      !isEmpty(startDateParam) && isDateInRange(startDateParam, value.start_date, value.end_date)
+                        ? targetRef
+                        : null
+                    }
+                  >
                     <TimesheetTable
                       dates={value.dates}
                       holidays={teamState.timesheetData.holidays}
@@ -289,9 +368,18 @@ const Timesheet = () => {
   );
 };
 
-export const Time = ({ callback }: { callback?: () => void }) => {
+export const Time = ({
+  callback,
+  startDateParam,
+  setStartDateParam,
+}: {
+  callback?: () => void;
+  startDateParam: string;
+  setStartDateParam: React.Dispatch<React.SetStateAction<string>>;
+}) => {
   const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<string>("");
+  const targetRef = useRef(null);
   const teamState = useSelector((state: RootState) => state.team);
   const { call } = useFrappePostCall("next_pms.timesheet.api.timesheet.update_timesheet_detail");
   const { toast } = useToast();
@@ -313,6 +401,17 @@ export const Time = ({ callback }: { callback?: () => void }) => {
         });
       });
   };
+  useEffect(() => {
+    const scrollToElement = () => {
+      if (targetRef.current) {
+        targetRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+      }
+    };
+
+    const observer = new MutationObserver(scrollToElement);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
   const handleStatusClick = (start_date: string, end_date: string) => {
     const data = {
       start_date: start_date,
@@ -337,7 +436,7 @@ export const Time = ({ callback }: { callback?: () => void }) => {
         Object.keys(teamState.timesheetData.data).length > 0 &&
         Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet], index: number) => {
           let total_hours = value.total_hours;
-
+          let k = "";
           value.dates.map((date) => {
             const leaveData = teamState.timesheetData.leaves.filter((data: LeaveProps) => {
               return date >= data.from_date && date <= data.to_date;
@@ -353,15 +452,33 @@ export const Time = ({ callback }: { callback?: () => void }) => {
                 }
               });
             }
+            if (startDateParam && isDateInRange(startDateParam, value.start_date, value.end_date)) {
+              k = key;
+            } else if (!startDateParam && index === 0) {
+              k = key;
+            }
           });
           return (
             <>
-              <Accordion type="multiple" key={key} defaultValue={index === 0 || index === 1 ? [key] : undefined}>
+              <Accordion type="multiple" key={key} defaultValue={[k]}>
                 <AccordionItem value={key}>
                   <AccordionTrigger className="hover:no-underline w-full">
-                    <div className="flex justify-between w-full pr-2">
-                      <Typography variant="h6" className="font-normal">
-                        {key}: {floatToTime(total_hours)}h
+                    <div className="flex justify-between w-full pr-2 group">
+                      <Typography
+                        variant="h6"
+                        className="font-normal text-xs sm:text-base flex items-center gap-x-1 flex-col sm:flex-row"
+                      >
+                        {key}:<Typography className="text-xs sm:text-base">{floatToTime(total_hours)}h</Typography>
+                        <Paperclip
+                          className="w-3 h-3 hidden group-hover:block"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setStartDateParam(value.start_date);
+                            copyToClipboard(
+                              `${window.location.origin}${window.location.pathname}?date="${value.start_date}"`
+                            );
+                          }}
+                        />
                       </Typography>
                       <Button
                         variant="ghost"
@@ -375,7 +492,14 @@ export const Time = ({ callback }: { callback?: () => void }) => {
                       </Button>
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="pb-0">
+                  <AccordionContent
+                    className="pb-0"
+                    ref={
+                      !isEmpty(startDateParam) && isDateInRange(startDateParam, value.start_date, value.end_date)
+                        ? targetRef
+                        : null
+                    }
+                  >
                     {value.dates.map((date: string, index: number) => {
                       const { date: formattedDate } = prettyDate(date, true);
                       const matchingTasks = Object.entries(value.tasks).flatMap(([, task]: [string, TaskDataProps]) =>

@@ -1,152 +1,168 @@
 {
-  "actions": [],
-  "allow_rename": 1,
-  "creation": "2024-08-25 14:07:59.256892",
-  "doctype": "DocType",
-  "engine": "InnoDB",
-  "field_order": [
-    "allow_backdated_entries",
-    "allow_backdated_entries_till_employee",
-    "allow_backdated_entries_till_manager",
-    "column_break_cypz",
-    "allow_future_entries",
-    "reminder_setting_section",
-    "send_daily_reminder",
-    "daily_reminder_template",
-    "send_reminder_on_approval_request",
-    "approval_request_reminder_template",
-    "allowed_departments",
-    "column_break_udik",
-    "send_weekly_approval_reminder",
-    "day_to_send_reminder",
-    "weekly_approval_reminder_template"
-  ],
-  "fields": [
-    {
-      "default": "0",
-      "fieldname": "allow_backdated_entries",
-      "fieldtype": "Check",
-      "label": "Allow Backdated Entries"
-    },
-    {
-      "fieldname": "column_break_cypz",
-      "fieldtype": "Column Break"
-    },
-    {
-      "default": "0",
-      "fieldname": "allow_future_entries",
-      "fieldtype": "Check",
-      "label": "Allow Future Entries"
-    },
-    {
-      "default": "1",
-      "depends_on": "eval:doc.allow_backdated_entries",
-      "description": "Restrict past entries before certain days. For example if 1 then restrict entries before Today - 1 days.",
-      "fieldname": "allow_backdated_entries_till_employee",
-      "fieldtype": "Int",
-      "label": "Allow Backdated Entries Till (Employee)"
-    },
-    {
-      "default": "5",
-      "depends_on": "eval:doc.allow_backdated_entries",
-      "description": "Restrict past entries before certain days. For example if 1 then restrict entries before Today - 1 days.",
-      "fieldname": "allow_backdated_entries_till_manager",
-      "fieldtype": "Int",
-      "label": "Allow Backdated Entries Till (Manager)"
-    },
-    {
-      "fieldname": "reminder_setting_section",
-      "fieldtype": "Section Break",
-      "label": "Reminder Settings"
-    },
-    {
-      "default": "0",
-      "description": "Timesheet entry missed for previous day or recorded less hours then usual.",
-      "fieldname": "send_daily_reminder",
-      "fieldtype": "Check",
-      "label": "Send Daily Reminder"
-    },
-    {
-      "depends_on": "eval:doc.send_daily_reminder",
-      "fieldname": "daily_reminder_template",
-      "fieldtype": "Link",
-      "label": "Daily Reminder Template",
-      "mandatory_depends_on": "eval:doc.send_daily_reminder",
-      "options": "Email Template"
-    },
-    {
-      "fieldname": "column_break_udik",
-      "fieldtype": "Column Break"
-    },
-    {
-      "depends_on": "eval:doc.send_reminder_on_approval_request",
-      "fieldname": "approval_request_reminder_template",
-      "fieldtype": "Link",
-      "label": "Approval Request Reminder Template",
-      "mandatory_depends_on": "eval:doc.send_reminder_on_approval_request",
-      "options": "Email Template"
-    },
-    {
-      "default": "0",
-      "description": "Send reminder when timesheet submitted for Approval.",
-      "fieldname": "send_reminder_on_approval_request",
-      "fieldtype": "Check",
-      "label": "Send Reminder On Approval Request"
-    },
-    {
-      "default": "0",
-      "description": "Send reminder to all the Projects Manager to approve/reject time entries.",
-      "fieldname": "send_weekly_approval_reminder",
-      "fieldtype": "Check",
-      "label": "Send Weekly Approval Reminder"
-    },
-    {
-      "default": "Monday",
-      "depends_on": "eval:doc.send_weekly_approval_reminder",
-      "fieldname": "day_to_send_reminder",
-      "fieldtype": "Select",
-      "label": "Day To Send Weekly Reminder",
-      "options": "Monday\nTuesday\nWednesday\nThursday\nFriday\nSaturday\nSunday"
-    },
-    {
-      "depends_on": "eval:doc.send_weekly_approval_reminder",
-      "fieldname": "weekly_approval_reminder_template",
-      "fieldtype": "Link",
-      "label": "Weekly Approval Reminder Template",
-      "mandatory_depends_on": "eval:doc.send_weekly_approval_reminder",
-      "options": "Email Template"
-    },
-    {
-      "depends_on": "eval:doc.send_daily_reminder||doc.send_weekly_approval_reminder",
-      "description": "This field will be used to filter the employee based on department to whom the Daily/Weekly reminder will be sent.",
-      "fieldname": "allowed_departments",
-      "fieldtype": "Table MultiSelect",
-      "label": "Allowed Departments",
-      "mandatory_depends_on": "eval:doc.send_daily_reminder||doc.send_weekly_approval_reminder",
-      "options": "Timesheet Department"
-    }
-  ],
-  "index_web_pages_for_search": 1,
-  "issingle": 1,
-  "links": [],
-  "modified": "2024-10-11 12:17:02.888856",
-  "modified_by": "Administrator",
-  "module": "Timesheet",
-  "name": "Timesheet Settings",
-  "owner": "Administrator",
-  "permissions": [
-    {
-      "create": 1,
-      "delete": 1,
-      "email": 1,
-      "print": 1,
-      "read": 1,
-      "role": "System Manager",
-      "share": 1,
-      "write": 1
-    }
-  ],
-  "sort_field": "modified",
-  "sort_order": "DESC",
-  "states": []
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-08-25 14:07:59.256892",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "allow_backdated_entries",
+  "allow_backdated_entries_till_employee",
+  "allow_backdated_entries_till_manager",
+  "column_break_cypz",
+  "allow_future_entries",
+  "reminder_setting_section",
+  "send_daily_reminder",
+  "daily_reminder_template",
+  "send_reminder_on_approval_request",
+  "approval_request_reminder_template",
+  "timesheet_approval_template",
+  "timesheet_rejection_template",
+  "column_break_udik",
+  "send_weekly_approval_reminder",
+  "day_to_send_reminder",
+  "weekly_approval_reminder_template",
+  "allowed_departments"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "allow_backdated_entries",
+   "fieldtype": "Check",
+   "label": "Allow Backdated Entries"
+  },
+  {
+   "fieldname": "column_break_cypz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_future_entries",
+   "fieldtype": "Check",
+   "label": "Allow Future Entries"
+  },
+  {
+   "default": "1",
+   "depends_on": "eval:doc.allow_backdated_entries",
+   "description": "Restrict past entries before certain days. For example if 1 then restrict entries before Today - 1 days.",
+   "fieldname": "allow_backdated_entries_till_employee",
+   "fieldtype": "Int",
+   "label": "Allow Backdated Entries Till (Employee)"
+  },
+  {
+   "default": "5",
+   "depends_on": "eval:doc.allow_backdated_entries",
+   "description": "Restrict past entries before certain days. For example if 1 then restrict entries before Today - 1 days.",
+   "fieldname": "allow_backdated_entries_till_manager",
+   "fieldtype": "Int",
+   "label": "Allow Backdated Entries Till (Manager)"
+  },
+  {
+   "fieldname": "reminder_setting_section",
+   "fieldtype": "Section Break",
+   "label": "Reminder Settings"
+  },
+  {
+   "default": "0",
+   "description": "Timesheet entry missed for previous day or recorded less hours then usual.",
+   "fieldname": "send_daily_reminder",
+   "fieldtype": "Check",
+   "label": "Send Daily Reminder"
+  },
+  {
+   "depends_on": "eval:doc.send_daily_reminder",
+   "fieldname": "daily_reminder_template",
+   "fieldtype": "Link",
+   "label": "Daily Reminder Template",
+   "mandatory_depends_on": "eval:doc.send_daily_reminder",
+   "options": "Email Template"
+  },
+  {
+   "fieldname": "column_break_udik",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.send_reminder_on_approval_request",
+   "fieldname": "approval_request_reminder_template",
+   "fieldtype": "Link",
+   "label": "Approval Request Reminder Template",
+   "mandatory_depends_on": "eval:doc.send_reminder_on_approval_request",
+   "options": "Email Template"
+  },
+  {
+   "default": "0",
+   "description": "Send reminder when timesheet submitted for Approval.",
+   "fieldname": "send_reminder_on_approval_request",
+   "fieldtype": "Check",
+   "label": "Send Reminder On Approval Request"
+  },
+  {
+   "default": "0",
+   "description": "Send reminder to all the Projects Manager to approve/reject time entries.",
+   "fieldname": "send_weekly_approval_reminder",
+   "fieldtype": "Check",
+   "label": "Send Weekly Approval Reminder"
+  },
+  {
+   "default": "Monday",
+   "depends_on": "eval:doc.send_weekly_approval_reminder",
+   "fieldname": "day_to_send_reminder",
+   "fieldtype": "Select",
+   "label": "Day To Send Weekly Reminder",
+   "options": "Monday\nTuesday\nWednesday\nThursday\nFriday\nSaturday\nSunday"
+  },
+  {
+   "depends_on": "eval:doc.send_weekly_approval_reminder",
+   "fieldname": "weekly_approval_reminder_template",
+   "fieldtype": "Link",
+   "label": "Weekly Approval Reminder Template",
+   "mandatory_depends_on": "eval:doc.send_weekly_approval_reminder",
+   "options": "Email Template"
+  },
+  {
+   "depends_on": "eval:doc.send_daily_reminder||doc.send_weekly_approval_reminder",
+   "description": "This field will be used to filter the employee based on department to whom the Daily/Weekly reminder will be sent.",
+   "fieldname": "allowed_departments",
+   "fieldtype": "Table MultiSelect",
+   "label": "Allowed Departments",
+   "mandatory_depends_on": "eval:doc.send_daily_reminder||doc.send_weekly_approval_reminder",
+   "options": "Timesheet Department"
+  },
+  {
+   "description": "Send email notification to employee when their timesheet/s are approved.",
+   "fieldname": "timesheet_approval_template",
+   "fieldtype": "Link",
+   "label": "Timesheet Approval Template",
+   "options": "Email Template"
+  },
+  {
+   "description": "Send email notification to employee when their timesheet/s\nare rejected and requested to update.",
+   "fieldname": "timesheet_rejection_template",
+   "fieldtype": "Link",
+   "label": "Timesheet Rejection Template",
+   "options": "Email Template"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-11-14 10:22:51.868235",
+ "modified_by": "Administrator",
+ "module": "Timesheet",
+ "name": "Timesheet Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
 }

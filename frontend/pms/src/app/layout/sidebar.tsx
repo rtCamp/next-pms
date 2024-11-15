@@ -136,7 +136,7 @@ const Sidebar = () => {
             Next PMS
           </Typography>
         </div>
-        <div className="pt-10 h-fit overflow-y-auto flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
+        <div className="pt-3 h-fit overflow-y-auto flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
           {routes.map((route: Route) => {
             if (route.isPmRoute && !hasPmRole) return null;
             return route.children ? (
@@ -240,7 +240,7 @@ const Sidebar = () => {
             {viewInfo.views.filter((view) => view.user === user.user && !view.default).length > 0 ? (
               <>
                 <Separator />
-                <div className="py-3 h-fit overflow-y-auto flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
+                <div className="py-1 h-fit overflow-y-auto flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
                   <Button
                     variant="ghost"
                     className={cn(
@@ -250,7 +250,7 @@ const Sidebar = () => {
                     onClick={() => toggleNestedRoutes("custom_view")}
                   >
                     <span className="flex items-center gap-x-2">
-                      <Circle />
+                      {openRoutes["custom_view"] ? <ChevronUp /> : <ChevronDown />}
                       <Typography
                         variant="p"
                         className={cn("transition-all duration-300 ease-in-out ", user.isSidebarCollapsed && "hidden")}
@@ -258,11 +258,10 @@ const Sidebar = () => {
                         Custom View
                       </Typography>
                     </span>
-                    {openRoutes["custom_view"] ? <ChevronUp /> : <ChevronDown />}
                   </Button>
                   <div
                     className={cn(
-                      "pl-4 transition-all duration-300 ease-in-out flex flex-col gap-y-1",
+                      "transition-all duration-300 ease-in-out flex flex-col gap-y-1",
                       openRoutes["custom_view"] ? "flex" : "hidden"
                     )}
                   >
@@ -282,6 +281,7 @@ const Sidebar = () => {
                               isActive && "bg-primary shadow-md hover:bg-slate-700 "
                             )}
                           >
+                            <span>{view.icon}</span>
                             <Typography
                               variant="p"
                               className={cn(
@@ -300,11 +300,10 @@ const Sidebar = () => {
                 </div>
               </>
             ) : null}
-
             {viewInfo.views.filter((view) => view.public && !view.default).length > 0 ? (
               <>
                 <Separator />
-                <div className="py-3 h-fit overflow-y-auto flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
+                <div className="py-1 h-fit overflow-y-auto flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
                   <Button
                     variant="ghost"
                     className={cn(
@@ -314,7 +313,7 @@ const Sidebar = () => {
                     onClick={() => toggleNestedRoutes("public_view")}
                   >
                     <span className="flex items-center gap-x-2">
-                      <Circle />
+                      {openRoutes["public_view"] ? <ChevronUp /> : <ChevronDown />}
                       <Typography
                         variant="p"
                         className={cn("transition-all duration-300 ease-in-out ", user.isSidebarCollapsed && "hidden")}
@@ -322,11 +321,10 @@ const Sidebar = () => {
                         Public View
                       </Typography>
                     </span>
-                    {openRoutes["public_view"] ? <ChevronUp /> : <ChevronDown />}
                   </Button>
                   <div
                     className={cn(
-                      "pl-4 transition-all duration-300 ease-in-out flex flex-col gap-y-1",
+                      "transition-all duration-300 ease-in-out flex flex-col gap-y-1",
                       openRoutes["public_view"] ? "flex" : "hidden"
                     )}
                   >
@@ -346,6 +344,7 @@ const Sidebar = () => {
                               isActive && "bg-primary shadow-md hover:bg-slate-700 "
                             )}
                           >
+                            <span>{view.icon}</span>
                             <Typography
                               variant="p"
                               className={cn(

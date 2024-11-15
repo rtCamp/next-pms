@@ -61,6 +61,7 @@ def create_view(view):
     doc.route = view.route
     doc.default = view.default or 0
     doc.public = view.public or 0
+    doc.icon = view.icon
     doc.insert(ignore_permissions=True)
     return get_views()
 
