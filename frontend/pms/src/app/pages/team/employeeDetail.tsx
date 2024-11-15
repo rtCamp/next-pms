@@ -67,11 +67,11 @@ const EmployeeDetail = () => {
   const dispatch = useDispatch();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const validateDate = (data) => {
+  const validateDate = () => {
     if (!startDateParam) {
       return true;
     }
-    const timesheetData = data.data;
+    const timesheetData = teamState.timesheetData.data;
     if (timesheetData && Object.keys(timesheetData).length > 0) {
       const keys = Object.keys(timesheetData);
       const firstObject = timesheetData[keys[0]];
@@ -134,12 +134,6 @@ const EmployeeDetail = () => {
       } else {
         dispatch(setTimesheetData(data.message));
       }
-      if (!validateDate(data.message)) {
-        const obj = data.message.data;
-        const info = obj[Object.keys(obj).pop()];
-        const date = getFormatedDate(addDays(info.start_date, -1));
-        dispatch(setEmployeeWeekDate(date));
-      }
     }
     if (error) {
       const err = parseFrappeErrorMsg(error);
@@ -150,6 +144,16 @@ const EmployeeDetail = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, error]);
+
+  useEffect(() => {
+    if (Object.keys(teamState.timesheetData.data).length == 0) return;
+    if (!validateDate()) {
+      const obj = teamState.timesheetData.data;
+      const info = obj[Object.keys(obj).pop()];
+      const date = getFormatedDate(addDays(info.start_date, -1));
+      dispatch(setEmployeeWeekDate(date));
+    }
+  }, [startDateParam, teamState.timesheetData.data]);
 
   const onEmployeeChange = (name: string) => {
     navigate(`/team/employee/${name}`);
@@ -247,7 +251,7 @@ const Timesheet = ({
   useEffect(() => {
     const scrollToElement = () => {
       if (targetRef.current) {
-        targetRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+        targetRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
       }
     };
 
@@ -395,7 +399,7 @@ export const Time = ({
   useEffect(() => {
     const scrollToElement = () => {
       if (targetRef.current) {
-        targetRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+        targetRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
       }
     };
 

@@ -67,12 +67,12 @@ function Timesheet() {
     );
   };
 
-  const validateDate = (data) => {
+  const validateDate = () => {
     if (!startDateParam) {
       return true;
     }
 
-    const timesheetData = data.data;
+    const timesheetData = timesheet.data?.data;
     if (timesheetData && Object.keys(timesheetData).length > 0) {
       const keys = Object.keys(timesheetData);
       const firstObject = timesheetData[keys[0]];
@@ -82,7 +82,7 @@ function Timesheet() {
         return true;
       }
     }
-    console.log("here");
+
     return false;
   };
   useEffect(() => {
@@ -102,11 +102,6 @@ function Timesheet() {
       } else {
         dispatch(setData(data.message));
       }
-      if (!validateDate(data.message)) {
-        const obj = data.message.data;
-        const info = obj[Object.keys(obj).pop()];
-        dispatch(SetWeekDate(getFormatedDate(addDays(info.start_date, -1))));
-      }
     }
     if (error) {
       const err = parseFrappeErrorMsg(error);
@@ -116,7 +111,16 @@ function Timesheet() {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startDateParam, data, error]);
+  }, [data, error]);
+
+  useEffect(() => {
+    if (Object.keys(timesheet.data.data).length == 0) return;
+    if (!validateDate()) {
+      const obj = timesheet.data.data;
+      const info = obj[Object.keys(obj).pop()];
+      dispatch(SetWeekDate(getFormatedDate(addDays(info.start_date, -1))));
+    }
+  }, [startDateParam, timesheet.data.data]);
 
   const handleAddTime = () => {
     const timesheetData = {
