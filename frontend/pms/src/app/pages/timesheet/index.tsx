@@ -1,7 +1,7 @@
 import { useToast } from "@/app/components/ui/use-toast";
 import { RootState } from "@/store";
 import { useFrappeGetCall } from "frappe-react-sdk";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   setData,
@@ -33,10 +33,14 @@ import { Approval } from "./Approval";
 import { HolidayProp, LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
 import { WorkingFrequency } from "@/types";
 import AddTime from "@/app/components/addTime";
-import { Plus } from "lucide-react";
+import { Paperclip, Plus } from "lucide-react";
+import { useQueryParamsState } from "@/lib/queryParam";
+import { isEmpty } from "lodash";
 
 function Timesheet() {
+  const targetRef = useRef(null);
   const { toast } = useToast();
+  const [startDateParam, setstartDateParam] = useQueryParamsState<string>("date", "");
   const user = useSelector((state: RootState) => state.user);
   const timesheet = useSelector((state: RootState) => state.timesheet);
   const dispatch = useDispatch();
@@ -54,13 +58,53 @@ function Timesheet() {
       revalidateIfStale: false,
     }
   );
+  const isDateInRange = (date: string, startDate: string, endDate: string) => {
+    const targetDate = getDateTimeForMultipleTimeZoneSupport(date);
 
+    return (
+      getDateTimeForMultipleTimeZoneSupport(startDate) <= targetDate &&
+      targetDate <= getDateTimeForMultipleTimeZoneSupport(endDate)
+    );
+  };
+
+  const validateDate = () => {
+    if (!startDateParam) {
+      return true;
+    }
+    const timesheetData = timesheet.data?.data;
+    if (timesheetData && Object.keys(timesheetData).length > 0) {
+      const keys = Object.keys(timesheetData);
+      const firstObject = timesheetData[keys[0]];
+      const lastObject = timesheetData[keys[keys.length - 1]];
+
+      if (isDateInRange(startDateParam, lastObject.start_date, firstObject.end_date)) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+  useEffect(() => {
+    const scrollToElement = () => {
+      if (targetRef.current) {
+        targetRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    };
+    const observer = new MutationObserver(scrollToElement);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
   useEffect(() => {
     if (data) {
       if (timesheet.data?.data && Object.keys(timesheet.data?.data).length > 0) {
         dispatch(AppendData(data.message));
       } else {
         dispatch(setData(data.message));
+      }
+      if (!validateDate()) {
+        const obj = data.message.data;
+        const info = obj[Object.keys(obj).pop()];
+        dispatch(SetWeekDate(getFormatedDate(addDays(info.start_date, -1))));
       }
     }
     if (error) {
@@ -71,7 +115,7 @@ function Timesheet() {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, error]);
+  }, [startDateParam, data, error]);
 
   const handleAddTime = () => {
     const timesheetData = {
@@ -98,7 +142,7 @@ function Timesheet() {
   };
   const loadData = () => {
     const data = timesheet.data.data;
-    if (!data) return;
+    if (Object.keys(data).length === 0) return;
     // eslint-disable-next-line
     // @ts-expect-error
     const obj = data[Object.keys(data).pop()];
@@ -124,7 +168,7 @@ function Timesheet() {
         </Button>
       </Header>
 
-      {isLoading && Object.keys(timesheet.data?.data).length == 0 ? (
+      {(isLoading && Object.keys(timesheet.data?.data).length == 0)? (
         <Spinner isFull />
       ) : (
         <Main>
@@ -132,6 +176,7 @@ function Timesheet() {
             Object.keys(timesheet.data?.data).length > 0 &&
             Object.entries(timesheet.data?.data).map(([key, value]: [string, timesheet], index: number) => {
               let total_hours = value.total_hours;
+              let k = "";
               value.dates.map((date) => {
                 let isHoliday = false;
                 const holiday = timesheet.data.holidays.find((holiday: HolidayProp) => holiday.holiday_date === date);
@@ -156,17 +201,28 @@ function Timesheet() {
                   });
                 }
               });
-
+              if (startDateParam && isDateInRange(startDateParam, value.start_date, value.end_date)) {
+                k = key;
+              } else if (isEmpty(startDateParam) && index === 0) {
+                k = key;
+              }
               return (
-                <Accordion type="multiple" key={key} defaultValue={index === 0 ? [key] : undefined}>
+                <Accordion type="multiple" key={key} defaultValue={[k]}>
                   <AccordionItem value={key}>
                     <AccordionTrigger className="hover:no-underline w-full py-2">
-                      <div className="flex justify-between items-center w-full">
+                      <div className="flex justify-between items-center w-full group">
                         <Typography
                           variant="h6"
                           className="font-normal text-xs sm:text-base flex items-center gap-x-1 flex-col sm:flex-row"
                         >
                           {key}:<Typography className="text-xs sm:text-base">{floatToTime(total_hours)}h</Typography>
+                          <Paperclip
+                            className="w-3 h-3 hidden group-hover:block"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setstartDateParam(value.start_date);
+                            }}
+                          />
                         </Typography>
                         <SubmitButton
                           start_date={value.start_date}
@@ -176,7 +232,10 @@ function Timesheet() {
                         />
                       </div>
                     </AccordionTrigger>
-                    <AccordionContent className="pb-0">
+                    <AccordionContent
+                      className="pb-0"
+                      ref={!isEmpty(startDateParam) && isDateInRange(startDateParam, value.start_date, value.end_date) ? targetRef : null}
+                    >
                       <TimesheetTable
                         working_hour={timesheet.data.working_hour}
                         working_frequency={timesheet.data.working_frequency as WorkingFrequency}

@@ -22,7 +22,7 @@ def get_leaves_for_employee(from_date: str, to_date: str, employee: str):
         frappe.qb.from_(leave_application)
         .select("*")
         .where(leave_application.employee == employee)
-        .where((leave_application.from_date >= from_date) & (leave_application.to_date <= to_date))
+        .where((leave_application.from_date <= to_date) & (leave_application.to_date >= from_date))
         .where(leave_application.status.isin(["Open", "Approved"]))
     ).run(as_dict=True)
 
