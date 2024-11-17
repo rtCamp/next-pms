@@ -7,7 +7,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Table, TableHead, TableHeader, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
 import { Typography } from "@/app/components/typography";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
-import { EmployeeResourceOpenBox } from "./EmployeeResourceOpenBox";
+import { ResourceExpandView } from "./ExpandView";
 import { useMemo } from "react";
 import { getTableCellClass, getTableCellRow } from "../utils/helper";
 
@@ -122,7 +122,7 @@ const ResourceTeamTableRow = ({ employeeData }: { employeeData: EmployeeDataProp
             </span>
           </AccordionTrigger>
           <AccordionContent className="pb-0">
-            <EmployeeResourceOpenBox employeeData={employeeData} />
+            <ResourceExpandView employeeData={employeeData} />
           </AccordionContent>
         </AccordionItem>
       </Accordion>

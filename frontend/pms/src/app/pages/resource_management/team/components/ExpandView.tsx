@@ -5,13 +5,11 @@ import { useMemo } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { getTableCellClass } from "../utils/helper";
+import { HoverCardContent, HoverCardTrigger, HoverCard } from "@/app/components/ui/hover-card";
+import { ResourceAllocationList } from "./Card";
+import { groupAllocations } from "../utils/group";
 
-type EmployeeResourceData = {
-  combinedResourceData: any;
-  allDates: string[];
-};
-
-export const EmployeeResourceOpenBox = ({ employeeData }: { employeeData: EmployeeDataProps }) => {
+export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDataProps }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
 
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
@@ -22,52 +20,7 @@ export const EmployeeResourceOpenBox = ({ employeeData }: { employeeData: Employ
   ]);
 
   function findCombineData() {
-    let allResourceAllocation: any[] = [];
-    let allDates: string[] = [];
-    const resourceData = employeeData.all_dates_data;
-
-    for (let index = 0; index < resourceTeamState.data.dates.length; index++) {
-      allDates = allDates.concat(resourceTeamState.data.dates[index].dates);
-    }
-
-    for (let index = 0; index < resourceData.length; index++) {
-      allResourceAllocation = allResourceAllocation.concat(
-        resourceData[index].employee_resource_allocation_for_given_date
-      );
-    }
-    const combinedResourceData: any = {};
-
-    for (let index = 0; index < allResourceAllocation.length; index++) {
-      const resource = allResourceAllocation[index];
-
-      if (!(resource.project in combinedResourceData)) {
-        combinedResourceData[resource.project] = {
-          project_name: resource.project_name,
-          total_allocated_hours: 0,
-          all_allocation: {},
-        };
-      }
-
-      if (!(resource.date in combinedResourceData[resource.project].all_allocation)) {
-        combinedResourceData[resource.project].all_allocation[resource.date] = {
-          allocations: [],
-          total_allocated_hours: 0,
-          total_worked_hours_resource_allocation: 0,
-        };
-      }
-
-      combinedResourceData[resource.project].total_allocated_hours += resource.hours_allocated_per_day;
-      combinedResourceData[resource.project].all_allocation[resource.date].allocations.push(resource);
-      combinedResourceData[resource.project].all_allocation[resource.date].total_allocated_hours +=
-        resource.hours_allocated_per_day;
-      combinedResourceData[resource.project].all_allocation[resource.date].total_worked_hours_resource_allocation +=
-        resource.total_worked_hours_resource_allocation;
-    }
-
-    return {
-      combinedResourceData: combinedResourceData,
-      allDates: allDates,
-    };
+    return groupAllocations(employeeData.all_dates_data, resourceTeamState.data.dates);
   }
   return (
     <Table>
@@ -95,21 +48,12 @@ export const EmployeeResourceOpenBox = ({ employeeData }: { employeeData: Employ
                     </Typography> */}
                 </TableCell>
                 {employeeResourceData.allDates.map((date: string, index: number) => {
-                  const total_allocated_hours = itemData.all_allocation[date]
-                    ? itemData.all_allocation[date].total_allocated_hours
-                    : 0;
-
-                  const total_worked_hours = itemData.all_allocation[date]
-                    ? itemData.all_allocation[date].total_worked_hours_resource_allocation
-                    : 0;
                   return (
-                    <TableCell className={getTableCellClass(index)} key={date}>
-                      {total_allocated_hours == 0 && total_worked_hours == 0
-                        ? "-"
-                        : resourceTeamState.tableView.view == "planned-vs-capacity"
-                        ? total_allocated_hours
-                        : `${total_worked_hours} / ${total_allocated_hours}`}
-                    </TableCell>
+                    <ExpandViewCell
+                      key={date + "-" + index}
+                      index={index}
+                      allocationsData={itemData.all_allocation[date]}
+                    />
                   );
                 })}
               </TableRow>
@@ -121,6 +65,33 @@ export const EmployeeResourceOpenBox = ({ employeeData }: { employeeData: Employ
         )}
       </TableBody>
     </Table>
+  );
+};
+
+const ExpandViewCell = ({ allocationsData, index }: { allocationsData: any; index: number }) => {
+  const resourceTeamState = useSelector((state: RootState) => state.resource_team);
+
+  const total_allocated_hours = allocationsData ? allocationsData.total_allocated_hours : 0;
+
+  const total_worked_hours = allocationsData ? allocationsData.total_worked_hours_resource_allocation : 0;
+
+  if (total_allocated_hours == 0 && total_allocated_hours == 0) {
+    return <TableCell className={getTableCellClass(index)}>{"-"}</TableCell>;
+  }
+
+  return (
+    <HoverCard key={index} openDelay={1}>
+      <HoverCardTrigger asChild className="w-full h-full cursor-pointer text-center hover:bg-gray-200">
+        <TableCell className={getTableCellClass(index)}>
+          {resourceTeamState.tableView.view == "planned-vs-capacity"
+            ? total_allocated_hours
+            : `${total_worked_hours} / ${total_allocated_hours}`}
+        </TableCell>
+      </HoverCardTrigger>
+      <HoverCardContent className="w-60">
+        <ResourceAllocationList resourceAllocationList={allocationsData.allocations} />
+      </HoverCardContent>
+    </HoverCard>
   );
 };
 

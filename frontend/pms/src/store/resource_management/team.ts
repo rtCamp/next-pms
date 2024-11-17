@@ -1,11 +1,15 @@
 import { getTodayDate, getFormatedDate } from "@/lib/utils";
+import {
+  ResourceAllocationProps,
+  ResourceCustomerObjectProps,
+} from "@/types/resource_management";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 type DateRange = {
   start_date: string;
   end_date: string;
 };
 export interface ResourceTeamState {
-  data: dataProps;
+  data: ResourceTeamDataProps;
   employeeName?: string;
   businessUnit?: string[];
   isDialogOpen: boolean;
@@ -19,10 +23,11 @@ export interface ResourceTeamState {
   tableView: TableViewProps;
 }
 
-export interface dataProps {
+export interface ResourceTeamDataProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: EmployeeDataProps[];
   dates: DateProps[];
+  customer: ResourceCustomerObjectProps;
   total_count: number;
   has_more: boolean;
 }
@@ -52,7 +57,7 @@ export type EmployeeSingleDayProps = {
   date: string;
   total_allocated_hours: number;
   total_working_hours: number;
-  employee_resource_allocation_for_given_date: any;
+  employee_resource_allocation_for_given_date: ResourceAllocationProps;
   is_last_week_day: boolean;
   is_on_leave: boolean;
   total_leave_hours: number;
@@ -71,6 +76,7 @@ export const initialState: ResourceTeamState = {
   data: {
     data: [],
     dates: [],
+    customer: {},
     total_count: 0,
     has_more: false,
   },
@@ -115,6 +121,10 @@ const ResourceTeamSlice = createSlice({
     updateData: (state, action: PayloadAction<any>) => {
       const data = state.data.data;
       state.data.data = [...data, ...action.payload.data];
+      state.data.customer = {
+        ...state.data.customer,
+        ...action.payload.customer,
+      };
       state.data.dates = action.payload.dates;
       state.data.total_count = action.payload.total_count;
       state.hasMore = action.payload.has_more;

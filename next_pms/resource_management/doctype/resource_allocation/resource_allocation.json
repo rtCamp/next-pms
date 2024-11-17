@@ -9,6 +9,7 @@
   "employee",
   "employee_name",
   "status",
+  "is_billable",
   "column_break_wngn",
   "project",
   "project_name",
@@ -44,7 +45,8 @@
    "fieldname": "customer",
    "fieldtype": "Link",
    "label": "Customer",
-   "options": "Customer"
+   "options": "Customer",
+   "reqd": 1
   },
   {
    "fieldname": "total_allocated_hours",
@@ -59,13 +61,11 @@
   {
    "fieldname": "allocation_start_date",
    "fieldtype": "Date",
-   "in_list_view": 1,
    "label": "Allocation Start Date"
   },
   {
    "fieldname": "allocation_end_date",
    "fieldtype": "Date",
-   "in_list_view": 1,
    "label": "Allocation End Date"
   },
   {
@@ -100,7 +100,6 @@
    "fetch_if_empty": 1,
    "fieldname": "employee_name",
    "fieldtype": "Data",
-   "in_list_view": 1,
    "label": "Employee Name"
   },
   {
@@ -111,18 +110,21 @@
    "options": "RA-.{employee}.-.YYYY.-.####."
   },
   {
+   "default": "0",
+   "fieldname": "is_billable",
+   "fieldtype": "Check",
+   "label": "Is Billable"
+  },
+  {
    "fetch_from": "project.project_name",
    "fieldname": "project_name",
    "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Project Name",
-   "options": "Project"
+   "label": "Project Name"
   }
  ],
  "index_web_pages_for_search": 1,
- "is_calendar_and_gantt": 1,
  "links": [],
- "modified": "2024-11-11 20:44:02.441351",
+ "modified": "2024-11-17 17:18:39.964195",
  "modified_by": "Administrator",
  "module": "Resource Management",
  "name": "Resource Allocation",

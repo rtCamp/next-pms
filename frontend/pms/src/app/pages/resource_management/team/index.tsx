@@ -16,7 +16,7 @@ const ResourceTeamView = () => {
   const dispatch = useDispatch();
 
   const { data, isLoading, isValidating, error } = useFrappeGetCall(
-    "next_pms.resource_management.api.team.get_compact_view_data",
+    "next_pms.resource_management.api.team.get_resource_management_team_view_data",
     {
       date: resourceTeamState.weekDate,
       max_week: 2,
