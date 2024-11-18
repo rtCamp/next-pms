@@ -67,6 +67,24 @@ export function getDateTimeForMultipleTimeZoneSupport(
   return date;
 }
 
+export function correctDateFormat(date: string): string {
+  const parts = date.split("-");
+  if (parts.length === 3) {
+    let [year, month, day] = parts;
+    if (year.length < 4) {
+      year = getUTCDateTime().getFullYear().toString();
+    }
+    if (month.length === 1) {
+      month = `0${month}`;
+    }
+    if (day.length === 1) {
+      day = `0${day}`;
+    }
+    return `${year}-${month}-${day}`;
+  }
+  return getFormatedDate(getUTCDateTime());
+}
+
 export function getUTCDateTime() {
   return new Date();
 }
@@ -314,3 +332,4 @@ export const copyToClipboard = (text: string) => {
   navigator.clipboard.writeText(text)
   toast({ title: "Capied to clipboard", variant: "success" })
 }
+
