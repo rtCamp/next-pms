@@ -26,6 +26,7 @@ import {
   expectatedHours,
   getDateTimeForMultipleTimeZoneSupport,
   copyToClipboard,
+  correctDateFormat,
 } from "@/lib/utils";
 import { addDays } from "date-fns";
 import { Spinner } from "@/app/components/spinner";
@@ -60,7 +61,7 @@ function Timesheet() {
     }
   );
   const isDateInRange = (date: string, startDate: string, endDate: string) => {
-    const targetDate = getDateTimeForMultipleTimeZoneSupport(date);
+    const targetDate = getDateTimeForMultipleTimeZoneSupport(correctDateFormat(date));
 
     return (
       getDateTimeForMultipleTimeZoneSupport(startDate) <= targetDate &&
@@ -72,14 +73,13 @@ function Timesheet() {
     if (!startDateParam) {
       return true;
     }
-
+    const date = getFormatedDate(correctDateFormat(startDateParam));
     const timesheetData = timesheet.data?.data;
     if (timesheetData && Object.keys(timesheetData).length > 0) {
       const keys = Object.keys(timesheetData);
       const firstObject = timesheetData[keys[0]];
       const lastObject = timesheetData[keys[keys.length - 1]];
-
-      if (isDateInRange(startDateParam, lastObject.start_date, firstObject.end_date)) {
+      if (isDateInRange(date, lastObject.start_date, firstObject.end_date)) {
         return true;
       }
     }
@@ -227,7 +227,7 @@ function Timesheet() {
                             className="w-3 h-3 hidden group-hover:block"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setstartDateParam(value.start_date);
+                              setstartDateParam(getFormatedDate(value.start_date));
                               copyToClipboard(
                                 `${window.location.origin}${window.location.pathname}?date="${value.start_date}"`
                               );

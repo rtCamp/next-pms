@@ -15,6 +15,7 @@ import {
   expectatedHours,
   getDateTimeForMultipleTimeZoneSupport,
   copyToClipboard,
+  correctDateFormat,
 } from "@/lib/utils";
 import { TaskLog } from "@/app/pages/task/taskLog";
 import { LoadMore } from "@/app/components/loadMore";
@@ -50,10 +51,10 @@ import { EditTime } from "@/app/pages/timesheet/editTime";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import { Approval } from "./approval";
 import { useQueryParamsState } from "@/lib/queryParam";
-import { isEmpty, set } from "lodash";
+import { isEmpty } from "lodash";
 
 const isDateInRange = (date: string, startDate: string, endDate: string) => {
-  const targetDate = getDateTimeForMultipleTimeZoneSupport(date);
+  const targetDate = getDateTimeForMultipleTimeZoneSupport(correctDateFormat(date));
 
   return (
     getDateTimeForMultipleTimeZoneSupport(startDate) <= targetDate &&
@@ -72,12 +73,13 @@ const EmployeeDetail = () => {
     if (!startDateParam) {
       return true;
     }
+    const date = getFormatedDate(correctDateFormat(startDateParam));
     const timesheetData = teamState.timesheetData.data;
     if (timesheetData && Object.keys(timesheetData).length > 0) {
       const keys = Object.keys(timesheetData);
       const firstObject = timesheetData[keys[0]];
       const lastObject = timesheetData[keys[keys.length - 1]];
-      if (isDateInRange(startDateParam, lastObject.start_date, firstObject.end_date)) {
+      if (isDateInRange(date, lastObject.start_date, firstObject.end_date)) {
         return true;
       }
     }
