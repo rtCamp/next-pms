@@ -22,14 +22,14 @@ def get_leaves_for_employee(from_date: str, to_date: str, employee: str):
         frappe.qb.from_(leave_application)
         .select("*")
         .where(leave_application.employee == employee)
-        .where((leave_application.from_date >= from_date) & (leave_application.to_date <= to_date))
+        .where((leave_application.from_date <= to_date) & (leave_application.to_date >= from_date))
         .where(leave_application.status.isin(["Open", "Approved"]))
     ).run(as_dict=True)
 
     return filtered_data
 
 
-def get_week_dates(date, current_week: bool = False):
+def get_week_dates(date):
     """Returns the dates map with dates and other details.
     example:
         {
@@ -46,11 +46,14 @@ def get_week_dates(date, current_week: bool = False):
 
     dates = []
     data = {}
-
+    now = getdate()
     start_date = get_first_day_of_week(date)
     end_date = get_last_day_of_week(date)
 
-    key = f'{start_date.strftime("%b %d")} - {end_date.strftime("%b %d")}' if not current_week else "This Week"
+    if start_date <= now <= end_date:
+        key = "This Week"
+    else:
+        key = f'{start_date.strftime("%b %d")} - {end_date.strftime("%b %d")}'
 
     data = {"start_date": start_date, "end_date": end_date, "key": key}
 

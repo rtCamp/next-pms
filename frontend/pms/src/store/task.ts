@@ -1,7 +1,6 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { ProjectNestedTaskData, sortOrder, TaskData } from "@/types";
+import { ProjectNestedTaskData, TaskData } from "@/types";
 import { flatTableDataToNestedProjectDataConversion } from "@/lib/utils";
-import { getTableProps } from "@/app/pages/task/helper";
 
 export interface TaskState {
   task: TaskData[];
@@ -15,8 +14,6 @@ export interface TaskState {
   isTaskLogDialogBoxOpen: boolean;
   isAddTaskDialogBoxOpen: boolean;
   pageLength: number,
-  order: sortOrder;
-  orderColumn: string;
 }
 
 export const initialState: TaskState = {
@@ -31,9 +28,6 @@ export const initialState: TaskState = {
   isTaskLogDialogBoxOpen: false,
   isAddTaskDialogBoxOpen: false,
   pageLength: 20,
-  order: getTableProps().order,
-  orderColumn: getTableProps().orderColumn,
-  
 };
 
 export type AddTaskType = {
@@ -50,43 +44,33 @@ export const taskSlice = createSlice({
     setTaskData: (state, action: PayloadAction<TaskState>) => {
       state.task = action.payload.task;
       state.total_count = action.payload.total_count;
-      state.isFetchAgain = false;
     },
     updateTaskData: (state, action: PayloadAction<TaskState>) => {
       state.task = [...state.task, ...action.payload.task];
       state.total_count = action.payload.total_count;
-      state.isFetchAgain = false;
     },
     setStart: (state, action: PayloadAction<number>) => {
       state.start = action.payload;
       state.pageLength = initialState.pageLength;
-      state.isFetchAgain = true;
     },
     setSelectedProject: (state, action: PayloadAction<Array<string>>) => {
       state.selectedProject = action.payload;
       state.task = [];
       state.project = [];
       state.start = 0;
-      state.isFetchAgain = true;
-    },
-    setFetchAgain: (state, action: PayloadAction<boolean>) => {
-      state.isFetchAgain = action.payload;
     },
     setGroupBy: (state, action: PayloadAction<Array<string>>) => {
       state.groupBy = action.payload;
     },
     setProjectData: (state) => {
       state.project = flatTableDataToNestedProjectDataConversion(state.task);
-      state.isFetchAgain = false;
     },
     updateProjectData: (state) => {
       state.project = flatTableDataToNestedProjectDataConversion(state.task);
-      state.isFetchAgain = false;
     },
     setAddTaskDialog: (state, action: PayloadAction<boolean>) => {
       state.isAddTaskDialogBoxOpen = action.payload;
       state.start = 0;
-      state.isFetchAgain = true;
     },
     setSelectedTask: (
       state,
@@ -95,17 +79,11 @@ export const taskSlice = createSlice({
       state.selectedTask = action.payload.task;
       state.isTaskLogDialogBoxOpen = action.payload.isOpen;
     },
-    setOrderBy: (
-      state,
-      action: PayloadAction<{ order: sortOrder; orderColumn: string }>,
-    ) => {
+    setOrderBy: (state) => {
       const pageLength = state.task.length;
       state.pageLength = pageLength;
       state.start = 0;
-      state.order = action.payload.order;
-      state.orderColumn = action.payload.orderColumn;
       state.task = initialState.task;
-      state.isFetchAgain = true;
     },
   },
 });
@@ -114,7 +92,6 @@ export const {
   setTaskData,
   setStart,
   setSelectedProject,
-  setFetchAgain,
   setGroupBy,
   setProjectData,
   updateProjectData,

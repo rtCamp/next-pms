@@ -127,7 +127,7 @@ const Home = () => {
     <>
       <Header>
         <section id="filter-section" className="flex max-md:flex-col gap-x-3  w-full md:items-center ">
-          <div className=" flex gap-x-2 w-full  items-center max-md:overflow-x-auto">
+          <div className=" flex gap-x-2 max-w-sm w-full mx-2 items-center max-md:overflow-x-auto">
             <DeBounceInput
               placeholder="Employee name"
               value={employeeNameParam}

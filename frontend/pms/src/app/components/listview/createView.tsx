@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setViews } from "@/store/view";
 import { useState } from "react";
 import { RootState } from "@/store";
+import EmojiPicker, { EmojiStyle } from "emoji-picker-react";
 
 interface CreateViewProps {
   isOpen: boolean;
@@ -36,6 +37,8 @@ export const CreateView = ({
   const defaultRows = ["name", "creation", "modified"];
   const [label, setLabel] = useState("");
   const dispatch = useDispatch();
+  const [openEmoji, setOpenEmoji] = useState(false);
+  const [selectedEmoji, setSelectedEmoji] = useState("😀");
   const createView = () => {
     defaultRows.forEach((value) => {
       if (!rows.includes(value)) {
@@ -53,6 +56,7 @@ export const CreateView = ({
       public: isPublic,
       route: route,
       type: "Custom",
+      icon: selectedEmoji,
       order_by: orderBy,
     };
     call({
@@ -70,14 +74,30 @@ export const CreateView = ({
         <DialogHeader>
           <DialogTitle>Create View</DialogTitle>
         </DialogHeader>
-        <Input
-          placeholder="eg: My custom view"
-          value={label}
-          onChange={(e) => {
-            setLabel(e.target.value);
-          }}
-        />
-
+        <div className="flex gap-x-2">
+          <Button onClick={() => setOpenEmoji(!openEmoji)} className="w-10 p-0" variant="outline">
+            {selectedEmoji}
+          </Button>
+          {openEmoji && (
+            <EmojiPicker
+              lazyLoadEmojis={true}
+              previewConfig={{ showPreview: false, defaultEmoji : selectedEmoji }}
+              emojiStyle={EmojiStyle.NATIVE}
+              className="absolute mt-11 h-80 overflow-y-auto"
+              onEmojiClick={(event) => {
+                setSelectedEmoji(event.emoji);
+                setOpenEmoji(false);
+              }}
+            />
+          )}
+          <Input
+            placeholder="eg: My custom view"
+            value={label}
+            onChange={(e) => {
+              setLabel(e.target.value);
+            }}
+          />
+        </div>
         <DialogFooter>
           <Button onClick={createView}>Create</Button>
         </DialogFooter>

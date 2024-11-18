@@ -1,6 +1,12 @@
 import { z } from "zod";
 
 export const timeFormatRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+const descriptionSchema = z
+  .string({
+    required_error: "Please enter description.",
+  })
+  .trim()
+  .min(1, { message: "Please enter description." });
 
 const hourSchema = z.preprocess(
   (val, ctx) => {
@@ -37,12 +43,7 @@ export const TimesheetSchema = z
       })
       .trim()
       .min(1, { message: "Please select a task." }),
-    description: z
-      .string({
-        required_error: "Please enter description.",
-      })
-      .trim()
-      .min(1, { message: "Please enter description." }),
+    description: descriptionSchema,
     hours: hourSchema,
     date: z.string({
       required_error: "Please enter date.",
@@ -87,21 +88,11 @@ export const TimesheetRejectionSchema = z.object({
   dates: z.array(z.string()).nonempty({
     message: "Please select a date.",
   }),
-  note: z
-    .string({
-      required_error: "Please enter notes.",
-    })
-    .min(4, "Please enter notes."),
+  note: descriptionSchema,
   employee: z.string({
     required_error: "Please select a employee.",
   }),
 });
-const descriptionSchema = z
-  .string({
-    required_error: "Please enter description.",
-  })
-  .trim()
-  .min(1, { message: "Please enter description." });
 
 export const TimesheetSingleRowSchema = z
   .object({

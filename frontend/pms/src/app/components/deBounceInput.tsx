@@ -25,7 +25,7 @@ export const DeBounceInput = ({ value, className, callback, deBounceValue = 500,
   );
   return (
     <Input
-      className={cn("placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-slate-800 max-w-sm", className)}
+      className={cn("placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-slate-800 max-w-sm", className)}
       {...props}
       value={inputValue}
       onChange={handleEmployeeChange}

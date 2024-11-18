@@ -13,12 +13,15 @@ def get_task_list(
     page_length: int | bool = 20,
     start: int | None = 0,
     projects=None,
+    status: list | str = None,
 ):
     import json
 
     search_filter = {}
     if isinstance(projects, str):
         projects = json.loads(projects)
+    if status and isinstance(status, str):
+        status = json.loads(status)
 
     fields = [
         "name",
@@ -44,14 +47,6 @@ def get_task_list(
         )
     filter = {"project": ["in", projects]}
 
-    if search:
-        search_filter.update(
-            {
-                "name": ["like", f"%{search}%"],
-                "subject": ["like", f"%{search}%"],
-            }
-        )
-
     doctype = DocType("Task")
     doctype_project = DocType("Project")
     tasks = (
@@ -69,6 +64,15 @@ def get_task_list(
     )
     if search:
         tasks = tasks.where(doctype.name.like(f"%{search}%") | doctype.subject.like(f"%{search}%"))
+        search_filter.update(
+            {
+                "name": ["like", f"%{search}%"],
+                "subject": ["like", f"%{search}%"],
+            }
+        )
+    if status:
+        tasks = tasks.where(doctype.status.isin(status))
+        filter.update({"status": ["in", status]})
     if page_length:
         tasks = tasks.limit(page_length)
     tasks = (

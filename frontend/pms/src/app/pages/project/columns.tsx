@@ -37,7 +37,7 @@ export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, c
           return (
             <Typography
               variant="p"
-              className={cn("truncate", value < 0 && "text-destructive")}
+              className={cn("truncate text-right", value < 0 && "text-destructive")}
               title={value.toString()}
             >
               {formatter.format(value)}
@@ -101,7 +101,7 @@ export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, c
           );
         } else {
           return (
-            <Typography variant="p" className="truncate" title={value}>
+            <Typography variant="p" className={cn("truncate", leftAlignCss(meta.fieldType))} title={value}>
               {value}
             </Typography>
           );
@@ -115,3 +115,12 @@ export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, c
 export const Empty = () => {
   return <span></span>;
 };
+
+const leftAlignCss = (fieldType:string) => {
+  const type = ["Int", "Currency", "Float"];
+
+  if (type.includes(fieldType)) {
+    return "text-left";
+  }
+  return "";
+}

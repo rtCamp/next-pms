@@ -50,7 +50,7 @@ export const Approval = ({ onClose }: { onClose: () => void }) => {
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const dispatch = useDispatch();
 
-  const { call } = useFrappePostCall("next_pms.timesheet.api.team.update_timesheet_status");
+  const { call } = useFrappePostCall("next_pms.timesheet.api.team.approve_or_reject_timesheet");
   const { call: updateTime } = useFrappePostCall("next_pms.timesheet.api.timesheet.save");
 
   const handleTimeChange = (value: NewTimesheetProps) => {
