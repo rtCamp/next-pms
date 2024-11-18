@@ -28,6 +28,24 @@ def handle_customer(customer, customer_name):
     return customer
 
 
+def get_allocation_objects(employee_resource_allocation: list[object]) -> object:
+    """Convert the allocation object to a dictionary.
+
+    Args:
+        employee_resource_allocation (list[object]): List of Resource Allocation objects
+
+    Returns:
+        Object: Allocation dictionary
+    """
+
+    resource_object = {}
+
+    for allocation in employee_resource_allocation:
+        resource_object[allocation.name] = allocation
+
+    return resource_object
+
+
 def is_on_leave(date, daily_working_hours, leaves, holidays):
     leave_work_hours = daily_working_hours
     on_leave = False

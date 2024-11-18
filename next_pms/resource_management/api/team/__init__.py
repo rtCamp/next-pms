@@ -5,6 +5,7 @@ from frappe.utils.data import add_days, getdate
 from next_pms.resource_management.api.team.helpers import (
     filter_employee_list,
     find_worked_hours,
+    get_allocation_objects,
     handle_customer,
     is_on_leave,
 )
@@ -47,14 +48,14 @@ def get_resource_management_team_view_data(
 
     employee_names = [employee.name for employee in employees]
 
-    resource_allocation_data = frappe.get_all(
+    resource_allocation_data_start_date = frappe.get_all(
         "Resource Allocation",
         filters={
             "employee": ["in", employee_names],
-            "allocation_start_date": [">=", dates[0].get("start_date")],
-            "allocation_end_date": ["<=", dates[-1].get("end_date")],
+            "allocation_start_date": ["<=", dates[-1].get("end_date")],
         },
         fields=[
+            "name",
             "employee",
             "allocation_start_date",
             "allocation_end_date",
@@ -65,6 +66,33 @@ def get_resource_management_team_view_data(
             "is_billable",
         ],
     )
+
+    resource_allocation_data_end_date = frappe.get_all(
+        "Resource Allocation",
+        filters={
+            "employee": ["in", employee_names],
+            "allocation_end_date": [">=", dates[0].get("start_date")],
+        },
+        fields=[
+            "name",
+            "employee",
+            "allocation_start_date",
+            "allocation_end_date",
+            "hours_allocated_per_day",
+            "project",
+            "project_name",
+            "customer",
+            "is_billable",
+        ],
+    )
+
+    # Merge two array and remove duplicates and sort by start date
+    resource_allocation_data_combined = resource_allocation_data_start_date + resource_allocation_data_end_date
+    resource_allocation_data_dict = {
+        resource_allocation["name"]: resource_allocation for resource_allocation in resource_allocation_data_combined
+    }
+    resource_allocation_data = list(resource_allocation_data_dict.values())
+    resource_allocation_data.sort(key=lambda x: x["allocation_start_date"])
 
     # Make the map of resource allocation data for given employee
     resource_allocation_map = {}
@@ -110,6 +138,7 @@ def get_resource_management_team_view_data(
         all_dates_data = []
         all_week_data = []
         all_leave_data = {}
+        max_allocation_count_for_single_date = 0
 
         # For given employee loop through all the dates and calculate the total allocated hours, total working hours and total worked hours
         for date_info in dates:
@@ -121,6 +150,8 @@ def get_resource_management_team_view_data(
                 total_worked_hours_for_given_date = 0
                 total_working_hours_for_given_date = daily_working_hours
                 total_allocated_hours_for_given_date = 0
+                total_allocation_count = 0
+
                 employee_resource_allocation_for_given_date = []
 
                 leave_object = is_on_leave(date, daily_working_hours, leaves, holidays)
@@ -146,10 +177,11 @@ def get_resource_management_team_view_data(
                                 timesheet_data=timesheet_data, date=date, project=resource_allocation.project
                             )
                             total_worked_hours_for_given_date += total_worked_hours_resource_allocation
+                            total_allocation_count += 1
 
                             employee_resource_allocation_for_given_date.append(
                                 {
-                                    **resource_allocation,
+                                    "name": resource_allocation.name,
                                     "date": date,
                                     "total_worked_hours_resource_allocation": total_worked_hours_resource_allocation,
                                 }
@@ -170,11 +202,14 @@ def get_resource_management_team_view_data(
                         "employee_resource_allocation_for_given_date": employee_resource_allocation_for_given_date,
                         "is_on_leave": leave_object.get("on_leave"),
                         "total_leave_hours": daily_working_hours - total_working_hours_for_given_date,
+                        "total_allocation_count": total_allocation_count,
                     }
                 )
+
                 total_allocated_hours_for_given_week += total_allocated_hours_for_given_date
                 total_working_hours_for_given_week += total_working_hours_for_given_date
                 total_worked_hours_for_given_week += total_worked_hours_for_given_date
+                max_allocation_count_for_single_date = max(max_allocation_count_for_single_date, total_allocation_count)
 
             all_week_data.append(
                 {
@@ -191,6 +226,8 @@ def get_resource_management_team_view_data(
                 "all_dates_data": all_dates_data,
                 "all_week_data": all_week_data,
                 "all_leave_data": all_leave_data,
+                "employee_allocations": get_allocation_objects(employee_resource_allocation),
+                "max_allocation_count_for_single_date": max_allocation_count_for_single_date,
             }
         )
 

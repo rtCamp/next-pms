@@ -1,5 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
-import { cn } from "@/lib/utils";
+import { cn, prettyDate } from "@/lib/utils";
 import { RootState } from "@/store";
 import {
   ResourceCustomerProps,
@@ -29,18 +29,23 @@ export const ResourceAllocationCard = ({ resourceAllocation }: { resourceAllocat
 
   const customerData: ResourceCustomerProps = customer[resourceAllocation.customer];
 
+  const { date: startDate } = prettyDate(resourceAllocation.allocation_start_date);
+  const { date: endDate } = prettyDate(resourceAllocation.allocation_end_date);
+
   return (
     <div className="flex items-center space-x-4">
       <Avatar className="w-10 h-10">
         <AvatarImage src={decodeURIComponent(customerData.image)} />
         <AvatarFallback>{getInitials(customerData.name)}</AvatarFallback>
       </Avatar>
-      <div className="space-y-1">
-        <h4 className="text-sm font-semibold">{customerData.name}</h4>
+      <div className="space-y-1 flex items-start flex-col">
+        <p className="text-xs font-semibold">{customerData.name}</p>
+        <p className="text-xs text-muted-foreground">{resourceAllocation.project}</p>
+        <p className="text-xs text-muted-foreground">{resourceAllocation.project_name}</p>
         <p className="text-xs text-muted-foreground">
-          {resourceAllocation.project} - {resourceAllocation.project_name}
+          {startDate} - {endDate}
         </p>
-        <p className="text-xs text-muted-foreground">{resourceAllocation.hours_allocated_per_day} hours</p>
+        <p className="text-xs text-muted-foreground">{resourceAllocation.hours_allocated_per_day} hours / day</p>
         <p
           className={cn(
             "text-xs font-semibold",

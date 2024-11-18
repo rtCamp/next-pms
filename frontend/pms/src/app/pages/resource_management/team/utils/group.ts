@@ -1,27 +1,39 @@
-import { EmployeeSingleDayProps } from "@/store/resource_management/team";
+import {
+  EmployeeAllocationForDateProps,
+  EmployeeResourceProps,
+} from "@/store/resource_management/team";
 import { DateProps } from "@/store/team";
-import { ResourceAllocationProps } from "@/types/resource_management";
+import {
+  ResourceAllocationObjectProps,
+  ResourceAllocationProps,
+} from "@/types/resource_management";
 
-interface CombinedResourceData {
-  [key: string]: {
-    project_name: string;
-    total_allocated_hours: number;
-    all_allocation: {
-      [date: string]: {
-        allocations: ResourceAllocationProps[];
-        total_allocated_hours: number;
-        total_worked_hours_resource_allocation: number;
-      };
+export interface CombinedResourceObjectProps {
+  [key: string]: CombinedResourceDataProps;
+}
+
+export interface CombinedResourceDataProps {
+  project_name: string;
+  total_allocated_hours: number;
+  all_allocation: {
+    [date: string]: {
+      allocations: MergedAllocationProps[];
+      total_allocated_hours: number;
+      total_worked_hours_resource_allocation: number;
     };
   };
 }
 
+export type MergedAllocationProps = EmployeeAllocationForDateProps &
+  ResourceAllocationProps;
+
 function groupAllocations(
-  resourceData: EmployeeSingleDayProps[],
+  resourceData: EmployeeResourceProps[],
+  employee_allocations: ResourceAllocationObjectProps,
   dates: DateProps[]
   //   isGroupByProject: boolean = true
-): { combinedResourceData: CombinedResourceData; allDates: string[] } {
-  let allResourceAllocation: ResourceAllocationProps[] = [];
+): { combinedResourceData: CombinedResourceObjectProps; allDates: string[] } {
+  let allResourceAllocation: MergedAllocationProps[] = [];
   let allDates: string[] = [];
 
   for (let index = 0; index < dates.length; index++) {
@@ -29,11 +41,24 @@ function groupAllocations(
   }
 
   for (let index = 0; index < resourceData.length; index++) {
-    allResourceAllocation = allResourceAllocation.concat(
-      resourceData[index].employee_resource_allocation_for_given_date
-    );
+    const employee_resource_allocation_for_given_date: EmployeeAllocationForDateProps[] =
+      resourceData[index].employee_resource_allocation_for_given_date;
+
+    for (
+      let index2 = 0;
+      index2 < employee_resource_allocation_for_given_date.length;
+      index2++
+    ) {
+      const allocation: EmployeeAllocationForDateProps =
+        employee_resource_allocation_for_given_date[index2];
+      allResourceAllocation = allResourceAllocation.concat({
+        ...employee_allocations[allocation.name],
+        ...allocation,
+      });
+    }
   }
-  const combinedResourceData: CombinedResourceData = {};
+
+  const combinedResourceData: CombinedResourceObjectProps = {};
 
   for (let index = 0; index < allResourceAllocation.length; index++) {
     const resource = allResourceAllocation[index];
@@ -69,8 +94,6 @@ function groupAllocations(
     ].total_worked_hours_resource_allocation +=
       resource.total_worked_hours_resource_allocation;
   }
-
-  console.log(combinedResourceData);
 
   return {
     combinedResourceData: combinedResourceData,

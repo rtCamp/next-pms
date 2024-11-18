@@ -1,5 +1,5 @@
 export type ResourceAllocationProps = {
-  name:string;
+  name: string;
   employee: string;
   allocation_start_date: string;
   allocation_end_date: string;
@@ -8,12 +8,14 @@ export type ResourceAllocationProps = {
   project_name: string;
   customer: string;
   is_billable: number;
-  date: string;
-  total_worked_hours_resource_allocation: number;
 };
 
 export interface ResourceCustomerObjectProps {
   [customer: string]: ResourceCustomerProps;
+}
+
+export interface ResourceAllocationObjectProps {
+  [name: string]: ResourceAllocationProps;
 }
 
 export interface ResourceCustomerProps {

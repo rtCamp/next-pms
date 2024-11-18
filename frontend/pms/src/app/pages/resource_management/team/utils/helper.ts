@@ -1,9 +1,18 @@
+import { store } from "@/store";
+
 const getTableCellClass = (index: number, weekIndex: number = 0) => {
   //   return "flex max-w-20 w-full justify-center items-center border-r border-b border-gray-400";
-  if (index == 4 && weekIndex == 0) {
-    return "text-xs flex py-3 max-w-20 w-full justify-center items-center border-r border-gray-300";
+
+  const state = store.getState();
+
+  if (state && state.resource_team.tableView.view == "customer-view") {
+    return "text-xs flex px-4 py-2 max-w-20 w-full justify-center items-center";
   }
-  return "text-xs flex py-3 max-w-20 w-full justify-center items-center";
+
+  if (index == 4 && weekIndex == 0) {
+    return "text-xs flex px-4 py-2 max-w-20 w-full justify-center items-center border-r border-gray-300";
+  }
+  return "text-xs flex px-4 py-2 max-w-20 w-full justify-center items-center";
 };
 
 const getTableCellRow = () => {

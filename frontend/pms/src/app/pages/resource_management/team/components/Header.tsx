@@ -70,7 +70,7 @@ const HeaderSection = () => {
   }, [dispatch, resourceTeamState.data.dates]);
 
   const handlenextWeek = useCallback(() => {
-    const date = getFormatedDate(addDays(resourceTeamState.data.dates[0].end_date,+1));
+    const date = getFormatedDate(addDays(resourceTeamState.data.dates[0].end_date, +1));
     dispatch(setWeekDate(date));
   }, [dispatch, resourceTeamState.data.dates]);
 
@@ -153,7 +153,7 @@ const ViewControl = () => {
   return (
     <div className="flex items-center gap-x-2">
       <Select
-        defaultValue={resourceTeamStateTableView.view}
+        value={resourceTeamStateTableView.view}
         onValueChange={(value) => {
           setViewParam(value);
           dispatch(setView(value));
@@ -167,6 +167,7 @@ const ViewControl = () => {
             <SelectLabel>Views</SelectLabel>
             <SelectItem value="planned-vs-capacity">Planned vs Capacity</SelectItem>
             <SelectItem value="actual-vs-planned">Actual vs Planned</SelectItem>
+            <SelectItem value="customer-view">Customer View</SelectItem>
           </SelectGroup>
         </SelectContent>
       </Select>

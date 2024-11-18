@@ -1,6 +1,6 @@
 import { getTodayDate, getFormatedDate } from "@/lib/utils";
 import {
-  ResourceAllocationProps,
+  ResourceAllocationObjectProps,
   ResourceCustomerObjectProps,
 } from "@/types/resource_management";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
@@ -35,6 +35,10 @@ export interface ResourceTeamDataProps {
 export interface TableViewProps {
   combineWeekHours: boolean;
   view: string;
+  tableCell?: {
+    width: number;
+    height: number;
+  };
 }
 
 export type EmployeeDataProps = {
@@ -45,22 +49,32 @@ export type EmployeeDataProps = {
   designation: string;
   working_hour: string;
   working_frequency: string;
-  all_dates_data: EmployeeSingleDayProps[];
+  all_dates_data: EmployeeResourceProps[];
   all_week_data: [];
   all_leave_data: EmployeeLeaveProps[];
+  employee_allocations: ResourceAllocationObjectProps;
+  max_allocation_count_for_single_date: number;
 };
 
 export type EmployeeLeaveProps = {
   string: string;
 };
-export type EmployeeSingleDayProps = {
+
+export type EmployeeResourceProps = {
   date: string;
   total_allocated_hours: number;
   total_working_hours: number;
-  employee_resource_allocation_for_given_date: ResourceAllocationProps;
+  employee_resource_allocation_for_given_date: EmployeeAllocationForDateProps[];
   is_last_week_day: boolean;
   is_on_leave: boolean;
   total_leave_hours: number;
+  total_allocation_count: number;
+};
+
+export type EmployeeAllocationForDateProps = {
+  name: string;
+  date: string;
+  total_worked_hours_resource_allocation: number;
 };
 
 export type DateProps = {
@@ -179,7 +193,7 @@ const ResourceTeamSlice = createSlice({
     },
     setView: (state, action: PayloadAction<string>) => {
       state.tableView.view = action.payload;
-    },
+    }, 
   },
 });
 
@@ -197,5 +211,6 @@ export const {
   setBusinessUnit,
   setCombineWeekHours,
   setView,
+  setTableSize
 } = ResourceTeamSlice.actions;
 export default ResourceTeamSlice.reducer;
