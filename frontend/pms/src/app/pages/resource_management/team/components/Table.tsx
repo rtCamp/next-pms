@@ -104,7 +104,7 @@ const ResourceTeamTableRow = ({ employeeData }: { employeeData: EmployeeDataProp
                   <AvatarFallback>{employeeData.employee_name}</AvatarFallback>
                 </Avatar>
                 <Typography variant="p" className="text-left text-ellipsis whitespace-nowrap overflow-hidden ">
-                  {employeeData.employee_name} - {employeeData.name}
+                  {employeeData.employee_name}
                 </Typography>
               </span>
             </TableCell>

@@ -48,11 +48,12 @@ def get_resource_management_team_view_data(
 
     employee_names = [employee.name for employee in employees]
 
-    resource_allocation_data_start_date = frappe.get_all(
+    resource_allocation_data = frappe.get_all(
         "Resource Allocation",
         filters={
             "employee": ["in", employee_names],
-            "allocation_start_date": ["<=", dates[-1].get("end_date")],
+            "allocation_start_date": [">=", dates[0].get("start_date")],
+            "allocation_end_date": ["<=", dates[-1].get("end_date")],
         },
         fields=[
             "name",
@@ -65,34 +66,8 @@ def get_resource_management_team_view_data(
             "customer",
             "is_billable",
         ],
+        order_by="allocation_start_date, allocation_end_date",
     )
-
-    resource_allocation_data_end_date = frappe.get_all(
-        "Resource Allocation",
-        filters={
-            "employee": ["in", employee_names],
-            "allocation_end_date": [">=", dates[0].get("start_date")],
-        },
-        fields=[
-            "name",
-            "employee",
-            "allocation_start_date",
-            "allocation_end_date",
-            "hours_allocated_per_day",
-            "project",
-            "project_name",
-            "customer",
-            "is_billable",
-        ],
-    )
-
-    # Merge two array and remove duplicates and sort by start date
-    resource_allocation_data_combined = resource_allocation_data_start_date + resource_allocation_data_end_date
-    resource_allocation_data_dict = {
-        resource_allocation["name"]: resource_allocation for resource_allocation in resource_allocation_data_combined
-    }
-    resource_allocation_data = list(resource_allocation_data_dict.values())
-    resource_allocation_data.sort(key=lambda x: x["allocation_start_date"])
 
     # Make the map of resource allocation data for given employee
     resource_allocation_map = {}
