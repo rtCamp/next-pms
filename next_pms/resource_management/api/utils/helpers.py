@@ -1,5 +1,8 @@
 import frappe
 from frappe.utils import flt
+from frappe.utils.data import add_days, getdate, nowdate
+
+from next_pms.timesheet.api.team import get_week_dates
 
 
 def handle_customer(customer, customer_name):
@@ -65,6 +68,30 @@ def is_on_leave(date, daily_working_hours, leaves, holidays):
     return {"on_leave": on_leave, "leave_work_hours": leave_work_hours}
 
 
+def get_dates_date(max_week: int, date: str):
+    """Get the dates for the given week count.
+
+    Args:
+        max_week (number): Number of weeks
+        date (string): Date string
+
+    Returns:
+        object: date objects
+    """
+
+    dates = []
+    now = nowdate()
+
+    # fetch the currant and next week dates object
+    for _ in range(max_week):
+        current_week = True if date == now else False
+        week = get_week_dates(date=date, current_week=current_week, ignore_weekend=True)
+        dates.append(week)
+        date = add_days(getdate(week["end_date"]), 1)
+
+    return {"dates": dates}
+
+
 def find_worked_hours(timesheet_data: list, date: str, project: str = None):
     total_hours = 0
     for ts in timesheet_data:
@@ -97,4 +124,6 @@ def filter_employee_list(
         business_unit=business_unit,
     )
 
-    return employees, count
+    employee_names = [employee.name for employee in employees]
+
+    return employee_names, count

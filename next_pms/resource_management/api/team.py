@@ -1,20 +1,21 @@
 import frappe
-from frappe.utils import DATE_FORMAT, nowdate
-from frappe.utils.data import add_days, getdate
+from frappe.utils import DATE_FORMAT
+from frappe.utils.data import add_days
 
-from next_pms.resource_management.api.team.helpers import (
+from next_pms.resource_management.api.utils.helpers import (
     filter_employee_list,
     find_worked_hours,
     get_allocation_objects,
+    get_dates_date,
     handle_customer,
     is_on_leave,
 )
-from next_pms.resource_management.api.team.query import get_allocation_list_for_employee_for_given_range
+from next_pms.resource_management.api.utils.query import (
+    get_allocation_list_for_employee_for_given_range,
+)
 from next_pms.timesheet.api.employee import get_employee_working_hours
-from next_pms.timesheet.api.team import get_holidays, get_week_dates
+from next_pms.timesheet.api.team import get_holidays
 from next_pms.timesheet.api.timesheet import get_leaves_for_employee
-
-now = nowdate()
 
 
 @frappe.whitelist()
@@ -28,16 +29,9 @@ def get_resource_management_team_view_data(
 ):
     frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
-    dates = []
-    data = {}
-
-    # fetch the currant and next week dates object
-    for _ in range(max_week):
-        current_week = True if date == now else False
-        week = get_week_dates(date=date, current_week=current_week, ignore_weekend=True)
-        dates.append(week)
-        date = add_days(getdate(week["end_date"]), 1)
-
+    data = []
+    customer = {}
+    dates = get_dates_date(max_week, date)
     res = {"dates": dates}
 
     employees, total_count = filter_employee_list(
@@ -46,8 +40,6 @@ def get_resource_management_team_view_data(
         page_length=page_length,
         start=start,
     )
-
-    employee_names = [employee.name for employee in employees]
 
     resource_allocation_data = get_allocation_list_for_employee_for_given_range(
         [
@@ -62,7 +54,7 @@ def get_resource_management_team_view_data(
             "is_billable",
         ],
         "employee",
-        employee_names,
+        employees,
         dates[0].get("start_date"),
         dates[-1].get("end_date"),
     )
@@ -73,10 +65,6 @@ def get_resource_management_team_view_data(
         if resource_allocation.employee not in resource_allocation_map:
             resource_allocation_map[resource_allocation.employee] = []
         resource_allocation_map[resource_allocation.employee].append(resource_allocation)
-
-    data = []
-
-    customer = {}
 
     for employee in employees:
         working_hours = get_employee_working_hours(employee.name)
@@ -93,7 +81,7 @@ def get_resource_management_team_view_data(
         timesheet_data = frappe.get_all(
             "Timesheet",
             filters={
-                "employee": ["in", employee_names],
+                "employee": ["=", employee],
                 "start_date": [">=", dates[0].get("start_date")],
                 "end_date": ["<=", dates[-1].get("end_date")],
             },
@@ -108,22 +96,24 @@ def get_resource_management_team_view_data(
 
         holidays = get_holidays(employee.name, dates[0].get("start_date"), dates[-1].get("end_date"))
 
-        all_dates_data = []
-        all_week_data = []
-        all_leave_data = {}
+        all_dates_data, all_week_data, all_leave_data = [], [], {}
         max_allocation_count_for_single_date = 0
 
         # For given employee loop through all the dates and calculate the total allocated hours, total working hours and total worked hours
         for date_info in dates:
-            total_working_hours_for_given_week = 0
-            total_allocated_hours_for_given_week = 0
-            total_worked_hours_for_given_week = 0
+            (
+                total_working_hours_for_given_week,
+                total_allocated_hours_for_given_week,
+                total_worked_hours_for_given_week,
+            ) = (0, 0, 0)
 
             for date in date_info.get("dates"):
-                total_worked_hours_for_given_date = 0
-                total_working_hours_for_given_date = daily_working_hours
-                total_allocated_hours_for_given_date = 0
-                total_allocation_count = 0
+                (
+                    total_worked_hours_for_given_date,
+                    total_working_hours_for_given_date,
+                    total_allocated_hours_for_given_date,
+                    total_allocation_count,
+                ) = (0, daily_working_hours, 0, 0)
 
                 employee_resource_allocation_for_given_date = []
 

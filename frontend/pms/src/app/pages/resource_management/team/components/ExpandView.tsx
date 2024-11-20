@@ -4,10 +4,11 @@ import { EmployeeDataProps } from "@/store/resource_management/team";
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { getTableCellClass } from "../utils/helper";
+import { getTableCellClass } from "../../utils/helper";
 import { HoverCardContent, HoverCardTrigger, HoverCard } from "@/app/components/ui/hover-card";
-import { ResourceAllocationList } from "./Card";
+import { ResourceAllocationList } from "../../components/Card";
 import { CombinedResourceObjectProps, CombinedResourceDataProps, groupAllocations } from "../utils/group";
+import { EmptyRow } from "../../components/Empty";
 
 export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDataProps }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -117,28 +118,6 @@ const TimeOffRow = ({ dates, employeeData }: { dates: string[]; employeeData: Em
         return (
           <TableCell className={getTableCellClass(index)} key={date}>
             {employeeData.all_leave_data[date] ? employeeData.all_leave_data[date] : "-"}
-          </TableCell>
-        );
-      })}
-    </TableRow>
-  );
-};
-
-const EmptyRow = ({ dates }: { dates: string[] }) => {
-  return (
-    <TableRow className="flex items-center w-full border-0">
-      <TableCell className="w-[24rem] overflow-hidden pl-12">
-        <Typography variant="p" className="flex gap-x-2 items-center font-normal hover:underline w-full">
-          {" "}
-        </Typography>
-        {/* <Typography variant="small" className="text-slate-500 truncate">
-        {taskData.project_name}
-      </Typography> */}
-      </TableCell>
-      {dates.map((date: string, index: number) => {
-        return (
-          <TableCell className={getTableCellClass(index)} key={date}>
-            -
           </TableCell>
         );
       })}

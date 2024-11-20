@@ -1,14 +1,14 @@
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store";
-import { setData, updateData } from "@/store/resource_management/team";
+import { setData, setStart, updateData } from "@/store/resource_management/team";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useEffect } from "react";
 import { Spinner } from "@/app/components/spinner";
 import { ResourceTeamTable } from "./components/Table";
 import { HeaderSection } from "./components/Header";
-import { FooterSection } from "./components/Footer";
+import { FooterSection } from "../components/Footer";
 
 const ResourceTeamView = () => {
   const { toast } = useToast();
@@ -54,11 +54,30 @@ const ResourceTeamView = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, error]);
 
+  const handleLoadMore = () => {
+    if (!resourceTeamState.hasMore) return;
+    dispatch(setStart(resourceTeamState.start + resourceTeamState.pageLength));
+  };
+
   return (
     <>
       <HeaderSection />
-      {(isLoading || isValidating) && resourceTeamState.data.data.length == 0 ? <Spinner isFull /> : <ResourceTeamTable />}
-      <FooterSection isLoading={isLoading} isValidating={isValidating} />
+
+      {(isLoading || isValidating) && resourceTeamState.data.data.length == 0 ? (
+        <Spinner isFull />
+      ) : (
+        <ResourceTeamTable />
+      )}
+
+      <FooterSection
+        disabled={
+          !resourceTeamState.hasMore ||
+          ((isLoading || isValidating) && Object.keys(resourceTeamState.data.data).length != 0)
+        }
+        handleLoadMore={handleLoadMore}
+        length={Object.keys(resourceTeamState.data.data).length | 0}
+        total_count={resourceTeamState.data.total_count | 0}
+      />
     </>
   );
 };

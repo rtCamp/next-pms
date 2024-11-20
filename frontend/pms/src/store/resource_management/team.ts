@@ -4,24 +4,33 @@ import {
   ResourceCustomerObjectProps,
 } from "@/types/resource_management";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+
 type DateRange = {
   start_date: string;
   end_date: string;
 };
-export interface ResourceTeamState {
-  data: ResourceTeamDataProps;
-  employeeName?: string;
-  businessUnit?: string[];
-  isDialogOpen: boolean;
-  isEditDialogOpen: boolean;
-  weekDate: string;
-  employeeWeekDate: string;
-  pageLength: number;
-  start: number;
-  dateRange: DateRange;
-  hasMore: boolean;
-  tableView: TableViewProps;
-}
+
+export type DateProps = {
+  start_date: string;
+  end_date: string;
+  key: string;
+  dates: string[];
+};
+
+export type EmployeeDataProps = {
+  name: string;
+  image: string;
+  employee_name: string;
+  department: string;
+  designation: string;
+  working_hour: string;
+  working_frequency: string;
+  all_dates_data: EmployeeResourceProps[];
+  all_week_data: [];
+  all_leave_data: EmployeeLeaveProps[];
+  employee_allocations: ResourceAllocationObjectProps;
+  max_allocation_count_for_single_date: number;
+};
 
 export interface ResourceTeamDataProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -40,21 +49,6 @@ export interface TableViewProps {
     height: number;
   };
 }
-
-export type EmployeeDataProps = {
-  name: string;
-  image: string;
-  employee_name: string;
-  department: string;
-  designation: string;
-  working_hour: string;
-  working_frequency: string;
-  all_dates_data: EmployeeResourceProps[];
-  all_week_data: [];
-  all_leave_data: EmployeeLeaveProps[];
-  employee_allocations: ResourceAllocationObjectProps;
-  max_allocation_count_for_single_date: number;
-};
 
 export type EmployeeLeaveProps = {
   string: string;
@@ -77,12 +71,21 @@ export type EmployeeAllocationForDateProps = {
   total_worked_hours_resource_allocation: number;
 };
 
-export type DateProps = {
-  start_date: string;
-  end_date: string;
-  key: string;
-  dates: string[];
-};
+export interface ResourceTeamState {
+  data: ResourceTeamDataProps;
+  employeeName?: string;
+  businessUnit?: string[];
+  isDialogOpen: boolean;
+  isEditDialogOpen: boolean;
+  weekDate: string;
+  employeeWeekDate: string;
+  pageLength: number;
+  start: number;
+  dateRange: DateRange;
+  hasMore: boolean;
+  tableView: TableViewProps;
+}
+
 export const initialState: ResourceTeamState = {
   employeeName: "",
   isEditDialogOpen: false,
@@ -193,7 +196,7 @@ const ResourceTeamSlice = createSlice({
     },
     setView: (state, action: PayloadAction<string>) => {
       state.tableView.view = action.payload;
-    }, 
+    },
   },
 });
 
@@ -211,6 +214,5 @@ export const {
   setBusinessUnit,
   setCombineWeekHours,
   setView,
-  setTableSize
 } = ResourceTeamSlice.actions;
 export default ResourceTeamSlice.reducer;
