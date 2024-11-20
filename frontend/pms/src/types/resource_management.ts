@@ -8,6 +8,7 @@ export type ResourceAllocationProps = {
   project_name: string;
   customer: string;
   is_billable: number;
+  numberDays?:number;
 };
 
 export interface ResourceCustomerObjectProps {

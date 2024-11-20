@@ -7,7 +7,7 @@ import {
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
 import { ResourceAllocationList } from "./Card";
 import { cn } from "@/lib/utils";
-import { useCallback, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
@@ -24,25 +24,54 @@ export const CustomerAllocationList = ({
   cellHeight: number;
   heightFactor: number;
 }) => {
+  const allocationList: ResourceAllocationProps[] = useMemo(() => {
+    // Need to fix this
+    const employeeAllocationsList: ResourceAllocationProps[] = Object.values(employeeAllocations);
+    const newEmployeeAllocationsList: ResourceAllocationProps[] = [];
+
+    for (let index1 = 0; index1 < employeeAllocationsList.length; index1++) {
+      const resourceAllocation = employeeAllocationsList[index1];
+      let numberDays: number = 0;
+
+      for (let i = 0; i < newEmployeeAllocationsList.length; i++) {
+        const allocation = newEmployeeAllocationsList[i];
+
+        if (
+          !(
+            getRelativeStartDate(resourceAllocation.allocation_start_date) >
+              getRelativeEndDate(allocation.allocation_end_date) ||
+            getRelativeEndDate(resourceAllocation.allocation_end_date) <
+              getRelativeStartDate(allocation.allocation_start_date)
+          )
+        ) {
+          numberDays += allocation.numberDays || 1;
+        }
+      }
+      const newResourceAllocation = { ...resourceAllocation, numberDays };
+      console.log(newResourceAllocation);
+      newEmployeeAllocationsList.push(newResourceAllocation);
+    }
+
+    return newEmployeeAllocationsList;
+  }, [employeeAllocations]);
+
   return (
     <div
       className={cn("absolute top-0 left-0 flex flex-col overflow-hidden")}
       style={{ height: cellHeight ? `${cellHeight}rem` : "auto", width: cellWidth ? `${cellWidth}rem` : "auto" }}
     >
-      {Object.entries(employeeAllocations).map(
-        ([name, resourceAllocation]: [string, ResourceAllocationProps], index: number) => {
-          return (
-            <CustomerAllocationRow
-              key={name}
-              heightFactor={heightFactor}
-              cellWidth={cellWidth}
-              employeeAllocations={Object.values(employeeAllocations)}
-              resourceAllocation={resourceAllocation}
-              index={index}
-            />
-          );
-        }
-      )}
+      {allocationList.map((resourceAllocation: ResourceAllocationProps, index: number) => {
+        return (
+          <CustomerAllocationRow
+            key={resourceAllocation.name}
+            heightFactor={heightFactor}
+            cellWidth={cellWidth}
+            employeeAllocations={Object.values(employeeAllocations)}
+            resourceAllocation={resourceAllocation}
+            index={index}
+          />
+        );
+      })}
     </div>
   );
 };
@@ -94,21 +123,8 @@ export const CustomerAllocationRow = ({
   }, [resourceTeamStateDates, allocationStartDate, cellWidth]);
 
   const topMargin: number = useMemo(() => {
-    let numberDays: number = 0;
-
-    for (let i = 0; i < index; i++) {
-      const allocation = employeeAllocations[i];
-
-      if (
-        allocationStartDate >= getRelativeStartDate(allocation.allocation_start_date) &&
-        allocationEndDate <= getRelativeStartDate(allocation.allocation_end_date)
-      ) {
-        numberDays++;
-      }
-    }
-
-    return numberDays * heightFactor;
-  }, [heightFactor, index, employeeAllocations, allocationStartDate, allocationEndDate]);
+    return heightFactor * (resourceAllocation.numberDays as number);
+  }, [heightFactor, resourceAllocation.numberDays]);
 
   return (
     <HoverCard openDelay={1}>

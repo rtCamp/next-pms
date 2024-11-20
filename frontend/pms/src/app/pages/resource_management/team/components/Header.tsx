@@ -167,7 +167,7 @@ const ViewControl = () => {
             <SelectLabel>Views</SelectLabel>
             <SelectItem value="planned-vs-capacity">Planned vs Capacity</SelectItem>
             <SelectItem value="actual-vs-planned">Actual vs Planned</SelectItem>
-            <SelectItem value="customer-view">Customer View</SelectItem>
+            {/* <SelectItem value="customer-view">Customer View</SelectItem> */}
           </SelectGroup>
         </SelectContent>
       </Select>

@@ -9,6 +9,7 @@ from next_pms.resource_management.api.team.helpers import (
     handle_customer,
     is_on_leave,
 )
+from next_pms.resource_management.api.team.query import get_allocation_list_for_employee_for_given_range
 from next_pms.timesheet.api.employee import get_employee_working_hours
 from next_pms.timesheet.api.team import get_holidays, get_week_dates
 from next_pms.timesheet.api.timesheet import get_leaves_for_employee
@@ -48,14 +49,8 @@ def get_resource_management_team_view_data(
 
     employee_names = [employee.name for employee in employees]
 
-    resource_allocation_data = frappe.get_all(
-        "Resource Allocation",
-        filters={
-            "employee": ["in", employee_names],
-            "allocation_start_date": [">=", dates[0].get("start_date")],
-            "allocation_end_date": ["<=", dates[-1].get("end_date")],
-        },
-        fields=[
+    resource_allocation_data = get_allocation_list_for_employee_for_given_range(
+        [
             "name",
             "employee",
             "allocation_start_date",
@@ -66,7 +61,10 @@ def get_resource_management_team_view_data(
             "customer",
             "is_billable",
         ],
-        order_by="allocation_start_date, allocation_end_date",
+        "employee",
+        employee_names,
+        dates[0].get("start_date"),
+        dates[-1].get("end_date"),
     )
 
     # Make the map of resource allocation data for given employee

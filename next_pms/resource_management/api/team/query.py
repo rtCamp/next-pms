@@ -1,82 +1,34 @@
-# import frappe
-# from frappe.query_builder import Case
+import frappe
 
 
-# def get_allocation_list_for_employee_for_given_range(employee_names: list, start_date, end_date):
+def get_allocation_list_for_employee_for_given_range(columns: list, value_key: str, values: list, start_date, end_date):
+    """
+    Returns a list of resource allocations for the given list for given key, within the given date range.
 
-#     resource_allocation = frappe.qb.DocType("Resource Allocation")
+    Args:
+        %(list_key)s (str): The key in the resource allocation table that corresponds to the employee list.
+        list (list): The employee list.
+        %(start_date)s (str): The start date for the allocation range.
+        %(end_date)s (str): The end date for the allocation range.
 
-#     employee_names = ", ".join(employee_names)
+    Returns:
+        list: A list of resource allocation dictionaries.
+    """
 
-#     query = f"""
-#         SELECT allocation_start_date, allocation_end_date
-#             FROM `tabResource Allocation`
-#             WHERE employee IN ({employee_names})
-#             AND (
-#                 (allocation_start_date <= "{start_date}" AND allocation_end_date <= "{start_date})
-#                 OR (allocation_start_date >= "{start_date}" AND allocation_end_date <= "{end_date}")
-#                 OR (allocation_start_date <= "{end_date}" AND allocation_end_date >= "{end_date}")
-#                 OR (allocation_start_date <= "{start_date}" AND allocation_end_date >= "{end_date}")
-#             )
-#             ORDER BY allocation_start_date, allocation_end_date;
-#         """
-
-#     allocation_list = frappe.db.sql(query, as_dict=True)
-
-#     print(allocation_list)
-
-#     # case = Case.any(
-#     #     [
-#     #         resource_allocation.allocation_start_date
-#     #         <= start_date & resource_allocation.allocation_end_date
-#     #         >= start_date
-#     #     ],
-#     #     [
-#     #         resource_allocation.allocation_start_date
-#     #         <= start_date & resource_allocation.allocation_end_date
-#     #         >= start_date
-#     #     ],
-#     # )
-
-#     # q = (
-#     #     frappe.qb.from_(resource_allocation)
-#     #     .select(
-#     #         # resource_allocation.name,
-#     #         # resource_allocation.employee,
-#     #         resource_allocation.allocation_start_date,
-#     #         resource_allocation.allocation_end_date,
-#     #         # resource_allocation.hours_allocated_per_day,
-#     #         # resource_allocation.project,
-#     #         # resource_allocation.project_name,
-#     #         # resource_allocation.customer,
-#     #         # resource_allocation.is_billable,
-#     #     )
-#     #     .where(resource_allocation.employee.isin(employee_names))
-#     #     .where(
-#     #         case
-#     #         # (
-#     #         #     resource_allocation.allocation_start_date
-#     #         #     <= start_date & resource_allocation.allocation_end_date
-#     #         #     >= start_date
-#     #         # )
-#     #         # | (
-#     #         #     resource_allocation.allocation_start_date
-#     #         #     >= start_date & resource_allocation.allocation_end_date
-#     #         #     <= end_date
-#     #         # )
-#     #         # | (
-#     #         #     resource_allocation.allocation_start_date
-#     #         #     <= end_date & resource_allocation.allocation_end_date
-#     #         #     >= end_date
-#     #         # )
-#     #         # | (
-#     #         #     resource_allocation.allocation_start_date
-#     #         #     <= start_date & resource_allocation.allocation_end_date
-#     #         #     >= end_date
-#     #         # )
-#     #     )
-#     #     .orderby(resource_allocation.allocation_start_date, resource_allocation.allocation_end_date)
-#     # )
-#     # resource_allocations = q.run(as_dict=True)
-
-#     # print(resource_allocations)
+    # Only ways was to write sql for this, normal frappe methods are not working, also try with query build but looks like it dont have support of nesting condition.
+    # nosemgrep
+    return frappe.db.sql(
+        f"""
+        SELECT { ', '.join(columns)} FROM `tabResource Allocation`
+            WHERE {"employee" if value_key == "employee" else "project"} IN %(names)s
+            AND (
+                (allocation_start_date <= %(start_date)s AND allocation_end_date >= %(start_date)s)
+                OR (allocation_start_date >= %(start_date)s AND allocation_end_date <= %(end_date)s)
+                OR (allocation_start_date <= %(end_date)s AND allocation_end_date >= %(end_date)s)
+                OR (allocation_start_date <= %(start_date)s AND allocation_end_date >= %(end_date)s)
+            )
+            ORDER BY allocation_start_date, allocation_end_date;
+    """,
+        {"list_key": value_key, "names": values, "start_date": start_date, "end_date": end_date},
+        as_dict=True,
+    )  # nosemgrep
