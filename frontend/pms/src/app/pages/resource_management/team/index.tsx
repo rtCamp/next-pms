@@ -7,7 +7,7 @@ import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useEffect } from "react";
 import { Spinner } from "@/app/components/spinner";
 import { ResourceTeamTable } from "./components/Table";
-import { HeaderSection } from "./components/Header";
+import { ResourceTeamHeaderSection } from "./components/Header";
 import { FooterSection } from "../components/Footer";
 
 const ResourceTeamView = () => {
@@ -61,7 +61,7 @@ const ResourceTeamView = () => {
 
   return (
     <>
-      <HeaderSection />
+      <ResourceTeamHeaderSection />
 
       {(isLoading || isValidating) && resourceTeamState.data.data.length == 0 ? (
         <Spinner isFull />

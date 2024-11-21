@@ -54,7 +54,7 @@ def get_resource_management_team_view_data(
             "is_billable",
         ],
         "employee",
-        employees,
+        [employee.name for employee in employees],
         dates[0].get("start_date"),
         dates[-1].get("end_date"),
     )
@@ -81,7 +81,7 @@ def get_resource_management_team_view_data(
         timesheet_data = frappe.get_all(
             "Timesheet",
             filters={
-                "employee": ["=", employee],
+                "employee": ["=", employee.name],
                 "start_date": [">=", dates[0].get("start_date")],
                 "end_date": ["<=", dates[-1].get("end_date")],
             },

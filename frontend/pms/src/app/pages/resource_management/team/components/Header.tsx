@@ -1,8 +1,3 @@
-import { Button } from "@/app/components/ui/button";
-import { ChevronLeft, ChevronRight, Filter } from "lucide-react";
-import { ComboxBox } from "@/app/components/comboBox";
-import { Badge } from "@/app/components/ui/badge";
-import { Header } from "@/app/layout/root";
 import {
   setWeekDate,
   setEmployeeName,
@@ -12,30 +7,28 @@ import {
   setCombineWeekHours,
   setView,
 } from "@/store/resource_management/team";
-import { getFormatedDate, cn } from "@/lib/utils";
+import { getFormatedDate } from "@/lib/utils";
 import { useCallback, useEffect } from "react";
 import { addDays } from "date-fns";
-import { DeBounceInput } from "@/app/components/deBounceInput";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useQueryParamsState } from "@/lib/queryParam";
-import { Checkbox } from "@/app/components/ui/checkbox";
 import { useFrappeGetCall } from "frappe-react-sdk";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/app/components/ui/select";
+import { ResourceHeaderSection } from "../../components/Header";
 
-const HeaderSection = () => {
-  const [businessUnitParam, setBusinessUnitParam] = useQueryParamsState<string[]>("business_unit", []);
+const ResourceTeamHeaderSection = () => {
+  const [businessUnitParam, setBusinessUnitParam] = useQueryParamsState<string[]>("business-unit", []);
   const [employeeNameParam, setEmployeeNameParam] = useQueryParamsState<string>("employee-name", "");
+  const [viewParam, setViewParam] = useQueryParamsState<string>("view-type", "planned-vs-capacity");
+  const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParamsState<boolean>("combine-week-hours", true);
+
+  const resourceTeamState = useSelector((state: RootState) => state.resource_team);
+  const resourceTeamStateTableView = resourceTeamState.tableView;
+  const dispatch = useDispatch();
 
   useEffect(() => {
+    dispatch(setView(viewParam));
+    dispatch(setCombineWeekHours(combineWeekHoursParam));
     const payload = {
       businessUnit: businessUnitParam,
       employeeName: employeeNameParam,
@@ -46,9 +39,6 @@ const HeaderSection = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const resourceTeamState = useSelector((state: RootState) => state.resource_team);
-  const dispatch = useDispatch();
 
   const { data: businessUnit } = useFrappeGetCall(
     "frappe.client.get_list",
@@ -64,12 +54,12 @@ const HeaderSection = () => {
     }
   );
 
-  const handleprevWeek = useCallback(() => {
+  const handlePrevWeek = useCallback(() => {
     const date = getFormatedDate(addDays(resourceTeamState.data.dates[0].start_date, -3));
     dispatch(setWeekDate(date));
   }, [dispatch, resourceTeamState.data.dates]);
 
-  const handlenextWeek = useCallback(() => {
+  const handleNextWeek = useCallback(() => {
     const date = getFormatedDate(addDays(resourceTeamState.data.dates[0].end_date, +1));
     dispatch(setWeekDate(date));
   }, [dispatch, resourceTeamState.data.dates]);
@@ -91,105 +81,77 @@ const HeaderSection = () => {
     [dispatch, setEmployeeNameParam]
   );
 
+  const handleViewChange = useCallback(
+    (value: string) => {
+      setViewParam(value);
+      dispatch(setView(value));
+    },
+    [dispatch, setViewParam]
+  );
+
+  const handleWeekViewChange = useCallback(() => {
+    setCombineWeekHoursParam(!resourceTeamStateTableView.combineWeekHours);
+    dispatch(setCombineWeekHours(!resourceTeamStateTableView.combineWeekHours));
+  }, [dispatch, resourceTeamStateTableView.combineWeekHours, setCombineWeekHoursParam]);
+
   return (
-    <Header className="flex items-center max-md:flex-col">
-      <div id="filters" className="flex gap-x-3 max-md:gap-x-5  overflow-y-hidden max-md:w-full items-center">
-        <DeBounceInput
-          placeholder="Employee name"
-          value={employeeNameParam}
-          deBounceValue={400}
-          className="max-w-40 min-w-40"
-          callback={handleEmployeeChange}
-        />
-        <ComboxBox
-          value={businessUnitParam}
-          label="Business Unit"
-          isMulti
-          shouldFilter
-          showSelected={false}
-          onSelect={handleBusinessUnitChange}
-          rightIcon={[].length > 0 && <Badge className="px-1.5">{0}</Badge>}
-          leftIcon={<Filter className={cn("h-4 w-4", [].length != 0 && "fill-primary")} />}
-          // Need to fetch this
-          data={
+    <ResourceHeaderSection
+      filters={[
+        {
+          queryParameterName: "employee-name",
+          handleChange: handleEmployeeChange,
+          type: "search",
+          value: employeeNameParam,
+          defaultValue: "",
+          label: "Employee Name",
+        },
+        {
+          queryParameterName: "business-unit",
+          handleChange: handleBusinessUnitChange,
+          type: "select-search",
+          value: businessUnitParam,
+          defaultValue: "",
+          label: "Business Unit",
+          data:
             businessUnit?.message?.map((d: { name: string }) => ({
               label: d.name,
               value: d.name,
-            })) ?? []
-          }
-          className="text-primary border-dashed gap-x-2 font-normal w-fit"
-        />
-        <ViewControl />
-      </div>
-
-      <div id="date-filter" className="flex gap-x-2 max-md:p-1 max-md:w-full max-md:justify-between max-md:m-2 t">
-        <Button title="prev" className="p-1 h-fit" variant="outline" onClick={handleprevWeek}>
-          <ChevronLeft className="w-4 max-md:w-3 h-4 max-md:h-3" />
-        </Button>
-        <Button title="next" className="p-1 h-fit" variant="outline" onClick={handlenextWeek}>
-          <ChevronRight className="w-4 max-md:w-3 h-4 max-md:h-3" />
-        </Button>
-      </div>
-    </Header>
+            })) ?? [],
+        },
+        {
+          queryParameterName: "view-type",
+          handleChange: handleViewChange,
+          type: "select",
+          value: resourceTeamStateTableView.view,
+          defaultValue: "planned-vs-capacity",
+          label: "Views",
+          data: [
+            {
+              label: "Planned vs Capacity",
+              value: "planned-vs-capacity",
+            },
+            {
+              label: "Actual vs Planned",
+              value: "actual-vs-planned",
+            },
+          ],
+        },
+        {
+          queryParameterName: "combine-week-hours",
+          handleChange: handleWeekViewChange,
+          type: "checkbox",
+          value: resourceTeamStateTableView.combineWeekHours,
+          defaultValue: false,
+          label: "Combine Week Hours",
+        },
+      ]}
+      weekControl={{
+        isNeeded: true,
+        handlePrevWeek: handlePrevWeek,
+        handleNextWeek: handleNextWeek,
+      }}
+    />
   );
 };
 
-const ViewControl = () => {
-  const [viewParam, setViewParam] = useQueryParamsState<string>("view_type", "planned-vs-capacity");
-  const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParamsState<boolean>("combine-week-hours", true);
-
-  useEffect(() => {
-    dispatch(setView(viewParam));
-    dispatch(setCombineWeekHours(combineWeekHoursParam));
-    return () => {
-      dispatch(resetState());
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const resourceTeamStateTableView = useSelector((state: RootState) => state.resource_team.tableView);
-  const dispatch = useDispatch();
-
-  return (
-    <div className="flex items-center gap-x-2">
-      <Select
-        value={resourceTeamStateTableView.view}
-        onValueChange={(value) => {
-          setViewParam(value);
-          dispatch(setView(value));
-        }}
-      >
-        <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="Select a view type" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            <SelectLabel>Views</SelectLabel>
-            <SelectItem value="planned-vs-capacity">Planned vs Capacity</SelectItem>
-            <SelectItem value="actual-vs-planned">Actual vs Planned</SelectItem>
-            {/* <SelectItem value="customer-view">Customer View</SelectItem> */}
-          </SelectGroup>
-        </SelectContent>
-      </Select>
-
-      <div className="flex items-center gap-x-2">
-        <Checkbox
-          id="combineWeekHours"
-          checked={resourceTeamStateTableView.combineWeekHours}
-          onClick={() => {
-            setCombineWeekHoursParam(!resourceTeamStateTableView.combineWeekHours);
-            dispatch(setCombineWeekHours(!resourceTeamStateTableView.combineWeekHours));
-          }}
-        />
-        <label
-          htmlFor="terms"
-          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-        >
-          Combine Week Hours
-        </label>
-      </div>
-    </div>
-  );
-};
-
-export { HeaderSection };
+export { ResourceTeamHeaderSection };

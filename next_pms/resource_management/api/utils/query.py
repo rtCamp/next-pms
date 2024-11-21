@@ -15,6 +15,9 @@ def get_allocation_list_for_employee_for_given_range(columns: list, value_key: s
         list: A list of resource allocation dictionaries.
     """
 
+    if not values:
+        return []
+
     # Only ways was to write sql for this, normal frappe methods are not working, also try with query build but looks like it dont have support of nesting condition.
     # nosemgrep
     return frappe.db.sql(

@@ -89,7 +89,7 @@ def get_dates_date(max_week: int, date: str):
         dates.append(week)
         date = add_days(getdate(week["end_date"]), 1)
 
-    return {"dates": dates}
+    return dates
 
 
 def find_worked_hours(timesheet_data: list, date: str, project: str = None):
@@ -124,6 +124,4 @@ def filter_employee_list(
         business_unit=business_unit,
     )
 
-    employee_names = [employee.name for employee in employees]
-
-    return employee_names, count
+    return employees, count
