@@ -667,6 +667,7 @@ export const TimeInput = ({
   };
   const updateTime = () => {
     if (timeStringToFloat(prevHour) === timeStringToFloat(hour)) return;
+    
     if (hour.trim() == "" || Number.isNaN(hour)) return;
     const value = {
       ...data,
@@ -674,6 +675,7 @@ export const TimeInput = ({
       employee: employee,
     };
     callback(value);
+    setPrevHour(String(floatToTime(data.hours)));
     if (inputRef.current) {
       inputRef.current.value = String(floatToTime(timeStringToFloat(hour)));
     }
