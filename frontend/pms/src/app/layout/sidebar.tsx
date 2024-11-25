@@ -18,7 +18,7 @@ import {
   ChevronDown,
   ClipboardList,
   FolderDot,
-  GanttChart
+  GanttChart,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { TIMESHEET, HOME, TEAM, DESK, TASK, PROJECT, ROLES, RESOURCE_MANAGEMENT } from "@/lib/constant";
@@ -98,7 +98,19 @@ const Sidebar = () => {
       icon: GanttChart,
       label: "Resource Management",
       key: "resource-management",
-      isPmRoute: false,
+      isPmRoute: true,
+      children: [
+        {
+          to: RESOURCE_MANAGEMENT,
+          label: "Team View",
+          key: "team-view",
+        },
+        {
+          to: RESOURCE_MANAGEMENT + "/project",
+          label: "Project View",
+          key: "project-view",
+        },
+      ],
     },
     {
       to: TASK,

@@ -12,7 +12,7 @@ interface ResourceTeamTableRowProps {
   avatar_abbr: string;
   avatar_name: string;
   RowComponent: React.FC;
-  RowExpandView: React.FC;
+  RowExpandView?: React.FC;
 }
 
 const ResourceTableRow = ({
@@ -43,7 +43,7 @@ const ResourceTableRow = ({
           </TableRow>
         </AccordionTrigger>
         <AccordionContent className="pb-0">
-          <RowExpandView />
+          {RowExpandView && <RowExpandView />}
         </AccordionContent>
       </AccordionItem>
     </Accordion>

@@ -1,7 +1,11 @@
 import { store } from "@/store";
 import { DateProps } from "@/store/team";
 
-const getTableCellClass = (index: number, weekIndex: number = 0) => {
+const getTableCellClass = (
+  index: number,
+  weekIndex: number = 0,
+  isHeader: boolean = false
+) => {
   //   return "flex max-w-20 w-full justify-center items-center border-r border-b border-gray-400";
 
   const state = store.getState();
@@ -9,7 +13,7 @@ const getTableCellClass = (index: number, weekIndex: number = 0) => {
   if (state && state.resource_team.tableView.view == "customer-view") {
     return "text-xs flex px-4 py-2 max-w-20 w-full justify-center items-center";
   }
-
+  
   if (index == 4 && weekIndex == 0) {
     return "text-xs flex px-4 py-2 max-w-20 w-full justify-center items-center border-r border-gray-300";
   }

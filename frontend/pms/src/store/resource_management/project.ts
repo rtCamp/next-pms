@@ -4,37 +4,21 @@ import {
   ResourceCustomerObjectProps,
 } from "@/types/resource_management";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+import { DateProps } from "../team";
+import { DateRange } from "./team";
 
-export type DateRange = {
-  start_date: string;
-  end_date: string;
-};
-
-export type DateProps = {
-  start_date: string;
-  end_date: string;
-  key: string;
-  dates: string[];
-};
-
-export type EmployeeDataProps = {
+export type ProjectDataProps = {
   name: string;
   image: string;
-  employee_name: string;
-  department: string;
-  designation: string;
-  working_hour: string;
-  working_frequency: string;
-  all_dates_data: EmployeeResourceProps[];
+  project_name: string;
+  all_dates_data: ProjectResourceProps[];
   all_week_data: [];
-  all_leave_data: EmployeeLeaveProps[];
   employee_allocations: ResourceAllocationObjectProps;
-  max_allocation_count_for_single_date: number;
 };
 
-export interface ResourceTeamDataProps {
+export interface ResourceProjectDataProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: EmployeeDataProps[];
+  data: ProjectDataProps[];
   dates: DateProps[];
   customer: ResourceCustomerObjectProps;
   total_count: number;
@@ -50,30 +34,25 @@ export interface TableViewProps {
   };
 }
 
-export type EmployeeLeaveProps = {
-  string: string;
-};
-
-export type EmployeeResourceProps = {
+export type ProjectResourceProps = {
   date: string;
   total_allocated_hours: number;
-  total_working_hours: number;
-  employee_resource_allocation_for_given_date: EmployeeAllocationForDateProps[];
+  total_worked_hours: number;
+  project_resource_allocation_for_given_date: ProjectAllocationForDateProps[];
   is_last_week_day: boolean;
   is_on_leave: boolean;
   total_leave_hours: number;
   total_allocation_count: number;
 };
 
-export type EmployeeAllocationForDateProps = {
+export type ProjectAllocationForDateProps = {
   name: string;
   date: string;
-  total_worked_hours_resource_allocation: number;
 };
 
 export interface ResourceTeamState {
-  data: ResourceTeamDataProps;
-  employeeName?: string;
+  data: ResourceProjectDataProps;
+  projectName?: string;
   businessUnit?: string[];
   isDialogOpen: boolean;
   isEditDialogOpen: boolean;
@@ -87,7 +66,7 @@ export interface ResourceTeamState {
 }
 
 export const initialState: ResourceTeamState = {
-  employeeName: "",
+  projectName: "",
   isEditDialogOpen: false,
   pageLength: 20,
   data: {
@@ -122,8 +101,8 @@ const ResourceTeamSlice = createSlice({
       state.hasMore = action.payload.has_more;
       state.pageLength = initialState.pageLength;
     },
-    setEmployeeName: (state, action: PayloadAction<string>) => {
-      state.employeeName = action.payload;
+    setProjectName: (state, action: PayloadAction<string>) => {
+      state.projectName = action.payload;
       state.data = initialState.data;
       state.start = 0;
       state.pageLength = initialState.pageLength;
@@ -181,12 +160,10 @@ const ResourceTeamSlice = createSlice({
     setFilters: (
       state,
       action: PayloadAction<{
-        employeeName: string;
-        businessUnit: string[];
+        projectName: string;
       }>
     ) => {
-      state.employeeName = action.payload.employeeName;
-      state.businessUnit = action.payload.businessUnit;
+      state.projectName = action.payload.projectName;
       state.pageLength = initialState.pageLength;
       state.start = 0;
       state.data = initialState.data;
@@ -210,7 +187,7 @@ export const {
   resetState,
   setFilters,
   setEmployeeWeekDate,
-  setEmployeeName,
+  setProjectName,
   setBusinessUnit,
   setCombineWeekHours,
   setView,

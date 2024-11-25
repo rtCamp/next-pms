@@ -34,7 +34,7 @@ const ResourceTableHeader = ({ dates }: ResourceTableHeaderProps) => {
                   <TableHead
                     key={date}
                     className={cn(
-                      getTableCellClass(index, weekIndex),
+                      getTableCellClass(index, weekIndex,true),
                       "flex flex-col max-w-20 w-full items-center justify-center"
                     )}
                   >

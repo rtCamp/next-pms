@@ -87,6 +87,7 @@ def get_resource_management_project_view_data(
                         "date": date,
                         "total_allocated_hours": total_allocated_hours_for_given_date,
                         "project_resource_allocation_for_given_date": project_resource_allocation_for_given_date,
+                        "total_worked_hours": get_allocation_worked_hours_for_given_projects(project.name, date, date),
                     }
                 )
 
@@ -111,5 +112,7 @@ def get_resource_management_project_view_data(
 
     res["data"] = data
     res["customer"] = customer
+    res["total_count"] = total_count
+    res["has_more"] = int(start) + int(page_length) < total_count
 
     return res
