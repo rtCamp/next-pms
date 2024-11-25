@@ -357,15 +357,14 @@ def get_remaining_hour_for_employee(employee: str, date: str):
         add_days(date, 4 * 7),
         employee,
     )
-    data = next(
-        (leave for leave in leaves if leave.get("from_date") <= date <= leave.get("to_date")),
-        None,
-    )
+    data = [leave for leave in leaves if leave.get("from_date") <= date <= leave.get("to_date")]
+
     if data:
-        if data.get("half_day") and data.get("half_day_date") == date:
-            total_hours += working_hours.get("working_hour") / 2
-        else:
-            total_hours += working_hours.get("working_hour")
+        for d in data:
+            if d.get("half_day") and d.get("half_day_date") == date:
+                total_hours += working_hours.get("working_hour") / 2
+            else:
+                total_hours += working_hours.get("working_hour")
     return working_hours.get("working_hour") - total_hours
 
 
