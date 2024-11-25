@@ -36,10 +36,11 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
                 frappe.PermissionError,
             )
 
-    def generate_week_data(start_date, max_week, employee=None, leaves=None):
+    def generate_week_data(start_date, max_week, employee=None, leaves=None, holidays=None):
         data = {}
         for i in range(max_week):
             week_dates = get_week_dates(start_date)
+            holiday_dates = [holiday["holiday_date"] for holiday in holidays]
             week_key = week_dates["key"]
             tasks, total_hours, status = {}, 0, "Not Submitted"
             if employee:
@@ -57,15 +58,21 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
                 ]
 
                 # Check if the employee is on leave for the entire week
-                if (
-                    week_leaves
-                    and all(
-                        (leave["status"] == "Approved" or leave["status"] == "Open") and not leave["half_day"]
-                        for leave in week_leaves
-                    )
-                    and total_hours == 0
-                ):
-                    status = "Approved"
+                if week_leaves and total_hours == 0:
+                    all_dates_on_leave = True
+                    for date in week_dates["dates"]:
+                        if date in holiday_dates:
+                            continue
+                        if not any(
+                            leave["status"] in ["Approved", "Open"]
+                            and not leave["half_day"]
+                            and leave["from_date"] <= date <= leave["to_date"]
+                            for leave in week_leaves
+                        ):
+                            all_dates_on_leave = False
+
+                    if all_dates_on_leave:
+                        status = "Approved"
             data[week_key] = {
                 **week_dates,
                 "total_hours": total_hours,
@@ -87,7 +94,7 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
     if not frappe.db.exists("Employee", employee):
         throw(_("No employee found for current user."), frappe.DoesNotExistError)
 
-    res["holidays"] = get_holidays(
+    holidays = get_holidays(
         employee,
         add_days(start_date, -max_week * 7),
         add_days(start_date, max_week * 7),
@@ -99,7 +106,8 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
         employee,
     )
     res["leaves"] = leaves
-    res["data"] = generate_week_data(start_date, max_week, employee, leaves)
+    res["holidays"] = holidays
+    res["data"] = generate_week_data(start_date, max_week, employee, leaves, holidays)
     return res
 
 
