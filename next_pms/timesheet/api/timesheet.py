@@ -36,7 +36,7 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
                 frappe.PermissionError,
             )
 
-    def generate_week_data(start_date, max_week, employee=None):
+    def generate_week_data(start_date, max_week, employee=None, leaves=None):
         data = {}
         for i in range(max_week):
             week_dates = get_week_dates(start_date)
@@ -49,6 +49,23 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
                     end_date=week_dates["dates"][-1],
                     employee=employee,
                 )
+                # Filter leaves for the current week
+                week_leaves = [
+                    leave
+                    for leave in leaves
+                    if leave["from_date"] <= week_dates["dates"][-1] and leave["to_date"] >= week_dates["dates"][0]
+                ]
+
+                # Check if the employee is on leave for the entire week
+                if (
+                    week_leaves
+                    and all(
+                        (leave["status"] == "Approved" or leave["status"] == "Open") and not leave["half_day"]
+                        for leave in week_leaves
+                    )
+                    and total_hours == 0
+                ):
+                    status = "Approved"
             data[week_key] = {
                 **week_dates,
                 "total_hours": total_hours,
@@ -76,13 +93,13 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
         add_days(start_date, max_week * 7),
     )
 
-    res["leaves"] = get_leaves_for_employee(
+    leaves = get_leaves_for_employee(
         add_days(start_date, -max_week * 7),
         add_days(start_date, max_week * 7),
         employee,
     )
-
-    res["data"] = generate_week_data(start_date, max_week, employee)
+    res["leaves"] = leaves
+    res["data"] = generate_week_data(start_date, max_week, employee, leaves)
     return res
 
 
@@ -357,15 +374,14 @@ def get_remaining_hour_for_employee(employee: str, date: str):
         add_days(date, 4 * 7),
         employee,
     )
-    data = next(
-        (leave for leave in leaves if leave.get("from_date") <= date <= leave.get("to_date")),
-        None,
-    )
+    data = [leave for leave in leaves if leave.get("from_date") <= date <= leave.get("to_date")]
+
     if data:
-        if data.get("half_day") and data.get("half_day_date") == date:
-            total_hours += working_hours.get("working_hour") / 2
-        else:
-            total_hours += working_hours.get("working_hour")
+        for d in data:
+            if d.get("half_day") and d.get("half_day_date") == date:
+                total_hours += working_hours.get("working_hour") / 2
+            else:
+                total_hours += working_hours.get("working_hour")
     return working_hours.get("working_hour") - total_hours
 
 

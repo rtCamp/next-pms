@@ -17,6 +17,7 @@ import GenWrapper from "./GenWrapper";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
 import { TaskLog } from "@/app/pages/task/taskLog";
 import { useState } from "react";
+import { Button } from "./ui/button";
 interface TimesheetTableProps {
   dates: string[];
   holidays: Array<HolidayProp>;
@@ -530,27 +531,31 @@ export const SubmitButton = ({
   onApproval?: (start_date: string, end_date: string) => void;
   status: string;
 }) => {
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleClick = () => {
     onApproval && onApproval(start_date, end_date);
   };
   return (
-    <span
-      className={cn(
-        "inline-flex items-center justify-center whitespace-nowrap rounded-md  ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground mr-1 text-primary font-normal gap-x-1 p-2 text-xs sm:text-sm",
-        (status == "Approved" || status == "Partially Approved") && "bg-green-50",
-        (status == "Rejected" || status == "Partially Rejected") && "bg-red-50",
-        status == "Approval Pending" && "bg-orange-50",
+    <Button
+      variant="ghost"
+      className={cn("font-normal",
+        (status == "Approved" || status == "Partially Approved") && "bg-green-50 text-success",
+        (status == "Rejected" || status == "Partially Rejected") && "bg-red-50 text-destructive",
+        status == "Approval Pending" && "bg-orange-50 text-warning",
         status == "Not Submitted" && "text-slate-400"
       )}
-      onClick={status != "Approved" ? handleClick : undefined}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (status != "Approved") {
+          handleClick();
+        }
+      }}
     >
-      {(status == "Approved" || status == "Partially Approved") && <CircleCheck className="stroke-success w-4 h-4" />}
-      {(status == "Rejected" || status == "Partially Rejected") && <CircleX className="stroke-destructive w-4 h-4" />}
-      {status == "Approval Pending" && <Clock3 className="stroke-warning w-4 h-4" />}
-      {status == "Not Submitted" && <CircleCheck className="w-4 h-4" />}
+      {(status == "Approved" || status == "Partially Approved") && <CircleCheck className="stroke-success" />}
+      {(status == "Rejected" || status == "Partially Rejected") && <CircleX className="stroke-destructive" />}
+      {status == "Approval Pending" && <Clock3 className="stroke-warning" />}
+      {status == "Not Submitted" && <CircleCheck className="" />}
       {status}
-    </span>
+    </Button>
   );
 };
 

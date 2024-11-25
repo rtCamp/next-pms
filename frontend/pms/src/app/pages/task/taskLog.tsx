@@ -29,11 +29,13 @@ type TaskLogProps = {
 };
 export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
   const { toast } = useToast();
-  const [startDate, setStartDate] = useState<string>(getFormatedDate(addDays(getTodayDate(), -7)));
+  const [startDate, setStartDate] = useState<string>(getFormatedDate(addDays(getTodayDate(), -15)));
   const endDate = getTodayDate();
-  const [selectedMap, setSelectedMap] = useState<string[]>(["7"]);
+  const [selectedMap, setSelectedMap] = useState<string>("15");
   const { data, isLoading, error } = useFrappeGetCall("next_pms.timesheet.api.task.get_task", {
     task: task,
+    start_date: startDate,
+    end_date: endDate,
   });
   const dateMap = [
     { label: "Last 7 days", value: "7" },
@@ -53,6 +55,11 @@ export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
     start_date: startDate,
     end_date: endDate,
   });
+
+  const setDefault = () => {
+    setSelectedMap("15");
+    setStartDate(getFormatedDate(addDays(getTodayDate(), -15)));
+  };
 
   useEffect(() => {
     if (error) {
@@ -126,24 +133,22 @@ export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
                   <ComboxBox
                     className="float-right w-24 p-2"
                     data={dateMap}
-                    value={selectedMap}
+                    value={[selectedMap]}
                     label="Date Range"
                     shouldFilter
                     onSelect={(value: string | string[]) => {
                       if (typeof value === "string") {
-                        setSelectedMap([value]);
+                        setSelectedMap(value);
                         const date = value;
                         setStartDate(getFormatedDate(addDays(getTodayDate(), -parseInt(date))));
                       } else {
                         if (value.length === 0) {
-                          setSelectedMap([dateMap[0].value]);
-                          const date = dateMap[0].value;
+                          setDefault();
+                        } else {
+                          setSelectedMap(value[0]);
+                          const date = value[0];
                           setStartDate(getFormatedDate(addDays(getTodayDate(), -parseInt(date))));
-                          return;
                         }
-                        setSelectedMap([value[0]]);
-                        const date = value[0];
-                        setStartDate(getFormatedDate(addDays(getTodayDate(), -parseInt(date))));
                       }
                     }}
                   />

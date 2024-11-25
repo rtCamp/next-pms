@@ -656,6 +656,7 @@ export const TimeInput = ({
   callback: (data: NewTimesheetProps) => void;
 }) => {
   const [hour, setHour] = useState(String(floatToTime(data.hours)));
+  const [prevHour, setPrevHour] = useState(String(floatToTime(data.hours)));
   const inputRef = useRef<HTMLInputElement>(null);
   const handleHourChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const hour = e.target.value;
@@ -665,6 +666,7 @@ export const TimeInput = ({
     setHour(String(timeStringToFloat(hour)));
   };
   const updateTime = () => {
+    if (timeStringToFloat(prevHour) === timeStringToFloat(hour)) return;
     if (hour.trim() == "" || Number.isNaN(hour)) return;
     const value = {
       ...data,
