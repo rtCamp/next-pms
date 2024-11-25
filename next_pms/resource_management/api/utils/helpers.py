@@ -125,3 +125,27 @@ def filter_employee_list(
     )
 
     return employees, count
+
+
+def filter_project_list(
+    project_name=None,
+    page_length=10,
+    start=0,
+):
+    from next_pms.timesheet.api.utils import get_count
+
+    start = int(start)
+    page_length = int(page_length)
+
+    filters = {}
+
+    fields = ["name", "project_name", "status"]
+
+    if project_name:
+        filters["project_name"] = ["like", f"%{project_name}%"]
+
+    projects = frappe.frappe.get_list("Project", filters=filters, fields=fields, start=start, page_length=page_length)
+
+    total_count = get_count("Project", filters=filters)
+
+    return projects, total_count

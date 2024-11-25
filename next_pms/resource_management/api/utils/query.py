@@ -1,4 +1,5 @@
 import frappe
+from frappe.query_builder.functions import Sum
 
 
 def get_allocation_list_for_employee_for_given_range(columns: list, value_key: str, values: list, start_date, end_date):
@@ -6,10 +7,10 @@ def get_allocation_list_for_employee_for_given_range(columns: list, value_key: s
     Returns a list of resource allocations for the given list for given key, within the given date range.
 
     Args:
-        %(list_key)s (str): The key in the resource allocation table that corresponds to the employee list.
+        list_keys (str): The key in the resource allocation table that corresponds to the employee list.
         list (list): The employee list.
-        %(start_date)s (str): The start date for the allocation range.
-        %(end_date)s (str): The end date for the allocation range.
+        start_date (str): The start date for the allocation range.
+        end_date (str): The end date for the allocation range.
 
     Returns:
         list: A list of resource allocation dictionaries.
@@ -35,3 +36,29 @@ def get_allocation_list_for_employee_for_given_range(columns: list, value_key: s
         {"list_key": value_key, "names": values, "start_date": start_date, "end_date": end_date},
         as_dict=True,
     )  # nosemgrep
+
+
+def get_allocation_worked_hours_for_given_projects(project: str, start_date: str, end_date: str):
+    """Get the total hours spend for given projects for given time range.
+
+    Args:
+        project (str): project name
+        start_date (str): start date
+        end_date (str): end date
+
+    Returns:
+        flot: total hours spend for given project
+    """
+    TimesheetDetail = frappe.qb.DocType("Timesheet Detail")
+
+    total_hours = (
+        frappe.qb.from_(TimesheetDetail)
+        .select(
+            Sum(TimesheetDetail.hours).as_("time"),
+        )
+        .where(TimesheetDetail.project == project)
+        .where((TimesheetDetail.docstatus == 1) | (TimesheetDetail.docstatus == 0))
+        .where((TimesheetDetail.from_time >= start_date) & (TimesheetDetail.to_time <= end_date))
+    ).run(as_dict=True)[0]
+
+    return total_hours.get("time") or 0.0
