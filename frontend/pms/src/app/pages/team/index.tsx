@@ -65,7 +65,7 @@ const Team = () => {
   const [statusParam, setStatusParam] = useQueryParamsState<string[]>("status", []);
   const [employeeNameParam, setEmployeeNameParam] = useQueryParamsState<string>("employee-name", "");
   const [reportsToParam, setReportsToParam] = useQueryParamsState<string>("reports-to", "");
-  const [employeeStatusParam, setEmployeeStatusParam] = useQueryParamsState<Array<string>>("emp-status", []);
+  const [employeeStatusParam, setEmployeeStatusParam] = useQueryParamsState<Array<string>>("emp-status", ["Active"]);
 
   const approvalsData = [
     { label: "Not Submitted", value: "Not Submitted" },
@@ -171,12 +171,12 @@ const Team = () => {
   }, [groupError]);
 
   const handleprevWeek = useCallback(() => {
-    const date = getFormatedDate(addDays(teamState.weekDate, -6));
+    const date = getFormatedDate(addDays(teamState.weekDate, -7));
     dispatch(setWeekDate(date));
   }, [dispatch, teamState.weekDate]);
 
   const handlenextWeek = useCallback(() => {
-    const date = getFormatedDate(addDays(teamState.weekDate, 6));
+    const date = getFormatedDate(addDays(teamState.weekDate, 7));
     dispatch(setWeekDate(date));
   }, [dispatch, teamState.weekDate]);
 
