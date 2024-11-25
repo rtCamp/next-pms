@@ -36,10 +36,11 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
                 frappe.PermissionError,
             )
 
-    def generate_week_data(start_date, max_week, employee=None):
+    def generate_week_data(start_date, max_week, employee=None, leaves=None, holidays=None):
         data = {}
         for i in range(max_week):
             week_dates = get_week_dates(start_date)
+            holiday_dates = [holiday["holiday_date"] for holiday in holidays]
             week_key = week_dates["key"]
             tasks, total_hours, status = {}, 0, "Not Submitted"
             if employee:
@@ -49,6 +50,29 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
                     end_date=week_dates["dates"][-1],
                     employee=employee,
                 )
+                # Filter leaves for the current week
+                week_leaves = [
+                    leave
+                    for leave in leaves
+                    if leave["from_date"] <= week_dates["dates"][-1] and leave["to_date"] >= week_dates["dates"][0]
+                ]
+
+                # Check if the employee is on leave for the entire week
+                if week_leaves and total_hours == 0:
+                    all_dates_on_leave = True
+                    for date in week_dates["dates"]:
+                        if date in holiday_dates:
+                            continue
+                        if not any(
+                            leave["status"] in ["Approved", "Open"]
+                            and not leave["half_day"]
+                            and leave["from_date"] <= date <= leave["to_date"]
+                            for leave in week_leaves
+                        ):
+                            all_dates_on_leave = False
+
+                    if all_dates_on_leave:
+                        status = "Approved"
             data[week_key] = {
                 **week_dates,
                 "total_hours": total_hours,
@@ -70,19 +94,20 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
     if not frappe.db.exists("Employee", employee):
         throw(_("No employee found for current user."), frappe.DoesNotExistError)
 
-    res["holidays"] = get_holidays(
+    holidays = get_holidays(
         employee,
         add_days(start_date, -max_week * 7),
         add_days(start_date, max_week * 7),
     )
 
-    res["leaves"] = get_leaves_for_employee(
+    leaves = get_leaves_for_employee(
         add_days(start_date, -max_week * 7),
         add_days(start_date, max_week * 7),
         employee,
     )
-
-    res["data"] = generate_week_data(start_date, max_week, employee)
+    res["leaves"] = leaves
+    res["holidays"] = holidays
+    res["data"] = generate_week_data(start_date, max_week, employee, leaves, holidays)
     return res
 
 
@@ -357,15 +382,14 @@ def get_remaining_hour_for_employee(employee: str, date: str):
         add_days(date, 4 * 7),
         employee,
     )
-    data = next(
-        (leave for leave in leaves if leave.get("from_date") <= date <= leave.get("to_date")),
-        None,
-    )
+    data = [leave for leave in leaves if leave.get("from_date") <= date <= leave.get("to_date")]
+
     if data:
-        if data.get("half_day") and data.get("half_day_date") == date:
-            total_hours += working_hours.get("working_hour") / 2
-        else:
-            total_hours += working_hours.get("working_hour")
+        for d in data:
+            if d.get("half_day") and d.get("half_day_date") == date:
+                total_hours += working_hours.get("working_hour") / 2
+            else:
+                total_hours += working_hours.get("working_hour")
     return working_hours.get("working_hour") - total_hours
 
 
