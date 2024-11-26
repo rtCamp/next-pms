@@ -9,6 +9,7 @@ import projectReducer from "./project";
 import viewReducer from "./view";
 import resourceTeamReducer from "./resource_management/team";
 import resourceProjectReducer from "./resource_management/project";
+import resourceAllocationFormReducer from "./resource_management/allocation";
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
     timesheet: timesheetReducer,
     resource_team: resourceTeamReducer,
     resource_project: resourceProjectReducer,
+    resource_allocation_form: resourceAllocationFormReducer,
     team: teamReducer,
     home: homeReducer,
     app: appReducer,

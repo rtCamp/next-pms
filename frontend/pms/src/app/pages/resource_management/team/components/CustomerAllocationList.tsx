@@ -48,7 +48,6 @@ export const CustomerAllocationList = ({
         }
       }
       const newResourceAllocation = { ...resourceAllocation, numberDays };
-      console.log(newResourceAllocation);
       newEmployeeAllocationsList.push(newResourceAllocation);
     }
 

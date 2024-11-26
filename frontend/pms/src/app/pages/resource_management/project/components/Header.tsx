@@ -13,6 +13,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { ResourceHeaderSection } from "../../components/Header";
+import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
+import { toggleDialog } from "@/store/resource_management/allocation";
 
 const ResourceProjectHeaderSection = () => {
   const [projectNameParam, setProjectNameParam] = useQueryParamsState<string>("prject-name", "");
@@ -105,11 +107,26 @@ const ResourceProjectHeaderSection = () => {
           label: "Combine Week Hours",
         },
       ]}
-      weekControl={{
-        isNeeded: true,
-        handlePrevWeek: handlePrevWeek,
-        handleNextWeek: handleNextWeek,
-      }}
+      buttons={[
+        {
+          title: "add-allocation",
+          handleClick: () => {
+            dispatch(toggleDialog());
+          },
+          icon: () => <Plus className="w-4 max-md:w-3 h-4 max-md:h-3" />,
+          variant: "default",
+        },
+        {
+          title: "previous-week",
+          handleClick: handlePrevWeek,
+          icon: () => <ChevronLeftIcon className="w-4 max-md:w-3 h-4 max-md:h-3" />,
+        },
+        {
+          title: "next-week",
+          handleClick: handleNextWeek,
+          icon: () => <ChevronRight className="w-4 max-md:w-3 h-4 max-md:h-3" />,
+        },
+      ]}
     />
   );
 };

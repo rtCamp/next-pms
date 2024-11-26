@@ -15,6 +15,8 @@ import { RootState } from "@/store";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { ResourceHeaderSection } from "../../components/Header";
+import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
+import { setDialog } from "@/store/resource_management/allocation";
 
 const ResourceTeamHeaderSection = () => {
   const [businessUnitParam, setBusinessUnitParam] = useQueryParamsState<string[]>("business-unit", []);
@@ -145,11 +147,26 @@ const ResourceTeamHeaderSection = () => {
           label: "Combine Week Hours",
         },
       ]}
-      weekControl={{
-        isNeeded: true,
-        handlePrevWeek: handlePrevWeek,
-        handleNextWeek: handleNextWeek,
-      }}
+      buttons={[
+        {
+          title: "add-allocation",
+          handleClick: () => {
+            dispatch(setDialog(true));
+          },
+          icon: () => <Plus className="w-4 max-md:w-3 h-4 max-md:h-3 bg" />,
+          variant: "default",
+        },
+        {
+          title: "previous-week",
+          handleClick: handlePrevWeek,
+          icon: () => <ChevronLeftIcon className="w-4 max-md:w-3 h-4 max-md:h-3" />,
+        },
+        {
+          title: "next-week",
+          handleClick: handleNextWeek,
+          icon: () => <ChevronRight className="w-4 max-md:w-3 h-4 max-md:h-3" />,
+        },
+      ]}
     />
   );
 };

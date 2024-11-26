@@ -29,9 +29,7 @@ export const ResourceExpandView = ({ project, start_date, end_date }: ResourceEx
       revalidateIfStale: false,
     }
   );
-
-  console.log(data);
-
+  
   return (
     <Table>
       <TableBody className="[&_tr]:pr-0">

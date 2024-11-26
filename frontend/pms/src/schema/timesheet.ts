@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const timeFormatRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
 
-const hourSchema = z.preprocess(
+export const hourSchema = z.preprocess(
   (val, ctx) => {
     const processedValue = timeStringToFloat(String(val));
     if (isNaN(processedValue)) {

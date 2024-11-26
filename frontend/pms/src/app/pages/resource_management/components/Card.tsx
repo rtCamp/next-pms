@@ -14,7 +14,6 @@ export const ResourceAllocationList = ({
 }: {
   resourceAllocationList: ResourceAllocationProps[];
 }) => {
-  console.log(resourceAllocationList);
   return (
     <div className="space-y-4">
       {resourceAllocationList.map((resourceAllocation: ResourceAllocationProps) => (

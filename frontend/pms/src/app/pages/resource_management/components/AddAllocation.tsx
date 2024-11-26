@@ -1,0 +1,295 @@
+// interface AddTimeProps {}
+
+import { ComboxBox } from "@/app/components/comboBox";
+import EmployeeCombo from "@/app/components/employeeComboBox";
+import { Button } from "@/app/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
+import { Input } from "@/app/components/ui/input";
+import { Separator } from "@/app/components/ui/separator";
+import { Textarea } from "@/app/components/ui/textarea";
+import { cn, getFormatedDate } from "@/lib/utils";
+import { ResourceAllocationSchema } from "@/schema/resource";
+import { RootState } from "@/store";
+import { AllocationDataProps, setDialog } from "@/store/resource_management/allocation";
+import { Clock3, LoaderCircle, Save, Search, X } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useDispatch, useSelector } from "react-redux";
+import { z } from "zod";
+import { DatePicker } from "@/app/components/datePicker";
+import { useFrappeGetCall } from "frappe-react-sdk";
+import { useState } from "react";
+
+const AddResourceAllocations = () => {
+  const ResourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
+  const dispatch = useDispatch();
+
+  const [projectSearch, setProjectSearch] = useState("");
+  const [customerSearch, setCustomerSearch] = useState("");
+
+  const { data: projects } = useFrappeGetCall("frappe.client.get_list", {
+    doctype: "Project",
+    filter: { project_name: ["like", `%${projectSearch}%`] },
+    fields: ["name", "project_name"],
+    limit_page_length: 20,
+  });
+
+  const { data: customers } = useFrappeGetCall("frappe.client.get_list", {
+    doctype: "Customer",
+    filter: { project_name: ["like", `%${customerSearch}%`] },
+    fields: ["name", "customer_name"],
+    limit_page_length: 20,
+  });
+
+  const form = useForm<z.infer<typeof ResourceAllocationSchema>>({
+    resolver: zodResolver(ResourceAllocationSchema),
+    defaultValues: {
+      employee: "",
+      is_billable: false,
+      project: "",
+      customer: "",
+      total_allocated_hours: "",
+      hours_allocated_per_day: "",
+      allocation_start_date: ResourceAllocationForm.allocation_start_date,
+      allocation_end_date: ResourceAllocationForm.allocation_end_date,
+      note: "",
+    },
+    mode: "onSubmit",
+  });
+
+  const handleEmployeeChange = (value: string) => {
+    form.setValue("employee", value);
+  };
+  const handleSearchChange = (key: string, value: string | string[]) => {
+    if (typeof value === "string") {
+      form.setValue(key, value);
+    }
+
+    if (value.length > 0) {
+      form.setValue(key, value[0]);
+    }
+  };
+
+  const handleDateChange = (key: string, date: Date | undefined) => {
+    if (!date) return;
+    form.setValue(key, getFormatedDate(date));
+  };
+
+  const handleOpen = (open: boolean): void => {
+    dispatch(setDialog(open));
+  };
+
+  const handleSubmit = (data: any) => {
+    //console.log(data);
+  };
+
+  return (
+    <Dialog open={ResourceAllocationForm?.isShowDialog} onOpenChange={handleOpen}>
+      <DialogContent className="max-w-xl">
+        <DialogHeader>
+          <DialogTitle className="flex gap-x-2 mb-2">Add Allocation</DialogTitle>
+          <Separator />
+        </DialogHeader>
+        <Form {...form}>
+          <form className="flex flex-col gap-y-4" onSubmit={form.handleSubmit(handleSubmit)}>
+            <FormField
+              control={form.control}
+              name="employee"
+              render={() => (
+                <FormItem className="w-full space-y-1">
+                  <FormLabel className="flex gap-2 items-center text-sm">Employee</FormLabel>
+                  <FormControl>
+                    <EmployeeCombo onSelect={handleEmployeeChange} value={form.getValues("employee")} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="grid gap-x-4 grid-cols-2">
+              <FormField
+                control={form.control}
+                name="customer"
+                render={() => (
+                  <FormItem className="space-y-1">
+                    <FormLabel>Customer</FormLabel>
+                    <FormControl>
+                      <ComboxBox
+                        label="Search Customer"
+                        onSelect={(value) => handleSearchChange("customer", value)}
+                        onSearch={(value) => setCustomerSearch(value)}
+                        showSelected
+                        deBounceTime={200}
+                        value={
+                          form.getValues("customer") && form.getValues("customer").length > 0
+                            ? [form.getValues("customer")]
+                            : []
+                        }
+                        data={customers?.message?.map((item) => ({
+                          label: item.customer_name,
+                          value: item.name,
+                          disabled: false,
+                        }))}
+                        rightIcon={<Search className="!h-4 !w-4 stroke-slate-400" />}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="project"
+                render={() => (
+                  <FormItem className="space-y-1">
+                    <FormLabel>Projects</FormLabel>
+                    <ComboxBox
+                      label="Search Projects"
+                      onSelect={(value) => handleSearchChange("project", value)}
+                      onSearch={(value) => setProjectSearch(value)}
+                      showSelected
+                      shouldFilter
+                      value={
+                        form.getValues("project") && form.getValues("project").length > 0
+                          ? [form.getValues("project")]
+                          : []
+                      }
+                      data={projects?.message?.map((item) => ({
+                        label: item.project_name,
+                        value: item.name,
+                        disabled: false,
+                      }))}
+                      rightIcon={<Search className="h-4 w-4 stroke-slate-400" />}
+                    />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="grid gap-x-4 grid-cols-2">
+              <FormField
+                control={form.control}
+                name="allocation_start_date"
+                render={({ field }) => (
+                  <FormItem className="w-full space-y-1">
+                    <FormLabel className="flex gap-2 items-center text-sm">Start Date</FormLabel>
+                    <FormControl>
+                      <DatePicker
+                        date={field.value}
+                        onDateChange={(date: Date) => handleDateChange("allocation_start_date", date)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="allocation_end_date"
+                render={({ field }) => (
+                  <FormItem className="w-full space-y-1">
+                    <FormLabel className="flex gap-2 items-center text-sm">End Date</FormLabel>
+                    <FormControl>
+                      <DatePicker
+                        date={field.value}
+                        onDateChange={(date: Date) => handleDateChange("allocation_end_date", date)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid gap-x-4 grid-cols-2">
+              <FormField
+                control={form.control}
+                name="total_allocated_hours"
+                render={({ field }) => (
+                  <FormItem className="w-full space-y-1">
+                    <FormLabel className="flex gap-2 items-center">
+                      <p className="text-sm">Total Hours</p>
+                    </FormLabel>
+                    <FormControl>
+                      <>
+                        <div className="relative flex items-center">
+                          <Input
+                            placeholder="00:00"
+                            className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                            type="text"
+                            {...field}
+                          />
+                          <Clock3 className="h-4 w-4 absolute right-0 m-3 top-0 stroke-slate-400" />
+                        </div>
+                      </>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="hours_allocated_per_day"
+                render={({ field }) => (
+                  <FormItem className="w-full space-y-1">
+                    <FormLabel className="flex gap-2 items-center">
+                      <p className="text-sm">Hours / Day</p>
+                    </FormLabel>
+                    <FormControl>
+                      <>
+                        <div className="relative flex items-center">
+                          <Input
+                            placeholder="00:00"
+                            className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                            type="text"
+                            {...field}
+                          />
+                          <Clock3 className="h-4 w-4 absolute right-0 m-3 top-0 stroke-slate-400" />
+                        </div>
+                      </>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="note"
+              render={({ field }) => (
+                <FormItem className="space-y-1">
+                  <FormLabel>Note</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Put Note here..."
+                      rows={4}
+                      className="w-full placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <DialogFooter className="sm:justify-start w-full pt-3">
+              <div className="flex gap-x-4 w-full">
+                <Button>
+                  {false ? <LoaderCircle className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
+                  Save
+                </Button>
+                <Button type="button" variant="secondary">
+                  <X className="w-4 h-4" />
+                  Cancel
+                </Button>
+              </div>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default AddResourceAllocations;

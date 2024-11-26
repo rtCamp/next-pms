@@ -9,6 +9,7 @@ import { Spinner } from "@/app/components/spinner";
 import { ResourceTeamTable } from "./components/Table";
 import { ResourceTeamHeaderSection } from "./components/Header";
 import { FooterSection } from "../components/Footer";
+import AddResourceAllocations from "../components/AddAllocation";
 
 const ResourceTeamView = () => {
   const { toast } = useToast();
@@ -68,6 +69,8 @@ const ResourceTeamView = () => {
       ) : (
         <ResourceTeamTable />
       )}
+
+      <AddResourceAllocations />
 
       <FooterSection
         disabled={

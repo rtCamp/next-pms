@@ -26,9 +26,9 @@ const ResourceTableRow = ({
   return (
     <Accordion type="multiple" key={name} className="w-full">
       <AccordionItem value={name} className="border-b-0">
-        <AccordionTrigger className="hover:no-underline py-0">
-          <TableRow key={name} className={cn(getTableCellRow(), "relative overflow-hidden")}>
-            <TableCell className={cn("w-[24rem]", "overflow-hidden")}>
+        <TableRow key={name} className={cn(getTableCellRow(), "relative overflow-hidden")}>
+          <TableCell className={cn("w-[24rem]", "overflow-hidden")}>
+            <AccordionTrigger hideChevronDown={true} className="hover:no-underline py-0">
               <span className="flex gap-x-2 items-center font-normal hover:underline w-full">
                 <Avatar className="w-6 h-6">
                   <AvatarImage src={decodeURIComponent(avatar)} />
@@ -38,10 +38,10 @@ const ResourceTableRow = ({
                   {avatar_name}
                 </Typography>
               </span>
-            </TableCell>
-            <RowComponent />
-          </TableRow>
-        </AccordionTrigger>
+            </AccordionTrigger>
+          </TableCell>
+          <RowComponent />
+        </TableRow>
         <AccordionContent className="pb-0">{RowExpandView && <RowExpandView />}</AccordionContent>
       </AccordionItem>
     </Accordion>
