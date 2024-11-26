@@ -42,9 +42,7 @@ const ResourceTableRow = ({
             <RowComponent />
           </TableRow>
         </AccordionTrigger>
-        <AccordionContent className="pb-0">
-          {RowExpandView && <RowExpandView />}
-        </AccordionContent>
+        <AccordionContent className="pb-0">{RowExpandView && <RowExpandView />}</AccordionContent>
       </AccordionItem>
     </Accordion>
   );

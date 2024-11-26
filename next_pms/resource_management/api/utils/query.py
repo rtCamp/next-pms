@@ -62,3 +62,45 @@ def get_allocation_worked_hours_for_given_projects(project: str, start_date: str
     ).run(as_dict=True)[0]
 
     return total_hours.get("time") or 0.0
+
+
+def get_allocation_worked_hours_for_given_employee(project: str, employee: str, start_date: str, end_date: str):
+    """Get the total hours spend for given projects for given time range.
+
+    Args:
+        project (str): project name
+        start_date (str): start date
+        end_date (str): end date
+
+    Returns:
+        flot: total hours spend for given project
+    """
+    Timesheet = frappe.qb.DocType("Timesheet")
+
+    all_timesheets = (
+        frappe.qb.from_(Timesheet)
+        .select(Timesheet.name)
+        .where(Timesheet.employee == employee)
+        .where(Timesheet.parent_project == project)
+        .where((Timesheet.docstatus == 1) | (Timesheet.docstatus == 0))
+        .where((Timesheet.start_date >= start_date) & (Timesheet.end_date <= end_date))
+    ).run(as_dict=True)
+
+    if not all_timesheets:
+        return 0.0
+
+    timesheets = [timesheet["name"] for timesheet in all_timesheets]
+
+    TimesheetDetail = frappe.qb.DocType("Timesheet Detail")
+
+    total_hours = (
+        frappe.qb.from_(TimesheetDetail)
+        .select(
+            Sum(TimesheetDetail.hours).as_("time"),
+        )
+        .where(TimesheetDetail.parent.isin(timesheets))
+        .where((TimesheetDetail.docstatus == 1) | (TimesheetDetail.docstatus == 0))
+        .where((TimesheetDetail.from_time >= start_date) & (TimesheetDetail.to_time <= end_date))
+    ).run(as_dict=True)[0]
+
+    return total_hours.get("time") or 0.0

@@ -1,4 +1,7 @@
 import frappe
+from frappe.automation.doctype.auto_repeat.auto_repeat import getdate
+from frappe.email.doctype.auto_email_report.auto_email_report import DATE_FORMAT
+from frappe.utils import add_days
 
 from next_pms.resource_management.api.utils.helpers import (
     filter_project_list,
@@ -7,6 +10,7 @@ from next_pms.resource_management.api.utils.helpers import (
 )
 from next_pms.resource_management.api.utils.query import (
     get_allocation_list_for_employee_for_given_range,
+    get_allocation_worked_hours_for_given_employee,
     get_allocation_worked_hours_for_given_projects,
 )
 
@@ -114,5 +118,77 @@ def get_resource_management_project_view_data(
     res["customer"] = customer
     res["total_count"] = total_count
     res["has_more"] = int(start) + int(page_length) < total_count
+
+    return res
+
+
+@frappe.whitelist()
+def get_employees_resrouce_data_for_given_project(project: str, start_date: str, end_date: str):
+    frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+
+    resource_allocation_data = get_allocation_list_for_employee_for_given_range(
+        [
+            "name",
+            "employee",
+            "allocation_start_date",
+            "allocation_end_date",
+            "hours_allocated_per_day",
+            "project",
+            "project_name",
+            "customer",
+            "is_billable",
+        ],
+        "project",
+        [project],
+        start_date,
+        end_date,
+    )
+
+    resource_allocation_map = {}
+    for resource_allocation in resource_allocation_data:
+        if resource_allocation.employee not in resource_allocation_map:
+            resource_allocation_map[resource_allocation.employee] = []
+        resource_allocation_map[resource_allocation.employee].append(resource_allocation)
+
+    res = {}
+    data = []
+    start_date = getdate(start_date)
+    end_date = getdate(end_date)
+
+    for employee in resource_allocation_map:
+        employee_resource_allocation = resource_allocation_map.get(employee, [])
+
+        employee = frappe.db.get_value("Employee", employee, ["employee_name", "name", "image"], as_dict=1)
+
+        current_date = start_date
+
+        all_dates_date = []
+
+        while current_date <= end_date:
+            if current_date.weekday() in [5, 6]:
+                current_date = add_days(current_date, 1)
+                continue
+
+            total_allocated_hours_for_employee = 0
+            for resource_allocation in employee_resource_allocation:
+                if resource_allocation.allocation_start_date <= current_date <= resource_allocation.allocation_end_date:
+                    total_allocated_hours_for_employee += resource_allocation.hours_allocated_per_day
+
+            total_worked_hours_for_employee = get_allocation_worked_hours_for_given_employee(
+                project, employee.name, current_date.strftime(DATE_FORMAT), current_date.strftime(DATE_FORMAT)
+            )
+
+            all_dates_date.append(
+                {
+                    "date": current_date,
+                    "total_allocated_hours": total_allocated_hours_for_employee,
+                    "total_worked_hours": total_worked_hours_for_employee,
+                }
+            )
+
+            current_date = add_days(current_date, 1)
+        data.append({**employee, "all_dates_date": all_dates_date})
+
+    res["data"] = data
 
     return res

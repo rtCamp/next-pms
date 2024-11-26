@@ -11,13 +11,14 @@ import { EmptyTableBody } from "../../components/Empty";
 import { ResourceTableRow } from "../../components/TableRow";
 import { ProjectDataProps, ProjectResourceProps } from "@/store/resource_management/project";
 import { useMemo } from "react";
+import { ResourceExpandView } from "./ExpandView";
 
 const ResourceProjectTable = () => {
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_project.data.dates);
 
   return (
     <Table className="lg:[&_tr]:pr-3 relative">
-      <ResourceProjectTableHeader dates={dates} />
+      <ResourceProjectTableHeader dates={dates} title="Projects" />
       <ResourceProjectTableBody />
     </Table>
   );
@@ -25,6 +26,7 @@ const ResourceProjectTable = () => {
 
 const ResourceProjectTableBody = () => {
   const data = useSelector((state: RootState) => state.resource_project.data.data);
+  const dates = useSelector((state: RootState) => state.resource_project.data.dates);
 
   if (data.length == 0) {
     return <EmptyTableBody />;
@@ -33,11 +35,14 @@ const ResourceProjectTableBody = () => {
   return (
     <TableBody>
       {data.map((projectData: ProjectDataProps) => {
+        if (!projectData.project_name) {
+          return <></>;
+        }
         return (
           <ResourceTableRow
             name={projectData.name}
             avatar={projectData.image}
-            avatar_abbr={projectData.project_name}
+            avatar_abbr={projectData.project_name[0]}
             avatar_name={projectData.project_name}
             RowComponent={() => {
               return (
@@ -55,6 +60,15 @@ const ResourceProjectTableBody = () => {
                     );
                   })}
                 </>
+              );
+            }}
+            RowExpandView={() => {
+              return (
+                <ResourceExpandView
+                  project={projectData.name}
+                  start_date={dates[0].start_date}
+                  end_date={dates[dates.length - 1].end_date}
+                />
               );
             }}
           />

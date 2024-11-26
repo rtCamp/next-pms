@@ -18,7 +18,7 @@ const ResourceTeamTable = () => {
 
   return (
     <Table className="lg:[&_tr]:pr-3 relative">
-      <ResourceTeamTableHeader dates={dates} />
+      <ResourceTeamTableHeader dates={dates} title="Members" />
       <ResourceTeamTableBody />
     </Table>
   );
@@ -116,7 +116,7 @@ const ResourceTeamTableCell = ({
       return "bg-gray-200";
     }
 
-    if (allocationPercentage == 100) {
+    if (allocationPercentage >= 100 || allocationPercentage < 0) {
       return "bg-destructive/30";
     }
 
@@ -184,7 +184,6 @@ const ResourceTeamTableCell = ({
           "relative"
         )}
         style={{
-
           background:
             allocationPercentage < 50
               ? allocationPercentage == 0
