@@ -47,19 +47,11 @@ function Timesheet() {
   const timesheet = useSelector((state: RootState) => state.timesheet);
   const dispatch = useDispatch();
   const working_hour = expectatedHours(user.workingHours, user.workingFrequency);
-  const { data, isLoading, error, mutate } = useFrappeGetCall(
-    "next_pms.timesheet.api.timesheet.get_timesheet_data",
-    {
-      employee: user.employee,
-      start_date: timesheet.weekDate,
-      max_week: 4,
-    },
-    undefined,
-    {
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-    }
-  );
+  const { data, isLoading, error, mutate } = useFrappeGetCall("next_pms.timesheet.api.timesheet.get_timesheet_data", {
+    employee: user.employee,
+    start_date: timesheet.weekDate,
+    max_week: 4,
+  });
   const isDateInRange = (date: string, startDate: string, endDate: string) => {
     const targetDate = getDateTimeForMultipleTimeZoneSupport(correctDateFormat(date));
 
