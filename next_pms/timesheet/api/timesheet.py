@@ -8,7 +8,7 @@ from frappe.utils import (
     nowdate,
 )
 
-from .employee import get_employee_from_user, get_employee_working_hours
+from .employee import get_employee_daily_working_norm, get_employee_from_user, get_employee_working_hours
 from .utils import (
     get_holidays,
     get_leaves_for_employee,
@@ -38,41 +38,37 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
 
     def generate_week_data(start_date, max_week, employee=None, leaves=None, holidays=None):
         data = {}
+        daily_norm = get_employee_daily_working_norm(employee)
         for i in range(max_week):
             week_dates = get_week_dates(start_date)
-            holiday_dates = [holiday["holiday_date"] for holiday in holidays]
             week_key = week_dates["key"]
             tasks, total_hours, status = {}, 0, "Not Submitted"
             if employee:
+                holiday_dates = [holiday["holiday_date"] for holiday in holidays] if holidays else []
                 tasks, total_hours = get_timesheet(week_dates["dates"], employee)
                 status = get_timesheet_state(
                     start_date=week_dates["dates"][0],
                     end_date=week_dates["dates"][-1],
                     employee=employee,
                 )
-                # Filter leaves for the current week
+                leave_total = 0
                 week_leaves = [
                     leave
                     for leave in leaves
                     if leave["from_date"] <= week_dates["dates"][-1] and leave["to_date"] >= week_dates["dates"][0]
                 ]
+                for leave in week_leaves:
+                    if leave["half_day"]:
+                        leave_total += daily_norm / 2
+                    else:
+                        num_days = 0
+                        for date in week_dates["dates"]:
+                            if date not in holiday_dates and leave["from_date"] <= date <= leave["to_date"]:
+                                num_days += 1
+                        leave_total += daily_norm * num_days
 
-                # Check if the employee is on leave for the entire week
-                if week_leaves and total_hours == 0:
-                    all_dates_on_leave = True
-                    for date in week_dates["dates"]:
-                        if date in holiday_dates:
-                            continue
-                        if not any(
-                            leave["status"] in ["Approved", "Open"]
-                            and not leave["half_day"]
-                            and leave["from_date"] <= date <= leave["to_date"]
-                            for leave in week_leaves
-                        ):
-                            all_dates_on_leave = False
-
-                    if all_dates_on_leave:
-                        status = "Approved"
+                if daily_norm * 5 == leave_total:
+                    status = "Approved"
             data[week_key] = {
                 **week_dates,
                 "total_hours": total_hours,

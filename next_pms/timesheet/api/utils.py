@@ -17,16 +17,18 @@ def is_timesheet_manager():
 
 
 def get_leaves_for_employee(from_date: str, to_date: str, employee: str):
-    leave_application = frappe.qb.DocType("Leave Application")
-    filtered_data = (
-        frappe.qb.from_(leave_application)
-        .select("*")
-        .where(leave_application.employee == employee)
-        .where((leave_application.from_date <= to_date) & (leave_application.to_date >= from_date))
-        .where(leave_application.status.isin(["Open", "Approved"]))
-    ).run(as_dict=True)
-
-    return filtered_data
+    leaves = frappe.get_list(
+        "Leave Application",
+        fields=["*"],
+        filters={
+            "employee": employee,
+            "from_date": ["<=", to_date],
+            "to_date": [">=", from_date],
+            "status": ["in", ["Open", "Approved"]],
+        },
+        ignore_permissions=is_timesheet_user() or is_timesheet_manager(),
+    )
+    return leaves
 
 
 def get_week_dates(date):
