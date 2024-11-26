@@ -40,10 +40,10 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
         data = {}
         for i in range(max_week):
             week_dates = get_week_dates(start_date)
-            holiday_dates = [holiday["holiday_date"] for holiday in holidays] if holidays else []
             week_key = week_dates["key"]
             tasks, total_hours, status = {}, 0, "Not Submitted"
             if employee:
+                holiday_dates = [holiday["holiday_date"] for holiday in holidays] if holidays else []
                 tasks, total_hours = get_timesheet(week_dates["dates"], employee)
                 status = get_timesheet_state(
                     start_date=week_dates["dates"][0],
