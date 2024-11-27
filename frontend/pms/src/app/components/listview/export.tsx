@@ -121,7 +121,7 @@ export const Export = ({
             <div id="column-selector" className="grid grid-cols-2 gap-2  max-h-64 lg:max-h-96 overflow-y-auto">
               {Object.entries(fields).map(([key, value]) => {
                 return (
-                  <div className="flex gap-x-1 text-sm items-center">
+                  <div className="flex gap-x-1 text-sm items-center" key={key}>
                     <Checkbox
                       id={key}
                       checked={columns.some((column) => column === key)}

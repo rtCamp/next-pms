@@ -50,8 +50,8 @@ export const Approval = ({ onClose }: { onClose: () => void }) => {
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const dispatch = useDispatch();
 
-  const { call } = useFrappePostCall("next_pms.timesheet.api.team.update_timesheet_status");
-  const { call: updateTime } = useFrappePostCall("next_pms.timesheet.api.timesheet.save");
+  const { call } = useFrappePostCall("next_pms.timesheet.api.team.approve_or_reject_timesheet");
+  const { call: updateTime } = useFrappePostCall("next_pms.timesheet.api.timesheet.update_timesheet_detail");
 
   const handleTimeChange = (value: NewTimesheetProps) => {
     updateTime(value)
@@ -209,17 +209,21 @@ export const Approval = ({ onClose }: { onClose: () => void }) => {
                     const submittedTime = matchingTasks?.some(
                       (timesheet) => getDateFromDateAndTime(timesheet.from_time) === date && timesheet.docstatus === 1
                     );
-                    const leave = leaves.find((data: LeaveProps) => {
+                    const leave = leaves.filter((data: LeaveProps) => {
                       return date >= data.from_date && date <= data.to_date;
                     });
-                    const isHalfDayLeave = leave?.half_day && leave?.half_day_date == date ? true : false;
-                    if (leave && !isHoliday) {
-                      if (isHalfDayLeave) {
-                        totalHours += expectatedHours(working_hour, working_frequency) / 2;
-                      } else {
-                        totalHours += expectatedHours(working_hour, working_frequency);
-                      }
+                    let isHalfDayLeave = false;
+                    if (leave.length > 0 && !isHoliday) {
+                      leave.forEach((data: LeaveProps) => {
+                        isHalfDayLeave = data.half_day && data.half_day_date == date;
+                        if (isHalfDayLeave) {
+                          totalHours += working_hour / 2;
+                        } else {
+                          totalHours += working_hour;
+                        }
+                      });
                     }
+
                     const isExtended = calculateExtendedWorkingHour(totalHours, working_hour, working_frequency);
 
                     return (
@@ -229,7 +233,7 @@ export const Approval = ({ onClose }: { onClose: () => void }) => {
                             disabled={
                               submittedTime ||
                               isHoliday ||
-                              (leave && !isHalfDayLeave && !isHoliday && matchingTasks.length == 0) ||
+                              (leave.length != 0 && !isHoliday && matchingTasks.length == 0) ||
                               matchingTasks.length == 0
                             }
                             checked={isChecked || submittedTime}
@@ -252,9 +256,9 @@ export const Approval = ({ onClose }: { onClose: () => void }) => {
                               {holiday.description}
                             </Typography>
                           )}
-                          {leave && !isHoliday && (
+                          {leave.length > 0 && !isHoliday && (
                             <Typography variant="p" className="text-gray-600">
-                              ({isHalfDayLeave ? "Half day leave" : "Full Day Leave"})
+                              ({isHalfDayLeave && totalHours != working_hour ? "Half day leave" : "Full Day Leave"})
                             </Typography>
                           )}
                         </div>

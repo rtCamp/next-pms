@@ -1,7 +1,7 @@
 import frappe
 
 
-def send_approval_reminder(employee: str, reporting_manager: str, start_date: str, end_date: str):
+def send_approval_reminder(employee: str, reporting_manager: str, start_date: str, end_date: str, notes: str | None):
     frappe.enqueue(
         send_mail,
         employee=employee,
@@ -9,10 +9,11 @@ def send_approval_reminder(employee: str, reporting_manager: str, start_date: st
         reporting_manager=reporting_manager,
         start_date=start_date,
         end_date=end_date,
+        notes=notes,
     )
 
 
-def send_mail(employee: str, reporting_manager: str, start_date: str, end_date: str):
+def send_mail(employee: str, reporting_manager: str, start_date: str, end_date: str, notes: str | None):
     send_reminder = frappe.db.get_single_value(
         fieldname="send_reminder_on_approval_request", doctype="Timesheet Settings"
     )
@@ -39,6 +40,7 @@ def send_mail(employee: str, reporting_manager: str, start_date: str, end_date: 
         "end_date": end_date,
         "employee": employee,
         "reporting_manager": reporting_manager,
+        "notes": notes,
     }
     message = frappe.render_template(email_message, args)
     subject = frappe.render_template(email_subject, args)

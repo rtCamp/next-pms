@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "label",
+  "icon",
   "user",
   "default",
   "public",
@@ -95,11 +96,16 @@
    "fieldname": "columns",
    "fieldtype": "Code",
    "label": "Columns"
+  },
+  {
+   "fieldname": "icon",
+   "fieldtype": "Data",
+   "label": "Icon"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-11-05 17:31:03.546785",
+ "modified": "2024-11-13 18:49:11.634186",
  "modified_by": "Administrator",
  "module": "Timesheet",
  "name": "PMS View Setting",

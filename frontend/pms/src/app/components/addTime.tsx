@@ -174,7 +174,7 @@ const AddTime = ({
 
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="max-w-xl" onPointerDownOutside={event?.preventDefault}>
         <DialogHeader>
           <DialogTitle className="flex gap-x-2">
             Add Time

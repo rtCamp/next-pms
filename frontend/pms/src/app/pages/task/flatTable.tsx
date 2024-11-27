@@ -10,7 +10,6 @@ import {
   setTableAttributePropsType,
 } from "@/types/task";
 import { flexRender } from "@tanstack/react-table";
-import { GripVertical } from "lucide-react";
 
 export const FlatTable = ({
   table,

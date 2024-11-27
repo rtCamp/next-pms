@@ -19,6 +19,7 @@ import {
   setTotalCount,
   setCurrency,
   setSelectedBilingType,
+  setOrderBy,
 } from "@/store/project";
 import { ComboxBox } from "@/app/components/comboBox";
 import { cn, parseFrappeErrorMsg, createFalseValuedObject, checkIsMobile, NO_VALUE_FIELDS } from "@/lib/utils";
@@ -52,7 +53,7 @@ import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { useFrappeDocTypeCount } from "@/app/hooks/useFrappeDocCount";
 import { Button } from "@/app/components/ui/button";
-import Sort from "./sort";
+import Sort from "@/app/components/listview/sort";
 import { TouchBackend } from "react-dnd-touch-backend";
 import _ from "lodash";
 import { setViews, ViewData } from "@/store/view";
@@ -62,6 +63,7 @@ import { getColumnInfo } from "./columns";
 import { Export } from "@/app/components/listview/export";
 import { useSearchParams } from "react-router-dom";
 import { Separator } from "@/app/components/ui/separator";
+import { sortOrder } from "@/types";
 
 const Action = ({ createView, openExportDialog }: { createView: () => void; openExportDialog: () => void }) => {
   return (
@@ -151,6 +153,7 @@ const ColumnSelector = ({
               {fields.map((field: any) => {
                 return (
                   <DropdownMenuItem
+                    key={field.fieldname}
                     className="capitalize cursor-pointer flex gap-x-2 items-center"
                     onSelect={(event) => event.preventDefault()}
                     onClick={() => {
@@ -561,7 +564,9 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
       return newColSizing;
     });
   };
-
+  const handleSortChange = (order: sortOrder, orderColumn: string) => {
+    dispatch(setOrderBy({ order, orderColumn }));
+  };
   useEffect(() => {
     updateColumnSize(columnOrder);
   }, [columnOrder]);
@@ -687,6 +692,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
             rows={viewData.rows}
             orderBy={projectState.order}
             field={projectState.orderColumn}
+            onSortChange={handleSortChange}
           />
           <Action
             createView={() => {

@@ -1,6 +1,6 @@
 import { lazy, useContext, useEffect } from "react";
-import { Route, Outlet } from "react-router-dom";
 import { TIMESHEET, HOME, TEAM, TASK, PROJECT, RESOURCE_MANAGEMENT } from "@/lib/constant";
+import { Route, Outlet, Navigate } from "react-router-dom";
 import { Layout, PmRoute } from "@/app/layout/index";
 import { RootState } from "./store";
 import { useDispatch, useSelector } from "react-redux";
@@ -17,23 +17,28 @@ const ProjectResourceComponent = lazy(() => import("@/app/pages/resource_managem
 const EmployeeDetailComponent = lazy(() => import("@/app/pages/team/employeeDetail"));
 const TaskComponent = lazy(() => import("@/app/pages/task"));
 const ProjectComponent = lazy(() => import("@/app/pages/project"));
+const NotFound = lazy(() => import("@/app/pages/404"));
 export function Router() {
   return (
-    <Route element={<AuthenticatedRoute />}>
-      <Route path={TIMESHEET} element={<TimesheetComponent />} />
-      <Route element={<PmRoute />}>
-        <Route path={HOME} element={<HomeComponent />} />
-        <Route path={TEAM}>
-          <Route path={`${TEAM}/`} element={<TeamComponent />} />
-          <Route path={`${TEAM}/employee/:id?`} element={<EmployeeDetailComponent />} />
+    <Route>
+      <Route element={<AuthenticatedRoute />}>
+        <Route path="/" element={<Navigate to={TIMESHEET} replace />} />
+        <Route path={TIMESHEET} element={<TimesheetComponent />} />
+        <Route element={<PmRoute />}>
+          <Route path={HOME} element={<HomeComponent />} />
+          <Route path={TEAM}>
+            <Route path={`${TEAM}/`} element={<TeamComponent />} />
+            <Route path={`${TEAM}/employee/:id?`} element={<EmployeeDetailComponent />} />
+          </Route>
+          <Route path={`${PROJECT}/:type?`} element={<ProjectComponent />} />
         </Route>
-        <Route path={`${PROJECT}/:type?`} element={<ProjectComponent />} />
-      </Route>
-      <Route path={RESOURCE_MANAGEMENT}>
-        <Route path={`${RESOURCE_MANAGEMENT}/`} element={<TeamResourceComponent />} />
-        {/* <Route path={`${RESOURCE_MANAGEMENT}/project`} element={<ProjectResourceComponent />} /> */}
+        <Route path={TASK} element={<TaskComponent />} />
+        <Route path={RESOURCE_MANAGEMENT}>
+          <Route path={`${RESOURCE_MANAGEMENT}/`} element={<TeamResourceComponent />} />
+        </Route>
       </Route>
       <Route path={TASK} element={<TaskComponent />} />
+      <Route path="*" element={<NotFound />} />
     </Route>
   );
 }

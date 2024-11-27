@@ -34,8 +34,7 @@ def get_compact_view_data(
         status_filter = json.loads(status_filter)
 
     for i in range(max_week):
-        current_week = True if date == now else False
-        week = get_week_dates(date=date, current_week=current_week)
+        week = get_week_dates(date=date)
         dates.append(week)
         date = add_days(getdate(week["start_date"]), -1)
     dates.reverse()
@@ -150,19 +149,13 @@ def get_compact_view_data(
 
 
 @frappe.whitelist()
-def update_timesheet_status(employee: str, status: str, dates: list[str] | str | None = None, note: str = ""):
-    import json
-
+def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | str | None = None, note: str = ""):
+    frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
     from .utils import (
         get_week_dates,
         is_timesheet_manager,
         update_weekly_status_of_timesheet,
     )
-
-    frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
-
-    if isinstance(dates, str):
-        dates = json.loads(dates)
 
     current_week = get_week_dates(dates[0])
     timesheets = frappe.get_all(
@@ -187,11 +180,9 @@ def update_timesheet_status(employee: str, status: str, dates: list[str] | str |
         doc.save()
         if status == "Approved":
             doc.submit()
-        if note:
-            doc.add_comment(text=note)
 
     update_weekly_status_of_timesheet(employee, current_week.get("start_date"))
-
+    trigger_notification_for_approved_or_rejected_timesheet(status, employee, dates, note)
     return frappe._("Timesheet status updated successfully")
 
 
@@ -256,3 +247,35 @@ def filter_employee_by_timesheet_status(
         page_length = count - start
 
     return employee, count
+
+
+def trigger_notification_for_approved_or_rejected_timesheet(
+    status: str, employee: str, dates: list[str] | None = None, note: str = ""
+):
+    if status not in ["Approved", "Rejected"]:
+        return
+    if status == "Approved":
+        template = frappe.db.get_single_value("Timesheet Settings", "timesheet_approval_template")
+    else:
+        template = frappe.db.get_single_value("Timesheet Settings", "timesheet_rejection_template")
+
+    if not template:
+        return
+    template = frappe.get_doc("Email Template", template)
+    employee = frappe.get_doc("Employee", employee)
+    email_message = ""
+    if template.use_html:
+        email_message = template.response_html
+    else:
+        email_message = template.response
+
+    email_subject = template.subject
+    args = {
+        "employee": employee,
+        "note": note,
+        "dates": dates,
+        "updated_by": frappe.get_value("User", frappe.session.user, "full_name"),
+    }
+    message = frappe.render_template(email_message, args)
+    subject = frappe.render_template(email_subject, args)
+    frappe.sendmail(recipients=employee.user_id, subject=subject, message=message)
