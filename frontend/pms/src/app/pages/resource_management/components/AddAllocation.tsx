@@ -8,20 +8,25 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/app/components/ui/input";
 import { Separator } from "@/app/components/ui/separator";
 import { Textarea } from "@/app/components/ui/textarea";
-import { cn, getFormatedDate } from "@/lib/utils";
+import { getFormatedDate } from "@/lib/utils";
 import { ResourceAllocationSchema } from "@/schema/resource";
 import { RootState } from "@/store";
-import { AllocationDataProps, setDialog } from "@/store/resource_management/allocation";
+import { AllocationDataProps, ResourceKeys, setDialog } from "@/store/resource_management/allocation";
 import { Clock3, LoaderCircle, Save, Search, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useDispatch, useSelector } from "react-redux";
 import { z } from "zod";
 import { DatePicker } from "@/app/components/datePicker";
-import { useFrappeGetCall } from "frappe-react-sdk";
+import { useFrappeCreateDoc, useFrappeGetCall } from "frappe-react-sdk";
 import { useState } from "react";
+import { useToast } from "@/app/components/ui/use-toast";
 
-const AddResourceAllocations = () => {
+interface AddResourceAllocationsProps {
+  handleAfterActionDone: () => void;
+}
+
+const AddResourceAllocations = ({ handleAfterActionDone }: AddResourceAllocationsProps) => {
   const ResourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
   const dispatch = useDispatch();
 
@@ -37,10 +42,14 @@ const AddResourceAllocations = () => {
 
   const { data: customers } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Customer",
-    filter: { project_name: ["like", `%${customerSearch}%`] },
+    filter: { customer_name: ["like", `%${customerSearch}%`] },
     fields: ["name", "customer_name"],
     limit_page_length: 20,
   });
+
+  const { toast } = useToast();
+
+  const { createDoc: createAllocations, loading: creatingAllocations } = useFrappeCreateDoc();
 
   const form = useForm<z.infer<typeof ResourceAllocationSchema>>({
     resolver: zodResolver(ResourceAllocationSchema),
@@ -61,7 +70,7 @@ const AddResourceAllocations = () => {
   const handleEmployeeChange = (value: string) => {
     form.setValue("employee", value);
   };
-  const handleSearchChange = (key: string, value: string | string[]) => {
+  const handleSearchChange = (key: ResourceKeys, value: string | string[]) => {
     if (typeof value === "string") {
       form.setValue(key, value);
     }
@@ -71,7 +80,7 @@ const AddResourceAllocations = () => {
     }
   };
 
-  const handleDateChange = (key: string, date: Date | undefined) => {
+  const handleDateChange = (key: ResourceKeys, date: Date | undefined) => {
     if (!date) return;
     form.setValue(key, getFormatedDate(date));
   };
@@ -80,8 +89,28 @@ const AddResourceAllocations = () => {
     dispatch(setDialog(open));
   };
 
-  const handleSubmit = (data: any) => {
-    //console.log(data);
+  const handleSubmit = (data: AllocationDataProps) => {
+    if (!data) {
+      return;
+    }
+    createAllocations("Resource Allocation", {
+      employee: data.employee,
+      project: data.project,
+      customer: data.customer,
+      total_allocated_hours: data.total_allocated_hours,
+      hours_allocated_per_day: data.hours_allocated_per_day,
+      allocation_start_date: data.allocation_start_date,
+      allocation_end_date: data.allocation_end_date,
+      note: data.note,
+    }).then(() => {
+      toast({
+        variant: "success",
+        description: "Resouce allocation created successfully",
+      });
+      handleOpen(false);
+      form.reset();
+      handleAfterActionDone();
+    });
   };
 
   return (
@@ -125,7 +154,7 @@ const AddResourceAllocations = () => {
                             ? [form.getValues("customer")]
                             : []
                         }
-                        data={customers?.message?.map((item) => ({
+                        data={customers?.message?.map((item: { customer_name: string; name: string }) => ({
                           label: item.customer_name,
                           value: item.name,
                           disabled: false,
@@ -154,7 +183,7 @@ const AddResourceAllocations = () => {
                           ? [form.getValues("project")]
                           : []
                       }
-                      data={projects?.message?.map((item) => ({
+                      data={projects?.message?.map((item: { project_name: string; name: string }) => ({
                         label: item.project_name,
                         value: item.name,
                         disabled: false,
@@ -276,10 +305,20 @@ const AddResourceAllocations = () => {
             <DialogFooter className="sm:justify-start w-full pt-3">
               <div className="flex gap-x-4 w-full">
                 <Button>
-                  {false ? <LoaderCircle className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
+                  {creatingAllocations ? (
+                    <LoaderCircle className="animate-spin w-4 h-4" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
                   Save
                 </Button>
-                <Button type="button" variant="secondary">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    handleOpen(false);
+                  }}
+                >
                   <X className="w-4 h-4" />
                   Cancel
                 </Button>

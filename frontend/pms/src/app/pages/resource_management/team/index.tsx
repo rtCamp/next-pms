@@ -16,7 +16,7 @@ const ResourceTeamView = () => {
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
   const dispatch = useDispatch();
 
-  const { data, isLoading, isValidating, error } = useFrappeGetCall(
+  const { data, isLoading, isValidating, error, mutate } = useFrappeGetCall(
     "next_pms.resource_management.api.team.get_resource_management_team_view_data",
     {
       date: resourceTeamState.weekDate,
@@ -31,6 +31,14 @@ const ResourceTeamView = () => {
       revalidateIfStale: false,
     }
   );
+
+  const refetchData = () => {
+    mutate().then((r) => {
+      if (r.message) {
+        dispatch(setData(data.message));
+      }
+    });
+  };
 
   useEffect(() => {
     if (data) {
@@ -70,7 +78,7 @@ const ResourceTeamView = () => {
         <ResourceTeamTable />
       )}
 
-      <AddResourceAllocations />
+      <AddResourceAllocations handleAfterActionDone={refetchData} />
 
       <FooterSection
         disabled={

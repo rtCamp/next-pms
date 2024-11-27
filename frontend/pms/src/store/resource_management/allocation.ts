@@ -1,6 +1,17 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { getTodayDate, getFormatedDate } from "@/lib/utils";
 
+export type ResourceKeys =
+  | "project"
+  | "employee"
+  | "is_billable"
+  | "customer"
+  | "total_allocated_hours"
+  | "hours_allocated_per_day"
+  | "allocation_start_date"
+  | "allocation_end_date"
+  | "note";
+
 export type AllocationDataProps = {
   isShowDialog: boolean;
   employee: string;
@@ -11,19 +22,20 @@ export type AllocationDataProps = {
   hours_allocated_per_day: number;
   allocation_start_date: string;
   allocation_end_date: string;
+  note: string;
 };
 
 const initialState = {
-  isShowDialog: true,
+  isShowDialog: false,
   employee: "",
   is_billable: "",
   project: "",
   customer: "",
   total_allocated_hours: 0,
   hours_allocated_per_day: 0,
-  allocation_start_date: getFormatedDate(getTodayDate()),
-  allocation_end_date: getFormatedDate(getTodayDate()),
-  note:""
+  allocation_start_date: "",
+  allocation_end_date: "",
+  note: "",
 };
 
 const ResourceTeamSlice = createSlice({
