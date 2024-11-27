@@ -31,7 +31,7 @@ export function Router() {
       </Route>
       <Route path={RESOURCE_MANAGEMENT}>
         <Route path={`${RESOURCE_MANAGEMENT}/`} element={<TeamResourceComponent />} />
-        <Route path={`${RESOURCE_MANAGEMENT}/project`} element={<ProjectResourceComponent />} />
+        {/* <Route path={`${RESOURCE_MANAGEMENT}/project`} element={<ProjectResourceComponent />} /> */}
       </Route>
       <Route path={TASK} element={<TaskComponent />} />
     </Route>

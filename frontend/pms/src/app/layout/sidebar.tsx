@@ -98,19 +98,19 @@ const Sidebar = () => {
       icon: GanttChart,
       label: "Resource Management",
       key: "resource-management",
-      isPmRoute: true,
-      children: [
-        {
-          to: RESOURCE_MANAGEMENT,
-          label: "Team View",
-          key: "team-view",
-        },
-        {
-          to: RESOURCE_MANAGEMENT + "/project",
-          label: "Project View",
-          key: "project-view",
-        },
-      ],
+      isPmRoute: false,
+      // children: [
+      //   {
+      //     to: RESOURCE_MANAGEMENT,
+      //     label: "Team View",
+      //     key: "team-view",
+      //   },
+      //   {
+      //     to: RESOURCE_MANAGEMENT + "/project",
+      //     label: "Project View",
+      //     key: "project-view",
+      //   },
+      // ],
     },
     {
       to: TASK,
