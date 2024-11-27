@@ -1,6 +1,10 @@
 import { Typography } from "@/app/components/typography";
 import { TableBody, TableCell, TableRow } from "@/app/components/ui/table";
 import { getTableCellClass } from "../utils/helper";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@radix-ui/react-hover-card";
+import { cn } from "@/lib/utils";
+import { CirclePlus } from "lucide-react";
+import { useState } from "react";
 
 const EmptyTableBody = () => {
   return (
@@ -12,6 +16,33 @@ const EmptyTableBody = () => {
       </TableRow>
     </TableBody>
   );
+};
+
+interface EmptyTableCellProps {
+  cellClassName?: string;
+  textClassName?: string;
+  onCellClick?: () => void;
+}
+
+const EmptyTableCell = ({ cellClassName, textClassName, onCellClick }: EmptyTableCellProps) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  if (onCellClick) {
+    return (
+      <TableCell
+        className={cn("cursor-pointer", cellClassName)}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onClick={onCellClick}
+      >
+        <Typography className={cn("text-gray-800 text-xs flex items-center", textClassName)} variant="p">
+          {isHovered ? <CirclePlus className={cn("text-center")} size={4} /> : "-"}
+        </Typography>
+      </TableCell>
+    );
+  }
+
+  return <TableCell className={className}>{"-"}</TableCell>;
 };
 
 const EmptyRow = ({ dates }: { dates: string[] }) => {
@@ -36,4 +67,4 @@ const EmptyRow = ({ dates }: { dates: string[] }) => {
   );
 };
 
-export { EmptyTableBody, EmptyRow };
+export { EmptyTableBody, EmptyRow, EmptyTableCell };

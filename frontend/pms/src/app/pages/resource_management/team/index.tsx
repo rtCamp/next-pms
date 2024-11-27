@@ -14,6 +14,7 @@ import AddResourceAllocations from "../components/AddAllocation";
 const ResourceTeamView = () => {
   const { toast } = useToast();
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
+  const ResourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
   const dispatch = useDispatch();
 
   const { data, isLoading, isValidating, error, mutate } = useFrappeGetCall(
@@ -35,7 +36,7 @@ const ResourceTeamView = () => {
   const refetchData = () => {
     mutate().then((r) => {
       if (r.message) {
-        dispatch(setData(data.message));
+        dispatch(setData(r.message));
       }
     });
   };
@@ -78,7 +79,7 @@ const ResourceTeamView = () => {
         <ResourceTeamTable />
       )}
 
-      <AddResourceAllocations handleAfterActionDone={refetchData} />
+      {ResourceAllocationForm.isShowDialog && <AddResourceAllocations handleAfterActionDone={refetchData} />}
 
       <FooterSection
         disabled={

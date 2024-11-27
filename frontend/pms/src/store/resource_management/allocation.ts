@@ -17,7 +17,9 @@ export type AllocationDataProps = {
   employee: string;
   is_billable: boolean;
   project: string;
+  project_name: string;
   customer: string;
+  customer_name: string;
   total_allocated_hours: number;
   hours_allocated_per_day: number;
   allocation_start_date: string;
@@ -28,9 +30,11 @@ export type AllocationDataProps = {
 const initialState = {
   isShowDialog: false,
   employee: "",
-  is_billable: "",
+  is_billable: false,
   project: "",
+  project_name: "",
   customer: "",
+  customer_name: "",
   total_allocated_hours: 0,
   hours_allocated_per_day: 0,
   allocation_start_date: "",
@@ -46,8 +50,18 @@ const ResourceTeamSlice = createSlice({
     setDialog: (state, action: PayloadAction<boolean>) => {
       state.isShowDialog = action.payload;
     },
+    setResourceFormData: (
+      state,
+      action: PayloadAction<AllocationDataProps>
+    ) => {
+      Object.assign(state, action.payload);
+    },
+    resetState: (state) => {
+      Object.assign(state, initialState);
+    },
   },
 });
 
-export const { setDialog } = ResourceTeamSlice.actions;
+export const { setDialog, setResourceFormData, resetState } =
+  ResourceTeamSlice.actions;
 export default ResourceTeamSlice.reducer;

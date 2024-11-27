@@ -2,13 +2,14 @@ import { Table, TableBody, TableCell, TableRow } from "@/app/components/ui/table
 import { Typography } from "@/app/components/typography";
 import { EmployeeDataProps } from "@/store/resource_management/team";
 import { useMemo } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { getTableCellClass } from "../../utils/helper";
 import { HoverCardContent, HoverCardTrigger, HoverCard } from "@/app/components/ui/hover-card";
 import { ResourceAllocationList } from "../../components/Card";
 import { CombinedResourceObjectProps, CombinedResourceDataProps, groupAllocations } from "../utils/group";
-import { EmptyRow } from "../../components/Empty";
+import { EmptyRow, EmptyTableCell } from "../../components/Empty";
+import { setDialog, setResourceFormData } from "@/store/resource_management/allocation";
 
 export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDataProps }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -59,6 +60,10 @@ export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDat
                         key={date + "-" + index}
                         index={index}
                         allocationsData={itemData.all_allocation[date]}
+                        date={date}
+                        employee={employeeData.name}
+                        project={item}
+                        project_name={itemData.project_name}
                       />
                     );
                   })}
@@ -75,15 +80,53 @@ export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDat
   );
 };
 
-const ExpandViewCell = ({ allocationsData, index }: { allocationsData: any; index: number }) => {
+const ExpandViewCell = ({
+  allocationsData,
+  index,
+  date,
+  project,
+  employee,
+  project_name,
+}: {
+  allocationsData: any;
+  index: number;
+  date: string;
+  project: string;
+  employee: string;
+  customer_name?: string;
+  project_name: string;
+}) => {
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
+  const dispatch = useDispatch();
 
   const total_allocated_hours = allocationsData ? allocationsData.total_allocated_hours : 0;
 
   const total_worked_hours = allocationsData ? allocationsData.total_worked_hours_resource_allocation : 0;
 
   if (total_allocated_hours == 0 && total_allocated_hours == 0) {
-    return <TableCell className={getTableCellClass(index)}>{"-"}</TableCell>;
+    return (
+      <EmptyTableCell
+        cellClassName={getTableCellClass(index)}
+        onCellClick={() => {
+          dispatch(
+            setResourceFormData({
+              isShowDialog: true,
+              employee: employee,
+              project: project,
+              allocation_start_date: date,
+              allocation_end_date: date,
+              is_billable: false,
+              customer: "",
+              total_allocated_hours: 0,
+              hours_allocated_per_day: 0,
+              note: "",
+              project_name: project_name,
+              customer_name: "",
+            })
+          );
+        }}
+      />
+    );
   }
 
   return (

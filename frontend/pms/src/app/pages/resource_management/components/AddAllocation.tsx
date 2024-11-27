@@ -19,8 +19,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { z } from "zod";
 import { DatePicker } from "@/app/components/datePicker";
 import { useFrappeCreateDoc, useFrappeGetCall } from "frappe-react-sdk";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "@/app/components/ui/use-toast";
+import { resetState } from "@/store/resource_management/allocation";
 
 interface AddResourceAllocationsProps {
   handleAfterActionDone: () => void;
@@ -30,19 +31,19 @@ const AddResourceAllocations = ({ handleAfterActionDone }: AddResourceAllocation
   const ResourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
   const dispatch = useDispatch();
 
-  const [projectSearch, setProjectSearch] = useState("");
-  const [customerSearch, setCustomerSearch] = useState("");
+  const [projectSearch, setProjectSearch] = useState(ResourceAllocationForm.project_name);
+  const [customerSearch, setCustomerSearch] = useState(ResourceAllocationForm.customer_name);
 
   const { data: projects } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Project",
-    filter: { project_name: ["like", `%${projectSearch}%`] },
+    filters: [["project_name", "like", `%${projectSearch}%`]],
     fields: ["name", "project_name"],
     limit_page_length: 20,
   });
 
   const { data: customers } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Customer",
-    filter: { customer_name: ["like", `%${customerSearch}%`] },
+    filters: { customer_name: ["like", `%${customerSearch}%`] },
     fields: ["name", "customer_name"],
     limit_page_length: 20,
   });
@@ -57,15 +58,33 @@ const AddResourceAllocations = ({ handleAfterActionDone }: AddResourceAllocation
       employee: "",
       is_billable: false,
       project: "",
+      project_name: "",
       customer: "",
+      customer_name: "",
       total_allocated_hours: "",
       hours_allocated_per_day: "",
-      allocation_start_date: ResourceAllocationForm.allocation_start_date,
-      allocation_end_date: ResourceAllocationForm.allocation_end_date,
+      allocation_start_date: "",
+      allocation_end_date: "",
       note: "",
     },
     mode: "onSubmit",
   });
+
+  useEffect(() => {
+    form.reset({
+      employee: ResourceAllocationForm.employee,
+      is_billable: ResourceAllocationForm.is_billable,
+      project: ResourceAllocationForm.project,
+      project_name: ResourceAllocationForm.project_name,
+      customer: ResourceAllocationForm.customer,
+      customer_name: ResourceAllocationForm.customer_name,
+      total_allocated_hours: ResourceAllocationForm.total_allocated_hours,
+      hours_allocated_per_day: ResourceAllocationForm.hours_allocated_per_day,
+      allocation_start_date: ResourceAllocationForm.allocation_start_date,
+      allocation_end_date: ResourceAllocationForm.allocation_end_date,
+      note: ResourceAllocationForm.note,
+    });
+  }, [ResourceAllocationForm, form]);
 
   const handleEmployeeChange = (value: string) => {
     form.setValue("employee", value);
@@ -87,12 +106,17 @@ const AddResourceAllocations = ({ handleAfterActionDone }: AddResourceAllocation
 
   const handleOpen = (open: boolean): void => {
     dispatch(setDialog(open));
+    if (open === false) {
+      form.reset();
+      dispatch(resetState());
+    }
   };
 
   const handleSubmit = (data: AllocationDataProps) => {
     if (!data) {
       return;
     }
+    console.log(data, "form submission");
     createAllocations("Resource Allocation", {
       employee: data.employee,
       project: data.project,
@@ -102,15 +126,22 @@ const AddResourceAllocations = ({ handleAfterActionDone }: AddResourceAllocation
       allocation_start_date: data.allocation_start_date,
       allocation_end_date: data.allocation_end_date,
       note: data.note,
-    }).then(() => {
-      toast({
-        variant: "success",
-        description: "Resouce allocation created successfully",
+    })
+      .then(() => {
+        toast({
+          variant: "success",
+          description: "Resouce allocation created successfully",
+        });
+        handleOpen(false);
+        form.reset();
+        handleAfterActionDone();
+      })
+      .catch(() => {
+        toast({
+          variant: "destructive",
+          description: "Failed to create resource allocation",
+        });
       });
-      handleOpen(false);
-      form.reset();
-      handleAfterActionDone();
-    });
   };
 
   return (
@@ -127,7 +158,9 @@ const AddResourceAllocations = ({ handleAfterActionDone }: AddResourceAllocation
               name="employee"
               render={() => (
                 <FormItem className="w-full space-y-1">
-                  <FormLabel className="flex gap-2 items-center text-sm">Employee</FormLabel>
+                  <FormLabel className="flex gap-2 items-center text-sm">
+                    Employee <span className="text-red-400">*</span>
+                  </FormLabel>
                   <FormControl>
                     <EmployeeCombo onSelect={handleEmployeeChange} value={form.getValues("employee")} />
                   </FormControl>
@@ -141,7 +174,9 @@ const AddResourceAllocations = ({ handleAfterActionDone }: AddResourceAllocation
                 name="customer"
                 render={() => (
                   <FormItem className="space-y-1">
-                    <FormLabel>Customer</FormLabel>
+                    <FormLabel>
+                      Customer <span className="text-red-400">*</span>
+                    </FormLabel>
                     <FormControl>
                       <ComboxBox
                         label="Search Customer"
@@ -200,7 +235,9 @@ const AddResourceAllocations = ({ handleAfterActionDone }: AddResourceAllocation
                 name="allocation_start_date"
                 render={({ field }) => (
                   <FormItem className="w-full space-y-1">
-                    <FormLabel className="flex gap-2 items-center text-sm">Start Date</FormLabel>
+                    <FormLabel className="flex gap-2 items-center text-sm">
+                      Start Date<span className="text-red-400">*</span>
+                    </FormLabel>
                     <FormControl>
                       <DatePicker
                         date={field.value}
@@ -217,7 +254,9 @@ const AddResourceAllocations = ({ handleAfterActionDone }: AddResourceAllocation
                 name="allocation_end_date"
                 render={({ field }) => (
                   <FormItem className="w-full space-y-1">
-                    <FormLabel className="flex gap-2 items-center text-sm">End Date</FormLabel>
+                    <FormLabel className="flex gap-2 items-center text-sm">
+                      End Date<span className="text-red-400">*</span>
+                    </FormLabel>
                     <FormControl>
                       <DatePicker
                         date={field.value}
@@ -263,7 +302,9 @@ const AddResourceAllocations = ({ handleAfterActionDone }: AddResourceAllocation
                 render={({ field }) => (
                   <FormItem className="w-full space-y-1">
                     <FormLabel className="flex gap-2 items-center">
-                      <p className="text-sm">Hours / Day</p>
+                      <p className="text-sm">
+                        Hours / Day <span className="text-red-400">*</span>
+                      </p>
                     </FormLabel>
                     <FormControl>
                       <>

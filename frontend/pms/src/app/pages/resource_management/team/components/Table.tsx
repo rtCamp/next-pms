@@ -1,4 +1,4 @@
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { DateProps, EmployeeResourceProps, EmployeeDataProps } from "@/store/resource_management/team";
 import { cn } from "@/lib/utils";
@@ -10,8 +10,9 @@ import { getTableCellClass } from "../../utils/helper";
 import { CustomerAllocationList } from "./CustomerAllocationList";
 import { ResourceAllocationObjectProps } from "@/types/resource_management";
 import ResourceTeamTableHeader from "../../components/TableHeader";
-import { EmptyTableBody } from "../../components/Empty";
+import { EmptyTableBody, EmptyTableCell } from "../../components/Empty";
 import { ResourceTableRow } from "../../components/TableRow";
+import { setResourceFormData } from "@/store/resource_management/allocation";
 
 const ResourceTeamTable = () => {
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_team.data.dates);
@@ -49,6 +50,7 @@ const ResourceTeamTableBody = () => {
                         key={`${employeeSingleDay.total_allocated_hours}-id-${Math.random()}`}
                         employeeSingleDay={employeeSingleDay}
                         allWeekData={employeeData.all_week_data}
+                        employee={employeeData.name}
                         rowCount={index}
                         max_allocation_count_for_single_date={employeeData.max_allocation_count_for_single_date}
                         midIndex={index <= 4 ? 0 : 1}
@@ -73,6 +75,7 @@ const ResourceTeamTableCell = ({
   employeeSingleDay,
   allWeekData,
   rowCount,
+  employee,
   max_allocation_count_for_single_date,
   midIndex,
   employeeAllocations,
@@ -80,6 +83,7 @@ const ResourceTeamTableCell = ({
   employeeSingleDay: EmployeeResourceProps;
   allWeekData: any;
   rowCount: number;
+  employee: string;
   max_allocation_count_for_single_date: number;
   midIndex: number;
   employeeAllocations: ResourceAllocationObjectProps;
@@ -89,6 +93,7 @@ const ResourceTeamTableCell = ({
   const heightFactor: number = 40;
   const height: number =
     max_allocation_count_for_single_date == 0 ? 0 : max_allocation_count_for_single_date * heightFactor;
+  const dispatch = useDispatch();
 
   let allocationPercentage = useMemo(() => {
     if (tableView.combineWeekHours) {
@@ -209,6 +214,33 @@ const ResourceTeamTableCell = ({
           children={undefined}
         ></Typography>
       </TableCell>
+    );
+  }
+
+  if (!tableView.combineWeekHours && !employeeSingleDay.is_on_leave && employeeSingleDay.total_allocated_hours == 0) {
+    return (
+      <EmptyTableCell
+        cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
+        textClassName="h-6"
+        onCellClick={() => {
+          dispatch(
+            setResourceFormData({
+              isShowDialog: true,
+              employee: employee,
+              allocation_start_date: employeeSingleDay.date,
+              allocation_end_date: employeeSingleDay.date,
+              is_billable: false,
+              total_allocated_hours: 0,
+              hours_allocated_per_day: 0,
+              note: "",
+              project: "",
+              project_name: "",
+              customer: "",
+              customer_name: "",
+            })
+          );
+        }}
+      />
     );
   }
 
