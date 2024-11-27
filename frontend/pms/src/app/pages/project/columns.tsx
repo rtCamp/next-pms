@@ -37,7 +37,7 @@ export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, c
           return (
             <Typography
               variant="p"
-              className={cn("truncate", value < 0 && "text-destructive")}
+              className={cn("truncate text-right", value < 0 && "text-destructive")}
               title={value.toString()}
             >
               {formatter.format(value)}
@@ -51,25 +51,19 @@ export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, c
             </Typography>
           );
         } else if (meta.fieldtype === "Percent") {
-          const per = Number(parseFloat(value).toFixed(2));
-          let color = "";
-          if (f == "custom_percentage_estimated_cost" && fieldInfo.includes("percent_complete")) {
-            const perEstimatedCost = row.original["custom_percentage_estimated_cost"];
-            const percentComplete = row.original["percent_complete"];
-            const diff = ((percentComplete - perEstimatedCost) / perEstimatedCost) * 100;
-            color =
-              perEstimatedCost < percentComplete
-                ? "bg-success"
-                : diff > 0 && diff <= 10
-                ? "bg-warning"
-                : "bg-destructive";
-          }
+          const val = parseFloat(value);
+          const per = val > 0 ? Number(val.toFixed(2)) : 0;
+          const color = progressBarColor(meta.fieldname, fieldInfo, row, per);
           return (
             <span>
-              <Typography variant="small" className={cn("truncate", per < 0 && "text-destructive")} title={value}>
+              <Typography
+                variant="small"
+                className={cn("truncate", per < 0 && "text-destructive")}
+                title={per.toString()}
+              >
                 {per}%
               </Typography>
-              <Progress className="h-2" indicatorClassName={cn(color)} value={per} />
+              <Progress className="h-2" indicatorClassName={cn(color)} value={per} title={per.toString()} />
             </span>
           );
         } else if (HOUR_FIELD.includes(meta.fieldname)) {
@@ -101,7 +95,7 @@ export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, c
           );
         } else {
           return (
-            <Typography variant="p" className="truncate" title={value}>
+            <Typography variant="p" className={cn("truncate", leftAlignCss(meta.fieldType))} title={value}>
               {value}
             </Typography>
           );
@@ -114,4 +108,23 @@ export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, c
 };
 export const Empty = () => {
   return <span></span>;
+};
+
+const leftAlignCss = (fieldType: string) => {
+  const type = ["Int", "Currency", "Float"];
+
+  if (type.includes(fieldType)) {
+    return "text-left";
+  }
+  return "";
+};
+const progressBarColor = (field: string, fieldInfo: Array<string>, row: any, value: number) => {
+  if (field == "custom_percentage_estimated_cost" && fieldInfo.includes("percent_complete")) {
+    const perEstimatedCost = row.original["custom_percentage_estimated_cost"];
+    const percentComplete = row.original["percent_complete"];
+    const diff = ((percentComplete - perEstimatedCost) / perEstimatedCost) * 100;
+    return perEstimatedCost < percentComplete ? "bg-success" : diff > 0 && diff <= 10 ? "bg-warning" : "bg-destructive";
+  } else {
+    return value < 34 ? "bg-destructive" : value < 67 ? "bg-warning" : "bg-success";
+  }
 };

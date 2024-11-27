@@ -8,7 +8,7 @@ from frappe.utils import (
     nowdate,
 )
 
-from .employee import get_employee_from_user, get_employee_working_hours
+from .employee import get_employee_daily_working_norm, get_employee_from_user, get_employee_working_hours
 from .utils import (
     get_holidays,
     get_leaves_for_employee,
@@ -27,7 +27,6 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
 
     if not employee:
         employee = get_employee_from_user()
-
     if frappe.session.user != "Administrator":
         if not frappe.has_permission("Employee", "read", employee) and (
             "Timesheet Manager" not in user_roles and "Timesheet User" not in user_roles
@@ -37,20 +36,39 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
                 frappe.PermissionError,
             )
 
-    def generate_week_data(start_date, max_week, employee=None):
+    def generate_week_data(start_date, max_week, employee=None, leaves=None, holidays=None):
         data = {}
+        daily_norm = get_employee_daily_working_norm(employee)
         for i in range(max_week):
-            current_week = start_date == now
-            week_dates = get_week_dates(start_date, current_week=current_week)
+            week_dates = get_week_dates(start_date)
             week_key = week_dates["key"]
             tasks, total_hours, status = {}, 0, "Not Submitted"
             if employee:
+                holiday_dates = [holiday["holiday_date"] for holiday in holidays] if holidays else []
                 tasks, total_hours = get_timesheet(week_dates["dates"], employee)
                 status = get_timesheet_state(
                     start_date=week_dates["dates"][0],
                     end_date=week_dates["dates"][-1],
                     employee=employee,
                 )
+                leave_total = 0
+                week_leaves = [
+                    leave
+                    for leave in leaves
+                    if leave["from_date"] <= week_dates["dates"][-1] and leave["to_date"] >= week_dates["dates"][0]
+                ]
+                for leave in week_leaves:
+                    if leave["half_day"]:
+                        leave_total += daily_norm / 2
+                    else:
+                        num_days = 0
+                        for date in week_dates["dates"]:
+                            if date not in holiday_dates and leave["from_date"] <= date <= leave["to_date"]:
+                                num_days += 1
+                        leave_total += daily_norm * num_days
+
+                if daily_norm * 5 == leave_total:
+                    status = "Approved"
             data[week_key] = {
                 **week_dates,
                 "total_hours": total_hours,
@@ -72,19 +90,20 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
     if not frappe.db.exists("Employee", employee):
         throw(_("No employee found for current user."), frappe.DoesNotExistError)
 
-    res["holidays"] = get_holidays(
+    holidays = get_holidays(
         employee,
         add_days(start_date, -max_week * 7),
         add_days(start_date, max_week * 7),
     )
 
-    res["leaves"] = get_leaves_for_employee(
+    leaves = get_leaves_for_employee(
         add_days(start_date, -max_week * 7),
         add_days(start_date, max_week * 7),
         employee,
     )
-
-    res["data"] = generate_week_data(start_date, max_week, employee)
+    res["leaves"] = leaves
+    res["holidays"] = holidays
+    res["data"] = generate_week_data(start_date, max_week, employee, leaves, holidays)
     return res
 
 
@@ -130,8 +149,6 @@ def delete(parent: str, name: str):
 
 @frappe.whitelist()
 def submit_for_approval(start_date: str, notes: str = None, employee: str = None):
-    from frappe.desk.form.utils import add_comment
-
     from next_pms.timesheet.tasks.reminder_on_approval_request import (
         send_approval_reminder,
     )
@@ -162,20 +179,10 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
     if not timesheets:
         throw(_("No timesheet found for the given week."))
 
-    length = len(timesheets)
-    for index, timesheet in enumerate(timesheets):
+    for timesheet in timesheets:
         frappe.db.set_value("Timesheet", timesheet.name, "custom_approval_status", "Approval Pending")
-        if index == length - 1 and notes:
-            add_comment(
-                "Timesheet",
-                timesheet.name,
-                notes,
-                frappe.session.user,
-                frappe.session.user,
-            )
-
     update_weekly_status_of_timesheet(employee, start_date)
-    send_approval_reminder(employee, reporting_manager, start_date, end_date)
+    send_approval_reminder(employee, reporting_manager, start_date, end_date, notes)
     return f"Timesheet has been sent for Approval to {reporting_manager_name}."
 
 
@@ -371,49 +378,43 @@ def get_remaining_hour_for_employee(employee: str, date: str):
         add_days(date, 4 * 7),
         employee,
     )
-    data = next(
-        (leave for leave in leaves if leave.get("from_date") <= date <= leave.get("to_date")),
-        None,
-    )
+    data = [leave for leave in leaves if leave.get("from_date") <= date <= leave.get("to_date")]
+
     if data:
-        if data.get("half_day") and data.get("half_day_date") == date:
-            total_hours += working_hours.get("working_hour") / 2
-        else:
-            total_hours += working_hours.get("working_hour")
+        for d in data:
+            if d.get("half_day") and d.get("half_day_date") == date:
+                total_hours += working_hours.get("working_hour") / 2
+            else:
+                total_hours += working_hours.get("working_hour")
     return working_hours.get("working_hour") - total_hours
 
 
 @frappe.whitelist()
 def get_timesheet_details(date: str, task: str, employee: str):
-    """Return the time entry from Timesheet Detail child table based on the list of dates and for the given employee."""
-    pass
-    timesheet_detail = frappe.qb.DocType("Timesheet Detail")
-    timesheet = frappe.qb.DocType("Timesheet")
-
-    res = (
-        frappe.qb.from_(timesheet_detail)
-        .inner_join(timesheet)
-        .on(timesheet_detail.parent == timesheet.name)
-        .select(
-            timesheet_detail.name,
-            timesheet_detail.hours,
-            timesheet_detail.description,
-            timesheet_detail.task,
-            timesheet_detail.from_time.as_("date"),
-            timesheet_detail.parent,
-            timesheet_detail.is_billable,
-        )
-        .where(timesheet_detail.task == task)
-        .where(timesheet.employee == employee)
-        .where(timesheet.start_date == getdate(date))
+    logs = frappe.get_list(
+        "Timesheet",
+        fields=[
+            "time_logs.name",
+            "time_logs.hours",
+            "time_logs.description",
+            "time_logs.task",
+            "time_logs.from_time as date",
+            "time_logs.parent",
+            "time_logs.is_billable",
+        ],
+        filters={
+            "start_date": ["=", getdate(date)],
+            "employee": employee,
+        },
+        ignore_permissions=is_timesheet_user() or is_timesheet_manager(),
     )
-    data = res.run(as_dict=True)
+    logs = [log for log in logs if log["task"] == task]
     subject, project_name = frappe.get_value("Task", task, ["subject", "project.project_name"])
 
     return {
         "task": subject,
         "project": project_name,
-        "data": data,
+        "data": logs,
     }
 
 

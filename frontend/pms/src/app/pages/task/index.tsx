@@ -6,7 +6,6 @@ import { RootState } from "@/store";
 import {
   setStart,
   setSelectedProject,
-  // setFetchAgain,
   setGroupBy,
   setAddTaskDialog,
   updateTaskData,
@@ -76,54 +75,55 @@ import { Checkbox } from "@/app/components/ui/checkbox";
 import { columnMap, getTableProps, localStorageTaskDataMap } from "./helper";
 import { LOCAL_STORAGE_TASK } from "@/lib/constant";
 import { flatTableColumnDefinition, nestedTableColumnDefinition } from "./columns";
-// import Sort from "./sort";
 import { TouchBackend } from "react-dnd-touch-backend";
 
 const Task = () => {
   const task = useSelector((state: RootState) => state.task);
   const user = useSelector((state: RootState) => state.user);
   const timesheet = useSelector((state: RootState) => state.timesheet);
+
   const tableprop = useMemo(() => {
     return getTableProps();
   }, []);
   const [tableAttributeProps, setTableAttributeProps] = useState<tableAttributePropsType>(tableprop);
   const [columnOrder, setColumnOrder] = useState<string[]>(tableprop.columnOrder);
   const { call } = useFrappePostCall("frappe.desk.like.toggle_like");
-  // States for maintaining tables and filters
   const [expanded, setExpanded] = useState<ExpandedState>(true);
-  // LocalStorage States
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     createFalseValuedObject(tableAttributeProps?.hideColumn ?? {})
   );
   const [projectParam, setProjectParam] = useQueryParamsState<string[]>("project", []);
   const [groupByParam, setGroupByParam] = useQueryParamsState<GroupByParamType>("groupby", []);
   const [subjectSearchParam, setSubjectSearchParam] = useQueryParamsState<subjectSearchType>("search", "");
+  const [statusParam, setStatusParam] = useQueryParamsState<Array<string>>("status", ["Open", "Working"]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
-  const handleSubjectSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const searchStr = e.target.value.trim();
-    setSubjectSearchParam(searchStr);
-    dispatch(setStart(0));
+  useEffect(() => {
+    // set localStorage Map for Task
+    if (!localStorage.getItem(LOCAL_STORAGE_TASK)) {
+      localStorage.setItem(LOCAL_STORAGE_TASK, JSON.stringify(localStorageTaskDataMap));
+      setTableAttributeProps(localStorageTaskDataMap);
+    }
+    dispatch(setSelectedProject(projectParam));
   }, []);
 
-  // GroupBy Data for ComboBox
   const groupByData = [
     {
       label: "Projects",
       value: "project",
     },
   ];
-
+  const status = [
+    { value: "Open", label: "Open" },
+    { value: "Working", label: "Working" },
+    { value: "Pending Review", label: "Pending Review" },
+    { value: "Overdue", label: "Overdue" },
+    { value: "Template", label: "Template" },
+    { value: "Completed", label: "Completed" },
+    { value: "Cancelled", label: "Cancelled" },
+  ];
   const dispatch = useDispatch();
   const { toast } = useToast();
-
-  useEffect(() => {
-    dispatch(setSelectedProject(projectParam));
-  }, []);
-
-  useEffect(() => {
-    dispatch(setGroupBy(groupByParam));
-  }, [groupByParam]);
 
   const handleAddTime = (taskName: string) => {
     const timesheetData = {
@@ -153,21 +153,12 @@ const Task = () => {
     },
     "projects",
     {
-      shouldRetryOnError: false,
-      revalidateOnFocus: false,
+      revalidateIfStale: false,
     }
   );
   useEffect(() => {
     projectSearchMutate();
   }, [projectSearch]);
-
-  const loadMore = () => {
-    dispatch(setStart(task.start + 20));
-  };
-
-  useEffect(() => {
-    setProjectParam(task.selectedProject);
-  }, [setProjectParam, task.selectedProject]);
 
   useEffect(() => {
     setGroupByParam(task.groupBy);
@@ -175,23 +166,28 @@ const Task = () => {
 
   // call to fetch task list from DB ( single data source for flat and nested table)
   const { data, isLoading, error, mutate } = useFrappeGetCall("next_pms.timesheet.api.task.get_task_list", {
-    page_length: 20,
+    page_length: task.pageLength,
     start: task.start,
     projects: task.selectedProject,
     search: subjectSearchParam,
-    limit_start: task.start,
-    limit: task.pageLength,
-    order_by: {
-      field: task.orderColumn,
-      order: task.order as "asc" | "desc" | undefined,
-    },
+    status: statusParam,
   });
 
   useEffect(() => {
-    if (task.isFetchAgain) {
-      mutate();
-    }
-  }, [task.isFetchAgain]);
+    localStorage.setItem(LOCAL_STORAGE_TASK, JSON.stringify(tableAttributeProps));
+  }, [tableAttributeProps]);
+
+  useEffect(() => {
+    const updatedTableProp = {
+      ...tableprop,
+      columnOrder: columnOrder,
+    };
+    setTableAttributeProps(updatedTableProp);
+  }, [columnOrder]);
+
+  useEffect(() => {
+    dispatch(setGroupBy(groupByParam));
+  }, [groupByParam]);
 
   useEffect(() => {
     if (data) {
@@ -243,9 +239,16 @@ const Task = () => {
   };
   const handleProjectChange = useCallback(
     (value: string | string[]) => {
+      setProjectParam(value as string[]);
       dispatch(setSelectedProject(value as string[]));
     },
-    [dispatch]
+    [dispatch, setProjectParam]
+  );
+  const handleStatusChange = useCallback(
+    (value: string | string[]) => {
+      setStatusParam(value as string[]);
+    },
+    [setStatusParam]
   );
   const handleGroupByChange = useCallback(
     (value: string | string[]) => {
@@ -308,28 +311,6 @@ const Task = () => {
 
   const columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType = ["liked", "timesheetAction"];
 
-  // LocalStorage related functions and utilities
-
-  useEffect(() => {
-    // set localStorage Map for Task
-    if (!localStorage.getItem(LOCAL_STORAGE_TASK)) {
-      localStorage.setItem(LOCAL_STORAGE_TASK, JSON.stringify(localStorageTaskDataMap));
-      setTableAttributeProps(localStorageTaskDataMap);
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_TASK, JSON.stringify(tableAttributeProps));
-  }, [tableAttributeProps]);
-
-  useEffect(() => {
-    const updatedTableProp = {
-      ...tableprop,
-      columnOrder: columnOrder,
-    };
-    setTableAttributeProps(updatedTableProp);
-  }, [columnOrder]);
-
   // handle ad Task
   const handleAddTask = () => {
     dispatch(setAddTaskDialog(true));
@@ -363,16 +344,6 @@ const Task = () => {
       },
       type: "normal",
     },
-    // Example to add nested submenu in more options
-    // {
-    //   title: "Columns",
-    //   icon: Columns2,
-    //   iconClass: "",
-    //   type: "nestedSubMenu",
-    //   render: () => {
-    //     return renderColumnFilterList(table, groupByParam, columnsToExcludeActionsInTables, setLocalStorageTaskState);
-    //   },
-    // },
   ];
 
   const handleColumnHide = (id: string) => {
@@ -391,31 +362,17 @@ const Task = () => {
       setTableAttributeProps(attr);
     }
   };
+  const handleSubjectSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const searchStr = e.target.value.trim();
+    setSubjectSearchParam(searchStr);
+    dispatch(setStart(0));
+  }, []);
 
-  // for sorting columns
-  useEffect(() => {
-    const updateTableProps = {
-      ...tableAttributeProps,
-      order: task.order,
-      orderColumn: task.orderColumn,
-    };
-    setTableAttributeProps(updateTableProps);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [task.order, task.orderColumn]);
-
+  const loadMore = () => {
+    dispatch(setStart(task.start + 20));
+  };
   return (
     <>
-      {/* Styles for table column-resizing */}
-      <style>
-        {`
-            th,
-            td {
-              padding: 8px;
-              text-align: left;
-              border-bottom: 1px solid #ddd;
-            }
-      `}
-      </style>
       {/* filters and combo boxes */}
       <Header>
         <div
@@ -437,10 +394,8 @@ const Task = () => {
             value={projectParam}
             isMulti
             showSelected={false}
-            leftIcon={<Filter className={cn("h-4 w-4", task.selectedProject.length != 0 && "fill-primary")} />}
-            rightIcon={
-              task.selectedProject.length > 0 && <Badge className="px-1.5">{task.selectedProject.length}</Badge>
-            }
+            leftIcon={<Filter className={cn("h-4 w-4", projectParam.length != 0 && "fill-primary")} />}
+            rightIcon={projectParam.length > 0 && <Badge className="px-1.5">{projectParam.length}</Badge>}
             data={projects?.message.map((item: ProjectProps) => ({
               label: item.project_name,
               value: item.name,
@@ -449,17 +404,25 @@ const Task = () => {
             onSelect={handleProjectChange}
             onSearch={handleProjectSearch}
           />
-          {/* GroupBy comboBox */}
+
+          <ComboxBox
+            label="Status"
+            value={statusParam}
+            leftIcon={<Filter className={cn("h-4 w-4", statusParam.length != 0 && "fill-primary")} />}
+            rightIcon={statusParam.length > 0 && <Badge className="px-1.5">{statusParam.length}</Badge>}
+            data={status}
+            className="text-primary border-dashed gap-x-2 font-normal w-fit"
+            onSelect={handleStatusChange}
+            isMulti
+            shouldFilter
+          />
           <ComboxBox
             label="GroupBy"
             value={groupByParam}
             showSelected={false}
             leftIcon={<Filter className={cn("h-4 w-4", task.groupBy.length != 0 && "fill-primary")} />}
             rightIcon={task.groupBy.length > 0 && <Badge className="px-1.5">{task.groupBy.length}</Badge>}
-            data={groupByData?.map((item) => ({
-              label: item.label,
-              value: item.value,
-            }))}
+            data={groupByData}
             className="text-primary border-dashed gap-x-2 font-normal w-fit"
             onSelect={handleGroupByChange}
           />
@@ -474,9 +437,7 @@ const Task = () => {
               columnOrder={columnOrder}
               groupByParam={groupByParam}
             />
-            {/* This component is archived for next itteration */}
-            {/* <Sort /> */}
-            {/* More options */}
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="focus-visible:ring-0">

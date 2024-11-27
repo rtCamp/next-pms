@@ -98,19 +98,19 @@ const Sidebar = () => {
       icon: GanttChart,
       label: "Resource Management",
       key: "resource-management",
-      isPmRoute: true,
-      children: [
-        {
-          to: RESOURCE_MANAGEMENT,
-          label: "Team View",
-          key: "team-view",
-        },
-        {
-          to: RESOURCE_MANAGEMENT + "/project",
-          label: "Project View",
-          key: "project-view",
-        },
-      ],
+      isPmRoute: false,
+      // children: [
+      //   {
+      //     to: RESOURCE_MANAGEMENT,
+      //     label: "Team View",
+      //     key: "team-view",
+      //   },
+      //   {
+      //     to: RESOURCE_MANAGEMENT + "/project",
+      //     label: "Project View",
+      //     key: "project-view",
+      //   },
+      // ],
     },
     {
       to: TASK,
@@ -155,7 +155,7 @@ const Sidebar = () => {
             Next PMS
           </Typography>
         </div>
-        <div className="pt-10 h-fit overflow-y-auto flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
+        <div className="pt-3 h-fit overflow-y-auto flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
           {routes.map((route: Route) => {
             if (route.isPmRoute && !hasPmRole) return null;
             return route.children ? (
@@ -258,33 +258,71 @@ const Sidebar = () => {
           <>
             {viewInfo.views.filter((view) => view.user === user.user && !view.default).length > 0 ? (
               <>
-                <Separator />
-                <div className="py-3 h-fit overflow-y-auto flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      "flex items-center gap-x-2 w-full text-left py-2 px-3 hover:bg-slate-200 rounded-lg justify-between",
-                      openRoutes["custom_view"] && "bg-slate-200 "
-                    )}
-                    onClick={() => toggleNestedRoutes("custom_view")}
-                  >
-                    <span className="flex items-center gap-x-2">
-                      <Circle />
-                      <Typography
-                        variant="p"
-                        className={cn("transition-all duration-300 ease-in-out ", user.isSidebarCollapsed && "hidden")}
-                      >
-                        Custom View
-                      </Typography>
-                    </span>
-                    {openRoutes["custom_view"] ? <ChevronUp /> : <ChevronDown />}
-                  </Button>
-                  <div
-                    className={cn(
-                      "pl-4 transition-all duration-300 ease-in-out flex flex-col gap-y-1",
-                      openRoutes["custom_view"] ? "flex" : "hidden"
-                    )}
-                  >
+                <Separator className="mt-1" />
+                {!user.isSidebarCollapsed ? (
+                  <div className="py-1 mt-1 overflow-y-auto flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        "flex items-center gap-x-2 w-full text-left py-2 px-3 hover:bg-slate-200 rounded-lg justify-between",
+                        openRoutes["custom_view"] && "bg-slate-200 "
+                      )}
+                      onClick={() => toggleNestedRoutes("custom_view")}
+                    >
+                      <span className="flex items-center gap-x-2">
+                        {openRoutes["custom_view"] ? <ChevronUp /> : <ChevronDown />}
+                        <Typography
+                          variant="p"
+                          className={cn(
+                            "transition-all duration-300 ease-in-out ",
+                            user.isSidebarCollapsed && "hidden"
+                          )}
+                        >
+                          Custom View
+                        </Typography>
+                      </span>
+                    </Button>
+                    <div
+                      className={cn(
+                        "transition-all duration-300 ease-in-out flex flex-col gap-y-1",
+                        openRoutes["custom_view"] ? "flex" : "hidden"
+                      )}
+                    >
+                      {viewInfo.views.map((view) => {
+                        if (view.default || view.public) return null;
+                        const isActive = view.route === window.location.pathname;
+                        return (
+                          <NavLink
+                            to={`${view.route}?view=${view.name}`}
+                            key={view.name}
+                            title={view.label}
+                            className="transition-all duration-300 ease-in-out flex items-center h-9"
+                          >
+                            <div
+                              className={cn(
+                                "flex w-full pl-2 rounded-lg items-center px-3 py-2 hover:bg-slate-200 text-primary gap-x-2 overflow-hidden",
+                                isActive && "bg-primary shadow-md hover:bg-slate-700 "
+                              )}
+                            >
+                              <span>{view.icon}</span>
+                              <Typography
+                                variant="p"
+                                className={cn(
+                                  "transition-all duration-300 ease-in-out text-white",
+                                  !isActive && "text-primary",
+                                  user.isSidebarCollapsed && "hidden"
+                                )}
+                              >
+                                {view.label}
+                              </Typography>
+                            </div>
+                          </NavLink>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <div className={cn("transition-all duration-300 ease-in-out flex flex-col gap-y-1")}>
                     {viewInfo.views.map((view) => {
                       if (view.default || view.public) return null;
                       const isActive = view.route === window.location.pathname;
@@ -301,6 +339,7 @@ const Sidebar = () => {
                               isActive && "bg-primary shadow-md hover:bg-slate-700 "
                             )}
                           >
+                            <span>{view.icon}</span>
                             <Typography
                               variant="p"
                               className={cn(
@@ -316,39 +355,76 @@ const Sidebar = () => {
                       );
                     })}
                   </div>
-                </div>
+                )}
               </>
             ) : null}
-
             {viewInfo.views.filter((view) => view.public && !view.default).length > 0 ? (
               <>
                 <Separator />
-                <div className="py-3 h-fit overflow-y-auto flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      "flex items-center gap-x-2 w-full text-left py-2 px-3 hover:bg-slate-200 rounded-lg justify-between",
-                      openRoutes["public_view"] && "bg-slate-200 "
-                    )}
-                    onClick={() => toggleNestedRoutes("public_view")}
-                  >
-                    <span className="flex items-center gap-x-2">
-                      <Circle />
-                      <Typography
-                        variant="p"
-                        className={cn("transition-all duration-300 ease-in-out ", user.isSidebarCollapsed && "hidden")}
-                      >
-                        Public View
-                      </Typography>
-                    </span>
-                    {openRoutes["public_view"] ? <ChevronUp /> : <ChevronDown />}
-                  </Button>
-                  <div
-                    className={cn(
-                      "pl-4 transition-all duration-300 ease-in-out flex flex-col gap-y-1",
-                      openRoutes["public_view"] ? "flex" : "hidden"
-                    )}
-                  >
+                {!user.isSidebarCollapsed ? (
+                  <div className="py-1 h-fit overflow-y-auto flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        "flex items-center gap-x-2 w-full text-left py-2 px-3 hover:bg-slate-200 rounded-lg justify-between",
+                        openRoutes["public_view"] && "bg-slate-200 "
+                      )}
+                      onClick={() => toggleNestedRoutes("public_view")}
+                    >
+                      <span className="flex items-center gap-x-2">
+                        {openRoutes["public_view"] ? <ChevronUp /> : <ChevronDown />}
+                        <Typography
+                          variant="p"
+                          className={cn(
+                            "transition-all duration-300 ease-in-out ",
+                            user.isSidebarCollapsed && "hidden"
+                          )}
+                        >
+                          Public View
+                        </Typography>
+                      </span>
+                    </Button>
+                    <div
+                      className={cn(
+                        "transition-all duration-300 ease-in-out flex flex-col gap-y-1",
+                        openRoutes["public_view"] ? "flex" : "hidden"
+                      )}
+                    >
+                      {viewInfo.views.map((view) => {
+                        if (view.default || !view.public) return null;
+                        const isActive = view.route === window.location.pathname;
+                        return (
+                          <NavLink
+                            to={`${view.route}?view=${view.name}`}
+                            key={view.name}
+                            title={view.label}
+                            className="transition-all duration-300 ease-in-out flex items-center h-9"
+                          >
+                            <div
+                              className={cn(
+                                "flex w-full pl-2 rounded-lg items-center px-3 py-2 hover:bg-slate-200 text-primary gap-x-2 overflow-hidden",
+                                isActive && "bg-primary shadow-md hover:bg-slate-700 "
+                              )}
+                            >
+                              <span>{view.icon}</span>
+                              <Typography
+                                variant="p"
+                                className={cn(
+                                  "transition-all duration-300 ease-in-out text-white",
+                                  !isActive && "text-primary",
+                                  user.isSidebarCollapsed && "hidden"
+                                )}
+                              >
+                                {view.label}
+                              </Typography>
+                            </div>
+                          </NavLink>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <div className={cn("transition-all duration-300 ease-in-out flex flex-col gap-y-1")}>
                     {viewInfo.views.map((view) => {
                       if (view.default || !view.public) return null;
                       const isActive = view.route === window.location.pathname;
@@ -365,6 +441,7 @@ const Sidebar = () => {
                               isActive && "bg-primary shadow-md hover:bg-slate-700 "
                             )}
                           >
+                            <span>{view.icon}</span>
                             <Typography
                               variant="p"
                               className={cn(
@@ -380,7 +457,7 @@ const Sidebar = () => {
                       );
                     })}
                   </div>
-                </div>
+                )}
               </>
             ) : null}
           </>

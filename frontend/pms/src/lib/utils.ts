@@ -4,7 +4,7 @@ import { Error } from "frappe-js-sdk/lib/frappe_app/types";
 import { TaskData, WorkingFrequency, ProjectNestedTaskData } from "@/types";
 import { TScreenSize } from "@/store/app";
 import { HolidayProp } from "@/types/timesheet";
-
+import { toast } from "@/app/components/ui/use-toast"
 export const NO_VALUE_FIELDS = ["Section Break", "Column Break",
   "Tab Break",
   "HTML",
@@ -65,6 +65,24 @@ export function getDateTimeForMultipleTimeZoneSupport(
     date = new Date(date + "T00:00:00");
   }
   return date;
+}
+
+export function correctDateFormat(date: string): string {
+  const parts = date.split("-");
+  if (parts.length === 3) {
+    let [year, month, day] = parts;
+    if (year.length < 4) {
+      year = getUTCDateTime().getFullYear().toString();
+    }
+    if (month.length === 1) {
+      month = `0${month}`;
+    }
+    if (day.length === 1) {
+      day = `0${day}`;
+    }
+    return `${year}-${month}-${day}`;
+  }
+  return getFormatedDate(getUTCDateTime());
 }
 
 export function getUTCDateTime() {
@@ -309,3 +327,9 @@ export const flatTableDataToNestedProjectDataConversion = (
 export const checkIsMobile = () => {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
+
+export const copyToClipboard = (text: string) => {
+  navigator.clipboard.writeText(text)
+  toast({ title: "Capied to clipboard", variant: "success" })
+}
+

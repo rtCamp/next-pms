@@ -80,4 +80,3 @@ def create_roles():
     for role in roles:
         role = frappe.get_doc({"doctype": "Role", "role_name": role, "is_custom": 1})
         role.insert(ignore_permissions=True, ignore_if_duplicate=True)
-        frappe.db.commit()  # nosemgrep
