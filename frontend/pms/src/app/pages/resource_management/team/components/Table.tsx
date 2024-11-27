@@ -13,6 +13,9 @@ import ResourceTeamTableHeader from "../../components/TableHeader";
 import { EmptyTableBody, EmptyTableCell } from "../../components/Empty";
 import { ResourceTableRow } from "../../components/TableRow";
 import { setResourceFormData } from "@/store/resource_management/allocation";
+import { HoverCard, HoverCardTrigger } from "@radix-ui/react-hover-card";
+import { ResourceAllocationList } from "../../components/Card";
+import { HoverCardContent } from "@/app/components/ui/hover-card";
 
 const ResourceTeamTable = () => {
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_team.data.dates);
@@ -237,6 +240,8 @@ const ResourceTeamTableCell = ({
               project_name: "",
               customer: "",
               customer_name: "",
+              isNeedToEdit: false,
+              name: ""
             })
           );
         }}
@@ -244,23 +249,56 @@ const ResourceTeamTableCell = ({
     );
   }
 
-  return (
-    <TableCell ref={cellRef} className={cn(getTableCellClass(rowCount), cellBackGroundColor)}>
-      <Typography className={cn("text-gray-800 text-xs h-6 flex items-center")} variant="p">
-        {tableView.combineWeekHours &&
-          (rowCount == 2 || rowCount == 7) &&
-          (tableView.view == "planned-vs-capacity"
-            ? `${allWeekData[midIndex].total_allocated_hours} / ${allWeekData[midIndex].total_working_hours}`
-            : `${allWeekData[midIndex].total_worked_hours} / ${allWeekData[midIndex].total_allocated_hours}`)}
+  if (!tableView.combineWeekHours && employeeSingleDay.is_on_leave) {
+    return (
+      <TableCell ref={cellRef} className={cn(getTableCellClass(rowCount), cellBackGroundColor)}>
+        <Typography className={cn("text-gray-800 text-xs h-6 flex items-center")} variant="p">
+          {employeeSingleDay.total_leave_hours}
+        </Typography>
+      </TableCell>
+    );
+  }
 
-        {!tableView.combineWeekHours &&
-          (employeeSingleDay.is_on_leave
-            ? employeeSingleDay.total_leave_hours
-            : employeeSingleDay.total_allocated_hours == 0
-            ? "-"
-            : employeeSingleDay.total_allocated_hours)}
-      </Typography>
-    </TableCell>
+  if (tableView.combineWeekHours) {
+    return (
+      <TableCell ref={cellRef} className={cn(getTableCellClass(rowCount), cellBackGroundColor)}>
+        <Typography className={cn("text-gray-800 text-xs h-6 flex items-center")} variant="p">
+          {(rowCount == 2 || rowCount == 7) &&
+            (tableView.view == "planned-vs-capacity"
+              ? `${allWeekData[midIndex].total_allocated_hours} / ${allWeekData[midIndex].total_working_hours}`
+              : `${allWeekData[midIndex].total_worked_hours} / ${allWeekData[midIndex].total_allocated_hours}`)}
+        </Typography>
+      </TableCell>
+    );
+  }
+
+  return (
+    <HoverCard openDelay={200}>
+      <HoverCardTrigger asChild className="w-full h-full cursor-pointer text-center hover:bg-gray-200">
+        <TableCell ref={cellRef} className={cn(getTableCellClass(rowCount), cellBackGroundColor)}>
+          <Typography className={cn("text-gray-800 text-xs h-6 flex items-center")} variant="p">
+            {tableView.combineWeekHours &&
+              (rowCount == 2 || rowCount == 7) &&
+              (tableView.view == "planned-vs-capacity"
+                ? `${allWeekData[midIndex].total_allocated_hours} / ${allWeekData[midIndex].total_working_hours}`
+                : `${allWeekData[midIndex].total_worked_hours} / ${allWeekData[midIndex].total_allocated_hours}`)}
+
+            {!tableView.combineWeekHours &&
+              (employeeSingleDay.is_on_leave
+                ? employeeSingleDay.total_leave_hours
+                : employeeSingleDay.total_allocated_hours == 0
+                ? "-"
+                : employeeSingleDay.total_allocated_hours)}
+          </Typography>
+        </TableCell>
+      </HoverCardTrigger>
+      <HoverCardContent>
+        <ResourceAllocationList
+          resourceAllocationList={employeeSingleDay.employee_resource_allocation_for_given_date}
+          employeeAllocations={employeeAllocations}
+        />
+      </HoverCardContent>
+    </HoverCard>
   );
 };
 

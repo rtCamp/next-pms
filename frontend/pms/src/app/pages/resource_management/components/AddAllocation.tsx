@@ -18,16 +18,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useDispatch, useSelector } from "react-redux";
 import { z } from "zod";
 import { DatePicker } from "@/app/components/datePicker";
-import { useFrappeCreateDoc, useFrappeGetCall } from "frappe-react-sdk";
-import { useEffect, useState } from "react";
+import { useFrappeCreateDoc, useFrappeGetCall, useFrappeUpdateDoc } from "frappe-react-sdk";
+import { useState } from "react";
 import { useToast } from "@/app/components/ui/use-toast";
 import { resetState } from "@/store/resource_management/allocation";
+import { setReFetchData } from "@/store/resource_management/team";
 
 interface AddResourceAllocationsProps {
   handleAfterActionDone: () => void;
 }
 
-const AddResourceAllocations = ({ handleAfterActionDone }: AddResourceAllocationsProps) => {
+const AddResourceAllocations = () => {
   const ResourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
   const dispatch = useDispatch();
 
@@ -50,28 +51,12 @@ const AddResourceAllocations = ({ handleAfterActionDone }: AddResourceAllocation
 
   const { toast } = useToast();
 
-  const { createDoc: createAllocations, loading: creatingAllocations } = useFrappeCreateDoc();
+  const { createDoc: createAllocations, loading: loadingCreation } = useFrappeCreateDoc();
+  const { updateDoc: updateAllocations, loading: loadingUpdation } = useFrappeUpdateDoc();
 
   const form = useForm<z.infer<typeof ResourceAllocationSchema>>({
     resolver: zodResolver(ResourceAllocationSchema),
     defaultValues: {
-      employee: "",
-      is_billable: false,
-      project: "",
-      project_name: "",
-      customer: "",
-      customer_name: "",
-      total_allocated_hours: "",
-      hours_allocated_per_day: "",
-      allocation_start_date: "",
-      allocation_end_date: "",
-      note: "",
-    },
-    mode: "onSubmit",
-  });
-
-  useEffect(() => {
-    form.reset({
       employee: ResourceAllocationForm.employee,
       is_billable: ResourceAllocationForm.is_billable,
       project: ResourceAllocationForm.project,
@@ -83,8 +68,9 @@ const AddResourceAllocations = ({ handleAfterActionDone }: AddResourceAllocation
       allocation_start_date: ResourceAllocationForm.allocation_start_date,
       allocation_end_date: ResourceAllocationForm.allocation_end_date,
       note: ResourceAllocationForm.note,
-    });
-  }, [ResourceAllocationForm, form]);
+    },
+    mode: "onSubmit",
+  });
 
   const handleEmployeeChange = (value: string) => {
     form.setValue("employee", value);
@@ -112,12 +98,8 @@ const AddResourceAllocations = ({ handleAfterActionDone }: AddResourceAllocation
     }
   };
 
-  const handleSubmit = (data: AllocationDataProps) => {
-    if (!data) {
-      return;
-    }
-    console.log(data, "form submission");
-    createAllocations("Resource Allocation", {
+  const getAllocationApi = (data: AllocationDataProps) => {
+    const doctypeDoc = {
       employee: data.employee,
       project: data.project,
       customer: data.customer,
@@ -126,20 +108,31 @@ const AddResourceAllocations = ({ handleAfterActionDone }: AddResourceAllocation
       allocation_start_date: data.allocation_start_date,
       allocation_end_date: data.allocation_end_date,
       note: data.note,
-    })
+    };
+    if (ResourceAllocationForm.isNeedToEdit) {
+      return updateAllocations("Resource Allocation", ResourceAllocationForm.name, doctypeDoc);
+    }
+    return createAllocations("Resource Allocation", doctypeDoc);
+  };
+
+  const handleSubmit = (data: AllocationDataProps) => {
+    if (!data) {
+      return;
+    }
+    getAllocationApi(data)
       .then(() => {
         toast({
           variant: "success",
-          description: "Resouce allocation created successfully",
+          description: `Resouce allocation ${ResourceAllocationForm.isNeedToEdit ? "updated" : "created"} successfully`,
         });
         handleOpen(false);
         form.reset();
-        handleAfterActionDone();
+        dispatch(setReFetchData(true));
       })
       .catch(() => {
         toast({
           variant: "destructive",
-          description: "Failed to create resource allocation",
+          description: `Failed to ${ResourceAllocationForm.isNeedToEdit ? "updated" : "create"} resource allocation`,
         });
       });
   };
@@ -346,12 +339,12 @@ const AddResourceAllocations = ({ handleAfterActionDone }: AddResourceAllocation
             <DialogFooter className="sm:justify-start w-full pt-3">
               <div className="flex gap-x-4 w-full">
                 <Button>
-                  {creatingAllocations ? (
+                  {loadingCreation || loadingUpdation ? (
                     <LoaderCircle className="animate-spin w-4 h-4" />
                   ) : (
                     <Save className="w-4 h-4" />
                   )}
-                  Save
+                  {ResourceAllocationForm.isNeedToEdit ? "Save" : "Create"}
                 </Button>
                 <Button
                   type="button"

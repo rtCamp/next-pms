@@ -1,15 +1,16 @@
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store";
-import { setData, setStart, updateData } from "@/store/resource_management/team";
+import { setData, setReFetchData, setStart, updateData } from "@/store/resource_management/team";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { Spinner } from "@/app/components/spinner";
 import { ResourceTeamTable } from "./components/Table";
 import { ResourceTeamHeaderSection } from "./components/Header";
 import { FooterSection } from "../components/Footer";
 import AddResourceAllocations from "../components/AddAllocation";
+import { AllocationDataProps } from "@/store/resource_management/allocation";
 
 const ResourceTeamView = () => {
   const { toast } = useToast();
@@ -33,13 +34,20 @@ const ResourceTeamView = () => {
     }
   );
 
-  const refetchData = () => {
-    mutate().then((r) => {
-      if (r.message) {
-        dispatch(setData(r.message));
-      }
-    });
-  };
+  const refetchData = useCallback(() => {
+    if (resourceTeamState.isNeedToFetchDataAfterUpdate) {
+      mutate().then((r) => {
+        if (r.message) {
+          dispatch(setData(r.message));
+        }
+      });
+      dispatch(setReFetchData(false));
+    }
+  }, [dispatch, mutate, resourceTeamState.isNeedToFetchDataAfterUpdate]);
+
+  useEffect(() => {
+    refetchData();
+  }, [refetchData, resourceTeamState.isNeedToFetchDataAfterUpdate]);
 
   useEffect(() => {
     if (data) {
@@ -79,7 +87,7 @@ const ResourceTeamView = () => {
         <ResourceTeamTable />
       )}
 
-      {ResourceAllocationForm.isShowDialog && <AddResourceAllocations handleAfterActionDone={refetchData} />}
+      {ResourceAllocationForm.isShowDialog && <AddResourceAllocations />}
 
       <FooterSection
         disabled={

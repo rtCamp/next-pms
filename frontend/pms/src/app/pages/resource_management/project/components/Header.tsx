@@ -14,7 +14,7 @@ import { RootState } from "@/store";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { ResourceHeaderSection } from "../../components/Header";
 import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
-import { toggleDialog } from "@/store/resource_management/allocation";
+import { setDialog } from "@/store/resource_management/allocation";
 
 const ResourceProjectHeaderSection = () => {
   const [projectNameParam, setProjectNameParam] = useQueryParamsState<string>("prject-name", "");
@@ -108,14 +108,14 @@ const ResourceProjectHeaderSection = () => {
         },
       ]}
       buttons={[
-        {
-          title: "add-allocation",
-          handleClick: () => {
-            dispatch(toggleDialog());
-          },
-          icon: () => <Plus className="w-4 max-md:w-3 h-4 max-md:h-3" />,
-          variant: "default",
-        },
+        // {
+        //   title: "add-allocation",
+        //   handleClick: () => {
+        //     dispatch(setDialog(true));
+        //   },
+        //   icon: () => <Plus className="w-4 max-md:w-3 h-4 max-md:h-3" />,
+        //   variant: "default",
+        // },
         {
           title: "previous-week",
           handleClick: handlePrevWeek,

@@ -122,6 +122,8 @@ const ExpandViewCell = ({
               note: "",
               project_name: project_name,
               customer_name: "",
+              isNeedToEdit: false,
+              name: ""
             })
           );
         }}
@@ -130,7 +132,7 @@ const ExpandViewCell = ({
   }
 
   return (
-    <HoverCard key={index} openDelay={1}>
+    <HoverCard key={index} openDelay={200}>
       <HoverCardTrigger asChild className="w-full h-full cursor-pointer text-center hover:bg-gray-200">
         <TableCell className={getTableCellClass(index)}>
           {resourceTeamState.tableView.view == "planned-vs-capacity" ||

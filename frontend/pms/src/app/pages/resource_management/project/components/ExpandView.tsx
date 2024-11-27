@@ -74,16 +74,9 @@ const ExpandViewCell = ({ allocationsData, index }: { allocationsData: any; inde
     return <TableCell className={getTableCellClass(index)}>{"-"}</TableCell>;
   }
 
-  return (
-    <TableCell className={getTableCellClass(index)}>
-      {tableView.view == "planned"
-        ? allocationsData.total_allocated_hours
-        : `${allocationsData.total_worked_hours} / ${allocationsData.total_allocated_hours}`}
-    </TableCell>
-  );
 
   return (
-    <HoverCard key={index} openDelay={1}>
+    <HoverCard key={index} openDelay={500}>
       <HoverCardTrigger asChild className="w-full h-full cursor-pointer text-center hover:bg-gray-200">
         <TableCell className={getTableCellClass(index)}>
           {tableView.view == "planned"

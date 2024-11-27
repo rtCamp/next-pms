@@ -22,7 +22,7 @@ export const ResourceAllocationSchema = z
     // .trim()
     // .min(1, { message: "Please select a customer." }),
     hours_allocated_per_day: hourSchema,
-    total_allocated_hours: hourSchema,
+    total_allocated_hours: hourSchema.optional(),
     is_billable: z.boolean(),
     allocation_start_date: z
       .string({
@@ -36,7 +36,7 @@ export const ResourceAllocationSchema = z
       })
       .trim()
       .min(1, { message: "Please select a end date." }),
-    note: z.string(),
+    note: z.string().optional(),
     employee: z.string(),
   })
   .superRefine((v, ctx) => {

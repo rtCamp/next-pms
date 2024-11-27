@@ -1,5 +1,4 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { getTodayDate, getFormatedDate } from "@/lib/utils";
 
 export type ResourceKeys =
   | "project"
@@ -14,6 +13,7 @@ export type ResourceKeys =
 
 export type AllocationDataProps = {
   isShowDialog: boolean;
+  isNeedToEdit: boolean;
   employee: string;
   is_billable: boolean;
   project: string;
@@ -25,10 +25,12 @@ export type AllocationDataProps = {
   allocation_start_date: string;
   allocation_end_date: string;
   note: string;
+  name: string;
 };
 
 const initialState = {
   isShowDialog: false,
+  isNeedToEdit: false,
   employee: "",
   is_billable: false,
   project: "",
@@ -40,6 +42,7 @@ const initialState = {
   allocation_start_date: "",
   allocation_end_date: "",
   note: "",
+  name: "",
 };
 
 const ResourceTeamSlice = createSlice({

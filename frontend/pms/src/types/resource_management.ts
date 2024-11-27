@@ -4,11 +4,13 @@ export type ResourceAllocationProps = {
   allocation_start_date: string;
   allocation_end_date: string;
   hours_allocated_per_day: number;
+  total_allocated_hours: number;
   project: string;
   project_name: string;
   customer: string;
   is_billable: number;
-  numberDays?:number;
+  numberDays?: number;
+  note: string;
 };
 
 export interface ResourceCustomerObjectProps {
