@@ -36,6 +36,11 @@ def get_employee_daily_working_norm(employee: str) -> int:
     return working_details.get("working_hour")
 
 
+def get_employee_weekly_working_norm(employee: str) -> int:
+    hours = get_employee_daily_working_norm(employee)
+    return hours * 5
+
+
 @frappe.whitelist()
 def get_employee(filters=None, fieldname=None):
     import json

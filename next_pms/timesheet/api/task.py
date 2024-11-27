@@ -1,3 +1,5 @@
+import datetime
+
 import frappe
 from frappe.query_builder import Case, DocType
 from frappe.query_builder import functions as fn
@@ -13,12 +15,15 @@ def get_task_list(
     page_length: int | bool = 20,
     start: int | None = 0,
     projects=None,
+    status: list | str = None,
 ):
     import json
 
     search_filter = {}
     if isinstance(projects, str):
         projects = json.loads(projects)
+    if status and isinstance(status, str):
+        status = json.loads(status)
 
     fields = [
         "name",
@@ -44,14 +49,6 @@ def get_task_list(
         )
     filter = {"project": ["in", projects]}
 
-    if search:
-        search_filter.update(
-            {
-                "name": ["like", f"%{search}%"],
-                "subject": ["like", f"%{search}%"],
-            }
-        )
-
     doctype = DocType("Task")
     doctype_project = DocType("Project")
     tasks = (
@@ -69,6 +66,15 @@ def get_task_list(
     )
     if search:
         tasks = tasks.where(doctype.name.like(f"%{search}%") | doctype.subject.like(f"%{search}%"))
+        search_filter.update(
+            {
+                "name": ["like", f"%{search}%"],
+                "subject": ["like", f"%{search}%"],
+            }
+        )
+    if status:
+        tasks = tasks.where(doctype.status.isin(status))
+        filter.update({"status": ["in", status]})
     if page_length:
         tasks = tasks.limit(page_length)
     tasks = (
@@ -108,9 +114,13 @@ def add_task(subject: str, expected_time: str, project: str, description: str):
 
 
 @frappe.whitelist()
-def get_task(task: str):
+def get_task(task: str, start_date: str | datetime.date, end_date: str | datetime.date):
     from frappe.query_builder.functions import Sum
 
+    if isinstance(start_date, str):
+        start_date = getdate(start_date)
+    if isinstance(end_date, str):
+        end_date = getdate(end_date)
     project = frappe.db.get_value("Task", task, "project")
     if project and not frappe.has_permission(doctype="Project", doc=project):
         frappe.throw(
@@ -129,6 +139,7 @@ def get_task(task: str):
         .on(timesheet.name == timesheet_detail.parent)
         .select(Sum(timesheet_detail.hours).as_("total_hour"), timesheet.employee)
         .where(timesheet_detail.task == task.name)
+        .where((timesheet_detail.from_time >= start_date) & (timesheet_detail.to_time <= end_date))
         .groupby(timesheet.employee)
     ).run(as_dict=True)
 

@@ -9,7 +9,7 @@ import {
   setTableAttributePropsType,
 } from "@/types/task";
 import { flexRender } from "@tanstack/react-table";
-import { GripVertical } from "lucide-react";
+
 import React from "react";
 
 export const RowGroupedTable = ({

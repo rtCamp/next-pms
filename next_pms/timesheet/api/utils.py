@@ -17,16 +17,18 @@ def is_timesheet_manager():
 
 
 def get_leaves_for_employee(from_date: str, to_date: str, employee: str):
-    leave_application = frappe.qb.DocType("Leave Application")
-    filtered_data = (
-        frappe.qb.from_(leave_application)
-        .select("*")
-        .where(leave_application.employee == employee)
-        .where((leave_application.from_date >= from_date) & (leave_application.to_date <= to_date))
-        .where(leave_application.status.isin(["Open", "Approved"]))
-    ).run(as_dict=True)
-
-    return filtered_data
+    leaves = frappe.get_list(
+        "Leave Application",
+        fields=["*"],
+        filters={
+            "employee": employee,
+            "from_date": ["<=", to_date],
+            "to_date": [">=", from_date],
+            "status": ["in", ["Open", "Approved"]],
+        },
+        ignore_permissions=is_timesheet_user() or is_timesheet_manager(),
+    )
+    return leaves
 
 
 def get_week_dates(date, current_week: bool = False, ignore_weekend=False):
@@ -46,11 +48,14 @@ def get_week_dates(date, current_week: bool = False, ignore_weekend=False):
 
     dates = []
     data = {}
-
+    now = getdate()
     start_date = get_first_day_of_week(date)
     end_date = get_last_day_of_week(date)
 
-    key = f'{start_date.strftime("%b %d")} - {end_date.strftime("%b %d")}' if not current_week else "This Week"
+    if start_date <= now <= end_date:
+        key = "This Week"
+    else:
+        key = f'{start_date.strftime("%b %d")} - {end_date.strftime("%b %d")}'
 
     data = {"start_date": start_date, "end_date": end_date, "key": key}
 

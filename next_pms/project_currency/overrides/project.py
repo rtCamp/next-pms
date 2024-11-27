@@ -12,7 +12,7 @@ class ProjectOverwrite(EmployeeProject):
         super().validate()
         self.update_project_currency()
         self.validate_overlap_project_billing()
-        self.validate_overlap_project_budget()
+        self.validate_project_budget()
 
     def update_project_currency(self):
         if self.customer:
@@ -33,21 +33,12 @@ class ProjectOverwrite(EmployeeProject):
                             )
                         )
 
-    def validate_overlap_project_budget(self):
+    def validate_project_budget(self):
         custom_project_budget_hours = self.custom_project_budget_hours
 
         for index in range(len(custom_project_budget_hours)):
             if custom_project_budget_hours[index].start_date > custom_project_budget_hours[index].end_date:
                 frappe.throw(_("End date should be greater than start date in project budget."))
-
-        for index in range(len(custom_project_budget_hours)):
-            for index2 in range(index + 1, len(custom_project_budget_hours)):
-                if (
-                    custom_project_budget_hours[index].start_date
-                    <= custom_project_budget_hours[index2].start_date
-                    <= custom_project_budget_hours[index].end_date
-                ):
-                    frappe.throw(_("Budget has an overlapping date range in project budget."))
 
     def update_costing(self):
         TimesheetDetail = frappe.qb.DocType("Timesheet Detail")
@@ -56,6 +47,7 @@ class ProjectOverwrite(EmployeeProject):
             .select(
                 Sum(TimesheetDetail.costing_amount).as_("costing_amount"),
                 Sum(TimesheetDetail.billing_amount).as_("billing_amount"),
+                Sum(TimesheetDetail.billing_hours).as_("billing_time"),
                 Min(TimesheetDetail.from_time).as_("start_date"),
                 Max(TimesheetDetail.to_time).as_("end_date"),
                 Sum(TimesheetDetail.hours).as_("time"),
@@ -81,7 +73,7 @@ class ProjectOverwrite(EmployeeProject):
             self.update_project_cost_rate()
 
         if self.custom_billing_type == "Retainer" or self.custom_billing_type == "Fixed Cost":
-            self.update_retainer_project_budget()
+            self.update_retainer_project_budget(flt(from_time_sheet.billing_time))
 
         self.calculate_estimated_profit()
 
@@ -145,35 +137,42 @@ class ProjectOverwrite(EmployeeProject):
 
         self.total_expense_claim = total_amount
 
-    def update_retainer_project_budget(self):
+    def update_project_cost_rate(self):
+        if self.estimated_costing and self.total_costing_amount:
+            self.custom_percentage_estimated_cost = self.total_costing_amount * 100 / self.estimated_costing
+
+    def update_retainer_project_budget(self, total_timesheet_hours):
+        """Update the project budget hours values in FIFO order""
+
+        Args:
+            total_timesheet_hours (number): total consume hours of project
+        """
         custom_project_budget_hours = self.custom_project_budget_hours
 
         self.custom_total_hours_purchased = 0
         self.custom_total_hours_remaining = 0
 
-        for budget in custom_project_budget_hours:
-            TimesheetDetail = frappe.qb.DocType("Timesheet Detail")
-            from_time_sheet = (
-                frappe.qb.from_(TimesheetDetail)
-                .select(
-                    Sum(TimesheetDetail.billing_hours).as_("time"),
-                )
-                .where(TimesheetDetail.project == self.name)
-                .where((TimesheetDetail.docstatus == 1) | (TimesheetDetail.docstatus == 0))
-                .where(TimesheetDetail.from_time >= budget.start_date)
-                .where(TimesheetDetail.to_time <= budget.end_date)
-            ).run(as_dict=True)[0]
-            if not from_time_sheet.time:
-                from_time_sheet.time = 0
-            budget.consumed_hours = from_time_sheet.time
-            budget.remaining_hours = budget.hours_purchased - from_time_sheet.time
+        for index in range(0, len(custom_project_budget_hours)):
+            budget = custom_project_budget_hours[index]
+            hours_purchased = flt(budget.hours_purchased)
+            is_last = index == len(custom_project_budget_hours) - 1
 
-            self.custom_total_hours_purchased += budget.hours_purchased
-            self.custom_total_hours_remaining += budget.remaining_hours
+            if hours_purchased < total_timesheet_hours:
+                budget.consumed_hours = hours_purchased
+                # if value is last then we should find remaining_hours in negative value rather then zero so we  have logs.
+                if is_last:
+                    budget.remaining_hours = hours_purchased - total_timesheet_hours
+                else:
+                    budget.remaining_hours = 0
 
-    def update_project_cost_rate(self):
-        if self.estimated_costing and self.total_costing_amount:
-            self.custom_percentage_estimated_cost = self.total_costing_amount * 100 / self.estimated_costing
+                total_timesheet_hours = total_timesheet_hours - hours_purchased
+            else:
+                budget.consumed_hours = total_timesheet_hours
+                budget.remaining_hours = hours_purchased - total_timesheet_hours
+                total_timesheet_hours = 0
+
+            self.custom_total_hours_purchased += hours_purchased
+            self.custom_total_hours_remaining += flt(budget.remaining_hours)
 
     def calculate_estimated_profit(self):
         expense_amount = (
@@ -186,7 +185,11 @@ class ProjectOverwrite(EmployeeProject):
 
         total_amount = flt(self.estimated_costing) + flt(self.total_sales_amount)
 
+        if not total_amount:
+            total_amount = flt(self.total_billable_amount)
+
         self.custom_estimated_profit = total_amount - expense_amount
+
         if total_amount:
             self.custom_percentage_estimated_profit = (self.custom_estimated_profit / total_amount) * 100
 

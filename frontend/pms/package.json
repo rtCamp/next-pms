@@ -34,6 +34,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
+    "emoji-picker-react": "^4.12.0",
     "frappe-react-sdk": "^1.9.0",
     "lodash": "^4.17.21",
     "lucide-react": "^0.408.0",
@@ -49,7 +50,6 @@
     "react-router-dom": "^6.25.1",
     "tailwind-merge": "^2.4.0",
     "tailwindcss-animate": "^1.0.7",
-    "xlsx": "^0.18.5",
     "zod": "^3.23.8"
   },
   "devDependencies": {
