@@ -79,7 +79,7 @@ const ResourceHeaderSection = ({ filters, buttons }: HeaderSectionProps) => {
                   shouldFilter
                   showSelected={false}
                   onSelect={filter.handleChange}
-                  rightIcon={[].length > 0 && <Badge className="px-1.5">{0}</Badge>}
+                  rightIcon={(filter.value?.length ?? 0) > 0 && <Badge className="px-1.5">{filter.value.length}</Badge>}
                   leftIcon={<Filter className={cn("h-4 w-4", [].length != 0 && "fill-primary")} />}
                   // Need to fetch this
                   data={filter.data}

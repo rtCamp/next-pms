@@ -48,7 +48,7 @@ export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDat
                         window.location.href = `${window.location.origin}/app/project/${item}`;
                       }}
                     >
-                      {item} - {itemData.project_name}
+                      {!item ? "Allocations Without Project" : `${item} - ${itemData.project_name}`}
                     </Typography>
                     {/* <Typography variant="small" className="text-slate-500 truncate">
                       {taskData.project_name}
@@ -123,7 +123,7 @@ const ExpandViewCell = ({
               project_name: project_name,
               customer_name: "",
               isNeedToEdit: false,
-              name: ""
+              name: "",
             })
           );
         }}

@@ -22,7 +22,7 @@ const ResourceTeamHeaderSection = () => {
   const [businessUnitParam, setBusinessUnitParam] = useQueryParamsState<string[]>("business-unit", []);
   const [employeeNameParam, setEmployeeNameParam] = useQueryParamsState<string>("employee-name", "");
   const [viewParam, setViewParam] = useQueryParamsState<string>("view-type", "planned-vs-capacity");
-  const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParamsState<boolean>("combine-week-hours", true);
+  const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParamsState<boolean>("combine-week-hours", false);
 
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
   const resourceTeamStateTableView = resourceTeamState.tableView;

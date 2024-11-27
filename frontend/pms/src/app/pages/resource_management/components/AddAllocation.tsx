@@ -24,10 +24,6 @@ import { useToast } from "@/app/components/ui/use-toast";
 import { resetState } from "@/store/resource_management/allocation";
 import { setReFetchData } from "@/store/resource_management/team";
 
-interface AddResourceAllocationsProps {
-  handleAfterActionDone: () => void;
-}
-
 const AddResourceAllocations = () => {
   const ResourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
   const dispatch = useDispatch();
@@ -75,13 +71,18 @@ const AddResourceAllocations = () => {
   const handleEmployeeChange = (value: string) => {
     form.setValue("employee", value);
   };
-  const handleSearchChange = (key: ResourceKeys, value: string | string[]) => {
+  const handleSearchChange = (key: ResourceKeys, value: string | string[], handleValueChange) => {
     if (typeof value === "string") {
       form.setValue(key, value);
+      if (!value) {
+        handleValueChange("");
+      }
     }
-
     if (value.length > 0) {
       form.setValue(key, value[0]);
+    } else {
+      form.setValue(key, "");
+      handleValueChange("");
     }
   };
 
@@ -137,11 +138,16 @@ const AddResourceAllocations = () => {
       });
   };
 
+  console.log(form.getValues("customer"), customerSearch, "custom");
+  console.log(form.getValues("project"), projectSearch, "project");
+
   return (
     <Dialog open={ResourceAllocationForm?.isShowDialog} onOpenChange={handleOpen}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle className="flex gap-x-2 mb-2">Add Allocation</DialogTitle>
+          <DialogTitle className="flex gap-x-2 mb-2">
+            {ResourceAllocationForm.isNeedToEdit ? "Edit" : "Add"} Allocation
+          </DialogTitle>
           <Separator />
         </DialogHeader>
         <Form {...form}>
@@ -173,8 +179,12 @@ const AddResourceAllocations = () => {
                     <FormControl>
                       <ComboxBox
                         label="Search Customer"
-                        onSelect={(value) => handleSearchChange("customer", value)}
-                        onSearch={(value) => setCustomerSearch(value)}
+                        onSelect={(value) => {
+                          handleSearchChange("customer", value, setCustomerSearch);
+                        }}
+                        onSearch={(value) => {
+                          setCustomerSearch(value);
+                        }}
                         showSelected
                         deBounceTime={200}
                         value={
@@ -202,7 +212,9 @@ const AddResourceAllocations = () => {
                     <FormLabel>Projects</FormLabel>
                     <ComboxBox
                       label="Search Projects"
-                      onSelect={(value) => handleSearchChange("project", value)}
+                      onSelect={(value) => {
+                        handleSearchChange("project", value, setProjectSearch);
+                      }}
                       onSearch={(value) => setProjectSearch(value)}
                       showSelected
                       shouldFilter
