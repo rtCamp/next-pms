@@ -1,3 +1,4 @@
+import { getFormatedStringValue } from "@/app/pages/resource_management/utils/value";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
 export type ResourceKeys =
@@ -57,7 +58,33 @@ const ResourceTeamSlice = createSlice({
       state,
       action: PayloadAction<AllocationDataProps>
     ) => {
-      Object.assign(state, action.payload);
+      state.isShowDialog = action.payload.isShowDialog;
+      state.isNeedToEdit = action.payload.isNeedToEdit;
+      state.employee = getFormatedStringValue(
+        action.payload.employee
+      ) as string;
+      state.is_billable = action.payload.is_billable;
+      state.project = getFormatedStringValue(action.payload.project) as string;
+      state.project_name = getFormatedStringValue(
+        action.payload.project_name
+      ) as string;
+      state.customer = getFormatedStringValue(
+        action.payload.customer
+      ) as string;
+      state.customer_name = getFormatedStringValue(
+        action.payload.customer_name
+      ) as string;
+      state.total_allocated_hours = action.payload.total_allocated_hours;
+      state.hours_allocated_per_day = action.payload
+        .hours_allocated_per_day as number;
+      state.allocation_start_date = getFormatedStringValue(
+        action.payload.allocation_start_date
+      ) as string;
+      state.allocation_end_date = getFormatedStringValue(
+        action.payload.allocation_end_date
+      ) as string;
+      state.note = action.payload.note;
+      state.name = getFormatedStringValue(action.payload.name) as string;
     },
     resetState: (state) => {
       Object.assign(state, initialState);

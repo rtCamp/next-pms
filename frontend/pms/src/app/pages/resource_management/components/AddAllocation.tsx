@@ -95,6 +95,8 @@ const AddResourceAllocations = () => {
     dispatch(setDialog(open));
     if (open === false) {
       form.reset();
+      setProjectSearch("");
+      setCustomerSearch("");
       dispatch(resetState());
     }
   };
@@ -127,7 +129,6 @@ const AddResourceAllocations = () => {
           description: `Resouce allocation ${ResourceAllocationForm.isNeedToEdit ? "updated" : "created"} successfully`,
         });
         handleOpen(false);
-        form.reset();
         dispatch(setReFetchData(true));
       })
       .catch(() => {
@@ -137,9 +138,6 @@ const AddResourceAllocations = () => {
         });
       });
   };
-
-  console.log(form.getValues("customer"), customerSearch, "custom");
-  console.log(form.getValues("project"), projectSearch, "project");
 
   return (
     <Dialog open={ResourceAllocationForm?.isShowDialog} onOpenChange={handleOpen}>
