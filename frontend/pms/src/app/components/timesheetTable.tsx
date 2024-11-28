@@ -276,7 +276,7 @@ export const TotalHourRow = ({
   working_frequency: WorkingFrequency;
 }) => {
   let total = 0;
-
+  const daily_working_hours = expectatedHours(working_hour, working_frequency);
   return (
     <TableRow>
       <TableCell></TableCell>
@@ -316,9 +316,9 @@ export const TotalHourRow = ({
         if (leaveData) {
           leaveData.map((item) => {
             if (item.half_day && item.half_day_date && item.half_day_date == date) {
-              total_hours += working_hour / 2;
+              total_hours += daily_working_hours / 2;
             } else {
-              total_hours += working_hour;
+              total_hours += daily_working_hours;
             }
           });
         }
@@ -346,16 +346,16 @@ export const WeekTotal = ({
   frequency: WorkingFrequency;
   className?: string;
 }) => {
-  const expectedTime = calculateWeeklyHour(total, expected_hour, frequency);
+  const expectedWeekTime = calculateWeeklyHour(expected_hour, frequency);
   return (
     <TableCell className={cn(className)}>
       <Typography
         variant="p"
         className={cn(
           "text-right font-medium",
-          expectedTime == 1 && "text-success",
-          expectedTime == 2 && "text-warning",
-          expectedTime == 0 && "text-destructive"
+          expectedWeekTime == total && "text-success",
+          expectedWeekTime < 2 && "text-warning",
+          expectedWeekTime > total && "text-destructive"
         )}
       >
         {floatToTime(total)}
@@ -537,7 +537,8 @@ export const SubmitButton = ({
   return (
     <Button
       variant="ghost"
-      className={cn("font-normal",
+      className={cn(
+        "font-normal",
         (status == "Approved" || status == "Partially Approved") && "bg-green-50 text-success",
         (status == "Rejected" || status == "Partially Rejected") && "bg-red-50 text-destructive",
         status == "Approval Pending" && "bg-orange-50 text-warning",

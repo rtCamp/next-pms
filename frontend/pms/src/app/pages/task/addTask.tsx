@@ -62,7 +62,7 @@ export const AddTask = ({
           variant: "success",
           description: res.message,
         });
-        dispatch(setFetchAgain(true));
+
         setIsSubmitting(false);
         closeAddTaskDialog();
       })
