@@ -12,12 +12,15 @@ import {
 import { Typography } from "./typography";
 import { CircleCheck, CirclePlus, CircleX, Clock3, PencilLine, CircleDollarSign } from "lucide-react";
 import { TaskDataProps, TaskProps, TaskDataItemProps, LeaveProps, HolidayProp } from "@/types/timesheet";
-import { WorkingFrequency } from "@/types";
+import { TaskData, WorkingFrequency } from "@/types";
 import GenWrapper from "./GenWrapper";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
 import { TaskLog } from "@/app/pages/task/taskLog";
 import { useState } from "react";
 import { Button } from "./ui/button";
+import TaskStatusIndicator from "./taskStatusIndicator";
+import { Separator } from "./ui/separator";
+import { TaskStatus } from "../pages/task/taskStatus";
 interface TimesheetTableProps {
   dates: string[];
   holidays: Array<HolidayProp>;
@@ -110,26 +113,68 @@ const TimesheetTable = ({
                 <TableRow key={task} className="border-b border-slate-200">
                   <TableCell className="cursor-pointer max-w-sm">
                     <HoverCard openDelay={1000} closeDelay={0}>
-                      <HoverCardTrigger>
-                        <Typography
-                          variant="p"
-                          className="text-slate-800 truncate overflow-hidden hover:underline"
-                          onClick={() => {
-                            setSelectedTask(task);
-                            setIsTaskLogDialogBoxOpen(true);
-                          }}
-                        >
-                          {taskData.subject}
-                        </Typography>
-                      </HoverCardTrigger>
-                      <Typography
-                        variant="small"
-                        className="text-slate-500 whitespace-nowrap text-ellipsis overflow-hidden "
-                      >
-                        {taskData.project_name}
-                      </Typography>
+                      <div className="flex w-full gap-2">
+                        <TaskStatusIndicator
+                          actualTime={taskData?.actual_time}
+                          expectedTime={taskData?.expected_time}
+                          status={taskData?.status}
+                          className="flex-shrink-0"
+                        />
+                        <div className="flex w-full truncate overflow-hidden flex-col">
+                          <HoverCardTrigger>
+                            <Typography
+                              variant="p"
+                              className="text-slate-800 truncate overflow-hidden hover:underline"
+                              onClick={() => {
+                                setSelectedTask(task);
+                                setIsTaskLogDialogBoxOpen(true);
+                              }}
+                            >
+                              {taskData.subject}
+                            </Typography>
 
-                      <HoverCardContent className="max-w-72">{taskData.subject}</HoverCardContent>
+                            <Typography
+                              variant="small"
+                              className="text-slate-500 whitespace-nowrap text-ellipsis overflow-hidden "
+                            >
+                              {taskData.project_name}
+                            </Typography>
+                          </HoverCardTrigger>
+                        </div>
+                      </div>
+
+                      <HoverCardContent className="max-w-md w-full">
+                        <span className="flex gap-x-2">
+                          <div>
+                            <Typography>{taskData.subject}</Typography>
+                            <Typography
+                              variant="small"
+                              className="text-slate-500 whitespace-nowrap text-ellipsis overflow-hidden "
+                            >
+                              {taskData.project_name}
+                            </Typography>
+                          </div>
+                          <span>
+                            <TaskStatus status={taskData.status as TaskData["status"]} />
+                          </span>
+                        </span>
+                        <Separator className="my-1" />
+                        <div className="flex  justify-between">
+                          <Typography>Estimated Time</Typography>
+                          <Typography>{floatToTime(taskData.expected_time)}</Typography>
+                        </div>
+                        <div className="flex  justify-between">
+                          <Typography>Actual Time</Typography>
+                          <Typography
+                            className={cn(
+                              taskData.actual_time > taskData.expected_time && "text-destructive",
+                              taskData.actual_time < taskData.expected_time && "text-success"
+                            )}
+                          >
+                            {floatToTime(taskData.actual_time)}
+                          </Typography>
+                        </div>
+                      </HoverCardContent>
                     </HoverCard>
                   </TableCell>
                   {dates.map((date: string) => {

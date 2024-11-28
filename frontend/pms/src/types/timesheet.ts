@@ -8,6 +8,9 @@ export interface TaskDataProps {
   project_name: string | null;
   is_billable: boolean;
   project: string;
+  expected_time: number;
+  actual_time: number;
+  status: string;
   data: Array<TaskDataItemProps>;
 }
 
