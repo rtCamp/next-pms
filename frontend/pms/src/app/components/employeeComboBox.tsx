@@ -34,6 +34,7 @@ const EmployeeCombo = ({
 
   const { data: employees } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee_list", {}, undefined, {
     revalidateOnFocus: false,
+    revalidateIfStale:false
   });
   const onEmployeeChange = (name: string) => {
     setSelectedValues(name);

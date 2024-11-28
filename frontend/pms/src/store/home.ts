@@ -4,6 +4,7 @@ import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
 export interface HomeState {
   data: dataProps;
+  action: "SET" | "UPDATE";
   isDialogOpen: boolean;
   isAprrovalDialogOpen: boolean;
   employeeName?: string;
@@ -37,6 +38,7 @@ export type DateProps = {
   dates: string[];
 };
 export const initialState: HomeState = {
+  action: "SET",
   timesheet: {
     name: "",
     parent: "",
@@ -81,7 +83,7 @@ const homeSlice = createSlice({
       state.weekDate = action.payload;
       const pageLength = Object.keys(state.data.data).length;
       state.pageLength = pageLength;
-      state.data = initialState.data;
+      state.action = "SET";
       state.start = 0;
     },
     setFilters: (
@@ -89,25 +91,26 @@ const homeSlice = createSlice({
       action: PayloadAction<{ employeeName: string; status: Array<string> }>
     ) => {
       state.employeeName = action.payload.employeeName;
-      state.data = initialState.data;
+      state.action = "SET";
       state.status = action.payload.status;
       state.start = 0;
       state.pageLength = initialState.pageLength;
     },
     setStatus: (state, action: PayloadAction<Array<string>>) => {
       state.status = action.payload;
-      state.data = initialState.data;
+      state.action = "SET";
       state.start = 0;
       state.pageLength = initialState.pageLength;
     },
     setEmployeeName: (state, action: PayloadAction<string>) => {
       state.employeeName = action.payload;
-      state.data = initialState.data;
+      state.action = "SET";
       state.start = 0;
       state.pageLength = initialState.pageLength;
     },
     setStart: (state, action: PayloadAction<number>) => {
       state.start = action.payload;
+      state.action = "UPDATE";
       state.pageLength = initialState.pageLength;
     },
     updateData: (state, action: PayloadAction<any>) => {
