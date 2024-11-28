@@ -22,7 +22,6 @@ import {
   setFilters,
   setStatus,
   setEmployee,
-  resetState,
 } from "@/store/team";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg, prettyDate, floatToTime, getFormatedDate, cn, preProcessLink } from "@/lib/utils";
@@ -90,9 +89,7 @@ const Team = () => {
       status: employeeStatusParam,
     };
     dispatch(setFilters(payload));
-    return () => {
-      // dispatch(resetState());
-    };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -112,13 +109,18 @@ const Team = () => {
     }
   );
 
-  const { data: projects, error: projectError } = useFrappeGetCall("frappe.client.get_list", {
-    doctype: "Project",
-    fields: ["name", "project_name"],
-    limit_page_length: 0,
-  }, undefined, {
-    revalidateIfStale:false
-  });
+  const { data: projects, error: projectError } = useFrappeGetCall(
+    "frappe.client.get_list",
+    {
+      doctype: "Project",
+      fields: ["name", "project_name"],
+      limit_page_length: 0,
+    },
+    undefined,
+    {
+      revalidateIfStale: false,
+    }
+  );
 
   const { data: userGroups, error: groupError } = useFrappeGetCall(
     "frappe.client.get_list",
@@ -134,7 +136,7 @@ const Team = () => {
 
   useEffect(() => {
     if (data) {
-      if (teamState.action=="SET") {
+      if (teamState.action == "SET") {
         dispatch(setData(data.message));
       } else {
         dispatch(updateData(data.message));
@@ -148,7 +150,7 @@ const Team = () => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, error,teamState.action]);
+  }, [data, error, teamState.action]);
 
   useEffect(() => {
     if (projectError) {
