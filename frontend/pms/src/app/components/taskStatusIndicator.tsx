@@ -14,9 +14,9 @@ const TaskStatusIndicator = ({ className, expectedTime, actualTime,status }: Tas
   if (status === "Completed") {
     color = "bg-gray-300";
   } else if (expectedTime === 0) {
-    color = "bg-orange-400";
+    color = "bg-warning";
   } else if (Number(actualTime) <= Number(expectedTime)) {
-    color = "bg-green-600";
+    color = "bg-success";
   } else {
     color = "bg-destructive";
   }
