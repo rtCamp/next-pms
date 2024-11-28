@@ -312,6 +312,9 @@ def get_timesheet(dates: list, employee: str):
             "project.project_name as project_name",
             "project",
             "custom_is_billable",
+            "expected_time",
+            "actual_time",
+            "status",
         ],
     )
     task_details_dict = {task["name"]: task for task in task_details}
@@ -332,6 +335,9 @@ def get_timesheet(dates: list, employee: str):
                     "is_billable": task["custom_is_billable"],
                     "project_name": task["project_name"],
                     "project": task["project"],
+                    "expected_time": task["expected_time"],
+                    "actual_time": task["actual_time"],
+                    "status": task["status"],
                 }
             data[task_name]["data"].append(log.as_dict())
 

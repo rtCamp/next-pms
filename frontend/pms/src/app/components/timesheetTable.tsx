@@ -18,6 +18,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/
 import { TaskLog } from "@/app/pages/task/taskLog";
 import { useState } from "react";
 import { Button } from "./ui/button";
+import TaskStatusIndicator from "./taskStatusIndicator";
 interface TimesheetTableProps {
   dates: string[];
   holidays: Array<HolidayProp>;
@@ -110,24 +111,29 @@ const TimesheetTable = ({
                 <TableRow key={task} className="border-b border-slate-200">
                   <TableCell className="cursor-pointer max-w-sm">
                     <HoverCard openDelay={1000} closeDelay={0}>
-                      <HoverCardTrigger>
-                        <Typography
-                          variant="p"
-                          className="text-slate-800 truncate overflow-hidden hover:underline"
-                          onClick={() => {
-                            setSelectedTask(task);
-                            setIsTaskLogDialogBoxOpen(true);
-                          }}
-                        >
-                          {taskData.subject}
-                        </Typography>
-                      </HoverCardTrigger>
-                      <Typography
-                        variant="small"
-                        className="text-slate-500 whitespace-nowrap text-ellipsis overflow-hidden "
-                      >
-                        {taskData.project_name}
-                      </Typography>
+                      <div className="flex w-full gap-2">
+                        <TaskStatusIndicator actualTime={taskData?.actual_time} expectedTime={taskData?.expected_time} status={taskData?.status} className="flex-shrink-0"/>
+                        <div className="flex w-full truncate overflow-hidden flex-col">
+                          <HoverCardTrigger>
+                            <Typography
+                              variant="p"
+                              className="text-slate-800 truncate overflow-hidden hover:underline"
+                              onClick={() => {
+                                setSelectedTask(task);
+                                setIsTaskLogDialogBoxOpen(true);
+                              }}
+                            >
+                              {taskData.subject}
+                            </Typography>
+                          </HoverCardTrigger>
+                          <Typography
+                            variant="small"
+                            className="text-slate-500 whitespace-nowrap text-ellipsis overflow-hidden "
+                          >
+                            {taskData.project_name}
+                          </Typography>
+                        </div>
+                      </div>
 
                       <HoverCardContent className="max-w-72">{taskData.subject}</HoverCardContent>
                     </HoverCard>
@@ -537,7 +543,8 @@ export const SubmitButton = ({
   return (
     <Button
       variant="ghost"
-      className={cn("font-normal",
+      className={cn(
+        "font-normal",
         (status == "Approved" || status == "Partially Approved") && "bg-green-50 text-success",
         (status == "Rejected" || status == "Partially Rejected") && "bg-red-50 text-destructive",
         status == "Approval Pending" && "bg-orange-50 text-warning",
