@@ -8,9 +8,7 @@ interface TaskIndicatorProps {
 }
 
 const TaskStatusIndicator = ({ className, expectedTime, actualTime,status }: TaskIndicatorProps) => {
-  // http://localhost/api/method/next_pms.timesheet.api.task.get_task_list?search=TASK-2024-14811
-  // console.log(expectedTime, actualTime);
-
+  
   let color: string;
 
   if (status === "Completed") {
