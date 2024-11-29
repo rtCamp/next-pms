@@ -14,14 +14,7 @@ import { Textarea } from "@/app/components/ui/textarea";
 import { Button } from "@/app/components/ui/button";
 import { LoaderCircle, Send } from "lucide-react";
 import { useState } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/app/components/ui/select";
+import { ComboxBox } from "@/app/components/comboBox";
 
 export const Approval = ({ onClose }: { onClose: () => void }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,7 +24,7 @@ export const Approval = ({ onClose }: { onClose: () => void }) => {
   const { toast } = useToast();
   const { call } = useFrappePostCall("next_pms.timesheet.api.timesheet.submit_for_approval");
   const { data } = useFrappeGetCall("next_pms.timesheet.api.get_employee_with_role", {
-    role: ["Projects Manager"],
+    role: ["Projects Manager", "Projects User"],
   });
   const form = useForm<z.infer<typeof TimesheetApprovalSchema>>({
     resolver: zodResolver(TimesheetApprovalSchema),
@@ -75,7 +68,7 @@ export const Approval = ({ onClose }: { onClose: () => void }) => {
   };
   return (
     <Dialog open={timesheetState.isAprrovalDialogOpen} onOpenChange={handleOpen}>
-      <DialogContent >
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>
             {`Week of ${prettyDate(timesheetState.dateRange.start_date).date} -
@@ -109,21 +102,20 @@ export const Approval = ({ onClose }: { onClose: () => void }) => {
                 <FormItem className="w-full flex items-center gap-x-2 mt-2">
                   <FormLabel className="font-normal">Send To</FormLabel>
                   <FormControl>
-                   
-                    <Select defaultValue={field.value} onValueChange={(value)=>{ form.setValue("approver",value)}}>
-                      <SelectTrigger className="max-w-48">
-                        <SelectValue placeholder="Select an Approver" />
-                      </SelectTrigger>
-                      <SelectGroup>
-                        <SelectContent>
-                          {data?.message?.map((item: { name: string; employee_name: string }) => (
-                            <SelectItem key={item.name} value={item.name}>
-                              {item.employee_name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </SelectGroup>
-                    </Select>
+                    <ComboxBox
+                      label="Select an Approver"
+                      className="max-w-48"
+                      value={[field.value]}
+                      onSelect={(value) => {
+                        form.setValue("approver", value[0]);
+                      }}
+                      data={data?.message?.map((item: { name: string; employee_name: string }) => ({
+                        value: item.name,
+                        label: item.employee_name,
+                      }))}
+                      shouldFilter
+                      showSelected
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
