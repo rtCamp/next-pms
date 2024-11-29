@@ -22,7 +22,7 @@ const ResourceTeamView = () => {
     "next_pms.resource_management.api.team.get_resource_management_team_view_data",
     {
       date: resourceTeamState.weekDate,
-      max_week: 2,
+      max_week: 3,
       page_length: resourceTeamState.pageLength,
       employee_name: resourceTeamState.employeeName,
       business_unit: resourceTeamState.businessUnit,

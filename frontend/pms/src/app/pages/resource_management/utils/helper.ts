@@ -1,23 +1,20 @@
 import { store } from "@/store";
 import { DateProps } from "@/store/team";
 
-const getTableCellClass = (
-  index: number,
-  weekIndex: number = 0,
-  isHeader: boolean = false
-) => {
+const getTableCellClass = (index: number, weekIndex: number = 0) => {
   //   return "flex max-w-20 w-full justify-center items-center border-r border-b border-gray-400";
 
   const state = store.getState();
 
   if (state && state.resource_team.tableView.view == "customer-view") {
-    return "text-xs flex px-4 py-2 max-w-20 w-full justify-center items-center";
+    return "";
   }
-  
-  if (index == 4 && weekIndex == 0) {
-    return "text-xs flex px-4 py-2 max-w-20 w-full justify-center items-center border-r border-gray-300";
+
+  if ((index == 4 || index == 9) && (weekIndex == 0 || weekIndex == 1)) {
+    return "border-r border-gray-300";
   }
-  return "text-xs flex px-4 py-2 max-w-20 w-full justify-center items-center";
+
+  return "";
 };
 
 const getTableCellRow = () => {
@@ -80,6 +77,19 @@ const getRelativeEndDate = (end: string): string => {
   return end;
 };
 
+const getFilterValue = (
+  value: string | number | undefined | boolean,
+  lenght: number = 20
+): string | number | boolean | undefined => {
+  if (typeof value !== "string") {
+    return value;
+  }
+  if (!value) {
+    return "";
+  }
+  return value.length > lenght ? `${value.slice(0, lenght)}...` : value;
+};
+
 export {
   getTableCellClass,
   getTableCellRow,
@@ -87,4 +97,5 @@ export {
   daysDiff,
   getRelativeStartDate,
   getRelativeEndDate,
+  getFilterValue,
 };

@@ -5,11 +5,12 @@ import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { getTableCellClass } from "../../utils/helper";
-import { HoverCardContent, HoverCardTrigger, HoverCard } from "@/app/components/ui/hover-card";
 import { ResourceAllocationList } from "../../components/Card";
-import { CombinedResourceObjectProps, CombinedResourceDataProps, groupAllocations } from "../utils/group";
-import { EmptyRow, EmptyTableCell } from "../../components/Empty";
-import { setDialog, setResourceFormData } from "@/store/resource_management/allocation";
+import { CombinedResourceObjectProps, CombinedResourceDataProps, groupAllocations } from "../../utils/group";
+import { EmptyRow } from "../../components/Empty";
+import { setResourceFormData } from "@/store/resource_management/allocation";
+import { ResourceTableCell, TableInformationCellContent } from "../../components/TableCell";
+import { prettyDate } from "@/lib/utils";
 
 export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDataProps }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -40,20 +41,13 @@ export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDat
             ([item, itemData]: [string, CombinedResourceDataProps]) => {
               return (
                 <TableRow key={item} className="flex items-center w-full border-0">
-                  <TableCell className="w-[24rem] overflow-hidden pl-12">
-                    <Typography
-                      variant="p"
-                      className="flex gap-x-2 items-center font-normal hover:underline w-full cursor-pointer"
-                      onClick={() => {
-                        window.location.href = `${window.location.origin}/app/project/${item}`;
-                      }}
-                    >
-                      {!item ? "Allocations Without Project" : `${item} - ${itemData.project_name}`}
-                    </Typography>
-                    {/* <Typography variant="small" className="text-slate-500 truncate">
-                      {taskData.project_name}
-                    </Typography> */}
-                  </TableCell>
+                  <TableInformationCellContent
+                    cellClassName="pl-12"
+                    onClick={() => {
+                      window.location.href = `${window.location.origin}/app/project/${item}`;
+                    }}
+                    value={!item ? "Allocations Without Project" : `${itemData.project_name}`}
+                  />
                   {employeeResourceData.allDates.map((date: string, index: number) => {
                     return (
                       <ExpandViewCell
@@ -62,6 +56,7 @@ export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDat
                         allocationsData={itemData.all_allocation[date]}
                         date={date}
                         employee={employeeData.name}
+                        employee_name={employeeData.employee_name}
                         project={item}
                         project_name={itemData.project_name}
                       />
@@ -86,6 +81,7 @@ const ExpandViewCell = ({
   date,
   project,
   employee,
+  employee_name,
   project_name,
 }: {
   allocationsData: any;
@@ -94,10 +90,14 @@ const ExpandViewCell = ({
   project: string;
   employee: string;
   customer_name?: string;
+  employee_name?: string;
   project_name: string;
 }) => {
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
   const dispatch = useDispatch();
+
+  const { date: dateStr, day } = prettyDate(date);
+  const title = project_name + " (" + dateStr + " - " + day + ")";
 
   const total_allocated_hours = allocationsData ? allocationsData.total_allocated_hours : 0;
 
@@ -105,7 +105,9 @@ const ExpandViewCell = ({
 
   if (total_allocated_hours == 0 && total_allocated_hours == 0) {
     return (
-      <EmptyTableCell
+      <ResourceTableCell
+        type="empty"
+        title={title}
         cellClassName={getTableCellClass(index)}
         onCellClick={() => {
           dispatch(
@@ -127,43 +129,42 @@ const ExpandViewCell = ({
             })
           );
         }}
+        value={"-"}
       />
     );
   }
 
   return (
-    <HoverCard key={index} openDelay={200}>
-      <HoverCardTrigger asChild className="w-full h-full cursor-pointer text-center hover:bg-gray-200">
-        <TableCell className={getTableCellClass(index)}>
-          {resourceTeamState.tableView.view == "planned-vs-capacity" ||
-          resourceTeamState.tableView.view == "customer-view"
-            ? total_allocated_hours
-            : `${total_worked_hours} / ${total_allocated_hours}`}
-        </TableCell>
-      </HoverCardTrigger>
-      <HoverCardContent>
-        <ResourceAllocationList resourceAllocationList={allocationsData.allocations} />
-      </HoverCardContent>
-    </HoverCard>
+    <ResourceTableCell
+      key={index}
+      type="hovercard"
+      title={title}
+      cellClassName={getTableCellClass(index)}
+      value={
+        resourceTeamState.tableView.view == "planned-vs-capacity" || resourceTeamState.tableView.view == "customer-view"
+          ? total_allocated_hours
+          : `${total_worked_hours} / ${total_allocated_hours}`
+      }
+      CustomHoverCardContent={() => {
+        return <ResourceAllocationList resourceAllocationList={allocationsData.allocations} />;
+      }}
+    />
   );
 };
 
 const TimeOffRow = ({ dates, employeeData }: { dates: string[]; employeeData: EmployeeDataProps }) => {
   return (
     <TableRow className="flex items-center w-full border-0">
-      <TableCell className="w-[24rem] overflow-hidden pl-12">
-        <Typography variant="p" className="flex gap-x-2 items-center font-normal hover:underline w-full">
-          Time Off
-        </Typography>
-        {/* <Typography variant="small" className="text-slate-500 truncate">
-        {taskData.project_name}
-      </Typography> */}
-      </TableCell>
+      <TableInformationCellContent value="Time Off" />
+
       {dates.map((date: string, index: number) => {
         return (
-          <TableCell className={getTableCellClass(index)} key={date}>
-            {employeeData.all_leave_data[date] ? employeeData.all_leave_data[date] : "-"}
-          </TableCell>
+          <ResourceTableCell
+            type="default"
+            key={date}
+            cellClassName={getTableCellClass(index)}
+            value={employeeData.all_leave_data[date] ? employeeData.all_leave_data[date] : "-"}
+          />
         );
       })}
     </TableRow>

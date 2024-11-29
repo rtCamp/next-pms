@@ -1,10 +1,11 @@
 import { Typography } from "@/app/components/typography";
 import { TableBody, TableCell, TableRow } from "@/app/components/ui/table";
-import { getTableCellClass } from "../utils/helper";
+import { getTableCellClass, getTableCellRow } from "../utils/helper";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@radix-ui/react-hover-card";
 import { cn } from "@/lib/utils";
 import { CirclePlus } from "lucide-react";
 import { useState } from "react";
+import { ResourceTableCell, TableCellContent, TableInformationCellContent } from "./TableCell";
 
 const EmptyTableBody = () => {
   return (
@@ -21,10 +22,11 @@ const EmptyTableBody = () => {
 interface EmptyTableCellProps {
   cellClassName?: string;
   textClassName?: string;
+  title?: string;
   onCellClick?: () => void;
 }
 
-const EmptyTableCell = ({ cellClassName, textClassName, onCellClick }: EmptyTableCellProps) => {
+const EmptyTableCell = ({ cellClassName, title, textClassName, onCellClick }: EmptyTableCellProps) => {
   const [isHovered, setIsHovered] = useState(false);
 
   if (onCellClick) {
@@ -34,34 +36,29 @@ const EmptyTableCell = ({ cellClassName, textClassName, onCellClick }: EmptyTabl
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={onCellClick}
+        title={title}
       >
-        <Typography className={cn("text-gray-800 text-xs flex items-center", textClassName)} variant="p">
-          {isHovered ? <CirclePlus className={cn("text-center")} size={4} /> : "-"}
-        </Typography>
+        <TableCellContent
+          className={textClassName}
+          TextComponet={
+            isHovered ? () => <CirclePlus className={cn("text-center cursor-pointer")} size={4} /> : () => <>{"-"}</>
+          }
+        />
       </TableCell>
     );
   }
 
-  return <TableCell className={className}>{"-"}</TableCell>;
+  return (
+    <ResourceTableCell type="default" cellClassName={cellClassName} cellTypographyClassName={textClassName} value="-" />
+  );
 };
 
 const EmptyRow = ({ dates }: { dates: string[] }) => {
   return (
-    <TableRow className="flex items-center w-full border-0">
-      <TableCell className="w-[24rem] overflow-hidden pl-12">
-        <Typography variant="p" className="flex gap-x-2 items-center font-normal hover:underline w-full">
-          {" "}
-        </Typography>
-        {/* <Typography variant="small" className="text-slate-500 truncate">
-        {taskData.project_name}
-      </Typography> */}
-      </TableCell>
+    <TableRow className={cn(getTableCellRow())}>
+      <TableInformationCellContent />
       {dates.map((date: string, index: number) => {
-        return (
-          <TableCell className={getTableCellClass(index)} key={date}>
-            -
-          </TableCell>
-        );
+        return <ResourceTableCell key={date} type="default" cellClassName={getTableCellClass(index)} value="-" />;
       })}
     </TableRow>
   );
