@@ -40,7 +40,7 @@ const AddResourceAllocations = () => {
 
   const { data: customers } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Customer",
-    filters: { customer_name: ["like", `%${customerSearch}%`] },
+    filters: [["customer_name", "like", `%${customerSearch}%`]],
     fields: ["name", "customer_name"],
     limit_page_length: 20,
   });
@@ -184,7 +184,7 @@ const AddResourceAllocations = () => {
                           setCustomerSearch(value);
                         }}
                         showSelected
-                        deBounceTime={200}
+                        shouldFilter
                         value={
                           form.getValues("customer") && form.getValues("customer").length > 0
                             ? [form.getValues("customer")]
