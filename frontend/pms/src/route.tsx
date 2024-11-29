@@ -19,7 +19,7 @@ const NotFound = lazy(() => import("@/app/pages/404"));
 export function Router() {
   return (
     <Route>
-      <Route element={<AuthenticatedRoute />}>
+      <Route element={<AuthenticatedRoute />} >
         <Route path="/" element={<Navigate to={TIMESHEET} replace />} />
         <Route path={TIMESHEET} element={<TimesheetComponent />} />
         <Route element={<PmRoute />}>
@@ -45,7 +45,7 @@ export const AuthenticatedRoute = () => {
   const dispatch = useDispatch();
   useEffect(() => {
     if (user.roles.length < 1) {
-      call.get("next_pms.timesheet.api.app.get_app_data").then((res) => {
+      call.get("next_pms.timesheet.api.app.get_data").then((res) => {
         dispatch(setRole(res.message.roles));
         dispatch(setCurrency(res.message.currencies));
       });

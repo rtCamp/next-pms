@@ -2,6 +2,16 @@ import frappe
 
 
 @frappe.whitelist()
+def get_data():
+    employee = get_employee_from_user()
+    return {
+        "employee": employee,
+        "employee_working_detail": get_employee_working_hours(employee),
+        "employee_report_to": frappe.db.get_value("Employee", employee, "reports_to"),
+    }
+
+
+@frappe.whitelist()
 def get_employee_from_user(user=None):
     user = frappe.session.user
     return frappe.db.get_value("Employee", {"user_id": user})
