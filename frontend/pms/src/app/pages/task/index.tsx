@@ -537,7 +537,9 @@ const Task = () => {
           workingHours={user.workingHours}
         />
       )}
-      {task.isAddTaskDialogBoxOpen && <AddTask task={task} projects={projects} setProjectSearch={setProjectSearch} />}
+      {task.isAddTaskDialogBoxOpen && (
+        <AddTask mutate={mutate} task={task} projects={projects} setProjectSearch={setProjectSearch} />
+      )}
     </>
   );
 };
