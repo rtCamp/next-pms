@@ -105,7 +105,8 @@ export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
                       variant="p"
                       className={cn(
                         "font-semibold",
-                        data?.message.actual_time > data?.message.expected_time && "text-destructive"
+                        data?.message.actual_time > data?.message.expected_time && "text-destructive",
+                        data?.message.actual_time < data?.message.expected_time && "text-success"
                       )}
                     >
                       {floatToTime(data?.message.actual_time)}h

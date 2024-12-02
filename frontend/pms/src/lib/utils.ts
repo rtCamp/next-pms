@@ -171,26 +171,17 @@ export function calculateExtendedWorkingHour(
   }
 }
 
-export function calculateWeeklyHour(
-  hours: number,
-  expected_hours: number,
-  frequency: WorkingFrequency,
+export function calculateWeeklyHour(expected_hours: number, frequency: WorkingFrequency
 ) {
   if (frequency === "Per Day") {
-    expected_hours = expected_hours * 5;
-  }
-  if (hours > expected_hours) {
-    return 2;
-  } else if (hours < expected_hours) {
-    return 0;
+    return expected_hours * 5;
   } else {
-    return 1;
+    return expected_hours;
   }
+
 }
 
-export const expectatedHours = (
-  expected_hours: number,
-  frequency: WorkingFrequency,
+export const expectatedHours = (expected_hours: number, frequency: WorkingFrequency
 ): number => {
   if (frequency === "Per Day") {
     return expected_hours;
@@ -330,6 +321,6 @@ export const checkIsMobile = () => {
 
 export const copyToClipboard = (text: string) => {
   navigator.clipboard.writeText(text)
-  toast({ title: "Capied to clipboard", variant: "success" })
+  toast({ title: "Copied to clipboard", variant: "success" })
 }
 

@@ -5,22 +5,18 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
-
 import { sortOrder } from "@/types";
 import { Button } from "@/app/components/ui/button";
 import { ArrowDownAZ, ArrowDownZA } from "lucide-react";
-import { useDispatch } from "react-redux";
-
-import { setOrderBy } from "@/store/project";
 
 interface SortProps {
   fieldMeta: Array<any>;
   rows: Array<string>;
   orderBy: sortOrder;
   field: string;
+  onSortChange: (order: sortOrder, orderColumn: string) => void;
 }
-const Sort = ({ fieldMeta, rows, orderBy, field }: SortProps) => {
-  const dispatch = useDispatch();
+const Sort = ({ fieldMeta, rows, orderBy, field, onSortChange }: SortProps) => {
   const [order, setOrder] = useState<sortOrder>(orderBy);
   const [orderColumn, setOrderColumn] = useState<string>(field);
 
@@ -41,12 +37,12 @@ const Sort = ({ fieldMeta, rows, orderBy, field }: SortProps) => {
   const handleColumnChange = (key: string) => {
     if (key === orderColumn) return;
     setOrderColumn(key);
-    dispatch(setOrderBy({ order, orderColumn: key }));
+    onSortChange(order, key);
   };
   const handleOrderChange = () => {
     const newOrder = order === "asc" ? "desc" : "asc";
     setOrder(newOrder);
-    dispatch(setOrderBy({ order: newOrder, orderColumn: orderColumn }));
+    onSortChange(newOrder, orderColumn);
   };
   return (
     <DropdownMenu>

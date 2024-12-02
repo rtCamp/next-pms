@@ -8,6 +8,7 @@ type DateRange = {
 };
 export interface TeamState {
   data: dataProps;
+  action:"SET"|"UPDATE";
   statusFilter: Array<string>;
   status: Array<string>;
   employeeName?: string;
@@ -51,6 +52,7 @@ export type DateProps = {
   dates: string[];
 };
 export const initialState: TeamState = {
+  action:"SET",
   timesheet: {
     name: "",
     parent: "",
@@ -78,7 +80,6 @@ export const initialState: TeamState = {
   employeeWeekDate: getFormatedDate(getTodayDate()),
   project: [],
   userGroup: [],
-  // statusFilter: ["Not Submitted"], old
   statusFilter: [],
   start: 0,
   hasMore: true,
@@ -107,7 +108,7 @@ const TeamSlice = createSlice({
     },
     setEmployeeName: (state, action: PayloadAction<string>) => {
       state.employeeName = action.payload;
-      state.data = initialState.data;
+      state.action = "SET";
       state.start = 0;
       state.pageLength = initialState.pageLength;
     },
@@ -115,7 +116,7 @@ const TeamSlice = createSlice({
       state.statusFilter = action.payload;
       state.start = 0;
       state.pageLength = initialState.pageLength;
-      state.data = initialState.data;
+      state.action = "SET";
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     updateData: (state, action: PayloadAction<any>) => {
@@ -136,20 +137,21 @@ const TeamSlice = createSlice({
       state.start = 0;
       const pageLength = Object.keys(state.data.data).length;
       state.pageLength = pageLength;
-      state.data = initialState.data;
+      state.action = "SET";
     },
     setEmployeeWeekDate: (state, action: PayloadAction<string>) => {
       state.employeeWeekDate = action.payload;
     },
     setProject: (state, action: PayloadAction<Array<string>>) => {
       state.project = action.payload;
-      state.data = initialState.data;
+      state.action = "SET";
       state.start = 0;
       state.pageLength = initialState.pageLength;
     },
     setStart: (state, action: PayloadAction<number>) => {
       state.start = action.payload;
       state.pageLength = initialState.pageLength;
+      state.action = "UPDATE";
     },
     setHasMore: (state, action: PayloadAction<boolean>) => {
       state.hasMore = action.payload;
@@ -208,19 +210,18 @@ const TeamSlice = createSlice({
     },
     setUsergroup: (state, action: PayloadAction<Array<string>>) => {
       state.userGroup = action.payload;
-      state.data = initialState.data;
+      state.action = "SET";
       state.start = 0;
       state.pageLength = initialState.pageLength;
     },
     setReportsTo: (state, action: PayloadAction<string>) => {
       state.reportsTo = action.payload;
-      state.data = initialState.data;
       state.start = 0;
       state.pageLength = initialState.pageLength;
     },
     setStatus: (state, action: PayloadAction<Array<string>>) => {
       state.status = action.payload;
-      state.data = initialState.data;
+      state.action = "SET";
       state.start = 0;
       state.pageLength = initialState.pageLength;
     },
@@ -244,7 +245,7 @@ const TeamSlice = createSlice({
       state.reportsTo = action.payload.reportsTo;
       state.pageLength = initialState.pageLength;
       state.start = 0;
-      state.data = initialState.data;
+      state.action = "SET";
     },
   },
 });

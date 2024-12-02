@@ -3,7 +3,6 @@ import { Toaster } from "@/app/components/ui/toaster";
 import { Suspense, useEffect } from "react";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { ROLES } from "@/lib/constant";
-import { setEmployee } from "@/store/user";
 import { useDispatch, useSelector } from "react-redux";
 import { useToast } from "@/app/components/ui/use-toast";
 import { checkScreenSize, parseFrappeErrorMsg } from "@/lib/utils";
@@ -12,39 +11,27 @@ import { Navigate, Outlet } from "react-router-dom";
 import { TIMESHEET } from "@/lib/constant";
 import GenWrapper from "../components/GenWrapper";
 import { updateScreenSize } from "@/store/app";
-import { setWorkingDetail } from "@/store/user";
+import { setInitialData } from "@/store/user";
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
   const { toast } = useToast();
-  const { data: workingDetail, error: workingError } = useFrappeGetCall(
-    "next_pms.timesheet.api.employee.get_employee_working_hours",
-    {},
-    undefined,
-    {
-      refreshWhenHidden: false,
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-    }
-  );
-  const { data: employeeUser, error } = useFrappeGetCall(
-    "next_pms.timesheet.api.employee.get_employee_from_user",
-    {},
-    undefined,
-    {
-      refreshWhenHidden: false,
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-    }
-  );
+  const { data, error } = useFrappeGetCall("next_pms.timesheet.api.employee.get_data", {}, undefined, {
+    refreshWhenHidden: false,
+    revalidateOnFocus: false,
+    revalidateIfStale: false,
+  });
+
   useEffect(() => {
-    if (employeeUser) {
-      if (employeeUser.message) {
-        dispatch(setEmployee(employeeUser.message));
-      } else {
-        dispatch(setEmployee(""));
-      }
+    if (data) {
+      const info = {
+        employee: data.message?.employee ?? "",
+        workingHours: data.message?.employee_working_detail?.working_hour ?? 8,
+        workingFrequency: data.message?.employee_working_detail?.working_frequency ?? "Per Day",
+        reportsTo: data.message?.employee_report_to ?? "",
+      };
+      dispatch(setInitialData(info));
     }
     if (error) {
       const err = parseFrappeErrorMsg(error);
@@ -54,25 +41,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [employeeUser, error]);
-
-  useEffect(() => {
-    if (workingDetail) {
-      const data = {
-        workingHours: workingDetail.message.working_hour,
-        workingFrequency: workingDetail.message.working_frequency,
-      };
-      dispatch(setWorkingDetail(data));
-    }
-    if (workingError) {
-      const error = parseFrappeErrorMsg(workingError);
-      toast({
-        variant: "destructive",
-        description: error,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [workingDetail, workingError]);
+  }, [data, error]);
 
   const screenSize = useSelector((state: RootState) => state.app.screenSize);
   const handleScreenSize = () => {
