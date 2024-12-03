@@ -8,11 +8,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/app/components/ui/input";
 import { Separator } from "@/app/components/ui/separator";
 import { Textarea } from "@/app/components/ui/textarea";
-import { getFormatedDate } from "@/lib/utils";
+import { cn, getFormatedDate } from "@/lib/utils";
 import { ResourceAllocationSchema } from "@/schema/resource";
 import { RootState } from "@/store";
 import { AllocationDataProps, ResourceKeys, setDialog } from "@/store/resource_management/allocation";
-import { Clock3, LoaderCircle, Save, Search, X } from "lucide-react";
+import { CircleDollarSign, Clock3, LoaderCircle, Save, Search, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useDispatch, useSelector } from "react-redux";
@@ -30,25 +30,6 @@ const AddResourceAllocations = () => {
 
   const [projectSearch, setProjectSearch] = useState(ResourceAllocationForm.project_name);
   const [customerSearch, setCustomerSearch] = useState(ResourceAllocationForm.customer_name);
-
-  const { data: projects } = useFrappeGetCall("frappe.client.get_list", {
-    doctype: "Project",
-    filters: [["project_name", "like", `%${projectSearch}%`]],
-    fields: ["name", "project_name"],
-    limit_page_length: 20,
-  });
-
-  const { data: customers } = useFrappeGetCall("frappe.client.get_list", {
-    doctype: "Customer",
-    filters: [["customer_name", "like", `%${customerSearch}%`]],
-    fields: ["name", "customer_name"],
-    limit_page_length: 20,
-  });
-
-  const { toast } = useToast();
-
-  const { createDoc: createAllocations, loading: loadingCreation } = useFrappeCreateDoc();
-  const { updateDoc: updateAllocations, loading: loadingUpdation } = useFrappeUpdateDoc();
 
   const form = useForm<z.infer<typeof ResourceAllocationSchema>>({
     resolver: zodResolver(ResourceAllocationSchema),
@@ -68,18 +49,79 @@ const AddResourceAllocations = () => {
     mode: "onSubmit",
   });
 
+  const { data: projects } = useFrappeGetCall("frappe.client.get_list", {
+    doctype: "Project",
+    filters: [["project_name", "like", `%${projectSearch}%`]],
+    fields: ["name", "project_name", "customer"],
+    limit_page_length: 20,
+  });
+
+  const { data: customers } = useFrappeGetCall("frappe.client.get_list", {
+    doctype: "Customer",
+    filters: [["customer_name", "like", `%${customerSearch}%`]],
+    fields: ["name", "customer_name"],
+    limit_page_length: 20,
+  });
+
+  const { data: leaveData, mutate: fetchLeaveData } = useFrappeGetCall(
+    "next_pms.resource_management.api.team.get_leave_information",
+    {
+      employee: form.getValues("employee"),
+      start_date: form.getValues("allocation_start_date"),
+      end_date: form.getValues("allocation_end_date"),
+    }
+  );
+
+  console.log(leaveData);
+
+  const { toast } = useToast();
+
+  const { createDoc: createAllocations, loading: loadingCreation } = useFrappeCreateDoc();
+  const { updateDoc: updateAllocations, loading: loadingUpdation } = useFrappeUpdateDoc();
+
   const handleEmployeeChange = (value: string) => {
     form.setValue("employee", value);
+    if (
+      form.getValues("employee") &&
+      form.getValues("allocation_start_date") &&
+      form.getValues("allocation_end_date")
+    ) {
+      fetchLeaveData();
+    }
   };
+
+  const handleCustomerAutoComplete = (value: string) => {
+    if (!value) return;
+
+    const projectData = projects?.message?.find(
+      (item: { project_name: string; name: string; customer: string }) => item.name === value
+    );
+
+    if (!projectData) return;
+
+    if (!projectData.customer) {
+      form.setValue("customer", "");
+      setCustomerSearch("");
+      return;
+    }
+
+    form.setValue("customer", projectData.customer);
+    setCustomerSearch(projectData.customer);
+  };
+
   const handleSearchChange = (key: ResourceKeys, value: string | string[], handleValueChange) => {
     if (typeof value === "string") {
       form.setValue(key, value);
+      if (key === "project") {
+        handleCustomerAutoComplete(value);
+      }
       if (!value) {
         handleValueChange("");
       }
     }
     if (value.length > 0) {
       form.setValue(key, value[0]);
+      handleCustomerAutoComplete(value[0]);
     } else {
       form.setValue(key, "");
       handleValueChange("");
@@ -89,6 +131,13 @@ const AddResourceAllocations = () => {
   const handleDateChange = (key: ResourceKeys, date: Date | undefined) => {
     if (!date) return;
     form.setValue(key, getFormatedDate(date));
+    if (
+      form.getValues("employee") &&
+      form.getValues("allocation_start_date") &&
+      form.getValues("allocation_end_date")
+    ) {
+      fetchLeaveData();
+    }
   };
 
   const handleOpen = (open: boolean): void => {
@@ -110,6 +159,7 @@ const AddResourceAllocations = () => {
       hours_allocated_per_day: data.hours_allocated_per_day,
       allocation_start_date: data.allocation_start_date,
       allocation_end_date: data.allocation_end_date,
+      is_billable: data.is_billable ? 1 : 0,
       note: data.note,
     };
     if (ResourceAllocationForm.isNeedToEdit) {
@@ -165,12 +215,12 @@ const AddResourceAllocations = () => {
                 </FormItem>
               )}
             />
-            <div className="grid gap-x-4 grid-cols-2">
+            <div className="grid gap-x-4 grid-cols-7">
               <FormField
                 control={form.control}
                 name="customer"
                 render={() => (
-                  <FormItem className="space-y-1">
+                  <FormItem className="space-y-1 col-span-3">
                     <FormLabel>
                       Customer <span className="text-red-400">*</span>
                     </FormLabel>
@@ -206,7 +256,7 @@ const AddResourceAllocations = () => {
                 control={form.control}
                 name="project"
                 render={() => (
-                  <FormItem className="space-y-1">
+                  <FormItem className="space-y-1 col-span-3">
                     <FormLabel>Projects</FormLabel>
                     <ComboxBox
                       label="Search Projects"
@@ -228,6 +278,28 @@ const AddResourceAllocations = () => {
                       }))}
                       rightIcon={<Search className="h-4 w-4 stroke-slate-400" />}
                     />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="is_billable"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel className="flex gap-2 h-[20px] items-center text-sm"></FormLabel>
+                    <FormControl>
+                      <div
+                        className={cn(
+                          "flex items-center justify-center cursor-pointer rounded-sm py-3 px-1",
+                          field.value ? "bg-gradient-to-r from-green-400 to-green-600" : "bg-yellow-500"
+                        )}
+                        onClick={() => form.setValue("is_billable", !field.value)}
+                      >
+                        <CircleDollarSign size={36} className="text-white" />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -291,6 +363,18 @@ const AddResourceAllocations = () => {
                             {...field}
                           />
                           <Clock3 className="h-4 w-4 absolute right-0 m-3 top-0 stroke-slate-400" />
+                        </div>
+                        <div className="h-[16px]">
+                          {leaveData?.message && (
+                            <p
+                              className="text-[10px] pl-1"
+                              title="Note: Leave days include the days when employee is on leave and holiday days"
+                            >
+                              {leaveData?.message
+                                ? `Total Days: ${leaveData.message.total_days}, Working Days: ${leaveData.message.total_working_days}, Leave Days: ${leaveData.message.leave_days}`
+                                : "Total Days: 0, Working Days: 0, Leave Days: 0"}
+                            </p>
+                          )}
                         </div>
                       </>
                     </FormControl>

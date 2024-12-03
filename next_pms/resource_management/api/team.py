@@ -1,6 +1,5 @@
 import frappe
-from frappe.utils import DATE_FORMAT
-from frappe.utils.data import add_days
+from frappe.utils import DATE_FORMAT, date_diff, getdate
 
 from next_pms.resource_management.api.utils.helpers import (
     filter_employee_list,
@@ -12,10 +11,10 @@ from next_pms.resource_management.api.utils.helpers import (
 )
 from next_pms.resource_management.api.utils.query import (
     get_allocation_list_for_employee_for_given_range,
+    get_employee_leaves,
 )
 from next_pms.timesheet.api.employee import get_employee_working_hours
 from next_pms.timesheet.api.team import get_holidays
-from next_pms.timesheet.api.timesheet import get_leaves_for_employee
 
 
 @frappe.whitelist()
@@ -88,10 +87,10 @@ def get_resource_management_team_view_data(
             fields=["employee", "start_date", "end_date", "total_hours", "parent_project", "customer"],
         )
 
-        leaves = get_leaves_for_employee(
-            from_date=add_days(dates[0].get("start_date"), -max_week * 7),
-            to_date=add_days(dates[-1].get("end_date"), max_week * 7),
+        leaves = get_employee_leaves(
             employee=employee.name,
+            start_date=dates[0].get("start_date"),
+            end_date=dates[-1].get("end_date"),
         )
 
         holidays = get_holidays(employee.name, dates[0].get("start_date"), dates[-1].get("end_date"))
@@ -203,3 +202,44 @@ def get_resource_management_team_view_data(
     res["has_more"] = int(start) + int(page_length) < total_count
 
     return res
+
+
+@frappe.whitelist()
+def get_leave_information(employee: str, start_date: str, end_date: str):
+    """
+    Get the leave information for given employee for given time range.
+    """
+
+    frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+
+    if not employee or not start_date or not end_date:
+        return None
+
+    start_date = getdate(start_date)
+    end_date = getdate(end_date)
+
+    leave_applications = get_employee_leaves(employee, start_date, end_date)
+
+    total_leave_hours = 0
+
+    holidays = get_holidays(employee, start_date, end_date)
+
+    for leave in leave_applications:
+        current_start_date = max(start_date, leave.from_date)
+        currnet_end_date = min(end_date, leave.to_date)
+
+        total_leave_hours += date_diff(currnet_end_date, current_start_date) + 1
+
+        if leave.get("half_day"):
+            if leave.get("half_day_date") >= current_start_date and leave.get("half_day_date") <= currnet_end_date:
+                total_leave_hours -= 0.5
+
+        for holiday in holidays:
+            if holiday.holiday_date >= current_start_date and holiday.holiday_date <= currnet_end_date:
+                total_leave_hours -= 1
+
+    return {
+        "total_days": date_diff(end_date, start_date) + 1,
+        "total_working_days": date_diff(end_date, start_date) + 1 - total_leave_hours - len(holidays),
+        "leave_days": total_leave_hours + len(holidays),
+    }

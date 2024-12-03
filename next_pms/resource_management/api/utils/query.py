@@ -64,6 +64,28 @@ def get_allocation_worked_hours_for_given_projects(project: str, start_date: str
     return total_hours.get("time") or 0.0
 
 
+def get_employee_leaves(employee: str, start_date: str, end_date: str):
+    """Get the total leave days for given employee for given time range."""
+
+    # nosemgrep
+    return frappe.db.sql(
+        """
+        SELECT from_date, to_date, half_day, half_day_date,total_leave_days FROM `tabLeave Application`
+            WHERE employee = %(employee)s
+            AND (
+                (from_date <= %(start_date)s AND to_date >= %(start_date)s)
+                OR (from_date >= %(start_date)s AND to_date <= %(end_date)s)
+                OR (from_date <= %(end_date)s AND to_date >= %(end_date)s)
+                OR (from_date <= %(start_date)s AND to_date >= %(end_date)s)
+            )
+            AND (docstatus=1 OR docstatus=0)
+            ORDER BY from_date, to_date;
+        """,
+        {"employee": employee, "start_date": start_date, "end_date": end_date},
+        as_dict=True,
+    )  # nosemgrep
+
+
 def get_allocation_worked_hours_for_given_employee(project: str, employee: str, start_date: str, end_date: str):
     """Get the total hours spend for given projects for given time range.
 

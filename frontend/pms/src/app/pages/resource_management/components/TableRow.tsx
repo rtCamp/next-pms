@@ -35,7 +35,7 @@ const ResourceTableRow = ({
                 return (
                   <Avatar className="w-6 h-6">
                     <AvatarImage src={decodeURIComponent(avatar)} />
-                    <AvatarFallback>{avatar_abbr}</AvatarFallback>
+                    <AvatarFallback>{avatar_abbr && avatar_abbr[0]}</AvatarFallback>
                   </Avatar>
                 );
               }}
