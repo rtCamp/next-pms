@@ -56,7 +56,7 @@ const ResourceTeamTableBody = () => {
                         employee_name={employeeData.employee_name}
                         rowCount={index}
                         max_allocation_count_for_single_date={employeeData.max_allocation_count_for_single_date}
-                        midIndex={index <= 4 ? 0 : 1}
+                        midIndex={employeeSingleDay.week_index}
                         employeeAllocations={employeeData.employee_allocations}
                       />
                     );
@@ -220,7 +220,7 @@ const ResourceTeamTableCell = ({
         cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
         ref={cellRef}
         value={
-          (rowCount == 2 || rowCount == 7) &&
+          rowCount == 5 * (midIndex + 1) - 3 &&
           (tableView.view == "planned-vs-capacity"
             ? `${allWeekData[midIndex].total_allocated_hours} / ${allWeekData[midIndex].total_working_hours}`
             : `${allWeekData[midIndex].total_worked_hours} / ${allWeekData[midIndex].total_allocated_hours}`)

@@ -63,6 +63,7 @@ export type EmployeeResourceProps = {
   is_on_leave: boolean;
   total_leave_hours: number;
   total_allocation_count: number;
+  week_index:number;
 };
 
 export type EmployeeAllocationForDateProps = {
