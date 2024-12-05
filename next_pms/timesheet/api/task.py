@@ -122,6 +122,9 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
     if isinstance(end_date, str):
         end_date = getdate(end_date)
     project = frappe.db.get_value("Task", task, "project")
+
+    # Since all the task are supposed to be under a project, we need to check if the user has access to the project
+    # if task has project field set.
     if project:
         frappe.has_permission(doctype="Project", doc=project, throw=True)
 
@@ -147,6 +150,8 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
         .groupby(timesheet.employee)
     ).run(as_dict=True)
 
+    #  Check if task DocType has custom_github_issue_id and custom_github_repository fields
+    #  If yes, then create github link else it will be blank.
     if task.meta.has_field("custom_github_issue_id") and task.meta.has_field("custom_github_repository"):
         if task.custom_github_issue_id and task.custom_github_repository:
             repo = task.custom_github_repository
