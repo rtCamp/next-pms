@@ -99,18 +99,18 @@ const Sidebar = () => {
       label: "Resource Management",
       key: "resource-management",
       isPmRoute: false,
-      // children: [
-      //   {
-      //     to: RESOURCE_MANAGEMENT,
-      //     label: "Team View",
-      //     key: "team-view",
-      //   },
-      //   {
-      //     to: RESOURCE_MANAGEMENT + "/project",
-      //     label: "Project View",
-      //     key: "project-view",
-      //   },
-      // ],
+      children: [
+        {
+          to: RESOURCE_MANAGEMENT + "/team",
+          label: "Team View",
+          key: "team-view",
+        },
+        {
+          to: RESOURCE_MANAGEMENT + "/project",
+          label: "Project View",
+          key: "project-view",
+        },
+      ],
     },
     {
       to: TASK,
