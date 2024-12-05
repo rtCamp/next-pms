@@ -92,9 +92,18 @@ export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
           <>
             <DialogHeader className="space-y-0">
               <DialogTitle title={data?.message.subject} className="flex items-center gap-x-2">
-                <Typography variant="h2" className="max-w-sm truncate" title={data?.message.subject}>
-                  {data?.message.subject}
-                </Typography>
+                {data?.message.gh_link && data?.message.gh_link.length > 0 ? (
+                  <a href={data?.message.gh_link} target="_blank" className="hover:underline">
+                    <Typography variant="h2" className="max-w-sm truncate" title={data?.message.subject}>
+                      {data?.message.subject}
+                    </Typography>
+                  </a>
+                ) : (
+                  <Typography variant="h2" className="max-w-sm truncate" title={data?.message.subject}>
+                    {data?.message.subject}
+                  </Typography>
+                )}
+
                 <TaskStatus status={data?.message.status} />
               </DialogTitle>
               <div className="flex justify-between max-w-full">
