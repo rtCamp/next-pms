@@ -122,32 +122,41 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
     if isinstance(end_date, str):
         end_date = getdate(end_date)
     project = frappe.db.get_value("Task", task, "project")
-    if project and not frappe.has_permission(doctype="Project", doc=project):
-        frappe.throw(
-            frappe._(
-                f"User {frappe.session.user} does not have doctype access via role permission for document Project"
-            ),
-            frappe.PermissionError,
-        )
 
+    # Since all the task are supposed to be under a project, we need to check if the user has access to the project
+    # if task has project field set.
+    if project:
+        frappe.has_permission(doctype="Project", doc=project, throw=True)
+
+    gh_link = ""
     task = frappe.get_doc("Task", task)
     timesheet = DocType("Timesheet")
     timesheet_detail = DocType("Timesheet Detail")
+    employee = DocType("Employee")
     result = (
         frappe.qb.from_(timesheet)
         .join(timesheet_detail)
         .on(timesheet.name == timesheet_detail.parent)
-        .select(Sum(timesheet_detail.hours).as_("total_hour"), timesheet.employee)
+        .join(employee)
+        .on(timesheet.employee == employee.name)
+        .select(
+            Sum(timesheet_detail.hours).as_("total_hour"),
+            timesheet.employee,
+            employee.image,
+            timesheet.employee_name,
+        )
         .where(timesheet_detail.task == task.name)
         .where((timesheet_detail.from_time >= start_date) & (timesheet_detail.to_time <= end_date))
         .groupby(timesheet.employee)
     ).run(as_dict=True)
 
-    for res in result:
-        employee_name, image = frappe.db.get_value("Employee", res.employee, ["employee_name", "image"])
-        res["employee_name"] = employee_name
-        res["image"] = image
-
+    #  Check if task DocType has custom_github_issue_id and custom_github_repository fields
+    #  If yes, then create github link else it will be blank.
+    if task.meta.has_field("custom_github_issue_id") and task.meta.has_field("custom_github_repository"):
+        if task.custom_github_issue_id and task.custom_github_repository:
+            repo = task.custom_github_repository
+            issue_id = task.custom_github_issue_id
+            gh_link = f"https://github.com{repo if repo.startswith('/') else f'/{repo}'}/issues/{issue_id}"
     return {
         "subject": task.subject,
         "expected_time": task.expected_time,
@@ -157,6 +166,7 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
         "status": task.status,
         "worked_by": result,
         "name": task.name,
+        "gh_link": gh_link,
     }
 
 
