@@ -99,23 +99,25 @@ export const Approval = ({ onClose }: { onClose: () => void }) => {
               control={form.control}
               name="approver"
               render={({ field }) => (
-                <FormItem className="w-full flex items-center gap-x-2 mt-2">
-                  <FormLabel className="font-normal">Send To</FormLabel>
+                <FormItem>
                   <FormControl>
-                    <ComboxBox
-                      label="Select an Approver"
-                      className="max-w-48"
-                      value={[field.value]}
-                      onSelect={(value) => {
-                        form.setValue("approver", value[0]);
-                      }}
-                      data={data?.message?.map((item: { name: string; employee_name: string }) => ({
-                        value: item.name,
-                        label: item.employee_name,
-                      }))}
-                      shouldFilter
-                      showSelected
-                    />
+                    <div className="w-full flex items-center gap-x-2 mt-2">
+                      <FormLabel className="font-normal">Send To</FormLabel>
+                      <ComboxBox
+                        label="Select an Approver"
+                        className="max-w-48"
+                        value={[field.value]}
+                        onSelect={(value) => {
+                          form.setValue("approver", value[0]);
+                        }}
+                        data={data?.message?.map((item: { name: string; employee_name: string }) => ({
+                          value: item.name,
+                          label: item.employee_name,
+                        }))}
+                        shouldFilter
+                        showSelected
+                      />
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
