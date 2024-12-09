@@ -60,8 +60,8 @@ def get_resource_management_project_view_data(
     resource_allocation_map = {}
     for resource_allocation in resource_allocation_data:
         if resource_allocation.project not in resource_allocation_map:
-            resource_allocation_map[resource_allocation.project] = []
-        resource_allocation_map[resource_allocation.project].append(resource_allocation)
+            resource_allocation_map[resource_allocation.project] = {}
+        resource_allocation_map[resource_allocation.project][resource_allocation.name] = resource_allocation
 
     for project in projects:
         all_week_data, all_dates_data = [], []
@@ -75,7 +75,8 @@ def get_resource_management_project_view_data(
                 total_allocated_hours_for_given_date = 0
                 project_resource_allocation_for_given_date = []
 
-                for resource_allocation in project_resource_allocation:
+                for resource_allocation_name in project_resource_allocation:
+                    resource_allocation = project_resource_allocation[resource_allocation_name]
                     customer = handle_customer(customer, resource_allocation.customer)
 
                     if resource_allocation.allocation_start_date <= date <= resource_allocation.allocation_end_date:

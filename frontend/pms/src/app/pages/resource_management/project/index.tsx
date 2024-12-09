@@ -4,18 +4,22 @@ import { RootState } from "@/store";
 import { setData, setStart, updateData } from "@/store/resource_management/team";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { Spinner } from "@/app/components/spinner";
 import { ResourceProjectTable } from "./components/Table";
 import { ResourceProjectHeaderSection } from "./components/Header";
 import { FooterSection } from "../components/Footer";
+import { AllocationDataProps } from "@/store/resource_management/allocation";
+import AddResourceAllocations from "../components/AddAllocation";
+import { setReFetchData } from "@/store/resource_management/project";
 
 const ResourceTeamView = () => {
   const { toast } = useToast();
   const resourceTeamState = useSelector((state: RootState) => state.resource_project);
+  const ResourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
   const dispatch = useDispatch();
 
-  const { data, isLoading, isValidating, error } = useFrappeGetCall(
+  const { data, isLoading, isValidating, error, mutate } = useFrappeGetCall(
     "next_pms.resource_management.api.project.get_resource_management_project_view_data",
     {
       date: resourceTeamState.weekDate,
@@ -29,6 +33,25 @@ const ResourceTeamView = () => {
       revalidateIfStale: false,
     }
   );
+
+  const onFormSubmit = useCallback(() => {
+    dispatch(setReFetchData(true));
+  }, [dispatch]);
+
+  const refetchData = useCallback(() => {
+    if (resourceTeamState.isNeedToFetchDataAfterUpdate) {
+      mutate().then((r) => {
+        if (r.message) {
+          dispatch(setData(r.message));
+        }
+      });
+      dispatch(setReFetchData(false));
+    }
+  }, [dispatch, mutate, resourceTeamState.isNeedToFetchDataAfterUpdate]);
+
+  useEffect(() => {
+    refetchData();
+  }, [refetchData, resourceTeamState.isNeedToFetchDataAfterUpdate]);
 
   useEffect(() => {
     if (data) {
@@ -67,6 +90,8 @@ const ResourceTeamView = () => {
       ) : (
         <ResourceProjectTable />
       )}
+
+      {ResourceAllocationForm.isShowDialog && <AddResourceAllocations onSubmit={onFormSubmit} />}
 
       <FooterSection
         disabled={

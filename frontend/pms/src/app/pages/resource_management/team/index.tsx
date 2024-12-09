@@ -34,6 +34,10 @@ const ResourceTeamView = () => {
     }
   );
 
+  const onFormSubmit = useCallback(() => {
+    dispatch(setReFetchData(true));
+  }, [dispatch]);
+
   const refetchData = useCallback(() => {
     if (resourceTeamState.isNeedToFetchDataAfterUpdate) {
       mutate().then((r) => {
@@ -87,7 +91,7 @@ const ResourceTeamView = () => {
         <ResourceTeamTable />
       )}
 
-      {ResourceAllocationForm.isShowDialog && <AddResourceAllocations />}
+      {ResourceAllocationForm.isShowDialog && <AddResourceAllocations onSubmit={onFormSubmit} />}
 
       <FooterSection
         disabled={

@@ -64,6 +64,7 @@ export interface ResourceTeamState {
   dateRange: DateRange;
   hasMore: boolean;
   tableView: TableViewProps;
+  isNeedToFetchDataAfterUpdate: boolean;
 }
 
 export const initialState: ResourceTeamState = {
@@ -90,6 +91,7 @@ export const initialState: ResourceTeamState = {
     combineWeekHours: false,
     view: "planned-vs-capacity",
   },
+  isNeedToFetchDataAfterUpdate: false,
 };
 
 const ResourceTeamSlice = createSlice({
@@ -175,6 +177,9 @@ const ResourceTeamSlice = createSlice({
     setView: (state, action: PayloadAction<string>) => {
       state.tableView.view = action.payload;
     },
+    setReFetchData: (state, action: PayloadAction<boolean>) => {
+      state.isNeedToFetchDataAfterUpdate = action.payload;
+    },
   },
 });
 
@@ -192,5 +197,6 @@ export const {
   setBusinessUnit,
   setCombineWeekHours,
   setView,
+  setReFetchData
 } = ResourceTeamSlice.actions;
 export default ResourceTeamSlice.reducer;

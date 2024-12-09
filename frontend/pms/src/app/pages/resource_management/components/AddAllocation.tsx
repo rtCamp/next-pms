@@ -22,9 +22,8 @@ import { useFrappeCreateDoc, useFrappeGetCall, useFrappeUpdateDoc } from "frappe
 import { useState } from "react";
 import { useToast } from "@/app/components/ui/use-toast";
 import { resetState } from "@/store/resource_management/allocation";
-import { setReFetchData } from "@/store/resource_management/team";
 
-const AddResourceAllocations = () => {
+const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
   const ResourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
   const dispatch = useDispatch();
 
@@ -177,7 +176,7 @@ const AddResourceAllocations = () => {
           description: `Resouce allocation ${ResourceAllocationForm.isNeedToEdit ? "updated" : "created"} successfully`,
         });
         handleOpen(false);
-        dispatch(setReFetchData(true));
+        onSubmit()
       })
       .catch(() => {
         toast({

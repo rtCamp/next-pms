@@ -1,4 +1,4 @@
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { DateProps } from "@/store/resource_management/team";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,8 @@ import { useMemo } from "react";
 import { ResourceExpandView } from "./ExpandView";
 import { ResourceTableCell } from "../../components/TableCell";
 import { getCellBackGroundColor } from "../../utils/cell";
+import { setResourceFormData } from "@/store/resource_management/allocation";
+import { ResourceAllocationList } from "../../components/Card";
 
 const ResourceProjectTable = () => {
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_project.data.dates);
@@ -57,7 +59,9 @@ const ResourceProjectTableBody = () => {
                         allWeekData={projectData.all_week_data}
                         rowCount={index}
                         midIndex={projectSingleDay.week_index}
-                        projectAllocations={projectData.employee_allocations}
+                        projectAllocations={projectData.project_allocations}
+                        project={projectData.name}
+                        project_name={projectData.project_name}
                       />
                     );
                   })}
@@ -68,6 +72,7 @@ const ResourceProjectTableBody = () => {
               return (
                 <ResourceExpandView
                   project={projectData.name}
+                  project_name={projectData.project_name}
                   start_date={dates[0].start_date}
                   end_date={dates[dates.length - 1].end_date}
                 />
@@ -86,14 +91,21 @@ const ResourceProjectTableCell = ({
   rowCount,
   midIndex,
   projectAllocations,
+  project,
+  project_name,
 }: {
   projectSingleDay: ProjectResourceProps;
   allWeekData: any;
   rowCount: number;
   midIndex: number;
+  project: string;
+  project_name: string;
   projectAllocations: ResourceAllocationObjectProps;
 }) => {
   const tableView = useSelector((state: RootState) => state.resource_project.tableView);
+  const customer = useSelector((state: RootState) => state.resource_project.data.customer);
+
+  const dispatch = useDispatch();
 
   const allocationPercentage = useMemo(() => {
     if (tableView.combineWeekHours) {
@@ -161,12 +173,56 @@ const ResourceProjectTableCell = ({
     tableView.view,
   ]);
 
+  console.log("cellValue", cellValue);
+
+  if (cellValue == "-") {
+    console.log("cellValue IN", cellValue);
+
+    return (
+      <ResourceTableCell
+        type="empty"
+        title={""}
+        cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
+        value={""}
+        onCellClick={() => {
+          dispatch(
+            setResourceFormData({
+              isShowDialog: true,
+              employee: "",
+              project: project,
+              allocation_start_date: projectSingleDay.date,
+              allocation_end_date: projectSingleDay.date,
+              is_billable: false,
+              customer: "",
+              total_allocated_hours: 0,
+              hours_allocated_per_day: 0,
+              note: "",
+              project_name: project_name,
+              customer_name: "",
+              isNeedToEdit: false,
+              name: "",
+            })
+          );
+        }}
+      />
+    );
+  }
+
   return (
     <ResourceTableCell
-      type="default"
+      type="hovercard"
       title={""}
       cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
       value={cellValue}
+      CustomHoverCardContent={() => {
+        return (
+          <ResourceAllocationList
+            resourceAllocationList={projectSingleDay.project_resource_allocation_for_given_date}
+            employeeAllocations={projectAllocations}
+            customer={customer}
+          />
+        );
+      }}
     />
   );
 };

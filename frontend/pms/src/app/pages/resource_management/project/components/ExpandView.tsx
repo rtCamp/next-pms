@@ -1,5 +1,5 @@
 import { Table, TableBody, TableRow } from "@/app/components/ui/table";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { getTableCellClass } from "../../utils/helper";
 import { ResourceAllocationList } from "../../components/Card";
@@ -10,14 +10,16 @@ import { ResourceAllocationObjectProps, ResourceCustomerObjectProps } from "@/ty
 import { useMemo } from "react";
 import { getCellBackGroundColor } from "../../utils/cell";
 import { cn } from "@/lib/utils";
+import { setResourceFormData } from "@/store/resource_management/allocation";
 
 interface ResourceExpandViewProps {
   project: string;
+  project_name: string;
   start_date: string;
   end_date: string;
 }
 
-export const ResourceExpandView = ({ project, start_date, end_date }: ResourceExpandViewProps) => {
+export const ResourceExpandView = ({ project, project_name, start_date, end_date }: ResourceExpandViewProps) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
 
   const { data } = useFrappeGetCall(
@@ -63,6 +65,9 @@ export const ResourceExpandView = ({ project, start_date, end_date }: ResourceEx
                       allocationsData={employeeSingleDayData}
                       employeeAllocations={employeeData.allocations}
                       customer={data.message.customer}
+                      employee={employeeData.name}
+                      project={project}
+                      project_name={project_name}
                     />
                   );
                 })}
@@ -79,13 +84,21 @@ const ExpandViewCell = ({
   index,
   employeeAllocations,
   customer,
+  employee,
+  project,
+  project_name,
 }: {
   allocationsData: any;
   index: number;
+  employee: string;
+  project: string;
+  project_name: string;
   employeeAllocations?: ResourceAllocationObjectProps;
   customer: ResourceCustomerObjectProps;
 }) => {
   const tableView = useSelector((state: RootState) => state.resource_project.tableView);
+
+  const dispatch = useDispatch();
 
   const allocationPercentage = useMemo(() => {
     if (allocationsData.total_allocated_hours == 0) {
@@ -110,24 +123,24 @@ const ExpandViewCell = ({
         title={""}
         cellClassName={getTableCellClass(index)}
         onCellClick={() => {
-          // dispatch(
-          //   setResourceFormData({
-          //     isShowDialog: true,
-          //     employee: employee,
-          //     project: project,
-          //     allocation_start_date: date,
-          //     allocation_end_date: date,
-          //     is_billable: false,
-          //     customer: "",
-          //     total_allocated_hours: 0,
-          //     hours_allocated_per_day: 0,
-          //     note: "",
-          //     project_name: project_name,
-          //     customer_name: "",
-          //     isNeedToEdit: false,
-          //     name: "",
-          //   })
-          // );
+          dispatch(
+            setResourceFormData({
+              isShowDialog: true,
+              employee: employee,
+              project: project,
+              allocation_start_date: allocationsData.date,
+              allocation_end_date: allocationsData.date,
+              is_billable: false,
+              customer: "",
+              total_allocated_hours: 0,
+              hours_allocated_per_day: 0,
+              note: "",
+              project_name: project_name,
+              customer_name: "",
+              isNeedToEdit: false,
+              name: "",
+            })
+          );
         }}
         value={"-"}
       />
