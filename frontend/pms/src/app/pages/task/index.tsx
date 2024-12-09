@@ -382,7 +382,6 @@ const Task = () => {
           {/* Task Search Filter */}
           <DeBounceInput
             placeholder="Search Subject..."
-            className="max-w-40 max-md:w-40 focus-visible:ring-offset-0 focus-visible:ring-0"
             deBounceValue={300}
             value={subjectSearchParam}
             callback={handleSubjectSearchChange}

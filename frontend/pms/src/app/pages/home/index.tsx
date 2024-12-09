@@ -76,7 +76,7 @@ const Home = () => {
   });
   useEffect(() => {
     if (data) {
-      if (homeState.action=="SET") {
+      if (homeState.action == "SET") {
         dispatch(setData(data.message));
       } else {
         dispatch(updateData(data.message));
@@ -90,7 +90,7 @@ const Home = () => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, error,homeState.action]);
+  }, [data, error, homeState.action]);
 
   const handleEmployeeChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -132,7 +132,6 @@ const Home = () => {
               placeholder="Employee name"
               value={employeeNameParam}
               deBounceValue={300}
-              className="min-w-40 max-w-40"
               callback={handleEmployeeChange}
             />
             <ComboxBox
