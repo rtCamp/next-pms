@@ -4,7 +4,7 @@ import frappe
 from frappe.query_builder import Case, DocType
 from frappe.query_builder import functions as fn
 from frappe.utils import getdate
-from pypika import Order
+from pypika import Criterion, Order
 
 from .utils import get_count
 
@@ -19,6 +19,7 @@ def get_task_list(
 ):
     import json
 
+    frappe.has_permission(doctype="Project", throw=True)
     search_filter = {}
     if isinstance(projects, str):
         projects = json.loads(projects)
@@ -36,17 +37,12 @@ def get_task_list(
         "_liked_by",
     ]
 
+    #  Limit the task fetched based on the projects the user has access to.
     if projects:
         projects = frappe.get_list("Project", pluck="name", filters={"name": ["in", projects]})
     else:
         projects = frappe.get_list("Project", pluck="name")
-    if not projects:
-        frappe.throw(
-            frappe._(
-                f"User {frappe.session.user} does not have doctype access via role permission for document Project"
-            ),
-            frappe.PermissionError,
-        )
+
     filter = {"project": ["in", projects]}
 
     doctype = DocType("Task")
@@ -65,7 +61,17 @@ def get_task_list(
         .where(doctype.project.isin(projects))
     )
     if search:
-        tasks = tasks.where(doctype.name.like(f"%{search}%") | doctype.subject.like(f"%{search}%"))
+        meta = frappe.get_meta("Task")
+        condition = []
+        condition.append(doctype.name.like(f"%{search}%"))
+        condition.append(doctype.subject.like(f"%{search}%"))
+
+        #  Check if the Task DocType has custom_github_issue_link field
+        if meta.has_field("custom_github_issue_link"):
+            condition.append(doctype.custom_github_issue_link.like(f"%{search}%"))
+            search_filter.update({"custom_github_issue_link": ["like", f"%{search}%"]})
+
+        tasks = tasks.where(Criterion.any(condition))
         search_filter.update(
             {
                 "name": ["like", f"%{search}%"],
@@ -77,6 +83,8 @@ def get_task_list(
         filter.update({"status": ["in", status]})
     if page_length:
         tasks = tasks.limit(page_length)
+
+    #  We need to order the tasks based on the user's liked tasks.
     tasks = (
         tasks.offset(start).orderby(
             Case()
@@ -122,31 +130,32 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
     if isinstance(end_date, str):
         end_date = getdate(end_date)
     project = frappe.db.get_value("Task", task, "project")
-    if project and not frappe.has_permission(doctype="Project", doc=project):
-        frappe.throw(
-            frappe._(
-                f"User {frappe.session.user} does not have doctype access via role permission for document Project"
-            ),
-            frappe.PermissionError,
-        )
+
+    # Since all the task are supposed to be under a project, we need to check if the user has access to the project
+    # if task has project field set.
+    if project:
+        frappe.has_permission(doctype="Project", doc=project, throw=True)
 
     task = frappe.get_doc("Task", task)
     timesheet = DocType("Timesheet")
     timesheet_detail = DocType("Timesheet Detail")
+    employee = DocType("Employee")
     result = (
         frappe.qb.from_(timesheet)
         .join(timesheet_detail)
         .on(timesheet.name == timesheet_detail.parent)
-        .select(Sum(timesheet_detail.hours).as_("total_hour"), timesheet.employee)
+        .join(employee)
+        .on(timesheet.employee == employee.name)
+        .select(
+            Sum(timesheet_detail.hours).as_("total_hour"),
+            timesheet.employee,
+            employee.image,
+            timesheet.employee_name,
+        )
         .where(timesheet_detail.task == task.name)
         .where((timesheet_detail.from_time >= start_date) & (timesheet_detail.to_time <= end_date))
         .groupby(timesheet.employee)
     ).run(as_dict=True)
-
-    for res in result:
-        employee_name, image = frappe.db.get_value("Employee", res.employee, ["employee_name", "image"])
-        res["employee_name"] = employee_name
-        res["image"] = image
 
     return {
         "subject": task.subject,
@@ -157,6 +166,9 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
         "status": task.status,
         "worked_by": result,
         "name": task.name,
+        #  Check if task DocType has custom_github_issue_link field
+        #  If yes, then create github link else it will be blank.
+        "gh_link": task.custom_github_issue_link if task.meta.has_field("custom_github_issue_link") else "",
     }
 
 
@@ -164,13 +176,8 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
 def get_task_log(task: str, start_date: str = None, end_date: str = None):
     project = frappe.db.get_value("Task", task, "project")
 
-    if project and not frappe.has_permission(doctype="Project", doc=project):
-        frappe.throw(
-            frappe._(
-                f"User {frappe.session.user} does not have doctype access via role permission for document Project"
-            ),
-            frappe.PermissionError,
-        )
+    if project:
+        frappe.has_permission(doctype="Project", doc=project, throw=True)
     timesheet = DocType("Timesheet")
     timesheet_detail = DocType("Timesheet Detail")
     start_date = getdate(start_date)
