@@ -155,9 +155,9 @@ export const CustomerAllocationRow = ({
           </div>
         </div>
       </HoverCardTrigger>
-      <HoverCardContent>
+      {/* <HoverCardContent>
         <ResourceAllocationList resourceAllocationList={[resourceAllocation]} />
-      </HoverCardContent>
+      </HoverCardContent> */}
     </HoverCard>
   );
 };

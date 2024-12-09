@@ -72,8 +72,6 @@ const AddResourceAllocations = () => {
     }
   );
 
-  console.log(leaveData);
-
   const { toast } = useToast();
 
   const { createDoc: createAllocations, loading: loadingCreation } = useFrappeCreateDoc();

@@ -19,7 +19,7 @@ const ResourceTeamView = () => {
     "next_pms.resource_management.api.project.get_resource_management_project_view_data",
     {
       date: resourceTeamState.weekDate,
-      max_week: 2,
+      max_week: 3,
       page_length: resourceTeamState.pageLength,
       project_name: resourceTeamState.projectName,
       start: resourceTeamState.start,

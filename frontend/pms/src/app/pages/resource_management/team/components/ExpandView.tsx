@@ -146,7 +146,7 @@ const ExpandViewCell = ({
           : `${total_worked_hours} / ${total_allocated_hours}`
       }
       CustomHoverCardContent={() => {
-        return <ResourceAllocationList resourceAllocationList={allocationsData.allocations} />;
+        return <ResourceAllocationList resourceAllocationList={allocationsData.allocations} customer={resourceTeamState.data.customer} />;
       }}
     />
   );

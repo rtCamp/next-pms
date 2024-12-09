@@ -13,12 +13,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { ResourceHeaderSection } from "../../components/Header";
-import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
-import { setDialog } from "@/store/resource_management/allocation";
+import { ChevronLeftIcon, ChevronRight } from "lucide-react";
 
 const ResourceProjectHeaderSection = () => {
   const [projectNameParam, setProjectNameParam] = useQueryParamsState<string>("prject-name", "");
-  const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParamsState<boolean>("combine-week-hours", true);
+  const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParamsState<boolean>("combine-week-hours", false);
   const [viewParam, setViewParam] = useQueryParamsState<string>("view-type", "planned");
 
   const resourceTeamState = useSelector((state: RootState) => state.resource_project);

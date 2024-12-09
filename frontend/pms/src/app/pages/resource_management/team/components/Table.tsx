@@ -94,6 +94,7 @@ const ResourceTeamTableCell = ({
   employeeAllocations: ResourceAllocationObjectProps;
 }) => {
   const tableView = useSelector((state: RootState) => state.resource_team.tableView);
+  const customer = useSelector((state: RootState) => state.resource_team.data.customer);
 
   const heightFactor: number = 40;
   const { date: dateStr, day } = prettyDate(employeeSingleDay.date);
@@ -284,6 +285,7 @@ const ResourceTeamTableCell = ({
           <ResourceAllocationList
             resourceAllocationList={employeeSingleDay.employee_resource_allocation_for_given_date}
             employeeAllocations={employeeAllocations}
+            customer={customer}
           />
         );
       }}

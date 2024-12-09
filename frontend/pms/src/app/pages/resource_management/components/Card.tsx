@@ -5,6 +5,7 @@ import {
   ResourceCustomerProps,
   ResourceCustomerObjectProps,
   ResourceAllocationProps,
+  ResourceAllocationObjectProps,
 } from "@/types/resource_management";
 import { useDispatch, useSelector } from "react-redux";
 import { getInitials } from "../utils/helper";
@@ -17,9 +18,11 @@ import { setReFetchData } from "@/store/resource_management/team";
 export const ResourceAllocationList = ({
   resourceAllocationList,
   employeeAllocations,
+  customer,
 }: {
   resourceAllocationList: ResourceAllocationProps[];
   employeeAllocations?: ResourceAllocationObjectProps;
+  customer: ResourceCustomerObjectProps;
 }) => {
   return (
     <div>
@@ -31,15 +34,20 @@ export const ResourceAllocationList = ({
               ? { ...resourceAllocation, ...employeeAllocations[resourceAllocation.name] }
               : resourceAllocation
           }
+          customer={customer}
         />
       ))}
     </div>
   );
 };
 
-export const ResourceAllocationCard = ({ resourceAllocation }: { resourceAllocation: ResourceAllocationProps }) => {
-  const customer: ResourceCustomerObjectProps = useSelector((state: RootState) => state.resource_team.data.customer);
-
+export const ResourceAllocationCard = ({
+  resourceAllocation,
+  customer,
+}: {
+  resourceAllocation: ResourceAllocationProps;
+  customer: ResourceCustomerObjectProps;
+}) => {
   const customerData: ResourceCustomerProps = customer[resourceAllocation.customer];
 
   const { date: startDate } = prettyDate(resourceAllocation.allocation_start_date);

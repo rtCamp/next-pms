@@ -66,6 +66,7 @@ def get_resource_management_project_view_data(
     for project in projects:
         all_week_data, all_dates_data = [], []
         project_resource_allocation = resource_allocation_map.get(project.name, [])
+        week_index = 0
 
         for week in weeks:
             total_allocated_hours_for_given_week = 0
@@ -92,6 +93,7 @@ def get_resource_management_project_view_data(
                         "total_allocated_hours": total_allocated_hours_for_given_date,
                         "project_resource_allocation_for_given_date": project_resource_allocation_for_given_date,
                         "total_worked_hours": get_allocation_worked_hours_for_given_projects(project.name, date, date),
+                        "week_index": week_index,
                     }
                 )
 
@@ -105,6 +107,7 @@ def get_resource_management_project_view_data(
                     ),
                 }
             )
+            week_index += 1
         data.append(
             {
                 **project,
@@ -147,11 +150,12 @@ def get_employees_resrouce_data_for_given_project(project: str, start_date: str,
     resource_allocation_map = {}
     for resource_allocation in resource_allocation_data:
         if resource_allocation.employee not in resource_allocation_map:
-            resource_allocation_map[resource_allocation.employee] = []
-        resource_allocation_map[resource_allocation.employee].append(resource_allocation)
+            resource_allocation_map[resource_allocation.employee] = {}
+        resource_allocation_map[resource_allocation.employee][resource_allocation.name] = resource_allocation
 
     res = {}
     data = []
+    customer = {}
     start_date = getdate(start_date)
     end_date = getdate(end_date)
 
@@ -170,9 +174,21 @@ def get_employees_resrouce_data_for_given_project(project: str, start_date: str,
                 continue
 
             total_allocated_hours_for_employee = 0
-            for resource_allocation in employee_resource_allocation:
+            employee_resource_allocation_for_given_date = []
+
+            for resource_allocation_name in employee_resource_allocation:
+                resource_allocation = employee_resource_allocation[resource_allocation_name]
+
+                customer = handle_customer(customer, resource_allocation.customer)
+
                 if resource_allocation.allocation_start_date <= current_date <= resource_allocation.allocation_end_date:
                     total_allocated_hours_for_employee += resource_allocation.hours_allocated_per_day
+                    employee_resource_allocation_for_given_date.append(
+                        {
+                            "name": resource_allocation.name,
+                            "date": current_date,
+                        }
+                    )
 
             total_worked_hours_for_employee = get_allocation_worked_hours_for_given_employee(
                 project, employee.name, current_date.strftime(DATE_FORMAT), current_date.strftime(DATE_FORMAT)
@@ -183,12 +199,14 @@ def get_employees_resrouce_data_for_given_project(project: str, start_date: str,
                     "date": current_date,
                     "total_allocated_hours": total_allocated_hours_for_employee,
                     "total_worked_hours": total_worked_hours_for_employee,
+                    "employee_resource_allocation_for_given_date": employee_resource_allocation_for_given_date,
                 }
             )
 
             current_date = add_days(current_date, 1)
-        data.append({**employee, "all_dates_date": all_dates_date})
+        data.append({**employee, "all_dates_date": all_dates_date, "allocations": employee_resource_allocation})
 
     res["data"] = data
+    res["customer"] = customer
 
     return res

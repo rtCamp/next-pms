@@ -12,6 +12,8 @@ import { ResourceTableRow } from "../../components/TableRow";
 import { ProjectDataProps, ProjectResourceProps } from "@/store/resource_management/project";
 import { useMemo } from "react";
 import { ResourceExpandView } from "./ExpandView";
+import { ResourceTableCell } from "../../components/TableCell";
+import { getCellBackGroundColor } from "../../utils/cell";
 
 const ResourceProjectTable = () => {
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_project.data.dates);
@@ -54,7 +56,7 @@ const ResourceProjectTableBody = () => {
                         projectSingleDay={projectSingleDay}
                         allWeekData={projectData.all_week_data}
                         rowCount={index}
-                        midIndex={index <= 4 ? 0 : 1}
+                        midIndex={projectSingleDay.week_index}
                         projectAllocations={projectData.employee_allocations}
                       />
                     );
@@ -93,7 +95,7 @@ const ResourceProjectTableCell = ({
 }) => {
   const tableView = useSelector((state: RootState) => state.resource_project.tableView);
 
-  let allocationPercentage = useMemo(() => {
+  const allocationPercentage = useMemo(() => {
     if (tableView.combineWeekHours) {
       if (allWeekData[midIndex].total_allocated_hours == 0) {
         return -1;
@@ -119,26 +121,14 @@ const ResourceProjectTableCell = ({
       return "bg-transparent";
     }
 
-    if (allocationPercentage == 100) {
-      return "bg-destructive/30";
-    }
-
-    if (allocationPercentage <= 10) {
-      return "bg-success/20";
-    }
-
-    if (allocationPercentage <= 20) {
-      return "bg-customYellow";
-    }
-
-    return "bg-destructive/10";
+    return getCellBackGroundColor(allocationPercentage);
   }, [allocationPercentage, tableView.view]);
 
   const cellValue = useMemo(() => {
     let allocated_hours = 0,
       worked_hours = 0;
     if (tableView.combineWeekHours) {
-      if (!(rowCount == 2 || rowCount == 7)) {
+      if (!(rowCount == 5 * (midIndex + 1) - 3)) {
         return "";
       }
 
@@ -172,11 +162,12 @@ const ResourceProjectTableCell = ({
   ]);
 
   return (
-    <TableCell className={cn(getTableCellClass(rowCount), cellBackGroundColor)}>
-      <Typography className={cn("text-gray-800 text-xs h-6 flex items-center")} variant="p">
-        {cellValue}
-      </Typography>
-    </TableCell>
+    <ResourceTableCell
+      type="default"
+      title={""}
+      cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
+      value={cellValue}
+    />
   );
 };
 

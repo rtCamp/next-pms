@@ -19,6 +19,8 @@ import {
   ClipboardList,
   FolderDot,
   GanttChart,
+  FolderKanban,
+  BookUser,
 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { TIMESHEET, HOME, TEAM, DESK, TASK, PROJECT, ROLES, RESOURCE_MANAGEMENT } from "@/lib/constant";
@@ -98,17 +100,19 @@ const Sidebar = () => {
       icon: GanttChart,
       label: "Resource Management",
       key: "resource-management",
-      isPmRoute: false,
+      isPmRoute: true,
       children: [
         {
           to: RESOURCE_MANAGEMENT + "/team",
           label: "Team View",
           key: "team-view",
+          icon: BookUser,
         },
         {
           to: RESOURCE_MANAGEMENT + "/project",
           label: "Project View",
           key: "project-view",
+          icon: FolderKanban,
         },
       ],
     },
