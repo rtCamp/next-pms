@@ -63,7 +63,7 @@ export type EmployeeResourceProps = {
   is_on_leave: boolean;
   total_leave_hours: number;
   total_allocation_count: number;
-  week_index:number;
+  week_index: number;
 };
 
 export type EmployeeAllocationForDateProps = {
@@ -76,11 +76,13 @@ export interface ResourceTeamState {
   data: ResourceTeamDataProps;
   employeeName?: string;
   businessUnit?: string[];
+  designation?: string[];
   isDialogOpen: boolean;
   isEditDialogOpen: boolean;
   weekDate: string;
   employeeWeekDate: string;
   pageLength: number;
+  isBillable: number;
   start: number;
   dateRange: DateRange;
   hasMore: boolean;
@@ -103,11 +105,13 @@ export const initialState: ResourceTeamState = {
   weekDate: getFormatedDate(getTodayDate()),
   employeeWeekDate: getFormatedDate(getTodayDate()),
   start: 0,
+  isBillable: -1,
   hasMore: true,
   dateRange: {
     start_date: "",
     end_date: "",
   },
+  designation: [],
   tableView: {
     combineWeekHours: false,
     view: "planned-vs-capacity",
@@ -203,6 +207,24 @@ const ResourceTeamSlice = createSlice({
     setReFetchData: (state, action: PayloadAction<boolean>) => {
       state.isNeedToFetchDataAfterUpdate = action.payload;
     },
+    setIsBillable: (state, action: PayloadAction<string[]>) => {
+      if (action.payload.length == 2 || action.payload.length == 0) {
+        state.isBillable = -1;
+      } else if (action.payload[0] == "billable") {
+        state.isBillable = 1;
+      } else {
+        state.isBillable = 0;
+      }
+      state.pageLength = initialState.pageLength;
+      state.start = 0;
+      state.data = initialState.data;
+    },
+    setDesignation: (state, action: PayloadAction<string[]>) => {
+      state.designation = action.payload;
+      state.pageLength = initialState.pageLength;
+      state.start = 0;
+      state.data = initialState.data;
+    },
   },
 });
 
@@ -219,7 +241,9 @@ export const {
   setEmployeeName,
   setBusinessUnit,
   setCombineWeekHours,
+  setIsBillable,
   setView,
   setReFetchData,
+  setDesignation
 } = ResourceTeamSlice.actions;
 export default ResourceTeamSlice.reducer;

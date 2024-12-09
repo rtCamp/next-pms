@@ -230,32 +230,34 @@ const ResourceTeamTableCell = ({
     );
   }
 
+  const onCellClick = () => {
+    dispatch(
+      setResourceFormData({
+        isShowDialog: true,
+        employee: employee,
+        allocation_start_date: employeeSingleDay.date,
+        allocation_end_date: employeeSingleDay.date,
+        is_billable: false,
+        total_allocated_hours: 0,
+        hours_allocated_per_day: 0,
+        note: "",
+        project: "",
+        project_name: "",
+        customer: "",
+        customer_name: "",
+        isNeedToEdit: false,
+        name: "",
+      })
+    );
+  };
+
   if (!tableView.combineWeekHours && !employeeSingleDay.is_on_leave && employeeSingleDay.total_allocated_hours == 0) {
     return (
       <ResourceTableCell
         type="empty"
         title={title}
         cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
-        onCellClick={() => {
-          dispatch(
-            setResourceFormData({
-              isShowDialog: true,
-              employee: employee,
-              allocation_start_date: employeeSingleDay.date,
-              allocation_end_date: employeeSingleDay.date,
-              is_billable: false,
-              total_allocated_hours: 0,
-              hours_allocated_per_day: 0,
-              note: "",
-              project: "",
-              project_name: "",
-              customer: "",
-              customer_name: "",
-              isNeedToEdit: false,
-              name: "",
-            })
-          );
-        }}
+        onCellClick={onCellClick}
         value={""}
       />
     );
@@ -286,6 +288,7 @@ const ResourceTeamTableCell = ({
             resourceAllocationList={employeeSingleDay.employee_resource_allocation_for_given_date}
             employeeAllocations={employeeAllocations}
             customer={customer}
+            onButtonClick={onCellClick}
           />
         );
       }}

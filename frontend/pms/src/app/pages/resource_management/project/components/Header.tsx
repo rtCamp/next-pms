@@ -5,6 +5,7 @@ import {
   resetState,
   setCombineWeekHours,
   setView,
+  setIsBillable,
 } from "@/store/resource_management/project";
 import { getFormatedDate } from "@/lib/utils";
 import { useCallback, useEffect } from "react";
@@ -19,6 +20,7 @@ import { setDialog } from "@/store/resource_management/allocation";
 const ResourceProjectHeaderSection = () => {
   const [projectNameParam, setProjectNameParam] = useQueryParamsState<string>("prject-name", "");
   const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParamsState<boolean>("combine-week-hours", false);
+  const [allocationTypeParam, setAllocationTypeParam] = useQueryParamsState<string[]>("allocation-type", []);
   const [viewParam, setViewParam] = useQueryParamsState<string>("view-type", "planned");
 
   const resourceTeamState = useSelector((state: RootState) => state.resource_project);
@@ -37,6 +39,15 @@ const ResourceProjectHeaderSection = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleAllocationTypeChange = useCallback(
+    (value: string | string[]) => {
+      dispatch(setIsBillable(value as string[]));
+      setAllocationTypeParam(value as string[]);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [dispatch]
+  );
 
   const handlePrevWeek = useCallback(() => {
     const date = getFormatedDate(addDays(resourceTeamState.data.dates[0].start_date, -3));
@@ -79,6 +90,24 @@ const ResourceProjectHeaderSection = () => {
           value: projectNameParam,
           defaultValue: "",
           label: "Project Name",
+        },
+        {
+          queryParameterName: "allocation-type",
+          handleChange: handleAllocationTypeChange,
+          type: "select-search",
+          value: allocationTypeParam,
+          defaultValue: "",
+          label: "Allocation Type",
+          data: [
+            {
+              label: "Billable",
+              value: "billable",
+            },
+            {
+              label: "Non-Billable",
+              value: "non-billable",
+            },
+          ],
         },
         {
           queryParameterName: "view-type",

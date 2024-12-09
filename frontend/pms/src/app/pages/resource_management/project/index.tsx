@@ -1,7 +1,7 @@
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store";
-import { setData, setStart, updateData } from "@/store/resource_management/team";
+import { setData, setStart, updateData } from "@/store/resource_management/project";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useCallback, useEffect } from "react";
@@ -27,10 +27,13 @@ const ResourceTeamView = () => {
       page_length: resourceTeamState.pageLength,
       project_name: resourceTeamState.projectName,
       start: resourceTeamState.start,
+      is_billable: resourceTeamState.isBillable,
+
     },
     undefined,
     {
       revalidateIfStale: false,
+      revalidateOnMount: true,
     }
   );
 

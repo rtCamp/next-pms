@@ -13,7 +13,7 @@ export type ProjectDataProps = {
   project_name: string;
   all_dates_data: ProjectResourceProps[];
   all_week_data: [];
-  employee_allocations: ResourceAllocationObjectProps;
+  project_allocations: ResourceAllocationObjectProps;
 };
 
 export interface ResourceProjectDataProps {
@@ -65,6 +65,7 @@ export interface ResourceTeamState {
   hasMore: boolean;
   tableView: TableViewProps;
   isNeedToFetchDataAfterUpdate: boolean;
+  isBillable: number;
 }
 
 export const initialState: ResourceTeamState = {
@@ -92,6 +93,7 @@ export const initialState: ResourceTeamState = {
     view: "planned-vs-capacity",
   },
   isNeedToFetchDataAfterUpdate: false,
+  isBillable: -1,
 };
 
 const ResourceTeamSlice = createSlice({
@@ -180,6 +182,18 @@ const ResourceTeamSlice = createSlice({
     setReFetchData: (state, action: PayloadAction<boolean>) => {
       state.isNeedToFetchDataAfterUpdate = action.payload;
     },
+    setIsBillable: (state, action: PayloadAction<string[]>) => {
+      if (action.payload.length == 2 || action.payload.length == 0) {
+        state.isBillable = -1;
+      } else if (action.payload[0] == "billable") {
+        state.isBillable = 1;
+      } else {
+        state.isBillable = 0;
+      }
+      state.pageLength = initialState.pageLength;
+      state.start = 0;
+      state.data = initialState.data;
+    },
   },
 });
 
@@ -197,6 +211,7 @@ export const {
   setBusinessUnit,
   setCombineWeekHours,
   setView,
-  setReFetchData
+  setReFetchData,
+  setIsBillable,
 } = ResourceTeamSlice.actions;
 export default ResourceTeamSlice.reducer;

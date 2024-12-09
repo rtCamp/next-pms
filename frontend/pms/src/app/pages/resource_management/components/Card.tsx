@@ -9,23 +9,27 @@ import {
 } from "@/types/resource_management";
 import { useDispatch, useSelector } from "react-redux";
 import { getInitials } from "../utils/helper";
-import { Clipboard, Pencil, Trash2 } from "lucide-react";
+import { Clipboard, Pencil, Plus, Trash2 } from "lucide-react";
 import { useFrappeDeleteDoc } from "frappe-react-sdk";
-import { setResourceFormData } from "@/store/resource_management/allocation";
+import { setDialog, setResourceFormData } from "@/store/resource_management/allocation";
 import { toast } from "@/app/components/ui/use-toast";
 import { setReFetchData } from "@/store/resource_management/team";
+import { Button } from "@/app/components/ui/button";
 
 export const ResourceAllocationList = ({
   resourceAllocationList,
   employeeAllocations,
   customer,
+  onButtonClick,
 }: {
   resourceAllocationList: ResourceAllocationProps[];
   employeeAllocations?: ResourceAllocationObjectProps;
   customer: ResourceCustomerObjectProps;
+  onButtonClick?: () => void;
 }) => {
+
   return (
-    <div>
+    <div className="flex flex-col">
       {resourceAllocationList.map((resourceAllocation: ResourceAllocationProps) => (
         <ResourceAllocationCard
           key={resourceAllocation.name}
@@ -37,6 +41,17 @@ export const ResourceAllocationList = ({
           customer={customer}
         />
       ))}
+      {onButtonClick && (
+        <Button
+          title={"Add Resource Allocation"}
+          className={cn("p-1 h-fit text-xs")}
+          variant={"default"}
+          onClick={onButtonClick}
+        >
+          <Plus className="w-4 max-md:w-3 h-4 max-md:h-3" />
+          Add
+        </Button>
+      )}
     </div>
   );
 };

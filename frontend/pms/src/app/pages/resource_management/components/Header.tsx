@@ -74,7 +74,7 @@ const ResourceHeaderSection = ({ filters, buttons }: HeaderSectionProps) => {
               return (
                 <ComboxBox
                   value={filter.value as string[]}
-                  label="Business Unit"
+                  label={filter.label}
                   isMulti
                   shouldFilter
                   showSelected={false}

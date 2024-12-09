@@ -26,11 +26,14 @@ const ResourceTeamView = () => {
       page_length: resourceTeamState.pageLength,
       employee_name: resourceTeamState.employeeName,
       business_unit: resourceTeamState.businessUnit,
+      designation: resourceTeamState.designation,
+      is_billable: resourceTeamState.isBillable,
       start: resourceTeamState.start,
     },
     undefined,
     {
       revalidateIfStale: false,
+      revalidateOnMount: true,
     }
   );
 

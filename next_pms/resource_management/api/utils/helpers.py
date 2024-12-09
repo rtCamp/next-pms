@@ -109,6 +109,7 @@ def find_worked_hours(timesheet_data: list, date: str, project: str = None):
 def filter_employee_list(
     employee_name=None,
     business_unit=None,
+    designation=None,
     page_length=10,
     start=0,
 ):
@@ -118,10 +119,7 @@ def filter_employee_list(
     page_length = int(page_length)
 
     employees, count = filter_employees(
-        employee_name,
-        page_length=page_length,
-        start=start,
-        business_unit=business_unit,
+        employee_name, page_length=page_length, start=start, business_unit=business_unit, designation=designation
     )
 
     return employees, count

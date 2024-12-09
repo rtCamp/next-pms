@@ -23,6 +23,7 @@ def get_resource_management_project_view_data(
     business_unit=None,
     project_manager=None,
     project_type=None,
+    is_billable=-1,
     page_length=10,
     start=0,
 ):
@@ -55,6 +56,7 @@ def get_resource_management_project_view_data(
         [project.name for project in projects],
         weeks[0].get("start_date"),
         weeks[-1].get("end_date"),
+        is_billable,
     )
 
     resource_allocation_map = {}
@@ -127,7 +129,7 @@ def get_resource_management_project_view_data(
 
 
 @frappe.whitelist()
-def get_employees_resrouce_data_for_given_project(project: str, start_date: str, end_date: str):
+def get_employees_resrouce_data_for_given_project(project: str, start_date: str, end_date: str, is_billable: str):
     frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
     resource_allocation_data = get_allocation_list_for_employee_for_given_range(
@@ -146,6 +148,7 @@ def get_employees_resrouce_data_for_given_project(project: str, start_date: str,
         [project],
         start_date,
         end_date,
+        is_billable,
     )
 
     resource_allocation_map = {}

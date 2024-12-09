@@ -90,6 +90,10 @@ const getFilterValue = (
   return value.length > lenght ? `${value.slice(0, lenght)}...` : value;
 };
 
+const getRoundOfValue = (value: number): number => {
+  return Math.round(value * 100) / 100;
+};
+
 export {
   getTableCellClass,
   getTableCellRow,
@@ -98,4 +102,5 @@ export {
   getRelativeStartDate,
   getRelativeEndDate,
   getFilterValue,
+  getRoundOfValue
 };

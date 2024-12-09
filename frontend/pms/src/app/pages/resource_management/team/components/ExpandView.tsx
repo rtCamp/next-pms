@@ -103,32 +103,34 @@ const ExpandViewCell = ({
 
   const total_worked_hours = allocationsData ? allocationsData.total_worked_hours_resource_allocation : 0;
 
+  const onCellClick=() => {
+    dispatch(
+      setResourceFormData({
+        isShowDialog: true,
+        employee: employee,
+        project: project,
+        allocation_start_date: date,
+        allocation_end_date: date,
+        is_billable: false,
+        customer: "",
+        total_allocated_hours: 0,
+        hours_allocated_per_day: 0,
+        note: "",
+        project_name: project_name,
+        customer_name: "",
+        isNeedToEdit: false,
+        name: "",
+      })
+    );
+  };
+
   if (total_allocated_hours == 0 && total_allocated_hours == 0) {
     return (
       <ResourceTableCell
         type="empty"
         title={title}
         cellClassName={getTableCellClass(index)}
-        onCellClick={() => {
-          dispatch(
-            setResourceFormData({
-              isShowDialog: true,
-              employee: employee,
-              project: project,
-              allocation_start_date: date,
-              allocation_end_date: date,
-              is_billable: false,
-              customer: "",
-              total_allocated_hours: 0,
-              hours_allocated_per_day: 0,
-              note: "",
-              project_name: project_name,
-              customer_name: "",
-              isNeedToEdit: false,
-              name: "",
-            })
-          );
-        }}
+        onCellClick={onCellClick}
         value={"-"}
       />
     );
@@ -146,7 +148,7 @@ const ExpandViewCell = ({
           : `${total_worked_hours} / ${total_allocated_hours}`
       }
       CustomHoverCardContent={() => {
-        return <ResourceAllocationList resourceAllocationList={allocationsData.allocations} customer={resourceTeamState.data.customer} />;
+        return <ResourceAllocationList resourceAllocationList={allocationsData.allocations} customer={resourceTeamState.data.customer} onButtonClick={onCellClick} />;
       }}
     />
   );

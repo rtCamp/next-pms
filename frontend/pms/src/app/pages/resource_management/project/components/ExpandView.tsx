@@ -9,7 +9,7 @@ import { ResourceTableCell, TableInformationCellContent } from "../../components
 import { ResourceAllocationObjectProps, ResourceCustomerObjectProps } from "@/types/resource_management";
 import { useMemo } from "react";
 import { getCellBackGroundColor } from "../../utils/cell";
-import { cn } from "@/lib/utils";
+import { cn, prettyDate } from "@/lib/utils";
 import { setResourceFormData } from "@/store/resource_management/allocation";
 
 interface ResourceExpandViewProps {
@@ -66,6 +66,7 @@ export const ResourceExpandView = ({ project, project_name, start_date, end_date
                       employeeAllocations={employeeData.allocations}
                       customer={data.message.customer}
                       employee={employeeData.name}
+                      employee_name={employeeData.employee_name}
                       project={project}
                       project_name={project_name}
                     />
@@ -85,12 +86,14 @@ const ExpandViewCell = ({
   employeeAllocations,
   customer,
   employee,
+  employee_name,
   project,
   project_name,
 }: {
   allocationsData: any;
   index: number;
   employee: string;
+  employee_name: string;
   project: string;
   project_name: string;
   employeeAllocations?: ResourceAllocationObjectProps;
@@ -116,32 +119,38 @@ const ExpandViewCell = ({
     return getCellBackGroundColor(allocationPercentage);
   }, [allocationPercentage, tableView.view]);
 
+  const onCellClick = () => {
+    dispatch(
+      setResourceFormData({
+        isShowDialog: true,
+        employee: employee,
+        project: project,
+        allocation_start_date: allocationsData.date,
+        allocation_end_date: allocationsData.date,
+        is_billable: false,
+        customer: "",
+        total_allocated_hours: 0,
+        hours_allocated_per_day: 0,
+        note: "",
+        project_name: project_name,
+        customer_name: "",
+        isNeedToEdit: false,
+        name: "",
+      })
+    );
+  };
+
+  const { date: dateStr, day } = prettyDate(allocationsData.date);
+  const title = employee_name + " (" + dateStr + " - " + day + ")";
+
+
   if (allocationsData.total_allocated_hours == 0 && allocationsData.total_worked_hours == 0) {
     return (
       <ResourceTableCell
         type="empty"
-        title={""}
+        title={title}
         cellClassName={getTableCellClass(index)}
-        onCellClick={() => {
-          dispatch(
-            setResourceFormData({
-              isShowDialog: true,
-              employee: employee,
-              project: project,
-              allocation_start_date: allocationsData.date,
-              allocation_end_date: allocationsData.date,
-              is_billable: false,
-              customer: "",
-              total_allocated_hours: 0,
-              hours_allocated_per_day: 0,
-              note: "",
-              project_name: project_name,
-              customer_name: "",
-              isNeedToEdit: false,
-              name: "",
-            })
-          );
-        }}
+        onCellClick={onCellClick}
         value={"-"}
       />
     );
@@ -151,7 +160,7 @@ const ExpandViewCell = ({
     <ResourceTableCell
       key={index}
       type="hovercard"
-      title={""}
+      title={title}
       cellClassName={cn(getTableCellClass(index), cellBackGroundColor)}
       value={
         tableView.view == "planned"
@@ -164,6 +173,7 @@ const ExpandViewCell = ({
             resourceAllocationList={allocationsData.employee_resource_allocation_for_given_date}
             employeeAllocations={employeeAllocations}
             customer={customer}
+            onButtonClick={onCellClick}
           />
         );
       }}

@@ -23,6 +23,8 @@ def get_resource_management_team_view_data(
     max_week: int = 2,
     employee_name=None,
     business_unit=None,
+    designation=None,
+    is_billable=-1,
     page_length=10,
     start=0,
 ):
@@ -36,6 +38,7 @@ def get_resource_management_team_view_data(
     employees, total_count = filter_employee_list(
         employee_name,
         business_unit=business_unit,
+        designation=designation,
         page_length=page_length,
         start=start,
     )
@@ -56,6 +59,7 @@ def get_resource_management_team_view_data(
         [employee.name for employee in employees],
         dates[0].get("start_date"),
         dates[-1].get("end_date"),
+        is_billable,
     )
 
     # Make the map of resource allocation data for given employee

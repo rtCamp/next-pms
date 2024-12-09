@@ -2,7 +2,9 @@ import frappe
 from frappe.query_builder.functions import Sum
 
 
-def get_allocation_list_for_employee_for_given_range(columns: list, value_key: str, values: list, start_date, end_date):
+def get_allocation_list_for_employee_for_given_range(
+    columns: list, value_key: str, values: list, start_date, end_date, is_billable=-1
+):
     """
     Returns a list of resource allocations for the given list for given key, within the given date range.
 
@@ -15,7 +17,6 @@ def get_allocation_list_for_employee_for_given_range(columns: list, value_key: s
     Returns:
         list: A list of resource allocation dictionaries.
     """
-
     if not values:
         return []
 
@@ -25,6 +26,7 @@ def get_allocation_list_for_employee_for_given_range(columns: list, value_key: s
         f"""
         SELECT { ', '.join(columns)} FROM `tabResource Allocation`
             WHERE {"employee" if value_key == "employee" else "project"} IN %(names)s
+            {get_is_billable_condition(is_billable)}
             AND (
                 (allocation_start_date <= %(start_date)s AND allocation_end_date >= %(start_date)s)
                 OR (allocation_start_date >= %(start_date)s AND allocation_end_date <= %(end_date)s)
@@ -33,9 +35,21 @@ def get_allocation_list_for_employee_for_given_range(columns: list, value_key: s
             )
             ORDER BY allocation_start_date, allocation_end_date;
     """,
-        {"list_key": value_key, "names": values, "start_date": start_date, "end_date": end_date},
+        {
+            "list_key": value_key,
+            "names": values,
+            "start_date": start_date,
+            "end_date": end_date,
+        },
         as_dict=True,
     )  # nosemgrep
+
+
+def get_is_billable_condition(is_billable):
+    if is_billable == "0" or is_billable == "1":
+        return f"AND (is_billable = {is_billable})"
+
+    return "AND (1=1)"
 
 
 def get_allocation_worked_hours_for_given_projects(project: str, start_date: str, end_date: str):

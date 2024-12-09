@@ -1,7 +1,7 @@
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { DateProps } from "@/store/resource_management/team";
-import { cn } from "@/lib/utils";
+import { cn, prettyDate } from "@/lib/utils";
 import { Table, TableBody, TableCell } from "@/app/components/ui/table";
 import { Typography } from "@/app/components/typography";
 import { getTableCellClass } from "../../utils/helper";
@@ -173,37 +173,38 @@ const ResourceProjectTableCell = ({
     tableView.view,
   ]);
 
-  console.log("cellValue", cellValue);
+  const onCellClick = () => {
+    dispatch(
+      setResourceFormData({
+        isShowDialog: true,
+        employee: "",
+        project: project,
+        allocation_start_date: projectSingleDay.date,
+        allocation_end_date: projectSingleDay.date,
+        is_billable: false,
+        customer: "",
+        total_allocated_hours: 0,
+        hours_allocated_per_day: 0,
+        note: "",
+        project_name: project_name,
+        customer_name: "",
+        isNeedToEdit: false,
+        name: "",
+      })
+    );
+  };
+
+  const { date: dateStr, day } = prettyDate(projectSingleDay.date);
+  const title = project_name + " (" + dateStr + " - " + day + ")";
 
   if (cellValue == "-") {
-    console.log("cellValue IN", cellValue);
-
     return (
       <ResourceTableCell
         type="empty"
-        title={""}
+        title={title}
         cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
         value={""}
-        onCellClick={() => {
-          dispatch(
-            setResourceFormData({
-              isShowDialog: true,
-              employee: "",
-              project: project,
-              allocation_start_date: projectSingleDay.date,
-              allocation_end_date: projectSingleDay.date,
-              is_billable: false,
-              customer: "",
-              total_allocated_hours: 0,
-              hours_allocated_per_day: 0,
-              note: "",
-              project_name: project_name,
-              customer_name: "",
-              isNeedToEdit: false,
-              name: "",
-            })
-          );
-        }}
+        onCellClick={onCellClick}
       />
     );
   }
@@ -211,7 +212,7 @@ const ResourceProjectTableCell = ({
   return (
     <ResourceTableCell
       type="hovercard"
-      title={""}
+      title={title}
       cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
       value={cellValue}
       CustomHoverCardContent={() => {
@@ -220,6 +221,7 @@ const ResourceProjectTableCell = ({
             resourceAllocationList={projectSingleDay.project_resource_allocation_for_given_date}
             employeeAllocations={projectAllocations}
             customer={customer}
+            onButtonClick={onCellClick}
           />
         );
       }}

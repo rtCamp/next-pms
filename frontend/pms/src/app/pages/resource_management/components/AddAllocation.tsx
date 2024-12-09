@@ -19,9 +19,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { z } from "zod";
 import { DatePicker } from "@/app/components/datePicker";
 import { useFrappeCreateDoc, useFrappeGetCall, useFrappeUpdateDoc } from "frappe-react-sdk";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useToast } from "@/app/components/ui/use-toast";
 import { resetState } from "@/store/resource_management/allocation";
+import { getRoundOfValue } from "../utils/helper";
+import { timeStringToFloat } from "@/schema/timesheet";
 
 const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
   const ResourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
@@ -78,13 +80,7 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
 
   const handleEmployeeChange = (value: string) => {
     form.setValue("employee", value);
-    if (
-      form.getValues("employee") &&
-      form.getValues("allocation_start_date") &&
-      form.getValues("allocation_end_date")
-    ) {
-      fetchLeaveData();
-    }
+    fetchLeaveData();
   };
 
   const handleCustomerAutoComplete = (value: string) => {
@@ -128,14 +124,64 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
   const handleDateChange = (key: ResourceKeys, date: Date | undefined) => {
     if (!date) return;
     form.setValue(key, getFormatedDate(date));
-    if (
-      form.getValues("employee") &&
-      form.getValues("allocation_start_date") &&
-      form.getValues("allocation_end_date")
-    ) {
+    if (isNeedToShowLeaveData()) {
       fetchLeaveData();
     }
   };
+
+  const isNeedToShowLeaveData = useCallback(() => {
+    return (
+      form.getValues("employee") && form.getValues("allocation_start_date") && form.getValues("allocation_end_date")
+    );
+  }, [form]);
+
+  const handleHoursAutoComplete = useCallback(
+    (needToSet: "per_day" | "total" | "all" = "all") => {
+      if (!leaveData?.message) {
+        return;
+      }
+
+      if (isNeedToShowLeaveData()) {
+        const hours_allocated_per_day = parseFloat(form.getValues("hours_allocated_per_day") as string);
+        const total_allocated_hours = parseFloat(form.getValues("total_allocated_hours") as string);
+
+        if (needToSet === "all") {
+          if (hours_allocated_per_day) {
+            return form.setValue(
+              "total_allocated_hours",
+              getRoundOfValue(hours_allocated_per_day * leaveData.message.total_working_days)
+            );
+          }
+
+          if (total_allocated_hours) {
+            if (leaveData.message.total_working_days) {
+              return form.setValue(
+                "hours_allocated_per_day",
+                getRoundOfValue(total_allocated_hours / leaveData.message.total_working_days)
+              );
+            } else {
+              return form.setValue("hours_allocated_per_day", 0);
+            }
+          }
+        } else if (needToSet == "total") {
+          return form.setValue(
+            "total_allocated_hours",
+            getRoundOfValue(hours_allocated_per_day * leaveData.message.total_working_days)
+          );
+        } else {
+          if (leaveData.message.total_working_days) {
+            return form.setValue(
+              "hours_allocated_per_day",
+              getRoundOfValue(total_allocated_hours / leaveData.message.total_working_days)
+            );
+          } else {
+            return form.setValue("hours_allocated_per_day", 0);
+          }
+        }
+      }
+    },
+    [form, isNeedToShowLeaveData, leaveData]
+  );
 
   const handleOpen = (open: boolean): void => {
     dispatch(setDialog(open));
@@ -176,7 +222,7 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
           description: `Resouce allocation ${ResourceAllocationForm.isNeedToEdit ? "updated" : "created"} successfully`,
         });
         handleOpen(false);
-        onSubmit()
+        onSubmit();
       })
       .catch(() => {
         toast({
@@ -185,6 +231,23 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
         });
       });
   };
+
+  const timeStringToFloatWrapper = (value: string) => {
+    if (value == "") {
+      return 0;
+    }
+    const newValue = timeStringToFloat(value);
+
+    if (!newValue) {
+      return 0;
+    }
+
+    return newValue;
+  };
+
+  useEffect(() => {
+    handleHoursAutoComplete();
+  }, [handleHoursAutoComplete, leaveData]);
 
   return (
     <Dialog open={ResourceAllocationForm?.isShowDialog} onOpenChange={handleOpen}>
@@ -358,11 +421,15 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
                             className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
                             type="text"
                             {...field}
+                            onChange={(e) => {
+                              form.setValue("total_allocated_hours", timeStringToFloatWrapper(String(e.target.value)));
+                              handleHoursAutoComplete("per_day");
+                            }}
                           />
                           <Clock3 className="h-4 w-4 absolute right-0 m-3 top-0 stroke-slate-400" />
                         </div>
                         <div className="h-[16px]">
-                          {leaveData?.message && (
+                          {leaveData?.message && isNeedToShowLeaveData() && (
                             <p
                               className="text-[10px] pl-1"
                               title="Note: Leave days include the days when employee is on leave and holiday days"
@@ -394,10 +461,17 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
                       <>
                         <div className="relative flex items-center">
                           <Input
-                            placeholder="00:00"
+                            placeholder="0"
                             className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
                             type="text"
                             {...field}
+                            onChange={(e) => {
+                              form.setValue(
+                                "hours_allocated_per_day",
+                                timeStringToFloatWrapper(String(e.target.value))
+                              );
+                              handleHoursAutoComplete("total");
+                            }}
                           />
                           <Clock3 className="h-4 w-4 absolute right-0 m-3 top-0 stroke-slate-400" />
                         </div>

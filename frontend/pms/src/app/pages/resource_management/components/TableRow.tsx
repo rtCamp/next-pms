@@ -1,5 +1,4 @@
-import { Typography } from "@/app/components/typography";
-import { TableCell, TableRow } from "@/app/components/ui/table";
+import { TableRow } from "@/app/components/ui/table";
 import { cn } from "@/lib/utils";
 import { getTableCellRow } from "../utils/helper";
 import React from "react";
@@ -49,6 +48,5 @@ const ResourceTableRow = ({
     </Accordion>
   );
 };
-
 
 export { ResourceTableRow };

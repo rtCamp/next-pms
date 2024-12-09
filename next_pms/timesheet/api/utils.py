@@ -79,6 +79,7 @@ def filter_employees(
     status=None,
     reports_to: None | str = None,
     business_unit=None,
+    designation=None,
 ):
     import json
 
@@ -99,6 +100,9 @@ def filter_employees(
     if isinstance(business_unit, str):
         business_unit = json.loads(business_unit)
 
+    if isinstance(designation, str):
+        designation = json.loads(designation)
+
     if isinstance(status, str):
         status = json.loads(status)
         if len(status) > 0:
@@ -117,6 +121,9 @@ def filter_employees(
 
     if department and len(department) > 0:
         filters["department"] = ["in", department]
+
+    if designation and len(designation) > 0:
+        filters["designation"] = ["in", designation]
 
     if business_unit and len(business_unit) > 0:
         filters["custom_business_unit"] = ["in", business_unit]
