@@ -1,18 +1,16 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 import { cn, prettyDate } from "@/lib/utils";
-import { RootState } from "@/store";
 import {
   ResourceCustomerProps,
   ResourceCustomerObjectProps,
   ResourceAllocationProps,
   ResourceAllocationObjectProps,
 } from "@/types/resource_management";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { getInitials } from "../utils/helper";
 import { Clipboard, Pencil, Plus, Trash2 } from "lucide-react";
 import { useFrappeDeleteDoc } from "frappe-react-sdk";
-import { setDialog, setResourceFormData } from "@/store/resource_management/allocation";
-import { toast } from "@/app/components/ui/use-toast";
+import { setResourceFormData } from "@/store/resource_management/allocation";
 import { setReFetchData } from "@/store/resource_management/team";
 import { Button } from "@/app/components/ui/button";
 

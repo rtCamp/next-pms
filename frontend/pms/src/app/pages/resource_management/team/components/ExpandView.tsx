@@ -103,7 +103,7 @@ const ExpandViewCell = ({
 
   const total_worked_hours = allocationsData ? allocationsData.total_worked_hours_resource_allocation : 0;
 
-  const onCellClick=() => {
+  const onCellClick = () => {
     dispatch(
       setResourceFormData({
         isShowDialog: true,
@@ -111,7 +111,7 @@ const ExpandViewCell = ({
         project: project,
         allocation_start_date: date,
         allocation_end_date: date,
-        is_billable: false,
+        is_billable: resourceTeamState.isBillable != 0,
         customer: "",
         total_allocated_hours: 0,
         hours_allocated_per_day: 0,
@@ -148,7 +148,13 @@ const ExpandViewCell = ({
           : `${total_worked_hours} / ${total_allocated_hours}`
       }
       CustomHoverCardContent={() => {
-        return <ResourceAllocationList resourceAllocationList={allocationsData.allocations} customer={resourceTeamState.data.customer} onButtonClick={onCellClick} />;
+        return (
+          <ResourceAllocationList
+            resourceAllocationList={allocationsData.allocations}
+            customer={resourceTeamState.data.customer}
+            onButtonClick={onCellClick}
+          />
+        );
       }}
     />
   );

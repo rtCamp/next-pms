@@ -95,6 +95,7 @@ const ResourceTeamTableCell = ({
 }) => {
   const tableView = useSelector((state: RootState) => state.resource_team.tableView);
   const customer = useSelector((state: RootState) => state.resource_team.data.customer);
+  const isBillable = useSelector((state: RootState) => state.resource_team.isBillable);
 
   const heightFactor: number = 40;
   const { date: dateStr, day } = prettyDate(employeeSingleDay.date);
@@ -237,7 +238,7 @@ const ResourceTeamTableCell = ({
         employee: employee,
         allocation_start_date: employeeSingleDay.date,
         allocation_end_date: employeeSingleDay.date,
-        is_billable: false,
+        is_billable: isBillable != 0,
         total_allocated_hours: 0,
         hours_allocated_per_day: 0,
         note: "",

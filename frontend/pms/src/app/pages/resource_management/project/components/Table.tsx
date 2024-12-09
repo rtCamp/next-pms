@@ -104,6 +104,7 @@ const ResourceProjectTableCell = ({
 }) => {
   const tableView = useSelector((state: RootState) => state.resource_project.tableView);
   const customer = useSelector((state: RootState) => state.resource_project.data.customer);
+  const isBillable = useSelector((state: RootState) => state.resource_project.isBillable);
 
   const dispatch = useDispatch();
 
@@ -181,7 +182,7 @@ const ResourceProjectTableCell = ({
         project: project,
         allocation_start_date: projectSingleDay.date,
         allocation_end_date: projectSingleDay.date,
-        is_billable: false,
+        is_billable: isBillable != 0,
         customer: "",
         total_allocated_hours: 0,
         hours_allocated_per_day: 0,

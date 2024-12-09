@@ -100,6 +100,7 @@ const ExpandViewCell = ({
   customer: ResourceCustomerObjectProps;
 }) => {
   const tableView = useSelector((state: RootState) => state.resource_project.tableView);
+  const isBillable = useSelector((state: RootState) => state.resource_project.isBillable);
 
   const dispatch = useDispatch();
 
@@ -127,7 +128,7 @@ const ExpandViewCell = ({
         project: project,
         allocation_start_date: allocationsData.date,
         allocation_end_date: allocationsData.date,
-        is_billable: false,
+        is_billable: isBillable != 0,
         customer: "",
         total_allocated_hours: 0,
         hours_allocated_per_day: 0,
@@ -142,7 +143,6 @@ const ExpandViewCell = ({
 
   const { date: dateStr, day } = prettyDate(allocationsData.date);
   const title = employee_name + " (" + dateStr + " - " + day + ")";
-
 
   if (allocationsData.total_allocated_hours == 0 && allocationsData.total_worked_hours == 0) {
     return (
