@@ -13,6 +13,8 @@ import { useFrappeDeleteDoc } from "frappe-react-sdk";
 import { setResourceFormData } from "@/store/resource_management/allocation";
 import { setReFetchData } from "@/store/resource_management/team";
 import { Button } from "@/app/components/ui/button";
+import { useToast } from "@/app/components/ui/use-toast";
+
 
 export const ResourceAllocationList = ({
   resourceAllocationList,
@@ -66,6 +68,7 @@ export const ResourceAllocationCard = ({
   const { date: startDate } = prettyDate(resourceAllocation.allocation_start_date);
   const { date: endDate } = prettyDate(resourceAllocation.allocation_end_date);
   const dispatch = useDispatch();
+  const {toast}=useToast();
 
   const { deleteDoc } = useFrappeDeleteDoc();
 

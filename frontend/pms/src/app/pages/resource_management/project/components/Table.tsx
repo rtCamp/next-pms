@@ -21,7 +21,7 @@ const ResourceProjectTable = () => {
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_project.data.dates);
 
   return (
-    <Table className="lg:[&_tr]:pr-3 relative">
+    <Table className="relative">
       <ResourceProjectTableHeader dates={dates} title="Projects" />
       <ResourceProjectTableBody />
     </Table>
@@ -31,6 +31,7 @@ const ResourceProjectTable = () => {
 const ResourceProjectTableBody = () => {
   const data = useSelector((state: RootState) => state.resource_project.data.data);
   const dates = useSelector((state: RootState) => state.resource_project.data.dates);
+  const isBillable = useSelector((state: RootState) => state.resource_project.isBillable);
 
   if (data.length == 0) {
     return <EmptyTableBody />;
@@ -75,6 +76,7 @@ const ResourceProjectTableBody = () => {
                   project_name={projectData.project_name}
                   start_date={dates[0].start_date}
                   end_date={dates[dates.length - 1].end_date}
+                  is_billable={isBillable != 0}
                 />
               );
             }}

@@ -17,9 +17,16 @@ interface ResourceExpandViewProps {
   project_name: string;
   start_date: string;
   end_date: string;
+  is_billable: boolean;
 }
 
-export const ResourceExpandView = ({ project, project_name, start_date, end_date }: ResourceExpandViewProps) => {
+export const ResourceExpandView = ({
+  project,
+  project_name,
+  start_date,
+  end_date,
+  is_billable,
+}: ResourceExpandViewProps) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
 
   const { data } = useFrappeGetCall(
@@ -28,12 +35,15 @@ export const ResourceExpandView = ({ project, project_name, start_date, end_date
       project: project,
       start_date: start_date,
       end_date: end_date,
+      is_billable: is_billable,
     },
     undefined,
     {
       revalidateIfStale: false,
     }
   );
+
+  console.log(data);
 
   return (
     <Table>

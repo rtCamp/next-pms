@@ -20,7 +20,7 @@ const ResourceTeamTable = () => {
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_team.data.dates);
 
   return (
-    <Table className="lg:[&_tr]:pr-3 relative">
+    <Table className="relative">
       <ResourceTeamTableHeader dates={dates} title="Members" />
       <ResourceTeamTableBody />
     </Table>

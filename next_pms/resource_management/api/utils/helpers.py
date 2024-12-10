@@ -111,6 +111,7 @@ def filter_employee_list(
     business_unit=None,
     designation=None,
     page_length=10,
+    status=None,
     start=0,
 ):
     from next_pms.timesheet.api.utils import filter_employees
@@ -119,7 +120,12 @@ def filter_employee_list(
     page_length = int(page_length)
 
     employees, count = filter_employees(
-        employee_name, page_length=page_length, start=start, business_unit=business_unit, designation=designation
+        employee_name,
+        page_length=page_length,
+        start=start,
+        business_unit=business_unit,
+        designation=designation,
+        status=status,
     )
 
     return employees, count

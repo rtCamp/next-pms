@@ -41,6 +41,7 @@ def get_resource_management_team_view_data(
         designation=designation,
         page_length=page_length,
         start=start,
+        status=["Active"],
     )
 
     resource_allocation_data = get_allocation_list_for_employee_for_given_range(

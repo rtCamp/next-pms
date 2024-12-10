@@ -110,6 +110,12 @@ def filter_employees(
         else:
             filters["status"] = ["in", ["Active"]]
 
+    if isinstance(status, list):
+        if len(status) > 0:
+            filters["status"] = ["in", status]
+        else:
+            filters["status"] = ["in", ["Active"]]
+
     if isinstance(project, str):
         project = json.loads(project)
 
