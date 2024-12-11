@@ -33,6 +33,7 @@ interface TimesheetTableProps {
   working_hour: number;
   disabled?: boolean;
   working_frequency: WorkingFrequency;
+  weekly_status?: string;
 }
 
 const TimesheetTable = ({
@@ -45,10 +46,12 @@ const TimesheetTable = ({
   working_hour,
   working_frequency,
   disabled,
+  weekly_status,
 }: TimesheetTableProps) => {
   const holiday_list = getHolidayList(holidays);
   const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<string>("");
+
   return (
     <GenWrapper>
       {isTaskLogDialogBoxOpen && (
@@ -103,7 +106,7 @@ const TimesheetTable = ({
               expectedHours={expectatedHours(working_hour, working_frequency)}
             />
           )}
-          {Object.keys(tasks).length == 0 && (
+          {weekly_status != "Approved" && (
             <EmptyRow dates={dates} holidays={holidays} onCellClick={onCellClick} disabled={disabled} />
           )}
           {Object.keys(tasks).length > 0 &&
@@ -293,7 +296,7 @@ export const LeaveRow = ({
       {leaveData.map(({ date, data, hour, isHoliday }) => (
         <TableCell key={date} className={cn("text-center", dataCellClassName)}>
           <Typography variant="p" className={isHoliday ? "text-white" : "text-warning"}>
-            {data ? floatToTime(hour) : ""}
+            { (hour && hour!=0) ? floatToTime(hour) : ""}
           </Typography>
         </TableCell>
       ))}
