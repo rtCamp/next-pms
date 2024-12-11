@@ -1,6 +1,6 @@
 import frappe
 from frappe import _, get_value, throw
-from frappe.utils import add_days, date_diff, getdate, today
+from frappe.utils import add_days, date_diff, get_link_to_form, getdate, today
 
 ROLES = {
     "Projects Manager",
@@ -9,6 +9,52 @@ ROLES = {
 }
 
 
+#  Doc Events for Timesheet DocType
+def validate(doc, method=None):
+    validate_time(doc)
+    update_note(doc)
+
+
+def before_insert(doc, method=None):
+    set_date(doc)
+    validate_existing_timesheet(doc)
+    validate_approved_timesheet(doc)
+    validate_dates(doc)
+
+
+def before_save(doc, method=None):
+    from frappe.utils import get_datetime
+
+    if not doc.get("time_logs"):
+        return
+    #  Update the from_time and to_time to have only date part and time part as 00:00:00
+    for key, data in enumerate(doc.get("time_logs")):
+        from_time = get_datetime(data.from_time).replace(hour=0, minute=0, second=0, microsecond=0)
+        to_time = get_datetime(data.to_time).replace(hour=0, minute=0, second=0, microsecond=0)
+        doc.time_logs[key].from_time = from_time
+        doc.time_logs[key].to_time = to_time
+        doc.time_logs[key].project = get_value("Task", {"name": doc.time_logs[key].task}, "project")
+
+
+def on_update(doc, method=None):
+    doc.update_task_and_project()
+
+
+def before_validate(doc, method=None):
+    set_parent_project(doc)
+
+
+def before_submit(doc, method=None):
+    doc.custom_approval_status = "Approved"
+
+
+def on_submit(doc, method=None):
+    from next_pms.timesheet.api.utils import update_weekly_status_of_timesheet
+
+    update_weekly_status_of_timesheet(doc.employee, getdate(doc.start_date))
+
+
+#  Custom Methods for Timesheet DocType events
 def set_date(doc):
     if doc.docstatus < 2 and doc.time_logs:
         start_date = min(getdate(d.from_time) for d in doc.time_logs)
@@ -17,16 +63,6 @@ def set_date(doc):
         if start_date and end_date:
             doc.start_date = getdate(start_date)
             doc.end_date = getdate(end_date)
-
-
-def validate(doc, method=None):
-    validate_time(doc)
-    update_note(doc)
-
-
-def before_insert(doc, method=None):
-    set_date(doc)
-    validate_dates(doc)
 
 
 def update_note(doc):
@@ -49,43 +85,6 @@ def validate_time(doc):
         throw(_("You cannot log more than 24 hours in a single day."))
 
 
-def before_save(doc, method=None):
-    from frappe.utils import get_datetime
-
-    if not doc.get("time_logs"):
-        return
-    #  Update the from_time and to_time to have only date part and time part as 00:00:00
-    for key, data in enumerate(doc.get("time_logs")):
-        from_time = get_datetime(data.from_time).replace(
-            hour=0, minute=0, second=0, microsecond=0
-        )
-        to_time = get_datetime(data.to_time).replace(
-            hour=0, minute=0, second=0, microsecond=0
-        )
-        doc.time_logs[key].from_time = from_time
-        doc.time_logs[key].to_time = to_time
-        doc.time_logs[key].project = get_value(
-            "Task", {"name": doc.time_logs[key].task}, "project"
-        )
-
-
-def validate_existing_timesheet(doc, method=None):
-    import frappe
-
-    exists = frappe.db.exists(
-        "Timesheet",
-        {
-            "employee": doc.employee,
-            "start_date": getdate(doc.start_date),
-            "end_date": getdate(doc.end_date),
-            "parent_project": doc.parent_project,
-            "docstatus": ["!=", 2],
-        },
-    )
-    if exists:
-        frappe.throw(frappe._("Timesheet already exists for the given date range."))
-
-
 def validate_is_time_billable(doc, method=None):
     for key, data in enumerate(doc.get("time_logs")):
         value = get_value("Task", data.task, "custom_is_billable")
@@ -96,9 +95,10 @@ def validate_dates(doc):
     """Validate if time entry is made for holidays or leave days."""
     # import frappe
     from frappe import get_roles
+    from hrms.hr.utils import get_holiday_dates_for_employee
+
     from next_pms.timesheet.api.employee import get_employee_from_user
     from next_pms.timesheet.api.utils import get_leaves_for_employee
-    from hrms.hr.utils import get_holiday_dates_for_employee
 
     if frappe.session.user == "Administrator":
         return
@@ -111,16 +111,12 @@ def validate_dates(doc):
     date_gap = date_diff(doc.start_date, today_date)
 
     #  Check if the future time entry is allowed.
-    allow_future_entry = frappe.db.get_single_value(
-        "Timesheet Settings", "allow_future_entries"
-    )
+    allow_future_entry = frappe.db.get_single_value("Timesheet Settings", "allow_future_entries")
     if not allow_future_entry and date_gap > 0:
         throw(_("Future time entries are not allowed."))
 
     #  Check if the back dated time entry is allowed.
-    allow_back_dated_entry = frappe.db.get_single_value(
-        "Timesheet Settings", "allow_backdated_entries"
-    )
+    allow_back_dated_entry = frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries")
     if not allow_back_dated_entry and date_gap < 0:
         throw(_("Backdated time entries are not allowed."))
 
@@ -130,16 +126,10 @@ def validate_dates(doc):
         employee = get_employee_from_user()
 
         if has_access and employee != doc.employee:
-            allowed_days = frappe.db.get_single_value(
-                "Timesheet Settings", "allow_backdated_entries_till_manager"
-            )
+            allowed_days = frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries_till_manager")
         else:
-            allowed_days = frappe.db.get_single_value(
-                "Timesheet Settings", "allow_backdated_entries_till_employee"
-            )
-        holidays = get_holiday_dates_for_employee(
-            doc.employee, doc.start_date, today_date
-        )
+            allowed_days = frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries_till_employee")
+        holidays = get_holiday_dates_for_employee(doc.employee, doc.start_date, today_date)
         leaves = get_leaves_for_employee(
             str(add_days(doc.start_date, -28)),
             str(add_days(today_date, 28)),
@@ -164,12 +154,62 @@ def validate_dates(doc):
             throw(_("Backdated time entries are not allowed."))
 
 
-def on_update(doc, method=None):
-    doc.update_task_and_project()
+def validate_existing_timesheet(doc, method=None):
+    """Validate the timesheet for the date range, and project. If the timesheet already exists, then throw an error."""
+    existing_timesheet = frappe.db.exists(
+        "Timesheet",
+        {
+            "employee": doc.employee,
+            "start_date": doc.start_date,
+            "end_date": doc.end_date,
+            "parent_project": doc.parent_project,
+            "docstatus": ["!=", 2],
+        },
+    )
+    if existing_timesheet:
+        throw(
+            _("{0} already exists for the given date range.").format(
+                get_link_to_form("Timesheet", existing_timesheet, existing_timesheet)
+            )
+        )
 
 
-def before_validate(doc, method=None):
-    set_parent_project(doc)
+def validate_approved_timesheet(doc, method=None):
+    """Validate timesheet for the approved status, based on the date range of current week. If the timesheet is already approved for the current week then the employee should not be able to add any additional entries."""
+    from frappe.utils import get_first_day_of_week, get_last_day_of_week
+
+    if doc.docstatus == 1:
+        return
+    start_date = get_first_day_of_week(doc.start_date)
+    end_date = get_last_day_of_week(start_date)
+    timesheets = frappe.get_all(
+        "Timesheet",
+        filters={
+            "employee": doc.employee,
+            "start_date": ["<=", end_date],
+            "end_date": [">=", start_date],
+            "docstatus": ["!=", 2],
+        },
+        pluck="custom_weekly_approval_status",
+    )
+    if not timesheets:
+        return
+    #  Check all the time entries are approved or not.
+    if all(
+        weekly_status == "Approved"
+        and weekly_status
+        not in [
+            "Not Submitted",
+            "Partially Approved",
+            "Rejected",
+            "Partially Rejected",
+            "Approval Pending",
+        ]
+        for weekly_status in timesheets
+    ):
+        throw(
+            _("Your time entries for this week have already been approved, so you cannot add any additional entries.")
+        )
 
 
 def set_parent_project(doc):
