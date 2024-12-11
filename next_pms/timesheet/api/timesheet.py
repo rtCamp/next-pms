@@ -153,8 +153,6 @@ def submit_for_approval(approver: str, start_date: str, notes: str = None, emplo
         send_approval_reminder,
     )
 
-    from .utils import update_weekly_status_of_timesheet
-
     if not employee:
         employee = get_employee_from_user()
     reporting_manager = frappe.get_value("Employee", employee, "reports_to")
@@ -175,16 +173,21 @@ def submit_for_approval(approver: str, start_date: str, notes: str = None, emplo
             "employee": employee,
             "start_date": [">=", start_date],
             "end_date": ["<=", end_date],
-            "docstatus": 0,
+            "docstatus": ["!=", 2],
         },
+        fields=["name", "docstatus"],
         ignore_permissions=is_timesheet_manager(),
     )
     if not timesheets:
-        throw(_("No timesheet found for the given week."))
+        throw(_("No timesheet found for the given week."), frappe.DoesNotExistError)
+
+    draft_timesheets = [ts for ts in timesheets if ts.docstatus == 0]
+    for timesheet in draft_timesheets:
+        frappe.db.set_value("Timesheet", timesheet.name, "custom_approval_status", "Approval Pending")
 
     for timesheet in timesheets:
-        frappe.db.set_value("Timesheet", timesheet.name, "custom_approval_status", "Approval Pending")
-    update_weekly_status_of_timesheet(employee, start_date)
+        frappe.db.set_value("Timesheet", timesheet.name, "custom_weekly_approval_status", "Approval Pending")
+
     send_approval_reminder(employee, reporting_manager, start_date, end_date, notes)
     return f"Timesheet has been sent for Approval to {reporting_manager_name}."
 
