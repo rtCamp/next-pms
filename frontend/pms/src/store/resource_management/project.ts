@@ -11,7 +11,7 @@ export type ProjectDataProps = {
   name: string;
   image: string;
   project_name: string;
-  all_dates_data: ProjectResourceProps[];
+  all_dates_data: ProjectResourceObjectProps;
   all_week_data: [];
   project_allocations: ResourceAllocationObjectProps;
 };
@@ -39,12 +39,11 @@ export type ProjectResourceProps = {
   total_allocated_hours: number;
   total_worked_hours: number;
   project_resource_allocation_for_given_date: ProjectAllocationForDateProps[];
-  is_last_week_day: boolean;
-  is_on_leave: boolean;
-  total_leave_hours: number;
-  total_allocation_count: number;
-  week_index: number;
 };
+
+export interface ProjectResourceObjectProps {
+  [date: string]: ProjectResourceProps;
+}
 
 export type ProjectAllocationForDateProps = {
   name: string;
@@ -196,6 +195,13 @@ const ResourceTeamSlice = createSlice({
     },
   },
 });
+
+export const emptyProjectDayData: ProjectResourceProps = {
+  date: "None",
+  total_allocated_hours: 0,
+  total_worked_hours: 0,
+  project_resource_allocation_for_given_date: [],
+};
 
 export const {
   setData,

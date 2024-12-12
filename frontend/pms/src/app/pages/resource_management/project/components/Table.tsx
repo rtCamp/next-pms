@@ -9,7 +9,7 @@ import { ResourceAllocationObjectProps } from "@/types/resource_management";
 import ResourceProjectTableHeader from "../../components/TableHeader";
 import { EmptyTableBody } from "../../components/Empty";
 import { ResourceTableRow } from "../../components/TableRow";
-import { ProjectDataProps, ProjectResourceProps } from "@/store/resource_management/project";
+import { emptyProjectDayData, ProjectDataProps, ProjectResourceProps } from "@/store/resource_management/project";
 import { useMemo } from "react";
 import { ResourceExpandView } from "./ExpandView";
 import { ResourceTableCell } from "../../components/TableCell";
@@ -52,19 +52,32 @@ const ResourceProjectTableBody = () => {
             RowComponent={() => {
               return (
                 <>
-                  {projectData.all_dates_data.map((projectSingleDay: ProjectResourceProps, index: number) => {
-                    return (
-                      <ResourceProjectTableCell
-                        key={`${projectSingleDay.total_allocated_hours}-id-${Math.random()}`}
-                        projectSingleDay={projectSingleDay}
-                        allWeekData={projectData.all_week_data}
-                        rowCount={index}
-                        midIndex={projectSingleDay.week_index}
-                        projectAllocations={projectData.project_allocations}
-                        project={projectData.name}
-                        project_name={projectData.project_name}
-                      />
-                    );
+                  {dates.map((week: DateProps, week_index: number) => {
+                    return week.dates.map((date: string, index: number) => {
+                      let projectSingleDay = emptyProjectDayData;
+
+                      if (date in projectData.all_dates_data) {
+                        projectSingleDay = projectData.all_dates_data[date];
+                      } else {
+                        projectSingleDay = {
+                          ...emptyProjectDayData,
+                          date: date,
+                        };
+                      }
+
+                      return (
+                        <ResourceProjectTableCell
+                          key={`${projectSingleDay.total_allocated_hours}-id-${Math.random()}`}
+                          projectSingleDay={projectSingleDay}
+                          allWeekData={projectData.all_week_data}
+                          rowCount={index}
+                          midIndex={week_index}
+                          projectAllocations={projectData.project_allocations}
+                          project={projectData.name}
+                          project_name={projectData.project_name}
+                        />
+                      );
+                    });
                   })}
                 </>
               );

@@ -66,7 +66,7 @@ def get_resource_management_project_view_data(
         resource_allocation_map[resource_allocation.project][resource_allocation.name] = resource_allocation
 
     for project in projects:
-        all_week_data, all_dates_data = [], []
+        all_week_data, all_dates_data = [], {}
         project_resource_allocation = resource_allocation_map.get(project.name, [])
         week_index = 0
 
@@ -90,15 +90,16 @@ def get_resource_management_project_view_data(
                             }
                         )
 
-                all_dates_data.append(
-                    {
-                        "date": date,
-                        "total_allocated_hours": total_allocated_hours_for_given_date,
-                        "project_resource_allocation_for_given_date": project_resource_allocation_for_given_date,
-                        "total_worked_hours": get_allocation_worked_hours_for_given_projects(project.name, date, date),
-                        "week_index": week_index,
-                    }
-                )
+                date_data = {
+                    "date": date.strftime(DATE_FORMAT),
+                    "total_allocated_hours": total_allocated_hours_for_given_date,
+                    "project_resource_allocation_for_given_date": project_resource_allocation_for_given_date,
+                    "total_worked_hours": get_allocation_worked_hours_for_given_projects(project.name, date, date),
+                    "week_index": week_index,
+                }
+
+                if len(date_data["project_resource_allocation_for_given_date"]) > 0:
+                    all_dates_data[date_data["date"]] = date_data
 
                 total_allocated_hours_for_given_week += total_allocated_hours_for_given_date
 

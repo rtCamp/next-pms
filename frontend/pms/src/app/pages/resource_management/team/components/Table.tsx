@@ -1,6 +1,11 @@
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { DateProps, EmployeeResourceProps, EmployeeDataProps } from "@/store/resource_management/team";
+import {
+  DateProps,
+  EmployeeResourceProps,
+  EmployeeDataProps,
+  emptyEmployeeDayData,
+} from "@/store/resource_management/team";
 import { cn, prettyDate } from "@/lib/utils";
 import { Table, TableBody } from "@/app/components/ui/table";
 import { ResourceExpandView } from "./ExpandView";
@@ -29,6 +34,7 @@ const ResourceTeamTable = () => {
 
 const ResourceTeamTableBody = () => {
   const data = useSelector((state: RootState) => state.resource_team.data.data);
+  const dates: DateProps[] = useSelector((state: RootState) => state.resource_team.data.dates);
 
   if (data.length == 0) {
     return <EmptyTableBody />;
@@ -46,20 +52,34 @@ const ResourceTeamTableBody = () => {
             RowComponent={() => {
               return (
                 <>
-                  {employeeData.all_dates_data.map((employeeSingleDay: EmployeeResourceProps, index: number) => {
-                    return (
-                      <ResourceTeamTableCell
-                        key={`${employeeSingleDay.total_allocated_hours}-id-${Math.random()}`}
-                        employeeSingleDay={employeeSingleDay}
-                        allWeekData={employeeData.all_week_data}
-                        employee={employeeData.name}
-                        employee_name={employeeData.employee_name}
-                        rowCount={index}
-                        max_allocation_count_for_single_date={employeeData.max_allocation_count_for_single_date}
-                        midIndex={employeeSingleDay.week_index}
-                        employeeAllocations={employeeData.employee_allocations}
-                      />
-                    );
+                  {dates.map((week: DateProps, week_index: number) => {
+                    return week.dates.map((date: string, index: number) => {
+                      let employeeSingleDay = emptyEmployeeDayData;
+
+                      if (date in employeeData.all_dates_data) {
+                        employeeSingleDay = employeeData.all_dates_data[date];
+                      } else {
+                        employeeSingleDay = {
+                          ...employeeSingleDay,
+                          date: date,
+                          total_working_hours: employeeData.employee_daily_working_hours,
+                        };
+                      }
+
+                      return (
+                        <ResourceTeamTableCell
+                          key={`${employeeSingleDay.total_allocated_hours}-id-${Math.random()}`}
+                          employeeSingleDay={employeeSingleDay}
+                          allWeekData={employeeData.all_week_data}
+                          employee={employeeData.name}
+                          employee_name={employeeData.employee_name}
+                          rowCount={index}
+                          max_allocation_count_for_single_date={employeeData.max_allocation_count_for_single_date}
+                          midIndex={week_index}
+                          employeeAllocations={employeeData.employee_allocations}
+                        />
+                      );
+                    });
                   })}
                 </>
               );

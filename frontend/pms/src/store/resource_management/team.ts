@@ -25,11 +25,12 @@ export type EmployeeDataProps = {
   designation: string;
   working_hour: string;
   working_frequency: string;
-  all_dates_data: EmployeeResourceProps[];
+  all_dates_data: EmployeeResourceObjectProps;
   all_week_data: [];
   all_leave_data: EmployeeLeaveProps[];
   employee_allocations: ResourceAllocationObjectProps;
   max_allocation_count_for_single_date: number;
+  employee_daily_working_hours:number
 };
 
 export interface ResourceTeamDataProps {
@@ -59,11 +60,13 @@ export type EmployeeResourceProps = {
   total_allocated_hours: number;
   total_working_hours: number;
   employee_resource_allocation_for_given_date: EmployeeAllocationForDateProps[];
-  is_last_week_day: boolean;
   is_on_leave: boolean;
   total_leave_hours: number;
   total_allocation_count: number;
-  week_index: number;
+};
+
+export type EmployeeResourceObjectProps = {
+  [date: string]: EmployeeResourceProps;
 };
 
 export type EmployeeAllocationForDateProps = {
@@ -228,6 +231,16 @@ const ResourceTeamSlice = createSlice({
   },
 });
 
+export const emptyEmployeeDayData: EmployeeResourceProps = {
+  date: "None",
+  total_allocated_hours: 0,
+  total_working_hours: 0,
+  employee_resource_allocation_for_given_date: [],
+  is_on_leave: false,
+  total_leave_hours: 0,
+  total_allocation_count: 0,
+};
+
 export const {
   setData,
   setWeekDate,
@@ -244,6 +257,6 @@ export const {
   setIsBillable,
   setView,
   setReFetchData,
-  setDesignation
+  setDesignation,
 } = ResourceTeamSlice.actions;
 export default ResourceTeamSlice.reducer;

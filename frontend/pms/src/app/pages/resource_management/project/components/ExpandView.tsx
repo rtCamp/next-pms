@@ -43,8 +43,6 @@ export const ResourceExpandView = ({
     }
   );
 
-  console.log(data);
-
   return (
     <Table>
       <TableBody className="[&_tr]:pr-0">
