@@ -76,7 +76,7 @@ import ColumnSelector from "@/app/components/listview/ColumnSelector";
 import { CreateView } from "@/app/components/listview/createView";
 import { Spinner } from "@/app/components/spinner";
 import { status } from "./helper";
-import _, { groupBy } from "lodash";
+import _ from "lodash";
 
 const Task = () => {
   // Redux States
@@ -574,7 +574,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
           />
 
           {/* GroupBy */}
-          <ComboxBox
+          {/* <ComboxBox
             label="GroupBy"
             value={groupByParam}
             showSelected={false}
@@ -583,7 +583,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
             data={groupByData}
             className="text-primary border-dashed gap-x-2 font-normal w-fit"
             onSelect={handleGroupByChange}
-          />
+          /> */}
         </section>
         {/* More Tools */}
         <div className="flex gap-x-2">
