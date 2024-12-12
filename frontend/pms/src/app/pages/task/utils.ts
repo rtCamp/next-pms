@@ -20,11 +20,11 @@ export const defaultView = () => {
     route: "task",
     rows: defaultRows,
     columns: columns,
-    filters: { search: "", projects: [], status: [], groupBy: [] },
+    filters: { search: "", projects: [], status: ["Open","Working"], groupBy: [] },
     default: true,
     public: false,
     order_by: {
-      field: "project_name",
+      field: "modified",
       order: "desc",
     },
   };

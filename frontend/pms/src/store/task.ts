@@ -42,7 +42,7 @@ export const initialState: TaskState = {
   search: "",
   selectedStatus: ["Open", "Working"],
   order: "desc",
-  orderColumn: "subject",
+  orderColumn: "modified",
 };
 
 export type AddTaskType = {
