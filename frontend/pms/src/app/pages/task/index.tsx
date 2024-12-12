@@ -1,5 +1,5 @@
 import { FrappeConfig, FrappeContext, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
-import { TaskData, ProjectProps, sortOrder } from "@/types";
+import { TaskData, ProjectProps } from "@/types";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
@@ -14,7 +14,6 @@ import {
   setProjectData,
   setSelectedTask,
   setFilters,
-  setOrderBy,
   setSelectedStatus,
   TaskStatusType,
   setSearch,
@@ -40,8 +39,6 @@ import {
   getSortedRowModel,
   useReactTable,
   getExpandedRowModel,
-  ColumnFiltersState,
-  getFilteredRowModel,
   ExpandedState,
   ColumnSizingState,
 } from "@tanstack/react-table";
@@ -103,7 +100,6 @@ const Task = () => {
   }, [view, views.views]);
 
   const updateViewData = (viewData: ViewData) => {
-    console.log(viewData)
     setViewData(viewData);
     const filters = {
       search: viewData.filters.search ?? searchParams.get("search"),
@@ -175,14 +171,13 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
   const [colSizing, setColSizing] = useState<ColumnSizingState>(viewData.columns ?? {});
   const [columnOrder, setColumnOrder] = useState<string[]>(viewData.rows ?? []);
   const [isCreateViewOpen, setIsCreateViewOpen] = useState(false);
-  const [columnVisibility, setColumnVisibility] = useState(viewData ? createFalseValuedObject(viewData?.rows) : {});
+  const [columnVisibility, setColumnVisibility] = useState(createFalseValuedObject(viewData.rows));
 
   // Query params management
   const [subjectSearchParam, setSubjectSearchParam] = useQueryParamsState<subjectSearchType>("search", task.search);
   const [projectParam, setProjectParam] = useQueryParamsState<string[]>("project", task.selectedProject || []);
   const [groupByParam, setGroupByParam] = useQueryParamsState<GroupByParamType>("groupby", task.groupBy || []);
   const [statusParam, setStatusParam] = useQueryParamsState<string[]>("status", task.selectedStatus || []);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
   // Dialog box management
   const [expanded, setExpanded] = useState<ExpandedState>(true);
@@ -382,9 +377,6 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     },
     [dispatch]
   );
-  const handleSortChange = (order: sortOrder, orderColumn: string) => {
-    dispatch(setOrderBy({ order, orderColumn }));
-  };
 
   // Task Log Management
   const openTaskLog = (taskName: string) => {
@@ -406,15 +398,9 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     setStatusParam(task.selectedStatus);
     setSubjectSearchParam(task.search);
     setProjectParam(task.selectedProject);
-    setGroupByParam(task.groupBy)
+    setGroupByParam(task.groupBy);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    task.search,
-    task.selectedProject,
-    task.selectedStatus,
-    task.groupBy,
-  ]);
-
+  }, [task.search, task.selectedProject, task.selectedStatus, task.groupBy]);
 
   useEffect(() => {
     const updateViewData = {
@@ -426,7 +412,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     };
     if (!_.isEqual(updateViewData, viewData)) {
       setHasViewUpdated(true);
-    }else{
+    } else {
       setHasViewUpdated(false);
     }
     setViewInfo(updateViewData);
@@ -454,8 +440,8 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
   // column definitions
   const columns: ColumnsType = flatTableColumnDefinition(
     meta.fields,
-    viewData?.rows,
-    viewData?.columns,
+    viewInfo?.rows,
+    viewInfo?.columns,
     openTaskLog,
     handleAddTime,
     user,
@@ -463,8 +449,8 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
   );
   const nestedProjectColumns: ProjectNestedColumnsType = nestedTableColumnDefinition(
     meta.fields,
-    viewData?.rows,
-    viewData?.columns,
+    viewInfo?.rows,
+    viewInfo?.columns,
     openTaskLog,
     handleAddTime,
     user,
@@ -478,8 +464,6 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
     columnResizeMode: "onChange",
     onColumnOrderChange: setColumnOrder,
     onColumnSizingChange: setColSizing,
@@ -489,7 +473,6 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     state: {
       columnVisibility,
       columnOrder,
-      columnFilters,
       columnSizing: colSizing,
     },
   });
@@ -510,7 +493,6 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       expanded,
       columnOrder,
       columnVisibility: { ...columnVisibility, project_name: true },
-      columnFilters,
       columnSizing: colSizing,
     },
   });
@@ -597,14 +579,13 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
             <Button onClick={handleAddTask} className="px-3" title="Add task">
               <Plus /> Task
             </Button>
-            {viewData && meta && (
-              <ColumnSelector
-                onColumnHide={handleColumnHide}
-                fieldMeta={meta?.fields}
-                setColumnOrder={setColumnOrder}
-                columnOrder={viewData.rows}
-              />
-            )}
+
+            <ColumnSelector
+              onColumnHide={handleColumnHide}
+              fieldMeta={meta?.fields}
+              setColumnOrder={setColumnOrder}
+              columnOrder={viewInfo.rows}
+            />
 
             <Action
               createView={() => {
