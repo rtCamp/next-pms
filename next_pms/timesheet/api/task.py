@@ -60,7 +60,7 @@ def get_task_list(
             doctype_project.name.as_("project"),
             doctype_project.project_name,
             doctype.custom_is_billable.as_("is_billable"),
-            doctype.exp_end_date.as_("due_date"),
+            doctype.exp_end_date,
         )
         .where(doctype.project.isin(projects))
     )
