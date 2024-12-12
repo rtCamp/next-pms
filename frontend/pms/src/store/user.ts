@@ -5,6 +5,12 @@ const userImage = getCookie("user_image");
 const fullName = getCookie("full_name");
 const user = getCookie("user_id");
 
+interface InitiDataProps {
+  employee: string;
+  workingHours: number;
+  workingFrequency: WorkingFrequency;
+  reportsTo: string;
+}
 export interface UserState {
   userName: string;
   image: string;
@@ -14,6 +20,7 @@ export interface UserState {
   user: string;
   workingHours: number;
   workingFrequency: WorkingFrequency;
+  reportsTo: string;
 }
 
 const initialState: UserState = {
@@ -27,6 +34,8 @@ const initialState: UserState = {
   user: decodeURIComponent(user),
   workingHours: 0,
   workingFrequency: "Per Day",
+  reportsTo: "",
+
 };
 
 const userSlice = createSlice({
@@ -42,7 +51,9 @@ const userSlice = createSlice({
     setImage: (state, action: PayloadAction<string>) => {
       state.image = action.payload;
     },
-
+    setReportsTo: (state, action: PayloadAction<string>) => {
+      state.reportsTo = action.payload
+    },
     setSidebarCollapsed: (state, action: PayloadAction<boolean>) => {
       state.isSidebarCollapsed = action.payload;
     },
@@ -59,6 +70,12 @@ const userSlice = createSlice({
       state.workingHours = action.payload.workingHours;
       state.workingFrequency = action.payload.workingFrequency;
     },
+    setInitialData: (state, action: PayloadAction<InitiDataProps>) => {
+      state.employee = action.payload.employee;
+      state.workingHours = action.payload.workingHours;
+      state.workingFrequency = action.payload.workingFrequency;
+      state.reportsTo = action.payload.reportsTo;
+    }
   },
 });
 
@@ -69,5 +86,6 @@ export const {
   setSidebarCollapsed,
   setEmployee,
   setWorkingDetail,
+  setInitialData
 } = userSlice.actions;
 export default userSlice.reducer;

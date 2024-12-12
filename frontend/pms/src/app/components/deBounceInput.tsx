@@ -1,5 +1,6 @@
 import { Input, InputProps } from "@/app/components/ui/input";
 import { cn, deBounce } from "@/lib/utils";
+import { Search, X } from "lucide-react";
 import { useCallback, useState } from "react";
 
 export interface DeBounceInputProps extends InputProps {
@@ -13,7 +14,7 @@ export const DeBounceInput = ({ value, className, callback, deBounceValue = 500,
     deBounce((e: React.ChangeEvent<HTMLInputElement>) => {
       callback && callback(e);
     }, deBounceValue),
-    [],
+    []
   );
 
   const handleEmployeeChange = useCallback(
@@ -21,14 +22,36 @@ export const DeBounceInput = ({ value, className, callback, deBounceValue = 500,
       setInputValue(e.target.value);
       onInputChange(e);
     },
-    [onInputChange],
+    [onInputChange]
   );
+  const clearInput = () => {
+    setInputValue("");
+    onInputChange({ target: { value: "" } } as React.ChangeEvent<HTMLInputElement>);
+  };
+
   return (
-    <Input
-      className={cn("placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-slate-800 max-w-sm", className)}
-      {...props}
-      value={inputValue}
-      onChange={handleEmployeeChange}
-    />
+    <div className={cn("relative w-full max-w-sm", className)}>
+      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+        <Search className="w-5 h-5 text-gray-400" aria-hidden="true" />
+      </div>
+      <Input
+        className={cn(
+          " flex-1 w-full placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-slate-800 focus-visible:ring-offset-0 focus-visible:ring-0 py-2 pl-10 pr-10"
+        )}
+        placeholder="Search..."
+        {...props}
+        value={inputValue}
+        onChange={handleEmployeeChange}
+      />
+      {inputValue && (
+        <X
+          className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 hover:text-gray-500 cursor-pointer"
+          onClick={clearInput}
+          aria-label="Clear search"
+          role="button"
+          tabIndex={0}
+        />
+      )}
+    </div>
   );
 };

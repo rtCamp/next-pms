@@ -24,10 +24,12 @@ export const AddTask = ({
   task,
   projects,
   setProjectSearch,
+  mutate
 }: {
   task: TaskState;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  projects: any;
+    projects: any;
+  mutate:any
   setProjectSearch: setProjectSearchType;
 }) => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -62,7 +64,7 @@ export const AddTask = ({
           variant: "success",
           description: res.message,
         });
-        dispatch(setFetchAgain(true));
+
         setIsSubmitting(false);
         closeAddTaskDialog();
       })
@@ -80,6 +82,7 @@ export const AddTask = ({
     setProjectSearch("");
     form.reset();
     dispatch(setAddTaskDialog(false));
+    mutate();
   };
   const handleSubjectChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     form.setValue("subject", event.target.value);

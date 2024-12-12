@@ -1,5 +1,5 @@
 import { Button } from "@/app/components/ui/button";
-import { ChevronLeft, ChevronRight, Filter, CircleCheck, Hourglass, CircleX,  } from "lucide-react";
+import { ChevronLeft, ChevronRight, Filter, CircleCheck, Hourglass, CircleX } from "lucide-react";
 import { ComboxBox } from "@/app/components/comboBox";
 import { Badge } from "@/app/components/ui/badge";
 import { useFrappeGetCall } from "frappe-react-sdk";
@@ -22,7 +22,6 @@ import {
   setFilters,
   setStatus,
   setEmployee,
-  resetState,
 } from "@/store/team";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg, prettyDate, floatToTime, getFormatedDate, cn, preProcessLink } from "@/lib/utils";
@@ -66,7 +65,6 @@ const Team = () => {
   const [employeeNameParam, setEmployeeNameParam] = useQueryParamsState<string>("employee-name", "");
   const [reportsToParam, setReportsToParam] = useQueryParamsState<string>("reports-to", "");
   const [employeeStatusParam, setEmployeeStatusParam] = useQueryParamsState<Array<string>>("emp-status", ["Active"]);
-
   const approvalsData = [
     { label: "Not Submitted", value: "Not Submitted" },
     { label: "Approval Pending", value: "Approval Pending" },
@@ -91,9 +89,7 @@ const Team = () => {
       status: employeeStatusParam,
     };
     dispatch(setFilters(payload));
-    return () => {
-      dispatch(resetState());
-    };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -113,23 +109,37 @@ const Team = () => {
     }
   );
 
-  const { data: projects, error: projectError } = useFrappeGetCall("frappe.client.get_list", {
-    doctype: "Project",
-    fields: ["name", "project_name"],
-    limit_page_length: 0,
-  });
+  const { data: projects, error: projectError } = useFrappeGetCall(
+    "frappe.client.get_list",
+    {
+      doctype: "Project",
+      fields: ["name", "project_name"],
+      limit_page_length: 0,
+    },
+    undefined,
+    {
+      revalidateIfStale: false,
+    }
+  );
 
-  const { data: userGroups, error: groupError } = useFrappeGetCall("frappe.client.get_list", {
-    doctype: "User Group",
-    limit_page_length: 0,
-  });
+  const { data: userGroups, error: groupError } = useFrappeGetCall(
+    "frappe.client.get_list",
+    {
+      doctype: "User Group",
+      limit_page_length: 0,
+    },
+    undefined,
+    {
+      revalidateIfStale: false,
+    }
+  );
 
   useEffect(() => {
     if (data) {
-      if (Object.keys(teamState.data.data).length > 0 && teamState.data.dates.length > 0) {
-        dispatch(updateData(data.message));
-      } else {
+      if (teamState.action == "SET") {
         dispatch(setData(data.message));
+      } else {
+        dispatch(updateData(data.message));
       }
     }
     if (error) {
@@ -140,7 +150,7 @@ const Team = () => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, error]);
+  }, [data, error, teamState.action]);
 
   useEffect(() => {
     if (projectError) {
@@ -248,8 +258,7 @@ const Team = () => {
           <DeBounceInput
             placeholder="Employee name"
             value={employeeNameParam}
-            deBounceValue={400}
-            className="max-w-40 min-w-40 "
+            deBounceValue={300}
             callback={handleEmployeeChange}
           />
           <EmployeeCombo

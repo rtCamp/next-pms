@@ -148,12 +148,10 @@ def delete(parent: str, name: str):
 
 
 @frappe.whitelist()
-def submit_for_approval(start_date: str, notes: str = None, employee: str = None):
+def submit_for_approval(approver: str, start_date: str, notes: str = None, employee: str = None):
     from next_pms.timesheet.tasks.reminder_on_approval_request import (
         send_approval_reminder,
     )
-
-    from .utils import update_weekly_status_of_timesheet
 
     if not employee:
         employee = get_employee_from_user()
@@ -161,6 +159,9 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
 
     if not reporting_manager:
         throw(_("Reporting Manager not found for the employee."))
+    if approver != reporting_manager:
+        reporting_manager = approver
+
     reporting_manager_name = frappe.get_value("Employee", reporting_manager, "employee_name")
 
     start_date = get_first_day_of_week(start_date)
@@ -172,16 +173,21 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
             "employee": employee,
             "start_date": [">=", start_date],
             "end_date": ["<=", end_date],
-            "docstatus": 0,
+            "docstatus": ["!=", 2],
         },
+        fields=["name", "docstatus"],
         ignore_permissions=is_timesheet_manager(),
     )
     if not timesheets:
-        throw(_("No timesheet found for the given week."))
+        throw(_("No timesheet found for the given week."), frappe.DoesNotExistError)
+
+    draft_timesheets = [ts for ts in timesheets if ts.docstatus == 0]
+    for timesheet in draft_timesheets:
+        frappe.db.set_value("Timesheet", timesheet.name, "custom_approval_status", "Approval Pending")
 
     for timesheet in timesheets:
-        frappe.db.set_value("Timesheet", timesheet.name, "custom_approval_status", "Approval Pending")
-    update_weekly_status_of_timesheet(employee, start_date)
+        frappe.db.set_value("Timesheet", timesheet.name, "custom_weekly_approval_status", "Approval Pending")
+
     send_approval_reminder(employee, reporting_manager, start_date, end_date, notes)
     return f"Timesheet has been sent for Approval to {reporting_manager_name}."
 
@@ -308,6 +314,9 @@ def get_timesheet(dates: list, employee: str):
             "project.project_name as project_name",
             "project",
             "custom_is_billable",
+            "expected_time",
+            "actual_time",
+            "status",
         ],
     )
     task_details_dict = {task["name"]: task for task in task_details}
@@ -328,6 +337,9 @@ def get_timesheet(dates: list, employee: str):
                     "is_billable": task["custom_is_billable"],
                     "project_name": task["project_name"],
                     "project": task["project"],
+                    "expected_time": task["expected_time"],
+                    "actual_time": task["actual_time"],
+                    "status": task["status"],
                 }
             data[task_name]["data"].append(log.as_dict())
 

@@ -357,6 +357,7 @@ const Timesheet = ({
                       leaves={teamState.timesheetData.leaves}
                       tasks={value.tasks}
                       onCellClick={onCellClick}
+                      disabled={value.status === "Approved"}
                       working_frequency={teamState.timesheetData.working_frequency}
                       working_hour={teamState.timesheetData.working_hour}
                     />
