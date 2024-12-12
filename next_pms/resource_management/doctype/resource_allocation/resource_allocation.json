@@ -37,6 +37,7 @@
   {
    "fieldname": "project",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "label": "Project",
    "options": "Project"
   },
@@ -45,6 +46,7 @@
    "fetch_if_empty": 1,
    "fieldname": "customer",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "label": "Customer",
    "options": "Customer",
    "reqd": 1
@@ -128,7 +130,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-11-27 14:17:08.419156",
+ "modified": "2024-12-12 19:36:40.542215",
  "modified_by": "Administrator",
  "module": "Resource Management",
  "name": "Resource Allocation",

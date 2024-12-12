@@ -12,6 +12,12 @@ export type ResourceKeys =
   | "allocation_end_date"
   | "note";
 
+export type PermissionProps = {
+  read: boolean;
+  write: boolean;
+  delete: boolean;
+};
+
 export type AllocationDataProps = {
   isShowDialog: boolean;
   isNeedToEdit: boolean;
@@ -27,6 +33,7 @@ export type AllocationDataProps = {
   allocation_end_date: string;
   note: string;
   name: string;
+  permission?: PermissionProps;
 };
 
 const initialState = {
@@ -44,6 +51,11 @@ const initialState = {
   allocation_end_date: "",
   note: "",
   name: "",
+  permissions: {
+    read: false,
+    write: false,
+    delete: false,
+  },
 };
 
 const ResourceTeamSlice = createSlice({
@@ -53,6 +65,9 @@ const ResourceTeamSlice = createSlice({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setDialog: (state, action: PayloadAction<boolean>) => {
       state.isShowDialog = action.payload;
+    },
+    setResourcePermissions: (state, action: PayloadAction<PermissionProps>) => {
+      state.permissions = { ...state.permissions, ...action.payload };
     },
     setResourceFormData: (
       state,
@@ -87,11 +102,15 @@ const ResourceTeamSlice = createSlice({
       state.name = getFormatedStringValue(action.payload.name) as string;
     },
     resetState: (state) => {
-      Object.assign(state, initialState);
+      Object.assign(state, { ...initialState, permissions: state.permissions });
     },
   },
 });
 
-export const { setDialog, setResourceFormData, resetState } =
-  ResourceTeamSlice.actions;
+export const {
+  setDialog,
+  setResourceFormData,
+  setResourcePermissions,
+  resetState,
+} = ResourceTeamSlice.actions;
 export default ResourceTeamSlice.reducer;

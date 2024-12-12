@@ -26,38 +26,39 @@ import { getRoundOfValue } from "../utils/helper";
 import { timeStringToFloat } from "@/schema/timesheet";
 
 const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
-  const ResourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
+  const resourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
   const dispatch = useDispatch();
 
-  const [projectSearch, setProjectSearch] = useState(ResourceAllocationForm.project_name);
-  const [customerSearch, setCustomerSearch] = useState(ResourceAllocationForm.customer_name);
+  const [projectSearch, setProjectSearch] = useState(resourceAllocationForm.project_name);
+  const [customerSearch, setCustomerSearch] = useState(resourceAllocationForm.customer_name);
 
   const form = useForm<z.infer<typeof ResourceAllocationSchema>>({
     resolver: zodResolver(ResourceAllocationSchema),
     defaultValues: {
-      employee: ResourceAllocationForm.employee,
-      is_billable: ResourceAllocationForm.is_billable,
-      project: ResourceAllocationForm.project,
-      project_name: ResourceAllocationForm.project_name,
-      customer: ResourceAllocationForm.customer,
-      customer_name: ResourceAllocationForm.customer_name,
-      total_allocated_hours: ResourceAllocationForm.total_allocated_hours,
-      hours_allocated_per_day: ResourceAllocationForm.hours_allocated_per_day,
-      allocation_start_date: ResourceAllocationForm.allocation_start_date,
-      allocation_end_date: ResourceAllocationForm.allocation_end_date,
-      note: ResourceAllocationForm.note,
+      employee: resourceAllocationForm.employee,
+      is_billable: resourceAllocationForm.is_billable,
+      project: resourceAllocationForm.project,
+      project_name: resourceAllocationForm.project_name,
+      customer: resourceAllocationForm.customer,
+      customer_name: resourceAllocationForm.customer_name,
+      total_allocated_hours: resourceAllocationForm.total_allocated_hours,
+      hours_allocated_per_day: resourceAllocationForm.hours_allocated_per_day,
+      allocation_start_date: resourceAllocationForm.allocation_start_date,
+      allocation_end_date: resourceAllocationForm.allocation_end_date,
+      note: resourceAllocationForm.note,
     },
     mode: "onSubmit",
   });
 
   const { data: projects, mutate: fetchProjects } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Project",
-    filters: form.getValues("customer")
-      ? [
-          ["project_name", "like", `%${projectSearch}%`],
-          ["customer", "=", form.getValues("customer")],
-        ]
-      : [["project_name", "like", `%${projectSearch}%`]],
+    filters:
+      form.getValues("customer")
+        ? [
+            ["project_name", "like", `%${projectSearch}%`],
+            ["customer", "=", form.getValues("customer")],
+          ]
+        : [["project_name", "like", `%${projectSearch}%`]],
 
     fields: ["name", "project_name", "customer", "custom_billing_type"],
     limit_page_length: 20,
@@ -220,8 +221,8 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
       is_billable: data.is_billable ? 1 : 0,
       note: data.note,
     };
-    if (ResourceAllocationForm.isNeedToEdit) {
-      return updateAllocations("Resource Allocation", ResourceAllocationForm.name, doctypeDoc);
+    if (resourceAllocationForm.isNeedToEdit) {
+      return updateAllocations("Resource Allocation", resourceAllocationForm.name, doctypeDoc);
     }
     return createAllocations("Resource Allocation", doctypeDoc);
   };
@@ -234,7 +235,7 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
       .then(() => {
         toast({
           variant: "success",
-          description: `Resouce allocation ${ResourceAllocationForm.isNeedToEdit ? "updated" : "created"} successfully`,
+          description: `Resouce allocation ${resourceAllocationForm.isNeedToEdit ? "updated" : "created"} successfully`,
         });
         handleOpen(false);
         onSubmit();
@@ -242,7 +243,7 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
       .catch(() => {
         toast({
           variant: "destructive",
-          description: `Failed to ${ResourceAllocationForm.isNeedToEdit ? "updated" : "create"} resource allocation`,
+          description: `Failed to ${resourceAllocationForm.isNeedToEdit ? "updated" : "create"} resource allocation`,
         });
       });
   };
@@ -265,11 +266,11 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
   }, [handleHoursAutoComplete, leaveData]);
 
   return (
-    <Dialog open={ResourceAllocationForm?.isShowDialog} onOpenChange={handleOpen}>
+    <Dialog open={resourceAllocationForm?.isShowDialog} onOpenChange={handleOpen}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle className="flex gap-x-2 mb-2">
-            {ResourceAllocationForm.isNeedToEdit ? "Edit" : "Add"} Allocation
+            {resourceAllocationForm.isNeedToEdit ? "Edit" : "Add"} Allocation
           </DialogTitle>
           <Separator />
         </DialogHeader>
@@ -339,7 +340,7 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
                     <ComboxBox
                       label={
                         form.getValues("customer")
-                          ? "Search " + form.getValues("customer")+" Projects"
+                          ? "Search " + form.getValues("customer") + " Projects"
                           : "Search Projects"
                       }
                       onSelect={(value) => {
@@ -531,7 +532,7 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
                   ) : (
                     <Save className="w-4 h-4" />
                   )}
-                  {ResourceAllocationForm.isNeedToEdit ? "Save" : "Create"}
+                  {resourceAllocationForm.isNeedToEdit ? "Save" : "Create"}
                 </Button>
                 <Button
                   type="button"

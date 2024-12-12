@@ -6,14 +6,15 @@ import {
   ResourceAllocationProps,
   ResourceAllocationObjectProps,
 } from "@/types/resource_management";
-import { useDispatch } from "react-redux";
-import { getInitials } from "../utils/helper";
+import { useDispatch, useSelector } from "react-redux";
+import { getFilterValue, getInitials } from "../utils/helper";
 import { Clipboard, Pencil, Plus, Trash2 } from "lucide-react";
 import { useFrappeDeleteDoc } from "frappe-react-sdk";
-import { setResourceFormData } from "@/store/resource_management/allocation";
+import { PermissionProps, setResourceFormData } from "@/store/resource_management/allocation";
 import { setReFetchData } from "@/store/resource_management/team";
 import { Button } from "@/app/components/ui/button";
 import { useToast } from "@/app/components/ui/use-toast";
+import { RootState } from "@/store";
 
 export const ResourceAllocationList = ({
   resourceAllocationList,
@@ -26,8 +27,12 @@ export const ResourceAllocationList = ({
   customer: ResourceCustomerObjectProps;
   onButtonClick?: () => void;
 }) => {
+  const resourceAllocationPermission: PermissionProps = useSelector(
+    (state: RootState) => state.resource_allocation_form.permissions
+  );
+
   return (
-    <div className="flex flex-col">
+    <div className={cn("flex flex-col overflow-y-scroll max-h-60", !resourceAllocationPermission.write && "pl-7")}>
       {resourceAllocationList.map((resourceAllocation: ResourceAllocationProps) => (
         <ResourceAllocationCard
           key={resourceAllocation.name}
@@ -39,10 +44,10 @@ export const ResourceAllocationList = ({
           customer={customer}
         />
       ))}
-      {onButtonClick && (
+      {resourceAllocationPermission.write && onButtonClick && (
         <Button
           title={"Add Resource Allocation"}
-          className={cn("p-1 h-fit text-xs")}
+          className={cn("p-1 ml-2 h-fit text-xs w-11/12")}
           variant={"default"}
           onClick={onButtonClick}
         >
@@ -62,6 +67,9 @@ export const ResourceAllocationCard = ({
   customer: ResourceCustomerObjectProps;
 }) => {
   const customerData: ResourceCustomerProps = customer[resourceAllocation.customer];
+  const resourceAllocationPermission: PermissionProps = useSelector(
+    (state: RootState) => state.resource_allocation_form.permissions
+  );
 
   const { date: startDate } = prettyDate(resourceAllocation.allocation_start_date);
   const { date: endDate } = prettyDate(resourceAllocation.allocation_end_date);
@@ -71,6 +79,10 @@ export const ResourceAllocationCard = ({
   const { deleteDoc } = useFrappeDeleteDoc();
 
   const handleResourceAllocationDelete = () => {
+    if (!resourceAllocationPermission.delete) {
+      return;
+    }
+
     deleteDoc("Resource Allocation", resourceAllocation.name)
       .then(() => {
         toast({
@@ -88,6 +100,9 @@ export const ResourceAllocationCard = ({
   };
 
   const handleResourceAllocationEdit = () => {
+    if (!resourceAllocationPermission.write) {
+      return;
+    }
     dispatch(
       setResourceFormData({
         isShowDialog: true,
@@ -109,6 +124,10 @@ export const ResourceAllocationCard = ({
   };
 
   const handleResourceAllocationCopy = () => {
+    if (!resourceAllocationPermission.write) {
+      return;
+    }
+
     dispatch(
       setResourceFormData({
         isShowDialog: true,
@@ -134,19 +153,18 @@ export const ResourceAllocationCard = ({
       className="flex items-center gap-4 relative mt-2 mb-4
     "
     >
-      <Avatar className="w-10 h-10">
+      <Avatar className="w-6 h-6">
         <AvatarImage src={decodeURIComponent(customerData.image)} />
         <AvatarFallback>{getInitials(customerData.name)}</AvatarFallback>
       </Avatar>
       <div className="space-y-1 flex items-start flex-col">
-        <p className="text-xs font-semibold">
-          {" "}
-          {customerData.name.length > 15 ? `${customerData.name.slice(0, 15)}...` : customerData.name}
+        <p className="text-xs font-semibold" title={customerData.name}>
+          {getFilterValue(customerData.name, 15)}
         </p>
         {resourceAllocation.project && (
           <>
             <p className="text-xs text-muted-foreground">{resourceAllocation.project}</p>
-            <p className="text-xs text-muted-foreground">{resourceAllocation.project_name}</p>
+            <p className="text-xs text-muted-foreground">{getFilterValue(resourceAllocation.project_name, 15)}</p>
           </>
         )}
 
@@ -164,28 +182,35 @@ export const ResourceAllocationCard = ({
         >
           {resourceAllocation.is_billable ? "Billable" : "Non-billable"}
         </p>
-        <div className=" absolute right-0 top-0 flex gap-1 cursor-pointer">
-          <Pencil
-            className="w-4 hover:text-yellow-500"
-            size={16}
-            strokeWidth={1.25}
-            aria-label="Edit"
-            onClick={handleResourceAllocationEdit}
-          />
-          <Clipboard
-            size={16}
-            strokeWidth={1.25}
-            className="w-4 hover:text-green-500"
-            aria-label="Copy"
-            onClick={handleResourceAllocationCopy}
-          />
-          <Trash2
-            className="w-4 hover:text-red-500"
-            size={16}
-            strokeWidth={1.25}
-            aria-label="Delete"
-            onClick={handleResourceAllocationDelete}
-          />
+
+        <div className=" absolute right-4 top-0 flex gap-1 cursor-pointer">
+          {resourceAllocationPermission.write && (
+            <>
+              <Pencil
+                className="w-4 hover:text-yellow-500"
+                size={16}
+                strokeWidth={1.25}
+                aria-label="Edit"
+                onClick={handleResourceAllocationEdit}
+              />
+              <Clipboard
+                size={16}
+                strokeWidth={1.25}
+                className="w-4 hover:text-green-500"
+                aria-label="Copy"
+                onClick={handleResourceAllocationCopy}
+              />
+            </>
+          )}
+          {resourceAllocationPermission.delete && (
+            <Trash2
+              className="w-4 hover:text-red-500"
+              size={16}
+              strokeWidth={1.25}
+              aria-label="Delete"
+              onClick={handleResourceAllocationDelete}
+            />
+          )}
         </div>
       </div>
     </div>

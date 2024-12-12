@@ -100,7 +100,7 @@ const Sidebar = () => {
       icon: GanttChart,
       label: "Resource Management",
       key: "resource-management",
-      isPmRoute: true,
+      isPmRoute: false,
       children: [
         {
           to: RESOURCE_MANAGEMENT + "/team",

@@ -13,3 +13,4 @@ next_pms.timesheet.patches.add_notification_template
 
 
 next_pms.resource_management.patches.add_abbr_customer
+next_pms.resource_management.patches.update_resource_allocation_permissions

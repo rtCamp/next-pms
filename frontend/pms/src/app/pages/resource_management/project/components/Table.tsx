@@ -200,6 +200,17 @@ const ResourceProjectTableCell = ({
   const { date: dateStr, day } = prettyDate(projectSingleDay.date);
   const title = project_name + " (" + dateStr + " - " + day + ")";
 
+  if (tableView.combineWeekHours) {
+    return (
+      <ResourceTableCell
+        type="default"
+        title={title}
+        cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
+        value={cellValue}
+      />
+    );
+  }
+
   if (cellValue == "-") {
     return (
       <ResourceTableCell

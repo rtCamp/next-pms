@@ -18,8 +18,7 @@ import { useQueryParamsState } from "@/lib/queryParam";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { ResourceHeaderSection } from "../../components/Header";
 import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
-import { setDialog } from "@/store/resource_management/allocation";
-import { filter } from "lodash";
+import { PermissionProps, setDialog } from "@/store/resource_management/allocation";
 
 const ResourceTeamHeaderSection = () => {
   const [businessUnitParam, setBusinessUnitParam] = useQueryParamsState<string[]>("business-unit", []);
@@ -32,6 +31,9 @@ const ResourceTeamHeaderSection = () => {
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
   const resourceTeamStateTableView = resourceTeamState.tableView;
   const dispatch = useDispatch();
+  const resourceAllocationPermission: PermissionProps = useSelector(
+    (state: RootState) => state.resource_allocation_form.permissions
+  );
 
   useEffect(() => {
     dispatch(setView(viewParam));
@@ -157,6 +159,7 @@ const ResourceTeamHeaderSection = () => {
               label: d.name,
               value: d.name,
             })) ?? [],
+          hide: !resourceAllocationPermission.write,
         },
         {
           queryParameterName: "designation",
@@ -170,6 +173,7 @@ const ResourceTeamHeaderSection = () => {
               label: d.name,
               value: d.name,
             })) ?? [],
+          hide: !resourceAllocationPermission.write,
         },
         {
           queryParameterName: "allocation-type",
@@ -206,6 +210,7 @@ const ResourceTeamHeaderSection = () => {
               value: "actual-vs-planned",
             },
           ],
+          hide: !resourceAllocationPermission.write,
         },
         {
           queryParameterName: "combine-week-hours",
@@ -224,6 +229,7 @@ const ResourceTeamHeaderSection = () => {
           },
           icon: () => <Plus className="w-4 max-md:w-3 h-4 max-md:h-3 bg" />,
           variant: "default",
+          hide: !resourceAllocationPermission.write,
         },
         {
           title: "previous-week",

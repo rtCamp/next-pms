@@ -80,13 +80,17 @@ def filter_employees(
     reports_to: None | str = None,
     business_unit=None,
     designation=None,
+    ignore_permissions=False,
 ):
     import json
 
     from .utils import READ_ONLY_ROLE, READ_WRITE_ROLE
 
     roles = frappe.get_roles()
-    ignore_permissions = READ_ONLY_ROLE in roles or READ_WRITE_ROLE in roles
+
+    if not ignore_permissions:
+        ignore_permissions = READ_ONLY_ROLE in roles or READ_WRITE_ROLE in roles
+
     fields = ["name", "image", "employee_name", "department", "designation"]
     employee_ids = []
     filters = {}
