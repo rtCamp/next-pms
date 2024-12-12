@@ -10,26 +10,28 @@ const ColumnItem = ({
   isVisible,
   label,
   toggleVisibility,
+  onDrop,
 }: {
   id: string;
   onColumnHide: (id: string) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  reOrder: any;
+  reOrder: (newOrder: string[]) => void;
   label: string;
   isVisible: boolean;
   toggleVisibility: (value?: boolean) => void;
+  onDrop: () => void;
 }) => {
   const [{ isDragging }, dragRef] = useDrag({
     type: "COLUMN",
-    item: { id: id },
+    item: { id },
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
+    end: () => onDrop(), // Trigger drop handler on drag end
   });
+
   const [, dropRef] = useDrop({
     accept: "COLUMN",
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    drop: (draggedColumn: any) => {
+    hover: (draggedColumn: { id: string }) => {
       if (draggedColumn.id !== id) {
         reOrder((old: string[]) => {
           const newOrder = [...old];
@@ -42,6 +44,7 @@ const ColumnItem = ({
       }
     },
   });
+
   return (
     <DropdownMenuItem
       key={id}
@@ -51,9 +54,7 @@ const ColumnItem = ({
     >
       <span
         className="w-full flex justify-between gap-x-2 items-center"
-        style={{
-          opacity: isDragging ? 0.5 : 1,
-        }}
+        style={{ opacity: isDragging ? 0.5 : 1 }}
       >
         <Typography className="flex gap-x-2 items-center">
           <GripVertical />

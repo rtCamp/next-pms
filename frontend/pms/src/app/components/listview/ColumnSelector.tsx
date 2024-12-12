@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { checkIsMobile, NO_VALUE_FIELDS } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -27,11 +28,17 @@ const ColumnSelector = ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fieldMeta: Array<any>;
   onColumnHide: (id: string) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  setColumnOrder: any;
+  setColumnOrder: (newOrder: string[]) => void;
   columnOrder: string[];
 }) => {
-  const fieldMap = columnOrder
+  const [localOrder, setLocalOrder] = useState<string[]>([]);
+
+  // Synchronize local state with the main columnOrder prop
+  useEffect(() => {
+    setLocalOrder(columnOrder);
+  }, [columnOrder]);
+
+  const fieldMap = localOrder
     .map((row) => {
       const d = fieldMeta.find((f: { fieldname: string }) => f.fieldname === row);
       return d !== undefined ? d : null;
@@ -40,14 +47,19 @@ const ColumnSelector = ({
 
   const fields = fieldMeta
     .filter((d) => !NO_VALUE_FIELDS.includes(d.fieldtype))
-    .filter((d) => !columnOrder.includes(d.fieldname));
+    .filter((d) => !localOrder.includes(d.fieldname));
 
   const handleColumnAdd = (fieldname: string) => {
-    setColumnOrder((old: string[]) => {
-      const newOrder = [...old];
-      newOrder.push(fieldname);
-      return newOrder;
-    });
+    setLocalOrder((old) => [...old, fieldname]);
+    setColumnOrder((old) => [...old, fieldname]);
+  };
+
+  const handleReorder = (newOrder: string[]) => {
+    setLocalOrder(newOrder);
+  };
+
+  const handleDrop = () => {
+    setColumnOrder(localOrder); // Update the parent/main state on drop 
   };
 
   return (
@@ -61,10 +73,9 @@ const ColumnSelector = ({
       <DropdownMenuContent className="[&_div]:cursor-pointer max-h-96 overflow-y-auto">
         <DndProvider backend={checkIsMobile() ? TouchBackend : HTML5Backend}>
           {fieldMap
-            .sort((a, b) => columnOrder.indexOf(a.fieldname) - columnOrder.indexOf(b.fieldname))
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .map((field: any) => {
-              const isVisible = columnOrder.includes(field.fieldname);
+              const isVisible = localOrder.includes(field.fieldname);
               return (
                 <ColumnItem
                   key={field.fieldname}
@@ -73,7 +84,8 @@ const ColumnSelector = ({
                   onColumnHide={onColumnHide}
                   isVisible={isVisible}
                   toggleVisibility={() => {}}
-                  reOrder={setColumnOrder}
+                  reOrder={handleReorder}
+                  onDrop={handleDrop}
                 />
               );
             })}
@@ -83,20 +95,19 @@ const ColumnSelector = ({
           <DropdownMenuSubTrigger>Add Columns</DropdownMenuSubTrigger>
           <DropdownMenuPortal>
             <DropdownMenuSubContent className="[&_div]:cursor-pointer max-h-96 overflow-y-auto">
-              {fields.map((field: any) => {
-                return (
+              {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                fields.map((field: any) => (
                   <DropdownMenuItem
                     key={field.fieldname}
                     className="capitalize cursor-pointer flex gap-x-2 items-center"
                     onSelect={(event) => event.preventDefault()}
-                    onClick={() => {
-                      handleColumnAdd(field.fieldname);
-                    }}
+                    onClick={() => handleColumnAdd(field.fieldname)}
                   >
                     {field.label}
                   </DropdownMenuItem>
-                );
-              })}
+                ))
+              }
             </DropdownMenuSubContent>
           </DropdownMenuPortal>
         </DropdownMenuSub>

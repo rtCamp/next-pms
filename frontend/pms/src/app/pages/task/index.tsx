@@ -371,6 +371,8 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [dispatch]
   );
+  
+  // can be removed in the next itteration
   const handleGroupByChange = useCallback(
     (value: string | string[]) => {
       dispatch(setGroupBy(value as string[]));
