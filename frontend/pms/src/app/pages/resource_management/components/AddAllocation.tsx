@@ -50,10 +50,16 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
     mode: "onSubmit",
   });
 
-  const { data: projects } = useFrappeGetCall("frappe.client.get_list", {
+  const { data: projects, mutate: fetchProjects } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Project",
-    filters: [["project_name", "like", `%${projectSearch}%`]],
-    fields: ["name", "project_name", "customer"],
+    filters: form.getValues("customer")
+      ? [
+          ["project_name", "like", `%${projectSearch}%`],
+          ["customer", "=", form.getValues("customer")],
+        ]
+      : [["project_name", "like", `%${projectSearch}%`]],
+
+    fields: ["name", "project_name", "customer", "custom_billing_type"],
     limit_page_length: 20,
   });
 
@@ -93,13 +99,22 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
     if (!projectData) return;
 
     if (!projectData.customer) {
-      form.setValue("customer", "");
-      setCustomerSearch("");
-      return;
+      if (!form.getValues("customer")) {
+        form.setValue("customer", "");
+        setCustomerSearch("");
+      }
+    } else {
+      if (!form.getValues("customer")) {
+        form.setValue("customer", projectData.customer);
+        setCustomerSearch(projectData.customer);
+      }
     }
 
-    form.setValue("customer", projectData.customer);
-    setCustomerSearch(projectData.customer);
+    if (projectData.custom_billing_type != "Non-Billable") {
+      form.setValue("is_billable", true);
+    } else {
+      form.setValue("is_billable", false);
+    }
   };
 
   const handleSearchChange = (key: ResourceKeys, value: string | string[], handleValueChange) => {
@@ -289,6 +304,9 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
                         label="Search Customer"
                         onSelect={(value) => {
                           handleSearchChange("customer", value, setCustomerSearch);
+                          fetchProjects();
+                          form.setValue("project", "");
+                          setProjectSearch("");
                         }}
                         onSearch={(value) => {
                           setCustomerSearch(value);
@@ -319,7 +337,11 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
                   <FormItem className="space-y-1 col-span-3">
                     <FormLabel>Projects</FormLabel>
                     <ComboxBox
-                      label="Search Projects"
+                      label={
+                        form.getValues("customer")
+                          ? "Search " + form.getValues("customer")+" Projects"
+                          : "Search Projects"
+                      }
                       onSelect={(value) => {
                         handleSearchChange("project", value, setProjectSearch);
                       }}

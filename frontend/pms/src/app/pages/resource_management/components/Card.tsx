@@ -15,7 +15,6 @@ import { setReFetchData } from "@/store/resource_management/team";
 import { Button } from "@/app/components/ui/button";
 import { useToast } from "@/app/components/ui/use-toast";
 
-
 export const ResourceAllocationList = ({
   resourceAllocationList,
   employeeAllocations,
@@ -27,7 +26,6 @@ export const ResourceAllocationList = ({
   customer: ResourceCustomerObjectProps;
   onButtonClick?: () => void;
 }) => {
-
   return (
     <div className="flex flex-col">
       {resourceAllocationList.map((resourceAllocation: ResourceAllocationProps) => (
@@ -68,7 +66,7 @@ export const ResourceAllocationCard = ({
   const { date: startDate } = prettyDate(resourceAllocation.allocation_start_date);
   const { date: endDate } = prettyDate(resourceAllocation.allocation_end_date);
   const dispatch = useDispatch();
-  const {toast}=useToast();
+  const { toast } = useToast();
 
   const { deleteDoc } = useFrappeDeleteDoc();
 
@@ -145,8 +143,13 @@ export const ResourceAllocationCard = ({
           {" "}
           {customerData.name.length > 15 ? `${customerData.name.slice(0, 15)}...` : customerData.name}
         </p>
-        <p className="text-xs text-muted-foreground">{resourceAllocation.project}</p>
-        <p className="text-xs text-muted-foreground">{resourceAllocation.project_name}</p>
+        {resourceAllocation.project && (
+          <>
+            <p className="text-xs text-muted-foreground">{resourceAllocation.project}</p>
+            <p className="text-xs text-muted-foreground">{resourceAllocation.project_name}</p>
+          </>
+        )}
+
         <p className="text-xs text-muted-foreground">
           {startDate} - {endDate}
         </p>
