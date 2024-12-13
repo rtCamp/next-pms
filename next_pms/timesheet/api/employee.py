@@ -1,4 +1,16 @@
+import datetime
+
 import frappe
+
+
+@frappe.whitelist()
+def get_data():
+    employee = get_employee_from_user()
+    return {
+        "employee": employee,
+        "employee_working_detail": get_employee_working_hours(employee),
+        "employee_report_to": frappe.db.get_value("Employee", employee, "reports_to"),
+    }
 
 
 @frappe.whitelist()
@@ -79,3 +91,21 @@ def get_employee_list(
         reports_to=reports_to,
     )
     return {"data": employees, "count": count}
+
+
+def get_workable_days_for_employee(employee: str, start_date: str | datetime.date, end_date: str | datetime.date):
+    from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
+    from frappe.utils import date_diff
+
+    holiday_list_name = get_holiday_list_for_employee(employee)
+
+    holidays = frappe.get_all(
+        "Holiday",
+        filters={
+            "parent": holiday_list_name,
+            "holiday_date": ["between", (start_date, end_date)],
+        },
+        pluck="holiday_date",
+    )
+
+    return (date_diff(end_date, start_date) + 1) - len(holidays)

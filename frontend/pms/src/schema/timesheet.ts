@@ -79,6 +79,9 @@ export const TimesheetApprovalSchema = z.object({
     })
     .min(1, { message: "Please select a end date." }),
   notes: z.string({}).optional(),
+  approver: z.string({
+    required_error: "Please select a approver from the list.",
+  }),
   employee: z.string({
     required_error: "Please select a employee.",
   }),

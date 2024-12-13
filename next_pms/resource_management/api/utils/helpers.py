@@ -113,6 +113,7 @@ def filter_employee_list(
     page_length=10,
     status=None,
     start=0,
+    ignore_permissions=False,
 ):
     from next_pms.timesheet.api.utils import filter_employees
 
@@ -126,6 +127,7 @@ def filter_employee_list(
         business_unit=business_unit,
         designation=designation,
         status=status,
+        ignore_permissions=True,
     )
 
     return employees, count
@@ -153,3 +155,14 @@ def filter_project_list(
     total_count = get_count("Project", filters=filters)
 
     return projects, total_count
+
+
+def resource_api_permissions_check():
+    frappe.only_for(["Projects Manager", "Projects User", "Employee"], message=True)
+
+    roles = frappe.get_roles()
+
+    if ("Projects Manager" in roles) or ("Projects User" in roles):
+        return {"read": True, "write": True, "delete": True}
+
+    return {"read": False, "write": False, "delete": False}

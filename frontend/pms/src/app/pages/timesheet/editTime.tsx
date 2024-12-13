@@ -1,15 +1,14 @@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { Spinner } from "@/app/components/spinner";
-import { TaskDataItemProps } from "@/types/timesheet";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { Button } from "@/app/components/ui/button";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { cn, floatToTime, parseFrappeErrorMsg, prettyDate } from "@/lib/utils";
-import { TimesheetUpdateSchema, timeStringToFloat } from "@/schema/timesheet";
+import { TimesheetUpdateSchema } from "@/schema/timesheet";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/app/components/ui/form";
 import { Typography } from "@/app/components/typography";
@@ -27,26 +26,24 @@ interface EditTimeProps {
   open: boolean;
   onClose: () => void;
 }
-interface TaskProps {
-  data: TaskDataItemProps[];
-  task: string;
-  project: string;
-}
+
 export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const user = useSelector((state: RootState) => state.user);
   const hasAccess = user.roles.includes("Projects Manager") || user.roles.includes("Timesheet Manager");
-  const [employeeData, setEmployeeData] = useState<TaskProps>({
-    data: [],
-    task: "",
-    project: "",
-  });
+
   const form = useForm<z.infer<typeof TimesheetUpdateSchema>>({
     resolver: zodResolver(TimesheetUpdateSchema),
     defaultValues: {
       data: [],
     }, // Empty array by default
-    mode: "onSubmit",
+    mode: "onBlur",
+    reValidateMode: "onSubmit",
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "data",
   });
 
   const columns = ["Hours", "Description", "Billable", ""];
@@ -61,29 +58,21 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
 
   useEffect(() => {
     if (data) {
-      setEmployeeData(data.message);
-    }
-  }, [data]);
-
-  useEffect(() => {
-    const data = {
-      data: employeeData.data.map((item) => {
+      const updatedData = data.message.data.map((item) => {
         return {
           ...item,
           hours: floatToTime(item.hours),
         };
-      }),
-    };
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    form.reset(data);
+      });
+      form.reset({ data: updatedData });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [employeeData]);
+  }, [data]);
 
   const addEmptyFormRow = () => {
-    const parent = employeeData.data[0].parent;
-    const emptyRow = {
-      hours: 0,
+    const parent = fields[0]?.parent || "";
+    const newRow = {
+      hours: "00:00",
       description: "",
       is_billable: false,
       name: "",
@@ -91,25 +80,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
       task: task,
       date: date,
     };
-    const updatedData = form.getValues().data;
-    updatedData.forEach((item) => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      item.hours = timeStringToFloat(item.hours);
-    });
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    setEmployeeData({ ...employeeData, data: [...updatedData, emptyRow] });
-  };
-
-  const removeFormRow = (index: number) => {
-    const values = form.getValues();
-    const data = values.data[index];
-    if (data.name.length == 0) {
-      setEmployeeData({ ...employeeData, data: employeeData.data.filter((_, i) => i !== index) });
-    } else {
-      handleDelete(data.parent, data.name);
-    }
+    append(newRow);
   };
 
   const handleUpdate = (formData: z.infer<typeof TimesheetUpdateSchema>) => {
@@ -134,6 +105,16 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
         });
         setIsSubmitting(false);
       });
+  };
+
+  const removeFormRow = (index: number) => {
+    const currentData = form.getValues().data || [];
+    const rowToDelete = currentData[index];
+    if (!rowToDelete?.name) {
+      remove(index);
+    } else {
+      handleDelete(rowToDelete.parent, rowToDelete.name);
+    }
   };
   const handleDelete = (parent: string, name: string) => {
     deleteTimesheet({ parent, name })
@@ -161,11 +142,11 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
           <Separator />
           <div className="flex justify-between w-full overflow-hidden">
             <span className="flex flex-col">
-              <Typography title={employeeData.task} variant="p" className="max-w-80 truncate font-semibold">
-                {employeeData.task}
+              <Typography title={data?.message?.task} variant="p" className="max-w-80 truncate font-semibold">
+                {data?.message?.task}
               </Typography>
-              <Typography title={employeeData.project} variant="small" className="max-w-80 truncate">
-                {employeeData.project}
+              <Typography title={data?.message?.project} variant="small" className="max-w-80 truncate">
+                {data?.message?.project}
               </Typography>
             </span>
             <Typography variant="h6" className="max-w-80 truncate font-normal">
@@ -178,7 +159,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
             {isLoading ? (
               <Spinner />
             ) : (
-              <div>
+              <div className="max-h-64 overflow-y-auto">
                 <div className="flex flex-col ">
                   <div className="border-b bg-slate-50 border-slate-200 border-t flex items-center gap-2 h-10 ">
                     {columns.map((column, key) => (
@@ -199,8 +180,8 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
                   </div>
                 </div>
 
-                {employeeData.data.map((item, index: number) => (
-                  <div className="flex gap-2 border-b pb-1 items-start pt-1" key={index}>
+                {fields.map((item, index: number) => (
+                  <div className="flex gap-2 border-b pb-1 items-start pt-1" key={item.id}>
                     <FormField
                       control={form.control}
                       name={`data.${index}.hours`}

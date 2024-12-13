@@ -8,6 +8,7 @@ from next_pms.resource_management.api.utils.helpers import (
     get_dates_date,
     handle_customer,
     is_on_leave,
+    resource_api_permissions_check,
 )
 from next_pms.resource_management.api.utils.query import (
     get_allocation_list_for_employee_for_given_range,
@@ -28,7 +29,7 @@ def get_resource_management_team_view_data(
     page_length=10,
     start=0,
 ):
-    frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+    permissions = resource_api_permissions_check()
 
     data = []
     customer = {}
@@ -42,6 +43,7 @@ def get_resource_management_team_view_data(
         page_length=page_length,
         start=start,
         status=["Active"],
+        ignore_permissions=True,
     )
 
     resource_allocation_data = get_allocation_list_for_employee_for_given_range(
@@ -207,6 +209,7 @@ def get_resource_management_team_view_data(
     res["customer"] = customer
     res["total_count"] = total_count
     res["has_more"] = int(start) + int(page_length) < total_count
+    res["permissions"] = permissions
 
     return res
 

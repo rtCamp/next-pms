@@ -80,13 +80,17 @@ def filter_employees(
     reports_to: None | str = None,
     business_unit=None,
     designation=None,
+    ignore_permissions=False,
 ):
     import json
 
     from .utils import READ_ONLY_ROLE, READ_WRITE_ROLE
 
     roles = frappe.get_roles()
-    ignore_permissions = READ_ONLY_ROLE in roles or READ_WRITE_ROLE in roles
+
+    if not ignore_permissions:
+        ignore_permissions = READ_ONLY_ROLE in roles or READ_WRITE_ROLE in roles
+
     fields = ["name", "image", "employee_name", "department", "designation"]
     employee_ids = []
     filters = {}
@@ -193,21 +197,12 @@ def get_count(
 def update_weekly_status_of_timesheet(employee: str, date: str):
     from frappe.utils import get_first_day_of_week, get_last_day_of_week
 
+    from .employee import get_workable_days_for_employee
+
     start_date = get_first_day_of_week(date)
     end_date = get_last_day_of_week(date)
+    working_days = get_workable_days_for_employee(employee, start_date, end_date)
 
-    timesheets = frappe.get_all(
-        "Timesheet",
-        filters={
-            "employee": employee,
-            "start_date": [">=", start_date],
-            "end_date": ["<=", end_date],
-            "docstatus": ["!=", 2],
-        },
-        fields=["name", "start_date"],
-    )
-    if not timesheets:
-        return
     current_week_timesheet = frappe.get_all(
         "Timesheet",
         {
@@ -216,8 +211,9 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
             "end_date": ["<=", end_date],
         },
         ["name", "custom_approval_status", "start_date"],
-        group_by="start_date",
     )
+    if not current_week_timesheet:
+        return
     week_status = "Not Submitted"
 
     status_count = {
@@ -232,18 +228,16 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
     for timesheet in current_week_timesheet:
         status_count[timesheet.custom_approval_status] += 1
 
-    if status_count["Rejected"] == len(current_week_timesheet):
+    if status_count["Rejected"] == working_days:
         week_status = "Rejected"
-    elif status_count["Approved"] == len(current_week_timesheet):
+    elif status_count["Approved"] == working_days:
         week_status = "Approved"
-    elif status_count["Approval Pending"] == len(current_week_timesheet):
-        week_status = "Approval Pending"
     elif status_count["Rejected"] > 0:
         week_status = "Partially Rejected"
     elif status_count["Approved"] > 0:
         week_status = "Partially Approved"
 
-    for timesheet in timesheets:
+    for timesheet in current_week_timesheet:
         frappe.db.set_value("Timesheet", timesheet.name, "custom_weekly_approval_status", week_status)
 
 

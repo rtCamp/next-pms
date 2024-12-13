@@ -15,7 +15,7 @@ import { RootState } from "@/store";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { ResourceHeaderSection } from "../../components/Header";
 import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
-import { setDialog } from "@/store/resource_management/allocation";
+import { PermissionProps, setDialog } from "@/store/resource_management/allocation";
 
 const ResourceProjectHeaderSection = () => {
   const [projectNameParam, setProjectNameParam] = useQueryParamsState<string>("prject-name", "");
@@ -25,6 +25,9 @@ const ResourceProjectHeaderSection = () => {
 
   const resourceTeamState = useSelector((state: RootState) => state.resource_project);
   const resourceTeamStateTableView = resourceTeamState.tableView;
+  const resourceAllocationPermission: PermissionProps = useSelector(
+    (state: RootState) => state.resource_allocation_form.permissions
+  );
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -126,6 +129,7 @@ const ResourceProjectHeaderSection = () => {
               value: "actual-vs-planned",
             },
           ],
+          hide: !resourceAllocationPermission.write,
         },
         {
           queryParameterName: "combine-week-hours",
@@ -144,6 +148,7 @@ const ResourceProjectHeaderSection = () => {
           },
           icon: () => <Plus className="w-4 max-md:w-3 h-4 max-md:h-3" />,
           variant: "default",
+          hide: !resourceAllocationPermission.write,
         },
         {
           title: "previous-week",

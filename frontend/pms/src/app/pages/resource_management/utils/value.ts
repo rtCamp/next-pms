@@ -4,7 +4,7 @@ const getFormatedStringValue = (
   if (typeof value === "number") {
     return value;
   }
-  if (value === undefined) {
+  if (value === undefined || value === null) {
     return "";
   }
 

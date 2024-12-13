@@ -55,6 +55,9 @@ export const ComboxBox = ({
   }, [value]);
   const [open, setOpen] = useState(isOpen);
   const clearFilter = () => {
+    if (selectedValues.length == 0) {
+      return;
+    }
     setSelectedValues([]);
     onSelect && onSelect([]);
     setOpen(!open);

@@ -579,13 +579,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     <>
       <Header className="gap-x-3 flex items-center overflow-x-auto">
         <section id="filter-section" className="flex gap-x-2 items-center">
-          <DeBounceInput
-            placeholder="Project Name"
-            value={searchParam}
-            deBounceValue={200}
-            className="max-w-40 min-w-40 "
-            callback={handleSearch}
-          />
+          <DeBounceInput placeholder="Project Name" value={searchParam} deBounceValue={200} callback={handleSearch} />
 
           <ComboxBox
             isMulti

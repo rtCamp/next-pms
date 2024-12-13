@@ -1,22 +1,15 @@
-import { useSelector } from "react-redux";
-import { RootState } from "@/store";
 import { useContext, useEffect, useState } from "react";
-import { setSidebarCollapsed } from "@/store/user";
-import { useDispatch } from "react-redux";
-import { Typography } from "@/app/components/typography";
+
 import { NavLink } from "react-router-dom";
-import { cn } from "@/lib/utils";
 import { useLocation } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import {
-  Home,
-  Users,
-  Clock3,
   ArrowLeftToLine,
   ArrowRightLeft,
-  LogOut,
-  ChevronUp,
   ChevronDown,
+  ChevronUp,
   ClipboardList,
+  Clock3,
   FolderDot,
   GanttChart,
   FolderKanban,
@@ -29,7 +22,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar"
 import { UserContext } from "@/lib/UserProvider";
 import { Separator } from "@/app/components/ui/separator";
 import GenWrapper from "../components/GenWrapper";
+import { Home, LogOut, Users } from "lucide-react";
+
 import logo from "@/logo.svg";
+import { cn } from "@/lib/utils";
+import { RootState } from "@/store";
+import { ViewData } from "@/store/view";
+import { setSidebarCollapsed } from "@/store/user";
+import { Typography } from "@/app/components/typography";
 
 type NestedRoute = {
   to: string;
@@ -50,22 +50,20 @@ type Route = {
 };
 
 const Sidebar = () => {
+  const user = useSelector((state: RootState) => state.user);
+  const viewInfo = useSelector((state: RootState) => state.view);
+  const screenSize = useSelector((state: RootState) => state.app.screenSize);
+
+  const dispatch = useDispatch();
+  const location = useLocation();
+
   const [openRoutes, setOpenRoutes] = useState<{ [key: string]: boolean }>({
     reports: false,
   });
-  const toggleNestedRoutes = (key: string) => {
-    setOpenRoutes((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-  const user = useSelector((state: RootState) => state.user);
-  const viewInfo = useSelector((state: RootState) => state.view);
-  const dispatch = useDispatch();
-  const hasPmRole = user.roles.some((role) => ROLES.includes(role));
 
-  const screenSize = useSelector((state: RootState) => state.app.screenSize);
-  const location = useLocation();
-  const handleCollapse = () => {
-    dispatch(setSidebarCollapsed(!user.isSidebarCollapsed));
-  };
+  const hasPmRole = user.roles.some((role) => ROLES.includes(role));
+  const customViews = viewInfo.views.filter((view) => view.user === user.user && !view.default && !view.public);
+  const publicViews = viewInfo.views.filter((view) => view.public && !view.default);
   const routes: Array<Route> = [
     {
       to: HOME,
@@ -100,7 +98,7 @@ const Sidebar = () => {
       icon: GanttChart,
       label: "Resource Management",
       key: "resource-management",
-      isPmRoute: true,
+      isPmRoute: false,
       children: [
         {
           to: RESOURCE_MANAGEMENT + "/team",
@@ -124,6 +122,13 @@ const Sidebar = () => {
       isPmRoute: false,
     },
   ];
+  const toggleNestedRoutes = (key: string) => {
+    setOpenRoutes((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleCollapse = () => {
+    dispatch(setSidebarCollapsed(!user.isSidebarCollapsed));
+  };
   useEffect(() => {
     if (screenSize === "sm" || screenSize === "md") {
       dispatch(setSidebarCollapsed(true));
@@ -131,6 +136,7 @@ const Sidebar = () => {
       dispatch(setSidebarCollapsed(false));
     }
   }, [screenSize]);
+
   return (
     <GenWrapper>
       <aside
@@ -258,214 +264,25 @@ const Sidebar = () => {
             );
           })}
         </div>
-        {hasPmRole && (
-          <>
-            {viewInfo.views.filter((view) => view.user === user.user && !view.default).length > 0 ? (
-              <>
-                <Separator className="mt-1" />
-                {!user.isSidebarCollapsed ? (
-                  <div className="py-1 mt-1 overflow-y-auto flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
-                    <Button
-                      variant="ghost"
-                      className={cn(
-                        "flex items-center gap-x-2 w-full text-left py-2 px-3 hover:bg-slate-200 rounded-lg justify-between",
-                        openRoutes["custom_view"] && "bg-slate-200 "
-                      )}
-                      onClick={() => toggleNestedRoutes("custom_view")}
-                    >
-                      <span className="flex items-center gap-x-2">
-                        {openRoutes["custom_view"] ? <ChevronUp /> : <ChevronDown />}
-                        <Typography
-                          variant="p"
-                          className={cn(
-                            "transition-all duration-300 ease-in-out ",
-                            user.isSidebarCollapsed && "hidden"
-                          )}
-                        >
-                          Custom View
-                        </Typography>
-                      </span>
-                    </Button>
-                    <div
-                      className={cn(
-                        "transition-all duration-300 ease-in-out flex flex-col gap-y-1",
-                        openRoutes["custom_view"] ? "flex" : "hidden"
-                      )}
-                    >
-                      {viewInfo.views.map((view) => {
-                        if (view.default || view.public) return null;
-                        const isActive = view.route === window.location.pathname;
-                        return (
-                          <NavLink
-                            to={`${view.route}?view=${view.name}`}
-                            key={view.name}
-                            title={view.label}
-                            className="transition-all duration-300 ease-in-out flex items-center h-9"
-                          >
-                            <div
-                              className={cn(
-                                "flex w-full pl-2 rounded-lg items-center px-3 py-2 hover:bg-slate-200 text-primary gap-x-2 overflow-hidden",
-                                isActive && "bg-primary shadow-md hover:bg-slate-700 "
-                              )}
-                            >
-                              <span>{view.icon}</span>
-                              <Typography
-                                variant="p"
-                                className={cn(
-                                  "transition-all duration-300 ease-in-out text-white",
-                                  !isActive && "text-primary",
-                                  user.isSidebarCollapsed && "hidden"
-                                )}
-                              >
-                                {view.label}
-                              </Typography>
-                            </div>
-                          </NavLink>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : (
-                  <div className={cn("transition-all duration-300 ease-in-out flex flex-col gap-y-1")}>
-                    {viewInfo.views.map((view) => {
-                      if (view.default || view.public) return null;
-                      const isActive = view.route === window.location.pathname;
-                      return (
-                        <NavLink
-                          to={`${view.route}?view=${view.name}`}
-                          key={view.name}
-                          title={view.label}
-                          className="transition-all duration-300 ease-in-out flex items-center h-9"
-                        >
-                          <div
-                            className={cn(
-                              "flex w-full pl-2 rounded-lg items-center px-3 py-2 hover:bg-slate-200 text-primary gap-x-2 overflow-hidden",
-                              isActive && "bg-primary shadow-md hover:bg-slate-700 "
-                            )}
-                          >
-                            <span>{view.icon}</span>
-                            <Typography
-                              variant="p"
-                              className={cn(
-                                "transition-all duration-300 ease-in-out text-white",
-                                !isActive && "text-primary",
-                                user.isSidebarCollapsed && "hidden"
-                              )}
-                            >
-                              {view.label}
-                            </Typography>
-                          </div>
-                        </NavLink>
-                      );
-                    })}
-                  </div>
-                )}
-              </>
-            ) : null}
-            {viewInfo.views.filter((view) => view.public && !view.default).length > 0 ? (
-              <>
-                <Separator />
-                {!user.isSidebarCollapsed ? (
-                  <div className="py-1 h-fit overflow-y-auto flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
-                    <Button
-                      variant="ghost"
-                      className={cn(
-                        "flex items-center gap-x-2 w-full text-left py-2 px-3 hover:bg-slate-200 rounded-lg justify-between",
-                        openRoutes["public_view"] && "bg-slate-200 "
-                      )}
-                      onClick={() => toggleNestedRoutes("public_view")}
-                    >
-                      <span className="flex items-center gap-x-2">
-                        {openRoutes["public_view"] ? <ChevronUp /> : <ChevronDown />}
-                        <Typography
-                          variant="p"
-                          className={cn(
-                            "transition-all duration-300 ease-in-out ",
-                            user.isSidebarCollapsed && "hidden"
-                          )}
-                        >
-                          Public View
-                        </Typography>
-                      </span>
-                    </Button>
-                    <div
-                      className={cn(
-                        "transition-all duration-300 ease-in-out flex flex-col gap-y-1",
-                        openRoutes["public_view"] ? "flex" : "hidden"
-                      )}
-                    >
-                      {viewInfo.views.map((view) => {
-                        if (view.default || !view.public) return null;
-                        const isActive = view.route === window.location.pathname;
-                        return (
-                          <NavLink
-                            to={`${view.route}?view=${view.name}`}
-                            key={view.name}
-                            title={view.label}
-                            className="transition-all duration-300 ease-in-out flex items-center h-9"
-                          >
-                            <div
-                              className={cn(
-                                "flex w-full pl-2 rounded-lg items-center px-3 py-2 hover:bg-slate-200 text-primary gap-x-2 overflow-hidden",
-                                isActive && "bg-primary shadow-md hover:bg-slate-700 "
-                              )}
-                            >
-                              <span>{view.icon}</span>
-                              <Typography
-                                variant="p"
-                                className={cn(
-                                  "transition-all duration-300 ease-in-out text-white",
-                                  !isActive && "text-primary",
-                                  user.isSidebarCollapsed && "hidden"
-                                )}
-                              >
-                                {view.label}
-                              </Typography>
-                            </div>
-                          </NavLink>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : (
-                  <div className={cn("transition-all duration-300 ease-in-out flex flex-col gap-y-1")}>
-                    {viewInfo.views.map((view) => {
-                      if (view.default || !view.public) return null;
-                      const isActive = view.route === window.location.pathname;
-                      return (
-                        <NavLink
-                          to={`${view.route}?view=${view.name}`}
-                          key={view.name}
-                          title={view.label}
-                          className="transition-all duration-300 ease-in-out flex items-center h-9"
-                        >
-                          <div
-                            className={cn(
-                              "flex w-full pl-2 rounded-lg items-center px-3 py-2 hover:bg-slate-200 text-primary gap-x-2 overflow-hidden",
-                              isActive && "bg-primary shadow-md hover:bg-slate-700 "
-                            )}
-                          >
-                            <span>{view.icon}</span>
-                            <Typography
-                              variant="p"
-                              className={cn(
-                                "transition-all duration-300 ease-in-out text-white",
-                                !isActive && "text-primary",
-                                user.isSidebarCollapsed && "hidden"
-                              )}
-                            >
-                              {view.label}
-                            </Typography>
-                          </div>
-                        </NavLink>
-                      );
-                    })}
-                  </div>
-                )}
-              </>
-            ) : null}
-          </>
-        )}
+        <View
+          label="Custom Views"
+          isSidebarCollapsed={user.isSidebarCollapsed}
+          openRoutes={openRoutes}
+          hasPmRole={hasPmRole}
+          id="custom_view"
+          views={customViews}
+          onClick={() => toggleNestedRoutes("custom_view")}
+        />
+        <View
+          label="Public Views"
+          isSidebarCollapsed={user.isSidebarCollapsed}
+          openRoutes={openRoutes}
+          hasPmRole={hasPmRole}
+          views={publicViews}
+          id="public_view"
+          onClick={() => toggleNestedRoutes("public_view")}
+        />
+
         <div className="grow"></div>
         <div className={cn("flex justify-between items-center", user.isSidebarCollapsed && "flex-col ")}>
           <Navigation />
@@ -533,4 +350,89 @@ const Navigation = () => {
   );
 };
 
+const View = ({
+  isSidebarCollapsed,
+  openRoutes,
+  views,
+  label,
+  onClick,
+  hasPmRole,
+  id,
+}: {
+  hasPmRole: boolean;
+  label: string;
+  id: string;
+  isSidebarCollapsed: boolean;
+  openRoutes: {
+    [key: string]: boolean;
+  };
+  views: ViewData[];
+  onClick: () => void;
+}) => {
+  if (!hasPmRole || views.length == 0) return null;
+  return (
+    <>
+      <Separator className="my-1" />
+      {!isSidebarCollapsed && (
+        <Button
+          variant="ghost"
+          className={cn(
+            "flex items-center gap-x-2 w-full text-left py-2 px-3 hover:bg-slate-200 rounded-lg justify-between",
+            openRoutes[id] && "bg-slate-200 "
+          )}
+          onClick={onClick}
+        >
+          <span className="flex items-center gap-x-2">
+            {openRoutes[id] ? <ChevronUp /> : <ChevronDown />}
+            <Typography
+              variant="p"
+              className={cn("transition-all duration-300 ease-in-out ", isSidebarCollapsed && "hidden")}
+            >
+              {label}
+            </Typography>
+          </span>
+        </Button>
+      )}
+      <div
+        className={cn(
+          "transition-all duration-300 ease-in-out flex flex-col gap-y-1",
+          !isSidebarCollapsed && openRoutes[id] ? "flex" : "hidden",
+          isSidebarCollapsed && "flex"
+        )}
+      >
+        {views.map((view: ViewData) => {
+          if (view.default || view.public) return null;
+          const isActive = view.route === window.location.pathname;
+          return (
+            <NavLink
+              to={`${view.route}?view=${view.name}`}
+              key={view.name}
+              title={view.label}
+              className="transition-all duration-300 ease-in-out flex items-center h-9"
+            >
+              <div
+                className={cn(
+                  "flex w-full mt-2 rounded-lg items-center px-3 py-2 hover:bg-slate-200 text-primary gap-x-2 overflow-hidden",
+                  isActive && "bg-primary shadow-md hover:bg-slate-700 "
+                )}
+              >
+                <span>{view.icon}</span>
+                <Typography
+                  variant="p"
+                  className={cn(
+                    "transition-all duration-300 ease-in-out text-white",
+                    !isActive && "text-primary",
+                    isSidebarCollapsed && "hidden"
+                  )}
+                >
+                  {view.label}
+                </Typography>
+              </div>
+            </NavLink>
+          );
+        })}
+      </div>
+    </>
+  );
+};
 export default Sidebar;

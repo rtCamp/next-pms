@@ -10,7 +10,7 @@ import { ResourceTeamTable } from "./components/Table";
 import { ResourceTeamHeaderSection } from "./components/Header";
 import { FooterSection } from "../components/Footer";
 import AddResourceAllocations from "../components/AddAllocation";
-import { AllocationDataProps } from "@/store/resource_management/allocation";
+import { AllocationDataProps, setResourcePermissions } from "@/store/resource_management/allocation";
 
 const ResourceTeamView = () => {
   const { toast } = useToast();
@@ -68,6 +68,7 @@ const ResourceTeamView = () => {
       } else {
         dispatch(setData(data.message));
       }
+      dispatch(setResourcePermissions(data.message.permissions));
     }
     if (error) {
       const err = parseFrappeErrorMsg(error);

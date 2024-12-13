@@ -9,7 +9,7 @@ import { Spinner } from "@/app/components/spinner";
 import { ResourceProjectTable } from "./components/Table";
 import { ResourceProjectHeaderSection } from "./components/Header";
 import { FooterSection } from "../components/Footer";
-import { AllocationDataProps } from "@/store/resource_management/allocation";
+import { AllocationDataProps, setResourcePermissions } from "@/store/resource_management/allocation";
 import AddResourceAllocations from "../components/AddAllocation";
 import { setReFetchData } from "@/store/resource_management/project";
 
@@ -28,7 +28,6 @@ const ResourceTeamView = () => {
       project_name: resourceTeamState.projectName,
       start: resourceTeamState.start,
       is_billable: resourceTeamState.isBillable,
-
     },
     undefined,
     {
@@ -68,6 +67,7 @@ const ResourceTeamView = () => {
       } else {
         dispatch(setData(data.message));
       }
+      dispatch(setResourcePermissions(data.message.permissions));
     }
     if (error) {
       const err = parseFrappeErrorMsg(error);

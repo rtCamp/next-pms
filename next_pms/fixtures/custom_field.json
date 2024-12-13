@@ -1102,7 +1102,7 @@
   "name": "Employee-custom_work_schedule",
   "no_copy": 0,
   "non_negative": 0,
-  "options": "Per Day\nPer Week",
+  "options": "\nPer Day\nPer Week",
   "permlevel": 0,
   "precision": "",
   "print_hide": 0,

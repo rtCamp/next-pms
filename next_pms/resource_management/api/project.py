@@ -7,6 +7,7 @@ from next_pms.resource_management.api.utils.helpers import (
     filter_project_list,
     get_dates_date,
     handle_customer,
+    resource_api_permissions_check,
 )
 from next_pms.resource_management.api.utils.query import (
     get_allocation_list_for_employee_for_given_range,
@@ -27,7 +28,7 @@ def get_resource_management_project_view_data(
     page_length=10,
     start=0,
 ):
-    frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+    permissions = resource_api_permissions_check()
 
     data = []
     customer = {}
@@ -125,13 +126,14 @@ def get_resource_management_project_view_data(
     res["customer"] = customer
     res["total_count"] = total_count
     res["has_more"] = int(start) + int(page_length) < total_count
+    res["permissions"] = permissions
 
     return res
 
 
 @frappe.whitelist()
 def get_employees_resrouce_data_for_given_project(project: str, start_date: str, end_date: str, is_billable: str):
-    frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+    permissions = resource_api_permissions_check()
 
     resource_allocation_data = get_allocation_list_for_employee_for_given_range(
         [
@@ -213,5 +215,6 @@ def get_employees_resrouce_data_for_given_project(project: str, start_date: str,
 
     res["data"] = data
     res["customer"] = customer
+    res["permissions"] = permissions
 
     return res

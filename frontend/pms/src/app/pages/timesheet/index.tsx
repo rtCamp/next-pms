@@ -250,6 +250,8 @@ function Timesheet() {
                         leaves={timesheet.data.leaves}
                         tasks={value.tasks}
                         onCellClick={onCellClick}
+                        weekly_status={value.status}
+                        disabled={value.status === "Approved"}
                       />
                     </AccordionContent>
                   </AccordionItem>

@@ -20,6 +20,7 @@ import { CheckedState } from "@radix-ui/react-checkbox";
 
 interface FilterPops {
   queryParameterName: string;
+  hide?: boolean;
   handleChange: any;
   data?: { value: string; label: string }[];
   type: "search" | "select-search" | "select" | "checkbox";
@@ -45,6 +46,7 @@ interface ButtonPops {
     | "ghost"
     | null
     | undefined;
+  hide?: boolean;
 }
 
 interface HeaderSectionProps {
@@ -58,6 +60,9 @@ const ResourceHeaderSection = ({ filters, buttons }: HeaderSectionProps) => {
       <div id="filters" className="flex gap-x-3 max-md:gap-x-5  overflow-y-hidden max-md:w-full items-center">
         {filters &&
           filters.map((filter: FilterPops) => {
+            if (filter.hide) {
+              return <></>;
+            }
             if (filter.type == "search") {
               return (
                 <DeBounceInput
@@ -130,6 +135,9 @@ const ResourceHeaderSection = ({ filters, buttons }: HeaderSectionProps) => {
       <div id="date-filter" className="flex gap-x-2 max-md:p-1 max-md:w-full max-md:justify-between max-md:m-2">
         {buttons &&
           buttons.map((button: ButtonPops) => {
+            if (button.hide) {
+              return <></>;
+            }
             return (
               <Button
                 title={button.title}

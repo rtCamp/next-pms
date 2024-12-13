@@ -213,6 +213,8 @@ doc_events = {
         "before_insert": "next_pms.timesheet.doc_events.timesheet.before_insert",
         "on_update": "next_pms.timesheet.doc_events.timesheet.on_update",
         "before_validate": "next_pms.timesheet.doc_events.timesheet.before_validate",
+        "before_submit": "next_pms.timesheet.doc_events.timesheet.before_submit",
+        "on_submit": "next_pms.timesheet.doc_events.timesheet.on_submit",
     },
     "Task": {"after_insert": "next_pms.project_currency.doc_events.task.after_insert"},
     "Project": {
