@@ -74,6 +74,7 @@ def filter_employees(
     start=0,
     user_group=None,
     status=None,
+    ids: list[str] | None = None,
     reports_to: None | str = None,
 ):
     import json
@@ -110,6 +111,9 @@ def filter_employees(
 
     if department and len(department) > 0:
         filters["department"] = ["in", department]
+
+    if ids:
+        employee_ids.extend(ids)
 
     if project and len(project) > 0:
         project_employee = frappe.get_all(

@@ -27,14 +27,10 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
 
     if not employee:
         employee = get_employee_from_user()
-    if frappe.session.user != "Administrator":
-        if not frappe.has_permission("Employee", "read", employee) and (
-            "Timesheet Manager" not in user_roles and "Timesheet User" not in user_roles
-        ):
-            throw(
-                _("You don't have permission to access this employee's timesheet."),
-                frappe.PermissionError,
-            )
+    if frappe.session.user != "Administrator" or (
+        "Timesheet Manager" not in user_roles and "Timesheet User" not in user_roles
+    ):
+        frappe.has_permission("Employee", "read", employee, throw=True)
 
     def generate_week_data(start_date, max_week, employee=None, leaves=None, holidays=None):
         data = {}
