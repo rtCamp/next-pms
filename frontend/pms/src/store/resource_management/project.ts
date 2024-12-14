@@ -66,11 +66,14 @@ export interface ResourceTeamState {
   tableView: TableViewProps;
   isNeedToFetchDataAfterUpdate: boolean;
   isBillable: number;
+  reportingManager: string;
+  customer?: string[];
 }
 
 export const initialState: ResourceTeamState = {
   projectName: "",
   isEditDialogOpen: false,
+  reportingManager: "",
   pageLength: 20,
   data: {
     data: [],
@@ -94,6 +97,7 @@ export const initialState: ResourceTeamState = {
   },
   isNeedToFetchDataAfterUpdate: false,
   isBillable: -1,
+  customer: [],
 };
 
 const ResourceTeamSlice = createSlice({
@@ -166,12 +170,40 @@ const ResourceTeamSlice = createSlice({
       state,
       action: PayloadAction<{
         projectName: string;
+        reportingManager?: string;
+        customer: string[];
+        view?: string;
+        combineWeekHours?: boolean;
       }>
     ) => {
       state.projectName = action.payload.projectName;
+      if (action.payload.reportingManager) {
+        state.reportingManager = action.payload.reportingManager;
+      }
+      if (action.payload.customer) {
+        state.customer = action.payload.customer;
+      }
+      if (action.payload.combineWeekHours) {
+        state.tableView.combineWeekHours = action.payload.combineWeekHours;
+      }
+      if (action.payload.view) {
+        state.tableView.view = action.payload.view;
+      }
       state.pageLength = initialState.pageLength;
       state.start = 0;
       state.data = initialState.data;
+    },
+    setReportingManager: (state, action: PayloadAction<string>) => {
+      state.reportingManager = action.payload;
+      state.data = initialState.data;
+      state.start = 0;
+      state.pageLength = initialState.pageLength;
+    },
+    setCustomer: (state, action: PayloadAction<string[]>) => {
+      state.customer = action.payload;
+      state.data = initialState.data;
+      state.start = 0;
+      state.pageLength = initialState.pageLength;
     },
     setCombineWeekHours: (state, action: PayloadAction<boolean>) => {
       state.tableView.combineWeekHours = action.payload;
@@ -207,7 +239,9 @@ export const {
   resetState,
   setFilters,
   setEmployeeWeekDate,
+  setReportingManager,
   setProjectName,
+  setCustomer,
   setBusinessUnit,
   setCombineWeekHours,
   setView,

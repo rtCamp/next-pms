@@ -8,6 +8,7 @@ import {
   setView,
   setIsBillable,
   setDesignation,
+  setReportingManager,
 } from "@/store/resource_management/team";
 import { getFormatedDate } from "@/lib/utils";
 import { useCallback, useEffect } from "react";
@@ -15,17 +16,17 @@ import { addDays } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useQueryParamsState } from "@/lib/queryParam";
-import { useFrappeGetCall } from "frappe-react-sdk";
 import { ResourceHeaderSection } from "../../components/Header";
 import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
 import { PermissionProps, setDialog } from "@/store/resource_management/allocation";
 
 const ResourceTeamHeaderSection = () => {
-  const [businessUnitParam, setBusinessUnitParam] = useQueryParamsState<string[]>("business-unit", []);
-  const [employeeNameParam, setEmployeeNameParam] = useQueryParamsState<string>("employee-name", "");
-  const [allocationTypeParam, setAllocationTypeParam] = useQueryParamsState<string[]>("allocation-type", []);
-  const [designationParam, setDesignationParam] = useQueryParamsState<string[]>("designation", []);
-  const [viewParam, setViewParam] = useQueryParamsState<string>("view-type", "planned-vs-capacity");
+  const [businessUnitParam] = useQueryParamsState<string[]>("business-unit", []);
+  const [employeeNameParam] = useQueryParamsState<string>("employee-name", "");
+  const [reportingNameParam] = useQueryParamsState<string>("reports-to", "");
+  const [allocationTypeParam] = useQueryParamsState<string[]>("allocation-type", []);
+  const [designationParam] = useQueryParamsState<string[]>("designation", []);
+  const [viewParam, setViewParam] = useQueryParamsState<string>("view-type", "");
   const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParamsState<boolean>("combine-week-hours", false);
 
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
@@ -36,47 +37,80 @@ const ResourceTeamHeaderSection = () => {
   );
 
   useEffect(() => {
-    dispatch(setView(viewParam));
-    dispatch(setCombineWeekHours(combineWeekHoursParam));
-    const payload = {
-      businessUnit: businessUnitParam,
-      employeeName: employeeNameParam,
-    };
-    dispatch(setFilters(payload));
+    dispatch(setIsBillable(allocationTypeParam));
+    let CurrentViewParam = viewParam;
+    if (resourceAllocationPermission.write) {
+      if (!CurrentViewParam) {
+        CurrentViewParam = "planned-vs-capacity";
+        setViewParam(CurrentViewParam);
+      }
+    }
+
+    dispatch(
+      setFilters({
+        businessUnit: businessUnitParam,
+        employeeName: employeeNameParam,
+        reportingManager: reportingNameParam,
+        view: CurrentViewParam,
+        combineWeekHours: combineWeekHoursParam,
+      })
+    );
     return () => {
       dispatch(resetState());
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { data: businessUnit } = useFrappeGetCall(
-    "frappe.client.get_list",
-    {
-      doctype: "Business Unit",
-      fields: ["name"],
-      limit_page_length: 0,
+  const handleDesignationChange = useCallback(
+    (value: string | string[]) => {
+      dispatch(setDesignation(value as string[]));
     },
-    undefined,
-    {
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [dispatch]
   );
 
-  const { data: designations } = useFrappeGetCall(
-    "frappe.client.get_list",
-    {
-      doctype: "Designation",
-      filter: { custom_enabled: true },
-      fields: ["name"],
-      limit_page_length: 0,
+  const handleBusinessUnitChange = useCallback(
+    (value: string | string[]) => {
+      dispatch(setBusinessUnit(value as string[]));
     },
-    undefined,
-    {
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [dispatch]
   );
+
+  const handleReportingManagerChange = useCallback(
+    (value: string | string[]) => {
+      dispatch(setReportingManager(value as string));
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [dispatch]
+  );
+
+  const handleAllocationTypeChange = useCallback(
+    (value: string | string[]) => {
+      dispatch(setIsBillable(value as string[]));
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [dispatch]
+  );
+
+  const handleEmployeeChange = useCallback(
+    (value: string) => {
+      dispatch(setEmployeeName(value));
+    },
+    [dispatch]
+  );
+
+  const handleViewChange = useCallback(
+    (value: string) => {
+      dispatch(setView(value));
+    },
+    [dispatch]
+  );
+
+  const handleWeekViewChange = useCallback(() => {
+    setCombineWeekHoursParam(!resourceTeamStateTableView.combineWeekHours);
+    dispatch(setCombineWeekHours(!resourceTeamStateTableView.combineWeekHours));
+  }, [dispatch, resourceTeamStateTableView.combineWeekHours, setCombineWeekHoursParam]);
 
   const handlePrevWeek = useCallback(() => {
     const date = getFormatedDate(addDays(resourceTeamState.data.dates[0].start_date, -3));
@@ -88,54 +122,6 @@ const ResourceTeamHeaderSection = () => {
     dispatch(setWeekDate(date));
   }, [dispatch, resourceTeamState.data.dates]);
 
-  const handleDesignationChange = useCallback(
-    (value: string | string[]) => {
-      dispatch(setDesignation(value as string[]));
-      setDesignationParam(value as string[]);
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch]
-  );
-
-  const handleBusinessUnitChange = useCallback(
-    (value: string | string[]) => {
-      dispatch(setBusinessUnit(value as string[]));
-      setBusinessUnitParam(value as string[]);
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch]
-  );
-
-  const handleAllocationTypeChange = useCallback(
-    (value: string | string[]) => {
-      dispatch(setIsBillable(value as string[]));
-      setAllocationTypeParam(value as string[]);
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch]
-  );
-
-  const handleEmployeeChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      dispatch(setEmployeeName(e.target.value));
-      setEmployeeNameParam(e.target.value);
-    },
-    [dispatch, setEmployeeNameParam]
-  );
-
-  const handleViewChange = useCallback(
-    (value: string) => {
-      setViewParam(value);
-      dispatch(setView(value));
-    },
-    [dispatch, setViewParam]
-  );
-
-  const handleWeekViewChange = useCallback(() => {
-    setCombineWeekHoursParam(!resourceTeamStateTableView.combineWeekHours);
-    dispatch(setCombineWeekHours(!resourceTeamStateTableView.combineWeekHours));
-  }, [dispatch, resourceTeamStateTableView.combineWeekHours, setCombineWeekHoursParam]);
-
   return (
     <ResourceHeaderSection
       filters={[
@@ -146,6 +132,17 @@ const ResourceTeamHeaderSection = () => {
           value: employeeNameParam,
           defaultValue: "",
           label: "Employee Name",
+          queryParameterDefault: "",
+        },
+        {
+          queryParameterName: "reports-to",
+          handleChange: handleReportingManagerChange,
+          type: "search-employee",
+          value: reportingNameParam,
+          defaultValue: "",
+          label: "Reporting Manager",
+          hide: !resourceAllocationPermission.write,
+          queryParameterDefault: [],
         },
         {
           queryParameterName: "business-unit",
@@ -154,12 +151,20 @@ const ResourceTeamHeaderSection = () => {
           value: businessUnitParam,
           defaultValue: "",
           label: "Business Unit",
-          data:
-            businessUnit?.message?.map((d: { name: string }) => ({
-              label: d.name,
-              value: d.name,
-            })) ?? [],
           hide: !resourceAllocationPermission.write,
+          apiCall: {
+            url: "frappe.client.get_list",
+            filters: {
+              doctype: "Business Unit",
+              fields: ["name"],
+              limit_page_length: 0,
+            },
+            options: {
+              revalidateOnFocus: false,
+              revalidateIfStale: false,
+            },
+          },
+          queryParameterDefault: [],
         },
         {
           queryParameterName: "designation",
@@ -168,12 +173,21 @@ const ResourceTeamHeaderSection = () => {
           value: designationParam,
           defaultValue: "",
           label: "Designation",
-          data:
-            designations?.message?.map((d: { name: string }) => ({
-              label: d.name,
-              value: d.name,
-            })) ?? [],
           hide: !resourceAllocationPermission.write,
+          apiCall: {
+            url: "frappe.client.get_list",
+            filters: {
+              doctype: "Designation",
+              filter: { custom_enabled: true },
+              fields: ["name"],
+              limit_page_length: 0,
+            },
+            options: {
+              revalidateOnFocus: false,
+              revalidateIfStale: false,
+            },
+          },
+          queryParameterDefault: [],
         },
         {
           queryParameterName: "allocation-type",
@@ -192,6 +206,7 @@ const ResourceTeamHeaderSection = () => {
               value: "non-billable",
             },
           ],
+          queryParameterDefault: "",
         },
         {
           queryParameterName: "view-type",
@@ -211,6 +226,7 @@ const ResourceTeamHeaderSection = () => {
             },
           ],
           hide: !resourceAllocationPermission.write,
+          queryParameterDefault: "planned-vs-capacity",
         },
         {
           queryParameterName: "combine-week-hours",
@@ -219,6 +235,7 @@ const ResourceTeamHeaderSection = () => {
           value: resourceTeamStateTableView.combineWeekHours,
           defaultValue: false,
           label: "Combine Week Hours",
+          queryParameterDefault: false,
         },
       ]}
       buttons={[

@@ -26,6 +26,8 @@ const ResourceTeamView = () => {
       max_week: 3,
       page_length: resourceTeamState.pageLength,
       project_name: resourceTeamState.projectName,
+      reports_to: resourceTeamState.reportingManager,
+      customer: resourceTeamState.customer,
       start: resourceTeamState.start,
       is_billable: resourceTeamState.isBillable,
     },

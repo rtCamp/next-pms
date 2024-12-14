@@ -24,22 +24,24 @@ def get_resource_management_project_view_data(
     business_unit=None,
     project_manager=None,
     project_type=None,
+    customer=None,
     is_billable=-1,
     page_length=10,
     start=0,
 ):
     permissions = resource_api_permissions_check()
 
-    data = []
-    customer = {}
-    weeks = get_dates_date(max_week, date)
-    res = {"dates": weeks}
-
     projects, total_count = filter_project_list(
         project_name,
         page_length=page_length,
         start=start,
+        customer=customer,
     )
+
+    data = []
+    customer = {}
+    weeks = get_dates_date(max_week, date)
+    res = {"dates": weeks}
 
     resource_allocation_data = get_allocation_list_for_employee_for_given_range(
         [
@@ -131,7 +133,9 @@ def get_resource_management_project_view_data(
 
 
 @frappe.whitelist()
-def get_employees_resrouce_data_for_given_project(project: str, start_date: str, end_date: str, is_billable: str):
+def get_employees_resrouce_data_for_given_project(
+    project: str, start_date: str, end_date: str, is_billable: str, reports_to=None
+):
     permissions = resource_api_permissions_check()
 
     resource_allocation_data = get_allocation_list_for_employee_for_given_range(
@@ -168,7 +172,9 @@ def get_employees_resrouce_data_for_given_project(project: str, start_date: str,
     for employee in resource_allocation_map:
         employee_resource_allocation = resource_allocation_map.get(employee, [])
 
-        employee = frappe.db.get_value("Employee", employee, ["employee_name", "name", "image"], as_dict=1)
+        employee = frappe.db.get_value(
+            "Employee", employee, ["employee_name", "name", "image", "reports_to"], as_dict=1
+        )
 
         current_date = start_date
 

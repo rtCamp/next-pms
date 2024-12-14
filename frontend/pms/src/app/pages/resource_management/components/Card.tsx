@@ -155,7 +155,7 @@ export const ResourceAllocationCard = ({
     >
       <Avatar className="w-6 h-6">
         <AvatarImage src={decodeURIComponent(customerData.image)} />
-        <AvatarFallback>{getInitials(customerData.name)}</AvatarFallback>
+        <AvatarFallback>{getInitials(customerData.name[0])}</AvatarFallback>
       </Avatar>
       <div className="space-y-1 flex items-start flex-col">
         <p className="text-xs font-semibold" title={customerData.name}>

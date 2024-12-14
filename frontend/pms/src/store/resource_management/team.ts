@@ -76,6 +76,7 @@ export interface ResourceTeamState {
   data: ResourceTeamDataProps;
   employeeName?: string;
   businessUnit?: string[];
+  reportingManager?: string;
   designation?: string[];
   isDialogOpen: boolean;
   isEditDialogOpen: boolean;
@@ -101,6 +102,7 @@ export const initialState: ResourceTeamState = {
     total_count: 0,
     has_more: false,
   },
+  reportingManager: "",
   isDialogOpen: false,
   weekDate: getFormatedDate(getTodayDate()),
   employeeWeekDate: getFormatedDate(getTodayDate()),
@@ -114,7 +116,7 @@ export const initialState: ResourceTeamState = {
   designation: [],
   tableView: {
     combineWeekHours: false,
-    view: "planned-vs-capacity",
+    view: "planned",
   },
   isNeedToFetchDataAfterUpdate: false,
 };
@@ -137,6 +139,12 @@ const ResourceTeamSlice = createSlice({
     },
     setBusinessUnit: (state, action: PayloadAction<string[]>) => {
       state.businessUnit = action.payload;
+      state.data = initialState.data;
+      state.start = 0;
+      state.pageLength = initialState.pageLength;
+    },
+    setReportingManager: (state, action: PayloadAction<string>) => {
+      state.reportingManager = action.payload;
       state.data = initialState.data;
       state.start = 0;
       state.pageLength = initialState.pageLength;
@@ -188,12 +196,29 @@ const ResourceTeamSlice = createSlice({
     setFilters: (
       state,
       action: PayloadAction<{
-        employeeName: string;
-        businessUnit: string[];
+        employeeName?: string;
+        businessUnit?: string[];
+        reportingManager?: string;
+        allocationType?: string;
+        view?: string;
+        combineWeekHours?: boolean;
       }>
     ) => {
-      state.employeeName = action.payload.employeeName;
-      state.businessUnit = action.payload.businessUnit;
+      if (action.payload.employeeName) {
+        state.employeeName = action.payload.employeeName;
+      }
+      if (action.payload.businessUnit) {
+        state.businessUnit = action.payload.businessUnit;
+      }
+      if (action.payload.reportingManager) {
+        state.reportingManager = action.payload.reportingManager;
+      }
+      if (action.payload.combineWeekHours) {
+        state.tableView.combineWeekHours = action.payload.combineWeekHours;
+      }
+      if (action.payload.view) {
+        state.tableView.view = action.payload.view;
+      }
       state.pageLength = initialState.pageLength;
       state.start = 0;
       state.data = initialState.data;
@@ -244,6 +269,7 @@ export const {
   setIsBillable,
   setView,
   setReFetchData,
-  setDesignation
+  setDesignation,
+  setReportingManager,
 } = ResourceTeamSlice.actions;
 export default ResourceTeamSlice.reducer;
