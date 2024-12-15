@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "npm install && vite build --base=/assets/next_pms/pms/ && npm run copy-html-entry",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "lint:fix": "eslint ./src/app/hooks/**/* --ext ts,tsx --fix",
+    "lint:fix": "eslint . --ext ts,tsx --fix",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -66,7 +66,6 @@
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "^0.4.7",
     "eslint-plugin-simple-import-sort": "^12.1.1",
-    "jscodeshift": "^17.1.1",
     "postcss": "^8.4.39",
     "tailwindcss": "^3.4.6",
     "typescript": "^5.2.2",

@@ -10,17 +10,14 @@ module.exports = {
   parser: "@typescript-eslint/parser",
   plugins: ["react-refresh", "import"],
   rules: {
-    // Refresh plugin rule
     "react-refresh/only-export-components": [
       "warn",
       { allowConstantExport: true },
     ],
-
-    // Import order rules
     "import/order": [
       "error",
       {
-        "groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
+        "groups": ["builtin", "external", "internal"],
         "pathGroups": [
           {
             pattern: "react",
