@@ -1,7 +1,7 @@
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store";
-import { setData, setStart, updateData } from "@/store/resource_management/project";
+import { setData, setStart, updateData, setReFetchData } from "@/store/resource_management/project";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useCallback, useEffect } from "react";
@@ -11,11 +11,10 @@ import { ResourceProjectHeaderSection } from "./components/Header";
 import { FooterSection } from "../components/Footer";
 import { AllocationDataProps, PermissionProps, setResourcePermissions } from "@/store/resource_management/allocation";
 import AddResourceAllocations from "../components/AddAllocation";
-import { setReFetchData } from "@/store/resource_management/project";
 
 const ResourceTeamView = () => {
   const { toast } = useToast();
-  const resourceTeamState = useSelector((state: RootState) => state.resource_project);
+  const resourceProjectState = useSelector((state: RootState) => state.resource_project);
   const ResourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
   const resourceAllocationPermission: PermissionProps = useSelector(
     (state: RootState) => state.resource_allocation_form.permissions
@@ -26,21 +25,20 @@ const ResourceTeamView = () => {
     "next_pms.resource_management.api.project.get_resource_management_project_view_data",
     resourceAllocationPermission.write
       ? {
-          date: resourceTeamState.weekDate,
+          date: resourceProjectState.weekDate,
           max_week: 3,
-          page_length: resourceTeamState.pageLength,
-          project_name: resourceTeamState.projectName,
-          reports_to: resourceTeamState.reportingManager,
-          customer: resourceTeamState.customer,
-          start: resourceTeamState.start,
-          is_billable: resourceTeamState.isBillable,
+          page_length: resourceProjectState.pageLength,
+          project_name: resourceProjectState.projectName,
+          customer: resourceProjectState.customer,
+          start: resourceProjectState.start,
+          is_billable: resourceProjectState.isBillable,
         }
       : {
-          date: resourceTeamState.weekDate,
+          date: resourceProjectState.weekDate,
           max_week: 3,
-          page_length: resourceTeamState.pageLength,
-          project_name: resourceTeamState.projectName,
-          start: resourceTeamState.start,
+          page_length: resourceProjectState.pageLength,
+          project_name: resourceProjectState.projectName,
+          start: resourceProjectState.start,
         },
     undefined,
     {
@@ -54,7 +52,7 @@ const ResourceTeamView = () => {
   }, [dispatch]);
 
   const refetchData = useCallback(() => {
-    if (resourceTeamState.isNeedToFetchDataAfterUpdate) {
+    if (resourceProjectState.isNeedToFetchDataAfterUpdate) {
       mutate().then((r) => {
         if (r.message) {
           dispatch(setData(r.message));
@@ -62,17 +60,17 @@ const ResourceTeamView = () => {
       });
       dispatch(setReFetchData(false));
     }
-  }, [dispatch, mutate, resourceTeamState.isNeedToFetchDataAfterUpdate]);
+  }, [dispatch, mutate, resourceProjectState.isNeedToFetchDataAfterUpdate]);
 
   useEffect(() => {
     refetchData();
-  }, [refetchData, resourceTeamState.isNeedToFetchDataAfterUpdate]);
+  }, [refetchData, resourceProjectState.isNeedToFetchDataAfterUpdate]);
 
   useEffect(() => {
     if (data) {
-      if (Object.keys(resourceTeamState.data.data).length > 0 && resourceTeamState.data.dates.length > 0) {
+      if (Object.keys(resourceProjectState.data.data).length > 0 && resourceProjectState.data.dates.length > 0) {
         if (data.message.data.length > 0) {
-          if (data.message.data[0].name == resourceTeamState.data.data[0].name) {
+          if (data.message.data[0].name == resourceProjectState.data.data[0].name) {
             return;
           }
         }
@@ -93,15 +91,15 @@ const ResourceTeamView = () => {
   }, [data, error]);
 
   const handleLoadMore = () => {
-    if (!resourceTeamState.hasMore) return;
-    dispatch(setStart(resourceTeamState.start + resourceTeamState.pageLength));
+    if (!resourceProjectState.hasMore) return;
+    dispatch(setStart(resourceProjectState.start + resourceProjectState.pageLength));
   };
 
   return (
     <>
       <ResourceProjectHeaderSection />
 
-      {(isLoading || isValidating) && resourceTeamState.data.data.length == 0 ? (
+      {(isLoading || isValidating) && resourceProjectState.data.data.length == 0 ? (
         <Spinner isFull />
       ) : (
         <ResourceProjectTable />
@@ -111,12 +109,12 @@ const ResourceTeamView = () => {
 
       <FooterSection
         disabled={
-          !resourceTeamState.hasMore ||
-          ((isLoading || isValidating) && Object.keys(resourceTeamState.data.data).length != 0)
+          !resourceProjectState.hasMore ||
+          ((isLoading || isValidating) && Object.keys(resourceProjectState.data.data).length != 0)
         }
         handleLoadMore={handleLoadMore}
-        length={Object.keys(resourceTeamState.data.data).length | 0}
-        total_count={resourceTeamState.data.total_count | 0}
+        length={Object.keys(resourceProjectState.data.data).length | 0}
+        total_count={resourceProjectState.data.total_count | 0}
       />
     </>
   );

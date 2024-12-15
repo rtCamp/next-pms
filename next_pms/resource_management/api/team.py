@@ -113,6 +113,7 @@ def get_resource_management_team_view_data(
 
         all_dates_data, all_week_data, all_leave_data = [], [], {}
         max_allocation_count_for_single_date = 0
+        week_index = 0
 
         # For given employee loop through all the dates and calculate the total allocated hours, total working hours and total worked hours
         for date_info in dates:
@@ -121,7 +122,6 @@ def get_resource_management_team_view_data(
                 total_allocated_hours_for_given_week,
                 total_worked_hours_for_given_week,
             ) = (0, 0, 0)
-            week_index = 0
 
             for date in date_info.get("dates"):
                 (
