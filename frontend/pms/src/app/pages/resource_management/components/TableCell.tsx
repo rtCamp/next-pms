@@ -32,7 +32,7 @@ const ResourceTableCell = ({
   style,
   onCellClick,
 }: ResourceTableProps) => {
-  const mergeCellClassName = cn("text-xs flex px-2 py-2 w-16 justify-center items-center", cellClassName);
+  const mergeCellClassName = cn("cursor-pointer text-xs flex px-2 py-2 w-16 justify-center items-center", cellClassName);
 
   if (type == "hovercard") {
     return (

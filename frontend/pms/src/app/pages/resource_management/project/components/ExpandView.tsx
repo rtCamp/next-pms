@@ -182,6 +182,7 @@ const ExpandViewCell = ({
             employeeAllocations={employeeAllocations}
             customer={customer}
             onButtonClick={onCellClick}
+            viewType={"project"}
           />
         );
       }}

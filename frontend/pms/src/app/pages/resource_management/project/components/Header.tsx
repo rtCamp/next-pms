@@ -6,7 +6,6 @@ import {
   setCombineWeekHours,
   setView,
   setIsBillable,
-  setReportingManager,
   setCustomer,
 } from "@/store/resource_management/project";
 import { getFormatedDate } from "@/lib/utils";
@@ -36,10 +35,10 @@ const ResourceProjectHeaderSection = () => {
 
   useEffect(() => {
     dispatch(setIsBillable(allocationTypeParam));
-    let CurrentViewParam = "";
-    if (resourceAllocationPermission.write) {
-      if (!viewParam) {
-        CurrentViewParam = "planned";
+    let CurrentViewParam = viewParam;
+    if (!CurrentViewParam) {
+      CurrentViewParam = "planned";
+      if (resourceAllocationPermission.write) {
         setViewParam(CurrentViewParam);
       }
     }
@@ -58,30 +57,6 @@ const ResourceProjectHeaderSection = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleAllocationTypeChange = useCallback(
-    (value: string | string[]) => {
-      dispatch(setIsBillable(value as string[]));
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch]
-  );
-
-  const handleReportingManagerChange = useCallback(
-    (value: string | string[]) => {
-      dispatch(setReportingManager(value as string));
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch]
-  );
-
-  const handleCustomerChange = useCallback(
-    (value: string | string[]) => {
-      dispatch(setCustomer(value as string[]));
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch]
-  );
-
   const handlePrevWeek = useCallback(() => {
     const date = getFormatedDate(addDays(resourceTeamState.data.dates[0].start_date, -3));
     dispatch(setWeekDate(date));
@@ -91,20 +66,6 @@ const ResourceProjectHeaderSection = () => {
     const date = getFormatedDate(addDays(resourceTeamState.data.dates[0].end_date, +1));
     dispatch(setWeekDate(date));
   }, [dispatch, resourceTeamState.data.dates]);
-
-  const handleProjectChange = useCallback(
-    (value: string) => {
-      dispatch(setProjectName(value));
-    },
-    [dispatch]
-  );
-
-  const handleViewChange = useCallback(
-    (value: string) => {
-      dispatch(setView(value));
-    },
-    [dispatch]
-  );
 
   const handleWeekViewChange = useCallback(() => {
     setCombineWeekHoursParam(!resourceTeamStateTableView.combineWeekHours);
@@ -116,7 +77,9 @@ const ResourceProjectHeaderSection = () => {
       filters={[
         {
           queryParameterName: "project-name",
-          handleChange: handleProjectChange,
+          handleChange: (value: string) => {
+            dispatch(setProjectName(value));
+          },
           type: "search",
           value: projectNameParam,
           defaultValue: "",
@@ -125,7 +88,9 @@ const ResourceProjectHeaderSection = () => {
         },
         {
           queryParameterName: "customer",
-          handleChange: handleCustomerChange,
+          handleChange: (value: string | string[]) => {
+            dispatch(setCustomer(value as string[]));
+          },
           type: "select-search",
           value: customerNameParam,
           defaultValue: "",
@@ -157,7 +122,9 @@ const ResourceProjectHeaderSection = () => {
         // },
         {
           queryParameterName: "allocation-type",
-          handleChange: handleAllocationTypeChange,
+          handleChange: (value: string | string[]) => {
+            dispatch(setIsBillable(value as string[]));
+          },
           type: "select-search",
           value: allocationTypeParam,
           defaultValue: "",
@@ -176,7 +143,9 @@ const ResourceProjectHeaderSection = () => {
         },
         {
           queryParameterName: "view-type",
-          handleChange: handleViewChange,
+          handleChange: (value: string) => {
+            dispatch(setView(value));
+          },
           type: "select",
           value: resourceTeamStateTableView.view,
           defaultValue: "planned",

@@ -42,8 +42,6 @@ export type ProjectResourceProps = {
   is_last_week_day: boolean;
   is_on_leave: boolean;
   total_leave_hours: number;
-  total_allocation_count: number;
-  week_index: number;
 };
 
 export type ProjectAllocationForDateProps = {

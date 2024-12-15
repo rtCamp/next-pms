@@ -69,7 +69,7 @@ interface HeaderSectionProps {
 const ResourceHeaderSection = ({ filters, buttons }: HeaderSectionProps) => {
   return (
     <Header className="flex items-center max-md:flex-col">
-      <div id="filters" className="flex gap-x-3 max-md:gap-x-5  overflow-y-hidden max-md:w-full items-center">
+      <div id="filters" className="flex gap-x-3 max-md:gap-x-5 overflow-y-hidden max-md:w-full items-center">
         {filters &&
           filters.map((filter: FilterPops) => {
             if (filter.hide) {
@@ -116,7 +116,7 @@ const RenderFilter = ({ filter }: { filter: FilterPops }) => {
         placeholder={filter.label}
         value={filter.value as string}
         deBounceValue={400}
-        className="max-w-40 min-w-40"
+        className="max-w-60 min-w-60"
         callback={(e) => handleChange(e.target.value)}
       />
     );

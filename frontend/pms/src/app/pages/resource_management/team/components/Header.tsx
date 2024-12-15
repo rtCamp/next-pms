@@ -39,9 +39,9 @@ const ResourceTeamHeaderSection = () => {
   useEffect(() => {
     dispatch(setIsBillable(allocationTypeParam));
     let CurrentViewParam = viewParam;
-    if (resourceAllocationPermission.write) {
-      if (!CurrentViewParam) {
-        CurrentViewParam = "planned-vs-capacity";
+    if (!CurrentViewParam) {
+      CurrentViewParam = "planned-vs-capacity";
+      if (resourceAllocationPermission.write) {
         setViewParam(CurrentViewParam);
       }
     }
@@ -60,52 +60,6 @@ const ResourceTeamHeaderSection = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const handleDesignationChange = useCallback(
-    (value: string | string[]) => {
-      dispatch(setDesignation(value as string[]));
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch]
-  );
-
-  const handleBusinessUnitChange = useCallback(
-    (value: string | string[]) => {
-      dispatch(setBusinessUnit(value as string[]));
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch]
-  );
-
-  const handleReportingManagerChange = useCallback(
-    (value: string | string[]) => {
-      dispatch(setReportingManager(value as string));
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch]
-  );
-
-  const handleAllocationTypeChange = useCallback(
-    (value: string | string[]) => {
-      dispatch(setIsBillable(value as string[]));
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch]
-  );
-
-  const handleEmployeeChange = useCallback(
-    (value: string) => {
-      dispatch(setEmployeeName(value));
-    },
-    [dispatch]
-  );
-
-  const handleViewChange = useCallback(
-    (value: string) => {
-      dispatch(setView(value));
-    },
-    [dispatch]
-  );
 
   const handleWeekViewChange = useCallback(() => {
     setCombineWeekHoursParam(!resourceTeamStateTableView.combineWeekHours);
@@ -127,7 +81,9 @@ const ResourceTeamHeaderSection = () => {
       filters={[
         {
           queryParameterName: "employee-name",
-          handleChange: handleEmployeeChange,
+          handleChange: (value: string) => {
+            dispatch(setEmployeeName(value));
+          },
           type: "search",
           value: employeeNameParam,
           defaultValue: "",
@@ -136,7 +92,9 @@ const ResourceTeamHeaderSection = () => {
         },
         {
           queryParameterName: "reports-to",
-          handleChange: handleReportingManagerChange,
+          handleChange: (value: string | string[]) => {
+            dispatch(setReportingManager(value as string));
+          },
           type: "search-employee",
           value: reportingNameParam,
           defaultValue: "",
@@ -146,7 +104,9 @@ const ResourceTeamHeaderSection = () => {
         },
         {
           queryParameterName: "business-unit",
-          handleChange: handleBusinessUnitChange,
+          handleChange: (value: string | string[]) => {
+            dispatch(setBusinessUnit(value as string[]));
+          },
           type: "select-search",
           value: businessUnitParam,
           defaultValue: "",
@@ -168,7 +128,9 @@ const ResourceTeamHeaderSection = () => {
         },
         {
           queryParameterName: "designation",
-          handleChange: handleDesignationChange,
+          handleChange: (value: string | string[]) => {
+            dispatch(setDesignation(value as string[]));
+          },
           type: "select-search",
           value: designationParam,
           defaultValue: "",
@@ -191,7 +153,9 @@ const ResourceTeamHeaderSection = () => {
         },
         {
           queryParameterName: "allocation-type",
-          handleChange: handleAllocationTypeChange,
+          handleChange: (value: string | string[]) => {
+            dispatch(setIsBillable(value as string[]));
+          },
           type: "select-search",
           value: allocationTypeParam,
           defaultValue: "",
@@ -210,7 +174,9 @@ const ResourceTeamHeaderSection = () => {
         },
         {
           queryParameterName: "view-type",
-          handleChange: handleViewChange,
+          handleChange: (value: string) => {
+            dispatch(setView(value));
+          },
           type: "select",
           value: resourceTeamStateTableView.view,
           defaultValue: "planned-vs-capacity",

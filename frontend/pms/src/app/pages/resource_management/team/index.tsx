@@ -10,27 +10,38 @@ import { ResourceTeamTable } from "./components/Table";
 import { ResourceTeamHeaderSection } from "./components/Header";
 import { FooterSection } from "../components/Footer";
 import AddResourceAllocations from "../components/AddAllocation";
-import { AllocationDataProps, setResourcePermissions } from "@/store/resource_management/allocation";
+import { AllocationDataProps, PermissionProps, setResourcePermissions } from "@/store/resource_management/allocation";
 
 const ResourceTeamView = () => {
   const { toast } = useToast();
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
   const ResourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
   const dispatch = useDispatch();
+  const resourceAllocationPermission: PermissionProps = useSelector(
+    (state: RootState) => state.resource_allocation_form.permissions
+  );
 
   const { data, isLoading, isValidating, error, mutate } = useFrappeGetCall(
     "next_pms.resource_management.api.team.get_resource_management_team_view_data",
-    {
-      date: resourceTeamState.weekDate,
-      max_week: 3,
-      page_length: resourceTeamState.pageLength,
-      employee_name: resourceTeamState.employeeName,
-      business_unit: resourceTeamState.businessUnit,
-      reports_to: resourceTeamState.reportingManager,
-      designation: resourceTeamState.designation,
-      is_billable: resourceTeamState.isBillable,
-      start: resourceTeamState.start,
-    },
+    resourceAllocationPermission.write
+      ? {
+          date: resourceTeamState.weekDate,
+          max_week: 3,
+          page_length: resourceTeamState.pageLength,
+          employee_name: resourceTeamState.employeeName,
+          business_unit: resourceTeamState.businessUnit,
+          reports_to: resourceTeamState.reportingManager,
+          designation: resourceTeamState.designation,
+          is_billable: resourceTeamState.isBillable,
+          start: resourceTeamState.start,
+        }
+      : {
+          date: resourceTeamState.weekDate,
+          max_week: 3,
+          page_length: resourceTeamState.pageLength,
+          employee_name: resourceTeamState.employeeName,
+          start: resourceTeamState.start,
+        },
     undefined,
     {
       revalidateIfStale: false,

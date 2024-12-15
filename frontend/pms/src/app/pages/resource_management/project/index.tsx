@@ -9,7 +9,7 @@ import { Spinner } from "@/app/components/spinner";
 import { ResourceProjectTable } from "./components/Table";
 import { ResourceProjectHeaderSection } from "./components/Header";
 import { FooterSection } from "../components/Footer";
-import { AllocationDataProps, setResourcePermissions } from "@/store/resource_management/allocation";
+import { AllocationDataProps, PermissionProps, setResourcePermissions } from "@/store/resource_management/allocation";
 import AddResourceAllocations from "../components/AddAllocation";
 import { setReFetchData } from "@/store/resource_management/project";
 
@@ -17,20 +17,31 @@ const ResourceTeamView = () => {
   const { toast } = useToast();
   const resourceTeamState = useSelector((state: RootState) => state.resource_project);
   const ResourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
+  const resourceAllocationPermission: PermissionProps = useSelector(
+    (state: RootState) => state.resource_allocation_form.permissions
+  );
   const dispatch = useDispatch();
 
   const { data, isLoading, isValidating, error, mutate } = useFrappeGetCall(
     "next_pms.resource_management.api.project.get_resource_management_project_view_data",
-    {
-      date: resourceTeamState.weekDate,
-      max_week: 3,
-      page_length: resourceTeamState.pageLength,
-      project_name: resourceTeamState.projectName,
-      reports_to: resourceTeamState.reportingManager,
-      customer: resourceTeamState.customer,
-      start: resourceTeamState.start,
-      is_billable: resourceTeamState.isBillable,
-    },
+    resourceAllocationPermission.write
+      ? {
+          date: resourceTeamState.weekDate,
+          max_week: 3,
+          page_length: resourceTeamState.pageLength,
+          project_name: resourceTeamState.projectName,
+          reports_to: resourceTeamState.reportingManager,
+          customer: resourceTeamState.customer,
+          start: resourceTeamState.start,
+          is_billable: resourceTeamState.isBillable,
+        }
+      : {
+          date: resourceTeamState.weekDate,
+          max_week: 3,
+          page_length: resourceTeamState.pageLength,
+          project_name: resourceTeamState.projectName,
+          start: resourceTeamState.start,
+        },
     undefined,
     {
       revalidateIfStale: false,

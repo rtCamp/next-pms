@@ -236,6 +236,7 @@ const ResourceProjectTableCell = ({
             employeeAllocations={projectAllocations}
             customer={customer}
             onButtonClick={onCellClick}
+            viewType={"project"}
           />
         );
       }}

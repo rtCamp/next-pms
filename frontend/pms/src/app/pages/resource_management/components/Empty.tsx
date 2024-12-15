@@ -6,6 +6,9 @@ import { cn } from "@/lib/utils";
 import { CirclePlus } from "lucide-react";
 import { useState } from "react";
 import { ResourceTableCell, TableCellContent, TableInformationCellContent } from "./TableCell";
+import { PermissionProps } from "@/store/resource_management/allocation";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 const EmptyTableBody = () => {
   return (
@@ -28,6 +31,20 @@ interface EmptyTableCellProps {
 
 const EmptyTableCell = ({ cellClassName, title, textClassName, onCellClick }: EmptyTableCellProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const resourceAllocationPermission: PermissionProps = useSelector(
+    (state: RootState) => state.resource_allocation_form.permissions
+  );
+
+  if (!onCellClick || !resourceAllocationPermission.write) {
+    return (
+      <ResourceTableCell
+        type="default"
+        cellClassName={cellClassName}
+        cellTypographyClassName={textClassName}
+        value="-"
+      />
+    );
+  }
 
   if (onCellClick) {
     return (

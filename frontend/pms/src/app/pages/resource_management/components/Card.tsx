@@ -21,10 +21,12 @@ export const ResourceAllocationList = ({
   employeeAllocations,
   customer,
   onButtonClick,
+  viewType,
 }: {
   resourceAllocationList: ResourceAllocationProps[];
   employeeAllocations?: ResourceAllocationObjectProps;
   customer: ResourceCustomerObjectProps;
+  viewType?: string;
   onButtonClick?: () => void;
 }) => {
   const resourceAllocationPermission: PermissionProps = useSelector(
@@ -32,7 +34,12 @@ export const ResourceAllocationList = ({
   );
 
   return (
-    <div className={cn("flex flex-col overflow-y-scroll max-h-60", !resourceAllocationPermission.write && "pl-7")}>
+    <div
+      className={cn(
+        "flex flex-col overflow-y-auto max-h-60",
+        !resourceAllocationPermission.write && "pl-7"
+      )}
+    >
       {resourceAllocationList.map((resourceAllocation: ResourceAllocationProps) => (
         <ResourceAllocationCard
           key={resourceAllocation.name}
@@ -42,6 +49,7 @@ export const ResourceAllocationList = ({
               : resourceAllocation
           }
           customer={customer}
+          viewType={viewType}
         />
       ))}
       {resourceAllocationPermission.write && onButtonClick && (
@@ -62,9 +70,11 @@ export const ResourceAllocationList = ({
 export const ResourceAllocationCard = ({
   resourceAllocation,
   customer,
+  viewType,
 }: {
   resourceAllocation: ResourceAllocationProps;
   customer: ResourceCustomerObjectProps;
+  viewType?: string;
 }) => {
   const customerData: ResourceCustomerProps = customer[resourceAllocation.customer];
   const resourceAllocationPermission: PermissionProps = useSelector(
@@ -161,11 +171,22 @@ export const ResourceAllocationCard = ({
         <p className="text-xs font-semibold" title={customerData.name}>
           {getFilterValue(customerData.name, 15)}
         </p>
-        {resourceAllocation.project && (
+        {viewType && viewType == "project" ? (
           <>
-            <p className="text-xs text-muted-foreground">{resourceAllocation.project}</p>
-            <p className="text-xs text-muted-foreground">{getFilterValue(resourceAllocation.project_name, 15)}</p>
+            <p className="text-xs text-muted-foreground">{resourceAllocation.employee}</p>
+            <p className="text-xs text-muted-foreground" title={resourceAllocation.employee_name}>
+              {getFilterValue(resourceAllocation.employee_name, 15)}
+            </p>
           </>
+        ) : (
+          resourceAllocation.project && (
+            <>
+              <p className="text-xs text-muted-foreground">{resourceAllocation.project}</p>
+              <p className="text-xs text-muted-foreground" title={resourceAllocation.project_name}>
+                {getFilterValue(resourceAllocation.project_name, 15)}
+              </p>
+            </>
+          )
         )}
 
         <p className="text-xs text-muted-foreground">

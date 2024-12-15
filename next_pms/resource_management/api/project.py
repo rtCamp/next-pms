@@ -21,15 +21,16 @@ def get_resource_management_project_view_data(
     date: str,
     max_week: int = 2,
     project_name=None,
-    business_unit=None,
-    project_manager=None,
-    project_type=None,
     customer=None,
     is_billable=-1,
     page_length=10,
     start=0,
 ):
     permissions = resource_api_permissions_check()
+
+    if not permissions["write"]:
+        is_billable = -1
+        customer = None
 
     projects, total_count = filter_project_list(
         project_name,
@@ -47,6 +48,7 @@ def get_resource_management_project_view_data(
         [
             "name",
             "employee",
+            "employee_name",
             "allocation_start_date",
             "allocation_end_date",
             "hours_allocated_per_day",
@@ -93,26 +95,46 @@ def get_resource_management_project_view_data(
                             }
                         )
 
-                all_dates_data.append(
-                    {
-                        "date": date,
-                        "total_allocated_hours": total_allocated_hours_for_given_date,
-                        "project_resource_allocation_for_given_date": project_resource_allocation_for_given_date,
-                        "total_worked_hours": get_allocation_worked_hours_for_given_projects(project.name, date, date),
-                        "week_index": week_index,
-                    }
-                )
+                if permissions["write"]:
+                    all_dates_data.append(
+                        {
+                            "date": date,
+                            "total_allocated_hours": total_allocated_hours_for_given_date,
+                            "project_resource_allocation_for_given_date": project_resource_allocation_for_given_date,
+                            "total_worked_hours": get_allocation_worked_hours_for_given_projects(
+                                project.name, date, date
+                            ),
+                            "week_index": week_index,
+                        }
+                    )
+                else:
+                    all_dates_data.append(
+                        {
+                            "date": date,
+                            "total_allocated_hours": total_allocated_hours_for_given_date,
+                            "project_resource_allocation_for_given_date": project_resource_allocation_for_given_date,
+                            "week_index": week_index,
+                        }
+                    )
 
                 total_allocated_hours_for_given_week += total_allocated_hours_for_given_date
 
-            all_week_data.append(
-                {
-                    "total_allocated_hours": total_allocated_hours_for_given_week,
-                    "total_worked_hours": get_allocation_worked_hours_for_given_projects(
-                        project.name, week.get("start_date"), week.get("end_date")
-                    ),
-                }
-            )
+            if permissions["write"]:
+                all_week_data.append(
+                    {
+                        "total_allocated_hours": total_allocated_hours_for_given_week,
+                        "total_worked_hours": get_allocation_worked_hours_for_given_projects(
+                            project.name, week.get("start_date"), week.get("end_date")
+                        ),
+                    }
+                )
+            else:
+                all_week_data.append(
+                    {
+                        "total_allocated_hours": total_allocated_hours_for_given_week,
+                    }
+                )
+
             week_index += 1
         data.append(
             {
@@ -133,15 +155,18 @@ def get_resource_management_project_view_data(
 
 
 @frappe.whitelist()
-def get_employees_resrouce_data_for_given_project(
-    project: str, start_date: str, end_date: str, is_billable: str, reports_to=None
-):
+def get_employees_resrouce_data_for_given_project(project: str, start_date: str, end_date: str, is_billable: str):
     permissions = resource_api_permissions_check()
+
+    if not permissions["write"]:
+        is_billable = -1
+        customer = None
 
     resource_allocation_data = get_allocation_list_for_employee_for_given_range(
         [
             "name",
             "employee",
+            "employee_name",
             "allocation_start_date",
             "allocation_end_date",
             "hours_allocated_per_day",
@@ -206,14 +231,23 @@ def get_employees_resrouce_data_for_given_project(
                 project, employee.name, current_date.strftime(DATE_FORMAT), current_date.strftime(DATE_FORMAT)
             )
 
-            all_dates_date.append(
-                {
-                    "date": current_date,
-                    "total_allocated_hours": total_allocated_hours_for_employee,
-                    "total_worked_hours": total_worked_hours_for_employee,
-                    "employee_resource_allocation_for_given_date": employee_resource_allocation_for_given_date,
-                }
-            )
+            if permissions["write"]:
+                all_dates_date.append(
+                    {
+                        "date": current_date,
+                        "total_allocated_hours": total_allocated_hours_for_employee,
+                        "total_worked_hours": total_worked_hours_for_employee,
+                        "employee_resource_allocation_for_given_date": employee_resource_allocation_for_given_date,
+                    }
+                )
+            else:
+                all_dates_date.append(
+                    {
+                        "date": current_date,
+                        "total_allocated_hours": total_allocated_hours_for_employee,
+                        "employee_resource_allocation_for_given_date": employee_resource_allocation_for_given_date,
+                    }
+                )
 
             current_date = add_days(current_date, 1)
         data.append({**employee, "all_dates_date": all_dates_date, "allocations": employee_resource_allocation})

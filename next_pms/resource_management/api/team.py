@@ -32,6 +32,13 @@ def get_resource_management_team_view_data(
 ):
     permissions = resource_api_permissions_check()
 
+    if not permissions["write"]:
+        is_billable = -1
+        business_unit = None
+        designation = None
+        reports_to = None
+        customer = None
+
     data = []
     customer = {}
     dates = get_dates_date(max_week, date)
@@ -106,7 +113,6 @@ def get_resource_management_team_view_data(
 
         all_dates_data, all_week_data, all_leave_data = [], [], {}
         max_allocation_count_for_single_date = 0
-        week_index = 0
 
         # For given employee loop through all the dates and calculate the total allocated hours, total working hours and total worked hours
         for date_info in dates:
@@ -115,6 +121,7 @@ def get_resource_management_team_view_data(
                 total_allocated_hours_for_given_week,
                 total_worked_hours_for_given_week,
             ) = (0, 0, 0)
+            week_index = 0
 
             for date in date_info.get("dates"):
                 (
@@ -165,32 +172,54 @@ def get_resource_management_team_view_data(
                         daily_working_hours - total_working_hours_for_given_date
                     )
 
-                all_dates_data.append(
-                    {
-                        "date": date,
-                        "total_allocated_hours": total_allocated_hours_for_given_date,
-                        "total_working_hours": total_working_hours_for_given_date,
-                        "total_worked_hours": total_worked_hours_for_given_date,
-                        "employee_resource_allocation_for_given_date": employee_resource_allocation_for_given_date,
-                        "is_on_leave": leave_object.get("on_leave"),
-                        "total_leave_hours": daily_working_hours - total_working_hours_for_given_date,
-                        "total_allocation_count": total_allocation_count,
-                        "week_index": week_index,
-                    }
-                )
+                if permissions["write"]:
+                    all_dates_data.append(
+                        {
+                            "date": date,
+                            "total_allocated_hours": total_allocated_hours_for_given_date,
+                            "total_working_hours": total_working_hours_for_given_date,
+                            "total_worked_hours": total_worked_hours_for_given_date,
+                            "employee_resource_allocation_for_given_date": employee_resource_allocation_for_given_date,
+                            "is_on_leave": leave_object.get("on_leave"),
+                            "total_leave_hours": daily_working_hours - total_working_hours_for_given_date,
+                            "total_allocation_count": total_allocation_count,
+                            "week_index": week_index,
+                        }
+                    )
+                else:
+                    all_dates_data.append(
+                        {
+                            "date": date,
+                            "total_allocated_hours": total_allocated_hours_for_given_date,
+                            "total_working_hours": total_working_hours_for_given_date,
+                            "employee_resource_allocation_for_given_date": employee_resource_allocation_for_given_date,
+                            "is_on_leave": leave_object.get("on_leave"),
+                            "total_leave_hours": daily_working_hours - total_working_hours_for_given_date,
+                            "total_allocation_count": total_allocation_count,
+                            "week_index": week_index,
+                        }
+                    )
 
                 total_allocated_hours_for_given_week += total_allocated_hours_for_given_date
                 total_working_hours_for_given_week += total_working_hours_for_given_date
                 total_worked_hours_for_given_week += total_worked_hours_for_given_date
                 max_allocation_count_for_single_date = max(max_allocation_count_for_single_date, total_allocation_count)
 
-            all_week_data.append(
-                {
-                    "total_allocated_hours": total_allocated_hours_for_given_week,
-                    "total_working_hours": total_working_hours_for_given_week,
-                    "total_worked_hours": total_worked_hours_for_given_week,
-                }
-            )
+            if permissions["write"]:
+                all_week_data.append(
+                    {
+                        "total_allocated_hours": total_allocated_hours_for_given_week,
+                        "total_working_hours": total_working_hours_for_given_week,
+                        "total_worked_hours": total_worked_hours_for_given_week,
+                    }
+                )
+            else:
+                all_week_data.append(
+                    {
+                        "total_allocated_hours": total_allocated_hours_for_given_week,
+                        "total_working_hours": total_working_hours_for_given_week,
+                    }
+                )
             week_index += 1
 
         data.append(
