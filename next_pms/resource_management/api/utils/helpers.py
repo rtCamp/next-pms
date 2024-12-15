@@ -158,7 +158,8 @@ def filter_project_list(
     if customer:
         if isinstance(customer, str):
             customer = json.loads(customer)
-        filters["customer"] = ["in", customer]
+        if customer and len(customer) > 0:
+            filters["customer"] = ["in", customer]
 
     projects = frappe.get_list("Project", filters=filters, fields=fields, start=start, page_length=page_length)
 
