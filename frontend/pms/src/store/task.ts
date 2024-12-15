@@ -1,6 +1,13 @@
+/**
+ * External dependencies.
+ */
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { ProjectNestedTaskData, TaskData } from "@/types";
+
+/**
+ * Internal dependencies.
+ */
 import { flatTableDataToNestedProjectDataConversion } from "@/lib/utils";
+import { ProjectNestedTaskData, TaskData } from "@/types";
 
 export interface TaskState {
   task: TaskData[];
@@ -100,4 +107,5 @@ export const {
   setSelectedTask,
   setOrderBy,
 } = taskSlice.actions;
+
 export default taskSlice.reducer;

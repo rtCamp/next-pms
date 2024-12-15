@@ -1,5 +1,12 @@
-import { checkScreenSize } from "@/lib/utils";
+/**
+ * External dependencies.
+ */
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+
+/**
+ * Internal dependencies.
+ */
+import { checkScreenSize } from "@/lib/utils";
 
 export type TScreenSize = "sm" | "md" | "lg" | "xl" | "2xl";
 

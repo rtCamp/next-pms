@@ -1,12 +1,20 @@
+/**
+ * External dependencies.
+ */
 import { configureStore } from "@reduxjs/toolkit";
-import userReducer from "./user";
-import timesheetReducer from "./timesheet";
-import teamReducer from "./team";
-import homeReducer from "./home";
+
+/**
+ * Internal dependencies.
+ */
 import appReducer from "./app";
-import taskReducer from "./task";
+import homeReducer from "./home";
 import projectReducer from "./project";
+import taskReducer from "./task";
+import teamReducer from "./team";
+import timesheetReducer from "./timesheet";
+import userReducer from "./user";
 import viewReducer from "./view";
+
 export const store = configureStore({
   reducer: {
     user: userReducer,

@@ -1,11 +1,20 @@
-import { getTodayDate, getFormatedDate } from "@/lib/utils";
+/**
+ * External dependencies.
+ */
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { addDays } from "date-fns";
+
+/**
+ * Internal dependencies.
+ */
+import { getTodayDate, getFormatedDate } from "@/lib/utils";
 import { DataProp as timesheetDataProps } from "@/types/timesheet";
+
 type DateRange = {
   start_date: string;
   end_date: string;
 };
+
 export interface TeamState {
   data: dataProps;
   action:"SET"|"UPDATE";
@@ -51,6 +60,7 @@ export type DateProps = {
   key: string;
   dates: string[];
 };
+
 export const initialState: TeamState = {
   action:"SET",
   timesheet: {
@@ -266,7 +276,6 @@ export const {
   setTimesheetData,
   updateTimesheetData,
   setUsergroup,
-
   resetTimesheetDataState,
   setStatusFilter,
   setFilters,
@@ -276,4 +285,5 @@ export const {
   setStatus,
   setReportsTo,
 } = TeamSlice.actions;
+
 export default TeamSlice.reducer;

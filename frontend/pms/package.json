@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "npm install && vite build --base=/assets/next_pms/pms/ && npm run copy-html-entry",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "lint:fix": "eslint ./src/types/* --ext ts,tsx --fix",
+    "lint:fix": "eslint ./src/store/* --ext ts,tsx --fix",
     "preview": "vite preview"
   },
   "dependencies": {
