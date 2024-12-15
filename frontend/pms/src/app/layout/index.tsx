@@ -1,17 +1,24 @@
-import Sidebar from "./sidebar";
-import { Toaster } from "@/app/components/ui/toaster";
+/**
+ * External dependencies.
+ */
 import { Suspense, useEffect } from "react";
-import { useFrappeGetCall } from "frappe-react-sdk";
-import { ROLES } from "@/lib/constant";
 import { useDispatch, useSelector } from "react-redux";
+import { Navigate, Outlet } from "react-router-dom";
+import { useFrappeGetCall } from "frappe-react-sdk";
+
+/**
+ * Internal dependencies.
+ */
+import { Toaster } from "@/app/components/ui/toaster";
 import { useToast } from "@/app/components/ui/use-toast";
+import { ROLES } from "@/lib/constant";
+import { TIMESHEET } from "@/lib/constant";
 import { checkScreenSize, parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
-import { Navigate, Outlet } from "react-router-dom";
-import { TIMESHEET } from "@/lib/constant";
-import GenWrapper from "../components/GenWrapper";
 import { updateScreenSize } from "@/store/app";
 import { setInitialData } from "@/store/user";
+import GenWrapper from "../components/GenWrapper";
+import Sidebar from "./sidebar";
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const user = useSelector((state: RootState) => state.user);
@@ -47,6 +54,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   const handleScreenSize = () => {
     dispatch(updateScreenSize(checkScreenSize()));
   };
+
   useEffect(() => {
     window.addEventListener("resize", handleScreenSize);
     () => {
@@ -84,10 +92,11 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
 export const PmRoute = () => {
   const user = useSelector((state: RootState) => state.user);
-
   const hasAccess = user.roles.some((role) => ROLES.includes(role));
+
   if (!hasAccess) {
     return <Navigate to={TIMESHEET} />;
   }
+
   return <Outlet />;
 };

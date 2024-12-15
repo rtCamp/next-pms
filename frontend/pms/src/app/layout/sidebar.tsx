@@ -1,8 +1,10 @@
+/**
+ * External dependencies.
+ */
 import { useContext, useEffect, useState } from "react";
-
+import { useDispatch, useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
 import { useLocation } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
 import {
   ArrowLeftToLine,
   ArrowRightLeft,
@@ -16,20 +18,21 @@ import {
   Users,
 } from "lucide-react";
 
-import logo from "@/logo.svg";
-import { cn } from "@/lib/utils";
-import { RootState } from "@/store";
-import { ViewData } from "@/store/view";
-import { UserContext } from "@/lib/UserProvider";
-import { DESK, HOME, PROJECT, ROLES, TASK, TEAM, TIMESHEET } from "@/lib/constant";
-
-import { setSidebarCollapsed } from "@/store/user";
-import { Button } from "@/app/components/ui/button";
+/**
+ * Internal dependencies.
+ */
 import { Typography } from "@/app/components/typography";
-import { Separator } from "@/app/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
+import { Button } from "@/app/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
-
+import { Separator } from "@/app/components/ui/separator";
+import { DESK, HOME, PROJECT, ROLES, TASK, TEAM, TIMESHEET } from "@/lib/constant";
+import { UserContext } from "@/lib/UserProvider";
+import { cn } from "@/lib/utils";
+import logo from "@/logo.svg";
+import { RootState } from "@/store";
+import { setSidebarCollapsed } from "@/store/user";
+import { ViewData } from "@/store/view";
 import GenWrapper from "../components/GenWrapper";
 
 type NestedRoute = {
@@ -415,4 +418,5 @@ const View = ({
     </>
   );
 };
+
 export default Sidebar;
