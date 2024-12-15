@@ -1,3 +1,12 @@
+/**
+ * External dependencies.
+ */
+import React from "react";
+
+/**
+ * Internal dependencies.
+ */
+import { flexRender } from "@tanstack/react-table";
 import { Spinner } from "@/app/components/spinner";
 import { Separator } from "@/app/components/ui/separator";
 import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table } from "@/app/components/ui/table";
@@ -8,9 +17,6 @@ import {
   columnsToExcludeActionsInTablesType,
   setTableAttributePropsType,
 } from "@/types/task";
-import { flexRender } from "@tanstack/react-table";
-
-import React from "react";
 
 export const RowGroupedTable = ({
   table,

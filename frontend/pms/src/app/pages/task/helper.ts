@@ -1,3 +1,6 @@
+/**
+ * Internal dependencies.
+ */
 import { LOCAL_STORAGE_TASK } from "@/lib/constant";
 import { tableAttributePropsType } from "@/types/task";
 
@@ -24,6 +27,7 @@ export const colOrder: string[] = [
   "timesheetAction",
   "liked",
 ];
+
 // LocalStorage State Map
 export const localStorageTaskDataMap:tableAttributePropsType = {
   hideColumn: [],

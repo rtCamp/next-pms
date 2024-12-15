@@ -1,12 +1,17 @@
-import { currencyFormat } from "./utils";
+/**
+ * Internal dependencies.
+ */
 import { Typography } from "@/app/components/typography";
 import { Badge } from "@/app/components/ui/badge";
-import { cn, floatToTime, getDateTimeForMultipleTimeZoneSupport } from "@/lib/utils";
 import { Progress } from "@/app/components/ui/progress";
+import { cn, floatToTime, getDateTimeForMultipleTimeZoneSupport } from "@/lib/utils";
+import { currencyFormat } from "./utils";
+
 const HOUR_FIELD = ["actual_time", "custom_total_hours_purchased", "custom_total_hours_remaining"];
 
 export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, columnInfo: any, currency: string) => {
-  let column = [];
+  const column = [];
+
   fieldInfo.forEach((f) => {
     const meta = fieldMeta.find((field) => field.fieldname === f);
     if (!meta) return;
@@ -106,6 +111,7 @@ export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, c
   });
   return column;
 };
+
 export const Empty = () => {
   return <span></span>;
 };
@@ -118,6 +124,7 @@ const leftAlignCss = (fieldType: string) => {
   }
   return "";
 };
+
 const progressBarColor = (field: string, fieldInfo: Array<string>, row: any, value: number) => {
   if (field == "custom_percentage_estimated_cost" && fieldInfo.includes("percent_complete")) {
     const perEstimatedCost = row.original["custom_percentage_estimated_cost"];

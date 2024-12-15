@@ -1,13 +1,20 @@
+/**
+ * External dependencies.
+ */
 import React, { ReactNode } from "react";
-import { ColumnsType, ProjectNestedColumnsType } from "../../../types/task";
-import { columnMap } from "./helper";
-import { Typography } from "../../components/typography";
-import { TaskStatus } from "./taskStatus";
-import { TaskPriority } from "./index";
 import { ChevronDown, ChevronUp, Clock, Heart } from "lucide-react";
+
+/**
+ * Internal dependencies.
+ */
+import { TaskData } from "@/types";
 import { cn, isLiked, floatToTime } from "../../../lib/utils";
 import { UserState } from "../../../store/user";
-import { TaskData } from "@/types";
+import { ColumnsType, ProjectNestedColumnsType } from "../../../types/task";
+import { Typography } from "../../components/typography";
+import { columnMap } from "./helper";
+import { TaskStatus } from "./taskStatus";
+import { TaskPriority } from "./index";
 
 export type columnWidthType = {
   subject: string;

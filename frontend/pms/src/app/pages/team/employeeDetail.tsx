@@ -1,7 +1,34 @@
-import { Button } from "@/app/components/ui/button";
+/**
+ * External dependencies.
+ */
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
+import { useNavigate } from "react-router-dom";
+import { addDays } from "date-fns";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import { isEmpty } from "lodash";
+import { CircleDollarSign, Paperclip, Plus } from "lucide-react";
+
+/**
+ * Internal dependencies.
+ */
+import AddTime from "@/app/components/addTime";
+import EmployeeCombo from "@/app/components/employeeComboBox";
+import { LoadMore } from "@/app/components/loadMore";
+import { Spinner } from "@/app/components/spinner";
+import TimesheetTable from "@/app/components/timesheetTable";
+import { Typography } from "@/app/components/typography";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
+import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
+import { useToast } from "@/app/components/ui/use-toast";
+import { Header, Footer, Main } from "@/app/layout/root";
+import { TaskLog } from "@/app/pages/task/taskLog";
+import { Status } from "@/app/pages/team";
+import { EditTime } from "@/app/pages/timesheet/editTime";
+import { useQueryParamsState } from "@/lib/queryParam";
 import {
   cn,
   getDateFromDateAndTime,
@@ -17,17 +44,8 @@ import {
   copyToClipboard,
   correctDateFormat,
 } from "@/lib/utils";
-import { TaskLog } from "@/app/pages/task/taskLog";
-import { LoadMore } from "@/app/components/loadMore";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { useToast } from "@/app/components/ui/use-toast";
-import { Spinner } from "@/app/components/spinner";
-import { Typography } from "@/app/components/typography";
-import TimesheetTable from "@/app/components/timesheetTable";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
-import { CircleDollarSign, Paperclip, Plus } from "lucide-react";
-import { addDays } from "date-fns";
-import AddTime from "@/app/components/addTime";
+import { timeStringToFloat } from "@/schema/timesheet";
+import { RootState } from "@/store";
 import {
   setTimesheet,
   setTimesheetData,
@@ -39,19 +57,8 @@ import {
   setEditDialog,
   setDateRange,
 } from "@/store/team";
-import { Header, Footer, Main } from "@/app/layout/root";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/store";
-import { Status } from "@/app/pages/team";
 import { LeaveProps, NewTimesheetProps, TaskDataItemProps, TaskDataProps, timesheet } from "@/types/timesheet";
-import { useNavigate } from "react-router-dom";
-import { Input } from "@/app/components/ui/input";
-import { timeStringToFloat } from "@/schema/timesheet";
-import { EditTime } from "@/app/pages/timesheet/editTime";
-import EmployeeCombo from "@/app/components/employeeComboBox";
 import { Approval } from "./approval";
-import { useQueryParamsState } from "@/lib/queryParam";
-import { isEmpty } from "lodash";
 
 const isDateInRange = (date: string, startDate: string, endDate: string) => {
   const targetDate = getDateTimeForMultipleTimeZoneSupport(correctDateFormat(date));

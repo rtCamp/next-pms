@@ -1,7 +1,59 @@
-import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
-import { TaskData, ProjectProps } from "@/types";
+/**
+ * External dependencies.
+ */
 import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import React from "react";
+import { DndProvider, useDrag, useDrop } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import { TouchBackend } from "react-dnd-touch-backend";
 import { useDispatch, useSelector } from "react-redux";
+import {
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+  VisibilityState,
+  getExpandedRowModel,
+  ColumnFiltersState,
+  getFilteredRowModel,
+  ExpandedState,
+  Table as T,
+} from "@tanstack/react-table";
+import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import { Columns2, Ellipsis, Filter, GripVertical, LucideProps, Plus, RotateCcw } from "lucide-react";
+
+/**
+ * Internal dependencies.
+ */
+import AddTime from "@/app/components/addTime";
+import { ComboxBox } from "@/app/components/comboBox";
+import { DeBounceInput } from "@/app/components/deBounceInput";
+import { LoadMore } from "@/app/components/loadMore";
+import { Typography } from "@/app/components/typography";
+import { Badge } from "@/app/components/ui/badge";
+import { Button } from "@/app/components/ui/button";
+import { Checkbox } from "@/app/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/app/components/ui/dropdown-menu";
+import { useToast } from "@/app/components/ui/use-toast";
+import { Footer, Header } from "@/app/layout/root";
+import { LOCAL_STORAGE_TASK } from "@/lib/constant";
+import { useQueryParamsState } from "@/lib/queryParam";
+import {
+  cn,
+  parseFrappeErrorMsg,
+  createFalseValuedObject,
+  getFormatedDate,
+  getDateTimeForMultipleTimeZoneSupport,
+  checkIsMobile,
+} from "@/lib/utils";
 import { RootState } from "@/store";
 import {
   setStart,
@@ -14,49 +66,8 @@ import {
   setProjectData,
   setSelectedTask,
 } from "@/store/task";
-import { AddTask } from "./addTask";
-import { FlatTable } from "./flatTable";
-import {
-  cn,
-  parseFrappeErrorMsg,
-  createFalseValuedObject,
-  getFormatedDate,
-  getDateTimeForMultipleTimeZoneSupport,
-  checkIsMobile,
-} from "@/lib/utils";
-import { useToast } from "@/app/components/ui/use-toast";
-import { Badge } from "@/app/components/ui/badge";
-import { Button } from "@/app/components/ui/button";
-import { Typography } from "@/app/components/typography";
-import { ComboxBox } from "@/app/components/comboBox";
-import { useQueryParamsState } from "@/lib/queryParam";
-import { Columns2, Ellipsis, Filter, GripVertical, LucideProps, Plus, RotateCcw } from "lucide-react";
-import {
-  getCoreRowModel,
-  getSortedRowModel,
-  useReactTable,
-  VisibilityState,
-  getExpandedRowModel,
-  ColumnFiltersState,
-  getFilteredRowModel,
-  ExpandedState,
-  Table as T,
-} from "@tanstack/react-table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuPortal,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from "@/app/components/ui/dropdown-menu";
 import { SetAddTimeDialog, SetTimesheet } from "@/store/timesheet";
-import AddTime from "@/app/components/addTime";
-import { RowGroupedTable } from "./groupTable";
-import React from "react";
-import { DeBounceInput } from "@/app/components/deBounceInput";
+import { TaskData, ProjectProps } from "@/types";
 import {
   ColumnsType,
   ProjectNestedColumnsType,
@@ -66,16 +77,12 @@ import {
   MoreTableOptionsDropDownType,
   tableAttributePropsType,
 } from "@/types/task";
-import { TaskLog } from "./taskLog";
-import { Footer, Header } from "@/app/layout/root";
-import { LoadMore } from "@/app/components/loadMore";
-import { HTML5Backend } from "react-dnd-html5-backend";
-import { DndProvider, useDrag, useDrop } from "react-dnd";
-import { Checkbox } from "@/app/components/ui/checkbox";
-import { columnMap, getTableProps, localStorageTaskDataMap } from "./helper";
-import { LOCAL_STORAGE_TASK } from "@/lib/constant";
+import { AddTask } from "./addTask";
 import { flatTableColumnDefinition, nestedTableColumnDefinition } from "./columns";
-import { TouchBackend } from "react-dnd-touch-backend";
+import { FlatTable } from "./flatTable";
+import { RowGroupedTable } from "./groupTable";
+import { columnMap, getTableProps, localStorageTaskDataMap } from "./helper";
+import { TaskLog } from "./taskLog";
 
 const Task = () => {
   const task = useSelector((state: RootState) => state.task);
@@ -290,6 +297,7 @@ const Task = () => {
       columnFilters,
     },
   });
+  
   // Nested Table instance
   const nestedProjectTable = useReactTable({
     data: task.project,

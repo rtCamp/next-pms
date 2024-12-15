@@ -1,19 +1,25 @@
-import { columnMap } from "./helper";
+/**
+ * External dependencies.
+ */
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { ArrowDownAZ, ArrowDownZA } from "lucide-react";
+
+/**
+ * Internal dependencies.
+ */
+import { Button } from "@/app/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuCheckboxItem,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
-
-import { sortOrder } from "@/types";
-import { Button } from "@/app/components/ui/button";
-import { ArrowDownAZ, ArrowDownZA } from "lucide-react";
-import { useDispatch, useSelector } from "react-redux";
+import { Separator } from "@/app/components/ui/separator";
 import { RootState } from "@/store";
 import { setOrderBy } from "@/store/task";
-import { Separator } from "@/app/components/ui/separator";
+import { sortOrder } from "@/types";
+import { columnMap } from "./helper";
 
 const Sort = () => {
   const dispatch = useDispatch();

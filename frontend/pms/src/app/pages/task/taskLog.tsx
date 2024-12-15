@@ -1,15 +1,22 @@
-import { useFrappeGetCall } from "frappe-react-sdk";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
-import { Separator } from "@/app/components/ui/separator";
-import { Spinner } from "@/app/components/spinner";
-import { TaskStatus } from "./taskStatus";
-import { Typography } from "@/app/components/typography";
-import { cn, getTodayDate, getFormatedDate, floatToTime, prettyDate, parseFrappeErrorMsg } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
+/**
+ * External dependencies.
+ */
 import { useEffect, useState } from "react";
 import { addDays } from "date-fns";
+import { useFrappeGetCall } from "frappe-react-sdk";
+
+/**
+ * Internal dependencies.
+ */
 import { ComboxBox } from "@/app/components/comboBox";
+import { Spinner } from "@/app/components/spinner";
+import { Typography } from "@/app/components/typography";
+import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
+import { Separator } from "@/app/components/ui/separator";
 import { useToast } from "@/app/components/ui/use-toast";
+import { cn, getTodayDate, getFormatedDate, floatToTime, prettyDate, parseFrappeErrorMsg } from "@/lib/utils";
+import { TaskStatus } from "./taskStatus";
 
 type Employee = {
   employee: string;
@@ -27,6 +34,7 @@ type TaskLogProps = {
   isOpen: boolean;
   onOpenChange: () => void;
 };
+
 export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
   const { toast } = useToast();
   const [startDate, setStartDate] = useState<string>(getFormatedDate(addDays(getTodayDate(), -15)));

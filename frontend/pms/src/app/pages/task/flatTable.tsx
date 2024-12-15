@@ -1,3 +1,11 @@
+/**
+ * External dependencies.
+ */
+import { flexRender } from "@tanstack/react-table";
+
+/**
+ * Internal dependencies.
+ */
 import { Spinner } from "@/app/components/spinner";
 import { Separator } from "@/app/components/ui/separator";
 import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table } from "@/app/components/ui/table";
@@ -9,7 +17,6 @@ import {
   columnsToExcludeActionsInTablesType,
   setTableAttributePropsType,
 } from "@/types/task";
-import { flexRender } from "@tanstack/react-table";
 
 export const FlatTable = ({
   table,
