@@ -127,6 +127,7 @@ const RenderFilter = ({ filter }: { filter: FilterPops }) => {
       <EmployeeCombo
         value={filter.value as string}
         label="Reporting Manager"
+        status={["Active"]}
         onSelect={handleChange}
         className="border-dashed min-w-48 w-full max-w-48"
       />
