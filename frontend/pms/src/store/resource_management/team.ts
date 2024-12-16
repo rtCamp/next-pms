@@ -57,6 +57,7 @@ export type EmployeeLeaveProps = {
 export type EmployeeResourceProps = {
   date: string;
   total_allocated_hours: number;
+  total_worked_hours: number;
   total_working_hours: number;
   employee_resource_allocation_for_given_date: EmployeeAllocationForDateProps[];
   is_last_week_day: boolean;

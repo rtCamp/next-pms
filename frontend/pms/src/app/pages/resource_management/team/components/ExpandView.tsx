@@ -1,5 +1,4 @@
-import { Table, TableBody, TableCell, TableRow } from "@/app/components/ui/table";
-import { Typography } from "@/app/components/typography";
+import { Table, TableBody, TableRow } from "@/app/components/ui/table";
 import { EmployeeDataProps } from "@/store/resource_management/team";
 import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";

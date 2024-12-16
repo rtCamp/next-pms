@@ -282,7 +282,11 @@ const ResourceTeamTableCell = ({
       ref={cellRef}
       title={title}
       cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
-      value={employeeSingleDay.total_allocated_hours}
+      value={
+        tableView.view == "planned-vs-capacity"
+          ? employeeSingleDay.total_allocated_hours
+          : `${employeeSingleDay.total_worked_hours} / ${employeeSingleDay.total_allocated_hours}`
+      }
       CustomHoverCardContent={() => {
         return (
           <ResourceAllocationList
