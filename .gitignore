@@ -9,4 +9,3 @@ dist/
 .frappe-semgrep
 next_pms/www/next-pms/index.html
 next_pms/public/pms
-**/package-lock.json
