@@ -324,3 +324,7 @@ export const copyToClipboard = (text: string) => {
   toast({ title: "Copied to clipboard", variant: "success" })
 }
 
+
+export const canExport = (doctype: string) => {
+  return window.frappe?.boot?.user?.can_export?.includes(doctype);
+}
