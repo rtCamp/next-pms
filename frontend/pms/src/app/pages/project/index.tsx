@@ -22,7 +22,7 @@ import {
   setOrderBy,
 } from "@/store/project";
 import { ComboxBox } from "@/app/components/comboBox";
-import { cn, parseFrappeErrorMsg, createFalseValuedObject, checkIsMobile, NO_VALUE_FIELDS } from "@/lib/utils";
+import { cn, parseFrappeErrorMsg, createFalseValuedObject } from "@/lib/utils";
 import { CreateView } from "@/app/components/listview/createView";
 import { useToast } from "@/app/components/ui/use-toast";
 import {
@@ -32,7 +32,7 @@ import {
   useReactTable,
   ColumnSizingState,
 } from "@tanstack/react-table";
-import { Filter, Columns2, GripVertical, Ellipsis, Download, Plus, X } from "lucide-react";
+import { Filter, Ellipsis, Download, Plus } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { Badge } from "@/app/components/ui/badge";
 import { Typography } from "@/app/components/typography";
@@ -41,20 +41,12 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuPortal,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
 import { getFilter } from "./utils";
-import { DndProvider, useDrag, useDrop } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
 import { useFrappeDocTypeCount } from "@/app/hooks/useFrappeDocCount";
 import { Button } from "@/app/components/ui/button";
 import Sort from "@/app/components/listview/sort";
-import { TouchBackend } from "react-dnd-touch-backend";
 import _ from "lodash";
 import { setViews, ViewData } from "@/store/view";
 import { createFilter, defaultView } from "./utils";
@@ -64,6 +56,7 @@ import { Export } from "@/app/components/listview/export";
 import { useSearchParams } from "react-router-dom";
 import { Separator } from "@/app/components/ui/separator";
 import { sortOrder } from "@/types";
+import ColumnSelector from "@/app/components/listview/ColumnSelector";
 
 const Action = ({ createView, openExportDialog }: { createView: () => void; openExportDialog: () => void }) => {
   return (
@@ -87,156 +80,6 @@ const Action = ({ createView, openExportDialog }: { createView: () => void; open
   );
 };
 
-const ColumnSelector = ({
-  fieldMeta,
-  onColumnHide,
-  setColumnOrder,
-  columnOrder,
-}: {
-  fieldMeta: Array<any>;
-  onColumnHide: (id: string) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  setColumnOrder: any;
-  columnOrder: string[];
-}) => {
-  const fieldMap = columnOrder
-    .map((row) => {
-      const d = fieldMeta.find((f: { fieldname: string }) => f.fieldname === row);
-      return d !== undefined ? d : null;
-    })
-    .filter((d) => d !== null);
-
-  const fields = fieldMeta
-    .filter((d) => !NO_VALUE_FIELDS.includes(d.fieldtype))
-    .filter((d) => !columnOrder.includes(d.fieldname));
-
-  const handleColumnAdd = (fieldname: string) => {
-    setColumnOrder((old: string[]) => {
-      const newOrder = [...old];
-      newOrder.push(fieldname);
-      return newOrder;
-    });
-  };
-
-  return (
-    <DropdownMenu modal>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline">
-          <Columns2 />
-          <Typography variant="p">Columns</Typography>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="[&_div]:cursor-pointer max-h-96 overflow-y-auto">
-        <DndProvider backend={checkIsMobile() ? TouchBackend : HTML5Backend}>
-          {fieldMap
-            .sort((a, b) => columnOrder.indexOf(a.fieldname) - columnOrder.indexOf(b.fieldname))
-            .map((field: any) => {
-              const isVisible = columnOrder.includes(field.fieldname);
-              return (
-                <ColumnItem
-                  key={field.fieldname}
-                  id={field.fieldname}
-                  label={field.label}
-                  onColumnHide={onColumnHide}
-                  isVisible={isVisible}
-                  toggleVisibility={() => {}}
-                  reOrder={setColumnOrder}
-                />
-              );
-            })}
-        </DndProvider>
-        <DropdownMenuSeparator />
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>Add Columns</DropdownMenuSubTrigger>
-          <DropdownMenuPortal>
-            <DropdownMenuSubContent className="[&_div]:cursor-pointer max-h-96 overflow-y-auto">
-              {fields.map((field: any) => {
-                return (
-                  <DropdownMenuItem
-                    key={field.fieldname}
-                    className="capitalize cursor-pointer flex gap-x-2 items-center"
-                    onSelect={(event) => event.preventDefault()}
-                    onClick={() => {
-                      handleColumnAdd(field.fieldname);
-                    }}
-                  >
-                    {field.label}
-                  </DropdownMenuItem>
-                );
-              })}
-            </DropdownMenuSubContent>
-          </DropdownMenuPortal>
-        </DropdownMenuSub>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-};
-const ColumnItem = ({
-  id,
-  onColumnHide,
-  reOrder,
-  isVisible,
-  label,
-  toggleVisibility,
-}: {
-  id: string;
-  onColumnHide: (id: string) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  reOrder: any;
-  label: string;
-  isVisible: boolean;
-  toggleVisibility: (value?: boolean) => void;
-}) => {
-  const [{ isDragging }, dragRef] = useDrag({
-    type: "COLUMN",
-    item: { id: id },
-    collect: (monitor) => ({
-      isDragging: !!monitor.isDragging(),
-    }),
-  });
-  const [, dropRef] = useDrop({
-    accept: "COLUMN",
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    hover: (draggedColumn: any) => {
-      if (draggedColumn.id !== id) {
-        reOrder((old: string[]) => {
-          const newOrder = [...old];
-          const fromIndex = newOrder.indexOf(draggedColumn.id);
-          const toIndex = newOrder.indexOf(id);
-          newOrder.splice(fromIndex, 1);
-          newOrder.splice(toIndex, 0, draggedColumn.id);
-          return newOrder;
-        });
-      }
-    },
-  });
-  return (
-    <DropdownMenuItem
-      key={id}
-      className="capitalize cursor-pointer flex gap-x-2 items-center"
-      ref={(node) => dragRef(dropRef(node))}
-      onSelect={(event) => event.preventDefault()}
-    >
-      <span
-        className="w-full flex justify-between gap-x-2 items-center"
-        style={{
-          opacity: isDragging ? 0.5 : 1,
-        }}
-      >
-        <Typography className="flex gap-x-2 items-center">
-          <GripVertical />
-          {label}
-        </Typography>
-        <X
-          onClick={() => {
-            toggleVisibility(!isVisible);
-            onColumnHide(id);
-          }}
-        />
-      </span>
-    </DropdownMenuItem>
-  );
-};
 
 const Project = () => {
   const views = useSelector((state: RootState) => state.view);
@@ -417,6 +260,8 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     };
     if (!_.isEqual(updateViewData, viewData)) {
       setHasViewUpdated(true);
+    }else{
+      setHasViewUpdated(false);
     }
     setViewInfo(updateViewData);
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -1,6 +1,29 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // License: GNU General Public License v3. See license.txtxe
 frappe.ui.form.on("Project", {
+  setup: function (frm) {
+    frm.trigger("setup_poc_info");
+  },
+  setup_poc_info: async function (frm) {
+    if (!frm.doc.custom_client_point_of_contact || frm.is_new()) {
+      return;
+    }
+    const poc_info = await frappe.db.get_doc("Contact", frm.doc.custom_client_point_of_contact);
+    const email = poc_info.email_id ? `<a href="mailto:${poc_info.email_id}">${poc_info.email_id}</a> ` : "";
+    const phone = poc_info.phone ? `<a href="tel:${poc_info.phone}">${poc_info.phone}</a>` : "";
+    const full_name = poc_info.full_name ? poc_info.full_name : "";
+    const wrapper = $(frm.fields_dict["custom_client_poc_information"].wrapper).html("");
+
+    wrapper.html(`
+      <div class="address-box">
+    <label>Client Point of Contact</label>
+        <p><span class="text-muted">Full Name</span> : <span class="text-muted">${full_name}</span> </p>
+        <p><span class="text-muted">Email</span> : <span class="text-muted">${email}</span> </p>
+        <p><span class="text-muted">Phone</span> : <span class="text-muted">${phone}</span> </p>
+
+</div>`);
+
+  },
   refresh: function (frm) {
     if (!frm.is_new()) {
       frm.add_custom_button(__("Recalculate Timesheet Billing"), () => {

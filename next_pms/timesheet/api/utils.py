@@ -77,6 +77,7 @@ def filter_employees(
     start=0,
     user_group=None,
     status=None,
+    ids: list[str] | None = None,
     reports_to: None | str = None,
     business_unit=None,
     designation=None,
@@ -137,6 +138,9 @@ def filter_employees(
 
     if business_unit and len(business_unit) > 0:
         filters["custom_business_unit"] = ["in", business_unit]
+
+    if ids:
+        employee_ids.extend(ids)
 
     if project and len(project) > 0:
         project_employee = frappe.get_all(
