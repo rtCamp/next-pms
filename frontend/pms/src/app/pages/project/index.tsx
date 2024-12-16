@@ -1,10 +1,27 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+/**
+ * External dependencies
+ */
+import { Filter, Ellipsis, Download, Plus } from "lucide-react";
+import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import { useCallback, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+  ColumnSizingState,
+} from "@tanstack/react-table";
+import _ from "lodash";
+
+/**
+ * Internal dependencies
+ */
 import { DeBounceInput } from "@/app/components/deBounceInput";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { RootState } from "@/store";
-import { useFrappeGetCall, FrappeContext, FrappeConfig, useFrappePostCall } from "frappe-react-sdk";
-import { useCallback, useContext, useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { Header, Footer } from "@/app/layout/root";
 import { LoadMore } from "@/app/components/loadMore";
 import {
@@ -25,14 +42,6 @@ import { ComboxBox } from "@/app/components/comboBox";
 import { cn, parseFrappeErrorMsg, createFalseValuedObject, canExport } from "@/lib/utils";
 import { CreateView } from "@/app/components/listview/createView";
 import { useToast } from "@/app/components/ui/use-toast";
-import {
-  flexRender,
-  getCoreRowModel,
-  getSortedRowModel,
-  useReactTable,
-  ColumnSizingState,
-} from "@tanstack/react-table";
-import { Filter, Ellipsis, Download, Plus } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { Badge } from "@/app/components/ui/badge";
 import { Typography } from "@/app/components/typography";
@@ -47,17 +56,19 @@ import { getFilter } from "./utils";
 import { useFrappeDocTypeCount } from "@/app/hooks/useFrappeDocCount";
 import { Button } from "@/app/components/ui/button";
 import Sort from "@/app/components/listview/sort";
-import _ from "lodash";
 import { setViews, ViewData } from "@/store/view";
-import { createFilter, defaultView } from "./utils";
-import useFrappeDoctypeMeta from "@/app/hooks/useFrappeDoctypeMeta";
+import { createFilter } from "./utils";
 import { getColumnInfo } from "./columns";
 import { Export } from "@/app/components/listview/export";
-import { useSearchParams } from "react-router-dom";
 import { Separator } from "@/app/components/ui/separator";
 import { sortOrder } from "@/types";
 import ColumnSelector from "@/app/components/listview/ColumnSelector";
+import ViewWrapper from "@/app/components/listview/ViewWrapper";
 
+type ProjectProps = {
+  viewData: ViewData;
+  meta: any;
+};
 const Action = ({ createView, openExportDialog }: { createView: () => void; openExportDialog: () => void }) => {
   return (
     <DropdownMenu>
@@ -71,84 +82,25 @@ const Action = ({ createView, openExportDialog }: { createView: () => void; open
           <Plus />
           <Typography variant="p">Create View </Typography>
         </DropdownMenuItem>
-        {
-          canExport("Project") && (
-            <DropdownMenuItem onClick={openExportDialog}>
-              <Download />
-              <Typography variant="p">Export </Typography>
-            </DropdownMenuItem>
-          )
-        }
-
+        {canExport("Project") && (
+          <DropdownMenuItem onClick={openExportDialog}>
+            <Download />
+            <Typography variant="p">Export </Typography>
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
 };
 
 const Project = () => {
-  const views = useSelector((state: RootState) => state.view);
-
-  const [searchParams, setSearchParams] = useSearchParams();
-  const view = searchParams.get("view");
-  const { call } = useContext(FrappeContext) as FrappeConfig;
-  const dispatch = useDispatch();
-  const [viewData, setViewData] = useState<ViewData | undefined>(undefined);
-
-  useEffect(() => {
-    if (!view) {
-      const viewData = views.views.find((v) => v.dt === "Project" && v.default);
-      updateViewData(viewData ?? defaultView());
-    } else {
-      const viewData = views.views.find((v) => v.name == view);
-      if (!viewData) {
-        searchParams.delete("view");
-        setSearchParams(searchParams);
-      }
-      updateViewData(viewData ?? defaultView());
-    }
-  }, [view, views.views]);
-
-  const updateViewData = (viewData: ViewData) => {
-    setViewData(viewData);
-    const filters = {
-      search: viewData.filters.search ?? searchParams.get("search"),
-      selectedProjectType: viewData.filters.project_type ?? JSON.parse(searchParams.get("project-type") ?? "[]"),
-      selectedStatus: viewData.filters.status ?? JSON.parse(searchParams.get("status") ?? "[]"),
-      selectedBusinessUnit: viewData.filters.business_unit ?? JSON.parse(searchParams.get("business-unit") ?? "[]"),
-      order: viewData.order_by.order as "asc" | "desc",
-      orderColumn: viewData.order_by.field,
-      currency: viewData.filters.currency ?? searchParams.get("currency"),
-      selectedBillingType: viewData.filters.billing_type ?? JSON.parse(searchParams.get("billing-type") ?? "[]"),
-    };
-    dispatch(setFilters(filters));
-  };
-  useEffect(() => {
-    const defaultDtView = views.views.find((v) => v.dt === "Project" && v.default);
-    if (!defaultDtView) {
-      call
-        .post("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.create_view", {
-          view: defaultView(),
-        })
-        .then((res) => {
-          dispatch(setViews(res.message));
-        });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const { doc } = useFrappeDoctypeMeta("Project");
-
-  if (doc && viewData) {
-    return <ProjectTable viewData={viewData} meta={doc} />;
-  } else {
-    return <Spinner isFull />;
-  }
+  const docType = "Project";
+  return (
+    <ViewWrapper docType={docType}>
+      {({ viewData, meta }) => <ProjectTable viewData={viewData} meta={meta.message} />}
+    </ViewWrapper>
+  );
 };
-
-interface ProjectProps {
-  viewData: ViewData;
-  meta: any;
-}
 
 const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   const [viewInfo, setViewInfo] = useState<ViewData>(viewData);
@@ -181,6 +133,18 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   );
   const billing_type = ["Non-Billable", "Retainer", "Fixed Cost", "Time and Material"];
   useEffect(() => {
+    dispatch(
+      setFilters({
+        search: viewData.filters.search ?? "",
+        selectedProjectType: viewData.filters.project_type ?? [],
+        selectedStatus: viewData.filters.status ?? [],
+        selectedBillingType: viewData.filters.billing_type ?? [],
+        selectedBusinessUnit: viewData.filters.business_unit ?? [],
+        currency: viewData.filters.currency ?? "",
+        order: viewData.order_by.order ?? "desc",
+        orderColumn: viewData.order_by.field ?? "modified",
+      })
+    );
     setViewInfo(viewData);
     setColSizing(viewData.columns);
     setColumnOrder(viewData.rows);
