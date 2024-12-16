@@ -22,7 +22,7 @@ import {
   setOrderBy,
 } from "@/store/project";
 import { ComboxBox } from "@/app/components/comboBox";
-import { cn, parseFrappeErrorMsg, createFalseValuedObject } from "@/lib/utils";
+import { cn, parseFrappeErrorMsg, createFalseValuedObject, canExport } from "@/lib/utils";
 import { CreateView } from "@/app/components/listview/createView";
 import { useToast } from "@/app/components/ui/use-toast";
 import {
@@ -71,15 +71,19 @@ const Action = ({ createView, openExportDialog }: { createView: () => void; open
           <Plus />
           <Typography variant="p">Create View </Typography>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={openExportDialog}>
-          <Download />
-          <Typography variant="p">Export </Typography>
-        </DropdownMenuItem>
+        {
+          canExport("Project") && (
+            <DropdownMenuItem onClick={openExportDialog}>
+              <Download />
+              <Typography variant="p">Export </Typography>
+            </DropdownMenuItem>
+          )
+        }
+
       </DropdownMenuContent>
     </DropdownMenu>
   );
 };
-
 
 const Project = () => {
   const views = useSelector((state: RootState) => state.view);
@@ -260,7 +264,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     };
     if (!_.isEqual(updateViewData, viewData)) {
       setHasViewUpdated(true);
-    }else{
+    } else {
       setHasViewUpdated(false);
     }
     setViewInfo(updateViewData);
@@ -547,21 +551,23 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
         <Spinner isFull />
       ) : (
         <>
-          <Export
-            isOpen={isExportOpen}
-            setIsOpen={setIsExportOpen}
-            doctype="Project"
-            pageLength={projectState.data.length}
-            totalCount={projectState.totalCount}
-            orderBy={`${projectState.orderColumn}  ${projectState.order}`}
-            fields={viewData.rows.reduce((acc, d) => {
-              if (d !== "name") {
-                const m = meta.fields.find((field: { fieldname: string }) => field.fieldname === d);
-                acc[d] = m?.label ?? d;
-              }
-              return acc;
-            }, {})}
-          />
+          {canExport("Project") && (
+            <Export
+              isOpen={isExportOpen}
+              setIsOpen={setIsExportOpen}
+              doctype="Project"
+              pageLength={projectState.data.length}
+              totalCount={projectState.totalCount}
+              orderBy={`${projectState.orderColumn}  ${projectState.order}`}
+              fields={viewData.rows.reduce((acc, d) => {
+                if (d !== "name") {
+                  const m = meta.fields.find((field: { fieldname: string }) => field.fieldname === d);
+                  acc[d] = m?.label ?? d;
+                }
+                return acc;
+              }, {})}
+            />
+          )}
           <CreateView
             isOpen={isCreateViewOpen}
             setIsOpen={setIsCreateViewOpen}

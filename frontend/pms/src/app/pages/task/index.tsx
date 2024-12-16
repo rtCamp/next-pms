@@ -26,6 +26,7 @@ import {
   createFalseValuedObject,
   getFormatedDate,
   getDateTimeForMultipleTimeZoneSupport,
+  canExport,
 } from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
 import { Badge } from "@/app/components/ui/badge";
@@ -298,6 +299,8 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     projects: task.selectedProject,
     search: subjectSearchParam,
     status: statusParam,
+  }, undefined, {
+    revalidateIfStale: false,
   });
 
   useEffect(() => {
@@ -371,7 +374,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [dispatch]
   );
-  
+
   // can be removed in the next itteration
   const handleGroupByChange = useCallback(
     (value: string | string[]) => {
@@ -600,21 +603,23 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
         </div>
       </Header>
       {/* Action Items */}
-      <Export
-        isOpen={isExportOpen}
-        setIsOpen={setIsExportOpen}
-        doctype="Task"
-        pageLength={task.pageLength}
-        totalCount={task.total_count}
-        orderBy={`modified  desc`}
-        fields={viewData?.rows.reduce((acc, d) => {
-          if (d !== "project_name") {
-            const m = meta.fields.find((field: { fieldname: string }) => field.fieldname === d);
-            acc[d] = m?.label ?? d;
-          }
-          return acc;
-        }, {})}
-      />
+      {canExport("Task") && (
+        <Export
+          isOpen={isExportOpen}
+          setIsOpen={setIsExportOpen}
+          doctype="Task"
+          pageLength={task.pageLength}
+          totalCount={task.total_count}
+          orderBy={`modified  desc`}
+          fields={viewData?.rows.reduce((acc, d) => {
+            if (d !== "project_name") {
+              const m = meta.fields.find((field: { fieldname: string }) => field.fieldname === d);
+              acc[d] = m?.label ?? d;
+            }
+            return acc;
+          }, {})}
+        />
+      )}
       <CreateView
         isOpen={isCreateViewOpen}
         setIsOpen={setIsCreateViewOpen}
@@ -709,10 +714,12 @@ const Action = ({ createView, openExportDialog }: { createView: () => void; open
           <Plus />
           <Typography variant="p">Create View </Typography>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={openExportDialog}>
-          <Download />
-          <Typography variant="p">Export </Typography>
-        </DropdownMenuItem>
+        {canExport("Task") && (
+          <DropdownMenuItem onClick={openExportDialog}>
+            <Download />
+            <Typography variant="p">Export </Typography>
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
