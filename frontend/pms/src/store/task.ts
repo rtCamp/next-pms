@@ -1,5 +1,5 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { ProjectNestedTaskData, TaskData } from "@/types";
+import { ProjectNestedTaskData, sortOrder, TaskData } from "@/types";
 import { flatTableDataToNestedProjectDataConversion } from "@/lib/utils";
 
 export interface TaskState {
@@ -13,9 +13,20 @@ export interface TaskState {
   selectedTask: string;
   isTaskLogDialogBoxOpen: boolean;
   isAddTaskDialogBoxOpen: boolean;
-  pageLength: number,
+  pageLength: number;
+  search: string;
+  selectedStatus: Array<TaskStatusType>;
+  order: sortOrder;
+  orderColumn: string;
 }
-
+export type TaskStatusType =
+  | "Open"
+  | "Working"
+  | "Pending Review"
+  | "Overdue"
+  | "Template"
+  | "Completed"
+  | "Cancelled";
 export const initialState: TaskState = {
   task: [],
   total_count: 0,
@@ -28,6 +39,10 @@ export const initialState: TaskState = {
   isTaskLogDialogBoxOpen: false,
   isAddTaskDialogBoxOpen: false,
   pageLength: 20,
+  search: "",
+  selectedStatus: ["Open", "Working"],
+  order: "desc",
+  orderColumn: "modified",
 };
 
 export type AddTaskType = {
@@ -74,17 +89,62 @@ export const taskSlice = createSlice({
     },
     setSelectedTask: (
       state,
-      action: PayloadAction<{ task: string; isOpen: boolean }>,
+      action: PayloadAction<{ task: string; isOpen: boolean }>
     ) => {
       state.selectedTask = action.payload.task;
       state.isTaskLogDialogBoxOpen = action.payload.isOpen;
     },
-    setOrderBy: (state) => {
+    setOrderBy: (
+      state,
+      action: PayloadAction<{ order: sortOrder; orderColumn: string }>,
+    ) => {
+      const pageLength = state.task.length;
+      state.pageLength = pageLength;
+      state.start = 0;
+      state.order = action.payload.order;
+      state.orderColumn = action.payload.orderColumn;
+      state.task = initialState.task;
+    },
+    setSearch: (state, action: PayloadAction<string>) => {
+      state.search = action.payload;
+      state.start = initialState.start;
+      state.pageLength = initialState.pageLength;
+      state.task = initialState.task;
+    },
+    setSelectedStatus: (
+      state,
+      action: PayloadAction<Array<TaskStatusType>>
+    ) => {
+      state.selectedStatus = action.payload;
+      state.start = initialState.start;
+      state.pageLength = initialState.pageLength;
+    },
+    setFilters: (
+      state,
+      action: PayloadAction<{
+        selectedStatus: Array<TaskStatusType>;
+        search: string;
+        selectedProject: Array<string>;
+        groupBy: Array<string>;
+      }>
+    ) => {
+      state.selectedProject = action.payload.selectedProject;
+      state.selectedStatus = action.payload.selectedStatus;
+      state.search = action.payload.search;
+      state.groupBy = action.payload.groupBy;
+      state.start = initialState.start;
+      state.pageLength = initialState.pageLength;
+    },
+    setTotalCount: (state, action: PayloadAction<number>) => {
+      state.total_count = action.payload;
+    },
+    refreshData: (state) => {
       const pageLength = state.task.length;
       state.pageLength = pageLength;
       state.start = 0;
       state.task = initialState.task;
-    },
+
+    }
   },
 });
 
@@ -99,5 +159,10 @@ export const {
   setAddTaskDialog,
   setSelectedTask,
   setOrderBy,
+  setSearch,
+  setSelectedStatus,
+  setFilters,
+  setTotalCount,
+  refreshData
 } = taskSlice.actions;
 export default taskSlice.reducer;
