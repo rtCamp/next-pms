@@ -56,6 +56,11 @@ module.exports = {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
         },
+        // customAmber: "rgb(255, 201, 87)",
+        customAmber: "rgb(244, 215, 154)",
+        customPink: "rgb(255, 180, 176)",
+        customYellow: "rgb(254, 248, 160)",
+        customGreen: "rgb(174, 221, 148)",
       },
       borderRadius: {
         lg: "var(--radius)",

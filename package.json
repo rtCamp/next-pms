@@ -10,6 +10,7 @@
     "dev": "cd frontend/pms && npm run dev",
     "build": "cd frontend/pms && npm install && npm run build"
   },
-  "dependencies": {
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.14.0"
   }
 }

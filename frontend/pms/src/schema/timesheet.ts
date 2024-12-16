@@ -8,7 +8,7 @@ const descriptionSchema = z
   .trim()
   .min(1, { message: "Please enter description." });
 
-const hourSchema = z.preprocess(
+export const hourSchema = z.preprocess(
   (val, ctx) => {
     const processedValue = timeStringToFloat(String(val));
     if (isNaN(processedValue)) {
@@ -32,7 +32,7 @@ const hourSchema = z.preprocess(
     ])
     .refine((val) => /^\d+(\.\d{1,3})?$/.test(val.toString()), {
       message: "Hours must be a number with at most two decimal places.",
-    }),
+    })
 );
 
 export const TimesheetSchema = z
