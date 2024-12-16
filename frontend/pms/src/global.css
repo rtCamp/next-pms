@@ -89,6 +89,10 @@
   }
 }
 
+.custom-resource-management-team-view-bg {
+  background-color: rgba(247, 150, 150, var(--bg-opacity)) !important;
+}
+
 html,#root{
   height: 100vh;
   width: 100vw;

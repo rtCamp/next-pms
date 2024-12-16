@@ -1,27 +1,31 @@
+import { useState } from "react";
+
+import { CircleCheck, CircleDollarSign, CirclePlus, CircleX, Clock3, PencilLine } from "lucide-react";
+
+import { TaskData, WorkingFrequency } from "@/types";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
+import { HolidayProp, LeaveProps, TaskDataItemProps, TaskDataProps, TaskProps } from "@/types/timesheet";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import {
-  cn,
-  prettyDate,
-  getDateFromDateAndTime,
-  floatToTime,
   calculateWeeklyHour,
+  cn,
   expectatedHours,
-  preProcessLink,
+  floatToTime,
+  getDateFromDateAndTime,
   getHolidayList,
+  preProcessLink,
+  prettyDate,
 } from "@/lib/utils";
-import { Typography } from "./typography";
-import { CircleCheck, CirclePlus, CircleX, Clock3, PencilLine, CircleDollarSign } from "lucide-react";
-import { TaskDataProps, TaskProps, TaskDataItemProps, LeaveProps, HolidayProp } from "@/types/timesheet";
-import { TaskData, WorkingFrequency } from "@/types";
-import GenWrapper from "./GenWrapper";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
-import { TaskLog } from "@/app/pages/task/taskLog";
-import { useState } from "react";
+
 import { Button } from "./ui/button";
-import TaskStatusIndicator from "./taskStatusIndicator";
+import GenWrapper from "./GenWrapper";
+import { Typography } from "./typography";
 import { Separator } from "./ui/separator";
 import { TaskStatus } from "../pages/task/taskStatus";
-interface TimesheetTableProps {
+import TaskStatusIndicator from "./taskStatusIndicator";
+import { TaskLog } from "@/app/pages/task/taskLog";
+
+type timesheetTableProps = {
   dates: string[];
   holidays: Array<HolidayProp>;
   tasks: TaskProps;
@@ -33,8 +37,77 @@ interface TimesheetTableProps {
   working_hour: number;
   disabled?: boolean;
   working_frequency: WorkingFrequency;
-}
+  weekly_status?: string;
+};
+type leaveRowProps = {
+  leaves: Array<LeaveProps>;
+  dates: string[];
+  holidays: Array<HolidayProp>;
+  expectedHours: number;
+  rowClassName?: string;
+  headingClassName?: string;
+  dataCellClassName?: string;
+  totalCellClassName?: string;
+};
+type totalHourRowProps = {
+  leaves: Array<LeaveProps>;
+  dates: string[];
+  tasks: TaskProps;
+  holidays: Array<HolidayProp>;
+  working_hour: number;
+  working_frequency: WorkingFrequency;
+};
+type weekTotalProps = {
+  total: number;
+  expected_hour: number;
+  frequency: WorkingFrequency;
+  className?: string;
+};
+type cellProps = {
+  date: string;
+  data: TaskDataItemProps[];
+  isHoliday: boolean;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  onCellClick?: (val) => void;
+  disabled?: boolean;
+  className?: string;
+};
+type emptyRowProps = {
+  dates: string[];
+  holidays: Array<HolidayProp>;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  onCellClick?: (data) => void;
+  disabled?: boolean;
+  rowClassName?: string;
+  headingCellClassName?: string;
+  totalCellClassName?: string;
+  cellClassName?: string;
+};
+type submitButtonProps = {
+  start_date: string;
+  end_date: string;
+  onApproval?: (start_date: string, end_date: string) => void;
+  status: string;
+};
 
+/**
+ * Timesheet Table
+ * @description The main component to show the timesheet grid.
+ *
+ * @param {Object} props - The properties passed to the component.
+ * @param {Array} props.dates - Array of dates in the timesheet
+ * @param {Array} props.holidays - Array of holidays in the timesheet
+ * @param {Array} props.tasks - Array of tasks in the timesheet
+ * @param {Array} props.leaves - Array of leaves in the timesheet
+ * @param {Function} props.onCellClick - Function to call when the cell is clicked
+ * @param {boolean} props.hasHeading - If the table has a heading
+ * @param {number} props.working_hour - The working hours for the day
+ * @param {WorkingFrequency} props.working_frequency - The working frequency
+ * @param {boolean} props.disabled - If the timesheet is disabled
+ * @param {string} props.weekly_status - The status of the timesheet
+ */
 const TimesheetTable = ({
   dates,
   holidays,
@@ -45,10 +118,12 @@ const TimesheetTable = ({
   working_hour,
   working_frequency,
   disabled,
-}: TimesheetTableProps) => {
+  weekly_status,
+}: timesheetTableProps) => {
   const holiday_list = getHolidayList(holidays);
   const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<string>("");
+
   return (
     <GenWrapper>
       {isTaskLogDialogBoxOpen && (
@@ -103,7 +178,7 @@ const TimesheetTable = ({
               expectedHours={expectatedHours(working_hour, working_frequency)}
             />
           )}
-          {Object.keys(tasks).length == 0 && (
+          {weekly_status != "Approved" && (
             <EmptyRow dates={dates} holidays={holidays} onCellClick={onCellClick} disabled={disabled} />
           )}
           {Object.keys(tasks).length > 0 &&
@@ -233,6 +308,21 @@ const TimesheetTable = ({
   );
 };
 
+/**
+ * @description This component calculates the total leaves for the perticular
+ * day and uses the `Cell` component to show the total hours of leave
+ * for the day.
+ *
+ * @param {Object} props - The properties passed to the component.
+ * @param {Array} props.leaves - Array of leaves in the timesheet
+ * @param {Array} props.dates - Array of dates in the timesheet
+ * @param {Array} props.holidays - Array of holidays in the timesheet
+ * @param {number} props.expectedHours - The expected hours for the day
+ * @param {string} props.rowClassName - Class name for the row
+ * @param {string} props.headingClassName - Class name for the heading cell
+ * @param {string} props.dataCellClassName - Class name for the data cell
+ * @param {string} props.totalCellClassName - Class name for the total cell
+ */
 export const LeaveRow = ({
   leaves,
   dates,
@@ -242,20 +332,15 @@ export const LeaveRow = ({
   headingClassName,
   dataCellClassName,
   totalCellClassName,
-}: {
-  leaves: Array<LeaveProps>;
-  dates: string[];
-  holidays: Array<HolidayProp>;
-  expectedHours: number;
-  rowClassName?: string;
-  headingClassName?: string;
-  dataCellClassName?: string;
-  totalCellClassName?: string;
-}) => {
+}: leaveRowProps) => {
   const holiday_list = holidays.map((holiday) => {
     return holiday.holiday_date;
   });
   let total_hours = 0;
+  // For each day loop over the leaves and check whether
+  // the employees has leaves for that day excluding the holidays.
+  // Since there can be multiple leaves for a day, we need to
+  // filter the leaves for that day and calculate the total hours
   const leaveData = dates.map((date: string) => {
     let hour = 0;
     if (holiday_list.includes(date)) {
@@ -293,7 +378,7 @@ export const LeaveRow = ({
       {leaveData.map(({ date, data, hour, isHoliday }) => (
         <TableCell key={date} className={cn("text-center", dataCellClassName)}>
           <Typography variant="p" className={isHoliday ? "text-white" : "text-warning"}>
-            {data ? floatToTime(hour) : ""}
+            {hour && hour != 0 ? floatToTime(hour) : ""}
           </Typography>
         </TableCell>
       ))}
@@ -305,6 +390,20 @@ export const LeaveRow = ({
     </TableRow>
   );
 };
+
+/**
+ * @description This component calculates the total working hours for the perticular
+ * day including the leaves, holidays and tasks, and uses the `Cell` component to
+ * show the total hours worked for the day.
+ *
+ * @param {Object} props - The properties passed to the component.
+ * @param {Array} props.leaves - Array of leaves in the timesheet
+ * @param {Array} props.dates - Array of dates in the timesheet
+ * @param {Array} props.tasks - Array of tasks in the timesheet
+ * @param {Array} props.holidays - Array of holidays in the timesheet
+ * @param {number} props.working_hour - The working hours for the day
+ * @param {WorkingFrequency} props.working_frequency - The working frequency
+ */
 export const TotalHourRow = ({
   leaves,
   dates,
@@ -312,14 +411,7 @@ export const TotalHourRow = ({
   holidays,
   working_hour,
   working_frequency,
-}: {
-  leaves: Array<LeaveProps>;
-  dates: string[];
-  tasks: TaskProps;
-  holidays: Array<HolidayProp>;
-  working_hour: number;
-  working_frequency: WorkingFrequency;
-}) => {
+}: totalHourRowProps) => {
   let total = 0;
   const daily_working_hours = expectatedHours(working_hour, working_frequency);
   return (
@@ -380,17 +472,20 @@ export const TotalHourRow = ({
     </TableRow>
   );
 };
-export const WeekTotal = ({
-  total,
-  expected_hour,
-  frequency,
-  className,
-}: {
-  total: number;
-  expected_hour: number;
-  frequency: WorkingFrequency;
-  className?: string;
-}) => {
+
+/**
+ * @description This component shows the total hours for the week,
+ * to the far right in the timesheet grid. It calculates the expected
+ * working hours for the week and compares it with the total hours
+ * and show indicator for hours based on the expected hours.
+ *
+ * @param {Object} props - The properties passed to the component.
+ * @param {number} props.total - The total hours for the week
+ * @param {number} props.expected_hour - The expected hours for the week
+ * @param {WorkingFrequency} props.frequency - The working frequency
+ * @param {string} props.className - Class name for the component
+ */
+export const WeekTotal = ({ total, expected_hour, frequency, className }: weekTotalProps) => {
   const expectedWeekTime = calculateWeeklyHour(expected_hour, frequency);
   return (
     <TableCell className={cn(className)}>
@@ -409,23 +504,20 @@ export const WeekTotal = ({
   );
 };
 
-export const Cell = ({
-  date,
-  data,
-  isHoliday,
-  onCellClick,
-  disabled,
-  className,
-}: {
-  date: string;
-  data: TaskDataItemProps[];
-  isHoliday: boolean;
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  onCellClick?: (val) => void;
-  disabled?: boolean;
-  className?: string;
-}) => {
+/**
+ * @description This is the main component for the timesheet table cell.
+ * It is responsible for rendering the data in the grid, show tooltip on hover and
+ * open the dialog box to add/edit time on click.
+ *
+ * @param {Object} props - The properties passed to the component.
+ * @param {string} props.date - The date of the cell
+ * @param {Array} props.data - The data for the cell
+ * @param {boolean} props.isHoliday - If the date is a holiday
+ * @param {Function} props.onCellClick - Function to call when the cell is clicked
+ * @param {boolean} props.disabled - If the timesheet is disabled
+ * @param {string} props.className - Class name for the cell
+ */
+export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }: cellProps) => {
   let hours = 0;
   let description = "";
   let isTimeBothBillableAndNonBillable = false;
@@ -506,6 +598,21 @@ export const Cell = ({
   );
 };
 
+/**
+ * Empty Row
+ * @description The component shows table row with empty cells in timesheet grid,
+ * which onClick event opens the dialog box to add time.
+ *
+ * @param {Object} props - The properties passed to the component.
+ * @param {Array} props.dates - Array of dates in the timesheet
+ * @param {Array} props.holidays - Array of holidays in the timesheet
+ * @param {Function} props.onCellClick - Function to call when the cell is clicked
+ * @param {boolean} props.disabled - If the timesheet is disabled
+ * @param {string} props.rowClassName - Class name for the row
+ * @param {string} props.headingCellClassName - Class name for the heading cell
+ * @param {string} props.totalCellClassName - Class name for the total cell
+ * @param {string} props.cellClassName - Class name for the cell
+ */
 export const EmptyRow = ({
   dates,
   holidays,
@@ -515,18 +622,7 @@ export const EmptyRow = ({
   headingCellClassName,
   totalCellClassName,
   cellClassName,
-}: {
-  dates: string[];
-  holidays: Array<HolidayProp>;
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  onCellClick?: (data) => void;
-  disabled?: boolean;
-  rowClassName?: string;
-  headingCellClassName?: string;
-  totalCellClassName?: string;
-  cellClassName?: string;
-}) => {
+}: emptyRowProps) => {
   const holiday_list = getHolidayList(holidays);
   return (
     <TableRow className={cn(rowClassName)}>
@@ -565,23 +661,24 @@ export const EmptyRow = ({
   );
 };
 
-export const SubmitButton = ({
-  start_date,
-  end_date,
-  onApproval,
-  status,
-}: {
-  start_date: string;
-  end_date: string;
-  onApproval?: (start_date: string, end_date: string) => void;
-  status: string;
-}) => {
+/**
+ * Submit Button
+ * @description Button to show the status of the timesheet & to submit the timesheet.
+ *
+ * @param {Object} props - The properties passed to the component.
+ * @param {string} props.start_date - Start date of the timesheet
+ * @param {string} props.end_date - End date of the timesheet
+ * @param {Function} props.onApproval - Function to call when the button is clicked
+ * @param {string} props.status - Status of the timesheet
+ */
+export const SubmitButton = ({ start_date, end_date, onApproval, status }: submitButtonProps) => {
   const handleClick = () => {
     onApproval && onApproval(start_date, end_date);
   };
   return (
     <Button
       variant="ghost"
+      asChild
       className={cn(
         "font-normal",
         (status == "Approved" || status == "Partially Approved") && "bg-green-50 text-success",
@@ -596,11 +693,13 @@ export const SubmitButton = ({
         }
       }}
     >
-      {(status == "Approved" || status == "Partially Approved") && <CircleCheck className="stroke-success" />}
-      {(status == "Rejected" || status == "Partially Rejected") && <CircleX className="stroke-destructive" />}
-      {status == "Approval Pending" && <Clock3 className="stroke-warning" />}
-      {status == "Not Submitted" && <CircleCheck className="" />}
-      {status}
+      <span>
+        {(status == "Approved" || status == "Partially Approved") && <CircleCheck className="stroke-success" />}
+        {(status == "Rejected" || status == "Partially Rejected") && <CircleX className="stroke-destructive" />}
+        {status == "Approval Pending" && <Clock3 className="stroke-warning" />}
+        {status == "Not Submitted" && <CircleCheck className="" />}
+        {status}
+      </span>
     </Button>
   );
 };

@@ -1,3 +1,5 @@
+import datetime
+
 import frappe
 
 
@@ -74,6 +76,7 @@ def get_employee_list(
     project=None,
     page_length=None,
     start=0,
+    status=None,
     user_group=None,
     reports_to: str | None = None,
 ):
@@ -85,7 +88,27 @@ def get_employee_list(
         project=project,
         page_length=page_length,
         start=start,
+        status=status,
         user_group=user_group,
         reports_to=reports_to,
+        ignore_permissions=status is not None,
     )
     return {"data": employees, "count": count}
+
+
+def get_workable_days_for_employee(employee: str, start_date: str | datetime.date, end_date: str | datetime.date):
+    from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
+    from frappe.utils import date_diff
+
+    holiday_list_name = get_holiday_list_for_employee(employee)
+
+    holidays = frappe.get_all(
+        "Holiday",
+        filters={
+            "parent": holiday_list_name,
+            "holiday_date": ["between", (start_date, end_date)],
+        },
+        pluck="holiday_date",
+    )
+
+    return (date_diff(end_date, start_date) + 1) - len(holidays)

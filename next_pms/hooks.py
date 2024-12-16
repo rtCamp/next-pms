@@ -139,7 +139,7 @@ fixtures = [
             [
                 "module",
                 "in",
-                ["Project Currency", "Timesheet"],
+                ["Project Currency", "Timesheet", "Resource Management"],
             ]
         ],
     },
@@ -149,7 +149,7 @@ fixtures = [
             [
                 "module",
                 "in",
-                ["Project Currency", "Timesheet"],
+                ["Project Currency", "Timesheet", "Resource Management"],
             ]
         ],
     },
@@ -159,7 +159,7 @@ fixtures = [
             [
                 "role",
                 "in",
-                ["Timesheet Manager", "Timesheet User"],
+                ["Timesheet Manager", "Timesheet User", "Resource Management"],
             ]
         ],
     },
@@ -213,12 +213,15 @@ doc_events = {
         "before_insert": "next_pms.timesheet.doc_events.timesheet.before_insert",
         "on_update": "next_pms.timesheet.doc_events.timesheet.on_update",
         "before_validate": "next_pms.timesheet.doc_events.timesheet.before_validate",
+        "before_submit": "next_pms.timesheet.doc_events.timesheet.before_submit",
+        "on_submit": "next_pms.timesheet.doc_events.timesheet.on_submit",
     },
     "Task": {"after_insert": "next_pms.project_currency.doc_events.task.after_insert"},
     "Project": {
         "on_update": "next_pms.project_currency.doc_events.project.on_update",
         "onload": "next_pms.project_currency.doc_events.project.onload",
     },
+    "Customer": {"validate": "next_pms.resource_management.doc_events.customer.validate_abbr"},
 }
 #
 # each overriding function accepts a `data` argument;
