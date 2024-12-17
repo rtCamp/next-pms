@@ -35,7 +35,7 @@ def send_reminder():
         if is_holiday_or_leave(date, employee.name, daily_norm):
             continue
         hour = reported_time_by_employee(employee.name, date, daily_norm)
-        if hour == daily_norm:
+        if hour >= daily_norm:
             continue
         user = employee.user_id
         args = {

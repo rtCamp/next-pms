@@ -1,3 +1,4 @@
+import { removeValueFromArray } from "@/app/pages/resource_management/utils/helper";
 import { getTodayDate, getFormatedDate } from "@/lib/utils";
 import {
   ResourceAllocationObjectProps,
@@ -30,7 +31,7 @@ export type EmployeeDataProps = {
   all_leave_data: EmployeeLeaveProps[];
   employee_allocations: ResourceAllocationObjectProps;
   max_allocation_count_for_single_date: number;
-  employee_daily_working_hours:number
+  employee_daily_working_hours: number;
 };
 
 export interface ResourceTeamDataProps {
@@ -58,6 +59,7 @@ export type EmployeeLeaveProps = {
 export type EmployeeResourceProps = {
   date: string;
   total_allocated_hours: number;
+  total_worked_hours: number;
   total_working_hours: number;
   employee_resource_allocation_for_given_date: EmployeeAllocationForDateProps[];
   is_on_leave: boolean;
@@ -79,13 +81,14 @@ export interface ResourceTeamState {
   data: ResourceTeamDataProps;
   employeeName?: string;
   businessUnit?: string[];
+  reportingManager?: string;
   designation?: string[];
   isDialogOpen: boolean;
   isEditDialogOpen: boolean;
   weekDate: string;
   employeeWeekDate: string;
   pageLength: number;
-  isBillable: number;
+  allocationType?: string[];
   start: number;
   dateRange: DateRange;
   hasMore: boolean;
@@ -104,11 +107,12 @@ export const initialState: ResourceTeamState = {
     total_count: 0,
     has_more: false,
   },
+  reportingManager: "",
   isDialogOpen: false,
   weekDate: getFormatedDate(getTodayDate()),
   employeeWeekDate: getFormatedDate(getTodayDate()),
   start: 0,
-  isBillable: -1,
+  allocationType: [],
   hasMore: true,
   dateRange: {
     start_date: "",
@@ -117,7 +121,7 @@ export const initialState: ResourceTeamState = {
   designation: [],
   tableView: {
     combineWeekHours: false,
-    view: "planned-vs-capacity",
+    view: "planned",
   },
   isNeedToFetchDataAfterUpdate: false,
 };
@@ -140,6 +144,12 @@ const ResourceTeamSlice = createSlice({
     },
     setBusinessUnit: (state, action: PayloadAction<string[]>) => {
       state.businessUnit = action.payload;
+      state.data = initialState.data;
+      state.start = 0;
+      state.pageLength = initialState.pageLength;
+    },
+    setReportingManager: (state, action: PayloadAction<string>) => {
+      state.reportingManager = action.payload;
       state.data = initialState.data;
       state.start = 0;
       state.pageLength = initialState.pageLength;
@@ -191,12 +201,75 @@ const ResourceTeamSlice = createSlice({
     setFilters: (
       state,
       action: PayloadAction<{
-        employeeName: string;
-        businessUnit: string[];
+        employeeName?: string;
+        isNeedToRemove?: boolean;
+        businessUnit?: string[];
+        reportingManager?: string;
+        designation?: string[];
+        allocationType?: string[];
+        view?: string;
+        combineWeekHours?: boolean;
       }>
     ) => {
-      state.employeeName = action.payload.employeeName;
-      state.businessUnit = action.payload.businessUnit;
+      if (action.payload.employeeName || action.payload.isNeedToRemove) {
+        state.employeeName = action.payload.employeeName;
+      }
+      if (action.payload.reportingManager || action.payload.isNeedToRemove) {
+        state.reportingManager = action.payload.reportingManager;
+      }
+
+      if (action.payload.businessUnit) {
+        state.businessUnit = action.payload.businessUnit;
+      }
+
+      if (action.payload.allocationType) {
+        state.allocationType = action.payload.allocationType;
+      }
+      if (action.payload.designation) {
+        state.designation = action.payload.designation;
+      }
+      if (action.payload.combineWeekHours) {
+        state.tableView.combineWeekHours = action.payload.combineWeekHours;
+      }
+      if (action.payload.view) {
+        state.tableView.view = action.payload.view;
+      }
+      state.pageLength = initialState.pageLength;
+      state.start = 0;
+      state.data = initialState.data;
+    },
+    deleteFilters: (
+      state,
+      action: PayloadAction<{
+        type:
+          | "employee"
+          | "business-unit"
+          | "repots-to"
+          | "designation"
+          | "allocation-type";
+        employeeName?: string;
+        businessUnit?: string[];
+        reportingManager?: string;
+        designation?: string[];
+        allocationType?: string[];
+      }>
+    ) => {
+      if (action.payload.type === "employee") {
+        state.employeeName = action.payload.employeeName;
+      }
+      if (action.payload.type === "business-unit") {
+        state.businessUnit = action.payload.businessUnit;
+      }
+      if (action.payload.type === "repots-to") {
+        state.reportingManager = action.payload.reportingManager;
+      }
+      if (action.payload.type === "designation") {
+        state.designation = action.payload.designation;
+      }
+      if (action.payload.type === "allocation-type") {
+        state.allocationType = action.payload.allocationType;
+      }
+
       state.pageLength = initialState.pageLength;
       state.start = 0;
       state.data = initialState.data;
@@ -210,14 +283,8 @@ const ResourceTeamSlice = createSlice({
     setReFetchData: (state, action: PayloadAction<boolean>) => {
       state.isNeedToFetchDataAfterUpdate = action.payload;
     },
-    setIsBillable: (state, action: PayloadAction<string[]>) => {
-      if (action.payload.length == 2 || action.payload.length == 0) {
-        state.isBillable = -1;
-      } else if (action.payload[0] == "billable") {
-        state.isBillable = 1;
-      } else {
-        state.isBillable = 0;
-      }
+    setAllocationType: (state, action: PayloadAction<string[]>) => {
+      state.allocationType = action.payload;
       state.pageLength = initialState.pageLength;
       state.start = 0;
       state.data = initialState.data;
@@ -235,6 +302,7 @@ export const emptyEmployeeDayData: EmployeeResourceProps = {
   date: "None",
   total_allocated_hours: 0,
   total_working_hours: 0,
+  total_worked_hours: 0,
   employee_resource_allocation_for_given_date: [],
   is_on_leave: false,
   total_leave_hours: 0,
@@ -254,9 +322,11 @@ export const {
   setEmployeeName,
   setBusinessUnit,
   setCombineWeekHours,
-  setIsBillable,
+  setAllocationType,
   setView,
   setReFetchData,
   setDesignation,
+  setReportingManager,
+  deleteFilters,
 } = ResourceTeamSlice.actions;
 export default ResourceTeamSlice.reducer;

@@ -814,5 +814,21 @@
   "property_type": "Int",
   "row_name": null,
   "value": "1"
+ },
+ {
+  "default_value": null,
+  "doc_type": "Project",
+  "docstatus": 0,
+  "doctype": "Property Setter",
+  "doctype_or_field": "DocField",
+  "field_name": "project_details",
+  "is_system_generated": 0,
+  "modified": "2024-12-13 18:17:56.718942",
+  "module": "Project Currency",
+  "name": "Project-project_details-collapsible",
+  "property": "collapsible",
+  "property_type": "Check",
+  "row_name": null,
+  "value": "0"
  }
 ]

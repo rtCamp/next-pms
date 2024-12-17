@@ -1,10 +1,20 @@
+import json
+
 import frappe
+from frappe import _, throw
 from frappe.utils import nowdate
 from frappe.utils.data import add_days, getdate
 
 from .employee import get_employee_working_hours
 from .timesheet import get_timesheet_state
-from .utils import get_holidays, get_week_dates
+from .utils import (
+    filter_employees,
+    get_holidays,
+    get_leaves_for_employee,
+    get_week_dates,
+    is_timesheet_manager,
+    update_weekly_status_of_timesheet,
+)
 
 now = nowdate()
 
@@ -24,9 +34,6 @@ def get_compact_view_data(
     reports_to: str | None = None,
 ):
     frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
-    import json
-
-    from .utils import get_leaves_for_employee
 
     dates = []
     data = {}
@@ -37,6 +44,7 @@ def get_compact_view_data(
         week = get_week_dates(date=date)
         dates.append(week)
         date = add_days(getdate(week["start_date"]), -1)
+
     dates.reverse()
     res = {"dates": dates}
 
@@ -54,6 +62,8 @@ def get_compact_view_data(
         end_date=dates[-1].get("end_date"),
     )
     employee_names = [employee.name for employee in employees]
+
+    # Get all the timesheet between the date range for the employees
     timesheet_data = frappe.get_all(
         "Timesheet",
         filters={
@@ -71,6 +81,7 @@ def get_compact_view_data(
         ],
     )
 
+    #  Group the timesheet data by employee in the dictionary
     timesheet_map = {}
     for ts in timesheet_data:
         if ts.employee not in timesheet_map:
@@ -151,11 +162,6 @@ def get_compact_view_data(
 @frappe.whitelist()
 def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | str | None = None, note: str = ""):
     frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
-    from .utils import (
-        get_week_dates,
-        is_timesheet_manager,
-        update_weekly_status_of_timesheet,
-    )
 
     current_week = get_week_dates(dates[0])
     timesheets = frappe.get_all(
@@ -169,7 +175,7 @@ def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | s
         ["name", "start_date"],
     )
     if not timesheets:
-        return frappe._("No timesheet found for the given date range.")
+        return throw(_("No timesheet found for the given date range."), exc=frappe.DoesNotExistError)
 
     for timesheet in timesheets:
         if str(timesheet.start_date) not in dates:
@@ -183,7 +189,7 @@ def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | s
 
     update_weekly_status_of_timesheet(employee, current_week.get("start_date"))
     trigger_notification_for_approved_or_rejected_timesheet(status, employee, dates, note)
-    return frappe._("Timesheet status updated successfully")
+    return _("Timesheet status updated successfully")
 
 
 def filter_employee_by_timesheet_status(
@@ -199,9 +205,12 @@ def filter_employee_by_timesheet_status(
     end_date: str | None = None,
     status=None,
 ):
-    import json
-
-    from .utils import filter_employees
+    """
+    This wrapper method to filter the employees based on the certain filters.
+    For example, when the timesheet_status is provided,
+    it will filter the employees based on the timesheet status. After filtering the employees,
+    it will return the employees and the count of the employees using the `filter_employees` method.
+    """
 
     start = int(start)
     page_length = int(page_length)
@@ -224,7 +233,7 @@ def filter_employee_by_timesheet_status(
         timesheet_status = json.loads(timesheet_status)
 
     timesheet = frappe.qb.DocType("Timesheet")
-
+    # get the list of the employees from the timesheet based on the timesheet status.
     employees = (
         frappe.qb.from_(timesheet)
         .select("employee")
@@ -234,19 +243,26 @@ def filter_employee_by_timesheet_status(
         .groupby("employee")
     ).run(as_dict=True)
 
+    if not employees:
+        return [], 0
     employees = [emp.employee for emp in employees]
     employees = employees[start : start + page_length]
-    employee = frappe.get_all(
-        "Employee",
-        filters={"name": ["in", employees]},
-        fields=["name", "employee_name", "department", "designation"],
+
+    employees, count = filter_employees(
+        ids=employees,
+        department=department,
+        project=project,
+        status=status,
+        page_length=page_length,
+        start=start,
+        user_group=user_group,
+        reports_to=reports_to,
     )
-    count = len(employees)
 
     if start + page_length > count:
         page_length = count - start
 
-    return employee, count
+    return employees, count
 
 
 def trigger_notification_for_approved_or_rejected_timesheet(

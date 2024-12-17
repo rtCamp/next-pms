@@ -112,6 +112,7 @@ def filter_employee_list(
     designation=None,
     page_length=10,
     status=None,
+    reports_to=None,
     start=0,
     ignore_permissions=False,
 ):
@@ -127,6 +128,7 @@ def filter_employee_list(
         business_unit=business_unit,
         designation=designation,
         status=status,
+        reports_to=reports_to,
         ignore_permissions=True,
     )
 
@@ -135,9 +137,12 @@ def filter_employee_list(
 
 def filter_project_list(
     project_name=None,
+    customer=None,
     page_length=10,
     start=0,
 ):
+    import json
+
     from next_pms.timesheet.api.utils import get_count
 
     start = int(start)
@@ -150,7 +155,13 @@ def filter_project_list(
     if project_name:
         filters["project_name"] = ["like", f"%{project_name}%"]
 
-    projects = frappe.frappe.get_list("Project", filters=filters, fields=fields, start=start, page_length=page_length)
+    if customer:
+        if isinstance(customer, str):
+            customer = json.loads(customer)
+        if customer and len(customer) > 0:
+            filters["customer"] = ["in", customer]
+
+    projects = frappe.get_list("Project", filters=filters, fields=fields, start=start, page_length=page_length)
 
     total_count = get_count("Project", filters=filters)
 

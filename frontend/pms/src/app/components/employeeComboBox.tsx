@@ -21,6 +21,7 @@ const EmployeeCombo = ({
   value = "",
   onSelect,
   className,
+  status,
   label = "Select Employee",
 }: {
   disabled?: boolean;
@@ -28,14 +29,20 @@ const EmployeeCombo = ({
   onSelect: (name: string) => void;
   className?: string;
   label?: string;
+  status?: [string];
 }) => {
   const [selectedValues, setSelectedValues] = useState<string>(value);
   const [employee, setEmployee] = useState<Employee | undefined>();
 
-  const { data: employees } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee_list", {}, undefined, {
-    revalidateOnFocus: false,
-    revalidateIfStale:false
-  });
+  const { data: employees } = useFrappeGetCall(
+    "next_pms.timesheet.api.employee.get_employee_list",
+    status ? { status: status } : {},
+    undefined,
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+    }
+  );
   const onEmployeeChange = (name: string) => {
     setSelectedValues(name);
     onSelect(name);
@@ -50,6 +57,8 @@ const EmployeeCombo = ({
     setEmployee(res);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [employees, selectedValues]);
+
+  useEffect(() => setSelectedValues(value), [value]);
 
   return (
     <Popover modal>

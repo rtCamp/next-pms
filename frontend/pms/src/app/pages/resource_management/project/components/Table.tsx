@@ -156,7 +156,7 @@ const ResourceProjectTableCell = ({
     let allocated_hours = 0,
       worked_hours = 0;
     if (tableView.combineWeekHours) {
-      if (!(rowCount == 5 * (midIndex + 1) - 3)) {
+      if (!(rowCount == 2)) {
         return "";
       }
 
@@ -249,6 +249,7 @@ const ResourceProjectTableCell = ({
             employeeAllocations={projectAllocations}
             customer={customer}
             onButtonClick={onCellClick}
+            viewType={"project"}
           />
         );
       }}
