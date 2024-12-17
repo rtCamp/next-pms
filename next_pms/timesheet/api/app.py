@@ -64,4 +64,5 @@ def get_doc_meta(doctype: str):
         "fields": permitted_fields,
         "default_fields": default_list_fields,
         "doctype": doctype,
+        "title_field": title_field,
     }

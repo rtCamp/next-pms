@@ -1,4 +1,3 @@
-
 /**
  * External Dependencies
  */
@@ -257,6 +256,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       projects: task.selectedProject,
       search: subjectSearchParam,
       status: statusParam,
+      fields: viewInfo?.rows,
     },
     undefined,
     {
@@ -356,7 +356,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       setFilters({
         search: viewData.filters.search ?? "",
         selectedProject: viewData.filters.projects ?? [],
-        selectedStatus: viewData.filters.status ?? [],
+        selectedStatus: viewData.filters.status ?? ["Open", "Working"],
         groupBy: viewData.filters.groupBy ?? [],
       })
     );
@@ -416,6 +416,8 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     meta.fields,
     viewInfo?.rows,
     viewInfo?.columns,
+    meta.title_field,
+    meta.doctype,
     openTaskLog,
     handleAddTime,
     user,

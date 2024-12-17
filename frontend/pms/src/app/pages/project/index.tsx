@@ -52,12 +52,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
-import { getFilter } from "./utils";
+import { getFilter, createFilter } from "./utils";
 import { useFrappeDocTypeCount } from "@/app/hooks/useFrappeDocCount";
 import { Button } from "@/app/components/ui/button";
 import Sort from "@/app/components/listview/sort";
 import { setViews, ViewData } from "@/store/view";
-import { createFilter } from "./utils";
 import { getColumnInfo } from "./columns";
 import { Export } from "@/app/components/listview/export";
 import { Separator } from "@/app/components/ui/separator";
@@ -312,7 +311,15 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     [dispatch]
   );
 
-  const columns = getColumnInfo(meta.fields, viewInfo.rows, viewInfo.columns, currencyParam);
+  const columns = getColumnInfo(
+    meta.fields,
+    viewInfo.rows,
+    viewInfo.columns,
+    meta.title_field,
+    meta.doctype,
+    currencyParam
+  );
+
   const table = useReactTable({
     columns: columns,
     data: projectState.data,
@@ -496,7 +503,6 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
           />
           <Sort
             fieldMeta={meta.fields}
-            rows={viewData.rows}
             orderBy={projectState.order}
             field={projectState.orderColumn}
             onSortChange={handleSortChange}

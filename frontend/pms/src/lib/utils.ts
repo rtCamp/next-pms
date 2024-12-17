@@ -328,3 +328,10 @@ export const copyToClipboard = (text: string) => {
 export const canExport = (doctype: string) => {
   return window.frappe?.boot?.user?.can_export?.includes(doctype);
 }
+
+export const currencyFormat = (currency: string) => {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: currency,
+  });
+};

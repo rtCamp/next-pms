@@ -11,12 +11,6 @@ export const createFilter = (projectState: ProjectState) => {
     }
 }
 
-export const currencyFormat = (currency: string) => {
-    return new Intl.NumberFormat("en-IN", {
-        style: "currency",
-        currency: currency,
-    });
-};
 export const getFilter = (projectState: ProjectState) => {
     const filters = [];
 

@@ -39,3 +39,10 @@ export interface ProjectData {
 }
 
 export type sortOrder = "asc" | "desc";
+
+export type fieldMetaProps = {
+  label: string;
+  fieldname: string;
+  fieldtype: string;
+  options?: string;
+}

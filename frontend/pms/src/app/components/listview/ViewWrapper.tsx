@@ -21,6 +21,13 @@ type ViewWrapperProps = {
   children: (props: { viewData: ViewData; meta: any }) => React.ReactNode;
 };
 
+/**
+ * Custom View Wrapper
+ * @description This component handles the default/custom view for the list view.
+ * First it checks if the view is available in the URL, if not then it checks the user's default view.
+ * If the view is not available then it creates a default view for the user.
+ * and updates the view data, then it renders the children with the view data and meta. 
+ */
 const ViewWrapper = ({ docType, children }: ViewWrapperProps) => {
   const views = useSelector((state: RootState) => state.view);
   const user = useSelector((state: RootState) => state.user);
@@ -72,7 +79,6 @@ const ViewWrapper = ({ docType, children }: ViewWrapperProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [meta, view, views.views]);
 
-  //   return <>{children}</>;
   if (viewData && meta) {
     return <>{children({ viewData, meta })}</>;
   } else {
