@@ -10,3 +10,7 @@ next_pms.timesheet.patches.add_notification_template
 
 # next_pms.project_currency.patches.update_project_billing_type Need to run this manually
 # next_pms.project_currency.patches.project_threshold_limit_reminder_email_template
+
+
+next_pms.resource_management.patches.add_abbr_customer
+next_pms.resource_management.patches.update_resource_allocation_permissions

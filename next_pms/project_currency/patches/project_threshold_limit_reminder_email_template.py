@@ -1,13 +1,12 @@
 import frappe
+
 from next_pms.project_currency.constant import (
     PROJECT_THRESHOLD_REMINDER_EMAIL_TEMPLATE,
 )
 
 
 def execute():
-    if not frappe.db.exists(
-        "Email Template", PROJECT_THRESHOLD_REMINDER_EMAIL_TEMPLATE
-    ):
+    if not frappe.db.exists("Email Template", PROJECT_THRESHOLD_REMINDER_EMAIL_TEMPLATE):
         response = '<h1>The give project has reched the project limit <a href="/app/project/{{project.name}}">{{project.name}}-{{project.project_name}}</a></h1>'
 
         frappe.get_doc(
