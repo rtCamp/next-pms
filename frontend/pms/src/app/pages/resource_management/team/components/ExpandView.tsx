@@ -1,5 +1,4 @@
-import { Table, TableBody, TableCell, TableRow } from "@/app/components/ui/table";
-import { Typography } from "@/app/components/typography";
+import { Table, TableBody, TableRow } from "@/app/components/ui/table";
 import { EmployeeDataProps } from "@/store/resource_management/team";
 import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,7 +9,7 @@ import { CombinedResourceObjectProps, CombinedResourceDataProps, groupAllocation
 import { EmptyRow } from "../../components/Empty";
 import { setResourceFormData } from "@/store/resource_management/allocation";
 import { ResourceTableCell, TableInformationCellContent } from "../../components/TableCell";
-import { prettyDate } from "@/lib/utils";
+import { cn, prettyDate } from "@/lib/utils";
 
 export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDataProps }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -46,7 +45,7 @@ export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDat
                     onClick={() => {
                       window.location.href = `${window.location.origin}/app/project/${item}`;
                     }}
-                    value={!item ? "Allocations Without Project" : `${itemData.project_name}`}
+                    value={!item ? "No Project" : `${itemData.project_name}`}
                   />
                   {employeeResourceData.allDates.map((date: string, index: number) => {
                     return (
@@ -170,7 +169,7 @@ const TimeOffRow = ({ dates, employeeData }: { dates: string[]; employeeData: Em
           <ResourceTableCell
             type="default"
             key={date}
-            cellClassName={getTableCellClass(index)}
+            cellClassName={cn(getTableCellClass(index),"bg-gray-200")}
             value={employeeData.all_leave_data[date] ? employeeData.all_leave_data[date] : "-"}
           />
         );

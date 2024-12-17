@@ -1,7 +1,7 @@
 import { Input, InputProps } from "@/app/components/ui/input";
 import { cn, deBounce } from "@/lib/utils";
 import { Search, X } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export interface DeBounceInputProps extends InputProps {
   callback?: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -28,6 +28,8 @@ export const DeBounceInput = ({ value, className, callback, deBounceValue = 500,
     setInputValue("");
     onInputChange({ target: { value: "" } } as React.ChangeEvent<HTMLInputElement>);
   };
+
+  useEffect(() => setInputValue(value), [value]);
 
   return (
     <div className={cn("relative w-full max-w-sm", className)}>

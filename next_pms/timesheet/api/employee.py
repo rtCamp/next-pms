@@ -76,6 +76,7 @@ def get_employee_list(
     project=None,
     page_length=None,
     start=0,
+    status=None,
     user_group=None,
     reports_to: str | None = None,
 ):
@@ -87,8 +88,10 @@ def get_employee_list(
         project=project,
         page_length=page_length,
         start=start,
+        status=status,
         user_group=user_group,
         reports_to=reports_to,
+        ignore_permissions=status is not None,
     )
     return {"data": employees, "count": count}
 

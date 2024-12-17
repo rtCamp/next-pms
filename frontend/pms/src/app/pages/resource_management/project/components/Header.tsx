@@ -5,7 +5,9 @@ import {
   resetState,
   setCombineWeekHours,
   setView,
-  setIsBillable,
+  setCustomer,
+  deleteFilters,
+  setAllocationType,
 } from "@/store/resource_management/project";
 import { getFormatedDate } from "@/lib/utils";
 import { useCallback, useEffect } from "react";
@@ -18,87 +20,123 @@ import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
 import { PermissionProps, setDialog } from "@/store/resource_management/allocation";
 
 const ResourceProjectHeaderSection = () => {
-  const [projectNameParam, setProjectNameParam] = useQueryParamsState<string>("prject-name", "");
+  const [projectNameParam] = useQueryParamsState<string>("prject-name", "");
   const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParamsState<boolean>("combine-week-hours", false);
-  const [allocationTypeParam, setAllocationTypeParam] = useQueryParamsState<string[]>("allocation-type", []);
-  const [viewParam, setViewParam] = useQueryParamsState<string>("view-type", "planned");
+  const [reportingNameParam] = useQueryParamsState<string>("reports-to", "");
+  const [customerNameParam] = useQueryParamsState<string[]>("customer", []);
+  const [allocationTypeParam] = useQueryParamsState<string[]>("allocation-type", []);
+  const [viewParam, setViewParam] = useQueryParamsState<string>("view-type", "");
 
-  const resourceTeamState = useSelector((state: RootState) => state.resource_project);
-  const resourceTeamStateTableView = resourceTeamState.tableView;
+  const resourceProjectState = useSelector((state: RootState) => state.resource_project);
+  const resourceProjectStateTableView = resourceProjectState.tableView;
   const resourceAllocationPermission: PermissionProps = useSelector(
     (state: RootState) => state.resource_allocation_form.permissions
   );
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(setView(viewParam));
-    dispatch(setCombineWeekHours(combineWeekHoursParam));
-    const payload = {
-      projectName: projectNameParam,
-    };
-    dispatch(setFilters(payload));
+    let CurrentViewParam = viewParam;
+    if (!CurrentViewParam) {
+      CurrentViewParam = "planned";
+      if (resourceAllocationPermission.write) {
+        setViewParam(CurrentViewParam);
+      }
+    }
+    dispatch(
+      setFilters({
+        projectName: projectNameParam,
+        customer: customerNameParam,
+        reportingManager: reportingNameParam,
+        allocationType: allocationTypeParam,
+        view: CurrentViewParam,
+        combineWeekHours: combineWeekHoursParam,
+      })
+    );
     return () => {
       dispatch(resetState());
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleAllocationTypeChange = useCallback(
-    (value: string | string[]) => {
-      dispatch(setIsBillable(value as string[]));
-      setAllocationTypeParam(value as string[]);
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch]
-  );
-
   const handlePrevWeek = useCallback(() => {
-    const date = getFormatedDate(addDays(resourceTeamState.data.dates[0].start_date, -3));
+    const date = getFormatedDate(addDays(resourceProjectState.data.dates[0].start_date, -3));
     dispatch(setWeekDate(date));
-  }, [dispatch, resourceTeamState.data.dates]);
+  }, [dispatch, resourceProjectState.data.dates]);
 
   const handleNextWeek = useCallback(() => {
-    const date = getFormatedDate(addDays(resourceTeamState.data.dates[0].end_date, +1));
+    const date = getFormatedDate(addDays(resourceProjectState.data.dates[0].end_date, +1));
     dispatch(setWeekDate(date));
-  }, [dispatch, resourceTeamState.data.dates]);
-
-  const handleProjectChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      dispatch(setProjectName(e.target.value));
-      setProjectNameParam(e.target.value);
-    },
-    [dispatch, setProjectNameParam]
-  );
-
-  const handleViewChange = useCallback(
-    (value: string) => {
-      setViewParam(value);
-      dispatch(setView(value));
-    },
-    [dispatch, setViewParam]
-  );
+  }, [dispatch, resourceProjectState.data.dates]);
 
   const handleWeekViewChange = useCallback(() => {
-    setCombineWeekHoursParam(!resourceTeamStateTableView.combineWeekHours);
-    dispatch(setCombineWeekHours(!resourceTeamStateTableView.combineWeekHours));
-  }, [dispatch, resourceTeamStateTableView.combineWeekHours, setCombineWeekHoursParam]);
+    setCombineWeekHoursParam(!resourceProjectStateTableView.combineWeekHours);
+    dispatch(setCombineWeekHours(!resourceProjectStateTableView.combineWeekHours));
+  }, [dispatch, resourceProjectStateTableView.combineWeekHours, setCombineWeekHoursParam]);
 
   return (
     <ResourceHeaderSection
       filters={[
         {
           queryParameterName: "project-name",
-          handleChange: handleProjectChange,
+          handleChange: (value: string) => {
+            dispatch(setProjectName(value));
+          },
+          handleDelete: (value: string) => {
+            dispatch(deleteFilters({ projectName: value, type: "project" }));
+          },
           type: "search",
-          value: projectNameParam,
+          value: resourceProjectState.projectName,
           defaultValue: "",
           label: "Project Name",
+          queryParameterDefault: "",
         },
         {
-          queryParameterName: "allocation-type",
-          handleChange: handleAllocationTypeChange,
+          queryParameterName: "customer",
+          handleChange: (value: string | string[]) => {
+            dispatch(setCustomer(value as string[]));
+          },
+          handleDelete: (value: string[]) => {
+            dispatch(deleteFilters({ customer: value, type: "customer" }));
+          },
           type: "select-search",
-          value: allocationTypeParam,
+          value: resourceProjectState.customer,
+          defaultValue: "",
+          label: "Customer",
+          hide: !resourceAllocationPermission.write,
+          apiCall: {
+            url: "frappe.client.get_list",
+            filters: {
+              doctype: "Customer",
+              fields: ["name"],
+              limit_page_length: 0,
+            },
+            options: {
+              revalidateOnFocus: false,
+              revalidateIfStale: false,
+            },
+          },
+          queryParameterDefault: [],
+        },
+        // {
+        //   queryParameterName: "reports-to",
+        //   handleChange: handleReportingManagerChange,
+        //   type: "search-employee",
+        //   value: reportingNameParam,
+        //   defaultValue: "",
+        //   label: "Reporting Manager",
+        //   hide: !resourceAllocationPermission.write,
+        //   queryParameterDefault: [],
+        // },
+        {
+          queryParameterName: "allocation-type",
+          handleChange: (value: string | string[]) => {
+            dispatch(setAllocationType(value as string[]));
+          },
+          handleDelete: (value: string[]) => {
+            dispatch(deleteFilters({ allocationType: value, type: "allocation-type" }));
+          },
+          type: "select-list",
+          value: resourceProjectState.allocationType,
           defaultValue: "",
           label: "Allocation Type",
           data: [
@@ -111,12 +149,16 @@ const ResourceProjectHeaderSection = () => {
               value: "non-billable",
             },
           ],
+          queryParameterDefault: "",
+          hide: !resourceAllocationPermission.write,
         },
         {
           queryParameterName: "view-type",
-          handleChange: handleViewChange,
+          handleChange: (value: string) => {
+            dispatch(setView(value));
+          },
           type: "select",
-          value: resourceTeamStateTableView.view,
+          value: resourceProjectStateTableView.view,
           defaultValue: "planned",
           label: "Views",
           data: [
@@ -130,14 +172,16 @@ const ResourceProjectHeaderSection = () => {
             },
           ],
           hide: !resourceAllocationPermission.write,
+          queryParameterDefault: "planned",
         },
         {
           queryParameterName: "combine-week-hours",
           handleChange: handleWeekViewChange,
           type: "checkbox",
-          value: resourceTeamStateTableView.combineWeekHours,
+          value: resourceProjectStateTableView.combineWeekHours,
           defaultValue: false,
           label: "Combine Week Hours",
+          queryParameterDefault: false,
         },
       ]}
       buttons={[

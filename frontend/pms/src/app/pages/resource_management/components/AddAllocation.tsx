@@ -52,13 +52,12 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
 
   const { data: projects, mutate: fetchProjects } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Project",
-    filters:
-      form.getValues("customer")
-        ? [
-            ["project_name", "like", `%${projectSearch}%`],
-            ["customer", "=", form.getValues("customer")],
-          ]
-        : [["project_name", "like", `%${projectSearch}%`]],
+    filters: form.getValues("customer")
+      ? [
+          ["project_name", "like", `%${projectSearch}%`],
+          ["customer", "=", form.getValues("customer")],
+        ]
+      : [["project_name", "like", `%${projectSearch}%`]],
 
     fields: ["name", "project_name", "customer", "custom_billing_type"],
     limit_page_length: 20,
@@ -285,7 +284,11 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
                     Employee <span className="text-red-400">*</span>
                   </FormLabel>
                   <FormControl>
-                    <EmployeeCombo onSelect={handleEmployeeChange} value={form.getValues("employee")} />
+                    <EmployeeCombo
+                      status={["Active"]}
+                      onSelect={handleEmployeeChange}
+                      value={form.getValues("employee")}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -4,11 +4,12 @@ import React from "react";
 interface Props {
   children: React.ReactNode;
   className?: string;
+  parentClassName?: string;
 }
 
-export const Header = ({ children, className }: Props) => {
+export const Header = ({ children, className, parentClassName }: Props) => {
   return (
-    <div className="flex border-b">
+    <div className={cn("flex border-b", parentClassName)}>
       <header className={cn("flex h-14 max-md:h-fit items-center justify-between px-3 py-2 w-full", className)}>
         {children}
       </header>

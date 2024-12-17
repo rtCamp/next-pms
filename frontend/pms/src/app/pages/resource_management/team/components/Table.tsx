@@ -242,7 +242,7 @@ const ResourceTeamTableCell = ({
         cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
         ref={cellRef}
         value={
-          rowCount == 5 * (midIndex + 1) - 3 &&
+          rowCount == 2 &&
           (tableView.view == "planned-vs-capacity"
             ? `${allWeekData[midIndex].total_allocated_hours} / ${allWeekData[midIndex].total_working_hours}`
             : `${allWeekData[midIndex].total_worked_hours} / ${allWeekData[midIndex].total_allocated_hours}`)
@@ -302,7 +302,11 @@ const ResourceTeamTableCell = ({
       ref={cellRef}
       title={title}
       cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
-      value={employeeSingleDay.total_allocated_hours}
+      value={
+        tableView.view == "planned-vs-capacity"
+          ? employeeSingleDay.total_allocated_hours
+          : `${employeeSingleDay.total_worked_hours} / ${employeeSingleDay.total_allocated_hours}`
+      }
       CustomHoverCardContent={() => {
         return (
           <ResourceAllocationList
