@@ -6,7 +6,7 @@ import { Clock3, LoaderCircle, Save, Search, X } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 
 /**
  * Internal Dependencies
@@ -39,6 +39,21 @@ interface AddTimeProps {
   project?: string;
 }
 
+/**
+ * Add Time Component
+ * @description This component is used to show dialog to the user to add time
+ * entry for the timesheet. User can select the  date, time, project, task and
+ * and description for the timesheet entry.
+ * @param initialDate - Initial date for the timesheet, this select the date in date picker.
+ * @param employee - Employee for the timesheet entry(In case of employee role they can select their employee only).
+ * @param open - Boolean value to open the dialog.
+ * @param onOpenChange - Function to change the open state of the dialog.
+ * @param workingFrequency - Working frequency of the employee.(Used to calculating remaining hours).
+ * @param workingHours - Working hours of the employee.(Used to calculating remaining hours).
+ * @param onSuccess - Function to call after successfully adding the timesheet entry.
+ * @param task - Task name for the timesheet entry (eg: TASK-0001).
+ * @param project - Project name for the timesheet entry (eg: Project-0001).
+ */
 const AddTime = ({
   initialDate,
   employee,
@@ -92,15 +107,18 @@ const AddTime = ({
     }
     updateProject(value[0]);
   };
-  const updateProject = (value: string) => {
-    if (selectedProject.length === 0) {
-      tasks.find((item: TaskData) => {
-        if (item.name === value) {
-          setSelectedProject([item.project]);
-        }
-      });
-    }
-  };
+  const updateProject = useCallback(
+    (value: string) => {
+      if (selectedProject.length === 0) {
+        tasks.find((item: TaskData) => {
+          if (item.name === value) {
+            setSelectedProject([item.project]);
+          }
+        });
+      }
+    },
+    [selectedProject, tasks]
+  );
   const handleProjectChange = (value: string | string[]) => {
     if (value instanceof Array) {
       setSelectedProject(value);
@@ -131,7 +149,7 @@ const AddTime = ({
         });
       });
   };
-  const fetchTask = () => {
+  const fetchTask = useCallback(() => {
     call
       .get("next_pms.timesheet.api.task.get_task_list", {
         search: searchTask,
@@ -141,7 +159,7 @@ const AddTime = ({
       .then((res) => {
         setTask(res.message.task);
       });
-  };
+  }, [call, searchTask, selectedProject]);
 
   const { data: projects } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Project",
@@ -166,14 +184,15 @@ const AddTime = ({
   };
 
   useEffect(() => {
+    updateProject(task);
+  }, [task, updateProject]);
+  useEffect(() => {
     fetchTask();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTask, selectedProject]);
+  }, [fetchTask, searchTask, selectedProject]);
 
   useEffect(() => {
     mutatePerDayHrs();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate, selectedEmployee]);
+  }, [mutatePerDayHrs, selectedDate, selectedEmployee]);
 
   const {
     formState: { isDirty, isValid },
@@ -268,9 +287,7 @@ const AddTime = ({
                     showSelected
                     shouldFilter
                     value={selectedProject}
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    //  @ts-expect-error
-                    data={projects?.message?.map((item) => ({
+                    data={projects?.message?.map((item: { project_name: string; name: string }) => ({
                       label: item.project_name,
                       value: item.name,
                       disabled: false,
@@ -289,6 +306,7 @@ const AddTime = ({
                         <ComboxBox
                           label="Search Task"
                           showSelected
+                          onunSelect={() => setSearchTask("")}
                           deBounceTime={200}
                           value={
                             form.getValues("task") && form.getValues("task").length > 0 ? [form.getValues("task")] : []
@@ -303,7 +321,7 @@ const AddTime = ({
                           }
                           onSelect={handleTaskChange}
                           onSearch={handleTaskSearch}
-                          rightIcon={<Search className="!h-4 !w-4 stroke-slate-400" />}
+                          rightIcon={<Search className="h-4 w-4  stroke-slate-400" />}
                         />
                       </FormControl>
                       <FormMessage />
