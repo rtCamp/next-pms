@@ -189,6 +189,7 @@ const ResourceTeamHeaderSection = () => {
             },
           ],
           queryParameterDefault: "",
+          hide: !resourceAllocationPermission.write,
         },
         {
           queryParameterName: "view-type",
