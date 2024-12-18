@@ -142,11 +142,11 @@ const ResourceProjectHeaderSection = () => {
           data: [
             {
               label: "Billable",
-              value: "billable",
+              value: "Billable",
             },
             {
               label: "Non-Billable",
-              value: "non-billable",
+              value: "Non-Billable",
             },
           ],
           queryParameterDefault: "",

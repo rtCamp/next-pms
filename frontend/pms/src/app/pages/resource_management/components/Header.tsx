@@ -234,10 +234,14 @@ const RenderFiltersValues = ({ filters }: { filters: FilterPops[] }) => {
     setUpdateFilters(needToShowValues);
   }, [filters]);
 
+  if (updateFilters.length == 0) {
+    return <></>;
+  }
+
   return (
-    <div id="filters" className="flex gap-x-2 max-md:gap-x-3 w-full px-4 py-3 items-center">
-      <div className="px-2 py-1 rounded text-sm z-10 bg-white">Filters:</div>
-      <div className="flex gap-x-2 overflow-scroll w-fit px-4 py-3 no-scrollbar">
+    <div id="filters" className="flex gap-x-2 max-md:gap-x-3 w-full px-4 py-2 items-center">
+      <div className="px-2 rounded text-sm z-10 bg-white">Filters:</div>
+      <div className="flex gap-x-2 overflow-scroll w-fit px-4 no-scrollbar">
         {updateFilters &&
           updateFilters.map((filter: FilterPops) => {
             if (Array.isArray(filter.value)) {
@@ -270,7 +274,6 @@ const RenderFiltersValues = ({ filters }: { filters: FilterPops[] }) => {
               </div>
             );
           })}
-        {updateFilters.length == 0 && <p className="bg-gray-200 px-2 py-1 w-fit rounded text-sm">No filters applied</p>}
       </div>
     </div>
   );
