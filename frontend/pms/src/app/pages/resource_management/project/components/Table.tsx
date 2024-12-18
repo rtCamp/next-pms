@@ -1,22 +1,34 @@
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/store";
-import { DateProps } from "@/store/resource_management/team";
-import { cn, prettyDate } from "@/lib/utils";
-import { Table, TableBody, TableCell } from "@/app/components/ui/table";
-import { Typography } from "@/app/components/typography";
-import { getTableCellClass } from "../../utils/helper";
-import { ResourceAllocationObjectProps } from "@/types/resource_management";
-import ResourceProjectTableHeader from "../../components/TableHeader";
-import { EmptyTableBody } from "../../components/Empty";
-import { ResourceTableRow } from "../../components/TableRow";
-import { emptyProjectDayData, ProjectDataProps, ProjectResourceProps } from "@/store/resource_management/project";
+/**
+ * External dependencies.
+ */
 import { useMemo } from "react";
-import { ResourceExpandView } from "./ExpandView";
-import { ResourceTableCell } from "../../components/TableCell";
-import { getCellBackGroundColor } from "../../utils/cell";
-import { setResourceFormData } from "@/store/resource_management/allocation";
-import { ResourceAllocationList } from "../../components/Card";
+import { useDispatch, useSelector } from "react-redux";
 
+/**
+ * Internal dependencies.
+ */
+import { Table, TableBody } from "@/app/components/ui/table";
+import { cn, prettyDate } from "@/lib/utils";
+import { RootState } from "@/store";
+import { setResourceFormData } from "@/store/resource_management/allocation";
+import { emptyProjectDayData, ProjectDataProps, ProjectResourceProps } from "@/store/resource_management/project";
+import { DateProps } from "@/store/resource_management/team";
+import { ResourceAllocationObjectProps } from "@/types/resource_management";
+
+import { ResourceAllocationList } from "../../components/ResourceAllocationList";
+import { EmptyTableBody } from "../../components/Empty";
+import { ResourceTableCell } from "../../components/TableCell";
+import ResourceProjectTableHeader from "../../components/TableHeader";
+import { ResourceTableRow } from "../../components/TableRow";
+import { getCellBackGroundColor } from "../../utils/cell";
+import { getTableCellClass } from "../../utils/helper";
+import { ResourceExpandView } from "./ExpandView";
+
+/**
+ * This component is responsible for loading the table for project view.
+ *
+ * @returns React.FC
+ */
 const ResourceProjectTable = () => {
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_project.data.dates);
 
@@ -28,6 +40,11 @@ const ResourceProjectTable = () => {
   );
 };
 
+/**
+ * This function is responsible for rendering the table body for project view.
+ *
+ * @returns React.FC
+ */
 const ResourceProjectTableBody = () => {
   const data = useSelector((state: RootState) => state.resource_project.data.data);
   const dates = useSelector((state: RootState) => state.resource_project.data.dates);
@@ -100,6 +117,18 @@ const ResourceProjectTableBody = () => {
   );
 };
 
+/**
+ * This component is responsible for loading the single cell of project view.
+ *
+ * @param props.projectSingleDay The project single day all resources data.
+ * @param props.allWeekData The all week data for the project.
+ * @param props.rowCount The row count. use to show the border of cell.
+ * @param props.midIndex The mid index. use to find the values of combine week views.
+ * @param props.projectAllocations The project allocations data.
+ * @param props.project The project name/ID.
+ * @param props.project_name The project name.
+ * @returns React.FC
+ */
 const ResourceProjectTableCell = ({
   projectSingleDay,
   allWeekData,

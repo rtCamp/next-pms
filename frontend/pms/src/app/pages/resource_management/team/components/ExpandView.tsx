@@ -1,16 +1,30 @@
-import { Table, TableBody, TableRow } from "@/app/components/ui/table";
-import { EmployeeDataProps } from "@/store/resource_management/team";
+/**
+ * External dependencies.
+ */
 import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/store";
-import { getTableCellClass } from "../../utils/helper";
-import { ResourceAllocationList } from "../../components/Card";
-import { CombinedResourceObjectProps, CombinedResourceDataProps, groupAllocations } from "../../utils/group";
-import { EmptyRow } from "../../components/Empty";
-import { setResourceFormData } from "@/store/resource_management/allocation";
-import { ResourceTableCell, TableInformationCellContent } from "../../components/TableCell";
-import { cn, prettyDate } from "@/lib/utils";
 
+/**
+ * Internal dependencies.
+ */
+import { Table, TableBody, TableRow } from "@/app/components/ui/table";
+import { cn, prettyDate } from "@/lib/utils";
+import { RootState } from "@/store";
+import { setResourceFormData } from "@/store/resource_management/allocation";
+import { EmployeeDataProps } from "@/store/resource_management/team";
+
+import { ResourceAllocationList } from "../../components/ResourceAllocationList";
+import { EmptyRow } from "../../components/Empty";
+import { ResourceTableCell, TableInformationCellContent } from "../../components/TableCell";
+import { CombinedResourceDataProps, CombinedResourceObjectProps, groupAllocations } from "../../utils/group";
+import { getIsBillableValue, getTableCellClass } from "../../utils/helper";
+
+/**
+ * This component is responsible for loading Team view expand view data.
+ *
+ * @param props.employeeData React.FC
+ * @returns
+ */
 export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDataProps }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
 
@@ -74,13 +88,23 @@ export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDat
   );
 };
 
+/**
+ * This component is responsible for loading The expand view cell.
+ * 
+ * @param props.allocationsData The allocation data for the employee.
+ * @param props.index The index of the cell.
+ * @param props.date The date of the cell.
+ * @param props.project The project name/ID.
+ * @param props.employee The employee name/ID.
+ * @param props.project_name The project name. 
+ * @returns React.FC
+ */
 const ExpandViewCell = ({
   allocationsData,
   index,
   date,
   project,
   employee,
-  employee_name,
   project_name,
 }: {
   allocationsData: any;
@@ -110,7 +134,7 @@ const ExpandViewCell = ({
         project: project,
         allocation_start_date: date,
         allocation_end_date: date,
-        is_billable: resourceTeamState.isBillable != 0,
+        is_billable: getIsBillableValue(resourceTeamState.allocationType as string[]) != 0,
         customer: "",
         total_allocated_hours: 0,
         hours_allocated_per_day: 0,
@@ -159,6 +183,13 @@ const ExpandViewCell = ({
   );
 };
 
+/**
+ * Reander the Leave data of employee.
+ *
+ * @param props.dates The dates list
+ * @param props.employeeData The employee data
+ * @returns React.FC
+ */
 const TimeOffRow = ({ dates, employeeData }: { dates: string[]; employeeData: EmployeeDataProps }) => {
   return (
     <TableRow className="flex items-center w-full border-0">
@@ -169,7 +200,7 @@ const TimeOffRow = ({ dates, employeeData }: { dates: string[]; employeeData: Em
           <ResourceTableCell
             type="default"
             key={date}
-            cellClassName={cn(getTableCellClass(index),"bg-gray-200")}
+            cellClassName={cn(getTableCellClass(index), "bg-gray-200")}
             value={employeeData.all_leave_data[date] ? employeeData.all_leave_data[date] : "-"}
           />
         );

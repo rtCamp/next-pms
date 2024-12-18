@@ -1,10 +1,13 @@
-import { removeValueFromArray } from "@/app/pages/resource_management/utils/helper";
+/**
+ * External dependencies.
+ */
+import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+
 import { getTodayDate, getFormatedDate } from "@/lib/utils";
 import {
   ResourceAllocationObjectProps,
   ResourceCustomerObjectProps,
 } from "@/types/resource_management";
-import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
 export type DateRange = {
   start_date: string;

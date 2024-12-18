@@ -1,6 +1,13 @@
 import { store } from "@/store";
 import { DateProps } from "@/store/team";
 
+/**
+ * Genrate th cell css based on cell and week index.
+ *
+ * @param index The index of the cell
+ * @param weekIndex The index of the week
+ * @returns
+ */
 const getTableCellClass = (index: number, weekIndex: number = 0) => {
   //   return "flex max-w-20 w-full justify-center items-center border-r border-b border-gray-400";
 
@@ -17,6 +24,13 @@ const getTableCellClass = (index: number, weekIndex: number = 0) => {
   return "";
 };
 
+/**
+ * Remove the specified item from the array
+ *
+ * @param value The item to be removed
+ * @param array The array.
+ * @returns array
+ */
 const removeValueFromArray = (value: string, array: string[] | undefined) => {
   console.log(value, array);
   if (!array) {
@@ -25,9 +39,15 @@ const removeValueFromArray = (value: string, array: string[] | undefined) => {
   return array.filter((itemvalue: string) => itemvalue != value);
 };
 
+/**
+ * Get the billable flag values based on allocation type.
+ *
+ * @param value The array of filter of allocation type.
+ * @returns
+ */
 const getIsBillableValue = (value: string[]) => {
   if (value.length == 2 || value.length == 0) {
-    return -1;
+    return 1;
   } else if (value[0] == "Billable") {
     return 1;
   } else {
@@ -35,16 +55,13 @@ const getIsBillableValue = (value: string[]) => {
   }
 };
 
-const getTableCellRow = () => {
-  return "flex items-center w-full";
-};
-
-const getInitials = (name: string) => {
-  const words: string[] = name.split(" ");
-  const initials = words.map((word) => word[0]).join("");
-  return initials;
-};
-
+/**
+ * Find the number of days for given range exculating weekends.
+ * 
+ * @param start 
+ * @param end 
+ * @returns Number of days exculating weekends.
+ */
 const daysDiff = (start: string | Date, end: string | Date) => {
   if (typeof start === "string") {
     start = new Date(start);
@@ -95,6 +112,13 @@ const getRelativeEndDate = (end: string): string => {
   return end;
 };
 
+/**
+ * Returns the Trim value of the given value.
+ * 
+ * @param value The value to trim.
+ * @param lenght The length of the string to trim, in characters.
+ * @returns 
+ */
 const getFilterValue = (
   value: string | number | undefined | boolean,
   lenght: number = 20
@@ -108,19 +132,30 @@ const getFilterValue = (
   return value.length > lenght ? `${value.slice(0, lenght)}...` : value;
 };
 
+
+const getTableCellRow = () => {
+  return "flex items-center w-full";
+};
+
+const getInitials = (name: string) => {
+  const words: string[] = name.split(" ");
+  const initials = words.map((word) => word[0]).join("");
+  return initials;
+};
+
 const getRoundOfValue = (value: number): number => {
   return Math.round(value * 100) / 100;
 };
 
 export {
+  daysDiff,
+  getFilterValue,
+  getInitials,
+  getIsBillableValue,
+  getRelativeEndDate,
+  getRelativeStartDate,
+  getRoundOfValue,
   getTableCellClass,
   getTableCellRow,
-  getInitials,
-  daysDiff,
-  getRelativeStartDate,
-  getRelativeEndDate,
-  getFilterValue,
-  getRoundOfValue,
-  getIsBillableValue,
   removeValueFromArray,
 };

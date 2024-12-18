@@ -10,6 +10,7 @@
     "dev": "cd frontend/pms && npm run dev",
     "build": "cd frontend/pms && npm install && npm run build"
   },
-  "devDependencies": {
+  "dependencies": {
+    "eslint-plugin-simple-import-sort": "^12.1.1"
   }
 }

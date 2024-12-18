@@ -1,9 +1,13 @@
+/**
+ * External dependencies.
+ */
+import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+
 import { getTodayDate, getFormatedDate } from "@/lib/utils";
 import {
   ResourceAllocationObjectProps,
   ResourceCustomerObjectProps,
 } from "@/types/resource_management";
-import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { DateProps } from "../team";
 import { DateRange } from "./team";
 

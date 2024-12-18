@@ -1,21 +1,38 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
-import { cn, prettyDate } from "@/lib/utils";
-import {
-  ResourceCustomerProps,
-  ResourceCustomerObjectProps,
-  ResourceAllocationProps,
-  ResourceAllocationObjectProps,
-} from "@/types/resource_management";
-import { useDispatch, useSelector } from "react-redux";
-import { getFilterValue, getInitials } from "../utils/helper";
-import { Clipboard, Pencil, Plus, Trash2 } from "lucide-react";
+/**
+ * External dependencies.
+ */
 import { useFrappeDeleteDoc } from "frappe-react-sdk";
-import { PermissionProps, setResourceFormData } from "@/store/resource_management/allocation";
-import { setReFetchData } from "@/store/resource_management/team";
+import { Clipboard, Pencil, Plus, Trash2 } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+
+/**
+ * Internal dependencies.
+ */
+import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 import { Button } from "@/app/components/ui/button";
 import { useToast } from "@/app/components/ui/use-toast";
+import { cn, prettyDate } from "@/lib/utils";
 import { RootState } from "@/store";
+import { PermissionProps, setResourceFormData } from "@/store/resource_management/allocation";
+import { setReFetchData } from "@/store/resource_management/team";
+import {
+  ResourceAllocationObjectProps,
+  ResourceAllocationProps,
+  ResourceCustomerObjectProps,
+  ResourceCustomerProps,
+} from "@/types/resource_management";
+import { getFilterValue, getInitials } from "../utils/helper";
 
+/**
+ * This component is responsible for rendering the list of resource allocations in Card.
+ * 
+ * @param props.resourceAllocationList The list of resource allocation whihc can have list of allocation names or allocation objects
+ * @param props.employeeAllocations The employee allocations.
+ * @param props.customer The customer object which holds the customer data.
+ * @param props.onButtonClick The on button click event.
+ * @param props.viewType The view type of resource page, team or project.
+ * @returns React.FC
+ */
 export const ResourceAllocationList = ({
   resourceAllocationList,
   employeeAllocations,
@@ -29,6 +46,7 @@ export const ResourceAllocationList = ({
   viewType?: string;
   onButtonClick?: () => void;
 }) => {
+
   const resourceAllocationPermission: PermissionProps = useSelector(
     (state: RootState) => state.resource_allocation_form.permissions
   );
@@ -67,6 +85,14 @@ export const ResourceAllocationList = ({
   );
 };
 
+/**
+ * This component is used to render single allocation information. also include function to create, update and destroy allocation information.
+ * 
+ * @param props.resourceAllocation The resource allocation object.
+ * @param props.customer The customer object which holds the customer data.
+ * @param props.viewType The view type of resource page, team or project. 
+ * @returns React.FC
+ */
 export const ResourceAllocationCard = ({
   resourceAllocation,
   customer,
@@ -76,6 +102,7 @@ export const ResourceAllocationCard = ({
   customer: ResourceCustomerObjectProps;
   viewType?: string;
 }) => {
+
   const customerData: ResourceCustomerProps = customer[resourceAllocation.customer];
   const resourceAllocationPermission: PermissionProps = useSelector(
     (state: RootState) => state.resource_allocation_form.permissions
@@ -92,7 +119,6 @@ export const ResourceAllocationCard = ({
     if (!resourceAllocationPermission.delete) {
       return;
     }
-
     deleteDoc("Resource Allocation", resourceAllocation.name)
       .then(() => {
         toast({

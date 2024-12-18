@@ -1,11 +1,19 @@
-import { Button } from "@/app/components/ui/button";
+/**
+ * External dependencies.
+ */
+import { CheckedState } from "@radix-ui/react-checkbox";
+import { useFrappeGetCall } from "frappe-react-sdk";
 import { Filter, X } from "lucide-react";
-import { ComboxBox } from "@/app/components/comboBox";
-import { Badge } from "@/app/components/ui/badge";
-import { Header } from "@/app/layout/root";
-import { cn } from "@/lib/utils";
 import React, { useEffect, useState } from "react";
+
+/**
+ * Internal dependencies.
+ */
+import { ComboxBox } from "@/app/components/comboBox";
 import { DeBounceInput } from "@/app/components/deBounceInput";
+import EmployeeCombo from "@/app/components/employeeComboBox";
+import { Badge } from "@/app/components/ui/badge";
+import { Button } from "@/app/components/ui/button";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import {
   Select,
@@ -16,10 +24,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/components/ui/select";
-import { CheckedState } from "@radix-ui/react-checkbox";
-import { useFrappeGetCall } from "frappe-react-sdk";
+import { Header } from "@/app/layout/root";
 import { useQueryParamsState } from "@/lib/queryParam";
-import EmployeeCombo from "@/app/components/employeeComboBox";
+import { cn } from "@/lib/utils";
+
 import { removeValueFromArray } from "../utils/helper";
 
 interface FilterPops {
@@ -68,6 +76,13 @@ interface HeaderSectionProps {
   buttons: ButtonProps[];
 }
 
+/**
+ * This component is responsible for Render the header section of resource pages. also it provide the dynamic way to show the filters and buttons with json data pass only.
+ *
+ * @param props.filters The filters to be displayed in the header section.
+ * @param props.buttons The buttons to be displayed in the header section.
+ * @returns React.FC
+ */
 const ResourceHeaderSection = ({ filters, buttons }: HeaderSectionProps) => {
   return (
     <div className="border-b">
@@ -110,15 +125,23 @@ const ResourceHeaderSection = ({ filters, buttons }: HeaderSectionProps) => {
   );
 };
 
+/**
+ * This component is responsible for rendering the single filter based on its type in the header section.
+ *
+ * @param props.filter The filter to be displayed in the header section.
+ * @returns React.FC
+ */
 const RenderFilter = ({ filter }: { filter: FilterPops }) => {
   const [queryParam, setQueryParam] = useQueryParamsState(filter.queryParameterName, filter.queryParameterDefault);
 
   const handleChangeWrapper = (value: string | CheckedState | string[]) => {
+    /* Make sure to update uqery parameters based on changes. */
     setQueryParam(value);
     filter.handleChange && filter.handleChange(value);
   };
 
   useEffect(() => {
+    /** This will make sure to update the query parameter state if some filter is removed from the URL. */
     setQueryParam(filter.value as string | CheckedState | string[]);
   }, [filter.value, setQueryParam]);
 
@@ -147,6 +170,7 @@ const RenderFilter = ({ filter }: { filter: FilterPops }) => {
   }
 
   if (filter.type == "select-search") {
+    // If we do not have apicall in dynamic search then do nothing.
     if (!filter.apiCall) {
       return <></>;
     }
@@ -217,6 +241,12 @@ const RenderFilter = ({ filter }: { filter: FilterPops }) => {
   }
 };
 
+/**
+ * This component is responsible for rendering the active filters views in the header section.
+ * 
+ * @param props.filters The filters to be displayed in the header section. 
+ * @returns React.FC
+ */
 const RenderFiltersValues = ({ filters }: { filters: FilterPops[] }) => {
   const [updateFilters, setUpdateFilters] = useState<FilterPops[]>([]);
 
@@ -279,6 +309,13 @@ const RenderFiltersValues = ({ filters }: { filters: FilterPops[] }) => {
   );
 };
 
+/**
+ * A Wrapper around ComboxBox to handle the data fetching part dynamically.
+ * 
+ * @param props.filter The filter to be displayed in the header section.
+ * @param props.handleChangeWrapper The handle change wrapper function.
+ * @returns React.FC
+ */
 const ComboxBoxWrapper = ({ filter, handleChangeWrapper }: { filter: FilterPops; handleChangeWrapper: any }) => {
   const apiCall: ApiCallProps | undefined = filter.apiCall;
 
