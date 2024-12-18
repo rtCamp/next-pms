@@ -5,7 +5,7 @@ import { Typography } from "@/app/components/typography";
 import { Badge } from "@/app/components/ui/badge";
 import { cn, floatToTime } from "@/lib/utils";
 import { Progress } from "@/app/components/ui/progress";
-import { getColumns } from "@/app/components/listview/Columns";
+import { DataCell } from "@/app/components/listview/DataCell";
 
 const HOUR_FIELD = ["actual_time", "custom_total_hours_purchased", "custom_total_hours_remaining"];
 
@@ -86,7 +86,16 @@ export const getColumnInfo = (
             </a>
           );
         } else {
-          return getColumns(meta, title_field, docType, row, value, currency);
+          return (
+            <DataCell
+              meta={meta}
+              title_field={title_field}
+              docType={docType}
+              value={value}
+              row={row}
+              currency={currency}
+            />
+          );
         }
       },
     };

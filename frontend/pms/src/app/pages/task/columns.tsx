@@ -9,7 +9,7 @@ import { UserState } from "../../../store/user";
 import { TaskData } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
 import Empty from "@/app/components/listview/Empty";
-import { getColumns } from "@/app/components/listview/Columns";
+import { DataCell } from "@/app/components/listview/DataCell";
 
 export type openTaskLogType = (taskName: string) => void;
 export type handleAddTimeType = (taskName: string) => void;
@@ -118,7 +118,7 @@ export const flatTableColumnDefinition = (
             </Typography>
           );
         }
-        return getColumns(meta, title_field, docType, row, value);
+        return <DataCell meta={meta} title_field={title_field} docType={docType} value={value} row={row} />;
       },
     };
     columns.push(col as ColumnDef<TaskData>);

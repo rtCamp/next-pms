@@ -35,14 +35,16 @@ const SUCCESS_SELECT_VALUES = [
 ];
 const FAIL_SELECT_VALUES = ["Failed", "Cancelled", "Rejected", "Inactive", "Disabled", "No"];
 const OPEN_SELECT_VALUES = ["Open", "Pending", "Draft", "Not Started"];
-export const getColumns = (
-  meta: fieldMetaProps,
-  title_field: string,
-  docType: string,
-  row: any,
-  value: string,
-  currency?: string
-) => {
+
+interface DataCellProps {
+  meta: fieldMetaProps;
+  title_field: string;
+  docType: string;
+  row: any;
+  value: string;
+  currency?: string;
+}
+export const DataCell = ({ meta, title_field, docType, row, value, currency }: DataCellProps) => {
   if (!meta) return;
   if (NO_VALUE_FIELDS.includes(meta.fieldtype)) return;
 
@@ -144,16 +146,16 @@ const progressBarColor = (value: number) => {
 
 const selectBadgeColor = (value: string, options: Array<string>) => {
   const colors = [
-    "bg-red-500",
-    "bg-green-500",
-    "bg-blue-500",
-    "bg-pink-500",
-    "bg-purple-500",
-    "bg-teal-500",
-    "bg-orange-500",
-    "bg-indigo-500",
-    "bg-yellow-500",
-    "bg-gray-500",
+    "bg-red-600",
+    "bg-green-600",
+    "bg-blue-600",
+    "bg-slate-600",
+    "bg-purple-600",
+    "bg-teal-600",
+    "bg-orange-600",
+    "bg-zinc-600",
+    "bg-yellow-600",
+    "bg-gray-600",
   ];
 
   const colorMap = options.reduce((acc, option, index) => {
