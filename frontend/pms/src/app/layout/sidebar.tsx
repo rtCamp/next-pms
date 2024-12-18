@@ -312,7 +312,7 @@ const Navigation = () => {
   return (
     <GenWrapper>
       <Popover>
-        <PopoverTrigger title={user.userName} className={cn("flex items-center gap-x-2 w-4/5")}>
+        <PopoverTrigger title={user.userName} className={cn("flex items-center gap-x-2")}>
           <Avatar className="w-8 h-8 justify-self-end transition-all duration-600">
             <AvatarImage src={decodeURIComponent(user.image)} />
             <AvatarFallback>{user.userName[0]}</AvatarFallback>

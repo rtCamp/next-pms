@@ -47,7 +47,7 @@ import { LeaveProps, NewTimesheetProps, TaskDataItemProps, TaskDataProps, timesh
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/app/components/ui/input";
 import { timeStringToFloat } from "@/schema/timesheet";
-import { EditTime } from "@/app/pages/timesheet/editTime";
+import { EditTime } from "@/app/pages/timesheet/EditTime";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import { Approval } from "./approval";
 import { useQueryParamsState } from "@/lib/queryParam";
