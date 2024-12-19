@@ -160,9 +160,11 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
         reporting_manager = frappe.get_value("Employee", employee, "reports_to")
         if not reporting_manager:
             throw(_("Reporting Manager not found for the employee."))
-    if approver and approver != reporting_manager:
+    else:
         reporting_manager = approver
 
+    if not frappe.db.exists("Employee", reporting_manager):
+        throw(_("Approver not found."), frappe.DoesNotExistError)
     reporting_manager_name = frappe.get_value("Employee", reporting_manager, "employee_name")
 
     start_date = get_first_day_of_week(start_date)
