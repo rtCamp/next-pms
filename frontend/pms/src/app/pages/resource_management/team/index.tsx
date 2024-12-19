@@ -1,9 +1,9 @@
 /**
  * External dependencies.
  */
-import { useFrappeGetCall } from "frappe-react-sdk";
 import { useCallback, useEffect } from "react";
 import { useDispatch,useSelector } from "react-redux";
+import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -15,11 +15,13 @@ import { RootState } from "@/store";
 import { AllocationDataProps, PermissionProps, setResourcePermissions } from "@/store/resource_management/allocation";
 import { setData, setReFetchData, setStart, updateData } from "@/store/resource_management/team";
 
-import AddResourceAllocations from "../components/AddAllocation";
-import { FooterSection } from "../components/Footer";
-import { getIsBillableValue } from "../utils/helper";
+
 import { ResourceTeamHeaderSection } from "./components/Header";
 import { ResourceTeamTable } from "./components/Table";
+import AddResourceAllocations from "../components/AddAllocation";
+import { DeleteAllocation } from "../components/DeleteAllocation";
+import { FooterSection } from "../components/Footer";
+import { getIsBillableValue } from "../utils/helper";
 
 /**
  * This is main component which is responsible for rendering the team view of resource management.
@@ -29,7 +31,7 @@ import { ResourceTeamTable } from "./components/Table";
 const ResourceTeamView = () => {
   const { toast } = useToast();
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
-  const ResourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
+  const resourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
   const dispatch = useDispatch();
   const resourceAllocationPermission: PermissionProps = useSelector(
     (state: RootState) => state.resource_allocation_form.permissions
@@ -121,7 +123,7 @@ const ResourceTeamView = () => {
         <ResourceTeamTable />
       )}
 
-      {ResourceAllocationForm.isShowDialog && <AddResourceAllocations onSubmit={onFormSubmit} />}
+      {resourceAllocationForm.isShowDialog && <AddResourceAllocations onSubmit={onFormSubmit} />}
 
       <FooterSection
         disabled={

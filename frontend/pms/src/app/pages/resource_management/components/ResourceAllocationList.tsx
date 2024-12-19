@@ -3,7 +3,8 @@
  */
 import { useDispatch, useSelector } from "react-redux";
 import { useFrappeDeleteDoc } from "frappe-react-sdk";
-import { Clipboard, Pencil, Plus, Trash2, ShieldAlert } from "lucide-react";
+import { Clipboard, Pencil, Plus } from "lucide-react";
+import { useState } from "react";
 
 /**
  * Internal dependencies.
@@ -21,6 +22,8 @@ import {
   ResourceCustomerObjectProps,
   ResourceCustomerProps,
 } from "@/types/resource_management";
+
+import { DeleteAllocation } from "./Confirmation";
 import { getFilterValue, getInitials } from "../utils/helper";
 import { Typography } from "@/app/components/typography";
 
@@ -114,29 +117,6 @@ export const ResourceAllocationCard = ({
   const { date: startDate } = prettyDate(resourceAllocation.allocation_start_date);
   const { date: endDate } = prettyDate(resourceAllocation.allocation_end_date);
   const dispatch = useDispatch();
-  const { toast } = useToast();
-
-  const { deleteDoc } = useFrappeDeleteDoc();
-
-  const handleResourceAllocationDelete = () => {
-    if (!resourceAllocationPermission.delete) {
-      return;
-    }
-    deleteDoc("Resource Allocation", resourceAllocation.name)
-      .then(() => {
-        toast({
-          variant: "success",
-          description: "Resouce allocation deleted successfully",
-        });
-        dispatch(setReFetchData(true));
-      })
-      .catch(() => {
-        toast({
-          variant: "destructive",
-          description: "Failed to delete resource allocation",
-        });
-      });
-  };
 
   const handleResourceAllocationEdit = () => {
     if (!resourceAllocationPermission.write) {
@@ -268,16 +248,75 @@ export const ResourceAllocationCard = ({
             </>
           )}
           {resourceAllocationPermission.delete && (
-            <Trash2
-              className="w-4 hover:text-red-500"
-              size={16}
-              strokeWidth={1.25}
-              aria-label="Delete"
-              onClick={handleResourceAllocationDelete}
+            <DeleteIcon
+              resourceAllocation={resourceAllocation}
+              resourceAllocationPermission={resourceAllocationPermission}
             />
           )}
         </div>
       </div>
     </div>
+  );
+};
+
+/**
+ * The delete icon's confirm box wrapper.
+ *
+ * @param props.resourceAllocation The resource allocation object.
+ * @param props.resourceAllocationPermission The resource allocation permission object.
+ * @returns
+ */
+const DeleteIcon = ({
+  resourceAllocation,
+  resourceAllocationPermission,
+}: {
+  resourceAllocation: ResourceAllocationProps;
+  resourceAllocationPermission: PermissionProps;
+}) => {
+  const { toast } = useToast();
+  const { deleteDoc } = useFrappeDeleteDoc();
+  const dispatch = useDispatch();
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleResourceAllocationDelete = () => {
+    if (!resourceAllocationPermission.delete) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    deleteDoc("Resource Allocation", resourceAllocation.name)
+      .then(() => {
+        toast({
+          variant: "success",
+          description: "Resouce allocation deleted successfully",
+        });
+        dispatch(setReFetchData(true));
+      })
+      .catch(() => {
+        toast({
+          variant: "destructive",
+          description: "Failed to delete resource allocation",
+        });
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
+
+  return (
+    <DeleteAllocation
+      onDelete={handleResourceAllocationDelete}
+      isLoading={isLoading}
+      isOpen={isOpen}
+      onOpen={() => {
+        setIsOpen(true);
+      }}
+      onCancel={() => {
+        setIsOpen(false);
+      }}
+    />
   );
 };
