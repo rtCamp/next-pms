@@ -56,6 +56,8 @@ def setup_project_and_tasks():
         },
     ]
     for task in task_list:
+        if frappe.db.exists("Task", {"subject": task["subject"]}):
+            continue
         task_doc = frappe.get_doc(
             {
                 "doctype": "Task",

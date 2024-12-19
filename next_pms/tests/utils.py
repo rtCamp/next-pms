@@ -1,8 +1,13 @@
 import frappe
 from erpnext import get_default_company
+from erpnext.setup.doctype.holiday_list.test_holiday_list import make_holiday_list
+from frappe.utils import add_days, nowdate
 
 
 def make_employee(user, company=None, **kwargs):
+    holiday = make_holiday_list(
+        "Test Holiday List", from_date=add_days(nowdate(), -365), to_date=add_days(nowdate(), 365)
+    )
     if not frappe.db.get_value("User", user):
         frappe.get_doc(
             {
@@ -32,6 +37,9 @@ def make_employee(user, company=None, **kwargs):
                 "prefered_email": user,
                 "status": "Active",
                 "employment_type": "Intern",
+                "ctc": 100000,
+                "salary_currency": "INR",
+                "holiday_list": holiday.name,
             }
         )
         if kwargs:
