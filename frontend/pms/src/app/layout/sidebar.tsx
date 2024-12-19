@@ -17,29 +17,18 @@ import {
   FolderKanban,
   BookUser,
 } from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { TIMESHEET, HOME, TEAM, DESK, TASK, PROJECT, ROLES, RESOURCE_MANAGEMENT } from "@/lib/constant";
-import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
-import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
-import { UserContext } from "@/lib/UserProvider";
-import { Separator } from "@/app/components/ui/separator";
-import GenWrapper from "../components/GenWrapper";
 import { Home, LogOut, Users } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
-import logo from "@/logo.svg";
-import { cn } from "@/lib/utils";
-import { RootState } from "@/store";
-import { ViewData } from "@/store/view";
-import { setSidebarCollapsed } from "@/store/user";
+
 import { Typography } from "@/app/components/typography";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 import { Button } from "@/app/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
 import { Separator } from "@/app/components/ui/separator";
-import { DESK, HOME, PROJECT, ROLES, TASK, TEAM, TIMESHEET } from "@/lib/constant";
+import { DESK, HOME, PROJECT, RESOURCE_MANAGEMENT, ROLES, TASK, TEAM, TIMESHEET } from "@/lib/constant";
 import { UserContext } from "@/lib/UserProvider";
 import { cn } from "@/lib/utils";
 import logo from "@/logo.svg";

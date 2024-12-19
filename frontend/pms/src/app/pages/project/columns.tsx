@@ -5,8 +5,6 @@ import { Typography } from "@/app/components/typography";
 import { Badge } from "@/app/components/ui/badge";
 import { Progress } from "@/app/components/ui/progress";
 import { cn, floatToTime } from "@/lib/utils";
-import { currencyFormat } from "./utils";
-
 import { DataCell } from "@/app/components/listview/DataCell";
 
 const HOUR_FIELD = ["actual_time", "custom_total_hours_purchased", "custom_total_hours_remaining"];
@@ -19,7 +17,7 @@ export const getColumnInfo = (
   docType: string,
   currency: string
 ) => {
-  const column = [];
+  const columns = [];
 
   fieldInfo.forEach((f) => {
     const meta = fieldMeta.find((field) => field.fieldname === f);
@@ -102,15 +100,14 @@ export const getColumnInfo = (
         }
       },
     };
-    column.push(col);
+    columns.push(col);
   });
-  return column;
+  return columns;
 };
 
 export const Empty = () => {
   return <span></span>;
 };
-
 
 const progressBarColor = (field: string, fieldInfo: Array<string>, row: any, value: number) => {
   if (field == "custom_percentage_estimated_cost" && fieldInfo.includes("percent_complete")) {

@@ -1,26 +1,21 @@
 /**
  * External dependencies.
  */
-import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import React from "react";
-import { DndProvider, useDrag, useDrop } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
-import { TouchBackend } from "react-dnd-touch-backend";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getCoreRowModel,
   getSortedRowModel,
   useReactTable,
-  VisibilityState,
   getExpandedRowModel,
-  ColumnFiltersState,
-  getFilteredRowModel,
   ExpandedState,
   Table as T,
+  ColumnSizingState,
 } from "@tanstack/react-table";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
-import { Columns2, Ellipsis, Filter, GripVertical, LucideProps, Plus, RotateCcw } from "lucide-react";
-
+import { Download, Ellipsis, Filter, Plus } from "lucide-react";
+import _ from "lodash";
 /**
  * Internal dependencies.
  */
@@ -31,7 +26,6 @@ import { LoadMore } from "@/app/components/loadMore";
 import { Typography } from "@/app/components/typography";
 import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
-import { Checkbox } from "@/app/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,7 +34,6 @@ import {
 } from "@/app/components/ui/dropdown-menu";
 import { useToast } from "@/app/components/ui/use-toast";
 import { Footer, Header } from "@/app/layout/root";
-import { LOCAL_STORAGE_TASK } from "@/lib/constant";
 import { useQueryParamsState } from "@/lib/queryParam";
 import {
   cn,
@@ -48,7 +41,7 @@ import {
   createFalseValuedObject,
   getFormatedDate,
   getDateTimeForMultipleTimeZoneSupport,
-  checkIsMobile,
+  canExport,
 } from "@/lib/utils";
 import { RootState } from "@/store";
 import {
@@ -61,6 +54,10 @@ import {
   updateProjectData,
   setProjectData,
   setSelectedTask,
+  TaskStatusType,
+  setSelectedStatus,
+  setFilters,
+  setSearch,
 } from "@/store/task";
 import { SetAddTimeDialog, SetTimesheet } from "@/store/timesheet";
 import { TaskData, ProjectProps } from "@/types";
@@ -75,8 +72,14 @@ import { AddTask } from "./addTask";
 import { flatTableColumnDefinition, nestedTableColumnDefinition } from "./columns";
 import { FlatTable } from "./flatTable";
 import { RowGroupedTable } from "./groupTable";
-import { columnMap, getTableProps, localStorageTaskDataMap } from "./helper";
 import { TaskLog } from "./taskLog";
+import ViewWrapper from "@/app/components/listview/ViewWrapper";
+import { setViews, ViewData } from "@/store/view";
+import { createFilter,status } from "./utils";
+import ColumnSelector from "@/app/components/listview/ColumnSelector";
+import { Export } from "@/app/components/listview/export";
+import { CreateView } from "@/app/components/listview/createView";
+
 
 const Task = () => {
   const docType = "Task";
@@ -450,7 +453,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       columnSizing: colSizing,
     },
   });
-  
+
   // Nested Table instance
   const nestedProjectTable = useReactTable({
     data: task.project,

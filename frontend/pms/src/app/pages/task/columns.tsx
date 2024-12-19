@@ -3,7 +3,7 @@
  */
 import React, { ReactNode } from "react";
 import { ChevronDown, ChevronUp, Clock, Heart } from "lucide-react";
-
+import { ColumnDef } from "@tanstack/react-table";
 /**
  * Internal dependencies.
  */
@@ -12,9 +12,9 @@ import { cn, isLiked, floatToTime } from "../../../lib/utils";
 import { UserState } from "../../../store/user";
 import { ColumnsType, ProjectNestedColumnsType } from "../../../types/task";
 import { Typography } from "../../components/typography";
-import { columnMap } from "./helper";
 import { TaskStatus } from "./taskStatus";
 import { TaskPriority } from "./index";
+import { DataCell } from "@/app/components/listview/DataCell";
 
 export type columnWidthType = {
   subject: string;
@@ -258,7 +258,7 @@ export const nestedTableColumnDefinition = (
       },
       cell: ({ getValue, row }) => {
         const value = getValue() as string;
-        if (!value) return <Empty />;
+        // if (!value) return <Empty />;
         if (meta.fieldname === "subject") {
           return (
             <Typography

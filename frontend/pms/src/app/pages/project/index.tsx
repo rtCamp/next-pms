@@ -1,10 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * External dependencies.
- */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-/**
- * External dependencies
  */
 import { Filter, Ellipsis, Download, Plus } from "lucide-react";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
@@ -48,7 +44,6 @@ import { useToast } from "@/app/components/ui/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { Badge } from "@/app/components/ui/badge";
 import { Typography } from "@/app/components/typography";
-import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
 import {
   DropdownMenu,
@@ -57,33 +52,16 @@ import {
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
 import { Separator } from "@/app/components/ui/separator";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
-import { useToast } from "@/app/components/ui/use-toast";
 import { useFrappeDocTypeCount } from "@/app/hooks/useFrappeDocCount";
-import useFrappeDoctypeMeta from "@/app/hooks/useFrappeDoctypeMeta";
-import { Header, Footer } from "@/app/layout/root";
-import { useQueryParamsState } from "@/lib/queryParam";
-import { cn, parseFrappeErrorMsg, createFalseValuedObject, checkIsMobile, NO_VALUE_FIELDS } from "@/lib/utils";
-import { RootState } from "@/store";
-import {
-  setProjectData,
-  setSearch,
-  setSelectedProjectType,
-  setSelectedStatus,
-  Status,
-  setStart,
-  setFilters,
-  setSelectedBusinessUnit,
-  setTotalCount,
-  setCurrency,
-  setSelectedBilingType,
-  setOrderBy,
-} from "@/store/project";
 import { setViews, ViewData } from "@/store/view";
 import { sortOrder } from "@/types";
 import { getColumnInfo } from "./columns";
-import { createFilter, defaultView } from "./utils";
-import { getFilter } from "./utils";
+import { getFilter, createFilter } from "./utils";
+import ViewWrapper from "@/app/components/listview/ViewWrapper";
+import ColumnSelector from "@/app/components/listview/ColumnSelector";
+import { Export } from "@/app/components/listview/export";
+import { Spinner } from "@/app/components/spinner";
+import Sort from "@/app/components/listview/sort";
 
 type ProjectProps = {
   viewData: ViewData;

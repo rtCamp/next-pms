@@ -27,7 +27,7 @@ import { useToast } from "@/app/components/ui/use-toast";
 import { Header, Footer, Main } from "@/app/layout/root";
 import { TaskLog } from "@/app/pages/task/taskLog";
 import { Status } from "@/app/pages/team";
-import { EditTime } from "@/app/pages/timesheet/editTime";
+import { EditTime } from "@/app/pages/timesheet/EditTime";
 import { useQueryParamsState } from "@/lib/queryParam";
 import {
   cn,
@@ -58,11 +58,6 @@ import {
   setDateRange,
 } from "@/store/team";
 import { LeaveProps, NewTimesheetProps, TaskDataItemProps, TaskDataProps, timesheet } from "@/types/timesheet";
-import { useNavigate } from "react-router-dom";
-import { Input } from "@/app/components/ui/input";
-import { timeStringToFloat } from "@/schema/timesheet";
-import { EditTime } from "@/app/pages/timesheet/EditTime";
-import EmployeeCombo from "@/app/components/employeeComboBox";
 import { Approval } from "./approval";
 
 const isDateInRange = (date: string, startDate: string, endDate: string) => {
