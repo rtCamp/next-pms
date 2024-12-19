@@ -407,7 +407,6 @@ const View = ({
         )}
       >
         {views.map((view: ViewData) => {
-          if (view.default || view.public) return null;
           const isActive = view.route === window.location.pathname;
           return (
             <NavLink

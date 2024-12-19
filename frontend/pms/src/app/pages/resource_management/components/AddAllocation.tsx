@@ -1,6 +1,19 @@
-// interface AddTimeProps {}
+/**
+ * External dependencies.
+ */
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useFrappeCreateDoc, useFrappeGetCall, useFrappeUpdateDoc } from "frappe-react-sdk";
+import { CircleDollarSign, Clock3, LoaderCircle, Save, Search, X } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useDispatch, useSelector } from "react-redux";
+import { z } from "zod";
 
+/**
+ * Internal dependencies.
+ */
 import { ComboxBox } from "@/app/components/comboBox";
+import { DatePicker } from "@/app/components/datePicker";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import { Button } from "@/app/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
@@ -8,23 +21,22 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/app/components/ui/input";
 import { Separator } from "@/app/components/ui/separator";
 import { Textarea } from "@/app/components/ui/textarea";
+import { useToast } from "@/app/components/ui/use-toast";
 import { cn, getFormatedDate } from "@/lib/utils";
 import { ResourceAllocationSchema } from "@/schema/resource";
+import { timeStringToFloat } from "@/schema/timesheet";
 import { RootState } from "@/store";
 import { AllocationDataProps, ResourceKeys, setDialog } from "@/store/resource_management/allocation";
-import { CircleDollarSign, Clock3, LoaderCircle, Save, Search, X } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useDispatch, useSelector } from "react-redux";
-import { z } from "zod";
-import { DatePicker } from "@/app/components/datePicker";
-import { useFrappeCreateDoc, useFrappeGetCall, useFrappeUpdateDoc } from "frappe-react-sdk";
-import { useCallback, useEffect, useState } from "react";
-import { useToast } from "@/app/components/ui/use-toast";
+
 import { resetState } from "@/store/resource_management/allocation";
 import { getRoundOfValue } from "../utils/helper";
-import { timeStringToFloat } from "@/schema/timesheet";
 
+/**
+ * This component is used to add and update resource allocations data.
+ * 
+ * @param onSubmit Function to be called when form is submitted.
+ * @returns React.FC
+ */
 const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
   const resourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
   const dispatch = useDispatch();
