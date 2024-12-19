@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 /**
  * Internal dependencies.
  */
+import { Typography } from "@/app/components/typography";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 import { HoverCard, HoverCardTrigger } from "@/app/components/ui/hover-card";
 import { cn } from "@/lib/utils";
@@ -17,6 +18,7 @@ import {
   ResourceCustomerObjectProps,
   ResourceCustomerProps,
 } from "@/types/resource_management";
+
 
 import { daysDiff, getRelativeEndDate, getRelativeStartDate } from "../../utils/helper";
 
@@ -156,7 +158,7 @@ export const CustomerAllocationRow = ({
                   <AvatarImage src={decodeURIComponent(customerData.image)} />
                   <AvatarFallback>{customerData.abbr}</AvatarFallback>
                 </Avatar>
-                <p className="text-xs">{customerData.abbr}</p>
+                <Typography className="text-xs">{customerData.abbr}</Typography>
               </>
             )}
           </div>

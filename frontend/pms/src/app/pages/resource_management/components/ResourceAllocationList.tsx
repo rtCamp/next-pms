@@ -22,6 +22,7 @@ import {
   ResourceCustomerProps,
 } from "@/types/resource_management";
 import { getFilterValue, getInitials } from "../utils/helper";
+import { Typography } from "@/app/components/typography";
 
 /**
  * This component is responsible for rendering the list of resource allocations in Card.
@@ -193,42 +194,42 @@ export const ResourceAllocationCard = ({
           <AvatarImage src={decodeURIComponent(customerData.image)} />
           <AvatarFallback>{getInitials(customerData.name[0])}</AvatarFallback>
         </Avatar>
-        <p className="text-xs font-semibold" title={customerData.name}>
+        <Typography className="text-xs font-semibold" title={customerData.name}>
           {getFilterValue(customerData.name, 15)}
-        </p>
+        </Typography>
       </div>
       <div className="space-y-1 flex flex-col w-11/12 pl-1">
         {viewType && viewType == "project" ? (
           <div className="flex gap-1 items-center">
-            <p className="text-xs text-muted-foreground">{resourceAllocation.employee}</p>
-            <p className="text-xs text-muted-foreground" title={resourceAllocation.employee_name}>
+            <Typography className="text-xs text-muted-foreground">{resourceAllocation.employee}</Typography>
+            <Typography className="text-xs text-muted-foreground" title={resourceAllocation.employee_name}>
               {"("}
               {getFilterValue(resourceAllocation.employee_name, 15)}
               {")"}
-            </p>
+            </Typography>
           </div>
         ) : (
           resourceAllocation.project && (
             <div className="flex gap-1 items-center">
-              <p className="text-xs text-muted-foreground">{resourceAllocation.project}</p>
-              <p className="text-xs text-muted-foreground" title={resourceAllocation.project_name}>
+              <Typography className="text-xs text-muted-foreground">{resourceAllocation.project}</Typography>
+              <Typography className="text-xs text-muted-foreground" title={resourceAllocation.project_name}>
                 {"("}
                 {getFilterValue(resourceAllocation.project_name, 15)}
                 {")"}
-              </p>
+              </Typography>
             </div>
           )
         )}
         <div className="flex gap-1 items-center">
-          <p className="text-xs text-muted-foreground">
+          <Typography className="text-xs text-muted-foreground">
             {startDate} - {endDate}
-          </p>
-          <p className="text-xs text-muted-foreground">
+          </Typography>
+          <Typography className="text-xs text-muted-foreground">
             {"("}
             {resourceAllocation.hours_allocated_per_day} {"hours / day)"}
-          </p>
+          </Typography>
         </div>
-        <p
+        <Typography
           className={cn(
             "text-xs font-semibold",
             resourceAllocation.is_billable
@@ -236,12 +237,14 @@ export const ResourceAllocationCard = ({
               : "text-yellow-500"
           )}
         >
-          {resourceAllocation.is_billable ? "Billable" : "Non-billable"} ($)
-        </p>
+          {resourceAllocation.is_billable ? "Billable ($)" : "Non-billable"}
+        </Typography>
 
         {resourceAllocation.note && (
           <div className="note-section mt-2 flex items-center gap-1 w-11/12" title={"Note"}>
-            <p className="text-xs text-gray-600 italic">Note : {getFilterValue(resourceAllocation.note, 150)}</p>
+            <Typography className="text-xs text-gray-600 italic">
+              Note : {getFilterValue(resourceAllocation.note, 150)}
+            </Typography>
           </div>
         )}
 
