@@ -14,6 +14,17 @@ interface InfiniteScrollProps {
   children?: React.ReactNode;
 }
 
+/**
+ * This hooks provide the Ref which is used to check whether the target element is visible or not.
+ * 
+ * @param props.isLoading It is used to check whether the data is loading or not.
+ * @param props.root The element that is used as the viewport for checking visibility of the target.
+ * @param props.rootMarg In the same way that CSS margin works, you can specify values for the top, right, bottom, and left edges.
+ * @param props.hasMore It is used to check whether there is more data to load or not.
+ * @param props.next It is used to call the next function.
+ * @param props.threshold It is used to specify the percentage of the target's visibility the observer's callback should be executed.
+ * @returns React.Ref
+ */
 function useInfiniteScroll({
   isLoading,
   hasMore,
