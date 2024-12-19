@@ -1,4 +1,11 @@
+/**
+ * External dependencies.
+ */
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+
+/**
+ * Internal dependencies.
+ */
 import { ProjectNestedTaskData, sortOrder, TaskData } from "@/types";
 import { flatTableDataToNestedProjectDataConversion } from "@/lib/utils";
 
@@ -165,4 +172,5 @@ export const {
   setTotalCount,
   refreshData
 } = taskSlice.actions;
+
 export default taskSlice.reducer;

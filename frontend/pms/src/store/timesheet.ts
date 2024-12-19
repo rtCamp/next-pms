@@ -1,7 +1,15 @@
+/**
+ * External dependencies.
+ */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { getTodayDate } from "@/lib/utils";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+
+/**
+ * Internal dependencies.
+ */
+import { getTodayDate } from "@/lib/utils";
 import { DataProp } from "@/types/timesheet";
+
 export interface TimesheetState {
   timesheet: {
     name: string;
@@ -109,4 +117,5 @@ export const {
   resetState,
   setEditDialog,
 } = timesheetSlice.actions;
+
 export default timesheetSlice.reducer;

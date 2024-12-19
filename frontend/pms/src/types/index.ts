@@ -5,6 +5,7 @@ export type Employee = {
   image: string;
   employee_name: string;
 };
+
 export type WorkingFrequency = "Per Day" | "Per Week";
 
 export interface TaskData {
@@ -39,3 +40,10 @@ export interface ProjectData {
 }
 
 export type sortOrder = "asc" | "desc";
+
+export type fieldMetaProps = {
+  label: string;
+  fieldname: string;
+  fieldtype: string;
+  options?: string;
+}

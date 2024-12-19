@@ -1,10 +1,18 @@
+/**
+ * External dependencies.
+ */
 import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
 import { Error } from "frappe-js-sdk/lib/frappe_app/types";
-import { TaskData, WorkingFrequency, ProjectNestedTaskData } from "@/types";
-import { TScreenSize } from "@/store/app";
-import { HolidayProp } from "@/types/timesheet";
+import { twMerge } from "tailwind-merge";
+
+/**
+ * Internal dependencies.
+ */
 import { toast } from "@/app/components/ui/use-toast"
+import { TScreenSize } from "@/store/app";
+import { TaskData, WorkingFrequency, ProjectNestedTaskData } from "@/types";
+import { HolidayProp } from "@/types/timesheet";
+
 export const NO_VALUE_FIELDS = ["Section Break", "Column Break",
   "Tab Break",
   "HTML",
@@ -13,7 +21,7 @@ export const NO_VALUE_FIELDS = ["Section Break", "Column Break",
   "Button",
   "Image",
   "Fold",
-  "Heading"]
+  "Heading"];
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -37,6 +45,7 @@ export const getSiteName = () => {
   // @ts-expect-error
   return window.frappe?.boot?.sitename ?? import.meta.env.VITE_SITE_NAME;
 };
+
 export function parseFrappeErrorMsg(error: Error) {
   const messages = getErrorMessages(error);
   let message = "";
@@ -328,3 +337,10 @@ export const copyToClipboard = (text: string) => {
 export const canExport = (doctype: string) => {
   return window.frappe?.boot?.user?.can_export?.includes(doctype);
 }
+
+export const currencyFormat = (currency: string) => {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: currency,
+  });
+};

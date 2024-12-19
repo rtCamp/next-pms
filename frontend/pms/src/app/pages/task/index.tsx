@@ -1,7 +1,48 @@
-import { FrappeConfig, FrappeContext, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
-import { TaskData, ProjectProps } from "@/types";
-import { useCallback, useContext, useEffect, useState } from "react";
+/**
+ * External dependencies.
+ */
+import { useCallback, useEffect, useState } from "react";
+import React from "react";
 import { useDispatch, useSelector } from "react-redux";
+import {
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+  getExpandedRowModel,
+  ExpandedState,
+  Table as T,
+  ColumnSizingState,
+} from "@tanstack/react-table";
+import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import { Download, Ellipsis, Filter, Plus } from "lucide-react";
+import _ from "lodash";
+/**
+ * Internal dependencies.
+ */
+import AddTime from "@/app/components/addTime";
+import { ComboxBox } from "@/app/components/comboBox";
+import { DeBounceInput } from "@/app/components/deBounceInput";
+import { LoadMore } from "@/app/components/loadMore";
+import { Typography } from "@/app/components/typography";
+import { Badge } from "@/app/components/ui/badge";
+import { Button } from "@/app/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/app/components/ui/dropdown-menu";
+import { useToast } from "@/app/components/ui/use-toast";
+import { Footer, Header } from "@/app/layout/root";
+import { useQueryParamsState } from "@/lib/queryParam";
+import {
+  cn,
+  parseFrappeErrorMsg,
+  createFalseValuedObject,
+  getFormatedDate,
+  getDateTimeForMultipleTimeZoneSupport,
+  canExport,
+} from "@/lib/utils";
 import { RootState } from "@/store";
 import {
   setStart,
@@ -13,47 +54,13 @@ import {
   updateProjectData,
   setProjectData,
   setSelectedTask,
-  setFilters,
-  setSelectedStatus,
   TaskStatusType,
+  setSelectedStatus,
+  setFilters,
   setSearch,
 } from "@/store/task";
-import { AddTask } from "./addTask";
-import { FlatTable } from "./flatTable";
-import {
-  cn,
-  parseFrappeErrorMsg,
-  createFalseValuedObject,
-  getFormatedDate,
-  getDateTimeForMultipleTimeZoneSupport,
-  canExport,
-} from "@/lib/utils";
-import { useToast } from "@/app/components/ui/use-toast";
-import { Badge } from "@/app/components/ui/badge";
-import { Button } from "@/app/components/ui/button";
-import { Typography } from "@/app/components/typography";
-import { ComboxBox } from "@/app/components/comboBox";
-import { useQueryParamsState } from "@/lib/queryParam";
-import { Download, Ellipsis, Filter, Plus } from "lucide-react";
-import {
-  getCoreRowModel,
-  getSortedRowModel,
-  useReactTable,
-  getExpandedRowModel,
-  ExpandedState,
-  ColumnSizingState,
-} from "@tanstack/react-table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/app/components/ui/dropdown-menu";
 import { SetAddTimeDialog, SetTimesheet } from "@/store/timesheet";
-import AddTime from "@/app/components/addTime";
-import { RowGroupedTable } from "./groupTable";
-import React from "react";
-import { DeBounceInput } from "@/app/components/deBounceInput";
+import { TaskData, ProjectProps } from "@/types";
 import {
   ColumnsType,
   ProjectNestedColumnsType,
@@ -61,77 +68,26 @@ import {
   GroupByParamType,
   columnsToExcludeActionsInTablesType,
 } from "@/types/task";
-import { TaskLog } from "./taskLog";
-import { Footer, Header } from "@/app/layout/root";
-import { LoadMore } from "@/app/components/loadMore";
+import { AddTask } from "./addTask";
 import { flatTableColumnDefinition, nestedTableColumnDefinition } from "./columns";
-import { Export } from "@/app/components/listview/export";
+import { FlatTable } from "./flatTable";
+import { RowGroupedTable } from "./groupTable";
+import { TaskLog } from "./taskLog";
+import ViewWrapper from "@/app/components/listview/ViewWrapper";
 import { setViews, ViewData } from "@/store/view";
-import { useSearchParams } from "react-router-dom";
-import { createFilter, defaultView } from "./utils";
-import useFrappeDoctypeMeta from "@/app/hooks/useFrappeDoctypeMeta";
+import { createFilter,status } from "./utils";
 import ColumnSelector from "@/app/components/listview/ColumnSelector";
+import { Export } from "@/app/components/listview/export";
 import { CreateView } from "@/app/components/listview/createView";
-import { Spinner } from "@/app/components/spinner";
-import { status } from "./helper";
-import _ from "lodash";
+
 
 const Task = () => {
-  // Redux States
-  const views = useSelector((state: RootState) => state.view);
-
-  const [searchParams, setSearchParams] = useSearchParams();
-  const view = searchParams.get("view");
-  const { call } = useContext(FrappeContext) as FrappeConfig;
-  const dispatch = useDispatch();
-  const [viewData, setViewData] = useState<ViewData | undefined>(undefined);
-
-  useEffect(() => {
-    if (!view) {
-      const viewData = views.views.find((v) => v.dt === "Task" && v.default);
-      updateViewData(viewData ?? defaultView());
-    } else {
-      const viewData = views.views.find((v) => v.name == view);
-      if (!viewData) {
-        searchParams.delete("view");
-        setSearchParams(searchParams);
-      }
-      updateViewData(viewData ?? defaultView());
-    }
-  }, [view, views.views]);
-
-  const updateViewData = (viewData: ViewData) => {
-    setViewData(viewData);
-    const filters = {
-      search: viewData.filters.search ?? searchParams.get("search"),
-      selectedProject: viewData.filters.projects ?? JSON.parse(searchParams.get("project") ?? "[]"),
-      selectedStatus: viewData.filters.status ?? JSON.parse(searchParams.get("status") ?? "[]"),
-      groupBy: viewData.filters.groupBy ?? JSON.parse(searchParams.get("groupby") ?? "[]"),
-    };
-    dispatch(setFilters(filters));
-  };
-
-  useEffect(() => {
-    const defaultDtView = views.views.find((v) => v.dt === "Task" && v.default);
-    if (!defaultDtView) {
-      call
-        .post("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.create_view", {
-          view: defaultView(),
-        })
-        .then((res) => {
-          dispatch(setViews(res.message));
-        });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const { doc } = useFrappeDoctypeMeta("Task");
-
-  if (doc && viewData) {
-    return <TaskTable viewData={viewData} meta={doc} />;
-  } else {
-    return <Spinner isFull />;
-  }
+  const docType = "Task";
+  return (
+    <ViewWrapper docType={docType}>
+      {({ viewData, meta }) => <TaskTable viewData={viewData} meta={meta.message} />}
+    </ViewWrapper>
+  );
 };
 
 export default Task;
@@ -293,15 +249,21 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
   }, [setGroupByParam, task.groupBy]);
 
   // call to fetch task list from DB ( single data source for flat and nested table)
-  const { data, isLoading, error, mutate } = useFrappeGetCall("next_pms.timesheet.api.task.get_task_list", {
-    page_length: task.pageLength,
-    start: task.start,
-    projects: task.selectedProject,
-    search: subjectSearchParam,
-    status: statusParam,
-  }, undefined, {
-    revalidateIfStale: false,
-  });
+  const { data, isLoading, error, mutate } = useFrappeGetCall(
+    "next_pms.timesheet.api.task.get_task_list",
+    {
+      page_length: task.pageLength,
+      start: task.start,
+      projects: task.selectedProject,
+      search: subjectSearchParam,
+      status: statusParam,
+      fields: viewInfo?.rows,
+    },
+    undefined,
+    {
+      revalidateIfStale: false,
+    }
+  );
 
   useEffect(() => {
     dispatch(setGroupBy(groupByParam));
@@ -391,6 +353,14 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
   // useEffect when changing View States
 
   useEffect(() => {
+    dispatch(
+      setFilters({
+        search: viewData.filters.search ?? "",
+        selectedProject: viewData.filters.projects ?? [],
+        selectedStatus: viewData.filters.status ?? ["Open", "Working"],
+        groupBy: viewData.filters.groupBy ?? [],
+      })
+    );
     setViewInfo(viewData);
     setColSizing(viewData.columns);
     setColumnOrder(viewData.rows);
@@ -447,6 +417,8 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     meta.fields,
     viewInfo?.rows,
     viewInfo?.columns,
+    meta.title_field,
+    meta.doctype,
     openTaskLog,
     handleAddTime,
     user,
@@ -481,6 +453,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       columnSizing: colSizing,
     },
   });
+
   // Nested Table instance
   const nestedProjectTable = useReactTable({
     data: task.project,
