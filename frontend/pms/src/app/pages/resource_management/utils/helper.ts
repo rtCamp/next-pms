@@ -6,7 +6,7 @@ import { DateProps } from "@/store/team";
  *
  * @param index The index of the cell
  * @param weekIndex The index of the week
- * @returns
+ * @returns string
  */
 const getTableCellClass = (index: number, weekIndex: number = 0) => {
   //   return "flex max-w-20 w-full justify-center items-center border-r border-b border-gray-400";
@@ -43,11 +43,11 @@ const removeValueFromArray = (value: string, array: string[] | undefined) => {
  * Get the billable flag values based on allocation type.
  *
  * @param value The array of filter of allocation type.
- * @returns
+ * @returns number
  */
 const getIsBillableValue = (value: string[]) => {
   if (value.length == 2 || value.length == 0) {
-    return 1;
+    return -1;
   } else if (value[0] == "Billable") {
     return 1;
   } else {
@@ -86,6 +86,12 @@ const daysDiff = (start: string | Date, end: string | Date) => {
   return Math.floor(diff / (1000 * 60 * 60 * 24)) - weekendDays;
 };
 
+/**
+ * Get the relative start date based on the state dates and provided start date.
+ * 
+ * @param start The start date.
+ * @returns string
+ */
 const getRelativeStartDate = (start: string) => {
   const state = store.getState();
   const resourceTeamStateDates: DateProps[] = state.resource_team.data.dates;
@@ -99,6 +105,12 @@ const getRelativeStartDate = (start: string) => {
   return start;
 };
 
+/**
+ * Get the relative end date based on the state dates and provided end date.
+ * 
+ * @param end The end date.
+ * @returns 
+ */
 const getRelativeEndDate = (end: string): string => {
   const state = store.getState();
   const resourceTeamStateDates: DateProps[] = state.resource_team.data.dates;
@@ -132,17 +144,33 @@ const getFilterValue = (
   return value.length > lenght ? `${value.slice(0, lenght)}...` : value;
 };
 
-
+/**
+ * Table cell base class.
+ * 
+ * @returns string
+ */
 const getTableCellRow = () => {
   return "flex items-center w-full";
 };
 
+/**
+ * Get the combination of first character of each word in the name.
+ * 
+ * @param name The name to get the initials.
+ * @returns 
+ */
 const getInitials = (name: string) => {
   const words: string[] = name.split(" ");
   const initials = words.map((word) => word[0]).join("");
   return initials;
 };
 
+/**
+ * Round of values till 2 decimal points.
+ * 
+ * @param value number which need to be round off.
+ * @returns number
+ */
 const getRoundOfValue = (value: number): number => {
   return Math.round(value * 100) / 100;
 };

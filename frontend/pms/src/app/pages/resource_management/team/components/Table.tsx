@@ -25,7 +25,7 @@ import { ResourceTableCell } from "../../components/TableCell";
 import ResourceTeamTableHeader from "../../components/TableHeader";
 import { ResourceTableRow } from "../../components/TableRow";
 import { getCellBackGroundColor } from "../../utils/cell";
-import { getTableCellClass } from "../../utils/helper";
+import { getIsBillableValue, getTableCellClass } from "../../utils/helper";
 import { CustomerAllocationList } from "./CustomerAllocationList";
 import { ResourceExpandView } from "./ExpandView";
 
@@ -146,7 +146,7 @@ const ResourceTeamTableCell = ({
 }) => {
   const tableView = useSelector((state: RootState) => state.resource_team.tableView);
   const customer = useSelector((state: RootState) => state.resource_team.data.customer);
-  const isBillable = useSelector((state: RootState) => state.resource_team.isBillable);
+  const allocationType = useSelector((state: RootState) => state.resource_team.allocationType);
 
   const heightFactor: number = 40;
   const { date: dateStr, day } = prettyDate(employeeSingleDay.date);
@@ -289,7 +289,7 @@ const ResourceTeamTableCell = ({
         employee: employee,
         allocation_start_date: employeeSingleDay.date,
         allocation_end_date: employeeSingleDay.date,
-        is_billable: isBillable != 0,
+        is_billable: getIsBillableValue(allocationType as string[]) != 0,
         total_allocated_hours: 0,
         hours_allocated_per_day: 0,
         note: "",

@@ -21,7 +21,7 @@ import { ResourceTableCell } from "../../components/TableCell";
 import ResourceProjectTableHeader from "../../components/TableHeader";
 import { ResourceTableRow } from "../../components/TableRow";
 import { getCellBackGroundColor } from "../../utils/cell";
-import { getTableCellClass } from "../../utils/helper";
+import { getIsBillableValue, getTableCellClass } from "../../utils/helper";
 import { ResourceExpandView } from "./ExpandView";
 
 /**
@@ -148,7 +148,7 @@ const ResourceProjectTableCell = ({
 }) => {
   const tableView = useSelector((state: RootState) => state.resource_project.tableView);
   const customer = useSelector((state: RootState) => state.resource_project.data.customer);
-  const isBillable = useSelector((state: RootState) => state.resource_project.isBillable);
+  const allocationType = useSelector((state: RootState) => state.resource_project.allocationType);
 
   const dispatch = useDispatch();
 
@@ -226,7 +226,7 @@ const ResourceProjectTableCell = ({
         project: project,
         allocation_start_date: projectSingleDay.date,
         allocation_end_date: projectSingleDay.date,
-        is_billable: isBillable != 0,
+        is_billable: getIsBillableValue(allocationType as string[]) != 0,
         customer: "",
         total_allocated_hours: 0,
         hours_allocated_per_day: 0,
