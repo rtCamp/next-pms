@@ -17,7 +17,7 @@ import { EmptyRow } from "../../components/Empty";
 import { ResourceAllocationList } from "../../components/ResourceAllocationList";
 import { ResourceTableCell, TableInformationCellContent } from "../../components/TableCell";
 import { CombinedResourceDataProps, CombinedResourceObjectProps, groupAllocations } from "../../utils/group";
-import { getIsBillableValue, getTableCellClass } from "../../utils/helper";
+import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
 
 /**
  * This component is responsible for loading Team view expand view data.
@@ -90,13 +90,13 @@ export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDat
 
 /**
  * This component is responsible for loading The expand view cell.
- * 
+ *
  * @param props.allocationsData The allocation data for the employee.
  * @param props.index The index of the cell.
  * @param props.date The date of the cell.
  * @param props.project The project name/ID.
  * @param props.employee The employee name/ID.
- * @param props.project_name The project name. 
+ * @param props.project_name The project name.
  * @returns React.FC
  */
 const ExpandViewCell = ({
@@ -152,7 +152,7 @@ const ExpandViewCell = ({
       <ResourceTableCell
         type="empty"
         title={title}
-        cellClassName={getTableCellClass(index)}
+        cellClassName={(getTableCellClass(index), getTodayDateCellClass(date))}
         onCellClick={onCellClick}
         value={"-"}
       />
@@ -164,7 +164,7 @@ const ExpandViewCell = ({
       key={index}
       type="hovercard"
       title={title}
-      cellClassName={getTableCellClass(index)}
+      cellClassName={(getTableCellClass(index), getTodayDateCellClass(date))}
       value={
         resourceTeamState.tableView.view == "planned-vs-capacity" || resourceTeamState.tableView.view == "customer-view"
           ? total_allocated_hours
@@ -200,7 +200,7 @@ const TimeOffRow = ({ dates, employeeData }: { dates: string[]; employeeData: Em
           <ResourceTableCell
             type="default"
             key={date}
-            cellClassName={cn(getTableCellClass(index), "bg-gray-200")}
+            cellClassName={cn(getTableCellClass(index), "bg-gray-200", getTodayDateCellClass(date))}
             value={employeeData.all_leave_data[date] ? employeeData.all_leave_data[date] : "-"}
           />
         );

@@ -15,14 +15,14 @@ import { emptyProjectDayData, ProjectDataProps, ProjectResourceProps } from "@/s
 import { DateProps } from "@/store/resource_management/team";
 import { ResourceAllocationObjectProps } from "@/types/resource_management";
 
-import { ResourceAllocationList } from "../../components/ResourceAllocationList";
+import { ResourceExpandView } from "./ExpandView";
 import { EmptyTableBody } from "../../components/Empty";
+import { ResourceAllocationList } from "../../components/ResourceAllocationList";
 import { ResourceTableCell } from "../../components/TableCell";
 import ResourceProjectTableHeader from "../../components/TableHeader";
 import { ResourceTableRow } from "../../components/TableRow";
 import { getCellBackGroundColor } from "../../utils/cell";
-import { getIsBillableValue, getTableCellClass } from "../../utils/helper";
-import { ResourceExpandView } from "./ExpandView";
+import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
 
 /**
  * This component is responsible for loading the table for project view.
@@ -247,7 +247,11 @@ const ResourceProjectTableCell = ({
       <ResourceTableCell
         type="default"
         title={title}
-        cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
+        cellClassName={cn(
+          getTableCellClass(rowCount),
+          cellBackGroundColor,
+          getTodayDateCellClass(projectSingleDay.date)
+        )}
         value={cellValue}
       />
     );
@@ -258,7 +262,11 @@ const ResourceProjectTableCell = ({
       <ResourceTableCell
         type="empty"
         title={title}
-        cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
+        cellClassName={cn(
+          getTableCellClass(rowCount),
+          cellBackGroundColor,
+          getTodayDateCellClass(projectSingleDay.date)
+        )}
         value={""}
         onCellClick={onCellClick}
       />
@@ -269,7 +277,7 @@ const ResourceProjectTableCell = ({
     <ResourceTableCell
       type="hovercard"
       title={title}
-      cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
+      cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor, getTodayDateCellClass(projectSingleDay.date))}
       value={cellValue}
       CustomHoverCardContent={() => {
         return (

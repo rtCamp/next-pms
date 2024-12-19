@@ -1,9 +1,9 @@
 /**
  * External dependencies.
  */
-import { useFrappeGetCall } from "frappe-react-sdk";
 import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -18,7 +18,7 @@ import { ResourceAllocationObjectProps, ResourceCustomerObjectProps } from "@/ty
 import { ResourceAllocationList } from "../../components/ResourceAllocationList";
 import { ResourceTableCell, TableInformationCellContent } from "../../components/TableCell";
 import { getCellBackGroundColor } from "../../utils/cell";
-import { getTableCellClass } from "../../utils/helper";
+import { getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
 
 interface ResourceExpandViewProps {
   project: string;
@@ -30,7 +30,7 @@ interface ResourceExpandViewProps {
 
 /**
  * This component is responsible for loading expand view of resource allocation project view. shows the employee wise allocation data.
- * 
+ *
  * @param props.project The project name/ID.
  * @param props.project_name The name of the project
  * @param props.start_date The start date from which data need to show.
@@ -108,7 +108,7 @@ export const ResourceExpandView = ({
 
 /**
  * This component is used to display the expand view single cell.
- * 
+ *
  * @param props.allocationsData The allocation data for the employee.
  * @param props.index The index of the cell.
  * @param props.employeeAllocations The employee allocation data.
@@ -188,7 +188,7 @@ const ExpandViewCell = ({
       <ResourceTableCell
         type="empty"
         title={title}
-        cellClassName={getTableCellClass(index)}
+        cellClassName={(getTableCellClass(index), getTodayDateCellClass(allocationsData.date))}
         onCellClick={onCellClick}
         value={"-"}
       />
@@ -200,7 +200,11 @@ const ExpandViewCell = ({
       key={index}
       type="hovercard"
       title={title}
-      cellClassName={cn(getTableCellClass(index), cellBackGroundColor)}
+      cellClassName={cn(
+        getTableCellClass(index),
+        cellBackGroundColor,
+        getTodayDateCellClass(allocationsData.date)
+      )}
       value={
         tableView.view == "planned"
           ? allocationsData.total_allocated_hours
