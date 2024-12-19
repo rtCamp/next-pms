@@ -1,9 +1,9 @@
 /**
  * External dependencies.
  */
-import { useFrappeDeleteDoc } from "frappe-react-sdk";
-import { Clipboard, Pencil, Plus, Trash2 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
+import { useFrappeDeleteDoc } from "frappe-react-sdk";
+import { Clipboard, Pencil, Plus } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -21,11 +21,13 @@ import {
   ResourceCustomerObjectProps,
   ResourceCustomerProps,
 } from "@/types/resource_management";
+
+import { DeleteAllocation } from "./DeleteAllocation";
 import { getFilterValue, getInitials } from "../utils/helper";
 
 /**
  * This component is responsible for rendering the list of resource allocations in Card.
- * 
+ *
  * @param props.resourceAllocationList The list of resource allocation whihc can have list of allocation names or allocation objects
  * @param props.employeeAllocations The employee allocations.
  * @param props.customer The customer object which holds the customer data.
@@ -46,18 +48,12 @@ export const ResourceAllocationList = ({
   viewType?: string;
   onButtonClick?: () => void;
 }) => {
-
   const resourceAllocationPermission: PermissionProps = useSelector(
     (state: RootState) => state.resource_allocation_form.permissions
   );
 
   return (
-    <div
-      className={cn(
-        "flex flex-col overflow-y-auto max-h-60",
-        !resourceAllocationPermission.write && "pl-7"
-      )}
-    >
+    <div className={cn("flex flex-col overflow-y-auto max-h-60", !resourceAllocationPermission.write && "pl-7")}>
       {resourceAllocationList.map((resourceAllocation: ResourceAllocationProps) => (
         <ResourceAllocationCard
           key={resourceAllocation.name}
@@ -87,10 +83,10 @@ export const ResourceAllocationList = ({
 
 /**
  * This component is used to render single allocation information. also include function to create, update and destroy allocation information.
- * 
+ *
  * @param props.resourceAllocation The resource allocation object.
  * @param props.customer The customer object which holds the customer data.
- * @param props.viewType The view type of resource page, team or project. 
+ * @param props.viewType The view type of resource page, team or project.
  * @returns React.FC
  */
 export const ResourceAllocationCard = ({
@@ -102,7 +98,6 @@ export const ResourceAllocationCard = ({
   customer: ResourceCustomerObjectProps;
   viewType?: string;
 }) => {
-
   const customerData: ResourceCustomerProps = customer[resourceAllocation.customer];
   const resourceAllocationPermission: PermissionProps = useSelector(
     (state: RootState) => state.resource_allocation_form.permissions
@@ -111,29 +106,6 @@ export const ResourceAllocationCard = ({
   const { date: startDate } = prettyDate(resourceAllocation.allocation_start_date);
   const { date: endDate } = prettyDate(resourceAllocation.allocation_end_date);
   const dispatch = useDispatch();
-  const { toast } = useToast();
-
-  const { deleteDoc } = useFrappeDeleteDoc();
-
-  const handleResourceAllocationDelete = () => {
-    if (!resourceAllocationPermission.delete) {
-      return;
-    }
-    deleteDoc("Resource Allocation", resourceAllocation.name)
-      .then(() => {
-        toast({
-          variant: "success",
-          description: "Resouce allocation deleted successfully",
-        });
-        dispatch(setReFetchData(true));
-      })
-      .catch(() => {
-        toast({
-          variant: "destructive",
-          description: "Failed to delete resource allocation",
-        });
-      });
-  };
 
   const handleResourceAllocationEdit = () => {
     if (!resourceAllocationPermission.write) {
@@ -250,16 +222,55 @@ export const ResourceAllocationCard = ({
             </>
           )}
           {resourceAllocationPermission.delete && (
-            <Trash2
-              className="w-4 hover:text-red-500"
-              size={16}
-              strokeWidth={1.25}
-              aria-label="Delete"
-              onClick={handleResourceAllocationDelete}
+            <DeleteIcon
+              resourceAllocation={resourceAllocation}
+              resourceAllocationPermission={resourceAllocationPermission}
             />
           )}
         </div>
       </div>
     </div>
   );
+};
+
+/**
+ * The delete icon's confirm box wrapper.
+ *
+ * @param props.resourceAllocation The resource allocation object.
+ * @param props.resourceAllocationPermission The resource allocation permission object.
+ * @returns
+ */
+const DeleteIcon = ({
+  resourceAllocation,
+  resourceAllocationPermission,
+}: {
+  resourceAllocation: ResourceAllocationProps;
+  resourceAllocationPermission: PermissionProps;
+}) => {
+  const { toast } = useToast();
+  const { deleteDoc } = useFrappeDeleteDoc();
+  const dispatch = useDispatch();
+
+  const handleResourceAllocationDelete = () => {
+    if (!resourceAllocationPermission.delete) {
+      return;
+    }
+
+    deleteDoc("Resource Allocation", resourceAllocation.name)
+      .then(() => {
+        toast({
+          variant: "success",
+          description: "Resouce allocation deleted successfully",
+        });
+        dispatch(setReFetchData(true));
+      })
+      .catch(() => {
+        toast({
+          variant: "destructive",
+          description: "Failed to delete resource allocation",
+        });
+      });
+  };
+
+  return <DeleteAllocation onDelete={handleResourceAllocationDelete} />;
 };

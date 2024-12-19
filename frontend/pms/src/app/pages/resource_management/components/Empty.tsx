@@ -1,9 +1,9 @@
 /**
  * External dependencies.
  */
-import { CirclePlus } from "lucide-react";
 import { useState } from "react";
 import { useSelector } from "react-redux";
+import { CirclePlus } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -13,8 +13,9 @@ import { cn } from "@/lib/utils";
 import { RootState } from "@/store";
 import { PermissionProps } from "@/store/resource_management/allocation";
 
-import { getTableCellClass, getTableCellRow } from "../utils/helper";
 import { ResourceTableCell, TableCellContent, TableInformationCellContent } from "./TableCell";
+import { getTableCellClass, getTableCellRow } from "../utils/helper";
+
 
 /**
  * This component is responsible for rendering the empty table body.
