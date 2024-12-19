@@ -32,13 +32,13 @@ const ResourceTableHeader = ({ dates, title }: ResourceTableHeaderProps) => {
         <TableHead className="w-[15rem] flex items-center">{title}</TableHead>
         <div className="flex flex-col w-[60rem]">
           <div className="flex items-center">
-            <Typography className="w-full text-center truncate cursor-pointer text-sm border-r border-gray-300">
+            <Typography variant="small" className="w-full text-center truncate cursor-pointer border-r border-gray-300">
               {dates.length > 0 && dates[0].key}
             </Typography>
-            <Typography className="w-full text-center truncate cursor-pointer text-sm border-r border-gray-300">
+            <Typography variant="small" className="w-full text-center truncate cursor-pointer border-r border-gray-300">
               {dates.length > 0 && dates[1].key}
             </Typography>
-            <Typography className="w-full text-center truncate cursor-pointer text-sm">
+            <Typography  variant="small" className="w-full text-center truncate cursor-pointer">
               {dates.length > 0 && dates[2].key}
             </Typography>
           </div>

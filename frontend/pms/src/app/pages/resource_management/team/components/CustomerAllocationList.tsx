@@ -158,7 +158,7 @@ export const CustomerAllocationRow = ({
                   <AvatarImage src={decodeURIComponent(customerData.image)} />
                   <AvatarFallback>{customerData.abbr}</AvatarFallback>
                 </Avatar>
-                <Typography className="text-xs">{customerData.abbr}</Typography>
+                <Typography variant="small">{customerData.abbr}</Typography>
               </>
             )}
           </div>

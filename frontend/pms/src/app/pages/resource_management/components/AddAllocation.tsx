@@ -450,7 +450,7 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
                 render={({ field }) => (
                   <FormItem className="w-full space-y-1">
                     <FormLabel className="flex gap-2 items-center">
-                      <Typography className="text-sm">Total Hours</Typography>
+                      <Typography variant="small">Total Hours</Typography>
                     </FormLabel>
                     <FormControl>
                       <>
@@ -492,7 +492,7 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
                 render={({ field }) => (
                   <FormItem className="w-full space-y-1">
                     <FormLabel className="flex gap-2 items-center">
-                      <Typography className="text-sm">
+                      <Typography variant="small">
                         Hours / Day <span className="text-red-400">*</span>
                       </Typography>
                     </FormLabel>
