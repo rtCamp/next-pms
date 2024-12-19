@@ -1,8 +1,10 @@
+/**
+ * External dependencies.
+ */
 import { useContext, useEffect, useState } from "react";
-
+import { useDispatch, useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
 import { useLocation } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
 import {
   ArrowLeftToLine,
   ArrowRightLeft,
@@ -15,21 +17,25 @@ import {
   FolderKanban,
   BookUser,
 } from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { TIMESHEET, HOME, TEAM, DESK, TASK, PROJECT, ROLES, RESOURCE_MANAGEMENT } from "@/lib/constant";
-import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
-import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
-import { UserContext } from "@/lib/UserProvider";
-import { Separator } from "@/app/components/ui/separator";
-import GenWrapper from "../components/GenWrapper";
 import { Home, LogOut, Users } from "lucide-react";
 
-import logo from "@/logo.svg";
-import { cn } from "@/lib/utils";
-import { RootState } from "@/store";
-import { ViewData } from "@/store/view";
-import { setSidebarCollapsed } from "@/store/user";
+/**
+ * Internal dependencies.
+ */
+
 import { Typography } from "@/app/components/typography";
+import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
+import { Button } from "@/app/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
+import { Separator } from "@/app/components/ui/separator";
+import { DESK, HOME, PROJECT, RESOURCE_MANAGEMENT, ROLES, TASK, TEAM, TIMESHEET } from "@/lib/constant";
+import { UserContext } from "@/lib/UserProvider";
+import { cn } from "@/lib/utils";
+import logo from "@/logo.svg";
+import { RootState } from "@/store";
+import { setSidebarCollapsed } from "@/store/user";
+import { ViewData } from "@/store/view";
+import GenWrapper from "../components/GenWrapper";
 
 type NestedRoute = {
   to: string;
@@ -435,4 +441,5 @@ const View = ({
     </>
   );
 };
+
 export default Sidebar;

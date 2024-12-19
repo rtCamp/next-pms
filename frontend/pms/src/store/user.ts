@@ -1,6 +1,14 @@
+/**
+ * External dependencies.
+ */
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+
+/**
+ * Internal dependencies.
+ */
 import { getCookie } from "@/lib/utils";
 import { WorkingFrequency } from "@/types";
+
 const userImage = getCookie("user_image");
 const fullName = getCookie("full_name");
 const user = getCookie("user_id");
@@ -11,6 +19,7 @@ interface InitiDataProps {
   workingFrequency: WorkingFrequency;
   reportsTo: string;
 }
+
 export interface UserState {
   userName: string;
   image: string;
@@ -88,4 +97,5 @@ export const {
   setWorkingDetail,
   setInitialData
 } = userSlice.actions;
+
 export default userSlice.reducer;

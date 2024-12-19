@@ -1,14 +1,22 @@
+/**
+ * External dependencies.
+ */
 import { lazy, useContext, useEffect } from "react";
-import { TIMESHEET, HOME, TEAM, TASK, PROJECT, RESOURCE_MANAGEMENT } from "@/lib/constant";
-import { Route, Outlet, Navigate } from "react-router-dom";
-import { Layout, PmRoute } from "@/app/layout/index";
-import { RootState } from "./store";
 import { useDispatch, useSelector } from "react-redux";
-import { UserContext } from "@/lib/UserProvider";
+import { Route, Outlet, Navigate } from "react-router-dom";
 import { FrappeConfig, FrappeContext } from "frappe-react-sdk";
+
+/**
+ * Internal dependencies.
+ */
+import { TIMESHEET, HOME, TEAM, TASK, PROJECT, RESOURCE_MANAGEMENT } from "@/lib/constant";
+import { Layout, PmRoute } from "@/app/layout/index";
+import { UserContext } from "@/lib/UserProvider";
+import { RootState } from "./store";
+import { setCurrency } from "./store/app";
 import { setRole } from "./store/user";
 import { setViews } from "./store/view";
-import { setCurrency } from "./store/app";
+
 const TimesheetComponent = lazy(() => import("@/app/pages/timesheet"));
 const HomeComponent = lazy(() => import("@/app/pages/home"));
 const TeamComponent = lazy(() => import("@/app/pages/team"));
@@ -18,6 +26,7 @@ const EmployeeDetailComponent = lazy(() => import("@/app/pages/team/employeeDeta
 const TaskComponent = lazy(() => import("@/app/pages/task"));
 const ProjectComponent = lazy(() => import("@/app/pages/project"));
 const NotFound = lazy(() => import("@/app/pages/404"));
+
 export function Router() {
   return (
     <Route>
@@ -50,6 +59,7 @@ export const AuthenticatedRoute = () => {
   const user = useSelector((state: RootState) => state.user);
   const views = useSelector((state: RootState) => state.view);
   const dispatch = useDispatch();
+
   useEffect(() => {
     if (user.roles.length < 1) {
       call.get("next_pms.timesheet.api.app.get_data").then((res) => {

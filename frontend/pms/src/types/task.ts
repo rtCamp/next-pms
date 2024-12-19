@@ -1,3 +1,6 @@
+/**
+ * Internal dependencies.
+ */
 import { ColumnDef, Table as TanStackTable } from "@tanstack/react-table";
 import { TaskData, ProjectNestedTaskData, sortOrder } from "@/types";
 

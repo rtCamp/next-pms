@@ -1,13 +1,35 @@
-import { Button } from "@/app/components/ui/button";
-import { ChevronLeft, ChevronRight, Filter, CircleCheck, Hourglass, CircleX } from "lucide-react";
-import { ComboxBox } from "@/app/components/comboBox";
-import { Badge } from "@/app/components/ui/badge";
-import { useFrappeGetCall } from "frappe-react-sdk";
+/**
+ * External dependencies.
+ */
+import { useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
-import { RootState } from "@/store";
-import { Header, Footer } from "@/app/layout/root";
+import { useNavigate } from "react-router-dom";
+import { addDays } from "date-fns";
+import { useFrappeGetCall } from "frappe-react-sdk";
+import { ChevronLeft, ChevronRight, Filter, CircleCheck, Hourglass, CircleX } from "lucide-react";
+
+/**
+ * Internal dependencies.
+ */
+import { ComboxBox } from "@/app/components/comboBox";
+import { DeBounceInput } from "@/app/components/deBounceInput";
+import EmployeeCombo from "@/app/components/employeeComboBox";
 import { LoadMore } from "@/app/components/loadMore";
+import { Spinner } from "@/app/components/spinner";
+import { WeekTotal } from "@/app/components/timesheetTable";
+import { Typography } from "@/app/components/typography";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
+import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
+import { Badge } from "@/app/components/ui/badge";
+import { Button } from "@/app/components/ui/button";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
+import { Table, TableHead, TableHeader, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
+import { useToast } from "@/app/components/ui/use-toast";
+import { Header, Footer } from "@/app/layout/root";
+import { TEAM, EMPLOYEE } from "@/lib/constant";
+import { useQueryParamsState } from "@/lib/queryParam";
+import { parseFrappeErrorMsg, prettyDate, floatToTime, getFormatedDate, cn, preProcessLink } from "@/lib/utils";
+import { RootState } from "@/store";
 import {
   setData,
   setWeekDate,
@@ -23,25 +45,10 @@ import {
   setStatus,
   setEmployee,
 } from "@/store/team";
-import { useToast } from "@/app/components/ui/use-toast";
-import { parseFrappeErrorMsg, prettyDate, floatToTime, getFormatedDate, cn, preProcessLink } from "@/lib/utils";
-import { useEffect, useCallback } from "react";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
-import { Table, TableHead, TableHeader, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
-import { Typography } from "@/app/components/typography";
-import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
-import { Employee } from "./employee";
-import { addDays } from "date-fns";
-import { useNavigate } from "react-router-dom";
-import { Approval } from "./approval";
-import { TEAM, EMPLOYEE } from "@/lib/constant";
-import { ItemProps, dataItem } from "@/types/team";
-import { Spinner } from "@/app/components/spinner";
-import { WeekTotal } from "@/app/components/timesheetTable";
-import { useQueryParamsState } from "@/lib/queryParam";
 import { ProjectProps } from "@/types";
-import { DeBounceInput } from "@/app/components/deBounceInput";
-import EmployeeCombo from "@/app/components/employeeComboBox";
+import { ItemProps, dataItem } from "@/types/team";
+import { Approval } from "./approval";
+import { Employee } from "./employee";
 
 type UserGroupProps = {
   name: string;
@@ -478,4 +485,5 @@ export const Status = ({ status, className }: { status: string; className?: stri
   }
   return <CircleCheck className={cn("w-4 h-4", className)} />;
 };
+
 export default Team;

@@ -1,4 +1,30 @@
+/**
+ * External dependencies.
+ */
+import { useCallback, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { addDays, isToday } from "date-fns";
+import { useFrappeGetCall } from "frappe-react-sdk";
+import { ChevronRight, ChevronLeft, Filter } from "lucide-react";
+
+/**
+ * Internal dependencies.
+ */
+import { ComboxBox } from "@/app/components/comboBox";
+import { DeBounceInput } from "@/app/components/deBounceInput";
+import { LoadMore } from "@/app/components/loadMore";
+import { Spinner } from "@/app/components/spinner";
+import { Typography } from "@/app/components/typography";
+import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
+import { Badge } from "@/app/components/ui/badge";
+import { Button } from "@/app/components/ui/button";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
+import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
 import { useToast } from "@/app/components/ui/use-toast";
+import { Header, Footer } from "@/app/layout/root";
+import { TEAM, EMPLOYEE } from "@/lib/constant";
+import { useQueryParamsState } from "@/lib/queryParam";
 import {
   cn,
   parseFrappeErrorMsg,
@@ -8,13 +34,7 @@ import {
   calculateExtendedWorkingHour,
   preProcessLink,
 } from "@/lib/utils";
-import { TEAM, EMPLOYEE } from "@/lib/constant";
 import { RootState } from "@/store";
-import { useFrappeGetCall } from "frappe-react-sdk";
-import { useCallback, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { Header, Footer } from "@/app/layout/root";
-import { LoadMore } from "@/app/components/loadMore";
 import {
   setData,
   setWeekDate,
@@ -26,20 +46,7 @@ import {
   setFilters,
   setStatus,
 } from "@/store/home";
-import { Spinner } from "@/app/components/spinner";
-import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
-import { addDays, isToday } from "date-fns";
-import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
-import { ChevronRight, ChevronLeft, Filter } from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Typography } from "@/app/components/typography";
 import { dataItem } from "@/types/team";
-import { useQueryParamsState } from "@/lib/queryParam";
-import { useNavigate } from "react-router-dom";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
-import { DeBounceInput } from "@/app/components/deBounceInput";
-import { ComboxBox } from "@/app/components/comboBox";
-import { Badge } from "@/app/components/ui/badge";
 
 const Home = () => {
   const { toast } = useToast();
