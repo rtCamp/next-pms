@@ -1,14 +1,25 @@
+/**
+ * Internal dependencies.
+ */
 import { Typography } from "@/app/components/typography";
 import { TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
-import { getTableCellClass } from "../utils/helper";
 import { cn, prettyDate } from "@/lib/utils";
 import { DateProps } from "@/store/resource_management/team";
+
+import { getTableCellClass } from "../utils/helper";
 
 interface ResourceTableHeaderProps {
   dates: DateProps[];
   title: string;
 }
 
+/**
+ * This component is used to render the table header for the resource management table.
+ * 
+ * @param props.dates The dates list
+ * @param props.title The title of Table header.
+ * @returns React.FC
+ */
 const ResourceTableHeader = ({ dates, title }: ResourceTableHeaderProps) => {
   return (
     <TableHeader className="border-t-0 sticky top-0 z-30">

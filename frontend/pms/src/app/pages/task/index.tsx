@@ -1,25 +1,48 @@
 /**
- * External Dependencies
+ * External dependencies.
  */
-import React from "react";
-import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { useCallback, useEffect, useState } from "react";
+import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Download, Ellipsis, Filter, Plus } from "lucide-react";
-import _ from "lodash";
 import {
   getCoreRowModel,
   getSortedRowModel,
   useReactTable,
   getExpandedRowModel,
   ExpandedState,
+  Table as T,
   ColumnSizingState,
 } from "@tanstack/react-table";
-
+import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import { Download, Ellipsis, Filter, Plus } from "lucide-react";
+import _ from "lodash";
 /**
- * Internal Dependencies
+ * Internal dependencies.
  */
-import { TaskData, ProjectProps } from "@/types";
+import AddTime from "@/app/components/addTime";
+import { ComboxBox } from "@/app/components/comboBox";
+import { DeBounceInput } from "@/app/components/deBounceInput";
+import { LoadMore } from "@/app/components/loadMore";
+import { Typography } from "@/app/components/typography";
+import { Badge } from "@/app/components/ui/badge";
+import { Button } from "@/app/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/app/components/ui/dropdown-menu";
+import { useToast } from "@/app/components/ui/use-toast";
+import { Footer, Header } from "@/app/layout/root";
+import { useQueryParamsState } from "@/lib/queryParam";
+import {
+  cn,
+  parseFrappeErrorMsg,
+  createFalseValuedObject,
+  getFormatedDate,
+  getDateTimeForMultipleTimeZoneSupport,
+  canExport,
+} from "@/lib/utils";
 import { RootState } from "@/store";
 import {
   setStart,
@@ -31,37 +54,13 @@ import {
   updateProjectData,
   setProjectData,
   setSelectedTask,
-  setSelectedStatus,
   TaskStatusType,
-  setSearch,
+  setSelectedStatus,
   setFilters,
+  setSearch,
 } from "@/store/task";
-import { AddTask } from "./addTask";
-import { FlatTable } from "./flatTable";
-import {
-  cn,
-  parseFrappeErrorMsg,
-  createFalseValuedObject,
-  getFormatedDate,
-  getDateTimeForMultipleTimeZoneSupport,
-  canExport,
-} from "@/lib/utils";
-import { useToast } from "@/app/components/ui/use-toast";
-import { Badge } from "@/app/components/ui/badge";
-import { Button } from "@/app/components/ui/button";
-import { Typography } from "@/app/components/typography";
-import { ComboxBox } from "@/app/components/comboBox";
-import { useQueryParamsState } from "@/lib/queryParam";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/app/components/ui/dropdown-menu";
 import { SetAddTimeDialog, SetTimesheet } from "@/store/timesheet";
-import AddTime from "@/app/components/addTime";
-import { RowGroupedTable } from "./groupTable";
-import { DeBounceInput } from "@/app/components/deBounceInput";
+import { TaskData, ProjectProps } from "@/types";
 import {
   ColumnsType,
   ProjectNestedColumnsType,
@@ -69,16 +68,18 @@ import {
   GroupByParamType,
   columnsToExcludeActionsInTablesType,
 } from "@/types/task";
-import { TaskLog } from "./taskLog";
-import { Footer, Header } from "@/app/layout/root";
-import { LoadMore } from "@/app/components/loadMore";
+import { AddTask } from "./addTask";
 import { flatTableColumnDefinition, nestedTableColumnDefinition } from "./columns";
-import { Export } from "@/app/components/listview/export";
-import { setViews, ViewData } from "@/store/view";
-import { createFilter, status } from "./utils";
-import ColumnSelector from "@/app/components/listview/ColumnSelector";
-import { CreateView } from "@/app/components/listview/createView";
+import { FlatTable } from "./flatTable";
+import { RowGroupedTable } from "./groupTable";
+import { TaskLog } from "./taskLog";
 import ViewWrapper from "@/app/components/listview/ViewWrapper";
+import { setViews, ViewData } from "@/store/view";
+import { createFilter,status } from "./utils";
+import ColumnSelector from "@/app/components/listview/ColumnSelector";
+import { Export } from "@/app/components/listview/export";
+import { CreateView } from "@/app/components/listview/createView";
+
 
 const Task = () => {
   const docType = "Task";
@@ -452,6 +453,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       columnSizing: colSizing,
     },
   });
+
   // Nested Table instance
   const nestedProjectTable = useReactTable({
     data: task.project,

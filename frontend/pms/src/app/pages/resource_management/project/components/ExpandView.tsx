@@ -1,16 +1,24 @@
-import { Table, TableBody, TableRow } from "@/app/components/ui/table";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/store";
-import { getTableCellClass } from "../../utils/helper";
-import { ResourceAllocationList } from "../../components/Card";
+/**
+ * External dependencies.
+ */
 import { useFrappeGetCall } from "frappe-react-sdk";
-import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
-import { ResourceTableCell, TableInformationCellContent } from "../../components/TableCell";
-import { ResourceAllocationObjectProps, ResourceCustomerObjectProps } from "@/types/resource_management";
 import { useMemo } from "react";
-import { getCellBackGroundColor } from "../../utils/cell";
+import { useDispatch, useSelector } from "react-redux";
+
+/**
+ * Internal dependencies.
+ */
+import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
+import { Table, TableBody, TableRow } from "@/app/components/ui/table";
 import { cn, prettyDate } from "@/lib/utils";
+import { RootState } from "@/store";
 import { setResourceFormData } from "@/store/resource_management/allocation";
+import { ResourceAllocationObjectProps, ResourceCustomerObjectProps } from "@/types/resource_management";
+
+import { ResourceAllocationList } from "../../components/ResourceAllocationList";
+import { ResourceTableCell, TableInformationCellContent } from "../../components/TableCell";
+import { getCellBackGroundColor } from "../../utils/cell";
+import { getTableCellClass } from "../../utils/helper";
 
 interface ResourceExpandViewProps {
   project: string;
@@ -20,6 +28,16 @@ interface ResourceExpandViewProps {
   is_billable: boolean;
 }
 
+/**
+ * This component is responsible for loading expand view of resource allocation project view. shows the employee wise allocation data.
+ * 
+ * @param props.project The project name/ID.
+ * @param props.project_name The name of the project
+ * @param props.start_date The start date from which data need to show.
+ * @param props.end_date The end date till whihc data need to show.
+ * @param props.is_billable The is billable flag.
+ * @returns React.FC
+ */
 export const ResourceExpandView = ({
   project,
   project_name,
@@ -88,6 +106,19 @@ export const ResourceExpandView = ({
   );
 };
 
+/**
+ * This component is used to display the expand view single cell.
+ * 
+ * @param props.allocationsData The allocation data for the employee.
+ * @param props.index The index of the cell.
+ * @param props.employeeAllocations The employee allocation data.
+ * @param props.customer The customer data.
+ * @param props.employee The employee name/ID.
+ * @param props.employee_name The employee name.
+ * @param props.project The project name/ID.
+ * @param props.project_name The project name.
+ * @returns React.FC
+ */
 const ExpandViewCell = ({
   allocationsData,
   index,

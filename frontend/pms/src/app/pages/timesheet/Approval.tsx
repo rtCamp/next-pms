@@ -1,20 +1,27 @@
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
-import { RootState } from "@/store";
-import { useDispatch, useSelector } from "react-redux";
-import { setApprovalDialog, setDateRange } from "@/store/timesheet";
-import { useToast } from "@/app/components/ui/use-toast";
-import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+/**
+ * External dependencies.
+ */
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { TimesheetApprovalSchema } from "@/schema/timesheet";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { parseFrappeErrorMsg, prettyDate } from "@/lib/utils";
+import { useDispatch, useSelector } from "react-redux";
+import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import { LoaderCircle, Send } from "lucide-react";
 import { z } from "zod";
+
+/**
+ * Internal dependencies.
+ */
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ComboxBox } from "@/app/components/comboBox";
+import { Button } from "@/app/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/app/components/ui/form";
 import { Textarea } from "@/app/components/ui/textarea";
-import { Button } from "@/app/components/ui/button";
-import { LoaderCircle, Send } from "lucide-react";
-import { useState } from "react";
-import { ComboxBox } from "@/app/components/comboBox";
+import { useToast } from "@/app/components/ui/use-toast";
+import { parseFrappeErrorMsg, prettyDate } from "@/lib/utils";
+import { TimesheetApprovalSchema } from "@/schema/timesheet";
+import { RootState } from "@/store";
+import { setApprovalDialog, setDateRange } from "@/store/timesheet";
 
 export const Approval = ({ onClose }: { onClose: () => void }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);

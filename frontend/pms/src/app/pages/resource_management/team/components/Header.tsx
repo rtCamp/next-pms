@@ -1,25 +1,39 @@
-import {
-  setWeekDate,
-  setEmployeeName,
-  setBusinessUnit,
-  setFilters,
-  resetState,
-  setCombineWeekHours,
-  setView,
-  setIsBillable,
-  setDesignation,
-  setReportingManager,
-} from "@/store/resource_management/team";
-import { getFormatedDate } from "@/lib/utils";
-import { useCallback, useEffect } from "react";
+/**
+ * External dependencies.
+ */
 import { addDays } from "date-fns";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/store";
-import { useQueryParamsState } from "@/lib/queryParam";
-import { ResourceHeaderSection } from "../../components/Header";
 import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
-import { PermissionProps, setDialog } from "@/store/resource_management/allocation";
+import { useCallback, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
+/**
+ * Internal dependencies.
+ */
+import { useQueryParamsState } from "@/lib/queryParam";
+import { getFormatedDate } from "@/lib/utils";
+import { RootState } from "@/store";
+import { PermissionProps, setDialog } from "@/store/resource_management/allocation";
+import {
+  deleteFilters,
+  resetState,
+  setAllocationType,
+  setBusinessUnit,
+  setCombineWeekHours,
+  setDesignation,
+  setEmployeeName,
+  setFilters,
+  setReportingManager,
+  setView,
+  setWeekDate,
+} from "@/store/resource_management/team";
+
+import { ResourceHeaderSection } from "../../components/Header";
+
+/**
+ * This component is responsible for loading the team view header.
+ * 
+ * @returns React.FC
+ */
 const ResourceTeamHeaderSection = () => {
   const [businessUnitParam] = useQueryParamsState<string[]>("business-unit", []);
   const [employeeNameParam] = useQueryParamsState<string>("employee-name", "");
@@ -37,7 +51,6 @@ const ResourceTeamHeaderSection = () => {
   );
 
   useEffect(() => {
-    dispatch(setIsBillable(allocationTypeParam));
     let CurrentViewParam = viewParam;
     if (!CurrentViewParam) {
       CurrentViewParam = "planned-vs-capacity";
@@ -51,6 +64,8 @@ const ResourceTeamHeaderSection = () => {
         businessUnit: businessUnitParam,
         employeeName: employeeNameParam,
         reportingManager: reportingNameParam,
+        designation: designationParam,
+        allocationType: allocationTypeParam,
         view: CurrentViewParam,
         combineWeekHours: combineWeekHoursParam,
       })
@@ -84,8 +99,11 @@ const ResourceTeamHeaderSection = () => {
           handleChange: (value: string) => {
             dispatch(setEmployeeName(value));
           },
+          handleDelete: (value: string) => {
+            dispatch(deleteFilters({ type: "employee", employeeName: "" }));
+          },
           type: "search",
-          value: employeeNameParam,
+          value: resourceTeamState.employeeName,
           defaultValue: "",
           label: "Employee Name",
           queryParameterDefault: "",
@@ -95,8 +113,11 @@ const ResourceTeamHeaderSection = () => {
           handleChange: (value: string | string[]) => {
             dispatch(setReportingManager(value as string));
           },
+          handleDelete: (value: string[] | undefined) => {
+            dispatch(deleteFilters({ type: "repots-to", reportingManager: "" }));
+          },
           type: "search-employee",
-          value: reportingNameParam,
+          value: resourceTeamState.reportingManager,
           defaultValue: "",
           label: "Reporting Manager",
           hide: !resourceAllocationPermission.write,
@@ -107,8 +128,12 @@ const ResourceTeamHeaderSection = () => {
           handleChange: (value: string | string[]) => {
             dispatch(setBusinessUnit(value as string[]));
           },
+          handleDelete: (value: string[] | undefined) => {
+            console.log({ type: "business-unit", businessUnit: value });
+            dispatch(deleteFilters({ type: "business-unit", businessUnit: value }));
+          },
           type: "select-search",
-          value: businessUnitParam,
+          value: resourceTeamState.businessUnit,
           defaultValue: "",
           label: "Business Unit",
           hide: !resourceAllocationPermission.write,
@@ -131,8 +156,11 @@ const ResourceTeamHeaderSection = () => {
           handleChange: (value: string | string[]) => {
             dispatch(setDesignation(value as string[]));
           },
+          handleDelete: (value: string[] | undefined) => {
+            dispatch(deleteFilters({ type: "designation", designation: value }));
+          },
           type: "select-search",
-          value: designationParam,
+          value: resourceTeamState.designation,
           defaultValue: "",
           label: "Designation",
           hide: !resourceAllocationPermission.write,
@@ -154,23 +182,27 @@ const ResourceTeamHeaderSection = () => {
         {
           queryParameterName: "allocation-type",
           handleChange: (value: string | string[]) => {
-            dispatch(setIsBillable(value as string[]));
+            dispatch(setAllocationType(value as string[]));
           },
-          type: "select-search",
-          value: allocationTypeParam,
+          handleDelete: (value: string[] | undefined) => {
+            dispatch(deleteFilters({ type: "allocation-type", allocationType: value }));
+          },
+          type: "select-list",
+          value: resourceTeamState.allocationType,
           defaultValue: "",
           label: "Allocation Type",
           data: [
             {
               label: "Billable",
-              value: "billable",
+              value: "Billable",
             },
             {
               label: "Non-Billable",
-              value: "non-billable",
+              value: "Non-Billable",
             },
           ],
           queryParameterDefault: "",
+          hide: !resourceAllocationPermission.write,
         },
         {
           queryParameterName: "view-type",

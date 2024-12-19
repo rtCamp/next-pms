@@ -1,3 +1,6 @@
+/**
+ * External dependencies.
+ */
 import { useFrappeGetCall } from "frappe-react-sdk";
 
 const useFrappeDoctypeMeta = (doctype: string) => {

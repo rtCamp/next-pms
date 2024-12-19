@@ -1,10 +1,10 @@
 /**
- * Internal dependencies
+ * Internal dependencies.
  */
 import { Typography } from "@/app/components/typography";
 import { Badge } from "@/app/components/ui/badge";
-import { cn, floatToTime } from "@/lib/utils";
 import { Progress } from "@/app/components/ui/progress";
+import { cn, floatToTime } from "@/lib/utils";
 import { DataCell } from "@/app/components/listview/DataCell";
 
 const HOUR_FIELD = ["actual_time", "custom_total_hours_purchased", "custom_total_hours_remaining"];
@@ -17,7 +17,8 @@ export const getColumnInfo = (
   docType: string,
   currency: string
 ) => {
-  let column = [];
+  const columns = [];
+
   fieldInfo.forEach((f) => {
     const meta = fieldMeta.find((field) => field.fieldname === f);
     if (!meta) return;
@@ -99,10 +100,11 @@ export const getColumnInfo = (
         }
       },
     };
-    column.push(col);
+    columns.push(col);
   });
-  return column;
+  return columns;
 };
+
 export const Empty = () => {
   return <span></span>;
 };

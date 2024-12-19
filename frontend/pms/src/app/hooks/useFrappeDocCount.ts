@@ -1,6 +1,13 @@
-import useSWR, { SWRConfiguration } from "swr";
+/**
+ * External dependencies.
+ */
 import { useContext } from "react";
 import { FrappeConfig, FrappeContext } from "frappe-react-sdk";
+import useSWR, { SWRConfiguration } from "swr";
+
+/**
+ * Internal dependencies.
+ */
 import { encodeQueryData } from "./utils";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

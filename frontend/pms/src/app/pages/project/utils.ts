@@ -1,3 +1,6 @@
+/**
+ * Internal dependencies.
+ */
 import { ProjectState } from "@/store/project";
 
 export const createFilter = (projectState: ProjectState) => {

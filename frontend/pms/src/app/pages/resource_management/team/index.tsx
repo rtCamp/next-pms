@@ -1,17 +1,31 @@
+/**
+ * External dependencies.
+ */
 import { useFrappeGetCall } from "frappe-react-sdk";
-import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "@/store";
-import { setData, setReFetchData, setStart, updateData } from "@/store/resource_management/team";
+import { useCallback, useEffect } from "react";
+import { useDispatch,useSelector } from "react-redux";
+
+/**
+ * Internal dependencies.
+ */
+import { Spinner } from "@/app/components/spinner";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { useCallback, useEffect } from "react";
-import { Spinner } from "@/app/components/spinner";
-import { ResourceTeamTable } from "./components/Table";
-import { ResourceTeamHeaderSection } from "./components/Header";
-import { FooterSection } from "../components/Footer";
-import AddResourceAllocations from "../components/AddAllocation";
+import { RootState } from "@/store";
 import { AllocationDataProps, PermissionProps, setResourcePermissions } from "@/store/resource_management/allocation";
+import { setData, setReFetchData, setStart, updateData } from "@/store/resource_management/team";
 
+import AddResourceAllocations from "../components/AddAllocation";
+import { FooterSection } from "../components/Footer";
+import { getIsBillableValue } from "../utils/helper";
+import { ResourceTeamHeaderSection } from "./components/Header";
+import { ResourceTeamTable } from "./components/Table";
+
+/**
+ * This is main component which is responsible for rendering the team view of resource management.
+ * 
+ * @returns React.FC
+ */
 const ResourceTeamView = () => {
   const { toast } = useToast();
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
@@ -32,7 +46,7 @@ const ResourceTeamView = () => {
           business_unit: resourceTeamState.businessUnit,
           reports_to: resourceTeamState.reportingManager,
           designation: resourceTeamState.designation,
-          is_billable: resourceTeamState.isBillable,
+          is_billable: getIsBillableValue(resourceTeamState.allocationType as string[]),
           start: resourceTeamState.start,
         }
       : {

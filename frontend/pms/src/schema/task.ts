@@ -1,3 +1,6 @@
+/**
+ * External dependencies.
+ */
 import { z } from "zod";
 
 export const expectedTimeSchema = z.preprocess(
@@ -30,6 +33,7 @@ export const expectedTimeSchema = z.preprocess(
     }),
   ]),
 );
+
 export const TaskSchema = z.object({
   subject: z
     .string({

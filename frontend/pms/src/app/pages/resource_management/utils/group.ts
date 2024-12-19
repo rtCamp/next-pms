@@ -1,6 +1,9 @@
+/**
+ * Internal dependencies.
+ */
 import {
   EmployeeAllocationForDateProps,
-  EmployeeResourceProps,
+  EmployeeResourceObjectProps,
 } from "@/store/resource_management/team";
 import { DateProps } from "@/store/team";
 import {
@@ -27,8 +30,16 @@ export interface CombinedResourceDataProps {
 export type MergedAllocationProps = EmployeeAllocationForDateProps &
   ResourceAllocationProps;
 
+/**
+ * Group the allocations list based on projects.
+ * 
+ * @param resourceData The resource data.
+ * @param employee_allocations The employee allocation.
+ * @param dates The dates of the allocations.
+ * @returns MergedAllocationProps Object.
+ */
 function groupAllocations(
-  resourceData: EmployeeResourceProps[],
+  resourceData: EmployeeResourceObjectProps,
   employee_allocations: ResourceAllocationObjectProps,
   dates: DateProps[]
   //   isGroupByProject: boolean = true
@@ -40,21 +51,25 @@ function groupAllocations(
     allDates = allDates.concat(dates[index].dates);
   }
 
-  for (let index = 0; index < resourceData.length; index++) {
-    const employee_resource_allocation_for_given_date: EmployeeAllocationForDateProps[] =
-      resourceData[index].employee_resource_allocation_for_given_date;
+  for (let index = 0; index < allDates.length; index++) {
+    const date = allDates[index];
 
-    for (
-      let index2 = 0;
-      index2 < employee_resource_allocation_for_given_date.length;
-      index2++
-    ) {
-      const allocation: EmployeeAllocationForDateProps =
-        employee_resource_allocation_for_given_date[index2];
-      allResourceAllocation = allResourceAllocation.concat({
-        ...employee_allocations[allocation.name],
-        ...allocation,
-      });
+    if (date in resourceData) {
+      const employee_resource_allocation_for_given_date: EmployeeAllocationForDateProps[] =
+        resourceData[date].employee_resource_allocation_for_given_date;
+
+      for (
+        let index2 = 0;
+        index2 < employee_resource_allocation_for_given_date.length;
+        index2++
+      ) {
+        const allocation: EmployeeAllocationForDateProps =
+          employee_resource_allocation_for_given_date[index2];
+        allResourceAllocation = allResourceAllocation.concat({
+          ...employee_allocations[allocation.name],
+          ...allocation,
+        });
+      }
     }
   }
 

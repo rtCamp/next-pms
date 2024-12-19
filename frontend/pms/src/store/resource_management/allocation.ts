@@ -1,5 +1,9 @@
-import { getFormatedStringValue } from "@/app/pages/resource_management/utils/value";
+/**
+ * External dependencies.
+ */
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+
+import { getFormatedStringValue } from "@/app/pages/resource_management/utils/value";
 
 export type ResourceKeys =
   | "project"
