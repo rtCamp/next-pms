@@ -66,6 +66,7 @@ def get_resource_management_team_view_data(
             "project_name",
             "customer",
             "is_billable",
+            "note",
         ],
         "employee",
         [employee.name for employee in employees],
