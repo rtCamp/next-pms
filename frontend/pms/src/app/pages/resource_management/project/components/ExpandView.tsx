@@ -117,7 +117,7 @@ export const ResourceExpandView = ({
  * @param props.employee_name The employee name.
  * @param props.project The project name/ID.
  * @param props.project_name The project name.
- * @returns 
+ * @returns React.FC
  */
 const ExpandViewCell = ({
   allocationsData,

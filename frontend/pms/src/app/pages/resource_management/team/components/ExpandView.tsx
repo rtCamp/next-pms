@@ -13,8 +13,8 @@ import { RootState } from "@/store";
 import { setResourceFormData } from "@/store/resource_management/allocation";
 import { EmployeeDataProps } from "@/store/resource_management/team";
 
-import { ResourceAllocationList } from "../../components/ResourceAllocationList";
 import { EmptyRow } from "../../components/Empty";
+import { ResourceAllocationList } from "../../components/ResourceAllocationList";
 import { ResourceTableCell, TableInformationCellContent } from "../../components/TableCell";
 import { CombinedResourceDataProps, CombinedResourceObjectProps, groupAllocations } from "../../utils/group";
 import { getIsBillableValue, getTableCellClass } from "../../utils/helper";
@@ -23,7 +23,7 @@ import { getIsBillableValue, getTableCellClass } from "../../utils/helper";
  * This component is responsible for loading Team view expand view data.
  *
  * @param props.employeeData React.FC
- * @returns
+ * @returns React.FC
  */
 export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDataProps }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps

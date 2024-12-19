@@ -32,7 +32,7 @@ interface ResourceTeamTableRowProps {
  * @param props.avatar_name The name of the avatar.
  * @param props.RowComponent The row component which need to render.
  * @param props.RowExpandView The expand view of the row.
- * @returns 
+ * @returns React.FC
  */
 const ResourceTableRow = ({
   name,
