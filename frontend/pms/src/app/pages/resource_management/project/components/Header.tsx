@@ -33,7 +33,7 @@ import { ResourceHeaderSection } from "../../components/Header";
  * @returns React.FC
  */
 const ResourceProjectHeaderSection = () => {
-  const [projectNameParam] = useQueryParamsState<string>("prject-name", "");
+  const [projectNameParam] = useQueryParamsState<string>("project-name", "");
   const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParamsState<boolean>("combine-week-hours", false);
   const [reportingNameParam] = useQueryParamsState<string>("reports-to", "");
   const [customerNameParam] = useQueryParamsState<string[]>("customer", []);

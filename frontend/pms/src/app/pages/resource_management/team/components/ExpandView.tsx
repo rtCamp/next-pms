@@ -11,7 +11,7 @@ import { Table, TableBody, TableRow } from "@/app/components/ui/table";
 import { cn, prettyDate } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setResourceFormData } from "@/store/resource_management/allocation";
-import { EmployeeDataProps } from "@/store/resource_management/team";
+import { DateProps, EmployeeDataProps } from "@/store/resource_management/team";
 
 import { EmptyRow } from "../../components/Empty";
 import { ResourceAllocationList } from "../../components/ResourceAllocationList";
@@ -29,6 +29,7 @@ export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDat
   // eslint-disable-next-line react-hooks/exhaustive-deps
 
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
+  const dates = useSelector((state: RootState) => state.resource_team.data.dates);
 
   const employeeResourceData: { combinedResourceData: CombinedResourceObjectProps; allDates: string[] } = useMemo(
     findCombineData,
@@ -61,19 +62,21 @@ export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDat
                     }}
                     value={!item ? "No Project" : `${itemData.project_name}`}
                   />
-                  {employeeResourceData.allDates.map((date: string, index: number) => {
-                    return (
-                      <ExpandViewCell
-                        key={date + "-" + index}
-                        index={index}
-                        allocationsData={itemData.all_allocation[date]}
-                        date={date}
-                        employee={employeeData.name}
-                        employee_name={employeeData.employee_name}
-                        project={item}
-                        project_name={itemData.project_name}
-                      />
-                    );
+                  {dates.map((datesList: DateProps) => {
+                    return datesList?.dates?.map((date: string, index: number) => {
+                      return (
+                        <ExpandViewCell
+                          key={date + "-" + index}
+                          index={index}
+                          allocationsData={itemData.all_allocation[date]}
+                          date={date}
+                          employee={employeeData.name}
+                          employee_name={employeeData.employee_name}
+                          project={item}
+                          project_name={itemData.project_name}
+                        />
+                      );
+                    });
                   })}
                 </TableRow>
               );
@@ -152,7 +155,7 @@ const ExpandViewCell = ({
       <ResourceTableCell
         type="empty"
         title={title}
-        cellClassName={(getTableCellClass(index), getTodayDateCellClass(date))}
+        cellClassName={cn(getTableCellClass(index), getTodayDateCellClass(date))}
         onCellClick={onCellClick}
         value={"-"}
       />
@@ -164,7 +167,7 @@ const ExpandViewCell = ({
       key={index}
       type="hovercard"
       title={title}
-      cellClassName={(getTableCellClass(index), getTodayDateCellClass(date))}
+      cellClassName={cn(getTableCellClass(index), getTodayDateCellClass(date))}
       value={
         resourceTeamState.tableView.view == "planned-vs-capacity" || resourceTeamState.tableView.view == "customer-view"
           ? total_allocated_hours

@@ -48,7 +48,7 @@ const ResourceProjectTable = () => {
 const ResourceProjectTableBody = () => {
   const data = useSelector((state: RootState) => state.resource_project.data.data);
   const dates = useSelector((state: RootState) => state.resource_project.data.dates);
-  const isBillable = useSelector((state: RootState) => state.resource_project.isBillable);
+  const allocationType = useSelector((state: RootState) => state.resource_project.allocationType);
 
   if (data.length == 0) {
     return <EmptyTableBody />;
@@ -106,7 +106,7 @@ const ResourceProjectTableBody = () => {
                   project_name={projectData.project_name}
                   start_date={dates[0].start_date}
                   end_date={dates[dates.length - 1].end_date}
-                  is_billable={isBillable != 0}
+                  is_billable={getIsBillableValue(allocationType as string[])}
                 />
               );
             }}

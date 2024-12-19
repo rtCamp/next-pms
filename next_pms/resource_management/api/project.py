@@ -150,7 +150,7 @@ def get_resource_management_project_view_data(
 
 
 @frappe.whitelist()
-def get_employees_resrouce_data_for_given_project(project: str, start_date: str, end_date: str, is_billable: str):
+def get_employees_resrouce_data_for_given_project(project: str, start_date: str, end_date: str, is_billable: int = -1):
     permissions = resource_api_permissions_check()
 
     if not permissions["write"]:
@@ -198,7 +198,7 @@ def get_employees_resrouce_data_for_given_project(project: str, start_date: str,
 
         current_date = start_date
 
-        all_dates_date = []
+        all_dates_data = {}
 
         while current_date <= end_date:
             if current_date.weekday() in [5, 6]:
@@ -226,26 +226,23 @@ def get_employees_resrouce_data_for_given_project(project: str, start_date: str,
                 project, employee.name, current_date.strftime(DATE_FORMAT), current_date.strftime(DATE_FORMAT)
             )
 
-            if permissions["write"]:
-                all_dates_date.append(
-                    {
-                        "date": current_date,
+            if total_allocated_hours_for_employee > 0 or total_worked_hours_for_employee > 0:
+                if permissions["write"]:
+                    all_dates_data[current_date.strftime(DATE_FORMAT)] = {
+                        "date": current_date.strftime(DATE_FORMAT),
                         "total_allocated_hours": total_allocated_hours_for_employee,
                         "total_worked_hours": total_worked_hours_for_employee,
                         "employee_resource_allocation_for_given_date": employee_resource_allocation_for_given_date,
                     }
-                )
-            else:
-                all_dates_date.append(
-                    {
-                        "date": current_date,
+                else:
+                    all_dates_data[current_date.strftime(DATE_FORMAT)] = {
+                        "date": current_date.strftime(DATE_FORMAT),
                         "total_allocated_hours": total_allocated_hours_for_employee,
                         "employee_resource_allocation_for_given_date": employee_resource_allocation_for_given_date,
                     }
-                )
 
             current_date = add_days(current_date, 1)
-        data.append({**employee, "all_dates_date": all_dates_date, "allocations": employee_resource_allocation})
+        data.append({**employee, "all_dates_data": all_dates_data, "allocations": employee_resource_allocation})
 
     res["data"] = data
     res["customer"] = customer
