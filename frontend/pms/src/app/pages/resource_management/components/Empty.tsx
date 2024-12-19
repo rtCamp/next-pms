@@ -1,9 +1,9 @@
 /**
  * External dependencies.
  */
-import { CirclePlus } from "lucide-react";
 import { useState } from "react";
 import { useSelector } from "react-redux";
+import { CirclePlus } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -13,8 +13,9 @@ import { cn } from "@/lib/utils";
 import { RootState } from "@/store";
 import { PermissionProps } from "@/store/resource_management/allocation";
 
-import { getTableCellClass, getTableCellRow } from "../utils/helper";
 import { ResourceTableCell, TableCellContent, TableInformationCellContent } from "./TableCell";
+import { getTableCellClass, getTableCellRow, getTodayDateCellClass } from "../utils/helper";
+
 
 /**
  * This component is responsible for rendering the empty table body.
@@ -101,7 +102,14 @@ const EmptyRow = ({ dates }: { dates: string[] }) => {
     <TableRow className={cn(getTableCellRow())}>
       <TableInformationCellContent />
       {dates.map((date: string, index: number) => {
-        return <ResourceTableCell key={date} type="default" cellClassName={getTableCellClass(index)} value="-" />;
+        return (
+          <ResourceTableCell
+            key={date}
+            type="default"
+            cellClassName={(getTableCellClass(index), getTodayDateCellClass(date))}
+            value="-"
+          />
+        );
       })}
     </TableRow>
   );

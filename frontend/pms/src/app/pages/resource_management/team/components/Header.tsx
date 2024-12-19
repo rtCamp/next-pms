@@ -129,7 +129,6 @@ const ResourceTeamHeaderSection = () => {
             dispatch(setBusinessUnit(value as string[]));
           },
           handleDelete: (value: string[] | undefined) => {
-            console.log({ type: "business-unit", businessUnit: value });
             dispatch(deleteFilters({ type: "business-unit", businessUnit: value }));
           },
           type: "select-search",
