@@ -1,11 +1,22 @@
-import { currencyFormat } from "./utils";
+/**
+ * Internal dependencies
+ */
 import { Typography } from "@/app/components/typography";
 import { Badge } from "@/app/components/ui/badge";
-import { cn, floatToTime, getDateTimeForMultipleTimeZoneSupport } from "@/lib/utils";
+import { cn, floatToTime } from "@/lib/utils";
 import { Progress } from "@/app/components/ui/progress";
+import { DataCell } from "@/app/components/listview/DataCell";
+
 const HOUR_FIELD = ["actual_time", "custom_total_hours_purchased", "custom_total_hours_remaining"];
 
-export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, columnInfo: any, currency: string) => {
+export const getColumnInfo = (
+  fieldMeta: Array<any>,
+  fieldInfo: Array<string>,
+  columnInfo: any,
+  title_field: string,
+  docType: string,
+  currency: string
+) => {
   let column = [];
   fieldInfo.forEach((f) => {
     const meta = fieldMeta.find((field) => field.fieldname === f);
@@ -22,7 +33,7 @@ export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, c
       },
       cell: ({ getValue, row }) => {
         const value = getValue() as string;
-        if (!value && meta.fieldtype != "Percent") return <Empty />;
+
         if (meta.fieldtype === "Link") {
           return (
             <a href={`/app/${meta.options.toLowerCase().replace(/ /g, "-")}/${value}`} className="hover:underline">
@@ -30,25 +41,6 @@ export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, c
                 {value}
               </Typography>
             </a>
-          );
-        } else if (meta.fieldtype === "Currency") {
-          const formatter = currencyFormat(currency ? currency : row.original.custom_currency ?? "INR");
-          const value = getValue() as number;
-          return (
-            <Typography
-              variant="p"
-              className={cn("truncate text-right", value < 0 && "text-destructive")}
-              title={value.toString()}
-            >
-              {formatter.format(value)}
-            </Typography>
-          );
-        } else if (meta.fieldtype === "Date") {
-          const date = getDateTimeForMultipleTimeZoneSupport(value).toLocaleDateString();
-          return (
-            <Typography variant="p" className="truncate" title={value}>
-              {date}
-            </Typography>
           );
         } else if (meta.fieldtype === "Percent") {
           const val = parseFloat(value);
@@ -95,9 +87,14 @@ export const getColumnInfo = (fieldMeta: Array<any>, fieldInfo: Array<string>, c
           );
         } else {
           return (
-            <Typography variant="p" className={cn("truncate", leftAlignCss(meta.fieldType))} title={value}>
-              {value}
-            </Typography>
+            <DataCell
+              meta={meta}
+              title_field={title_field}
+              docType={docType}
+              value={value}
+              row={row}
+              currency={currency}
+            />
           );
         }
       },
@@ -110,14 +107,6 @@ export const Empty = () => {
   return <span></span>;
 };
 
-const leftAlignCss = (fieldType: string) => {
-  const type = ["Int", "Currency", "Float"];
-
-  if (type.includes(fieldType)) {
-    return "text-left";
-  }
-  return "";
-};
 const progressBarColor = (field: string, fieldInfo: Array<string>, row: any, value: number) => {
   if (field == "custom_percentage_estimated_cost" && fieldInfo.includes("percent_complete")) {
     const perEstimatedCost = row.original["custom_percentage_estimated_cost"];

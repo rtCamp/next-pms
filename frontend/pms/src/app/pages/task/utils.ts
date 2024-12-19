@@ -1,35 +1,6 @@
 import { TaskState } from "@/store/task";
 
-export const defaultRows: string[] = [
-  "project_name",
-  "subject",
-  "status",
-  "priority",
-  "exp_end_date",
-  "expected_time",
-  "actual_time",
-];
 
-export const defaultView = () => {
-  const columns = Object.fromEntries(defaultRows.map((value) => [value, 150]));
-  const view = {
-    label: "Task",
-    user: "",
-    type: "List",
-    dt: "Task",
-    route: "task",
-    rows: defaultRows,
-    columns: columns,
-    filters: { search: "", projects: [], status: ["Open","Working"], groupBy: [] },
-    default: true,
-    public: false,
-    order_by: {
-      field: "modified",
-      order: "desc",
-    },
-  };
-  return view;
-};
 export const createFilter = (taskState: TaskState) => {
   return {
     search: taskState.search,
@@ -60,3 +31,13 @@ export const getFilter = (taskState: TaskState) => {
 
   return filters;
 };
+
+export const status = [
+  { value: "Open", label: "Open" },
+  { value: "Working", label: "Working" },
+  { value: "Pending Review", label: "Pending Review" },
+  { value: "Overdue", label: "Overdue" },
+  { value: "Template", label: "Template" },
+  { value: "Completed", label: "Completed" },
+  { value: "Cancelled", label: "Cancelled" },
+];

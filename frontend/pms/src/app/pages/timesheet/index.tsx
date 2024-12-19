@@ -30,7 +30,7 @@ import {
 } from "@/lib/utils";
 import { addDays } from "date-fns";
 import { Spinner } from "@/app/components/spinner";
-import { EditTime } from "./editTime";
+import { EditTime } from "./EditTime";
 import { Approval } from "./Approval";
 import { HolidayProp, LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
 import { WorkingFrequency } from "@/types";

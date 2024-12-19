@@ -1,22 +1,29 @@
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
+/**
+ * External dependencies
+ */
+import { useForm, useFieldArray } from "react-hook-form";
+import { z } from "zod";
+import { useEffect, useState } from "react";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import { LoaderCircle, Plus, Save, Trash2 } from "lucide-react";
+import { useSelector } from "react-redux";
+
+/**
+ * Internal dependencies
+ */
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
 import { Spinner } from "@/app/components/spinner";
 import { Input } from "@/app/components/ui/input";
 import { Textarea } from "@/app/components/ui/textarea";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { Button } from "@/app/components/ui/button";
-import { useForm, useFieldArray } from "react-hook-form";
-import { z } from "zod";
 import { cn, floatToTime, parseFrappeErrorMsg, prettyDate } from "@/lib/utils";
 import { TimesheetUpdateSchema } from "@/schema/timesheet";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/app/components/ui/form";
 import { Typography } from "@/app/components/typography";
-import { useEffect, useState } from "react";
 import { Separator } from "@/app/components/ui/separator";
 import { useToast } from "@/app/components/ui/use-toast";
-import { LoaderCircle, Plus, Save, Trash2 } from "lucide-react";
-import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 
 interface EditTimeProps {
@@ -37,8 +44,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
     defaultValues: {
       data: [],
     }, // Empty array by default
-    mode: "onBlur",
-    reValidateMode: "onSubmit",
+    mode: "onSubmit",
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -80,7 +86,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
       task: task,
       date: date,
     };
-    append(newRow);
+    append(newRow,{ shouldFocus: false });
   };
 
   const handleUpdate = (formData: z.infer<typeof TimesheetUpdateSchema>) => {
@@ -251,7 +257,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
               </div>
             )}
             <DialogFooter className="sm:justify-between mt-2">
-              <Button variant="outline" onClick={addEmptyFormRow}>
+              <Button type="button" variant="outline" onClick={addEmptyFormRow}>
                 <Plus />
                 Add Row
               </Button>
