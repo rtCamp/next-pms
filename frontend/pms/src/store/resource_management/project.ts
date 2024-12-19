@@ -72,6 +72,7 @@ export interface ResourceTeamState {
   reportingManager: string;
   customer?: string[];
   allocationType?: string[];
+  isLoading?: boolean;
 }
 
 export const initialState: ResourceTeamState = {
@@ -102,6 +103,7 @@ export const initialState: ResourceTeamState = {
   isNeedToFetchDataAfterUpdate: false,
   isBillable: -1,
   customer: [],
+  isLoading: true,
 };
 
 const ResourceTeamSlice = createSlice({
@@ -112,18 +114,21 @@ const ResourceTeamSlice = createSlice({
     setData: (state, action: PayloadAction<any>) => {
       state.data = action.payload;
       state.hasMore = action.payload.has_more;
+      state.isLoading = false;
       state.pageLength = initialState.pageLength;
     },
     setProjectName: (state, action: PayloadAction<string>) => {
       state.projectName = action.payload;
       state.data = initialState.data;
       state.start = 0;
+      state.isLoading = true;
       state.pageLength = initialState.pageLength;
     },
     setBusinessUnit: (state, action: PayloadAction<string[]>) => {
       state.businessUnit = action.payload;
       state.data = initialState.data;
       state.start = 0;
+      state.isLoading = true;
       state.pageLength = initialState.pageLength;
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -141,6 +146,7 @@ const ResourceTeamSlice = createSlice({
     setWeekDate: (state, action: PayloadAction<string>) => {
       state.weekDate = action.payload;
       state.start = 0;
+      state.isLoading = true;
       const pageLength = Object.keys(state.data.data).length;
       state.pageLength = pageLength;
       state.data = initialState.data;
@@ -150,6 +156,7 @@ const ResourceTeamSlice = createSlice({
     },
     setStart: (state, action: PayloadAction<number>) => {
       state.start = action.payload;
+      state.isLoading = true;
       state.pageLength = initialState.pageLength;
     },
     setHasMore: (state, action: PayloadAction<boolean>) => {
@@ -199,6 +206,7 @@ const ResourceTeamSlice = createSlice({
       }
       state.pageLength = initialState.pageLength;
       state.start = 0;
+      state.isLoading = true;
       state.data = initialState.data;
     },
     deleteFilters: (
@@ -222,18 +230,21 @@ const ResourceTeamSlice = createSlice({
       }
       state.pageLength = initialState.pageLength;
       state.start = 0;
+      state.isLoading = true;
       state.data = initialState.data;
     },
     setReportingManager: (state, action: PayloadAction<string>) => {
       state.reportingManager = action.payload;
       state.data = initialState.data;
       state.start = 0;
+      state.isLoading = true;
       state.pageLength = initialState.pageLength;
     },
     setCustomer: (state, action: PayloadAction<string[]>) => {
       state.customer = action.payload;
       state.data = initialState.data;
       state.start = 0;
+      state.isLoading = true;
       state.pageLength = initialState.pageLength;
     },
     setCombineWeekHours: (state, action: PayloadAction<boolean>) => {
@@ -249,6 +260,7 @@ const ResourceTeamSlice = createSlice({
       state.allocationType = action.payload;
       state.pageLength = initialState.pageLength;
       state.start = 0;
+      state.isLoading = true;
       state.data = initialState.data;
     },
   },

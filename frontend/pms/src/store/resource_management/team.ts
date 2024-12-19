@@ -96,6 +96,7 @@ export interface ResourceTeamState {
   start: number;
   dateRange: DateRange;
   hasMore: boolean;
+  isLoading: boolean;
   tableView: TableViewProps;
   isNeedToFetchDataAfterUpdate?: boolean;
 }
@@ -128,6 +129,7 @@ export const initialState: ResourceTeamState = {
     view: "planned",
   },
   isNeedToFetchDataAfterUpdate: false,
+  isLoading: true,
 };
 
 const ResourceTeamSlice = createSlice({
@@ -138,11 +140,13 @@ const ResourceTeamSlice = createSlice({
     setData: (state, action: PayloadAction<any>) => {
       state.data = action.payload;
       state.hasMore = state.data.has_more;
+      state.isLoading = false;
       state.pageLength = initialState.pageLength;
     },
     setEmployeeName: (state, action: PayloadAction<string>) => {
       state.employeeName = action.payload;
       state.data = initialState.data;
+      state.isLoading = true;
       state.start = 0;
       state.pageLength = initialState.pageLength;
     },
@@ -150,39 +154,30 @@ const ResourceTeamSlice = createSlice({
       state.businessUnit = action.payload;
       state.data = initialState.data;
       state.start = 0;
+      state.isLoading = true;
       state.pageLength = initialState.pageLength;
     },
     setReportingManager: (state, action: PayloadAction<string>) => {
       state.reportingManager = action.payload;
       state.data = initialState.data;
       state.start = 0;
+      state.isLoading = true;
       state.pageLength = initialState.pageLength;
-    },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    updateData: (state, action: PayloadAction<any>) => {
-      const data = state.data.data;
-      state.data.data = [...data, ...action.payload.data];
-      state.data.customer = {
-        ...state.data.customer,
-        ...action.payload.customer,
-      };
-      state.data.dates = action.payload.dates;
-      state.data.total_count = action.payload.total_count;
-      state.hasMore = action.payload.has_more;
     },
     setWeekDate: (state, action: PayloadAction<string>) => {
       state.weekDate = action.payload;
       state.start = 0;
       const pageLength = Object.keys(state.data.data).length;
       state.pageLength = pageLength;
+      state.isLoading = true;
       state.data = initialState.data;
     },
     setEmployeeWeekDate: (state, action: PayloadAction<string>) => {
       state.employeeWeekDate = action.payload;
     },
     setStart: (state, action: PayloadAction<number>) => {
-      console.log(action.payload)
       state.start = action.payload;
+      state.isLoading = true;
       state.pageLength = initialState.pageLength;
     },
     setHasMore: (state, action: PayloadAction<boolean>) => {
@@ -241,6 +236,7 @@ const ResourceTeamSlice = createSlice({
       }
       state.pageLength = initialState.pageLength;
       state.start = 0;
+      state.isLoading = true;
       state.data = initialState.data;
     },
     deleteFilters: (
@@ -277,6 +273,7 @@ const ResourceTeamSlice = createSlice({
 
       state.pageLength = initialState.pageLength;
       state.start = 0;
+      state.isLoading = true;
       state.data = initialState.data;
     },
     setCombineWeekHours: (state, action: PayloadAction<boolean>) => {
@@ -292,12 +289,14 @@ const ResourceTeamSlice = createSlice({
       state.allocationType = action.payload;
       state.pageLength = initialState.pageLength;
       state.start = 0;
+      state.isLoading = true;
       state.data = initialState.data;
     },
     setDesignation: (state, action: PayloadAction<string[]>) => {
       state.designation = action.payload;
       state.pageLength = initialState.pageLength;
       state.start = 0;
+      state.isLoading = true;
       state.data = initialState.data;
     },
   },

@@ -3,13 +3,13 @@
  */
 import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Spinner } from "@/app/components/spinner";
 
 /**
  * Internal dependencies.
  */
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import { Spinner } from "@/app/components/spinner";
 import { RootState } from "@/store";
 import { AllocationDataProps, PermissionProps } from "@/store/resource_management/allocation";
 import { setData, setReFetchData, setStart } from "@/store/resource_management/team";
@@ -17,7 +17,6 @@ import { setData, setReFetchData, setStart } from "@/store/resource_management/t
 import { getIsBillableValue } from "../utils/helper";
 import { getMergeData } from "../utils/value";
 import AddResourceAllocations from "../components/AddAllocation";
-import { FooterSection } from "../components/Footer";
 import { useFrappeGetCallInfinite } from "../hooks/useFrappeGetCallInfinite";
 import { ResourceTeamTable } from "./components/Table";
 
@@ -91,11 +90,10 @@ const ResourceTeamView = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, error]);
 
-  const handleLoadMore = () => {
-    if (!resourceTeamState.hasMore) return;
-    dispatch(setStart(resourceTeamState.start + resourceTeamState.pageLength));
+  useEffect(() => {
+    if(!resourceTeamState) return;
     setSize((resourceTeamState.start + resourceTeamState.pageLength) / resourceTeamState.pageLength + 1);
-  };
+  }, [resourceTeamState?.start]);
 
   return (
     <>
@@ -106,16 +104,6 @@ const ResourceTeamView = () => {
       )}
 
       {resourceAllocationForm.isShowDialog && <AddResourceAllocations onSubmit={onFormSubmit} />}
-
-      <FooterSection
-        disabled={
-          !resourceTeamState.hasMore ||
-          ((isLoading || isValidating) && Object.keys(resourceTeamState.data.data).length != 0)
-        }
-        handleLoadMore={handleLoadMore}
-        length={Object.keys(resourceTeamState.data.data).length | 0}
-        total_count={resourceTeamState.data.total_count | 0}
-      />
     </>
   );
 };

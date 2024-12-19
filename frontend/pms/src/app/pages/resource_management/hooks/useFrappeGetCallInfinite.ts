@@ -1,3 +1,6 @@
+/**
+ * External dependencies.
+ */
 import { useContext } from "react";
 import useSWRInfinite, {
   SWRInfiniteConfiguration,
@@ -5,7 +8,6 @@ import useSWRInfinite, {
 } from "swr/infinite";
 import { FrappeContext, FrappeConfig } from "frappe-react-sdk";
 import { StrictTupleKey } from "swr/_internal";
-import { encodeQueryData } from "@/app/hooks/utils";
 
 /**
  *  Hook to make a GET request to the server with pagination

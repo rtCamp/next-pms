@@ -91,11 +91,10 @@ const ResourceTeamView = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, error]);
 
-  const handleLoadMore = () => {
-    if (!resourceProjectState.hasMore) return;
-    dispatch(setStart(resourceProjectState.start + resourceProjectState.pageLength));
+  useEffect(() => {
+    if (!resourceProjectState) return;
     setSize((resourceProjectState.start + resourceProjectState.pageLength) / resourceProjectState.pageLength + 1);
-  };
+  }, [resourceProjectState.start]);
 
   return (
     <>
@@ -106,16 +105,6 @@ const ResourceTeamView = () => {
       )}
 
       {ResourceAllocationForm.isShowDialog && <AddResourceAllocations onSubmit={onFormSubmit} />}
-
-      <FooterSection
-        disabled={
-          !resourceProjectState.hasMore ||
-          ((isLoading || isValidating) && Object.keys(resourceProjectState.data.data).length != 0)
-        }
-        handleLoadMore={handleLoadMore}
-        length={Object.keys(resourceProjectState.data.data).length | 0}
-        total_count={resourceProjectState.data.total_count | 0}
-      />
     </>
   );
 };
