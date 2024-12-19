@@ -1,4 +1,8 @@
+/**
+ * Internal dependencies.
+ */
 import { WorkingFrequency } from '@/types';
+
 export type dataItem = {
     date: string;
     hour: number;

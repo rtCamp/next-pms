@@ -1,26 +1,39 @@
-import {
-  setWeekDate,
-  setEmployeeName,
-  setBusinessUnit,
-  setFilters,
-  resetState,
-  setCombineWeekHours,
-  setView,
-  setAllocationType,
-  setDesignation,
-  setReportingManager,
-  deleteFilters,
-} from "@/store/resource_management/team";
-import { getFormatedDate } from "@/lib/utils";
-import { useCallback, useEffect } from "react";
+/**
+ * External dependencies.
+ */
 import { addDays } from "date-fns";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/store";
-import { useQueryParamsState } from "@/lib/queryParam";
-import { ResourceHeaderSection } from "../../components/Header";
 import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
-import { PermissionProps, setDialog } from "@/store/resource_management/allocation";
+import { useCallback, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
+/**
+ * Internal dependencies.
+ */
+import { useQueryParamsState } from "@/lib/queryParam";
+import { getFormatedDate } from "@/lib/utils";
+import { RootState } from "@/store";
+import { PermissionProps, setDialog } from "@/store/resource_management/allocation";
+import {
+  deleteFilters,
+  resetState,
+  setAllocationType,
+  setBusinessUnit,
+  setCombineWeekHours,
+  setDesignation,
+  setEmployeeName,
+  setFilters,
+  setReportingManager,
+  setView,
+  setWeekDate,
+} from "@/store/resource_management/team";
+
+import { ResourceHeaderSection } from "../../components/Header";
+
+/**
+ * This component is responsible for loading the team view header.
+ * 
+ * @returns React.FC
+ */
 const ResourceTeamHeaderSection = () => {
   const [businessUnitParam] = useQueryParamsState<string[]>("business-unit", []);
   const [employeeNameParam] = useQueryParamsState<string>("employee-name", "");
@@ -116,7 +129,6 @@ const ResourceTeamHeaderSection = () => {
             dispatch(setBusinessUnit(value as string[]));
           },
           handleDelete: (value: string[] | undefined) => {
-            console.log({ type: "business-unit", businessUnit: value });
             dispatch(deleteFilters({ type: "business-unit", businessUnit: value }));
           },
           type: "select-search",

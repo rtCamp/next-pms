@@ -1,8 +1,36 @@
-import { useToast } from "@/app/components/ui/use-toast";
-import { RootState } from "@/store";
-import { useFrappeGetCall } from "frappe-react-sdk";
+/**
+ * External dependencies.
+ */
 import { useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { addDays } from "date-fns";
+import { useFrappeGetCall } from "frappe-react-sdk";
+import { isEmpty } from "lodash";
+import { Paperclip, Plus } from "lucide-react";
+
+/**
+ * Internal dependencies.
+ */
+import AddTime from "@/app/components/addTime";
+import { LoadMore } from "@/app/components/loadMore";
+import { Spinner } from "@/app/components/spinner";
+import TimesheetTable, { SubmitButton } from "@/app/components/timesheetTable";
+import { Typography } from "@/app/components/typography";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
+import { Button } from "@/app/components/ui/button";
+import { useToast } from "@/app/components/ui/use-toast";
+import { Header, Footer, Main } from "@/app/layout/root";
+import { useQueryParamsState } from "@/lib/queryParam";
+import {
+  parseFrappeErrorMsg,
+  getFormatedDate,
+  floatToTime,
+  expectatedHours,
+  getDateTimeForMultipleTimeZoneSupport,
+  copyToClipboard,
+  correctDateFormat,
+} from "@/lib/utils";
+import { RootState } from "@/store";
 import {
   setData,
   SetAddTimeDialog,
@@ -13,31 +41,11 @@ import {
   setEditDialog,
   setApprovalDialog,
 } from "@/store/timesheet";
-import { LoadMore } from "@/app/components/loadMore";
-import { Header, Footer, Main } from "@/app/layout/root";
-import { Button } from "@/app/components/ui/button";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
-import { Typography } from "@/app/components/typography";
-import TimesheetTable, { SubmitButton } from "@/app/components/timesheetTable";
-import {
-  parseFrappeErrorMsg,
-  getFormatedDate,
-  floatToTime,
-  expectatedHours,
-  getDateTimeForMultipleTimeZoneSupport,
-  copyToClipboard,
-  correctDateFormat,
-} from "@/lib/utils";
-import { addDays } from "date-fns";
-import { Spinner } from "@/app/components/spinner";
-import { EditTime } from "./editTime";
+import { EditTime } from "./EditTime";
 import { Approval } from "./Approval";
-import { HolidayProp, LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
 import { WorkingFrequency } from "@/types";
-import AddTime from "@/app/components/addTime";
-import { Paperclip, Plus } from "lucide-react";
-import { useQueryParamsState } from "@/lib/queryParam";
-import { isEmpty } from "lodash";
+import { HolidayProp, LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
+
 
 function Timesheet() {
   const targetRef = useRef(null);

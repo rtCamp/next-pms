@@ -1,26 +1,39 @@
+/**
+ * External dependencies.
+ */
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+
+/**
+ * Internal dependencies.
+ */
+import { Table, TableBody } from "@/app/components/ui/table";
+import { cn, prettyDate } from "@/lib/utils";
 import { RootState } from "@/store";
+import { setResourceFormData } from "@/store/resource_management/allocation";
 import {
   DateProps,
-  EmployeeResourceProps,
   EmployeeDataProps,
+  EmployeeResourceProps,
   emptyEmployeeDayData,
 } from "@/store/resource_management/team";
-import { cn, prettyDate } from "@/lib/utils";
-import { Table, TableBody } from "@/app/components/ui/table";
-import { ResourceExpandView } from "./ExpandView";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { getTableCellClass } from "../../utils/helper";
-import { CustomerAllocationList } from "./CustomerAllocationList";
 import { ResourceAllocationObjectProps } from "@/types/resource_management";
-import ResourceTeamTableHeader from "../../components/TableHeader";
-import { EmptyTableBody } from "../../components/Empty";
-import { ResourceTableRow } from "../../components/TableRow";
-import { setResourceFormData } from "@/store/resource_management/allocation";
-import { ResourceAllocationList } from "../../components/Card";
-import { ResourceTableCell } from "../../components/TableCell";
-import { getCellBackGroundColor } from "../../utils/cell";
 
+import { CustomerAllocationList } from "./CustomerAllocationList";
+import { ResourceExpandView } from "./ExpandView";
+import { EmptyTableBody } from "../../components/Empty";
+import { ResourceAllocationList } from "../../components/ResourceAllocationList";
+import { ResourceTableCell } from "../../components/TableCell";
+import ResourceTeamTableHeader from "../../components/TableHeader";
+import { ResourceTableRow } from "../../components/TableRow";
+import { getCellBackGroundColor } from "../../utils/cell";
+import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
+
+/**
+ * This component is responsible for loading the table for table view.
+ *
+ * @returns React.FC
+ */
 const ResourceTeamTable = () => {
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_team.data.dates);
 
@@ -32,6 +45,11 @@ const ResourceTeamTable = () => {
   );
 };
 
+/**
+ * This function is responsible for rendering the table body for table view.
+ *
+ * @returns React.FC
+ */
 const ResourceTeamTableBody = () => {
   const data = useSelector((state: RootState) => state.resource_team.data.data);
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_team.data.dates);
@@ -94,6 +112,19 @@ const ResourceTeamTableBody = () => {
   );
 };
 
+/**
+ * This component is responsible for loading the single cell of table view.
+ *
+ * @param props.employeeSingleDay The employee single day all resources data.
+ * @param props.allWeekData The all week data for the employee.
+ * @param props.rowCount The row count of the cell.
+ * @param props.employee The employee name/ID.
+ * @param props.employee_name The employee name.
+ * @param props.max_allocation_count_for_single_date The max allocation count for the single date.
+ * @param props.midIndex The mid index of the cell.
+ * @param props.employeeAllocations The employee allocation data.
+ * @returns React.FC
+ */
 const ResourceTeamTableCell = ({
   employeeSingleDay,
   allWeekData,
@@ -115,7 +146,7 @@ const ResourceTeamTableCell = ({
 }) => {
   const tableView = useSelector((state: RootState) => state.resource_team.tableView);
   const customer = useSelector((state: RootState) => state.resource_team.data.customer);
-  const isBillable = useSelector((state: RootState) => state.resource_team.isBillable);
+  const allocationType = useSelector((state: RootState) => state.resource_team.allocationType);
 
   const heightFactor: number = 40;
   const { date: dateStr, day } = prettyDate(employeeSingleDay.date);
@@ -169,7 +200,12 @@ const ResourceTeamTableCell = ({
         <ResourceTableCell
           type="default"
           title={title}
-          cellClassName={cn(getTableCellClass(rowCount), allocationPercentage == -1 && cellBackGroundColor, "relative")}
+          cellClassName={cn(
+            getTableCellClass(rowCount),
+            allocationPercentage == -1 && cellBackGroundColor,
+            "relative",
+            getTodayDateCellClass(employeeSingleDay.date)
+          )}
           ref={cellRef}
           CellContent={() => {
             return (
@@ -201,7 +237,8 @@ const ResourceTeamTableCell = ({
           getTableCellClass(rowCount),
           allocationPercentage == -1 && cellBackGroundColor,
           height && `h-[${height}rem]`,
-          "relative"
+          "relative",
+          getTodayDateCellClass(employeeSingleDay.date)
         )}
         style={{
           background:
@@ -239,7 +276,11 @@ const ResourceTeamTableCell = ({
       <ResourceTableCell
         type="default"
         title={title}
-        cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
+        cellClassName={cn(
+          getTableCellClass(rowCount),
+          cellBackGroundColor,
+          getTodayDateCellClass(employeeSingleDay.date)
+        )}
         ref={cellRef}
         value={
           rowCount == 2 &&
@@ -258,7 +299,7 @@ const ResourceTeamTableCell = ({
         employee: employee,
         allocation_start_date: employeeSingleDay.date,
         allocation_end_date: employeeSingleDay.date,
-        is_billable: isBillable != 0,
+        is_billable: getIsBillableValue(allocationType as string[]) != 0,
         total_allocated_hours: 0,
         hours_allocated_per_day: 0,
         note: "",
@@ -277,7 +318,11 @@ const ResourceTeamTableCell = ({
       <ResourceTableCell
         type="empty"
         title={title}
-        cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
+        cellClassName={cn(
+          getTableCellClass(rowCount),
+          cellBackGroundColor,
+          getTodayDateCellClass(employeeSingleDay.date)
+        )}
         onCellClick={onCellClick}
         value={""}
       />
@@ -289,7 +334,11 @@ const ResourceTeamTableCell = ({
       <ResourceTableCell
         type="default"
         title={title}
-        cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
+        cellClassName={cn(
+          getTableCellClass(rowCount),
+          cellBackGroundColor,
+          getTodayDateCellClass(employeeSingleDay.date)
+        )}
         ref={cellRef}
         value={employeeSingleDay.total_leave_hours}
       />
@@ -301,7 +350,11 @@ const ResourceTeamTableCell = ({
       type="hovercard"
       ref={cellRef}
       title={title}
-      cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
+      cellClassName={cn(
+        getTableCellClass(rowCount),
+        cellBackGroundColor,
+        getTodayDateCellClass(employeeSingleDay.date)
+      )}
       value={
         tableView.view == "planned-vs-capacity"
           ? employeeSingleDay.total_allocated_hours

@@ -1,7 +1,9 @@
+/**
+ * Internal dependencies.
+ */
 import {
   EmployeeAllocationForDateProps,
   EmployeeResourceObjectProps,
-  EmployeeResourceProps,
 } from "@/store/resource_management/team";
 import { DateProps } from "@/store/team";
 import {
@@ -28,6 +30,14 @@ export interface CombinedResourceDataProps {
 export type MergedAllocationProps = EmployeeAllocationForDateProps &
   ResourceAllocationProps;
 
+/**
+ * Group the allocations list based on projects.
+ * 
+ * @param resourceData The resource data.
+ * @param employee_allocations The employee allocation.
+ * @param dates The dates of the allocations.
+ * @returns MergedAllocationProps Object.
+ */
 function groupAllocations(
   resourceData: EmployeeResourceObjectProps,
   employee_allocations: ResourceAllocationObjectProps,

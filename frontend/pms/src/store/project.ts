@@ -1,18 +1,28 @@
+/**
+ * External dependencies.
+ */
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+
+/**
+ * Internal dependencies.
+ */
 import { sortOrder } from "@/types";
 
 export type Status = "Open" | "Completed" | "Cancelled";
 export type Priority = "Low" | "Medium" | "High";
+
 export type Billability =
   | "Non-Billable"
   | "Fixed Cost"
   | "Retainer"
   | "Time and Material";
+
 export type CompletionMethod =
   | "Manual"
   | "Task Completion"
   | "Task Progress"
   | "Task Weight";
+
 export interface ProjectData {
   name: string;
   project_name: string;
@@ -42,7 +52,6 @@ export interface ProjectData {
 }
 
 export interface ProjectState {
-
   data: ProjectData[];
   start: number;
   selectedProjectType: Array<string>;
@@ -167,6 +176,7 @@ export const projectSlice = createSlice({
     }
   },
 });
+
 export const {
   setProjectData,
   updateProjectData,
@@ -182,4 +192,5 @@ export const {
   setSelectedBusinessUnit,
   setSelectedBilingType
 } = projectSlice.actions;
+
 export default projectSlice.reducer;

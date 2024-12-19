@@ -1,18 +1,27 @@
-import { getSiteName } from "@/lib/utils";
-import { FrappeProvider } from "frappe-react-sdk";
-import { UserProvider } from "@/lib/UserProvider";
-import { Provider } from "react-redux";
-import { store } from "@/store";
-import { RouterProvider, createBrowserRouter, createRoutesFromElements } from "react-router-dom";
-import { BASE_ROUTE } from "@/lib/constant";
-import { TooltipProvider } from "@/app/components/ui/tooltip";
-import { Router } from "@/route";
+/**
+ * External dependencies.
+ */
 import { Suspense } from "react";
+import { Provider } from "react-redux";
+import { RouterProvider, createBrowserRouter, createRoutesFromElements } from "react-router-dom";
+import { FrappeProvider } from "frappe-react-sdk";
+
+/**
+ * Internal dependencies.
+ */
+import { TooltipProvider } from "@/app/components/ui/tooltip";
+import { BASE_ROUTE } from "@/lib/constant";
+import { UserProvider } from "@/lib/UserProvider";
+import { getSiteName } from "@/lib/utils";
+import { Router } from "@/route";
+import { store } from "@/store";
 import GenWrapper from "./app/components/GenWrapper";
+
 function App() {
   const router = createBrowserRouter(createRoutesFromElements(Router()), {
     basename: BASE_ROUTE,
   });
+
   return (
     <>
       <FrappeProvider

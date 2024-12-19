@@ -1,6 +1,13 @@
+/**
+ * External dependencies.
+ */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { getTodayDate } from "@/lib/utils";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+
+/**
+ * Internal dependencies.
+ */
+import { getTodayDate } from "@/lib/utils";
 
 export interface HomeState {
   data: dataProps;
@@ -37,6 +44,7 @@ export type DateProps = {
   key: string;
   dates: string[];
 };
+
 export const initialState: HomeState = {
   action: "SET",
   timesheet: {
@@ -133,4 +141,5 @@ export const {
   resetState,
   setStatus,
 } = homeSlice.actions;
+
 export default homeSlice.reducer;

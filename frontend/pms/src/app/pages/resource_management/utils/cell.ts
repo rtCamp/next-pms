@@ -1,3 +1,9 @@
+/**
+ * Get the colour based on percentage provided.
+ * 
+ * @param allocationPercentage This percentage of the allocation based on this colour will be returned.
+ * @returns String describing the colour
+ */
 const getCellBackGroundColor = (allocationPercentage: number) => {
   if (allocationPercentage === -1) {
     return "bg-gray-200";

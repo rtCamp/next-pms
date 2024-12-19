@@ -1,20 +1,35 @@
-import { Table, TableBody, TableRow } from "@/app/components/ui/table";
-import { EmployeeDataProps } from "@/store/resource_management/team";
+/**
+ * External dependencies.
+ */
 import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/store";
-import { getTableCellClass } from "../../utils/helper";
-import { ResourceAllocationList } from "../../components/Card";
-import { CombinedResourceObjectProps, CombinedResourceDataProps, groupAllocations } from "../../utils/group";
-import { EmptyRow } from "../../components/Empty";
-import { setResourceFormData } from "@/store/resource_management/allocation";
-import { ResourceTableCell, TableInformationCellContent } from "../../components/TableCell";
-import { cn, prettyDate } from "@/lib/utils";
 
+/**
+ * Internal dependencies.
+ */
+import { Table, TableBody, TableRow } from "@/app/components/ui/table";
+import { cn, prettyDate } from "@/lib/utils";
+import { RootState } from "@/store";
+import { setResourceFormData } from "@/store/resource_management/allocation";
+import { DateProps, EmployeeDataProps } from "@/store/resource_management/team";
+
+import { EmptyRow } from "../../components/Empty";
+import { ResourceAllocationList } from "../../components/ResourceAllocationList";
+import { ResourceTableCell, TableInformationCellContent } from "../../components/TableCell";
+import { CombinedResourceDataProps, CombinedResourceObjectProps, groupAllocations } from "../../utils/group";
+import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
+
+/**
+ * This component is responsible for loading Team view expand view data.
+ *
+ * @param props.employeeData React.FC
+ * @returns React.FC
+ */
 export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDataProps }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
 
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
+  const dates = useSelector((state: RootState) => state.resource_team.data.dates);
 
   const employeeResourceData: { combinedResourceData: CombinedResourceObjectProps; allDates: string[] } = useMemo(
     findCombineData,
@@ -47,19 +62,21 @@ export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDat
                     }}
                     value={!item ? "No Project" : `${itemData.project_name}`}
                   />
-                  {employeeResourceData.allDates.map((date: string, index: number) => {
-                    return (
-                      <ExpandViewCell
-                        key={date + "-" + index}
-                        index={index}
-                        allocationsData={itemData.all_allocation[date]}
-                        date={date}
-                        employee={employeeData.name}
-                        employee_name={employeeData.employee_name}
-                        project={item}
-                        project_name={itemData.project_name}
-                      />
-                    );
+                  {dates.map((datesList: DateProps) => {
+                    return datesList?.dates?.map((date: string, index: number) => {
+                      return (
+                        <ExpandViewCell
+                          key={date + "-" + index}
+                          index={index}
+                          allocationsData={itemData.all_allocation[date]}
+                          date={date}
+                          employee={employeeData.name}
+                          employee_name={employeeData.employee_name}
+                          project={item}
+                          project_name={itemData.project_name}
+                        />
+                      );
+                    });
                   })}
                 </TableRow>
               );
@@ -74,13 +91,23 @@ export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDat
   );
 };
 
+/**
+ * This component is responsible for loading The expand view cell.
+ *
+ * @param props.allocationsData The allocation data for the employee.
+ * @param props.index The index of the cell.
+ * @param props.date The date of the cell.
+ * @param props.project The project name/ID.
+ * @param props.employee The employee name/ID.
+ * @param props.project_name The project name.
+ * @returns React.FC
+ */
 const ExpandViewCell = ({
   allocationsData,
   index,
   date,
   project,
   employee,
-  employee_name,
   project_name,
 }: {
   allocationsData: any;
@@ -110,7 +137,7 @@ const ExpandViewCell = ({
         project: project,
         allocation_start_date: date,
         allocation_end_date: date,
-        is_billable: resourceTeamState.isBillable != 0,
+        is_billable: getIsBillableValue(resourceTeamState.allocationType as string[]) != 0,
         customer: "",
         total_allocated_hours: 0,
         hours_allocated_per_day: 0,
@@ -128,7 +155,7 @@ const ExpandViewCell = ({
       <ResourceTableCell
         type="empty"
         title={title}
-        cellClassName={getTableCellClass(index)}
+        cellClassName={cn(getTableCellClass(index), getTodayDateCellClass(date))}
         onCellClick={onCellClick}
         value={"-"}
       />
@@ -140,7 +167,7 @@ const ExpandViewCell = ({
       key={index}
       type="hovercard"
       title={title}
-      cellClassName={getTableCellClass(index)}
+      cellClassName={cn(getTableCellClass(index), getTodayDateCellClass(date))}
       value={
         resourceTeamState.tableView.view == "planned-vs-capacity" || resourceTeamState.tableView.view == "customer-view"
           ? total_allocated_hours
@@ -159,6 +186,13 @@ const ExpandViewCell = ({
   );
 };
 
+/**
+ * Reander the Leave data of employee.
+ *
+ * @param props.dates The dates list
+ * @param props.employeeData The employee data
+ * @returns React.FC
+ */
 const TimeOffRow = ({ dates, employeeData }: { dates: string[]; employeeData: EmployeeDataProps }) => {
   return (
     <TableRow className="flex items-center w-full border-0">
@@ -169,7 +203,7 @@ const TimeOffRow = ({ dates, employeeData }: { dates: string[]; employeeData: Em
           <ResourceTableCell
             type="default"
             key={date}
-            cellClassName={cn(getTableCellClass(index),"bg-gray-200")}
+            cellClassName={cn(getTableCellClass(index), "bg-gray-200", getTodayDateCellClass(date))}
             value={employeeData.all_leave_data[date] ? employeeData.all_leave_data[date] : "-"}
           />
         );

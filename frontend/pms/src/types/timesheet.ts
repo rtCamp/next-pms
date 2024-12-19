@@ -1,7 +1,12 @@
+/**
+ * Internal dependencies.
+ */
 import { WorkingFrequency } from "@/types";
+
 export interface TaskProps {
   [key: string]: TaskDataProps;
 }
+
 export interface TaskDataProps {
   name: string;
   subject: string;
@@ -41,6 +46,7 @@ export interface LeaveProps {
 export interface DynamicKey {
   [key: string]: timesheet;
 }
+
 export interface DataProp {
   working_hour: number;
   working_frequency: WorkingFrequency;
@@ -48,11 +54,13 @@ export interface DataProp {
   leaves: Array<LeaveProps>;
   holidays: Array<HolidayProp>;
 }
+
 export interface HolidayProp {
   description: string;
   holiday_date: string;
   weekly_off: boolean;
 }
+
 export interface timesheet {
   start_date: string;
   end_date: string;

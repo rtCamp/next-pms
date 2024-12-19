@@ -1,26 +1,39 @@
-import {
-  setWeekDate,
-  setProjectName,
-  setFilters,
-  resetState,
-  setCombineWeekHours,
-  setView,
-  setCustomer,
-  deleteFilters,
-  setAllocationType,
-} from "@/store/resource_management/project";
-import { getFormatedDate } from "@/lib/utils";
-import { useCallback, useEffect } from "react";
+/**
+ * External dependencies.
+ */
 import { addDays } from "date-fns";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/store";
-import { useQueryParamsState } from "@/lib/queryParam";
-import { ResourceHeaderSection } from "../../components/Header";
 import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
-import { PermissionProps, setDialog } from "@/store/resource_management/allocation";
+import { useCallback, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
+/**
+ * Internal dependencies.
+ */
+import { useQueryParamsState } from "@/lib/queryParam";
+import { getFormatedDate } from "@/lib/utils";
+import { RootState } from "@/store";
+import { PermissionProps, setDialog } from "@/store/resource_management/allocation";
+import {
+  deleteFilters,
+  resetState,
+  setAllocationType,
+  setCombineWeekHours,
+  setCustomer,
+  setFilters,
+  setProjectName,
+  setView,
+  setWeekDate,
+} from "@/store/resource_management/project";
+
+import { ResourceHeaderSection } from "../../components/Header";
+
+/**
+ * This component is responsible for loading the project view header.
+ * 
+ * @returns React.FC
+ */
 const ResourceProjectHeaderSection = () => {
-  const [projectNameParam] = useQueryParamsState<string>("prject-name", "");
+  const [projectNameParam] = useQueryParamsState<string>("project-name", "");
   const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParamsState<boolean>("combine-week-hours", false);
   const [reportingNameParam] = useQueryParamsState<string>("reports-to", "");
   const [customerNameParam] = useQueryParamsState<string[]>("customer", []);

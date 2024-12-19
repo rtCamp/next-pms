@@ -1,8 +1,15 @@
-import { Button } from "../components/ui/button";
+/**
+ * External dependencies.
+ */
 import { useNavigate } from "react-router-dom";
-import { TIMESHEET } from "@/lib/constant";
 import { ArrowLeft } from "lucide-react";
+
+/**
+ * Internal dependencies.
+ */
+import { TIMESHEET } from "@/lib/constant";
 import { Typography } from "../components/typography";
+import { Button } from "../components/ui/button";
 
 export default function Component() {
   const navigate = useNavigate();

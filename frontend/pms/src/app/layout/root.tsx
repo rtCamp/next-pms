@@ -1,5 +1,12 @@
-import { cn } from "@/lib/utils";
+/**
+ * External dependencies.
+ */
 import React from "react";
+
+/**
+ * Internal dependencies.
+ */
+import { cn } from "@/lib/utils";
 
 interface Props {
   children: React.ReactNode;

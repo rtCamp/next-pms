@@ -1,15 +1,23 @@
-import { RootState } from "@/store";
+/**
+ * External dependencies.
+ */
+import { useState } from "react";
 import { useSelector } from "react-redux";
 import { useFrappeGetCall } from "frappe-react-sdk";
-import { Spinner } from "@/app/components/spinner";
-import { Table, TableBody, TableCell, TableRow } from "@/app/components/ui/table";
-import { Typography } from "@/app/components/typography";
-import { cn, expectatedHours, floatToTime, getDateFromDateAndTime } from "@/lib/utils";
 import { CircleDollarSign } from "lucide-react";
-import { TaskDataProps, TaskDataItemProps } from "@/types/timesheet";
+
+/**
+ * Internal dependencies.
+ */
+import { Spinner } from "@/app/components/spinner";
 import { LeaveRow, EmptyRow, Cell } from "@/app/components/timesheetTable";
+import { Typography } from "@/app/components/typography";
+import { Table, TableBody, TableCell, TableRow } from "@/app/components/ui/table";
 import { TaskLog } from "@/app/pages/task/taskLog";
-import { useState } from "react";
+import { cn, expectatedHours, floatToTime, getDateFromDateAndTime } from "@/lib/utils";
+import { RootState } from "@/store";
+import { TaskDataProps, TaskDataItemProps } from "@/types/timesheet";
+
 interface EmployeeProps {
   employee: string;
 }
