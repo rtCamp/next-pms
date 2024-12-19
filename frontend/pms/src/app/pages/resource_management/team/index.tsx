@@ -2,30 +2,28 @@
  * External dependencies.
  */
 import { useCallback, useEffect } from "react";
-import { useDispatch,useSelector } from "react-redux";
-import { useFrappeGetCall } from "frappe-react-sdk";
+import { useDispatch, useSelector } from "react-redux";
+import { Spinner } from "@/app/components/spinner";
 
 /**
  * Internal dependencies.
  */
-import { Spinner } from "@/app/components/spinner";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
-import { AllocationDataProps, PermissionProps, setResourcePermissions } from "@/store/resource_management/allocation";
-import { setData, setReFetchData, setStart, updateData } from "@/store/resource_management/team";
+import { AllocationDataProps, PermissionProps } from "@/store/resource_management/allocation";
+import { setData, setReFetchData, setStart } from "@/store/resource_management/team";
 
-
-import { ResourceTeamHeaderSection } from "./components/Header";
-import { ResourceTeamTable } from "./components/Table";
-import AddResourceAllocations from "../components/AddAllocation";
-import { DeleteAllocation } from "../components/DeleteAllocation";
-import { FooterSection } from "../components/Footer";
 import { getIsBillableValue } from "../utils/helper";
+import { getMergeData } from "../utils/value";
+import AddResourceAllocations from "../components/AddAllocation";
+import { FooterSection } from "../components/Footer";
+import { useFrappeGetCallInfinite } from "../hooks/useFrappeGetCallInfinite";
+import { ResourceTeamTable } from "./components/Table";
 
 /**
  * This is main component which is responsible for rendering the team view of resource management.
- * 
+ *
  * @returns React.FC
  */
 const ResourceTeamView = () => {
@@ -37,8 +35,16 @@ const ResourceTeamView = () => {
     (state: RootState) => state.resource_allocation_form.permissions
   );
 
-  const { data, isLoading, isValidating, error, mutate } = useFrappeGetCall(
+  const getKey = (pageIndex: number, previousPageData: any) => {
+    const indexTillNeedToFetchData = resourceTeamState.start / resourceTeamState.pageLength + 1;
+    if (indexTillNeedToFetchData <= pageIndex) return null;
+    if (previousPageData && !previousPageData.message.has_more) return null;
+    return `next_pms.resource_management.api.team.get_resource_management_team_view_data/get_resource_management_team_view_data?page=${pageIndex}&limit=${resourceTeamState.pageLength}`;
+  };
+
+  const { data, isLoading, isValidating, error, size, setSize, mutate } = useFrappeGetCallInfinite(
     "next_pms.resource_management.api.team.get_resource_management_team_view_data",
+    getKey,
     resourceAllocationPermission.write
       ? {
           date: resourceTeamState.weekDate,
@@ -49,54 +55,31 @@ const ResourceTeamView = () => {
           reports_to: resourceTeamState.reportingManager,
           designation: resourceTeamState.designation,
           is_billable: getIsBillableValue(resourceTeamState.allocationType as string[]),
-          start: resourceTeamState.start,
         }
       : {
           date: resourceTeamState.weekDate,
           max_week: 3,
           page_length: resourceTeamState.pageLength,
           employee_name: resourceTeamState.employeeName,
-          start: resourceTeamState.start,
         },
-    undefined,
-    {
-      revalidateIfStale: false,
-      revalidateOnMount: true,
-    }
+    { parallel: true }
   );
 
   const onFormSubmit = useCallback(() => {
     dispatch(setReFetchData(true));
   }, [dispatch]);
 
-  const refetchData = useCallback(() => {
+  useEffect(() => {
     if (resourceTeamState.isNeedToFetchDataAfterUpdate) {
-      mutate().then((r) => {
-        if (r.message) {
-          dispatch(setData(r.message));
-        }
-      });
+      mutate();
       dispatch(setReFetchData(false));
     }
-  }, [dispatch, mutate, resourceTeamState.isNeedToFetchDataAfterUpdate]);
-
-  useEffect(() => {
-    refetchData();
-  }, [refetchData, resourceTeamState.isNeedToFetchDataAfterUpdate]);
+  }, [resourceTeamState.isNeedToFetchDataAfterUpdate]);
 
   useEffect(() => {
     if (data) {
-      if (Object.keys(resourceTeamState.data.data).length > 0 && resourceTeamState.data.dates.length > 0) {
-        if (data.message.data.length > 0) {
-          if (data.message.data[0].name == resourceTeamState.data.data[0].name) {
-            return;
-          }
-        }
-        dispatch(updateData(data.message));
-      } else {
-        dispatch(setData(data.message));
-      }
-      dispatch(setResourcePermissions(data.message.permissions));
+      const mergeData = getMergeData(data);
+      dispatch(setData(mergeData));
     }
     if (error) {
       const err = parseFrappeErrorMsg(error);
@@ -111,12 +94,11 @@ const ResourceTeamView = () => {
   const handleLoadMore = () => {
     if (!resourceTeamState.hasMore) return;
     dispatch(setStart(resourceTeamState.start + resourceTeamState.pageLength));
+    setSize((resourceTeamState.start + resourceTeamState.pageLength) / resourceTeamState.pageLength + 1);
   };
 
   return (
     <>
-      <ResourceTeamHeaderSection />
-
       {(isLoading || isValidating) && resourceTeamState.data.data.length == 0 ? (
         <Spinner isFull />
       ) : (

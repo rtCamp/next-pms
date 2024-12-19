@@ -3,6 +3,7 @@
  */
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
+import { getMergeData } from "@/app/pages/resource_management/utils/value";
 import { getTodayDate, getFormatedDate } from "@/lib/utils";
 import {
   ResourceAllocationObjectProps,
@@ -136,7 +137,7 @@ const ResourceTeamSlice = createSlice({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setData: (state, action: PayloadAction<any>) => {
       state.data = action.payload;
-      state.hasMore = action.payload.has_more;
+      state.hasMore = state.data.has_more;
       state.pageLength = initialState.pageLength;
     },
     setEmployeeName: (state, action: PayloadAction<string>) => {
@@ -180,6 +181,7 @@ const ResourceTeamSlice = createSlice({
       state.employeeWeekDate = action.payload;
     },
     setStart: (state, action: PayloadAction<number>) => {
+      console.log(action.payload)
       state.start = action.payload;
       state.pageLength = initialState.pageLength;
     },
