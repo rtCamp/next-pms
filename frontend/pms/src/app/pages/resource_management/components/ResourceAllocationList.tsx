@@ -22,8 +22,9 @@ import {
   ResourceCustomerProps,
 } from "@/types/resource_management";
 
-import { DeleteAllocation } from "./DeleteAllocation";
+import { DeleteAllocation } from "./Confirmation";
 import { getFilterValue, getInitials } from "../utils/helper";
+import { useState } from "react";
 
 /**
  * This component is responsible for rendering the list of resource allocations in Card.
@@ -251,10 +252,15 @@ const DeleteIcon = ({
   const { deleteDoc } = useFrappeDeleteDoc();
   const dispatch = useDispatch();
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+
   const handleResourceAllocationDelete = () => {
     if (!resourceAllocationPermission.delete) {
       return;
     }
+
+    setIsLoading(true);
 
     deleteDoc("Resource Allocation", resourceAllocation.name)
       .then(() => {
@@ -269,8 +275,23 @@ const DeleteIcon = ({
           variant: "destructive",
           description: "Failed to delete resource allocation",
         });
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   };
 
-  return <DeleteAllocation onDelete={handleResourceAllocationDelete} />;
+  return (
+    <DeleteAllocation
+      onDelete={handleResourceAllocationDelete}
+      isLoading={isLoading}
+      isOpen={isOpen}
+      onOpen={() => {
+        setIsOpen(true);
+      }}
+      onCancel={() => {
+        setIsOpen(false);
+      }}
+    />
+  );
 };
