@@ -36,10 +36,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuPortal,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
 import { useToast } from "@/app/components/ui/use-toast";
@@ -74,8 +70,6 @@ import {
   subjectSearchType,
   GroupByParamType,
   columnsToExcludeActionsInTablesType,
-  MoreTableOptionsDropDownType,
-  tableAttributePropsType,
 } from "@/types/task";
 import { AddTask } from "./addTask";
 import { flatTableColumnDefinition, nestedTableColumnDefinition } from "./columns";
@@ -85,34 +79,123 @@ import { columnMap, getTableProps, localStorageTaskDataMap } from "./helper";
 import { TaskLog } from "./taskLog";
 
 const Task = () => {
+  const docType = "Task";
+  return (
+    <ViewWrapper docType={docType}>
+      {({ viewData, meta }) => <TaskTable viewData={viewData} meta={meta.message} />}
+    </ViewWrapper>
+  );
+};
+
+export default Task;
+
+export const TaskPriority = ({ priority }: { priority: TaskData["priority"] }) => {
+  const priorityCss = {
+    Low: "bg-slate-200 text-slate-900 hover:bg-slate-200",
+    Medium: "bg-warning/20 text-warning hover:bg-warning/20",
+    High: "bg-orange-200 text-orange-900 hover:bg-orange-200",
+    Urgent: "bg-destructive/20 text-destructive hover:bg-destructive/20",
+  };
+  return <Badge className={cn(priorityCss[priority])}>{priority}</Badge>;
+};
+
+interface TaskTableProps {
+  viewData: ViewData;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  meta: any;
+}
+
+const TaskTable = ({ viewData, meta }: TaskTableProps) => {
+  // Redux states
   const task = useSelector((state: RootState) => state.task);
   const user = useSelector((state: RootState) => state.user);
   const timesheet = useSelector((state: RootState) => state.timesheet);
 
-  const tableprop = useMemo(() => {
-    return getTableProps();
-  }, []);
-  const [tableAttributeProps, setTableAttributeProps] = useState<tableAttributePropsType>(tableprop);
-  const [columnOrder, setColumnOrder] = useState<string[]>(tableprop.columnOrder);
-  const { call } = useFrappePostCall("frappe.desk.like.toggle_like");
+  // Redux dispatch Object
+  const dispatch = useDispatch();
+
+  // Toast object
+  const { toast } = useToast();
+
+  // View management
+  const [viewInfo, setViewInfo] = useState<ViewData>(viewData);
+  const { call } = useFrappePostCall("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view");
+  const [isExportOpen, setIsExportOpen] = useState(false);
+  const [hasViewUpdated, setHasViewUpdated] = useState(false);
+  const [colSizing, setColSizing] = useState<ColumnSizingState>(viewData.columns ?? {});
+  const [columnOrder, setColumnOrder] = useState<string[]>(viewData.rows ?? []);
+  const [isCreateViewOpen, setIsCreateViewOpen] = useState(false);
+  const [columnVisibility, setColumnVisibility] = useState(createFalseValuedObject(viewData.rows));
+
+  // Query params management
+  const [subjectSearchParam, setSubjectSearchParam] = useQueryParamsState<subjectSearchType>("search", task.search);
+  const [projectParam, setProjectParam] = useQueryParamsState<string[]>("project", task.selectedProject || []);
+  const [groupByParam, setGroupByParam] = useQueryParamsState<GroupByParamType>("groupby", task.groupBy || []);
+  const [statusParam, setStatusParam] = useQueryParamsState<string[]>("status", task.selectedStatus || []);
+
+  // Dialog box management
   const [expanded, setExpanded] = useState<ExpandedState>(true);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
-    createFalseValuedObject(tableAttributeProps?.hideColumn ?? {})
-  );
-  const [projectParam, setProjectParam] = useQueryParamsState<string[]>("project", []);
-  const [groupByParam, setGroupByParam] = useQueryParamsState<GroupByParamType>("groupby", []);
-  const [subjectSearchParam, setSubjectSearchParam] = useQueryParamsState<subjectSearchType>("search", "");
-  const [statusParam, setStatusParam] = useQueryParamsState<Array<string>>("status", ["Open", "Working"]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+
+  // Table property management
+  const { call: toggleLikeCall } = useFrappePostCall("frappe.desk.like.toggle_like");
+
+  // On View Update
+  const updateView = () => {
+    call({
+      view: viewInfo,
+    })
+      .then((res) => {
+        dispatch(setViews(res.message));
+        toast({
+          variant: "success",
+          description: "View Updated",
+        });
+        setHasViewUpdated(false);
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          description: error,
+        });
+      });
+  };
+
+  const handleColumnHide = (id: string) => {
+    setColumnVisibility((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+  const updateColumnOrder = (visibility: { [key: string]: boolean }) => {
+    let newColumnOrder;
+    if (Object.keys(visibility).length == 0) {
+      newColumnOrder = columnOrder;
+    } else {
+      newColumnOrder = viewData?.rows.filter((d) => visibility[d]).map((d) => d);
+    }
+    setColumnOrder(newColumnOrder!);
+  };
+
+  const updateColumnSize = (columns: Array<string>) => {
+    setColSizing((prevColSizing) => {
+      const newColSizing = { ...prevColSizing };
+      columns.forEach((column) => {
+        if (!Object.prototype.hasOwnProperty.call(newColSizing, column)) {
+          newColSizing[column] = 150;
+        }
+      });
+      return newColSizing;
+    });
+  };
 
   useEffect(() => {
-    // set localStorage Map for Task
-    if (!localStorage.getItem(LOCAL_STORAGE_TASK)) {
-      localStorage.setItem(LOCAL_STORAGE_TASK, JSON.stringify(localStorageTaskDataMap));
-      setTableAttributeProps(localStorageTaskDataMap);
-    }
-    dispatch(setSelectedProject(projectParam));
-  }, []);
+    updateColumnSize(columnOrder);
+  }, [columnOrder]);
+
+  useEffect(() => {
+    updateColumnOrder(columnVisibility);
+  }, [columnVisibility]);
 
   const groupByData = [
     {
@@ -120,18 +203,8 @@ const Task = () => {
       value: "project",
     },
   ];
-  const status = [
-    { value: "Open", label: "Open" },
-    { value: "Working", label: "Working" },
-    { value: "Pending Review", label: "Pending Review" },
-    { value: "Overdue", label: "Overdue" },
-    { value: "Template", label: "Template" },
-    { value: "Completed", label: "Completed" },
-    { value: "Cancelled", label: "Cancelled" },
-  ];
-  const dispatch = useDispatch();
-  const { toast } = useToast();
 
+  // Add-time management
   const handleAddTime = (taskName: string) => {
     const timesheetData = {
       name: "",
@@ -146,6 +219,7 @@ const Task = () => {
     dispatch(SetTimesheet(timesheetData));
     dispatch(SetAddTimeDialog(true));
   };
+
   // Frappe Call for Project comboBox Data
   const [projectSearch, setProjectSearch] = useState<string>("");
   const { data: projects, mutate: projectSearchMutate } = useFrappeGetCall(
@@ -172,25 +246,21 @@ const Task = () => {
   }, [setGroupByParam, task.groupBy]);
 
   // call to fetch task list from DB ( single data source for flat and nested table)
-  const { data, isLoading, error, mutate } = useFrappeGetCall("next_pms.timesheet.api.task.get_task_list", {
-    page_length: task.pageLength,
-    start: task.start,
-    projects: task.selectedProject,
-    search: subjectSearchParam,
-    status: statusParam,
-  });
-
-  useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_TASK, JSON.stringify(tableAttributeProps));
-  }, [tableAttributeProps]);
-
-  useEffect(() => {
-    const updatedTableProp = {
-      ...tableprop,
-      columnOrder: columnOrder,
-    };
-    setTableAttributeProps(updatedTableProp);
-  }, [columnOrder]);
+  const { data, isLoading, error, mutate } = useFrappeGetCall(
+    "next_pms.timesheet.api.task.get_task_list",
+    {
+      page_length: task.pageLength,
+      start: task.start,
+      projects: task.selectedProject,
+      search: subjectSearchParam,
+      status: statusParam,
+      fields: viewInfo?.rows,
+    },
+    undefined,
+    {
+      revalidateIfStale: false,
+    }
+  );
 
   useEffect(() => {
     dispatch(setGroupBy(groupByParam));
@@ -216,6 +286,7 @@ const Task = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, error]);
 
+  // Handle Like
   const handleLike = (e: React.MouseEvent<SVGSVGElement>) => {
     e.stopPropagation();
     const taskName = e.currentTarget.dataset.task;
@@ -232,7 +303,7 @@ const Task = () => {
       add: add,
       doctype: "Task",
     };
-    call(data)
+    toggleLikeCall(data)
       .then(() => {
         mutate();
       })
@@ -244,6 +315,8 @@ const Task = () => {
         });
       });
   };
+
+  // Filter Mutation Functions
   const handleProjectChange = useCallback(
     (value: string | string[]) => {
       setProjectParam(value as string[]);
@@ -252,11 +325,16 @@ const Task = () => {
     [dispatch, setProjectParam]
   );
   const handleStatusChange = useCallback(
-    (value: string | string[]) => {
-      setStatusParam(value as string[]);
+    (filters: string | string[]) => {
+      const normalizedFilters = Array.isArray(filters) ? filters : [filters];
+      setStatusParam(normalizedFilters as TaskStatusType[]);
+      dispatch(setSelectedStatus(normalizedFilters as TaskStatusType[]));
     },
-    [setStatusParam]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [dispatch]
   );
+
+  // can be removed in the next itteration
   const handleGroupByChange = useCallback(
     (value: string | string[]) => {
       dispatch(setGroupBy(value as string[]));
@@ -264,14 +342,89 @@ const Task = () => {
     [dispatch]
   );
 
+  // Task Log Management
   const openTaskLog = (taskName: string) => {
     dispatch(setSelectedTask({ task: taskName, isOpen: true }));
   };
+
+  // useEffect when changing View States
+
+  useEffect(() => {
+    dispatch(
+      setFilters({
+        search: viewData.filters.search ?? "",
+        selectedProject: viewData.filters.projects ?? [],
+        selectedStatus: viewData.filters.status ?? ["Open", "Working"],
+        groupBy: viewData.filters.groupBy ?? [],
+      })
+    );
+    setViewInfo(viewData);
+    setColSizing(viewData.columns);
+    setColumnOrder(viewData.rows);
+    setColumnVisibility(createFalseValuedObject(viewData.rows));
+    setHasViewUpdated(false);
+  }, [viewData]);
+
+  // useEffect to render UI
+  useEffect(() => {
+    setStatusParam(task.selectedStatus);
+    setSubjectSearchParam(task.search);
+    setProjectParam(task.selectedProject);
+    setGroupByParam(task.groupBy);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [task.search, task.selectedProject, task.selectedStatus, task.groupBy]);
+
+  useEffect(() => {
+    const updateViewData = {
+      ...viewInfo,
+      columns: { ...viewInfo.columns, ...colSizing },
+      order_by: { field: task.orderColumn, order: task.order },
+      filters: createFilter(task),
+      rows: columnOrder,
+    };
+    if (!_.isEqual(updateViewData, viewData)) {
+      setHasViewUpdated(true);
+    } else {
+      setHasViewUpdated(false);
+    }
+    setViewInfo(updateViewData);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    colSizing,
+    columnOrder,
+    task.orderColumn,
+    task.order,
+    task.search,
+    task.selectedProject,
+    task.selectedStatus,
+    task.groupBy,
+  ]);
+
+  const handleSubjectSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const searchStr = e.target.value.trim();
+      setSubjectSearchParam(searchStr);
+      dispatch(setSearch(searchStr));
+    },
+    [dispatch, setSubjectSearchParam]
+  );
+
   // column definitions
-  const columnWidth = tableAttributeProps?.columnWidth;
-  const columns: ColumnsType = flatTableColumnDefinition(columnWidth, openTaskLog, handleAddTime, user, handleLike);
+  const columns: ColumnsType = flatTableColumnDefinition(
+    meta.fields,
+    viewInfo?.rows,
+    viewInfo?.columns,
+    meta.title_field,
+    meta.doctype,
+    openTaskLog,
+    handleAddTime,
+    user,
+    handleLike
+  );
   const nestedProjectColumns: ProjectNestedColumnsType = nestedTableColumnDefinition(
-    columnWidth,
+    meta.fields,
+    viewInfo?.rows,
+    viewInfo?.columns,
     openTaskLog,
     handleAddTime,
     user,
@@ -281,20 +434,20 @@ const Task = () => {
   const table = useReactTable({
     data: task.task,
     columns,
+    enableColumnResizing: true,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
     columnResizeMode: "onChange",
     onColumnOrderChange: setColumnOrder,
+    onColumnSizingChange: setColSizing,
     initialState: {
       sorting: [{ id: "liked", desc: false }],
     },
     state: {
       columnVisibility,
       columnOrder,
-      columnFilters,
+      columnSizing: colSizing,
     },
   });
   
@@ -309,17 +462,19 @@ const Task = () => {
     onColumnVisibilityChange: setColumnVisibility,
     onExpandedChange: setExpanded,
     onColumnOrderChange: setColumnOrder,
+    onColumnSizingChange: setColSizing,
     columnResizeMode: "onChange",
     state: {
       expanded,
       columnOrder,
       columnVisibility: { ...columnVisibility, project_name: true },
+      columnSizing: colSizing,
     },
   });
 
   const columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType = ["liked", "timesheetAction"];
 
-  // handle ad Task
+  // handle add Task
   const handleAddTask = () => {
     dispatch(setAddTaskDialog(true));
   };
@@ -328,65 +483,14 @@ const Task = () => {
     setProjectSearch(searchString);
   };
 
-  const MoreTableOptionsDropDownData: {
-    title: string;
-    icon: React.ForwardRefExoticComponent<Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>>;
-    iconClass: string;
-    handleClick?: () => void;
-    type: MoreTableOptionsDropDownType;
-    render?: () => ReactNode;
-  }[] = [
-    {
-      title: "Reset Table",
-      icon: RotateCcw,
-      iconClass: "",
-      handleClick: () => {
-        // update All Sort,filter and columnWidth States when localStorage Changes (table config reset)
-        setTableAttributeProps(localStorageTaskDataMap);
-        setColumnVisibility({});
-        table.setColumnSizing({});
-        table.setColumnOrder(localStorageTaskDataMap.columnOrder);
-        nestedProjectTable.setColumnSizing({});
-        nestedProjectTable.setColumnSizing({});
-        nestedProjectTable.setColumnOrder(localStorageTaskDataMap.columnOrder);
-      },
-      type: "normal",
-    },
-  ];
-
-  const handleColumnHide = (id: string) => {
-    const prev = tableAttributeProps;
-    if (prev.hideColumn.includes(id)) {
-      const mutatedHideColumn = [...prev.hideColumn];
-      const index = mutatedHideColumn.indexOf(id);
-      if (index > -1) {
-        mutatedHideColumn.splice(index, 1);
-      }
-      const attr = { ...prev, hideColumn: mutatedHideColumn };
-      setTableAttributeProps(attr);
-    } else {
-      const mutatedHideColumnSet = new Set([...prev.hideColumn, id]);
-      const attr = { ...prev, hideColumn: [...mutatedHideColumnSet] };
-      setTableAttributeProps(attr);
-    }
-  };
-  const handleSubjectSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const searchStr = e.target.value.trim();
-    setSubjectSearchParam(searchStr);
-    dispatch(setStart(0));
-  }, []);
-
   const loadMore = () => {
     dispatch(setStart(task.start + 20));
   };
   return (
     <>
       {/* filters and combo boxes */}
-      <Header>
-        <div
-          id="filters"
-          className="flex gap-x-2 w-full overflow-hidden md:overflow-x-auto items-center overflow-x-auto"
-        >
+      <Header className="gap-x-3 flex items-center overflow-x-auto">
+        <section id="filter-section" className="flex gap-x-2 items-center">
           {/* Task Search Filter */}
           <DeBounceInput
             placeholder="Search Subject..."
@@ -412,6 +516,7 @@ const Task = () => {
             onSearch={handleProjectSearch}
           />
 
+          {/* Status */}
           <ComboxBox
             label="Status"
             value={statusParam}
@@ -423,7 +528,9 @@ const Task = () => {
             isMulti
             shouldFilter
           />
-          <ComboxBox
+
+          {/* GroupBy */}
+          {/* <ComboxBox
             label="GroupBy"
             value={groupByParam}
             showSelected={false}
@@ -432,57 +539,70 @@ const Task = () => {
             data={groupByData}
             className="text-primary border-dashed gap-x-2 font-normal w-fit"
             onSelect={handleGroupByChange}
-          />
+          /> */}
+        </section>
+        {/* More Tools */}
+        <div className="flex gap-x-2">
+          {hasViewUpdated &&
+            (user.user == viewData?.owner || (viewData?.public == true && user.user == "Administrator")) && (
+              <Button onClick={updateView} variant="ghost">
+                Save Changes
+              </Button>
+            )}
           <div className="ml-auto flex gap-x-2 ">
             <Button onClick={handleAddTask} className="px-3" title="Add task">
               <Plus /> Task
             </Button>
+
             <ColumnSelector
-              table={table}
               onColumnHide={handleColumnHide}
+              fieldMeta={meta?.fields}
               setColumnOrder={setColumnOrder}
-              columnOrder={columnOrder}
-              groupByParam={groupByParam}
+              columnOrder={viewInfo.rows}
             />
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="focus-visible:ring-0">
-                  <Ellipsis />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {MoreTableOptionsDropDownData?.map((dropdownItem) => {
-                  if (dropdownItem.type === "normal") {
-                    return (
-                      <DropdownMenuItem
-                        key={dropdownItem.title}
-                        onClick={dropdownItem.handleClick}
-                        className="cursor-pointer flex gap-2 items-center justify-start"
-                      >
-                        <dropdownItem.icon className={cn(dropdownItem.iconClass)} />
-                        <Typography variant="p">{dropdownItem.title}</Typography>
-                      </DropdownMenuItem>
-                    );
-                  }
-                  return (
-                    <DropdownMenuSub key={dropdownItem.title}>
-                      <DropdownMenuSubTrigger className="cursor-pointer flex gap-2 items-center justify-start">
-                        <dropdownItem.icon className={cn(dropdownItem.iconClass)} />
-                        <Typography variant="p">{dropdownItem.title}</Typography>
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuPortal>
-                        <DropdownMenuSubContent>{dropdownItem?.render()}</DropdownMenuSubContent>
-                      </DropdownMenuPortal>
-                    </DropdownMenuSub>
-                  );
-                })}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Action
+              createView={() => {
+                setIsCreateViewOpen(true);
+              }}
+              openExportDialog={() => {
+                setIsExportOpen(true);
+              }}
+            />
           </div>
         </div>
       </Header>
-      {/* tables */}
+      {/* Action Items */}
+      {canExport("Task") && (
+        <Export
+          isOpen={isExportOpen}
+          setIsOpen={setIsExportOpen}
+          doctype="Task"
+          pageLength={task.pageLength}
+          totalCount={task.total_count}
+          orderBy={`modified  desc`}
+          fields={viewData?.rows.reduce((acc, d) => {
+            if (d !== "project_name") {
+              const m = meta.fields.find((field: { fieldname: string }) => field.fieldname === d);
+              acc[d] = m?.label ?? d;
+            }
+            return acc;
+          }, {})}
+        />
+      )}
+      <CreateView
+        isOpen={isCreateViewOpen}
+        setIsOpen={setIsCreateViewOpen}
+        dt="Task"
+        filters={createFilter(task)}
+        orderBy={{ field: task.orderColumn, order: task.order }}
+        route="task"
+        isDefault={false}
+        isPublic={false}
+        columns={viewData.columns}
+        rows={[...viewData.rows]}
+      />
+      {/* Task logs */}
       {task.isTaskLogDialogBoxOpen && (
         <TaskLog
           isOpen={task.isTaskLogDialogBoxOpen}
@@ -496,12 +616,12 @@ const Task = () => {
           }}
         />
       )}
+      {/* tables */}
       {groupByParam.length === 0 && task.groupBy ? (
         <FlatTable
           table={table}
           columns={columns}
           columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
-          setTableAttributeProps={setTableAttributeProps}
           task={task}
           isLoading={isLoading}
         />
@@ -510,7 +630,6 @@ const Task = () => {
           table={nestedProjectTable}
           columns={nestedProjectColumns}
           columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
-          setTableAttributeProps={setTableAttributeProps}
           task={task}
           isLoading={isLoading}
         />
@@ -551,128 +670,27 @@ const Task = () => {
   );
 };
 
-export const TaskPriority = ({ priority }: { priority: TaskData["priority"] }) => {
-  const priorityCss = {
-    Low: "bg-slate-200 text-slate-900 hover:bg-slate-200",
-    Medium: "bg-warning/20 text-warning hover:bg-warning/20",
-    High: "bg-orange-200 text-orange-900 hover:bg-orange-200",
-    Urgent: "bg-destructive/20 text-destructive hover:bg-destructive/20",
-  };
-  return <Badge className={cn(priorityCss[priority])}>{priority}</Badge>;
-};
-
-const ColumnSelector = ({
-  table,
-  onColumnHide,
-  setColumnOrder,
-  columnOrder,
-  groupByParam,
-}: {
-  table: T<TaskData>;
-  onColumnHide: (id: string) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  setColumnOrder: any;
-  columnOrder: string[];
-  groupByParam: string[];
-}) => {
+// Action Button Menu
+const Action = ({ createView, openExportDialog }: { createView: () => void; openExportDialog: () => void }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="focus-visible:ring-0">
-          <Columns2 />
-          <Typography variant="p">Columns</Typography>
+        <Button variant="outline">
+          <Ellipsis />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="[&_div]:cursor-pointer max-h-96 overflow-y-auto">
-        <DndProvider backend={checkIsMobile() ? TouchBackend : HTML5Backend}>
-          {table
-            .getAllColumns()
-            .filter((column) => column.getCanHide())
-            .sort((a, b) => columnOrder.indexOf(a.id) - columnOrder.indexOf(b.id))
-            .map((column) => {
-              if (groupByParam.length > 0 && column.id === "project_name") return null;
-              return (
-                <ColumnItem
-                  key={column.id}
-                  id={column.id}
-                  onColumnHide={onColumnHide}
-                  getIsVisible={column.getIsVisible}
-                  toggleVisibility={column.toggleVisibility}
-                  reOrder={setColumnOrder}
-                />
-              );
-            })}
-        </DndProvider>
+      <DropdownMenuContent className="mr-2 [&_div]:cursor-pointer  [&_div]:gap-x-1">
+        <DropdownMenuItem onClick={createView}>
+          <Plus />
+          <Typography variant="p">Create View </Typography>
+        </DropdownMenuItem>
+        {canExport("Task") && (
+          <DropdownMenuItem onClick={openExportDialog}>
+            <Download />
+            <Typography variant="p">Export </Typography>
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
 };
-
-const ColumnItem = ({
-  id,
-  onColumnHide,
-  reOrder,
-  getIsVisible,
-  toggleVisibility,
-}: {
-  id: string;
-  onColumnHide: (id: string) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  reOrder: any;
-  getIsVisible: () => boolean;
-  toggleVisibility: (value?: boolean) => void;
-}) => {
-  const [{ isDragging }, dragRef] = useDrag({
-    type: "COLUMN",
-    item: { id: id },
-    collect: (monitor) => ({
-      isDragging: !!monitor.isDragging(),
-    }),
-  });
-  const [, dropRef] = useDrop({
-    accept: "COLUMN",
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    hover: (draggedColumn: any) => {
-      if (draggedColumn.id !== id) {
-        reOrder((old: string[]) => {
-          const newOrder = [...old];
-          const fromIndex = newOrder.indexOf(draggedColumn.id);
-          const toIndex = newOrder.indexOf(id);
-          newOrder.splice(fromIndex, 1);
-          newOrder.splice(toIndex, 0, draggedColumn.id);
-          return newOrder;
-        });
-      }
-    },
-  });
-  return (
-    <DropdownMenuItem
-      key={id}
-      className="capitalize cursor-pointer flex gap-x-2 items-center"
-      ref={(node) => dragRef(dropRef(node))}
-    >
-      <Checkbox
-        checked={getIsVisible()}
-        onCheckedChange={(value) => {
-          toggleVisibility(!!value);
-          onColumnHide(id);
-        }}
-      />
-      <div
-        className="w-full flex justify-between items-center"
-        onClick={() => {
-          toggleVisibility(!getIsVisible());
-          onColumnHide(id);
-        }}
-        style={{
-          opacity: isDragging ? 0.5 : 1,
-        }}
-      >
-        <span className="mr-1">{columnMap[id as keyof typeof columnMap]}</span>
-        <GripVertical className="flex-shrink-0" />
-      </div>
-    </DropdownMenuItem>
-  );
-};
-
-export default Task;

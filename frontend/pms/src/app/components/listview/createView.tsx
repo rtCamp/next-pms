@@ -13,10 +13,12 @@ interface CreateViewProps {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   dt: string;
   rows: Array<string>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   filters: any;
   orderBy: { field: string; order: string };
   route: string;
   isDefault: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   columns: any;
   isPublic: boolean;
 }

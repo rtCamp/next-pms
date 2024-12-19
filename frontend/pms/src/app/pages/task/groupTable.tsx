@@ -15,25 +15,21 @@ import {
   NestedRowTableType,
   ProjectNestedColumnsType,
   columnsToExcludeActionsInTablesType,
-  setTableAttributePropsType,
 } from "@/types/task";
 
 export const RowGroupedTable = ({
   table,
   columns,
   columnsToExcludeActionsInTables,
-  setTableAttributeProps,
   task,
   isLoading,
 }: {
   table: NestedRowTableType;
   columns: ProjectNestedColumnsType;
   columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType;
-  setTableAttributeProps: setTableAttributePropsType;
   task: TaskState;
   isLoading: boolean;
 }) => {
-  let resizeObserver: ResizeObserver;
   return (
     <>
       {isLoading && task.project.length == 0 ? (
@@ -45,30 +41,16 @@ export const RowGroupedTable = ({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead
-                    className={`resizer group overflow-hidden ${header.column.getIsResizing() ? "isResizing" : null}`}
+                    className="group"
                     key={header.id}
-                    style={{
-                      width: header.getSize(),
-                      position: "relative",
-                    }}
-                    onMouseDown={(event) => {
-                      const container = event.currentTarget;
-                      resizeObserver = new ResizeObserver((entries) => {
-                        entries.forEach(() => {
-                          setTableAttributeProps((prev) => {
-                            return {
-                              ...prev,
-                              columnWidth: { ...prev.columnWidth, [header.id]: header.getSize() },
-                            };
-                          });
-                        });
-                      });
-                      resizeObserver.observe(container);
-                    }}
-                    onMouseUp={() => {
-                      if (resizeObserver) {
-                        resizeObserver.disconnect();
-                      }
+                    {...{
+                      onMouseDown: header.getResizeHandler(),
+                      onTouchStart: header.getResizeHandler(),
+                      style: {
+                        userSelect: "none",
+                        touchAction: "none",
+                        width: header.getSize(),
+                      },
                     }}
                   >
                     <div className="w-full h-full flex items-center justify-between group">

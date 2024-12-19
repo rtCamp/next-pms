@@ -10,6 +10,6 @@
     "dev": "cd frontend/pms && npm run dev",
     "build": "cd frontend/pms && npm install && npm run build"
   },
-  "dependencies": {
+  "devDependencies": {
   }
 }

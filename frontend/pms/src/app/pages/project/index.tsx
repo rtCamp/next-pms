@@ -2,16 +2,14 @@
  * External dependencies.
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useCallback, useContext, useEffect, useState } from "react";
-import { DndProvider, useDrag, useDrop } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
-import { TouchBackend } from "react-dnd-touch-backend";
-import { useDispatch, useSelector } from "react-redux";
-import { useSearchParams } from "react-router-dom";
 
 /**
- * Internal dependencies.
+ * External dependencies
  */
+import { Filter, Ellipsis, Download, Plus } from "lucide-react";
+import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import { useCallback, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   flexRender,
   getCoreRowModel,
@@ -19,16 +17,36 @@ import {
   useReactTable,
   ColumnSizingState,
 } from "@tanstack/react-table";
-import { useFrappeGetCall, FrappeContext, FrappeConfig, useFrappePostCall } from "frappe-react-sdk";
 import _ from "lodash";
-import { Filter, Columns2, GripVertical, Ellipsis, Download, Plus, X } from "lucide-react";
-import { ComboxBox } from "@/app/components/comboBox";
+
+/**
+ * Internal dependencies
+ */
 import { DeBounceInput } from "@/app/components/deBounceInput";
-import { CreateView } from "@/app/components/listview/createView";
-import { Export } from "@/app/components/listview/export";
-import Sort from "@/app/components/listview/sort";
+import { useQueryParamsState } from "@/lib/queryParam";
+import { RootState } from "@/store";
+import { Header, Footer } from "@/app/layout/root";
 import { LoadMore } from "@/app/components/loadMore";
-import { Spinner } from "@/app/components/spinner";
+import {
+  setProjectData,
+  setSearch,
+  setSelectedProjectType,
+  setSelectedStatus,
+  Status,
+  setStart,
+  setFilters,
+  setSelectedBusinessUnit,
+  setTotalCount,
+  setCurrency,
+  setSelectedBilingType,
+  setOrderBy,
+} from "@/store/project";
+import { ComboxBox } from "@/app/components/comboBox";
+import { cn, parseFrappeErrorMsg, createFalseValuedObject, canExport } from "@/lib/utils";
+import { CreateView } from "@/app/components/listview/createView";
+import { useToast } from "@/app/components/ui/use-toast";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
+import { Badge } from "@/app/components/ui/badge";
 import { Typography } from "@/app/components/typography";
 import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
@@ -36,11 +54,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuPortal,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
 import { Separator } from "@/app/components/ui/separator";
@@ -72,6 +85,10 @@ import { getColumnInfo } from "./columns";
 import { createFilter, defaultView } from "./utils";
 import { getFilter } from "./utils";
 
+type ProjectProps = {
+  viewData: ViewData;
+  meta: any;
+};
 const Action = ({ createView, openExportDialog }: { createView: () => void; openExportDialog: () => void }) => {
   return (
     <DropdownMenu>
@@ -85,230 +102,25 @@ const Action = ({ createView, openExportDialog }: { createView: () => void; open
           <Plus />
           <Typography variant="p">Create View </Typography>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={openExportDialog}>
-          <Download />
-          <Typography variant="p">Export </Typography>
-        </DropdownMenuItem>
+        {canExport("Project") && (
+          <DropdownMenuItem onClick={openExportDialog}>
+            <Download />
+            <Typography variant="p">Export </Typography>
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
-  );
-};
-
-const ColumnSelector = ({
-  fieldMeta,
-  onColumnHide,
-  setColumnOrder,
-  columnOrder,
-}: {
-  fieldMeta: Array<any>;
-  onColumnHide: (id: string) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  setColumnOrder: any;
-  columnOrder: string[];
-}) => {
-  const fieldMap = columnOrder
-    .map((row) => {
-      const d = fieldMeta.find((f: { fieldname: string }) => f.fieldname === row);
-      return d !== undefined ? d : null;
-    })
-    .filter((d) => d !== null);
-
-  const fields = fieldMeta
-    .filter((d) => !NO_VALUE_FIELDS.includes(d.fieldtype))
-    .filter((d) => !columnOrder.includes(d.fieldname));
-
-  const handleColumnAdd = (fieldname: string) => {
-    setColumnOrder((old: string[]) => {
-      const newOrder = [...old];
-      newOrder.push(fieldname);
-      return newOrder;
-    });
-  };
-
-  return (
-    <DropdownMenu modal>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline">
-          <Columns2 />
-          <Typography variant="p">Columns</Typography>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="[&_div]:cursor-pointer max-h-96 overflow-y-auto">
-        <DndProvider backend={checkIsMobile() ? TouchBackend : HTML5Backend}>
-          {fieldMap
-            .sort((a, b) => columnOrder.indexOf(a.fieldname) - columnOrder.indexOf(b.fieldname))
-            .map((field: any) => {
-              const isVisible = columnOrder.includes(field.fieldname);
-              return (
-                <ColumnItem
-                  key={field.fieldname}
-                  id={field.fieldname}
-                  label={field.label}
-                  onColumnHide={onColumnHide}
-                  isVisible={isVisible}
-                  toggleVisibility={() => {}}
-                  reOrder={setColumnOrder}
-                />
-              );
-            })}
-        </DndProvider>
-        <DropdownMenuSeparator />
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>Add Columns</DropdownMenuSubTrigger>
-          <DropdownMenuPortal>
-            <DropdownMenuSubContent className="[&_div]:cursor-pointer max-h-96 overflow-y-auto">
-              {fields.map((field: any) => {
-                return (
-                  <DropdownMenuItem
-                    key={field.fieldname}
-                    className="capitalize cursor-pointer flex gap-x-2 items-center"
-                    onSelect={(event) => event.preventDefault()}
-                    onClick={() => {
-                      handleColumnAdd(field.fieldname);
-                    }}
-                  >
-                    {field.label}
-                  </DropdownMenuItem>
-                );
-              })}
-            </DropdownMenuSubContent>
-          </DropdownMenuPortal>
-        </DropdownMenuSub>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-};
-const ColumnItem = ({
-  id,
-  onColumnHide,
-  reOrder,
-  isVisible,
-  label,
-  toggleVisibility,
-}: {
-  id: string;
-  onColumnHide: (id: string) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  reOrder: any;
-  label: string;
-  isVisible: boolean;
-  toggleVisibility: (value?: boolean) => void;
-}) => {
-  const [{ isDragging }, dragRef] = useDrag({
-    type: "COLUMN",
-    item: { id: id },
-    collect: (monitor) => ({
-      isDragging: !!monitor.isDragging(),
-    }),
-  });
-  const [, dropRef] = useDrop({
-    accept: "COLUMN",
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    hover: (draggedColumn: any) => {
-      if (draggedColumn.id !== id) {
-        reOrder((old: string[]) => {
-          const newOrder = [...old];
-          const fromIndex = newOrder.indexOf(draggedColumn.id);
-          const toIndex = newOrder.indexOf(id);
-          newOrder.splice(fromIndex, 1);
-          newOrder.splice(toIndex, 0, draggedColumn.id);
-          return newOrder;
-        });
-      }
-    },
-  });
-  return (
-    <DropdownMenuItem
-      key={id}
-      className="capitalize cursor-pointer flex gap-x-2 items-center"
-      ref={(node) => dragRef(dropRef(node))}
-      onSelect={(event) => event.preventDefault()}
-    >
-      <span
-        className="w-full flex justify-between gap-x-2 items-center"
-        style={{
-          opacity: isDragging ? 0.5 : 1,
-        }}
-      >
-        <Typography className="flex gap-x-2 items-center">
-          <GripVertical />
-          {label}
-        </Typography>
-        <X
-          onClick={() => {
-            toggleVisibility(!isVisible);
-            onColumnHide(id);
-          }}
-        />
-      </span>
-    </DropdownMenuItem>
   );
 };
 
 const Project = () => {
-  const views = useSelector((state: RootState) => state.view);
-
-  const [searchParams, setSearchParams] = useSearchParams();
-  const view = searchParams.get("view");
-  const { call } = useContext(FrappeContext) as FrappeConfig;
-  const dispatch = useDispatch();
-  const [viewData, setViewData] = useState<ViewData | undefined>(undefined);
-
-  useEffect(() => {
-    if (!view) {
-      const viewData = views.views.find((v) => v.dt === "Project" && v.default);
-      updateViewData(viewData ?? defaultView());
-    } else {
-      const viewData = views.views.find((v) => v.name == view);
-      if (!viewData) {
-        searchParams.delete("view");
-        setSearchParams(searchParams);
-      }
-      updateViewData(viewData ?? defaultView());
-    }
-  }, [view, views.views]);
-
-  const updateViewData = (viewData: ViewData) => {
-    setViewData(viewData);
-    const filters = {
-      search: viewData.filters.search ?? searchParams.get("search"),
-      selectedProjectType: viewData.filters.project_type ?? JSON.parse(searchParams.get("project-type") ?? "[]"),
-      selectedStatus: viewData.filters.status ?? JSON.parse(searchParams.get("status") ?? "[]"),
-      selectedBusinessUnit: viewData.filters.business_unit ?? JSON.parse(searchParams.get("business-unit") ?? "[]"),
-      order: viewData.order_by.order as "asc" | "desc",
-      orderColumn: viewData.order_by.field,
-      currency: viewData.filters.currency ?? searchParams.get("currency"),
-      selectedBillingType: viewData.filters.billing_type ?? JSON.parse(searchParams.get("billing-type") ?? "[]"),
-    };
-    dispatch(setFilters(filters));
-  };
-  useEffect(() => {
-    const defaultDtView = views.views.find((v) => v.dt === "Project" && v.default);
-    if (!defaultDtView) {
-      call
-        .post("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.create_view", {
-          view: defaultView(),
-        })
-        .then((res) => {
-          dispatch(setViews(res.message));
-        });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const { doc } = useFrappeDoctypeMeta("Project");
-
-  if (doc && viewData) {
-    return <ProjectTable viewData={viewData} meta={doc} />;
-  } else {
-    return <Spinner isFull />;
-  }
+  const docType = "Project";
+  return (
+    <ViewWrapper docType={docType}>
+      {({ viewData, meta }) => <ProjectTable viewData={viewData} meta={meta.message} />}
+    </ViewWrapper>
+  );
 };
-
-interface ProjectProps {
-  viewData: ViewData;
-  meta: any;
-}
 
 const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   const [viewInfo, setViewInfo] = useState<ViewData>(viewData);
@@ -341,6 +153,18 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   );
   const billing_type = ["Non-Billable", "Retainer", "Fixed Cost", "Time and Material"];
   useEffect(() => {
+    dispatch(
+      setFilters({
+        search: viewData.filters.search ?? "",
+        selectedProjectType: viewData.filters.project_type ?? [],
+        selectedStatus: viewData.filters.status ?? [],
+        selectedBillingType: viewData.filters.billing_type ?? [],
+        selectedBusinessUnit: viewData.filters.business_unit ?? [],
+        currency: viewData.filters.currency ?? "",
+        order: viewData.order_by.order ?? "desc",
+        orderColumn: viewData.order_by.field ?? "modified",
+      })
+    );
     setViewInfo(viewData);
     setColSizing(viewData.columns);
     setColumnOrder(viewData.rows);
@@ -424,6 +248,8 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     };
     if (!_.isEqual(updateViewData, viewData)) {
       setHasViewUpdated(true);
+    } else {
+      setHasViewUpdated(false);
     }
     setViewInfo(updateViewData);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -506,7 +332,15 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     [dispatch]
   );
 
-  const columns = getColumnInfo(meta.fields, viewInfo.rows, viewInfo.columns, currencyParam);
+  const columns = getColumnInfo(
+    meta.fields,
+    viewInfo.rows,
+    viewInfo.columns,
+    meta.title_field,
+    meta.doctype,
+    currencyParam
+  );
+
   const table = useReactTable({
     columns: columns,
     data: projectState.data,
@@ -690,7 +524,6 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
           />
           <Sort
             fieldMeta={meta.fields}
-            rows={viewData.rows}
             orderBy={projectState.order}
             field={projectState.orderColumn}
             onSortChange={handleSortChange}
@@ -709,21 +542,23 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
         <Spinner isFull />
       ) : (
         <>
-          <Export
-            isOpen={isExportOpen}
-            setIsOpen={setIsExportOpen}
-            doctype="Project"
-            pageLength={projectState.data.length}
-            totalCount={projectState.totalCount}
-            orderBy={`${projectState.orderColumn}  ${projectState.order}`}
-            fields={viewData.rows.reduce((acc, d) => {
-              if (d !== "name") {
-                const m = meta.fields.find((field: { fieldname: string }) => field.fieldname === d);
-                acc[d] = m?.label ?? d;
-              }
-              return acc;
-            }, {})}
-          />
+          {canExport("Project") && (
+            <Export
+              isOpen={isExportOpen}
+              setIsOpen={setIsExportOpen}
+              doctype="Project"
+              pageLength={projectState.data.length}
+              totalCount={projectState.totalCount}
+              orderBy={`${projectState.orderColumn}  ${projectState.order}`}
+              fields={viewData.rows.reduce((acc, d) => {
+                if (d !== "name") {
+                  const m = meta.fields.find((field: { fieldname: string }) => field.fieldname === d);
+                  acc[d] = m?.label ?? d;
+                }
+                return acc;
+              }, {})}
+            />
+          )}
           <CreateView
             isOpen={isCreateViewOpen}
             setIsOpen={setIsCreateViewOpen}

@@ -9,8 +9,10 @@
   "employee",
   "employee_name",
   "status",
+  "is_billable",
   "column_break_wngn",
   "project",
+  "project_name",
   "customer",
   "naming_series",
   "section_break_ugdn",
@@ -26,6 +28,7 @@
   {
    "fieldname": "employee",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "in_list_view": 1,
    "label": "Employee",
    "options": "Employee",
@@ -34,6 +37,7 @@
   {
    "fieldname": "project",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "label": "Project",
    "options": "Project"
   },
@@ -42,8 +46,10 @@
    "fetch_if_empty": 1,
    "fieldname": "customer",
    "fieldtype": "Link",
+   "ignore_user_permissions": 1,
    "label": "Customer",
-   "options": "Customer"
+   "options": "Customer",
+   "reqd": 1
   },
   {
    "fieldname": "total_allocated_hours",
@@ -53,17 +59,20 @@
   {
    "fieldname": "hours_allocated_per_day",
    "fieldtype": "Float",
-   "label": "Hours Allocated / Day "
+   "label": "Hours Allocated / Day ",
+   "reqd": 1
   },
   {
    "fieldname": "allocation_start_date",
    "fieldtype": "Date",
-   "label": "Allocation Start Date"
+   "label": "Allocation Start Date",
+   "reqd": 1
   },
   {
    "fieldname": "allocation_end_date",
    "fieldtype": "Date",
-   "label": "Allocation End Date"
+   "label": "Allocation End Date",
+   "reqd": 1
   },
   {
    "fieldname": "status",
@@ -105,11 +114,23 @@
    "hidden": 1,
    "label": "Naming Series",
    "options": "RA-.{employee}.-.YYYY.-.####."
+  },
+  {
+   "default": "0",
+   "fieldname": "is_billable",
+   "fieldtype": "Check",
+   "label": "Is Billable"
+  },
+  {
+   "fetch_from": "project.project_name",
+   "fieldname": "project_name",
+   "fieldtype": "Data",
+   "label": "Project Name"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-10-22 12:45:59.719658",
+ "modified": "2024-12-12 19:36:40.542215",
  "modified_by": "Administrator",
  "module": "Resource Management",
  "name": "Resource Allocation",

@@ -1,3 +1,5 @@
+import { TaskStatusType } from "@/store/task";
+
 export type Employee = {
   name: string;
   image: string;
@@ -12,14 +14,7 @@ export interface TaskData {
   subject: string;
   project_name: string | null;
   priority: "Low" | "Medium" | "High" | "Urgent";
-  status:
-    | "Open"
-    | "Working"
-    | "Pending Review"
-    | "Overdue"
-    | "Template"
-    | "Completed"
-    | "Cancelled";
+  status:TaskStatusType;
   description: string | null;
   custom_is_billable: boolean;
   actual_time: number;
@@ -45,3 +40,10 @@ export interface ProjectData {
 }
 
 export type sortOrder = "asc" | "desc";
+
+export type fieldMetaProps = {
+  label: string;
+  fieldname: string;
+  fieldtype: string;
+  options?: string;
+}

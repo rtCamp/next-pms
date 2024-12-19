@@ -25,6 +25,7 @@ interface ComboBoxProps {
   onSearch?: (searchTerm: string) => void;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  onunSelect?: () => void;
   className?: string;
   showSelected?: boolean;
   shouldFilter?: boolean;
@@ -40,6 +41,7 @@ export const ComboxBox = ({
   isMulti = false,
   value,
   onSearch,
+  onunSelect,
   leftIcon,
   rightIcon,
   className = "",
@@ -53,6 +55,9 @@ export const ComboxBox = ({
   }, [value]);
   const [open, setOpen] = useState(isOpen);
   const clearFilter = () => {
+    if (selectedValues.length == 0) {
+      return;
+    }
     setSelectedValues([]);
     onSelect && onSelect([]);
     setOpen(!open);
@@ -77,6 +82,13 @@ export const ComboxBox = ({
     setSelectedValues(values);
     onSelect && onSelect(values);
   };
+
+  useEffect(() => {
+    if (selectedValues.length == 0) {
+      onunSelect && onunSelect();
+    }
+  }, [onunSelect, selectedValues.length]);
+
   const hasValue = selectedValues.length > 0;
   const selectedValue = () => {
     if (selectedValues.length === 1) {

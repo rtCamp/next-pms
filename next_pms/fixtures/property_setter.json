@@ -814,5 +814,37 @@
   "property_type": "Int",
   "row_name": null,
   "value": "1"
+ },
+ {
+  "default_value": null,
+  "doc_type": "Project",
+  "docstatus": 0,
+  "doctype": "Property Setter",
+  "doctype_or_field": "DocField",
+  "field_name": "project_details",
+  "is_system_generated": 0,
+  "modified": "2024-12-13 18:17:56.718942",
+  "module": "Project Currency",
+  "name": "Project-project_details-collapsible",
+  "property": "collapsible",
+  "property_type": "Check",
+  "row_name": null,
+  "value": "0"
+ },
+ {
+  "default_value": null,
+  "doc_type": "Project",
+  "docstatus": 0,
+  "doctype": "Property Setter",
+  "doctype_or_field": "DocType",
+  "field_name": null,
+  "is_system_generated": 0,
+  "modified": "2024-12-16 22:09:32.025668",
+  "module": "Project Currency",
+  "name": "Project-main-field_order",
+  "property": "field_order",
+  "property_type": "Data",
+  "row_name": null,
+  "value": "[\"naming_series\", \"project_name\", \"status\", \"project_type\", \"custom_business_unit\", \"is_active\", \"percent_complete_method\", \"percent_complete\", \"custom_total_hours_remaining\", \"custom_percentage_estimated_profit\", \"column_break_5\", \"project_template\", \"expected_start_date\", \"expected_end_date\", \"priority\", \"department\", \"custom_project_documents_url\", \"custom_project_repository_connections\", \"customer_details\", \"customer\", \"custom_client_point_of_contact\", \"custom_client_poc_information\", \"column_break_14\", \"sales_order\", \"users_section\", \"users\", \"copied_from\", \"section_break0\", \"notes\", \"section_break_18\", \"actual_start_date\", \"actual_time\", \"column_break_20\", \"actual_end_date\", \"margin\", \"gross_margin\", \"column_break_37\", \"per_gross_margin\", \"monitor_progress\", \"collect_progress\", \"holiday_list\", \"frequency\", \"from_time\", \"to_time\", \"first_email\", \"second_email\", \"daily_time_to_send\", \"day_to_send\", \"weekly_time_to_send\", \"column_break_45\", \"message\", \"custom_costing__billing\", \"project_details\", \"estimated_costing\", \"total_costing_amount\", \"total_expense_claim\", \"total_purchase_cost\", \"company\", \"custom_billing_type\", \"column_break_28\", \"custom_currency\", \"total_sales_amount\", \"custom_percentage_estimated_cost\", \"custom_total_hours_purchased\", \"custom_estimated_profit\", \"custom_default_hourly_billing_rate\", \"total_billable_amount\", \"total_billed_amount\", \"total_consumed_material_cost\", \"custom_section_break_ca8jh\", \"custom_project_billing_team\", \"custom_project_budget_hours\", \"custom_send_reminder_when_approaching_project_threshold_limit\", \"custom_reminder_threshold_percentage\", \"custom_email_template\", \"cost_center\", \"custom_project_details\", \"custom_project_manager\", \"custom_project_manager_name\", \"custom_key_account\", \"custom_project_rag_status\", \"custom_complexity\", \"custom_host\", \"custom_column_break_zb6hy\", \"custom_engineering_manager\", \"custom_engineering_manager_name\", \"custom_next_milestone\", \"custom_next_milestone_details\", \"custom_section_break_uptwr\", \"custom_3rd_parties\", \"custom_project_detail\"]"
  }
 ]

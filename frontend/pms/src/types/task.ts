@@ -5,9 +5,6 @@ import { ColumnDef, Table as TanStackTable } from "@tanstack/react-table";
 import { TaskData, ProjectNestedTaskData, sortOrder } from "@/types";
 
 
-export type setTableAttributePropsType = React.Dispatch<
-  React.SetStateAction<tableAttributePropsType>
->;
 export type setNestedProjectMutateCallType = React.Dispatch<
   React.SetStateAction<() => void>
 >;
@@ -24,7 +21,6 @@ export type subjectSearchType = string;
 export type GroupByParamType = string[];
 export type columnsToExcludeActionsInTablesType = string[];
 
-export type MoreTableOptionsDropDownType = "normal" | "nestedSubMenu";
 
 export type tableAttributePropsType = {
   /* eslint-disable-next-line */

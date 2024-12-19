@@ -13,14 +13,27 @@ import {
   ClipboardList,
   Clock3,
   FolderDot,
-  Home,
-  LogOut,
-  Users,
+  GanttChart,
+  FolderKanban,
+  BookUser,
 } from "lucide-react";
+import { Button } from "@/app/components/ui/button";
+import { TIMESHEET, HOME, TEAM, DESK, TASK, PROJECT, ROLES, RESOURCE_MANAGEMENT } from "@/lib/constant";
+import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
+import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
+import { UserContext } from "@/lib/UserProvider";
+import { Separator } from "@/app/components/ui/separator";
+import GenWrapper from "../components/GenWrapper";
+import { Home, LogOut, Users } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
+import logo from "@/logo.svg";
+import { cn } from "@/lib/utils";
+import { RootState } from "@/store";
+import { ViewData } from "@/store/view";
+import { setSidebarCollapsed } from "@/store/user";
 import { Typography } from "@/app/components/typography";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 import { Button } from "@/app/components/ui/button";
@@ -96,6 +109,27 @@ const Sidebar = () => {
       label: "Project",
       key: "project",
       isPmRoute: true,
+    },
+    {
+      to: RESOURCE_MANAGEMENT,
+      icon: GanttChart,
+      label: "Resource Management",
+      key: "resource-management",
+      isPmRoute: false,
+      children: [
+        {
+          to: RESOURCE_MANAGEMENT + "/team",
+          label: "Team View",
+          key: "team-view",
+          icon: BookUser,
+        },
+        {
+          to: RESOURCE_MANAGEMENT + "/project",
+          label: "Project View",
+          key: "project-view",
+          icon: FolderKanban,
+        },
+      ],
     },
     {
       to: TASK,
@@ -295,7 +329,7 @@ const Navigation = () => {
   return (
     <GenWrapper>
       <Popover>
-        <PopoverTrigger title={user.userName} className={cn("flex items-center gap-x-2 w-4/5")}>
+        <PopoverTrigger title={user.userName} className={cn("flex items-center gap-x-2")}>
           <Avatar className="w-8 h-8 justify-self-end transition-all duration-600">
             <AvatarImage src={decodeURIComponent(user.image)} />
             <AvatarFallback>{user.userName[0]}</AvatarFallback>

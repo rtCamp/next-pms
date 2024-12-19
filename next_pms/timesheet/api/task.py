@@ -16,6 +16,7 @@ def get_task_list(
     start: int | None = 0,
     projects=None,
     status: list | str = None,
+    fields: list | str = None,
 ):
     import json
 
@@ -25,8 +26,10 @@ def get_task_list(
         projects = json.loads(projects)
     if status and isinstance(status, str):
         status = json.loads(status)
+    if fields and isinstance(fields, str):
+        fields = json.loads(fields)
 
-    fields = [
+    field_list = [
         "name",
         "subject",
         "status",
@@ -36,7 +39,9 @@ def get_task_list(
         "expected_time",
         "_liked_by",
     ]
-
+    if fields:
+        field_list.extend(fields)
+        field_list = list(set(field_list))
     #  Limit the task fetched based on the projects the user has access to.
     if projects:
         projects = frappe.get_list("Project", pluck="name", filters={"name": ["in", projects]})
@@ -52,11 +57,11 @@ def get_task_list(
         .join(doctype_project)
         .on(doctype.project == doctype_project.name)
         .select(
-            *fields,
+            *field_list,
             doctype_project.name.as_("project"),
             doctype_project.project_name,
-            doctype.custom_is_billable.as_("is_billable"),
-            doctype.exp_end_date.as_("due_date"),
+            doctype.custom_is_billable,
+            doctype.exp_end_date,
         )
         .where(doctype.project.isin(projects))
     )

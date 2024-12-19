@@ -1,23 +1,30 @@
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
-import { WorkingFrequency, TaskData } from "@/types";
-import { useContext, useEffect, useState } from "react";
-import { cn, expectatedHours, getFormatedDate, parseFrappeErrorMsg } from "@/lib/utils";
-import { floatToTime } from "@/lib/utils";
-import { TimesheetSchema } from "@/schema/timesheet";
+/**
+ * External Dependencies
+ */
+import { FrappeConfig, FrappeContext, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import { Clock3, LoaderCircle, Save, Search, X } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useContext, useEffect, useState } from "react";
+
+/**
+ * Internal Dependencies
+ */
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
+import { WorkingFrequency, TaskData } from "@/types";
+import { cn, expectatedHours, getFormatedDate, parseFrappeErrorMsg } from "@/lib/utils";
+import { floatToTime } from "@/lib/utils";
+import { TimesheetSchema } from "@/schema/timesheet";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
-import { Clock3, LoaderCircle, Save, Search, X } from "lucide-react";
-import { DatePicker } from "./datePicker";
-import { Typography } from "./typography";
+import { DatePicker } from "@/app/components/datePicker";
+import { Typography } from "@/app/components/typography";
 import { Input } from "@/app/components/ui/input";
-import { ComboxBox } from "./comboBox";
-import { FrappeConfig, FrappeContext, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
-import { Textarea } from "./ui/textarea";
-import { Button } from "./ui/button";
-import { Separator } from "./ui/separator";
-import { useToast } from "./ui/use-toast";
+import { ComboxBox } from "@/app/components/comboBox";
+import { Textarea } from "@/app/components/ui/textarea";
+import { Button } from "@/app/components/ui/button";
+import { Separator } from "@/app/components/ui/separator";
+import { useToast } from "@/app/components/ui/use-toast";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 
 interface AddTimeProps {

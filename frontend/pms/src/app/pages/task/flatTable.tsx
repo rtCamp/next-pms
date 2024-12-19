@@ -9,31 +9,26 @@ import { flexRender } from "@tanstack/react-table";
 import { Spinner } from "@/app/components/spinner";
 import { Separator } from "@/app/components/ui/separator";
 import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table } from "@/app/components/ui/table";
-import { cn } from "@/lib/utils";
 import { TaskState } from "@/store/task";
 import {
   FlatTableType,
   ColumnsType,
   columnsToExcludeActionsInTablesType,
-  setTableAttributePropsType,
 } from "@/types/task";
 
 export const FlatTable = ({
   table,
   columns,
   columnsToExcludeActionsInTables,
-  setTableAttributeProps,
   task,
   isLoading,
 }: {
   table: FlatTableType;
   columns: ColumnsType;
   columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType;
-  setTableAttributeProps: setTableAttributePropsType;
   task: TaskState;
   isLoading: boolean;
 }) => {
-  let resizeObserver: ResizeObserver;
   return (
     <>
       {isLoading && task.task.length == 0 ? (
@@ -46,26 +41,16 @@ export const FlatTable = ({
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead
-                      className={cn("resizer group", header.column.getIsResizing() && "isResizing")}
+                      className="group"
                       key={header.id}
-                      onMouseDown={(event) => {
-                        const container = event.currentTarget;
-                        resizeObserver = new ResizeObserver((entries) => {
-                          entries.forEach(() => {
-                            setTableAttributeProps((prev) => {
-                              return {
-                                ...prev,
-                                columnWidth: { ...prev.columnWidth, [header.id]: header.getSize() },
-                              };
-                            });
-                          });
-                        });
-                        resizeObserver.observe(container);
-                      }}
-                      onMouseUp={() => {
-                        if (resizeObserver) {
-                          resizeObserver.disconnect();
-                        }
+                      {...{
+                        onMouseDown: header.getResizeHandler(),
+                        onTouchStart: header.getResizeHandler(),
+                        style: {
+                          userSelect: "none",
+                          touchAction: "none",
+                          width: header.getSize(),
+                        },
                       }}
                       style={{
                         width: header.getSize(),

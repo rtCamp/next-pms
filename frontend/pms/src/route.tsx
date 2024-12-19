@@ -9,8 +9,8 @@ import { FrappeConfig, FrappeContext } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import { TIMESHEET, HOME, TEAM, TASK, PROJECT, RESOURCE_MANAGEMENT } from "@/lib/constant";
 import { Layout, PmRoute } from "@/app/layout/index";
-import { TIMESHEET, HOME, TEAM, TASK, PROJECT } from "@/lib/constant";
 import { UserContext } from "@/lib/UserProvider";
 import { RootState } from "./store";
 import { setCurrency } from "./store/app";
@@ -20,6 +20,8 @@ import { setViews } from "./store/view";
 const TimesheetComponent = lazy(() => import("@/app/pages/timesheet"));
 const HomeComponent = lazy(() => import("@/app/pages/home"));
 const TeamComponent = lazy(() => import("@/app/pages/team"));
+const TeamResourceComponent = lazy(() => import("@/app/pages/resource_management/team"));
+const ProjectResourceComponent = lazy(() => import("@/app/pages/resource_management/project"));
 const EmployeeDetailComponent = lazy(() => import("@/app/pages/team/employeeDetail"));
 const TaskComponent = lazy(() => import("@/app/pages/task"));
 const ProjectComponent = lazy(() => import("@/app/pages/project"));
@@ -40,7 +42,12 @@ export function Router() {
           <Route path={`${PROJECT}/:type?`} element={<ProjectComponent />} />
         </Route>
         <Route path={TASK} element={<TaskComponent />} />
+        <Route path={RESOURCE_MANAGEMENT}>
+          <Route path={`${RESOURCE_MANAGEMENT}/team`} element={<TeamResourceComponent />} />
+          <Route path={`${RESOURCE_MANAGEMENT}/project`} element={<ProjectResourceComponent />} />
+        </Route>
       </Route>
+      <Route path={TASK} element={<TaskComponent />} />
       <Route path="*" element={<NotFound />} />
     </Route>
   );

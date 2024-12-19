@@ -31,7 +31,7 @@ def get_leaves_for_employee(from_date: str, to_date: str, employee: str):
     return leaves
 
 
-def get_week_dates(date):
+def get_week_dates(date, current_week: bool = False, ignore_weekend=False):
     """Returns the dates map with dates and other details.
     example:
         {
@@ -60,6 +60,9 @@ def get_week_dates(date):
     data = {"start_date": start_date, "end_date": end_date, "key": key}
 
     while start_date <= end_date:
+        if ignore_weekend and start_date.weekday() in [5, 6]:
+            start_date = add_days(start_date, 1)
+            continue
         dates.append(start_date)
         start_date = add_days(start_date, 1)
     data["dates"] = dates
@@ -76,13 +79,19 @@ def filter_employees(
     status=None,
     ids: list[str] | None = None,
     reports_to: None | str = None,
+    business_unit=None,
+    designation=None,
+    ignore_permissions=False,
 ):
     import json
 
     from .utils import READ_ONLY_ROLE, READ_WRITE_ROLE
 
     roles = frappe.get_roles()
-    ignore_permissions = READ_ONLY_ROLE in roles or READ_WRITE_ROLE in roles
+
+    if not ignore_permissions:
+        ignore_permissions = READ_ONLY_ROLE in roles or READ_WRITE_ROLE in roles
+
     fields = ["name", "image", "employee_name", "department", "designation"]
     employee_ids = []
     filters = {}
@@ -93,8 +102,20 @@ def filter_employees(
     if isinstance(department, str):
         department = json.loads(department)
 
+    if isinstance(business_unit, str):
+        business_unit = json.loads(business_unit)
+
+    if isinstance(designation, str):
+        designation = json.loads(designation)
+
     if isinstance(status, str):
         status = json.loads(status)
+        if len(status) > 0:
+            filters["status"] = ["in", status]
+        else:
+            filters["status"] = ["in", ["Active"]]
+
+    if isinstance(status, list):
         if len(status) > 0:
             filters["status"] = ["in", status]
         else:
@@ -111,6 +132,12 @@ def filter_employees(
 
     if department and len(department) > 0:
         filters["department"] = ["in", department]
+
+    if designation and len(designation) > 0:
+        filters["designation"] = ["in", designation]
+
+    if business_unit and len(business_unit) > 0:
+        filters["custom_business_unit"] = ["in", business_unit]
 
     if ids:
         employee_ids.extend(ids)
@@ -205,9 +232,9 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
     for timesheet in current_week_timesheet:
         status_count[timesheet.custom_approval_status] += 1
 
-    if status_count["Rejected"] == working_days:
+    if status_count["Rejected"] >= working_days:
         week_status = "Rejected"
-    elif status_count["Approved"] == working_days:
+    elif status_count["Approved"] >= working_days:
         week_status = "Approved"
     elif status_count["Rejected"] > 0:
         week_status = "Partially Rejected"
