@@ -1,6 +1,7 @@
 export type ResourceAllocationProps = {
   name: string;
   employee: string;
+  employee_name: string;
   allocation_start_date: string;
   allocation_end_date: string;
   hours_allocated_per_day: number;

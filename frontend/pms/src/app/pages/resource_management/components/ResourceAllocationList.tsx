@@ -4,6 +4,7 @@
 import { useDispatch, useSelector } from "react-redux";
 import { useFrappeDeleteDoc } from "frappe-react-sdk";
 import { Clipboard, Pencil, Plus } from "lucide-react";
+import { useState } from "react";
 
 /**
  * Internal dependencies.
@@ -24,7 +25,7 @@ import {
 
 import { DeleteAllocation } from "./Confirmation";
 import { getFilterValue, getInitials } from "../utils/helper";
-import { useState } from "react";
+import { Typography } from "@/app/components/typography";
 
 /**
  * This component is responsible for rendering the list of resource allocations in Card.
@@ -54,8 +55,13 @@ export const ResourceAllocationList = ({
   );
 
   return (
-    <div className={cn("flex flex-col overflow-y-auto max-h-60", !resourceAllocationPermission.write && "pl-7")}>
-      {resourceAllocationList.map((resourceAllocation: ResourceAllocationProps) => (
+    <div
+      className={cn(
+        "flex flex-col items-center overflow-y-auto max-h-60",
+        !resourceAllocationPermission.write && "pl-7"
+      )}
+    >
+      {resourceAllocationList.map((resourceAllocation: ResourceAllocationProps, index: number) => (
         <ResourceAllocationCard
           key={resourceAllocation.name}
           resourceAllocation={
@@ -65,12 +71,13 @@ export const ResourceAllocationList = ({
           }
           customer={customer}
           viewType={viewType}
+          isLastItem={index == resourceAllocationList.length - 1}
         />
       ))}
       {resourceAllocationPermission.write && onButtonClick && (
         <Button
           title={"Add Resource Allocation"}
-          className={cn("p-1 ml-2 h-fit text-xs w-11/12")}
+          className={cn("p-1 h-fit text-xs w-11/12")}
           variant={"default"}
           onClick={onButtonClick}
         >
@@ -88,16 +95,19 @@ export const ResourceAllocationList = ({
  * @param props.resourceAllocation The resource allocation object.
  * @param props.customer The customer object which holds the customer data.
  * @param props.viewType The view type of resource page, team or project.
+ * @param props.isLastItem The flag to check if the item is last or not.
  * @returns React.FC
  */
 export const ResourceAllocationCard = ({
   resourceAllocation,
   customer,
   viewType,
+  isLastItem,
 }: {
   resourceAllocation: ResourceAllocationProps;
   customer: ResourceCustomerObjectProps;
   viewType?: string;
+  isLastItem: number;
 }) => {
   const customerData: ResourceCustomerProps = customer[resourceAllocation.customer];
   const resourceAllocationPermission: PermissionProps = useSelector(
@@ -158,41 +168,48 @@ export const ResourceAllocationCard = ({
   };
 
   return (
-    <div
-      className="flex items-center gap-4 relative mt-2 mb-4
-    "
-    >
-      <Avatar className="w-6 h-6">
-        <AvatarImage src={decodeURIComponent(customerData.image)} />
-        <AvatarFallback>{getInitials(customerData.name[0])}</AvatarFallback>
-      </Avatar>
-      <div className="space-y-1 flex items-start flex-col">
-        <p className="text-xs font-semibold" title={customerData.name}>
+    <div className={cn("flex flex-col items-center gap-2 relative mt-2 mb-4 w-full", isLastItem && "mb-3")}>
+      <div className="flex gap-1 items-center w-11/12">
+        <Avatar className="w-6 h-6">
+          <AvatarImage src={decodeURIComponent(customerData.image)} />
+          <AvatarFallback>{getInitials(customerData.name[0])}</AvatarFallback>
+        </Avatar>
+        <Typography variant="small" className="font-semibold" title={customerData.name}>
           {getFilterValue(customerData.name, 15)}
-        </p>
+        </Typography>
+      </div>
+      <div className="space-y-1 flex flex-col w-11/12 pl-1">
         {viewType && viewType == "project" ? (
-          <>
-            <p className="text-xs text-muted-foreground">{resourceAllocation.employee}</p>
-            <p className="text-xs text-muted-foreground" title={resourceAllocation.employee_name}>
+          <div className="flex gap-1 items-center">
+            <Typography variant="small" className=" text-muted-foreground">{resourceAllocation.employee}</Typography>
+            <Typography variant="small" className=" text-muted-foreground" title={resourceAllocation.employee_name}>
+              {"("}
               {getFilterValue(resourceAllocation.employee_name, 15)}
-            </p>
-          </>
+              {")"}
+            </Typography>
+          </div>
         ) : (
           resourceAllocation.project && (
-            <>
-              <p className="text-xs text-muted-foreground">{resourceAllocation.project}</p>
-              <p className="text-xs text-muted-foreground" title={resourceAllocation.project_name}>
+            <div className="flex gap-1 items-center">
+              <Typography variant="small" className=" text-muted-foreground">{resourceAllocation.project}</Typography>
+              <Typography variant="small" className=" text-muted-foreground" title={resourceAllocation.project_name}>
+                {"("}
                 {getFilterValue(resourceAllocation.project_name, 15)}
-              </p>
-            </>
+                {")"}
+              </Typography>
+            </div>
           )
         )}
-
-        <p className="text-xs text-muted-foreground">
-          {startDate} - {endDate}
-        </p>
-        <p className="text-xs text-muted-foreground">{resourceAllocation.hours_allocated_per_day} hours / day</p>
-        <p
+        <div className="flex gap-1 items-center">
+          <Typography variant="small" className=" text-muted-foreground">
+            {startDate} - {endDate}
+          </Typography>
+          <Typography variant="small" className=" text-muted-foreground">
+            {"("}
+            {resourceAllocation.hours_allocated_per_day} {"hours / day)"}
+          </Typography>
+        </div>
+        <Typography
           className={cn(
             "text-xs font-semibold",
             resourceAllocation.is_billable
@@ -200,8 +217,16 @@ export const ResourceAllocationCard = ({
               : "text-yellow-500"
           )}
         >
-          {resourceAllocation.is_billable ? "Billable" : "Non-billable"}
-        </p>
+          {resourceAllocation.is_billable ? "Billable ($)" : "Non-billable"}
+        </Typography>
+
+        {resourceAllocation.note && (
+          <div className="note-section mt-2 flex items-center gap-1 w-11/12" title={"Note"}>
+            <Typography variant="small" className=" text-gray-600 italic">
+              Note : {getFilterValue(resourceAllocation.note, 150)}
+            </Typography>
+          </div>
+        )}
 
         <div className=" absolute right-4 top-0 flex gap-1 cursor-pointer">
           {resourceAllocationPermission.write && (

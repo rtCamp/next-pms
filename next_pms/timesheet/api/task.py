@@ -42,6 +42,7 @@ def get_task_list(
     if fields:
         field_list.extend(fields)
         field_list = list(set(field_list))
+        field_list.remove("project_name")
     #  Limit the task fetched based on the projects the user has access to.
     if projects:
         projects = frappe.get_list("Project", pluck="name", filters={"name": ["in", projects]})

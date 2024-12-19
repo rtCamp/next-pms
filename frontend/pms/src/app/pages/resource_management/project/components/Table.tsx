@@ -15,14 +15,14 @@ import { emptyProjectDayData, ProjectDataProps, ProjectResourceProps } from "@/s
 import { DateProps } from "@/store/resource_management/team";
 import { ResourceAllocationObjectProps } from "@/types/resource_management";
 
-import { ResourceAllocationList } from "../../components/ResourceAllocationList";
+import { ResourceExpandView } from "./ExpandView";
 import { EmptyTableBody } from "../../components/Empty";
+import { ResourceAllocationList } from "../../components/ResourceAllocationList";
 import { ResourceTableCell } from "../../components/TableCell";
 import ResourceProjectTableHeader from "../../components/TableHeader";
 import { ResourceTableRow } from "../../components/TableRow";
 import { getCellBackGroundColor } from "../../utils/cell";
-import { getIsBillableValue, getTableCellClass } from "../../utils/helper";
-import { ResourceExpandView } from "./ExpandView";
+import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
 
 /**
  * This component is responsible for loading the table for project view.
@@ -48,7 +48,7 @@ const ResourceProjectTable = () => {
 const ResourceProjectTableBody = () => {
   const data = useSelector((state: RootState) => state.resource_project.data.data);
   const dates = useSelector((state: RootState) => state.resource_project.data.dates);
-  const isBillable = useSelector((state: RootState) => state.resource_project.isBillable);
+  const allocationType = useSelector((state: RootState) => state.resource_project.allocationType);
 
   if (data.length == 0) {
     return <EmptyTableBody />;
@@ -106,7 +106,7 @@ const ResourceProjectTableBody = () => {
                   project_name={projectData.project_name}
                   start_date={dates[0].start_date}
                   end_date={dates[dates.length - 1].end_date}
-                  is_billable={isBillable != 0}
+                  is_billable={getIsBillableValue(allocationType as string[])}
                 />
               );
             }}
@@ -247,7 +247,11 @@ const ResourceProjectTableCell = ({
       <ResourceTableCell
         type="default"
         title={title}
-        cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
+        cellClassName={cn(
+          getTableCellClass(rowCount),
+          cellBackGroundColor,
+          getTodayDateCellClass(projectSingleDay.date)
+        )}
         value={cellValue}
       />
     );
@@ -258,7 +262,11 @@ const ResourceProjectTableCell = ({
       <ResourceTableCell
         type="empty"
         title={title}
-        cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
+        cellClassName={cn(
+          getTableCellClass(rowCount),
+          cellBackGroundColor,
+          getTodayDateCellClass(projectSingleDay.date)
+        )}
         value={""}
         onCellClick={onCellClick}
       />
@@ -269,7 +277,7 @@ const ResourceProjectTableCell = ({
     <ResourceTableCell
       type="hovercard"
       title={title}
-      cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
+      cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor, getTodayDateCellClass(projectSingleDay.date))}
       value={cellValue}
       CustomHoverCardContent={() => {
         return (

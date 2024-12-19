@@ -14,7 +14,7 @@ import { RootState } from "@/store";
 import { PermissionProps } from "@/store/resource_management/allocation";
 
 import { ResourceTableCell, TableCellContent, TableInformationCellContent } from "./TableCell";
-import { getTableCellClass, getTableCellRow } from "../utils/helper";
+import { getTableCellClass, getTableCellRow, getTodayDateCellClass } from "../utils/helper";
 
 
 /**
@@ -102,7 +102,14 @@ const EmptyRow = ({ dates }: { dates: string[] }) => {
     <TableRow className={cn(getTableCellRow())}>
       <TableInformationCellContent />
       {dates.map((date: string, index: number) => {
-        return <ResourceTableCell key={date} type="default" cellClassName={getTableCellClass(index)} value="-" />;
+        return (
+          <ResourceTableCell
+            key={date}
+            type="default"
+            cellClassName={(getTableCellClass(index), getTodayDateCellClass(date))}
+            value="-"
+          />
+        );
       })}
     </TableRow>
   );
