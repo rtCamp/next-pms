@@ -11,6 +11,7 @@ import { ResourceTeamHeaderSection } from "./components/Header";
 import { FooterSection } from "../components/Footer";
 import AddResourceAllocations from "../components/AddAllocation";
 import { AllocationDataProps, PermissionProps, setResourcePermissions } from "@/store/resource_management/allocation";
+import { getIsBillableValue } from "../utils/helper";
 
 const ResourceTeamView = () => {
   const { toast } = useToast();
@@ -32,7 +33,7 @@ const ResourceTeamView = () => {
           business_unit: resourceTeamState.businessUnit,
           reports_to: resourceTeamState.reportingManager,
           designation: resourceTeamState.designation,
-          is_billable: resourceTeamState.isBillable,
+          is_billable: getIsBillableValue(resourceTeamState.allocationType as string[]),
           start: resourceTeamState.start,
         }
       : {

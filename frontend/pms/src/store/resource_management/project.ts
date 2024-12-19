@@ -11,7 +11,7 @@ export type ProjectDataProps = {
   name: string;
   image: string;
   project_name: string;
-  all_dates_data: ProjectResourceProps[];
+  all_dates_data: ProjectResourceObjectProps;
   all_week_data: [];
   project_allocations: ResourceAllocationObjectProps;
 };
@@ -39,10 +39,11 @@ export type ProjectResourceProps = {
   total_allocated_hours: number;
   total_worked_hours: number;
   project_resource_allocation_for_given_date: ProjectAllocationForDateProps[];
-  is_last_week_day: boolean;
-  is_on_leave: boolean;
-  total_leave_hours: number;
 };
+
+export interface ProjectResourceObjectProps {
+  [date: string]: ProjectResourceProps;
+}
 
 export type ProjectAllocationForDateProps = {
   name: string;
@@ -66,6 +67,7 @@ export interface ResourceTeamState {
   isBillable: number;
   reportingManager: string;
   customer?: string[];
+  allocationType?: string[];
 }
 
 export const initialState: ResourceTeamState = {
@@ -171,6 +173,7 @@ const ResourceTeamSlice = createSlice({
         reportingManager?: string;
         customer: string[];
         view?: string;
+        allocationType?: string[];
         combineWeekHours?: boolean;
       }>
     ) => {
@@ -184,8 +187,34 @@ const ResourceTeamSlice = createSlice({
       if (action.payload.combineWeekHours) {
         state.tableView.combineWeekHours = action.payload.combineWeekHours;
       }
+      if (action.payload.allocationType) {
+        state.allocationType = action.payload.allocationType;
+      }
       if (action.payload.view) {
         state.tableView.view = action.payload.view;
+      }
+      state.pageLength = initialState.pageLength;
+      state.start = 0;
+      state.data = initialState.data;
+    },
+    deleteFilters: (
+      state,
+      action: PayloadAction<{
+        type: "project" | "customer" | "allocation-type";
+        projectName?: string;
+        reportingManager?: string[];
+        customer?: string[];
+        allocationType?: string[];
+      }>
+    ) => {
+      if (action.payload.type === "project") {
+        state.projectName = action.payload.projectName;
+      }
+      if (action.payload.type === "customer") {
+        state.customer = action.payload.customer;
+      }
+      if (action.payload.type === "allocation-type") {
+        state.allocationType = action.payload.allocationType;
       }
       state.pageLength = initialState.pageLength;
       state.start = 0;
@@ -212,20 +241,21 @@ const ResourceTeamSlice = createSlice({
     setReFetchData: (state, action: PayloadAction<boolean>) => {
       state.isNeedToFetchDataAfterUpdate = action.payload;
     },
-    setIsBillable: (state, action: PayloadAction<string[]>) => {
-      if (action.payload.length == 2 || action.payload.length == 0) {
-        state.isBillable = -1;
-      } else if (action.payload[0] == "billable") {
-        state.isBillable = 1;
-      } else {
-        state.isBillable = 0;
-      }
+    setAllocationType: (state, action: PayloadAction<string[]>) => {
+      state.allocationType = action.payload;
       state.pageLength = initialState.pageLength;
       state.start = 0;
       state.data = initialState.data;
     },
   },
 });
+
+export const emptyProjectDayData: ProjectResourceProps = {
+  date: "None",
+  total_allocated_hours: 0,
+  total_worked_hours: 0,
+  project_resource_allocation_for_given_date: [],
+};
 
 export const {
   setData,
@@ -242,8 +272,9 @@ export const {
   setCustomer,
   setBusinessUnit,
   setCombineWeekHours,
+  deleteFilters,
   setView,
   setReFetchData,
-  setIsBillable,
+  setAllocationType,
 } = ResourceTeamSlice.actions;
 export default ResourceTeamSlice.reducer;

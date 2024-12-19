@@ -58,6 +58,8 @@ const EmployeeCombo = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [employees, selectedValues]);
 
+  useEffect(() => setSelectedValues(value), [value]);
+
   return (
     <Popover modal>
       <PopoverTrigger asChild>

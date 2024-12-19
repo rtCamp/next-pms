@@ -11,6 +11,7 @@ import { ResourceProjectHeaderSection } from "./components/Header";
 import { FooterSection } from "../components/Footer";
 import { AllocationDataProps, PermissionProps, setResourcePermissions } from "@/store/resource_management/allocation";
 import AddResourceAllocations from "../components/AddAllocation";
+import { getIsBillableValue } from "../utils/helper";
 
 const ResourceTeamView = () => {
   const { toast } = useToast();
@@ -31,7 +32,7 @@ const ResourceTeamView = () => {
           project_name: resourceProjectState.projectName,
           customer: resourceProjectState.customer,
           start: resourceProjectState.start,
-          is_billable: resourceProjectState.isBillable,
+          is_billable: getIsBillableValue(resourceProjectState.allocationType as string[]),
         }
       : {
           date: resourceProjectState.weekDate,
