@@ -148,20 +148,23 @@ def delete(parent: str, name: str):
 
 
 @frappe.whitelist()
-def submit_for_approval(approver: str, start_date: str, notes: str = None, employee: str = None):
+def submit_for_approval(start_date: str, notes: str = None, employee: str = None, approver: str = None):
     from next_pms.timesheet.tasks.reminder_on_approval_request import (
         send_approval_reminder,
     )
 
     if not employee:
         employee = get_employee_from_user()
-    reporting_manager = frappe.get_value("Employee", employee, "reports_to")
 
-    if not reporting_manager:
-        throw(_("Reporting Manager not found for the employee."))
-    if approver != reporting_manager:
+    if not approver:
+        reporting_manager = frappe.get_value("Employee", employee, "reports_to")
+        if not reporting_manager:
+            throw(_("Reporting Manager not found for the employee."))
+    else:
         reporting_manager = approver
 
+    if not frappe.db.exists("Employee", reporting_manager):
+        throw(_("Approver not found."), frappe.DoesNotExistError)
     reporting_manager_name = frappe.get_value("Employee", reporting_manager, "employee_name")
 
     start_date = get_first_day_of_week(start_date)
