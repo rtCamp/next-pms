@@ -17,8 +17,8 @@ import { checkScreenSize, parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { updateScreenSize } from "@/store/app";
 import { setInitialData } from "@/store/user";
-import GenWrapper from "../components/GenWrapper";
-import Sidebar from "./sidebar";
+import GenWrapper from "@/app/components/GenWrapper";
+import Sidebar from "@/app/layout/sidebar";
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const user = useSelector((state: RootState) => state.user);
@@ -92,7 +92,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
 export const PmRoute = () => {
   const user = useSelector((state: RootState) => state.user);
-  const hasAccess = user.roles.some((role) => ROLES.includes(role));
+  const hasAccess = user.roles.some((role: string) => ROLES.includes(role));
 
   if (!hasAccess) {
     return <Navigate to={TIMESHEET} />;

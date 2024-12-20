@@ -1,9 +1,9 @@
 /**
  * External dependencies.
  */
-import { useFrappeGetCall } from "frappe-react-sdk";
 import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -13,24 +13,25 @@ import { Table, TableBody, TableRow } from "@/app/components/ui/table";
 import { cn, prettyDate } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setResourceFormData } from "@/store/resource_management/allocation";
+import { DateProps } from "@/store/resource_management/team";
 import { ResourceAllocationObjectProps, ResourceCustomerObjectProps } from "@/types/resource_management";
 
 import { ResourceAllocationList } from "../../components/ResourceAllocationList";
 import { ResourceTableCell, TableInformationCellContent } from "../../components/TableCell";
 import { getCellBackGroundColor } from "../../utils/cell";
-import { getTableCellClass } from "../../utils/helper";
+import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
 
 interface ResourceExpandViewProps {
   project: string;
   project_name: string;
   start_date: string;
   end_date: string;
-  is_billable: boolean;
+  is_billable: number;
 }
 
 /**
  * This component is responsible for loading expand view of resource allocation project view. shows the employee wise allocation data.
- * 
+ *
  * @param props.project The project name/ID.
  * @param props.project_name The name of the project
  * @param props.start_date The start date from which data need to show.
@@ -46,6 +47,8 @@ export const ResourceExpandView = ({
   is_billable,
 }: ResourceExpandViewProps) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
+
+  const dates = useSelector((state: RootState) => state.resource_project.data.dates);
 
   const { data } = useFrappeGetCall(
     "next_pms.resource_management.api.project.get_employees_resrouce_data_for_given_project",
@@ -83,20 +86,37 @@ export const ResourceExpandView = ({
                   value={employeeData.employee_name}
                 />
 
-                {employeeData.all_dates_date.map((employeeSingleDayData: any, index: number) => {
-                  return (
-                    <ExpandViewCell
-                      key={employeeSingleDayData.date + "-" + index}
-                      index={index}
-                      allocationsData={employeeSingleDayData}
-                      employeeAllocations={employeeData.allocations}
-                      customer={data.message.customer}
-                      employee={employeeData.name}
-                      employee_name={employeeData.employee_name}
-                      project={project}
-                      project_name={project_name}
-                    />
-                  );
+                {dates.map((item: DateProps, weekIndex: number) => {
+                  return item?.dates?.map((date, index: number) => {
+                    let employeeSingleDayData = {
+                      date: "",
+                      total_allocated_hours: 0,
+                      total_worked_hours: 0,
+                      employee_resource_allocation_for_given_date: [],
+                    };
+
+                    if (date in employeeData.all_dates_data) {
+                      employeeSingleDayData = employeeData.all_dates_data[date];
+                    } else {
+                      employeeSingleDayData = {
+                        ...employeeSingleDayData,
+                        date: date,
+                      };
+                    }
+                    return (
+                      <ExpandViewCell
+                        key={employeeSingleDayData.date + "-" + index}
+                        index={index}
+                        allocationsData={employeeSingleDayData}
+                        employeeAllocations={employeeData.allocations}
+                        customer={data.message.customer}
+                        employee={employeeData.name}
+                        employee_name={employeeData.employee_name}
+                        project={project}
+                        project_name={project_name}
+                      />
+                    );
+                  });
                 })}
               </TableRow>
             );
@@ -108,7 +128,7 @@ export const ResourceExpandView = ({
 
 /**
  * This component is used to display the expand view single cell.
- * 
+ *
  * @param props.allocationsData The allocation data for the employee.
  * @param props.index The index of the cell.
  * @param props.employeeAllocations The employee allocation data.
@@ -139,7 +159,7 @@ const ExpandViewCell = ({
   customer: ResourceCustomerObjectProps;
 }) => {
   const tableView = useSelector((state: RootState) => state.resource_project.tableView);
-  const isBillable = useSelector((state: RootState) => state.resource_project.isBillable);
+  const allocationType = useSelector((state: RootState) => state.resource_project.allocationType);
 
   const dispatch = useDispatch();
 
@@ -167,7 +187,7 @@ const ExpandViewCell = ({
         project: project,
         allocation_start_date: allocationsData.date,
         allocation_end_date: allocationsData.date,
-        is_billable: isBillable != 0,
+        is_billable: getIsBillableValue(allocationType) != 0,
         customer: "",
         total_allocated_hours: 0,
         hours_allocated_per_day: 0,
@@ -182,13 +202,14 @@ const ExpandViewCell = ({
 
   const { date: dateStr, day } = prettyDate(allocationsData.date);
   const title = employee_name + " (" + dateStr + " - " + day + ")";
+  
 
   if (allocationsData.total_allocated_hours == 0 && allocationsData.total_worked_hours == 0) {
     return (
       <ResourceTableCell
         type="empty"
         title={title}
-        cellClassName={getTableCellClass(index)}
+        cellClassName={cn(getTableCellClass(index), getTodayDateCellClass(allocationsData.date))}
         onCellClick={onCellClick}
         value={"-"}
       />
@@ -200,7 +221,7 @@ const ExpandViewCell = ({
       key={index}
       type="hovercard"
       title={title}
-      cellClassName={cn(getTableCellClass(index), cellBackGroundColor)}
+      cellClassName={cn(getTableCellClass(index), cellBackGroundColor, getTodayDateCellClass(allocationsData.date))}
       value={
         tableView.view == "planned"
           ? allocationsData.total_allocated_hours

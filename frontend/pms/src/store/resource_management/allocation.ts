@@ -79,6 +79,7 @@ const ResourceTeamSlice = createSlice({
     ) => {
       state.isShowDialog = action.payload.isShowDialog;
       state.isNeedToEdit = action.payload.isNeedToEdit;
+      
       state.employee = getFormatedStringValue(
         action.payload.employee
       ) as string;

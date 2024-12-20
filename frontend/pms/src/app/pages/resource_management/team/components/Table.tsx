@@ -19,15 +19,15 @@ import {
 } from "@/store/resource_management/team";
 import { ResourceAllocationObjectProps } from "@/types/resource_management";
 
-import { ResourceAllocationList } from "../../components/ResourceAllocationList";
+import { CustomerAllocationList } from "./CustomerAllocationList";
+import { ResourceExpandView } from "./ExpandView";
 import { EmptyTableBody } from "../../components/Empty";
+import { ResourceAllocationList } from "../../components/ResourceAllocationList";
 import { ResourceTableCell } from "../../components/TableCell";
 import ResourceTeamTableHeader from "../../components/TableHeader";
 import { ResourceTableRow } from "../../components/TableRow";
 import { getCellBackGroundColor } from "../../utils/cell";
-import { getIsBillableValue, getTableCellClass } from "../../utils/helper";
-import { CustomerAllocationList } from "./CustomerAllocationList";
-import { ResourceExpandView } from "./ExpandView";
+import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
 
 /**
  * This component is responsible for loading the table for table view.
@@ -200,7 +200,12 @@ const ResourceTeamTableCell = ({
         <ResourceTableCell
           type="default"
           title={title}
-          cellClassName={cn(getTableCellClass(rowCount), allocationPercentage == -1 && cellBackGroundColor, "relative")}
+          cellClassName={cn(
+            getTableCellClass(rowCount),
+            allocationPercentage == -1 && cellBackGroundColor,
+            "relative",
+            getTodayDateCellClass(employeeSingleDay.date)
+          )}
           ref={cellRef}
           CellContent={() => {
             return (
@@ -232,7 +237,8 @@ const ResourceTeamTableCell = ({
           getTableCellClass(rowCount),
           allocationPercentage == -1 && cellBackGroundColor,
           height && `h-[${height}rem]`,
-          "relative"
+          "relative",
+          getTodayDateCellClass(employeeSingleDay.date)
         )}
         style={{
           background:
@@ -270,7 +276,11 @@ const ResourceTeamTableCell = ({
       <ResourceTableCell
         type="default"
         title={title}
-        cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
+        cellClassName={cn(
+          getTableCellClass(rowCount),
+          cellBackGroundColor,
+          getTodayDateCellClass(employeeSingleDay.date)
+        )}
         ref={cellRef}
         value={
           rowCount == 2 &&
@@ -308,7 +318,11 @@ const ResourceTeamTableCell = ({
       <ResourceTableCell
         type="empty"
         title={title}
-        cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
+        cellClassName={cn(
+          getTableCellClass(rowCount),
+          cellBackGroundColor,
+          getTodayDateCellClass(employeeSingleDay.date)
+        )}
         onCellClick={onCellClick}
         value={""}
       />
@@ -320,7 +334,11 @@ const ResourceTeamTableCell = ({
       <ResourceTableCell
         type="default"
         title={title}
-        cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
+        cellClassName={cn(
+          getTableCellClass(rowCount),
+          cellBackGroundColor,
+          getTodayDateCellClass(employeeSingleDay.date)
+        )}
         ref={cellRef}
         value={employeeSingleDay.total_leave_hours}
       />
@@ -332,7 +350,11 @@ const ResourceTeamTableCell = ({
       type="hovercard"
       ref={cellRef}
       title={title}
-      cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
+      cellClassName={cn(
+        getTableCellClass(rowCount),
+        cellBackGroundColor,
+        getTodayDateCellClass(employeeSingleDay.date)
+      )}
       value={
         tableView.view == "planned-vs-capacity"
           ? employeeSingleDay.total_allocated_hours
