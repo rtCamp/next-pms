@@ -47,3 +47,10 @@ export type fieldMetaProps = {
   fieldtype: string;
   options?: string;
 }
+
+export interface DocMetaProps{
+  default_fields: Array<fieldMetaProps>;
+  doctype: string;
+  fields: Array<fieldMetaProps>;
+  title_field: string;
+} 
