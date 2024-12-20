@@ -111,6 +111,7 @@ const ResourceHeaderSection = ({ filters, buttons }: HeaderSectionProps) => {
                   title={button.title}
                   className={cn("p-1 h-fit", button.className)}
                   variant={button.variant || "outline"}
+                  key={button.title}
                   onClick={button.handleClick}
                 >
                   {button.icon && <button.icon />}
@@ -213,8 +214,12 @@ const RenderFilter = ({ filter }: { filter: FilterPops }) => {
           <SelectGroup>
             <SelectLabel>{filter.label}</SelectLabel>
             {filter.data &&
-              filter.data.map((item) => {
-                return <SelectItem value={item.value}>{item.label}</SelectItem>;
+              filter.data.map((item, index: number) => {
+                return (
+                  <SelectItem key={index} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                );
               })}
           </SelectGroup>
         </SelectContent>
@@ -243,8 +248,8 @@ const RenderFilter = ({ filter }: { filter: FilterPops }) => {
 
 /**
  * This component is responsible for rendering the active filters views in the header section.
- * 
- * @param props.filters The filters to be displayed in the header section. 
+ *
+ * @param props.filters The filters to be displayed in the header section.
  * @returns React.FC
  */
 const RenderFiltersValues = ({ filters }: { filters: FilterPops[] }) => {
@@ -311,7 +316,7 @@ const RenderFiltersValues = ({ filters }: { filters: FilterPops[] }) => {
 
 /**
  * A Wrapper around ComboxBox to handle the data fetching part dynamically.
- * 
+ *
  * @param props.filter The filter to be displayed in the header section.
  * @param props.handleChangeWrapper The handle change wrapper function.
  * @returns React.FC

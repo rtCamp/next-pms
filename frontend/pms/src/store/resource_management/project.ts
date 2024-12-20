@@ -106,7 +106,7 @@ export const initialState: ResourceTeamState = {
 };
 
 const ResourceTeamSlice = createSlice({
-  name: "resource_team",
+  name: "resource_project",
   initialState,
   reducers: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -118,11 +118,13 @@ const ResourceTeamSlice = createSlice({
     setProjectName: (state, action: PayloadAction<string>) => {
       state.projectName = action.payload;
       state.start = 0;
+      state.isNeedToFetchDataAfterUpdate = true;
       state.isLoading = true;
     },
     setBusinessUnit: (state, action: PayloadAction<string[]>) => {
       state.businessUnit = action.payload;
       state.start = 0;
+      state.isNeedToFetchDataAfterUpdate = true;
       state.isLoading = true;
     },
     setWeekDate: (state, action: PayloadAction<string>) => {
@@ -131,6 +133,7 @@ const ResourceTeamSlice = createSlice({
       state.isLoading = true;
       const pageLength = Object.keys(state.data.data).length;
       state.pageLength = pageLength;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     setEmployeeWeekDate: (state, action: PayloadAction<string>) => {
       state.employeeWeekDate = action.payload;
@@ -187,6 +190,7 @@ const ResourceTeamSlice = createSlice({
 
       state.start = 0;
       state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     deleteFilters: (
       state,
@@ -210,16 +214,19 @@ const ResourceTeamSlice = createSlice({
 
       state.start = 0;
       state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     setReportingManager: (state, action: PayloadAction<string>) => {
       state.reportingManager = action.payload;
       state.start = 0;
       state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     setCustomer: (state, action: PayloadAction<string[]>) => {
       state.customer = action.payload;
       state.start = 0;
       state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     setCombineWeekHours: (state, action: PayloadAction<boolean>) => {
       state.tableView.combineWeekHours = action.payload;
@@ -234,6 +241,7 @@ const ResourceTeamSlice = createSlice({
       state.allocationType = action.payload;
       state.start = 0;
       state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
   },
 });

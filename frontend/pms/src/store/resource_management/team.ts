@@ -3,7 +3,6 @@
  */
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
-import { getMergeData } from "@/app/pages/resource_management/utils/value";
 import { getTodayDate, getFormatedDate } from "@/lib/utils";
 import {
   ResourceAllocationObjectProps,
@@ -130,6 +129,7 @@ export const initialState: ResourceTeamState = {
   },
   isNeedToFetchDataAfterUpdate: false,
   isLoading: true,
+  businessUnit: [],
 };
 
 const ResourceTeamSlice = createSlice({
@@ -152,11 +152,14 @@ const ResourceTeamSlice = createSlice({
       state.businessUnit = action.payload;
       state.start = 0;
       state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
+
     },
     setReportingManager: (state, action: PayloadAction<string>) => {
       state.reportingManager = action.payload;
       state.start = 0;
       state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     setWeekDate: (state, action: PayloadAction<string>) => {
       state.weekDate = action.payload;
@@ -164,16 +167,20 @@ const ResourceTeamSlice = createSlice({
       const pageLength = Object.keys(state.data.data).length;
       state.pageLength = pageLength;
       state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
+
     },
     setAllocationType: (state, action: PayloadAction<string[]>) => {
       state.allocationType = action.payload;
       state.start = 0;
       state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     setDesignation: (state, action: PayloadAction<string[]>) => {
       state.designation = action.payload;
       state.start = 0;
       state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     setEmployeeWeekDate: (state, action: PayloadAction<string>) => {
       state.employeeWeekDate = action.payload;
@@ -181,6 +188,7 @@ const ResourceTeamSlice = createSlice({
     setStart: (state, action: PayloadAction<number>) => {
       state.start = action.payload;
       state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     setHasMore: (state, action: PayloadAction<boolean>) => {
       state.hasMore = action.payload;
@@ -238,6 +246,7 @@ const ResourceTeamSlice = createSlice({
       }
 
       state.start = 0;
+      state.isNeedToFetchDataAfterUpdate = true;
       state.isLoading = true;
     },
     deleteFilters: (
@@ -273,6 +282,7 @@ const ResourceTeamSlice = createSlice({
       }
       state.start = 0;
       state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     setCombineWeekHours: (state, action: PayloadAction<boolean>) => {
       state.tableView.combineWeekHours = action.payload;

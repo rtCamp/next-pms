@@ -19,6 +19,7 @@ import { getIsBillableValue } from "../utils/helper";
 import { ResourceProjectTable } from "./components/Table";
 import { useFrappeGetCallInfinite } from "../hooks/useFrappeGetCallInfinite";
 import { getMergeData } from "../utils/value";
+import { ResourceProjectHeaderSection } from "./components/Header";
 
 /**
  * This is main component which is responsible for rendering the project view of resource management.
@@ -38,7 +39,7 @@ const ResourceTeamView = () => {
     const indexTillNeedToFetchData = resourceProjectState.start / resourceProjectState.pageLength + 1;
     if (indexTillNeedToFetchData <= pageIndex) return null;
     if (previousPageData && !previousPageData.message.has_more) return null;
-    return `next_pms.resource_management.api.team.get_resource_management_team_view_data/get_resource_management_team_view_data?page=${pageIndex}&limit=${resourceProjectState.pageLength}`;
+    return `next_pms.resource_management.api.project.get_resource_management_project_view_data?page=${pageIndex}&limit=${resourceProjectState.pageLength}`;
   };
 
   const { data, isLoading, isValidating, error, size, setSize, mutate } = useFrappeGetCallInfinite(
@@ -88,15 +89,20 @@ const ResourceTeamView = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, error]);
 
-
-
   useEffect(() => {
     if (!resourceProjectState) return;
-    setSize((resourceProjectState.start + resourceProjectState.pageLength) / resourceProjectState.pageLength + 1);
-  }, [resourceProjectState, resourceProjectState.start, setSize]);
+    const newSize: number = resourceProjectState.start / resourceProjectState.pageLength + 1;
+    if (newSize == size) {
+      return;
+    }
+    setSize(newSize);
+  }, [resourceProjectState, resourceProjectState.start, setSize, size]);
+
 
   return (
     <>
+      <ResourceProjectHeaderSection />
+
       {(isLoading || isValidating) && resourceProjectState.data.data.length == 0 ? (
         <Spinner isFull />
       ) : (

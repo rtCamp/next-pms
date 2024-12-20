@@ -19,6 +19,7 @@ import { getMergeData } from "../utils/value";
 import { ResourceTeamTable } from "./components/Table";
 import AddResourceAllocations from "../components/AddAllocation";
 import { useFrappeGetCallInfinite } from "../hooks/useFrappeGetCallInfinite";
+import { ResourceTeamHeaderSection } from "./components/Header";
 
 /**
  * This is main component which is responsible for rendering the team view of resource management.
@@ -61,7 +62,7 @@ const ResourceTeamView = () => {
           page_length: resourceTeamState.pageLength,
           employee_name: resourceTeamState.employeeName,
         },
-    { parallel: true }
+    { parallel: true, revalidateAll: true }
   );
 
   const onFormSubmit = useCallback(() => {
@@ -92,11 +93,16 @@ const ResourceTeamView = () => {
 
   useEffect(() => {
     if (!resourceTeamState) return;
-    setSize((resourceTeamState.start + resourceTeamState.pageLength) / resourceTeamState.pageLength + 1);
-  }, [resourceTeamState, resourceTeamState.start, setSize]);
+    const newSize: number = resourceTeamState.start / resourceTeamState.pageLength + 1;
+    if (newSize == size) {
+      return;
+    }
+    setSize(newSize);
+  }, [resourceTeamState, resourceTeamState.start, setSize, size]);
 
   return (
     <>
+      <ResourceTeamHeaderSection />
       {(isLoading || isValidating) && resourceTeamState.data.data.length == 0 ? (
         <Spinner isFull />
       ) : (

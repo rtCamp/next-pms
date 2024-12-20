@@ -15,7 +15,6 @@ import { RootState } from "@/store";
 import { PermissionProps, setDialog } from "@/store/resource_management/allocation";
 import {
   deleteFilters,
-  resetState,
   setAllocationType,
   setCombineWeekHours,
   setCustomer,
@@ -29,7 +28,7 @@ import { ResourceHeaderSection } from "../../components/Header";
 
 /**
  * This component is responsible for loading the project view header.
- * 
+ *
  * @returns React.FC
  */
 const ResourceProjectHeaderSection = () => {
@@ -65,9 +64,6 @@ const ResourceProjectHeaderSection = () => {
         combineWeekHours: combineWeekHoursParam,
       })
     );
-    return () => {
-      dispatch(resetState());
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -13,6 +13,8 @@ import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { PermissionProps, setResourcePermissions } from "@/store/resource_management/allocation";
+import { resetState as resetProjectState } from "@/store/resource_management/project";
+import { resetState as resetTeamState } from "@/store/resource_management/team";
 
 import ResourceProjectView from "./project";
 import { ResourceProjectHeaderSection } from "./project/components/Header";
@@ -34,10 +36,7 @@ const ResourcePage = ({ type }: { type: "team" | "project" }) => {
   const { data, isLoading, isValidating, error } = useFrappeGetCall(
     "next_pms.resource_management.api.permission.get_user_resources_permissions",
     {},
-    undefined,
-    {
-      revalidateOnMount: !resourceAllocationPermission,
-    }
+    undefined
   );
 
   useEffect(() => {
@@ -54,24 +53,20 @@ const ResourcePage = ({ type }: { type: "team" | "project" }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, error]);
 
-  if (type === "team") {
-    return (
-      <>
-        <ResourceTeamHeaderSection />
-        {isLoading || isValidating || Object.keys(resourceAllocationPermission).length == 0 ? (
-          <Spinner isFull />
-        ) : (
-          <ResourceTeamView />
-        )}
-      </>
-    );
-  }
+  useEffect(() => {
+    if (type == "team") {
+      dispatch(resetProjectState());
+    } else {
+      dispatch(resetTeamState());
+    }
+  }, [dispatch, type]);
 
   return (
     <>
-      <ResourceProjectHeaderSection />
       {isLoading || isValidating || Object.keys(resourceAllocationPermission).length == 0 ? (
         <Spinner isFull />
+      ) : type == "team" ? (
+        <ResourceTeamView />
       ) : (
         <ResourceProjectView />
       )}

@@ -15,7 +15,6 @@ import { RootState } from "@/store";
 import { PermissionProps, setDialog } from "@/store/resource_management/allocation";
 import {
   deleteFilters,
-  resetState,
   setAllocationType,
   setBusinessUnit,
   setCombineWeekHours,
@@ -70,9 +69,6 @@ const ResourceTeamHeaderSection = () => {
         combineWeekHours: combineWeekHoursParam,
       })
     );
-    return () => {
-      dispatch(resetState());
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
