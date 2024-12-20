@@ -16,7 +16,6 @@ import { PermissionProps } from "@/store/resource_management/allocation";
 import { ResourceTableCell, TableCellContent, TableInformationCellContent } from "./TableCell";
 import { getTableCellClass, getTableCellRow, getTodayDateCellClass } from "../utils/helper";
 
-
 /**
  * This component is responsible for rendering the empty table body.
  *
@@ -106,7 +105,7 @@ const EmptyRow = ({ dates }: { dates: string[] }) => {
           <ResourceTableCell
             key={date}
             type="default"
-            cellClassName={(getTableCellClass(index), getTodayDateCellClass(date))}
+            cellClassName={(getTableCellClass(index, 0), getTodayDateCellClass(date))}
             value="-"
           />
         );

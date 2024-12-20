@@ -267,7 +267,7 @@ const ResourceProjectTableCell = ({
         type="default"
         title={title}
         cellClassName={cn(
-          getTableCellClass(rowCount),
+          getTableCellClass(rowCount,midIndex),
           cellBackGroundColor,
           getTodayDateCellClass(projectSingleDay.date)
         )}
@@ -282,7 +282,7 @@ const ResourceProjectTableCell = ({
         type="empty"
         title={title}
         cellClassName={cn(
-          getTableCellClass(rowCount),
+          getTableCellClass(rowCount,midIndex),
           cellBackGroundColor,
           getTodayDateCellClass(projectSingleDay.date)
         )}
@@ -296,7 +296,7 @@ const ResourceProjectTableCell = ({
     <ResourceTableCell
       type="hovercard"
       title={title}
-      cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor, getTodayDateCellClass(projectSingleDay.date))}
+      cellClassName={cn(getTableCellClass(rowCount,midIndex), cellBackGroundColor, getTodayDateCellClass(projectSingleDay.date))}
       value={cellValue}
       CustomHoverCardContent={() => {
         return (

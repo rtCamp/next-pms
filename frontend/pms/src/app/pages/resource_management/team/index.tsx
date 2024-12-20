@@ -7,18 +7,18 @@ import { useDispatch, useSelector } from "react-redux";
 /**
  * Internal dependencies.
  */
+import { Spinner } from "@/app/components/spinner";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { Spinner } from "@/app/components/spinner";
 import { RootState } from "@/store";
 import { AllocationDataProps, PermissionProps } from "@/store/resource_management/allocation";
-import { setData, setReFetchData, setStart } from "@/store/resource_management/team";
+import { setData, setReFetchData } from "@/store/resource_management/team";
 
 import { getIsBillableValue } from "../utils/helper";
 import { getMergeData } from "../utils/value";
+import { ResourceTeamTable } from "./components/Table";
 import AddResourceAllocations from "../components/AddAllocation";
 import { useFrappeGetCallInfinite } from "../hooks/useFrappeGetCallInfinite";
-import { ResourceTeamTable } from "./components/Table";
 
 /**
  * This is main component which is responsible for rendering the team view of resource management.
@@ -73,7 +73,7 @@ const ResourceTeamView = () => {
       mutate();
       dispatch(setReFetchData(false));
     }
-  }, [resourceTeamState.isNeedToFetchDataAfterUpdate]);
+  }, [dispatch, mutate, resourceTeamState.isNeedToFetchDataAfterUpdate]);
 
   useEffect(() => {
     if (data) {
@@ -91,9 +91,9 @@ const ResourceTeamView = () => {
   }, [data, error]);
 
   useEffect(() => {
-    if(!resourceTeamState) return;
+    if (!resourceTeamState) return;
     setSize((resourceTeamState.start + resourceTeamState.pageLength) / resourceTeamState.pageLength + 1);
-  }, [resourceTeamState?.start]);
+  }, [resourceTeamState, resourceTeamState.start, setSize]);
 
   return (
     <>

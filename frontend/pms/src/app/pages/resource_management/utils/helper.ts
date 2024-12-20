@@ -25,6 +25,10 @@ const getTableCellClass = (index: number, weekIndex: number = 0) => {
     className = "border-r border-gray-300";
   }
 
+  if (index == 0 && weekIndex == 0) {
+    className += " border-l border-gray-300";
+  }
+
   return className;
 };
 
@@ -190,7 +194,6 @@ const getInitials = (name: string) => {
 const getRoundOfValue = (value: number): number => {
   return Math.round(value * 100) / 100;
 };
-
 
 export {
   daysDiff,

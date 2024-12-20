@@ -14,10 +14,10 @@ import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { PermissionProps, setResourcePermissions } from "@/store/resource_management/allocation";
 
-import { ResourceTeamHeaderSection } from "./team/components/Header";
-import ResourceTeamView from "./team";
-import { ResourceProjectHeaderSection } from "./project/components/Header";
 import ResourceProjectView from "./project";
+import { ResourceProjectHeaderSection } from "./project/components/Header";
+import ResourceTeamView from "./team";
+import { ResourceTeamHeaderSection } from "./team/components/Header";
 
 /**
  * This is main component which is responsible for rendering the page of resource management.
@@ -27,12 +27,17 @@ import ResourceProjectView from "./project";
 const ResourcePage = ({ type }: { type: "team" | "project" }) => {
   const { toast } = useToast();
   const dispatch = useDispatch();
-  const resourceAllocationPermission: PermissionProps | {} = useSelector(
+  const resourceAllocationPermission: PermissionProps = useSelector(
     (state: RootState) => state.resource_allocation_form.permissions
   );
 
   const { data, isLoading, isValidating, error } = useFrappeGetCall(
-    "next_pms.resource_management.api.permission.get_user_resources_rpermissions"
+    "next_pms.resource_management.api.permission.get_user_resources_permissions",
+    {},
+    undefined,
+    {
+      revalidateOnMount: !resourceAllocationPermission,
+    }
   );
 
   useEffect(() => {
@@ -49,7 +54,7 @@ const ResourcePage = ({ type }: { type: "team" | "project" }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, error]);
 
-  if (type == "team") {
+  if (type === "team") {
     return (
       <>
         <ResourceTeamHeaderSection />

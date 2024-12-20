@@ -1,7 +1,6 @@
 /**
  * External dependencies.
  */
-import { useFrappeGetCall } from "frappe-react-sdk";
 import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -12,13 +11,11 @@ import { Spinner } from "@/app/components/spinner";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
-import { AllocationDataProps, PermissionProps, setResourcePermissions } from "@/store/resource_management/allocation";
-import { setData, setReFetchData, setStart, updateData } from "@/store/resource_management/project";
+import { AllocationDataProps, PermissionProps } from "@/store/resource_management/allocation";
+import { setData, setReFetchData } from "@/store/resource_management/project";
 
 import AddResourceAllocations from "../components/AddAllocation";
-import { FooterSection } from "../components/Footer";
 import { getIsBillableValue } from "../utils/helper";
-import { ResourceProjectHeaderSection } from "./components/Header";
 import { ResourceProjectTable } from "./components/Table";
 import { useFrappeGetCallInfinite } from "../hooks/useFrappeGetCallInfinite";
 import { getMergeData } from "../utils/value";
@@ -74,7 +71,7 @@ const ResourceTeamView = () => {
       mutate();
       dispatch(setReFetchData(false));
     }
-  }, [resourceProjectState.isNeedToFetchDataAfterUpdate]);
+  }, [dispatch, mutate, resourceProjectState.isNeedToFetchDataAfterUpdate]);
 
   useEffect(() => {
     if (data) {
@@ -91,10 +88,12 @@ const ResourceTeamView = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, error]);
 
+
+
   useEffect(() => {
     if (!resourceProjectState) return;
     setSize((resourceProjectState.start + resourceProjectState.pageLength) / resourceProjectState.pageLength + 1);
-  }, [resourceProjectState.start]);
+  }, [resourceProjectState, resourceProjectState.start, setSize]);
 
   return (
     <>

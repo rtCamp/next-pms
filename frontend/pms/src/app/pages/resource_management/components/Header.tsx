@@ -1,10 +1,10 @@
 /**
  * External dependencies.
  */
+import React, { useEffect, useState } from "react";
 import { CheckedState } from "@radix-ui/react-checkbox";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { Filter, X } from "lucide-react";
-import React, { useEffect, useState } from "react";
 
 /**
  * Internal dependencies.

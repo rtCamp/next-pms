@@ -32,13 +32,22 @@ const ResourceTableHeader = ({ dates, title }: ResourceTableHeaderProps) => {
         <TableHead className="w-[15rem] flex items-center">{title}</TableHead>
         <div className="flex flex-col w-[60rem]">
           <div className="flex items-center">
-            <Typography variant="small" className="w-full text-center truncate cursor-pointer border-r border-gray-300">
+            <Typography
+              variant="small"
+              className="py-2 w-full text-center truncate cursor-pointer border-r border-l border-gray-300"
+            >
               {dates.length > 0 && dates[0].key}
             </Typography>
-            <Typography variant="small" className="w-full text-center truncate cursor-pointer border-r border-gray-300">
+            <Typography
+              variant="small"
+              className="py-2 w-full text-center truncate cursor-pointer border-r border-gray-300"
+            >
               {dates.length > 0 && dates[1].key}
             </Typography>
-            <Typography  variant="small" className="w-full text-center truncate cursor-pointer">
+            <Typography
+              variant="small"
+              className="py-2 w-full text-center truncate cursor-pointer border-r border-gray-300"
+            >
               {dates.length > 0 && dates[2].key}
             </Typography>
           </div>
@@ -53,7 +62,7 @@ const ResourceTableHeader = ({ dates, title }: ResourceTableHeaderProps) => {
                       getTableCellClass(index, weekIndex, true),
                       "text-xs flex flex-col px-2 py-2 max-w-20 w-full justify-center items-center",
                       getTodayDateCellClass(date),
-                      isToday(date) && "border-0"
+                      isToday(date) && "border-0 border-r border-gray-300"
                     )}
                   >
                     <Typography

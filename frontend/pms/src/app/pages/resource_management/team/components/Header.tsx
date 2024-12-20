@@ -31,7 +31,7 @@ import { ResourceHeaderSection } from "../../components/Header";
 
 /**
  * This component is responsible for loading the team view header.
- * 
+ *
  * @returns React.FC
  */
 const ResourceTeamHeaderSection = () => {

@@ -194,7 +194,7 @@ const ResourceTeamTableCell = ({
         type="default"
         title={title}
         cellClassName={cn(
-          getTableCellClass(rowCount),
+          getTableCellClass(rowCount, midIndex),
           cellBackGroundColor,
           getTodayDateCellClass(employeeSingleDay.date)
         )}
@@ -235,7 +235,7 @@ const ResourceTeamTableCell = ({
         type="empty"
         title={title}
         cellClassName={cn(
-          getTableCellClass(rowCount),
+          getTableCellClass(rowCount, midIndex),
           cellBackGroundColor,
           getTodayDateCellClass(employeeSingleDay.date)
         )}
@@ -265,7 +265,7 @@ const ResourceTeamTableCell = ({
       type="hovercard"
       title={title}
       cellClassName={cn(
-        getTableCellClass(rowCount),
+        getTableCellClass(rowCount, midIndex),
         cellBackGroundColor,
         getTodayDateCellClass(employeeSingleDay.date)
       )}

@@ -126,7 +126,7 @@ export const initialState: ResourceTeamState = {
   designation: [],
   tableView: {
     combineWeekHours: false,
-    view: "planned",
+    view: "planned-vs-capacity",
   },
   isNeedToFetchDataAfterUpdate: false,
   isLoading: true,
@@ -141,28 +141,22 @@ const ResourceTeamSlice = createSlice({
       state.data = action.payload;
       state.hasMore = state.data.has_more;
       state.isLoading = false;
-      state.pageLength = initialState.pageLength;
     },
     setEmployeeName: (state, action: PayloadAction<string>) => {
       state.employeeName = action.payload;
-      state.data = initialState.data;
       state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
       state.start = 0;
-      state.pageLength = initialState.pageLength;
     },
     setBusinessUnit: (state, action: PayloadAction<string[]>) => {
       state.businessUnit = action.payload;
-      state.data = initialState.data;
       state.start = 0;
       state.isLoading = true;
-      state.pageLength = initialState.pageLength;
     },
     setReportingManager: (state, action: PayloadAction<string>) => {
       state.reportingManager = action.payload;
-      state.data = initialState.data;
       state.start = 0;
       state.isLoading = true;
-      state.pageLength = initialState.pageLength;
     },
     setWeekDate: (state, action: PayloadAction<string>) => {
       state.weekDate = action.payload;
@@ -170,7 +164,16 @@ const ResourceTeamSlice = createSlice({
       const pageLength = Object.keys(state.data.data).length;
       state.pageLength = pageLength;
       state.isLoading = true;
-      state.data = initialState.data;
+    },
+    setAllocationType: (state, action: PayloadAction<string[]>) => {
+      state.allocationType = action.payload;
+      state.start = 0;
+      state.isLoading = true;
+    },
+    setDesignation: (state, action: PayloadAction<string[]>) => {
+      state.designation = action.payload;
+      state.start = 0;
+      state.isLoading = true;
     },
     setEmployeeWeekDate: (state, action: PayloadAction<string>) => {
       state.employeeWeekDate = action.payload;
@@ -178,7 +181,6 @@ const ResourceTeamSlice = createSlice({
     setStart: (state, action: PayloadAction<number>) => {
       state.start = action.payload;
       state.isLoading = true;
-      state.pageLength = initialState.pageLength;
     },
     setHasMore: (state, action: PayloadAction<boolean>) => {
       state.hasMore = action.payload;
@@ -234,10 +236,9 @@ const ResourceTeamSlice = createSlice({
       if (action.payload.view) {
         state.tableView.view = action.payload.view;
       }
-      state.pageLength = initialState.pageLength;
+
       state.start = 0;
       state.isLoading = true;
-      state.data = initialState.data;
     },
     deleteFilters: (
       state,
@@ -270,11 +271,8 @@ const ResourceTeamSlice = createSlice({
       if (action.payload.type === "allocation-type") {
         state.allocationType = action.payload.allocationType;
       }
-
-      state.pageLength = initialState.pageLength;
       state.start = 0;
       state.isLoading = true;
-      state.data = initialState.data;
     },
     setCombineWeekHours: (state, action: PayloadAction<boolean>) => {
       state.tableView.combineWeekHours = action.payload;
@@ -284,20 +282,6 @@ const ResourceTeamSlice = createSlice({
     },
     setReFetchData: (state, action: PayloadAction<boolean>) => {
       state.isNeedToFetchDataAfterUpdate = action.payload;
-    },
-    setAllocationType: (state, action: PayloadAction<string[]>) => {
-      state.allocationType = action.payload;
-      state.pageLength = initialState.pageLength;
-      state.start = 0;
-      state.isLoading = true;
-      state.data = initialState.data;
-    },
-    setDesignation: (state, action: PayloadAction<string[]>) => {
-      state.designation = action.payload;
-      state.pageLength = initialState.pageLength;
-      state.start = 0;
-      state.isLoading = true;
-      state.data = initialState.data;
     },
   },
 });
@@ -318,7 +302,6 @@ export const {
   setWeekDate,
   setStart,
   setHasMore,
-  updateData,
   setDateRange,
   resetState,
   setFilters,
