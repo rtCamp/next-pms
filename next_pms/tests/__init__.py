@@ -36,7 +36,7 @@ def setup_project_and_tasks():
             {
                 "doctype": "Project",
                 "project_name": "Next Pms",
-                "customer": "Google",
+                "customer": "Meta",
                 "estimated_costing": 50000,
                 "custom_billing_type": "Non-Billable",
             }
@@ -89,6 +89,7 @@ class TestNextPms(FrappeAPITestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.setup_project_manager_role()
 
     @classmethod
     def tearDownClass(cls):
