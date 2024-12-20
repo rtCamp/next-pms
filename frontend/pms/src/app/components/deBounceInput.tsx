@@ -1,7 +1,13 @@
+/**
+ * External dependencies
+ */
+import { useCallback, useEffect, useState } from "react";
+import { Search, X } from "lucide-react";
+/**
+ * Internal dependencies
+ */
 import { Input, InputProps } from "@/app/components/ui/input";
 import { cn, deBounce } from "@/lib/utils";
-import { Search, X } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
 
 export interface DeBounceInputProps extends InputProps {
   callback?: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -32,7 +38,7 @@ export const DeBounceInput = ({ value, className, callback, deBounceValue = 500,
   useEffect(() => setInputValue(value), [value]);
 
   return (
-    <div className={cn("relative w-full max-w-sm", className)}>
+    <div className={cn("relative w-full min-w-sm max-w-sm", className)}>
       <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
         <Search className="w-5 h-5 text-gray-400" aria-hidden="true" />
       </div>

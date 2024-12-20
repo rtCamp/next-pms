@@ -7,8 +7,8 @@ import { Check } from "lucide-react";
 /**
  * Internal Dependencies
  */
-import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
 import { Button } from "@/app/components/ui/button";
+import { Checkbox } from "@/app/components/ui/checkbox";
 import {
   Command,
   CommandEmpty,
@@ -17,9 +17,9 @@ import {
   CommandItem,
   CommandList,
 } from "@/app/components/ui/command";
-import { Typography } from "./typography";
-import { Checkbox } from "@/app/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
 import { cn, deBounce } from "@/lib/utils";
+import { Typography } from "./typography";
 
 interface ComboBoxProps {
   isOpen?: boolean;
@@ -54,7 +54,7 @@ export const ComboxBox = ({
   className = "",
   showSelected = false,
   shouldFilter = false,
-  deBounceTime = 700,
+  deBounceTime = 400,
 }: ComboBoxProps) => {
   const [selectedValues, setSelectedValues] = useState<string[]>(typeof value === "string" ? [value] : value ?? []);
   useEffect(() => {
@@ -103,7 +103,7 @@ export const ComboxBox = ({
     }
     return `${selectedValues.length} items selected`;
   };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   const onInputChange = deBounce((search) => {
     onSearch && onSearch(search);
   }, deBounceTime);
@@ -161,7 +161,7 @@ export const ComboxBox = ({
                           {item.label}
                         </Typography>
                         <Typography className="truncate" variant="small">
-                          {item.description}
+                          {item?.description}
                         </Typography>
                       </div>
                     </CommandItem>
