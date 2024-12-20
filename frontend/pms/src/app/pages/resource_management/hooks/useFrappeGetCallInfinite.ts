@@ -2,15 +2,16 @@
  * External dependencies.
  */
 import { useContext } from "react";
+import { FrappeContext, FrappeConfig } from "frappe-react-sdk";
+import { StrictTupleKey } from "swr/_internal";
 import useSWRInfinite, {
   SWRInfiniteConfiguration,
   SWRInfiniteResponse,
 } from "swr/infinite";
-import { FrappeContext, FrappeConfig } from "frappe-react-sdk";
-import { StrictTupleKey } from "swr/_internal";
+
 
 /**
- *  Hook to make a GET request to the server with pagination
+ *  Hook to make a GET request to the server with useSWRInfinite support.
  *
  * @param method - name of the method to call (will be dotted path e.g. "frappe.client.get_list")
  * @param getKey - A function that accepts the index and the previous page data, returns the key of a page
