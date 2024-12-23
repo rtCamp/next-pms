@@ -18,11 +18,10 @@ import { Separator } from "@/app/components/ui/separator";
 import { Typography } from "../typography";
 import { Button } from "../ui/button";
 
-interface ExportProps {
+export interface ExportProps {
   doctype: string;
   fields: Record<string, string>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  filters?: any;
+  filters?: Record<string, string | number | boolean | string[]>;
   orderBy: string;
   pageLength: number;
   isOpen: boolean;
@@ -42,6 +41,19 @@ const schema = z.object({
   export_all: z.boolean(),
 });
 
+/**
+ * Export component
+ * @description This component is responsible for rendering the export dialog.
+ * @param doctype The doctype for which the data is being exported.
+ * @param fields The fields to be exported.
+ * @param filters The filters to be applied while exporting the data.
+ * @param orderBy The order by clause for the data.
+ * @param pageLength The number of records per page.
+ * @param totalCount The total number of records.
+ * @param isOpen The flag to show the dialog.
+ * @param setIsOpen The function to toggle the dialog.
+ * @returns React.FC
+ */
 export const Export = ({
   doctype,
   isOpen,
@@ -62,8 +74,10 @@ export const Export = ({
     },
   });
   useEffect(() => {
-    setColumns(["name", ...Object.keys(fields), "creation", "modified"]);
+    const uniqueColumns = Array.from(new Set(["name", ...Object.keys(fields), "creation", "modified"]));
+    setColumns(uniqueColumns);
   }, [fields]);
+
   const handleSubmit = (data: z.infer<typeof schema>) => {
     const length = data.export_all ? totalCount : pageLength;
     let url = `/api/method/frappe.desk.reportview.export_query?file_format_type=${
@@ -75,6 +89,7 @@ export const Export = ({
       url += `&filters=${JSON.stringify(filters)}`;
     }
     window.location.href = url;
+    setIsOpen(false);
   };
 
   return (

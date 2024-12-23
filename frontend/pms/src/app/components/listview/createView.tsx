@@ -1,25 +1,30 @@
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import { useFrappePostCall } from "frappe-react-sdk";
-import { useDispatch, useSelector } from "react-redux";
-import { setViews } from "@/store/view";
+/**
+ * External dependencies
+ */
 import { useState } from "react";
-import { RootState } from "@/store";
+import { useDispatch, useSelector } from "react-redux";
 import EmojiPicker, { EmojiStyle } from "emoji-picker-react";
+import { useFrappePostCall } from "frappe-react-sdk";
+
+/**
+ * Internal dependencies
+ */
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
+import { RootState } from "@/store";
+import { setViews } from "@/store/view";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 
 interface CreateViewProps {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   dt: string;
   rows: Array<string>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  filters: any;
+  filters: Record<string, string | number | Array<string>>;
   orderBy: { field: string; order: string };
   route: string;
   isDefault: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  columns: any;
+  columns: Record<string, number | string>;
   isPublic: boolean;
 }
 export const CreateView = ({
@@ -83,7 +88,7 @@ export const CreateView = ({
           {openEmoji && (
             <EmojiPicker
               lazyLoadEmojis={true}
-              previewConfig={{ showPreview: false, defaultEmoji : selectedEmoji }}
+              previewConfig={{ showPreview: false, defaultEmoji: selectedEmoji }}
               emojiStyle={EmojiStyle.NATIVE}
               className="absolute mt-11 h-80 overflow-y-auto"
               onEmojiClick={(event) => {
