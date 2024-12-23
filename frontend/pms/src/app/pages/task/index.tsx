@@ -30,10 +30,10 @@ import { SetAddTimeDialog, SetTimesheet } from "@/store/timesheet";
 import { setViews, ViewData } from "@/store/view";
 import { DocMetaProps } from "@/types";
 import { ColumnsType, columnsToExcludeActionsInTablesType } from "@/types/task";
-import { AddTask } from "./addTask";
+import { AddTask } from "./AddTask";
 import { getColumn } from "./columns";
-import { FlatTable } from "./flatTable";
 import { Header } from "./Header";
+import { Table } from "./Table";
 import { TaskLog } from "./taskLog";
 import { createFilter } from "./utils";
 
@@ -165,7 +165,6 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     dispatch(SetAddTimeDialog(true));
   };
 
-  // call to fetch task list from DB ( single data source for flat and nested table)
   const { data, isLoading, error, mutate } = useFrappeGetCall(
     "next_pms.timesheet.api.task.get_task_list",
     {
@@ -304,7 +303,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasViewUpdated, toast]);
-  console.log(hasViewUpdated);
+
   return (
     <>
       <Header
@@ -328,9 +327,8 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
           }}
         />
       )}
-      {/* tables */}
 
-      <FlatTable
+      <Table
         table={table}
         columns={columns}
         columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
