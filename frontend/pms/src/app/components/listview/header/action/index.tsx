@@ -47,10 +47,12 @@ const Action = ({ docType, exportProps, viewProps }: ActionProps) => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="mr-2 [&_div]:cursor-pointer  [&_div]:gap-x-1">
-          <DropdownMenuItem onClick={openCreateView}>
-            <Plus />
-            <Typography variant="p">Create View </Typography>
-          </DropdownMenuItem>
+          {canCreate("PMS View Setting") && (
+            <DropdownMenuItem onClick={openCreateView}>
+              <Plus />
+              <Typography variant="p">Create View </Typography>
+            </DropdownMenuItem>
+          )}
           {canExport(docType) && (
             <DropdownMenuItem onClick={openExportDialog}>
               <Download />

@@ -23,6 +23,7 @@ import { Spinner } from "@/app/components/spinner";
 import { Typography } from "@/app/components/typography";
 import { Separator } from "@/app/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
+import { ToastAction } from "@/app/components/ui/toast";
 import { useToast } from "@/app/components/ui/use-toast";
 import { useFrappeDocTypeCount } from "@/app/hooks/useFrappeDocCount";
 import { Footer } from "@/app/layout/root";
@@ -52,7 +53,7 @@ const Project = () => {
 const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   const [viewInfo, setViewInfo] = useState<ViewData>(viewData);
   const { call } = useFrappePostCall("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view");
-  const { toast } = useToast();
+  const { toast, remove } = useToast();
   const [hasViewUpdated, setHasViewUpdated] = useState(false);
   const [colSizing, setColSizing] = useState<ColumnSizingState>(viewData.columns ?? {});
   const [columnOrder, setColumnOrder] = useState<string[]>(viewData.rows ?? []);
@@ -84,8 +85,6 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     "next_pms.timesheet.api.project.get_projects",
     {
       fields: viewInfo.rows ?? ["*"],
-      // eslint-disable-next-line
-      //   @ts-ignore
       filters: getFilter(projectState),
       limit_start: projectState.start,
       limit: projectState.pageLength,
@@ -126,14 +125,25 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
       filters: createFilter(projectState),
       rows: columnOrder,
     };
-    if (!_.isEqual(updateViewData, viewData)) {
+    if (!_.isEqual(updateViewData, viewInfo)) {
       setHasViewUpdated(true);
     } else {
       setHasViewUpdated(false);
     }
     setViewInfo(updateViewData);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [colSizing, columnOrder, projectState]);
+  }, [
+    colSizing,
+    columnOrder,
+    projectState.order,
+    projectState.orderColumn,
+    projectState.search,
+    projectState.currency,
+    projectState.selectedProjectType,
+    projectState.selectedStatus,
+    projectState.selectedBillingType,
+    projectState.selectedBusinessUnit,
+  ]);
 
   const columns = getColumnInfo(
     meta.fields,
@@ -161,7 +171,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     },
   });
 
-  const updateView = () => {
+  const updateView = useCallback(() => {
     call({
       view: viewInfo,
     })
@@ -180,7 +190,8 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
           description: error,
         });
       });
-  };
+  }, [call, dispatch, toast, viewInfo]);
+
   const handleColumnHide = (id: string) => {
     setColumnVisibility((prev) => ({
       ...prev,
@@ -218,10 +229,23 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
 
   useEffect(() => {
     updateColumnOrder(columnVisibility);
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [columnVisibility]);
 
+  useEffect(() => {
+    if (hasViewUpdated) {
+      remove();
+      toast({
+        description: "View has been updated.",
+        action: (
+          <ToastAction altText="Save" onClick={updateView}>
+            Save Changes
+          </ToastAction>
+        ),
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasViewUpdated, toast, updateView]);
   return (
     <>
       <ProjectHeader
