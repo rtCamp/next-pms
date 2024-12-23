@@ -35,12 +35,13 @@ export const Header = ({
   sort,
   showActions,
   actionProps,
+  className,
   showFilterValue = false,
 }: HeaderProps) => {
   return (
     <div className="border-b">
       <RootHeader
-        className="flex items-center max-md:flex-col overflow-y-hidden no-scrollbar max-lg:gap-x-2"
+        className={cn("flex items-center max-md:flex-col overflow-y-hidden no-scrollbar max-lg:gap-x-2", className)}
         parentClassName="border-0"
       >
         <div id="filters" className="flex gap-x-2 max-md:w-full items-center ">
@@ -52,33 +53,35 @@ export const Header = ({
               return <Filter filter={filter} key={filter.queryParameterName} />;
             })}
         </div>
-        {buttons && (
-          <div className="flex gap-x-2 max-md:p-1 max-md:w-full max-md:justify-between max-md:m-2">
-            {buttons.map((button: ButtonProps) => {
-              if (button.hide) {
-                return <></>;
-              }
-              return (
-                <Button
-                  title={button.title}
-                  className={cn("p-1 h-fit", button.className)}
-                  variant={button.variant || "outline"}
-                  onClick={button.handleClick}
-                >
-                  {button.icon && <button.icon />}
-                  {button.label}
-                </Button>
-              );
-            })}
-          </div>
-        )}
-        {(showColumnSelector || showSort) &&
-          <section className="flex gap-x-2">
-            {showColumnSelector && columnSelector?.fieldMeta && <ColumnSelector {...columnSelector} />}
-            {showSort && sort && <Sort {...sort} />}
-          </section>
-        }
-        {showActions && actionProps && <Action {...actionProps} />}
+        <div className="flex gap-x-2">
+          {buttons && (
+            <div className="flex gap-x-2 max-md:p-1 max-md:w-full max-md:justify-between max-md:m-2">
+              {buttons.map((button: ButtonProps) => {
+                if (button.hide) {
+                  return <></>;
+                }
+                return (
+                  <Button
+                    title={button.title}
+                    className={cn("p-1 h-fit", button.className)}
+                    variant={button.variant || "outline"}
+                    onClick={button.handleClick}
+                  >
+                    {button.icon && <button.icon />}
+                    {button.label}
+                  </Button>
+                );
+              })}
+            </div>
+          )}
+          {(showColumnSelector || showSort || showActions) && (
+            <section className="flex gap-x-2">
+              {showColumnSelector && columnSelector?.fieldMeta && <ColumnSelector {...columnSelector} />}
+              {showSort && sort && <Sort {...sort} />}
+              {showActions && actionProps && <Action {...actionProps} />}
+            </section>
+          )}
+        </div>
       </RootHeader>
       {showFilterValue && <FilterValue filters={filters} />}
     </div>

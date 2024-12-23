@@ -38,6 +38,7 @@ export interface SortProps {
     onSortChange: (order: sortOrder, orderColumn: string) => void;
 }
 export interface HeaderProps {
+    className?: string;
     filters: FilterPops[];
     buttons: ButtonProps[];
     docType?: string;
