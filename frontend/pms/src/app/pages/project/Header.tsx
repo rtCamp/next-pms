@@ -18,15 +18,18 @@ import {
   setSelectedStatus,
   Status,
 } from "@/store/project";
+import { ViewData } from "@/store/view";
 import { DocMetaProps, sortOrder } from "@/types";
+import { createFilter } from "./utils";
 
 interface HeaderProps {
   meta: DocMetaProps;
   columnOrder: Array<string>;
   setColumnOrder: React.Dispatch<React.SetStateAction<string[]>>;
   onColumnHide: (column: string) => void;
+  view: ViewData;
 }
-export const Header = ({ meta, columnOrder, setColumnOrder, onColumnHide }: HeaderProps) => {
+export const Header = ({ meta, columnOrder, setColumnOrder, onColumnHide ,view}: HeaderProps) => {
   const projectState = useSelector((state: RootState) => state.project);
   const appInfo = useSelector((state: RootState) => state.app);
   const dispatch = useDispatch();
@@ -191,6 +194,29 @@ export const Header = ({ meta, columnOrder, setColumnOrder, onColumnHide }: Head
     setColumnOrder,
     onColumnHide: onColumnHide,
   };
+  const actions = {
+    docType: meta.doctype,
+    exportProps: {
+      pageLength: projectState.data.length,
+      totalCount: projectState.totalCount,
+      orderBy: `${projectState.orderColumn}  ${projectState.order}`,
+      fields: columnOrder.reduce((acc: { [key: string]: string }, value) => {
+        const m = meta.fields.find((field: { fieldname: string }) => field.fieldname === value);
+        acc[value] = m?.label ?? value;
+        return acc;
+      }, {}),
+    },
+    viewProps: {
+      rows: view.rows,
+      columns:view.columns,
+      totalCount: projectState.totalCount,
+      orderBy: {
+        order: projectState.order,
+        field: projectState.orderColumn,
+      },
+      filters:createFilter(projectState)
+    },
+  };
   return (
     <ListViewHeader
       filters={filters}
@@ -198,6 +224,8 @@ export const Header = ({ meta, columnOrder, setColumnOrder, onColumnHide }: Head
       sort={sortOptions}
       showColumnSelector={true}
       columnSelector={columnSelector}
+      showActions={true}
+      actionProps={actions}
     />
   );
 };

@@ -6,6 +6,7 @@ import { Download, Ellipsis, Plus } from "lucide-react";
 /**
  * Internal dependencies
  */
+import { CreateView } from "@/app/components/listview/createView";
 import { Export } from "@/app/components/listview/Export";
 import { Typography } from "@/app/components/typography";
 import { Button } from "@/app/components/ui/button";
@@ -16,12 +17,17 @@ import {
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
 import { canExport, canCreate } from "@/lib/utils";
+import { ActionProps } from "../../type";
 
-
-interface ActionProps {
-  docType: string;
-}
-const Action = ({ docType }: ActionProps) => {
+/**
+ * Action component
+ * @description This component is responsible for rendering the action dropdown in the header.
+ * @param docType The doctype for which the action is being rendered.
+ * @param exportProps The props for the export component.
+ * @param viewProps The props for the create view component.
+ * @returns React.FC
+ */
+const Action = ({ docType, exportProps, viewProps }: ActionProps) => {
   const [exportDialog, setExportDialog] = useState(false);
   const [createViewDialog, setCreateViewDialog] = useState(false);
   const openCreateView = () => {
@@ -53,7 +59,20 @@ const Action = ({ docType }: ActionProps) => {
           )}
         </DropdownMenuContent>
       </DropdownMenu>
-      {exportDialog && <Export doctype={docType} isOpen={exportDialog} setIsOpen={setExportDialog} />}
+      {exportDialog && <Export doctype={docType} isOpen={exportDialog} setIsOpen={setExportDialog} {...exportProps} />}
+      {createViewDialog && (
+        <CreateView
+          isOpen={createViewDialog}
+          dt={docType}
+          {...viewProps}
+          setIsOpen={setCreateViewDialog}
+          route={docType.toLowerCase().replace(" ", "-")}
+          isDefault={false}
+          isPublic={false}
+        />
+      )}
     </>
   );
 };
+
+export default Action;

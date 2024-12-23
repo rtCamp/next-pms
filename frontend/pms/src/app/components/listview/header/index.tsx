@@ -11,9 +11,9 @@ import { HeaderProps, FilterPops, ButtonProps } from "@/app/components/listview/
 import { Button } from "@/app/components/ui/button";
 import { Header as RootHeader } from "@/app/layout/root";
 import { cn } from "@/lib/utils";
+import Action from "./action";
 import ColumnSelector from "./columnSelector";
 import Sort from "./Sort";
-
 /**
  * This component is responsible for Render the header section of pages.
  *
@@ -32,6 +32,8 @@ export const Header = ({
   columnSelector,
   showSort,
   sort,
+  showActions,
+  actionProps,
 }: HeaderProps) => {
   return (
     <div className="border-b">
@@ -72,6 +74,7 @@ export const Header = ({
           {showColumnSelector && columnSelector?.fieldMeta && <ColumnSelector {...columnSelector} />}
           {showSort && sort && <Sort {...sort} />}
         </section>
+        {showActions && actionProps && <Action {...actionProps} />}
       </RootHeader>
     </div>
   );
