@@ -91,6 +91,7 @@ export const Header = ({ meta, columnOrder, setColumnOrder, onColumnHide ,view}:
       value: projectState.search,
       queryParameterDefault: projectState.search,
       handleChange: handleSearch,
+      handleDelete: handleSearch,
     },
     {
       type: "select-search",
@@ -113,6 +114,7 @@ export const Header = ({ meta, columnOrder, setColumnOrder, onColumnHide ,view}:
       handleChange: handleProjectTypeChange,
       shouldFilterComboBox: true,
       isMultiComboBox: true,
+      handleDelete: handleProjectTypeChange,
     },
     {
       type: "select-list",
@@ -128,6 +130,7 @@ export const Header = ({ meta, columnOrder, setColumnOrder, onColumnHide ,view}:
       handleChange: handleStatusChange,
       shouldFilterComboBox: true,
       isMultiComboBox: true,
+      handleDelete: handleStatusChange,
     },
     {
       type: "select-search",
@@ -148,6 +151,7 @@ export const Header = ({ meta, columnOrder, setColumnOrder, onColumnHide ,view}:
       },
       queryParameterDefault: projectState.selectedBusinessUnit,
       handleChange: handleBuChange,
+      handleDelete: handleBuChange,
       isMultiComboBox: true,
       shouldFilterComboBox: true,
     },
@@ -164,6 +168,7 @@ export const Header = ({ meta, columnOrder, setColumnOrder, onColumnHide ,view}:
       ],
       queryParameterDefault: projectState.selectedBillingType,
       handleChange: handleBillingTypeChange,
+      handleDelete: handleBillingTypeChange,
       shouldFilterComboBox: true,
       isMultiComboBox: true,
     },
@@ -178,6 +183,7 @@ export const Header = ({ meta, columnOrder, setColumnOrder, onColumnHide ,view}:
       })),
       queryParameterDefault: projectState.currency,
       handleChange: handleCurrencyChange,
+      handleDelete: handleCurrencyChange,
       shouldFilterComboBox: true,
       isMultiComboBox: false,
     },
@@ -226,6 +232,7 @@ export const Header = ({ meta, columnOrder, setColumnOrder, onColumnHide ,view}:
       columnSelector={columnSelector}
       showActions={true}
       actionProps={actions}
+      showFilterValue
     />
   );
 };

@@ -13,6 +13,7 @@ import { Header as RootHeader } from "@/app/layout/root";
 import { cn } from "@/lib/utils";
 import Action from "./action";
 import ColumnSelector from "./columnSelector";
+import FilterValue from "./FilterValue";
 import Sort from "./Sort";
 /**
  * This component is responsible for Render the header section of pages.
@@ -34,6 +35,7 @@ export const Header = ({
   sort,
   showActions,
   actionProps,
+  showFilterValue = false,
 }: HeaderProps) => {
   return (
     <div className="border-b">
@@ -70,12 +72,15 @@ export const Header = ({
             })}
           </div>
         )}
-        <section className="flex gap-x-2">
-          {showColumnSelector && columnSelector?.fieldMeta && <ColumnSelector {...columnSelector} />}
-          {showSort && sort && <Sort {...sort} />}
-        </section>
+        {(showColumnSelector || showSort) &&
+          <section className="flex gap-x-2">
+            {showColumnSelector && columnSelector?.fieldMeta && <ColumnSelector {...columnSelector} />}
+            {showSort && sort && <Sort {...sort} />}
+          </section>
+        }
         {showActions && actionProps && <Action {...actionProps} />}
       </RootHeader>
+      {showFilterValue && <FilterValue filters={filters} />}
     </div>
   );
 };
