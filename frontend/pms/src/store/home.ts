@@ -14,7 +14,7 @@ export interface HomeState {
   action: "SET" | "UPDATE";
   isDialogOpen: boolean;
   isAprrovalDialogOpen: boolean;
-  employeeName?: string;
+  employeeName: string;
   status: Array<string>;
   weekDate: string;
   pageLength: number;

@@ -4,68 +4,47 @@
 import { useCallback, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { addDays, isToday } from "date-fns";
+import { isToday } from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
-import { ChevronRight, ChevronLeft, Filter } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
-import { ComboxBox } from "@/app/components/comboBox";
-import { DeBounceInput } from "@/app/components/deBounceInput";
+
 import { LoadMore } from "@/app/components/loadMore";
 import { Spinner } from "@/app/components/spinner";
 import { Typography } from "@/app/components/typography";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
-import { Badge } from "@/app/components/ui/badge";
-import { Button } from "@/app/components/ui/button";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
 import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
 import { useToast } from "@/app/components/ui/use-toast";
-import { Header, Footer } from "@/app/layout/root";
+import { Footer } from "@/app/layout/root";
 import { TEAM, EMPLOYEE } from "@/lib/constant";
-import { useQueryParamsState } from "@/lib/queryParam";
+
 import {
   cn,
   parseFrappeErrorMsg,
   prettyDate,
   floatToTime,
-  getFormatedDate,
   calculateExtendedWorkingHour,
   preProcessLink,
 } from "@/lib/utils";
 import { RootState } from "@/store";
-import {
-  setData,
-  setWeekDate,
-  setEmployeeName,
-  DateProps,
-  setStart,
-  updateData,
-  resetState,
-  setFilters,
-  setStatus,
-} from "@/store/home";
+import { setData, DateProps, setStart, updateData, resetState, setFilters } from "@/store/home";
 import { dataItem } from "@/types/team";
+import { Header } from "./Header";
 
 const Home = () => {
   const { toast } = useToast();
   const homeState = useSelector((state: RootState) => state.home);
   const dispatch = useDispatch();
-  const [employeeNameParam, setEmployeeNameParam] = useQueryParamsState<string>("employee-name", "");
-  const [employeeStatusParam, setEmployeeStatusParam] = useQueryParamsState<Array<string>>("status", ["Active"]);
+
   const navigate = useNavigate();
-  const empStatus = [
-    { label: "Active", value: "Active" },
-    { label: "Inactive", value: "Inactive" },
-    { label: "Suspended", value: "Suspended" },
-    { label: "Left", value: "Left" },
-  ];
 
   useEffect(() => {
     const payload = {
-      employeeName: employeeNameParam,
-      status: employeeStatusParam,
+      employeeName: homeState.employeeName,
+      status: homeState.status,
     };
     dispatch(setFilters(payload));
     return () => {
@@ -96,95 +75,16 @@ const Home = () => {
         description: err,
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, error, homeState.action]);
-
-  const handleEmployeeChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      dispatch(setEmployeeName(e.target.value));
-      setEmployeeNameParam(e.target.value);
-    },
-    [dispatch, setEmployeeNameParam]
-  );
-
-  const handleStatusChange = useCallback(
-    (value: string | string[]) => {
-      dispatch(setStatus(value as string[]));
-      setEmployeeStatusParam(value as string[]);
-    },
-    [dispatch, setEmployeeStatusParam]
-  );
-
-  const handleprevWeek = useCallback(() => {
-    const date = getFormatedDate(addDays(homeState.weekDate, -14));
-    dispatch(setWeekDate(date));
-  }, [dispatch, homeState.weekDate]);
-
-  const handlenextWeek = useCallback(() => {
-    const date = getFormatedDate(addDays(homeState.weekDate, 14));
-    dispatch(setWeekDate(date));
-  }, [dispatch, homeState.weekDate]);
+  }, [data, dispatch, error, homeState.action, toast]);
 
   const handleLoadMore = useCallback(() => {
     if (!homeState.data.has_more) return;
     dispatch(setStart(homeState.start + homeState.pageLength));
-  }, [dispatch, homeState.data.has_more, homeState.start]);
+  }, [dispatch, homeState.data.has_more, homeState.pageLength, homeState.start]);
 
   return (
     <>
-      <Header>
-        <section id="filter-section" className="flex max-md:flex-col gap-x-3  w-full md:items-center ">
-          <div className=" flex gap-x-2 max-w-sm w-full mx-2 items-center max-md:overflow-x-auto">
-            <DeBounceInput
-              placeholder="Employee name"
-              value={employeeNameParam}
-              deBounceValue={300}
-              callback={handleEmployeeChange}
-            />
-            <ComboxBox
-              value={employeeStatusParam}
-              label="Employee Status"
-              data={empStatus}
-              shouldFilter
-              isMulti
-              onSelect={handleStatusChange}
-              leftIcon={<Filter className={cn("h-4 w-4", homeState.status.length != 0 && "fill-primary")} />}
-              rightIcon={homeState.status.length > 0 && <Badge className="px-1.5">{homeState.status.length}</Badge>}
-              className="text-primary w-full border-dashed gap-x-1 font-normal w-fit"
-            />
-          </div>
-          <div className="w-full flex items-center  max-md:mt-2 max-md:p-1">
-            <div className="grow flex items-center w-full overflow-x-auto">
-              <Button title="prev" variant="outline" className="p-1 h-fit" onClick={handleprevWeek}>
-                <ChevronLeft className="w-4 h-4 max-sm:w-3 max-sm:h-3" />
-              </Button>
-              <Typography
-                className="w-full text-center max-md:text-left mx-3  max-sm:text-sm  max-md:text-[2vw] truncate cursor-pointer"
-                variant="h6"
-                title={homeState.data.dates.length > 0 ? homeState.data.dates[0].key : ""}
-              >
-                {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-                {/* @ts-ignore */}
-                {homeState.data.dates.length > 0 && homeState.data.dates[0].key}
-              </Typography>
-            </div>
-            <div className="grow flex items-center w-full">
-              <Typography
-                className="w-full text-center max-md:text-right mx-3  max-sm:text-sm max-md:text-[2vw] truncate cursor-pointer"
-                variant="h6"
-                title={homeState.data.dates.length > 0 ? homeState.data.dates[1].key : ""}
-              >
-                {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-                {/* @ts-ignore */}
-                {homeState.data.dates.length > 0 && homeState.data.dates[1].key}
-              </Typography>
-              <Button title="next" variant="outline" className="p-1 h-fit" onClick={handlenextWeek}>
-                <ChevronRight className="w-4 h-4 max-sm:w-3 max-sm:h-3" />
-              </Button>
-            </div>
-          </div>
-        </section>
-      </Header>
+      <Header />
       {isLoading && Object.keys(homeState.data.data).length == 0 ? (
         <Spinner isFull />
       ) : (
@@ -212,7 +112,6 @@ const Home = () => {
               })}
             </TableRow>
           </TableHeader>
-
           <TableBody>
             {Object.entries(homeState.data?.data).length > 0 ? (
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
