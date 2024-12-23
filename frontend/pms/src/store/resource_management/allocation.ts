@@ -1,5 +1,9 @@
-import { getFormatedStringValue } from "@/app/pages/resource_management/utils/value";
+/**
+ * External dependencies.
+ */
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+
+import { getFormatedStringValue } from "@/app/pages/resource_management/utils/value";
 
 export type ResourceKeys =
   | "project"
@@ -75,6 +79,7 @@ const ResourceTeamSlice = createSlice({
     ) => {
       state.isShowDialog = action.payload.isShowDialog;
       state.isNeedToEdit = action.payload.isNeedToEdit;
+      
       state.employee = getFormatedStringValue(
         action.payload.employee
       ) as string;

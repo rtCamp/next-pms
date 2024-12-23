@@ -1,3 +1,6 @@
+/**
+ * Internal dependencies.
+ */
 import { cn } from "@/lib/utils";
 import { TaskData } from "@/types";
 

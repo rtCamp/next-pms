@@ -194,7 +194,7 @@ scheduler_events = {
 # Testing
 # -------
 
-# before_tests = "next_pms.install.before_tests"
+before_tests = "next_pms.tests.setup"
 
 after_install = "next_pms.install.after_install"
 

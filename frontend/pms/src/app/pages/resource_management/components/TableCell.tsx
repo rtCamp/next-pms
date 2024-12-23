@@ -1,11 +1,18 @@
-import { cn } from "@/lib/utils";
-import { TableCell } from "@/app/components/ui/table";
-import { Typography } from "@/app/components/typography";
-import React from "react";
+/**
+ * External dependencies.
+ */
 import { HoverCard, HoverCardTrigger } from "@radix-ui/react-hover-card";
+import React from "react";
+
+/**
+ * Internal dependencies.
+ */
+import { Typography } from "@/app/components/typography";
 import { HoverCardContent } from "@/app/components/ui/hover-card";
-import { EmptyTableCell } from "./Empty";
+import { TableCell } from "@/app/components/ui/table";
+import { cn } from "@/lib/utils";
 import { getFilterValue } from "../utils/helper";
+import { EmptyTableCell } from "./Empty";
 
 interface ResourceTableProps {
   type: "hovercard" | "empty" | "default";
@@ -20,6 +27,20 @@ interface ResourceTableProps {
   onCellClick?: () => void;
 }
 
+/**
+ * This component is responsible to render a table cell based on it type dynamically.
+ * 
+ * @param props.type The type of the cell.
+ * @param props.cellTypographyClassName  The class name for cell typography.
+ * @param props.cellClassName  The class name for cell.
+ * @param props.CellContent  The cell content.
+ * @param props.CustomHoverCardContent  The custom hover card content whihc can be render on cell hover.
+ * @param props.title  The title of the cell.
+ * @param props.ref  The reference of the cell.
+ * @param props.value  The value of the cell.
+ * @param props.style  The style of the cell.
+ * @returns React.FC
+ */
 const ResourceTableCell = ({
   type,
   title,
@@ -44,7 +65,7 @@ const ResourceTableCell = ({
             <TableCellContent title={title} className={cellTypographyClassName} value={value} />
           </TableCell>
         </HoverCardTrigger>
-        <HoverCardContent>{CustomHoverCardContent && <CustomHoverCardContent />}</HoverCardContent>
+        <HoverCardContent className="min-w-64 max-w-96 w-fit">{CustomHoverCardContent && <CustomHoverCardContent />}</HoverCardContent>
       </HoverCard>
     );
   }
@@ -65,6 +86,16 @@ const ResourceTableCell = ({
   }
 };
 
+/**
+ * This component is responsible to render the cell content based on feat to handle onClick event of the table.
+ * 
+ * @param props.value The value of the cell.
+ * @param props.cellClassName The class for cell.
+ * @param props.CellComponet The cell component.
+ * @param props.cellTypographyClassName The class name for cell typography. 
+ * @param props.onClick The onClick event for cell.
+ * @returns React.FC
+ */
 const TableInformationCellContent = ({
   value,
   cellClassName,
@@ -96,6 +127,15 @@ const TableInformationCellContent = ({
   );
 };
 
+/**
+ * This component is responsible to display the cell text contents.
+ * 
+ * @param props.value The value to be displayed in the cell.
+ * @param props.TextComponet The text component to be displayed in the cell.
+ * @param props.className The class name for the cell.
+ * @param props.title The title of the cell.
+ * @returns React.FC
+ */
 const TableCellContent = ({
   value,
   TextComponet,

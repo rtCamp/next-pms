@@ -1,10 +1,16 @@
-import { Button } from "@/app/components/ui/button";
-import { useFrappeGetCall } from "frappe-react-sdk";
-import { cn } from "@/lib/utils";
+/**
+ * External dependencies.
+ */
 import { useEffect, useState } from "react";
+import { useFrappeGetCall } from "frappe-react-sdk";
+import { ChevronDown, Check } from "lucide-react";
+
+/**
+ * Internal dependencies.
+ */
 import { Typography } from "@/app/components/typography";
-import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
 import { Avatar, AvatarImage, AvatarFallback } from "@/app/components/ui/avatar";
+import { Button } from "@/app/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -13,9 +19,31 @@ import {
   CommandItem,
   CommandList,
 } from "@/app/components/ui/command";
-import { ChevronDown, Check } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { Employee } from "@/types";
 
+interface EmployeeComboProps {
+  disabled?: boolean;
+  value: string;
+  onSelect: (name: string) => void;
+  className?: string;
+  label?: string;
+  status?: [string];
+}
+
+/**
+ * Variation of combo box for selecting employee.
+ * 
+ * @param props Props passed to the component.
+ * @param props.disabled Whether the combo box is disabled.
+ * @param props.value Initial value of the combo box.
+ * @param props.onSelect The function to call when an employee is selected. 
+ * @param props.className The css class for combo box.
+ * @param props.label The label for the combo box. Default is "Select Employee".
+ * @param props.status Option to filter the employees based on status. ex: ["Active", "Inactive"]
+ * @returns JSX element
+ */
 const EmployeeCombo = ({
   disabled = false,
   value = "",
@@ -23,17 +51,10 @@ const EmployeeCombo = ({
   className,
   status,
   label = "Select Employee",
-}: {
-  disabled?: boolean;
-  value: string;
-  onSelect: (name: string) => void;
-  className?: string;
-  label?: string;
-  status?: [string];
-}) => {
+}: EmployeeComboProps) => {
   const [selectedValues, setSelectedValues] = useState<string>(value);
   const [employee, setEmployee] = useState<Employee | undefined>();
-
+  const [open, setOpen] = useState(false);
   const { data: employees } = useFrappeGetCall(
     "next_pms.timesheet.api.employee.get_employee_list",
     status ? { status: status } : {},
@@ -46,20 +67,23 @@ const EmployeeCombo = ({
   const onEmployeeChange = (name: string) => {
     setSelectedValues(name);
     onSelect(name);
+    setOpen(false);
   };
   const resetState = () => {
     setSelectedValues("");
     onSelect("");
+    setOpen(false);
   };
   useEffect(() => {
     if (!employees) return;
     const res = employees?.message.data.find((item: Employee) => item.name === selectedValues);
     setEmployee(res);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [employees, selectedValues]);
 
+  useEffect(() => setSelectedValues(value), [value]);
+
   return (
-    <Popover modal>
+    <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -85,7 +109,7 @@ const EmployeeCombo = ({
             </Typography>
           )}
 
-          <ChevronDown size={24} className="w-4 h-4 transition-transform duration-400" />
+          <ChevronDown size={24} className="w-4 h-4 shrink-0 transition-transform duration-400" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0">

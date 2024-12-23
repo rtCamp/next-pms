@@ -1,9 +1,13 @@
+/**
+ * External dependencies.
+ */
+import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+
 import { getTodayDate, getFormatedDate } from "@/lib/utils";
 import {
   ResourceAllocationObjectProps,
   ResourceCustomerObjectProps,
 } from "@/types/resource_management";
-import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
 export type DateRange = {
   start_date: string;
@@ -25,11 +29,12 @@ export type EmployeeDataProps = {
   designation: string;
   working_hour: string;
   working_frequency: string;
-  all_dates_data: EmployeeResourceProps[];
+  all_dates_data: EmployeeResourceObjectProps;
   all_week_data: [];
   all_leave_data: EmployeeLeaveProps[];
   employee_allocations: ResourceAllocationObjectProps;
   max_allocation_count_for_single_date: number;
+  employee_daily_working_hours: number;
 };
 
 export interface ResourceTeamDataProps {
@@ -60,10 +65,13 @@ export type EmployeeResourceProps = {
   total_worked_hours: number;
   total_working_hours: number;
   employee_resource_allocation_for_given_date: EmployeeAllocationForDateProps[];
-  is_last_week_day: boolean;
   is_on_leave: boolean;
   total_leave_hours: number;
-  week_index: number;
+  total_allocation_count: number;
+};
+
+export type EmployeeResourceObjectProps = {
+  [date: string]: EmployeeResourceProps;
 };
 
 export type EmployeeAllocationForDateProps = {
@@ -83,7 +91,7 @@ export interface ResourceTeamState {
   weekDate: string;
   employeeWeekDate: string;
   pageLength: number;
-  isBillable: number;
+  allocationType?: string[];
   start: number;
   dateRange: DateRange;
   hasMore: boolean;
@@ -107,7 +115,7 @@ export const initialState: ResourceTeamState = {
   weekDate: getFormatedDate(getTodayDate()),
   employeeWeekDate: getFormatedDate(getTodayDate()),
   start: 0,
-  isBillable: -1,
+  allocationType: [],
   hasMore: true,
   dateRange: {
     start_date: "",
@@ -197,21 +205,31 @@ const ResourceTeamSlice = createSlice({
       state,
       action: PayloadAction<{
         employeeName?: string;
+        isNeedToRemove?: boolean;
         businessUnit?: string[];
         reportingManager?: string;
-        allocationType?: string;
+        designation?: string[];
+        allocationType?: string[];
         view?: string;
         combineWeekHours?: boolean;
       }>
     ) => {
-      if (action.payload.employeeName) {
+      if (action.payload.employeeName || action.payload.isNeedToRemove) {
         state.employeeName = action.payload.employeeName;
       }
+      if (action.payload.reportingManager || action.payload.isNeedToRemove) {
+        state.reportingManager = action.payload.reportingManager;
+      }
+
       if (action.payload.businessUnit) {
         state.businessUnit = action.payload.businessUnit;
       }
-      if (action.payload.reportingManager) {
-        state.reportingManager = action.payload.reportingManager;
+
+      if (action.payload.allocationType) {
+        state.allocationType = action.payload.allocationType;
+      }
+      if (action.payload.designation) {
+        state.designation = action.payload.designation;
       }
       if (action.payload.combineWeekHours) {
         state.tableView.combineWeekHours = action.payload.combineWeekHours;
@@ -219,6 +237,42 @@ const ResourceTeamSlice = createSlice({
       if (action.payload.view) {
         state.tableView.view = action.payload.view;
       }
+      state.pageLength = initialState.pageLength;
+      state.start = 0;
+      state.data = initialState.data;
+    },
+    deleteFilters: (
+      state,
+      action: PayloadAction<{
+        type:
+          | "employee"
+          | "business-unit"
+          | "repots-to"
+          | "designation"
+          | "allocation-type";
+        employeeName?: string;
+        businessUnit?: string[];
+        reportingManager?: string;
+        designation?: string[];
+        allocationType?: string[];
+      }>
+    ) => {
+      if (action.payload.type === "employee") {
+        state.employeeName = action.payload.employeeName;
+      }
+      if (action.payload.type === "business-unit") {
+        state.businessUnit = action.payload.businessUnit;
+      }
+      if (action.payload.type === "repots-to") {
+        state.reportingManager = action.payload.reportingManager;
+      }
+      if (action.payload.type === "designation") {
+        state.designation = action.payload.designation;
+      }
+      if (action.payload.type === "allocation-type") {
+        state.allocationType = action.payload.allocationType;
+      }
+
       state.pageLength = initialState.pageLength;
       state.start = 0;
       state.data = initialState.data;
@@ -232,14 +286,8 @@ const ResourceTeamSlice = createSlice({
     setReFetchData: (state, action: PayloadAction<boolean>) => {
       state.isNeedToFetchDataAfterUpdate = action.payload;
     },
-    setIsBillable: (state, action: PayloadAction<string[]>) => {
-      if (action.payload.length == 2 || action.payload.length == 0) {
-        state.isBillable = -1;
-      } else if (action.payload[0] == "billable") {
-        state.isBillable = 1;
-      } else {
-        state.isBillable = 0;
-      }
+    setAllocationType: (state, action: PayloadAction<string[]>) => {
+      state.allocationType = action.payload;
       state.pageLength = initialState.pageLength;
       state.start = 0;
       state.data = initialState.data;
@@ -252,6 +300,17 @@ const ResourceTeamSlice = createSlice({
     },
   },
 });
+
+export const emptyEmployeeDayData: EmployeeResourceProps = {
+  date: "None",
+  total_allocated_hours: 0,
+  total_working_hours: 0,
+  total_worked_hours: 0,
+  employee_resource_allocation_for_given_date: [],
+  is_on_leave: false,
+  total_leave_hours: 0,
+  total_allocation_count: 0,
+};
 
 export const {
   setData,
@@ -266,10 +325,11 @@ export const {
   setEmployeeName,
   setBusinessUnit,
   setCombineWeekHours,
-  setIsBillable,
+  setAllocationType,
   setView,
   setReFetchData,
   setDesignation,
   setReportingManager,
+  deleteFilters,
 } = ResourceTeamSlice.actions;
 export default ResourceTeamSlice.reducer;

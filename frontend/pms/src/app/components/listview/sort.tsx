@@ -1,4 +1,12 @@
+/**
+ * External dependencies
+ */
 import { useEffect, useState } from "react";
+import { ArrowDownAZ, ArrowDownZA } from "lucide-react";
+
+/**
+ * Internal dependencies
+ */
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,16 +15,26 @@ import {
 } from "@/app/components/ui/dropdown-menu";
 import { sortOrder } from "@/types";
 import { Button } from "@/app/components/ui/button";
-import { ArrowDownAZ, ArrowDownZA } from "lucide-react";
+import { fieldMetaProps } from "@/types";
 
 interface SortProps {
-  fieldMeta: Array<any>;
-  rows: Array<string>;
+  fieldMeta: Array<fieldMetaProps>;
   orderBy: sortOrder;
   field: string;
   onSortChange: (order: sortOrder, orderColumn: string) => void;
 }
-const Sort = ({ fieldMeta, rows, orderBy, field, onSortChange }: SortProps) => {
+
+/**
+ * Sort Component
+ * @description This component is used to sort the list view data based on field meta.
+ * 
+ * @param {Object} props - The props for the component.
+ * @param {Array} props.fieldMeta - Meta data of the permitted fields.
+ * @param {String} props.orderBy - Order of the data (ASC/DESC).
+ * @param {String} props.field - Field to sort the data on.
+ * @param {Function} props.onSortChange - Function to handle the sort change.
+ */
+const Sort = ({ fieldMeta, orderBy, field, onSortChange }: SortProps) => {
   const [order, setOrder] = useState<sortOrder>(orderBy);
   const [orderColumn, setOrderColumn] = useState<string>(field);
 
@@ -25,14 +43,7 @@ const Sort = ({ fieldMeta, rows, orderBy, field, onSortChange }: SortProps) => {
     setOrderColumn(field);
   }, [orderBy, field]);
 
-  const colMap = Object.fromEntries(
-    rows
-      .filter((value) => value !== "creation" && value !== "modified" && value !== "name")
-      .map((value) => {
-        const meta = fieldMeta.find((f) => f.fieldname === value);
-        return [value, meta?.label ?? value];
-      })
-  );
+  const colMap = Object.fromEntries(fieldMeta.map((meta) => [meta.fieldname, meta.label ?? meta.fieldname]));
 
   const handleColumnChange = (key: string) => {
     if (key === orderColumn) return;

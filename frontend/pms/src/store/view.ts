@@ -1,7 +1,12 @@
+/**
+ * External dependencies.
+ */
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+
 export interface ViewState {
     views: Array<ViewData>
 }
+
 export interface ViewData {
     name?: string,
     dt: string,
@@ -70,4 +75,5 @@ const viewSlice = createSlice({
 });
 
 export const { setViews, addView, removeView, updateView } = viewSlice.actions;
+
 export default viewSlice.reducer;

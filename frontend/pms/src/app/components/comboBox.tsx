@@ -1,3 +1,12 @@
+/**
+ * External Dependencies
+ */
+import { useEffect, useState } from "react";
+import { Check } from "lucide-react";
+
+/**
+ * Internal Dependencies
+ */
 import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
 import { Button } from "@/app/components/ui/button";
 import {
@@ -8,9 +17,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/app/components/ui/command";
-import { Check } from "lucide-react";
 import { Typography } from "./typography";
-import { useEffect, useState } from "react";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { cn, deBounce } from "@/lib/utils";
 
@@ -109,11 +116,11 @@ export const ComboxBox = ({
           className={cn("justify-between w-full text-slate-400", hasValue && "text-primary", className)}
           disabled={disabled}
         >
-          {leftIcon}
+          {leftIcon && <span className="shrink-0">{leftIcon}</span>}
           <Typography variant="p" className="truncate max-w-md">
             {!hasValue || !showSelected ? label : selectedValue()}
           </Typography>
-          {rightIcon}
+          {rightIcon && <span className="shrink-0">{rightIcon}</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0 w-96">

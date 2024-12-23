@@ -1,15 +1,27 @@
-import { Typography } from "@/app/components/typography";
-import { TableBody, TableCell, TableRow } from "@/app/components/ui/table";
-import { getTableCellClass, getTableCellRow } from "../utils/helper";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@radix-ui/react-hover-card";
-import { cn } from "@/lib/utils";
-import { CirclePlus } from "lucide-react";
+/**
+ * External dependencies.
+ */
 import { useState } from "react";
-import { ResourceTableCell, TableCellContent, TableInformationCellContent } from "./TableCell";
-import { PermissionProps } from "@/store/resource_management/allocation";
 import { useSelector } from "react-redux";
-import { RootState } from "@/store";
+import { CirclePlus } from "lucide-react";
 
+/**
+ * Internal dependencies.
+ */
+import { TableBody, TableCell, TableRow } from "@/app/components/ui/table";
+import { cn } from "@/lib/utils";
+import { RootState } from "@/store";
+import { PermissionProps } from "@/store/resource_management/allocation";
+
+import { ResourceTableCell, TableCellContent, TableInformationCellContent } from "./TableCell";
+import { getTableCellClass, getTableCellRow, getTodayDateCellClass } from "../utils/helper";
+
+
+/**
+ * This component is responsible for rendering the empty table body.
+ *
+ * @returns React.FC
+ */
 const EmptyTableBody = () => {
   return (
     <TableBody>
@@ -29,6 +41,15 @@ interface EmptyTableCellProps {
   onCellClick?: () => void;
 }
 
+/**
+ * This component is responsible for rendering the empty table cell.
+ *
+ * @param props.cellClassName class of the given cell.
+ * @param props.textClassName class of the given cell text.
+ * @param props.title title of the given cell.
+ * @param props.onCellClick on cell click event for cell based on this will decide where to show + icon on hover or not.
+ * @returns React.FC
+ */
 const EmptyTableCell = ({ cellClassName, title, textClassName, onCellClick }: EmptyTableCellProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const resourceAllocationPermission: PermissionProps = useSelector(
@@ -70,15 +91,28 @@ const EmptyTableCell = ({ cellClassName, title, textClassName, onCellClick }: Em
   );
 };
 
+/**
+ * This component is responsible for rendering the empty row.
+ *
+ * @param props.dates the dates object which contains the list of dates.
+ * @returns React.FC
+ */
 const EmptyRow = ({ dates }: { dates: string[] }) => {
   return (
     <TableRow className={cn(getTableCellRow())}>
       <TableInformationCellContent />
       {dates.map((date: string, index: number) => {
-        return <ResourceTableCell key={date} type="default" cellClassName={getTableCellClass(index)} value="-" />;
+        return (
+          <ResourceTableCell
+            key={date}
+            type="default"
+            cellClassName={(getTableCellClass(index), getTodayDateCellClass(date))}
+            value="-"
+          />
+        );
       })}
     </TableRow>
   );
 };
 
-export { EmptyTableBody, EmptyRow, EmptyTableCell };
+export { EmptyRow, EmptyTableBody, EmptyTableCell };

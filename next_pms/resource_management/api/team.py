@@ -66,6 +66,7 @@ def get_resource_management_team_view_data(
             "project_name",
             "customer",
             "is_billable",
+            "note",
         ],
         "employee",
         [employee.name for employee in employees],
@@ -111,9 +112,8 @@ def get_resource_management_team_view_data(
 
         holidays = get_holidays(employee.name, dates[0].get("start_date"), dates[-1].get("end_date"))
 
-        all_dates_data, all_week_data, all_leave_data = [], [], {}
+        all_dates_data, all_week_data, all_leave_data = {}, [], {}
         max_allocation_count_for_single_date = 0
-        week_index = 0
 
         # For given employee loop through all the dates and calculate the total allocated hours, total working hours and total worked hours
         for date_info in dates:
@@ -172,33 +172,33 @@ def get_resource_management_team_view_data(
                         daily_working_hours - total_working_hours_for_given_date
                     )
 
+                date_data = None
+
                 if permissions["write"]:
-                    all_dates_data.append(
-                        {
-                            "date": date,
-                            "total_allocated_hours": total_allocated_hours_for_given_date,
-                            "total_working_hours": total_working_hours_for_given_date,
-                            "total_worked_hours": total_worked_hours_for_given_date,
-                            "employee_resource_allocation_for_given_date": employee_resource_allocation_for_given_date,
-                            "is_on_leave": leave_object.get("on_leave"),
-                            "total_leave_hours": daily_working_hours - total_working_hours_for_given_date,
-                            "total_allocation_count": total_allocation_count,
-                            "week_index": week_index,
-                        }
-                    )
+                    date_data = {
+                        "date": date.strftime(DATE_FORMAT),
+                        "total_allocated_hours": total_allocated_hours_for_given_date,
+                        "total_working_hours": total_working_hours_for_given_date,
+                        "total_worked_hours": total_worked_hours_for_given_date,
+                        "employee_resource_allocation_for_given_date": employee_resource_allocation_for_given_date,
+                        "is_on_leave": leave_object.get("on_leave"),
+                        "total_leave_hours": daily_working_hours - total_working_hours_for_given_date,
+                        "total_allocation_count": total_allocation_count,
+                    }
+
                 else:
-                    all_dates_data.append(
-                        {
-                            "date": date,
-                            "total_allocated_hours": total_allocated_hours_for_given_date,
-                            "total_working_hours": total_working_hours_for_given_date,
-                            "employee_resource_allocation_for_given_date": employee_resource_allocation_for_given_date,
-                            "is_on_leave": leave_object.get("on_leave"),
-                            "total_leave_hours": daily_working_hours - total_working_hours_for_given_date,
-                            "total_allocation_count": total_allocation_count,
-                            "week_index": week_index,
-                        }
-                    )
+                    date_data = {
+                        "date": date.strftime(DATE_FORMAT),
+                        "total_allocated_hours": total_allocated_hours_for_given_date,
+                        "total_working_hours": total_working_hours_for_given_date,
+                        "employee_resource_allocation_for_given_date": employee_resource_allocation_for_given_date,
+                        "is_on_leave": leave_object.get("on_leave"),
+                        "total_leave_hours": daily_working_hours - total_working_hours_for_given_date,
+                        "total_allocation_count": total_allocation_count,
+                    }
+
+                if date_data["total_allocation_count"] > 0 or date_data["is_on_leave"]:
+                    all_dates_data[date_data["date"]] = date_data
 
                 total_allocated_hours_for_given_week += total_allocated_hours_for_given_date
                 total_working_hours_for_given_week += total_working_hours_for_given_date
@@ -220,7 +220,6 @@ def get_resource_management_team_view_data(
                         "total_working_hours": total_working_hours_for_given_week,
                     }
                 )
-            week_index += 1
 
         data.append(
             {
@@ -231,6 +230,7 @@ def get_resource_management_team_view_data(
                 "all_leave_data": all_leave_data,
                 "employee_allocations": get_allocation_objects(employee_resource_allocation),
                 "max_allocation_count_for_single_date": max_allocation_count_for_single_date,
+                "employee_daily_working_hours": daily_working_hours,
             }
         )
 

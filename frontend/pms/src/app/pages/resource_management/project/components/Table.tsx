@@ -1,22 +1,34 @@
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/store";
-import { DateProps } from "@/store/resource_management/team";
-import { cn, prettyDate } from "@/lib/utils";
-import { Table, TableBody, TableCell } from "@/app/components/ui/table";
-import { Typography } from "@/app/components/typography";
-import { getTableCellClass } from "../../utils/helper";
-import { ResourceAllocationObjectProps } from "@/types/resource_management";
-import ResourceProjectTableHeader from "../../components/TableHeader";
-import { EmptyTableBody } from "../../components/Empty";
-import { ResourceTableRow } from "../../components/TableRow";
-import { ProjectDataProps, ProjectResourceProps } from "@/store/resource_management/project";
+/**
+ * External dependencies.
+ */
 import { useMemo } from "react";
-import { ResourceExpandView } from "./ExpandView";
-import { ResourceTableCell } from "../../components/TableCell";
-import { getCellBackGroundColor } from "../../utils/cell";
-import { setResourceFormData } from "@/store/resource_management/allocation";
-import { ResourceAllocationList } from "../../components/Card";
+import { useDispatch, useSelector } from "react-redux";
 
+/**
+ * Internal dependencies.
+ */
+import { Table, TableBody } from "@/app/components/ui/table";
+import { cn, prettyDate } from "@/lib/utils";
+import { RootState } from "@/store";
+import { setResourceFormData } from "@/store/resource_management/allocation";
+import { emptyProjectDayData, ProjectDataProps, ProjectResourceProps } from "@/store/resource_management/project";
+import { DateProps } from "@/store/resource_management/team";
+import { ResourceAllocationObjectProps } from "@/types/resource_management";
+
+import { ResourceExpandView } from "./ExpandView";
+import { EmptyTableBody } from "../../components/Empty";
+import { ResourceAllocationList } from "../../components/ResourceAllocationList";
+import { ResourceTableCell } from "../../components/TableCell";
+import ResourceProjectTableHeader from "../../components/TableHeader";
+import { ResourceTableRow } from "../../components/TableRow";
+import { getCellBackGroundColor } from "../../utils/cell";
+import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
+
+/**
+ * This component is responsible for loading the table for project view.
+ *
+ * @returns React.FC
+ */
 const ResourceProjectTable = () => {
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_project.data.dates);
 
@@ -28,10 +40,15 @@ const ResourceProjectTable = () => {
   );
 };
 
+/**
+ * This function is responsible for rendering the table body for project view.
+ *
+ * @returns React.FC
+ */
 const ResourceProjectTableBody = () => {
   const data = useSelector((state: RootState) => state.resource_project.data.data);
   const dates = useSelector((state: RootState) => state.resource_project.data.dates);
-  const isBillable = useSelector((state: RootState) => state.resource_project.isBillable);
+  const allocationType = useSelector((state: RootState) => state.resource_project.allocationType);
 
   if (data.length == 0) {
     return <EmptyTableBody />;
@@ -52,19 +69,32 @@ const ResourceProjectTableBody = () => {
             RowComponent={() => {
               return (
                 <>
-                  {projectData.all_dates_data.map((projectSingleDay: ProjectResourceProps, index: number) => {
-                    return (
-                      <ResourceProjectTableCell
-                        key={`${projectSingleDay.total_allocated_hours}-id-${Math.random()}`}
-                        projectSingleDay={projectSingleDay}
-                        allWeekData={projectData.all_week_data}
-                        rowCount={index}
-                        midIndex={projectSingleDay.week_index}
-                        projectAllocations={projectData.project_allocations}
-                        project={projectData.name}
-                        project_name={projectData.project_name}
-                      />
-                    );
+                  {dates.map((week: DateProps, week_index: number) => {
+                    return week.dates.map((date: string, index: number) => {
+                      let projectSingleDay = emptyProjectDayData;
+
+                      if (date in projectData.all_dates_data) {
+                        projectSingleDay = projectData.all_dates_data[date];
+                      } else {
+                        projectSingleDay = {
+                          ...emptyProjectDayData,
+                          date: date,
+                        };
+                      }
+
+                      return (
+                        <ResourceProjectTableCell
+                          key={`${projectSingleDay.total_allocated_hours}-id-${Math.random()}`}
+                          projectSingleDay={projectSingleDay}
+                          allWeekData={projectData.all_week_data}
+                          rowCount={index}
+                          midIndex={week_index}
+                          projectAllocations={projectData.project_allocations}
+                          project={projectData.name}
+                          project_name={projectData.project_name}
+                        />
+                      );
+                    });
                   })}
                 </>
               );
@@ -76,7 +106,7 @@ const ResourceProjectTableBody = () => {
                   project_name={projectData.project_name}
                   start_date={dates[0].start_date}
                   end_date={dates[dates.length - 1].end_date}
-                  is_billable={isBillable != 0}
+                  is_billable={getIsBillableValue(allocationType as string[])}
                 />
               );
             }}
@@ -87,6 +117,18 @@ const ResourceProjectTableBody = () => {
   );
 };
 
+/**
+ * This component is responsible for loading the single cell of project view.
+ *
+ * @param props.projectSingleDay The project single day all resources data.
+ * @param props.allWeekData The all week data for the project.
+ * @param props.rowCount The row count. use to show the border of cell.
+ * @param props.midIndex The mid index. use to find the values of combine week views.
+ * @param props.projectAllocations The project allocations data.
+ * @param props.project The project name/ID.
+ * @param props.project_name The project name.
+ * @returns React.FC
+ */
 const ResourceProjectTableCell = ({
   projectSingleDay,
   allWeekData,
@@ -106,7 +148,7 @@ const ResourceProjectTableCell = ({
 }) => {
   const tableView = useSelector((state: RootState) => state.resource_project.tableView);
   const customer = useSelector((state: RootState) => state.resource_project.data.customer);
-  const isBillable = useSelector((state: RootState) => state.resource_project.isBillable);
+  const allocationType = useSelector((state: RootState) => state.resource_project.allocationType);
 
   const dispatch = useDispatch();
 
@@ -143,7 +185,7 @@ const ResourceProjectTableCell = ({
     let allocated_hours = 0,
       worked_hours = 0;
     if (tableView.combineWeekHours) {
-      if (!(rowCount == 5 * (midIndex + 1) - 3)) {
+      if (!(rowCount == 2)) {
         return "";
       }
 
@@ -184,7 +226,7 @@ const ResourceProjectTableCell = ({
         project: project,
         allocation_start_date: projectSingleDay.date,
         allocation_end_date: projectSingleDay.date,
-        is_billable: isBillable != 0,
+        is_billable: getIsBillableValue(allocationType as string[]) != 0,
         customer: "",
         total_allocated_hours: 0,
         hours_allocated_per_day: 0,
@@ -205,7 +247,11 @@ const ResourceProjectTableCell = ({
       <ResourceTableCell
         type="default"
         title={title}
-        cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
+        cellClassName={cn(
+          getTableCellClass(rowCount),
+          cellBackGroundColor,
+          getTodayDateCellClass(projectSingleDay.date)
+        )}
         value={cellValue}
       />
     );
@@ -216,7 +262,11 @@ const ResourceProjectTableCell = ({
       <ResourceTableCell
         type="empty"
         title={title}
-        cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
+        cellClassName={cn(
+          getTableCellClass(rowCount),
+          cellBackGroundColor,
+          getTodayDateCellClass(projectSingleDay.date)
+        )}
         value={""}
         onCellClick={onCellClick}
       />
@@ -227,7 +277,7 @@ const ResourceProjectTableCell = ({
     <ResourceTableCell
       type="hovercard"
       title={title}
-      cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor)}
+      cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor, getTodayDateCellClass(projectSingleDay.date))}
       value={cellValue}
       CustomHoverCardContent={() => {
         return (

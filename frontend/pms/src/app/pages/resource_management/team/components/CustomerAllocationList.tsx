@@ -1,16 +1,25 @@
+/**
+ * External dependencies.
+ */
+import { useMemo } from "react";
+import { useSelector } from "react-redux";
+
+/**
+ * Internal dependencies.
+ */
+import { Typography } from "@/app/components/typography";
+import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
+import { HoverCard, HoverCardTrigger } from "@/app/components/ui/hover-card";
+import { cn } from "@/lib/utils";
+import { RootState } from "@/store";
 import {
   ResourceAllocationObjectProps,
   ResourceAllocationProps,
   ResourceCustomerObjectProps,
   ResourceCustomerProps,
 } from "@/types/resource_management";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
-import { ResourceAllocationList } from "../../components/Card";
-import { cn } from "@/lib/utils";
-import { useMemo } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "@/store";
-import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
+
+
 import { daysDiff, getRelativeEndDate, getRelativeStartDate } from "../../utils/helper";
 
 export const CustomerAllocationList = ({
@@ -149,7 +158,7 @@ export const CustomerAllocationRow = ({
                   <AvatarImage src={decodeURIComponent(customerData.image)} />
                   <AvatarFallback>{customerData.abbr}</AvatarFallback>
                 </Avatar>
-                <p className="text-xs">{customerData.abbr}</p>
+                <Typography variant="small">{customerData.abbr}</Typography>
               </>
             )}
           </div>

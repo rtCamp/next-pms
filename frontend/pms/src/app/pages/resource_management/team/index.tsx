@@ -1,21 +1,37 @@
+/**
+ * External dependencies.
+ */
+import { useCallback, useEffect } from "react";
+import { useDispatch,useSelector } from "react-redux";
 import { useFrappeGetCall } from "frappe-react-sdk";
-import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "@/store";
-import { setData, setReFetchData, setStart, updateData } from "@/store/resource_management/team";
+
+/**
+ * Internal dependencies.
+ */
+import { Spinner } from "@/app/components/spinner";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { useCallback, useEffect } from "react";
-import { Spinner } from "@/app/components/spinner";
-import { ResourceTeamTable } from "./components/Table";
-import { ResourceTeamHeaderSection } from "./components/Header";
-import { FooterSection } from "../components/Footer";
-import AddResourceAllocations from "../components/AddAllocation";
+import { RootState } from "@/store";
 import { AllocationDataProps, PermissionProps, setResourcePermissions } from "@/store/resource_management/allocation";
+import { setData, setReFetchData, setStart, updateData } from "@/store/resource_management/team";
 
+
+import { ResourceTeamHeaderSection } from "./components/Header";
+import { ResourceTeamTable } from "./components/Table";
+import AddResourceAllocations from "../components/AddAllocation";
+import { DeleteAllocation } from "../components/DeleteAllocation";
+import { FooterSection } from "../components/Footer";
+import { getIsBillableValue } from "../utils/helper";
+
+/**
+ * This is main component which is responsible for rendering the team view of resource management.
+ * 
+ * @returns React.FC
+ */
 const ResourceTeamView = () => {
   const { toast } = useToast();
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
-  const ResourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
+  const resourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
   const dispatch = useDispatch();
   const resourceAllocationPermission: PermissionProps = useSelector(
     (state: RootState) => state.resource_allocation_form.permissions
@@ -32,7 +48,7 @@ const ResourceTeamView = () => {
           business_unit: resourceTeamState.businessUnit,
           reports_to: resourceTeamState.reportingManager,
           designation: resourceTeamState.designation,
-          is_billable: resourceTeamState.isBillable,
+          is_billable: getIsBillableValue(resourceTeamState.allocationType as string[]),
           start: resourceTeamState.start,
         }
       : {
@@ -107,7 +123,7 @@ const ResourceTeamView = () => {
         <ResourceTeamTable />
       )}
 
-      {ResourceAllocationForm.isShowDialog && <AddResourceAllocations onSubmit={onFormSubmit} />}
+      {resourceAllocationForm.isShowDialog && <AddResourceAllocations onSubmit={onFormSubmit} />}
 
       <FooterSection
         disabled={

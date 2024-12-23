@@ -1,17 +1,31 @@
+/**
+ * External dependencies.
+ */
 import { useFrappeGetCall } from "frappe-react-sdk";
-import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "@/store";
-import { setData, setStart, updateData, setReFetchData } from "@/store/resource_management/project";
+import { useCallback, useEffect } from "react";
+import { useDispatch,useSelector } from "react-redux";
+
+/**
+ * Internal dependencies.
+ */
+import { Spinner } from "@/app/components/spinner";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { useCallback, useEffect } from "react";
-import { Spinner } from "@/app/components/spinner";
-import { ResourceProjectTable } from "./components/Table";
-import { ResourceProjectHeaderSection } from "./components/Header";
-import { FooterSection } from "../components/Footer";
+import { RootState } from "@/store";
 import { AllocationDataProps, PermissionProps, setResourcePermissions } from "@/store/resource_management/allocation";
-import AddResourceAllocations from "../components/AddAllocation";
+import { setData, setReFetchData,setStart, updateData } from "@/store/resource_management/project";
 
+import AddResourceAllocations from "../components/AddAllocation";
+import { FooterSection } from "../components/Footer";
+import { getIsBillableValue } from "../utils/helper";
+import { ResourceProjectHeaderSection } from "./components/Header";
+import { ResourceProjectTable } from "./components/Table";
+
+/**
+ * This is main component which is responsible for rendering the project view of resource management.
+ * 
+ * @returns React.FC
+ */
 const ResourceTeamView = () => {
   const { toast } = useToast();
   const resourceProjectState = useSelector((state: RootState) => state.resource_project);
@@ -31,7 +45,7 @@ const ResourceTeamView = () => {
           project_name: resourceProjectState.projectName,
           customer: resourceProjectState.customer,
           start: resourceProjectState.start,
-          is_billable: resourceProjectState.isBillable,
+          is_billable: getIsBillableValue(resourceProjectState.allocationType as string[]),
         }
       : {
           date: resourceProjectState.weekDate,
