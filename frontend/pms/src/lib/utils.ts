@@ -335,10 +335,10 @@ export const copyToClipboard = (text: string) => {
 
 
 export const canExport = (doctype: string) => {
-  return window.frappe?.boot?.user?.can_export?.includes(doctype);
+  return window.frappe?.boot?.user?.can_export?.includes(doctype) ?? true;
 }
-export const canCreate = (doctype: string) => { 
-  return window.frappe?.boot?.user?.can_create?.includes(doctype);
+export const canCreate = (doctype: string) => {
+  return window.frappe?.boot?.user?.can_create?.includes(doctype) ?? true;
 }
 
 export const currencyFormat = (currency: string) => {
