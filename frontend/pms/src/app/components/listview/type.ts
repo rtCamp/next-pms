@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { ExportProps } from "@/app/components/listview/Export";
 import { fieldMetaProps, sortOrder } from "@/types";
 export interface FilterPops {
     queryParameterName: string;
@@ -45,6 +46,7 @@ export interface HeaderProps {
     showSort?: boolean;
     sort?: SortProps;
     showActions?: boolean;
+    actionProps?: ActionProps;
 }
 export interface ButtonProps {
     title: string;
@@ -65,3 +67,15 @@ export interface ButtonProps {
     | undefined;
     hide?: boolean;
 }
+export interface ActionProps {
+    docType: string;
+    exportProps: ExportOptions;
+    viewProps: ViewProps;
+}
+export type ExportOptions = Omit<ExportProps, "isOpen" | "setIsOpen" | "doctype">;
+export type ViewProps = {
+    rows: Array<string>;
+    filters: Record<string, string | number | Array<string>>;
+    orderBy: { field: string; order: string };
+    columns: Record<string, number | string>;
+};

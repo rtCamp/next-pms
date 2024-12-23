@@ -19,7 +19,7 @@ import { DocMetaProps } from "@/types";
 
 type ViewWrapperProps = {
   docType: string;
-  children: (props: { viewData: ViewData; meta: DocMetaProps }) => React.ReactNode;
+  children: (props: { viewData: ViewData; meta: { message: DocMetaProps } }) => React.ReactNode;
 };
 
 /**
