@@ -22,6 +22,7 @@ import { Home, Users } from "lucide-react";
  * Internal dependencies.
  */
 
+import GenWrapper from "@/app/components/GenWrapper";
 import { Typography } from "@/app/components/typography";
 import { Button } from "@/app/components/ui/button";
 import { HOME, PROJECT, RESOURCE_MANAGEMENT, ROLES, TASK, TEAM, TIMESHEET } from "@/lib/constant";
@@ -29,10 +30,9 @@ import { cn } from "@/lib/utils";
 import logo from "@/logo.svg";
 import { RootState } from "@/store";
 import { setSidebarCollapsed } from "@/store/user";
-import GenWrapper from "@/app/components/GenWrapper";
+import { ViewData } from "@/store/view";
 import UserNavigation from "./UserNavigation";
 import ViewLoader from "./ViewLoader";
-import { ViewData } from "@/store/view";
 
 type NestedRoute = {
   to: string;
@@ -99,6 +99,13 @@ const Sidebar = () => {
       isPmRoute: true,
     },
     {
+      to: TASK,
+      icon: ClipboardList,
+      label: "Task",
+      key: "task",
+      isPmRoute: false,
+    },
+    {
       to: RESOURCE_MANAGEMENT,
       icon: GanttChart,
       label: "Resource Management",
@@ -118,13 +125,6 @@ const Sidebar = () => {
           icon: FolderKanban,
         },
       ],
-    },
-    {
-      to: TASK,
-      icon: ClipboardList,
-      label: "Task",
-      key: "task",
-      isPmRoute: false,
     },
   ];
   const toggleNestedRoutes = (key: string) => {
