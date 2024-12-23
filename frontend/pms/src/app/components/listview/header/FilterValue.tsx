@@ -46,7 +46,7 @@ const FilterValue = ({ filters }: { filters: FilterPops[] }) => {
             if (Array.isArray(filter.value)) {
               return (
                 <div className="flex gap-2 flex-shrink-0">
-                  <div className="bg-gray-200 px-2 py-1 rounded text-sm">{filter.label}:</div>
+                  <div className="bg-gray-200 px-2 py-1 rounded text-sm">{filter.label}</div>
                   {filter.value.map((value, index) => (
                     <Badge
                       variant="secondary"
@@ -63,7 +63,7 @@ const FilterValue = ({ filters }: { filters: FilterPops[] }) => {
             }
             return (
               <div className="flex gap-2 w-fit flex-shrink-0">
-                <div className="bg-gray-200 px-2 py-1 rounded text-sm">{filter.label}:</div>
+                <div className="bg-gray-200 px-2 py-1 rounded text-sm">{filter.label}</div>
                 <Badge
                   variant="secondary"
                   className="break-keep gap-x-1  text-sm flex items-center cursor-pointer"

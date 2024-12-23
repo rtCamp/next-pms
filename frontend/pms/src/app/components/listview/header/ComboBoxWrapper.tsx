@@ -38,7 +38,7 @@ const ComboBoxWrapper = ({ filter, handleChangeWrapper }: { filter: FilterPops; 
           ? ((filter.value as string[])?.length ?? 0) > 0 && (
               <Badge className="p-0 justify-center w-5 h-5">{(filter.value as string[]).length}</Badge>
             )
-          : filter.value && <Badge className="p-0 justify-center w-5 h-5">1</Badge>
+          : (filter.value?.toString()?.length ?? 0) > 0 && <Badge className="p-0 justify-center w-5 h-5">1</Badge>
       }
       leftIcon={
         <Filter
@@ -46,7 +46,7 @@ const ComboBoxWrapper = ({ filter, handleChangeWrapper }: { filter: FilterPops; 
             "h-4 w-4",
             filter?.isMultiComboBox
               ? (filter.value as string[])?.length != 0 && "fill-primary"
-              : filter.value && "fill-primary"
+              : (filter.value?.toString()?.length ?? 0) > 0 && "fill-primary"
           )}
         />
       }

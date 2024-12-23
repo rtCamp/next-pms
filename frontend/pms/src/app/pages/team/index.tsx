@@ -1,58 +1,36 @@
 /**
  * External dependencies.
  */
-import { useEffect, useCallback } from "react";
+import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { addDays } from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
-import { ChevronLeft, ChevronRight, Filter, CircleCheck, Hourglass, CircleX } from "lucide-react";
+import { CircleCheck, Hourglass, CircleX } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
-import { ComboxBox } from "@/app/components/comboBox";
-import { DeBounceInput } from "@/app/components/deBounceInput";
-import EmployeeCombo from "@/app/components/employeeComboBox";
+
 import { LoadMore } from "@/app/components/loadMore";
 import { Spinner } from "@/app/components/spinner";
 import { WeekTotal } from "@/app/components/TimesheetTable";
 import { Typography } from "@/app/components/typography";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
-import { Badge } from "@/app/components/ui/badge";
-import { Button } from "@/app/components/ui/button";
+
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
 import { Table, TableHead, TableHeader, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
 import { useToast } from "@/app/components/ui/use-toast";
-import { Header, Footer } from "@/app/layout/root";
+import { Footer } from "@/app/layout/root";
 import { TEAM, EMPLOYEE } from "@/lib/constant";
-import { useQueryParamsState } from "@/lib/queryParam";
-import { parseFrappeErrorMsg, prettyDate, floatToTime, getFormatedDate, cn, preProcessLink } from "@/lib/utils";
+import { parseFrappeErrorMsg, prettyDate, floatToTime, cn, preProcessLink } from "@/lib/utils";
 import { RootState } from "@/store";
-import {
-  setData,
-  setWeekDate,
-  setProject,
-  setStart,
-  updateData,
-  setDateRange,
-  setUsergroup,
-  setStatusFilter,
-  setEmployeeName,
-  setReportsTo,
-  setFilters,
-  setStatus,
-  setEmployee,
-} from "@/store/team";
-import { ProjectProps } from "@/types";
+import { setData, setStart, updateData, setDateRange, setEmployee } from "@/store/team";
 import { ItemProps, dataItem } from "@/types/team";
 import { Approval } from "./approval";
 import { Employee } from "./employee";
+import { Header } from "./Header";
 
-type UserGroupProps = {
-  name: string;
-};
 type DateProps = {
   start_date: string;
   end_date: string;
@@ -66,39 +44,19 @@ const Team = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [projectParam, setProjectParam] = useQueryParamsState<string[]>("project", []);
-  const [userGroupParam, setUserGroupParam] = useQueryParamsState<string[]>("user-group", []);
-  const [statusParam, setStatusParam] = useQueryParamsState<string[]>("status", []);
-  const [employeeNameParam, setEmployeeNameParam] = useQueryParamsState<string>("employee-name", "");
-  const [reportsToParam, setReportsToParam] = useQueryParamsState<string>("reports-to", "");
-  const [employeeStatusParam, setEmployeeStatusParam] = useQueryParamsState<Array<string>>("emp-status", ["Active"]);
-  const approvalsData = [
-    { label: "Not Submitted", value: "Not Submitted" },
-    { label: "Approval Pending", value: "Approval Pending" },
-    { label: "Approved", value: "Approved" },
-    { label: "Rejected", value: "Rejected" },
-    { label: "Partially Approved", value: "Partially Approved" },
-    { label: "Partially Rejected", value: "Partially Rejected" },
-  ];
-  const empStatus = [
-    { label: "Active", value: "Active" },
-    { label: "Inactive", value: "Inactive" },
-    { label: "Suspended", value: "Suspended" },
-    { label: "Left", value: "Left" },
-  ];
-  useEffect(() => {
-    const payload = {
-      project: projectParam,
-      userGroup: userGroupParam,
-      statusFilter: statusParam,
-      employeeName: employeeNameParam,
-      reportsTo: reportsToParam,
-      status: employeeStatusParam,
-    };
-    dispatch(setFilters(payload));
+  // useEffect(() => {
+  //   const payload = {
+  //     project: projectParam,
+  //     userGroup: userGroupParam,
+  //     statusFilter: statusParam,
+  //     employeeName: employeeNameParam,
+  //     reportsTo: reportsToParam,
+  //     status: employeeStatusParam,
+  //   };
+  //   dispatch(setFilters(payload));
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, []);
 
   const { data, isLoading, isValidating, mutate, error } = useFrappeGetCall(
     "next_pms.timesheet.api.team.get_compact_view_data",
@@ -113,31 +71,6 @@ const Team = () => {
       status_filter: teamState.statusFilter,
       reports_to: teamState.reportsTo,
       status: teamState.status,
-    }
-  );
-
-  const { data: projects, error: projectError } = useFrappeGetCall(
-    "frappe.client.get_list",
-    {
-      doctype: "Project",
-      fields: ["name", "project_name"],
-      limit_page_length: 0,
-    },
-    undefined,
-    {
-      revalidateIfStale: false,
-    }
-  );
-
-  const { data: userGroups, error: groupError } = useFrappeGetCall(
-    "frappe.client.get_list",
-    {
-      doctype: "User Group",
-      limit_page_length: 0,
-    },
-    undefined,
-    {
-      revalidateIfStale: false,
     }
   );
 
@@ -159,70 +92,6 @@ const Team = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, error, teamState.action]);
 
-  useEffect(() => {
-    if (projectError) {
-      const err = parseFrappeErrorMsg(projectError);
-      toast({
-        variant: "destructive",
-        description: err,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectError]);
-
-  useEffect(() => {
-    if (employeeNameParam !== "") {
-      dispatch(setEmployeeName(employeeNameParam));
-    }
-  }, [dispatch, employeeNameParam]);
-
-  useEffect(() => {
-    if (groupError) {
-      const err = parseFrappeErrorMsg(groupError);
-      toast({
-        variant: "destructive",
-        description: err,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [groupError]);
-
-  const handleprevWeek = useCallback(() => {
-    const date = getFormatedDate(addDays(teamState.weekDate, -7));
-    dispatch(setWeekDate(date));
-  }, [dispatch, teamState.weekDate]);
-
-  const handlenextWeek = useCallback(() => {
-    const date = getFormatedDate(addDays(teamState.weekDate, 7));
-    dispatch(setWeekDate(date));
-  }, [dispatch, teamState.weekDate]);
-
-  const handleProjectChange = useCallback(
-    (value: string | string[]) => {
-      dispatch(setProject(value as string[]));
-      setProjectParam(value as string[]);
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch]
-  );
-
-  const handleUserGroupChange = useCallback(
-    (value: string | string[]) => {
-      dispatch(setUsergroup(value as string[]));
-      setUserGroupParam(value as string[]);
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch]
-  );
-  const handleStatusChange = useCallback(
-    (filters: string | string[]) => {
-      const normalizedFilters = Array.isArray(filters) ? filters : [filters];
-      dispatch(setStatusFilter(normalizedFilters));
-      setStatusParam(normalizedFilters);
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch]
-  );
   const handleLoadMore = () => {
     if (!teamState.hasMore) return;
     dispatch(setStart(teamState.start + teamState.pageLength));
@@ -236,108 +105,11 @@ const Team = () => {
     dispatch(setDateRange({ dateRange: data, isAprrovalDialogOpen: true }));
   };
 
-  const handleEmployeeChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      dispatch(setEmployeeName(e.target.value));
-      setEmployeeNameParam(e.target.value);
-    },
-    [dispatch, setEmployeeNameParam]
-  );
-  const handleEmployeeStatusChange = useCallback(
-    (value: string | string[]) => {
-      dispatch(setStatus(value as string[]));
-      setEmployeeStatusParam(value as string[]);
-    },
-    [dispatch, setEmployeeStatusParam]
-  );
-  const handleReportsToChange = useCallback(
-    (name: string) => {
-      dispatch(setReportsTo(name));
-      setReportsToParam(name);
-    },
-    [dispatch, setReportsToParam]
-  );
   return (
     <>
       {teamState.isAprrovalDialogOpen && <Approval onClose={mutate} />}
-      <Header className="flex items-center max-md:flex-col">
-        <div id="filters" className="flex gap-x-2 max-md:gap-x-5  overflow-y-hidden max-md:w-full items-center">
-          <DeBounceInput
-            placeholder="Employee name"
-            value={employeeNameParam}
-            deBounceValue={300}
-            callback={handleEmployeeChange}
-          />
-          <EmployeeCombo
-            value={reportsToParam}
-            label="Reporting Manager"
-            onSelect={handleReportsToChange}
-            className="border-dashed min-w-48 w-full max-w-48"
-          />
-          <ComboxBox
-            value={employeeStatusParam}
-            label="Employee Status"
-            data={empStatus}
-            shouldFilter
-            isMulti
-            onSelect={handleEmployeeStatusChange}
-            leftIcon={<Filter className={cn("h-4 w-4", teamState.status.length != 0 && "fill-primary")} />}
-            rightIcon={teamState.status.length > 0 && <Badge className="px-1.5">{teamState.status.length}</Badge>}
-            className="text-primary border-dashed gap-x-1 font-normal w-fit"
-          />
-          <ComboxBox
-            value={statusParam}
-            label="Approval"
-            data={approvalsData}
-            isMulti
-            shouldFilter
-            onSelect={handleStatusChange}
-            leftIcon={<Filter className={cn("h-4 w-4", teamState.statusFilter.length != 0 && "fill-primary")} />}
-            rightIcon={
-              teamState.statusFilter.length > 0 && <Badge className="px-1.5">{teamState.statusFilter.length}</Badge>
-            }
-            className="text-primary border-dashed gap-x-1 font-normal w-fit"
-          />
-          <ComboxBox
-            value={projectParam}
-            label="Projects"
-            isMulti
-            shouldFilter
-            showSelected={false}
-            onSelect={handleProjectChange}
-            rightIcon={teamState.project.length > 0 && <Badge className="px-1.5">{teamState.project.length}</Badge>}
-            leftIcon={<Filter className={cn("h-4 w-4", teamState.project.length != 0 && "fill-primary")} />}
-            data={projects?.message.map((item: ProjectProps) => ({
-              label: item.project_name,
-              value: item.name,
-            }))}
-            className="text-primary border-dashed gap-x-2 font-normal w-fit"
-          />
-          <ComboxBox
-            value={userGroupParam}
-            label="User Groups"
-            shouldFilter
-            showSelected={false}
-            data={userGroups?.message.map((item: UserGroupProps) => ({
-              label: item.name,
-              value: item.name,
-            }))}
-            rightIcon={teamState.userGroup.length > 0 && <Badge className="px-1.5">{teamState.userGroup.length}</Badge>}
-            isMulti
-            leftIcon={<Filter className={cn("h-4 w-4", teamState.userGroup.length != 0 && "fill-primary")} />}
-            onSelect={handleUserGroupChange}
-            className="text-primary border-dashed gap-x-2 font-normal w-fit"
-          />
-        </div>
-        <div id="date-filter" className="flex gap-x-2 max-md:p-1 max-md:w-full max-md:justify-between max-md:m-2 t">
-          <Button title="prev" className="p-1 h-fit" variant="outline" onClick={handleprevWeek}>
-            <ChevronLeft className="w-4 max-md:w-3 h-4 max-md:h-3" />
-          </Button>
-          <Button title="next" className="p-1 h-fit" variant="outline" onClick={handlenextWeek}>
-            <ChevronRight className="w-4 max-md:w-3 h-4 max-md:h-3" />
-          </Button>
-        </div>
-      </Header>
+      <Header />
+
       {(isLoading || isValidating) && Object.keys(teamState.data.data).length == 0 ? (
         <Spinner isFull />
       ) : (

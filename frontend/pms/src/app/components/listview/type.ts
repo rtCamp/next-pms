@@ -14,6 +14,7 @@ export interface FilterPops {
     label?: string;
     className?: string;
     isMultiComboBox?: boolean;
+    employeeComboStatus?: Array<string>;
     shouldFilterComboBox?: boolean;
     onComboSearch?: (searchTerm: string) => void;
     apiCall?: ApiCallProps;

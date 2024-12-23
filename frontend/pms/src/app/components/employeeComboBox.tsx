@@ -29,7 +29,7 @@ interface EmployeeComboProps {
   onSelect: (name: string) => void;
   className?: string;
   label?: string;
-  status?: [string];
+  status?: Array<string>;
 }
 
 /**
