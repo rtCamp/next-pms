@@ -38,7 +38,7 @@ export const DeBounceInput = ({ value, className, callback, deBounceValue = 500,
   useEffect(() => setInputValue(value), [value]);
 
   return (
-    <div className={cn("relative w-full min-w-sm max-w-sm", className)}>
+    <div className={cn("relative w-full min-w-60 max-w-60", className)}>
       <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
         <Search className="w-5 h-5 text-gray-400" aria-hidden="true" />
       </div>

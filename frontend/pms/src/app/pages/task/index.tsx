@@ -11,7 +11,7 @@ import _ from "lodash";
 /**
  * Internal dependencies.
  */
-import AddTime from "@/app/components/addTime";
+import AddTime from "@/app/components/AddTime";
 import ViewWrapper from "@/app/components/listview/ViewWrapper";
 import { LoadMore } from "@/app/components/loadMore";
 import { Typography } from "@/app/components/typography";

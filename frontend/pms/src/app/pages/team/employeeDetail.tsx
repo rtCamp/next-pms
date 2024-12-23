@@ -13,7 +13,7 @@ import { CircleDollarSign, Paperclip, Plus } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import AddTime from "@/app/components/addTime";
+import AddTime from "@/app/components/AddTime";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import { LoadMore } from "@/app/components/loadMore";
 import { Spinner } from "@/app/components/spinner";

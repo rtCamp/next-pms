@@ -11,7 +11,7 @@ import { Paperclip, Plus } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import AddTime from "@/app/components/addTime";
+import AddTime from "@/app/components/AddTime";
 import { LoadMore } from "@/app/components/loadMore";
 import { Spinner } from "@/app/components/spinner";
 import TimesheetTable, { SubmitButton } from "@/app/components/TimesheetTable";
@@ -41,10 +41,10 @@ import {
   setEditDialog,
   setApprovalDialog,
 } from "@/store/timesheet";
-import { EditTime } from "./EditTime";
-import { Approval } from "./Approval";
 import { WorkingFrequency } from "@/types";
 import { HolidayProp, LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
+import { Approval } from "./Approval";
+import { EditTime } from "./EditTime";
 
 
 function Timesheet() {
