@@ -16,7 +16,7 @@ import { DeBounceInput } from "@/app/components/deBounceInput";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import { LoadMore } from "@/app/components/loadMore";
 import { Spinner } from "@/app/components/spinner";
-import { WeekTotal } from "@/app/components/timesheetTable";
+import { WeekTotal } from "@/app/components/TimesheetTable";
 import { Typography } from "@/app/components/typography";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";

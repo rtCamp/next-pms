@@ -34,7 +34,7 @@ import { AddTask } from "./AddTask";
 import { getColumn } from "./columns";
 import { Header } from "./Header";
 import { Table } from "./Table";
-import { TaskLog } from "./taskLog";
+import { TaskLog } from "./TaskLog";
 import { createFilter } from "./utils";
 
 const Task = () => {

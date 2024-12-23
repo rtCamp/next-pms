@@ -14,7 +14,7 @@ import { Paperclip, Plus } from "lucide-react";
 import AddTime from "@/app/components/addTime";
 import { LoadMore } from "@/app/components/loadMore";
 import { Spinner } from "@/app/components/spinner";
-import TimesheetTable, { SubmitButton } from "@/app/components/timesheetTable";
+import TimesheetTable, { SubmitButton } from "@/app/components/TimesheetTable";
 import { Typography } from "@/app/components/typography";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Button } from "@/app/components/ui/button";

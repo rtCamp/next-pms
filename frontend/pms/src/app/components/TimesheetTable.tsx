@@ -1,11 +1,16 @@
-import { useState } from "react";
+/**
+ * External dependencies
+ */
 
+import { useState } from "react";
 import { CircleCheck, CircleDollarSign, CirclePlus, CircleX, Clock3, PencilLine } from "lucide-react";
 
-import { TaskData, WorkingFrequency } from "@/types";
+/**
+ * Internal dependencies
+ */
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
-import { HolidayProp, LeaveProps, TaskDataItemProps, TaskDataProps, TaskProps } from "@/types/timesheet";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
+import { TaskLog } from "@/app/pages/task/TaskLog";
 import {
   calculateWeeklyHour,
   cn,
@@ -16,14 +21,14 @@ import {
   preProcessLink,
   prettyDate,
 } from "@/lib/utils";
-
-import { Button } from "./ui/button";
+import { TaskData, WorkingFrequency } from "@/types";
+import { HolidayProp, LeaveProps, TaskDataItemProps, TaskDataProps, TaskProps } from "@/types/timesheet";
 import GenWrapper from "./GenWrapper";
+import TaskStatusIndicator from "./taskStatusIndicator";
 import { Typography } from "./typography";
+import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { TaskStatus } from "../pages/task/taskStatus";
-import TaskStatusIndicator from "./taskStatusIndicator";
-import { TaskLog } from "@/app/pages/task/taskLog";
 
 type timesheetTableProps = {
   dates: string[];
