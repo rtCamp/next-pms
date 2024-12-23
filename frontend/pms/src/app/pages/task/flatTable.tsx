@@ -10,11 +10,7 @@ import { Spinner } from "@/app/components/spinner";
 import { Separator } from "@/app/components/ui/separator";
 import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table } from "@/app/components/ui/table";
 import { TaskState } from "@/store/task";
-import {
-  FlatTableType,
-  ColumnsType,
-  columnsToExcludeActionsInTablesType,
-} from "@/types/task";
+import { ColumnsType, columnsToExcludeActionsInTablesType } from "@/types/task";
 
 export const FlatTable = ({
   table,
