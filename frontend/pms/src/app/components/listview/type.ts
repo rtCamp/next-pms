@@ -47,6 +47,7 @@ export interface HeaderProps {
     sort?: SortProps;
     showActions?: boolean;
     actionProps?: ActionProps;
+    showFilterValue?: boolean;
 }
 export interface ButtonProps {
     title: string;
