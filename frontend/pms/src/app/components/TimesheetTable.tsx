@@ -28,7 +28,7 @@ import TaskStatusIndicator from "./taskStatusIndicator";
 import { Typography } from "./typography";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
-import { TaskStatus } from "../pages/task/taskStatus";
+import { TaskStatus } from "../pages/task/TaskStatus";
 
 type timesheetTableProps = {
   dates: string[];

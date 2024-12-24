@@ -10,7 +10,7 @@ import { Clock, Heart } from "lucide-react";
 import { DataCell } from "@/app/components/listview/DataCell";
 import { DocMetaProps, TaskData } from "@/types";
 import { TaskPriority } from "./TaskPriority";
-import { TaskStatus } from "./taskStatus";
+import { TaskStatus } from "./TaskStatus";
 import { cn, isLiked, floatToTime } from "../../../lib/utils";
 import { UserState } from "../../../store/user";
 import { ColumnsType } from "../../../types/task";
