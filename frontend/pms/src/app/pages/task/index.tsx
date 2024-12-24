@@ -59,6 +59,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
   const task = useSelector((state: RootState) => state.task);
   const user = useSelector((state: RootState) => state.user);
   const timesheet = useSelector((state: RootState) => state.timesheet);
+  const columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType = ["liked", "timesheetAction"];
 
   const dispatch = useDispatch();
   const { toast, remove } = useToast();
@@ -149,7 +150,6 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [columnVisibility]);
 
-  // Add-time management
   const handleAddTime = (taskName: string) => {
     const timesheetData = {
       name: "",
@@ -198,7 +198,6 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     }
   }, [data, dispatch, error, task.start, toast]);
 
-  // Handle Like
   const handleLike = (e: React.MouseEvent<SVGSVGElement>) => {
     e.stopPropagation();
     const taskName = e.currentTarget.dataset.task;
@@ -228,7 +227,6 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       });
   };
 
-  // Task Log Management
   const openTaskLog = (taskName: string) => {
     dispatch(setSelectedTask({ task: taskName, isOpen: true }));
   };
@@ -250,7 +248,6 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [colSizing, columnOrder, task.orderColumn, task.order, task.search, task.selectedProject, task.selectedStatus]);
 
-  // column definitions
   const columns: ColumnsType = getColumn(
     meta.fields,
     viewInfo?.rows,
@@ -263,7 +260,6 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     handleLike
   );
 
-  // Flat Table instance
   const table = useReactTable({
     data: task.task,
     columns,
@@ -283,8 +279,6 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       columnSizing: colSizing,
     },
   });
-
-  const columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType = ["liked", "timesheetAction"];
 
   const loadMore = () => {
     dispatch(setStart(task.start + 20));

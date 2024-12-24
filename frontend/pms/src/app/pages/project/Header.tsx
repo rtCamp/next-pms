@@ -29,7 +29,7 @@ interface HeaderProps {
   onColumnHide: (column: string) => void;
   view: ViewData;
 }
-export const Header = ({ meta, columnOrder, setColumnOrder, onColumnHide ,view}: HeaderProps) => {
+export const Header = ({ meta, columnOrder, setColumnOrder, onColumnHide, view }: HeaderProps) => {
   const projectState = useSelector((state: RootState) => state.project);
   const appInfo = useSelector((state: RootState) => state.app);
   const dispatch = useDispatch();
@@ -91,7 +91,9 @@ export const Header = ({ meta, columnOrder, setColumnOrder, onColumnHide ,view}:
       value: projectState.search,
       queryParameterDefault: projectState.search,
       handleChange: handleSearch,
-      handleDelete: handleSearch,
+      handleDelete: useCallback(() => {
+        dispatch(setSearch(""));
+      }, [dispatch]),
     },
     {
       type: "select-search",
@@ -214,13 +216,13 @@ export const Header = ({ meta, columnOrder, setColumnOrder, onColumnHide ,view}:
     },
     viewProps: {
       rows: view.rows,
-      columns:view.columns,
+      columns: view.columns,
       totalCount: projectState.totalCount,
       orderBy: {
         order: projectState.order,
         field: projectState.orderColumn,
       },
-      filters:createFilter(projectState)
+      filters: createFilter(projectState),
     },
   };
   return (

@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addDays } from "date-fns";
 import { ChevronRight, ChevronLeft } from "lucide-react";
@@ -9,13 +9,29 @@ import { ChevronRight, ChevronLeft } from "lucide-react";
  * Internal dependencies
  */
 import { Header as ListViewHeader } from "@/app/components/listview/header";
+import { useQueryParamsState } from "@/lib/queryParam";
 import { getFormatedDate } from "@/lib/utils";
 import { RootState } from "@/store";
-import { setEmployeeName, setStatus, setWeekDate } from "@/store/home";
+import { resetState, setEmployeeName, setFilters, setStatus, setWeekDate } from "@/store/home";
 
 export const Header = () => {
   const homeState = useSelector((state: RootState) => state.home);
   const dispatch = useDispatch();
+  const [employeeNameParam] = useQueryParamsState<string>("employee-name", "");
+  const [employeeStatusParam] = useQueryParamsState<Array<string>>("status", ["Active"]);
+
+  useEffect(() => {
+    const payload = {
+      employeeName: employeeNameParam,
+      status: employeeStatusParam,
+    };
+    dispatch(setFilters(payload));
+    return () => {
+      dispatch(resetState());
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleEmployeeChange = useCallback(
     (text: string) => {
       dispatch(setEmployeeName(text.trim()));
@@ -49,7 +65,9 @@ export const Header = () => {
       value: homeState.employeeName,
       queryParameterDefault: homeState.employeeName,
       handleChange: handleEmployeeChange,
-      handleDelete: handleEmployeeChange,
+      handleDelete: useCallback(() => {
+        dispatch(setEmployeeName(""));
+      }, [dispatch]),
     },
     {
       type: "select-list",

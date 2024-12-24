@@ -30,7 +30,7 @@ import {
   preProcessLink,
 } from "@/lib/utils";
 import { RootState } from "@/store";
-import { setData, DateProps, setStart, updateData, resetState, setFilters } from "@/store/home";
+import { setData, DateProps, setStart, updateData } from "@/store/home";
 import { dataItem } from "@/types/team";
 import { Header } from "./Header";
 
@@ -40,18 +40,6 @@ const Home = () => {
   const dispatch = useDispatch();
 
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const payload = {
-      employeeName: homeState.employeeName,
-      status: homeState.status,
-    };
-    dispatch(setFilters(payload));
-    return () => {
-      dispatch(resetState());
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const { data, error, isLoading } = useFrappeGetCall("next_pms.timesheet.api.team.get_compact_view_data", {
     date: homeState.weekDate,

@@ -306,7 +306,6 @@ const AddTime = ({
                         <ComboxBox
                           label="Search Task"
                           showSelected
-                          onunSelect={() => setSearchTask("")}
                           deBounceTime={200}
                           value={
                             form.getValues("task") && form.getValues("task").length > 0 ? [form.getValues("task")] : []

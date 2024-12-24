@@ -44,20 +44,6 @@ const Team = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // useEffect(() => {
-  //   const payload = {
-  //     project: projectParam,
-  //     userGroup: userGroupParam,
-  //     statusFilter: statusParam,
-  //     employeeName: employeeNameParam,
-  //     reportsTo: reportsToParam,
-  //     status: employeeStatusParam,
-  //   };
-  //   dispatch(setFilters(payload));
-
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, []);
-
   const { data, isLoading, isValidating, mutate, error } = useFrappeGetCall(
     "next_pms.timesheet.api.team.get_compact_view_data",
     {

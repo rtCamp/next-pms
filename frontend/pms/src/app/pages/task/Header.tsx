@@ -51,7 +51,9 @@ export const Header = ({ meta, columnOrder, setColumnOrder, onColumnHide, view }
       value: taskState.search,
       queryParameterDefault: taskState.search,
       handleChange: handleSearch,
-      handleDelete: handleSearch,
+      handleDelete: useCallback(() => {
+        dispatch(setSearch(""));
+      }, [dispatch]),
     },
     {
       type: "select-search",
