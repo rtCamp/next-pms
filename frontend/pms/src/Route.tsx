@@ -9,14 +9,17 @@ import { FrappeConfig, FrappeContext } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import { TIMESHEET, HOME, TEAM, TASK, PROJECT, RESOURCE_MANAGEMENT } from "@/lib/constant";
 import { Layout, PmRoute } from "@/app/layout/index";
+import { TIMESHEET, HOME, TEAM, TASK, PROJECT, RESOURCE_MANAGEMENT } from "@/lib/constant";
 import { UserContext } from "@/lib/UserProvider";
 import { RootState } from "./store";
 import { setCurrency } from "./store/app";
 import { setRole } from "./store/user";
 import { setViews } from "./store/view";
 
+/**
+ * Lazy load components.
+ */
 const TimesheetComponent = lazy(() => import("@/app/pages/timesheet"));
 const HomeComponent = lazy(() => import("@/app/pages/home"));
 const TeamComponent = lazy(() => import("@/app/pages/team"));
