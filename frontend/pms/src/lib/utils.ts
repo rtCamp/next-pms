@@ -10,7 +10,7 @@ import { twMerge } from "tailwind-merge";
  */
 import { toast } from "@/app/components/ui/use-toast"
 import { TScreenSize } from "@/store/app";
-import { TaskData, WorkingFrequency, ProjectNestedTaskData } from "@/types";
+import { TaskData, WorkingFrequency } from "@/types";
 import { HolidayProp } from "@/types/timesheet";
 
 export const NO_VALUE_FIELDS = ["Section Break", "Column Break",

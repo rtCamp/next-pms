@@ -34,11 +34,11 @@ interface EmployeeComboProps {
 
 /**
  * Variation of combo box for selecting employee.
- * 
+ *
  * @param props Props passed to the component.
  * @param props.disabled Whether the combo box is disabled.
  * @param props.value Initial value of the combo box.
- * @param props.onSelect The function to call when an employee is selected. 
+ * @param props.onSelect The function to call when an employee is selected.
  * @param props.className The css class for combo box.
  * @param props.label The label for the combo box. Default is "Select Employee".
  * @param props.status Option to filter the employees based on status. ex: ["Active", "Inactive"]
@@ -52,15 +52,16 @@ const EmployeeCombo = ({
   status,
   label = "Select Employee",
 }: EmployeeComboProps) => {
+  const [search, setSearch] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>(search);
   const [selectedValues, setSelectedValues] = useState<string>(value);
   const [employee, setEmployee] = useState<Employee | undefined>();
   const [open, setOpen] = useState(false);
   const { data: employees } = useFrappeGetCall(
     "next_pms.timesheet.api.employee.get_employee_list",
-    status ? { status: status } : {},
+    { page_length: 20, status: status, employee_name: debouncedSearch },
     undefined,
     {
-      revalidateOnFocus: false,
       revalidateIfStale: false,
     }
   );
@@ -81,6 +82,18 @@ const EmployeeCombo = ({
   }, [employees, selectedValues]);
 
   useEffect(() => setSelectedValues(value), [value]);
+  const onInputChange = (search: string) => {
+    setSearch(search);
+  };
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400); // 300ms delay
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [search]);
 
   return (
     <Popover open={open} onOpenChange={setOpen} modal>
@@ -113,8 +126,8 @@ const EmployeeCombo = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0">
-        <Command>
-          <CommandInput placeholder="Search Employee" />
+        <Command shouldFilter={false}>
+          <CommandInput placeholder="Search Employee" value={search} onValueChange={onInputChange} />
           <CommandEmpty>No data.</CommandEmpty>
           <CommandGroup>
             <CommandList>
