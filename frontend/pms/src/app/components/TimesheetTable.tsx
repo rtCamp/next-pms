@@ -3,8 +3,8 @@
  */
 
 import { useState } from "react";
+import { isToday } from "date-fns";
 import { CircleCheck, CircleDollarSign, CirclePlus, CircleX, Clock3, PencilLine } from "lucide-react";
-
 /**
  * Internal dependencies
  */
@@ -147,7 +147,7 @@ const TimesheetTable = ({
                 const { date: formattedDate, day } = prettyDate(date);
                 const isHoliday = holiday_list.includes(date);
                 return (
-                  <TableHead key={date} className="max-w-20 text-center">
+                  <TableHead key={date} className={cn("max-w-20 text-center px-2",isToday(date) && "bg-slate-100")}>
                     <Typography variant="p" className={cn("text-slate-600 font-medium", isHoliday && "text-slate-400")}>
                       {day}
                     </Typography>
@@ -381,7 +381,7 @@ export const LeaveRow = ({
         </Typography>
       </TableCell>
       {leaveData.map(({ date, data, hour, isHoliday }) => (
-        <TableCell key={date} className={cn("text-center", dataCellClassName)}>
+        <TableCell key={date} className={cn("text-center px-2", dataCellClassName, isToday(date) && "bg-slate-100")}>
           <Typography variant="p" className={isHoliday ? "text-white" : "text-warning"}>
             {hour && hour != 0 ? floatToTime(hour) : ""}
           </Typography>
@@ -466,7 +466,7 @@ export const TotalHourRow = ({
         }
         total += total_hours;
         return (
-          <TableCell key={date} className="text-center">
+          <TableCell key={date} className={cn("text-center px-2", isToday(date) && "bg-slate-100")}>
             <Typography variant="p" className={cn("text-slate-600 ")}>
               {floatToTime(total_hours)}
             </Typography>
@@ -557,9 +557,10 @@ export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }
         key={date}
         onClick={handleClick}
         className={cn(
-          "text-center group",
+          "text-center group px-2",
           isDisabled && "cursor-default",
           "hover:h-full hover:bg-slate-100 hover:cursor-pointer",
+          isToday(date) && "bg-slate-100",
           className
         )}
       >
