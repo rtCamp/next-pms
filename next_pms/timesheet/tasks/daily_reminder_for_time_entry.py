@@ -3,6 +3,7 @@ from frappe.utils import add_days, datetime, getdate
 from hrms.hr.utils import get_holiday_list_for_employee
 
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm
+from next_pms.timesheet.api.utils import get_leaves_for_employee
 
 
 def send_reminder():
@@ -100,6 +101,7 @@ def is_holiday_or_leave(date: datetime.date, employee: str, daily_norm: int) -> 
 
 
 def get_leave_info(employee: str, date: datetime.date, daily_norm: int) -> bool:
+    leaves = get_leaves_for_employee(employee, add_days(date, -28), add_days(date, 28))
     leaves = frappe.get_all(
         "Leave Application",
         filters={
