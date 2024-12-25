@@ -40,7 +40,7 @@ const getTableCellClass = (index: number, weekIndex: number = 0) => {
  */
 const getTodayDateCellClass = (date: string): string => {
   if (isToday(date)) {
-    return "bg-opacity-90 font-semibold border-l border-r border-gray-200";
+    return "bg-opacity-90 font-semibold border-l border-r border-gray-400";
   }
   return "";
 };

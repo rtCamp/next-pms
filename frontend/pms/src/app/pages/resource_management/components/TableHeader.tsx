@@ -61,8 +61,6 @@ const ResourceTableHeader = ({ dates, title }: ResourceTableHeaderProps) => {
                     className={cn(
                       getTableCellClass(index, weekIndex, true),
                       "text-xs flex flex-col px-2 py-2 max-w-20 w-full justify-center items-center",
-                      getTodayDateCellClass(date),
-                      isToday(date) && "border-0 border-r border-gray-300"
                     )}
                   >
                     <Typography

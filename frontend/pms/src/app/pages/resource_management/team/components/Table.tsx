@@ -29,6 +29,7 @@ import { ResourceTableRow } from "../../components/TableRow";
 import { getCellBackGroundColor } from "../../utils/cell";
 import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
+import { Spinner } from "@/app/components/spinner";
 
 /**
  * This component is responsible for loading the table for table view.
@@ -122,6 +123,7 @@ const ResourceTeamTableBody = () => {
           />
         );
       })}
+      {hasMore && <Spinner isFull={false} className="p-4 overflow-hidden" />}
     </TableBody>
   );
 };

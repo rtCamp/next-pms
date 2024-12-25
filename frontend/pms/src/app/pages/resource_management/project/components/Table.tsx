@@ -29,6 +29,7 @@ import { ResourceTableRow } from "../../components/TableRow";
 import { getCellBackGroundColor } from "../../utils/cell";
 import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
+import { Spinner } from "@/app/components/spinner";
 
 /**
  * This component is responsible for loading the table for project view.
@@ -132,6 +133,8 @@ const ResourceProjectTableBody = () => {
           />
         );
       })}
+
+      {hasMore && <Spinner isFull={false} className="p-4 overflow-hidden" />}
     </TableBody>
   );
 };
@@ -267,7 +270,7 @@ const ResourceProjectTableCell = ({
         type="default"
         title={title}
         cellClassName={cn(
-          getTableCellClass(rowCount,midIndex),
+          getTableCellClass(rowCount, midIndex),
           cellBackGroundColor,
           getTodayDateCellClass(projectSingleDay.date)
         )}
@@ -282,7 +285,7 @@ const ResourceProjectTableCell = ({
         type="empty"
         title={title}
         cellClassName={cn(
-          getTableCellClass(rowCount,midIndex),
+          getTableCellClass(rowCount, midIndex),
           cellBackGroundColor,
           getTodayDateCellClass(projectSingleDay.date)
         )}
@@ -296,7 +299,11 @@ const ResourceProjectTableCell = ({
     <ResourceTableCell
       type="hovercard"
       title={title}
-      cellClassName={cn(getTableCellClass(rowCount,midIndex), cellBackGroundColor, getTodayDateCellClass(projectSingleDay.date))}
+      cellClassName={cn(
+        getTableCellClass(rowCount, midIndex),
+        cellBackGroundColor,
+        getTodayDateCellClass(projectSingleDay.date)
+      )}
       value={cellValue}
       CustomHoverCardContent={() => {
         return (
