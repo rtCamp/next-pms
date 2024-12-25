@@ -40,12 +40,13 @@ import {
   setDateRange,
   setEditDialog,
   setApprovalDialog,
+  SetAddLeaveDialog,
 } from "@/store/timesheet";
 import { EditTime } from "./EditTime";
 import { Approval } from "./Approval";
 import { WorkingFrequency } from "@/types";
 import { HolidayProp, LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
-
+import AddLeave from "@/app/components/addLeave";
 
 function Timesheet() {
   const targetRef = useRef(null);
@@ -136,6 +137,19 @@ function Timesheet() {
     dispatch(SetTimesheet(timesheetData));
     dispatch(SetAddTimeDialog(true));
   };
+  const handleAddLeave = () => {
+    const timesheetData = {
+      name: "",
+      task: "",
+      date: getFormatedDate(getDateTimeForMultipleTimeZoneSupport()),
+      description: "",
+      hours: 0,
+      employee: user.employee,
+      project: "",
+    };
+    dispatch(SetTimesheet(timesheetData));
+    dispatch(SetAddLeaveDialog(true));
+  };
 
   const onCellClick = (data: NewTimesheetProps) => {
     data.employee = user.employee;
@@ -168,10 +182,14 @@ function Timesheet() {
   }
   return (
     <>
-      <Header className="justify-end">
+      <Header className="justify-end gap-x-3">
         <Button onClick={handleAddTime} title="Add Time">
           <Plus />
           Time
+        </Button>
+        <Button variant="outline" onClick={handleAddLeave} title="Add Time">
+          <Plus />
+          Leave
         </Button>
       </Header>
 
@@ -302,6 +320,19 @@ function Timesheet() {
         />
       )}
       {timesheet.isAprrovalDialogOpen && <Approval onClose={mutate} />}
+      {timesheet.isLeaveDialogOpen && (
+        <AddLeave
+          employee={timesheet.timesheet.employee as string}
+          open={timesheet.isLeaveDialogOpen}
+          onOpenChange={() => {
+            dispatch(SetAddLeaveDialog(false));
+            // mutate();
+          }}
+          onSuccess={() => {
+            // mutate();
+          }}
+        />
+      )}
     </>
   );
 }

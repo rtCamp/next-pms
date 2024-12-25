@@ -11,6 +11,13 @@ const descriptionSchema = z
   .trim()
   .min(1, { message: "Please enter description." });
 
+const leaveReasonSchema = z
+  .string({
+    required_error: "Please enter a valid reason.",
+  })
+  .trim()
+  .min(1, { message: "Please enter a valid reason." });
+
 export const hourSchema = z.preprocess(
   (val, ctx) => {
     const processedValue = timeStringToFloat(String(val));
@@ -183,3 +190,22 @@ export const timeStringToFloat = (value: string) => {
   const parsed = parseFloat(value);
   return isNaN(parsed) ? NaN : parseFloat(parsed.toFixed(3));
 };
+
+export const LeaveSchema = z.object({
+  employee: z
+    .string({
+      required_error: "Please select a employee.",
+    })
+    .trim()
+    .min(1, { message: "Please select a employee." }),
+  reason: leaveReasonSchema,
+  from_date: z.string({
+    required_error: "Please enter date.",
+  }).trim().min(1, { message: "Please enter a date." }),
+  to_date: z.string({
+    required_error: "Please enter date.",
+  }).trim().min(1, { message: "Please enter a date." }),
+  leave_type: z.string({}).trim().min(1, { message: "Please enter a Leave Type." }),
+  half_day: z.boolean(),
+  selected_half:z.string(),
+});
