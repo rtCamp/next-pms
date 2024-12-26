@@ -161,8 +161,8 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
         )
         .where(timesheet_detail.task == task.name)
         .where((timesheet_detail.from_time >= start_date) & (timesheet_detail.to_time <= end_date))
-        .orderby(timesheet.employee_name, order=frappe.qb.asc)
         .groupby(timesheet.employee)
+        .orderby(timesheet.employee_name, order=frappe.qb.asc)
     ).run(as_dict=True)
 
     return {
