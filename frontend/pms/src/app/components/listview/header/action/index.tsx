@@ -36,8 +36,7 @@ const Action = ({ docType, exportProps, viewProps }: ActionProps) => {
   const openExportDialog = () => {
     setExportDialog(true);
   };
-  const shouldShowAction = canExport(docType) || canCreate(docType);
-  if (!shouldShowAction) return;
+  if (!canExport(docType) || !canCreate(docType)) return;
   return (
     <>
       <DropdownMenu>

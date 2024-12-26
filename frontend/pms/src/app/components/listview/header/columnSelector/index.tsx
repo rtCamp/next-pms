@@ -58,14 +58,14 @@ const ColumnSelector = ({ fieldMeta, onColumnHide, setColumnOrder, columnOrder }
     .filter((d) => !NO_VALUE_FIELDS.includes(d.fieldtype))
     .filter((d) => !localOrder.includes(d.fieldname));
 
-   const handleColumnAdd = (fieldname: string) => {
-     setLocalOrder((old) => [...old, fieldname]);
-     setColumnOrder((old) => [...old, fieldname]);
-   };
+  const handleColumnAdd = (fieldname: string) => {
+    setLocalOrder((old) => [...old, fieldname]);
+    setColumnOrder((old) => [...old, fieldname]);
+  };
 
-   const handleReorder = (newOrder: string[]) => {
-     setLocalOrder(newOrder);
-   };
+  const handleReorder = (newOrder: string[]) => {
+    setLocalOrder(newOrder);
+  };
   const handleDrop = () => {
     setColumnOrder(localOrder); // Update the parent/main state on drop
   };
@@ -81,14 +81,13 @@ const ColumnSelector = ({ fieldMeta, onColumnHide, setColumnOrder, columnOrder }
       <DropdownMenuContent className="[&_div]:cursor-pointer max-h-96 overflow-y-auto">
         <DndProvider backend={checkIsMobile() ? TouchBackend : HTML5Backend}>
           {fieldMap.map((field) => {
-            const isVisible = localOrder.includes(field.fieldname);
             return (
               <ColumnItem
                 key={field.fieldname}
                 id={field.fieldname}
                 label={field.label}
                 onColumnHide={onColumnHide}
-                isVisible={isVisible}
+                isVisible={localOrder.includes(field.fieldname)}
                 toggleVisibility={() => {}}
                 reOrder={handleReorder}
                 onDrop={handleDrop}

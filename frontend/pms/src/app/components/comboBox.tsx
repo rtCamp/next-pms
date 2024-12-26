@@ -160,9 +160,11 @@ export const ComboxBox = ({
                         <Typography className="truncate" variant="p">
                           {item.label}
                         </Typography>
-                        <Typography className="truncate" variant="small">
-                          {item?.description}
-                        </Typography>
+                        {item?.description && (
+                          <Typography className="truncate" variant="small">
+                            {item?.description}
+                          </Typography>
+                        )}
                       </div>
                     </CommandItem>
                   );

@@ -20,6 +20,7 @@ import {
   getHolidayList,
   preProcessLink,
   prettyDate,
+  getBgCsssForToday,
 } from "@/lib/utils";
 import { TaskData, WorkingFrequency } from "@/types";
 import { HolidayProp, LeaveProps, TaskDataItemProps, TaskDataProps, TaskProps } from "@/types/timesheet";
@@ -101,7 +102,6 @@ type submitButtonProps = {
  * Timesheet Table
  * @description The main component to show the timesheet grid.
  *
- * @param {Object} props - The properties passed to the component.
  * @param {Array} props.dates - Array of dates in the timesheet
  * @param {Array} props.holidays - Array of holidays in the timesheet
  * @param {Array} props.tasks - Array of tasks in the timesheet
@@ -147,7 +147,7 @@ const TimesheetTable = ({
                 const { date: formattedDate, day } = prettyDate(date);
                 const isHoliday = holiday_list.includes(date);
                 return (
-                  <TableHead key={date} className={cn("max-w-20 text-center px-2",isToday(date) && "bg-slate-100")}>
+                  <TableHead key={date} className={cn("max-w-20 text-center px-2", getBgCsssForToday(date))}>
                     <Typography variant="p" className={cn("text-slate-600 font-medium", isHoliday && "text-slate-400")}>
                       {day}
                     </Typography>
@@ -318,7 +318,6 @@ const TimesheetTable = ({
  * day and uses the `Cell` component to show the total hours of leave
  * for the day.
  *
- * @param {Object} props - The properties passed to the component.
  * @param {Array} props.leaves - Array of leaves in the timesheet
  * @param {Array} props.dates - Array of dates in the timesheet
  * @param {Array} props.holidays - Array of holidays in the timesheet
@@ -381,7 +380,7 @@ export const LeaveRow = ({
         </Typography>
       </TableCell>
       {leaveData.map(({ date, data, hour, isHoliday }) => (
-        <TableCell key={date} className={cn("text-center px-2", dataCellClassName, isToday(date) && "bg-slate-100")}>
+        <TableCell key={date} className={cn("text-center px-2", dataCellClassName, getBgCsssForToday(date))}>
           <Typography variant="p" className={isHoliday ? "text-white" : "text-warning"}>
             {hour && hour != 0 ? floatToTime(hour) : ""}
           </Typography>
@@ -401,7 +400,6 @@ export const LeaveRow = ({
  * day including the leaves, holidays and tasks, and uses the `Cell` component to
  * show the total hours worked for the day.
  *
- * @param {Object} props - The properties passed to the component.
  * @param {Array} props.leaves - Array of leaves in the timesheet
  * @param {Array} props.dates - Array of dates in the timesheet
  * @param {Array} props.tasks - Array of tasks in the timesheet
@@ -466,7 +464,7 @@ export const TotalHourRow = ({
         }
         total += total_hours;
         return (
-          <TableCell key={date} className={cn("text-center px-2", isToday(date) && "bg-slate-100")}>
+          <TableCell key={date} className={cn("text-center px-2", getBgCsssForToday(date))}>
             <Typography variant="p" className={cn("text-slate-600 ")}>
               {floatToTime(total_hours)}
             </Typography>
@@ -484,7 +482,6 @@ export const TotalHourRow = ({
  * working hours for the week and compares it with the total hours
  * and show indicator for hours based on the expected hours.
  *
- * @param {Object} props - The properties passed to the component.
  * @param {number} props.total - The total hours for the week
  * @param {number} props.expected_hour - The expected hours for the week
  * @param {WorkingFrequency} props.frequency - The working frequency
@@ -514,7 +511,6 @@ export const WeekTotal = ({ total, expected_hour, frequency, className }: weekTo
  * It is responsible for rendering the data in the grid, show tooltip on hover and
  * open the dialog box to add/edit time on click.
  *
- * @param {Object} props - The properties passed to the component.
  * @param {string} props.date - The date of the cell
  * @param {Array} props.data - The data for the cell
  * @param {boolean} props.isHoliday - If the date is a holiday
@@ -560,7 +556,7 @@ export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }
           "text-center group px-2",
           isDisabled && "cursor-default",
           "hover:h-full hover:bg-slate-100 hover:cursor-pointer",
-          isToday(date) && "bg-slate-100",
+          getBgCsssForToday(date),
           className
         )}
       >
@@ -609,7 +605,6 @@ export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }
  * @description The component shows table row with empty cells in timesheet grid,
  * which onClick event opens the dialog box to add time.
  *
- * @param {Object} props - The properties passed to the component.
  * @param {Array} props.dates - Array of dates in the timesheet
  * @param {Array} props.holidays - Array of holidays in the timesheet
  * @param {Function} props.onCellClick - Function to call when the cell is clicked
@@ -671,7 +666,6 @@ export const EmptyRow = ({
  * Submit Button
  * @description Button to show the status of the timesheet & to submit the timesheet.
  *
- * @param {Object} props - The properties passed to the component.
  * @param {string} props.start_date - Start date of the timesheet
  * @param {string} props.end_date - End date of the timesheet
  * @param {Function} props.onApproval - Function to call when the button is clicked

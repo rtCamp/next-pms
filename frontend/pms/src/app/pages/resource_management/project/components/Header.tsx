@@ -26,7 +26,6 @@ import {
   setWeekDate,
 } from "@/store/resource_management/project";
 
-// import { ResourceHeaderSection } from "../../components/Header";
 
 /**
  * This component is responsible for loading the project view header.

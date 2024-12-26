@@ -10,6 +10,7 @@ import { GripVertical, X } from "lucide-react";
  */
 import { Typography } from "@/app/components/typography";
 import { DropdownMenuItem } from "@/app/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 interface ColumnItemProps {
   id: string;
@@ -22,8 +23,7 @@ interface ColumnItemProps {
 }
 
 /**
- * 
- * @param {Object} props - The props for the component.
+ *
  * @param {String} props.id - The id of the column.
  * @param {Function} props.onColumnHide - The function to hide the column.
  * @param {Function} props.reOrder - The function to reorder the columns.
@@ -66,7 +66,7 @@ const ColumnItem = ({ id, onColumnHide, reOrder, isVisible, label, toggleVisibil
       ref={(node) => dragRef(dropRef(node))}
       onSelect={(event) => event.preventDefault()}
     >
-      <span className="w-full flex justify-between gap-x-2 items-center" style={{ opacity: isDragging ? 0.5 : 1 }}>
+      <span className={cn("w-full flex justify-between gap-x-2 items-center opacity-100", isDragging && "opacity-50")}>
         <Typography className="flex gap-x-2 items-center">
           <GripVertical />
           {label}

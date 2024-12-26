@@ -2,9 +2,9 @@
  * External dependencies.
  */
 import { type ClassValue, clsx } from "clsx";
+import { isToday } from "date-fns";
 import { Error } from "frappe-js-sdk/lib/frappe_app/types";
 import { twMerge } from "tailwind-merge";
-
 /**
  * Internal dependencies.
  */
@@ -347,3 +347,7 @@ export const currencyFormat = (currency: string) => {
     currency: currency,
   });
 };
+
+export const getBgCsssForToday = (date: string) => { 
+  return isToday(date) ? "bg-slate-100" : "";
+}
