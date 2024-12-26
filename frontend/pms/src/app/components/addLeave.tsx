@@ -13,18 +13,16 @@ import { z } from "zod";
 import { ComboxBox } from "@/app/components/comboBox";
 import { DatePicker } from "@/app/components/datePicker";
 import EmployeeCombo from "@/app/components/employeeComboBox";
-import { Typography } from "@/app/components/typography";
 import { Button } from "@/app/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
-import { Input } from "@/app/components/ui/input";
 import { Separator } from "@/app/components/ui/separator";
 import { Textarea } from "@/app/components/ui/textarea";
 import { useToast } from "@/app/components/ui/use-toast";
 import { getFormatedDate } from "@/lib/utils";
 import { LeaveSchema } from "@/schema/timesheet";
 import { Checkbox } from "./ui/checkbox";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "./ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 // interfaces
 interface LeaveTimeProps {
@@ -214,10 +212,12 @@ const AddLeave = ({ employee, open = false, onOpenChange, onSuccess }: LeaveTime
                     <FormField
                       control={form.control}
                       name="selected_half"
-                      render={({ field }) => (
+                      render={() => (
                         <FormItem className="space-y-1 col-span-3">
                           <FormControl>
-                            <Select>
+                            <Select onValueChange={(value)=>{
+                              form.setValue("selected_half", value);
+                            }}>
                               <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select Half" />
                               </SelectTrigger>

@@ -206,6 +206,6 @@ export const LeaveSchema = z.object({
     required_error: "Please enter date.",
   }).trim().min(1, { message: "Please enter a date." }),
   leave_type: z.string({}).trim().min(1, { message: "Please enter a Leave Type." }),
-  half_day: z.boolean(),
-  selected_half:z.string(),
+  half_day: z.boolean().optional(),
+  selected_half:z.string().optional(),
 });
