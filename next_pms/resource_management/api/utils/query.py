@@ -33,7 +33,7 @@ def get_allocation_list_for_employee_for_given_range(
                 OR (allocation_start_date <= %(end_date)s AND allocation_end_date >= %(end_date)s)
                 OR (allocation_start_date <= %(start_date)s AND allocation_end_date >= %(end_date)s)
             )
-            ORDER BY allocation_start_date, allocation_end_date;
+            ORDER BY employee_name, allocation_start_date, allocation_end_date;
     """,
         {
             "list_key": value_key,

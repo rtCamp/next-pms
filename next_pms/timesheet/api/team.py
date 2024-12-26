@@ -241,6 +241,7 @@ def filter_employee_by_timesheet_status(
         .where(timesheet.end_date <= getdate(end_date))
         .where(timesheet.custom_weekly_approval_status.isin(timesheet_status))
         .groupby("employee")
+        .orderby(timesheet.employee_name, order=frappe.qb.asc)
     ).run(as_dict=True)
 
     if not employees:
