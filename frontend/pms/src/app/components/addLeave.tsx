@@ -41,6 +41,8 @@ const AddLeave = ({ employee, open = false, onOpenChange, onSuccess }: LeaveTime
   const [selectedFromDate, setSelectedFromDate] = useState(getFormatedDate(""));
   const [selectedToDate, setSelectedToDate] = useState(getFormatedDate(""));
   const [selectedLeaveType, setSelectedLeaveType] = useState<string[]>();
+  const [isHalfDay, setIsHalfDay] = useState<boolean>(false);
+
 
   // Form Schema definition
   const form = useForm<z.infer<typeof LeaveSchema>>({
@@ -200,6 +202,7 @@ const AddLeave = ({ employee, open = false, onOpenChange, onSuccess }: LeaveTime
                             checked={field.value}
                             onCheckedChange={(value) => {
                               form.setValue("half_day", value as boolean);
+                              setIsHalfDay(value as boolean);
                             }}
                             className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0 [&>*]:m-0"
                           />
@@ -208,26 +211,28 @@ const AddLeave = ({ employee, open = false, onOpenChange, onSuccess }: LeaveTime
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name="selected_half"
-                    render={({ field }) => (
-                      <FormItem className="space-y-1 col-span-3">
-                        <FormControl>
-                          <Select>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select Half" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="First Half">First Half</SelectItem>
-                              <SelectItem value="Second Half">Second Half</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {isHalfDay && (
+                    <FormField
+                      control={form.control}
+                      name="selected_half"
+                      render={({ field }) => (
+                        <FormItem className="space-y-1 col-span-3">
+                          <FormControl>
+                            <Select>
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select Half" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="First Half">First Half</SelectItem>
+                                <SelectItem value="Second Half">Second Half</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
                 </div>
                 <DialogFooter className="sm:justify-start w-full pt-3">
                   <div className="flex gap-x-4 w-full">
