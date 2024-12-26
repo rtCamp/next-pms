@@ -1,16 +1,18 @@
 /**
  * Internal dependencies.
  */
+import { DataCell } from "@/app/components/listview/DataCell";
 import { Typography } from "@/app/components/typography";
 import { Badge } from "@/app/components/ui/badge";
 import { Progress } from "@/app/components/ui/progress";
 import { cn, floatToTime } from "@/lib/utils";
-import { DataCell } from "@/app/components/listview/DataCell";
+import { DocMetaProps } from "@/types";
 
 const HOUR_FIELD = ["actual_time", "custom_total_hours_purchased", "custom_total_hours_remaining"];
 
+type FieldMeta = Omit<DocMetaProps, "title_field" | "doctype" | "default_fields">;
 export const getColumnInfo = (
-  fieldMeta: Array<any>,
+  fieldMeta: FieldMeta["fields"],
   fieldInfo: Array<string>,
   columnInfo: any,
   title_field: string,
@@ -37,7 +39,7 @@ export const getColumnInfo = (
 
         if (meta.fieldtype === "Link") {
           return (
-            <a href={`/app/${meta.options.toLowerCase().replace(/ /g, "-")}/${value}`} className="hover:underline">
+            <a href={`/app/${meta?.options?.toLowerCase().replace(/ /g, "-")}/${value}`} className="hover:underline">
               <Typography variant="p" className="truncate" title={value}>
                 {value}
               </Typography>

@@ -94,7 +94,8 @@ def filter_employees(
 
     fields = ["name", "image", "employee_name", "department", "designation"]
     employee_ids = []
-    filters = {}
+    filters = {"status": ["in", ["Active"]]}
+    or_filters = {}
 
     if reports_to:
         filters["reports_to"] = reports_to
@@ -112,14 +113,10 @@ def filter_employees(
         status = json.loads(status)
         if len(status) > 0:
             filters["status"] = ["in", status]
-        else:
-            filters["status"] = ["in", ["Active"]]
 
     if isinstance(status, list):
         if len(status) > 0:
             filters["status"] = ["in", status]
-        else:
-            filters["status"] = ["in", ["Active"]]
 
     if isinstance(project, str):
         project = json.loads(project)
@@ -128,7 +125,8 @@ def filter_employees(
         user_group = json.loads(user_group)
 
     if employee_name:
-        filters["employee_name"] = ["like", f"%{employee_name}%"]
+        or_filters["employee_name"] = ["like", f"%{employee_name}%"]
+        filters.pop("status", None)
 
     if department and len(department) > 0:
         filters["department"] = ["in", department]
@@ -153,8 +151,9 @@ def filter_employees(
 
     if user_group and len(user_group) > 0:
         users = frappe.get_all("User Group Member", pluck="user", filters={"parent": ["in", user_group]})
-        ids = [frappe.get_value("Employee", {"user_id": user}) for user in users]
+        ids = [frappe.get_value("Employee", {"user_id": user}, cache=True) for user in users]
         employee_ids.extend(ids)
+        filters.pop("status", None)
 
     if len(employee_ids) > 0:
         filters["name"] = ["in", employee_ids]
@@ -162,12 +161,18 @@ def filter_employees(
     employees = frappe.get_list(
         "Employee",
         fields=fields,
+        or_filters=or_filters,
         filters=filters,
         page_length=page_length,
         start=start,
         ignore_permissions=ignore_permissions,
     )
-    total_count = get_count("Employee", filters=filters, ignore_permissions=ignore_permissions)
+    total_count = get_count(
+        "Employee",
+        filters=filters,
+        or_filters=or_filters,
+        ignore_permissions=ignore_permissions,
+    )
 
     return employees, total_count
 

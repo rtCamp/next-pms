@@ -6,17 +6,15 @@ import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 /**
  * Internal dependencies.
  */
-import { ProjectNestedTaskData, sortOrder, TaskData } from "@/types";
-import { flatTableDataToNestedProjectDataConversion } from "@/lib/utils";
+import { sortOrder, TaskData } from "@/types";
+
 
 export interface TaskState {
   task: TaskData[];
-  project: ProjectNestedTaskData[];
   total_count: number;
   start: number;
   isFetchAgain?: boolean;
   selectedProject: Array<string>;
-  groupBy: Array<string>;
   selectedTask: string;
   isTaskLogDialogBoxOpen: boolean;
   isAddTaskDialogBoxOpen: boolean;
@@ -40,8 +38,6 @@ export const initialState: TaskState = {
   start: 0,
   isFetchAgain: false,
   selectedProject: [],
-  groupBy: [],
-  project: [],
   selectedTask: "",
   isTaskLogDialogBoxOpen: false,
   isAddTaskDialogBoxOpen: false,
@@ -78,17 +74,8 @@ export const taskSlice = createSlice({
     setSelectedProject: (state, action: PayloadAction<Array<string>>) => {
       state.selectedProject = action.payload;
       state.task = [];
-      state.project = [];
+
       state.start = 0;
-    },
-    setGroupBy: (state, action: PayloadAction<Array<string>>) => {
-      state.groupBy = action.payload;
-    },
-    setProjectData: (state) => {
-      state.project = flatTableDataToNestedProjectDataConversion(state.task);
-    },
-    updateProjectData: (state) => {
-      state.project = flatTableDataToNestedProjectDataConversion(state.task);
     },
     setAddTaskDialog: (state, action: PayloadAction<boolean>) => {
       state.isAddTaskDialogBoxOpen = action.payload;
@@ -132,13 +119,11 @@ export const taskSlice = createSlice({
         selectedStatus: Array<TaskStatusType>;
         search: string;
         selectedProject: Array<string>;
-        groupBy: Array<string>;
       }>
     ) => {
       state.selectedProject = action.payload.selectedProject;
       state.selectedStatus = action.payload.selectedStatus;
       state.search = action.payload.search;
-      state.groupBy = action.payload.groupBy;
       state.start = initialState.start;
       state.pageLength = initialState.pageLength;
     },
@@ -159,9 +144,6 @@ export const {
   setTaskData,
   setStart,
   setSelectedProject,
-  setGroupBy,
-  setProjectData,
-  updateProjectData,
   updateTaskData,
   setAddTaskDialog,
   setSelectedTask,

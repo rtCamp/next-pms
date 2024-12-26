@@ -8,22 +8,18 @@ import { flexRender } from "@tanstack/react-table";
  */
 import { Spinner } from "@/app/components/spinner";
 import { Separator } from "@/app/components/ui/separator";
-import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table } from "@/app/components/ui/table";
+import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table as RootTable } from "@/app/components/ui/table";
 import { TaskState } from "@/store/task";
-import {
-  FlatTableType,
-  ColumnsType,
-  columnsToExcludeActionsInTablesType,
-} from "@/types/task";
+import { ColumnsType, columnsToExcludeActionsInTablesType, TaskTableType } from "@/types/task";
 
-export const FlatTable = ({
+export const Table = ({
   table,
   columns,
   columnsToExcludeActionsInTables,
   task,
   isLoading,
 }: {
-  table: FlatTableType;
+  table: TaskTableType;
   columns: ColumnsType;
   columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType;
   task: TaskState;
@@ -34,7 +30,7 @@ export const FlatTable = ({
       {isLoading && task.task.length == 0 ? (
         <Spinner isFull />
       ) : (
-        <Table className="[&_td]:px-4 [&_th]:px-4 [&_th]:py-2 table-fixed w-full relative">
+        <RootTable className="[&_td]:px-4 [&_th]:px-4 [&_th]:py-2 table-fixed w-full relative">
           <TableHeader className=" border-t-0 sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -99,7 +95,7 @@ export const FlatTable = ({
               </TableRow>
             )}
           </TableBody>
-        </Table>
+        </RootTable>
       )}
     </>
   );

@@ -10,10 +10,10 @@ import { CircleDollarSign } from "lucide-react";
  * Internal dependencies.
  */
 import { Spinner } from "@/app/components/spinner";
-import { LeaveRow, EmptyRow, Cell } from "@/app/components/timesheetTable";
+import { LeaveRow, EmptyRow, Cell } from "@/app/components/TimesheetTable";
 import { Typography } from "@/app/components/typography";
 import { Table, TableBody, TableCell, TableRow } from "@/app/components/ui/table";
-import { TaskLog } from "@/app/pages/task/taskLog";
+import { TaskLog } from "@/app/pages/task/TaskLog";
 import { cn, expectatedHours, floatToTime, getDateFromDateAndTime } from "@/lib/utils";
 import { RootState } from "@/store";
 import { TaskDataProps, TaskDataItemProps } from "@/types/timesheet";
