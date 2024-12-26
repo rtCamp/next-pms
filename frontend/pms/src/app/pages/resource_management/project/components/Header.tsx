@@ -1,14 +1,15 @@
 /**
  * External dependencies.
  */
-import { addDays } from "date-fns";
-import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
 import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { addDays } from "date-fns";
+import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
+import { Header } from "@/app/components/listview/header";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { getFormatedDate } from "@/lib/utils";
 import { RootState } from "@/store";
@@ -25,11 +26,10 @@ import {
   setWeekDate,
 } from "@/store/resource_management/project";
 
-import { ResourceHeaderSection } from "../../components/Header";
 
 /**
  * This component is responsible for loading the project view header.
- * 
+ *
  * @returns React.FC
  */
 const ResourceProjectHeaderSection = () => {
@@ -87,7 +87,7 @@ const ResourceProjectHeaderSection = () => {
   }, [dispatch, resourceProjectStateTableView.combineWeekHours, setCombineWeekHoursParam]);
 
   return (
-    <ResourceHeaderSection
+    <Header
       filters={[
         {
           queryParameterName: "project-name",
@@ -95,7 +95,7 @@ const ResourceProjectHeaderSection = () => {
             dispatch(setProjectName(value));
           },
           handleDelete: (value: string) => {
-            dispatch(deleteFilters({ projectName: value, type: "project" }));
+            dispatch(deleteFilters({ projectName: "", type: "project" }));
           },
           type: "search",
           value: resourceProjectState.projectName,
@@ -113,8 +113,9 @@ const ResourceProjectHeaderSection = () => {
           },
           type: "select-search",
           value: resourceProjectState.customer,
-          defaultValue: "",
           label: "Customer",
+          shouldFilterComboBox: true,
+          isMultiComboBox: true,
           hide: !resourceAllocationPermission.write,
           apiCall: {
             url: "frappe.client.get_list",
@@ -128,18 +129,8 @@ const ResourceProjectHeaderSection = () => {
               revalidateIfStale: false,
             },
           },
-          queryParameterDefault: [],
+          queryParameterDefault: resourceProjectState.customer,
         },
-        // {
-        //   queryParameterName: "reports-to",
-        //   handleChange: handleReportingManagerChange,
-        //   type: "search-employee",
-        //   value: reportingNameParam,
-        //   defaultValue: "",
-        //   label: "Reporting Manager",
-        //   hide: !resourceAllocationPermission.write,
-        //   queryParameterDefault: [],
-        // },
         {
           queryParameterName: "allocation-type",
           handleChange: (value: string | string[]) => {
@@ -150,7 +141,8 @@ const ResourceProjectHeaderSection = () => {
           },
           type: "select-list",
           value: resourceProjectState.allocationType,
-          defaultValue: "",
+          shouldFilterComboBox: true,
+          isMultiComboBox: true,
           label: "Allocation Type",
           data: [
             {
@@ -162,7 +154,7 @@ const ResourceProjectHeaderSection = () => {
               value: "Non-Billable",
             },
           ],
-          queryParameterDefault: "",
+          queryParameterDefault: resourceProjectState.allocationType,
           hide: !resourceAllocationPermission.write,
         },
         {
@@ -218,6 +210,7 @@ const ResourceProjectHeaderSection = () => {
           icon: () => <ChevronRight className="w-4 max-md:w-3 h-4 max-md:h-3" />,
         },
       ]}
+      showFilterValue
     />
   );
 };

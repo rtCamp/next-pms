@@ -1,9 +1,8 @@
 /**
  * External dependencies.
  */
-import { Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Navigate, Outlet } from "react-router-dom";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
@@ -11,21 +10,19 @@ import { useFrappeGetCall } from "frappe-react-sdk";
  */
 import { Toaster } from "@/app/components/ui/toaster";
 import { useToast } from "@/app/components/ui/use-toast";
-import { ROLES } from "@/lib/constant";
-import { TIMESHEET } from "@/lib/constant";
+import Sidebar from "@/app/layout/sidebar";
 import { checkScreenSize, parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { updateScreenSize } from "@/store/app";
 import { setInitialData } from "@/store/user";
-import GenWrapper from "@/app/components/GenWrapper";
-import Sidebar from "@/app/layout/sidebar";
 
-export const Layout = ({ children }: { children: React.ReactNode }) => {
+const GenWrapper = lazy(() => import("@/app/components/GenWrapper"));
+
+const Layout = ({ children }: { children: React.ReactNode }) => {
   const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
   const { toast } = useToast();
   const { data, error } = useFrappeGetCall("next_pms.timesheet.api.employee.get_data", {}, undefined, {
-    refreshWhenHidden: false,
     revalidateOnFocus: false,
     revalidateIfStale: false,
   });
@@ -90,13 +87,4 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export const PmRoute = () => {
-  const user = useSelector((state: RootState) => state.user);
-  const hasAccess = user.roles.some((role: string) => ROLES.includes(role));
-
-  if (!hasAccess) {
-    return <Navigate to={TIMESHEET} />;
-  }
-
-  return <Outlet />;
-};
+export default Layout;

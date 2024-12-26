@@ -39,7 +39,7 @@ const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
 >(({ className, ...props }, ref) => {
-  const [value, setValue] = React.useState("");
+  const [value, setValue] = React.useState(props.value ?? "");
 
   const clearInput = () => {
     setValue("");

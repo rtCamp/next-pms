@@ -7,6 +7,7 @@ import { ArrowDownAZ, ArrowDownZA } from "lucide-react";
 /**
  * Internal dependencies
  */
+import { Button } from "@/app/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,20 +15,13 @@ import {
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
 import { sortOrder } from "@/types";
-import { Button } from "@/app/components/ui/button";
-import { fieldMetaProps } from "@/types";
+import { SortProps } from "../type";
 
-interface SortProps {
-  fieldMeta: Array<fieldMetaProps>;
-  orderBy: sortOrder;
-  field: string;
-  onSortChange: (order: sortOrder, orderColumn: string) => void;
-}
 
 /**
  * Sort Component
  * @description This component is used to sort the list view data based on field meta.
- * 
+ *
  * @param {Object} props - The props for the component.
  * @param {Array} props.fieldMeta - Meta data of the permitted fields.
  * @param {String} props.orderBy - Order of the data (ASC/DESC).

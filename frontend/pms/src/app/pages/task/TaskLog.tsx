@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/app/componen
 import { Separator } from "@/app/components/ui/separator";
 import { useToast } from "@/app/components/ui/use-toast";
 import { cn, getTodayDate, getFormatedDate, floatToTime, prettyDate, parseFrappeErrorMsg } from "@/lib/utils";
-import { TaskStatus } from "./taskStatus";
+import { TaskStatus } from "./TaskStatus";
 
 type Employee = {
   employee: string;
