@@ -6,6 +6,7 @@
  *
  * Internal dependencies
  */
+import React from "react";
 import { Filter } from "@/app/components/listview/header/Filter";
 import { HeaderProps, FilterPops, ButtonProps } from "@/app/components/listview/type";
 import { Button } from "@/app/components/ui/button";
@@ -46,9 +47,9 @@ export const Header = ({
       >
         <div id="filters" className="flex gap-x-2 max-md:w-full items-center overflow-y-hidden no-scrollbar ">
           {filters &&
-            filters.map((filter: FilterPops) => {
+            filters.map((filter: FilterPops,idx) => {
               if (filter.hide) {
-                return <></>;
+                return <React.Fragment key={idx}></React.Fragment>;
               }
               return <Filter filter={filter} key={filter.queryParameterName} />;
             })}
@@ -56,9 +57,9 @@ export const Header = ({
         <div className="flex gap-x-2">
           {buttons && (
             <div className="flex gap-x-2 max-md:p-1 max-md:w-full max-md:justify-between max-md:m-2">
-              {buttons.map((button: ButtonProps) => {
+              {buttons.map((button: ButtonProps,idx) => {
                 if (button.hide) {
-                  return <></>;
+                  return <React.Fragment key={idx}></React.Fragment>;
                 }
                 return (
                   <Button
@@ -66,6 +67,7 @@ export const Header = ({
                     className={cn("p-1 h-fit", button.className)}
                     variant={button.variant || "outline"}
                     onClick={button.handleClick}
+                    key={idx}
                   >
                     {button.icon && <button.icon />}
                     {button.label}

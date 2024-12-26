@@ -42,10 +42,10 @@ const FilterValue = ({ filters }: { filters: FilterPops[] }) => {
       <div className="px-2 rounded text-sm">Filters</div>
       <div className="flex gap-x-2 overflow-scroll w-fit px-4 no-scrollbar">
         {updateFilters &&
-          updateFilters.map((filter: FilterPops) => {
+          updateFilters.map((filter: FilterPops,idx) => {
             if (Array.isArray(filter.value)) {
               return (
-                <div className="flex gap-2 flex-shrink-0">
+                <div key={idx} className="flex gap-2 flex-shrink-0">
                   <div className="bg-gray-200 px-2 py-1 rounded text-sm">{filter.label}</div>
                   {filter.value.map((value, index) => (
                     <Badge
@@ -62,7 +62,7 @@ const FilterValue = ({ filters }: { filters: FilterPops[] }) => {
               );
             }
             return (
-              <div className="flex gap-2 w-fit flex-shrink-0">
+              <div key={idx} className="flex gap-2 w-fit flex-shrink-0">
                 <div className="bg-gray-200 px-2 py-1 rounded text-sm">{filter.label}</div>
                 <Badge
                   variant="secondary"

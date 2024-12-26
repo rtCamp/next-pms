@@ -10,7 +10,7 @@ import {
   useReactTable,
   ColumnSizingState,
 } from "@tanstack/react-table";
-import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import { useFrappeGetCall } from "frappe-react-sdk";
 import _ from "lodash";
 
 /**
@@ -23,14 +23,13 @@ import { Spinner } from "@/app/components/spinner";
 import { Typography } from "@/app/components/typography";
 import { Separator } from "@/app/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
-import { ToastAction } from "@/app/components/ui/toast";
 import { useToast } from "@/app/components/ui/use-toast";
 import { useFrappeDocTypeCount } from "@/app/hooks/useFrappeDocCount";
 import { Footer } from "@/app/layout/root";
 import { parseFrappeErrorMsg, createFalseValuedObject } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setProjectData, setStart, setFilters, setTotalCount } from "@/store/project";
-import { setViews, ViewData } from "@/store/view";
+import { ViewData } from "@/store/view";
 import { DocMetaProps, sortOrder } from "@/types";
 import { getColumnInfo } from "./columns";
 import { Header as ProjectHeader } from "./Header";
@@ -52,8 +51,7 @@ const Project = () => {
 
 const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   const [viewInfo, setViewInfo] = useState<ViewData>(viewData);
-  const { call } = useFrappePostCall("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view");
-  const { toast, remove } = useToast();
+  const { toast } = useToast();
   const [hasViewUpdated, setHasViewUpdated] = useState(false);
   const [colSizing, setColSizing] = useState<ColumnSizingState>(viewData.columns ?? {});
   const [columnOrder, setColumnOrder] = useState<string[]>(viewData.rows ?? []);
@@ -97,7 +95,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     }
   );
   const { data: count } = useFrappeDocTypeCount("Project", { filters: getFilter(projectState) });
-
+  
   useEffect(() => {
     if (data) {
       dispatch(setProjectData(data.message));
@@ -119,13 +117,13 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
 
   useEffect(() => {
     const updateViewData = {
-      ...viewInfo,
-      columns: { ...viewInfo.columns, ...colSizing },
+      ...viewData,
+      columns: { ...viewData.columns, ...colSizing },
       order_by: { field: projectState.orderColumn, order: projectState.order },
       filters: createFilter(projectState),
       rows: columnOrder,
     };
-    if (!_.isEqual(updateViewData, viewInfo)) {
+    if (!_.isEqual(updateViewData, viewData)) {
       setHasViewUpdated(true);
     } else {
       setHasViewUpdated(false);
@@ -143,6 +141,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     projectState.selectedStatus,
     projectState.selectedBillingType,
     projectState.selectedBusinessUnit,
+    viewData
   ]);
 
   const columns = getColumnInfo(
@@ -171,26 +170,6 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     },
   });
 
-  const updateView = useCallback(() => {
-    call({
-      view: viewInfo,
-    })
-      .then((res) => {
-        dispatch(setViews(res.message));
-        toast({
-          variant: "success",
-          description: "View Updated",
-        });
-        setHasViewUpdated(false);
-      })
-      .catch((err) => {
-        const error = parseFrappeErrorMsg(err);
-        toast({
-          variant: "destructive",
-          description: error,
-        });
-      });
-  }, [call, dispatch, toast, viewInfo]);
 
   const handleColumnHide = (id: string) => {
     setColumnVisibility((prev) => ({
@@ -232,20 +211,6 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [columnVisibility]);
 
-  useEffect(() => {
-    if (hasViewUpdated) {
-      remove();
-      toast({
-        description: "View has been updated.",
-        action: (
-          <ToastAction altText="Save" onClick={updateView}>
-            Save Changes
-          </ToastAction>
-        ),
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasViewUpdated, toast, updateView]);
   return (
     <>
       <ProjectHeader
@@ -254,6 +219,8 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
         setColumnOrder={setColumnOrder}
         onColumnHide={handleColumnHide}
         view={viewInfo}
+        stateUpdated={hasViewUpdated}
+        setStateUpdated={setHasViewUpdated}
       />
 
       {isLoading && projectState.data.length == 0 ? (
