@@ -4,7 +4,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SelectItem } from "@radix-ui/react-select";
 import { Save, Search, X } from "lucide-react";
 import { z } from "zod";
 
@@ -25,7 +24,7 @@ import { useToast } from "@/app/components/ui/use-toast";
 import { getFormatedDate } from "@/lib/utils";
 import { LeaveSchema } from "@/schema/timesheet";
 import { Checkbox } from "./ui/checkbox";
-import { Select, SelectContent, SelectGroup, SelectLabel, SelectTrigger, SelectValue } from "./ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "./ui/select";
 
 // interfaces
 interface LeaveTimeProps {
