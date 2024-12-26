@@ -1,9 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * External dependencies.
  */
-import { Filter, Ellipsis, Download, Plus } from "lucide-react";
-import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -13,82 +10,34 @@ import {
   useReactTable,
   ColumnSizingState,
 } from "@tanstack/react-table";
+import { useFrappeGetCall } from "frappe-react-sdk";
 import _ from "lodash";
 
 /**
  * Internal dependencies
  */
-import { DeBounceInput } from "@/app/components/deBounceInput";
-import { useQueryParamsState } from "@/lib/queryParam";
-import { RootState } from "@/store";
-import { Header, Footer } from "@/app/layout/root";
-import { LoadMore } from "@/app/components/loadMore";
-import {
-  setProjectData,
-  setSearch,
-  setSelectedProjectType,
-  setSelectedStatus,
-  Status,
-  setStart,
-  setFilters,
-  setSelectedBusinessUnit,
-  setTotalCount,
-  setCurrency,
-  setSelectedBilingType,
-  setOrderBy,
-} from "@/store/project";
-import { ComboxBox } from "@/app/components/comboBox";
-import { cn, parseFrappeErrorMsg, createFalseValuedObject, canExport } from "@/lib/utils";
-import { CreateView } from "@/app/components/listview/createView";
-import { useToast } from "@/app/components/ui/use-toast";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
-import { Badge } from "@/app/components/ui/badge";
-import { Typography } from "@/app/components/typography";
-import { Button } from "@/app/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/app/components/ui/dropdown-menu";
-import { Separator } from "@/app/components/ui/separator";
-import { useFrappeDocTypeCount } from "@/app/hooks/useFrappeDocCount";
-import { setViews, ViewData } from "@/store/view";
-import { sortOrder } from "@/types";
-import { getColumnInfo } from "./columns";
-import { getFilter, createFilter } from "./utils";
+
 import ViewWrapper from "@/app/components/listview/ViewWrapper";
-import ColumnSelector from "@/app/components/listview/ColumnSelector";
-import { Export } from "@/app/components/listview/export";
+import { LoadMore } from "@/app/components/loadMore";
 import { Spinner } from "@/app/components/spinner";
-import Sort from "@/app/components/listview/sort";
+import { Typography } from "@/app/components/typography";
+import { Separator } from "@/app/components/ui/separator";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
+import { useToast } from "@/app/components/ui/use-toast";
+import { useFrappeDocTypeCount } from "@/app/hooks/useFrappeDocCount";
+import { Footer } from "@/app/layout/root";
+import { parseFrappeErrorMsg, createFalseValuedObject } from "@/lib/utils";
+import { RootState } from "@/store";
+import { setProjectData, setStart, setFilters, setTotalCount } from "@/store/project";
+import { ViewData } from "@/store/view";
+import { DocMetaProps, sortOrder } from "@/types";
+import { getColumnInfo } from "./columns";
+import { Header as ProjectHeader } from "./Header";
+import { getFilter, createFilter } from "./utils";
 
 type ProjectProps = {
   viewData: ViewData;
-  meta: any;
-};
-const Action = ({ createView, openExportDialog }: { createView: () => void; openExportDialog: () => void }) => {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline">
-          <Ellipsis />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="mr-2 [&_div]:cursor-pointer  [&_div]:gap-x-1">
-        <DropdownMenuItem onClick={createView}>
-          <Plus />
-          <Typography variant="p">Create View </Typography>
-        </DropdownMenuItem>
-        {canExport("Project") && (
-          <DropdownMenuItem onClick={openExportDialog}>
-            <Download />
-            <Typography variant="p">Export </Typography>
-          </DropdownMenuItem>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
+  meta: DocMetaProps;
 };
 
 const Project = () => {
@@ -102,34 +51,14 @@ const Project = () => {
 
 const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   const [viewInfo, setViewInfo] = useState<ViewData>(viewData);
-  const user = useSelector((state: RootState) => state.user);
-  const appInfo = useSelector((state: RootState) => state.app);
-  const { call } = useFrappePostCall("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view");
   const { toast } = useToast();
-  const [isExportOpen, setIsExportOpen] = useState(false);
   const [hasViewUpdated, setHasViewUpdated] = useState(false);
   const [colSizing, setColSizing] = useState<ColumnSizingState>(viewData.columns ?? {});
   const [columnOrder, setColumnOrder] = useState<string[]>(viewData.rows ?? []);
-  const [isCreateViewOpen, setIsCreateViewOpen] = useState(false);
   const projectState = useSelector((state: RootState) => state.project);
   const [columnVisibility, setColumnVisibility] = useState(createFalseValuedObject(viewData.rows));
   const dispatch = useDispatch();
-  const [searchParam, setSearchParam] = useQueryParamsState("search", projectState.search);
-  const [projectTypeParam, setProjectTypeParam] = useQueryParamsState<Array<string>>(
-    "project-type",
-    projectState.selectedProjectType
-  );
-  const [statusParam, setStatusParam] = useQueryParamsState<Array<Status>>("status", projectState.selectedStatus);
-  const [billingTypeParam, setBillingTypeParam] = useQueryParamsState<Array<string>>(
-    "billing-type",
-    projectState.selectedBillingType
-  );
-  const [currencyParam, setCurrencyParam] = useQueryParamsState<string>("currency", "");
-  const [businessUnitParam, setBusinessUnitParam] = useQueryParamsState<Array<string>>(
-    "business-unit",
-    projectState.selectedBusinessUnit
-  );
-  const billing_type = ["Non-Billable", "Retainer", "Fixed Cost", "Time and Material"];
+
   useEffect(() => {
     dispatch(
       setFilters({
@@ -139,7 +68,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
         selectedBillingType: viewData.filters.billing_type ?? [],
         selectedBusinessUnit: viewData.filters.business_unit ?? [],
         currency: viewData.filters.currency ?? "",
-        order: viewData.order_by.order ?? "desc",
+        order: (viewData.order_by.order as sortOrder) ?? "desc",
         orderColumn: viewData.order_by.field ?? "modified",
       })
     );
@@ -148,41 +77,12 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     setColumnOrder(viewData.rows);
     setColumnVisibility(createFalseValuedObject(viewData.rows));
     setHasViewUpdated(false);
-  }, [viewData]);
-
-  const { data: projectType } = useFrappeGetCall(
-    "frappe.client.get_list",
-    {
-      doctype: "Project Type",
-      fields: ["name"],
-      limit_page_length: 0,
-    },
-    undefined,
-    {
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-    }
-  );
-  const { data: businessUnit } = useFrappeGetCall(
-    "frappe.client.get_list",
-    {
-      doctype: "Business Unit",
-      fields: ["name"],
-      limit_page_length: 0,
-    },
-    undefined,
-    {
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-    }
-  );
+  }, [dispatch, viewData]);
 
   const { data, error, isLoading } = useFrappeGetCall(
     "next_pms.timesheet.api.project.get_projects",
     {
       fields: viewInfo.rows ?? ["*"],
-      // eslint-disable-next-line
-      //   @ts-ignore
       filters: getFilter(projectState),
       limit_start: projectState.start,
       limit: projectState.pageLength,
@@ -195,7 +95,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     }
   );
   const { data: count } = useFrappeDocTypeCount("Project", { filters: getFilter(projectState) });
-
+  
   useEffect(() => {
     if (data) {
       dispatch(setProjectData(data.message));
@@ -207,7 +107,6 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
         description: err,
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, dispatch, error, toast]);
 
   useEffect(() => {
@@ -218,8 +117,8 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
 
   useEffect(() => {
     const updateViewData = {
-      ...viewInfo,
-      columns: { ...viewInfo.columns, ...colSizing },
+      ...viewData,
+      columns: { ...viewData.columns, ...colSizing },
       order_by: { field: projectState.orderColumn, order: projectState.order },
       filters: createFilter(projectState),
       rows: columnOrder,
@@ -234,81 +133,16 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   }, [
     colSizing,
     columnOrder,
-    projectState.orderColumn,
     projectState.order,
+    projectState.orderColumn,
     projectState.search,
+    projectState.currency,
     projectState.selectedProjectType,
     projectState.selectedStatus,
-    projectState.selectedBusinessUnit,
     projectState.selectedBillingType,
-    projectState.currency,
-  ]);
-  useEffect(() => {
-    setStatusParam(projectState.selectedStatus);
-    setBusinessUnitParam(projectState.selectedBusinessUnit);
-    setSearchParam(projectState.search);
-    setProjectTypeParam(projectState.selectedProjectType);
-    setBillingTypeParam(projectState.selectedBillingType);
-    setCurrencyParam(projectState.currency);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    projectState.search,
-    projectState.selectedProjectType,
-    projectState.selectedStatus,
     projectState.selectedBusinessUnit,
-    projectState.selectedBillingType,
-    projectState.currency,
+    viewData
   ]);
-
-  const handleSearch = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value.trim();
-      dispatch(setSearch(value));
-    },
-    [dispatch, setSearchParam]
-  );
-  const handleProjectTypeChange = useCallback(
-    (filters: string | string[]) => {
-      const normalizedFilters = Array.isArray(filters) ? filters : [filters];
-      dispatch(setSelectedProjectType(normalizedFilters));
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch]
-  );
-
-  const handleStatusChange = useCallback(
-    (filters: string | string[]) => {
-      const normalizedFilters = Array.isArray(filters) ? filters : [filters];
-      dispatch(setSelectedStatus(normalizedFilters as Status[]));
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch]
-  );
-  const handleBillingTypeChange = useCallback(
-    (filters: string | string[]) => {
-      const normalizedFilters = Array.isArray(filters) ? filters : [filters];
-      dispatch(setSelectedBilingType(normalizedFilters as Status[]));
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch]
-  );
-  const handleCurrencyChange = useCallback(
-    (filters: string | string[]) => {
-      const normalizedFilters = Array.isArray(filters) ? filters[0] : filters;
-      dispatch(setCurrency(normalizedFilters ?? ""));
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch]
-  );
-
-  const handleBuChange = useCallback(
-    (filters: string | string[]) => {
-      const normalizedFilters = Array.isArray(filters) ? filters : [filters];
-      dispatch(setSelectedBusinessUnit(normalizedFilters));
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dispatch]
-  );
 
   const columns = getColumnInfo(
     meta.fields,
@@ -316,7 +150,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     viewInfo.columns,
     meta.title_field,
     meta.doctype,
-    currencyParam
+    projectState.currency
   );
 
   const table = useReactTable({
@@ -336,41 +170,25 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     },
   });
 
-  const updateView = () => {
-    call({
-      view: viewInfo,
-    })
-      .then((res) => {
-        dispatch(setViews(res.message));
-        toast({
-          variant: "success",
-          description: "View Updated",
-        });
-        setHasViewUpdated(false);
-      })
-      .catch((err) => {
-        const error = parseFrappeErrorMsg(err);
-        toast({
-          variant: "destructive",
-          description: error,
-        });
-      });
-  };
+
   const handleColumnHide = (id: string) => {
     setColumnVisibility((prev) => ({
       ...prev,
       [id]: !prev[id],
     }));
   };
-  const updateColumnOrder = (visibility: { [key: string]: boolean }) => {
-    let newColumnOrder;
-    if (Object.keys(visibility).length == 0) {
-      newColumnOrder = columnOrder;
-    } else {
-      newColumnOrder = viewInfo.rows.filter((d) => visibility[d]).map((d) => d);
-    }
-    setColumnOrder(newColumnOrder);
-  };
+  const updateColumnOrder = useCallback(
+    (visibility: { [key: string]: boolean }) => {
+      let newColumnOrder;
+      if (Object.keys(visibility).length == 0) {
+        newColumnOrder = columnOrder;
+      } else {
+        newColumnOrder = viewInfo.rows.filter((d) => visibility[d]).map((d) => d);
+      }
+      setColumnOrder(newColumnOrder);
+    },
+    [columnOrder, viewInfo.rows]
+  );
 
   const updateColumnSize = (columns: Array<string>) => {
     setColSizing((prevColSizing) => {
@@ -383,172 +201,32 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
       return newColSizing;
     });
   };
-  const handleSortChange = (order: sortOrder, orderColumn: string) => {
-    dispatch(setOrderBy({ order, orderColumn }));
-  };
+
   useEffect(() => {
     updateColumnSize(columnOrder);
   }, [columnOrder]);
 
   useEffect(() => {
     updateColumnOrder(columnVisibility);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [columnVisibility]);
 
   return (
     <>
-      <Header className="gap-x-3 flex items-center overflow-x-auto">
-        <section id="filter-section" className="flex gap-x-2 items-center">
-          <DeBounceInput placeholder="Project Name" value={searchParam} deBounceValue={200} callback={handleSearch} />
+      <ProjectHeader
+        meta={meta}
+        columnOrder={columnOrder}
+        setColumnOrder={setColumnOrder}
+        onColumnHide={handleColumnHide}
+        view={viewInfo}
+        stateUpdated={hasViewUpdated}
+        setStateUpdated={setHasViewUpdated}
+      />
 
-          <ComboxBox
-            isMulti
-            label="Project Type"
-            shouldFilter
-            value={projectTypeParam}
-            onSelect={handleProjectTypeChange}
-            leftIcon={<Filter className={cn(projectState.selectedProjectType.length != 0 && "fill-primary")} />}
-            rightIcon={
-              projectState.selectedProjectType.length > 0 && (
-                <Badge className="px-1.5">{projectState.selectedProjectType.length}</Badge>
-              )
-            }
-            data={projectType?.message.map((d: { name: string }) => ({
-              label: d.name,
-              value: d.name,
-            }))}
-            className="text-primary border-dashed gap-x-1 font-normal w-fit"
-          />
-          <ComboxBox
-            isMulti
-            label="Status"
-            shouldFilter
-            value={statusParam}
-            onSelect={handleStatusChange}
-            leftIcon={<Filter className={cn(projectState.selectedStatus.length != 0 && "fill-primary")} />}
-            rightIcon={
-              projectState.selectedStatus.length > 0 && (
-                <Badge className="px-1.5">{projectState.selectedStatus.length}</Badge>
-              )
-            }
-            data={projectState.statusList.map((d: string) => ({
-              label: d,
-              value: d,
-            }))}
-            className="text-primary border-dashed  font-normal w-fit"
-          />
-          <ComboxBox
-            isMulti
-            label="Business Unit"
-            shouldFilter
-            value={businessUnitParam}
-            onSelect={handleBuChange}
-            leftIcon={<Filter className={cn(projectState.selectedBusinessUnit.length != 0 && "fill-primary")} />}
-            rightIcon={
-              projectState.selectedBusinessUnit.length > 0 && (
-                <Badge className="px-1.5">{projectState.selectedBusinessUnit.length}</Badge>
-              )
-            }
-            data={
-              businessUnit?.message?.map((d: { name: string }) => ({
-                label: d.name,
-                value: d.name,
-              })) ?? []
-            }
-            className="text-primary border-dashed  font-normal w-fit"
-          />
-          <ComboxBox
-            isMulti
-            label="Billing Type"
-            shouldFilter
-            value={billingTypeParam}
-            onSelect={handleBillingTypeChange}
-            leftIcon={<Filter className={cn(projectState.selectedBillingType.length != 0 && "fill-primary")} />}
-            rightIcon={
-              projectState.selectedBillingType.length > 0 && (
-                <Badge className="px-1.5">{projectState.selectedBillingType.length}</Badge>
-              )
-            }
-            data={billing_type.map((d: string) => ({
-              label: d,
-              value: d,
-            }))}
-            className="text-primary border-dashed gap-x-1 font-normal w-fit"
-          />
-          <ComboxBox
-            label="Currency"
-            shouldFilter
-            showSelected
-            value={currencyParam ? [currencyParam] : []}
-            onSelect={handleCurrencyChange}
-            data={appInfo.currencies.map((d: string) => ({
-              label: d,
-              value: d,
-            }))}
-            className="text-primary border-dashed  font-normal w-fit"
-          />
-        </section>
-        <div className="flex gap-x-2">
-          {hasViewUpdated &&
-            (user.user == viewInfo.owner || (viewInfo.public == true && user.user == "Administrator")) && (
-              <Button onClick={updateView} variant="ghost">
-                Save Changes
-              </Button>
-            )}
-          <ColumnSelector
-            onColumnHide={handleColumnHide}
-            fieldMeta={meta?.fields}
-            setColumnOrder={setColumnOrder}
-            columnOrder={viewInfo.rows}
-          />
-          <Sort
-            fieldMeta={meta.fields}
-            orderBy={projectState.order}
-            field={projectState.orderColumn}
-            onSortChange={handleSortChange}
-          />
-          <Action
-            createView={() => {
-              setIsCreateViewOpen(true);
-            }}
-            openExportDialog={() => {
-              setIsExportOpen(true);
-            }}
-          />
-        </div>
-      </Header>
       {isLoading && projectState.data.length == 0 ? (
         <Spinner isFull />
       ) : (
         <>
-          {canExport("Project") && (
-            <Export
-              isOpen={isExportOpen}
-              setIsOpen={setIsExportOpen}
-              doctype="Project"
-              pageLength={projectState.data.length}
-              totalCount={projectState.totalCount}
-              orderBy={`${projectState.orderColumn}  ${projectState.order}`}
-              fields={viewData.rows.reduce((acc, d) => {
-                if (d !== "name") {
-                  const m = meta.fields.find((field: { fieldname: string }) => field.fieldname === d);
-                  acc[d] = m?.label ?? d;
-                }
-                return acc;
-              }, {})}
-            />
-          )}
-          <CreateView
-            isOpen={isCreateViewOpen}
-            setIsOpen={setIsCreateViewOpen}
-            dt="Project"
-            filters={createFilter(projectState)}
-            orderBy={{ field: projectState.orderColumn, order: projectState.order }}
-            route="project"
-            isDefault={false}
-            isPublic={false}
-            columns={viewInfo.columns}
-            rows={viewInfo.rows}
-          />
           <Table className=" [&_td]:px-4 [&_th]:px-4 [&_th]:py-2 table-fixed" style={{ width: table.getTotalSize() }}>
             <TableHeader className=" border-t-0 sticky top-0 z-10 ">
               {table.getHeaderGroups().map((headerGroup) => (

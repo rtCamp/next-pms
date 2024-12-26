@@ -10,13 +10,15 @@ import { FrappeConfig, FrappeContext } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import { TIMESHEET, HOME, TEAM, TASK, PROJECT, RESOURCE_MANAGEMENT } from "@/lib/constant";
-import { Layout, PmRoute } from "@/app/layout/index";
 import { UserContext } from "@/lib/UserProvider";
 import { RootState } from "./store";
 import { setCurrency } from "./store/app";
 import { setRole } from "./store/user";
 import { setViews } from "./store/view";
 
+/**
+ * Lazy load components.
+ */
 const TimesheetComponent = lazy(() => import("@/app/pages/timesheet"));
 const HomeComponent = lazy(() => import("@/app/pages/home"));
 const TeamComponent = lazy(() => import("@/app/pages/team"));
@@ -25,11 +27,13 @@ const EmployeeDetailComponent = lazy(() => import("@/app/pages/team/employeeDeta
 const TaskComponent = lazy(() => import("@/app/pages/task"));
 const ProjectComponent = lazy(() => import("@/app/pages/project"));
 const NotFound = lazy(() => import("@/app/pages/404"));
+const Layout = lazy(() => import("@/app/layout"));
+const PmRoute = lazy(() => import("@/app/layout/PmRoute"));
 
 export function Router() {
   return (
     <Route>
-      <Route element={<AuthenticatedRoute />} >
+      <Route element={<AuthenticatedRoute />}>
         <Route path="/" element={<Navigate to={TIMESHEET} replace />} />
         <Route path={TIMESHEET} element={<TimesheetComponent />} />
         <Route element={<PmRoute />}>

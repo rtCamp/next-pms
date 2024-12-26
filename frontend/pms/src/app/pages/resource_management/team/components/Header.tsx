@@ -1,14 +1,16 @@
 /**
  * External dependencies.
  */
-import { addDays } from "date-fns";
-import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
 import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+
+import { addDays } from "date-fns";
+import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
+import { Header } from "@/app/components/listview/header";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { getFormatedDate } from "@/lib/utils";
 import { RootState } from "@/store";
@@ -25,8 +27,6 @@ import {
   setView,
   setWeekDate,
 } from "@/store/resource_management/team";
-
-import { ResourceHeaderSection } from "../../components/Header";
 
 /**
  * This component is responsible for loading the team view header.
@@ -88,7 +88,7 @@ const ResourceTeamHeaderSection = () => {
   }, [dispatch, resourceTeamState.data.dates]);
 
   return (
-    <ResourceHeaderSection
+    <Header
       filters={[
         {
           queryParameterName: "employee-name",
@@ -129,8 +129,9 @@ const ResourceTeamHeaderSection = () => {
           },
           type: "select-search",
           value: resourceTeamState.businessUnit,
-          defaultValue: "",
           label: "Business Unit",
+          shouldFilterComboBox: true,
+          isMultiComboBox: true,
           hide: !resourceAllocationPermission.write,
           apiCall: {
             url: "frappe.client.get_list",
@@ -144,7 +145,7 @@ const ResourceTeamHeaderSection = () => {
               revalidateIfStale: false,
             },
           },
-          queryParameterDefault: [],
+          queryParameterDefault: resourceTeamState.businessUnit,
         },
         {
           queryParameterName: "designation",
@@ -156,7 +157,8 @@ const ResourceTeamHeaderSection = () => {
           },
           type: "select-search",
           value: resourceTeamState.designation,
-          defaultValue: "",
+          shouldFilterComboBox: true,
+          isMultiComboBox: true,
           label: "Designation",
           hide: !resourceAllocationPermission.write,
           apiCall: {
@@ -172,7 +174,7 @@ const ResourceTeamHeaderSection = () => {
               revalidateIfStale: false,
             },
           },
-          queryParameterDefault: [],
+          queryParameterDefault: resourceTeamState.designation,
         },
         {
           queryParameterName: "allocation-type",
@@ -184,7 +186,8 @@ const ResourceTeamHeaderSection = () => {
           },
           type: "select-list",
           value: resourceTeamState.allocationType,
-          defaultValue: "",
+          shouldFilterComboBox: true,
+          isMultiComboBox: true,
           label: "Allocation Type",
           data: [
             {
@@ -196,7 +199,7 @@ const ResourceTeamHeaderSection = () => {
               value: "Non-Billable",
             },
           ],
-          queryParameterDefault: "",
+          queryParameterDefault: resourceTeamState.allocationType,
           hide: !resourceAllocationPermission.write,
         },
         {
@@ -252,6 +255,7 @@ const ResourceTeamHeaderSection = () => {
           icon: () => <ChevronRight className="w-4 max-md:w-3 h-4 max-md:h-3" />,
         },
       ]}
+      showFilterValue
     />
   );
 };

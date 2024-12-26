@@ -1,24 +1,25 @@
 /**
  * External dependencies
  */
-import { FrappeContext, FrappeConfig, useFrappeGetCall } from "frappe-react-sdk";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useSearchParams } from "react-router-dom";
+import { FrappeContext, FrappeConfig, useFrappeGetCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies
  */
-import { RootState } from "@/store";
-import { setViews, ViewData } from "@/store/view";
 import { getDefaultView } from "@/app/components/listview/utils";
 import { Spinner } from "@/app/components/spinner";
-import { parseFrappeErrorMsg } from "@/lib/utils";
 import { useToast } from "@/app/components/ui/use-toast";
+import { parseFrappeErrorMsg } from "@/lib/utils";
+import { RootState } from "@/store";
+import { setViews, ViewData } from "@/store/view";
+import { DocMetaProps } from "@/types";
 
 type ViewWrapperProps = {
   docType: string;
-  children: (props: { viewData: ViewData; meta: any }) => React.ReactNode;
+  children: (props: { viewData: ViewData; meta: { message: DocMetaProps } }) => React.ReactNode;
 };
 
 /**
@@ -39,6 +40,9 @@ const ViewWrapper = ({ docType, children }: ViewWrapperProps) => {
   const view = searchParams.get("view");
   const { data: meta } = useFrappeGetCall("next_pms.timesheet.api.app.get_doc_meta", {
     doctype: docType,
+  }, undefined, {
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
   });
 
   const defaultFields = useMemo(() => {
