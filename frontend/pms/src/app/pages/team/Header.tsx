@@ -50,7 +50,6 @@ export const Header = () => {
   }, []);
   const handleEmployeeChange = useCallback(
     (text: string) => {
-      console.log(text);
       dispatch(setEmployeeName(text.trim()));
     },
     [dispatch]
