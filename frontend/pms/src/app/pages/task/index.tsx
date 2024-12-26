@@ -15,7 +15,6 @@ import AddTime from "@/app/components/AddTime";
 import ViewWrapper from "@/app/components/listview/ViewWrapper";
 import { LoadMore } from "@/app/components/loadMore";
 import { Typography } from "@/app/components/typography";
-import { ToastAction } from "@/app/components/ui/toast";
 import { useToast } from "@/app/components/ui/use-toast";
 import { Footer } from "@/app/layout/root";
 import {
@@ -27,7 +26,7 @@ import {
 import { RootState } from "@/store";
 import { setStart, updateTaskData, setTaskData, setSelectedTask, setFilters } from "@/store/task";
 import { SetAddTimeDialog, SetTimesheet } from "@/store/timesheet";
-import { setViews, ViewData } from "@/store/view";
+import { ViewData } from "@/store/view";
 import { DocMetaProps } from "@/types";
 import { ColumnsType, columnsToExcludeActionsInTablesType } from "@/types/task";
 import { AddTask } from "./AddTask";
@@ -54,17 +53,16 @@ interface TaskTableProps {
 }
 
 const TaskTable = ({ viewData, meta }: TaskTableProps) => {
+  const task = useSelector((state: RootState) => state.task);
   const [viewInfo, setViewInfo] = useState<ViewData>(viewData);
 
-  const task = useSelector((state: RootState) => state.task);
   const user = useSelector((state: RootState) => state.user);
   const timesheet = useSelector((state: RootState) => state.timesheet);
   const columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType = ["liked", "timesheetAction"];
 
   const dispatch = useDispatch();
-  const { toast, remove } = useToast();
+  const { toast } = useToast();
 
-  const { call } = useFrappePostCall("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view");
   const [hasViewUpdated, setHasViewUpdated] = useState(false);
   const [colSizing, setColSizing] = useState<ColumnSizingState>(viewData.columns ?? {});
   const [columnOrder, setColumnOrder] = useState<string[]>(viewData.rows ?? []);
@@ -88,27 +86,6 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     setHasViewUpdated(false);
   }, [dispatch, viewData]);
 
-  // On View Update
-  const updateView = () => {
-    call({
-      view: viewInfo,
-    })
-      .then((res) => {
-        dispatch(setViews(res.message));
-        toast({
-          variant: "success",
-          description: "View Updated",
-        });
-        setHasViewUpdated(false);
-      })
-      .catch((err) => {
-        const error = parseFrappeErrorMsg(err);
-        toast({
-          variant: "destructive",
-          description: error,
-        });
-      });
-  };
 
   const handleColumnHide = (id: string) => {
     setColumnVisibility((prev) => ({
@@ -230,23 +207,24 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
   const openTaskLog = (taskName: string) => {
     dispatch(setSelectedTask({ task: taskName, isOpen: true }));
   };
+ 
 
   useEffect(() => {
     const updateViewData = {
-      ...viewInfo,
-      columns: { ...viewInfo.columns, ...colSizing },
+      ...viewData,
+      columns: { ...viewData.columns, ...colSizing },
       order_by: { field: task.orderColumn, order: task.order },
       filters: createFilter(task),
       rows: columnOrder,
     };
-    if (!_.isEqual(updateViewData, viewInfo)) {
+    if (!_.isEqual(viewData, updateViewData)) {
       setHasViewUpdated(true);
     } else {
       setHasViewUpdated(false);
     }
     setViewInfo(updateViewData);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [colSizing, columnOrder, task.orderColumn, task.order, task.search, task.selectedProject, task.selectedStatus]);
+  }, [colSizing, columnOrder, task.orderColumn, task.order, task.search, task.selectedProject, task.selectedStatus,viewData]);
 
   const columns: ColumnsType = getColumn(
     meta.fields,
@@ -283,20 +261,6 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
   const loadMore = () => {
     dispatch(setStart(task.start + 20));
   };
-  useEffect(() => {
-    if (hasViewUpdated) {
-      remove();
-      toast({
-        description: "View has been updated.",
-        action: (
-          <ToastAction altText="Save" onClick={updateView}>
-            Save Changes
-          </ToastAction>
-        ),
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasViewUpdated, toast]);
 
   return (
     <>
@@ -305,7 +269,9 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
         columnOrder={columnOrder}
         setColumnOrder={setColumnOrder}
         onColumnHide={handleColumnHide}
-        view={viewData}
+        view={viewInfo}
+        stateUpdated={hasViewUpdated}
+        setStateUpdated = {setHasViewUpdated}
       />
       {/* Task logs */}
       {task.isTaskLogDialogBoxOpen && (

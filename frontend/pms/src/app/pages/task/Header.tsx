@@ -3,14 +3,17 @@
  */
 import { useCallback, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useFrappePostCall } from "frappe-react-sdk";
 import { Plus } from "lucide-react";
 /**
  * Internal dependencies
  */
 import { Header as ListViewHeader } from "@/app/components/listview/header";
+import { useToast } from "@/app/components/ui/use-toast";
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setAddTaskDialog, setSearch, setSelectedProject, setSelectedStatus, TaskStatusType } from "@/store/task";
-import { ViewData } from "@/store/view";
+import { updateView, ViewData } from "@/store/view";
 import { DocMetaProps } from "@/types";
 import { createFilter } from "./utils";
 
@@ -20,11 +23,39 @@ interface HeaderProps {
   setColumnOrder: React.Dispatch<React.SetStateAction<string[]>>;
   onColumnHide: (column: string) => void;
   view: ViewData;
+  stateUpdated:boolean;
+  setStateUpdated:(value:boolean)=>void;
 }
-export const Header = ({ meta, columnOrder, setColumnOrder, onColumnHide, view }: HeaderProps) => {
+export const Header = ({ meta, columnOrder, setColumnOrder, onColumnHide, view,stateUpdated,setStateUpdated }: HeaderProps) => {
   const taskState = useSelector((state: RootState) => state.task);
   const [projectSearch, setProjectSeach] = useState<string>("");
+  const {toast} = useToast();
   const dispatch = useDispatch();
+
+  // frappe-call for updating view
+  const { call } = useFrappePostCall("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view");
+
+  // Handle save changes
+  const handleSaveChanges= () => {
+    call({
+      view: view,
+    })
+      .then((res) => {
+        dispatch(updateView(res.message));
+        toast({
+          variant: "success",
+          description: "View Updated",
+        });
+        setStateUpdated(false);
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          description: error,
+        });
+      });
+  };
 
   const handleSearch = (text: string) => {
     dispatch(setSearch(text));
@@ -135,6 +166,16 @@ export const Header = ({ meta, columnOrder, setColumnOrder, onColumnHide, view }
     },
   };
   const buttons = [
+    {
+      title: "Save changes",
+      handleClick: () => {
+        handleSaveChanges();
+      },
+      hide:!stateUpdated,
+      label: "Save changes",
+      variant: "ghost",
+      className: "h-10 px-2 py-2",
+    },
     {
       title: "Task",
       handleClick: () => {

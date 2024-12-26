@@ -41,17 +41,11 @@ export const CreateView = ({
 }: CreateViewProps) => {
   const { call } = useFrappePostCall("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.create_view");
   const user = useSelector((state: RootState) => state.user);
-  const defaultRows = ["name", "creation", "modified"];
   const [label, setLabel] = useState("");
   const dispatch = useDispatch();
   const [openEmoji, setOpenEmoji] = useState(false);
   const [selectedEmoji, setSelectedEmoji] = useState("😀");
   const createView = () => {
-    defaultRows.forEach((value) => {
-      if (!rows.includes(value)) {
-        rows.push(value);
-      }
-    });
     const view = {
       dt: dt,
       rows: rows,
