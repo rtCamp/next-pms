@@ -29,7 +29,7 @@ function useInfiniteScroll({
   isLoading,
   hasMore,
   next,
-  threshold = 1,
+  threshold = 0.5,
   root = null,
   rootMargin = "0px",
 }: InfiniteScrollProps) {
@@ -47,7 +47,10 @@ function useInfiniteScroll({
 
       observer.current = new IntersectionObserver(
         (entries) => {
-          if (entries[0].isIntersecting && hasMore) {
+          if (
+            (entries[0].isIntersecting || entries[0].intersectionRatio > 0.1) &&
+            hasMore
+          ) {
             next();
           }
         },

@@ -20,7 +20,7 @@ import useSWRInfinite, {
  * @typeParam T - Type of the data returned by the method
  * @returns an object (SWRResponse) with the following properties: data (number), error, isValidating, and mutate
  */
-export const useFrappeGetCallInfinite = <T = any>(
+export const usePagination = <T = any>(
   method: string,
   getKey: (index: number, previousPageData: T | null) => StrictTupleKey,
   params?: Record<string, any>,

@@ -45,6 +45,7 @@ const ResourceTableRow = ({
   RowComponent,
   RowExpandView,
 }: ResourceTeamTableRowProps) => {
+  
   return (
     <Accordion type="multiple" key={name} className="w-full">
       <AccordionItem value={name} className="border-b-0">
