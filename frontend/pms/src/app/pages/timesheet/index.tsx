@@ -140,16 +140,6 @@ function Timesheet() {
     dispatch(SetAddTimeDialog(true));
   };
   const handleAddLeave = () => {
-    const timesheetData = {
-      name: "",
-      task: "",
-      date: getFormatedDate(getDateTimeForMultipleTimeZoneSupport()),
-      description: "",
-      hours: 0,
-      employee: user.employee,
-      project: "",
-    };
-    dispatch(SetTimesheet(timesheetData));
     dispatch(SetAddLeaveDialog(true));
   };
 
@@ -326,14 +316,14 @@ function Timesheet() {
       {timesheet.isAprrovalDialogOpen && <Approval onClose={mutate} />}
       {timesheet.isLeaveDialogOpen && (
         <AddLeave
-          employee={timesheet.timesheet.employee as string}
+          employee={user.employee}
           open={timesheet.isLeaveDialogOpen}
           onOpenChange={() => {
             dispatch(SetAddLeaveDialog(false));
-            // mutate();
+            mutate();
           }}
           onSuccess={() => {
-            // mutate();
+            mutate();
           }}
         />
       )}
