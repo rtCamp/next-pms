@@ -100,21 +100,28 @@ def is_holiday_or_leave(date: datetime.date, employee: str, daily_norm: int) -> 
 
 
 def get_leave_info(employee: str, date: datetime.date, daily_norm: int) -> bool:
-    leave = frappe.db.exists(
-        "Leave Application",
-        {
-            "employee": employee,
-            "from_date": ["<=", date],
-            "to_date": [">=", date],
-            "status": ["in", ["Open", "Approved"]],
-        },
+    # nosemgrep
+    leaves = frappe.db.sql(
+        """
+        SELECT *
+        FROM `tabLeave Application`
+        WHERE %(date)s BETWEEN from_date AND to_date AND employee = %(employee)s AND status IN ('Approved', 'Open')
+        """,
+        values={"date": date, "employee": employee},
+        as_dict=True,
     )
-    if not leave:
+
+    if not leaves:
         return {"is_leave": False, "is_half_day": False, "hours": 0}
+    leave_hours = 0
+    for leave in leaves:
+        if leave.half_day and getdate(leave.half_day_date) == date:
+            leave_hours += daily_norm / 2
+        else:
+            leave_hours += daily_norm
 
-    leave_application = frappe.get_doc("Leave Application", leave)
-
-    if leave_application.half_day and getdate(leave_application.half_day_date) == date:
-        return {"is_leave": True, "is_half_day": True, "hours": daily_norm / 2}
-
-    return {"is_leave": True, "is_half_day": False, "hours": daily_norm}
+    return {
+        "is_leave": leave_hours > 0,
+        "is_half_day": leave_hours < daily_norm,
+        "hours": leave_hours,
+    }
