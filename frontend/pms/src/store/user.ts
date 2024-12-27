@@ -18,6 +18,7 @@ interface InitiDataProps {
   workingHours: number;
   workingFrequency: WorkingFrequency;
   reportsTo: string;
+  employeeName: string;
 }
 
 export interface UserState {
@@ -30,7 +31,9 @@ export interface UserState {
   workingHours: number;
   workingFrequency: WorkingFrequency;
   reportsTo: string;
+  employeeName: string;
 }
+
 
 const initialState: UserState = {
   //@ts-ignore
@@ -39,8 +42,8 @@ const initialState: UserState = {
   image: userImage ?? "",
   isSidebarCollapsed: false,
   employee: "",
-  //@ts-ignore
-  user: decodeURIComponent(user),
+  employeeName: "",
+  user: decodeURIComponent(user ?? ""),
   workingHours: 0,
   workingFrequency: "Per Day",
   reportsTo: "",
@@ -84,6 +87,7 @@ const userSlice = createSlice({
       state.workingHours = action.payload.workingHours;
       state.workingFrequency = action.payload.workingFrequency;
       state.reportsTo = action.payload.reportsTo;
+      state.employeeName = action.payload.employeeName;
     }
   },
 });

@@ -11,6 +11,7 @@ import { Paperclip, Plus } from "lucide-react";
 /**
  * Internal dependencies.
  */
+import AddLeave from "@/app/components/AddLeave";
 import AddTime from "@/app/components/AddTime";
 import { LoadMore } from "@/app/components/loadMore";
 import { Spinner } from "@/app/components/spinner";
@@ -44,7 +45,7 @@ import {
 } from "@/store/timesheet";
 import { WorkingFrequency } from "@/types";
 import { HolidayProp, LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
-import AddLeave from "@/app/components/addLeave";import { Approval } from "./Approval";
+import { Approval } from "./Approval";
 import { EditTime } from "./EditTime";
 
 function Timesheet() {
@@ -307,6 +308,7 @@ function Timesheet() {
           workingHours={user.workingHours}
           task={timesheet.timesheet.task}
           project={timesheet.timesheet.project}
+          employeeName={user.employeeName}
         />
       )}
       {timesheet.isEditDialogOpen && (

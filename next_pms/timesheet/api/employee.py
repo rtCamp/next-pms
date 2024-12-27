@@ -8,6 +8,7 @@ def get_data():
     employee = get_employee_from_user()
     return {
         "employee": employee,
+        "employee_name": frappe.db.get_value("Employee", employee, "employee_name"),
         "employee_working_detail": get_employee_working_hours(employee),
         "employee_report_to": frappe.db.get_value("Employee", employee, "reports_to"),
     }

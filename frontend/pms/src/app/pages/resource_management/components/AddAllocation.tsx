@@ -298,6 +298,7 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
                   </FormLabel>
                   <FormControl>
                     <EmployeeCombo
+                      employeeName={resourceAllocationForm.employeeName}
                       status={["Active"]}
                       onSelect={handleEmployeeChange}
                       value={form.getValues("employee")}

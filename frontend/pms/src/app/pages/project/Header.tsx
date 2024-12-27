@@ -223,7 +223,9 @@ export const Header = ({
       })),
       queryParameterDefault: projectState.currency,
       handleChange: handleCurrencyChange,
-      handleDelete: handleCurrencyChange,
+      handleDelete: useCallback(() => { 
+        dispatch(setCurrency(""));
+      }, [dispatch]),
       shouldFilterComboBox: true,
       isMultiComboBox: false,
     },
