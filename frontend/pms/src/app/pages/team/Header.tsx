@@ -190,7 +190,7 @@ export const Header = () => {
       apiCall: {
         url: "frappe.client.get_list",
         filters: {
-          doctype: "User group",
+          doctype: "User Group",
           fields: ["name"],
           or_filters: [["name", "like", `%${userGroupSearch}%`]],
         },
