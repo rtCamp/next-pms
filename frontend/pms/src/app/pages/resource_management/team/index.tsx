@@ -18,7 +18,7 @@ import { getIsBillableValue } from "../utils/helper";
 import { getMergeData } from "../utils/value";
 import { ResourceTeamTable } from "./components/Table";
 import AddResourceAllocations from "../components/AddAllocation";
-import { useFrappeGetCallInfinite } from "../hooks/useFrappeGetCallInfinite";
+import { useFrappeGetCallInfinite } from "../hooks/usePagination";
 import { ResourceTeamHeaderSection } from "./components/Header";
 
 /**

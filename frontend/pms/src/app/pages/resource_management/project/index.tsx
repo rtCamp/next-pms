@@ -17,7 +17,7 @@ import { setData, setReFetchData } from "@/store/resource_management/project";
 import AddResourceAllocations from "../components/AddAllocation";
 import { getIsBillableValue } from "../utils/helper";
 import { ResourceProjectTable } from "./components/Table";
-import { useFrappeGetCallInfinite } from "../hooks/useFrappeGetCallInfinite";
+import { useFrappeGetCallInfinite } from "../hooks/usePagination";
 import { getMergeData } from "../utils/value";
 import { ResourceProjectHeaderSection } from "./components/Header";
 
