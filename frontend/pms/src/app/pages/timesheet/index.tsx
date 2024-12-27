@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { addDays } from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
@@ -11,10 +11,10 @@ import { Paperclip, Plus } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import AddTime from "@/app/components/addTime";
+import AddTime from "@/app/components/AddTime";
 import { LoadMore } from "@/app/components/loadMore";
 import { Spinner } from "@/app/components/spinner";
-import TimesheetTable, { SubmitButton } from "@/app/components/timesheetTable";
+import TimesheetTable, { SubmitButton } from "@/app/components/TimesheetTable";
 import { Typography } from "@/app/components/typography";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Button } from "@/app/components/ui/button";
@@ -42,14 +42,13 @@ import {
   setApprovalDialog,
   SetAddLeaveDialog,
 } from "@/store/timesheet";
-import { EditTime } from "./EditTime";
-import { Approval } from "./Approval";
 import { WorkingFrequency } from "@/types";
 import { HolidayProp, LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
-import AddLeave from "@/app/components/addLeave";
+import AddLeave from "@/app/components/addLeave";import { Approval } from "./Approval";
+import { EditTime } from "./EditTime";
 
 function Timesheet() {
-  const targetRef = useRef(null);
+  const targetRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const [startDateParam, setstartDateParam] = useQueryParamsState<string>("date", "");
   const user = useSelector((state: RootState) => state.user);
@@ -70,7 +69,7 @@ function Timesheet() {
     );
   };
 
-  const validateDate = () => {
+  const validateDate = useCallback(() => {
     if (!startDateParam) {
       return true;
     }
@@ -86,7 +85,8 @@ function Timesheet() {
     }
 
     return false;
-  };
+  }, [startDateParam, timesheet.data?.data]);
+
   useEffect(() => {
     const scrollToElement = () => {
       if (targetRef.current) {
@@ -112,17 +112,18 @@ function Timesheet() {
         description: err,
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, error]);
+  }, [data, dispatch, error, timesheet.data?.data, toast]);
 
   useEffect(() => {
     if (Object.keys(timesheet.data.data).length == 0) return;
     if (!validateDate()) {
       const obj = timesheet.data.data;
-      const info = obj[Object.keys(obj).pop()];
+      const lastKey = Object.keys(obj).pop();
+      if (!lastKey) return;
+      const info = obj[lastKey];
       dispatch(SetWeekDate(getFormatedDate(addDays(info.start_date, -1))));
     }
-  }, [startDateParam, timesheet.data.data]);
+  }, [dispatch, startDateParam, timesheet.data.data, validateDate]);
 
   const handleAddTime = () => {
     const timesheetData = {
@@ -163,9 +164,10 @@ function Timesheet() {
   const loadData = () => {
     const data = timesheet.data.data;
     if (Object.keys(data).length === 0) return;
-    // eslint-disable-next-line
-    // @ts-expect-error
-    const obj = data[Object.keys(data).pop()];
+
+    const lastKey = Object.keys(data).pop();
+    if (!lastKey) return;
+    const obj = data[lastKey];
     setstartDateParam("");
     dispatch(SetWeekDate(getFormatedDate(addDays(obj.start_date, -1))));
   };

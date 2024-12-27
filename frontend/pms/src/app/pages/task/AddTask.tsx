@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFrappePostCall } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { Search, LoaderCircle, Save, X } from "lucide-react";
 import { z } from "zod";
 
@@ -25,20 +25,8 @@ import { parseFrappeErrorMsg } from "@/lib/utils";
 import { TaskSchema } from "@/schema/task";
 import { TaskState, AddTaskType, setAddTaskDialog } from "@/store/task";
 import { ProjectProps } from "@/types";
-import { setProjectSearchType } from "@/types/task";
 
-export const AddTask = ({
-  task,
-  projects,
-  setProjectSearch,
-  mutate
-}: {
-  task: TaskState;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    projects: any;
-  mutate:any
-  setProjectSearch: setProjectSearchType;
-}) => {
+export const AddTask = ({ task, mutate }: { task: TaskState; mutate: any }) => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const dispatch = useDispatch();
   const { toast } = useToast();
@@ -53,6 +41,12 @@ export const AddTask = ({
       description: "",
     },
     mode: "onSubmit",
+  });
+
+  const { data: projects } = useFrappeGetCall("frappe.client.get_list", {
+    doctype: "Project",
+    fields: ["name", "project_name"],
+    limit_page_length: "null",
   });
   const {
     formState: { isDirty, isValid },
@@ -86,7 +80,6 @@ export const AddTask = ({
   };
   const closeAddTaskDialog = () => {
     if (isSubmitting) return;
-    setProjectSearch("");
     form.reset();
     dispatch(setAddTaskDialog(false));
     mutate();
@@ -100,9 +93,7 @@ export const AddTask = ({
   const handleProjectChange = (data: string[] | string) => {
     form.setValue("project", data[0]);
   };
-  const handleProjectSearch = (searchString: string) => {
-    setProjectSearch(searchString);
-  };
+
   return (
     <>
       <Dialog onOpenChange={closeAddTaskDialog} open={task.isAddTaskDialogBoxOpen}>
@@ -183,14 +174,14 @@ export const AddTask = ({
                         <ComboxBox
                           label="Search Project"
                           showSelected
+                          shouldFilter
                           value={form.getValues("project") ? [form.getValues("project")] : []}
                           data={projects?.message?.map((item: ProjectProps) => ({
                             label: item.project_name,
                             value: item.name,
                           }))}
                           onSelect={handleProjectChange}
-                          onSearch={handleProjectSearch}
-                          rightIcon={<Search className="h-4 w-4 stroke-slate-400" />}
+                          rightIcon={<Search className="tasksstroke-slate-400" />}
                         />
                       </FormControl>
                       <FormMessage />

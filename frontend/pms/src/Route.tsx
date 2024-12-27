@@ -10,27 +10,30 @@ import { FrappeConfig, FrappeContext } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import { TIMESHEET, HOME, TEAM, TASK, PROJECT, RESOURCE_MANAGEMENT } from "@/lib/constant";
-import { Layout, PmRoute } from "@/app/layout/index";
 import { UserContext } from "@/lib/UserProvider";
 import { RootState } from "./store";
 import { setCurrency } from "./store/app";
 import { setRole } from "./store/user";
 import { setViews } from "./store/view";
 
+/**
+ * Lazy load components.
+ */
 const TimesheetComponent = lazy(() => import("@/app/pages/timesheet"));
 const HomeComponent = lazy(() => import("@/app/pages/home"));
 const TeamComponent = lazy(() => import("@/app/pages/team"));
-const TeamResourceComponent = lazy(() => import("@/app/pages/resource_management/team"));
-const ProjectResourceComponent = lazy(() => import("@/app/pages/resource_management/project"));
+const ResourceComponent = lazy(() => import("@/app/pages/resource_management"));
 const EmployeeDetailComponent = lazy(() => import("@/app/pages/team/employeeDetail"));
 const TaskComponent = lazy(() => import("@/app/pages/task"));
 const ProjectComponent = lazy(() => import("@/app/pages/project"));
 const NotFound = lazy(() => import("@/app/pages/404"));
+const Layout = lazy(() => import("@/app/layout"));
+const PmRoute = lazy(() => import("@/app/layout/PmRoute"));
 
 export function Router() {
   return (
     <Route>
-      <Route element={<AuthenticatedRoute />} >
+      <Route element={<AuthenticatedRoute />}>
         <Route path="/" element={<Navigate to={TIMESHEET} replace />} />
         <Route path={TIMESHEET} element={<TimesheetComponent />} />
         <Route element={<PmRoute />}>
@@ -43,8 +46,8 @@ export function Router() {
         </Route>
         <Route path={TASK} element={<TaskComponent />} />
         <Route path={RESOURCE_MANAGEMENT}>
-          <Route path={`${RESOURCE_MANAGEMENT}/team`} element={<TeamResourceComponent />} />
-          <Route path={`${RESOURCE_MANAGEMENT}/project`} element={<ProjectResourceComponent />} />
+          <Route path={`${RESOURCE_MANAGEMENT}/team`} element={<ResourceComponent type="team" />} />
+          <Route path={`${RESOURCE_MANAGEMENT}/project`} element={<ResourceComponent type="project" />} />
         </Route>
       </Route>
       <Route path={TASK} element={<TaskComponent />} />

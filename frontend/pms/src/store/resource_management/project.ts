@@ -68,10 +68,10 @@ export interface ResourceTeamState {
   hasMore: boolean;
   tableView: TableViewProps;
   isNeedToFetchDataAfterUpdate: boolean;
-  isBillable: number;
   reportingManager: string;
   customer?: string[];
   allocationType?: string[];
+  isLoading?: boolean;
 }
 
 export const initialState: ResourceTeamState = {
@@ -97,60 +97,50 @@ export const initialState: ResourceTeamState = {
   },
   tableView: {
     combineWeekHours: false,
-    view: "planned-vs-capacity",
+    view: "planned",
   },
   isNeedToFetchDataAfterUpdate: false,
-  isBillable: -1,
   customer: [],
+  allocationType: [],
+  isLoading: true,
 };
 
 const ResourceTeamSlice = createSlice({
-  name: "resource_team",
+  name: "resource_project",
   initialState,
   reducers: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setData: (state, action: PayloadAction<any>) => {
       state.data = action.payload;
       state.hasMore = action.payload.has_more;
-      state.pageLength = initialState.pageLength;
+      state.isLoading = false;
     },
     setProjectName: (state, action: PayloadAction<string>) => {
       state.projectName = action.payload;
-      state.data = initialState.data;
       state.start = 0;
-      state.pageLength = initialState.pageLength;
+      state.isNeedToFetchDataAfterUpdate = true;
+      state.isLoading = true;
     },
     setBusinessUnit: (state, action: PayloadAction<string[]>) => {
       state.businessUnit = action.payload;
-      state.data = initialState.data;
       state.start = 0;
-      state.pageLength = initialState.pageLength;
-    },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    updateData: (state, action: PayloadAction<any>) => {
-      const data = state.data.data;
-      state.data.data = [...data, ...action.payload.data];
-      state.data.customer = {
-        ...state.data.customer,
-        ...action.payload.customer,
-      };
-      state.data.dates = action.payload.dates;
-      state.data.total_count = action.payload.total_count;
-      state.hasMore = action.payload.has_more;
+      state.isNeedToFetchDataAfterUpdate = true;
+      state.isLoading = true;
     },
     setWeekDate: (state, action: PayloadAction<string>) => {
       state.weekDate = action.payload;
       state.start = 0;
+      state.isLoading = true;
       const pageLength = Object.keys(state.data.data).length;
       state.pageLength = pageLength;
-      state.data = initialState.data;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     setEmployeeWeekDate: (state, action: PayloadAction<string>) => {
       state.employeeWeekDate = action.payload;
     },
     setStart: (state, action: PayloadAction<number>) => {
       state.start = action.payload;
-      state.pageLength = initialState.pageLength;
+      state.isLoading = true;
     },
     setHasMore: (state, action: PayloadAction<boolean>) => {
       state.hasMore = action.payload;
@@ -197,9 +187,10 @@ const ResourceTeamSlice = createSlice({
       if (action.payload.view) {
         state.tableView.view = action.payload.view;
       }
-      state.pageLength = initialState.pageLength;
+
       state.start = 0;
-      state.data = initialState.data;
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     deleteFilters: (
       state,
@@ -220,21 +211,22 @@ const ResourceTeamSlice = createSlice({
       if (action.payload.type === "allocation-type") {
         state.allocationType = action.payload.allocationType;
       }
-      state.pageLength = initialState.pageLength;
+
       state.start = 0;
-      state.data = initialState.data;
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     setReportingManager: (state, action: PayloadAction<string>) => {
       state.reportingManager = action.payload;
-      state.data = initialState.data;
       state.start = 0;
-      state.pageLength = initialState.pageLength;
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     setCustomer: (state, action: PayloadAction<string[]>) => {
       state.customer = action.payload;
-      state.data = initialState.data;
       state.start = 0;
-      state.pageLength = initialState.pageLength;
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     setCombineWeekHours: (state, action: PayloadAction<boolean>) => {
       state.tableView.combineWeekHours = action.payload;
@@ -247,9 +239,9 @@ const ResourceTeamSlice = createSlice({
     },
     setAllocationType: (state, action: PayloadAction<string[]>) => {
       state.allocationType = action.payload;
-      state.pageLength = initialState.pageLength;
       state.start = 0;
-      state.data = initialState.data;
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
   },
 });
@@ -266,7 +258,6 @@ export const {
   setWeekDate,
   setStart,
   setHasMore,
-  updateData,
   setDateRange,
   resetState,
   setFilters,

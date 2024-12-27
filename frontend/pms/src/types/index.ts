@@ -14,7 +14,7 @@ export interface TaskData {
   subject: string;
   project_name: string | null;
   priority: "Low" | "Medium" | "High" | "Urgent";
-  status:TaskStatusType;
+  status: TaskStatusType;
   description: string | null;
   custom_is_billable: boolean;
   actual_time: number;
@@ -28,16 +28,6 @@ export type ProjectProps = {
   name: string;
 };
 
-export interface ProjectNestedTaskData {
-  project_name: string;
-  name: string;
-  tasks: TaskData[];
-}
-
-export interface ProjectData {
-  projects: ProjectNestedTaskData[];
-  count: number;
-}
 
 export type sortOrder = "asc" | "desc";
 
@@ -47,3 +37,10 @@ export type fieldMetaProps = {
   fieldtype: string;
   options?: string;
 }
+
+export interface DocMetaProps {
+  default_fields: Array<fieldMetaProps>;
+  doctype: string;
+  fields: Array<fieldMetaProps>;
+  title_field: string;
+} 

@@ -13,11 +13,11 @@ import { CircleDollarSign, Paperclip, Plus } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import AddTime from "@/app/components/addTime";
+import AddTime from "@/app/components/AddTime";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import { LoadMore } from "@/app/components/loadMore";
 import { Spinner } from "@/app/components/spinner";
-import TimesheetTable from "@/app/components/timesheetTable";
+import TimesheetTable from "@/app/components/TimesheetTable";
 import { Typography } from "@/app/components/typography";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Button } from "@/app/components/ui/button";
@@ -25,7 +25,7 @@ import { Input } from "@/app/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import { useToast } from "@/app/components/ui/use-toast";
 import { Header, Footer, Main } from "@/app/layout/root";
-import { TaskLog } from "@/app/pages/task/taskLog";
+import { TaskLog } from "@/app/pages/task/TaskLog";
 import { Status } from "@/app/pages/team";
 import { EditTime } from "@/app/pages/timesheet/EditTime";
 import { useQueryParamsState } from "@/lib/queryParam";

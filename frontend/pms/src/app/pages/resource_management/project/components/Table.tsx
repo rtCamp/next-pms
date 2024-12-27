@@ -11,7 +11,12 @@ import { Table, TableBody } from "@/app/components/ui/table";
 import { cn, prettyDate } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setResourceFormData } from "@/store/resource_management/allocation";
-import { emptyProjectDayData, ProjectDataProps, ProjectResourceProps } from "@/store/resource_management/project";
+import {
+  emptyProjectDayData,
+  ProjectDataProps,
+  ProjectResourceProps,
+  setStart,
+} from "@/store/resource_management/project";
 import { DateProps } from "@/store/resource_management/team";
 import { ResourceAllocationObjectProps } from "@/types/resource_management";
 
@@ -23,6 +28,8 @@ import ResourceProjectTableHeader from "../../components/TableHeader";
 import { ResourceTableRow } from "../../components/TableRow";
 import { getCellBackGroundColor } from "../../utils/cell";
 import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
+import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
+import { Spinner } from "@/app/components/spinner";
 
 /**
  * This component is responsible for loading the table for project view.
@@ -49,6 +56,17 @@ const ResourceProjectTableBody = () => {
   const data = useSelector((state: RootState) => state.resource_project.data.data);
   const dates = useSelector((state: RootState) => state.resource_project.data.dates);
   const allocationType = useSelector((state: RootState) => state.resource_project.allocationType);
+  const start = useSelector((state: RootState) => state.resource_project.start);
+  const pageLength = useSelector((state: RootState) => state.resource_project.pageLength);
+  const hasMore = useSelector((state: RootState) => state.resource_project.hasMore);
+  const isLoading = useSelector((state: RootState) => state.resource_project.isLoading);
+  const cellRef = useInfiniteScroll({ isLoading: isLoading, hasMore: hasMore, next: () => handleLoadMore() });
+  const dispatch = useDispatch();
+
+  const handleLoadMore = () => {
+    if (!hasMore) return;
+    dispatch(setStart(start + pageLength));
+  };
 
   if (data.length == 0) {
     return <EmptyTableBody />;
@@ -56,15 +74,17 @@ const ResourceProjectTableBody = () => {
 
   return (
     <TableBody>
-      {data.map((projectData: ProjectDataProps) => {
+      {data.map((projectData: ProjectDataProps, index: number) => {
         if (!projectData.project_name) {
           return <></>;
         }
+        const needToAddRef = hasMore && index == data.length - 2;
         return (
           <ResourceTableRow
             name={projectData.name}
             avatar={projectData.image}
             avatar_abbr={projectData.project_name[0]}
+            rowRef={needToAddRef ? cellRef : null}
             avatar_name={projectData.project_name}
             RowComponent={() => {
               return (
@@ -113,6 +133,8 @@ const ResourceProjectTableBody = () => {
           />
         );
       })}
+
+      {hasMore && <Spinner isFull={false} className="p-4 overflow-hidden" />}
     </TableBody>
   );
 };
@@ -248,7 +270,7 @@ const ResourceProjectTableCell = ({
         type="default"
         title={title}
         cellClassName={cn(
-          getTableCellClass(rowCount),
+          getTableCellClass(rowCount, midIndex),
           cellBackGroundColor,
           getTodayDateCellClass(projectSingleDay.date)
         )}
@@ -263,7 +285,7 @@ const ResourceProjectTableCell = ({
         type="empty"
         title={title}
         cellClassName={cn(
-          getTableCellClass(rowCount),
+          getTableCellClass(rowCount, midIndex),
           cellBackGroundColor,
           getTodayDateCellClass(projectSingleDay.date)
         )}
@@ -277,7 +299,11 @@ const ResourceProjectTableCell = ({
     <ResourceTableCell
       type="hovercard"
       title={title}
-      cellClassName={cn(getTableCellClass(rowCount), cellBackGroundColor, getTodayDateCellClass(projectSingleDay.date))}
+      cellClassName={cn(
+        getTableCellClass(rowCount, midIndex),
+        cellBackGroundColor,
+        getTodayDateCellClass(projectSingleDay.date)
+      )}
       value={cellValue}
       CustomHoverCardContent={() => {
         return (

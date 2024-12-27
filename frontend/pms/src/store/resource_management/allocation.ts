@@ -17,9 +17,9 @@ export type ResourceKeys =
   | "note";
 
 export type PermissionProps = {
-  read: boolean;
-  write: boolean;
-  delete: boolean;
+  read?: boolean;
+  write?: boolean;
+  delete?: boolean;
 };
 
 export type AllocationDataProps = {
@@ -37,7 +37,7 @@ export type AllocationDataProps = {
   allocation_end_date: string;
   note: string;
   name: string;
-  permission?: PermissionProps;
+  permission?: PermissionProps | undefined;
 };
 
 const initialState = {
@@ -55,11 +55,7 @@ const initialState = {
   allocation_end_date: "",
   note: "",
   name: "",
-  permissions: {
-    read: false,
-    write: false,
-    delete: false,
-  },
+  permissions: {},
 };
 
 const ResourceTeamSlice = createSlice({
@@ -79,7 +75,7 @@ const ResourceTeamSlice = createSlice({
     ) => {
       state.isShowDialog = action.payload.isShowDialog;
       state.isNeedToEdit = action.payload.isNeedToEdit;
-      
+
       state.employee = getFormatedStringValue(
         action.payload.employee
       ) as string;
