@@ -166,6 +166,7 @@ def filter_employees(
         page_length=page_length,
         start=start,
         ignore_permissions=ignore_permissions,
+        order_by="employee_name asc",
     )
     total_count = get_count(
         "Employee",
