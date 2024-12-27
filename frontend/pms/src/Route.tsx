@@ -22,8 +22,7 @@ import { setViews } from "./store/view";
 const TimesheetComponent = lazy(() => import("@/app/pages/timesheet"));
 const HomeComponent = lazy(() => import("@/app/pages/home"));
 const TeamComponent = lazy(() => import("@/app/pages/team"));
-const TeamResourceComponent = lazy(() => import("@/app/pages/resource_management/team"));
-const ProjectResourceComponent = lazy(() => import("@/app/pages/resource_management/project"));
+const ResourceComponent = lazy(() => import("@/app/pages/resource_management"));
 const EmployeeDetailComponent = lazy(() => import("@/app/pages/team/employeeDetail"));
 const TaskComponent = lazy(() => import("@/app/pages/task"));
 const ProjectComponent = lazy(() => import("@/app/pages/project"));
@@ -47,8 +46,8 @@ export function Router() {
         </Route>
         <Route path={TASK} element={<TaskComponent />} />
         <Route path={RESOURCE_MANAGEMENT}>
-          <Route path={`${RESOURCE_MANAGEMENT}/team`} element={<TeamResourceComponent />} />
-          <Route path={`${RESOURCE_MANAGEMENT}/project`} element={<ProjectResourceComponent />} />
+          <Route path={`${RESOURCE_MANAGEMENT}/team`} element={<ResourceComponent type="team" />} />
+          <Route path={`${RESOURCE_MANAGEMENT}/project`} element={<ResourceComponent type="project" />} />
         </Route>
       </Route>
       <Route path={TASK} element={<TaskComponent />} />

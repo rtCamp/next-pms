@@ -18,6 +18,7 @@ interface ResourceTeamTableRowProps {
   name: string;
   avatar: string;
   avatar_abbr: string;
+  rowRef: any;
   avatar_name: string;
   RowComponent: React.FC;
   RowExpandView?: React.FC;
@@ -25,10 +26,11 @@ interface ResourceTeamTableRowProps {
 
 /**
  * This component is responsible for loading the resource pages row.
- * 
+ *
  * @param props.name The name/ID of the resource table row.
  * @param props.avatar The avatar which need to render on first cell.
  * @param props.avatar_abbr The abbreviation of the avatar.
+ * @param props.rowRef The ref of the row.
  * @param props.avatar_name The name of the avatar.
  * @param props.RowComponent The row component which need to render.
  * @param props.RowExpandView The expand view of the row.
@@ -38,14 +40,16 @@ const ResourceTableRow = ({
   name,
   avatar,
   avatar_abbr,
+  rowRef,
   avatar_name,
   RowComponent,
   RowExpandView,
 }: ResourceTeamTableRowProps) => {
+  
   return (
     <Accordion type="multiple" key={name} className="w-full">
       <AccordionItem value={name} className="border-b-0">
-        <TableRow key={name} className={cn(getTableCellRow(), "relative overflow-hidden ")}>
+        <TableRow key={name} ref={rowRef} className={cn(getTableCellRow(), "relative overflow-hidden")}>
           <AccordionTrigger hideChevronDown={true} className="hover:no-underline py-0">
             <TableInformationCellContent
               cellClassName="overflow-hidden flex items-center pl-6 font-normal hover:underline"

@@ -107,6 +107,7 @@ export const ResourceExpandView = ({
                       <ExpandViewCell
                         key={employeeSingleDayData.date + "-" + index}
                         index={index}
+                        weekIndex={weekIndex}
                         allocationsData={employeeSingleDayData}
                         employeeAllocations={employeeData.allocations}
                         customer={data.message.customer}
@@ -147,6 +148,7 @@ const ExpandViewCell = ({
   employee,
   employee_name,
   project,
+  weekIndex,
   project_name,
 }: {
   allocationsData: any;
@@ -154,6 +156,7 @@ const ExpandViewCell = ({
   employee: string;
   employee_name: string;
   project: string;
+  weekIndex: number;
   project_name: string;
   employeeAllocations?: ResourceAllocationObjectProps;
   customer: ResourceCustomerObjectProps;
@@ -202,14 +205,13 @@ const ExpandViewCell = ({
 
   const { date: dateStr, day } = prettyDate(allocationsData.date);
   const title = employee_name + " (" + dateStr + " - " + day + ")";
-  
 
   if (allocationsData.total_allocated_hours == 0 && allocationsData.total_worked_hours == 0) {
     return (
       <ResourceTableCell
         type="empty"
         title={title}
-        cellClassName={cn(getTableCellClass(index), getTodayDateCellClass(allocationsData.date))}
+        cellClassName={cn(getTableCellClass(index, weekIndex), getTodayDateCellClass(allocationsData.date))}
         onCellClick={onCellClick}
         value={"-"}
       />
@@ -221,7 +223,11 @@ const ExpandViewCell = ({
       key={index}
       type="hovercard"
       title={title}
-      cellClassName={cn(getTableCellClass(index), cellBackGroundColor, getTodayDateCellClass(allocationsData.date))}
+      cellClassName={cn(
+        getTableCellClass(index, weekIndex),
+        cellBackGroundColor,
+        getTodayDateCellClass(allocationsData.date)
+      )}
       value={
         tableView.view == "planned"
           ? allocationsData.total_allocated_hours
