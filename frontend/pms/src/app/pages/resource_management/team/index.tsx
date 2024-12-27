@@ -18,7 +18,7 @@ import { getIsBillableValue } from "../utils/helper";
 import { getMergeData } from "../utils/value";
 import { ResourceTeamTable } from "./components/Table";
 import AddResourceAllocations from "../components/AddAllocation";
-import { useFrappeGetCallInfinite } from "../hooks/usePagination";
+import { usePagination } from "../hooks/usePagination";
 import { ResourceTeamHeaderSection } from "./components/Header";
 
 /**
@@ -42,7 +42,7 @@ const ResourceTeamView = () => {
     return `next_pms.resource_management.api.team.get_resource_management_team_view_data/get_resource_management_team_view_data?page=${pageIndex}&limit=${resourceTeamState.pageLength}`;
   };
 
-  const { data, isLoading, isValidating, error, size, setSize, mutate } = useFrappeGetCallInfinite(
+  const { data, isLoading, isValidating, error, size, setSize, mutate } = usePagination(
     "next_pms.resource_management.api.team.get_resource_management_team_view_data",
     getKey,
     resourceAllocationPermission.write
