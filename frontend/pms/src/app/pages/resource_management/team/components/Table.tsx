@@ -215,7 +215,7 @@ const ResourceTeamTableCell = ({
       setResourceFormData({
         isShowDialog: true,
         employee: employee,
-        employeeName:employee_name,
+        employee_name:employee_name,
         allocation_start_date: employeeSingleDay.date,
         allocation_end_date: employeeSingleDay.date,
         is_billable: getIsBillableValue(allocationType as string[]) != 0,

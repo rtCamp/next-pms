@@ -245,7 +245,7 @@ const ResourceProjectTableCell = ({
       setResourceFormData({
         isShowDialog: true,
         employee: "",
-        employeeName:"",
+        employee_name:"",
         project: project,
         allocation_start_date: projectSingleDay.date,
         allocation_end_date: projectSingleDay.date,

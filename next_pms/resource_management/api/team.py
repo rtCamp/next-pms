@@ -59,6 +59,7 @@ def get_resource_management_team_view_data(
         [
             "name",
             "employee",
+            "employee_name",
             "allocation_start_date",
             "allocation_end_date",
             "hours_allocated_per_day",

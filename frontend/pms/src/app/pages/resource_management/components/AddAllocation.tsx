@@ -1,13 +1,13 @@
 /**
  * External dependencies.
  */
+import { useCallback, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useDispatch, useSelector } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFrappeCreateDoc, useFrappeGetCall, useFrappeUpdateDoc } from "frappe-react-sdk";
 import { CircleDollarSign, Clock3, LoaderCircle, Save, Search, X } from "lucide-react";
 import { z } from "zod";
-import { useCallback, useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { useDispatch, useSelector } from "react-redux";
 
 /**
  * Internal dependencies.
@@ -277,6 +277,7 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
     handleHoursAutoComplete();
   }, [handleHoursAutoComplete, leaveData]);
 
+
   return (
     <Dialog open={resourceAllocationForm?.isShowDialog} onOpenChange={handleOpen}>
       <DialogContent className="max-w-xl">
@@ -298,7 +299,7 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
                   </FormLabel>
                   <FormControl>
                     <EmployeeCombo
-                      employeeName={resourceAllocationForm.employeeName}
+                      employeeName={resourceAllocationForm.employee_name}
                       status={["Active"]}
                       onSelect={handleEmployeeChange}
                       value={form.getValues("employee")}

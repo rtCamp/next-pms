@@ -37,7 +37,7 @@ export type AllocationDataProps = {
   allocation_end_date: string;
   note: string;
   name: string;
-  employeeName: string;
+  employee_name: string;
   permission?: PermissionProps | undefined;
 };
 
@@ -45,7 +45,7 @@ const initialState = {
   isShowDialog: false,
   isNeedToEdit: false,
   employee: "",
-  employeeName: "",
+  employee_name: "",
   is_billable: false,
   project: "",
   project_name: "",
@@ -77,7 +77,7 @@ const ResourceTeamSlice = createSlice({
     ) => {
       state.isShowDialog = action.payload.isShowDialog;
       state.isNeedToEdit = action.payload.isNeedToEdit;
-      state.employeeName = action.payload.employeeName;
+      state.employee_name = action.payload.employee_name;
       state.employee = getFormatedStringValue(
         action.payload.employee
       ) as string;
