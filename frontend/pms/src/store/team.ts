@@ -17,7 +17,7 @@ type DateRange = {
 
 export interface TeamState {
   data: dataProps;
-  action:"SET"|"UPDATE";
+  action: "SET" | "UPDATE";
   statusFilter: Array<string>;
   status: Array<string>;
   employeeName?: string;
@@ -44,6 +44,8 @@ export interface TeamState {
   dateRange: DateRange;
   employee: string;
   hasMore: boolean;
+  isLoading: boolean;
+  isNeedToFetchDataAfterUpdate: boolean;
 }
 
 export interface dataProps {
@@ -62,7 +64,7 @@ export type DateProps = {
 };
 
 export const initialState: TeamState = {
-  action:"SET",
+  action: "SET",
   timesheet: {
     name: "",
     parent: "",
@@ -77,7 +79,7 @@ export const initialState: TeamState = {
   reportsTo: "",
   status: ["Active"],
   isEditDialogOpen: false,
-  pageLength:20,
+  pageLength: 20,
   data: {
     data: {},
     dates: [],
@@ -104,6 +106,8 @@ export const initialState: TeamState = {
     leaves: [],
     holidays: [],
   },
+  isLoading: true,
+  isNeedToFetchDataAfterUpdate: false,
 };
 
 const TeamSlice = createSlice({
@@ -115,17 +119,25 @@ const TeamSlice = createSlice({
       state.data = action.payload;
       state.hasMore = action.payload.has_more;
       state.pageLength = initialState.pageLength;
+      state.isLoading = false;
+    },
+    setReFetchData: (state, action: PayloadAction<boolean>) => {
+      state.isNeedToFetchDataAfterUpdate = action.payload;
     },
     setEmployeeName: (state, action: PayloadAction<string>) => {
       state.employeeName = action.payload;
       state.action = "SET";
       state.start = 0;
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
       state.pageLength = initialState.pageLength;
     },
     setStatusFilter: (state, action: PayloadAction<Array<string>>) => {
       state.statusFilter = action.payload;
       state.start = 0;
       state.pageLength = initialState.pageLength;
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
       state.action = "SET";
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -135,6 +147,7 @@ const TeamSlice = createSlice({
       state.data.dates = action.payload.dates;
       state.data.total_count = action.payload.total_count;
       state.hasMore = action.payload.has_more;
+      state.isLoading = false;
     },
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -148,20 +161,28 @@ const TeamSlice = createSlice({
       const pageLength = Object.keys(state.data.data).length;
       state.pageLength = pageLength;
       state.action = "SET";
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     setEmployeeWeekDate: (state, action: PayloadAction<string>) => {
       state.employeeWeekDate = action.payload;
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     setProject: (state, action: PayloadAction<Array<string>>) => {
       state.project = action.payload;
       state.action = "SET";
       state.start = 0;
       state.pageLength = initialState.pageLength;
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     setStart: (state, action: PayloadAction<number>) => {
       state.start = action.payload;
       state.pageLength = initialState.pageLength;
       state.action = "UPDATE";
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     setHasMore: (state, action: PayloadAction<boolean>) => {
       state.hasMore = action.payload;
@@ -223,17 +244,23 @@ const TeamSlice = createSlice({
       state.action = "SET";
       state.start = 0;
       state.pageLength = initialState.pageLength;
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     setReportsTo: (state, action: PayloadAction<string>) => {
       state.reportsTo = action.payload;
       state.start = 0;
       state.pageLength = initialState.pageLength;
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     setStatus: (state, action: PayloadAction<Array<string>>) => {
       state.status = action.payload;
       state.action = "SET";
       state.start = 0;
       state.pageLength = initialState.pageLength;
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
 
     setFilters: (
@@ -284,6 +311,7 @@ export const {
   setEmployeeName,
   setStatus,
   setReportsTo,
+  setReFetchData
 } = TeamSlice.actions;
 
 export default TeamSlice.reducer;

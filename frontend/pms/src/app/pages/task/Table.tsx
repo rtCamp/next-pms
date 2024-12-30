@@ -11,6 +11,7 @@ import { Separator } from "@/app/components/ui/separator";
 import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table as RootTable } from "@/app/components/ui/table";
 import { TaskState } from "@/store/task";
 import { ColumnsType, columnsToExcludeActionsInTablesType, TaskTableType } from "@/types/task";
+import { useInfiniteScroll } from "../resource_management/hooks/useInfiniteScroll";
 
 export const Table = ({
   table,
@@ -18,19 +19,29 @@ export const Table = ({
   columnsToExcludeActionsInTables,
   task,
   isLoading,
+  hasMore,
+  handleLoadMore,
 }: {
   table: TaskTableType;
   columns: ColumnsType;
   columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType;
   task: TaskState;
   isLoading: boolean;
+  hasMore: boolean;
+  handleLoadMore: () => void;
 }) => {
+  const cellRef = useInfiniteScroll({
+    isLoading: isLoading,
+    hasMore: hasMore,
+    next: handleLoadMore,
+  });
+
   return (
     <>
       {isLoading && task.task.length == 0 ? (
         <Spinner isFull />
       ) : (
-        <RootTable className="[&_td]:px-4 [&_th]:px-4 [&_th]:py-2 table-fixed w-full relative">
+        <RootTable className="[&_td]:px-4 [&_th]:px-4 [&_th]:py-2 table-fixed w-full relative ">
           <TableHeader className=" border-t-0 sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -78,19 +89,34 @@ export const Table = ({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell className="overflow-hidden" key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row, index: number) => {
+                const needToAddRef = task.hasMore && index == Object.keys(table.getRowModel().rows).length - 2;
+
+                return (
+                  <TableRow
+                    ref={needToAddRef ? cellRef : null}
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell className="overflow-hidden" key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
                   No results
+                </TableCell>
+              </TableRow>
+            )}
+            {hasMore && (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="text-center">
+                  <Spinner isFull={false} className="p-4 overflow-hidden w-full" />
                 </TableCell>
               </TableRow>
             )}
