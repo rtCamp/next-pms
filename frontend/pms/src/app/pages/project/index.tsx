@@ -10,6 +10,7 @@ import {
   useReactTable,
   ColumnSizingState,
 } from "@tanstack/react-table";
+import { useFrappeGetCall } from "frappe-react-sdk";
 import _ from "lodash";
 
 /**
@@ -17,20 +18,23 @@ import _ from "lodash";
  */
 
 import ViewWrapper from "@/app/components/listview/ViewWrapper";
+import { LoadMore } from "@/app/components/loadMore";
 import { Spinner } from "@/app/components/spinner";
+import { Typography } from "@/app/components/typography";
 import { Separator } from "@/app/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { useToast } from "@/app/components/ui/use-toast";
-import { useInfiniteScroll } from "@/app/pages/resource_management/hooks/useInfiniteScroll";
-import { usePagination } from "@/app/pages/resource_management/hooks/usePagination";
+import { useFrappeDocTypeCount } from "@/app/hooks/useFrappeDocCount";
+import { Footer } from "@/app/layout/root";
 import { parseFrappeErrorMsg, createFalseValuedObject } from "@/lib/utils";
 import { RootState } from "@/store";
-import { setProjectData, setStart, setFilters, setReFetchData } from "@/store/project";
+import { setProjectData, setStart, setFilters, setTotalCount } from "@/store/project";
 import { ViewData } from "@/store/view";
 import { DocMetaProps, sortOrder } from "@/types";
 import { getColumnInfo } from "./columns";
 import { Header as ProjectHeader } from "./Header";
 import { getFilter, createFilter } from "./utils";
+
 type ProjectProps = {
   viewData: ViewData;
   meta: DocMetaProps;
@@ -75,51 +79,26 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     setHasViewUpdated(false);
   }, [dispatch, viewData]);
 
-  const getKey = (pageIndex: number, previousPageData: any) => {
-    const indexTillNeedToFetchData = projectState.start == 0 ? 1 : projectState.start / projectState.pageLength;
-    if (indexTillNeedToFetchData <= pageIndex) return null;
-    if (previousPageData && !previousPageData.message.has_more) return null;
-
-    return `next_pms.timesheet.api.project.get_projects?page=${pageIndex}&limit=${projectState.pageLength}`;
-  };
-
-  const { data, isLoading, error, size, setSize, mutate } = usePagination(
+  const { data, error, isLoading } = useFrappeGetCall(
     "next_pms.timesheet.api.project.get_projects",
-    getKey,
     {
       fields: viewInfo.rows ?? ["*"],
       filters: getFilter(projectState),
-      start: projectState.start,
-      page_length: projectState.pageLength,
+      limit_start: projectState.start,
       limit: projectState.pageLength,
       currency: projectState.currency,
       order_by: `${projectState.orderColumn} ${projectState.order}`,
     },
+    undefined,
     {
-      parallel: true,
-      revalidateFirstPage: false,
+      revalidateOnFocus: false,
     }
   );
-
-  useEffect(() => {
-    if (projectState.isNeedToFetchDataAfterUpdate) {
-      mutate();
-      dispatch(setReFetchData(false));
-    }
-  }, [dispatch, mutate, projectState.isNeedToFetchDataAfterUpdate]);
-
-  useEffect(() => {
-    const newSize: number = projectState.start / projectState.pageLength + 1;
-    if (newSize == size) {
-      return;
-    }
-    setSize(newSize);
-  }, [projectState.start, projectState.pageLength, size, setSize]);
-
+  const { data: count } = useFrappeDocTypeCount("Project", { filters: getFilter(projectState) });
+  
   useEffect(() => {
     if (data) {
-      console.log(data);
-      dispatch(setProjectData(data[0].message));
+      dispatch(setProjectData(data.message));
     }
     if (error) {
       const err = parseFrappeErrorMsg(error);
@@ -129,6 +108,12 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
       });
     }
   }, [data, dispatch, error, toast]);
+
+  useEffect(() => {
+    if (count) {
+      dispatch(setTotalCount(count));
+    }
+  }, [count, dispatch]);
 
   useEffect(() => {
     const updateViewData = {
@@ -156,7 +141,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     projectState.selectedStatus,
     projectState.selectedBillingType,
     projectState.selectedBusinessUnit,
-    viewData,
+    viewData
   ]);
 
   const columns = getColumnInfo(
@@ -184,6 +169,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
       columnSizing: colSizing,
     },
   });
+
 
   const handleColumnHide = (id: string) => {
     setColumnVisibility((prev) => ({
@@ -224,18 +210,6 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     updateColumnOrder(columnVisibility);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [columnVisibility]);
-
-  const handleLoadMore = () => {
-    console.log("handleLoadMore");
-    if (!projectState.hasMore || projectState.isLoading) return;
-    dispatch(setStart(projectState.start + projectState.pageLength));
-  };
-
-  const cellRef = useInfiniteScroll({
-    isLoading: projectState.isLoading,
-    hasMore: projectState.hasMore,
-    next: handleLoadMore,
-  });
 
   return (
     <>
@@ -286,32 +260,22 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row, index: number) => {
-                  const needToAddRef =
-                    projectState.hasMore && index == Object.keys(table.getRowModel().rows).length - 2;
-                  console.log(needToAddRef)
-                  return (
-                    <TableRow
-                      className="px-3"
-                      key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
-                      ref={needToAddRef ? cellRef : null}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell
-                          className="truncate"
-                          key={cell.id}
-                          style={{
-                            width: cell.column.getSize(),
-                            minWidth: cell.column.columnDef.minSize,
-                          }}
-                        >
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  );
-                })
+                table.getRowModel().rows.map((row) => (
+                  <TableRow className="px-3" key={row.id} data-state={row.getIsSelected() && "selected"}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        className="truncate"
+                        key={cell.id}
+                        style={{
+                          width: cell.column.getSize(),
+                          minWidth: cell.column.columnDef.minSize,
+                        }}
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
               ) : (
                 <TableRow className="w-full">
                   <TableCell colSpan={viewData.rows.length} className="h-24 text-center">
@@ -323,6 +287,20 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
           </Table>
         </>
       )}
+      <Footer>
+        <div className="flex  justify-between items-center ">
+          <LoadMore
+            variant="outline"
+            disabled={projectState.data.length == (count ?? 0) || isLoading}
+            onClick={() => {
+              dispatch(setStart());
+            }}
+          />
+          <Typography variant="p" className="lg:px-5 font-semibold">
+            {`${projectState.data.length} of ${count ?? 0}`}
+          </Typography>
+        </div>
+      </Footer>
     </>
   );
 };

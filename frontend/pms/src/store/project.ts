@@ -65,9 +65,6 @@ export interface ProjectState {
   selectedBusinessUnit: Array<string>;
   totalCount: number;
   currency: string
-  isNeedToFetchDataAfterUpdate: boolean,
-  isLoading: boolean,
-  hasMore: boolean
 }
 
 export const initialState: ProjectState = {
@@ -83,78 +80,52 @@ export const initialState: ProjectState = {
   order: "desc",
   orderColumn: "project_name",
   totalCount: 0,
-  currency: "",
-  isNeedToFetchDataAfterUpdate: false,
-  isLoading: true,
-  hasMore: true
+  currency: ""
 };
 
 export const projectSlice = createSlice({
   name: "project",
   initialState,
   reducers: {
-    setProjectData: (state, action: PayloadAction<{ data: Array<ProjectData>, total_count: number, has_more: boolean }>) => {
-      state.data = action.payload.data;
-      state.totalCount = action.payload.total_count;
-      state.hasMore = action.payload.has_more;
-      state.isLoading = false;
+    setProjectData: (state, action: PayloadAction<Array<ProjectData>>) => {
+      state.data = action.payload;
     },
     updateProjectData: (state, action: PayloadAction<Array<ProjectData>>) => {
       state.data = [...state.data, ...action.payload];
     },
-    setStart: (state, action: PayloadAction<number>) => {
-      state.start = action.payload;
-      state.isLoading = true;
-      state.isNeedToFetchDataAfterUpdate = true;
-      state.pageLength = initialState.pageLength;
+    setStart: (state) => {
+      state.start = 0;
+      state.pageLength = state.data.length + initialState.pageLength;
     },
     setSearch: (state, action: PayloadAction<string>) => {
       state.search = action.payload;
       state.start = initialState.start;
       state.pageLength = initialState.pageLength;
       state.data = initialState.data;
-      state.isLoading = true;
-      state.isNeedToFetchDataAfterUpdate = true;
-    },
-    setReFetchData: (state, action: PayloadAction<boolean>) => {
-      state.isNeedToFetchDataAfterUpdate = action.payload;
     },
     setSelectedProjectType: (state, action: PayloadAction<Array<string>>) => {
       state.selectedProjectType = action.payload;
+      // state.data = initialState.data;
       state.start = initialState.start;
-      state.isLoading = true;
-      state.data = initialState.data;
-      state.isNeedToFetchDataAfterUpdate = true;
       state.pageLength = initialState.pageLength;
     },
     setSelectedStatus: (state, action: PayloadAction<Array<Status>>) => {
       state.selectedStatus = action.payload;
+      // state.data = initialState.data;
       state.start = initialState.start;
-      state.isLoading = true;
-      state.data = initialState.data;
-      state.isNeedToFetchDataAfterUpdate = true;
       state.pageLength = initialState.pageLength;
     },
     setSelectedBusinessUnit: (state, action: PayloadAction<Array<string>>) => {
       state.selectedBusinessUnit = action.payload;
-      state.isLoading = true;
-      state.data = initialState.data;
-      state.start = initialState.start;
-      state.isNeedToFetchDataAfterUpdate = true;
+      // state.data = initialState.data;
     },
     setSelectedBilingType: (state, action: PayloadAction<Array<string>>) => {
       state.selectedBillingType = action.payload;
-      state.isLoading = true;
-      state.start = initialState.start;
-      state.data = initialState.data;
-      state.isNeedToFetchDataAfterUpdate = true;
+      // state.data = initialState.data;
     },
     setCurrency: (state, action: PayloadAction<string>) => {
       state.currency = action.payload;
-      state.isLoading = true;
-      state.start = initialState.start;
-      state.data = initialState.data;
-      state.isNeedToFetchDataAfterUpdate = true;
+      // state.data = initialState.data;
     },
     setFilters: (
       state,
@@ -176,14 +147,11 @@ export const projectSlice = createSlice({
       state.order = action.payload.order;
       state.orderColumn = action.payload.orderColumn;
       state.start = initialState.start;
-      state.isLoading = true;
-      state.isNeedToFetchDataAfterUpdate = true;
       state.pageLength = initialState.pageLength;
       state.order = action.payload.order;
       state.orderColumn = action.payload.orderColumn;
       state.currency = action.payload.currency;
       state.selectedBillingType = action.payload.selectedBillingType;
-      state.data = initialState.data;
     },
     setOrderBy: (
       state,
@@ -191,20 +159,28 @@ export const projectSlice = createSlice({
     ) => {
       const pageLength = state.data.length;
       state.pageLength = pageLength;
-      state.start = initialState.start;
+      state.start = 0;
       state.order = action.payload.order;
       state.orderColumn = action.payload.orderColumn;
       state.data = initialState.data;
-      state.isLoading = true;
-      state.isNeedToFetchDataAfterUpdate = true;
-          
     },
+    setTotalCount: (state, action: PayloadAction<number>) => {
+      state.totalCount = action.payload;
+    },
+    refreshData: (state) => {
+      const pageLength = state.data.length;
+      state.pageLength = pageLength;
+      state.start = 0;
+      state.data = initialState.data;
+
+    }
   },
 });
 
 export const {
   setProjectData,
   updateProjectData,
+  refreshData,
   setStart,
   setSearch,
   setSelectedProjectType,
@@ -212,9 +188,9 @@ export const {
   setFilters,
   setOrderBy,
   setCurrency,
+  setTotalCount,
   setSelectedBusinessUnit,
-  setSelectedBilingType,
-  setReFetchData
+  setSelectedBilingType
 } = projectSlice.actions;
 
 export default projectSlice.reducer;
