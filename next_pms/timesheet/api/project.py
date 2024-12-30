@@ -4,14 +4,16 @@ from erpnext.accounts.report.utils import get_rate_as_at
 from frappe import get_list, get_meta, whitelist
 from frappe.utils import flt, getdate
 
+from .utils import get_count
+
 
 @whitelist()
 def get_projects(
-    limit_start=0,
     limit=20,
     currency=None,
     fields=None,
     filters=None,
+    start=0,
     order_by="modified desc",
 ):
     meta = get_meta("Project")
@@ -30,13 +32,17 @@ def get_projects(
         "Project",
         fields=fields,
         filters=filters,
-        limit_start=limit_start,
+        limit_start=start,
         limit=limit,
         order_by=order_by,
     )
-
+    count = get_count("Project", filters)
     if not currency or len(currency) == 0:
-        return project_lists
+        return {
+            "data": project_lists,
+            "has_more": int(start) + int(limit) < count,
+            "total_count": count,
+        }
 
     currency_fields = get_currency_fields(meta.fields)
     date = getdate()
@@ -49,7 +55,12 @@ def get_projects(
         for field in currency_fields:
             if field in project:
                 project[field] = convert(project.get(field), rate)
-    return project_lists
+
+    return {
+        "data": project_lists,
+        "has_more": int(start) + int(limit) < count,
+        "total_count": count,
+    }
 
 
 def get_currency_fields(meta_fields):
