@@ -69,7 +69,7 @@ const Home = () => {
     },
     {
       parallel: true,
-      revalidateFirstPage: false,
+      revalidateAll: true,
     }
   );
 

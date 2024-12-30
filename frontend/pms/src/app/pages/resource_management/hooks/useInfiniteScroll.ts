@@ -48,7 +48,7 @@ function useInfiniteScroll({
       observer.current = new IntersectionObserver(
         (entries) => {
           if (
-            (entries[0].isIntersecting || entries[0].intersectionRatio > 0.1) &&
+            (entries[0].isIntersecting || entries[0].intersectionRatio > 0) &&
             hasMore
           ) {
             next();

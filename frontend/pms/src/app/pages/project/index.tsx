@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   flexRender,
@@ -25,7 +25,7 @@ import { useInfiniteScroll } from "@/app/pages/resource_management/hooks/useInfi
 import { usePagination } from "@/app/pages/resource_management/hooks/usePagination";
 import { parseFrappeErrorMsg, createFalseValuedObject } from "@/lib/utils";
 import { RootState } from "@/store";
-import { setProjectData, setStart, setFilters, setReFetchData } from "@/store/project";
+import { setProjectData, setStart, setFilters, setReFetchData, updateProjectData } from "@/store/project";
 import { ViewData } from "@/store/view";
 import { DocMetaProps, sortOrder } from "@/types";
 import { getColumnInfo } from "./columns";
@@ -76,7 +76,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   }, [dispatch, viewData]);
 
   const getKey = (pageIndex: number, previousPageData: any) => {
-    const indexTillNeedToFetchData = projectState.start == 0 ? 1 : projectState.start / projectState.pageLength;
+    const indexTillNeedToFetchData = projectState.start / projectState.pageLength + 1;
     if (indexTillNeedToFetchData <= pageIndex) return null;
     if (previousPageData && !previousPageData.message.has_more) return null;
 
@@ -97,7 +97,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     },
     {
       parallel: true,
-      revalidateFirstPage: false,
+      revalidateAll: true,
     }
   );
 
@@ -118,8 +118,11 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
 
   useEffect(() => {
     if (data) {
-      console.log(data);
-      dispatch(setProjectData(data[0].message));
+      if (projectState.action == "SET") {
+        dispatch(setProjectData(data[0].message));
+      } else {
+        dispatch(updateProjectData(data[data.length - 1].message));
+      }
     }
     if (error) {
       const err = parseFrappeErrorMsg(error);
@@ -226,7 +229,6 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   }, [columnVisibility]);
 
   const handleLoadMore = () => {
-    console.log("handleLoadMore");
     if (!projectState.hasMore || projectState.isLoading) return;
     dispatch(setStart(projectState.start + projectState.pageLength));
   };
@@ -286,29 +288,25 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row, index: number) => {
-                  const needToAddRef =
-                    projectState.hasMore && index == Object.keys(table.getRowModel().rows).length - 2;
-                  console.log(needToAddRef)
+                table.getRowModel().rows.map((row) => {
                   return (
-                    <TableRow
-                      className="px-3"
-                      key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
-                      ref={needToAddRef ? cellRef : null}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell
-                          className="truncate"
-                          key={cell.id}
-                          style={{
-                            width: cell.column.getSize(),
-                            minWidth: cell.column.columnDef.minSize,
-                          }}
-                        >
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
-                      ))}
+                    <TableRow className="px-3" key={row.id} data-state={row.getIsSelected() && "selected"}>
+                      {row.getVisibleCells().map((cell, cellIndex: number) => {
+                        const needToAddRef = projectState.hasMore && cellIndex == 0;
+                        return (
+                          <TableCell
+                            className="truncate"
+                            key={cell.id}
+                            style={{
+                              width: cell.column.getSize(),
+                              minWidth: cell.column.columnDef.minSize,
+                            }}
+                            ref={needToAddRef ? cellRef : null}
+                          >
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </TableCell>
+                        );
+                      })}
                     </TableRow>
                   );
                 })
