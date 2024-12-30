@@ -1,31 +1,31 @@
 /**
  * External Dependencies
  */
+import { useCallback, useContext, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { FrappeConfig, FrappeContext, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { Clock3, LoaderCircle, Save, Search, X } from "lucide-react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useCallback, useContext, useEffect, useState } from "react";
 
 /**
  * Internal Dependencies
  */
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
-import { WorkingFrequency, TaskData } from "@/types";
-import { cn, expectatedHours, getFormatedDate, parseFrappeErrorMsg } from "@/lib/utils";
-import { floatToTime } from "@/lib/utils";
-import { TimesheetSchema } from "@/schema/timesheet";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
-import { DatePicker } from "@/app/components/datePicker";
-import { Typography } from "@/app/components/typography";
-import { Input } from "@/app/components/ui/input";
 import { ComboxBox } from "@/app/components/comboBox";
-import { Textarea } from "@/app/components/ui/textarea";
-import { Button } from "@/app/components/ui/button";
-import { Separator } from "@/app/components/ui/separator";
-import { useToast } from "@/app/components/ui/use-toast";
+import { DatePicker } from "@/app/components/datePicker";
 import EmployeeCombo from "@/app/components/employeeComboBox";
+import { Typography } from "@/app/components/typography";
+import { Button } from "@/app/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
+import { Input } from "@/app/components/ui/input";
+import { Separator } from "@/app/components/ui/separator";
+import { Textarea } from "@/app/components/ui/textarea";
+import { useToast } from "@/app/components/ui/use-toast";
+import { floatToTime } from "@/lib/utils";
+import { cn, expectatedHours, getFormatedDate, parseFrappeErrorMsg } from "@/lib/utils";
+import { TimesheetSchema } from "@/schema/timesheet";
+import { WorkingFrequency, TaskData } from "@/types";
 
 interface AddTimeProps {
   initialDate: string;
@@ -37,6 +37,7 @@ interface AddTimeProps {
   workingFrequency: WorkingFrequency;
   task?: string;
   project?: string;
+  employeeName?: string;  
 }
 
 /**
@@ -57,6 +58,7 @@ interface AddTimeProps {
 const AddTime = ({
   initialDate,
   employee,
+  employeeName,
   open = false,
   onOpenChange,
   workingFrequency,
@@ -232,7 +234,11 @@ const AddTime = ({
                     <FormItem className="w-full space-y-1">
                       <FormLabel className="flex gap-2 items-center text-sm">Employee</FormLabel>
                       <FormControl>
-                        <EmployeeCombo onSelect={onEmployeeChange} value={selectedEmployee} />
+                        <EmployeeCombo
+                          onSelect={onEmployeeChange}
+                          value={selectedEmployee}
+                          employeeName={employeeName}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -306,7 +312,6 @@ const AddTime = ({
                         <ComboxBox
                           label="Search Task"
                           showSelected
-                          onunSelect={() => setSearchTask("")}
                           deBounceTime={200}
                           value={
                             form.getValues("task") && form.getValues("task").length > 0 ? [form.getValues("task")] : []

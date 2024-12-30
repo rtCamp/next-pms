@@ -55,12 +55,7 @@ export const ResourceAllocationList = ({
   );
 
   return (
-    <div
-      className={cn(
-        "flex flex-col items-center overflow-y-auto max-h-60",
-        !resourceAllocationPermission.write && "pl-7"
-      )}
-    >
+    <div className={cn("flex flex-col items-center overflow-y-auto max-h-60")}>
       {resourceAllocationList.map((resourceAllocation: ResourceAllocationProps, index: number) => (
         <ResourceAllocationCard
           key={resourceAllocation.name}
@@ -107,7 +102,7 @@ export const ResourceAllocationCard = ({
   resourceAllocation: ResourceAllocationProps;
   customer: ResourceCustomerObjectProps;
   viewType?: string;
-  isLastItem: number;
+  isLastItem: boolean;
 }) => {
   const customerData: ResourceCustomerProps = customer[resourceAllocation.customer];
   const resourceAllocationPermission: PermissionProps = useSelector(
@@ -126,6 +121,7 @@ export const ResourceAllocationCard = ({
       setResourceFormData({
         isShowDialog: true,
         employee: resourceAllocation.employee,
+        employee_name: resourceAllocation.employee_name,
         project: resourceAllocation.project,
         allocation_start_date: resourceAllocation.allocation_start_date,
         allocation_end_date: resourceAllocation.allocation_end_date,
@@ -151,6 +147,7 @@ export const ResourceAllocationCard = ({
       setResourceFormData({
         isShowDialog: true,
         employee: resourceAllocation.employee,
+        employee_name: resourceAllocation.employee_name,
         project: resourceAllocation.project,
         allocation_start_date: resourceAllocation.allocation_start_date,
         allocation_end_date: resourceAllocation.allocation_end_date,
@@ -181,7 +178,9 @@ export const ResourceAllocationCard = ({
       <div className="space-y-1 flex flex-col w-11/12 pl-1">
         {viewType && viewType == "project" ? (
           <div className="flex gap-1 items-center">
-            <Typography variant="small" className=" text-muted-foreground">{resourceAllocation.employee}</Typography>
+            <Typography variant="small" className=" text-muted-foreground">
+              {resourceAllocation.employee}
+            </Typography>
             <Typography variant="small" className=" text-muted-foreground" title={resourceAllocation.employee_name}>
               {"("}
               {getFilterValue(resourceAllocation.employee_name, 15)}
@@ -191,7 +190,9 @@ export const ResourceAllocationCard = ({
         ) : (
           resourceAllocation.project && (
             <div className="flex gap-1 items-center">
-              <Typography variant="small" className=" text-muted-foreground">{resourceAllocation.project}</Typography>
+              <Typography variant="small" className=" text-muted-foreground">
+                {resourceAllocation.project}
+              </Typography>
               <Typography variant="small" className=" text-muted-foreground" title={resourceAllocation.project_name}>
                 {"("}
                 {getFilterValue(resourceAllocation.project_name, 15)}

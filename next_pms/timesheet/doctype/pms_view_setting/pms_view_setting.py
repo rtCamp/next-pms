@@ -95,4 +95,4 @@ def update_view(view):
     doc.default = view.default or 0
     doc.public = view.public or 0
     doc.save()
-    return get_views()
+    return doc

@@ -62,7 +62,7 @@ export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDat
                     }}
                     value={!item ? "No Project" : `${itemData.project_name}`}
                   />
-                  {dates.map((datesList: DateProps) => {
+                  {dates.map((datesList: DateProps, weekIndex: number) => {
                     return datesList?.dates?.map((date: string, index: number) => {
                       return (
                         <ExpandViewCell
@@ -74,6 +74,8 @@ export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDat
                           employee_name={employeeData.employee_name}
                           project={item}
                           project_name={itemData.project_name}
+                          customer_name={itemData.customer_name}
+                          weekIndex={weekIndex}
                         />
                       );
                     });
@@ -108,16 +110,20 @@ const ExpandViewCell = ({
   date,
   project,
   employee,
+  employee_name,
   project_name,
+  customer_name,
+  weekIndex,
 }: {
   allocationsData: any;
   index: number;
   date: string;
   project: string;
   employee: string;
-  customer_name?: string;
-  employee_name?: string;
+  customer_name: string;
+  employee_name: string;
   project_name: string;
+  weekIndex: number;
 }) => {
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
   const dispatch = useDispatch();
@@ -134,16 +140,17 @@ const ExpandViewCell = ({
       setResourceFormData({
         isShowDialog: true,
         employee: employee,
+        employee_name: employee_name,
         project: project,
         allocation_start_date: date,
         allocation_end_date: date,
         is_billable: getIsBillableValue(resourceTeamState.allocationType as string[]) != 0,
-        customer: "",
+        customer: customer_name,
         total_allocated_hours: 0,
         hours_allocated_per_day: 0,
         note: "",
         project_name: project_name,
-        customer_name: "",
+        customer_name: customer_name,
         isNeedToEdit: false,
         name: "",
       })
@@ -155,7 +162,7 @@ const ExpandViewCell = ({
       <ResourceTableCell
         type="empty"
         title={title}
-        cellClassName={cn(getTableCellClass(index), getTodayDateCellClass(date))}
+        cellClassName={cn(getTableCellClass(index, weekIndex), getTodayDateCellClass(date))}
         onCellClick={onCellClick}
         value={"-"}
       />
@@ -167,7 +174,7 @@ const ExpandViewCell = ({
       key={index}
       type="hovercard"
       title={title}
-      cellClassName={cn(getTableCellClass(index), getTodayDateCellClass(date))}
+      cellClassName={cn(getTableCellClass(index, weekIndex), getTodayDateCellClass(date))}
       value={
         resourceTeamState.tableView.view == "planned-vs-capacity" || resourceTeamState.tableView.view == "customer-view"
           ? total_allocated_hours
@@ -203,7 +210,7 @@ const TimeOffRow = ({ dates, employeeData }: { dates: string[]; employeeData: Em
           <ResourceTableCell
             type="default"
             key={date}
-            cellClassName={cn(getTableCellClass(index), "bg-gray-200", getTodayDateCellClass(date))}
+            cellClassName={cn(getTableCellClass(index, 0), "bg-gray-200", getTodayDateCellClass(date))}
             value={employeeData.all_leave_data[date] ? employeeData.all_leave_data[date] : "-"}
           />
         );

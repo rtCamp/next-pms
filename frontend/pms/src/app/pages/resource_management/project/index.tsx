@@ -1,9 +1,8 @@
 /**
  * External dependencies.
  */
-import { useFrappeGetCall } from "frappe-react-sdk";
 import { useCallback, useEffect } from "react";
-import { useDispatch,useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 /**
  * Internal dependencies.
@@ -12,18 +11,19 @@ import { Spinner } from "@/app/components/spinner";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
-import { AllocationDataProps, PermissionProps, setResourcePermissions } from "@/store/resource_management/allocation";
-import { setData, setReFetchData,setStart, updateData } from "@/store/resource_management/project";
+import { AllocationDataProps, PermissionProps } from "@/store/resource_management/allocation";
+import { setData, setReFetchData } from "@/store/resource_management/project";
 
 import AddResourceAllocations from "../components/AddAllocation";
-import { FooterSection } from "../components/Footer";
 import { getIsBillableValue } from "../utils/helper";
-import { ResourceProjectHeaderSection } from "./components/Header";
 import { ResourceProjectTable } from "./components/Table";
+import { usePagination } from "../hooks/usePagination";
+import { getMergeData } from "../utils/value";
+import { ResourceProjectHeaderSection } from "./components/Header";
 
 /**
  * This is main component which is responsible for rendering the project view of resource management.
- * 
+ *
  * @returns React.FC
  */
 const ResourceTeamView = () => {
@@ -35,8 +35,16 @@ const ResourceTeamView = () => {
   );
   const dispatch = useDispatch();
 
-  const { data, isLoading, isValidating, error, mutate } = useFrappeGetCall(
+  const getKey = (pageIndex: number, previousPageData: any) => {
+    const indexTillNeedToFetchData = resourceProjectState.start / resourceProjectState.pageLength + 1;
+    if (indexTillNeedToFetchData <= pageIndex) return null;
+    if (previousPageData && !previousPageData.message.has_more) return null;
+    return `next_pms.resource_management.api.project.get_resource_management_project_view_data?page=${pageIndex}&limit=${resourceProjectState.pageLength}`;
+  };
+
+  const { data, isLoading, isValidating, error, size, setSize, mutate } = usePagination(
     "next_pms.resource_management.api.project.get_resource_management_project_view_data",
+    getKey,
     resourceAllocationPermission.write
       ? {
           date: resourceProjectState.weekDate,
@@ -44,7 +52,6 @@ const ResourceTeamView = () => {
           page_length: resourceProjectState.pageLength,
           project_name: resourceProjectState.projectName,
           customer: resourceProjectState.customer,
-          start: resourceProjectState.start,
           is_billable: getIsBillableValue(resourceProjectState.allocationType as string[]),
         }
       : {
@@ -52,47 +59,25 @@ const ResourceTeamView = () => {
           max_week: 3,
           page_length: resourceProjectState.pageLength,
           project_name: resourceProjectState.projectName,
-          start: resourceProjectState.start,
         },
-    undefined,
-    {
-      revalidateIfStale: false,
-      revalidateOnMount: true,
-    }
+    { parallel: true, revalidateAll: true }
   );
 
   const onFormSubmit = useCallback(() => {
     dispatch(setReFetchData(true));
   }, [dispatch]);
 
-  const refetchData = useCallback(() => {
+  useEffect(() => {
     if (resourceProjectState.isNeedToFetchDataAfterUpdate) {
-      mutate().then((r) => {
-        if (r.message) {
-          dispatch(setData(r.message));
-        }
-      });
+      mutate();
       dispatch(setReFetchData(false));
     }
   }, [dispatch, mutate, resourceProjectState.isNeedToFetchDataAfterUpdate]);
 
   useEffect(() => {
-    refetchData();
-  }, [refetchData, resourceProjectState.isNeedToFetchDataAfterUpdate]);
-
-  useEffect(() => {
     if (data) {
-      if (Object.keys(resourceProjectState.data.data).length > 0 && resourceProjectState.data.dates.length > 0) {
-        if (data.message.data.length > 0) {
-          if (data.message.data[0].name == resourceProjectState.data.data[0].name) {
-            return;
-          }
-        }
-        dispatch(updateData(data.message));
-      } else {
-        dispatch(setData(data.message));
-      }
-      dispatch(setResourcePermissions(data.message.permissions));
+      const mergeData = getMergeData(data);
+      dispatch(setData(mergeData));
     }
     if (error) {
       const err = parseFrappeErrorMsg(error);
@@ -104,10 +89,14 @@ const ResourceTeamView = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, error]);
 
-  const handleLoadMore = () => {
-    if (!resourceProjectState.hasMore) return;
-    dispatch(setStart(resourceProjectState.start + resourceProjectState.pageLength));
-  };
+  useEffect(() => {
+    if (!resourceProjectState) return;
+    const newSize: number = resourceProjectState.start / resourceProjectState.pageLength + 1;
+    if (newSize == size) {
+      return;
+    }
+    setSize(newSize);
+  }, [resourceProjectState, resourceProjectState.start, setSize, size]);
 
   return (
     <>
@@ -120,16 +109,6 @@ const ResourceTeamView = () => {
       )}
 
       {ResourceAllocationForm.isShowDialog && <AddResourceAllocations onSubmit={onFormSubmit} />}
-
-      <FooterSection
-        disabled={
-          !resourceProjectState.hasMore ||
-          ((isLoading || isValidating) && Object.keys(resourceProjectState.data.data).length != 0)
-        }
-        handleLoadMore={handleLoadMore}
-        length={Object.keys(resourceProjectState.data.data).length | 0}
-        total_count={resourceProjectState.data.total_count | 0}
-      />
     </>
   );
 };

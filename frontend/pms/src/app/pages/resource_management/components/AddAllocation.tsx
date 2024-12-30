@@ -1,13 +1,13 @@
 /**
  * External dependencies.
  */
+import { useCallback, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useDispatch, useSelector } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFrappeCreateDoc, useFrappeGetCall, useFrappeUpdateDoc } from "frappe-react-sdk";
 import { CircleDollarSign, Clock3, LoaderCircle, Save, Search, X } from "lucide-react";
 import { z } from "zod";
-import { useCallback, useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { useDispatch, useSelector } from "react-redux";
 
 /**
  * Internal dependencies.
@@ -15,6 +15,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { ComboxBox } from "@/app/components/comboBox";
 import { DatePicker } from "@/app/components/datePicker";
 import EmployeeCombo from "@/app/components/employeeComboBox";
+import { Typography } from "@/app/components/typography";
 import { Button } from "@/app/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
@@ -30,11 +31,10 @@ import { AllocationDataProps, ResourceKeys, setDialog } from "@/store/resource_m
 
 import { resetState } from "@/store/resource_management/allocation";
 import { getRoundOfValue } from "../utils/helper";
-import { Typography } from "@/app/components/typography";
 
 /**
  * This component is used to add and update resource allocations data.
- * 
+ *
  * @param onSubmit Function to be called when form is submitted.
  * @returns React.FC
  */
@@ -277,6 +277,7 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
     handleHoursAutoComplete();
   }, [handleHoursAutoComplete, leaveData]);
 
+
   return (
     <Dialog open={resourceAllocationForm?.isShowDialog} onOpenChange={handleOpen}>
       <DialogContent className="max-w-xl">
@@ -298,6 +299,7 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
                   </FormLabel>
                   <FormControl>
                     <EmployeeCombo
+                      employeeName={resourceAllocationForm.employee_name}
                       status={["Active"]}
                       onSelect={handleEmployeeChange}
                       value={form.getValues("employee")}

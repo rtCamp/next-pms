@@ -28,7 +28,7 @@ import {
  * @param props.isLoading The state to show the loader.
  * @param props.onOpen The function to open the dialog.
  * @param props.onCancel The function to cancel the dialog.
- * @returns
+ * @returns React.FC
  */
 const DeleteAllocation = ({
   onDelete,

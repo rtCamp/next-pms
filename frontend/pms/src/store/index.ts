@@ -1,3 +1,4 @@
+/* eslint-disable import/order */
 /**
  * External dependencies.
  */
@@ -9,12 +10,12 @@ import { configureStore } from "@reduxjs/toolkit";
 import appReducer from "./app";
 import homeReducer from "./home";
 import projectReducer from "./project";
+import resourceTeamReducer from "./resource_management/team";
 import taskReducer from "./task";
 import teamReducer from "./team";
 import timesheetReducer from "./timesheet";
 import userReducer from "./user";
 import viewReducer from "./view";
-import resourceTeamReducer from "./resource_management/team";
 import resourceProjectReducer from "./resource_management/project";
 import resourceAllocationFormReducer from "./resource_management/allocation";
 

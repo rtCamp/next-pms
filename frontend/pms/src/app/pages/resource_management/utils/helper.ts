@@ -25,6 +25,10 @@ const getTableCellClass = (index: number, weekIndex: number = 0) => {
     className = "border-r border-gray-300";
   }
 
+  if (index == 0 && weekIndex == 0) {
+    className += " border-l border-gray-300";
+  }
+
   return className;
 };
 
@@ -36,7 +40,7 @@ const getTableCellClass = (index: number, weekIndex: number = 0) => {
  */
 const getTodayDateCellClass = (date: string): string => {
   if (isToday(date)) {
-    return "bg-opacity-90 font-semibold border-l border-r border-gray-200";
+    return "bg-opacity-90 font-semibold border-l border-r border-gray-300 opacity-80";
   }
   return "";
 };

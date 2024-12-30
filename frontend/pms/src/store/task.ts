@@ -6,17 +6,14 @@ import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 /**
  * Internal dependencies.
  */
-import { ProjectNestedTaskData, sortOrder, TaskData } from "@/types";
-import { flatTableDataToNestedProjectDataConversion } from "@/lib/utils";
+import { sortOrder, TaskData } from "@/types";
 
 export interface TaskState {
   task: TaskData[];
-  project: ProjectNestedTaskData[];
   total_count: number;
   start: number;
   isFetchAgain?: boolean;
   selectedProject: Array<string>;
-  groupBy: Array<string>;
   selectedTask: string;
   isTaskLogDialogBoxOpen: boolean;
   isAddTaskDialogBoxOpen: boolean;
@@ -25,6 +22,10 @@ export interface TaskState {
   selectedStatus: Array<TaskStatusType>;
   order: sortOrder;
   orderColumn: string;
+  hasMore: boolean;
+  isLoading: boolean;
+  isNeedToFetchDataAfterUpdate: boolean;
+  action: "SET" | "UPDATE";
 }
 export type TaskStatusType =
   | "Open"
@@ -40,8 +41,6 @@ export const initialState: TaskState = {
   start: 0,
   isFetchAgain: false,
   selectedProject: [],
-  groupBy: [],
-  project: [],
   selectedTask: "",
   isTaskLogDialogBoxOpen: false,
   isAddTaskDialogBoxOpen: false,
@@ -50,6 +49,10 @@ export const initialState: TaskState = {
   selectedStatus: ["Open", "Working"],
   order: "desc",
   orderColumn: "modified",
+  hasMore: true,
+  isLoading: true,
+  isNeedToFetchDataAfterUpdate: false,
+  action: "SET",
 };
 
 export type AddTaskType = {
@@ -65,34 +68,40 @@ export const taskSlice = createSlice({
   reducers: {
     setTaskData: (state, action: PayloadAction<TaskState>) => {
       state.task = action.payload.task;
+      state.isLoading = false;
+      state.hasMore = action.payload.has_more;
       state.total_count = action.payload.total_count;
     },
     updateTaskData: (state, action: PayloadAction<TaskState>) => {
       state.task = [...state.task, ...action.payload.task];
+      state.isLoading = false;
+      state.hasMore = action.payload.has_more;
       state.total_count = action.payload.total_count;
     },
     setStart: (state, action: PayloadAction<number>) => {
       state.start = action.payload;
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
+      state.action = "UPDATE";
       state.pageLength = initialState.pageLength;
+    },
+    setReFetchData: (state, action: PayloadAction<boolean>) => {
+      state.isNeedToFetchDataAfterUpdate = action.payload;
     },
     setSelectedProject: (state, action: PayloadAction<Array<string>>) => {
       state.selectedProject = action.payload;
       state.task = [];
-      state.project = [];
       state.start = 0;
-    },
-    setGroupBy: (state, action: PayloadAction<Array<string>>) => {
-      state.groupBy = action.payload;
-    },
-    setProjectData: (state) => {
-      state.project = flatTableDataToNestedProjectDataConversion(state.task);
-    },
-    updateProjectData: (state) => {
-      state.project = flatTableDataToNestedProjectDataConversion(state.task);
+      state.isLoading = true;
+      state.action = "SET";
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     setAddTaskDialog: (state, action: PayloadAction<boolean>) => {
       state.isAddTaskDialogBoxOpen = action.payload;
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
       state.start = 0;
+      state.action = "SET";
     },
     setSelectedTask: (
       state,
@@ -103,17 +112,23 @@ export const taskSlice = createSlice({
     },
     setOrderBy: (
       state,
-      action: PayloadAction<{ order: sortOrder; orderColumn: string }>,
+      action: PayloadAction<{ order: sortOrder; orderColumn: string }>
     ) => {
       const pageLength = state.task.length;
       state.pageLength = pageLength;
       state.start = 0;
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
+      state.action = "SET";
       state.order = action.payload.order;
       state.orderColumn = action.payload.orderColumn;
       state.task = initialState.task;
     },
     setSearch: (state, action: PayloadAction<string>) => {
       state.search = action.payload;
+      state.isLoading = true;
+      state.action = "SET";
+      state.isNeedToFetchDataAfterUpdate = true;
       state.start = initialState.start;
       state.pageLength = initialState.pageLength;
       state.task = initialState.task;
@@ -124,6 +139,9 @@ export const taskSlice = createSlice({
     ) => {
       state.selectedStatus = action.payload;
       state.start = initialState.start;
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
+      state.action = "SET";
       state.pageLength = initialState.pageLength;
     },
     setFilters: (
@@ -132,14 +150,15 @@ export const taskSlice = createSlice({
         selectedStatus: Array<TaskStatusType>;
         search: string;
         selectedProject: Array<string>;
-        groupBy: Array<string>;
       }>
     ) => {
       state.selectedProject = action.payload.selectedProject;
       state.selectedStatus = action.payload.selectedStatus;
       state.search = action.payload.search;
-      state.groupBy = action.payload.groupBy;
       state.start = initialState.start;
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
+      state.action = "SET";
       state.pageLength = initialState.pageLength;
     },
     setTotalCount: (state, action: PayloadAction<number>) => {
@@ -149,9 +168,11 @@ export const taskSlice = createSlice({
       const pageLength = state.task.length;
       state.pageLength = pageLength;
       state.start = 0;
+      state.isLoading = true;
+      state.action = "SET";
+      state.isNeedToFetchDataAfterUpdate = true;
       state.task = initialState.task;
-
-    }
+    },
   },
 });
 
@@ -159,9 +180,6 @@ export const {
   setTaskData,
   setStart,
   setSelectedProject,
-  setGroupBy,
-  setProjectData,
-  updateProjectData,
   updateTaskData,
   setAddTaskDialog,
   setSelectedTask,
@@ -170,7 +188,8 @@ export const {
   setSelectedStatus,
   setFilters,
   setTotalCount,
-  refreshData
+  refreshData,
+  setReFetchData,
 } = taskSlice.actions;
 
 export default taskSlice.reducer;

@@ -14,7 +14,7 @@ export interface HomeState {
   action: "SET" | "UPDATE";
   isDialogOpen: boolean;
   isAprrovalDialogOpen: boolean;
-  employeeName?: string;
+  employeeName: string;
   status: Array<string>;
   weekDate: string;
   pageLength: number;
@@ -29,6 +29,8 @@ export interface HomeState {
     employee?: string;
   };
   start: number;
+  isLoading: boolean;
+  isNeedToFetchDataAfterUpdate: boolean;
 }
 
 export interface dataProps {
@@ -57,6 +59,7 @@ export const initialState: HomeState = {
     isUpdate: false,
     employee: "",
   },
+  isLoading: true,
 
   status: ["Active"],
   data: {
@@ -67,6 +70,7 @@ export const initialState: HomeState = {
   },
   pageLength: 20,
   isDialogOpen: false,
+  isNeedToFetchDataAfterUpdate: false,
   isAprrovalDialogOpen: false,
   employeeName: "",
   weekDate: getTodayDate(),
@@ -82,6 +86,11 @@ const homeSlice = createSlice({
     },
     setData: (state, action: PayloadAction<any>) => {
       state.data = action.payload;
+      state.isLoading = false;
+    },
+
+    setReFetchData: (state, action: PayloadAction<boolean>) => {
+      state.isNeedToFetchDataAfterUpdate = action.payload;
     },
 
     setTimesheet: (state, action: PayloadAction<any>) => {
@@ -92,6 +101,8 @@ const homeSlice = createSlice({
       const pageLength = Object.keys(state.data.data).length;
       state.pageLength = pageLength;
       state.action = "SET";
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
       state.start = 0;
     },
     setFilters: (
@@ -102,30 +113,41 @@ const homeSlice = createSlice({
       state.action = "SET";
       state.status = action.payload.status;
       state.start = 0;
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
       state.pageLength = initialState.pageLength;
     },
     setStatus: (state, action: PayloadAction<Array<string>>) => {
       state.status = action.payload;
       state.action = "SET";
       state.start = 0;
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
       state.pageLength = initialState.pageLength;
     },
     setEmployeeName: (state, action: PayloadAction<string>) => {
       state.employeeName = action.payload;
       state.action = "SET";
       state.start = 0;
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
       state.pageLength = initialState.pageLength;
     },
     setStart: (state, action: PayloadAction<number>) => {
       state.start = action.payload;
       state.action = "UPDATE";
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
       state.pageLength = initialState.pageLength;
     },
     updateData: (state, action: PayloadAction<any>) => {
       const data = state.data.data;
+      state.data.has_more = action.payload.has_more;
       state.data.data = { ...data, ...action.payload.data };
       state.data.dates = action.payload.dates;
       state.data.total_count = action.payload.total_count;
+      state.isLoading = false;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
   },
 });
@@ -140,6 +162,7 @@ export const {
   updateData,
   resetState,
   setStatus,
+  setReFetchData
 } = homeSlice.actions;
 
 export default homeSlice.reducer;

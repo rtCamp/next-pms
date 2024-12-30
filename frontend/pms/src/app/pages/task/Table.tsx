@@ -8,33 +8,40 @@ import { flexRender } from "@tanstack/react-table";
  */
 import { Spinner } from "@/app/components/spinner";
 import { Separator } from "@/app/components/ui/separator";
-import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table } from "@/app/components/ui/table";
+import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table as RootTable } from "@/app/components/ui/table";
 import { TaskState } from "@/store/task";
-import {
-  FlatTableType,
-  ColumnsType,
-  columnsToExcludeActionsInTablesType,
-} from "@/types/task";
+import { ColumnsType, columnsToExcludeActionsInTablesType, TaskTableType } from "@/types/task";
+import { useInfiniteScroll } from "../resource_management/hooks/useInfiniteScroll";
 
-export const FlatTable = ({
+export const Table = ({
   table,
   columns,
   columnsToExcludeActionsInTables,
   task,
   isLoading,
+  hasMore,
+  handleLoadMore,
 }: {
-  table: FlatTableType;
+  table: TaskTableType;
   columns: ColumnsType;
   columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType;
   task: TaskState;
   isLoading: boolean;
+  hasMore: boolean;
+  handleLoadMore: () => void;
 }) => {
+  const cellRef = useInfiniteScroll({
+    isLoading: isLoading,
+    hasMore: hasMore,
+    next: handleLoadMore,
+  });
+
   return (
     <>
       {isLoading && task.task.length == 0 ? (
         <Spinner isFull />
       ) : (
-        <Table className="[&_td]:px-4 [&_th]:px-4 [&_th]:py-2 table-fixed w-full relative">
+        <RootTable className="[&_td]:px-4 [&_th]:px-4 [&_th]:py-2 table-fixed w-full relative ">
           <TableHeader className=" border-t-0 sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -82,15 +89,20 @@ export const FlatTable = ({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell className="overflow-hidden" key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row) => {
+                return (
+                  <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                    {row.getVisibleCells().map((cell, cellIndex) => {
+                      const needToAddRef = task.hasMore && cellIndex == 0;
+                      return (
+                        <TableCell ref={needToAddRef ? cellRef : null} className="overflow-hidden" key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
@@ -98,8 +110,15 @@ export const FlatTable = ({
                 </TableCell>
               </TableRow>
             )}
+            {hasMore && (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="text-center">
+                  <Spinner isFull={false} className="p-4 overflow-hidden w-full" />
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
-        </Table>
+        </RootTable>
       )}
     </>
   );

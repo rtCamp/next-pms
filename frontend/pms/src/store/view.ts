@@ -68,8 +68,21 @@ const viewSlice = createSlice({
             state.views = state.views.filter(v => v.name !== action.payload)
         },
         updateView: (state, action: PayloadAction<ViewData>) => {
-            const index = state.views.findIndex(v => v.name === action.payload.name)
-            state.views[index] = action.payload
+            const index = state.views.findIndex(v => v.name === action.payload.name);
+            const updatedView =  action.payload;
+            if (typeof action.payload.filters == 'string') {
+                updatedView.filters = JSON.parse(action.payload.filters);
+            }
+            if (typeof action.payload.rows == 'string') {
+                updatedView.rows = JSON.parse(action.payload.rows);
+            }
+            if (typeof action.payload.columns == 'string') {
+                updatedView.columns = JSON.parse(action.payload.columns);
+            }
+            if (typeof action.payload.order_by == 'string') {
+                updatedView.order_by = JSON.parse(action.payload.order_by);
+            }
+            state.views[index] = updatedView
         }
     }
 });

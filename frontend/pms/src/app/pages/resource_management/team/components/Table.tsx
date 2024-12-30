@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 /**
@@ -16,10 +16,10 @@ import {
   EmployeeDataProps,
   EmployeeResourceProps,
   emptyEmployeeDayData,
+  setStart,
 } from "@/store/resource_management/team";
 import { ResourceAllocationObjectProps } from "@/types/resource_management";
 
-import { CustomerAllocationList } from "./CustomerAllocationList";
 import { ResourceExpandView } from "./ExpandView";
 import { EmptyTableBody } from "../../components/Empty";
 import { ResourceAllocationList } from "../../components/ResourceAllocationList";
@@ -28,6 +28,8 @@ import ResourceTeamTableHeader from "../../components/TableHeader";
 import { ResourceTableRow } from "../../components/TableRow";
 import { getCellBackGroundColor } from "../../utils/cell";
 import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
+import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
+import { Spinner } from "@/app/components/spinner";
 
 /**
  * This component is responsible for loading the table for table view.
@@ -52,7 +54,18 @@ const ResourceTeamTable = () => {
  */
 const ResourceTeamTableBody = () => {
   const data = useSelector((state: RootState) => state.resource_team.data.data);
+  const start = useSelector((state: RootState) => state.resource_team.start);
+  const pageLength = useSelector((state: RootState) => state.resource_team.pageLength);
+  const hasMore = useSelector((state: RootState) => state.resource_team.hasMore);
+  const isLoading = useSelector((state: RootState) => state.resource_team.isLoading);
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_team.data.dates);
+  const cellRef = useInfiniteScroll({ isLoading: isLoading, hasMore: hasMore, next: () => handleLoadMore() });
+  const dispatch = useDispatch();
+
+  const handleLoadMore = () => {
+    if (!hasMore) return;
+    dispatch(setStart(start + pageLength));
+  };
 
   if (data.length == 0) {
     return <EmptyTableBody />;
@@ -60,11 +73,14 @@ const ResourceTeamTableBody = () => {
 
   return (
     <TableBody>
-      {data.map((employeeData: EmployeeDataProps) => {
+      {data.map((employeeData: EmployeeDataProps, index: number) => {
+        const needToAddRef = hasMore && index == data.length - 2;
+
         return (
           <ResourceTableRow
             name={employeeData.name}
             avatar={employeeData.image}
+            rowRef={needToAddRef ? cellRef : null}
             avatar_abbr={employeeData.employee_name}
             avatar_name={employeeData.employee_name}
             RowComponent={() => {
@@ -92,7 +108,6 @@ const ResourceTeamTableBody = () => {
                           employee={employeeData.name}
                           employee_name={employeeData.employee_name}
                           rowCount={index}
-                          max_allocation_count_for_single_date={employeeData.max_allocation_count_for_single_date}
                           midIndex={week_index}
                           employeeAllocations={employeeData.employee_allocations}
                         />
@@ -108,6 +123,7 @@ const ResourceTeamTableBody = () => {
           />
         );
       })}
+      {hasMore && <Spinner isFull={false} className="p-4 overflow-hidden" />}
     </TableBody>
   );
 };
@@ -131,7 +147,6 @@ const ResourceTeamTableCell = ({
   rowCount,
   employee_name,
   employee,
-  max_allocation_count_for_single_date,
   midIndex,
   employeeAllocations,
 }: {
@@ -140,7 +155,6 @@ const ResourceTeamTableCell = ({
   rowCount: number;
   employee: string;
   employee_name: string;
-  max_allocation_count_for_single_date: number;
   midIndex: number;
   employeeAllocations: ResourceAllocationObjectProps;
 }) => {
@@ -148,12 +162,9 @@ const ResourceTeamTableCell = ({
   const customer = useSelector((state: RootState) => state.resource_team.data.customer);
   const allocationType = useSelector((state: RootState) => state.resource_team.allocationType);
 
-  const heightFactor: number = 40;
   const { date: dateStr, day } = prettyDate(employeeSingleDay.date);
   const title = employee_name + " (" + dateStr + " - " + day + ")";
 
-  const height: number =
-    max_allocation_count_for_single_date == 0 ? 0 : max_allocation_count_for_single_date * heightFactor;
   const dispatch = useDispatch();
 
   const allocationPercentage = useMemo(() => {
@@ -179,109 +190,16 @@ const ResourceTeamTableCell = ({
 
   const cellBackGroundColor = useMemo(() => getCellBackGroundColor(allocationPercentage), [allocationPercentage]);
 
-  const cellRef = useRef(null);
-  const [cellWidth, setWidth] = useState(0);
-  const [cellHeight, setHeight] = useState(0);
-
-  useEffect(() => {
-    if (!cellRef.current) return;
-
-    const { width, height } = (cellRef.current as HTMLElement).getBoundingClientRect();
-
-    setWidth(width);
-    setHeight(height);
-  }, []);
-
-  // allocationPercentage = Math.random() * 100;
-
-  if (tableView.view == "customer-view") {
-    if (allocationPercentage == -1) {
-      return (
-        <ResourceTableCell
-          type="default"
-          title={title}
-          cellClassName={cn(
-            getTableCellClass(rowCount),
-            allocationPercentage == -1 && cellBackGroundColor,
-            "relative",
-            getTodayDateCellClass(employeeSingleDay.date)
-          )}
-          ref={cellRef}
-          CellContent={() => {
-            return (
-              <>
-                {rowCount == 0 && (
-                  <CustomerAllocationList
-                    cellWidth={cellWidth}
-                    cellHeight={cellHeight}
-                    employeeAllocations={employeeAllocations}
-                    heightFactor={heightFactor}
-                  />
-                )}
-              </>
-            );
-          }}
-          value={""}
-          style={{
-            height: height ? `${height}px` : "auto",
-          }}
-        />
-      );
-    }
-
-    return (
-      <ResourceTableCell
-        type="default"
-        title={title}
-        cellClassName={cn(
-          getTableCellClass(rowCount),
-          allocationPercentage == -1 && cellBackGroundColor,
-          height && `h-[${height}rem]`,
-          "relative",
-          getTodayDateCellClass(employeeSingleDay.date)
-        )}
-        style={{
-          background:
-            allocationPercentage < 50
-              ? allocationPercentage == 0
-                ? "rgb(214, 236, 214)"
-                : allocationPercentage <= 25
-                ? `rgb(214, 236, 214, ${(100 - allocationPercentage / 100) * 3}`
-                : `rgb(214, 236, 214, ${(100 - allocationPercentage / 100) * 2}`
-              : `rgb(255, 202, 202, ${Math.pow(allocationPercentage / 100, 2) * 1.15})`,
-          height: height ? `${height}px` : "auto",
-        }}
-        ref={cellRef}
-        CellContent={() => {
-          return (
-            <>
-              {rowCount == 0 && (
-                <CustomerAllocationList
-                  cellHeight={cellHeight}
-                  cellWidth={cellWidth}
-                  employeeAllocations={employeeAllocations}
-                  heightFactor={heightFactor}
-                />
-              )}
-            </>
-          );
-        }}
-        value={""}
-      />
-    );
-  }
-
   if (tableView.combineWeekHours) {
     return (
       <ResourceTableCell
         type="default"
         title={title}
         cellClassName={cn(
-          getTableCellClass(rowCount),
+          getTableCellClass(rowCount, midIndex),
           cellBackGroundColor,
           getTodayDateCellClass(employeeSingleDay.date)
         )}
-        ref={cellRef}
         value={
           rowCount == 2 &&
           (tableView.view == "planned-vs-capacity"
@@ -297,6 +215,7 @@ const ResourceTeamTableCell = ({
       setResourceFormData({
         isShowDialog: true,
         employee: employee,
+        employee_name:employee_name,
         allocation_start_date: employeeSingleDay.date,
         allocation_end_date: employeeSingleDay.date,
         is_billable: getIsBillableValue(allocationType as string[]) != 0,
@@ -319,7 +238,7 @@ const ResourceTeamTableCell = ({
         type="empty"
         title={title}
         cellClassName={cn(
-          getTableCellClass(rowCount),
+          getTableCellClass(rowCount, midIndex),
           cellBackGroundColor,
           getTodayDateCellClass(employeeSingleDay.date)
         )}
@@ -339,7 +258,6 @@ const ResourceTeamTableCell = ({
           cellBackGroundColor,
           getTodayDateCellClass(employeeSingleDay.date)
         )}
-        ref={cellRef}
         value={employeeSingleDay.total_leave_hours}
       />
     );
@@ -348,10 +266,9 @@ const ResourceTeamTableCell = ({
   return (
     <ResourceTableCell
       type="hovercard"
-      ref={cellRef}
       title={title}
       cellClassName={cn(
-        getTableCellClass(rowCount),
+        getTableCellClass(rowCount, midIndex),
         cellBackGroundColor,
         getTodayDateCellClass(employeeSingleDay.date)
       )}
