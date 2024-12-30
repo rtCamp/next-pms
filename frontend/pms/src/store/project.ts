@@ -134,6 +134,7 @@ export const projectSlice = createSlice({
     },
     setSelectedProjectType: (state, action: PayloadAction<Array<string>>) => {
       state.selectedProjectType = action.payload;
+      // state.data = initialState.data;
       state.start = initialState.start;
       state.isLoading = true;
       state.action = "SET";
@@ -143,6 +144,7 @@ export const projectSlice = createSlice({
     },
     setSelectedStatus: (state, action: PayloadAction<Array<Status>>) => {
       state.selectedStatus = action.payload;
+      // state.data = initialState.data;
       state.start = initialState.start;
       state.isLoading = true;
       state.data = initialState.data;
@@ -202,7 +204,6 @@ export const projectSlice = createSlice({
       state.orderColumn = action.payload.orderColumn;
       state.currency = action.payload.currency;
       state.selectedBillingType = action.payload.selectedBillingType;
-      state.data = initialState.data;
     },
     setOrderBy: (
       state,
@@ -218,12 +219,23 @@ export const projectSlice = createSlice({
       state.isLoading = true;
       state.isNeedToFetchDataAfterUpdate = true;
     },
+    setTotalCount: (state, action: PayloadAction<number>) => {
+      state.totalCount = action.payload;
+    },
+    refreshData: (state) => {
+      const pageLength = state.data.length;
+      state.pageLength = pageLength;
+      state.start = 0;
+      state.data = initialState.data;
+
+    }
   },
 });
 
 export const {
   setProjectData,
   updateProjectData,
+  refreshData,
   setStart,
   setSearch,
   setSelectedProjectType,
@@ -231,6 +243,7 @@ export const {
   setFilters,
   setOrderBy,
   setCurrency,
+  setTotalCount,
   setSelectedBusinessUnit,
   setSelectedBilingType,
   setReFetchData,
