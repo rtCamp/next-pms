@@ -140,7 +140,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
   };
 
   const getKey = (pageIndex: number, previousPageData: any) => {
-    const indexTillNeedToFetchData = task.start == 0 ? 1 : task.start / task.pageLength;
+    const indexTillNeedToFetchData = task.start / task.pageLength + 1;
     if (indexTillNeedToFetchData <= pageIndex) return null;
     if (previousPageData && !previousPageData.message.has_more) return null;
 
@@ -181,10 +181,11 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
 
   useEffect(() => {
     if (data) {
-      if (task.start !== 0) {
-        dispatch(updateTaskData(data[data.length - 1].message));
-      } else {
+      if(task.isNeedToFetchDataAfterUpdate) return;
+      if (task.action === "SET") {
         dispatch(setTaskData(data[0].message));
+      } else {
+        dispatch(updateTaskData(data[data.length - 1].message));
       }
     }
     if (error) {
@@ -194,7 +195,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
         description: err,
       });
     }
-  }, [data, dispatch, error, task.start, toast]);
+  }, [data, dispatch, error, task.action, toast]);
 
   const handleLike = (e: React.MouseEvent<SVGSVGElement>) => {
     e.stopPropagation();
