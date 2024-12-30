@@ -19,8 +19,9 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/
 import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
 import { useToast } from "@/app/components/ui/use-toast";
 import { Footer } from "@/app/layout/root";
+import { useInfiniteScroll } from "@/app/pages/resource_management/hooks/useInfiniteScroll";
+import { usePagination } from "@/app/pages/resource_management/hooks/usePagination";
 import { TEAM, EMPLOYEE } from "@/lib/constant";
-
 import {
   cn,
   parseFrappeErrorMsg,
@@ -47,23 +48,48 @@ type DataItem = {
 const Home = () => {
   const { toast } = useToast();
   const homeState = useSelector((state: RootState) => state.home);
-  const dispatch = useDispatch();
 
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { data, error, isLoading } = useFrappeGetCall("next_pms.timesheet.api.team.get_compact_view_data", {
-    date: homeState.weekDate,
-    employee_name: homeState.employeeName,
-    page_length: homeState.pageLength,
-    start: homeState.start,
-    status: homeState.status,
-  });
+  const getKey = (pageIndex: number, previousPageData: any) => {
+    const indexTillNeedToFetchData = homeState.start / homeState.pageLength + 1;
+    if (indexTillNeedToFetchData <= pageIndex) return null;
+    if (previousPageData && !previousPageData.message.has_more) return null;
+    return `next_pms.timesheet.api.team.get_compact_view_data?page=${pageIndex}&limit=${homeState.pageLength}`;
+  };
+
+  const { data, isLoading, error, size, setSize } = usePagination(
+    "next_pms.timesheet.api.team.get_compact_view_data",
+    getKey,
+    {
+      date: homeState.weekDate,
+      employee_name: homeState.employeeName,
+      page_length: homeState.pageLength,
+      start: homeState.start,
+      status: homeState.status,
+    },
+    {
+      parallel: true,
+      revalidateFirstPage: false,
+    }
+  );
+
+  useEffect(() => {
+    const newSize: number = homeState.start / homeState.pageLength + 1;
+    if (newSize == size) {
+      return;
+    }
+    setSize(newSize);
+  }, [homeState.start, homeState.pageLength, size, setSize]);
+
   useEffect(() => {
     if (data) {
+      console.log(data);
       if (homeState.action == "SET") {
-        dispatch(setData(data.message));
+        dispatch(setData(data[0].message));
       } else {
-        dispatch(updateData(data.message));
+        dispatch(updateData(data[data.length - 1].message));
       }
     }
     if (error) {
@@ -75,11 +101,12 @@ const Home = () => {
     }
   }, [data, dispatch, error, homeState.action, toast]);
 
-  const handleLoadMore = useCallback(() => {
+  const handleLoadMore = () => {
     if (!homeState.data.has_more) return;
     dispatch(setStart(homeState.start + homeState.pageLength));
-  }, [dispatch, homeState.data.has_more, homeState.pageLength, homeState.start]);
+  };
 
+  const cellRef = useInfiniteScroll({ isLoading: isLoading, hasMore: homeState.data.has_more, next: handleLoadMore });
   return (
     <>
       <Header />
@@ -126,9 +153,11 @@ const Home = () => {
           <TableBody>
             {Object.entries(homeState.data?.data).length > 0 ? (
               Object.entries(homeState.data?.data as Record<string, DataItem>).map(
-                ([key, item]: [string, DataItem]) => {
+                ([key, item]: [string, DataItem], index: number) => {
+                  const needToAddRef = homeState.data.has_more && index == Object.keys(homeState.data?.data).length - 2;
+
                   return (
-                    <TableRow key={key}>
+                    <TableRow key={key} ref={needToAddRef ? cellRef : null}>
                       <TableCell className="flex items-center gap-x-2 max-w-sm min-w-96">
                         <span
                           className="flex gap-x-2 items-center font-normal hover:underline hover:cursor-pointer w-full"
@@ -193,7 +222,7 @@ const Home = () => {
           </TableBody>
         </Table>
       )}
-      <Footer>
+      {/* <Footer>
         <div className="w-full flex justify-between items-center">
           <LoadMore
             variant="outline"
@@ -208,7 +237,7 @@ const Home = () => {
             {`${Object.keys(homeState.data.data).length | 0} of ${homeState.data.total_count | 0}`}
           </Typography>
         </div>
-      </Footer>
+      </Footer> */}
     </>
   );
 };

@@ -122,7 +122,9 @@ const homeSlice = createSlice({
       state.pageLength = initialState.pageLength;
     },
     updateData: (state, action: PayloadAction<any>) => {
+
       const data = state.data.data;
+      state.data.has_more = action.payload.has_more;
       state.data.data = { ...data, ...action.payload.data };
       state.data.dates = action.payload.dates;
       state.data.total_count = action.payload.total_count;
