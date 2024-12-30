@@ -160,7 +160,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     },
     {
       parallel: true,
-      revalidateFirstPage: false,
+      revalidateAll: true,
     }
   );
 
