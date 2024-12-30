@@ -35,10 +35,10 @@ interface LeaveTimeProps {
 }
 const AddLeave = ({ employee, open = false, onOpenChange, onSuccess }: LeaveTimeProps) => {
   const { toast } = useToast();
-  const { createDoc } = useFrappeCreateDoc();
+  const { createDoc,loading,isCompleted } = useFrappeCreateDoc();
   const user = useSelector((state: RootState) => state.user);
   const [selectedEmployee, setSelectedEmployee] = useState(employee);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [selectedFromDate, setSelectedFromDate] = useState(getTodayDate());
   const [selectedToDate, setSelectedToDate] = useState(getTodayDate());
   const [selectedLeaveType, setSelectedLeaveType] = useState<string[]>();
@@ -80,14 +80,13 @@ const AddLeave = ({ employee, open = false, onOpenChange, onSuccess }: LeaveTime
   } = form;
 
   const handleSubmit = (data: z.infer<typeof LeaveSchema>) => {
-    setIsSubmitting(true);
     createDoc("Leave Application", data)
       .then(() => {
         toast({
           variant: "success",
           description: "Leave created successfully",
         });
-        setIsSubmitting(false);
+
         handleOpen();
         onSuccess && onSuccess();
       })
@@ -97,7 +96,6 @@ const AddLeave = ({ employee, open = false, onOpenChange, onSuccess }: LeaveTime
           description: error,
           variant: "destructive",
         });
-        setIsSubmitting(false);
       });
   };
   const handleOpen = () => {
@@ -143,7 +141,7 @@ const AddLeave = ({ employee, open = false, onOpenChange, onSuccess }: LeaveTime
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)}>
-              <div className="max-h-dvh overflow-y-auto">
+              <div className="max-h-dvh overflow-y-auto no-scrollbar">
                 <div className="flex flex-col gap-y-4">
                   <FormField
                     control={form.control}
@@ -258,7 +256,7 @@ const AddLeave = ({ employee, open = false, onOpenChange, onSuccess }: LeaveTime
                               <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select Half" />
                               </SelectTrigger>
-                              <SelectContent>
+                              <SelectContent side="top">
                                 <SelectItem value="First Half">First Half</SelectItem>
                                 <SelectItem value="Second Half">Second Half</SelectItem>
                               </SelectContent>
@@ -273,8 +271,8 @@ const AddLeave = ({ employee, open = false, onOpenChange, onSuccess }: LeaveTime
               </div>
               <DialogFooter className="sm:justify-start w-full pt-3">
                 <div className="flex gap-x-4 w-full">
-                  <Button disabled={!isDirty || !isValid || isSubmitting}>
-                    {isSubmitting ? <LoaderCircle className="animate-spin " /> : <Save />}
+                  <Button disabled={!isDirty || !isValid || (loading && !isCompleted)}>
+                    {(loading && !isCompleted) ? <LoaderCircle className="animate-spin " /> : <Save />}
                     Add Leave
                   </Button>
                   <Button variant="secondary" type="button" onClick={handleOpen}>

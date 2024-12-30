@@ -176,13 +176,13 @@ function Timesheet() {
   return (
     <>
       <Header className="justify-end gap-x-3">
-        <Button onClick={handleAddTime} title="Add Time">
-          <Plus />
-          Time
-        </Button>
         <Button variant="outline" onClick={handleAddLeave} title="Add Time">
           <Plus />
           Leave
+        </Button>
+        <Button onClick={handleAddTime} title="Add Time">
+          <Plus />
+          Time
         </Button>
       </Header>
 
