@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getCoreRowModel, getSortedRowModel, useReactTable, ColumnSizingState } from "@tanstack/react-table";
-import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import { useFrappePostCall } from "frappe-react-sdk";
 import _ from "lodash";
 
 /**
@@ -13,10 +13,7 @@ import _ from "lodash";
  */
 import AddTime from "@/app/components/AddTime";
 import ViewWrapper from "@/app/components/listview/ViewWrapper";
-import { LoadMore } from "@/app/components/loadMore";
-import { Typography } from "@/app/components/typography";
 import { useToast } from "@/app/components/ui/use-toast";
-import { Footer } from "@/app/layout/root";
 import {
   parseFrappeErrorMsg,
   createFalseValuedObject,
@@ -24,7 +21,7 @@ import {
   getDateTimeForMultipleTimeZoneSupport,
 } from "@/lib/utils";
 import { RootState } from "@/store";
-import { setStart, updateTaskData, setTaskData, setSelectedTask, setFilters } from "@/store/task";
+import { setStart, updateTaskData, setTaskData, setSelectedTask, setFilters, setReFetchData } from "@/store/task";
 import { SetAddTimeDialog, SetTimesheet } from "@/store/timesheet";
 import { ViewData } from "@/store/view";
 import { DocMetaProps } from "@/types";
@@ -35,6 +32,7 @@ import { Header } from "./Header";
 import { Table } from "./Table";
 import { TaskLog } from "./TaskLog";
 import { createFilter } from "./utils";
+import { usePagination } from "../resource_management/hooks/usePagination";
 
 const Task = () => {
   const docType = "Task";
@@ -85,7 +83,6 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     setColumnVisibility(createFalseValuedObject(viewData.rows));
     setHasViewUpdated(false);
   }, [dispatch, viewData]);
-
 
   const handleColumnHide = (id: string) => {
     setColumnVisibility((prev) => ({
@@ -142,8 +139,17 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     dispatch(SetAddTimeDialog(true));
   };
 
-  const { data, isLoading, error, mutate } = useFrappeGetCall(
+  const getKey = (pageIndex: number, previousPageData: any) => {
+    const indexTillNeedToFetchData = task.start == 0 ? 1 : task.start / task.pageLength;
+    if (indexTillNeedToFetchData <= pageIndex) return null;
+    if (previousPageData && !previousPageData.message.has_more) return null;
+
+    return `next_pms.timesheet.api.task.get_task_list?page=${pageIndex}&limit=${task.pageLength}`;
+  };
+
+  const { data, isLoading, error, size, setSize, mutate } = usePagination(
     "next_pms.timesheet.api.task.get_task_list",
+    getKey,
     {
       page_length: task.pageLength,
       start: task.start,
@@ -152,18 +158,33 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       status: task.selectedStatus,
       fields: viewInfo?.rows,
     },
-    undefined,
     {
-      revalidateIfStale: false,
+      parallel: true,
+      revalidateFirstPage: false,
     }
   );
 
   useEffect(() => {
+    if (task.isNeedToFetchDataAfterUpdate) {
+      mutate();
+      dispatch(setReFetchData(false));
+    }
+  }, [dispatch, mutate, task.isNeedToFetchDataAfterUpdate]);
+
+  useEffect(() => {
+    const newSize: number = task.start / task.pageLength + 1;
+    if (newSize == size) {
+      return;
+    }
+    setSize(newSize);
+  }, [task.start, task.pageLength, size, setSize]);
+
+  useEffect(() => {
     if (data) {
       if (task.start !== 0) {
-        dispatch(updateTaskData(data.message));
+        dispatch(updateTaskData(data[data.length - 1].message));
       } else {
-        dispatch(setTaskData(data.message));
+        dispatch(setTaskData(data[0].message));
       }
     }
     if (error) {
@@ -207,7 +228,6 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
   const openTaskLog = (taskName: string) => {
     dispatch(setSelectedTask({ task: taskName, isOpen: true }));
   };
- 
 
   useEffect(() => {
     const updateViewData = {
@@ -224,7 +244,16 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     }
     setViewInfo(updateViewData);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [colSizing, columnOrder, task.orderColumn, task.order, task.search, task.selectedProject, task.selectedStatus,viewData]);
+  }, [
+    colSizing,
+    columnOrder,
+    task.orderColumn,
+    task.order,
+    task.search,
+    task.selectedProject,
+    task.selectedStatus,
+    viewData,
+  ]);
 
   const columns: ColumnsType = getColumn(
     meta.fields,
@@ -258,8 +287,10 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     },
   });
 
-  const loadMore = () => {
-    dispatch(setStart(task.start + 20));
+  const handleLoadMore = () => {
+    if (task.isLoading) return;
+    if (!task.hasMore) return;
+    dispatch(setStart(task.start + task.pageLength));
   };
 
   return (
@@ -271,7 +302,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
         onColumnHide={handleColumnHide}
         view={viewInfo}
         stateUpdated={hasViewUpdated}
-        setStateUpdated = {setHasViewUpdated}
+        setStateUpdated={setHasViewUpdated}
       />
       {/* Task logs */}
       {task.isTaskLogDialogBoxOpen && (
@@ -294,24 +325,9 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
         columnsToExcludeActionsInTables={columnsToExcludeActionsInTables}
         task={task}
         isLoading={isLoading}
+        hasMore={task.hasMore}
+        handleLoadMore={handleLoadMore}
       />
-
-      {/* footer */}
-      <Footer className="bg-blue-500">
-        <div className="flex justify-between items-center">
-          <LoadMore
-            className="float-left"
-            variant="outline"
-            onClick={loadMore}
-            disabled={task.task.length === task.total_count || isLoading}
-          />
-
-          <Typography variant="p" className="lg:px-5 font-semibold">
-            {`${task.task.length | 0} of ${task.total_count | 0}`}
-          </Typography>
-        </div>
-      </Footer>
-      {/* addTime */}
       {timesheet.isDialogOpen && (
         <AddTime
           employee={user.employee}

@@ -34,6 +34,7 @@ import { DocMetaProps, sortOrder } from "@/types";
 import { getColumnInfo } from "./columns";
 import { Header as ProjectHeader } from "./Header";
 import { getFilter, createFilter } from "./utils";
+import { usePagination } from "../resource_management/hooks/usePagination";
 
 type ProjectProps = {
   viewData: ViewData;
@@ -79,8 +80,17 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     setHasViewUpdated(false);
   }, [dispatch, viewData]);
 
-  const { data, error, isLoading } = useFrappeGetCall(
+  const getKey = (pageIndex: number, previousPageData: any) => {
+    const indexTillNeedToFetchData = projectState.start == 0 ? 1 : projectState.start / projectState.pageLength;
+    if (indexTillNeedToFetchData <= pageIndex) return null;
+    if (previousPageData && !previousPageData.message.has_more) return null;
+
+    return `next_pms.timesheet.api.project.get_projects?page=${pageIndex}&limit=${projectState.pageLength}`;
+  };
+
+  const { data, isLoading, error, size, setSize, mutate } = usePagination(
     "next_pms.timesheet.api.project.get_projects",
+    getKey,
     {
       fields: viewInfo.rows ?? ["*"],
       filters: getFilter(projectState),
@@ -89,16 +99,32 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
       currency: projectState.currency,
       order_by: `${projectState.orderColumn} ${projectState.order}`,
     },
-    undefined,
     {
-      revalidateOnFocus: false,
+      parallel: true,
+      revalidateFirstPage: false,
     }
   );
-  const { data: count } = useFrappeDocTypeCount("Project", { filters: getFilter(projectState) });
+
+  useEffect(() => {
+    if (projectState.isNeedToFetchDataAfterUpdate) {
+      mutate();
+      dispatch(setReFetchData(false));
+    }
+  }, [dispatch, mutate, projectState.isNeedToFetchDataAfterUpdate]);
+
+  useEffect(() => {
+    const newSize: number = projectState.start / projectState.pageLength + 1;
+    if (newSize == size) {
+      return;
+    }
+    setSize(newSize);
+  }, [projectState.start, projectState.pageLength, size, setSize]);
   
+  const { data: count } = useFrappeDocTypeCount("Project", { filters: getFilter(projectState) });
+
   useEffect(() => {
     if (data) {
-      dispatch(setProjectData(data.message));
+      dispatch(setProjectData(data[0].message));
     }
     if (error) {
       const err = parseFrappeErrorMsg(error);
@@ -141,7 +167,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     projectState.selectedStatus,
     projectState.selectedBillingType,
     projectState.selectedBusinessUnit,
-    viewData
+    viewData,
   ]);
 
   const columns = getColumnInfo(
@@ -169,7 +195,6 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
       columnSizing: colSizing,
     },
   });
-
 
   const handleColumnHide = (id: string) => {
     setColumnVisibility((prev) => ({
@@ -210,6 +235,18 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     updateColumnOrder(columnVisibility);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [columnVisibility]);
+
+  const handleLoadMore = () => {
+    if (projectState.isLoading) return;
+    if (!projectState.data.has_more) return;
+    dispatch(setStart(projectState.start + projectState.pageLength));
+  };
+
+  const cellRef = useInfiniteScroll({
+    isLoading: projectState.isLoading,
+    hasMore: projectState.data.has_more,
+    next: handleLoadMore,
+  });
 
   return (
     <>

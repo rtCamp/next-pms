@@ -111,7 +111,7 @@ def get_task_list(
         ignore_permissions=True,
     )
 
-    return {"task": tasks, "total_count": count}
+    return {"task": tasks, "total_count": count, "has_more": int(start) + int(page_length) < count}
 
 
 @frappe.whitelist()

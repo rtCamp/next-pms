@@ -4,14 +4,12 @@
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { useFrappeGetCall } from "frappe-react-sdk";
 import { CircleCheck, Hourglass, CircleX } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
 
-import { LoadMore } from "@/app/components/loadMore";
 import { Spinner } from "@/app/components/spinner";
 import { WeekTotal } from "@/app/components/TimesheetTable";
 import { Typography } from "@/app/components/typography";
@@ -21,15 +19,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
 import { Table, TableHead, TableHeader, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
 import { useToast } from "@/app/components/ui/use-toast";
-import { Footer } from "@/app/layout/root";
 import { TEAM, EMPLOYEE } from "@/lib/constant";
 import { parseFrappeErrorMsg, prettyDate, floatToTime, cn, preProcessLink } from "@/lib/utils";
 import { RootState } from "@/store";
-import { setData, setStart, updateData, setDateRange, setEmployee } from "@/store/team";
+import { setData, setStart, updateData, setDateRange, setEmployee, setReFetchData } from "@/store/team";
 import { ItemProps, dataItem } from "@/types/team";
 import { Approval } from "./approval";
 import { Employee } from "./employee";
 import { Header } from "./Header";
+import { useInfiniteScroll } from "../resource_management/hooks/useInfiniteScroll";
+import { usePagination } from "../resource_management/hooks/usePagination";
 
 type DateProps = {
   start_date: string;
@@ -44,8 +43,17 @@ const Team = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { data, isLoading, isValidating, mutate, error } = useFrappeGetCall(
+  const getKey = (pageIndex: number, previousPageData: any) => {
+    const indexTillNeedToFetchData = teamState.start == 0 ? 1 : teamState.start / teamState.pageLength;
+    if (indexTillNeedToFetchData <= pageIndex) return null;
+    if (previousPageData && !previousPageData.message.has_more) return null;
+
+    return `next_pms.timesheet.api.team.get_compact_view_data/team?page=${pageIndex}&limit=${teamState.pageLength}`;
+  };
+
+  const { data, isLoading, error, size, setSize, mutate } = usePagination(
     "next_pms.timesheet.api.team.get_compact_view_data",
+    getKey,
     {
       date: teamState.weekDate,
       max_week: 1,
@@ -57,15 +65,34 @@ const Team = () => {
       status_filter: teamState.statusFilter,
       reports_to: teamState.reportsTo,
       status: teamState.status,
+    },
+    {
+      parallel: true,
+      revalidateFirstPage: false,
     }
   );
 
   useEffect(() => {
+    if (teamState.isNeedToFetchDataAfterUpdate) {
+      mutate();
+      dispatch(setReFetchData(false));
+    }
+  }, [dispatch, mutate, teamState.isNeedToFetchDataAfterUpdate]);
+
+  useEffect(() => {
+    const newSize: number = teamState.start / teamState.pageLength + 1;
+    if (newSize == size) {
+      return;
+    }
+    setSize(newSize);
+  }, [teamState.start, teamState.pageLength, size, setSize]);
+
+  useEffect(() => {
     if (data) {
       if (teamState.action == "SET") {
-        dispatch(setData(data.message));
+        dispatch(setData(data[0].message));
       } else {
-        dispatch(updateData(data.message));
+        dispatch(updateData(data[data.length - 1].message));
       }
     }
     if (error) {
@@ -79,9 +106,11 @@ const Team = () => {
   }, [data, error, teamState.action]);
 
   const handleLoadMore = () => {
+    if (teamState.isLoading) return;
     if (!teamState.hasMore) return;
     dispatch(setStart(teamState.start + teamState.pageLength));
   };
+
   const onStatusClick = (start_date: string, end_date: string, employee: string) => {
     const data = {
       start_date,
@@ -91,12 +120,18 @@ const Team = () => {
     dispatch(setDateRange({ dateRange: data, isAprrovalDialogOpen: true }));
   };
 
+  const cellRef = useInfiniteScroll({
+    isLoading: teamState.isLoading,
+    hasMore: teamState.hasMore,
+    next: handleLoadMore,
+  });
+
   return (
     <>
       {teamState.isAprrovalDialogOpen && <Approval onClose={mutate} />}
       <Header />
 
-      {(isLoading || isValidating) && Object.keys(teamState.data.data).length == 0 ? (
+      {isLoading && Object.keys(teamState.data.data).length == 0 ? (
         <Spinner isFull />
       ) : (
         <Table className="lg:[&_tr]:pr-3 relative">
@@ -128,10 +163,13 @@ const Team = () => {
           <TableBody>
             {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
             {/* @ts-ignore */}
-            {Object.entries(teamState.data?.data).map(([key, item]: [string, ItemProps]) => {
+            {Object.entries(teamState.data?.data).map(([key, item]: [string, ItemProps], index: number) => {
               let total = 0;
+
+              const needToAddRef = teamState.hasMore && index == Object.keys(teamState.data?.data).length - 2;
+
               return (
-                <TableRow key={key} className="flex items-center w-full">
+                <TableRow key={key} ref={needToAddRef ? cellRef : null} className="flex items-center w-full">
                   <Accordion type="multiple" key={key} className="w-full">
                     <AccordionItem value={key} className="border-b-0">
                       <AccordionTrigger className="hover:no-underline py-0">
@@ -210,23 +248,10 @@ const Team = () => {
                 </TableCell>
               </TableRow>
             )}
+            {teamState.hasMore && <Spinner isFull={false} className="p-4 overflow-hidden w-full" />}
           </TableBody>
         </Table>
       )}
-      <Footer>
-        <div className="flex justify-between items-center">
-          <LoadMore
-            variant="outline"
-            onClick={handleLoadMore}
-            disabled={
-              !teamState.hasMore || ((isLoading || isValidating) && Object.keys(teamState.data.data).length != 0)
-            }
-          />
-          <Typography variant="p" className="lg:px-5 font-semibold">
-            {`${Object.keys(teamState.data.data).length | 0} of ${teamState.data.total_count | 0}`}
-          </Typography>
-        </div>
-      </Footer>
     </>
   );
 };
