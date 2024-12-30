@@ -121,6 +121,7 @@ export const ResourceAllocationCard = ({
       setResourceFormData({
         isShowDialog: true,
         employee: resourceAllocation.employee,
+        employee_name: resourceAllocation.employee_name,
         project: resourceAllocation.project,
         allocation_start_date: resourceAllocation.allocation_start_date,
         allocation_end_date: resourceAllocation.allocation_end_date,
@@ -146,6 +147,7 @@ export const ResourceAllocationCard = ({
       setResourceFormData({
         isShowDialog: true,
         employee: resourceAllocation.employee,
+        employee_name: resourceAllocation.employee_name,
         project: resourceAllocation.project,
         allocation_start_date: resourceAllocation.allocation_start_date,
         allocation_end_date: resourceAllocation.allocation_end_date,

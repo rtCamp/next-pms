@@ -169,7 +169,8 @@ const EmployeeDetail = () => {
   const onEmployeeChange = (name: string) => {
     navigate(`/team/employee/${name}`);
   };
-
+  const { data: employee } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee", { filters: { name: id } });
+  
   return (
     <>
       {teamState.isAprrovalDialogOpen && <Approval onClose={mutate} />}
@@ -187,6 +188,7 @@ const EmployeeDetail = () => {
           workingFrequency={teamState.timesheetData.working_frequency}
           workingHours={teamState.timesheetData.working_hour}
           project={teamState.timesheet.project}
+          employeeName={employee?.message?.employee_name}
         />
       )}
       {teamState.isEditDialogOpen && (
@@ -202,7 +204,7 @@ const EmployeeDetail = () => {
         />
       )}
       <Header>
-        <EmployeeCombo onSelect={onEmployeeChange} value={id as string} className="w-full lg:w-fit" />
+        <EmployeeCombo onSelect={onEmployeeChange} pageLength={0} value={id as string} className="w-full lg:w-fit" />
       </Header>
 
       <Main>

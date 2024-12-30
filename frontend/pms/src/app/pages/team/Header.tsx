@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { addDays } from "date-fns";
+import { useFrappeGetCall } from "frappe-react-sdk";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 /**
  * Internal dependencies
@@ -23,6 +24,7 @@ import {
   setWeekDate,
 } from "@/store/team";
 
+
 export const Header = () => {
   const [projectSearch, setProjectSeach] = useState<string>("");
   const [userGroupSearch, setUserGroupSearch] = useState<string>("");
@@ -34,7 +36,9 @@ export const Header = () => {
   const [reportsToParam] = useQueryParamsState<string>("reports-to", "");
   const [employeeStatusParam] = useQueryParamsState<Array<string>>("emp-status", ["Active"]);
   const dispatch = useDispatch();
-
+  const { data: employee } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee", {
+    filters: { name: reportsToParam },
+  });
   useEffect(() => {
     const payload = {
       project: projectParam,
@@ -113,8 +117,12 @@ export const Header = () => {
       type: "search-employee",
       queryParameterName: "reports-to",
       handleChange: handleReportsToChange,
+      handleDelete: useCallback(() => { 
+        dispatch(setReportsTo(""));
+      }, [dispatch]),
       value: teamState.reportsTo,
       label: "Reports To",
+      employeeName:employee?.message?.employee_name,
       queryParameterDefault: "",
     },
     {

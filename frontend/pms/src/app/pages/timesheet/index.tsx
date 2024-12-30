@@ -11,6 +11,7 @@ import { Paperclip, Plus } from "lucide-react";
 /**
  * Internal dependencies.
  */
+import AddLeave from "@/app/components/AddLeave";
 import AddTime from "@/app/components/AddTime";
 import { LoadMore } from "@/app/components/loadMore";
 import { Spinner } from "@/app/components/spinner";
@@ -40,6 +41,7 @@ import {
   setDateRange,
   setEditDialog,
   setApprovalDialog,
+  SetAddLeaveDialog,
 } from "@/store/timesheet";
 import { WorkingFrequency } from "@/types";
 import { HolidayProp, LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
@@ -137,6 +139,9 @@ function Timesheet() {
     dispatch(SetTimesheet(timesheetData));
     dispatch(SetAddTimeDialog(true));
   };
+  const handleAddLeave = () => {
+    dispatch(SetAddLeaveDialog(true));
+  };
 
   const onCellClick = (data: NewTimesheetProps) => {
     data.employee = user.employee;
@@ -170,7 +175,11 @@ function Timesheet() {
   }
   return (
     <>
-      <Header className="justify-end">
+      <Header className="justify-end gap-x-3">
+        <Button variant="outline" onClick={handleAddLeave} title="Add Time">
+          <Plus />
+          Leave
+        </Button>
         <Button onClick={handleAddTime} title="Add Time">
           <Plus />
           Time
@@ -289,6 +298,7 @@ function Timesheet() {
           workingHours={user.workingHours}
           task={timesheet.timesheet.task}
           project={timesheet.timesheet.project}
+          employeeName={user.employeeName}
         />
       )}
       {timesheet.isEditDialogOpen && (
@@ -304,6 +314,19 @@ function Timesheet() {
         />
       )}
       {timesheet.isAprrovalDialogOpen && <Approval onClose={mutate} />}
+      {timesheet.isLeaveDialogOpen && (
+        <AddLeave
+          employee={user.employee}
+          open={timesheet.isLeaveDialogOpen}
+          onOpenChange={() => {
+            dispatch(SetAddLeaveDialog(false));
+            mutate();
+          }}
+          onSuccess={() => {
+            mutate();
+          }}
+        />
+      )}
     </>
   );
 }

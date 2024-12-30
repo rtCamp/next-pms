@@ -37,6 +37,7 @@ interface AddTimeProps {
   workingFrequency: WorkingFrequency;
   task?: string;
   project?: string;
+  employeeName?: string;  
 }
 
 /**
@@ -57,6 +58,7 @@ interface AddTimeProps {
 const AddTime = ({
   initialDate,
   employee,
+  employeeName,
   open = false,
   onOpenChange,
   workingFrequency,
@@ -232,7 +234,11 @@ const AddTime = ({
                     <FormItem className="w-full space-y-1">
                       <FormLabel className="flex gap-2 items-center text-sm">Employee</FormLabel>
                       <FormControl>
-                        <EmployeeCombo onSelect={onEmployeeChange} value={selectedEmployee} />
+                        <EmployeeCombo
+                          onSelect={onEmployeeChange}
+                          value={selectedEmployee}
+                          employeeName={employeeName}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

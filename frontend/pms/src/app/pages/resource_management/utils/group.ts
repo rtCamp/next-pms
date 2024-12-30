@@ -17,6 +17,7 @@ export interface CombinedResourceObjectProps {
 
 export interface CombinedResourceDataProps {
   project_name: string;
+  customer_name?: string;
   total_allocated_hours: number;
   all_allocation: {
     [date: string]: {
@@ -81,6 +82,7 @@ function groupAllocations(
     if (!(resource.project in combinedResourceData)) {
       combinedResourceData[resource.project] = {
         project_name: resource.project_name,
+        customer_name: resource.customer,
         total_allocated_hours: 0,
         all_allocation: {},
       };
