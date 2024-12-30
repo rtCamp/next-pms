@@ -25,6 +25,7 @@ export interface TaskState {
   hasMore: boolean;
   isLoading: boolean;
   isNeedToFetchDataAfterUpdate: boolean;
+  action: "SET" | "UPDATE";
 }
 export type TaskStatusType =
   | "Open"
@@ -51,6 +52,7 @@ export const initialState: TaskState = {
   hasMore: true,
   isLoading: true,
   isNeedToFetchDataAfterUpdate: false,
+  action: "SET",
 };
 
 export type AddTaskType = {
@@ -80,6 +82,7 @@ export const taskSlice = createSlice({
       state.start = action.payload;
       state.isLoading = true;
       state.isNeedToFetchDataAfterUpdate = true;
+      state.action = "UPDATE";
       state.pageLength = initialState.pageLength;
     },
     setReFetchData: (state, action: PayloadAction<boolean>) => {
@@ -90,6 +93,7 @@ export const taskSlice = createSlice({
       state.task = [];
       state.start = 0;
       state.isLoading = true;
+      state.action = "SET";
       state.isNeedToFetchDataAfterUpdate = true;
     },
     setAddTaskDialog: (state, action: PayloadAction<boolean>) => {
@@ -97,6 +101,7 @@ export const taskSlice = createSlice({
       state.isLoading = true;
       state.isNeedToFetchDataAfterUpdate = true;
       state.start = 0;
+      state.action = "SET";
     },
     setSelectedTask: (
       state,
@@ -114,6 +119,7 @@ export const taskSlice = createSlice({
       state.start = 0;
       state.isLoading = true;
       state.isNeedToFetchDataAfterUpdate = true;
+      state.action = "SET";
       state.order = action.payload.order;
       state.orderColumn = action.payload.orderColumn;
       state.task = initialState.task;
@@ -121,6 +127,7 @@ export const taskSlice = createSlice({
     setSearch: (state, action: PayloadAction<string>) => {
       state.search = action.payload;
       state.isLoading = true;
+      state.action = "SET";
       state.isNeedToFetchDataAfterUpdate = true;
       state.start = initialState.start;
       state.pageLength = initialState.pageLength;
@@ -134,6 +141,7 @@ export const taskSlice = createSlice({
       state.start = initialState.start;
       state.isLoading = true;
       state.isNeedToFetchDataAfterUpdate = true;
+      state.action = "SET";
       state.pageLength = initialState.pageLength;
     },
     setFilters: (
@@ -150,6 +158,7 @@ export const taskSlice = createSlice({
       state.start = initialState.start;
       state.isLoading = true;
       state.isNeedToFetchDataAfterUpdate = true;
+      state.action = "SET";
       state.pageLength = initialState.pageLength;
     },
     setTotalCount: (state, action: PayloadAction<number>) => {
@@ -160,6 +169,7 @@ export const taskSlice = createSlice({
       state.pageLength = pageLength;
       state.start = 0;
       state.isLoading = true;
+      state.action = "SET";
       state.isNeedToFetchDataAfterUpdate = true;
       state.task = initialState.task;
     },
