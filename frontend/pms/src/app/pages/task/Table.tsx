@@ -89,20 +89,17 @@ export const Table = ({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row, index: number) => {
-                const needToAddRef = task.hasMore && index == Object.keys(table.getRowModel().rows).length - 2;
-
+              table.getRowModel().rows.map((row) => {
                 return (
-                  <TableRow
-                    ref={needToAddRef ? cellRef : null}
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell className="overflow-hidden" key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
+                  <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                    {row.getVisibleCells().map((cell, cellIndex) => {
+                      const needToAddRef = task.hasMore && cellIndex == 0;
+                      return (
+                        <TableCell ref={needToAddRef ? cellRef : null} className="overflow-hidden" key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      );
+                    })}
                   </TableRow>
                 );
               })

@@ -68,7 +68,7 @@ const Team = () => {
     },
     {
       parallel: true,
-      revalidateFirstPage: false,
+      revalidateAll: true,
     }
   );
 
