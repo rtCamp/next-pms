@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { addDays } from "date-fns";
-import { useFrappeGetCall } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { isEmpty } from "lodash";
 import { Paperclip, Plus } from "lucide-react";
 
@@ -51,6 +51,7 @@ import { EditTime } from "./EditTime";
 function Timesheet() {
   const targetRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
   const [startDateParam, setstartDateParam] = useQueryParamsState<string>("date", "");
   const user = useSelector((state: RootState) => state.user);
   const timesheet = useSelector((state: RootState) => state.timesheet);
@@ -113,7 +114,7 @@ function Timesheet() {
         description: err,
       });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, dispatch, error, toast]);
 
   useEffect(() => {
@@ -272,6 +273,7 @@ function Timesheet() {
                         onCellClick={onCellClick}
                         weekly_status={value.status}
                         disabled={value.status === "Approved"}
+                        importTasks={true}
                       />
                     </AccordionContent>
                   </AccordionItem>

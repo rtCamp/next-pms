@@ -111,7 +111,11 @@ def get_task_list(
         ignore_permissions=True,
     )
 
-    return {"task": tasks, "total_count": count, "has_more": int(start) + int(page_length) < count}
+    return {
+        "task": tasks,
+        "total_count": count,
+        "has_more": int(start) + int(page_length) < count,
+    }
 
 
 @frappe.whitelist()
@@ -240,3 +244,10 @@ def get_task_log(task: str, start_date: str = None, end_date: str = None):
         for key, value in aggregated_data.items()
     }
     return response
+
+
+@frappe.whitelist()
+def get_liked_tasks():
+    from next_pms.timesheet.api.app import get_liked_documents
+
+    return get_liked_documents("Task", fields=["project.project_name"])

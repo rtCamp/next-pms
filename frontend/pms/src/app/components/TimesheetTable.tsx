@@ -3,7 +3,7 @@
  */
 
 import { useState } from "react";
-import { isToday } from "date-fns";
+import { useFrappePostCall } from "frappe-react-sdk";
 import { CircleCheck, CircleDollarSign, CirclePlus, CircleX, Clock3, PencilLine } from "lucide-react";
 /**
  * Internal dependencies
@@ -11,6 +11,7 @@ import { CircleCheck, CircleDollarSign, CirclePlus, CircleX, Clock3, PencilLine 
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { TaskLog } from "@/app/pages/task/TaskLog";
+import { setLocalStorage, hasKeyInLocalStorage, getLocalStorage } from "@/lib/storage";
 import {
   calculateWeeklyHour,
   cn,
@@ -44,6 +45,7 @@ type timesheetTableProps = {
   disabled?: boolean;
   working_frequency: WorkingFrequency;
   weekly_status?: string;
+  importTasks?: boolean;
 };
 type leaveRowProps = {
   leaves: Array<LeaveProps>;
@@ -90,6 +92,10 @@ type emptyRowProps = {
   headingCellClassName?: string;
   totalCellClassName?: string;
   cellClassName?: string;
+  setSelectedTask: React.Dispatch<React.SetStateAction<string>>;
+  setIsTaskLogDialogBoxOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  taskData?: TaskDataProps;
+  name?: string;
 };
 type submitButtonProps = {
   start_date: string;
@@ -124,10 +130,25 @@ const TimesheetTable = ({
   working_frequency,
   disabled,
   weekly_status,
+  importTasks = false,
 }: timesheetTableProps) => {
   const holiday_list = getHolidayList(holidays);
   const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<string>("");
+  const { call: fetchLikedTask } = useFrappePostCall("next_pms.timesheet.api.task.get_liked_tasks");
+  const key = dates[0] + "-" + dates[dates.length - 1];
+  const has_liked_task = hasKeyInLocalStorage(key);
+
+  const setTaskInLocalStorage = () => {
+    fetchLikedTask({}).then((res) => {
+      setLocalStorage(key, res.message);
+    });
+  };
+
+  const liked_tasks = has_liked_task ? getLocalStorage(key) : [];
+  const filteredLikedTasks = liked_tasks.filter(
+    (likedTask: { name: string }) => !Object.keys(tasks).includes(likedTask.name)
+  );
 
   return (
     <GenWrapper>
@@ -138,9 +159,20 @@ const TimesheetTable = ({
         {hasHeading && (
           <TableHeader>
             <TableRow>
-              <TableHead className="max-w-sm w-2/6">
-                <Typography variant="p" className="text-base text-slate-600">
-                  Tasks
+              <TableHead className="max-w-sm w-2/6 ">
+                <Typography variant="small" className="flex items-center gap-2">
+                  <Typography variant="p" className="text-base text-slate-600">
+                    Tasks
+                  </Typography>
+                  {weekly_status != "Approved" && importTasks && (
+                    <Typography
+                      variant="small"
+                      className="hover:cursor-pointer hover:underline"
+                      onClick={setTaskInLocalStorage}
+                    >
+                      {has_liked_task ? "Refesh Liked Tasks" : "Import Liked Tasks"}
+                    </Typography>
+                  )}
                 </Typography>
               </TableHead>
               {dates?.map((date: string) => {
@@ -183,79 +215,45 @@ const TimesheetTable = ({
               expectedHours={expectatedHours(working_hour, working_frequency)}
             />
           )}
+
           {weekly_status != "Approved" && (
-            <EmptyRow dates={dates} holidays={holidays} onCellClick={onCellClick} disabled={disabled} />
+            <EmptyRow
+              dates={dates}
+              holidays={holidays}
+              onCellClick={onCellClick}
+              setSelectedTask={setSelectedTask}
+              disabled={disabled}
+              setIsTaskLogDialogBoxOpen={setIsTaskLogDialogBoxOpen}
+            />
           )}
+          { weekly_status != "Approved" &&filteredLikedTasks.length > 0 &&
+            filteredLikedTasks.map((task) => {
+              return (
+                <EmptyRow
+                  key={task.name}
+                  dates={dates}
+                  holidays={holidays}
+                  onCellClick={onCellClick}
+                  setSelectedTask={setSelectedTask}
+                  disabled={disabled}
+                  setIsTaskLogDialogBoxOpen={setIsTaskLogDialogBoxOpen}
+                  name={task.name}
+                  taskData={task}
+                />
+              );
+            })}
           {Object.keys(tasks).length > 0 &&
             Object.entries(tasks).map(([task, taskData]: [string, TaskDataProps]) => {
               let totalHours = 0;
               return (
                 <TableRow key={task} className="border-b border-slate-200">
                   <TableCell className="cursor-pointer max-w-sm">
-                    <HoverCard openDelay={1000} closeDelay={0}>
-                      <div className="flex w-full gap-2">
-                        <TaskStatusIndicator
-                          actualTime={taskData?.actual_time}
-                          expectedTime={taskData?.expected_time}
-                          status={taskData?.status}
-                          className="flex-shrink-0"
-                        />
-                        <div className="flex w-full truncate overflow-hidden flex-col">
-                          <HoverCardTrigger>
-                            <Typography
-                              variant="p"
-                              className="text-slate-800 truncate overflow-hidden hover:underline"
-                              onClick={() => {
-                                setSelectedTask(task);
-                                setIsTaskLogDialogBoxOpen(true);
-                              }}
-                            >
-                              {taskData.subject}
-                            </Typography>
-
-                            <Typography
-                              variant="small"
-                              className="text-slate-500 whitespace-nowrap text-ellipsis overflow-hidden "
-                            >
-                              {taskData.project_name}
-                            </Typography>
-                          </HoverCardTrigger>
-                        </div>
-                      </div>
-
-                      <HoverCardContent className="max-w-md w-full">
-                        <span className="flex gap-x-2">
-                          <div>
-                            <Typography>{taskData.subject}</Typography>
-                            <Typography
-                              variant="small"
-                              className="text-slate-500 whitespace-nowrap text-ellipsis overflow-hidden "
-                            >
-                              {taskData.project_name}
-                            </Typography>
-                          </div>
-                          <span>
-                            <TaskStatus status={taskData.status as TaskData["status"]} />
-                          </span>
-                        </span>
-                        <Separator className="my-1" />
-                        <div className="flex  justify-between">
-                          <Typography>Estimated Time</Typography>
-                          <Typography>{floatToTime(taskData.expected_time)}</Typography>
-                        </div>
-                        <div className="flex  justify-between">
-                          <Typography>Actual Time</Typography>
-                          <Typography
-                            className={cn(
-                              taskData.actual_time > taskData.expected_time && "text-destructive",
-                              taskData.actual_time < taskData.expected_time && "text-success"
-                            )}
-                          >
-                            {floatToTime(taskData.actual_time)}
-                          </Typography>
-                        </div>
-                      </HoverCardContent>
-                    </HoverCard>
+                    <TaskHoverCard
+                      name={task}
+                      taskData={taskData}
+                      setSelectedTask={setSelectedTask}
+                      setIsTaskLogDialogBoxOpen={setIsTaskLogDialogBoxOpen}
+                    />
                   </TableCell>
                   {dates.map((date: string) => {
                     let data = taskData.data.filter(
@@ -623,12 +621,23 @@ export const EmptyRow = ({
   headingCellClassName,
   totalCellClassName,
   cellClassName,
+  setSelectedTask,
+  setIsTaskLogDialogBoxOpen,
+  taskData,
+  name,
 }: emptyRowProps) => {
   const holiday_list = getHolidayList(holidays);
   return (
     <TableRow className={cn(rowClassName)}>
-      <TableCell className={cn("min-w-[24rem]", headingCellClassName)}>
-        <span className="text-destructive"></span>
+      <TableCell className={cn("max-w-sm", headingCellClassName)}>
+        {name && (
+          <TaskHoverCard
+            taskData={taskData}
+            name={name}
+            setIsTaskLogDialogBoxOpen={setIsTaskLogDialogBoxOpen}
+            setSelectedTask={setSelectedTask}
+          />
+        )}
       </TableCell>
       {dates.map((date: string) => {
         const isHoliday = holiday_list.includes(date);
@@ -704,4 +713,66 @@ export const SubmitButton = ({ start_date, end_date, onApproval, status }: submi
   );
 };
 
+const TaskHoverCard = ({ name, taskData, setSelectedTask, setIsTaskLogDialogBoxOpen }) => {
+  return (
+    <HoverCard openDelay={1000} closeDelay={0}>
+      <div className="flex w-full gap-2">
+        <TaskStatusIndicator
+          actualTime={taskData.actual_time}
+          expectedTime={taskData.expected_time}
+          status={taskData.status}
+          className="flex-shrink-0"
+        />
+        <div className="flex w-full truncate overflow-hidden flex-col">
+          <HoverCardTrigger>
+            <Typography
+              variant="p"
+              className="text-slate-800 truncate overflow-hidden hover:underline"
+              onClick={() => {
+                setSelectedTask(name);
+                setIsTaskLogDialogBoxOpen(true);
+              }}
+            >
+              {taskData.subject}
+            </Typography>
+
+            <Typography variant="small" className="text-slate-500 whitespace-nowrap text-ellipsis overflow-hidden ">
+              {taskData?.project_name}
+            </Typography>
+          </HoverCardTrigger>
+        </div>
+      </div>
+
+      <HoverCardContent className="max-w-md w-full">
+        <span className="flex gap-x-2">
+          <div>
+            <Typography>{taskData.subject}</Typography>
+            <Typography variant="small" className="text-slate-500 whitespace-nowrap text-ellipsis overflow-hidden ">
+              {taskData.project_name}
+            </Typography>
+          </div>
+          <span>
+            <TaskStatus status={taskData.status as TaskData["status"]} />
+          </span>
+        </span>
+        <Separator className="my-1" />
+        <div className="flex  justify-between">
+          <Typography>Estimated Time</Typography>
+          <Typography>{floatToTime(taskData.expected_time)}</Typography>
+        </div>
+        <div className="flex  justify-between">
+          <Typography>Actual Time</Typography>
+          <Typography
+            className={cn(
+              taskData.actual_time > taskData.expected_time && "text-destructive",
+              taskData.actual_time < taskData.expected_time && "text-success"
+            )}
+          >
+            {floatToTime(taskData.actual_time)}
+          </Typography>
+        </div>
+      </HoverCardContent>
+    </HoverCard>
+  );
+};
 export default TimesheetTable;

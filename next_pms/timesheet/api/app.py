@@ -1,3 +1,4 @@
+import frappe
 from frappe import _dict, get_all, whitelist
 
 
@@ -66,3 +67,28 @@ def get_doc_meta(doctype: str):
         "doctype": doctype,
         "title_field": title_field,
     }
+
+
+@whitelist()
+def get_liked_documents(doctype: str, fields: list = None):
+    from frappe import get_all
+
+    doc_names = get_all(
+        "Comment",
+        filters={
+            "comment_type": "like",
+            "owner": frappe.session.user,
+            "reference_doctype": doctype,
+        },
+        page_length=0,
+        pluck="reference_name",
+    )
+    fieldList = ["*"]
+    if fields:
+        fieldList.extend(fields)
+    return frappe.get_all(
+        doctype,
+        filters={"name": ["in", doc_names]},
+        fields=fieldList,
+        page_length=0,
+    )
