@@ -17,18 +17,9 @@ def is_timesheet_manager():
 
 
 def get_leaves_for_employee(from_date: str, to_date: str, employee: str):
-    leaves = frappe.get_list(
-        "Leave Application",
-        fields=["*"],
-        filters={
-            "employee": employee,
-            "from_date": ["<=", to_date],
-            "to_date": [">=", from_date],
-            "status": ["in", ["Open", "Approved"]],
-        },
-        ignore_permissions=is_timesheet_user() or is_timesheet_manager(),
-    )
-    return leaves
+    from next_pms.resource_management.api.utils.query import get_employee_leaves
+
+    return get_employee_leaves(employee, from_date, to_date)
 
 
 def get_week_dates(date, current_week: bool = False, ignore_weekend=False):
@@ -238,9 +229,9 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
     for timesheet in current_week_timesheet:
         status_count[timesheet.custom_approval_status] += 1
 
-    if status_count["Rejected"] >= working_days:
+    if status_count["Rejected"] >= working_days.get("total_working_days"):
         week_status = "Rejected"
-    elif status_count["Approved"] >= working_days:
+    elif status_count["Approved"] >= working_days.get("total_working_days"):
         week_status = "Approved"
     elif status_count["Rejected"] > 0:
         week_status = "Partially Rejected"
