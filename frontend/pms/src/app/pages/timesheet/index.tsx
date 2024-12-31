@@ -113,7 +113,8 @@ function Timesheet() {
         description: err,
       });
     }
-  }, [data, dispatch, error, timesheet.data?.data, toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, dispatch, error, toast]);
 
   useEffect(() => {
     if (Object.keys(timesheet.data.data).length == 0) return;
