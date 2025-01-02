@@ -131,6 +131,13 @@ const ResourceTeamHeaderSection = () => {
           queryParameterDefault: [],
         },
         {
+           type:"custom-filter",
+           hide:!resourceAllocationPermission.write,
+           customFilterComponent:<SkillSearch hide={!resourceAllocationPermission.write} onSubmit={()=>{
+            dispatch(setReFetchData(true));
+          }} setSkillSearchParam={setSkillSearchParam} />
+        },
+        {
           queryParameterName: "business-unit",
           handleChange: (value: string | string[]) => {
             dispatch(setBusinessUnit(value as string[]));
@@ -245,9 +252,7 @@ const ResourceTeamHeaderSection = () => {
           queryParameterDefault: false,
         },
       ]}
-      customComponents={[<SkillSearch hide={!resourceAllocationPermission.write} onSubmit={()=>{
-        dispatch(setReFetchData(true));
-      }} setSkillSearchParam={setSkillSearchParam} />]}
+
       buttons={[
         {
           title: "add-allocation",

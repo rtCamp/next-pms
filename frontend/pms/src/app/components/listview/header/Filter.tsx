@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { CheckedState } from "@radix-ui/react-checkbox";
 import { Filter as Funnel } from "lucide-react";
 /**
@@ -73,6 +73,11 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
         employeeName={filter?.employeeName}
         className="border-dashed min-w-48 w-full max-w-48"
       />
+    );
+  }
+  if (filter.type === "custom-filter") {
+    return (
+      filter.customFilterComponent
     );
   }
   if (filter.type == "select-search") {
