@@ -191,6 +191,7 @@ const ResourceProjectHeaderSection = () => {
           handleClick: () => {
             dispatch(setDialog(true));
           },
+          className:"px-3",
           icon: () => <Plus className="w-4 max-md:w-3 h-4 max-md:h-3" />,
           variant: "default",
           hide: !resourceAllocationPermission.write,
