@@ -187,6 +187,7 @@ const ExpandViewCell = ({
       setResourceFormData({
         isShowDialog: true,
         employee: employee,
+        employee_name: employee_name,
         project: project,
         allocation_start_date: allocationsData.date,
         allocation_end_date: allocationsData.date,

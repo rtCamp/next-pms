@@ -74,6 +74,7 @@ export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDat
                           employee_name={employeeData.employee_name}
                           project={item}
                           project_name={itemData.project_name}
+                          customer_name={itemData.customer_name}
                           weekIndex={weekIndex}
                         />
                       );
@@ -109,7 +110,9 @@ const ExpandViewCell = ({
   date,
   project,
   employee,
+  employee_name,
   project_name,
+  customer_name,
   weekIndex,
 }: {
   allocationsData: any;
@@ -117,8 +120,8 @@ const ExpandViewCell = ({
   date: string;
   project: string;
   employee: string;
-  customer_name?: string;
-  employee_name?: string;
+  customer_name: string;
+  employee_name: string;
   project_name: string;
   weekIndex: number;
 }) => {
@@ -137,16 +140,17 @@ const ExpandViewCell = ({
       setResourceFormData({
         isShowDialog: true,
         employee: employee,
+        employee_name: employee_name,
         project: project,
         allocation_start_date: date,
         allocation_end_date: date,
         is_billable: getIsBillableValue(resourceTeamState.allocationType as string[]) != 0,
-        customer: "",
+        customer: customer_name,
         total_allocated_hours: 0,
         hours_allocated_per_day: 0,
         note: "",
         project_name: project_name,
-        customer_name: "",
+        customer_name: customer_name,
         isNeedToEdit: false,
         name: "",
       })

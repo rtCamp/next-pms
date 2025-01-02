@@ -70,6 +70,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
         label={filter.label ?? "Reporting Manager"}
         status={filter.employeeComboStatus ?? []}
         onSelect={handleChangeWrapper}
+        employeeName={filter?.employeeName}
         className="border-dashed min-w-48 w-full max-w-48"
       />
     );

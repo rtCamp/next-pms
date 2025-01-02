@@ -18,6 +18,7 @@ export interface FilterPops {
     shouldFilterComboBox?: boolean;
     onComboSearch?: (searchTerm: string) => void;
     apiCall?: ApiCallProps;
+    employeeName?: string;
 }
 
 export interface ApiCallProps {

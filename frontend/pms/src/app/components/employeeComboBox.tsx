@@ -30,6 +30,8 @@ interface EmployeeComboProps {
   className?: string;
   label?: string;
   status?: Array<string>;
+  employeeName?: string;
+  pageLength?: number;
 }
 
 /**
@@ -50,16 +52,19 @@ const EmployeeCombo = ({
   onSelect,
   className,
   status,
+  employeeName,
+  pageLength,
   label = "Select Employee",
 }: EmployeeComboProps) => {
-  const [search, setSearch] = useState<string>("");
+  const length = pageLength != null ? pageLength : 20;
+  const [search, setSearch] = useState<string>(employeeName ?? "");
   const [debouncedSearch, setDebouncedSearch] = useState<string>(search);
   const [selectedValues, setSelectedValues] = useState<string>(value);
   const [employee, setEmployee] = useState<Employee | undefined>();
   const [open, setOpen] = useState(false);
   const { data: employees } = useFrappeGetCall(
     "next_pms.timesheet.api.employee.get_employee_list",
-    { page_length: 20, status: status, employee_name: debouncedSearch },
+    { page_length: length, status: status, employee_name: debouncedSearch },
     undefined,
     {
       revalidateIfStale: false,
@@ -95,6 +100,11 @@ const EmployeeCombo = ({
     };
   }, [search]);
 
+  useEffect(() => {
+    if (employeeName) {
+      setSearch(employeeName);
+    }
+   }, [employeeName]);
   return (
     <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>

@@ -26,6 +26,7 @@ export interface TimesheetState {
   isDialogOpen: boolean;
   isEditDialogOpen: boolean;
   isAprrovalDialogOpen: boolean;
+  isLeaveDialogOpen: boolean;
   weekDate: string;
 }
 
@@ -51,6 +52,7 @@ export const initialState: TimesheetState = {
   isDialogOpen: false,
   isEditDialogOpen: false,
   isAprrovalDialogOpen: false,
+  isLeaveDialogOpen: false,
   weekDate: getTodayDate(),
 };
 
@@ -77,8 +79,12 @@ const timesheetSlice = createSlice({
     setApprovalDialog: (state, action: PayloadAction<boolean>) => {
       state.isAprrovalDialogOpen = action.payload;
     },
+    SetAddLeaveDialog: (state, action: PayloadAction<boolean>) => {
+      state.isLeaveDialogOpen = action.payload;
+    },
     AppendData: (state, action: PayloadAction<DataProp>) => {
       const data = Object.assign(state.data.data, action.payload.data);
+
       state.data.data = data;
       state.data.holidays = [
         ...state.data.holidays,
@@ -90,6 +96,7 @@ const timesheetSlice = createSlice({
       const newLeaves = action.payload.leaves.filter(
         (leave) => !existingLeaveIds.has(leave.name),
       );
+
       state.data.leaves = [...state.data.leaves, ...newLeaves];
     },
     resetState: (state) => {
@@ -116,6 +123,7 @@ export const {
   AppendData,
   resetState,
   setEditDialog,
+  SetAddLeaveDialog,
 } = timesheetSlice.actions;
 
 export default timesheetSlice.reducer;

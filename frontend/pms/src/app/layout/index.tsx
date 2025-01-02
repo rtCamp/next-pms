@@ -34,6 +34,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         workingHours: data.message?.employee_working_detail?.working_hour ?? 8,
         workingFrequency: data.message?.employee_working_detail?.working_frequency ?? "Per Day",
         reportsTo: data.message?.employee_report_to ?? "",
+        employeeName: data.message?.employee_name ?? "",
       };
       dispatch(setInitialData(info));
     }

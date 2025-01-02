@@ -1,5 +1,5 @@
 import frappe
-from frappe.utils import DATE_FORMAT, date_diff, getdate
+from frappe.utils import DATE_FORMAT
 
 from next_pms.resource_management.api.utils.helpers import (
     filter_employee_list,
@@ -59,6 +59,7 @@ def get_resource_management_team_view_data(
         [
             "name",
             "employee",
+            "employee_name",
             "allocation_start_date",
             "allocation_end_date",
             "hours_allocated_per_day",
@@ -248,37 +249,8 @@ def get_leave_information(employee: str, start_date: str, end_date: str):
     """
     Get the leave information for given employee for given time range.
     """
+    from next_pms.timesheet.api.employee import get_workable_days_for_employee
 
     frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
-    if not employee or not start_date or not end_date:
-        return None
-
-    start_date = getdate(start_date)
-    end_date = getdate(end_date)
-
-    leave_applications = get_employee_leaves(employee, start_date, end_date)
-
-    total_leave_hours = 0
-
-    holidays = get_holidays(employee, start_date, end_date)
-
-    for leave in leave_applications:
-        current_start_date = max(start_date, leave.from_date)
-        currnet_end_date = min(end_date, leave.to_date)
-
-        total_leave_hours += date_diff(currnet_end_date, current_start_date) + 1
-
-        if leave.get("half_day"):
-            if leave.get("half_day_date") >= current_start_date and leave.get("half_day_date") <= currnet_end_date:
-                total_leave_hours -= 0.5
-
-        for holiday in holidays:
-            if holiday.holiday_date >= current_start_date and holiday.holiday_date <= currnet_end_date:
-                total_leave_hours -= 1
-
-    return {
-        "total_days": date_diff(end_date, start_date) + 1,
-        "total_working_days": date_diff(end_date, start_date) + 1 - total_leave_hours - len(holidays),
-        "leave_days": total_leave_hours + len(holidays),
-    }
+    return get_workable_days_for_employee(employee, start_date, end_date)
