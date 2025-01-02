@@ -11,8 +11,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar"
 import { TableRow } from "@/app/components/ui/table";
 import { cn } from "@/lib/utils";
 
-import { getTableCellRow } from "../utils/helper";
 import { TableInformationCellContent } from "./TableCell";
+import { getTableCellRow } from "../utils/helper";
 
 interface ResourceTeamTableRowProps {
   name: string;

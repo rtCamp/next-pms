@@ -202,7 +202,7 @@ def get_employees_by_skills(skill_criteria):
             )
             conditions.append(sub_condition)
 
-        where_condition = " AND ".join(conditions)
+        where_condition = " OR ".join(conditions)
 
         res = frappe.db.sql(
             """SELECT DISTINCT parent FROM `tabEmployee Skill` WHERE {0}""".format(where_condition),

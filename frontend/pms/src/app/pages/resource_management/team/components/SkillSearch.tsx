@@ -1,8 +1,17 @@
+/**
+ * External dependencies.
+ */
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+
 import { useFrappeGetDocList } from "frappe-react-sdk";
-import { Star, X, Search, Filter as Funnel } from "lucide-react";
+import { Filter as Funnel, Search, Star, X } from "lucide-react";
+
+/**
+ * Internal dependencies.
+ */
 import { DeBounceInput } from "@/app/components/deBounceInput";
+import { Typography } from "@/app/components/typography";
 import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
@@ -53,7 +62,7 @@ const SkillSearch = ({
     } else {
       setSuggestions([]);
     }
-  }, [searchQuery]);
+  }, [searchQuery,skills]);
 
   const addSkill = (skill: { name: string }) => {
     if (!selectedSkills.find((s) => s.name === skill.name)) {
@@ -111,15 +120,17 @@ const SkillSearch = ({
       }}
     >
       <PopoverTrigger asChild>
-        <Button variant="outline" className="border-dashed">
+        <Button variant="outline" className="border-dashed gap-x-2">
           <Funnel className={cn("h-4 w-4", resourceTeamState?.skillSearch!.length > 0 && "fill-primary")} />
-          Skill
+            <Typography variant="p" className="truncate max-w-md">
+              Skill
+            </Typography>
           {resourceTeamState?.skillSearch!.length > 0 && (
             <Badge className="p-0 justify-center w-5 h-5">{resourceTeamState?.skillSearch?.length}</Badge>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="lg:w-[30rem] max-md:w-96">
+      <PopoverContent align="end" className="w-96">
         <div>
           <h1>Skill Search</h1>
           <p className="text-sm text-muted-foreground">Search and select skills with required proficiency levels.</p>
@@ -156,20 +167,22 @@ const SkillSearch = ({
             )}
           </div>
           {/* Selected Skills */}
-          <div className="max-h-56 overflow-y-auto space-y-2">
+          <div className="max-h-44 overflow-y-auto space-y-2">
             {selectedSkills.map((skill) => (
-              <div key={skill.name} className="flex items-stretch justify-between gap-4">
+              <div key={skill.name} className="flex items-stretch gap-3">
                 {/* Skill Name */}
-                <p
-                  className="font-medium bg-gray-100 border h-full rounded-md p-2 w-36 truncate text-sm"
+                <div
+                  className="font-medium bg-gray-100 border h-full rounded-md p-1 px-2 w-24 truncate text-sm"
                   title={skill.name} // Tooltip to show the full name on hover
                 >
-                  {skill.name}
-                </p>
+                  <Typography variant="p" className="truncate max-w-md">
+                    {skill.name}
+                  </Typography>
+                </div>
 
                 {/* Operator Select Menu */}
                 <Select value={skill.operator} onValueChange={(value) => updateSkillComparison(skill.name, value)}>
-                  <SelectTrigger className="w-20 bg-gray-100 h-full text-sm p-2">
+                  <SelectTrigger className="w-14 [&>svg]:hidden bg-gray-100 h-full text-sm p-1 px-2">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -206,7 +219,7 @@ const SkillSearch = ({
                 <div
                   title="remove skill"
                   onClick={() => removeSkill(skill.name)}
-                  className="flex justify-center items-center p-2 mr-3 cursor-pointer"
+                  className="flex justify-center ml-auto items-center cursor-pointer"
                 >
                   <X className="h-4 w-4 " />
                 </div>

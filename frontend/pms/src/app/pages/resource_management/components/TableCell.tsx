@@ -1,8 +1,8 @@
 /**
  * External dependencies.
  */
-import { HoverCard, HoverCardTrigger } from "@radix-ui/react-hover-card";
 import React from "react";
+import { HoverCard, HoverCardTrigger } from "@radix-ui/react-hover-card";
 
 /**
  * Internal dependencies.
@@ -11,8 +11,8 @@ import { Typography } from "@/app/components/typography";
 import { HoverCardContent } from "@/app/components/ui/hover-card";
 import { TableCell } from "@/app/components/ui/table";
 import { cn } from "@/lib/utils";
-import { getFilterValue } from "../utils/helper";
 import { EmptyTableCell } from "./Empty";
+import { getFilterValue } from "../utils/helper";
 
 interface ResourceTableProps {
   type: "hovercard" | "empty" | "default";
