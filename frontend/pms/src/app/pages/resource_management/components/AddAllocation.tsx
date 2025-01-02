@@ -269,13 +269,15 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
   };
 
   const timeStringToFloatWrapper = (value: string) => {
-    if (value.includes("..")) {
+    const regex = /^\d+(\.\d{0,5})?$/;
+
+    if (!regex.test(value)) {
       return "";
     }
 
     const newValue = parseFloat(value);
 
-    if (!newValue) {
+    if (isNaN(newValue)) {
       return "";
     }
 
