@@ -73,7 +73,6 @@ const SkillSearch = ({
     const updatedSkills = selectedSkills.filter((skill) => skill.name !== skillId);
     setSelectedSkills(updatedSkills);
     dispatch(setSkillSearch(updatedSkills));
-    setSkillSearchParam(updatedSkills);
   };
 
   const updateSkillComparison = (skillId: string, operator: string) => {
@@ -88,10 +87,15 @@ const SkillSearch = ({
 
   const handleSearchClick = () => {
     dispatch(setSkillSearch(selectedSkills));
-    setSkillSearchParam(selectedSkills);
     onSubmit();
     setIsPopoverOpen(false);
   };
+
+  useEffect(() => {
+    if (resourceTeamState.skillSearch) {
+      setSkillSearchParam(resourceTeamState.skillSearch);
+    }
+  }, [resourceTeamState.skillSearch,setSkillSearchParam]);
 
   return (
     <Popover
@@ -108,10 +112,7 @@ const SkillSearch = ({
     >
       <PopoverTrigger asChild>
         <Button variant="outline" className="border-dashed">
-          <Funnel
-            className={cn(
-              "h-4 w-4",resourceTeamState?.skillSearch!.length > 0 && "fill-primary")}
-          />
+          <Funnel className={cn("h-4 w-4", resourceTeamState?.skillSearch!.length > 0 && "fill-primary")} />
           Skill
           {resourceTeamState?.skillSearch!.length > 0 && (
             <Badge className="p-0 justify-center w-5 h-5">{resourceTeamState?.skillSearch?.length}</Badge>
@@ -228,7 +229,6 @@ const SkillSearch = ({
                   setIsPopoverOpen(false);
                   setSelectedSkills([]);
                   dispatch(setSkillSearch([]));
-                  setSkillSearchParam([]);
                 }}
               >
                 <X className="w-4 h-4" />

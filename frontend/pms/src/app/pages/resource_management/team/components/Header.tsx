@@ -93,6 +93,7 @@ const ResourceTeamHeaderSection = () => {
   }, [dispatch, resourceTeamState.data.dates]);
 
   useEffect(()=>{
+    // add value to the SkillSearch State in redux-store based on URL param(skill-search)
     if(skillSearchParam){
       dispatch(setSkillSearch(skillSearchParam));
     }
@@ -132,12 +133,12 @@ const ResourceTeamHeaderSection = () => {
         },
         {
            type:"custom-filter",
+           queryParameterDefault:[],
            label:"Skill",
            handleDelete: (value:string[]) => {
             let prev_data = resourceTeamState?.skillSearch
             prev_data = prev_data!.filter(obj => value.includes(obj.name));
             dispatch(setSkillSearch(prev_data));
-            setSkillSearchParam(prev_data);
            },
            value:resourceTeamState.skillSearch?.map(obj => obj.name),
            hide:!resourceAllocationPermission.write,
