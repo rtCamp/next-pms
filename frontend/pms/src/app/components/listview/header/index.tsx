@@ -1,11 +1,3 @@
-/**
- * External dependencies
- */
-
-/**
- *
- * Internal dependencies
- */
 import React from "react";
 import { Filter } from "@/app/components/listview/header/Filter";
 import { HeaderProps, FilterPops, ButtonProps } from "@/app/components/listview/type";
@@ -17,7 +9,7 @@ import ColumnSelector from "./columnSelector";
 import FilterValue from "./FilterValue";
 import Sort from "./Sort";
 /**
- * This component is responsible for Render the header section of pages.
+ * This component is responsible for rendering the header section of pages.
  *
  * @param props.filters The filters to be displayed in the header section.
  * @param props.buttons The buttons to be displayed in the header section.
@@ -25,6 +17,7 @@ import Sort from "./Sort";
  * @param props.columnSelector The column selector object.
  * @param props.showSort The flag to show the sort.
  * @param props.sort The sort object.
+ * @param props.customComponents An array of custom components to render in the header.
  * @returns React.FC
  */
 export const Header = ({
@@ -38,16 +31,17 @@ export const Header = ({
   actionProps,
   className,
   showFilterValue = false,
+  customComponents,
 }: HeaderProps) => {
   return (
     <div className="border-b">
       <RootHeader
-        className={cn("flex items-center max-md:flex-col  gap-x-3", className)}
+        className={cn("flex items-center max-md:flex-col gap-x-3", className)}
         parentClassName="border-0"
       >
-        <div id="filters" className="flex gap-x-2 max-md:w-full items-center overflow-y-hidden no-scrollbar ">
+        <div id="filters" className="flex gap-x-2 max-md:w-full items-center overflow-y-hidden no-scrollbar">
           {filters &&
-            filters.map((filter: FilterPops,idx) => {
+            filters.map((filter: FilterPops, idx) => {
               if (filter.hide) {
                 return <React.Fragment key={idx}></React.Fragment>;
               }
@@ -55,16 +49,25 @@ export const Header = ({
             })}
         </div>
         <div className="flex gap-x-2">
+          {customComponents && (
+              <div className="flex gap-x-2 items-center max-md:p-1 max-md:w-full max-md:justify-between max-md:m-2">
+                {customComponents.map((Component, idx) => (
+                    <React.Fragment key={idx}>{Component}</React.Fragment>
+                  )
+                )}
+              </div>
+            )
+          }
           {buttons && (
-            <div className="flex gap-x-2 max-md:p-1 max-md:w-full max-md:justify-between max-md:m-2">
-              {buttons.map((button: ButtonProps,idx) => {
+            <div className="flex gap-x-2 items-center max-md:p-1 max-md:w-full max-md:justify-between max-md:m-2">
+              {buttons.map((button: ButtonProps, idx) => {
                 if (button.hide) {
                   return <React.Fragment key={idx}></React.Fragment>;
                 }
                 return (
                   <Button
                     title={button.title}
-                    className={cn("p-1 h-fit", button.className)}
+                    className={cn("", button.className)}
                     variant={button.variant || "outline"}
                     onClick={button.handleClick}
                     key={idx}

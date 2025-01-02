@@ -51,6 +51,7 @@ export interface HeaderProps {
     showActions?: boolean;
     actionProps?: ActionProps;
     showFilterValue?: boolean;
+    customComponents?: React.ReactNode[];
 }
 export interface ButtonProps {
     title: string;

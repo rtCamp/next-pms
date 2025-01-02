@@ -26,7 +26,11 @@ import {
   setReportingManager,
   setView,
   setWeekDate,
+  setReFetchData,
+  Skill,
+  setSkillSearch,
 } from "@/store/resource_management/team";
+import SkillSearch from "./SkillSearch";
 
 /**
  * This component is responsible for loading the team view header.
@@ -41,6 +45,7 @@ const ResourceTeamHeaderSection = () => {
   const [designationParam] = useQueryParamsState<string[]>("designation", []);
   const [viewParam, setViewParam] = useQueryParamsState<string>("view-type", "");
   const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParamsState<boolean>("combine-week-hours", false);
+  const [skillSearchParam, setSkillSearchParam] = useQueryParamsState<Skill[]>("skill-search", []);
 
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
   const resourceTeamStateTableView = resourceTeamState.tableView;
@@ -86,6 +91,12 @@ const ResourceTeamHeaderSection = () => {
     const date = getFormatedDate(addDays(resourceTeamState.data.dates[0].end_date, +1));
     dispatch(setWeekDate(date));
   }, [dispatch, resourceTeamState.data.dates]);
+
+  useEffect(()=>{
+    if(skillSearchParam){
+      dispatch(setSkillSearch(skillSearchParam));
+    }
+  },[skillSearchParam])
 
   return (
     <Header
@@ -234,12 +245,16 @@ const ResourceTeamHeaderSection = () => {
           queryParameterDefault: false,
         },
       ]}
+      customComponents={[<SkillSearch hide={!resourceAllocationPermission.write} onSubmit={()=>{
+        dispatch(setReFetchData(true));
+      }} setSkillSearchParam={setSkillSearchParam} />]}
       buttons={[
         {
           title: "add-allocation",
           handleClick: () => {
             dispatch(setDialog(true));
           },
+          className:"px-3",
           icon: () => <Plus className="w-4 max-md:w-3 h-4 max-md:h-3 bg" />,
           variant: "default",
           hide: !resourceAllocationPermission.write,
@@ -255,7 +270,7 @@ const ResourceTeamHeaderSection = () => {
           icon: () => <ChevronRight className="w-4 max-md:w-3 h-4 max-md:h-3" />,
         },
       ]}
-      showFilterValue
+      showFilterValue={false}
     />
   );
 };
