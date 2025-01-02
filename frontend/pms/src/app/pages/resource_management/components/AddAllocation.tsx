@@ -25,7 +25,6 @@ import { Textarea } from "@/app/components/ui/textarea";
 import { useToast } from "@/app/components/ui/use-toast";
 import { cn, getFormatedDate } from "@/lib/utils";
 import { ResourceAllocationSchema } from "@/schema/resource";
-import { timeStringToFloat } from "@/schema/timesheet";
 import { RootState } from "@/store";
 import { AllocationDataProps, ResourceKeys, setDialog } from "@/store/resource_management/allocation";
 
@@ -170,14 +169,23 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
       }
 
       if (isNeedToShowLeaveData()) {
-        const hours_allocated_per_day = parseFloat(form.getValues("hours_allocated_per_day") as string);
-        const total_allocated_hours = parseFloat(form.getValues("total_allocated_hours") as string);
+        let hours_allocated_per_day = parseFloat(form.getValues("hours_allocated_per_day") as string);
+
+        if (!hours_allocated_per_day) {
+          hours_allocated_per_day = 0;
+        }
+
+        let total_allocated_hours = parseFloat(form.getValues("total_allocated_hours") as string);
+
+        if (!total_allocated_hours) {
+          total_allocated_hours = 0;
+        }
 
         if (needToSet === "all") {
           if (hours_allocated_per_day) {
             return form.setValue(
               "total_allocated_hours",
-              getRoundOfValue(hours_allocated_per_day * leaveData.message.total_working_days)
+              getRoundOfValue(hours_allocated_per_day * leaveData.message.total_working_days).toString()
             );
           }
 
@@ -185,25 +193,25 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
             if (leaveData.message.total_working_days) {
               return form.setValue(
                 "hours_allocated_per_day",
-                getRoundOfValue(total_allocated_hours / leaveData.message.total_working_days)
+                getRoundOfValue(total_allocated_hours / leaveData.message.total_working_days).toString()
               );
             } else {
-              return form.setValue("hours_allocated_per_day", 0);
+              return form.setValue("hours_allocated_per_day", "0");
             }
           }
         } else if (needToSet == "total") {
           return form.setValue(
             "total_allocated_hours",
-            getRoundOfValue(hours_allocated_per_day * leaveData.message.total_working_days)
+            getRoundOfValue(hours_allocated_per_day * leaveData.message.total_working_days).toString()
           );
         } else {
           if (leaveData.message.total_working_days) {
             return form.setValue(
               "hours_allocated_per_day",
-              getRoundOfValue(total_allocated_hours / leaveData.message.total_working_days)
+              getRoundOfValue(total_allocated_hours / leaveData.message.total_working_days).toString()
             );
           } else {
-            return form.setValue("hours_allocated_per_day", 0);
+            return form.setValue("hours_allocated_per_day", "0");
           }
         }
       }
@@ -261,22 +269,22 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
   };
 
   const timeStringToFloatWrapper = (value: string) => {
-    if (value == "") {
-      return 0;
+    if (value.includes("..")) {
+      return "";
     }
-    const newValue = timeStringToFloat(value);
+
+    const newValue = parseFloat(value);
 
     if (!newValue) {
-      return 0;
+      return "";
     }
 
-    return newValue;
+    return value;
   };
 
   useEffect(() => {
     handleHoursAutoComplete();
   }, [handleHoursAutoComplete, leaveData]);
-
 
   return (
     <Dialog open={resourceAllocationForm?.isShowDialog} onOpenChange={handleOpen}>
