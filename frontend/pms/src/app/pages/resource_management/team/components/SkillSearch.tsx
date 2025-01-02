@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useFrappeGetDocList } from "frappe-react-sdk";
 import { Star, X, Search, Filter as Funnel } from "lucide-react";
@@ -22,11 +22,9 @@ const COMPARISON_OPTIONS = {
 } as const;
 
 const SkillSearch = ({
-  hide,
   onSubmit,
   setSkillSearchParam,
 }: {
-  hide: boolean;
   onSubmit: () => void;
   setSkillSearchParam: (skills: Skill[]) => void;
 }) => {
@@ -94,9 +92,6 @@ const SkillSearch = ({
     onSubmit();
     setIsPopoverOpen(false);
   };
-  if (hide) {
-    return <></>;
-  }
 
   return (
     <Popover

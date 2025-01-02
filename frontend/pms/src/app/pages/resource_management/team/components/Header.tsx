@@ -132,8 +132,16 @@ const ResourceTeamHeaderSection = () => {
         },
         {
            type:"custom-filter",
+           label:"Skill",
+           handleDelete: (value:string[]) => {
+            let prev_data = resourceTeamState?.skillSearch
+            prev_data = prev_data!.filter(obj => value.includes(obj.name));
+            dispatch(setSkillSearch(prev_data));
+            setSkillSearchParam(prev_data);
+           },
+           value:resourceTeamState.skillSearch?.map(obj => obj.name),
            hide:!resourceAllocationPermission.write,
-           customFilterComponent:<SkillSearch hide={!resourceAllocationPermission.write} onSubmit={()=>{
+           customFilterComponent:<SkillSearch onSubmit={()=>{
             dispatch(setReFetchData(true));
           }} setSkillSearchParam={setSkillSearchParam} />
         },
@@ -275,7 +283,7 @@ const ResourceTeamHeaderSection = () => {
           icon: () => <ChevronRight className="w-4 max-md:w-3 h-4 max-md:h-3" />,
         },
       ]}
-      showFilterValue={false}
+      showFilterValue
     />
   );
 };
