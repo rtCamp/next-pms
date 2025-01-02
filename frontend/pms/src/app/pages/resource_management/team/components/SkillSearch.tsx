@@ -168,7 +168,7 @@ const SkillSearch = ({
           </div>
           {/* Selected Skills */}
           <div className="max-h-44 overflow-y-auto space-y-2">
-            {selectedSkills.map((skill) => (
+            {[...selectedSkills].reverse().map((skill) => (
               <div key={skill.name} className="flex items-stretch gap-3">
                 {/* Skill Name */}
                 <div
