@@ -1,26 +1,24 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect } from "react";
+import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { isToday } from "date-fns";
-import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
 
-import { LoadMore } from "@/app/components/loadMore";
 import { Spinner } from "@/app/components/spinner";
 import { Typography } from "@/app/components/typography";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
 import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
 import { useToast } from "@/app/components/ui/use-toast";
-import { Footer } from "@/app/layout/root";
+import { useInfiniteScroll } from "@/app/pages/resource_management/hooks/useInfiniteScroll";
+import { usePagination } from "@/app/pages/resource_management/hooks/usePagination";
 import { TEAM, EMPLOYEE } from "@/lib/constant";
-
 import {
   cn,
   parseFrappeErrorMsg,
@@ -30,7 +28,7 @@ import {
   preProcessLink,
 } from "@/lib/utils";
 import { RootState } from "@/store";
-import { setData, DateProps, setStart, updateData } from "@/store/home";
+import { setData, DateProps, setStart, updateData, setReFetchData } from "@/store/home";
 import { WorkingFrequency } from "@/types";
 import { dataItem } from "@/types/team";
 import { Header } from "./Header";
@@ -47,23 +45,55 @@ type DataItem = {
 const Home = () => {
   const { toast } = useToast();
   const homeState = useSelector((state: RootState) => state.home);
-  const dispatch = useDispatch();
 
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { data, error, isLoading } = useFrappeGetCall("next_pms.timesheet.api.team.get_compact_view_data", {
-    date: homeState.weekDate,
-    employee_name: homeState.employeeName,
-    page_length: homeState.pageLength,
-    start: homeState.start,
-    status: homeState.status,
-  });
+  const getKey = (pageIndex: number, previousPageData: any) => {
+    const indexTillNeedToFetchData = homeState.start == 0 ? 1 : homeState.start / homeState.pageLength;
+    if (indexTillNeedToFetchData <= pageIndex) return null;
+    if (previousPageData && !previousPageData.message.has_more) return null;
+
+    return `next_pms.timesheet.api.team.get_compact_view_data?page=${pageIndex}&limit=${homeState.pageLength}`;
+  };
+
+  const { data, isLoading, error, size, setSize, mutate } = usePagination(
+    "next_pms.timesheet.api.team.get_compact_view_data",
+    getKey,
+    {
+      date: homeState.weekDate,
+      employee_name: homeState.employeeName,
+      page_length: homeState.pageLength,
+      start: homeState.start,
+      status: homeState.status,
+    },
+    {
+      parallel: true,
+      revalidateAll: true,
+    }
+  );
+
+  useEffect(() => {
+    if (homeState.isNeedToFetchDataAfterUpdate) {
+      mutate();
+      dispatch(setReFetchData(false));
+    }
+  }, [dispatch, mutate, homeState.isNeedToFetchDataAfterUpdate]);
+
+  useEffect(() => {
+    const newSize: number = homeState.start / homeState.pageLength + 1;
+    if (newSize == size) {
+      return;
+    }
+    setSize(newSize);
+  }, [homeState.start, homeState.pageLength, size, setSize]);
+
   useEffect(() => {
     if (data) {
       if (homeState.action == "SET") {
-        dispatch(setData(data.message));
+        dispatch(setData(data[0].message));
       } else {
-        dispatch(updateData(data.message));
+        dispatch(updateData(data[data.length - 1].message));
       }
     }
     if (error) {
@@ -75,10 +105,17 @@ const Home = () => {
     }
   }, [data, dispatch, error, homeState.action, toast]);
 
-  const handleLoadMore = useCallback(() => {
+  const handleLoadMore = () => {
+    if (homeState.isLoading) return;
     if (!homeState.data.has_more) return;
     dispatch(setStart(homeState.start + homeState.pageLength));
-  }, [dispatch, homeState.data.has_more, homeState.pageLength, homeState.start]);
+  };
+
+  const cellRef = useInfiniteScroll({
+    isLoading: homeState.isLoading,
+    hasMore: homeState.data.has_more,
+    next: handleLoadMore,
+  });
 
   return (
     <>
@@ -126,9 +163,11 @@ const Home = () => {
           <TableBody>
             {Object.entries(homeState.data?.data).length > 0 ? (
               Object.entries(homeState.data?.data as Record<string, DataItem>).map(
-                ([key, item]: [string, DataItem]) => {
+                ([key, item]: [string, DataItem], index: number) => {
+                  const needToAddRef = homeState.data.has_more && index == Object.keys(homeState.data?.data).length - 2;
+
                   return (
-                    <TableRow key={key}>
+                    <TableRow key={key} ref={needToAddRef ? cellRef : null}>
                       <TableCell className="flex items-center gap-x-2 max-w-sm min-w-96">
                         <span
                           className="flex gap-x-2 items-center font-normal hover:underline hover:cursor-pointer w-full"
@@ -190,25 +229,16 @@ const Home = () => {
                 </TableCell>
               </TableRow>
             )}
+            {homeState?.data && homeState.data.has_more && (
+              <TableRow>
+                <TableCell colSpan={15} className="text-center">
+                  <Spinner isFull={false} className="p-4 overflow-hidden w-full" />
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       )}
-      <Footer>
-        <div className="w-full flex justify-between items-center">
-          <LoadMore
-            variant="outline"
-            onClick={handleLoadMore}
-            disabled={
-              Object.keys(homeState.data.data).length == homeState.data.total_count ||
-              (isLoading && Object.keys(homeState.data.data).length != 0)
-            }
-          />
-
-          <Typography variant="p" className="lg:px-5 font-semibold">
-            {`${Object.keys(homeState.data.data).length | 0} of ${homeState.data.total_count | 0}`}
-          </Typography>
-        </div>
-      </Footer>
     </>
   );
 };

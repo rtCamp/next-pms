@@ -64,7 +64,11 @@ export interface ProjectState {
   pageLength: number;
   selectedBusinessUnit: Array<string>;
   totalCount: number;
-  currency: string
+  currency: string;
+  isNeedToFetchDataAfterUpdate: boolean;
+  isLoading: boolean;
+  hasMore: boolean;
+  action: "SET" | "UPDATE";
 }
 
 export const initialState: ProjectState = {
@@ -80,52 +84,97 @@ export const initialState: ProjectState = {
   order: "desc",
   orderColumn: "project_name",
   totalCount: 0,
-  currency: ""
+  currency: "",
+  isNeedToFetchDataAfterUpdate: false,
+  isLoading: true,
+  hasMore: true,
+  action: "SET",
 };
 
 export const projectSlice = createSlice({
   name: "project",
   initialState,
   reducers: {
-    setProjectData: (state, action: PayloadAction<Array<ProjectData>>) => {
-      state.data = action.payload;
+    setProjectData: (
+      state,
+      action: PayloadAction<{
+        data: Array<ProjectData>;
+        total_count: number;
+        has_more: boolean;
+      }>
+    ) => {
+      state.data = action.payload.data;
+      state.totalCount = action.payload.total_count;
+      state.hasMore = action.payload.has_more;
+      state.isLoading = false;
     },
     updateProjectData: (state, action: PayloadAction<Array<ProjectData>>) => {
-      state.data = [...state.data, ...action.payload];
+      state.data = [...state.data, ...action.payload.data];
+      state.isLoading = false;
+      state.hasMore = action.payload.has_more;
     },
-    setStart: (state) => {
-      state.start = 0;
-      state.pageLength = state.data.length + initialState.pageLength;
+    setStart: (state, action: PayloadAction<number>) => {
+      state.start = action.payload;
+      state.action = "UPDATE";
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
+      state.pageLength = initialState.pageLength;
     },
     setSearch: (state, action: PayloadAction<string>) => {
       state.search = action.payload;
       state.start = initialState.start;
       state.pageLength = initialState.pageLength;
       state.data = initialState.data;
+      state.action = "SET";
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
+    },
+    setReFetchData: (state, action: PayloadAction<boolean>) => {
+      state.isNeedToFetchDataAfterUpdate = action.payload;
     },
     setSelectedProjectType: (state, action: PayloadAction<Array<string>>) => {
       state.selectedProjectType = action.payload;
       // state.data = initialState.data;
       state.start = initialState.start;
+      state.isLoading = true;
+      state.action = "SET";
+      state.data = initialState.data;
+      state.isNeedToFetchDataAfterUpdate = true;
       state.pageLength = initialState.pageLength;
     },
     setSelectedStatus: (state, action: PayloadAction<Array<Status>>) => {
       state.selectedStatus = action.payload;
       // state.data = initialState.data;
       state.start = initialState.start;
+      state.isLoading = true;
+      state.data = initialState.data;
+      state.action = "SET";
+      state.isNeedToFetchDataAfterUpdate = true;
       state.pageLength = initialState.pageLength;
     },
     setSelectedBusinessUnit: (state, action: PayloadAction<Array<string>>) => {
       state.selectedBusinessUnit = action.payload;
-      // state.data = initialState.data;
+      state.isLoading = true;
+      state.data = initialState.data;
+      state.action = "SET";
+      state.start = initialState.start;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     setSelectedBilingType: (state, action: PayloadAction<Array<string>>) => {
       state.selectedBillingType = action.payload;
-      // state.data = initialState.data;
+      state.isLoading = true;
+      state.action = "SET";
+      state.start = initialState.start;
+      state.data = initialState.data;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     setCurrency: (state, action: PayloadAction<string>) => {
       state.currency = action.payload;
-      // state.data = initialState.data;
+      state.isLoading = true;
+      state.action = "SET";
+      state.start = initialState.start;
+      state.data = initialState.data;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     setFilters: (
       state,
@@ -136,9 +185,9 @@ export const projectSlice = createSlice({
         selectedBusinessUnit: Array<string>;
         order: sortOrder;
         orderColumn: string;
-        currency: string
-        selectedBillingType: Array<string>
-      }>,
+        currency: string;
+        selectedBillingType: Array<string>;
+      }>
     ) => {
       state.selectedProjectType = action.payload.selectedProjectType;
       state.selectedStatus = action.payload.selectedStatus;
@@ -147,6 +196,9 @@ export const projectSlice = createSlice({
       state.order = action.payload.order;
       state.orderColumn = action.payload.orderColumn;
       state.start = initialState.start;
+      state.isLoading = true;
+      state.action = "SET";
+      state.isNeedToFetchDataAfterUpdate = true;
       state.pageLength = initialState.pageLength;
       state.order = action.payload.order;
       state.orderColumn = action.payload.orderColumn;
@@ -155,14 +207,17 @@ export const projectSlice = createSlice({
     },
     setOrderBy: (
       state,
-      action: PayloadAction<{ order: sortOrder; orderColumn: string }>,
+      action: PayloadAction<{ order: sortOrder; orderColumn: string }>
     ) => {
       const pageLength = state.data.length;
       state.pageLength = pageLength;
-      state.start = 0;
+      state.action = "SET";
+      state.start = initialState.start;
       state.order = action.payload.order;
       state.orderColumn = action.payload.orderColumn;
       state.data = initialState.data;
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
     },
     setTotalCount: (state, action: PayloadAction<number>) => {
       state.totalCount = action.payload;
@@ -190,7 +245,8 @@ export const {
   setCurrency,
   setTotalCount,
   setSelectedBusinessUnit,
-  setSelectedBilingType
+  setSelectedBilingType,
+  setReFetchData,
 } = projectSlice.actions;
 
 export default projectSlice.reducer;

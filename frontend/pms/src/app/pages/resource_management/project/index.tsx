@@ -60,7 +60,7 @@ const ResourceTeamView = () => {
           page_length: resourceProjectState.pageLength,
           project_name: resourceProjectState.projectName,
         },
-    { parallel: true }
+    { parallel: true, revalidateAll: true }
   );
 
   const onFormSubmit = useCallback(() => {
@@ -97,7 +97,6 @@ const ResourceTeamView = () => {
     }
     setSize(newSize);
   }, [resourceProjectState, resourceProjectState.start, setSize, size]);
-
 
   return (
     <>

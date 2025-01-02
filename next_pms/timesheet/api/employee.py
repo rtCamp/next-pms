@@ -98,18 +98,39 @@ def get_employee_list(
 
 
 def get_workable_days_for_employee(employee: str, start_date: str | datetime.date, end_date: str | datetime.date):
-    from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
-    from frappe.utils import date_diff
+    from frappe.utils import date_diff, getdate
 
-    holiday_list_name = get_holiday_list_for_employee(employee)
+    from next_pms.resource_management.api.utils.query import get_employee_leaves
+    from next_pms.timesheet.api.team import get_holidays
 
-    holidays = frappe.get_all(
-        "Holiday",
-        filters={
-            "parent": holiday_list_name,
-            "holiday_date": ["between", (start_date, end_date)],
-        },
-        pluck="holiday_date",
-    )
+    if not employee or not start_date or not end_date:
+        return None
 
-    return (date_diff(end_date, start_date) + 1) - len(holidays)
+    start_date = getdate(start_date)
+    end_date = getdate(end_date)
+
+    leave_applications = get_employee_leaves(employee, start_date, end_date)
+
+    total_leave_hours = 0
+
+    holidays = get_holidays(employee, start_date, end_date)
+
+    for leave in leave_applications:
+        current_start_date = max(start_date, leave.from_date)
+        currnet_end_date = min(end_date, leave.to_date)
+
+        total_leave_hours += date_diff(currnet_end_date, current_start_date) + 1
+
+        if leave.get("half_day"):
+            if leave.get("half_day_date") >= current_start_date and leave.get("half_day_date") <= currnet_end_date:
+                total_leave_hours -= 0.5
+
+        for holiday in holidays:
+            if holiday.holiday_date >= current_start_date and holiday.holiday_date <= currnet_end_date:
+                total_leave_hours -= 1
+
+    return {
+        "total_days": date_diff(end_date, start_date) + 1,
+        "total_working_days": date_diff(end_date, start_date) + 1 - total_leave_hours - len(holidays),
+        "leave_days": total_leave_hours + len(holidays),
+    }
