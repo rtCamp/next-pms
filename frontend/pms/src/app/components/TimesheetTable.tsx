@@ -2,7 +2,7 @@
  * External dependencies
  */
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useFrappePostCall } from "frappe-react-sdk";
 import { CircleCheck, CircleDollarSign, CirclePlus, CircleX, Clock3, PencilLine } from "lucide-react";
 /**
@@ -11,7 +11,7 @@ import { CircleCheck, CircleDollarSign, CirclePlus, CircleX, Clock3, PencilLine 
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { TaskLog } from "@/app/pages/task/TaskLog";
-import { setLocalStorage, hasKeyInLocalStorage, getLocalStorage } from "@/lib/storage";
+import { setLocalStorage, hasKeyInLocalStorage, getLocalStorage, removeLocalStorage } from "@/lib/storage";
 import {
   calculateWeeklyHour,
   cn,
@@ -146,10 +146,18 @@ const TimesheetTable = ({
   };
 
   const liked_tasks = has_liked_task ? getLocalStorage(key) : [];
+
   const filteredLikedTasks = liked_tasks.filter(
     (likedTask: { name: string }) => !Object.keys(tasks).includes(likedTask.name)
   );
 
+  const deleteTaskFromLocalStorage = useCallback(() => {
+    removeLocalStorage(key);
+  }, [key]);
+
+  if (weekly_status == "Approved") {
+    deleteTaskFromLocalStorage();
+  }
   return (
     <GenWrapper>
       {isTaskLogDialogBoxOpen && (
@@ -165,12 +173,10 @@ const TimesheetTable = ({
                     Tasks
                   </Typography>
                   {weekly_status != "Approved" && importTasks && (
-                    <Typography
-                      variant="small"
-                      className="hover:cursor-pointer hover:underline"
-                      onClick={setTaskInLocalStorage}
-                    >
-                      {has_liked_task ? "Refesh Liked Tasks" : "Import Liked Tasks"}
+                    <Typography variant="small" className="hover:cursor-pointer underline" onClick={setTaskInLocalStorage}>
+                      {has_liked_task ? "Refresh" : "Import"}
+                      <span className="text-destructive"> ♥︎ </span>
+                      Tasks
                     </Typography>
                   )}
                 </Typography>
@@ -226,7 +232,8 @@ const TimesheetTable = ({
               setIsTaskLogDialogBoxOpen={setIsTaskLogDialogBoxOpen}
             />
           )}
-          { weekly_status != "Approved" &&filteredLikedTasks.length > 0 &&
+          {weekly_status != "Approved" &&
+            filteredLikedTasks.length > 0 &&
             filteredLikedTasks.map((task) => {
               return (
                 <EmptyRow
@@ -649,9 +656,9 @@ export const EmptyRow = ({
             docstatus: 0 as 0 | 1,
             is_billable: false,
             from_time: date,
-            task: "",
+            task: taskData?.name ?? "",
             parent: "",
-            project: "",
+            project: taskData?.project ?? "",
           },
         ];
         return (
