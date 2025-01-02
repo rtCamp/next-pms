@@ -268,7 +268,7 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
       });
   };
 
-  const timeStringToFloatWrapper = (value: string) => {
+  const handleNumberInputValue = (value: string) => {
     const regex = /^\d+(\.\d{0,5})?$/;
 
     if (!regex.test(value)) {
@@ -473,7 +473,7 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
                             type="text"
                             {...field}
                             onChange={(e) => {
-                              form.setValue("total_allocated_hours", timeStringToFloatWrapper(String(e.target.value)));
+                              form.setValue("total_allocated_hours", handleNumberInputValue(String(e.target.value)));
                               handleHoursAutoComplete("per_day");
                             }}
                           />
@@ -519,7 +519,7 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
                             onChange={(e) => {
                               form.setValue(
                                 "hours_allocated_per_day",
-                                timeStringToFloatWrapper(String(e.target.value))
+                                handleNumberInputValue(String(e.target.value))
                               );
                               handleHoursAutoComplete("total");
                             }}
