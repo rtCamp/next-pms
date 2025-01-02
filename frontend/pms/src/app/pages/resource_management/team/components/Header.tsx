@@ -240,7 +240,7 @@ const ResourceTeamHeaderSection = () => {
           handleClick: () => {
             dispatch(setDialog(true));
           },
-          icon: () => <Plus className="w-4 max-md:w-3 h-4 max-md:h-3 bg" />,
+          icon: () => <Plus className="w-4 max-md:w-3 h-4 max-md:h-3" />,
           variant: "default",
           hide: !resourceAllocationPermission.write,
         },

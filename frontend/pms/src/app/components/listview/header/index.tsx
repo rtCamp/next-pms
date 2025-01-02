@@ -42,10 +42,10 @@ export const Header = ({
   return (
     <div className="border-b">
       <RootHeader
-        className={cn("flex items-center max-md:flex-col  gap-x-3", className)}
+        className={cn("flex items-center max-md:flex-col gap-x-4", className)}
         parentClassName="border-0"
       >
-        <div id="filters" className="flex gap-x-2 max-md:w-full items-center overflow-y-hidden no-scrollbar ">
+        <div id="filters" className="flex gap-x-2 max-md:w-full items-center overflow-y-hidden no-scrollbar">
           {filters &&
             filters.map((filter: FilterPops,idx) => {
               if (filter.hide) {
@@ -56,7 +56,7 @@ export const Header = ({
         </div>
         <div className="flex gap-x-2">
           {buttons && (
-            <div className="flex gap-x-2 max-md:p-1 max-md:w-full max-md:justify-between max-md:m-2">
+            <div className="flex gap-x-2 max-md:p-1 max-md:w-full max-md:justify-between max-md:m-2 items-center">
               {buttons.map((button: ButtonProps,idx) => {
                 if (button.hide) {
                   return <React.Fragment key={idx}></React.Fragment>;

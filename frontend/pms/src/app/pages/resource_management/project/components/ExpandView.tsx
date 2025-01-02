@@ -74,7 +74,7 @@ export const ResourceExpandView = ({
             return (
               <TableRow key={employeeData.name} className="flex items-center w-full border-0">
                 <TableInformationCellContent
-                  cellClassName="overflow-hidden flex items-center pl-6 font-normal hover:underline"
+                  cellClassName="overflow-hidden flex items-center pl-10 font-normal hover:underline"
                   CellComponet={() => {
                     return (
                       <Avatar className="w-6 h-6">
