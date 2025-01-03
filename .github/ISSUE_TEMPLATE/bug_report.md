@@ -1,11 +1,25 @@
----
-name: Bug report
-about: Create a report to help us improve
-labels: bug
----
+# 🐛 Bug Report
 
-### Describe the bug
-A clear and concise description of what the bug is.
+## **Description**
+<!-- Provide a clear and concise description of the bug. -->
 
-### Screenshots
-If applicable, add screenshots to help explain your problem.
+## **Steps to Reproduce**
+1. Go to [specific page].
+2. Click on [specific action].
+3. Observe [unexpected behavior].
+
+## **Expected Behavior**
+<!-- Describe what you expected to happen. -->
+
+## **Actual Behavior**
+<!-- Describe what actually happened. -->
+
+## **Screenshots/Screencasts**
+<!-- Attach screenshots or screencasts, if applicable. -->
+
+## **Environment**
+- OS: [e.g., Windows 10, macOS 13]
+- Browser: [e.g., Chrome 109, Firefox 90]
+
+## **Additional Context**
+<!-- Add any other context about the problem here. -->
