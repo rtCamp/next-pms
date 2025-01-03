@@ -2,7 +2,7 @@
  * External dependencies
  */
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useFrappePostCall } from "frappe-react-sdk";
 import { CircleCheck, CircleDollarSign, CirclePlus, CircleX, Clock3, PencilLine } from "lucide-react";
 /**
@@ -145,7 +145,7 @@ const TimesheetTable = ({
     });
   };
 
-  const liked_tasks = has_liked_task ? getLocalStorage(key) : [];
+  const liked_tasks = has_liked_task ? getLocalStorage(key) ?? [] : [];
 
   const filteredLikedTasks = liked_tasks.filter(
     (likedTask: { name: string }) => !Object.keys(tasks).includes(likedTask.name)
@@ -155,9 +155,11 @@ const TimesheetTable = ({
     removeLocalStorage(key);
   }, [key]);
 
-  if (weekly_status == "Approved") {
-    deleteTaskFromLocalStorage();
-  }
+  useEffect(() => {
+    if (weekly_status === "Approved") {
+      deleteTaskFromLocalStorage();
+    }
+  }, [deleteTaskFromLocalStorage, weekly_status]);
   return (
     <GenWrapper>
       {isTaskLogDialogBoxOpen && (
@@ -173,7 +175,11 @@ const TimesheetTable = ({
                     Tasks
                   </Typography>
                   {weekly_status != "Approved" && importTasks && (
-                    <Typography variant="small" className="hover:cursor-pointer underline" onClick={setTaskInLocalStorage}>
+                    <Typography
+                      variant="small"
+                      className="hover:cursor-pointer underline"
+                      onClick={setTaskInLocalStorage}
+                    >
                       {has_liked_task ? "Refresh" : "Import"}
                       <span className="text-destructive"> ♥︎ </span>
                       Tasks
