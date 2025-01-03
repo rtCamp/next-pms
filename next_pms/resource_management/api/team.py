@@ -57,6 +57,14 @@ def get_resource_management_team_view_data(
         skills = json.loads(skills)
     if skills:
         ids = get_employees_by_skills(skills)
+        if len(ids)==0:
+            res["data"] = data
+            res["customer"] = customer
+            res["total_count"] = 0
+            res["has_more"] = False
+            res["permissions"] = permissions
+            return res
+            
         
     employees, total_count = filter_employees(
         employee_name,
