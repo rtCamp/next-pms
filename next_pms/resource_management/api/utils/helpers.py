@@ -205,7 +205,7 @@ def get_employees_by_skills(skill_criteria):
         where_condition = " OR ".join(conditions)
 
         res = frappe.db.sql(
-            """SELECT DISTINCT parent FROM `tabEmployee Skill` WHERE {0}""".format(where_condition),
+            """SELECT parent FROM `tabEmployee Skill` WHERE {0} GROUP BY parent HAVING COUNT(DISTINCT skill) = {1}""".format(where_condition,len(skill_criteria)),
             as_dict=True
         )
 

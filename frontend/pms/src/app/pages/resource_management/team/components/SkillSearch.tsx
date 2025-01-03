@@ -58,7 +58,7 @@ const SkillSearch = ({
   // showing skill-suggestions when user types something
   useEffect(() => {
     if (searchQuery) {
-      setSuggestions(skills?.filter((skill) => skill.name.toLowerCase().includes(searchQuery.toLowerCase())) || []);
+      setSuggestions(skills?.filter((skill) => skill.name.toLowerCase().includes(searchQuery.trim().toLowerCase())) || []);
     } else {
       setSuggestions([]);
     }
