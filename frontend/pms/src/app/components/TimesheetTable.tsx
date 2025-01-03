@@ -4,7 +4,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useFrappePostCall } from "frappe-react-sdk";
-import { CircleCheck, CircleDollarSign, CirclePlus, CircleX, Clock3, PencilLine } from "lucide-react";
+import { CircleCheck, CircleDollarSign, CirclePlus, CircleX, Clock3, PencilLine, Import } from "lucide-react";
 /**
  * Internal dependencies
  */
@@ -170,20 +170,12 @@ const TimesheetTable = ({
           <TableHeader>
             <TableRow>
               <TableHead className="max-w-sm w-2/6 ">
-                <Typography variant="small" className="flex items-center gap-2">
-                  <Typography variant="p" className="text-base text-slate-600">
-                    Tasks
-                  </Typography>
+                <Typography variant="h6" className="font-normal text-slate-600 flex gap-x-4 items-center">
+                  Tasks
                   {weekly_status != "Approved" && importTasks && (
-                    <Typography
-                      variant="small"
-                      className="hover:cursor-pointer underline"
-                      onClick={setTaskInLocalStorage}
-                    >
-                      {has_liked_task ? "Refresh" : "Import"}
-                      <span className="text-destructive"> ♥︎ </span>
-                      Tasks
-                    </Typography>
+                    <span title="Import liked tasks" >
+                      <Import onClick={setTaskInLocalStorage} className="hover:cursor-pointer" />
+                    </span>
                   )}
                 </Typography>
               </TableHead>
