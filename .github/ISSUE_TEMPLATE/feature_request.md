@@ -1,3 +1,9 @@
+---
+name: Feature request
+about: Suggest a new idea or feature for ERP
+labels: Feature-Request
+---
+
 # 🚀 Feature Request
 
 ## **Description**
