@@ -209,6 +209,7 @@ def get_task_log(task: str, start_date: str = None, end_date: str = None):
             & (timesheet.start_date >= str(start_date))
             & (timesheet.start_date <= str(end_date))
         )
+        .orderby(timesheet.start_date, order=frappe.qb.desc)
     )
 
     result = query.run(as_dict=True)
