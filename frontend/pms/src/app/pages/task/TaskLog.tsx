@@ -177,7 +177,7 @@ export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
             {data?.message.worked_by?.length != 0 && (
               <>
                 <section id="worked_by w-full bg-red-500">
-                  <div className="flex gap-x-4 overflow-x-auto">
+                  <div className="flex gap-x-4 overflow-x-auto no-scrollbar">
                     {data?.message.worked_by?.map((employee: Employee) => (
                       <div key={employee.employee} className="flex items-center gap-x-2 shrink-0">
                         <Avatar className="w-6 h-6">
@@ -206,12 +206,10 @@ export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
               <Spinner />
             ) : (
               <>
-                <section id="log" className="max-h-96 overflow-y-auto flex flex-col gap-3">
+                <section id="log" className="max-h-96 overflow-y-auto no-scrollbar flex flex-col gap-3">
                   <>
                     {logs &&
                       Object.entries(logs.message as Record<string, LogData[]>)
-                        .slice()
-                        .reverse()
                         .map(([key, value], index: number) => {
                           return (
                             <div key={index}>
