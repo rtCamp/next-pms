@@ -19,6 +19,7 @@ import _ from "lodash";
 import ViewWrapper from "@/app/components/listview/ViewWrapper";
 import { Spinner } from "@/app/components/spinner";
 import { Separator } from "@/app/components/ui/separator";
+import { Skeleton } from "@/app/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { useToast } from "@/app/components/ui/use-toast";
 import { useInfiniteScroll } from "@/app/pages/resource_management/hooks/useInfiniteScroll";
@@ -314,6 +315,14 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
                 <TableRow className="w-full">
                   <TableCell colSpan={viewData.rows.length} className="h-24 text-center">
                     No results
+                  </TableCell>
+                </TableRow>
+              )}
+
+              {projectState?.data && projectState.hasMore && (
+                <TableRow className="p-0">
+                  <TableCell colSpan={viewData.rows.length} className="text-center p-0">
+                    <Skeleton className="h-10 w-full" />
                   </TableCell>
                 </TableRow>
               )}

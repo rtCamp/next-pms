@@ -14,6 +14,7 @@ import { Spinner } from "@/app/components/spinner";
 import { Typography } from "@/app/components/typography";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
+import { Skeleton } from "@/app/components/ui/skeleton";
 import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
 import { useToast } from "@/app/components/ui/use-toast";
 import { useInfiniteScroll } from "@/app/pages/resource_management/hooks/useInfiniteScroll";
@@ -229,10 +230,11 @@ const Home = () => {
                 </TableCell>
               </TableRow>
             )}
+
             {homeState?.data && homeState.data.has_more && (
               <TableRow>
-                <TableCell colSpan={15} className="text-center">
-                  <Spinner isFull={false} className="p-4 overflow-hidden w-full" />
+                <TableCell colSpan={15} className="text-center p-0">
+                  <Skeleton className="h-10 w-full" />
                 </TableCell>
               </TableRow>
             )}

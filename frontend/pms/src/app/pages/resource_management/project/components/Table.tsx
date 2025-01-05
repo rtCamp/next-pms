@@ -30,6 +30,7 @@ import { getCellBackGroundColor } from "../../utils/cell";
 import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { Spinner } from "@/app/components/spinner";
+import { Skeleton } from "@/app/components/ui/skeleton";
 
 /**
  * This component is responsible for loading the table for project view.
@@ -134,7 +135,7 @@ const ResourceProjectTableBody = () => {
         );
       })}
 
-      {hasMore && <Spinner isFull={false} className="p-4 overflow-hidden" />}
+      {hasMore && <Skeleton className="h-10 w-full" />}
     </TableBody>
   );
 };
@@ -245,7 +246,7 @@ const ResourceProjectTableCell = ({
       setResourceFormData({
         isShowDialog: true,
         employee: "",
-        employee_name:"",
+        employee_name: "",
         project: project,
         allocation_start_date: projectSingleDay.date,
         allocation_end_date: projectSingleDay.date,
