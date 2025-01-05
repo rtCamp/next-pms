@@ -49,10 +49,10 @@ const ResourceTableRow = ({
   return (
     <Accordion type="multiple" key={name} className="w-full">
       <AccordionItem value={name} className="border-b-0">
-        <TableRow key={name} ref={rowRef} className={cn(getTableCellRow(), "relative overflow-hidden")}>
+        <TableRow key={name} ref={rowRef} className={cn(getTableCellRow())}>
           <AccordionTrigger hideChevronDown={true} className="hover:no-underline py-0">
             <TableInformationCellContent
-              cellClassName="overflow-hidden flex items-center pl-6 font-normal hover:underline"
+              cellClassName="overflow-hidden flex items-center font-normal hover:underline"
               CellComponet={() => {
                 return (
                   <Avatar className="w-6 h-6">

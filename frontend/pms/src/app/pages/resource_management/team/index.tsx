@@ -48,7 +48,7 @@ const ResourceTeamView = () => {
     resourceAllocationPermission.write
       ? {
           date: resourceTeamState.weekDate,
-          max_week: 3,
+          max_week: 5,
           page_length: resourceTeamState.pageLength,
           employee_name: resourceTeamState.employeeName,
           business_unit: resourceTeamState.businessUnit,
@@ -62,7 +62,10 @@ const ResourceTeamView = () => {
           page_length: resourceTeamState.pageLength,
           employee_name: resourceTeamState.employeeName,
         },
-    { parallel: true, revalidateAll: true }
+    {
+      parallel: true,
+      revalidateAll: true
+    }
   );
 
   const onFormSubmit = useCallback(() => {

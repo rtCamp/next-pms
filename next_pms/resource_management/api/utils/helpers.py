@@ -1,6 +1,6 @@
 import frappe
 from frappe.utils import flt
-from frappe.utils.data import add_days, getdate, nowdate
+from frappe.utils.data import add_days, getdate
 
 from next_pms.timesheet.api.team import get_week_dates
 
@@ -79,17 +79,24 @@ def get_dates_date(max_week: int, date: str):
         object: date objects
     """
 
-    dates = []
-    now = nowdate()
+    next_dates = []
+    prev_dates = []
+    current_date = getdate(date)
 
     # fetch the currant and next week dates object
-    for _ in range(max_week):
-        current_week = True if date == now else False
-        week = get_week_dates(date=date, current_week=current_week, ignore_weekend=True)
-        dates.append(week)
-        date = add_days(getdate(week["end_date"]), 1)
+    for _ in range(max_week + 2):
+        week = get_week_dates(date=current_date, ignore_weekend=True)
+        next_dates.append(week)
+        current_date = add_days(getdate(week["end_date"]), 1)
 
-    return dates
+    current_date = getdate(date)
+
+    for _ in range(max_week + 2):
+        week = get_week_dates(date=current_date, ignore_weekend=True)
+        prev_dates.append(week)
+        current_date = add_days(getdate(week["end_date"]), -1)
+
+    return next_dates
 
 
 def find_worked_hours(timesheet_data: list, date: str, project: str = None):

@@ -30,6 +30,7 @@ import { getCellBackGroundColor } from "../../utils/cell";
 import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { Spinner } from "@/app/components/spinner";
+import { TableContextProvider } from "../../contexts/tableContext";
 
 /**
  * This component is responsible for loading the table for project view.
@@ -40,10 +41,12 @@ const ResourceProjectTable = () => {
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_project.data.dates);
 
   return (
-    <Table className="relative">
-      <ResourceProjectTableHeader dates={dates} title="Projects" />
-      <ResourceProjectTableBody />
-    </Table>
+    <TableContextProvider>
+      <Table className="w-screen">
+        <ResourceProjectTableHeader dates={dates} title="Projects" />
+        <ResourceProjectTableBody />
+      </Table>
+    </TableContextProvider>
   );
 };
 
@@ -245,7 +248,7 @@ const ResourceProjectTableCell = ({
       setResourceFormData({
         isShowDialog: true,
         employee: "",
-        employee_name:"",
+        employee_name: "",
         project: project,
         allocation_start_date: projectSingleDay.date,
         allocation_end_date: projectSingleDay.date,

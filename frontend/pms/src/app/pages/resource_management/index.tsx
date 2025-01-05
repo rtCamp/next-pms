@@ -17,9 +17,7 @@ import { resetState as resetProjectState } from "@/store/resource_management/pro
 import { resetState as resetTeamState } from "@/store/resource_management/team";
 
 import ResourceProjectView from "./project";
-import { ResourceProjectHeaderSection } from "./project/components/Header";
 import ResourceTeamView from "./team";
-import { ResourceTeamHeaderSection } from "./team/components/Header";
 
 /**
  * This is main component which is responsible for rendering the page of resource management.
