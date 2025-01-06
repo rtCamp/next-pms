@@ -68,6 +68,9 @@ const ResourceTeamSlice = createSlice({
     setDialog: (state, action: PayloadAction<boolean>) => {
       state.isShowDialog = action.payload;
     },
+    resetResourcePermissions: (state) => {
+      state.permissions = {};
+    },
     setResourcePermissions: (state, action: PayloadAction<PermissionProps>) => {
       state.permissions = { ...state.permissions, ...action.payload };
     },
@@ -115,5 +118,6 @@ export const {
   setResourceFormData,
   setResourcePermissions,
   resetState,
+  resetResourcePermissions
 } = ResourceTeamSlice.actions;
 export default ResourceTeamSlice.reducer;
