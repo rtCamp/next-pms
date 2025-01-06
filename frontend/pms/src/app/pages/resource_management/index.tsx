@@ -63,7 +63,6 @@ const ResourcePage = ({ type }: { type: "team" | "project" }) => {
       dispatch(resetTeamState());
     }
     return () => {
-      dispatch(resetResourcePermissions());
       dispatch(setProjectMaxWeek(5));
       dispatch(setTeamMaxWeek(5));
     };
