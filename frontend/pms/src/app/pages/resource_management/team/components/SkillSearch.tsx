@@ -55,7 +55,6 @@ const SkillSearch = ({
     }
   }, [data]);
 
-  // showing skill-suggestions when user types something
   useEffect(() => {
     if (searchQuery) {
       setSuggestions(skills?.filter((skill) => skill.name.toLowerCase().includes(searchQuery.trim().toLowerCase())) || []);
@@ -67,12 +66,12 @@ const SkillSearch = ({
   const addSkill = (skill: { name: string }) => {
     if (!selectedSkills.find((s) => s.name === skill.name)) {
       setSelectedSkills([
-        ...selectedSkills,
         {
           ...skill,
           proficiency: 0.2, //default proficiency is 0.2 stars
           operator: COMPARISON_OPTIONS.greater_than_equals.value,
         },
+        ...selectedSkills,
       ]);
     }
     setSearchQuery("");
@@ -111,7 +110,6 @@ const SkillSearch = ({
       open={isPopoverOpen}
       onOpenChange={(value) => {
         if (!value) {
-          // empty selected skills after closing the popover
           setSelectedSkills([]);
         } else {
           setSelectedSkills(resourceTeamState?.skillSearch || []);
@@ -130,10 +128,9 @@ const SkillSearch = ({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-96">
+      <PopoverContent align="end" className="w-80">
         <div>
           <h1>Skill Search</h1>
-          <p className="text-sm text-muted-foreground">Search and select skills with required proficiency levels.</p>
         </div>
 
         <div className="space-y-4 pt-4">
@@ -158,7 +155,7 @@ const SkillSearch = ({
                   <button
                     key={skill.name}
                     onClick={() => addSkill(skill)}
-                    className="w-full px-4 py-2 text-left hover:bg-muted/50 focus:bg-muted/50 focus:outline-none"
+                    className="w-full px-4 py-2 text-sm text-left hover:bg-muted/50 focus:bg-muted/50 focus:outline-none"
                   >
                     {skill.name}
                   </button>
@@ -168,12 +165,12 @@ const SkillSearch = ({
           </div>
           {/* Selected Skills */}
           <div className="max-h-44 overflow-y-auto space-y-2">
-            {[...selectedSkills].reverse().map((skill) => (
+            {selectedSkills.map((skill) => (
               <div key={skill.name} className="flex items-stretch gap-3">
                 {/* Skill Name */}
                 <div
-                  className="font-medium bg-gray-100 border h-full rounded-md p-1 px-2 w-24 truncate text-sm"
-                  title={skill.name} // Tooltip to show the full name on hover
+                  className="font-medium bg-gray-100 border h-full rounded-md p-1 px-2 w-20 truncate text-sm"
+                  title={skill.name}
                 >
                   <Typography variant="p" className="truncate max-w-md">
                     {skill.name}
@@ -182,7 +179,7 @@ const SkillSearch = ({
 
                 {/* Operator Select Menu */}
                 <Select value={skill.operator} onValueChange={(value) => updateSkillComparison(skill.name, value)}>
-                  <SelectTrigger className="w-14 [&>svg]:hidden bg-gray-100 h-full text-sm p-1 px-2">
+                  <SelectTrigger className="w-10 flex justify-center items-center [&>svg]:hidden bg-gray-100 h-full text-sm p-1 px-2">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -197,19 +194,18 @@ const SkillSearch = ({
                 </Select>
 
                 {/* Star Ratings */}
-                <div className="flex">
+                <div className="flex ml-1">
                   {[1, 2, 3, 4, 5].map((rating) => (
                     <button
                       key={rating}
-                      onClick={() => updateSkillProficiency(skill.name, rating)} // Pass the star count directly
+                      onClick={() => updateSkillProficiency(skill.name, rating)}
                       className="focus:outline-none"
                     >
                       <Star
-                        className={`h-5 w-5 ${
-                          rating <= Math.round(skill.proficiency * 5) // Compare current star rating
+                        className={cn("h-5 w-5",rating <= Math.round(skill.proficiency * 5)
                             ? "fill-yellow-400 text-yellow-400"
                             : "fill-gray-200 text-gray-200"
-                        } transition-colors`}
+                        , "transition-colors")}
                       />
                     </button>
                   ))}

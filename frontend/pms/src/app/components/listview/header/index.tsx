@@ -67,7 +67,7 @@ export const Header = ({
                 return (
                   <Button
                     title={button.title}
-                    className={cn("", button.className)}
+                    className={button.className}
                     variant={button.variant || "outline"}
                     onClick={button.handleClick}
                     key={idx}

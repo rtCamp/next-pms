@@ -93,7 +93,6 @@ const ResourceTeamHeaderSection = () => {
   }, [dispatch, resourceTeamState.data.dates]);
 
   useEffect(()=>{
-    // add value to the SkillSearch State in redux-store based on URL param(skill-search)
     if(skillSearchParam){
       dispatch(setSkillSearch(skillSearchParam));
     }
