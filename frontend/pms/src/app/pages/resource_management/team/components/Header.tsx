@@ -135,11 +135,21 @@ const ResourceTeamHeaderSection = () => {
            queryParameterDefault:[],
            label:"Skill",
            handleDelete: (value:string[]) => {
-            let prev_data = resourceTeamState?.skillSearch
-            prev_data = prev_data!.filter(obj => value.includes(obj.name));
+            let prev_data = resourceTeamState?.skillSearch;
+            const operators = [">", "<", ">=", "<=", "=", "!="];
+            const skills =  value.map(value => {
+              // Iterate through each value and extract skill name
+              for (const operator of operators) {
+                  if (value.includes(` ${operator} `)) {
+                      return value.split(` ${operator} `)[0].trim();
+                  }
+              }
+              return value.trim();
+            });
+            prev_data = prev_data!.filter(obj => skills.includes(obj.name));
             dispatch(setSkillSearch(prev_data));
            },
-           value:resourceTeamState.skillSearch?.map(obj => obj.name),
+           value:resourceTeamState.skillSearch?.map(obj => obj.name+" "+obj.operator+" "+(obj.proficiency*5)),
            hide:!resourceAllocationPermission.write,
            customFilterComponent:<SkillSearch onSubmit={()=>{
             dispatch(setReFetchData(true));
