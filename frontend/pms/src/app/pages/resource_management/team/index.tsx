@@ -48,21 +48,25 @@ const ResourceTeamView = () => {
     resourceAllocationPermission.write
       ? {
           date: resourceTeamState.weekDate,
-          max_week: 3,
+          max_week: resourceTeamState.maxWeek,
           page_length: resourceTeamState.pageLength,
           employee_name: resourceTeamState.employeeName,
           business_unit: resourceTeamState.businessUnit,
           reports_to: resourceTeamState.reportingManager,
           designation: resourceTeamState.designation,
           is_billable: getIsBillableValue(resourceTeamState.allocationType as string[]),
+          skills: resourceTeamState?.skillSearch?.length > 0 ? resourceTeamState.skillSearch : null,
         }
       : {
           date: resourceTeamState.weekDate,
-          max_week: 3,
+          max_week: resourceTeamState.maxWeek,
           page_length: resourceTeamState.pageLength,
           employee_name: resourceTeamState.employeeName,
         },
-    { parallel: true, revalidateAll: true }
+    {
+      parallel: true,
+      revalidateAll: true
+    }
   );
 
   const onFormSubmit = useCallback(() => {

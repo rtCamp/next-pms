@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 /**
  * Internal dependencies.
  */
+import { Skeleton } from "@/app/components/ui/skeleton";
 import { Table, TableBody } from "@/app/components/ui/table";
 import { cn, prettyDate } from "@/lib/utils";
 import { RootState } from "@/store";
@@ -16,7 +17,9 @@ import {
   EmployeeDataProps,
   EmployeeResourceProps,
   emptyEmployeeDayData,
+  setMaxWeek,
   setStart,
+  setWeekDate,
 } from "@/store/resource_management/team";
 import { ResourceAllocationObjectProps } from "@/types/resource_management";
 
@@ -26,10 +29,10 @@ import { ResourceAllocationList } from "../../components/ResourceAllocationList"
 import { ResourceTableCell } from "../../components/TableCell";
 import ResourceTeamTableHeader from "../../components/TableHeader";
 import { ResourceTableRow } from "../../components/TableRow";
+import { TableContextProvider } from "../../contexts/tableContext";
+import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { getCellBackGroundColor } from "../../utils/cell";
 import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
-import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
-import { Spinner } from "@/app/components/spinner";
 
 /**
  * This component is responsible for loading the table for table view.
@@ -38,12 +41,24 @@ import { Spinner } from "@/app/components/spinner";
  */
 const ResourceTeamTable = () => {
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_team.data.dates);
+  const isLoading = useSelector((state: RootState) => state.resource_team.isLoading);
+  const maxWeek = useSelector((state: RootState) => state.resource_team.maxWeek);
+  const dispatch = useDispatch();
+
+  const handleLoadMore = () => {
+    if (isLoading) return;
+    dispatch(setMaxWeek(maxWeek + 3));
+  };
+
+  const cellHeaderRef = useInfiniteScroll({ isLoading: isLoading, hasMore: true, next: () => handleLoadMore() });
 
   return (
-    <Table className="relative">
-      <ResourceTeamTableHeader dates={dates} title="Members" />
-      <ResourceTeamTableBody />
-    </Table>
+    <TableContextProvider>
+      <Table className="relative">
+        <ResourceTeamTableHeader headerRef={cellHeaderRef} dates={dates} title="Members" />
+        <ResourceTeamTableBody />
+      </Table>
+    </TableContextProvider>
   );
 };
 
@@ -123,7 +138,7 @@ const ResourceTeamTableBody = () => {
           />
         );
       })}
-      {hasMore && <Spinner isFull={false} className="p-4 overflow-hidden" />}
+      {hasMore && <Skeleton className="h-10 w-full" />}
     </TableBody>
   );
 };
@@ -215,7 +230,7 @@ const ResourceTeamTableCell = ({
       setResourceFormData({
         isShowDialog: true,
         employee: employee,
-        employee_name:employee_name,
+        employee_name: employee_name,
         allocation_start_date: employeeSingleDay.date,
         allocation_end_date: employeeSingleDay.date,
         is_billable: getIsBillableValue(allocationType as string[]) != 0,

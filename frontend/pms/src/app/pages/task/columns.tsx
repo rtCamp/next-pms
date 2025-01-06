@@ -170,8 +170,8 @@ export const getColumn = (
           <span title="Like">
             <Heart
               className={cn(
-                "w-4 h-4 hover:cursor-pointer",
-                isLiked(row.original._liked_by, user.user) && "fill-red-600"
+                "hover:cursor-pointer",
+                isLiked(row.original._liked_by, user.user) && "fill-destructive stroke-destructive"
               )}
               data-task={row.original.name}
               data-liked-by={row.original._liked_by}

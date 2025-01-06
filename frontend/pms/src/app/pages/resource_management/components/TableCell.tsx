@@ -1,8 +1,8 @@
 /**
  * External dependencies.
  */
+import React, { useContext } from "react";
 import { HoverCard, HoverCardTrigger } from "@radix-ui/react-hover-card";
-import React from "react";
 
 /**
  * Internal dependencies.
@@ -11,8 +11,9 @@ import { Typography } from "@/app/components/typography";
 import { HoverCardContent } from "@/app/components/ui/hover-card";
 import { TableCell } from "@/app/components/ui/table";
 import { cn } from "@/lib/utils";
-import { getFilterValue } from "../utils/helper";
 import { EmptyTableCell } from "./Empty";
+import { TableContext } from "../contexts/tableContext";
+import { getFilterValue } from "../utils/helper";
 
 interface ResourceTableProps {
   type: "hovercard" | "empty" | "default";
@@ -29,7 +30,7 @@ interface ResourceTableProps {
 
 /**
  * This component is responsible to render a table cell based on it type dynamically.
- * 
+ *
  * @param props.type The type of the cell.
  * @param props.cellTypographyClassName  The class name for cell typography.
  * @param props.cellClassName  The class name for cell.
@@ -53,19 +54,28 @@ const ResourceTableCell = ({
   style,
   onCellClick,
 }: ResourceTableProps) => {
-  const mergeCellClassName = cn("cursor-pointer text-xs flex px-2 py-2 w-16 justify-center items-center", cellClassName);
+  const { tableProperties, getCellWidthString } = useContext(TableContext);
+
+  const mergeCellClassName = cn(
+    "cursor-pointer text-xs flex px-2 py-2 w-16 justify-center items-center",
+    cellClassName
+  );
+
+  const inlineStyle = { width: getCellWidthString(tableProperties.cellWidth), ...style };
 
   if (type == "hovercard") {
     return (
       <HoverCard openDelay={200}>
         <HoverCardTrigger asChild className="w-full h-full cursor-pointer text-center hover:bg-gray-200">
-          <TableCell ref={ref} className={mergeCellClassName} style={style}>
+          <TableCell ref={ref} className={mergeCellClassName} style={inlineStyle}>
             {CellContent && <CellContent />}
 
             <TableCellContent title={title} className={cellTypographyClassName} value={value} />
           </TableCell>
         </HoverCardTrigger>
-        <HoverCardContent className="min-w-64 max-w-96 w-fit">{CustomHoverCardContent && <CustomHoverCardContent />}</HoverCardContent>
+        <HoverCardContent className="min-w-64 max-w-96 w-fit">
+          {CustomHoverCardContent && <CustomHoverCardContent />}
+        </HoverCardContent>
       </HoverCard>
     );
   }
@@ -78,7 +88,7 @@ const ResourceTableCell = ({
 
   if (type == "default") {
     return (
-      <TableCell ref={ref} className={mergeCellClassName} style={style}>
+      <TableCell ref={ref} className={mergeCellClassName} style={inlineStyle}>
         {CellContent && <CellContent />}
         <TableCellContent title={title} className={cellTypographyClassName} value={value} />
       </TableCell>
@@ -88,11 +98,11 @@ const ResourceTableCell = ({
 
 /**
  * This component is responsible to render the cell content based on feat to handle onClick event of the table.
- * 
+ *
  * @param props.value The value of the cell.
  * @param props.cellClassName The class for cell.
  * @param props.CellComponet The cell component.
- * @param props.cellTypographyClassName The class name for cell typography. 
+ * @param props.cellTypographyClassName The class name for cell typography.
  * @param props.onClick The onClick event for cell.
  * @returns React.FC
  */
@@ -101,16 +111,25 @@ const TableInformationCellContent = ({
   cellClassName,
   CellComponet,
   cellTypographyClassName,
+  cellRef,
   onClick,
 }: {
   value?: string;
   cellClassName?: string;
   CellComponet?: React.FC | undefined;
   cellTypographyClassName?: string;
+  cellRef?: React.RefObject<HTMLTableCellElement>;
   onClick?: () => void;
 }) => {
+  const { tableProperties, getCellWidthString } = useContext(TableContext);
+
   return (
-    <TableCell className={cn("w-[15rem] overflow-hidden pl-12", cellClassName)} onClick={onClick}>
+    <TableCell
+      className={cn("overflow-hidden sticky left-0 align-super h-full", cellClassName)}
+      onClick={onClick}
+      style={{ width: getCellWidthString(tableProperties.firstCellWidth) }}
+      ref={cellRef}
+    >
       <Typography
         variant="p"
         className={cn(
@@ -129,7 +148,7 @@ const TableInformationCellContent = ({
 
 /**
  * This component is responsible to display the cell text contents.
- * 
+ *
  * @param props.value The value to be displayed in the cell.
  * @param props.TextComponet The text component to be displayed in the cell.
  * @param props.className The class name for the cell.

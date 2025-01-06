@@ -1,8 +1,10 @@
 import frappe
-from frappe.utils import DATE_FORMAT, date_diff, getdate
+from frappe.utils import DATE_FORMAT
+from frappe import _
+import json
 
 from next_pms.resource_management.api.utils.helpers import (
-    filter_employee_list,
+    get_employees_by_skills,
     find_worked_hours,
     get_allocation_objects,
     get_dates_date,
@@ -10,12 +12,14 @@ from next_pms.resource_management.api.utils.helpers import (
     is_on_leave,
     resource_api_permissions_check,
 )
+
 from next_pms.resource_management.api.utils.query import (
     get_allocation_list_for_employee_for_given_range,
     get_employee_leaves,
 )
 from next_pms.timesheet.api.employee import get_employee_working_hours
 from next_pms.timesheet.api.team import get_holidays
+from next_pms.timesheet.api.utils import filter_employees
 
 
 @frappe.whitelist()
@@ -29,6 +33,7 @@ def get_resource_management_team_view_data(
     is_billable=-1,
     page_length=10,
     start=0,
+    skills=None,
 ):
     permissions = resource_api_permissions_check()
 
@@ -43,8 +48,25 @@ def get_resource_management_team_view_data(
     customer = {}
     dates = get_dates_date(max_week, date)
     res = {"dates": dates}
-
-    employees, total_count = filter_employee_list(
+    
+    ids=None
+    
+    if not skills:
+        skills=[]
+    if isinstance(skills, str):
+        skills = json.loads(skills)
+    if skills:
+        ids = get_employees_by_skills(skills)
+        if len(ids)==0:
+            res["data"] = data
+            res["customer"] = customer
+            res["total_count"] = 0
+            res["has_more"] = False
+            res["permissions"] = permissions
+            return res
+            
+        
+    employees, total_count = filter_employees(
         employee_name,
         business_unit=business_unit,
         designation=designation,
@@ -52,6 +74,8 @@ def get_resource_management_team_view_data(
         reports_to=reports_to,
         start=start,
         status=["Active"],
+        ignore_default_filters= True if len(skills)>0 else False ,
+        ids=ids,
         ignore_permissions=True,
     )
 
@@ -249,37 +273,8 @@ def get_leave_information(employee: str, start_date: str, end_date: str):
     """
     Get the leave information for given employee for given time range.
     """
+    from next_pms.timesheet.api.employee import get_workable_days_for_employee
 
     frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
-    if not employee or not start_date or not end_date:
-        return None
-
-    start_date = getdate(start_date)
-    end_date = getdate(end_date)
-
-    leave_applications = get_employee_leaves(employee, start_date, end_date)
-
-    total_leave_hours = 0
-
-    holidays = get_holidays(employee, start_date, end_date)
-
-    for leave in leave_applications:
-        current_start_date = max(start_date, leave.from_date)
-        currnet_end_date = min(end_date, leave.to_date)
-
-        total_leave_hours += date_diff(currnet_end_date, current_start_date) + 1
-
-        if leave.get("half_day"):
-            if leave.get("half_day_date") >= current_start_date and leave.get("half_day_date") <= currnet_end_date:
-                total_leave_hours -= 0.5
-
-        for holiday in holidays:
-            if holiday.holiday_date >= current_start_date and holiday.holiday_date <= currnet_end_date:
-                total_leave_hours -= 1
-
-    return {
-        "total_days": date_diff(end_date, start_date) + 1,
-        "total_working_days": date_diff(end_date, start_date) + 1 - total_leave_hours - len(holidays),
-        "leave_days": total_leave_hours + len(holidays),
-    }
+    return get_workable_days_for_employee(employee, start_date, end_date)

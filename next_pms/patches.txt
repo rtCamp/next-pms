@@ -7,6 +7,7 @@ next_pms.timesheet.patches.add_timesheet_role
 # Patches added in this section will be executed after doctypes are migrated
 next_pms.timesheet.patches.update_timesheet_weekly_status
 next_pms.timesheet.patches.add_notification_template
+next_pms.timesheet.patches.remove_project_name_from_task_rows
 
 # next_pms.project_currency.patches.update_project_billing_type Need to run this manually
 # next_pms.project_currency.patches.project_threshold_limit_reminder_email_template
@@ -14,3 +15,4 @@ next_pms.timesheet.patches.add_notification_template
 
 next_pms.resource_management.patches.add_abbr_customer
 next_pms.resource_management.patches.update_resource_allocation_permissions
+next_pms.timesheet.patches.update_task_and_project_costing

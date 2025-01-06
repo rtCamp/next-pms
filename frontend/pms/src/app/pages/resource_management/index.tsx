@@ -13,13 +13,12 @@ import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { PermissionProps, setResourcePermissions } from "@/store/resource_management/allocation";
-import { resetState as resetProjectState } from "@/store/resource_management/project";
-import { resetState as resetTeamState } from "@/store/resource_management/team";
+import { resetResourcePermissions } from "@/store/resource_management/allocation";
+import { resetState as resetProjectState, setMaxWeek as setProjectMaxWeek } from "@/store/resource_management/project";
+import { resetState as resetTeamState, setMaxWeek as setTeamMaxWeek } from "@/store/resource_management/team";
 
 import ResourceProjectView from "./project";
-import { ResourceProjectHeaderSection } from "./project/components/Header";
 import ResourceTeamView from "./team";
-import { ResourceTeamHeaderSection } from "./team/components/Header";
 
 /**
  * This is main component which is responsible for rendering the page of resource management.
@@ -36,7 +35,11 @@ const ResourcePage = ({ type }: { type: "team" | "project" }) => {
   const { data, isLoading, isValidating, error } = useFrappeGetCall(
     "next_pms.resource_management.api.permission.get_user_resources_permissions",
     {},
-    undefined
+    {
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
   );
 
   useEffect(() => {
@@ -59,11 +62,15 @@ const ResourcePage = ({ type }: { type: "team" | "project" }) => {
     } else {
       dispatch(resetTeamState());
     }
+    return () => {
+      dispatch(setProjectMaxWeek(5));
+      dispatch(setTeamMaxWeek(5));
+    };
   }, [dispatch, type]);
 
   return (
     <>
-      {isLoading || isValidating || Object.keys(resourceAllocationPermission).length == 0 ? (
+      {(isLoading || isValidating) && Object.keys(resourceAllocationPermission).length == 0 ? (
         <Spinner isFull />
       ) : type == "team" ? (
         <ResourceTeamView />

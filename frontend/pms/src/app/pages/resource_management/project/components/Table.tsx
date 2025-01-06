@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 /**
  * Internal dependencies.
  */
+import { Skeleton } from "@/app/components/ui/skeleton";
 import { Table, TableBody } from "@/app/components/ui/table";
 import { cn, prettyDate } from "@/lib/utils";
 import { RootState } from "@/store";
@@ -15,6 +16,7 @@ import {
   emptyProjectDayData,
   ProjectDataProps,
   ProjectResourceProps,
+  setMaxWeek,
   setStart,
 } from "@/store/resource_management/project";
 import { DateProps } from "@/store/resource_management/team";
@@ -26,10 +28,10 @@ import { ResourceAllocationList } from "../../components/ResourceAllocationList"
 import { ResourceTableCell } from "../../components/TableCell";
 import ResourceProjectTableHeader from "../../components/TableHeader";
 import { ResourceTableRow } from "../../components/TableRow";
+import { TableContextProvider } from "../../contexts/tableContext";
+import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { getCellBackGroundColor } from "../../utils/cell";
 import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
-import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
-import { Spinner } from "@/app/components/spinner";
 
 /**
  * This component is responsible for loading the table for project view.
@@ -38,12 +40,24 @@ import { Spinner } from "@/app/components/spinner";
  */
 const ResourceProjectTable = () => {
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_project.data.dates);
+  const isLoading = useSelector((state: RootState) => state.resource_project.isLoading);
+  const maxWeek = useSelector((state: RootState) => state.resource_project.maxWeek);
+  const dispatch = useDispatch();
+
+  const handleLoadMore = () => {
+    if (isLoading) return;
+    dispatch(setMaxWeek(maxWeek + 3));
+  };
+
+  const cellHeaderRef = useInfiniteScroll({ isLoading: isLoading, hasMore: true, next: () => handleLoadMore() });
 
   return (
-    <Table className="relative">
-      <ResourceProjectTableHeader dates={dates} title="Projects" />
-      <ResourceProjectTableBody />
-    </Table>
+    <TableContextProvider>
+      <Table className="w-screen">
+        <ResourceProjectTableHeader dates={dates} title="Projects" headerRef={cellHeaderRef} />
+        <ResourceProjectTableBody />
+      </Table>
+    </TableContextProvider>
   );
 };
 
@@ -134,7 +148,7 @@ const ResourceProjectTableBody = () => {
         );
       })}
 
-      {hasMore && <Spinner isFull={false} className="p-4 overflow-hidden" />}
+      {hasMore && <Skeleton className="h-10 w-full" />}
     </TableBody>
   );
 };
@@ -245,7 +259,7 @@ const ResourceProjectTableCell = ({
       setResourceFormData({
         isShowDialog: true,
         employee: "",
-        employee_name:"",
+        employee_name: "",
         project: project,
         allocation_start_date: projectSingleDay.date,
         allocation_end_date: projectSingleDay.date,

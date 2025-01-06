@@ -40,6 +40,10 @@ def on_update(doc, method=None):
     doc.update_task_and_project()
 
 
+def after_delete(doc, method=None):
+    doc.update_task_and_project()
+
+
 def before_validate(doc, method=None):
     set_parent_project(doc)
 

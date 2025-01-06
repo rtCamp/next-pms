@@ -1,6 +1,6 @@
 import frappe
 from frappe.utils import flt
-from frappe.utils.data import add_days, getdate, nowdate
+from frappe.utils.data import add_days, getdate
 
 from next_pms.timesheet.api.team import get_week_dates
 
@@ -79,17 +79,18 @@ def get_dates_date(max_week: int, date: str):
         object: date objects
     """
 
-    dates = []
-    now = nowdate()
+    next_dates = []
+    current_date = getdate(date)
 
     # fetch the currant and next week dates object
     for _ in range(max_week):
-        current_week = True if date == now else False
-        week = get_week_dates(date=date, current_week=current_week, ignore_weekend=True)
-        dates.append(week)
-        date = add_days(getdate(week["end_date"]), 1)
+        week = get_week_dates(date=current_date, ignore_weekend=True)
+        next_dates.append(week)
+        current_date = add_days(getdate(week["end_date"]), 1)
 
-    return dates
+    current_date = getdate(date)
+
+    return next_dates
 
 
 def find_worked_hours(timesheet_data: list, date: str, project: str = None):
@@ -177,3 +178,42 @@ def resource_api_permissions_check():
         return {"read": True, "write": True, "delete": True}
 
     return {"read": False, "write": False, "delete": False}
+
+
+def get_employees_by_skills(skill_criteria):
+    """
+    Retrieve employee IDs from Employee Skill Map Doctype based on skill and proficiency criteria.
+
+    Args:
+        skill_criteria (list[dict]): A list of dictionaries where each dictionary contains:
+            - name (str): Skill name.
+            - proficiency (int): Proficiency level.
+            - operator (str): Comparison operator (>, <, =, >=, <=).
+
+    Returns:
+        list: List of employee IDs matching the skill criteria.
+    """
+    try:
+        where_condition = ""
+        conditions = []
+
+        for criteria in skill_criteria:
+            sub_condition = "(`skill` = '{0}' and `proficiency` {1} {2})".format(
+                criteria["name"], criteria["operator"], criteria["proficiency"]
+            )
+            conditions.append(sub_condition)
+
+        where_condition = " OR ".join(conditions)
+
+        # nosemgrep
+        res = frappe.db.sql(
+            """SELECT parent FROM `tabEmployee Skill` WHERE {0} GROUP BY parent HAVING COUNT(DISTINCT skill) = {1}""".format(
+                where_condition, len(skill_criteria)
+            ),
+            as_dict=True,
+        )
+
+        return [r.get("parent") for r in res]
+    except Exception as e:
+        frappe.log_error(f"Error fetching employees by skills: {e}")
+        return []

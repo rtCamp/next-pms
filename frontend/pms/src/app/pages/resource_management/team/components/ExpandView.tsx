@@ -203,7 +203,7 @@ const ExpandViewCell = ({
 const TimeOffRow = ({ dates, employeeData }: { dates: string[]; employeeData: EmployeeDataProps }) => {
   return (
     <TableRow className="flex items-center w-full border-0">
-      <TableInformationCellContent value="Time Off" />
+      <TableInformationCellContent cellClassName="pl-12" value="Time Off" />
 
       {dates.map((date: string, index: number) => {
         return (
