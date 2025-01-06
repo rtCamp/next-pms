@@ -16,6 +16,7 @@ import {
   emptyProjectDayData,
   ProjectDataProps,
   ProjectResourceProps,
+  setMaxWeek,
   setStart,
 } from "@/store/resource_management/project";
 import { DateProps } from "@/store/resource_management/team";
@@ -27,6 +28,7 @@ import { ResourceAllocationList } from "../../components/ResourceAllocationList"
 import { ResourceTableCell } from "../../components/TableCell";
 import ResourceProjectTableHeader from "../../components/TableHeader";
 import { ResourceTableRow } from "../../components/TableRow";
+import { TableContextProvider } from "../../contexts/tableContext";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { getCellBackGroundColor } from "../../utils/cell";
 import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
@@ -38,12 +40,24 @@ import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "..
  */
 const ResourceProjectTable = () => {
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_project.data.dates);
+  const isLoading = useSelector((state: RootState) => state.resource_project.isLoading);
+  const maxWeek = useSelector((state: RootState) => state.resource_project.maxWeek);
+  const dispatch = useDispatch();
+
+  const handleLoadMore = () => {
+    if (isLoading) return;
+    dispatch(setMaxWeek(maxWeek + 3));
+  };
+
+  const cellHeaderRef = useInfiniteScroll({ isLoading: isLoading, hasMore: true, next: () => handleLoadMore() });
 
   return (
-    <Table className="relative">
-      <ResourceProjectTableHeader dates={dates} title="Projects" />
-      <ResourceProjectTableBody />
-    </Table>
+    <TableContextProvider>
+      <Table className="w-screen">
+        <ResourceProjectTableHeader dates={dates} title="Projects" headerRef={cellHeaderRef} />
+        <ResourceProjectTableBody />
+      </Table>
+    </TableContextProvider>
   );
 };
 

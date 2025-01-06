@@ -13,8 +13,9 @@ import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { PermissionProps, setResourcePermissions } from "@/store/resource_management/allocation";
-import { resetState as resetProjectState } from "@/store/resource_management/project";
-import { resetState as resetTeamState } from "@/store/resource_management/team";
+import { resetResourcePermissions } from "@/store/resource_management/allocation";
+import { resetState as resetProjectState, setMaxWeek as setProjectMaxWeek } from "@/store/resource_management/project";
+import { resetState as resetTeamState, setMaxWeek as setTeamMaxWeek } from "@/store/resource_management/team";
 
 import ResourceProjectView from "./project";
 import ResourceTeamView from "./team";
@@ -61,6 +62,10 @@ const ResourcePage = ({ type }: { type: "team" | "project" }) => {
     } else {
       dispatch(resetTeamState());
     }
+    return () => {
+      dispatch(setProjectMaxWeek(5));
+      dispatch(setTeamMaxWeek(5));
+    };
   }, [dispatch, type]);
 
   return (

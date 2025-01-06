@@ -466,9 +466,9 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
                     </FormLabel>
                     <FormControl>
                       <>
-                        <div className="relative flex items-center">
+                        <div className="flex items-center relative">
                           <Input
-                            placeholder="00:00"
+                            placeholder="0"
                             className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
                             type="text"
                             {...field}
@@ -510,7 +510,7 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
                     </FormLabel>
                     <FormControl>
                       <>
-                        <div className="relative flex items-center">
+                        <div className="flex items-center relative">
                           <Input
                             placeholder="0"
                             className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"

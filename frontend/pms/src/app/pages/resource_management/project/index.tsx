@@ -48,7 +48,7 @@ const ResourceTeamView = () => {
     resourceAllocationPermission.write
       ? {
           date: resourceProjectState.weekDate,
-          max_week: 3,
+          max_week: resourceProjectState.maxWeek,
           page_length: resourceProjectState.pageLength,
           project_name: resourceProjectState.projectName,
           customer: resourceProjectState.customer,
@@ -56,7 +56,7 @@ const ResourceTeamView = () => {
         }
       : {
           date: resourceProjectState.weekDate,
-          max_week: 3,
+          max_week: resourceProjectState.maxWeek,
           page_length: resourceProjectState.pageLength,
           project_name: resourceProjectState.projectName,
         },
