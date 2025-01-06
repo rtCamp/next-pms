@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useSelector, useDispatch } from "react-redux";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { Check, CircleDollarSign, LoaderCircle, X } from "lucide-react";
 import { z } from "zod";
@@ -11,7 +12,6 @@ import { z } from "zod";
 /**
  * Internal dependencies.
  */
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Spinner } from "@/app/components/spinner";
 import { Typography } from "@/app/components/typography";
 import { Button } from "@/app/components/ui/button";
