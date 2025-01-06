@@ -10,3 +10,7 @@ def after_insert(doc, method=None):
         if is_billable:
             doc.custom_is_billable = 1
             doc.save(ignore_permissions=True)
+
+
+def validate(doc, method=None):
+    doc.update_time_and_costing()
