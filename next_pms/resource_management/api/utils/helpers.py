@@ -177,3 +177,42 @@ def resource_api_permissions_check():
         return {"read": True, "write": True, "delete": True}
 
     return {"read": False, "write": False, "delete": False}
+
+
+def get_employees_by_skills(skill_criteria):
+    """
+    Retrieve employee IDs from Employee Skill Map Doctype based on skill and proficiency criteria.
+
+    Args:
+        skill_criteria (list[dict]): A list of dictionaries where each dictionary contains:
+            - name (str): Skill name.
+            - proficiency (int): Proficiency level.
+            - operator (str): Comparison operator (>, <, =, >=, <=).
+
+    Returns:
+        list: List of employee IDs matching the skill criteria.
+    """
+    try:
+        where_condition = ""
+        conditions = []
+
+        for criteria in skill_criteria:
+            sub_condition = "(`skill` = '{0}' and `proficiency` {1} {2})".format(
+                criteria["name"], criteria["operator"], criteria["proficiency"]
+            )
+            conditions.append(sub_condition)
+
+        where_condition = " OR ".join(conditions)
+
+        # nosemgrep
+        res = frappe.db.sql(
+            """SELECT parent FROM `tabEmployee Skill` WHERE {0} GROUP BY parent HAVING COUNT(DISTINCT skill) = {1}""".format(
+                where_condition, len(skill_criteria)
+            ),
+            as_dict=True,
+        )
+
+        return [r.get("parent") for r in res]
+    except Exception as e:
+        frappe.log_error(f"Error fetching employees by skills: {e}")
+        return []

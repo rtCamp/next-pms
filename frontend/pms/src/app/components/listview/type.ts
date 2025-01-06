@@ -2,14 +2,14 @@
 import { ExportProps } from "@/app/components/listview/Export";
 import { fieldMetaProps, sortOrder } from "@/types";
 export interface FilterPops {
-    queryParameterName: string;
-    queryParameterDefault: string | string[] | boolean | undefined;
+    queryParameterName?: string;
+    queryParameterDefault?: string | string[] | boolean | undefined;
     hide?: boolean;
-    handleChange: any;
+    handleChange?: any;
     handleDelete?: any;
     data?: { value: string; label: string }[];
-    type: "search" | "select-search" | "select" | "checkbox" | "search-employee" | "select-list";
-    value: string | number | boolean | string[] | undefined;
+    type: "search" | "select-search" | "select" | "checkbox" | "search-employee" | "select-list" | "custom-filter";
+    value?: string | number | boolean | string[] | undefined;
     defaultValue?: string | boolean | number;
     label?: string;
     className?: string;
@@ -19,6 +19,7 @@ export interface FilterPops {
     onComboSearch?: (searchTerm: string) => void;
     apiCall?: ApiCallProps;
     employeeName?: string;
+    customFilterComponent?: React.ReactNode;
 }
 
 export interface ApiCallProps {
@@ -51,6 +52,7 @@ export interface HeaderProps {
     showActions?: boolean;
     actionProps?: ActionProps;
     showFilterValue?: boolean;
+    customComponents?: React.ReactNode[];
 }
 export interface ButtonProps {
     title: string;

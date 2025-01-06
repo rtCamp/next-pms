@@ -32,13 +32,13 @@ const getMergeData = (dataList: DateProps[]) => {
     return {};
   }
 
-  let allData: any = { ...dataList[0].message };
+  const allData: any = { ...dataList[0].message };
 
   for (let index = 1; index < dataList.length; index++) {
-    let currentData: any = dataList[index].message;
+    const currentData: any = dataList[index].message;
 
     for (const key in currentData) {
-      let data: any = currentData[key];
+      const data: any = currentData[key];
 
       if (Array.isArray(data)) {
         if (key != "data") {

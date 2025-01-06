@@ -1,8 +1,10 @@
 import frappe
 from frappe.utils import DATE_FORMAT
+from frappe import _
+import json
 
 from next_pms.resource_management.api.utils.helpers import (
-    filter_employee_list,
+    get_employees_by_skills,
     find_worked_hours,
     get_allocation_objects,
     get_dates_date,
@@ -10,12 +12,14 @@ from next_pms.resource_management.api.utils.helpers import (
     is_on_leave,
     resource_api_permissions_check,
 )
+
 from next_pms.resource_management.api.utils.query import (
     get_allocation_list_for_employee_for_given_range,
     get_employee_leaves,
 )
 from next_pms.timesheet.api.employee import get_employee_working_hours
 from next_pms.timesheet.api.team import get_holidays
+from next_pms.timesheet.api.utils import filter_employees
 
 
 @frappe.whitelist()
@@ -29,6 +33,7 @@ def get_resource_management_team_view_data(
     is_billable=-1,
     page_length=10,
     start=0,
+    skills=None,
 ):
     permissions = resource_api_permissions_check()
 
@@ -43,8 +48,25 @@ def get_resource_management_team_view_data(
     customer = {}
     dates = get_dates_date(max_week, date)
     res = {"dates": dates}
-
-    employees, total_count = filter_employee_list(
+    
+    ids=None
+    
+    if not skills:
+        skills=[]
+    if isinstance(skills, str):
+        skills = json.loads(skills)
+    if skills:
+        ids = get_employees_by_skills(skills)
+        if len(ids)==0:
+            res["data"] = data
+            res["customer"] = customer
+            res["total_count"] = 0
+            res["has_more"] = False
+            res["permissions"] = permissions
+            return res
+            
+        
+    employees, total_count = filter_employees(
         employee_name,
         business_unit=business_unit,
         designation=designation,
@@ -52,6 +74,8 @@ def get_resource_management_team_view_data(
         reports_to=reports_to,
         start=start,
         status=["Active"],
+        ignore_default_filters= True if len(skills)>0 else False ,
+        ids=ids,
         ignore_permissions=True,
     )
 

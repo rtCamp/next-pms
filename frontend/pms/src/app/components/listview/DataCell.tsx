@@ -1,11 +1,11 @@
 /**
  * Internal dependencies
  */
-import { fieldMetaProps } from "@/types";
 import { Typography } from "@/app/components/typography";
-import { cn, getDateTimeForMultipleTimeZoneSupport, currencyFormat } from "@/lib/utils";
-import { Progress } from "@/app/components/ui/progress";
 import { Badge } from "@/app/components/ui/badge";
+import { Progress } from "@/app/components/ui/progress";
+import { cn, getDateTimeForMultipleTimeZoneSupport, currencyFormat } from "@/lib/utils";
+import { fieldMetaProps } from "@/types";
 
 const NUMBER_FIELDS = ["Int", "Long Int", "Float"];
 const NO_VALUE_FIELDS = [

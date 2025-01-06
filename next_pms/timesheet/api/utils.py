@@ -72,6 +72,7 @@ def filter_employees(
     reports_to: None | str = None,
     business_unit=None,
     designation=None,
+    ignore_default_filters=False,
     ignore_permissions=False,
 ):
     import json
@@ -145,10 +146,13 @@ def filter_employees(
         ids = [frappe.get_value("Employee", {"user_id": user}, cache=True) for user in users]
         employee_ids.extend(ids)
         filters.pop("status", None)
-
+    
     if len(employee_ids) > 0:
         filters["name"] = ["in", employee_ids]
-
+        
+    if ignore_default_filters:
+        filters.pop("status", None)
+        
     employees = frappe.get_list(
         "Employee",
         fields=fields,

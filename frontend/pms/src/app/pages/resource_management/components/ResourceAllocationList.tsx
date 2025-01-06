@@ -1,14 +1,15 @@
 /**
  * External dependencies.
  */
+import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useFrappeDeleteDoc } from "frappe-react-sdk";
 import { Clipboard, Pencil, Plus } from "lucide-react";
-import { useState } from "react";
 
 /**
  * Internal dependencies.
  */
+import { Typography } from "@/app/components/typography";
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 import { Button } from "@/app/components/ui/button";
 import { useToast } from "@/app/components/ui/use-toast";
@@ -25,7 +26,6 @@ import {
 
 import { DeleteAllocation } from "./Confirmation";
 import { getFilterValue, getInitials } from "../utils/helper";
-import { Typography } from "@/app/components/typography";
 
 /**
  * This component is responsible for rendering the list of resource allocations in Card.
