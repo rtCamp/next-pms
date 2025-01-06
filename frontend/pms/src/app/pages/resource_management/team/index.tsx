@@ -55,6 +55,7 @@ const ResourceTeamView = () => {
           reports_to: resourceTeamState.reportingManager,
           designation: resourceTeamState.designation,
           is_billable: getIsBillableValue(resourceTeamState.allocationType as string[]),
+          skills: resourceTeamState?.skillSearch?.length > 0 ? resourceTeamState.skillSearch : null,
         }
       : {
           date: resourceTeamState.weekDate,

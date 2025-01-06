@@ -140,8 +140,7 @@ const ResourceTeamSlice = createSlice({
       state.weekDate = action.payload;
       state.start = 0;
       state.isLoading = true;
-      const pageLength = Object.keys(state.data.data).length;
-      state.pageLength = pageLength;
+      state.pageLength = initialState.pageLength;
       state.isNeedToFetchDataAfterUpdate = true;
       state.maxWeek= initialState.maxWeek;
     },

@@ -167,7 +167,7 @@ const Sidebar = () => {
             Next PMS
           </Typography>
         </div>
-        <div className="overflow-y-auto ">
+        <div className="overflow-y-auto no-scrollbar">
           <div className="pt-3 h-fit  flex flex-col gap-y-2 transition-all duration-300 ease-in-out">
             {routes.map((route: Route) => {
               if (route.isPmRoute && !hasPmRole) return null;

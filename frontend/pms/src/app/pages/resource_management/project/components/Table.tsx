@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 /**
  * Internal dependencies.
  */
+import { Skeleton } from "@/app/components/ui/skeleton";
 import { Table, TableBody } from "@/app/components/ui/table";
 import { cn, prettyDate } from "@/lib/utils";
 import { RootState } from "@/store";
@@ -27,11 +28,9 @@ import { ResourceAllocationList } from "../../components/ResourceAllocationList"
 import { ResourceTableCell } from "../../components/TableCell";
 import ResourceProjectTableHeader from "../../components/TableHeader";
 import { ResourceTableRow } from "../../components/TableRow";
+import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { getCellBackGroundColor } from "../../utils/cell";
 import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
-import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
-import { Spinner } from "@/app/components/spinner";
-import { TableContextProvider } from "../../contexts/tableContext";
 
 /**
  * This component is responsible for loading the table for project view.
@@ -148,7 +147,7 @@ const ResourceProjectTableBody = () => {
         );
       })}
 
-      {hasMore && <Spinner isFull={false} className="p-4 overflow-hidden" />}
+      {hasMore && <Skeleton className="h-10 w-full" />}
     </TableBody>
   );
 };

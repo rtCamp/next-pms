@@ -17,6 +17,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
+import { Skeleton } from "@/app/components/ui/skeleton";
 import { Table, TableHead, TableHeader, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
 import { useToast } from "@/app/components/ui/use-toast";
 import { TEAM, EMPLOYEE } from "@/lib/constant";
@@ -248,7 +249,7 @@ const Team = () => {
                 </TableCell>
               </TableRow>
             )}
-            {teamState.hasMore && <Spinner isFull={false} className="p-4 overflow-hidden w-full" />}
+            {teamState.hasMore &&  <Skeleton className="h-10 w-full" />}
           </TableBody>
         </Table>
       )}

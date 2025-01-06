@@ -26,7 +26,11 @@ import {
   setReportingManager,
   setView,
   setWeekDate,
+  setReFetchData,
+  Skill,
+  setSkillSearch,
 } from "@/store/resource_management/team";
+import SkillSearch from "./SkillSearch";
 
 /**
  * This component is responsible for loading the team view header.
@@ -41,6 +45,7 @@ const ResourceTeamHeaderSection = () => {
   const [designationParam] = useQueryParamsState<string[]>("designation", []);
   const [viewParam, setViewParam] = useQueryParamsState<string>("view-type", "");
   const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParamsState<boolean>("combine-week-hours", false);
+  const [skillSearchParam, setSkillSearchParam] = useQueryParamsState<Skill[]>("skill-search", []);
 
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
   const resourceTeamStateTableView = resourceTeamState.tableView;
@@ -87,6 +92,12 @@ const ResourceTeamHeaderSection = () => {
     dispatch(setWeekDate(date));
   }, [dispatch, resourceTeamState.data.dates]);
 
+  useEffect(()=>{
+    if(skillSearchParam){
+      dispatch(setSkillSearch(skillSearchParam));
+    }
+  },[skillSearchParam])
+
   return (
     <Header
       filters={[
@@ -118,6 +129,31 @@ const ResourceTeamHeaderSection = () => {
           label: "Reporting Manager",
           hide: !resourceAllocationPermission.write,
           queryParameterDefault: [],
+        },
+        {
+           type:"custom-filter",
+           queryParameterDefault:[],
+           label:"Skill",
+           handleDelete: (value:string[]) => {
+            let prev_data = resourceTeamState?.skillSearch;
+            const operators = [">", "<", ">=", "<=", "="];
+            const skills =  value.map(value => {
+              // Iterate through each value and extract skill name
+              for (const operator of operators) {
+                  if (value.includes(` ${operator} `)) {
+                      return value.split(` ${operator} `)[0].trim();
+                  }
+              }
+              return value.trim();
+            });
+            prev_data = prev_data!.filter(obj => skills.includes(obj.name));
+            dispatch(setSkillSearch(prev_data));
+           },
+           value:resourceTeamState.skillSearch?.map(obj => obj.name+" "+obj.operator+" "+(obj.proficiency*5)),
+           hide:!resourceAllocationPermission.write,
+           customFilterComponent:<SkillSearch onSubmit={()=>{
+            dispatch(setReFetchData(true));
+          }} setSkillSearchParam={setSkillSearchParam} />
         },
         {
           queryParameterName: "business-unit",
@@ -234,12 +270,14 @@ const ResourceTeamHeaderSection = () => {
           queryParameterDefault: false,
         },
       ]}
+
       buttons={[
         {
           title: "add-allocation",
           handleClick: () => {
             dispatch(setDialog(true));
           },
+          className:"px-3",
           icon: () => <Plus className="w-4 max-md:w-3 h-4 max-md:h-3 bg" />,
           variant: "default",
           hide: !resourceAllocationPermission.write,

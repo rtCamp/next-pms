@@ -34,7 +34,11 @@ const ResourcePage = ({ type }: { type: "team" | "project" }) => {
   const { data, isLoading, isValidating, error } = useFrappeGetCall(
     "next_pms.resource_management.api.permission.get_user_resources_permissions",
     {},
-    undefined
+    {
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
   );
 
   useEffect(() => {
@@ -61,7 +65,7 @@ const ResourcePage = ({ type }: { type: "team" | "project" }) => {
 
   return (
     <>
-      {isLoading || isValidating || Object.keys(resourceAllocationPermission).length == 0 ? (
+      {(isLoading || isValidating) && Object.keys(resourceAllocationPermission).length == 0 ? (
         <Spinner isFull />
       ) : type == "team" ? (
         <ResourceTeamView />

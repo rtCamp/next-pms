@@ -80,6 +80,12 @@ export type EmployeeAllocationForDateProps = {
   total_worked_hours_resource_allocation: number;
 };
 
+export interface Skill {
+  name: string;
+  proficiency: number;
+  operator: string;
+}
+
 export interface ResourceTeamState {
   data: ResourceTeamDataProps;
   employeeName?: string;
@@ -99,6 +105,7 @@ export interface ResourceTeamState {
   tableView: TableViewProps;
   isNeedToFetchDataAfterUpdate?: boolean;
   maxWeek: number;
+  skillSearch?:Skill[];
 }
 
 export const initialState: ResourceTeamState = {
@@ -132,6 +139,7 @@ export const initialState: ResourceTeamState = {
   isLoading: true,
   businessUnit: [],
   maxWeek: 5,
+  skillSearch:[],
 };
 
 const ResourceTeamSlice = createSlice({
@@ -173,8 +181,7 @@ const ResourceTeamSlice = createSlice({
     setWeekDate: (state, action: PayloadAction<string>) => {
       state.weekDate = action.payload;
       state.start = 0;
-      const pageLength = Object.keys(state.data.data).length;
-      state.pageLength = pageLength;
+      state.pageLength = initialState.pageLength;
       state.isLoading = true;
       state.maxWeek = initialState.maxWeek;
       state.isNeedToFetchDataAfterUpdate = true;
@@ -306,6 +313,12 @@ const ResourceTeamSlice = createSlice({
     setReFetchData: (state, action: PayloadAction<boolean>) => {
       state.isNeedToFetchDataAfterUpdate = action.payload;
     },
+    setSkillSearch: (state, action: PayloadAction<Skill[]>) => {
+      state.skillSearch = action.payload;
+      state.start = 0;
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
+    },
   },
 });
 
@@ -339,5 +352,6 @@ export const {
   setReportingManager,
   deleteFilters,
   setMaxWeek,
+  setSkillSearch,
 } = ResourceTeamSlice.actions;
 export default ResourceTeamSlice.reducer;
