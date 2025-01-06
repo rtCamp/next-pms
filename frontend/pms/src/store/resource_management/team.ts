@@ -164,8 +164,7 @@ const ResourceTeamSlice = createSlice({
     setWeekDate: (state, action: PayloadAction<string>) => {
       state.weekDate = action.payload;
       state.start = 0;
-      const pageLength = Object.keys(state.data.data).length;
-      state.pageLength = pageLength;
+      state.pageLength = initialState.pageLength;
       state.isLoading = true;
       state.isNeedToFetchDataAfterUpdate = true;
 
