@@ -15,6 +15,7 @@ import {
   emptyProjectDayData,
   ProjectDataProps,
   ProjectResourceProps,
+  setMaxWeek,
   setStart,
 } from "@/store/resource_management/project";
 import { DateProps } from "@/store/resource_management/team";
@@ -39,11 +40,21 @@ import { TableContextProvider } from "../../contexts/tableContext";
  */
 const ResourceProjectTable = () => {
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_project.data.dates);
+  const isLoading = useSelector((state: RootState) => state.resource_project.isLoading);
+  const maxWeek = useSelector((state: RootState) => state.resource_project.maxWeek);
+  const dispatch = useDispatch();
+
+  const handleLoadMore = () => {
+    if (isLoading) return;
+    dispatch(setMaxWeek(maxWeek + 3));
+  };
+
+  const cellHeaderRef = useInfiniteScroll({ isLoading: isLoading, hasMore: true, next: () => handleLoadMore() });
 
   return (
     <TableContextProvider>
       <Table className="w-screen">
-        <ResourceProjectTableHeader dates={dates} title="Projects" />
+        <ResourceProjectTableHeader dates={dates} title="Projects" headerRef={cellHeaderRef} />
         <ResourceProjectTableBody />
       </Table>
     </TableContextProvider>

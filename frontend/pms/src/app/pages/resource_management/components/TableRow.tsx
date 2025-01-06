@@ -45,13 +45,13 @@ const ResourceTableRow = ({
   RowComponent,
   RowExpandView,
 }: ResourceTeamTableRowProps) => {
-  
   return (
     <Accordion type="multiple" key={name} className="w-full">
       <AccordionItem value={name} className="border-b-0">
-        <TableRow key={name} ref={rowRef} className={cn(getTableCellRow())}>
+        <TableRow key={name} className={cn(getTableCellRow())}>
           <AccordionTrigger hideChevronDown={true} className="hover:no-underline py-0">
             <TableInformationCellContent
+              cellRef={rowRef}
               cellClassName="overflow-hidden flex items-center font-normal hover:underline"
               CellComponet={() => {
                 return (

@@ -18,6 +18,7 @@ import { getTableCellClass } from "../utils/helper";
 interface ResourceTableHeaderProps {
   dates: DateProps[];
   title: string;
+  headerRef: any;
 }
 
 /**
@@ -25,16 +26,17 @@ interface ResourceTableHeaderProps {
  *
  * @param props.dates The dates list
  * @param props.title The title of Table header.
+ * @param props.ref The ref for last week to fetch the data.
  * @returns React.FC
  */
-const ResourceTableHeader = ({ dates, title }: ResourceTableHeaderProps) => {
+const ResourceTableHeader = ({ dates, title, headerRef }: ResourceTableHeaderProps) => {
   const { tableProperties, getCellWidthString } = useContext(TableContext);
 
   return (
     <TableHeader className="border-t-0 sticky top-0 z-30">
       <TableRow className="flex items-center flex-shrink-0">
         <TableHead
-          className={cn("flex items-center sticky left-0 z-30 bg-muted py-10")}
+          className={cn("flex items-center bg-muted py-10")}
           style={{ width: getCellWidthString(tableProperties.firstCellWidth) }}
         >
           {title}
@@ -60,6 +62,7 @@ const ResourceTableHeader = ({ dates, title }: ResourceTableHeaderProps) => {
             {dates.map((item: DateProps, weekIndex: number) => {
               return item?.dates?.map((date, index) => {
                 const { date: dateStr, day } = prettyDate(date);
+                const needToAddRefresh = weekIndex == dates.length - 2;
                 return (
                   <TableHead
                     key={date}
@@ -68,6 +71,7 @@ const ResourceTableHeader = ({ dates, title }: ResourceTableHeaderProps) => {
                       "text-xs flex flex-col px-2 py-2 justify-center items-center"
                     )}
                     style={{ width: getCellWidthString(tableProperties.cellWidth) }}
+                    ref={needToAddRefresh ? headerRef : null}
                   >
                     <Typography
                       variant="p"

@@ -17,7 +17,9 @@ import {
   EmployeeDataProps,
   EmployeeResourceProps,
   emptyEmployeeDayData,
+  setMaxWeek,
   setStart,
+  setWeekDate,
 } from "@/store/resource_management/team";
 import { ResourceAllocationObjectProps } from "@/types/resource_management";
 
@@ -39,11 +41,21 @@ import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "..
  */
 const ResourceTeamTable = () => {
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_team.data.dates);
+  const isLoading = useSelector((state: RootState) => state.resource_team.isLoading);
+  const maxWeek = useSelector((state: RootState) => state.resource_team.maxWeek);
+  const dispatch = useDispatch();
+
+  const handleLoadMore = () => {
+    if (isLoading) return;
+    dispatch(setMaxWeek(maxWeek + 3));
+  };
+
+  const cellHeaderRef = useInfiniteScroll({ isLoading: isLoading, hasMore: true, next: () => handleLoadMore() });
 
   return (
     <TableContextProvider>
       <Table className="relative">
-        <ResourceTeamTableHeader dates={dates} title="Members" />
+        <ResourceTeamTableHeader headerRef={cellHeaderRef} dates={dates} title="Members" />
         <ResourceTeamTableBody />
       </Table>
     </TableContextProvider>

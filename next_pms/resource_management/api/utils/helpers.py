@@ -80,21 +80,15 @@ def get_dates_date(max_week: int, date: str):
     """
 
     next_dates = []
-    prev_dates = []
     current_date = getdate(date)
 
     # fetch the currant and next week dates object
-    for _ in range(max_week + 2):
+    for _ in range(max_week):
         week = get_week_dates(date=current_date, ignore_weekend=True)
         next_dates.append(week)
         current_date = add_days(getdate(week["end_date"]), 1)
 
     current_date = getdate(date)
-
-    for _ in range(max_week + 2):
-        week = get_week_dates(date=current_date, ignore_weekend=True)
-        prev_dates.append(week)
-        current_date = add_days(getdate(week["end_date"]), -1)
 
     return next_dates
 

@@ -111,12 +111,14 @@ const TableInformationCellContent = ({
   cellClassName,
   CellComponet,
   cellTypographyClassName,
+  cellRef,
   onClick,
 }: {
   value?: string;
   cellClassName?: string;
   CellComponet?: React.FC | undefined;
   cellTypographyClassName?: string;
+  cellRef?: React.RefObject<HTMLTableCellElement>;
   onClick?: () => void;
 }) => {
   const { tableProperties, getCellWidthString } = useContext(TableContext);
@@ -126,6 +128,7 @@ const TableInformationCellContent = ({
       className={cn("overflow-hidden sticky left-0 align-super h-full", cellClassName)}
       onClick={onClick}
       style={{ width: getCellWidthString(tableProperties.firstCellWidth) }}
+      ref={cellRef}
     >
       <Typography
         variant="p"
