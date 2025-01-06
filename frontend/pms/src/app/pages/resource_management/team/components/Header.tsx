@@ -136,7 +136,7 @@ const ResourceTeamHeaderSection = () => {
            label:"Skill",
            handleDelete: (value:string[]) => {
             let prev_data = resourceTeamState?.skillSearch;
-            const operators = [">", "<", ">=", "<=", "=", "!="];
+            const operators = [">", "<", ">=", "<=", "="];
             const skills =  value.map(value => {
               // Iterate through each value and extract skill name
               for (const operator of operators) {
