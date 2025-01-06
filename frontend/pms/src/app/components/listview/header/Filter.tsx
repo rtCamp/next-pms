@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { CheckedState } from "@radix-ui/react-checkbox";
 import { Filter as Funnel } from "lucide-react";
 /**
@@ -43,14 +43,18 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
   const [queryParam, setQueryParam] = useQueryParamsState(filter.queryParameterName, filter.queryParameterDefault);
 
   const handleChangeWrapper = (value: string | CheckedState | string[]) => {
-    /* Make sure to update uqery parameters based on changes. */
-    setQueryParam(value);
+    /* Make sure to update query parameters based on changes. */
+    if(filter.type!= "custom-filter"){
+      setQueryParam(value);
+    }
     filter.handleChange && filter.handleChange(value);
   };
 
   useEffect(() => {
     /** This will make sure to update the query parameter state if some filter is removed from the URL. */
-    setQueryParam(filter.value as string | CheckedState | string[]);
+    if(filter.type!= "custom-filter"){
+      setQueryParam(filter.value as string | CheckedState | string[]);
+    }
   }, [filter.value, setQueryParam]);
 
   if (filter.type == "search") {
@@ -73,6 +77,11 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
         employeeName={filter?.employeeName}
         className="border-dashed min-w-48 w-full max-w-48"
       />
+    );
+  }
+  if (filter.type === "custom-filter") {
+    return (
+      filter.customFilterComponent
     );
   }
   if (filter.type == "select-search") {

@@ -80,6 +80,12 @@ export type EmployeeAllocationForDateProps = {
   total_worked_hours_resource_allocation: number;
 };
 
+export interface Skill {
+  name: string;
+  proficiency: number;
+  operator: string;
+}
+
 export interface ResourceTeamState {
   data: ResourceTeamDataProps;
   employeeName?: string;
@@ -98,6 +104,7 @@ export interface ResourceTeamState {
   isLoading: boolean;
   tableView: TableViewProps;
   isNeedToFetchDataAfterUpdate?: boolean;
+  skillSearch?:Skill[];
 }
 
 export const initialState: ResourceTeamState = {
@@ -130,6 +137,7 @@ export const initialState: ResourceTeamState = {
   isNeedToFetchDataAfterUpdate: false,
   isLoading: true,
   businessUnit: [],
+  skillSearch:[],
 };
 
 const ResourceTeamSlice = createSlice({
@@ -293,6 +301,12 @@ const ResourceTeamSlice = createSlice({
     setReFetchData: (state, action: PayloadAction<boolean>) => {
       state.isNeedToFetchDataAfterUpdate = action.payload;
     },
+    setSkillSearch: (state, action: PayloadAction<Skill[]>) => {
+      state.skillSearch = action.payload;
+      state.start = 0;
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
+    },
   },
 });
 
@@ -325,5 +339,6 @@ export const {
   setDesignation,
   setReportingManager,
   deleteFilters,
+  setSkillSearch,
 } = ResourceTeamSlice.actions;
 export default ResourceTeamSlice.reducer;

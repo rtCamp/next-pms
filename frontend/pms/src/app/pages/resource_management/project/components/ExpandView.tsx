@@ -50,7 +50,7 @@ export const ResourceExpandView = ({
 
   const dates = useSelector((state: RootState) => state.resource_project.data.dates);
 
-  const { data } = useFrappeGetCall(
+  const { data,  isLoading } = useFrappeGetCall(
     "next_pms.resource_management.api.project.get_employees_resrouce_data_for_given_project",
     {
       project: project,
