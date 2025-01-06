@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 /**
  * Internal dependencies.
  */
-import { Spinner } from "@/app/components/spinner";
+import { Skeleton } from "@/app/components/ui/skeleton";
 import { Table, TableBody } from "@/app/components/ui/table";
 import { cn, prettyDate } from "@/lib/utils";
 import { RootState } from "@/store";
@@ -134,7 +134,7 @@ const ResourceProjectTableBody = () => {
         );
       })}
 
-      {hasMore && <Spinner isFull={false} className="p-4 overflow-hidden" />}
+      {hasMore && <Skeleton className="h-10 w-full" />}
     </TableBody>
   );
 };
@@ -245,7 +245,7 @@ const ResourceProjectTableCell = ({
       setResourceFormData({
         isShowDialog: true,
         employee: "",
-        employee_name:"",
+        employee_name: "",
         project: project,
         allocation_start_date: projectSingleDay.date,
         allocation_end_date: projectSingleDay.date,

@@ -8,6 +8,7 @@ import { flexRender } from "@tanstack/react-table";
  */
 import { Spinner } from "@/app/components/spinner";
 import { Separator } from "@/app/components/ui/separator";
+import { Skeleton } from "@/app/components/ui/skeleton";
 import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table as RootTable } from "@/app/components/ui/table";
 import { TaskState } from "@/store/task";
 import { ColumnsType, columnsToExcludeActionsInTablesType, TaskTableType } from "@/types/task";
@@ -111,9 +112,9 @@ export const Table = ({
               </TableRow>
             )}
             {hasMore && (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="text-center">
-                  <Spinner isFull={false} className="p-4 overflow-hidden w-full" />
+              <TableRow className="w-full overflow-hidden">
+                <TableCell colSpan={columns.length} className="text-center p-0">
+                  <Skeleton className="h-10 w-full" />
                 </TableCell>
               </TableRow>
             )}

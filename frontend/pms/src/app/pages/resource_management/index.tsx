@@ -17,9 +17,7 @@ import { resetState as resetProjectState } from "@/store/resource_management/pro
 import { resetState as resetTeamState } from "@/store/resource_management/team";
 
 import ResourceProjectView from "./project";
-import { ResourceProjectHeaderSection } from "./project/components/Header";
 import ResourceTeamView from "./team";
-import { ResourceTeamHeaderSection } from "./team/components/Header";
 
 /**
  * This is main component which is responsible for rendering the page of resource management.
@@ -36,7 +34,11 @@ const ResourcePage = ({ type }: { type: "team" | "project" }) => {
   const { data, isLoading, isValidating, error } = useFrappeGetCall(
     "next_pms.resource_management.api.permission.get_user_resources_permissions",
     {},
-    undefined
+    {
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
   );
 
   useEffect(() => {
@@ -63,7 +65,7 @@ const ResourcePage = ({ type }: { type: "team" | "project" }) => {
 
   return (
     <>
-      {isLoading || isValidating || Object.keys(resourceAllocationPermission).length == 0 ? (
+      {(isLoading || isValidating) && Object.keys(resourceAllocationPermission).length == 0 ? (
         <Spinner isFull />
       ) : type == "team" ? (
         <ResourceTeamView />

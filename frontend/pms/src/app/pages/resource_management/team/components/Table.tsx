@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 /**
  * Internal dependencies.
  */
-import { Spinner } from "@/app/components/spinner";
+import { Skeleton } from "@/app/components/ui/skeleton";
 import { Table, TableBody } from "@/app/components/ui/table";
 import { cn, prettyDate } from "@/lib/utils";
 import { RootState } from "@/store";
@@ -30,6 +30,7 @@ import { ResourceTableRow } from "../../components/TableRow";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { getCellBackGroundColor } from "../../utils/cell";
 import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
+
 
 /**
  * This component is responsible for loading the table for table view.
@@ -123,7 +124,7 @@ const ResourceTeamTableBody = () => {
           />
         );
       })}
-      {hasMore && <Spinner isFull={false} className="p-4 overflow-hidden" />}
+      {hasMore && <Skeleton className="h-10 w-full" />}
     </TableBody>
   );
 };
@@ -215,7 +216,7 @@ const ResourceTeamTableCell = ({
       setResourceFormData({
         isShowDialog: true,
         employee: employee,
-        employee_name:employee_name,
+        employee_name: employee_name,
         allocation_start_date: employeeSingleDay.date,
         allocation_end_date: employeeSingleDay.date,
         is_billable: getIsBillableValue(allocationType as string[]) != 0,
