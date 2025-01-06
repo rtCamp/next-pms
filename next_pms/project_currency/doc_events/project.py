@@ -1,8 +1,3 @@
-def onload(doc, method=None):
-    doc.update_costing()
-    doc.db_update()
-
-
 def on_update(doc, method=None):
     share_project_with_employee(doc)
 
