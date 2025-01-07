@@ -7,8 +7,8 @@ import { useDispatch, useSelector } from "react-redux";
 /**
  * Internal dependencies.
  */
-import { Skeleton } from "@/app/components/ui/skeleton";
 import { Table, TableBody } from "@/app/components/ui/table";
+import { InfiniteScroll } from "@/app/pages/resource_management/components/InfiniteScroll";
 import { cn, prettyDate } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setResourceFormData } from "@/store/resource_management/allocation";
@@ -19,7 +19,6 @@ import {
   emptyEmployeeDayData,
   setMaxWeek,
   setStart,
-  setWeekDate,
 } from "@/store/resource_management/team";
 import { ResourceAllocationObjectProps } from "@/types/resource_management";
 
@@ -43,7 +42,16 @@ const ResourceTeamTable = () => {
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_team.data.dates);
   const isLoading = useSelector((state: RootState) => state.resource_team.isLoading);
   const maxWeek = useSelector((state: RootState) => state.resource_team.maxWeek);
+  const start = useSelector((state: RootState) => state.resource_team.start);
+  const pageLength = useSelector((state: RootState) => state.resource_team.pageLength);
+  const hasMore = useSelector((state: RootState) => state.resource_team.hasMore);
+
   const dispatch = useDispatch();
+
+  const handleVerticalLoadMore = () => {
+    if (!hasMore) return;
+    dispatch(setStart(start + pageLength));
+  };
 
   const handleLoadMore = () => {
     if (isLoading) return;
@@ -56,7 +64,9 @@ const ResourceTeamTable = () => {
     <TableContextProvider>
       <Table className="relative">
         <ResourceTeamTableHeader headerRef={cellHeaderRef} dates={dates} title="Members" />
-        <ResourceTeamTableBody />
+        <InfiniteScroll isLoading={isLoading} hasMore={hasMore} verticalLodMore={handleVerticalLoadMore}>
+          <ResourceTeamTableBody />
+        </InfiniteScroll>
       </Table>
     </TableContextProvider>
   );
@@ -69,18 +79,7 @@ const ResourceTeamTable = () => {
  */
 const ResourceTeamTableBody = () => {
   const data = useSelector((state: RootState) => state.resource_team.data.data);
-  const start = useSelector((state: RootState) => state.resource_team.start);
-  const pageLength = useSelector((state: RootState) => state.resource_team.pageLength);
-  const hasMore = useSelector((state: RootState) => state.resource_team.hasMore);
-  const isLoading = useSelector((state: RootState) => state.resource_team.isLoading);
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_team.data.dates);
-  const cellRef = useInfiniteScroll({ isLoading: isLoading, hasMore: hasMore, next: () => handleLoadMore() });
-  const dispatch = useDispatch();
-
-  const handleLoadMore = () => {
-    if (!hasMore) return;
-    dispatch(setStart(start + pageLength));
-  };
 
   if (data.length == 0) {
     return <EmptyTableBody />;
@@ -89,13 +88,10 @@ const ResourceTeamTableBody = () => {
   return (
     <TableBody>
       {data.map((employeeData: EmployeeDataProps, index: number) => {
-        const needToAddRef = hasMore && index == data.length - 2;
-
         return (
           <ResourceTableRow
             name={employeeData.name}
             avatar={employeeData.image}
-            rowRef={needToAddRef ? cellRef : null}
             avatar_abbr={employeeData.employee_name}
             avatar_name={employeeData.employee_name}
             RowComponent={() => {
@@ -138,7 +134,6 @@ const ResourceTeamTableBody = () => {
           />
         );
       })}
-      {hasMore && <Skeleton className="h-10 w-full" />}
     </TableBody>
   );
 };
