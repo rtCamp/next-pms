@@ -25,7 +25,7 @@ export default defineConfig(({ command, mode }) => {
       proxy: proxyConfig,
     },
     build: {
-      outDir: "../../next_pms/public/pms",
+      outDir: "../next_pms/public/frontend",
       emptyOutDir: true,
       target: "es2015",
     },
