@@ -7,8 +7,8 @@
   "license": "AGPLv3",
   "private": true,
   "scripts": {
-    "dev": "cd frontend/pms && npm run dev",
-    "build": "cd frontend/pms && npm install && npm run build"
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm install && npm run build"
   },
   "devDependencies": {
   }

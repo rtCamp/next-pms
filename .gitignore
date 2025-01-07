@@ -8,4 +8,4 @@ __pycache__
 dist/
 .frappe-semgrep
 next_pms/www/next-pms/index.html
-next_pms/public/pms
+next_pms/public/frontend/

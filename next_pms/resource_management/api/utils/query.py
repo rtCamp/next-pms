@@ -93,6 +93,7 @@ def get_employee_leaves(employee: str, start_date: str, end_date: str):
                 OR (from_date <= %(start_date)s AND to_date >= %(end_date)s)
             )
             AND (docstatus=1 OR docstatus=0)
+            AND (status = 'Approved' OR status = 'Open')
             ORDER BY from_date, to_date;
         """,
         {"employee": employee, "start_date": start_date, "end_date": end_date},

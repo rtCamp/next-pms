@@ -1,12 +1,12 @@
 {
-  "name": "pms",
+  "name": "next-pms",
   "private": true,
-  "version": "1.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "copy-html-entry": "cp ../../next_pms/public/pms/index.html ../../next_pms/www/next-pms/index.html",
+    "copy-html-entry": "cp ../next_pms/public/frontend/index.html ../next_pms/www/next-pms/index.html",
     "dev": "vite",
-    "build": "npm install && vite build --base=/assets/next_pms/pms/ && npm run copy-html-entry",
+    "build": "npm install && vite build --base=/assets/next_pms/frontend/ && npm run copy-html-entry",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext ts,tsx --fix",
     "preview": "vite preview"
