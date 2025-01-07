@@ -11,6 +11,9 @@
     "lint:fix": "eslint . --ext ts,tsx --fix",
     "preview": "vite preview"
   },
+  "workspaces": [
+    "packages/*"
+  ],
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-accordion": "^1.2.0",
