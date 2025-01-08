@@ -49,7 +49,7 @@ export {
 export { Form, FormItem, FormLabel, FormControl, FormDescription, FormMessage, FormField } from "@design-system/components/form";
 export { FormFieldContext, FormItemContext, useFormField } from "@design-system/components/form/hook";
 export { HoverCard, HoverCardTrigger, HoverCardContent } from "@design-system/components/hover-card";
-export { default as Input } from "@design-system/components/input";
+export { default as Input, type InputProps } from "@design-system/components/input";
 export { default as Label } from "@design-system/components/label";
 export { Popover, PopoverTrigger, PopoverContent } from "@design-system/components/popover";
 export { default as Progress } from "@design-system/components/progress";
@@ -97,4 +97,6 @@ export {
 } from "@design-system/components/toast";
 export { Toaster } from "@design-system/components/toast/toaster";
 export { useToast, toast } from "@design-system/components/toast/hook";
+export { default as Typography, type TypographyProp } from "@design-system/components/typography";
+export { default as ErrorFallback } from "@design-system/components/error-fallback";
 export * from "@design-system/utils"

@@ -30,7 +30,7 @@ module.exports = {
             position: "before",
           },
           {
-            pattern: "@/**",
+            pattern: "@design-system/**",
             group: "internal",
             position: "after",
           },
