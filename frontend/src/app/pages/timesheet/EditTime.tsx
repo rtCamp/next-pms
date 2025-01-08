@@ -12,6 +12,7 @@ import { z } from "zod";
 /**
  * Internal dependencies
  */
+import { DatePicker } from "@/app/components/datePicker";
 import { Spinner } from "@/app/components/spinner";
 import { Typography } from "@/app/components/typography";
 import { Button } from "@/app/components/ui/button";
@@ -22,7 +23,7 @@ import { Input } from "@/app/components/ui/input";
 import { Separator } from "@/app/components/ui/separator";
 import { Textarea } from "@/app/components/ui/textarea";
 import { useToast } from "@/app/components/ui/use-toast";
-import { cn, floatToTime, parseFrappeErrorMsg, prettyDate } from "@/lib/utils";
+import { cn, floatToTime, getFormatedDate, parseFrappeErrorMsg, prettyDate } from "@/lib/utils";
 import { TimesheetUpdateSchema } from "@/schema/timesheet";
 import { RootState } from "@/store";
 
@@ -52,7 +53,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
     name: "data",
   });
 
-  const columns = ["Hours", "Description", "Billable", ""];
+  const columns = ["Date","Hours", "Description", "Billable", ""];
   const { toast } = useToast();
   const { call: updateTimesheet } = useFrappePostCall("next_pms.timesheet.api.timesheet.bulk_update_timesheet_detail");
   const { call: deleteTimesheet } = useFrappePostCall("next_pms.timesheet.api.timesheet.delete");
@@ -93,6 +94,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
     setIsSubmitting(true);
     const data = {
       data: formData.data,
+      employee,
     };
     updateTimesheet(data)
       .then((res) => {
@@ -139,7 +141,6 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
         });
       });
   };
-
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
@@ -155,9 +156,6 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
                 {data?.message?.project}
               </Typography>
             </span>
-            <Typography variant="h6" className="max-w-80 truncate font-normal">
-              {prettyDate(date).date}
-            </Typography>
           </div>
         </DialogHeader>
         <Form {...form}>
@@ -167,17 +165,17 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
             ) : (
               <div className="max-h-64 overflow-y-auto">
                 <div className="flex flex-col ">
-                  <div className="border-b bg-slate-50 border-slate-200 border-t flex items-center gap-2 h-10 ">
+                  <div className="py-2 bg-muted rounded-lg flex items-center gap-2 h-10 mb-5">
                     {columns.map((column, key) => (
                       <Typography
                         key={`column-${key}`}
                         variant="p"
                         className={cn(
                           "w-full px-2 text-slate-600 font-medium ",
-                          key != 1 && "max-w-16",
-                          key == 0 && "max-w-16",
-                          key == 2 && "max-w-8",
-                          key == 2 && !hasAccess && "hidden"
+                          key != 2 && "max-w-16",
+                          key == 0 && "max-w-28",
+                          key == 3 && "max-w-8",
+                          key == 3 && !hasAccess && "hidden"
                         )}
                       >
                         {column}
@@ -188,6 +186,21 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
 
                 {fields.map((item, index: number) => (
                   <div className="flex gap-2 border-b pb-1 items-start pt-1" key={item.id}>
+                    <FormField
+                      control={form.control}
+                      name={`data.${index}.date`}
+                      render={({field}) => (
+                        <FormItem className="w-full max-w-28 space-y-1 truncate">
+                          <FormControl>
+                            <DatePicker date={new Date(field.value)} onDateChange={(date)=>{
+                              if (!date) return;
+                              form.setValue(`data.${index}.date`,getFormatedDate(date), { shouldDirty: true });
+                            }} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     <FormField
                       control={form.control}
                       name={`data.${index}.hours`}
@@ -256,7 +269,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
                 ))}
               </div>
             )}
-            <DialogFooter className="sm:justify-between mt-2">
+            <DialogFooter className="sm:justify-between mt-4 flex max-md:flex-col gap-y-2">
               <Button type="button" variant="outline" onClick={addEmptyFormRow}>
                 <Plus />
                 Add Row
