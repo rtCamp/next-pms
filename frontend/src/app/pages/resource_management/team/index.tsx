@@ -64,7 +64,7 @@ const ResourceTeamView = () => {
           employee_name: resourceTeamState.employeeName,
         },
     {
-      revalidateFirstPage: false
+      revalidateFirstPage: false,
     }
   );
 
@@ -103,6 +103,7 @@ const ResourceTeamView = () => {
     setSize(newSize);
   }, [resourceTeamState, resourceTeamState.start, setSize, size]);
 
+
   return (
     <>
       <ResourceTeamHeaderSection />
@@ -111,7 +112,6 @@ const ResourceTeamView = () => {
       ) : (
         <ResourceTeamTable />
       )}
-
       {resourceAllocationForm.isShowDialog && <AddResourceAllocations onSubmit={onFormSubmit} />}
     </>
   );

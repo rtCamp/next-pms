@@ -75,19 +75,8 @@ const ResourceTeamHeaderSection = () => {
         skillSearch: skillSearchParam,
       })
     );
-  }, [
-    allocationTypeParam,
-    businessUnitParam,
-    combineWeekHoursParam,
-    designationParam,
-    dispatch,
-    employeeNameParam,
-    reportingNameParam,
-    resourceAllocationPermission.write,
-    setViewParam,
-    skillSearchParam,
-    viewParam,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleWeekViewChange = useCallback(() => {
     setCombineWeekHoursParam(!resourceTeamStateTableView.combineWeekHours);

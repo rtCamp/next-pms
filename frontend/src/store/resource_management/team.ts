@@ -167,6 +167,7 @@ const ResourceTeamSlice = createSlice({
       state.isNeedToFetchDataAfterUpdate = true;
     },
     setMaxWeek: (state, action: PayloadAction<number>) => {
+      if (state.maxWeek === action.payload) return;
       state.maxWeek = action.payload;
       state.isLoading = true;
       state.isNeedToFetchDataAfterUpdate = true;
@@ -240,7 +241,9 @@ const ResourceTeamSlice = createSlice({
         combineWeekHours?: boolean;
       }>
     ) => {
+      console.log(action.payload, "payload");
       if (action.payload.employeeName || action.payload.isNeedToRemove) {
+        console.log("update employee", action.payload.employeeName)
         state.employeeName = action.payload.employeeName;
       }
       if (action.payload.reportingManager || action.payload.isNeedToRemove) {

@@ -68,14 +68,16 @@ const ResourcePage = ({ type }: { type: "team" | "project" }) => {
     };
   }, [dispatch, type]);
 
+  
+
   return (
     <>
       {(isLoading || isValidating) && Object.keys(resourceAllocationPermission).length == 0 ? (
         <Spinner isFull />
       ) : type == "team" ? (
-        <ResourceTeamView />
+        Object.keys(resourceAllocationPermission).length != 0 && <ResourceTeamView />
       ) : (
-        <ResourceProjectView />
+        Object.keys(resourceAllocationPermission).length != 0 && <ResourceProjectView />
       )}
     </>
   );
