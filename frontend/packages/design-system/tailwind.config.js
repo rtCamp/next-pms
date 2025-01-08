@@ -3,7 +3,7 @@ module.exports = {
   // eslint-disable-line no-use-before-define
   important: true,
   darkMode: ["class"],
-  content: ["./index.html", "./src/**/*.{ts,tsx,jsx,js}"],
+  content: [ "./src/**/*.{ts,tsx,jsx,js}","./src/global.css"],
   prefix: "",
   theme: {
   	container: {
