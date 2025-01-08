@@ -283,6 +283,7 @@ const TeamSlice = createSlice({
       state.pageLength = initialState.pageLength;
       state.start = 0;
       state.action = "SET";
+      state.isNeedToFetchDataAfterUpdate = true;
     },
   },
 });

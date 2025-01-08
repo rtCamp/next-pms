@@ -9,7 +9,6 @@ import useSWRInfinite, {
   SWRInfiniteResponse,
 } from "swr/infinite";
 
-
 /**
  *  Hook to make a GET request to the server with useSWRInfinite support.
  *
@@ -37,7 +36,10 @@ export const usePagination = <T = any>(
         start: page * params.page_length,
       });
     },
-    options
+    {
+      ...options,
+      revalidateOnMount: false 
+    }
   );
 
   return {

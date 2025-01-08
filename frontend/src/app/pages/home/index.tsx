@@ -69,8 +69,8 @@ const Home = () => {
       status: homeState.status,
     },
     {
-      parallel: true,
-      revalidateAll: true,
+      revalidateAll: false,
+      revalidateFirstPage: false,
     }
   );
 
