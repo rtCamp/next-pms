@@ -36,7 +36,7 @@ const ResourceTableHeader = ({ dates, title, headerRef }: ResourceTableHeaderPro
     <TableHeader className="border-t-0 sticky top-0 z-30">
       <TableRow className="flex items-center flex-shrink-0">
         <TableHead
-          className={cn("flex items-center bg-muted py-10 sticky left-0")}
+          className={cn("flex items-center")}
           style={{ width: getCellWidthString(tableProperties.firstCellWidth) }}
         >
           {title}

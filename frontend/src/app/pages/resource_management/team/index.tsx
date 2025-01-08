@@ -11,7 +11,7 @@ import { Spinner } from "@/app/components/spinner";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
-import { AllocationDataProps, PermissionProps } from "@/store/resource_management/allocation";
+import { AllocationDataProps, PermissionProps, setResourcePermissions } from "@/store/resource_management/allocation";
 import { updateData, setReFetchData, setData } from "@/store/resource_management/team";
 
 import { getIsBillableValue } from "../utils/helper";
@@ -102,6 +102,7 @@ const ResourceTeamView = () => {
     if (data && data.length > 0) {
       if (resourceTeamState.isNeedToFetchAllData) {
         dispatch(setData(data[0].message));
+        dispatch(setResourcePermissions(data[0].message.permissions));
       } else {
         dispatch(updateData(data[data.length - 1].message));
       }

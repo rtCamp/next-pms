@@ -1,18 +1,18 @@
-import frappe
-from frappe.utils import DATE_FORMAT
-from frappe import _
 import json
 
+import frappe
+from frappe.core.doctype.recorder.recorder import redis_cache
+from frappe.utils import DATE_FORMAT
+
 from next_pms.resource_management.api.utils.helpers import (
-    get_employees_by_skills,
     find_worked_hours,
     get_allocation_objects,
     get_dates_date,
+    get_employees_by_skills,
     handle_customer,
     is_on_leave,
     resource_api_permissions_check,
 )
-
 from next_pms.resource_management.api.utils.query import (
     get_allocation_list_for_employee_for_given_range,
     get_employee_leaves,
@@ -23,6 +23,7 @@ from next_pms.timesheet.api.utils import filter_employees
 
 
 @frappe.whitelist()
+@redis_cache()
 def get_resource_management_team_view_data(
     date: str,
     max_week: int = 2,
@@ -48,24 +49,23 @@ def get_resource_management_team_view_data(
     customer = {}
     dates = get_dates_date(max_week, date)
     res = {"dates": dates}
-    
-    ids=None
-    
+
+    ids = None
+
     if not skills:
-        skills=[]
+        skills = []
     if isinstance(skills, str):
         skills = json.loads(skills)
     if skills:
         ids = get_employees_by_skills(skills)
-        if len(ids)==0:
+        if len(ids) == 0:
             res["data"] = data
             res["customer"] = customer
             res["total_count"] = 0
             res["has_more"] = False
             res["permissions"] = permissions
             return res
-            
-        
+
     employees, total_count = filter_employees(
         employee_name,
         business_unit=business_unit,
@@ -74,7 +74,7 @@ def get_resource_management_team_view_data(
         reports_to=reports_to,
         start=start,
         status=["Active"],
-        ignore_default_filters= True if len(skills)>0 else False ,
+        ignore_default_filters=True if len(skills) > 0 else False,
         ids=ids,
         ignore_permissions=True,
     )

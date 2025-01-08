@@ -1,5 +1,6 @@
 import frappe
 from frappe.automation.doctype.auto_repeat.auto_repeat import getdate
+from frappe.core.doctype.recorder.recorder import redis_cache
 from frappe.email.doctype.auto_email_report.auto_email_report import DATE_FORMAT
 from frappe.utils import add_days
 
@@ -17,6 +18,7 @@ from next_pms.resource_management.api.utils.query import (
 
 
 @frappe.whitelist()
+@redis_cache()
 def get_resource_management_project_view_data(
     date: str,
     max_week: int = 2,
@@ -151,6 +153,7 @@ def get_resource_management_project_view_data(
 
 
 @frappe.whitelist()
+@redis_cache()
 def get_employees_resrouce_data_for_given_project(project: str, start_date: str, end_date: str, is_billable: int = -1):
     permissions = resource_api_permissions_check()
 
