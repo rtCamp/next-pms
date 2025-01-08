@@ -12,13 +12,12 @@ import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { AllocationDataProps, PermissionProps } from "@/store/resource_management/allocation";
-import { setData, setReFetchData } from "@/store/resource_management/project";
+import { setData, setReFetchData, updateData } from "@/store/resource_management/project";
 
 import AddResourceAllocations from "../components/AddAllocation";
 import { getIsBillableValue } from "../utils/helper";
 import { ResourceProjectTable } from "./components/Table";
 import { usePagination } from "../hooks/usePagination";
-import { getMergeData } from "../utils/value";
 import { ResourceProjectHeaderSection } from "./components/Header";
 
 /**
@@ -60,7 +59,7 @@ const ResourceTeamView = () => {
           page_length: resourceProjectState.pageLength,
           project_name: resourceProjectState.projectName,
         },
-    { revalidateFirstPage: false }
+    { revalidateFirstPage: false, revalidateAll: false }
   );
 
   const onFormSubmit = useCallback(() => {
@@ -69,16 +68,39 @@ const ResourceTeamView = () => {
 
   useEffect(() => {
     if (resourceProjectState.isNeedToFetchDataAfterUpdate) {
-      mutate();
+      if (resourceProjectState.isNeedToFetchAllData) {
+        mutate();
+        dispatch(setReFetchData(false));
+        return;
+      }
+      if (!data) {
+        mutate();
+      } else {
+        mutate(data, {
+          // only revalidate the last page
+          revalidate: (pageData, [url, page]) => page === size,
+        });
+      }
       dispatch(setReFetchData(false));
     }
-  }, [dispatch, mutate, resourceProjectState.isNeedToFetchDataAfterUpdate]);
+  }, [
+    data,
+    dispatch,
+    mutate,
+    resourceProjectState.isNeedToFetchAllData,
+    resourceProjectState.isNeedToFetchDataAfterUpdate,
+    size,
+  ]);
 
   useEffect(() => {
-    if (data) {
-      const mergeData = getMergeData(data);
-      dispatch(setData(mergeData));
+    if (data && data.length > 0) {
+      if (resourceProjectState.isNeedToFetchAllData) {
+        dispatch(setData(data[0].message));
+      } else {
+        dispatch(updateData(data[data.length - 1].message));
+      }
     }
+
     if (error) {
       const err = parseFrappeErrorMsg(error);
       toast({

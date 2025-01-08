@@ -68,7 +68,6 @@ const EmployeeCombo = ({
     undefined,
     {
       revalidateIfStale: false,
-      revalidateOnMount: false,
     }
   );
   const onEmployeeChange = (name: string) => {

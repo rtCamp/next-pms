@@ -12,10 +12,9 @@ import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { AllocationDataProps, PermissionProps } from "@/store/resource_management/allocation";
-import { setData, setReFetchData } from "@/store/resource_management/team";
+import { updateData, setReFetchData, setData } from "@/store/resource_management/team";
 
 import { getIsBillableValue } from "../utils/helper";
-import { getMergeData } from "../utils/value";
 import { ResourceTeamTable } from "./components/Table";
 import AddResourceAllocations from "../components/AddAllocation";
 import { usePagination } from "../hooks/usePagination";
@@ -65,6 +64,7 @@ const ResourceTeamView = () => {
         },
     {
       revalidateFirstPage: false,
+      revalidateAll: false,
     }
   );
 
@@ -74,15 +74,37 @@ const ResourceTeamView = () => {
 
   useEffect(() => {
     if (resourceTeamState.isNeedToFetchDataAfterUpdate) {
-      mutate();
+      if (resourceTeamState.isNeedToFetchAllData) {
+        mutate();
+        dispatch(setReFetchData(false));
+        return;
+      }
+      if (!data) {
+        mutate();
+      } else {
+        mutate(data, {
+          // only revalidate the last page
+          revalidate: (pageData, [url, page]) => page === size,
+        });
+      }
       dispatch(setReFetchData(false));
     }
-  }, [dispatch, mutate, resourceTeamState.isNeedToFetchDataAfterUpdate]);
+  }, [
+    data,
+    dispatch,
+    mutate,
+    resourceTeamState.isNeedToFetchAllData,
+    resourceTeamState.isNeedToFetchDataAfterUpdate,
+    size,
+  ]);
 
   useEffect(() => {
-    if (data) {
-      const mergeData = getMergeData(data);
-      dispatch(setData(mergeData));
+    if (data && data.length > 0) {
+      if (resourceTeamState.isNeedToFetchAllData) {
+        dispatch(setData(data[0].message));
+      } else {
+        dispatch(updateData(data[data.length - 1].message));
+      }
     }
     if (error) {
       const err = parseFrappeErrorMsg(error);
@@ -102,7 +124,6 @@ const ResourceTeamView = () => {
     }
     setSize(newSize);
   }, [resourceTeamState, resourceTeamState.start, setSize, size]);
-
 
   return (
     <>

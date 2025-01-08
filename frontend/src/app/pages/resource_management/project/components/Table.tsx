@@ -32,6 +32,7 @@ import { TableContextProvider } from "../../contexts/tableContext";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { getCellBackGroundColor } from "../../utils/cell";
 import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
+import { InfiniteScroll } from "../../components/InfiniteScroll";
 
 /**
  * This component is responsible for loading the table for project view.
@@ -42,6 +43,10 @@ const ResourceProjectTable = () => {
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_project.data.dates);
   const isLoading = useSelector((state: RootState) => state.resource_project.isLoading);
   const maxWeek = useSelector((state: RootState) => state.resource_project.maxWeek);
+  const hasMore = useSelector((state: RootState) => state.resource_project.hasMore);
+  const start = useSelector((state: RootState) => state.resource_project.start);
+  const pageLength = useSelector((state: RootState) => state.resource_project.pageLength);
+
   const dispatch = useDispatch();
 
   const handleLoadMore = () => {
@@ -51,11 +56,18 @@ const ResourceProjectTable = () => {
 
   const cellHeaderRef = useInfiniteScroll({ isLoading: isLoading, hasMore: true, next: () => handleLoadMore() });
 
+  const handleVerticalLoadMore = () => {
+    if (!hasMore) return;
+    dispatch(setStart(start + pageLength));
+  };
+
   return (
     <TableContextProvider>
       <Table className="w-screen">
         <ResourceProjectTableHeader dates={dates} title="Projects" headerRef={cellHeaderRef} />
-        <ResourceProjectTableBody />
+        <InfiniteScroll isLoading={isLoading} hasMore={hasMore} verticalLodMore={handleVerticalLoadMore}>
+          <ResourceProjectTableBody />
+        </InfiniteScroll>
       </Table>
     </TableContextProvider>
   );
@@ -70,17 +82,6 @@ const ResourceProjectTableBody = () => {
   const data = useSelector((state: RootState) => state.resource_project.data.data);
   const dates = useSelector((state: RootState) => state.resource_project.data.dates);
   const allocationType = useSelector((state: RootState) => state.resource_project.allocationType);
-  const start = useSelector((state: RootState) => state.resource_project.start);
-  const pageLength = useSelector((state: RootState) => state.resource_project.pageLength);
-  const hasMore = useSelector((state: RootState) => state.resource_project.hasMore);
-  const isLoading = useSelector((state: RootState) => state.resource_project.isLoading);
-  const cellRef = useInfiniteScroll({ isLoading: isLoading, hasMore: hasMore, next: () => handleLoadMore() });
-  const dispatch = useDispatch();
-
-  const handleLoadMore = () => {
-    if (!hasMore) return;
-    dispatch(setStart(start + pageLength));
-  };
 
   if (data.length == 0) {
     return <EmptyTableBody />;
@@ -88,17 +89,15 @@ const ResourceProjectTableBody = () => {
 
   return (
     <TableBody>
-      {data.map((projectData: ProjectDataProps, index: number) => {
+      {data.map((projectData: ProjectDataProps) => {
         if (!projectData.project_name) {
           return <></>;
         }
-        const needToAddRef = hasMore && index == data.length - 2;
         return (
           <ResourceTableRow
             name={projectData.name}
             avatar={projectData.image}
             avatar_abbr={projectData.project_name[0]}
-            rowRef={needToAddRef ? cellRef : null}
             avatar_name={projectData.project_name}
             RowComponent={() => {
               return (
@@ -147,8 +146,6 @@ const ResourceProjectTableBody = () => {
           />
         );
       })}
-
-      {hasMore && <Skeleton className="h-10 w-full" />}
     </TableBody>
   );
 };

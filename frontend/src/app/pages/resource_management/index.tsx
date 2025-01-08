@@ -39,6 +39,7 @@ const ResourcePage = ({ type }: { type: "team" | "project" }) => {
       revalidateIfStale: false,
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
+      revalidateOnMount: false,
     }
   );
 
@@ -67,8 +68,6 @@ const ResourcePage = ({ type }: { type: "team" | "project" }) => {
       dispatch(setTeamMaxWeek(5));
     };
   }, [dispatch, type]);
-
-  
 
   return (
     <>
