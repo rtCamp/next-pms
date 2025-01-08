@@ -72,10 +72,22 @@ const ResourceTeamHeaderSection = () => {
         allocationType: allocationTypeParam,
         view: CurrentViewParam,
         combineWeekHours: combineWeekHoursParam,
+        skillSearch: skillSearchParam,
       })
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [
+    allocationTypeParam,
+    businessUnitParam,
+    combineWeekHoursParam,
+    designationParam,
+    dispatch,
+    employeeNameParam,
+    reportingNameParam,
+    resourceAllocationPermission.write,
+    setViewParam,
+    skillSearchParam,
+    viewParam,
+  ]);
 
   const handleWeekViewChange = useCallback(() => {
     setCombineWeekHoursParam(!resourceTeamStateTableView.combineWeekHours);
@@ -91,12 +103,6 @@ const ResourceTeamHeaderSection = () => {
     const date = getFormatedDate(addDays(resourceTeamState.data.dates[0].end_date, +1));
     dispatch(setWeekDate(date));
   }, [dispatch, resourceTeamState.data.dates]);
-
-  useEffect(()=>{
-    if(skillSearchParam){
-      dispatch(setSkillSearch(skillSearchParam));
-    }
-  },[skillSearchParam])
 
   return (
     <Header
@@ -131,29 +137,34 @@ const ResourceTeamHeaderSection = () => {
           queryParameterDefault: [],
         },
         {
-           type:"custom-filter",
-           queryParameterDefault:[],
-           label:"Skill",
-           handleDelete: (value:string[]) => {
+          type: "custom-filter",
+          queryParameterDefault: [],
+          label: "Skill",
+          handleDelete: (value: string[]) => {
             let prev_data = resourceTeamState?.skillSearch;
             const operators = [">", "<", ">=", "<=", "="];
-            const skills =  value.map(value => {
+            const skills = value.map((value) => {
               // Iterate through each value and extract skill name
               for (const operator of operators) {
-                  if (value.includes(` ${operator} `)) {
-                      return value.split(` ${operator} `)[0].trim();
-                  }
+                if (value.includes(` ${operator} `)) {
+                  return value.split(` ${operator} `)[0].trim();
+                }
               }
               return value.trim();
             });
-            prev_data = prev_data!.filter(obj => skills.includes(obj.name));
+            prev_data = prev_data!.filter((obj) => skills.includes(obj.name));
             dispatch(setSkillSearch(prev_data));
-           },
-           value:resourceTeamState.skillSearch?.map(obj => obj.name+" "+obj.operator+" "+(obj.proficiency*5)),
-           hide:!resourceAllocationPermission.write,
-           customFilterComponent:<SkillSearch onSubmit={()=>{
-            dispatch(setReFetchData(true));
-          }} setSkillSearchParam={setSkillSearchParam} />
+          },
+          value: resourceTeamState.skillSearch?.map((obj) => obj.name + " " + obj.operator + " " + obj.proficiency * 5),
+          hide: !resourceAllocationPermission.write,
+          customFilterComponent: (
+            <SkillSearch
+              onSubmit={() => {
+                dispatch(setReFetchData(true));
+              }}
+              setSkillSearchParam={setSkillSearchParam}
+            />
+          ),
         },
         {
           queryParameterName: "business-unit",
@@ -270,14 +281,13 @@ const ResourceTeamHeaderSection = () => {
           queryParameterDefault: false,
         },
       ]}
-
       buttons={[
         {
           title: "add-allocation",
           handleClick: () => {
             dispatch(setDialog(true));
           },
-          className:"px-3",
+          className: "px-3",
           icon: () => <Plus className="w-4 max-md:w-3 h-4 max-md:h-3 bg" />,
           variant: "default",
           hide: !resourceAllocationPermission.write,

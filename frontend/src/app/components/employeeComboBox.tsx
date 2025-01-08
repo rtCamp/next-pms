@@ -68,6 +68,7 @@ const EmployeeCombo = ({
     undefined,
     {
       revalidateIfStale: false,
+      revalidateOnMount: false,
     }
   );
   const onEmployeeChange = (name: string) => {
@@ -104,7 +105,7 @@ const EmployeeCombo = ({
     if (employeeName) {
       setSearch(employeeName);
     }
-   }, [employeeName]);
+  }, [employeeName]);
   return (
     <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
