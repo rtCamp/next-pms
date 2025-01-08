@@ -24,7 +24,6 @@ import {
   setWeekDate,
 } from "@/store/team";
 
-
 export const Header = () => {
   const [projectSearch, setProjectSeach] = useState<string>("");
   const [userGroupSearch, setUserGroupSearch] = useState<string>("");
@@ -49,9 +48,8 @@ export const Header = () => {
       status: employeeStatusParam,
     };
     dispatch(setFilters(payload));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [dispatch, employeeNameParam, employeeStatusParam, projectParam, reportsToParam, statusParam, userGroupParam]);
+  
   const handleEmployeeChange = useCallback(
     (text: string) => {
       dispatch(setEmployeeName(text.trim()));
@@ -117,12 +115,12 @@ export const Header = () => {
       type: "search-employee",
       queryParameterName: "reports-to",
       handleChange: handleReportsToChange,
-      handleDelete: useCallback(() => { 
+      handleDelete: useCallback(() => {
         dispatch(setReportsTo(""));
       }, [dispatch]),
       value: teamState.reportsTo,
       label: "Reports To",
-      employeeName:employee?.message?.employee_name,
+      employeeName: employee?.message?.employee_name,
       queryParameterDefault: "",
     },
     {

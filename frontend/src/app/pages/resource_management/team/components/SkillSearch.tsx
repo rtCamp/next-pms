@@ -44,10 +44,15 @@ const SkillSearch = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<Skill[]>(resourceTeamState?.skillSearch || []);
   const [suggestions, setSuggestions] = useState<Skill[]>([]);
-  const { data } = useFrappeGetDocList("Skill", {
-    limit: 0,
-    asDict: true,
-  });
+  const { data, mutate } = useFrappeGetDocList(
+    "Skill",
+    {
+      limit: 0,
+      asDict: true,
+    },
+    undefined,
+    { revalidateOnMount: false }
+  );
 
   useEffect(() => {
     if (data) {
@@ -57,11 +62,13 @@ const SkillSearch = ({
 
   useEffect(() => {
     if (searchQuery) {
-      setSuggestions(skills?.filter((skill) => skill.name.toLowerCase().includes(searchQuery.trim().toLowerCase())) || []);
+      setSuggestions(
+        skills?.filter((skill) => skill.name.toLowerCase().includes(searchQuery.trim().toLowerCase())) || []
+      );
     } else {
       setSuggestions([]);
     }
-  }, [searchQuery,skills]);
+  }, [searchQuery, skills]);
 
   const addSkill = (skill: { name: string }) => {
     if (!selectedSkills.find((s) => s.name === skill.name)) {
@@ -103,7 +110,7 @@ const SkillSearch = ({
     if (resourceTeamState.skillSearch) {
       setSkillSearchParam(resourceTeamState.skillSearch);
     }
-  }, [resourceTeamState.skillSearch,setSkillSearchParam]);
+  }, [resourceTeamState.skillSearch, setSkillSearchParam]);
 
   return (
     <Popover
@@ -120,9 +127,9 @@ const SkillSearch = ({
       <PopoverTrigger asChild>
         <Button variant="outline" className="border-dashed gap-x-2">
           <Funnel className={cn("h-4 w-4", resourceTeamState?.skillSearch!.length > 0 && "fill-primary")} />
-            <Typography variant="p" className="truncate max-w-md">
-              Skill
-            </Typography>
+          <Typography variant="p" className="truncate max-w-md">
+            Skill
+          </Typography>
           {resourceTeamState?.skillSearch!.length > 0 && (
             <Badge className="p-0 justify-center w-5 h-5">{resourceTeamState?.skillSearch?.length}</Badge>
           )}
@@ -202,10 +209,13 @@ const SkillSearch = ({
                       className="focus:outline-none"
                     >
                       <Star
-                        className={cn("h-5 w-5",rating <= Math.round(skill.proficiency * 5)
+                        className={cn(
+                          "h-5 w-5",
+                          rating <= Math.round(skill.proficiency * 5)
                             ? "fill-yellow-400 text-yellow-400"
-                            : "fill-gray-200 text-gray-200"
-                        , "transition-colors")}
+                            : "fill-gray-200 text-gray-200",
+                          "transition-colors"
+                        )}
                       />
                     </button>
                   ))}
