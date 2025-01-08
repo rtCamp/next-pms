@@ -46,6 +46,7 @@ const ResourceTableHeader = ({ dates, title, headerRef }: ResourceTableHeaderPro
             {dates.map((date: DateProps, weekIndex: number) => {
               return (
                 <Typography
+                  key={weekIndex}
                   variant="small"
                   className={cn(
                     "py-2 text-center truncate cursor-pointer border-r border-gray-300",

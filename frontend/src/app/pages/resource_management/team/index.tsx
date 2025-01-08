@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 /**
@@ -11,7 +11,7 @@ import { Spinner } from "@/app/components/spinner";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
-import { AllocationDataProps, PermissionProps, setResourcePermissions } from "@/store/resource_management/allocation";
+import { AllocationDataProps, PermissionProps } from "@/store/resource_management/allocation";
 import { updateData, setReFetchData, setData } from "@/store/resource_management/team";
 
 import { getIsBillableValue } from "../utils/helper";
@@ -30,6 +30,7 @@ const ResourceTeamView = () => {
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
   const resourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
   const dispatch = useDispatch();
+  const [revalidatePageCount, setRevalidatePageCount] = useState(-1);
   const resourceAllocationPermission: PermissionProps = useSelector(
     (state: RootState) => state.resource_allocation_form.permissions
   );
@@ -102,7 +103,6 @@ const ResourceTeamView = () => {
     if (data && data.length > 0) {
       if (resourceTeamState.isNeedToFetchAllData) {
         dispatch(setData(data[0].message));
-        dispatch(setResourcePermissions(data[0].message.permissions));
       } else {
         dispatch(updateData(data[data.length - 1].message));
       }
@@ -129,7 +129,7 @@ const ResourceTeamView = () => {
   return (
     <>
       <ResourceTeamHeaderSection />
-      {(isLoading || isValidating) && resourceTeamState.data.data.length == 0 ? (
+      {(isLoading || isValidating || resourceTeamState.data.data.length == 0) && resourceTeamState.hasMore ? (
         <Spinner isFull />
       ) : (
         <ResourceTeamTable />

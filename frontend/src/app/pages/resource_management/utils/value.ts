@@ -28,7 +28,6 @@ interface DateProps {
  * @returns
  */
 const getMergeData = (dataList: DateProps[]) => {
-  console.log(dataList,"-------");
   if (dataList.length == 0) {
     return {};
   }

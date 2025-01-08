@@ -45,7 +45,6 @@ const ResourceTeamTable = () => {
   const start = useSelector((state: RootState) => state.resource_team.start);
   const pageLength = useSelector((state: RootState) => state.resource_team.pageLength);
   const hasMore = useSelector((state: RootState) => state.resource_team.hasMore);
-
   const dispatch = useDispatch();
 
   const handleVerticalLoadMore = () => {
@@ -87,9 +86,10 @@ const ResourceTeamTableBody = () => {
 
   return (
     <TableBody>
-      {data.map((employeeData: EmployeeDataProps, index: number) => {
+      {data.map((employeeData: EmployeeDataProps) => {
         return (
           <ResourceTableRow
+            key={employeeData.name}
             name={employeeData.name}
             avatar={employeeData.image}
             avatar_abbr={employeeData.employee_name}

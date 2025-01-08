@@ -97,8 +97,8 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
       order_by: `${projectState.orderColumn} ${projectState.order}`,
     },
     {
-      parallel: true,
-      revalidateAll: true,
+      revalidateAll: false,
+      revalidateFirstPage: false,
     }
   );
 

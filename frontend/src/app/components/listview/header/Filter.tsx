@@ -138,8 +138,8 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
           <SelectGroup>
             <SelectLabel>{filter.label}</SelectLabel>
             {filter.data &&
-              filter.data.map((item) => {
-                return <SelectItem value={item.value}>{item.label}</SelectItem>;
+              filter.data.map((item,index) => {
+                return <SelectItem key={index} value={item.value}>{item.label}</SelectItem>;
               })}
           </SelectGroup>
         </SelectContent>
