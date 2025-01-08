@@ -37,6 +37,7 @@ interface ComboBoxProps {
   showSelected?: boolean;
   shouldFilter?: boolean;
   deBounceTime?: number;
+  onClick?: () => void;
 }
 
 export const ComboxBox = ({
@@ -55,6 +56,7 @@ export const ComboxBox = ({
   showSelected = false,
   shouldFilter = false,
   deBounceTime = 400,
+  onClick,
 }: ComboBoxProps) => {
   const [selectedValues, setSelectedValues] = useState<string[]>(typeof value === "string" ? [value] : value ?? []);
   useEffect(() => {
@@ -115,6 +117,7 @@ export const ComboxBox = ({
           variant="outline"
           className={cn("justify-between w-full text-slate-400", hasValue && "text-primary", className)}
           disabled={disabled}
+          onClick={onClick}
         >
           {leftIcon && <span className="shrink-0">{leftIcon}</span>}
           <Typography variant="p" className="truncate max-w-md">

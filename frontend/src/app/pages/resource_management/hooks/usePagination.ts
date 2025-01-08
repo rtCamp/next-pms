@@ -38,6 +38,9 @@ export const usePagination = <T = any>(
     },
     {
       ...options,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      revalidateIfStale: false,
       revalidateOnMount: false 
     }
   );
