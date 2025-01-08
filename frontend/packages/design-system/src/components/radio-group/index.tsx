@@ -7,7 +7,7 @@ import { Circle } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { cn } from "@/utils";
+import { cn } from "@design-system/utils";
 
 const RadioGroup = React.forwardRef<
   React.ElementRef<typeof RadioGroupPrimitive.Root>,

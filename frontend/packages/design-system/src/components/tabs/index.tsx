@@ -6,7 +6,7 @@ import * as TabsPrimitive from "@radix-ui/react-tabs";
 /**
  * Internal dependencies.
  */
-import { cn } from "@/utils";
+import { cn } from "@design-system/utils";
 
 const Tabs = TabsPrimitive.Root;
 

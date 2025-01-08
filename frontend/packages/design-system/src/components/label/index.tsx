@@ -7,7 +7,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 /**
  * Internal dependencies.
  */
-import { cn } from "@/utils";
+import { cn } from "@design-system/utils";
 
 const labelVariants = cva("text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70");
 

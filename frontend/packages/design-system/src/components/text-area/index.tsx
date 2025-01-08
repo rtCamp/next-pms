@@ -5,7 +5,7 @@ import * as React from "react";
 /**
  * Internal dependencies.
  */
-import { cn } from "@/utils";
+import { cn } from "@design-system/utils";
 
 export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
 

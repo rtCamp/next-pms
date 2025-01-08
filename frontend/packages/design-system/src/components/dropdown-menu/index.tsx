@@ -8,7 +8,7 @@ import { Check, ChevronRight, Circle } from "lucide-react";
 /**
  * internal dependencies.
  */
-import { cn } from "@/utils";
+import { cn } from "@design-system/utils";
 
 const DropdownMenu = DropdownMenuPrimitive.Root;
 

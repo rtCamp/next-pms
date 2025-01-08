@@ -1,10 +1,10 @@
-export { default as Button, type ButtonProps } from "@/components/button";
-export { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/accordion";
-export { Avatar, AvatarImage, AvatarFallback } from "@/components/avatar";
-export { default as Badge, type BadgeProps } from "@/components/badge";
-export { default as Calendar, type CalendarProps } from "@/components/calendar";
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent } from "@/components/card";
-export { default as Checkbox } from "@/components/checkbox";
+export { default as Button, type ButtonProps } from "@design-system/components/button";
+export { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@design-system/components/accordion";
+export { Avatar, AvatarImage, AvatarFallback } from "@design-system/components/avatar";
+export { default as Badge, type BadgeProps } from "@design-system/components/badge";
+export { default as Calendar, type CalendarProps } from "@design-system/components/calendar";
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent } from "@design-system/components/card";
+export { default as Checkbox } from "@design-system/components/checkbox";
 export {
     Command,
     CommandDialog,
@@ -15,7 +15,7 @@ export {
     CommandItem,
     CommandShortcut,
     CommandSeparator
-} from "@/components/command";
+} from "@design-system/components/command";
 export {
     Dialog,
     DialogPortal,
@@ -27,7 +27,7 @@ export {
     DialogFooter,
     DialogTitle,
     DialogDescription,
-} from "@/components/dialog";
+} from "@design-system/components/dialog";
 export {
     DropdownMenu,
     DropdownMenuTrigger,
@@ -44,16 +44,16 @@ export {
     DropdownMenuSubContent,
     DropdownMenuSubTrigger,
     DropdownMenuRadioGroup,
-} from "@/components/dropdown-menu";
+} from "@design-system/components/dropdown-menu";
 
-export { Form, FormItem, FormLabel, FormControl, FormDescription, FormMessage, FormField } from "@/components/form";
-export { FormFieldContext, FormItemContext, useFormField } from "@/components/form/hook";
-export { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/hover-card";
-export { default as Input } from "@/components/input";
-export { default as Label } from "@/components/label";
-export { Popover, PopoverTrigger, PopoverContent } from "@/components/popover";
-export { default as Progress } from "@/components/progress";
-export { RadioGroup, RadioGroupItem } from "@/components/radio-group";
+export { Form, FormItem, FormLabel, FormControl, FormDescription, FormMessage, FormField } from "@design-system/components/form";
+export { FormFieldContext, FormItemContext, useFormField } from "@design-system/components/form/hook";
+export { HoverCard, HoverCardTrigger, HoverCardContent } from "@design-system/components/hover-card";
+export { default as Input } from "@design-system/components/input";
+export { default as Label } from "@design-system/components/label";
+export { Popover, PopoverTrigger, PopoverContent } from "@design-system/components/popover";
+export { default as Progress } from "@design-system/components/progress";
+export { RadioGroup, RadioGroupItem } from "@design-system/components/radio-group";
 export {
     Select,
     SelectGroup,
@@ -65,8 +65,8 @@ export {
     SelectSeparator,
     SelectScrollUpButton,
     SelectScrollDownButton,
-} from "@/components/select";
-export { default as Separator } from "@/components/separator";
+} from "@design-system/components/select";
+export { default as Separator } from "@design-system/components/separator";
 export {
     Sheet,
     SheetPortal,
@@ -78,12 +78,12 @@ export {
     SheetFooter,
     SheetTitle,
     SheetDescription,
-} from "@/components/sheet";
-export { default as Skeleton } from "@/components/skeleton";
-export { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell, TableCaption } from "@/components/table";
-export { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/tabs";
-export { Textarea } from "@/components/text-area";
-export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/tool-tip";
+} from "@design-system/components/sheet";
+export { default as Skeleton } from "@design-system/components/skeleton";
+export { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell, TableCaption } from "@design-system/components/table";
+export { Tabs, TabsList, TabsTrigger, TabsContent } from "@design-system/components/tabs";
+export { Textarea } from "@design-system/components/text-area";
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@design-system/components/tool-tip";
 export {
     type ToastProps,
     type ToastActionElement,
@@ -94,7 +94,7 @@ export {
     ToastDescription,
     ToastClose,
     ToastAction,
-} from "@/components/toast";
-export { Toaster } from "@/components/toast/toaster";
-export { useToast, toast } from "@/components/toast/hook";
-export * from "@/utils"
+} from "@design-system/components/toast";
+export { Toaster } from "@design-system/components/toast/toaster";
+export { useToast, toast } from "@design-system/components/toast/hook";
+export * from "@design-system/utils"

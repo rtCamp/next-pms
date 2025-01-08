@@ -5,7 +5,7 @@ import * as React from "react";
 /**
  * Internal dependencies.
  */
-import type { ToastActionElement, ToastProps } from "@/components/toast";
+import type { ToastActionElement, ToastProps } from "@design-system/components/toast";
 
 const TOAST_LIMIT = 5;
 const TOAST_REMOVE_DELAY = 1000000;

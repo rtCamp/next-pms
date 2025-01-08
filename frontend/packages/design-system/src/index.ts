@@ -1,3 +1,3 @@
 import "./global.css"
-export * from "@/components"
-export * from "@/utils"
+export * from "@design-system/components"
+export * from "@design-system/utils"

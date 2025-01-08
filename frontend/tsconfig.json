@@ -12,17 +12,19 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx":  "react-jsx",
+    "jsx": "react-jsx",
     "incremental": true,
-    "rootDirs": [
-      "src"
-    ],
+    "rootDirs": ["src"],
     "paths": {
-      "@/*": [
-        "./src/*"
+      "@/*": ["./src/*"],
+      "@next-pms/design-system": [
+        "./packages/design-system/src",
+        "./packages/design-system/src/components",
+        "./packages/design-system/src/utils",
+        "./packages/design-system/src/global.css"
       ]
     }
   },
-  "include": ["src/**/*.tsx","src/**/*.ts"],
+  "include": ["src/**/*.tsx", "src/**/*.ts"],
   "exclude": ["node_modules"]
 }

@@ -6,7 +6,7 @@ import * as PopoverPrimitive from "@radix-ui/react-popover";
 /**
  * Internal dependencies.
  */
-import { cn } from "@/utils";
+import { cn } from "@design-system/utils";
 
 const Popover = PopoverPrimitive.Root;
 

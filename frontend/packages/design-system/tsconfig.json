@@ -16,7 +16,7 @@
     "incremental": true,
     "rootDirs": ["src"],
     "paths": {
-      "@/*": ["./src/*"]
+      "@design-system/*": ["./src/*"]
     }
   },
   "include": ["src/**/*.tsx", "src/**/*.ts"],

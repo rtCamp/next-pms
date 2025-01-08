@@ -7,7 +7,7 @@ import { ChevronDown } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { cn } from "@/utils";
+import { cn } from "@design-system/utils";
 
 const Accordion = AccordionPrimitive.Root;
 

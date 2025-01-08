@@ -1,7 +1,14 @@
 /**
  * Internal dependencies.
  */
-import { Toast, ToastClose, ToastDescription, ToastProvider, ToastTitle, ToastViewport } from "@/components/toast";
+import {
+  Toast,
+  ToastClose,
+  ToastDescription,
+  ToastProvider,
+  ToastTitle,
+  ToastViewport,
+} from "@design-system/components/toast";
 import { useToast } from "./hook";
 
 export const Toaster = () => {

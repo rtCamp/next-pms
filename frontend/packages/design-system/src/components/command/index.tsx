@@ -9,8 +9,8 @@ import { Search, X } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { Dialog, DialogContent } from "@/components/dialog";
-import { cn } from "@/utils";
+import { Dialog, DialogContent } from "@design-system/components/dialog";
+import { cn } from "@design-system/utils";
 
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,

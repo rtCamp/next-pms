@@ -6,7 +6,7 @@ import * as ProgressPrimitive from "@radix-ui/react-progress";
 /**
  * Internal dependencies.
  */
-import { cn } from "@/utils";
+import { cn } from "@design-system/utils";
 
 const Progress = React.forwardRef<
   React.ElementRef<typeof ProgressPrimitive.Root>,

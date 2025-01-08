@@ -7,7 +7,7 @@ import { type VariantProps } from "class-variance-authority";
 /**
  * Internal dependencies.
  */
-import { cn } from "@/utils";
+import { cn } from "@design-system/utils";
 import { buttonVariants } from "./buttonVariants";
 
 export interface ButtonProps

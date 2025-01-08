@@ -2,13 +2,22 @@
   "name": "@next-pms/design-system",
   "private": true,
   "version": "0.0.1",
-  "type": "module",
+  "source": "./src/index.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts"
+    },
+    "./design-system.css": "./src/global.css"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "npm install && vite build",
-    "build:css": "postcss src/global.css -o dist/global.css",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
