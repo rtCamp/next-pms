@@ -22,7 +22,18 @@ import { cn } from "@/lib/utils";
 const ComboBoxWrapper = ({ filter, handleChangeWrapper }: { filter: FilterPops; handleChangeWrapper: any }) => {
   const apiCall: ApiCallProps | undefined = filter.apiCall;
 
-  const { data } = useFrappeGetCall(apiCall?.url as string, apiCall?.filters, undefined, apiCall?.options);
+  const { data, mutate } = useFrappeGetCall(
+    apiCall?.url as string,
+    apiCall?.filters,
+    undefined,
+    apiCall?.options ? { revalidateOnMount: false, ...apiCall.options } : { revalidateOnMount: false }
+  );
+
+  const handleOnClick = () => {
+    if (!data) {
+      mutate();
+    }
+  };
 
   return (
     <ComboxBox
@@ -33,6 +44,7 @@ const ComboBoxWrapper = ({ filter, handleChangeWrapper }: { filter: FilterPops; 
       showSelected={false}
       onSelect={handleChangeWrapper}
       onSearch={filter.onComboSearch}
+      onClick={handleOnClick}
       rightIcon={
         filter?.isMultiComboBox
           ? ((filter.value as string[])?.length ?? 0) > 0 && (

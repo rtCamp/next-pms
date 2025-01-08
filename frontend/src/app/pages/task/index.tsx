@@ -159,8 +159,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       fields: viewInfo?.rows,
     },
     {
-      parallel: true,
-      revalidateAll: true,
+      revalidateFirstPage: false,
     }
   );
 

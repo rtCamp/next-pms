@@ -64,8 +64,7 @@ const ResourceTeamView = () => {
           employee_name: resourceTeamState.employeeName,
         },
     {
-      parallel: true,
-      revalidateAll: true
+      revalidateFirstPage: false
     }
   );
 

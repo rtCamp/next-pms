@@ -105,7 +105,7 @@ export interface ResourceTeamState {
   tableView: TableViewProps;
   isNeedToFetchDataAfterUpdate?: boolean;
   maxWeek: number;
-  skillSearch?:Skill[];
+  skillSearch?: Skill[];
 }
 
 export const initialState: ResourceTeamState = {
@@ -139,7 +139,7 @@ export const initialState: ResourceTeamState = {
   isLoading: true,
   businessUnit: [],
   maxWeek: 5,
-  skillSearch:[],
+  skillSearch: [],
 };
 
 const ResourceTeamSlice = createSlice({
@@ -230,6 +230,7 @@ const ResourceTeamSlice = createSlice({
       state,
       action: PayloadAction<{
         employeeName?: string;
+        skillSearch?: Skill[];
         isNeedToRemove?: boolean;
         businessUnit?: string[];
         reportingManager?: string;
@@ -261,6 +262,9 @@ const ResourceTeamSlice = createSlice({
       }
       if (action.payload.view) {
         state.tableView.view = action.payload.view;
+      }
+      if (action.payload.skillSearch) {
+        state.skillSearch = action.payload.skillSearch;
       }
 
       state.start = 0;

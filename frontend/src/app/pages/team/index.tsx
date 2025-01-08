@@ -68,8 +68,7 @@ const Team = () => {
       status: teamState.status,
     },
     {
-      parallel: true,
-      revalidateAll: true,
+      revalidateFirstPage: false,
     }
   );
 
