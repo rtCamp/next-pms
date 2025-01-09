@@ -118,7 +118,6 @@ def filter_employees(
 
     if employee_name:
         or_filters["employee_name"] = ["like", f"%{employee_name}%"]
-        filters.pop("status", None)
 
     if department and len(department) > 0:
         filters["department"] = ["in", department]
