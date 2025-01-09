@@ -23,6 +23,7 @@ import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "..
  * This component is responsible for loading Team view expand view data.
  *
  * @param props.employeeData React.FC
+ * @param props.onSubmit The on submit function used to handle soft update of allocation data.
  * @returns React.FC
  */
 export const ResourceExpandView = ({
@@ -109,6 +110,7 @@ export const ResourceExpandView = ({
  * @param props.project The project name/ID.
  * @param props.employee The employee name/ID.
  * @param props.project_name The project name.
+ * @param props.onSubmit The on submit function used to handle soft update of allocation data.
  * @returns React.FC
  */
 const ExpandViewCell = ({

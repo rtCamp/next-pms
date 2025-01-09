@@ -36,7 +36,8 @@ import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "..
 
 /**
  * This component is responsible for loading the table for project view.
- *
+ * 
+ * @param props.onSubmit The on submit function used to handle soft update of allocation data.
  * @returns React.FC
  */
 const ResourceProjectTable = ({
@@ -88,6 +89,7 @@ const ResourceProjectTable = ({
 /**
  * This function is responsible for rendering the table body for project view.
  *
+ * @param props.onSubmit The on submit function used to handle soft update of allocation data.
  * @returns React.FC
  */
 const ResourceProjectTableBody = ({
@@ -178,6 +180,7 @@ const ResourceProjectTableBody = ({
  * @param props.projectAllocations The project allocations data.
  * @param props.project The project name/ID.
  * @param props.project_name The project name.
+ * @param props.onSubmit The on submit function used to handle soft update of allocation data.
  * @returns React.FC
  */
 const ResourceProjectTableCell = ({

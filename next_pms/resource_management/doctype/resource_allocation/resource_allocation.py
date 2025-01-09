@@ -13,11 +13,11 @@ from next_pms.resource_management.api.team import get_resource_management_team_v
 
 class ResourceAllocation(Document):
     def on_update(self):
-        # Clear all type of allocation related chache if someting is changed in allocation
+        # Clear all type of allocation related chache if something is changed in allocation
         self.clear_cache()
 
     def on_trash(self):
-        # Clear all type of allocation related chache if someting is deleted in allocation
+        # Clear all type of allocation related chache if something is deleted in allocation
         self.clear_cache()
 
     def clear_cache(self):

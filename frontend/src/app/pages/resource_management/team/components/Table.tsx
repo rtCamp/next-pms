@@ -36,6 +36,7 @@ import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "..
 /**
  * This component is responsible for loading the table for table view.
  *
+ * @param props.onSubmit The on submit function used to handle soft update of allocation data.
  * @returns React.FC
  */
 const ResourceTeamTable = ({
@@ -86,9 +87,14 @@ const ResourceTeamTable = ({
 /**
  * This function is responsible for rendering the table body for table view.
  *
+ * @param props.onSubmit The on submit function used to handle soft update of allocation data.
  * @returns React.FC
  */
-const ResourceTeamTableBody = ({ onSubmit }) => {
+const ResourceTeamTableBody = ({
+  onSubmit,
+}: {
+  onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
+}) => {
   const data = useSelector((state: RootState) => state.resource_team.data.data);
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_team.data.dates);
 
@@ -162,6 +168,7 @@ const ResourceTeamTableBody = ({ onSubmit }) => {
  * @param props.max_allocation_count_for_single_date The max allocation count for the single date.
  * @param props.midIndex The mid index of the cell.
  * @param props.employeeAllocations The employee allocation data.
+ * @param props.onSubmit The on submit function used to handle soft update of allocation data.
  * @returns React.FC
  */
 const ResourceTeamTableCell = ({

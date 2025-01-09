@@ -38,6 +38,7 @@ interface ResourceExpandViewProps {
  * @param props.start_date The start date from which data need to show.
  * @param props.end_date The end date till whihc data need to show.
  * @param props.is_billable The is billable flag.
+ * @param props.onSubmit The on submit function used to handle soft update of allocation data.
  * @returns React.FC
  */
 export const ResourceExpandView = ({
@@ -138,6 +139,7 @@ export const ResourceExpandView = ({
  * @param props.employee_name The employee name.
  * @param props.project The project name/ID.
  * @param props.project_name The project name.
+ * @param props.onSubmit The on submit function used to handle soft update of allocation data.
  * @returns React.FC
  */
 const ExpandViewCell = ({
