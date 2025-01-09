@@ -7,11 +7,10 @@ import { useDispatch, useSelector } from "react-redux";
 /**
  * Internal dependencies.
  */
-import { Skeleton } from "@/app/components/ui/skeleton";
 import { Table, TableBody } from "@/app/components/ui/table";
 import { cn, prettyDate } from "@/lib/utils";
 import { RootState } from "@/store";
-import { setResourceFormData } from "@/store/resource_management/allocation";
+import { AllocationDataProps, setResourceFormData } from "@/store/resource_management/allocation";
 import {
   emptyProjectDayData,
   ProjectDataProps,
@@ -24,22 +23,27 @@ import { ResourceAllocationObjectProps } from "@/types/resource_management";
 
 import { ResourceExpandView } from "./ExpandView";
 import { EmptyTableBody } from "../../components/Empty";
+import { InfiniteScroll } from "../../components/InfiniteScroll";
 import { ResourceAllocationList } from "../../components/ResourceAllocationList";
 import { ResourceTableCell } from "../../components/TableCell";
+
 import ResourceProjectTableHeader from "../../components/TableHeader";
 import { ResourceTableRow } from "../../components/TableRow";
 import { TableContextProvider } from "../../contexts/tableContext";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { getCellBackGroundColor } from "../../utils/cell";
 import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
-import { InfiniteScroll } from "../../components/InfiniteScroll";
 
 /**
  * This component is responsible for loading the table for project view.
  *
  * @returns React.FC
  */
-const ResourceProjectTable = () => {
+const ResourceProjectTable = ({
+  onSubmit,
+}: {
+  onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
+}) => {
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_project.data.dates);
   const isLoading = useSelector((state: RootState) => state.resource_project.isLoading);
   const maxWeek = useSelector((state: RootState) => state.resource_project.maxWeek);
@@ -61,12 +65,20 @@ const ResourceProjectTable = () => {
     dispatch(setStart(start + pageLength));
   };
 
+  if (dates.length == 0) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <EmptyTableBody />
+      </div>
+    );
+  }
+
   return (
     <TableContextProvider>
       <Table className="w-screen">
         <ResourceProjectTableHeader dates={dates} title="Projects" headerRef={cellHeaderRef} />
         <InfiniteScroll isLoading={isLoading} hasMore={hasMore} verticalLodMore={handleVerticalLoadMore}>
-          <ResourceProjectTableBody />
+          <ResourceProjectTableBody onSubmit={onSubmit} />
         </InfiniteScroll>
       </Table>
     </TableContextProvider>
@@ -78,7 +90,11 @@ const ResourceProjectTable = () => {
  *
  * @returns React.FC
  */
-const ResourceProjectTableBody = () => {
+const ResourceProjectTableBody = ({
+  onSubmit,
+}: {
+  onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
+}) => {
   const data = useSelector((state: RootState) => state.resource_project.data.data);
   const dates = useSelector((state: RootState) => state.resource_project.data.dates);
   const allocationType = useSelector((state: RootState) => state.resource_project.allocationType);
@@ -125,6 +141,7 @@ const ResourceProjectTableBody = () => {
                           projectAllocations={projectData.project_allocations}
                           project={projectData.name}
                           project_name={projectData.project_name}
+                          onSubmit={onSubmit}
                         />
                       );
                     });
@@ -140,6 +157,7 @@ const ResourceProjectTableBody = () => {
                   start_date={dates[0].start_date}
                   end_date={dates[dates.length - 1].end_date}
                   is_billable={getIsBillableValue(allocationType as string[])}
+                  onSubmit={onSubmit}
                 />
               );
             }}
@@ -170,6 +188,7 @@ const ResourceProjectTableCell = ({
   projectAllocations,
   project,
   project_name,
+  onSubmit,
 }: {
   projectSingleDay: ProjectResourceProps;
   allWeekData: any;
@@ -178,6 +197,7 @@ const ResourceProjectTableCell = ({
   project: string;
   project_name: string;
   projectAllocations: ResourceAllocationObjectProps;
+  onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
   const tableView = useSelector((state: RootState) => state.resource_project.tableView);
   const customer = useSelector((state: RootState) => state.resource_project.data.customer);
@@ -325,6 +345,7 @@ const ResourceProjectTableCell = ({
             customer={customer}
             onButtonClick={onCellClick}
             viewType={"project"}
+            onSubmit={onSubmit}
           />
         );
       }}

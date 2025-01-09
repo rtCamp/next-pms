@@ -21,6 +21,8 @@ from next_pms.timesheet.api.employee import get_employee_working_hours
 from next_pms.timesheet.api.team import get_holidays
 from next_pms.timesheet.api.utils import filter_employees
 
+2
+
 
 @frappe.whitelist()
 @redis_cache()
@@ -35,6 +37,7 @@ def get_resource_management_team_view_data(
     page_length=10,
     start=0,
     skills=None,
+    employee_id=None,
 ):
     permissions = resource_api_permissions_check()
 
@@ -44,6 +47,7 @@ def get_resource_management_team_view_data(
         designation = None
         reports_to = None
         customer = None
+        employee_id = None
 
     data = []
     customer = {}
@@ -65,6 +69,11 @@ def get_resource_management_team_view_data(
             res["has_more"] = False
             res["permissions"] = permissions
             return res
+
+    if employee_id:
+        if isinstance(employee_id, str):
+            employee_id = json.loads(employee_id)
+        ids = employee_id
 
     employees, total_count = filter_employees(
         employee_name,

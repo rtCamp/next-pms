@@ -19,6 +19,7 @@ import { ResourceTeamTable } from "./components/Table";
 import AddResourceAllocations from "../components/AddAllocation";
 import { usePagination } from "../hooks/usePagination";
 import { ResourceTeamHeaderSection } from "./components/Header";
+import { useFrappePostCall } from "frappe-react-sdk";
 
 /**
  * This is main component which is responsible for rendering the team view of resource management.
@@ -30,7 +31,6 @@ const ResourceTeamView = () => {
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
   const resourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
   const dispatch = useDispatch();
-  const [revalidatePageCount, setRevalidatePageCount] = useState(-1);
   const resourceAllocationPermission: PermissionProps = useSelector(
     (state: RootState) => state.resource_allocation_form.permissions
   );
@@ -41,6 +41,10 @@ const ResourceTeamView = () => {
     if (previousPageData && !previousPageData.message.has_more) return null;
     return `next_pms.resource_management.api.team.get_resource_management_team_view_data/get_resource_management_team_view_data?page=${pageIndex}&limit=${resourceTeamState.pageLength}`;
   };
+
+  const { call: fetchSingleRecord } = useFrappePostCall(
+    "next_pms.resource_management.api.team.get_resource_management_team_view_data"
+  );
 
   const { data, isLoading, isValidating, error, size, setSize, mutate } = usePagination(
     "next_pms.resource_management.api.team.get_resource_management_team_view_data",
@@ -69,9 +73,28 @@ const ResourceTeamView = () => {
     }
   );
 
-  const onFormSubmit = useCallback(() => {
-    dispatch(setReFetchData(true));
-  }, [dispatch]);
+  const onFormSubmit = useCallback(
+    (oldData: AllocationDataProps, newData: AllocationDataProps) => {
+      fetchSingleRecord({
+        date: resourceTeamState.weekDate,
+        max_week: resourceTeamState.maxWeek,
+        employee_id: JSON.stringify([oldData.employee, newData.employee]),
+      }).then((res) => {
+        const newEmployeeData = res.message?.data;
+        if (newEmployeeData && newEmployeeData.length > 0) {
+          const updatedData = resourceTeamState.data.data.map((item) => {
+            const index = newEmployeeData.findIndex((employee) => employee.name == item.name);
+            if (index != -1) {
+              return newEmployeeData[index];
+            }
+            return item;
+          });
+          dispatch(setData({ ...resourceTeamState.data, data: updatedData }));
+        }
+      });
+    },
+    [dispatch, fetchSingleRecord, resourceTeamState]
+  );
 
   useEffect(() => {
     if (resourceTeamState.isNeedToFetchDataAfterUpdate) {
@@ -129,10 +152,10 @@ const ResourceTeamView = () => {
   return (
     <>
       <ResourceTeamHeaderSection />
-      {(isLoading || isValidating || resourceTeamState.data.data.length == 0) && resourceTeamState.hasMore ? (
+      {(isLoading || isValidating) && resourceTeamState.data.data.length == 0 ? (
         <Spinner isFull />
       ) : (
-        <ResourceTeamTable />
+        <ResourceTeamTable onSubmit={onFormSubmit} />
       )}
       {resourceAllocationForm.isShowDialog && <AddResourceAllocations onSubmit={onFormSubmit} />}
     </>

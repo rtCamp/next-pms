@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar"
 import { Table, TableBody, TableRow } from "@/app/components/ui/table";
 import { cn, prettyDate } from "@/lib/utils";
 import { RootState } from "@/store";
-import { setResourceFormData } from "@/store/resource_management/allocation";
+import { AllocationDataProps, setResourceFormData } from "@/store/resource_management/allocation";
 import { DateProps } from "@/store/resource_management/team";
 import { ResourceAllocationObjectProps, ResourceCustomerObjectProps } from "@/types/resource_management";
 
@@ -27,6 +27,7 @@ interface ResourceExpandViewProps {
   start_date: string;
   end_date: string;
   is_billable: number;
+  onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }
 
 /**
@@ -45,12 +46,13 @@ export const ResourceExpandView = ({
   start_date,
   end_date,
   is_billable,
+  onSubmit,
 }: ResourceExpandViewProps) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
 
   const dates = useSelector((state: RootState) => state.resource_project.data.dates);
 
-  const { data,  isLoading } = useFrappeGetCall(
+  const { data } = useFrappeGetCall(
     "next_pms.resource_management.api.project.get_employees_resrouce_data_for_given_project",
     {
       project: project,
@@ -58,10 +60,7 @@ export const ResourceExpandView = ({
       end_date: end_date,
       is_billable: is_billable,
     },
-    undefined,
-    {
-      revalidateIfStale: false,
-    }
+    undefined
   );
 
   return (
@@ -115,6 +114,7 @@ export const ResourceExpandView = ({
                         employee_name={employeeData.employee_name}
                         project={project}
                         project_name={project_name}
+                        onSubmit={onSubmit}
                       />
                     );
                   });
@@ -150,6 +150,7 @@ const ExpandViewCell = ({
   project,
   weekIndex,
   project_name,
+  onSubmit,
 }: {
   allocationsData: any;
   index: number;
@@ -160,6 +161,7 @@ const ExpandViewCell = ({
   project_name: string;
   employeeAllocations?: ResourceAllocationObjectProps;
   customer: ResourceCustomerObjectProps;
+  onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
   const tableView = useSelector((state: RootState) => state.resource_project.tableView);
   const allocationType = useSelector((state: RootState) => state.resource_project.allocationType);
@@ -242,6 +244,7 @@ const ExpandViewCell = ({
             customer={customer}
             onButtonClick={onCellClick}
             viewType={"project"}
+            onSubmit={onSubmit}
           />
         );
       }}

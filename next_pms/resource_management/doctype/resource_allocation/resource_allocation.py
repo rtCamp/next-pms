@@ -4,10 +4,23 @@
 # import frappe
 from frappe.model.document import Document
 
+from next_pms.resource_management.api.project import (
+    get_employees_resrouce_data_for_given_project,
+    get_resource_management_project_view_data,
+)
 from next_pms.resource_management.api.team import get_resource_management_team_view_data
 
 
 class ResourceAllocation(Document):
     def on_update(self):
         # Clear all type of allocation related chache if someting is changed in allocation
+        self.clear_cache()
+
+    def on_trash(self):
+        # Clear all type of allocation related chache if someting is deleted in allocation
+        self.clear_cache()
+
+    def clear_cache(self):
         get_resource_management_team_view_data.clear_cache()
+        get_resource_management_project_view_data.clear_cache()
+        get_employees_resrouce_data_for_given_project.clear_cache()

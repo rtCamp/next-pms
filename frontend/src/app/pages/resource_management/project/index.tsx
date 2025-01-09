@@ -19,6 +19,7 @@ import { getIsBillableValue } from "../utils/helper";
 import { ResourceProjectTable } from "./components/Table";
 import { usePagination } from "../hooks/usePagination";
 import { ResourceProjectHeaderSection } from "./components/Header";
+import { useFrappePostCall } from "frappe-react-sdk";
 
 /**
  * This is main component which is responsible for rendering the project view of resource management.
@@ -41,6 +42,10 @@ const ResourceTeamView = () => {
     return `next_pms.resource_management.api.project.get_resource_management_project_view_data?page=${pageIndex}&limit=${resourceProjectState.pageLength}`;
   };
 
+  const { call: fetchSingleRecord } = useFrappePostCall(
+    "next_pms.resource_management.api.project.get_resource_management_project_view_data"
+  );
+
   const { data, isLoading, isValidating, error, size, setSize, mutate } = usePagination(
     "next_pms.resource_management.api.project.get_resource_management_project_view_data",
     getKey,
@@ -62,9 +67,34 @@ const ResourceTeamView = () => {
     { revalidateFirstPage: false, revalidateAll: false }
   );
 
-  const onFormSubmit = useCallback(() => {
-    dispatch(setReFetchData(true));
-  }, [dispatch]);
+  const onFormSubmit = useCallback(
+    (oldData: AllocationDataProps, newData: AllocationDataProps) => {
+      fetchSingleRecord({
+        date: resourceProjectState.weekDate,
+        max_week: resourceProjectState.maxWeek,
+        project_id: JSON.stringify([oldData.project, newData.project]),
+      }).then((res) => {
+        const newProject = res.message?.data;
+        if (newProject && newProject.length > 0) {
+          const updatedData = resourceProjectState.data.data.map((item) => {
+            const index = newProject.findIndex((project) => project.name == item.name);
+            if (index != -1) {
+              return newProject[index];
+            }
+            return item;
+          });
+          dispatch(setData({ ...resourceProjectState.data, data: updatedData }));
+        }
+      });
+    },
+    [
+      dispatch,
+      fetchSingleRecord,
+      resourceProjectState.data,
+      resourceProjectState.maxWeek,
+      resourceProjectState.weekDate,
+    ]
+  );
 
   useEffect(() => {
     if (resourceProjectState.isNeedToFetchDataAfterUpdate) {
@@ -123,11 +153,11 @@ const ResourceTeamView = () => {
   return (
     <>
       <ResourceProjectHeaderSection />
-      
-      {(isLoading || isValidating || resourceProjectState.data.data.length == 0) && resourceProjectState.hasMore ? (
+
+      {(isLoading || isValidating) && resourceProjectState.data.data.length == 0 ? (
         <Spinner isFull />
       ) : (
-        <ResourceProjectTable />
+        <ResourceProjectTable onSubmit={onFormSubmit} />
       )}
 
       {ResourceAllocationForm.isShowDialog && <AddResourceAllocations onSubmit={onFormSubmit} />}

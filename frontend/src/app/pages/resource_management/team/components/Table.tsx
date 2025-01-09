@@ -11,7 +11,7 @@ import { Table, TableBody } from "@/app/components/ui/table";
 import { InfiniteScroll } from "@/app/pages/resource_management/components/InfiniteScroll";
 import { cn, prettyDate } from "@/lib/utils";
 import { RootState } from "@/store";
-import { setResourceFormData } from "@/store/resource_management/allocation";
+import { AllocationDataProps, setResourceFormData } from "@/store/resource_management/allocation";
 import {
   DateProps,
   EmployeeDataProps,
@@ -38,7 +38,11 @@ import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "..
  *
  * @returns React.FC
  */
-const ResourceTeamTable = () => {
+const ResourceTeamTable = ({
+  onSubmit,
+}: {
+  onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
+}) => {
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_team.data.dates);
   const isLoading = useSelector((state: RootState) => state.resource_team.isLoading);
   const maxWeek = useSelector((state: RootState) => state.resource_team.maxWeek);
@@ -59,12 +63,20 @@ const ResourceTeamTable = () => {
 
   const cellHeaderRef = useInfiniteScroll({ isLoading: isLoading, hasMore: true, next: () => handleLoadMore() });
 
+  if (dates.length == 0) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <EmptyTableBody />
+      </div>
+    );
+  }
+
   return (
     <TableContextProvider>
       <Table className="relative">
         <ResourceTeamTableHeader headerRef={cellHeaderRef} dates={dates} title="Members" />
         <InfiniteScroll isLoading={isLoading} hasMore={hasMore} verticalLodMore={handleVerticalLoadMore}>
-          <ResourceTeamTableBody />
+          <ResourceTeamTableBody onSubmit={onSubmit} />
         </InfiniteScroll>
       </Table>
     </TableContextProvider>
@@ -76,7 +88,7 @@ const ResourceTeamTable = () => {
  *
  * @returns React.FC
  */
-const ResourceTeamTableBody = () => {
+const ResourceTeamTableBody = ({ onSubmit }) => {
   const data = useSelector((state: RootState) => state.resource_team.data.data);
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_team.data.dates);
 
@@ -121,6 +133,7 @@ const ResourceTeamTableBody = () => {
                           rowCount={index}
                           midIndex={week_index}
                           employeeAllocations={employeeData.employee_allocations}
+                          onSubmit={onSubmit}
                         />
                       );
                     });
@@ -129,7 +142,7 @@ const ResourceTeamTableBody = () => {
               );
             }}
             RowExpandView={() => {
-              return <ResourceExpandView employeeData={employeeData} />;
+              return <ResourceExpandView employeeData={employeeData} onSubmit={onSubmit} />;
             }}
           />
         );
@@ -159,6 +172,7 @@ const ResourceTeamTableCell = ({
   employee,
   midIndex,
   employeeAllocations,
+  onSubmit,
 }: {
   employeeSingleDay: EmployeeResourceProps;
   allWeekData: any;
@@ -167,6 +181,7 @@ const ResourceTeamTableCell = ({
   employee_name: string;
   midIndex: number;
   employeeAllocations: ResourceAllocationObjectProps;
+  onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
   const tableView = useSelector((state: RootState) => state.resource_team.tableView);
   const customer = useSelector((state: RootState) => state.resource_team.data.customer);
@@ -294,6 +309,7 @@ const ResourceTeamTableCell = ({
             employeeAllocations={employeeAllocations}
             customer={customer}
             onButtonClick={onCellClick}
+            onSubmit={onSubmit}
           />
         );
       }}

@@ -1,3 +1,5 @@
+import json
+
 import frappe
 from frappe.automation.doctype.auto_repeat.auto_repeat import getdate
 from frappe.core.doctype.recorder.recorder import redis_cache
@@ -27,18 +29,24 @@ def get_resource_management_project_view_data(
     is_billable=-1,
     page_length=10,
     start=0,
+    project_id=None,
 ):
     permissions = resource_api_permissions_check()
 
     if not permissions["write"]:
         is_billable = -1
         customer = None
+        project_id = None
+
+    ids = None
+
+    if project_id:
+        if isinstance(project_id, str):
+            project_id = json.loads(project_id)
+        ids = project_id
 
     projects, total_count = filter_project_list(
-        project_name,
-        page_length=page_length,
-        start=start,
-        customer=customer,
+        project_name, page_length=page_length, start=start, customer=customer, ids=ids
     )
 
     data = []

@@ -136,12 +136,7 @@ def filter_employee_list(
     return employees, count
 
 
-def filter_project_list(
-    project_name=None,
-    customer=None,
-    page_length=10,
-    start=0,
-):
+def filter_project_list(project_name=None, customer=None, page_length=10, start=0, ids=None):
     import json
 
     from next_pms.timesheet.api.utils import get_count
@@ -153,14 +148,18 @@ def filter_project_list(
 
     fields = ["name", "project_name", "status"]
 
-    if project_name:
-        filters["project_name"] = ["like", f"%{project_name}%"]
+    if ids:
+        filters["name"] = ["in", ids]
 
-    if customer:
-        if isinstance(customer, str):
-            customer = json.loads(customer)
-        if customer and len(customer) > 0:
-            filters["customer"] = ["in", customer]
+    else:
+        if project_name:
+            filters["project_name"] = ["like", f"%{project_name}%"]
+
+        if customer:
+            if isinstance(customer, str):
+                customer = json.loads(customer)
+            if customer and len(customer) > 0:
+                filters["customer"] = ["in", customer]
 
     projects = frappe.get_list("Project", filters=filters, fields=fields, start=start, page_length=page_length)
 

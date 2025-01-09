@@ -263,7 +263,6 @@ const ResourceTeamSlice = createSlice({
       }>
     ) => {
       if (action.payload.employeeName || action.payload.isNeedToRemove) {
-        console.log("update employee", action.payload.employeeName);
         state.employeeName = action.payload.employeeName;
       }
       if (action.payload.reportingManager || action.payload.isNeedToRemove) {
