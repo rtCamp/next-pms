@@ -21,8 +21,6 @@ from next_pms.timesheet.api.employee import get_employee_working_hours
 from next_pms.timesheet.api.team import get_holidays
 from next_pms.timesheet.api.utils import filter_employees
 
-2
-
 
 @frappe.whitelist()
 @redis_cache()
