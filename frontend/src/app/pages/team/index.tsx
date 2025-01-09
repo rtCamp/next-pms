@@ -45,11 +45,11 @@ const Team = () => {
   const navigate = useNavigate();
 
   const getKey = (pageIndex: number, previousPageData: any) => {
-    const indexTillNeedToFetchData = teamState.start == 0 ? 1 : teamState.start / teamState.pageLength;
+    const indexTillNeedToFetchData = teamState.start / teamState.pageLength + 1;
     if (indexTillNeedToFetchData <= pageIndex) return null;
     if (previousPageData && !previousPageData.message.has_more) return null;
 
-    return `next_pms.timesheet.api.team.get_compact_view_data/team?page=${pageIndex}&limit=${teamState.pageLength}`;
+    return `next_pms.timesheet.api.team.get_compact_view_data_team_page?page=${pageIndex}&limit=${teamState.pageLength}`;
   };
 
   const { data, isLoading, error, size, setSize, mutate } = usePagination(
@@ -69,6 +69,7 @@ const Team = () => {
     },
     {
       revalidateFirstPage: false,
+      revalidateAll: false
     }
   );
 
@@ -103,7 +104,7 @@ const Team = () => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, error, teamState.action]);
+  }, [data, error]);
 
   const handleLoadMore = () => {
     if (teamState.isLoading) return;
