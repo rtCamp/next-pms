@@ -23,7 +23,7 @@ import { Input } from "@/app/components/ui/input";
 import { Separator } from "@/app/components/ui/separator";
 import { Textarea } from "@/app/components/ui/textarea";
 import { useToast } from "@/app/components/ui/use-toast";
-import { cn, floatToTime, getFormatedDate, parseFrappeErrorMsg, prettyDate } from "@/lib/utils";
+import { cn, floatToTime, getFormatedDate, parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetUpdateSchema } from "@/schema/timesheet";
 import { RootState } from "@/store";
 
@@ -94,7 +94,6 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
     setIsSubmitting(true);
     const data = {
       data: formData.data,
-      employee,
     };
     updateTimesheet(data)
       .then((res) => {
