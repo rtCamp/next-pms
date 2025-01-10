@@ -29,7 +29,7 @@ function useInfiniteScroll({
   isLoading,
   hasMore,
   next,
-  threshold = 0.5,
+  threshold = 0.1,
   root = null,
   rootMargin = "0px",
 }: InfiniteScrollProps) {
@@ -38,7 +38,7 @@ function useInfiniteScroll({
     (element: HTMLElement | null) => {
       let safeThreshold = threshold;
       if (threshold < 0 || threshold > 1) {
-        safeThreshold = 1;
+        safeThreshold = 0.1;
       }
 
       if (isLoading) return;
@@ -50,7 +50,7 @@ function useInfiniteScroll({
           if (
             (entries[0].isIntersecting || entries[0].intersectionRatio > 0) &&
             hasMore
-          ) {
+          ) {            
             next();
           }
         },
