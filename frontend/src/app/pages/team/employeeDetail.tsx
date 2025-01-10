@@ -204,7 +204,7 @@ const EmployeeDetail = () => {
         />
       )}
       <Header>
-        <EmployeeCombo onSelect={onEmployeeChange} pageLength={0} value={id as string} className="w-full lg:w-fit" />
+        <EmployeeCombo onSelect={onEmployeeChange} pageLength={0} value={id as string} className="w-full lg:w-fit" ignoreDefaultFilters={true} />
       </Header>
 
       <Main>
