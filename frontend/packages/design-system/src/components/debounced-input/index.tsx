@@ -13,7 +13,7 @@ export interface DeBounceInputProps extends InputProps {
   callback?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   deBounceValue?: number;
 }
-export const DeBouncedInput = ({ value, className, callback, deBounceValue = 400, ...props }: DeBounceInputProps) => {
+const DeBouncedInput = ({ value, className, callback, deBounceValue = 400, ...props }: DeBounceInputProps) => {
   const [inputValue, setInputValue] = useState(value);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const onInputChange = useCallback(
@@ -63,3 +63,4 @@ export const DeBouncedInput = ({ value, className, callback, deBounceValue = 400
     </div>
   );
 };
+export default DeBouncedInput;

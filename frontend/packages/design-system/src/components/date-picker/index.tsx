@@ -21,7 +21,7 @@ export type DatePickerProp = CalendarProps & {
   onDateChange?: (date: Date) => void;
 };
 
-export const DatePicker = ({ date, disabled, onDateChange, disabledDates, ...props }: DatePickerProp) => {
+const DatePicker = ({ date, disabled, onDateChange, disabledDates, ...props }: DatePickerProp) => {
   const [pickerDate, setPickerDate] = useState<Date>();
   const [isOpen, setIsOpen] = useState(false);
   useEffect(() => {
@@ -58,3 +58,4 @@ export const DatePicker = ({ date, disabled, onDateChange, disabledDates, ...pro
     </div>
   );
 };
+export default DatePicker;
