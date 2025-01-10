@@ -13,3 +13,34 @@ export type TaskDataItemProps = {
     project_name?: string | null;
 }
 
+export type HolidayProps = {
+    description: string;
+    holiday_date: string;
+    weekly_off: boolean;
+}
+export type LeaveProps = {
+    name: string;
+    from_date: string;
+    to_date: string;
+    status: string;
+    half_day: boolean;
+    half_day_date: string;
+}
+export type WorkingFrequency = "Per Day" | "Per Week";
+
+
+export interface TaskProps {
+    [key: string]: TaskDataProps;
+}
+
+export interface TaskDataProps {
+    name: string;
+    subject: string;
+    project_name: string | null;
+    is_billable: boolean;
+    project: string;
+    expected_time: number;
+    actual_time: number;
+    status: string;
+    data: Array<TaskDataItemProps>;
+}
