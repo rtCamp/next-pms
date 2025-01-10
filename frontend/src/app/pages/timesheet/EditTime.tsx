@@ -274,14 +274,14 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
                         }}
                       />
                     )}
-                    <div className=" flex items-center min-h-10 gap-2 md:px-2 max-md:justify-end max-md:w-full">
+                    <div className=" flex items-center min-h-10 gap-2 md:px-2 max-md:w-full">
                       <Button
                         variant="destructive"
-                        className="p-1 h-fit max-md:h-8 max-md:w-8 mt-1"
+                        className="p-1 h-fit max-md:h-8 max-md:w-full  mt-1 max-md:flex max-md:justify-center max-md:items-center"
                         type="button"
                         onClick={() => removeFormRow(index)}
                       >
-                        <Trash2/>
+                        <Trash2/> <Typography className="hidden text-sm text-white max-md:block" variant="p">Delete Row</Typography>
                       </Button>
                     </div>
                   </div>
