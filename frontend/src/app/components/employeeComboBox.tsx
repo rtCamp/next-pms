@@ -32,6 +32,7 @@ interface EmployeeComboProps {
   status?: Array<string>;
   employeeName?: string;
   pageLength?: number;
+  ignoreDefaultFilters?:boolean;
 }
 
 /**
@@ -44,6 +45,8 @@ interface EmployeeComboProps {
  * @param props.className The css class for combo box.
  * @param props.label The label for the combo box. Default is "Select Employee".
  * @param props.status Option to filter the employees based on status. ex: ["Active", "Inactive"]
+ * @param ignoreDefaultFilters A flag to indicate whether to ignore all default filters 
+ * applied to employees based on their status.
  * @returns JSX element
  */
 const EmployeeCombo = ({
@@ -55,6 +58,7 @@ const EmployeeCombo = ({
   employeeName,
   pageLength,
   label = "Select Employee",
+  ignoreDefaultFilters = false,
 }: EmployeeComboProps) => {
   const length = pageLength != null ? pageLength : 20;
   const [search, setSearch] = useState<string>(employeeName ?? "");
@@ -64,7 +68,7 @@ const EmployeeCombo = ({
   const [open, setOpen] = useState(false);
   const { data: employees } = useFrappeGetCall(
     "next_pms.timesheet.api.employee.get_employee_list",
-    { page_length: length, status: status, employee_name: debouncedSearch },
+    { page_length: length, status: status, employee_name: debouncedSearch,ignore_default_filters:ignoreDefaultFilters },
     undefined,
     {
       revalidateIfStale: false,
