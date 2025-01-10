@@ -25,8 +25,8 @@ const InfiniteScroll = ({ children, isLoading, hasMore, verticalLodMore }: Infin
       {children}
       {hasMore && (
         <TableRow ref={verticalLoderRef} className="relative">
-          <TableCell colSpan={30000} className="p-0 sticky left-0 h-30">
-              <Skeleton className="h-10 w-full rounded-none  bg-red-400" />
+          <TableCell colSpan={30000} className="p-0 left-0 h-30">
+              <Skeleton className="h-10 w-full rounded-none bg-gray-200" />
           </TableCell>
         </TableRow>
       )}
