@@ -19,7 +19,7 @@ import { ResourceTeamTable } from "./components/Table";
 import AddResourceAllocations from "../components/AddAllocation";
 import { usePagination } from "../hooks/usePagination";
 import { ResourceTeamHeaderSection } from "./components/Header";
-import { useFrappePostCall } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 
 /**
  * This is main component which is responsible for rendering the team view of resource management.
@@ -35,20 +35,12 @@ const ResourceTeamView = () => {
     (state: RootState) => state.resource_allocation_form.permissions
   );
 
-  const getKey = (pageIndex: number, previousPageData: any) => {
-    const indexTillNeedToFetchData = resourceTeamState.start / resourceTeamState.pageLength + 1;
-    if (indexTillNeedToFetchData <= pageIndex) return null;
-    if (previousPageData && !previousPageData.message.has_more) return null;
-    return `next_pms.resource_management.api.team.get_resource_management_team_view_data/get_resource_management_team_view_data?page=${pageIndex}&limit=${resourceTeamState.pageLength}`;
-  };
-
   const { call: fetchSingleRecord } = useFrappePostCall(
     "next_pms.resource_management.api.team.get_resource_management_team_view_data"
   );
 
-  const { data, isLoading, isValidating, error, size, setSize, mutate } = usePagination(
+  const { data, isLoading, isValidating, error, mutate } = useFrappeGetCall(
     "next_pms.resource_management.api.team.get_resource_management_team_view_data",
-    getKey,
     resourceAllocationPermission.write
       ? {
           date: resourceTeamState.weekDate,
@@ -60,16 +52,21 @@ const ResourceTeamView = () => {
           designation: resourceTeamState.designation,
           is_billable: getIsBillableValue(resourceTeamState.allocationType as string[]),
           skills: resourceTeamState?.skillSearch?.length > 0 ? resourceTeamState.skillSearch : null,
+          start: resourceTeamState.start,
         }
       : {
           date: resourceTeamState.weekDate,
           max_week: resourceTeamState.maxWeek,
           page_length: resourceTeamState.pageLength,
           employee_name: resourceTeamState.employeeName,
+          start: resourceTeamState.start,
         },
+    "next_pms.resource_management.api.team.get_resource_management_team_view_data_resource_team_page",
     {
-      revalidateFirstPage: false,
-      revalidateAll: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      revalidateIfStale: false,
+      revalidateOnMount: false,
     }
   );
 
@@ -98,36 +95,17 @@ const ResourceTeamView = () => {
 
   useEffect(() => {
     if (resourceTeamState.isNeedToFetchDataAfterUpdate) {
-      if (resourceTeamState.isNeedToFetchAllData) {
-        mutate();
-        dispatch(setReFetchData(false));
-        return;
-      }
-      if (!data) {
-        mutate();
-      } else {
-        mutate(data, {
-          // only revalidate the last page
-          revalidate: (pageData, [url, page]) => page === size,
-        });
-      }
+      mutate();
       dispatch(setReFetchData(false));
     }
-  }, [
-    data,
-    dispatch,
-    mutate,
-    resourceTeamState.isNeedToFetchAllData,
-    resourceTeamState.isNeedToFetchDataAfterUpdate,
-    size,
-  ]);
+  }, [data, dispatch, mutate, resourceTeamState.isNeedToFetchDataAfterUpdate]);
 
   useEffect(() => {
-    if (data && data.length > 0) {
-      if (resourceTeamState.isNeedToFetchAllData) {
-        dispatch(setData(data[0].message));
+    if (data) {
+      if (resourceTeamState.action === "SET") {
+        dispatch(setData(data.message));
       } else {
-        dispatch(updateData(data[data.length - 1].message));
+        dispatch(updateData(data.message));
       }
     }
     if (error) {
@@ -139,15 +117,6 @@ const ResourceTeamView = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, error]);
-
-  useEffect(() => {
-    if (!resourceTeamState) return;
-    const newSize: number = resourceTeamState.start / resourceTeamState.pageLength + 1;
-    if (newSize == size) {
-      return;
-    }
-    setSize(newSize);
-  }, [resourceTeamState, resourceTeamState.start, setSize, size]);
 
   return (
     <>

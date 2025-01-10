@@ -104,12 +104,13 @@ export interface ResourceTeamState {
   isLoading: boolean;
   tableView: TableViewProps;
   isNeedToFetchDataAfterUpdate?: boolean;
-  isNeedToFetchAllData: boolean;
+  action: "SET" | "UPDATE";
   maxWeek: number;
   skillSearch?: Skill[];
 }
 
 export const initialState: ResourceTeamState = {
+  action:"SET",
   employeeName: "",
   isEditDialogOpen: false,
   pageLength: 20,
@@ -137,7 +138,6 @@ export const initialState: ResourceTeamState = {
     view: "planned-vs-capacity",
   },
   isNeedToFetchDataAfterUpdate: false,
-  isNeedToFetchAllData: false,
   isLoading: true,
   businessUnit: [],
   maxWeek: 5,
@@ -152,7 +152,6 @@ const ResourceTeamSlice = createSlice({
       state.data = action.payload;
       state.hasMore = state.data.has_more;
       state.isLoading = false;
-      state.isNeedToFetchAllData = false;
     },
     updateData: (state, action: PayloadAction<ResourceTeamDataProps>) => {
       state.data.data = [...state.data.data, ...action.payload.data];
@@ -164,38 +163,40 @@ const ResourceTeamSlice = createSlice({
       state.data.total_count = action.payload.total_count;
       state.hasMore = action.payload.has_more;
       state.isLoading = false;
-      state.isNeedToFetchAllData = false;
     },
     setEmployeeName: (state, action: PayloadAction<string>) => {
       state.employeeName = action.payload;
       state.isLoading = true;
       state.isNeedToFetchDataAfterUpdate = true;
-      state.isNeedToFetchAllData = true;
       state.start = 0;
       state.maxWeek = initialState.maxWeek;
+      state.action = "SET";
     },
     setBusinessUnit: (state, action: PayloadAction<string[]>) => {
       state.businessUnit = action.payload;
       state.start = 0;
       state.isLoading = true;
       state.maxWeek = initialState.maxWeek;
-      state.isNeedToFetchAllData = true;
       state.isNeedToFetchDataAfterUpdate = true;
+      state.action = "SET";
     },
     setMaxWeek: (state, action: PayloadAction<number>) => {
       if (state.maxWeek === action.payload) return;
       state.maxWeek = action.payload;
       state.isLoading = true;
       state.isNeedToFetchDataAfterUpdate = true;
-      state.isNeedToFetchAllData = true;
+      state.action = "SET";
+      state.start = 0;
+      state.pageLength = state.data.data.length;
+      state.action = "SET";
     },
     setReportingManager: (state, action: PayloadAction<string>) => {
       state.reportingManager = action.payload;
       state.start = 0;
       state.isLoading = true;
       state.maxWeek = initialState.maxWeek;
-      state.isNeedToFetchAllData = true;
       state.isNeedToFetchDataAfterUpdate = true;
+      state.action = "SET";
     },
     setWeekDate: (state, action: PayloadAction<string>) => {
       state.weekDate = action.payload;
@@ -203,24 +204,24 @@ const ResourceTeamSlice = createSlice({
       state.pageLength = initialState.pageLength;
       state.isLoading = true;
       state.maxWeek = initialState.maxWeek;
-      state.isNeedToFetchAllData = true;
       state.isNeedToFetchDataAfterUpdate = true;
+      state.action = "SET";
     },
     setAllocationType: (state, action: PayloadAction<string[]>) => {
       state.allocationType = action.payload;
       state.start = 0;
       state.isLoading = true;
       state.maxWeek = initialState.maxWeek;
-      state.isNeedToFetchAllData = true;
       state.isNeedToFetchDataAfterUpdate = true;
+      state.action = "SET";
     },
     setDesignation: (state, action: PayloadAction<string[]>) => {
       state.designation = action.payload;
       state.start = 0;
       state.isLoading = true;
       state.maxWeek = initialState.maxWeek;
-      state.isNeedToFetchAllData = true;
       state.isNeedToFetchDataAfterUpdate = true;
+      state.action = "SET";
     },
     setEmployeeWeekDate: (state, action: PayloadAction<string>) => {
       state.employeeWeekDate = action.payload;
@@ -228,6 +229,7 @@ const ResourceTeamSlice = createSlice({
     setStart: (state, action: PayloadAction<number>) => {
       state.start = action.payload;
       state.isLoading = true;
+      state.action = "UPDATE";
       state.isNeedToFetchDataAfterUpdate = true;
     },
     setHasMore: (state, action: PayloadAction<boolean>) => {
@@ -292,8 +294,8 @@ const ResourceTeamSlice = createSlice({
       state.start = 0;
       state.isNeedToFetchDataAfterUpdate = true;
       state.isLoading = true;
-      state.isNeedToFetchAllData = true;
       state.maxWeek = initialState.maxWeek;
+      state.action = "SET";
     },
     deleteFilters: (
       state,
@@ -329,8 +331,8 @@ const ResourceTeamSlice = createSlice({
       state.start = 0;
       state.isLoading = true;
       state.isNeedToFetchDataAfterUpdate = true;
-      state.isNeedToFetchAllData = true;
       state.maxWeek = initialState.maxWeek;
+      state.action = "SET";
     },
     setCombineWeekHours: (state, action: PayloadAction<boolean>) => {
       state.tableView.combineWeekHours = action.payload;
@@ -345,8 +347,8 @@ const ResourceTeamSlice = createSlice({
       state.skillSearch = action.payload;
       state.start = 0;
       state.isLoading = true;
-      state.isNeedToFetchAllData = true;
       state.isNeedToFetchDataAfterUpdate = true;
+      state.action = "SET";
     },
   },
 });

@@ -4,7 +4,9 @@
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { useFrappeGetCall } from "frappe-react-sdk";
 import { CircleCheck, Hourglass, CircleX } from "lucide-react";
+
 
 /**
  * Internal dependencies.
@@ -29,7 +31,6 @@ import { Approval } from "./approval";
 import { Employee } from "./employee";
 import { Header } from "./Header";
 import { useInfiniteScroll } from "../resource_management/hooks/useInfiniteScroll";
-import { usePagination } from "../resource_management/hooks/usePagination";
 
 type DateProps = {
   start_date: string;
@@ -44,17 +45,8 @@ const Team = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const getKey = (pageIndex: number, previousPageData: any) => {
-    const indexTillNeedToFetchData = teamState.start / teamState.pageLength + 1;
-    if (indexTillNeedToFetchData <= pageIndex) return null;
-    if (previousPageData && !previousPageData.message.has_more) return null;
-
-    return `next_pms.timesheet.api.team.get_compact_view_data_team_page?page=${pageIndex}&limit=${teamState.pageLength}`;
-  };
-
-  const { data, isLoading, error, size, setSize, mutate } = usePagination(
+  const { data, isLoading, error, mutate } = useFrappeGetCall(
     "next_pms.timesheet.api.team.get_compact_view_data",
-    getKey,
     {
       date: teamState.weekDate,
       max_week: 1,
@@ -67,9 +59,12 @@ const Team = () => {
       reports_to: teamState.reportsTo,
       status: teamState.status,
     },
+    "next_pms.timesheet.api.team.get_compact_view_data_team_page",
     {
-      revalidateFirstPage: false,
-      revalidateAll: false
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      revalidateIfStale: false,
+      revalidateOnMount: false,
     }
   );
 
@@ -81,19 +76,11 @@ const Team = () => {
   }, [dispatch, mutate, teamState.isNeedToFetchDataAfterUpdate]);
 
   useEffect(() => {
-    const newSize: number = teamState.start / teamState.pageLength + 1;
-    if (newSize == size) {
-      return;
-    }
-    setSize(newSize);
-  }, [teamState.start, teamState.pageLength, size, setSize]);
-
-  useEffect(() => {
     if (data) {
       if (teamState.action == "SET") {
-        dispatch(setData(data[0].message));
+        dispatch(setData(data.message));
       } else {
-        dispatch(updateData(data[data.length - 1].message));
+        dispatch(updateData(data.message));
       }
     }
     if (error) {
@@ -249,7 +236,7 @@ const Team = () => {
                 </TableCell>
               </TableRow>
             )}
-            {teamState.hasMore &&  <Skeleton className="h-10 w-full" />}
+            {teamState.hasMore && <Skeleton className="h-10 w-full" />}
           </TableBody>
         </Table>
       )}

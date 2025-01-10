@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getCoreRowModel, getSortedRowModel, useReactTable, ColumnSizingState } from "@tanstack/react-table";
-import { useFrappePostCall } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import _ from "lodash";
 
 /**
@@ -32,7 +32,6 @@ import { Header } from "./Header";
 import { Table } from "./Table";
 import { TaskLog } from "./TaskLog";
 import { createFilter } from "./utils";
-import { usePagination } from "../resource_management/hooks/usePagination";
 
 const Task = () => {
   const docType = "Task";
@@ -139,17 +138,8 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     dispatch(SetAddTimeDialog(true));
   };
 
-  const getKey = (pageIndex: number, previousPageData: any) => {
-    const indexTillNeedToFetchData = task.start / task.pageLength + 1;
-    if (indexTillNeedToFetchData <= pageIndex) return null;
-    if (previousPageData && !previousPageData.message.has_more) return null;
-
-    return `next_pms.timesheet.api.task.get_task_list?page=${pageIndex}&limit=${task.pageLength}`;
-  };
-
-  const { data, isLoading, error, size, setSize, mutate } = usePagination(
+  const { data, isLoading, error, mutate } = useFrappeGetCall(
     "next_pms.timesheet.api.task.get_task_list",
-    getKey,
     {
       page_length: task.pageLength,
       start: task.start,
@@ -158,8 +148,12 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       status: task.selectedStatus,
       fields: viewInfo?.rows,
     },
+    "next_pms.timesheet.api.task.get_task_list_taak_page",
     {
-      revalidateFirstPage: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      revalidateIfStale: false,
+      revalidateOnMount: false,
     }
   );
 
@@ -171,20 +165,12 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
   }, [dispatch, mutate, task.isNeedToFetchDataAfterUpdate]);
 
   useEffect(() => {
-    const newSize: number = task.start / task.pageLength + 1;
-    if (newSize == size) {
-      return;
-    }
-    setSize(newSize);
-  }, [task.start, task.pageLength, size, setSize]);
-
-  useEffect(() => {
     if (data) {
-      if(task.isNeedToFetchDataAfterUpdate) return;
+      if (task.isNeedToFetchDataAfterUpdate) return;
       if (task.action === "SET") {
-        dispatch(setTaskData(data[0].message));
+        dispatch(setTaskData(data.message));
       } else {
-        dispatch(updateTaskData(data[data.length - 1].message));
+        dispatch(updateTaskData(data.message));
       }
     }
     if (error) {
@@ -194,7 +180,8 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
         description: err,
       });
     }
-  }, [data, dispatch, error, task.action, toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, dispatch, error]);
 
   const handleLike = (e: React.MouseEvent<SVGSVGElement>) => {
     e.stopPropagation();

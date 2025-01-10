@@ -10,6 +10,7 @@ import {
   useReactTable,
   ColumnSizingState,
 } from "@tanstack/react-table";
+import { useFrappeGetCall } from "frappe-react-sdk";
 import _ from "lodash";
 
 /**
@@ -23,7 +24,6 @@ import { Skeleton } from "@/app/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { useToast } from "@/app/components/ui/use-toast";
 import { useInfiniteScroll } from "@/app/pages/resource_management/hooks/useInfiniteScroll";
-import { usePagination } from "@/app/pages/resource_management/hooks/usePagination";
 import { parseFrappeErrorMsg, createFalseValuedObject } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setProjectData, setStart, setFilters, setReFetchData, updateProjectData } from "@/store/project";
@@ -76,17 +76,8 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     setHasViewUpdated(false);
   }, [dispatch, viewData]);
 
-  const getKey = (pageIndex: number, previousPageData: any) => {
-    const indexTillNeedToFetchData = projectState.start / projectState.pageLength + 1;
-    if (indexTillNeedToFetchData <= pageIndex) return null;
-    if (previousPageData && !previousPageData.message.has_more) return null;
-
-    return `next_pms.timesheet.api.project.get_projects?page=${pageIndex}&limit=${projectState.pageLength}`;
-  };
-
-  const { data, isLoading, error, size, setSize, mutate } = usePagination(
+  const { data, isLoading, error, mutate } = useFrappeGetCall(
     "next_pms.timesheet.api.project.get_projects",
-    getKey,
     {
       fields: viewInfo.rows ?? ["*"],
       filters: getFilter(projectState),
@@ -96,9 +87,12 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
       currency: projectState.currency,
       order_by: `${projectState.orderColumn} ${projectState.order}`,
     },
+    "next_pms.timesheet.api.project.get_projects_project_page",
     {
-      revalidateAll: false,
-      revalidateFirstPage: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      revalidateIfStale: false,
+      revalidateOnMount: false,
     }
   );
 
@@ -110,19 +104,11 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   }, [dispatch, mutate, projectState.isNeedToFetchDataAfterUpdate]);
 
   useEffect(() => {
-    const newSize: number = projectState.start / projectState.pageLength + 1;
-    if (newSize == size) {
-      return;
-    }
-    setSize(newSize);
-  }, [projectState.start, projectState.pageLength, size, setSize]);
-
-  useEffect(() => {
     if (data) {
       if (projectState.action == "SET") {
-        dispatch(setProjectData(data[0].message));
+        dispatch(setProjectData(data.message));
       } else {
-        dispatch(updateProjectData(data[data.length - 1].message));
+        dispatch(updateProjectData(data.message));
       }
     }
     if (error) {
@@ -132,6 +118,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
         description: err,
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, dispatch, error, toast]);
 
   useEffect(() => {

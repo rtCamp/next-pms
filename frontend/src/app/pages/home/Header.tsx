@@ -26,9 +26,6 @@ export const Header = () => {
       status: employeeStatusParam,
     };
     dispatch(setFilters(payload));
-    return () => {
-      dispatch(resetState());
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

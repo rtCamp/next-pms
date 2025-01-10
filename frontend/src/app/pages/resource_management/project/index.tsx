@@ -3,6 +3,7 @@
  */
 import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -17,9 +18,7 @@ import { setData, setReFetchData, updateData } from "@/store/resource_management
 import AddResourceAllocations from "../components/AddAllocation";
 import { getIsBillableValue } from "../utils/helper";
 import { ResourceProjectTable } from "./components/Table";
-import { usePagination } from "../hooks/usePagination";
 import { ResourceProjectHeaderSection } from "./components/Header";
-import { useFrappePostCall } from "frappe-react-sdk";
 
 /**
  * This is main component which is responsible for rendering the project view of resource management.
@@ -35,20 +34,12 @@ const ResourceTeamView = () => {
   );
   const dispatch = useDispatch();
 
-  const getKey = (pageIndex: number, previousPageData: any) => {
-    const indexTillNeedToFetchData = resourceProjectState.start / resourceProjectState.pageLength + 1;
-    if (indexTillNeedToFetchData <= pageIndex) return null;
-    if (previousPageData && !previousPageData.message.has_more) return null;
-    return `next_pms.resource_management.api.project.get_resource_management_project_view_data?page=${pageIndex}&limit=${resourceProjectState.pageLength}`;
-  };
-
   const { call: fetchSingleRecord } = useFrappePostCall(
     "next_pms.resource_management.api.project.get_resource_management_project_view_data"
   );
 
-  const { data, isLoading, isValidating, error, size, setSize, mutate } = usePagination(
+  const { data, isLoading, isValidating, error, mutate } = useFrappeGetCall(
     "next_pms.resource_management.api.project.get_resource_management_project_view_data",
-    getKey,
     resourceAllocationPermission.write
       ? {
           date: resourceProjectState.weekDate,
@@ -57,14 +48,17 @@ const ResourceTeamView = () => {
           project_name: resourceProjectState.projectName,
           customer: resourceProjectState.customer,
           is_billable: getIsBillableValue(resourceProjectState.allocationType as string[]),
+          start: resourceProjectState.start,
         }
       : {
           date: resourceProjectState.weekDate,
           max_week: resourceProjectState.maxWeek,
           page_length: resourceProjectState.pageLength,
           project_name: resourceProjectState.projectName,
+          start: resourceProjectState.start,
         },
-    { revalidateFirstPage: false, revalidateAll: false }
+    "next_pms.resource_management.api.project.get_resource_management_project_view_data_resource_project_page",
+    { revalidateOnFocus: false, revalidateOnReconnect: false, revalidateIfStale: false, revalidateOnMount: false }
   );
 
   const onFormSubmit = useCallback(
@@ -98,36 +92,17 @@ const ResourceTeamView = () => {
 
   useEffect(() => {
     if (resourceProjectState.isNeedToFetchDataAfterUpdate) {
-      if (resourceProjectState.isNeedToFetchAllData) {
-        mutate();
-        dispatch(setReFetchData(false));
-        return;
-      }
-      if (!data) {
-        mutate();
-      } else {
-        mutate(data, {
-          // only revalidate the last page
-          revalidate: (pageData, [url, page]) => page === size,
-        });
-      }
+      mutate();
       dispatch(setReFetchData(false));
     }
-  }, [
-    data,
-    dispatch,
-    mutate,
-    resourceProjectState.isNeedToFetchAllData,
-    resourceProjectState.isNeedToFetchDataAfterUpdate,
-    size,
-  ]);
+  }, [data, dispatch, mutate, resourceProjectState.isNeedToFetchDataAfterUpdate]);
 
   useEffect(() => {
-    if (data && data.length > 0) {
-      if (resourceProjectState.isNeedToFetchAllData) {
-        dispatch(setData(data[0].message));
+    if (data) {
+      if (resourceProjectState.action == "SET") {
+        dispatch(setData(data.message));
       } else {
-        dispatch(updateData(data[data.length - 1].message));
+        dispatch(updateData(data.message));
       }
     }
 
@@ -140,15 +115,6 @@ const ResourceTeamView = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, error]);
-
-  useEffect(() => {
-    if (!resourceProjectState) return;
-    const newSize: number = resourceProjectState.start / resourceProjectState.pageLength + 1;
-    if (newSize == size) {
-      return;
-    }
-    setSize(newSize);
-  }, [resourceProjectState, resourceProjectState.start, setSize, size]);
 
   return (
     <>
