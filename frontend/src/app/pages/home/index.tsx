@@ -33,6 +33,7 @@ import { setData, DateProps, setStart, updateData, setReFetchData } from "@/stor
 import { WorkingFrequency } from "@/types";
 import { dataItem } from "@/types/team";
 import { Header } from "./Header";
+import { InfiniteScroll } from "../resource_management/components/InfiniteScroll";
 
 type DataItem = {
   data: dataItem[];
@@ -46,7 +47,7 @@ type DataItem = {
 const Home = () => {
   const { toast } = useToast();
   const homeState = useSelector((state: RootState) => state.home);
-
+  const hasMore = useSelector((state: RootState) => state.home.data.has_more);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -161,84 +162,78 @@ const Home = () => {
               })}
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {Object.entries(homeState.data?.data).length > 0 ? (
-              Object.entries(homeState.data?.data as Record<string, DataItem>).map(
-                ([key, item]: [string, DataItem], index: number) => {
-                  const needToAddRef = homeState.data.has_more && index == Object.keys(homeState.data?.data).length - 2;
+          <InfiniteScroll isLoading={isLoading} hasMore={hasMore} verticalLodMore={handleLoadMore}>
+            <TableBody>
+              {Object.entries(homeState.data?.data).length > 0 ? (
+                Object.entries(homeState.data?.data as Record<string, DataItem>).map(
+                  ([key, item]: [string, DataItem], index: number) => {
+                    const needToAddRef = homeState.data.has_more && index == Object.keys(homeState.data?.data).length - 2;
 
-                  return (
-                    <TableRow key={key} ref={needToAddRef ? cellRef : null}>
-                      <TableCell className="flex items-center gap-x-2 max-w-sm min-w-96">
-                        <span
-                          className="flex gap-x-2 items-center font-normal hover:underline hover:cursor-pointer w-full"
-                          onClick={() => {
-                            navigate(`${TEAM}${EMPLOYEE}/${item.name}`);
-                          }}
-                        >
-                          <Avatar className="w-6 h-6">
-                            <AvatarImage src={decodeURIComponent(item.image)} alt={item.employee_name} />
-                            <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
-                          </Avatar>
-                          <Typography
-                            variant="p"
-                            className="w-full text-left text-ellipsis whitespace-nowrap overflow-hidden "
+                    return (
+                      <TableRow key={key} ref={needToAddRef ? cellRef : null}>
+                        <TableCell className="flex items-center gap-x-2 max-w-sm min-w-96">
+                          <span
+                            className="flex gap-x-2 items-center font-normal hover:underline hover:cursor-pointer w-full"
+                            onClick={() => {
+                              navigate(`${TEAM}${EMPLOYEE}/${item.name}`);
+                            }}
                           >
-                            {item.employee_name}
-                          </Typography>
-                        </span>
-                      </TableCell>
-                      {item.data.map((data: dataItem, index: number) => {
-                        const expectedTime = calculateExtendedWorkingHour(
-                          data.hour,
-                          item.working_hour,
-                          item.working_frequency
-                        );
-
-                        return (
-                          <HoverCard key={`${data.hour}-id-${Math.random()}`} openDelay={1000}>
-                            <TableCell
-                              className={cn(
-                                "text-xs hover:cursor-pointer bg-transparent",
-                                expectedTime == 2 && "bg-warning/40",
-                                expectedTime == 1 && "bg-success/20",
-                                expectedTime == 0 && data.hour != 0 && "bg-destructive/10",
-                                data.is_leave && "bg-warning/20",
-                                isToday(data.date) && "bg-slate-50",
-                                data.hour == 0 && "text-center"
-                              )}
-                              key={`${key}-${index}`}
+                            <Avatar className="w-6 h-6">
+                              <AvatarImage src={decodeURIComponent(item.image)} alt={item.employee_name} />
+                              <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
+                            </Avatar>
+                            <Typography
+                              variant="p"
+                              className="w-full text-left text-ellipsis whitespace-nowrap overflow-hidden "
                             >
-                              <HoverCardTrigger>{data.hour > 0 ? floatToTime(data.hour) : "-"}</HoverCardTrigger>
-                              {data.note && (
-                                <HoverCardContent className="text-sm text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto">
-                                  <p dangerouslySetInnerHTML={{ __html: preProcessLink(data.note) }}></p>
-                                </HoverCardContent>
-                              )}
-                            </TableCell>
-                          </HoverCard>
-                        );
-                      })}
-                    </TableRow>
-                  );
-                }
-              )
-            ) : (
-              <TableRow>
-                <TableCell colSpan={15} className="h-24 text-center">
-                  No results
-                </TableCell>
-              </TableRow>
-            )}
+                              {item.employee_name}
+                            </Typography>
+                          </span>
+                        </TableCell>
+                        {item.data.map((data: dataItem, index: number) => {
+                          const expectedTime = calculateExtendedWorkingHour(
+                            data.hour,
+                            item.working_hour,
+                            item.working_frequency
+                          );
 
-            {homeState?.data && homeState.data.has_more && (
-              <TableRow>
-                <TableCell colSpan={15} className="text-center p-0">
-                  <Skeleton className="h-10 w-full" />
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
+                          return (
+                            <HoverCard key={`${data.hour}-id-${Math.random()}`} openDelay={1000}>
+                              <TableCell
+                                className={cn(
+                                  "text-xs hover:cursor-pointer bg-transparent",
+                                  expectedTime == 2 && "bg-warning/40",
+                                  expectedTime == 1 && "bg-success/20",
+                                  expectedTime == 0 && data.hour != 0 && "bg-destructive/10",
+                                  data.is_leave && "bg-warning/20",
+                                  isToday(data.date) && "bg-slate-50",
+                                  data.hour == 0 && "text-center"
+                                )}
+                                key={`${key}-${index}`}
+                              >
+                                <HoverCardTrigger>{data.hour > 0 ? floatToTime(data.hour) : "-"}</HoverCardTrigger>
+                                {data.note && (
+                                  <HoverCardContent className="text-sm text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto">
+                                    <p dangerouslySetInnerHTML={{ __html: preProcessLink(data.note) }}></p>
+                                  </HoverCardContent>
+                                )}
+                              </TableCell>
+                            </HoverCard>
+                          );
+                        })}
+                      </TableRow>
+                    );
+                  }
+                )
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={15} className="h-24 text-center">
+                    No results
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </InfiniteScroll>
         </Table>
       )}
     </>

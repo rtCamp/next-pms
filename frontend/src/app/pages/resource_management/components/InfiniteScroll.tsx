@@ -7,7 +7,7 @@ import { ReactNode } from "react";
  * Internal dependencies.
  */
 import { Skeleton } from "@/app/components/ui/skeleton";
-
+import { TableCell, TableRow } from "@/app/components/ui/table";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 
 interface InfiniteScrollProps {
@@ -21,14 +21,16 @@ const InfiniteScroll = ({ children, isLoading, hasMore, verticalLodMore }: Infin
   const verticalLoderRef = useInfiniteScroll({ isLoading: isLoading, hasMore: hasMore, next: () => verticalLodMore() });
 
   return (
-    <div>
+    <>
       {children}
       {hasMore && (
-        <div ref={verticalLoderRef} className="flex flex-col items-start w-screen sticky left-0 h-30">
-          <Skeleton className="h-10 w-full rounded-none  bg-gray-200" />
-        </div>
+        <TableRow ref={verticalLoderRef} className="relative">
+          <TableCell colSpan={30000} className="p-0 sticky left-0 h-30">
+              <Skeleton className="h-10 w-full rounded-none  bg-red-400" />
+          </TableCell>
+        </TableRow>
       )}
-    </div>
+    </>
   );
 };
 
