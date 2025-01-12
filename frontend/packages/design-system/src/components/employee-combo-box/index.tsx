@@ -2,7 +2,6 @@
  * External dependencies.
  */
 import { useEffect, useState } from "react";
-import { useFrappeGetCall } from "frappe-react-sdk";
 import { ChevronDown, Check } from "lucide-react";
 
 /**
@@ -15,15 +14,15 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@design-system/components";
 import { cn } from "@design-system/utils";
 
-export type EmployeeComboBoxProp = {
+export type EmployeeComboBoxProps = {
   disabled?: boolean;
   value: string;
   onSelect: (name: string) => void;
+  onSearch?: (search: string) => void;
+  shouldFilter?: boolean;
   className?: string;
   label?: string;
-  status?: Array<string>;
-  employeeName?: string;
-  pageLength?: number;
+  data: Array<Employee>;
 };
 
 export type Employee = {
@@ -37,25 +36,16 @@ const EmployeeComboBox = ({
   value = "",
   onSelect,
   className,
-  status,
-  employeeName,
-  pageLength,
+  data,
+  onSearch,
+  shouldFilter = true,
   label = "Select Employee",
-}: EmployeeComboBoxProp) => {
-  const length = pageLength != null ? pageLength : 20;
-  const [search, setSearch] = useState<string>(employeeName ?? "");
-  const [debouncedSearch, setDebouncedSearch] = useState<string>(search);
+}: EmployeeComboBoxProps) => {
+  const [search, setSearch] = useState<string>("");
   const [selectedValues, setSelectedValues] = useState<string>(value);
   const [employee, setEmployee] = useState<Employee | undefined>();
   const [open, setOpen] = useState(false);
-  const { data: employees } = useFrappeGetCall(
-    "next_pms.timesheet.api.employee.get_employee_list",
-    { page_length: length, status: status, employee_name: debouncedSearch },
-    undefined,
-    {
-      revalidateIfStale: false,
-    }
-  );
+
   const onEmployeeChange = (name: string) => {
     setSelectedValues(name);
     onSelect(name);
@@ -67,30 +57,25 @@ const EmployeeComboBox = ({
     setOpen(false);
   };
   useEffect(() => {
-    if (!employees) return;
-    const res = employees?.message.data.find((item: Employee) => item.name === selectedValues);
+    const res = data.find((item: Employee) => item.name === selectedValues);
     setEmployee(res);
-  }, [employees, selectedValues]);
+  }, [data, selectedValues]);
 
   useEffect(() => setSelectedValues(value), [value]);
   const onInputChange = (search: string) => {
     setSearch(search);
   };
   useEffect(() => {
+    if (!onSearch) return;
     const handler = setTimeout(() => {
-      setDebouncedSearch(search);
+      onSearch(search);
     }, 300);
 
     return () => {
       clearTimeout(handler);
     };
-  }, [search]);
+  }, [onSearch, search]);
 
-  useEffect(() => {
-    if (employeeName) {
-      setSearch(employeeName);
-    }
-  }, [employeeName]);
   return (
     <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
@@ -122,12 +107,12 @@ const EmployeeComboBox = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0">
-        <Command shouldFilter={false}>
+        <Command shouldFilter={shouldFilter}>
           <CommandInput placeholder="Search Employee" value={search} onValueChange={onInputChange} />
           <CommandEmpty>No data.</CommandEmpty>
           <CommandGroup>
             <CommandList>
-              {employees?.message.data.map((item: Employee, index: number) => {
+              {data.map((item: Employee, index: number) => {
                 const isActive = selectedValues == item.name;
                 return (
                   <CommandItem
