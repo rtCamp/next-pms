@@ -7,19 +7,21 @@ import { Import } from "lucide-react";
  */
 import { TableHead, TableHeader, TableRow } from "@design-system/components/table";
 import Typography from "@design-system/components/typography";
-import { cn, getBgCsssForToday, prettyDate } from "@design-system/utils";
+import { cn, getBgCsssForToday } from "@design-system/utils";
+import { prettyDate } from "@design-system/utils/date";
 import { HolidayProps } from "../type";
 import { getHolidayList } from "../utils";
 
 type HeadProps = {
   showHeading?: boolean;
   weeklyStatus: string;
-  importTasks?: boolean;
+  importTasks?: (key: string) => void;
   dates: string[];
   holidays: Array<HolidayProps>;
 };
 const Head = ({ showHeading = true, weeklyStatus, importTasks, dates, holidays }: HeadProps) => {
   if (!showHeading) return <></>;
+  const key = dates[0] + "-" + dates[dates.length - 1];
   const holidayList = getHolidayList(holidays);
   return (
     <TableHeader>
@@ -29,7 +31,7 @@ const Head = ({ showHeading = true, weeklyStatus, importTasks, dates, holidays }
             Tasks
             {weeklyStatus != "Approved" && importTasks && (
               <span title="Import liked tasks">
-                <Import className="hover:cursor-pointer" />
+                <Import className="hover:cursor-pointer" onClick={() => importTasks(key)} />
               </span>
             )}
           </Typography>

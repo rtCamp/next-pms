@@ -1,7 +1,8 @@
 /**
  * External dependencies
  */
-import { useState } from "react";
+
+import { useEffect } from "react";
 /**
  * Internal dependencies
  */
@@ -14,6 +15,7 @@ import { TotalRow } from "./components/row/totalRow";
 import { HolidayProps, LeaveProps, TaskDataProps, WorkingFrequency } from "./type";
 import { getHolidayList } from "./utils";
 import ErrorFallback from "../error-fallback";
+import { getLocalStorage, removeLocalStorage } from "@design-system/utils/storage";
 export type TaskProps = {
   [key: string]: TaskDataProps;
 };
@@ -31,7 +33,9 @@ export type TimesheetTableProps = {
   disabled?: boolean;
   workingFrequency: WorkingFrequency;
   weeklyStatus: string;
-  importTasks?: boolean;
+  importTasks?: (key: string) => void;
+  setSelectedTask: React.Dispatch<React.SetStateAction<string>>;
+  setIsTaskLogDialogBoxOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 const TimesheetTable = ({
   showHeading = true,
@@ -45,10 +49,21 @@ const TimesheetTable = ({
   tasks,
   disabled,
   onCellClick,
+  setIsTaskLogDialogBoxOpen,
+  setSelectedTask,
 }: TimesheetTableProps) => {
   const holidayList = getHolidayList(holidays);
-  const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<string>("");
+  const key = dates[0] + "-" + dates[dates.length - 1];
+  const liked_tasks = getLocalStorage(key) ?? [];
+  const filteredLikedTasks = liked_tasks.filter(
+    (likedTask: { name: string }) => !Object.keys(tasks).includes(likedTask.name)
+  );
+  useEffect(() => {
+    if (weeklyStatus === "Approved") {
+      removeLocalStorage(key);
+    }
+  }, [removeLocalStorage, weeklyStatus]);
+
   return (
     <ErrorFallback>
       <Table>
@@ -78,6 +93,23 @@ const TimesheetTable = ({
               setSelectedTask={setSelectedTask}
             />
           )}
+          {weeklyStatus != "Approved" &&
+            filteredLikedTasks.length > 0 &&
+            filteredLikedTasks.map((task) => {
+              return (
+                <EmptyRow
+                  key={task.name}
+                  dates={dates}
+                  holidays={holidays}
+                  onCellClick={onCellClick}
+                  setSelectedTask={setSelectedTask}
+                  disabled={disabled}
+                  setIsTaskLogDialogBoxOpen={setIsTaskLogDialogBoxOpen}
+                  name={task.name}
+                  taskData={task}
+                />
+              );
+            })}
           <TimesheetRow
             dates={dates}
             taskData={tasks}
