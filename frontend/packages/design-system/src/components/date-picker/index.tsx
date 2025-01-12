@@ -12,7 +12,7 @@ import { Button } from "@design-system/components";
 import { Calendar, CalendarProps } from "@design-system/components";
 import { Popover, PopoverContent, PopoverTrigger } from "@design-system/components";
 import Typography from "@design-system/components/typography";
-import { getUTCDateTime, getDisplayDate } from "@design-system/utils";
+import { getUTCDateTime, getDisplayDate } from "@design-system/utils/date";
 
 export type DatePickerProp = CalendarProps & {
   date?: Date | string;
