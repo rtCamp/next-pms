@@ -19,7 +19,6 @@ import { Skeleton } from "@/app/components/ui/skeleton";
 import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
 import { useToast } from "@/app/components/ui/use-toast";
 import { useInfiniteScroll } from "@/app/pages/resource_management/hooks/useInfiniteScroll";
-import { usePagination } from "@/app/pages/resource_management/hooks/usePagination";
 import { TEAM, EMPLOYEE } from "@/lib/constant";
 import {
   cn,

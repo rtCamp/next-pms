@@ -18,7 +18,8 @@ import { getTableCellClass } from "../utils/helper";
 interface ResourceTableHeaderProps {
   dates: DateProps[];
   title: string;
-  headerRef: any;
+  cellHeaderRef: any;
+  dateToAddHeaderRef: string;
 }
 
 /**
@@ -26,10 +27,17 @@ interface ResourceTableHeaderProps {
  *
  * @param props.dates The dates list
  * @param props.title The title of Table header.
- * @param props.ref The ref for last week to fetch the data.
+ * @param props.cellHeaderRef The reference of the cell header.
+ * @param props.dateToAddHeaderRef The reference of the date to add header.
  * @returns React.FC
  */
-const ResourceTableHeader = ({ dates, title, headerRef }: ResourceTableHeaderProps) => {
+const ResourceTableHeader = ({
+  dates,
+  title,
+  cellHeaderRef,
+  dateToAddHeaderRef,
+  isLoading,
+}: ResourceTableHeaderProps) => {
   const { tableProperties, getCellWidthString } = useContext(TableContext);
 
   return (
@@ -62,34 +70,17 @@ const ResourceTableHeader = ({ dates, title, headerRef }: ResourceTableHeaderPro
           <div className="flex items-center">
             {dates.map((item: DateProps, weekIndex: number) => {
               return item?.dates?.map((date, index) => {
-                const { date: dateStr, day } = prettyDate(date);
-                const needToAddRefresh = weekIndex == dates.length - 2;
                 return (
-                  <TableHead
+                  <TableHeaderCell
+                    date={date}
                     key={date}
-                    className={cn(
-                      getTableCellClass(index, weekIndex, true),
-                      "text-xs flex flex-col px-2 py-2 justify-center items-center"
-                    )}
+                    index={index}
+                    isLoading={isLoading}
+                    weekIndex={weekIndex}
                     style={{ width: getCellWidthString(tableProperties.cellWidth) }}
-                    ref={needToAddRefresh ? headerRef : null}
-                  >
-                    <Typography
-                      variant="p"
-                      className={cn("text-slate-600 text-[11px]", isToday(date) && "font-semibold")}
-                    >
-                      {day}
-                    </Typography>
-                    <Typography
-                      variant="small"
-                      className={cn(
-                        "text-slate-500 text-[11px] max-lg:text-[0.65rem]",
-                        isToday(date) && "font-semibold"
-                      )}
-                    >
-                      {dateStr}
-                    </Typography>
-                  </TableHead>
+                    cellHeaderRef={cellHeaderRef}
+                    dateToAddHeaderRef={dateToAddHeaderRef}
+                  />
                 );
               });
             })}
@@ -97,6 +88,49 @@ const ResourceTableHeader = ({ dates, title, headerRef }: ResourceTableHeaderPro
         </div>
       </TableRow>
     </TableHeader>
+  );
+};
+
+/**
+ * The single header cell for the table which show date and day names in the header.
+ *
+ * @returns
+ */
+const TableHeaderCell = ({
+  date,
+  index,
+  weekIndex,
+  cellHeaderRef,
+  dateToAddHeaderRef,
+  style,
+}: {
+  date: string;
+  isLoading: boolean;
+  index: number;
+  weekIndex: number;
+  cellHeaderRef: any;
+  dateToAddHeaderRef: string;
+  style: React.CSSProperties;
+}) => {
+  const { date: dateStr, day } = prettyDate(date);
+
+  return (
+    <TableHead
+      key={date}
+      className={cn(getTableCellClass(index, weekIndex), "text-xs flex flex-col px-2 py-2 justify-center items-center")}
+      style={style}
+      ref={date == dateToAddHeaderRef ? cellHeaderRef : null}
+    >
+      <Typography variant="p" className={cn("text-slate-600 text-[11px]", isToday(date) && "font-semibold")}>
+        {day}
+      </Typography>
+      <Typography
+        variant="small"
+        className={cn("text-slate-500 text-[11px] max-lg:text-[0.65rem]", isToday(date) && "font-semibold")}
+      >
+        {dateStr}
+      </Typography>
+    </TableHead>
   );
 };
 

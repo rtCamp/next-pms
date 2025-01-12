@@ -2,7 +2,8 @@
  * External dependencies.
  */
 import { useContext } from "react";
-import { FrappeContext, FrappeConfig } from "frappe-react-sdk";
+
+import { FrappeConfig, FrappeContext } from "frappe-react-sdk";
 import { StrictTupleKey } from "swr/_internal";
 import useSWRInfinite, {
   SWRInfiniteConfiguration,
@@ -41,7 +42,7 @@ export const usePagination = <T = any>(
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       revalidateIfStale: false,
-      revalidateOnMount: false 
+      revalidateOnMount: false,
     }
   );
 
