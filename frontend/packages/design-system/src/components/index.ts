@@ -1,3 +1,6 @@
+/**
+ * Internal dependencies
+ */
 export { default as Button, type ButtonProps } from "@design-system/components/button";
 export { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@design-system/components/accordion";
 export { Avatar, AvatarImage, AvatarFallback } from "@design-system/components/avatar";
@@ -102,3 +105,19 @@ export { default as ErrorFallback } from "@design-system/components/error-fallba
 export { default as DeBouncedInput } from "@design-system/components/debounced-input";
 export { default as DatePicker } from "@design-system/components/date-picker";
 export { default as ExportDialog } from "@design-system/components/export-dialog";
+export { default as EmployeeComboBox, type EmployeeComboBoxProps, type Employee } from "@design-system/components/employee-combo-box";
+
+/**
+ * Timesheet Table Components
+ */
+export { default as TimesheetTable, type TimesheetTableProps, type TaskProps } from "@design-system/components/timesheet-table";
+export { default as TimesheetRow } from "@design-system/components/timesheet-table/components/row";
+export { default as TimesheetHeader } from "@design-system/components/timesheet-table/components/head";
+export { EmptyRow as TimesheetEmptyRow } from "@design-system/components/timesheet-table/components/row/emptyRow";
+export { LeaveRow as TimesheetLeaveRow } from "@design-system/components/timesheet-table/components/row/leaveRow";
+export { TotalRow as TimesheetTotalRow } from "@design-system/components/timesheet-table/components/row/totalRow";
+export { default as TimesheetCell } from "@design-system/components/timesheet-table/components/cell";
+export { SubmitButton as TimesheetSubmitButton } from "@design-system/components/timesheet-table/components/submitButton";
+export { TaskStatusIndicator  } from "@design-system/components/timesheet-table/components/taskStatusIndicator";
+export { TaskHoverCard } from "@design-system/components/timesheet-table/components/taskHoverCard";
+export * from "@design-system/components/timesheet-table/type";

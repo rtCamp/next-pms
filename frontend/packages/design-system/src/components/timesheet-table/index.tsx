@@ -14,11 +14,11 @@ import { TotalRow } from "./components/row/totalRow";
 import { HolidayProps, LeaveProps, TaskDataProps, WorkingFrequency } from "./type";
 import { getHolidayList } from "./utils";
 import ErrorFallback from "../error-fallback";
-type TaskProps = {
+export type TaskProps = {
   [key: string]: TaskDataProps;
 };
 
-type TimesheetTableProps = {
+export type TimesheetTableProps = {
   dates: string[];
   holidays: Array<HolidayProps>;
   tasks: TaskProps;

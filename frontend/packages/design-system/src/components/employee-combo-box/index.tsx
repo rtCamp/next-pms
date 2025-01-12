@@ -42,26 +42,26 @@ const EmployeeComboBox = ({
   label = "Select Employee",
 }: EmployeeComboBoxProps) => {
   const [search, setSearch] = useState<string>("");
-  const [selectedValues, setSelectedValues] = useState<string>(value);
+  const [selectedValue, setSelectedValue] = useState<string>(value);
   const [employee, setEmployee] = useState<Employee | undefined>();
   const [open, setOpen] = useState(false);
 
   const onEmployeeChange = (name: string) => {
-    setSelectedValues(name);
+    setSelectedValue(name);
     onSelect(name);
     setOpen(false);
   };
   const resetState = () => {
-    setSelectedValues("");
+    setSelectedValue("");
     onSelect("");
     setOpen(false);
   };
   useEffect(() => {
-    const res = data.find((item: Employee) => item.name === selectedValues);
+    const res = data.find((item: Employee) => item.name === selectedValue);
     setEmployee(res);
-  }, [data, selectedValues]);
+  }, [data, selectedValue]);
 
-  useEffect(() => setSelectedValues(value), [value]);
+  useEffect(() => setSelectedValue(value), [value]);
   const onInputChange = (search: string) => {
     setSearch(search);
   };
@@ -113,7 +113,7 @@ const EmployeeComboBox = ({
           <CommandGroup>
             <CommandList>
               {data.map((item: Employee, index: number) => {
-                const isActive = selectedValues == item.name;
+                const isActive = selectedValue == item.name;
                 return (
                   <CommandItem
                     key={index}
