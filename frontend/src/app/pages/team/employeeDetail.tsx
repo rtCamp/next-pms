@@ -22,6 +22,7 @@ import { Typography } from "@/app/components/typography";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
+import { Separator } from "@/app/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import { useToast } from "@/app/components/ui/use-toast";
 import { Header, Footer, Main } from "@/app/layout/root";
@@ -59,7 +60,6 @@ import {
 } from "@/store/team";
 import { LeaveProps, NewTimesheetProps, TaskDataItemProps, TaskDataProps, timesheet } from "@/types/timesheet";
 import { Approval } from "./approval";
-import { Separator } from "@/app/components/ui/separator";
 import ExpandableHours from "../timesheet/ExpandableHours";
 
 const isDateInRange = (date: string, startDate: string, endDate: string) => {
@@ -206,7 +206,7 @@ const EmployeeDetail = () => {
         />
       )}
       <Header>
-        <EmployeeCombo onSelect={onEmployeeChange} pageLength={20} value={id as string} className="w-full lg:w-fit" ignoreDefaultFilters={true} />
+        <EmployeeCombo employeeName={employee?.message?.employee_name} onSelect={onEmployeeChange} pageLength={20} value={id as string} className="w-full lg:w-fit" ignoreDefaultFilters={true} />
       </Header>
 
       <Main>
