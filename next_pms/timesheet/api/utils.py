@@ -48,6 +48,8 @@ def get_week_dates(date, current_week: bool = False, ignore_weekend=False):
     else:
         if ignore_weekend:
             end_date_for_key = add_days(end_date, -2)
+        else:
+            end_date_for_key = end_date
         key = f'{start_date.strftime("%b %d")} - {end_date_for_key.strftime("%b %d")}'
 
     data = {"start_date": start_date, "end_date": end_date, "key": key}
