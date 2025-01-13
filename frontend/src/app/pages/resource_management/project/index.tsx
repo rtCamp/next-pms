@@ -19,6 +19,7 @@ import AddResourceAllocations from "../components/AddAllocation";
 import { getIsBillableValue } from "../utils/helper";
 import { ResourceProjectTable } from "./components/Table";
 import { ResourceProjectHeaderSection } from "./components/Header";
+import { getNextDate } from "../utils/dates";
 
 /**
  * This is main component which is responsible for rendering the project view of resource management.
@@ -67,7 +68,7 @@ const ResourceTeamView = () => {
         date: resourceProjectState.weekDate,
         max_week: resourceProjectState.maxWeek,
         project_id: JSON.stringify([oldData.project, newData.project]),
-        is_billable: getIsBillableValue(resourceProjectState.allocationType as string[])
+        is_billable: getIsBillableValue(resourceProjectState.allocationType as string[]),
       }).then((res) => {
         const newProject = res.message?.data;
         if (newProject && newProject.length > 0) {
@@ -82,7 +83,14 @@ const ResourceTeamView = () => {
         }
       });
     },
-    [dispatch, fetchSingleRecord, resourceProjectState.allocationType, resourceProjectState.data, resourceProjectState.maxWeek, resourceProjectState.weekDate]
+    [
+      dispatch,
+      fetchSingleRecord,
+      resourceProjectState.allocationType,
+      resourceProjectState.data,
+      resourceProjectState.maxWeek,
+      resourceProjectState.weekDate,
+    ]
   );
 
   useEffect(() => {
@@ -118,7 +126,10 @@ const ResourceTeamView = () => {
       {(isLoading || isValidating) && resourceProjectState.data.data.length == 0 ? (
         <Spinner isFull />
       ) : (
-        <ResourceProjectTable onSubmit={onFormSubmit} />
+        <ResourceProjectTable
+          dateToAddHeaderRef={getNextDate(resourceProjectState.weekDate, resourceProjectState.maxWeek - 1)}
+          onSubmit={onFormSubmit}
+        />
       )}
 
       {ResourceAllocationForm.isShowDialog && <AddResourceAllocations onSubmit={onFormSubmit} />}

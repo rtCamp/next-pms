@@ -36,14 +36,17 @@ import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "..
 
 /**
  * This component is responsible for loading the table for project view.
- * 
+ *
  * @param props.onSubmit The on submit function used to handle soft update of allocation data.
+ * @param props.dateToAddHeaderRef The date to add header ref.
  * @returns React.FC
  */
 const ResourceProjectTable = ({
   onSubmit,
+  dateToAddHeaderRef,
 }: {
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
+  dateToAddHeaderRef: string;
 }) => {
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_project.data.dates);
   const isLoading = useSelector((state: RootState) => state.resource_project.isLoading);
@@ -77,7 +80,12 @@ const ResourceProjectTable = ({
   return (
     <TableContextProvider>
       <Table className="w-screen">
-        <ResourceProjectTableHeader dates={dates} title="Projects" headerRef={cellHeaderRef} />
+        <ResourceProjectTableHeader
+          dates={dates}
+          title="Projects"
+          cellHeaderRef={cellHeaderRef}
+          dateToAddHeaderRef={dateToAddHeaderRef}
+        />
         <InfiniteScroll isLoading={isLoading} hasMore={hasMore} verticalLodMore={handleVerticalLoadMore}>
           <ResourceProjectTableBody onSubmit={onSubmit} />
         </InfiniteScroll>
