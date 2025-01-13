@@ -1,0 +1,16 @@
+{
+  "name": "@next-pms/app",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "copy-html-entry": "cp ../../../next_pms/public/frontend/index.html ../../../next_pms/www/next-pms/index.html",
+    "dev": "vite --config ../../vite.config.ts",
+    "build": "npm install && vite build --config ../../vite.config.ts --base=/assets/next_pms/frontend/ && npm run copy-html-entry",
+    "preview": "vite preview",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --ext ts,tsx --fix"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
