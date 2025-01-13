@@ -104,7 +104,6 @@ export { default as Typography, type TypographyProp } from "@design-system/compo
 export { default as ErrorFallback } from "@design-system/components/error-fallback";
 export { default as DeBouncedInput } from "@design-system/components/debounced-input";
 export { default as DatePicker } from "@design-system/components/date-picker";
-export { default as ExportDialog } from "@design-system/components/export-dialog";
 export { default as EmployeeComboBox, type EmployeeComboBoxProps, type Employee } from "@design-system/components/employee-combo-box";
 
 /**
