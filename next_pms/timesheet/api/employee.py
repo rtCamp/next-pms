@@ -80,6 +80,7 @@ def get_employee_list(
     status=None,
     user_group=None,
     reports_to: str | None = None,
+    ignore_default_filters=False,
 ):
     from .utils import filter_employees
 
@@ -93,6 +94,7 @@ def get_employee_list(
         user_group=user_group,
         reports_to=reports_to,
         ignore_permissions=status is not None,
+        ignore_default_filters=ignore_default_filters,
     )
     return {"data": employees, "count": count}
 

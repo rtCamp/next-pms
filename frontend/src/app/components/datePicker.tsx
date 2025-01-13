@@ -45,8 +45,8 @@ export const DatePicker = ({
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button variant="outline" className="justify-between w-full" disabled={disabled}>
-            <Typography variant="p">{pickerDate ? formateDate(pickerDate) : "Pick a date"}</Typography>
-            <CalendarIcon className="h-4 w-4 stroke-slate-400" />
+            <Typography variant="p" className="truncate">{pickerDate ? formateDate(pickerDate) : "Pick a date"}</Typography>
+            <CalendarIcon className="h-4 w-4 stroke-slate-400 shrink-0" />
           </Button>
         </PopoverTrigger>
         <PopoverContent>

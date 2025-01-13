@@ -108,7 +108,9 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
 
 
 @frappe.whitelist()
-def save(date: str, description: str, task: str, hours: float = 0, employee: str = None):
+def save(
+    date: str, description: str, task: str, hours: float = 0, employee: str = None, is_billable: bool | None = None
+):
     """create time entry in Timesheet Detail child table."""
     if not employee:
         employee = get_employee_from_user()
@@ -128,7 +130,7 @@ def save(date: str, description: str, task: str, hours: float = 0, employee: str
         },
         "name",
     )
-    create_timesheet_detail(date, hours, description, task, employee, parent)
+    create_timesheet_detail(date, hours, description, task, employee, parent, is_billable)
     return _("New Timesheet created successfully.")
 
 
@@ -219,6 +221,9 @@ def update_timesheet_detail(
             log.hours = hours
             log.description = description
             log.is_billable = is_billable
+        if getdate(log.from_time) != getdate(date) and log.name == name:
+            parent_doc.time_logs.remove(log)
+            save(date, description, task, hours, parent_doc.employee, is_billable)
     if not name:
         parent_doc.append(
             "time_logs",
@@ -251,6 +256,7 @@ def create_timesheet_detail(
     task: str,
     employee: str,
     parent: str | None = None,
+    is_billable: bool | None = None,
 ):
     if parent:
         timesheet = frappe.get_doc("Timesheet", parent)
@@ -269,7 +275,7 @@ def create_timesheet_detail(
             "from_time": getdate(date),
             "to_time": getdate(date),
             "project": project,
-            "is_billable": custom_is_billable,
+            "is_billable": is_billable if is_billable is not None else custom_is_billable,
         },
     )
     timesheet.flags.ignore_permissions = is_timesheet_manager()
@@ -443,13 +449,5 @@ def bulk_update_timesheet_detail(data):
     for entry in data:
         if isinstance(entry, str):
             entry = frappe.parse_json(entry)
-        update_timesheet_detail(
-            entry.get("name"),
-            entry.get("parent"),
-            entry.get("hours"),
-            entry.get("description"),
-            entry.get("task"),
-            entry.get("date"),
-            entry.get("is_billable"),
-        )
+        update_timesheet_detail(**entry)
     return _("Time entry updated successfully.")
