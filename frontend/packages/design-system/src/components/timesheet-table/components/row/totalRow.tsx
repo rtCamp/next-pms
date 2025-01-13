@@ -3,10 +3,10 @@
  */
 import { TableCell, TableRow } from "@design-system/components/table";
 import Typography from "@design-system/components/typography";
-import { cn, floatToTime, getBgCsssForToday, getDateFromDateAndTimeString } from "@design-system/utils";
+import { cn, floatToTime, getBgCsssForToday } from "@design-system/utils";
 import { LeaveProps, WorkingFrequency, TaskProps, TaskDataItemProps, TaskDataProps, HolidayProps } from "../../type";
 import { calculateWeeklyHour, expectatedHours } from "../../utils";
-
+import { getDateFromDateAndTimeString } from "@design-system/utils/date";
 type totalHourRowProps = {
   leaves: Array<LeaveProps>;
   dates: string[];

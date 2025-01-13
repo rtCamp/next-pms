@@ -15,7 +15,6 @@ import { checkScreenSize, parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { updateScreenSize } from "@/store/app";
 import { setInitialData } from "@/store/user";
-
 const GenWrapper = lazy(() => import("@/app/components/GenWrapper"));
 
 const Layout = ({ children }: { children: React.ReactNode }) => {

@@ -7,12 +7,12 @@ import { CircleDollarSign } from "lucide-react";
  */
 import { TableCell, TableRow } from "@design-system/components/table";
 import Typography from "@design-system/components/typography";
-import { cn, floatToTime, getDateFromDateAndTimeString } from "@design-system/utils";
+import { cn, floatToTime,  } from "@design-system/utils";
 import { HolidayProps, TaskDataItemProps, TaskDataProps, TaskProps } from "../../type";
 import { getHolidayList } from "../../utils";
 import Cell from "../cell";
 import { TaskHoverCard } from "../taskHoverCard";
-
+import {getDateFromDateAndTimeString} from "@design-system/utils/date";
 export type RowProps = {
   dates: string[];
   holidays: Array<HolidayProps>;

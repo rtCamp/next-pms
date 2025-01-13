@@ -3,12 +3,12 @@
   "private": true,
   "version": "0.0.1",
   "source": "./src/index.ts",
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/design-system.js",
+  "type": "module",
   "exports": {
     ".": {
-      "import": "./src/index.ts"
+      "import": "./dist/design-system.js",
+      "require": "./dist/design-system.js"
     },
     "./design-system.css": "./src/global.css"
   },
@@ -17,7 +17,8 @@
     "README.md"
   ],
   "scripts": {
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "build": "npm install && vite build"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.0",

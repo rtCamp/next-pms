@@ -16,7 +16,7 @@ import { getSiteName } from "@/lib/utils";
 import { Router } from "@/Route";
 import { store } from "@/store";
 import GenWrapper from "./app/components/GenWrapper";
-
+import "@next-pms/design-system/design-system.css";
 function App() {
   const router = createBrowserRouter(createRoutesFromElements(Router()), {
     basename: BASE_ROUTE,
