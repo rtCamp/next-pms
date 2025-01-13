@@ -147,7 +147,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
           <DialogTitle>Edit Time</DialogTitle>
           <Separator />
           <div className="flex justify-between w-full overflow-hidden">
-            <span className="flex flex-col">
+            <span className="flex flex-col items-start">
               <Typography title={data?.message?.task} variant="p" className="max-w-80 truncate font-semibold">
                 {data?.message?.task}
               </Typography>

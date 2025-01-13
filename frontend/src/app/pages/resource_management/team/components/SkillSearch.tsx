@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
+import { useFrappeGetCall } from "frappe-react-sdk";
 import { Filter as Funnel, Search, Star, X } from "lucide-react";
 
 /**
@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/app/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { RootState } from "@/store";
-import { setSkillSearch, Skill } from "@/store/resource_management/team";
+import { setSkillSearch, Skill, SkillData } from "@/store/resource_management/team";
 
 // Comparison options map with descriptions
 const COMPARISON_OPTIONS = {
@@ -40,7 +40,7 @@ const SkillSearch = ({
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const dispatch = useDispatch();
-  const [skills, setSkills] = useState<Skill[]>([]);
+  const [skills, setSkills] = useState<SkillData[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<Skill[]>(resourceTeamState?.skillSearch || []);
 
