@@ -349,5 +349,5 @@ export const currencyFormat = (currency: string) => {
 };
 
 export const getBgCsssForToday = (date: string) => { 
-  return isToday(date) ? "bg-slate-100" : "";
+  return isToday(getDateTimeForMultipleTimeZoneSupport(date)) ? "bg-slate-100" : "";
 }
