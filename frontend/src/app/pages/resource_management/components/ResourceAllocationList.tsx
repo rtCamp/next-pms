@@ -25,6 +25,7 @@ import {
 
 import { DeleteAllocation } from "./Confirmation";
 import { getFilterValue, getInitials } from "../utils/helper";
+import { getFormatedStringValue } from "../utils/value";
 
 /**
  * This component is responsible for rendering the list of resource allocations in Card.
@@ -131,9 +132,9 @@ export const ResourceAllocationCard = ({
         allocation_end_date: resourceAllocation.allocation_end_date,
         is_billable: resourceAllocation.is_billable == 1,
         customer: resourceAllocation.customer,
-        total_allocated_hours: resourceAllocation.total_allocated_hours,
-        hours_allocated_per_day: resourceAllocation.hours_allocated_per_day,
-        note: resourceAllocation.note,
+        total_allocated_hours: getFormatedStringValue(resourceAllocation.total_allocated_hours),
+        hours_allocated_per_day: getFormatedStringValue(resourceAllocation.hours_allocated_per_day),
+        note: getFormatedStringValue(resourceAllocation.note),
         project_name: resourceAllocation.project_name,
         customer_name: customerData.name,
         isNeedToEdit: true,
@@ -157,9 +158,9 @@ export const ResourceAllocationCard = ({
         allocation_end_date: resourceAllocation.allocation_end_date,
         is_billable: resourceAllocation.is_billable == 1,
         customer: resourceAllocation.customer,
-        total_allocated_hours: resourceAllocation.total_allocated_hours,
-        hours_allocated_per_day: resourceAllocation.hours_allocated_per_day,
-        note: resourceAllocation.note,
+        total_allocated_hours: getFormatedStringValue(resourceAllocation.total_allocated_hours),
+        hours_allocated_per_day: getFormatedStringValue(resourceAllocation.hours_allocated_per_day),
+        note: getFormatedStringValue(resourceAllocation.note),
         project_name: resourceAllocation.project_name,
         customer_name: customerData.name,
         isNeedToEdit: false,

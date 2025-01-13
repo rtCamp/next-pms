@@ -17,8 +17,6 @@ import {
   EmployeeDataProps,
   EmployeeResourceProps,
   emptyEmployeeDayData,
-  setMaxWeek,
-  setStart,
 } from "@/store/resource_management/team";
 import { ResourceAllocationObjectProps } from "@/types/resource_management";
 
@@ -29,7 +27,6 @@ import { ResourceTableCell } from "../../components/TableCell";
 import ResourceTeamTableHeader from "../../components/TableHeader";
 import { ResourceTableRow } from "../../components/TableRow";
 import { TableContextProvider } from "../../contexts/tableContext";
-import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { getCellBackGroundColor } from "../../utils/cell";
 import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
 
@@ -41,28 +38,18 @@ import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "..
  */
 const ResourceTeamTable = ({
   onSubmit,
+  cellHeaderRef,
+  dateToAddHeaderRef,
+  handleVerticalLoadMore,
 }: {
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
+  cellHeaderRef: any;
+  dateToAddHeaderRef: string;
+  handleVerticalLoadMore: () => void;
 }) => {
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_team.data.dates);
   const isLoading = useSelector((state: RootState) => state.resource_team.isLoading);
-  const maxWeek = useSelector((state: RootState) => state.resource_team.maxWeek);
-  const start = useSelector((state: RootState) => state.resource_team.start);
-  const pageLength = useSelector((state: RootState) => state.resource_team.pageLength);
   const hasMore = useSelector((state: RootState) => state.resource_team.hasMore);
-  const dispatch = useDispatch();
-
-  const handleVerticalLoadMore = () => {
-    if (!hasMore) return;
-    dispatch(setStart(start + pageLength));
-  };
-
-  const handleLoadMore = () => {
-    if (isLoading) return;
-    dispatch(setMaxWeek(maxWeek + 3));
-  };
-
-  const cellHeaderRef = useInfiniteScroll({ isLoading: isLoading, hasMore: true, next: () => handleLoadMore() });
 
   if (dates.length == 0) {
     return (
@@ -75,7 +62,12 @@ const ResourceTeamTable = ({
   return (
     <TableContextProvider>
       <Table className="relative">
-        <ResourceTeamTableHeader headerRef={cellHeaderRef} dates={dates} title="Members" />
+        <ResourceTeamTableHeader
+          dateToAddHeaderRef={dateToAddHeaderRef}
+          cellHeaderRef={cellHeaderRef}
+          dates={dates}
+          title="Members"
+        />
         <InfiniteScroll isLoading={isLoading} hasMore={hasMore} verticalLodMore={handleVerticalLoadMore}>
           <ResourceTeamTableBody onSubmit={onSubmit} />
         </InfiniteScroll>
@@ -129,11 +121,21 @@ const ResourceTeamTableBody = ({
                         };
                       }
 
+                      let weekData = {
+                        total_allocated_hours: 0,
+                        total_working_hours: parseInt(employeeData.employee_daily_working_hours) * 5,
+                        total_worked_hours: 0,
+                      };
+
+                      if (week.key in employeeData.all_week_data) {
+                        weekData = employeeData.all_week_data[week.key];
+                      }
+
                       return (
                         <ResourceTeamTableCell
                           key={`${employeeSingleDay.total_allocated_hours}-id-${Math.random()}`}
                           employeeSingleDay={employeeSingleDay}
-                          allWeekData={employeeData.all_week_data}
+                          weekData={weekData}
                           employee={employeeData.name}
                           employee_name={employeeData.employee_name}
                           rowCount={index}
@@ -173,7 +175,7 @@ const ResourceTeamTableBody = ({
  */
 const ResourceTeamTableCell = ({
   employeeSingleDay,
-  allWeekData,
+  weekData,
   rowCount,
   employee_name,
   employee,
@@ -182,7 +184,7 @@ const ResourceTeamTableCell = ({
   onSubmit,
 }: {
   employeeSingleDay: EmployeeResourceProps;
-  allWeekData: any;
+  weekData: any;
   rowCount: number;
   employee: string;
   employee_name: string;
@@ -201,10 +203,10 @@ const ResourceTeamTableCell = ({
 
   const allocationPercentage = useMemo(() => {
     if (tableView.combineWeekHours) {
-      if (allWeekData[midIndex].total_working_hours == 0) {
+      if (weekData.total_working_hours == 0) {
         return -1;
       }
-      return 100 - (allWeekData[midIndex].total_allocated_hours / allWeekData[midIndex].total_working_hours) * 100;
+      return 100 - (weekData.total_allocated_hours / weekData.total_working_hours) * 100;
     }
 
     if (employeeSingleDay.total_working_hours == 0) {
@@ -213,11 +215,10 @@ const ResourceTeamTableCell = ({
 
     return 100 - (employeeSingleDay.total_allocated_hours / employeeSingleDay.total_working_hours) * 100;
   }, [
-    allWeekData,
     employeeSingleDay.total_allocated_hours,
     employeeSingleDay.total_working_hours,
-    midIndex,
     tableView.combineWeekHours,
+    weekData,
   ]);
 
   const cellBackGroundColor = useMemo(() => getCellBackGroundColor(allocationPercentage), [allocationPercentage]);
@@ -235,8 +236,8 @@ const ResourceTeamTableCell = ({
         value={
           rowCount == 2 &&
           (tableView.view == "planned-vs-capacity"
-            ? `${allWeekData[midIndex].total_allocated_hours} / ${allWeekData[midIndex].total_working_hours}`
-            : `${allWeekData[midIndex].total_worked_hours} / ${allWeekData[midIndex].total_allocated_hours}`)
+            ? `${weekData.total_allocated_hours} / ${weekData.total_working_hours}`
+            : `${weekData.total_worked_hours} / ${weekData.total_allocated_hours}`)
         }
       />
     );
@@ -250,9 +251,9 @@ const ResourceTeamTableCell = ({
         employee_name: employee_name,
         allocation_start_date: employeeSingleDay.date,
         allocation_end_date: employeeSingleDay.date,
-        is_billable: getIsBillableValue(allocationType as string[]) != 0,
-        total_allocated_hours: 0,
-        hours_allocated_per_day: 0,
+        is_billable: getIsBillableValue(allocationType as string[]) != "0",
+        total_allocated_hours: "0",
+        hours_allocated_per_day: "0",
         note: "",
         project: "",
         project_name: "",

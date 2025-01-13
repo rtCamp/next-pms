@@ -67,11 +67,11 @@ const removeValueFromArray = (value: string, array: string[] | undefined) => {
  */
 const getIsBillableValue = (value: string[]) => {
   if (value.length == 2 || value.length == 0) {
-    return -1;
+    return "-1";
   } else if (value[0] == "Billable") {
-    return 1;
+    return "1";
   } else {
-    return 0;
+    return "0";
   }
 };
 
