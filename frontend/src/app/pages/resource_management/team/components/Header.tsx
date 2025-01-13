@@ -108,7 +108,7 @@ const ResourceTeamHeaderSection = () => {
   }, [dispatch, resourceTeamState.data.dates]);
 
   const handleNextWeek = useCallback(() => {
-    const date = getFormatedDate(addDays(resourceTeamState.data.dates[0].end_date, +1));
+    const date = getFormatedDate(addDays(resourceTeamState.data.dates[0].end_date, +3));
     dispatch(setWeekDate(date));
   }, [dispatch, resourceTeamState.data.dates]);
 

@@ -67,6 +67,7 @@ const ResourceTeamView = () => {
         date: resourceProjectState.weekDate,
         max_week: resourceProjectState.maxWeek,
         project_id: JSON.stringify([oldData.project, newData.project]),
+        is_billable: getIsBillableValue(resourceProjectState.allocationType as string[])
       }).then((res) => {
         const newProject = res.message?.data;
         if (newProject && newProject.length > 0) {
@@ -81,13 +82,7 @@ const ResourceTeamView = () => {
         }
       });
     },
-    [
-      dispatch,
-      fetchSingleRecord,
-      resourceProjectState.data,
-      resourceProjectState.maxWeek,
-      resourceProjectState.weekDate,
-    ]
+    [dispatch, fetchSingleRecord, resourceProjectState.allocationType, resourceProjectState.data, resourceProjectState.maxWeek, resourceProjectState.weekDate]
   );
 
   useEffect(() => {

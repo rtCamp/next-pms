@@ -209,8 +209,10 @@ const ResourceTeamSlice = createSlice({
     setWeekDate: (state, action: PayloadAction<string>) => {
       state.weekDate = action.payload;
       state.start = 0;
-      state.data = initialState.data;
-      state.data.dates = getDatesArrays(action.payload, 10);
+      state.data = {
+        ...initialState.data,
+        dates: getDatesArrays(action.payload, 10),
+      };
       state.pageLength = initialState.pageLength;
       state.isLoading = true;
       state.maxWeek = initialState.maxWeek;

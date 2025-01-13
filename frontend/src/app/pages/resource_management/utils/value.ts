@@ -8,7 +8,7 @@ const getFormatedStringValue = (
   value: string | undefined | number
 ): string | number => {
   if (typeof value === "number") {
-    return value;
+    return value.toString();
   }
   if (value === undefined || value === null) {
     return "";

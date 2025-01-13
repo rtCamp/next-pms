@@ -3,6 +3,7 @@ import { startOfWeek } from "date-fns";
 import {
   getDateTimeForMultipleTimeZoneSupport,
   getFormatedDate,
+  getTodayDate,
 } from "@/lib/utils";
 import { DateProps } from "@/store/resource_management/team";
 
@@ -30,7 +31,7 @@ function getDatesArrays(
   const start = startOfWeek(getDateTimeForMultipleTimeZoneSupport(startDate), {
     weekStartsOn: 1,
   });
-  const startString = getFormatedDate(start);
+  const today = getTodayDate()
 
   for (let weekCount = 0; weekCount < weeks; weekCount++) {
     const datesObject: DateProps = {
@@ -47,7 +48,7 @@ function getDatesArrays(
     for (let date = 0; date < 7; date++) {
       const dateString = getFormatedDate(currentDayOfWeek);
 
-      if (dateString === startString) {
+      if (dateString === today) {
         key = "This Week";
       }
       if (
@@ -87,8 +88,8 @@ function getNextDate(startDate: string, weeks: number) {
 
 function getMonthKey(dateString: string) {
   const date = getDateTimeForMultipleTimeZoneSupport(dateString);
-  return `${date.getDate() < 10 ? "0" + date.getDate() : date.getDate()} ${
-    Months[date.getMonth()]
+  return `${Months[date.getMonth()]} ${
+    date.getDate() < 10 ? "0" + date.getDate() : date.getDate()
   }`;
 }
 

@@ -50,7 +50,7 @@ def get_resource_management_team_view_data(
     data = []
     customer = {}
     dates = get_dates_date(max_week, date)
-    res = {"dates": dates}
+    res = {}
 
     ids = None
 
@@ -144,7 +144,7 @@ def get_resource_management_team_view_data(
 
         holidays = get_holidays(employee.name, dates[0].get("start_date"), dates[-1].get("end_date"))
 
-        all_dates_data, all_week_data, all_leave_data = {}, [], {}
+        all_dates_data, all_week_data, all_leave_data = {}, {}, {}
         max_allocation_count_for_single_date = 0
 
         # For given employee loop through all the dates and calculate the total allocated hours, total working hours and total worked hours
@@ -238,20 +238,17 @@ def get_resource_management_team_view_data(
                 max_allocation_count_for_single_date = max(max_allocation_count_for_single_date, total_allocation_count)
 
             if permissions["write"]:
-                all_week_data.append(
-                    {
-                        "total_allocated_hours": total_allocated_hours_for_given_week,
-                        "total_working_hours": total_working_hours_for_given_week,
-                        "total_worked_hours": total_worked_hours_for_given_week,
-                    }
-                )
+                all_week_data[date_info.get("key")] = {
+                    "total_allocated_hours": total_allocated_hours_for_given_week,
+                    "total_working_hours": total_working_hours_for_given_week,
+                    "total_worked_hours": total_worked_hours_for_given_week,
+                }
+
             else:
-                all_week_data.append(
-                    {
-                        "total_allocated_hours": total_allocated_hours_for_given_week,
-                        "total_working_hours": total_working_hours_for_given_week,
-                    }
-                )
+                all_week_data[date_info.get("key")] = {
+                    "total_allocated_hours": total_allocated_hours_for_given_week,
+                    "total_working_hours": total_working_hours_for_given_week,
+                }
 
         data.append(
             {

@@ -121,11 +121,21 @@ const ResourceTeamTableBody = ({
                         };
                       }
 
+                      let weekData = {
+                        total_allocated_hours: 0,
+                        total_working_hours: parseInt(employeeData.employee_daily_working_hours) * 5,
+                        total_worked_hours: 0,
+                      };
+
+                      if (week.key in employeeData.all_week_data) {
+                        weekData = employeeData.all_week_data[week.key];
+                      }
+
                       return (
                         <ResourceTeamTableCell
                           key={`${employeeSingleDay.total_allocated_hours}-id-${Math.random()}`}
                           employeeSingleDay={employeeSingleDay}
-                          allWeekData={employeeData.all_week_data}
+                          weekData={weekData}
                           employee={employeeData.name}
                           employee_name={employeeData.employee_name}
                           rowCount={index}
@@ -165,7 +175,7 @@ const ResourceTeamTableBody = ({
  */
 const ResourceTeamTableCell = ({
   employeeSingleDay,
-  allWeekData,
+  weekData,
   rowCount,
   employee_name,
   employee,
@@ -174,7 +184,7 @@ const ResourceTeamTableCell = ({
   onSubmit,
 }: {
   employeeSingleDay: EmployeeResourceProps;
-  allWeekData: any;
+  weekData: any;
   rowCount: number;
   employee: string;
   employee_name: string;
@@ -193,10 +203,10 @@ const ResourceTeamTableCell = ({
 
   const allocationPercentage = useMemo(() => {
     if (tableView.combineWeekHours) {
-      if (allWeekData[midIndex].total_working_hours == 0) {
+      if (weekData.total_working_hours == 0) {
         return -1;
       }
-      return 100 - (allWeekData[midIndex].total_allocated_hours / allWeekData[midIndex].total_working_hours) * 100;
+      return 100 - (weekData.total_allocated_hours / weekData.total_working_hours) * 100;
     }
 
     if (employeeSingleDay.total_working_hours == 0) {
@@ -205,11 +215,10 @@ const ResourceTeamTableCell = ({
 
     return 100 - (employeeSingleDay.total_allocated_hours / employeeSingleDay.total_working_hours) * 100;
   }, [
-    allWeekData,
     employeeSingleDay.total_allocated_hours,
     employeeSingleDay.total_working_hours,
-    midIndex,
     tableView.combineWeekHours,
+    weekData,
   ]);
 
   const cellBackGroundColor = useMemo(() => getCellBackGroundColor(allocationPercentage), [allocationPercentage]);
@@ -227,8 +236,8 @@ const ResourceTeamTableCell = ({
         value={
           rowCount == 2 &&
           (tableView.view == "planned-vs-capacity"
-            ? `${allWeekData[midIndex].total_allocated_hours} / ${allWeekData[midIndex].total_working_hours}`
-            : `${allWeekData[midIndex].total_worked_hours} / ${allWeekData[midIndex].total_allocated_hours}`)
+            ? `${weekData.total_allocated_hours} / ${weekData.total_working_hours}`
+            : `${weekData.total_worked_hours} / ${weekData.total_allocated_hours}`)
         }
       />
     );
@@ -242,9 +251,9 @@ const ResourceTeamTableCell = ({
         employee_name: employee_name,
         allocation_start_date: employeeSingleDay.date,
         allocation_end_date: employeeSingleDay.date,
-        is_billable: getIsBillableValue(allocationType as string[]) != 0,
-        total_allocated_hours: 0,
-        hours_allocated_per_day: 0,
+        is_billable: getIsBillableValue(allocationType as string[]) != "0",
+        total_allocated_hours: "0",
+        hours_allocated_per_day: "0",
         note: "",
         project: "",
         project_name: "",

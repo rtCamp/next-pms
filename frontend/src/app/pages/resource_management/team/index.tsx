@@ -130,10 +130,10 @@ const ResourceTeamView = () => {
             ...updateEmployeeData.all_leave_data,
             ...horizontalPreProcessData.data[count].all_leave_data,
           };
-          updateEmployeeData.all_week_data = [
+          updateEmployeeData.all_week_data = {
             ...updateEmployeeData.all_week_data,
             ...horizontalPreProcessData.data[count].all_week_data,
-          ];
+          };
           updateEmployeeData.employee_allocations = {
             ...updateEmployeeData.employee_allocations,
             ...horizontalPreProcessData.data[count].employee_allocations,
@@ -274,6 +274,7 @@ const ResourceTeamView = () => {
         date: resourceTeamState.weekDate,
         max_week: resourceTeamState.maxWeek,
         employee_id: JSON.stringify([oldData.employee, newData.employee]),
+        is_billable: getIsBillableValue(resourceTeamState.allocationType as string[])
       }).then((res) => {
         const newEmployeeData = res.message?.data;
         if (newEmployeeData && newEmployeeData.length > 0) {
