@@ -87,6 +87,11 @@ export interface Skill {
   operator: string;
 }
 
+export interface SkillData {
+  name: string;
+} 
+
+
 export interface ResourceTeamState {
   data: ResourceTeamDataProps;
   employeeName?: string;
