@@ -7,11 +7,10 @@ import { useDispatch, useSelector } from "react-redux";
 /**
  * Internal dependencies.
  */
-import { Skeleton } from "@/app/components/ui/skeleton";
 import { Table, TableBody } from "@/app/components/ui/table";
 import { cn, prettyDate } from "@/lib/utils";
 import { RootState } from "@/store";
-import { setResourceFormData } from "@/store/resource_management/allocation";
+import { AllocationDataProps, setResourceFormData } from "@/store/resource_management/allocation";
 import {
   emptyProjectDayData,
   ProjectDataProps,
@@ -24,8 +23,10 @@ import { ResourceAllocationObjectProps } from "@/types/resource_management";
 
 import { ResourceExpandView } from "./ExpandView";
 import { EmptyTableBody } from "../../components/Empty";
+import { InfiniteScroll } from "../../components/InfiniteScroll";
 import { ResourceAllocationList } from "../../components/ResourceAllocationList";
 import { ResourceTableCell } from "../../components/TableCell";
+
 import ResourceProjectTableHeader from "../../components/TableHeader";
 import { ResourceTableRow } from "../../components/TableRow";
 import { TableContextProvider } from "../../contexts/tableContext";
@@ -35,13 +36,22 @@ import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "..
 
 /**
  * This component is responsible for loading the table for project view.
- *
+ * 
+ * @param props.onSubmit The on submit function used to handle soft update of allocation data.
  * @returns React.FC
  */
-const ResourceProjectTable = () => {
+const ResourceProjectTable = ({
+  onSubmit,
+}: {
+  onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
+}) => {
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_project.data.dates);
   const isLoading = useSelector((state: RootState) => state.resource_project.isLoading);
   const maxWeek = useSelector((state: RootState) => state.resource_project.maxWeek);
+  const hasMore = useSelector((state: RootState) => state.resource_project.hasMore);
+  const start = useSelector((state: RootState) => state.resource_project.start);
+  const pageLength = useSelector((state: RootState) => state.resource_project.pageLength);
+
   const dispatch = useDispatch();
 
   const handleLoadMore = () => {
@@ -51,11 +61,26 @@ const ResourceProjectTable = () => {
 
   const cellHeaderRef = useInfiniteScroll({ isLoading: isLoading, hasMore: true, next: () => handleLoadMore() });
 
+  const handleVerticalLoadMore = () => {
+    if (!hasMore) return;
+    dispatch(setStart(start + pageLength));
+  };
+
+  if (dates.length == 0) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <EmptyTableBody />
+      </div>
+    );
+  }
+
   return (
     <TableContextProvider>
       <Table className="w-screen">
         <ResourceProjectTableHeader dates={dates} title="Projects" headerRef={cellHeaderRef} />
-        <ResourceProjectTableBody />
+        <InfiniteScroll isLoading={isLoading} hasMore={hasMore} verticalLodMore={handleVerticalLoadMore}>
+          <ResourceProjectTableBody onSubmit={onSubmit} />
+        </InfiniteScroll>
       </Table>
     </TableContextProvider>
   );
@@ -64,23 +89,17 @@ const ResourceProjectTable = () => {
 /**
  * This function is responsible for rendering the table body for project view.
  *
+ * @param props.onSubmit The on submit function used to handle soft update of allocation data.
  * @returns React.FC
  */
-const ResourceProjectTableBody = () => {
+const ResourceProjectTableBody = ({
+  onSubmit,
+}: {
+  onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
+}) => {
   const data = useSelector((state: RootState) => state.resource_project.data.data);
   const dates = useSelector((state: RootState) => state.resource_project.data.dates);
   const allocationType = useSelector((state: RootState) => state.resource_project.allocationType);
-  const start = useSelector((state: RootState) => state.resource_project.start);
-  const pageLength = useSelector((state: RootState) => state.resource_project.pageLength);
-  const hasMore = useSelector((state: RootState) => state.resource_project.hasMore);
-  const isLoading = useSelector((state: RootState) => state.resource_project.isLoading);
-  const cellRef = useInfiniteScroll({ isLoading: isLoading, hasMore: hasMore, next: () => handleLoadMore() });
-  const dispatch = useDispatch();
-
-  const handleLoadMore = () => {
-    if (!hasMore) return;
-    dispatch(setStart(start + pageLength));
-  };
 
   if (data.length == 0) {
     return <EmptyTableBody />;
@@ -88,17 +107,15 @@ const ResourceProjectTableBody = () => {
 
   return (
     <TableBody>
-      {data.map((projectData: ProjectDataProps, index: number) => {
+      {data.map((projectData: ProjectDataProps) => {
         if (!projectData.project_name) {
           return <></>;
         }
-        const needToAddRef = hasMore && index == data.length - 2;
         return (
           <ResourceTableRow
             name={projectData.name}
             avatar={projectData.image}
             avatar_abbr={projectData.project_name[0]}
-            rowRef={needToAddRef ? cellRef : null}
             avatar_name={projectData.project_name}
             RowComponent={() => {
               return (
@@ -126,6 +143,7 @@ const ResourceProjectTableBody = () => {
                           projectAllocations={projectData.project_allocations}
                           project={projectData.name}
                           project_name={projectData.project_name}
+                          onSubmit={onSubmit}
                         />
                       );
                     });
@@ -141,14 +159,13 @@ const ResourceProjectTableBody = () => {
                   start_date={dates[0].start_date}
                   end_date={dates[dates.length - 1].end_date}
                   is_billable={getIsBillableValue(allocationType as string[])}
+                  onSubmit={onSubmit}
                 />
               );
             }}
           />
         );
       })}
-
-      {hasMore && <Skeleton className="h-10 w-full" />}
     </TableBody>
   );
 };
@@ -163,6 +180,7 @@ const ResourceProjectTableBody = () => {
  * @param props.projectAllocations The project allocations data.
  * @param props.project The project name/ID.
  * @param props.project_name The project name.
+ * @param props.onSubmit The on submit function used to handle soft update of allocation data.
  * @returns React.FC
  */
 const ResourceProjectTableCell = ({
@@ -173,6 +191,7 @@ const ResourceProjectTableCell = ({
   projectAllocations,
   project,
   project_name,
+  onSubmit,
 }: {
   projectSingleDay: ProjectResourceProps;
   allWeekData: any;
@@ -181,6 +200,7 @@ const ResourceProjectTableCell = ({
   project: string;
   project_name: string;
   projectAllocations: ResourceAllocationObjectProps;
+  onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
   const tableView = useSelector((state: RootState) => state.resource_project.tableView);
   const customer = useSelector((state: RootState) => state.resource_project.data.customer);
@@ -328,6 +348,7 @@ const ResourceProjectTableCell = ({
             customer={customer}
             onButtonClick={onCellClick}
             viewType={"project"}
+            onSubmit={onSubmit}
           />
         );
       }}

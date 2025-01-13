@@ -36,7 +36,7 @@ def get_projects(
         limit=limit,
         order_by=order_by,
     )
-    count = get_count("Project", filters)
+    count = get_count("Project", filters=filters)
     if not currency or len(currency) == 0:
         return {
             "data": project_lists,

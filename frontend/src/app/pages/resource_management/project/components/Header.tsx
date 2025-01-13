@@ -13,7 +13,7 @@ import { Header } from "@/app/components/listview/header";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { getFormatedDate } from "@/lib/utils";
 import { RootState } from "@/store";
-import { PermissionProps, setDialog } from "@/store/resource_management/allocation";
+import { PermissionProps, setDialog, setResourcePermissions } from "@/store/resource_management/allocation";
 import {
   deleteFilters,
   setAllocationType,
@@ -24,7 +24,7 @@ import {
   setView,
   setWeekDate,
 } from "@/store/resource_management/project";
-
+import { useFrappePostCall } from "frappe-react-sdk";
 
 /**
  * This component is responsible for loading the project view header.
@@ -46,11 +46,31 @@ const ResourceProjectHeaderSection = () => {
   );
   const dispatch = useDispatch();
 
+  const { call, loading } = useFrappePostCall(
+    "next_pms.resource_management.api.permission.get_user_resources_permissions"
+  );
+
   useEffect(() => {
+    if (Object.keys(resourceAllocationPermission).length != 0) {
+      updateFilters(resourceAllocationPermission);
+      return;
+    }
+    if (loading) return;
+
+    call({}).then((res: { message: PermissionProps }) => {
+      const resResourceAllocationPermission = res.message;
+      updateFilters(resResourceAllocationPermission);
+      dispatch(setResourcePermissions(resResourceAllocationPermission));
+    });
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const updateFilters = (resResourceAllocationPermission: PermissionProps) => {
     let CurrentViewParam = viewParam;
     if (!CurrentViewParam) {
       CurrentViewParam = "planned";
-      if (resourceAllocationPermission.write) {
+      if (resResourceAllocationPermission.write) {
         setViewParam(CurrentViewParam);
       }
     }
@@ -64,8 +84,7 @@ const ResourceProjectHeaderSection = () => {
         combineWeekHours: combineWeekHoursParam,
       })
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  };
 
   const handlePrevWeek = useCallback(() => {
     const date = getFormatedDate(addDays(resourceProjectState.data.dates[0].start_date, -3));
@@ -191,7 +210,7 @@ const ResourceProjectHeaderSection = () => {
           handleClick: () => {
             dispatch(setDialog(true));
           },
-          className:"px-3",
+          className: "px-3",
           icon: () => <Plus className="w-4 max-md:w-3 h-4 max-md:h-3" />,
           variant: "default",
           hide: !resourceAllocationPermission.write,

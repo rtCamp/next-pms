@@ -7,11 +7,11 @@ import { useDispatch, useSelector } from "react-redux";
 /**
  * Internal dependencies.
  */
-import { Skeleton } from "@/app/components/ui/skeleton";
 import { Table, TableBody } from "@/app/components/ui/table";
+import { InfiniteScroll } from "@/app/pages/resource_management/components/InfiniteScroll";
 import { cn, prettyDate } from "@/lib/utils";
 import { RootState } from "@/store";
-import { setResourceFormData } from "@/store/resource_management/allocation";
+import { AllocationDataProps, setResourceFormData } from "@/store/resource_management/allocation";
 import {
   DateProps,
   EmployeeDataProps,
@@ -19,7 +19,6 @@ import {
   emptyEmployeeDayData,
   setMaxWeek,
   setStart,
-  setWeekDate,
 } from "@/store/resource_management/team";
 import { ResourceAllocationObjectProps } from "@/types/resource_management";
 
@@ -37,13 +36,26 @@ import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "..
 /**
  * This component is responsible for loading the table for table view.
  *
+ * @param props.onSubmit The on submit function used to handle soft update of allocation data.
  * @returns React.FC
  */
-const ResourceTeamTable = () => {
+const ResourceTeamTable = ({
+  onSubmit,
+}: {
+  onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
+}) => {
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_team.data.dates);
   const isLoading = useSelector((state: RootState) => state.resource_team.isLoading);
   const maxWeek = useSelector((state: RootState) => state.resource_team.maxWeek);
+  const start = useSelector((state: RootState) => state.resource_team.start);
+  const pageLength = useSelector((state: RootState) => state.resource_team.pageLength);
+  const hasMore = useSelector((state: RootState) => state.resource_team.hasMore);
   const dispatch = useDispatch();
+
+  const handleVerticalLoadMore = () => {
+    if (!hasMore) return;
+    dispatch(setStart(start + pageLength));
+  };
 
   const handleLoadMore = () => {
     if (isLoading) return;
@@ -52,11 +64,21 @@ const ResourceTeamTable = () => {
 
   const cellHeaderRef = useInfiniteScroll({ isLoading: isLoading, hasMore: true, next: () => handleLoadMore() });
 
+  if (dates.length == 0) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <EmptyTableBody />
+      </div>
+    );
+  }
+
   return (
     <TableContextProvider>
       <Table className="relative">
         <ResourceTeamTableHeader headerRef={cellHeaderRef} dates={dates} title="Members" />
-        <ResourceTeamTableBody />
+        <InfiniteScroll isLoading={isLoading} hasMore={hasMore} verticalLodMore={handleVerticalLoadMore}>
+          <ResourceTeamTableBody onSubmit={onSubmit} />
+        </InfiniteScroll>
       </Table>
     </TableContextProvider>
   );
@@ -65,22 +87,16 @@ const ResourceTeamTable = () => {
 /**
  * This function is responsible for rendering the table body for table view.
  *
+ * @param props.onSubmit The on submit function used to handle soft update of allocation data.
  * @returns React.FC
  */
-const ResourceTeamTableBody = () => {
+const ResourceTeamTableBody = ({
+  onSubmit,
+}: {
+  onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
+}) => {
   const data = useSelector((state: RootState) => state.resource_team.data.data);
-  const start = useSelector((state: RootState) => state.resource_team.start);
-  const pageLength = useSelector((state: RootState) => state.resource_team.pageLength);
-  const hasMore = useSelector((state: RootState) => state.resource_team.hasMore);
-  const isLoading = useSelector((state: RootState) => state.resource_team.isLoading);
   const dates: DateProps[] = useSelector((state: RootState) => state.resource_team.data.dates);
-  const cellRef = useInfiniteScroll({ isLoading: isLoading, hasMore: hasMore, next: () => handleLoadMore() });
-  const dispatch = useDispatch();
-
-  const handleLoadMore = () => {
-    if (!hasMore) return;
-    dispatch(setStart(start + pageLength));
-  };
 
   if (data.length == 0) {
     return <EmptyTableBody />;
@@ -88,14 +104,12 @@ const ResourceTeamTableBody = () => {
 
   return (
     <TableBody>
-      {data.map((employeeData: EmployeeDataProps, index: number) => {
-        const needToAddRef = hasMore && index == data.length - 2;
-
+      {data.map((employeeData: EmployeeDataProps) => {
         return (
           <ResourceTableRow
+            key={employeeData.name}
             name={employeeData.name}
             avatar={employeeData.image}
-            rowRef={needToAddRef ? cellRef : null}
             avatar_abbr={employeeData.employee_name}
             avatar_name={employeeData.employee_name}
             RowComponent={() => {
@@ -125,6 +139,7 @@ const ResourceTeamTableBody = () => {
                           rowCount={index}
                           midIndex={week_index}
                           employeeAllocations={employeeData.employee_allocations}
+                          onSubmit={onSubmit}
                         />
                       );
                     });
@@ -133,12 +148,11 @@ const ResourceTeamTableBody = () => {
               );
             }}
             RowExpandView={() => {
-              return <ResourceExpandView employeeData={employeeData} />;
+              return <ResourceExpandView employeeData={employeeData} onSubmit={onSubmit} />;
             }}
           />
         );
       })}
-      {hasMore && <Skeleton className="h-10 w-full" />}
     </TableBody>
   );
 };
@@ -154,6 +168,7 @@ const ResourceTeamTableBody = () => {
  * @param props.max_allocation_count_for_single_date The max allocation count for the single date.
  * @param props.midIndex The mid index of the cell.
  * @param props.employeeAllocations The employee allocation data.
+ * @param props.onSubmit The on submit function used to handle soft update of allocation data.
  * @returns React.FC
  */
 const ResourceTeamTableCell = ({
@@ -164,6 +179,7 @@ const ResourceTeamTableCell = ({
   employee,
   midIndex,
   employeeAllocations,
+  onSubmit,
 }: {
   employeeSingleDay: EmployeeResourceProps;
   allWeekData: any;
@@ -172,6 +188,7 @@ const ResourceTeamTableCell = ({
   employee_name: string;
   midIndex: number;
   employeeAllocations: ResourceAllocationObjectProps;
+  onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
   const tableView = useSelector((state: RootState) => state.resource_team.tableView);
   const customer = useSelector((state: RootState) => state.resource_team.data.customer);
@@ -299,6 +316,7 @@ const ResourceTeamTableCell = ({
             employeeAllocations={employeeAllocations}
             customer={customer}
             onButtonClick={onCellClick}
+            onSubmit={onSubmit}
           />
         );
       }}

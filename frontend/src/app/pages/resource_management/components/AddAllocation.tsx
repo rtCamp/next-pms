@@ -37,7 +37,11 @@ import { getRoundOfValue } from "../utils/helper";
  * @param onSubmit Function to be called when form is submitted.
  * @returns React.FC
  */
-const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
+const AddResourceAllocations = ({
+  onSubmit,
+}: {
+  onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
+}) => {
   const resourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
   const dispatch = useDispatch();
 
@@ -257,8 +261,8 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
           variant: "success",
           description: `Resouce allocation ${resourceAllocationForm.isNeedToEdit ? "updated" : "created"} successfully`,
         });
+        onSubmit(resourceAllocationForm, data);
         handleOpen(false);
-        onSubmit();
       })
       .catch(() => {
         toast({
@@ -517,10 +521,7 @@ const AddResourceAllocations = ({ onSubmit }: { onSubmit: () => void }) => {
                             type="text"
                             {...field}
                             onChange={(e) => {
-                              form.setValue(
-                                "hours_allocated_per_day",
-                                handleNumberInputValue(String(e.target.value))
-                              );
+                              form.setValue("hours_allocated_per_day", handleNumberInputValue(String(e.target.value)));
                               handleHoursAutoComplete("total");
                             }}
                           />

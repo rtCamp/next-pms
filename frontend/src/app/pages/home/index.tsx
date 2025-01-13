@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { isToday } from "date-fns";
+import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -50,17 +51,8 @@ const Home = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const getKey = (pageIndex: number, previousPageData: any) => {
-    const indexTillNeedToFetchData = homeState.start == 0 ? 1 : homeState.start / homeState.pageLength;
-    if (indexTillNeedToFetchData <= pageIndex) return null;
-    if (previousPageData && !previousPageData.message.has_more) return null;
-
-    return `next_pms.timesheet.api.team.get_compact_view_data?page=${pageIndex}&limit=${homeState.pageLength}`;
-  };
-
-  const { data, isLoading, error, size, setSize, mutate } = usePagination(
+  const { data, isLoading, error, mutate } = useFrappeGetCall(
     "next_pms.timesheet.api.team.get_compact_view_data",
-    getKey,
     {
       date: homeState.weekDate,
       employee_name: homeState.employeeName,
@@ -68,9 +60,12 @@ const Home = () => {
       start: homeState.start,
       status: homeState.status,
     },
+    "next_pms.timesheet.api.team.get_compact_view_data_home_page",
     {
-      revalidateAll: false,
-      revalidateFirstPage: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      revalidateIfStale: false,
+      revalidateOnMount: false,
     }
   );
 
@@ -82,19 +77,11 @@ const Home = () => {
   }, [dispatch, mutate, homeState.isNeedToFetchDataAfterUpdate]);
 
   useEffect(() => {
-    const newSize: number = homeState.start / homeState.pageLength + 1;
-    if (newSize == size) {
-      return;
-    }
-    setSize(newSize);
-  }, [homeState.start, homeState.pageLength, size, setSize]);
-
-  useEffect(() => {
     if (data) {
       if (homeState.action == "SET") {
-        dispatch(setData(data[0].message));
+        dispatch(setData(data.message));
       } else {
-        dispatch(updateData(data[data.length - 1].message));
+        dispatch(updateData(data.message));
       }
     }
     if (error) {
@@ -104,7 +91,8 @@ const Home = () => {
         description: err,
       });
     }
-  }, [data, dispatch, error, homeState.action, toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, error]);
 
   const handleLoadMore = () => {
     if (homeState.isLoading) return;

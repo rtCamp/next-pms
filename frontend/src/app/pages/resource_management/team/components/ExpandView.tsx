@@ -10,7 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Table, TableBody, TableRow } from "@/app/components/ui/table";
 import { cn, prettyDate } from "@/lib/utils";
 import { RootState } from "@/store";
-import { setResourceFormData } from "@/store/resource_management/allocation";
+import { AllocationDataProps, setResourceFormData } from "@/store/resource_management/allocation";
 import { DateProps, EmployeeDataProps } from "@/store/resource_management/team";
 
 import { EmptyRow } from "../../components/Empty";
@@ -23,9 +23,16 @@ import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "..
  * This component is responsible for loading Team view expand view data.
  *
  * @param props.employeeData React.FC
+ * @param props.onSubmit The on submit function used to handle soft update of allocation data.
  * @returns React.FC
  */
-export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDataProps }) => {
+export const ResourceExpandView = ({
+  employeeData,
+  onSubmit,
+}: {
+  employeeData: EmployeeDataProps;
+  onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
+}) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
 
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
@@ -76,6 +83,7 @@ export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDat
                           project_name={itemData.project_name}
                           customer_name={itemData.customer_name}
                           weekIndex={weekIndex}
+                          onSubmit={onSubmit}
                         />
                       );
                     });
@@ -102,6 +110,7 @@ export const ResourceExpandView = ({ employeeData }: { employeeData: EmployeeDat
  * @param props.project The project name/ID.
  * @param props.employee The employee name/ID.
  * @param props.project_name The project name.
+ * @param props.onSubmit The on submit function used to handle soft update of allocation data.
  * @returns React.FC
  */
 const ExpandViewCell = ({
@@ -114,6 +123,7 @@ const ExpandViewCell = ({
   project_name,
   customer_name,
   weekIndex,
+  onSubmit,
 }: {
   allocationsData: any;
   index: number;
@@ -124,6 +134,7 @@ const ExpandViewCell = ({
   employee_name: string;
   project_name: string;
   weekIndex: number;
+  onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
   const dispatch = useDispatch();
@@ -186,6 +197,7 @@ const ExpandViewCell = ({
             resourceAllocationList={allocationsData.allocations}
             customer={resourceTeamState.data.customer}
             onButtonClick={onCellClick}
+            onSubmit={onSubmit}
           />
         );
       }}

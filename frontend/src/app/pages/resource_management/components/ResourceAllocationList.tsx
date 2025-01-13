@@ -15,8 +15,7 @@ import { Button } from "@/app/components/ui/button";
 import { useToast } from "@/app/components/ui/use-toast";
 import { cn, prettyDate } from "@/lib/utils";
 import { RootState } from "@/store";
-import { PermissionProps, setResourceFormData } from "@/store/resource_management/allocation";
-import { setReFetchData } from "@/store/resource_management/team";
+import { AllocationDataProps, PermissionProps, setResourceFormData } from "@/store/resource_management/allocation";
 import {
   ResourceAllocationObjectProps,
   ResourceAllocationProps,
@@ -43,12 +42,14 @@ export const ResourceAllocationList = ({
   customer,
   onButtonClick,
   viewType,
+  onSubmit,
 }: {
   resourceAllocationList: ResourceAllocationProps[];
   employeeAllocations?: ResourceAllocationObjectProps;
   customer: ResourceCustomerObjectProps;
   viewType?: string;
   onButtonClick?: () => void;
+  onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
   const resourceAllocationPermission: PermissionProps = useSelector(
     (state: RootState) => state.resource_allocation_form.permissions
@@ -67,6 +68,7 @@ export const ResourceAllocationList = ({
           customer={customer}
           viewType={viewType}
           isLastItem={index == resourceAllocationList.length - 1}
+          onSubmit={onSubmit}
         />
       ))}
       {resourceAllocationPermission.write && onButtonClick && (
@@ -98,11 +100,13 @@ export const ResourceAllocationCard = ({
   customer,
   viewType,
   isLastItem,
+  onSubmit,
 }: {
   resourceAllocation: ResourceAllocationProps;
   customer: ResourceCustomerObjectProps;
   viewType?: string;
   isLastItem: boolean;
+  onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
   const customerData: ResourceCustomerProps = customer[resourceAllocation.customer];
   const resourceAllocationPermission: PermissionProps = useSelector(
@@ -252,6 +256,7 @@ export const ResourceAllocationCard = ({
             <DeleteIcon
               resourceAllocation={resourceAllocation}
               resourceAllocationPermission={resourceAllocationPermission}
+              onSubmit={onSubmit}
             />
           )}
         </div>
@@ -270,9 +275,11 @@ export const ResourceAllocationCard = ({
 const DeleteIcon = ({
   resourceAllocation,
   resourceAllocationPermission,
+  onSubmit,
 }: {
   resourceAllocation: ResourceAllocationProps;
   resourceAllocationPermission: PermissionProps;
+  onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
   const { toast } = useToast();
   const { deleteDoc } = useFrappeDeleteDoc();
@@ -294,7 +301,7 @@ const DeleteIcon = ({
           variant: "success",
           description: "Resouce allocation deleted successfully",
         });
-        dispatch(setReFetchData(true));
+        onSubmit(resourceAllocation, resourceAllocation);
       })
       .catch(() => {
         toast({

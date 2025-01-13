@@ -88,18 +88,15 @@ const homeSlice = createSlice({
       state.data = action.payload;
       state.isLoading = false;
     },
-
     setReFetchData: (state, action: PayloadAction<boolean>) => {
       state.isNeedToFetchDataAfterUpdate = action.payload;
     },
-
     setTimesheet: (state, action: PayloadAction<any>) => {
       state.timesheet = action.payload;
     },
     setWeekDate: (state, action: PayloadAction<string>) => {
       state.weekDate = action.payload;
-      const pageLength = Object.keys(state.data.data).length;
-      state.pageLength = pageLength;
+      state.pageLength = initialState.pageLength;
       state.action = "SET";
       state.isLoading = true;
       state.isNeedToFetchDataAfterUpdate = true;
@@ -147,7 +144,6 @@ const homeSlice = createSlice({
       state.data.dates = action.payload.dates;
       state.data.total_count = action.payload.total_count;
       state.isLoading = false;
-      state.isNeedToFetchDataAfterUpdate = true;
     },
   },
 });
@@ -162,7 +158,7 @@ export const {
   updateData,
   resetState,
   setStatus,
-  setReFetchData
+  setReFetchData,
 } = homeSlice.actions;
 
 export default homeSlice.reducer;

@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { useFrappeGetDocList } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappeGetDocList } from "frappe-react-sdk";
 import { Filter as Funnel, Search, Star, X } from "lucide-react";
 
 /**
@@ -43,12 +43,14 @@ const SkillSearch = ({
   const [skills, setSkills] = useState<Skill[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<Skill[]>(resourceTeamState?.skillSearch || []);
-  const [suggestions, setSuggestions] = useState<Skill[]>([]);
-  const { data, mutate } = useFrappeGetDocList(
-    "Skill",
+
+  const { data } = useFrappeGetCall(
+    "frappe.client.get_list",
     {
-      limit: 0,
-      asDict: true,
+      doctype: "Skill",
+      filters: [["name", "like", `%${searchQuery}%`]],
+      fields: ["name"],
+      limit_page_length: 20,
     },
     undefined,
     { revalidateOnMount: false }
@@ -56,19 +58,12 @@ const SkillSearch = ({
 
   useEffect(() => {
     if (data) {
-      setSkills(data);
+      if (searchQuery == "") {
+        return;
+      }
+      setSkills(data.message);
     }
-  }, [data]);
-
-  useEffect(() => {
-    if (searchQuery) {
-      setSuggestions(
-        skills?.filter((skill) => skill.name.toLowerCase().includes(searchQuery.trim().toLowerCase())) || []
-      );
-    } else {
-      setSuggestions([]);
-    }
-  }, [searchQuery, skills]);
+  }, [data, searchQuery]);
 
   const addSkill = (skill: { name: string }) => {
     if (!selectedSkills.find((s) => s.name === skill.name)) {
@@ -82,6 +77,7 @@ const SkillSearch = ({
       ]);
     }
     setSearchQuery("");
+    setSkills([]);
   };
 
   const removeSkill = (skillId: string) => {
@@ -148,17 +144,17 @@ const SkillSearch = ({
               value={searchQuery}
               deBounceValue={300}
               callback={(e) => setSearchQuery(e.target.value)}
-              className={cn("w-full min-w-full", suggestions.length > 0 && "[&>input]:rounded-b-none")}
+              className={cn("w-full min-w-full", skills.length > 0 && "[&>input]:rounded-b-none")}
             />
             {/* Skill suggestion */}
-            {suggestions.length > 0 && (
+            {skills.length > 0 && (
               <div
                 className={cn(
                   "absolute z-10 w-full max-h-[200px] overflow-y-auto rounded-md border bg-background shadow-md",
-                  suggestions.length > 0 && "border-t-0 rounded-t-none"
+                  skills.length > 0 && "border-t-0 rounded-t-none"
                 )}
               >
-                {suggestions.map((skill) => (
+                {skills.map((skill) => (
                   <button
                     key={skill.name}
                     onClick={() => addSkill(skill)}

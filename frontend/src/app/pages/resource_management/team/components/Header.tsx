@@ -14,7 +14,7 @@ import { Header } from "@/app/components/listview/header";
 import { useQueryParamsState } from "@/lib/queryParam";
 import { getFormatedDate } from "@/lib/utils";
 import { RootState } from "@/store";
-import { PermissionProps, setDialog } from "@/store/resource_management/allocation";
+import { PermissionProps, setDialog, setResourcePermissions } from "@/store/resource_management/allocation";
 import {
   deleteFilters,
   setAllocationType,
@@ -31,6 +31,7 @@ import {
   setSkillSearch,
 } from "@/store/resource_management/team";
 import SkillSearch from "./SkillSearch";
+import { useFrappePostCall } from "frappe-react-sdk";
 
 /**
  * This component is responsible for loading the team view header.
@@ -54,11 +55,30 @@ const ResourceTeamHeaderSection = () => {
     (state: RootState) => state.resource_allocation_form.permissions
   );
 
+  const { call, loading } = useFrappePostCall(
+    "next_pms.resource_management.api.permission.get_user_resources_permissions"
+  );
+
   useEffect(() => {
+    if (Object.keys(resourceAllocationPermission).length != 0) {
+      updateFilters(resourceAllocationPermission);
+      return;
+    }
+    if (loading) return;
+
+    call({}).then((res: { message: PermissionProps }) => {
+      const resResourceAllocationPermission = res.message;
+      updateFilters(resResourceAllocationPermission);
+      dispatch(setResourcePermissions(resResourceAllocationPermission));
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const updateFilters = (resResourceAllocationPermission: PermissionProps) => {
     let CurrentViewParam = viewParam;
     if (!CurrentViewParam) {
       CurrentViewParam = "planned-vs-capacity";
-      if (resourceAllocationPermission.write) {
+      if (resResourceAllocationPermission.write) {
         setViewParam(CurrentViewParam);
       }
     }
@@ -75,19 +95,7 @@ const ResourceTeamHeaderSection = () => {
         skillSearch: skillSearchParam,
       })
     );
-  }, [
-    allocationTypeParam,
-    businessUnitParam,
-    combineWeekHoursParam,
-    designationParam,
-    dispatch,
-    employeeNameParam,
-    reportingNameParam,
-    resourceAllocationPermission.write,
-    setViewParam,
-    skillSearchParam,
-    viewParam,
-  ]);
+  };
 
   const handleWeekViewChange = useCallback(() => {
     setCombineWeekHoursParam(!resourceTeamStateTableView.combineWeekHours);
