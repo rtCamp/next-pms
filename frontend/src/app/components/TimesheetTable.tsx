@@ -4,7 +4,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useFrappePostCall } from "frappe-react-sdk";
-import { CircleCheck, CircleDollarSign, CirclePlus, CircleX, Clock3, PencilLine, Import } from "lucide-react";
+import { CircleCheck, CircleDollarSign, CirclePlus, CircleX, Clock3, PencilLine, Import, LoaderCircle } from "lucide-react";
 /**
  * Internal dependencies
  */
@@ -135,7 +135,7 @@ const TimesheetTable = ({
   const holiday_list = getHolidayList(holidays);
   const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<string>("");
-  const { call: fetchLikedTask } = useFrappePostCall("next_pms.timesheet.api.task.get_liked_tasks");
+  const { call: fetchLikedTask,loading:loadingLikedTasks } = useFrappePostCall("next_pms.timesheet.api.task.get_liked_tasks");
   const key = dates[0] + "-" + dates[dates.length - 1];
   const has_liked_task = hasKeyInLocalStorage(key);
 
@@ -173,8 +173,8 @@ const TimesheetTable = ({
                 <Typography variant="h6" className="font-normal text-slate-600 flex gap-x-4 items-center">
                   Tasks
                   {weekly_status != "Approved" && importTasks && (
-                    <span title="Import liked tasks" >
-                      <Import onClick={setTaskInLocalStorage} className="hover:cursor-pointer" />
+                    <span title="Import liked tasks">
+                      {loadingLikedTasks?<LoaderCircle className="animate-spin"/>:<Import onClick={setTaskInLocalStorage} className="hover:cursor-pointer" />}
                     </span>
                   )}
                 </Typography>

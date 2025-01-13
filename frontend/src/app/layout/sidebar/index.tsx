@@ -175,6 +175,7 @@ const Sidebar = () => {
                 <div key={route.key}>
                   <Button
                     variant="ghost"
+                    title={route.label}
                     className={cn(
                       "flex items-center gap-x-2 w-full text-left p-2 hover:bg-slate-200 rounded-lg",
                       openRoutes[route.key] && "bg-slate-200",
@@ -182,17 +183,17 @@ const Sidebar = () => {
                     )}
                     onClick={() => toggleNestedRoutes(route.key)}
                   >
-                    <route.icon className="w-4 h-4" />
+                    <route.icon className="w-4 h-4 shrink-0" />
                     <Typography
                       variant="p"
-                      className={cn("transition-all duration-300 ease-in-out", user.isSidebarCollapsed && "hidden")}
+                      className={cn("transition-all duration-300 ease-in-out truncate", user.isSidebarCollapsed && "hidden")}
                     >
                       {route.label}
                     </Typography>
                     {openRoutes[route.key] ? (
-                      <ChevronUp className="ml-auto w-4 h-4" />
+                      <ChevronUp className="ml-auto w-4 h-4 shrink-0" />
                     ) : (
-                      <ChevronDown className="ml-auto w-4 h-4" />
+                      <ChevronDown className="ml-auto w-4 h-4 shrink-0" />
                     )}
                   </Button>
                   <div
@@ -296,7 +297,7 @@ const Sidebar = () => {
           {screenSize !== "sm" && screenSize !== "md" && (
             <Button
               variant="ghost"
-              className="justify-end  gap-x-2 transition-all duration-300 ease-in-out h-6"
+              className="justify-end shrink-0 gap-x-2 transition-all duration-300 ease-in-out h-6"
               onClick={handleCollapse}
             >
               <ArrowLeftToLine
