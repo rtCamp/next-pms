@@ -75,7 +75,7 @@ const ViewLoader = ({
             >
               <div
                 className={cn(
-                  "flex w-full mt-2 rounded-lg items-center  p-2 hover:bg-slate-200 text-primary gap-x-2 ",
+                  "flex w-full mt-2 rounded-lg items-center p-2 hover:bg-slate-200 text-primary gap-x-2 ",
                   isActive && "bg-primary shadow-md hover:bg-slate-700 "
                 )}
               >
@@ -83,7 +83,7 @@ const ViewLoader = ({
                 <Typography
                   variant="p"
                   className={cn(
-                    "transition-all duration-300 ease-in-out text-white",
+                    "transition-all duration-300 truncate ease-in-out text-white",
                     !isActive && "text-primary",
                     isSidebarCollapsed && "hidden"
                   )}

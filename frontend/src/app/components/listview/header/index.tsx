@@ -80,7 +80,7 @@ export const Header = ({
             </div>
           )}
           {(showColumnSelector || showSort || showActions) && (
-            <section className="flex gap-x-2">
+            <section className="flex gap-x-2 items-center py-2">
               {showColumnSelector && columnSelector?.fieldMeta && <ColumnSelector {...columnSelector} />}
               {showSort && sort && <Sort {...sort} />}
               {showActions && actionProps && <Action {...actionProps} />}
