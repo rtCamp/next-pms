@@ -1,18 +1,18 @@
-import frappe
-from frappe.utils import DATE_FORMAT
-from frappe import _
 import json
 
+import frappe
+from frappe.core.doctype.recorder.recorder import redis_cache
+from frappe.utils import DATE_FORMAT
+
 from next_pms.resource_management.api.utils.helpers import (
-    get_employees_by_skills,
     find_worked_hours,
     get_allocation_objects,
     get_dates_date,
+    get_employees_by_skills,
     handle_customer,
     is_on_leave,
     resource_api_permissions_check,
 )
-
 from next_pms.resource_management.api.utils.query import (
     get_allocation_list_for_employee_for_given_range,
     get_employee_leaves,
@@ -23,6 +23,7 @@ from next_pms.timesheet.api.utils import filter_employees
 
 
 @frappe.whitelist()
+@redis_cache()
 def get_resource_management_team_view_data(
     date: str,
     max_week: int = 2,
@@ -34,6 +35,7 @@ def get_resource_management_team_view_data(
     page_length=10,
     start=0,
     skills=None,
+    employee_id=None,
 ):
     permissions = resource_api_permissions_check()
 
@@ -43,29 +45,34 @@ def get_resource_management_team_view_data(
         designation = None
         reports_to = None
         customer = None
+        employee_id = None
 
     data = []
     customer = {}
     dates = get_dates_date(max_week, date)
-    res = {"dates": dates}
-    
-    ids=None
-    
+    res = {}
+
+    ids = None
+
     if not skills:
-        skills=[]
+        skills = []
     if isinstance(skills, str):
         skills = json.loads(skills)
     if skills:
         ids = get_employees_by_skills(skills)
-        if len(ids)==0:
+        if len(ids) == 0:
             res["data"] = data
             res["customer"] = customer
             res["total_count"] = 0
             res["has_more"] = False
             res["permissions"] = permissions
             return res
-            
-        
+
+    if employee_id:
+        if isinstance(employee_id, str):
+            employee_id = json.loads(employee_id)
+        ids = employee_id
+
     employees, total_count = filter_employees(
         employee_name,
         business_unit=business_unit,
@@ -74,7 +81,7 @@ def get_resource_management_team_view_data(
         reports_to=reports_to,
         start=start,
         status=["Active"],
-        ignore_default_filters= True if len(skills)>0 else False ,
+        ignore_default_filters=True if len(skills) > 0 else False,
         ids=ids,
         ignore_permissions=True,
     )
@@ -137,7 +144,7 @@ def get_resource_management_team_view_data(
 
         holidays = get_holidays(employee.name, dates[0].get("start_date"), dates[-1].get("end_date"))
 
-        all_dates_data, all_week_data, all_leave_data = {}, [], {}
+        all_dates_data, all_week_data, all_leave_data = {}, {}, {}
         max_allocation_count_for_single_date = 0
 
         # For given employee loop through all the dates and calculate the total allocated hours, total working hours and total worked hours
@@ -231,20 +238,17 @@ def get_resource_management_team_view_data(
                 max_allocation_count_for_single_date = max(max_allocation_count_for_single_date, total_allocation_count)
 
             if permissions["write"]:
-                all_week_data.append(
-                    {
-                        "total_allocated_hours": total_allocated_hours_for_given_week,
-                        "total_working_hours": total_working_hours_for_given_week,
-                        "total_worked_hours": total_worked_hours_for_given_week,
-                    }
-                )
+                all_week_data[date_info.get("key")] = {
+                    "total_allocated_hours": total_allocated_hours_for_given_week,
+                    "total_working_hours": total_working_hours_for_given_week,
+                    "total_worked_hours": total_worked_hours_for_given_week,
+                }
+
             else:
-                all_week_data.append(
-                    {
-                        "total_allocated_hours": total_allocated_hours_for_given_week,
-                        "total_working_hours": total_working_hours_for_given_week,
-                    }
-                )
+                all_week_data[date_info.get("key")] = {
+                    "total_allocated_hours": total_allocated_hours_for_given_week,
+                    "total_working_hours": total_working_hours_for_given_week,
+                }
 
         data.append(
             {

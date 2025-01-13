@@ -211,19 +211,33 @@ doc_events = {
         "validate": "next_pms.timesheet.doc_events.timesheet.validate",
         "before_save": "next_pms.timesheet.doc_events.timesheet.before_save",
         "before_insert": "next_pms.timesheet.doc_events.timesheet.before_insert",
-        "on_update": "next_pms.timesheet.doc_events.timesheet.on_update",
+        "on_update": [
+            "next_pms.timesheet.doc_events.timesheet.on_update",
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
         "before_validate": "next_pms.timesheet.doc_events.timesheet.before_validate",
         "before_submit": "next_pms.timesheet.doc_events.timesheet.before_submit",
         "on_submit": "next_pms.timesheet.doc_events.timesheet.on_submit",
         "after_delete": "next_pms.timesheet.doc_events.timesheet.after_delete",
+        "on_trash": ["next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache"],
     },
     "Task": {
         "after_insert": "next_pms.project_currency.doc_events.task.after_insert",
         "validate": "next_pms.project_currency.doc_events.task.validate",
     },
-    "Project": {
-        "on_update": "next_pms.project_currency.doc_events.project.on_update",
+    "Leave Application": {
+        "on_update": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
+        "on_trash": ["next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache"],
     },
+    "Employee Skill Map": {
+        "on_update": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
+        "on_trash": ["next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache"],
+    },
+    "Project": {"on_update": "next_pms.project_currency.doc_events.project.on_update"},
     "Customer": {"validate": "next_pms.resource_management.doc_events.customer.validate_abbr"},
 }
 #

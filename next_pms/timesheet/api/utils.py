@@ -46,7 +46,11 @@ def get_week_dates(date, current_week: bool = False, ignore_weekend=False):
     if start_date <= now <= end_date:
         key = "This Week"
     else:
-        key = f'{start_date.strftime("%b %d")} - {end_date.strftime("%b %d")}'
+        if ignore_weekend:
+            end_date_for_key = add_days(end_date, -2)
+        else:
+            end_date_for_key = end_date
+        key = f'{start_date.strftime("%b %d")} - {end_date_for_key.strftime("%b %d")}'
 
     data = {"start_date": start_date, "end_date": end_date, "key": key}
 
@@ -118,7 +122,6 @@ def filter_employees(
 
     if employee_name:
         or_filters["employee_name"] = ["like", f"%{employee_name}%"]
-        filters.pop("status", None)
 
     if department and len(department) > 0:
         filters["department"] = ["in", department]
@@ -145,14 +148,13 @@ def filter_employees(
         users = frappe.get_all("User Group Member", pluck="user", filters={"parent": ["in", user_group]})
         ids = [frappe.get_value("Employee", {"user_id": user}, cache=True) for user in users]
         employee_ids.extend(ids)
-        filters.pop("status", None)
-    
+
     if len(employee_ids) > 0:
         filters["name"] = ["in", employee_ids]
-        
+
     if ignore_default_filters:
         filters.pop("status", None)
-        
+
     employees = frappe.get_list(
         "Employee",
         fields=fields,
