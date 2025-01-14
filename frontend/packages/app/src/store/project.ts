@@ -124,7 +124,6 @@ export const projectSlice = createSlice({
       state.search = action.payload;
       state.start = initialState.start;
       state.pageLength = initialState.pageLength;
-      state.data = initialState.data;
       state.action = "SET";
       state.isLoading = true;
       state.isNeedToFetchDataAfterUpdate = true;
@@ -134,20 +133,16 @@ export const projectSlice = createSlice({
     },
     setSelectedProjectType: (state, action: PayloadAction<Array<string>>) => {
       state.selectedProjectType = action.payload;
-      // state.data = initialState.data;
       state.start = initialState.start;
       state.isLoading = true;
       state.action = "SET";
-      state.data = initialState.data;
       state.isNeedToFetchDataAfterUpdate = true;
       state.pageLength = initialState.pageLength;
     },
     setSelectedStatus: (state, action: PayloadAction<Array<Status>>) => {
       state.selectedStatus = action.payload;
-      // state.data = initialState.data;
       state.start = initialState.start;
       state.isLoading = true;
-      state.data = initialState.data;
       state.action = "SET";
       state.isNeedToFetchDataAfterUpdate = true;
       state.pageLength = initialState.pageLength;
@@ -155,7 +150,6 @@ export const projectSlice = createSlice({
     setSelectedBusinessUnit: (state, action: PayloadAction<Array<string>>) => {
       state.selectedBusinessUnit = action.payload;
       state.isLoading = true;
-      state.data = initialState.data;
       state.action = "SET";
       state.start = initialState.start;
       state.isNeedToFetchDataAfterUpdate = true;
@@ -165,7 +159,6 @@ export const projectSlice = createSlice({
       state.isLoading = true;
       state.action = "SET";
       state.start = initialState.start;
-      state.data = initialState.data;
       state.isNeedToFetchDataAfterUpdate = true;
     },
     setCurrency: (state, action: PayloadAction<string>) => {
@@ -215,7 +208,6 @@ export const projectSlice = createSlice({
       state.start = initialState.start;
       state.order = action.payload.order;
       state.orderColumn = action.payload.orderColumn;
-      state.data = initialState.data;
       state.isLoading = true;
       state.isNeedToFetchDataAfterUpdate = true;
     },
@@ -227,7 +219,6 @@ export const projectSlice = createSlice({
       state.pageLength = pageLength;
       state.start = 0;
       state.data = initialState.data;
-
     }
   },
 });

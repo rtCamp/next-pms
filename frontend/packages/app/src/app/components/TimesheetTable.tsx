@@ -231,7 +231,7 @@ const TimesheetTable = ({
             />
           )}
           {weekly_status != "Approved" &&
-            filteredLikedTasks.length > 0 &&
+            filteredLikedTasks.length > 0 && importTasks &&
             filteredLikedTasks.map((task) => {
               return (
                 <EmptyRow
