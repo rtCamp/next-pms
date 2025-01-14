@@ -1,10 +1,15 @@
+/**
+ * External dependencies.
+ */
 import { resolve } from 'path'
 import react from "@vitejs/plugin-react";
 import tailwindcss from 'tailwindcss';
 import { defineConfig, loadEnv } from "vite";
+
 export default defineConfig(({ command, mode }) => {
     const env = loadEnv(mode, "../../",'')
     let proxyConfig = {}
+
     if (env.VITE_SITE_NAME && env.VITE_SITE_PORT) {
         proxyConfig = {
             "^/(app|api|assets|files|private)": {
@@ -15,6 +20,7 @@ export default defineConfig(({ command, mode }) => {
             }
         }
     }
+
     return {
         root: resolve(__dirname, './packages/app'),
         plugins: [react(), tailwindcss()],
