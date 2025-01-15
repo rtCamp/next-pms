@@ -9,6 +9,7 @@ module.exports = {
     content: [
         path.resolve(__dirname, './packages/app/src/**/*.{ts,tsx,jsx,js}'),
         path.resolve(__dirname, './packages/app/index.html'),
+        path.resolve(__dirname, './packages/design-system/src/**/*.{ts,tsx,jsx,js}'),
     ],
     prefix: "",
     theme: {
