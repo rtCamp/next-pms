@@ -19,6 +19,9 @@
   "references": [
     {
       "path": "./packages/app"
+    },
+    {
+      "path": "./packages/hooks"
     }
   ],
   "exclude": ["node_modules"]
