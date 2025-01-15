@@ -3,8 +3,9 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { useFrappePostCall } from "frappe-react-sdk";
-import { CircleCheck, CircleDollarSign, CirclePlus, CircleX, Clock3, PencilLine, Import, LoaderCircle } from "lucide-react";
+import { CircleCheck, CircleDollarSign, CirclePlus, CircleX, Clock3, PencilLine, Import, LoaderCircle, Heart } from "lucide-react";
 /**
  * Internal dependencies
  */
@@ -22,7 +23,10 @@ import {
   preProcessLink,
   prettyDate,
   getBgCsssForToday,
+  isLiked,
+  parseFrappeErrorMsg,
 } from "@/lib/utils";
+import { RootState } from "@/store";
 import { TaskData, WorkingFrequency } from "@/types";
 import { HolidayProp, LeaveProps, TaskDataItemProps, TaskDataProps, TaskProps } from "@/types/timesheet";
 import GenWrapper from "./GenWrapper";
@@ -30,6 +34,7 @@ import TaskStatusIndicator from "./taskStatusIndicator";
 import { Typography } from "./typography";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
+import { useToast } from "./ui/use-toast";
 import { TaskStatus } from "../pages/task/TaskStatus";
 
 type timesheetTableProps = {
@@ -258,6 +263,7 @@ const TimesheetTable = ({
                       taskData={taskData}
                       setSelectedTask={setSelectedTask}
                       setIsTaskLogDialogBoxOpen={setIsTaskLogDialogBoxOpen}
+                      dates={dates}
                     />
                   </TableCell>
                   {dates.map((date: string) => {
@@ -641,6 +647,7 @@ export const EmptyRow = ({
             name={name}
             setIsTaskLogDialogBoxOpen={setIsTaskLogDialogBoxOpen}
             setSelectedTask={setSelectedTask}
+            dates={dates}
           />
         )}
       </TableCell>
@@ -718,7 +725,46 @@ export const SubmitButton = ({ start_date, end_date, onApproval, status }: submi
   );
 };
 
-const TaskHoverCard = ({ name, taskData, setSelectedTask, setIsTaskLogDialogBoxOpen }) => {
+const TaskHoverCard = ({ name, taskData, setSelectedTask, setIsTaskLogDialogBoxOpen,dates }) => {
+  const user = useSelector((state: RootState) => state.user);
+  const key = dates[0] + "-" + dates[dates.length - 1];
+  const [taskLiked,setTaskedLiked] = useState(false)
+  console.log(taskData);
+  useEffect(()=>{
+    setTaskedLiked(isLiked(taskData?._liked_by, user?.user));
+  },[taskData])
+  
+  
+  const { call: toggleLikeCall } = useFrappePostCall("frappe.desk.like.toggle_like");
+  const { call: fetchLikedTask} = useFrappePostCall("next_pms.timesheet.api.task.get_liked_tasks");
+  const { toast } = useToast();
+  
+  const handleLike = (e: React.MouseEvent<SVGSVGElement>) => {
+    e.stopPropagation();
+    let add = "Yes";
+    if (taskLiked) {
+      add = "No";
+    }
+    const data = {
+      name: name,
+      add: add,
+      doctype: "Task",
+    };
+    toggleLikeCall(data)
+      .then(async () => {
+        setTaskedLiked((prev)=>!prev)
+        await fetchLikedTask({}).then((res) => {
+          setLocalStorage(key, res.message);
+        });
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          description: error,
+        });
+      });
+  };
   return (
     <HoverCard openDelay={1000} closeDelay={0}>
       <div className="flex w-full gap-2">
@@ -732,13 +778,24 @@ const TaskHoverCard = ({ name, taskData, setSelectedTask, setIsTaskLogDialogBoxO
           <HoverCardTrigger>
             <Typography
               variant="p"
-              className="text-slate-800 truncate overflow-hidden hover:underline"
+              className="text-slate-800 truncate overflow-hidden hover:underline flex items-center gap-3"
               onClick={() => {
                 setSelectedTask(name);
                 setIsTaskLogDialogBoxOpen(true);
               }}
             >
-              {taskData.subject}
+              <span className="truncate">
+                {taskData.subject}
+              </span>
+              <Heart
+                className={cn(
+                  "hover:cursor-pointer shrink-0",
+                  taskLiked && "fill-destructive stroke-destructive"
+                )}
+                data-task={name}
+                data-liked-by={taskData?._liked_by}
+                onClick={handleLike}
+              />
             </Typography>
 
             <Typography variant="small" className="text-slate-500 whitespace-nowrap text-ellipsis overflow-hidden ">
