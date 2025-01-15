@@ -3,8 +3,8 @@
  */
 import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useInfiniteScroll } from "@next-pms/hooks";
 import { useFrappePostCall } from "frappe-react-sdk";
-
 /**
  * Internal dependencies.
  */
@@ -26,7 +26,6 @@ import {
 import AddResourceAllocations from "../components/AddAllocation";
 import { ResourceTeamHeaderSection } from "./components/Header";
 import { ResourceTeamTable } from "./components/Table";
-import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import { getDatesArrays, getNextDate } from "../utils/dates";
 import { getIsBillableValue } from "../utils/helper";
 
