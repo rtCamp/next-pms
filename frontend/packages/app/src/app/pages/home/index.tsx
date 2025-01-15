@@ -4,6 +4,7 @@
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { useInfiniteScroll } from "@next-pms/hooks";
 import { isToday } from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
@@ -18,7 +19,6 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/
 import { Skeleton } from "@/app/components/ui/skeleton";
 import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
 import { useToast } from "@/app/components/ui/use-toast";
-import { useInfiniteScroll } from "@/app/pages/resource_management/hooks/useInfiniteScroll";
 import { TEAM, EMPLOYEE } from "@/lib/constant";
 import {
   cn,

@@ -3,7 +3,7 @@
  */
 import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-
+import { useInfiniteScroll } from "@next-pms/hooks";
 /**
  * Internal dependencies.
  */
@@ -30,7 +30,6 @@ import { ResourceTableCell } from "../../components/TableCell";
 import ResourceProjectTableHeader from "../../components/TableHeader";
 import { ResourceTableRow } from "../../components/TableRow";
 import { TableContextProvider } from "../../contexts/tableContext";
-import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { getCellBackGroundColor } from "../../utils/cell";
 import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
 

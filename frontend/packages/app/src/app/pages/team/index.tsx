@@ -4,9 +4,9 @@
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { useInfiniteScroll } from "@next-pms/hooks";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { CircleCheck, Hourglass, CircleX } from "lucide-react";
-
 
 /**
  * Internal dependencies.
@@ -30,7 +30,6 @@ import { ItemProps, dataItem } from "@/types/team";
 import { Approval } from "./approval";
 import { Employee } from "./employee";
 import { Header } from "./Header";
-import { useInfiniteScroll } from "../resource_management/hooks/useInfiniteScroll";
 
 type DateProps = {
   start_date: string;

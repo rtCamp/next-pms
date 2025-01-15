@@ -3,6 +3,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useInfiniteScroll } from "@next-pms/hooks";
 import {
   flexRender,
   getCoreRowModel,
@@ -23,7 +24,6 @@ import { Separator } from "@/app/components/ui/separator";
 import { Skeleton } from "@/app/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { useToast } from "@/app/components/ui/use-toast";
-import { useInfiniteScroll } from "@/app/pages/resource_management/hooks/useInfiniteScroll";
 import { parseFrappeErrorMsg, createFalseValuedObject } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setProjectData, setStart, setFilters, setReFetchData, updateProjectData } from "@/store/project";
