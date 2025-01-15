@@ -3,10 +3,7 @@
     "private": true,
     "version": "0.0.1",
     "type": "module",
-    "source": "./src/index.ts",
-    "main": "./dist/index.js",
-    "module": "./dist/index.mjs",
-    "types": "./dist/index.d.ts",
+    "main": "./src/index.ts",
     "scripts": {
         "dev": "vite --config ../../vite.config.ts",
         "clean": "rm -rf dist",
