@@ -105,6 +105,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
 
   useEffect(() => {
     if (data) {
+      // console.log(data);
       if (projectState.action == "SET") {
         dispatch(setProjectData(data.message));
       } else {
@@ -120,6 +121,10 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, dispatch, error, toast]);
+  
+  useEffect(()=>{
+    dispatch(setReFetchData(true));
+  },[viewInfo.rows,dispatch])
 
   useEffect(() => {
     const updateViewData = {
@@ -188,11 +193,11 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
       if (Object.keys(visibility).length == 0) {
         newColumnOrder = columnOrder;
       } else {
-        newColumnOrder = viewInfo.rows.filter((d) => visibility[d]).map((d) => d);
+        newColumnOrder = viewData.rows.filter((d) => visibility[d]).map((d) => d);
       }
       setColumnOrder(newColumnOrder);
     },
-    [columnOrder, viewInfo.rows]
+    [columnOrder,viewData.rows]
   );
 
   const updateColumnSize = (columns: Array<string>) => {

@@ -95,11 +95,11 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       if (Object.keys(visibility).length == 0) {
         newColumnOrder = columnOrder;
       } else {
-        newColumnOrder = viewInfo.rows.filter((d) => visibility[d]).map((d) => d);
+        newColumnOrder = viewData.rows.filter((d) => visibility[d]).map((d) => d);
       }
       setColumnOrder(newColumnOrder!);
     },
-    [columnOrder, viewInfo.rows]
+    [columnOrder, viewData.rows]
   );
 
   const updateColumnSize = (columns: Array<string>) => {
