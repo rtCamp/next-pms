@@ -6,7 +6,9 @@
     "type": "module",
     "exports": {
         ".": "./src/index.ts",
-        "./design-system.css": "./src/index.css"
+        "./design-system.css": "./src/index.css",
+        "./date": "./src/utils/date.ts",
+        "./utils": "./src/utils/index.ts"
     },
     "files": [
         "src",
