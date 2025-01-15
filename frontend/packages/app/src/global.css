@@ -80,14 +80,14 @@
 .isResizing {
   background-color: #dedfe091;
 }
-@layer base {
+/* @layer base {
   * {
     @apply border-border;
   }
   body {
     @apply bg-background text-foreground;
   }
-}
+} */
 
 .custom-resource-management-team-view-bg {
   background-color: rgba(247, 150, 150, var(--bg-opacity)) !important;
