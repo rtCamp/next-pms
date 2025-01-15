@@ -105,7 +105,6 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
 
   useEffect(() => {
     if (data) {
-      // console.log(data);
       if (projectState.action == "SET") {
         dispatch(setProjectData(data.message));
       } else {
@@ -120,7 +119,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
       });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, dispatch, error, toast]);
+  }, [data, dispatch, error, toast,projectState.currency]);
   
   useEffect(()=>{
     dispatch(setReFetchData(true));
