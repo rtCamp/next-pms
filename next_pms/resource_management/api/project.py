@@ -26,6 +26,7 @@ def get_resource_management_project_view_data(
     max_week: int = 2,
     project_name=None,
     customer=None,
+    billing_type=None,
     is_billable=-1,
     page_length=10,
     start=0,
@@ -37,6 +38,7 @@ def get_resource_management_project_view_data(
         is_billable = -1
         customer = None
         project_id = None
+        billing_type = None
 
     ids = None
 
@@ -46,7 +48,7 @@ def get_resource_management_project_view_data(
         ids = project_id
 
     projects, total_count = filter_project_list(
-        project_name, page_length=page_length, start=start, customer=customer, ids=ids
+        project_name, page_length=page_length, start=start, customer=customer, billing_type=billing_type, ids=ids
     )
 
     data = []

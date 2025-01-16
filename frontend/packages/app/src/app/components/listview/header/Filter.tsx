@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { CheckedState } from "@radix-ui/react-checkbox";
 import { Filter as Funnel } from "lucide-react";
 /**
