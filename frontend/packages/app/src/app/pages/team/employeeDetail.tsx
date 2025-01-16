@@ -9,7 +9,7 @@ import { addDays } from "date-fns";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { isEmpty } from "lodash";
 import { Calendar, CircleDollarSign, Paperclip, Plus } from "lucide-react";
-
+import { useQueryParam } from "@next-pms/hooks";
 /**
  * Internal dependencies.
  */
@@ -29,7 +29,6 @@ import { Header, Footer, Main } from "@/app/layout/root";
 import { TaskLog } from "@/app/pages/task/TaskLog";
 import { Status } from "@/app/pages/team";
 import { EditTime } from "@/app/pages/timesheet/EditTime";
-import { useQueryParamsState } from "@/lib/queryParam";
 import {
   cn,
   getDateFromDateAndTime,
@@ -74,7 +73,7 @@ const isDateInRange = (date: string, startDate: string, endDate: string) => {
 const EmployeeDetail = () => {
   const { id } = useParams();
   const teamState = useSelector((state: RootState) => state.team);
-  const [startDateParam, setstartDateParam] = useQueryParamsState<string>("date", "");
+  const [startDateParam, setstartDateParam] = useQueryParam<string>("date", "");
   const dispatch = useDispatch();
   const { toast } = useToast();
   const navigate = useNavigate();
