@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import { ErrorFallback, Typography, Button } from "@next-pms/design-system/components";
 import {
   ArrowLeftToLine,
   ChevronDown,
@@ -17,22 +18,18 @@ import {
   BookUser,
 } from "lucide-react";
 import { Home, Users } from "lucide-react";
-
 /**
  * Internal dependencies.
  */
 
-import GenWrapper from "@/app/components/GenWrapper";
-import { Typography } from "@/app/components/typography";
-import { Button } from "@/app/components/ui/button";
 import { HOME, PROJECT, RESOURCE_MANAGEMENT, ROLES, TASK, TEAM, TIMESHEET } from "@/lib/constant";
 import { cn } from "@/lib/utils";
-import logo from "@/logo.svg";
-import { RootState } from "@/store";
 import { setSidebarCollapsed } from "@/store/user";
-import { ViewData } from "@/store/view";
-import UserNavigation from "./UserNavigation";
-import ViewLoader from "./ViewLoader";
+import UserNavigation from "./userNavigation";
+import ViewLoader from "./viewLoader";
+import logo from "../../../logo.svg";
+import { RootState } from "../../../store";
+import { ViewData } from "../../../store/view";
 
 type NestedRoute = {
   to: string;
@@ -143,7 +140,7 @@ const Sidebar = () => {
   }, [screenSize]);
 
   return (
-    <GenWrapper>
+    <ErrorFallback>
       <aside
         className={cn(
           "bg-slate-100  w-1/5 transition-all duration-300 ease-in-out px-4 py-4 flex flex-col ",
@@ -186,7 +183,10 @@ const Sidebar = () => {
                     <route.icon className="w-4 h-4 shrink-0" />
                     <Typography
                       variant="p"
-                      className={cn("transition-all duration-300 ease-in-out truncate", user.isSidebarCollapsed && "hidden")}
+                      className={cn(
+                        "transition-all duration-300 ease-in-out truncate",
+                        user.isSidebarCollapsed && "hidden"
+                      )}
                     >
                       {route.label}
                     </Typography>
@@ -310,7 +310,7 @@ const Sidebar = () => {
           )}
         </div>
       </aside>
-    </GenWrapper>
+    </ErrorFallback>
   );
 };
 

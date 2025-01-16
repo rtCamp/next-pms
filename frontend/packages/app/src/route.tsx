@@ -9,13 +9,13 @@ import { FrappeConfig, FrappeContext } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import { TIMESHEET, HOME, TEAM, TASK, PROJECT, RESOURCE_MANAGEMENT } from "@/lib/constant";
+import { TIMESHEET, HOME, TEAM, TASK, PROJECT, RESOURCE_MANAGEMENT, ROLES } from "@/lib/constant";
 import { UserContext } from "@/lib/UserProvider";
+import { default as Layout } from "./app/layout";
 import { RootState } from "./store";
 import { setCurrency } from "./store/app";
 import { setRole } from "./store/user";
 import { setViews } from "./store/view";
-
 /**
  * Lazy load components.
  */
@@ -28,8 +28,6 @@ const EmployeeDetailComponent = lazy(() => import("@/app/pages/team/employeeDeta
 const TaskComponent = lazy(() => import("@/app/pages/task"));
 const ProjectComponent = lazy(() => import("@/app/pages/project"));
 const NotFound = lazy(() => import("@/app/pages/404"));
-const Layout = lazy(() => import("@/app/layout"));
-const PmRoute = lazy(() => import("@/app/layout/PmRoute"));
 
 export function Router() {
   return (
@@ -55,7 +53,7 @@ export function Router() {
   );
 }
 
-export const AuthenticatedRoute = () => {
+const AuthenticatedRoute = () => {
   const { currentUser, isLoading } = useContext(UserContext);
   const { call } = useContext(FrappeContext) as FrappeConfig;
   const user = useSelector((state: RootState) => state.user);
@@ -90,4 +88,15 @@ export const AuthenticatedRoute = () => {
       </Layout>
     );
   }
+};
+
+const PmRoute = () => {
+  const user = useSelector((state: RootState) => state.user);
+  const hasAccess = user.roles.some((role: string) => ROLES.includes(role));
+
+  if (!hasAccess) {
+    return <Navigate to={TIMESHEET} />;
+  }
+
+  return <Outlet />;
 };

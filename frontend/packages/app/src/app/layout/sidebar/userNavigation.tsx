@@ -3,18 +3,22 @@
  */
 import { useContext } from "react";
 import { useSelector } from "react-redux";
+import {
+  ErrorFallback,
+  Typography,
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  Button,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Separator,
+} from "@next-pms/design-system/components";
 import { ArrowRightLeft, LogOut } from "lucide-react";
-
 /**
  * Internal dependencies.
  */
-
-import GenWrapper from "@/app/components/GenWrapper";
-import { Typography } from "@/app/components/typography";
-import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
-import { Button } from "@/app/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
-import { Separator } from "@/app/components/ui/separator";
 import { DESK } from "@/lib/constant";
 import { UserContext } from "@/lib/UserProvider";
 import { cn } from "@/lib/utils";
@@ -24,7 +28,7 @@ const UserNavigation = () => {
   const user = useSelector((state: RootState) => state.user);
   const { logout } = useContext(UserContext);
   return (
-    <GenWrapper>
+    <ErrorFallback>
       <Popover>
         <PopoverTrigger title={user.userName} className={cn("flex items-center gap-x-2 truncate")}>
           <Avatar className="w-8 h-8 justify-self-end transition-all duration-600">
@@ -60,7 +64,7 @@ const UserNavigation = () => {
           </Button>
         </PopoverContent>
       </Popover>
-    </GenWrapper>
+    </ErrorFallback>
   );
 };
 
