@@ -4,6 +4,7 @@
 import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addDays } from "date-fns";
+import { useFrappePostCall } from "frappe-react-sdk";
 import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
 
 /**
@@ -17,6 +18,7 @@ import { PermissionProps, setDialog, setResourcePermissions } from "@/store/reso
 import {
   deleteFilters,
   setAllocationType,
+  setBillingType,
   setCombineWeekHours,
   setCustomer,
   setFilters,
@@ -24,7 +26,6 @@ import {
   setView,
   setWeekDate,
 } from "@/store/resource_management/project";
-import { useFrappePostCall } from "frappe-react-sdk";
 
 /**
  * This component is responsible for loading the project view header.
@@ -37,6 +38,7 @@ const ResourceProjectHeaderSection = () => {
   const [reportingNameParam] = useQueryParamsState<string>("reports-to", "");
   const [customerNameParam] = useQueryParamsState<string[]>("customer", []);
   const [allocationTypeParam] = useQueryParamsState<string[]>("allocation-type", []);
+  const [billingType, setBillingTypeParam] = useQueryParamsState<string[]>("billing-type", []);
   const [viewParam, setViewParam] = useQueryParamsState<string>("view-type", "");
 
   const resourceProjectState = useSelector((state: RootState) => state.resource_project);
@@ -67,11 +69,18 @@ const ResourceProjectHeaderSection = () => {
   }, []);
 
   const updateFilters = (resResourceAllocationPermission: PermissionProps) => {
-    let CurrentViewParam = viewParam;
-    if (!CurrentViewParam) {
-      CurrentViewParam = "planned";
+    let currentViewParam = viewParam;
+    if (!currentViewParam) {
+      currentViewParam = "planned";
       if (resResourceAllocationPermission.write) {
-        setViewParam(CurrentViewParam);
+        setViewParam(currentViewParam);
+      }
+    }
+    let currentBillingType = billingType;
+    if (resResourceAllocationPermission.write) {
+      if (!billingType || billingType.length == 0) {
+        currentBillingType = ["Retainer", "Fixed Cost", "Time and Material"];
+        setBillingTypeParam(currentBillingType);
       }
     }
     dispatch(
@@ -80,8 +89,9 @@ const ResourceProjectHeaderSection = () => {
         customer: customerNameParam,
         reportingManager: reportingNameParam,
         allocationType: allocationTypeParam,
-        view: CurrentViewParam,
+        view: currentViewParam,
         combineWeekHours: combineWeekHoursParam,
+        billingType: currentBillingType,
       })
     );
   };
@@ -145,6 +155,28 @@ const ResourceProjectHeaderSection = () => {
             },
           },
           queryParameterDefault: resourceProjectState.customer,
+        },
+        {
+          type: "select-list",
+          queryParameterName: "billing-type",
+          label: "Billing Type",
+          value: resourceProjectState.billingType,
+          data: [
+            { label: "Non-Billable", value: "Non-Billable" },
+            { label: "Retainer", value: "Retainer" },
+            { label: "Fixed Cost", value: "Fixed Cost" },
+            { label: "Time and Material", value: "Time and Material" },
+          ],
+          queryParameterDefault: resourceProjectState.billingType,
+          handleChange: (value: string | string[]) => {
+            dispatch(setBillingType(value as string[]));
+          },
+          handleDelete: (value: string[]) => {
+            dispatch(deleteFilters({ billingType: value, type: "billing-type" }));
+          },
+          shouldFilterComboBox: true,
+          isMultiComboBox: true,
+          hide: !resourceAllocationPermission.write,
         },
         {
           queryParameterName: "allocation-type",
