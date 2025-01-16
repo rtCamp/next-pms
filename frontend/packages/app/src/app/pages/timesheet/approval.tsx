@@ -5,20 +5,31 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  ComboBox,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Button,
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+  TextArea,
+} from "@next-pms/design-system/components";
+import { useToast } from "@next-pms/design-system/components";
+import { prettyDate } from "@next-pms/design-system/date";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { LoaderCircle, Send } from "lucide-react";
 import { z } from "zod";
-
 /**
  * Internal dependencies.
  */
-import { ComboxBox } from "@/app/components/comboBox";
-import { Button } from "@/app/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/app/components/ui/form";
-import { Textarea } from "@/app/components/ui/textarea";
-import { useToast } from "@/app/components/ui/use-toast";
-import { parseFrappeErrorMsg, prettyDate } from "@/lib/utils";
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetApprovalSchema } from "@/schema/timesheet";
 import { RootState } from "@/store";
 import { setApprovalDialog, setDateRange } from "@/store/timesheet";
@@ -91,7 +102,7 @@ export const Approval = ({ onClose }: { onClose: () => void }) => {
                 <FormItem className="w-full">
                   <FormLabel className="font-normal">Note</FormLabel>
                   <FormControl>
-                    <Textarea
+                    <TextArea
                       placeholder="Add a note"
                       rows={4}
                       className="w-full placeholder:text-slate-400"
@@ -110,7 +121,7 @@ export const Approval = ({ onClose }: { onClose: () => void }) => {
                   <FormControl>
                     <div className="w-full flex items-center gap-x-2 mt-2">
                       <FormLabel className="font-normal">Send To</FormLabel>
-                      <ComboxBox
+                      <ComboBox
                         label="Select an Approver"
                         className="max-w-48"
                         value={[field.value]}

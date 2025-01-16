@@ -3,6 +3,7 @@
  */
 import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { getFormatedDate } from "@next-pms/design-system/date";
 import { addDays } from "date-fns";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 /**
@@ -10,9 +11,8 @@ import { ChevronRight, ChevronLeft } from "lucide-react";
  */
 import { Header as ListViewHeader } from "@/app/components/listview/header";
 import { useQueryParamsState } from "@/lib/queryParam";
-import { getFormatedDate } from "@/lib/utils";
 import { RootState } from "@/store";
-import { resetState, setEmployeeName, setFilters, setStatus, setWeekDate } from "@/store/home";
+import { setEmployeeName, setFilters, setStatus, setWeekDate } from "@/store/home";
 
 export const Header = () => {
   const homeState = useSelector((state: RootState) => state.home);

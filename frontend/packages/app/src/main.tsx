@@ -7,7 +7,7 @@ import ReactDOM from "react-dom/client";
 /**
  * Internal dependencies.
  */
-import App from "./App";
+import App from "./app";
 import "@next-pms/design-system/index.css"
 import "./global.css";
 
