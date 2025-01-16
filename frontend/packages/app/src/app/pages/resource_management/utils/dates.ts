@@ -31,7 +31,7 @@ function getDatesArrays(
   const start = startOfWeek(getDateTimeForMultipleTimeZoneSupport(startDate), {
     weekStartsOn: 1,
   });
-  const today = getTodayDate()
+  const today = getTodayDate();
 
   for (let weekCount = 0; weekCount < weeks; weekCount++) {
     const datesObject: DateProps = {
@@ -105,4 +105,14 @@ function checkInRange(start: string, weeks: number, dateString: string) {
   return startDate <= dateString && dateString <= endDate;
 }
 
-export { getDatesArrays, getNextDate, checkInRange };
+const getDayKeyOfMoment = (dateTime: Moment): string => {
+  return dateTime.format("YYYY-MM-DD");
+};
+
+export {
+  getDatesArrays,
+  getNextDate,
+  checkInRange,
+  getMonthKey,
+  getDayKeyOfMoment,
+};

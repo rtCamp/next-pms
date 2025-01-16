@@ -75,6 +75,7 @@ const ResourceTeamView = () => {
           designation: JSON.stringify(resourceTeamState.designation),
           is_billable: getIsBillableValue(resourceTeamState.allocationType as string[]),
           skills: resourceTeamState?.skillSearch?.length > 0 ? JSON.stringify(resourceTeamState.skillSearch) : null,
+          need_hours_summary: true,
         };
         return newReqBody;
       }
@@ -273,7 +274,7 @@ const ResourceTeamView = () => {
         date: resourceTeamState.weekDate,
         max_week: resourceTeamState.maxWeek,
         employee_id: JSON.stringify([oldData.employee, newData.employee]),
-        is_billable: getIsBillableValue(resourceTeamState.allocationType as string[])
+        is_billable: getIsBillableValue(resourceTeamState.allocationType as string[]),
       }).then((res) => {
         const newEmployeeData = res.message?.data;
         if (newEmployeeData && newEmployeeData.length > 0) {

@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { CheckedState } from "@radix-ui/react-checkbox";
 import { Filter as Funnel } from "lucide-react";
 /**
@@ -44,7 +44,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
 
   const handleChangeWrapper = (value: string | CheckedState | string[]) => {
     /* Make sure to update query parameters based on changes. */
-    if(filter.type!= "custom-filter"){
+    if (filter.type != "custom-filter") {
       setQueryParam(value);
     }
     filter.handleChange && filter.handleChange(value);
@@ -52,7 +52,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
 
   useEffect(() => {
     /** This will make sure to update the query parameter state if some filter is removed from the URL. */
-    if(filter.type!= "custom-filter"){
+    if (filter.type != "custom-filter") {
       setQueryParam(filter.value as string | CheckedState | string[]);
     }
   }, [filter.value, setQueryParam]);
@@ -64,6 +64,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
         value={filter.value as string}
         deBounceValue={300}
         callback={(e) => handleChangeWrapper(e.target.value)}
+        className={filter.className}
       />
     );
   }
@@ -75,14 +76,12 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
         status={filter.employeeComboStatus ?? []}
         onSelect={handleChangeWrapper}
         employeeName={filter?.employeeName}
-        className="border-dashed min-w-48 w-full max-w-48"
+        className={cn("border-dashed min-w-48 w-full max-w-48", filter.className)}
       />
     );
   }
   if (filter.type === "custom-filter") {
-    return (
-      filter.customFilterComponent
-    );
+    return filter.customFilterComponent;
   }
   if (filter.type == "select-search") {
     // If we do not have apicall in dynamic search then do nothing.
@@ -124,7 +123,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
             disabled: d.disabled,
           })) ?? []
         }
-        className="text-primary border-dashed gap-x-2 font-normal w-fit"
+        className={cn("text-primary border-dashed gap-x-2 font-normal w-fit", filter.className)}
       />
     );
   }
@@ -134,12 +133,16 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
         <SelectTrigger className="max-w-44 min-w-44">
           <SelectValue placeholder="Select a view type" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className={filter.className}>
           <SelectGroup>
             <SelectLabel>{filter.label}</SelectLabel>
             {filter.data &&
-              filter.data.map((item,index) => {
-                return <SelectItem key={index} value={item.value}>{item.label}</SelectItem>;
+              filter.data.map((item, index) => {
+                return (
+                  <SelectItem key={index} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                );
               })}
           </SelectGroup>
         </SelectContent>
