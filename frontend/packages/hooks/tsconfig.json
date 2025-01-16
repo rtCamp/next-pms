@@ -6,23 +6,16 @@
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
-    "noEmit": true,
+    "noEmit": false,
+    "composite": true,
     "esModuleInterop": true,
     "module": "ESnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "react-jsx",
-    "incremental": true
+    "incremental": true,
+    "rootDirs": ["src"]
   },
-  "include": ["./packages/**/*.tsx", "./packages/**/*.ts"],
-  "references": [
-    {
-      "path": "./packages/app"
-    },
-    {
-      "path": "./packages/hooks"
-    }
-  ],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]
 }
