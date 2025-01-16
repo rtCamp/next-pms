@@ -87,7 +87,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
       currency: projectState.currency,
       order_by: `${projectState.orderColumn} ${projectState.order}`,
     },
-    "next_pms.timesheet.api.project.get_projects_project_page",
+    undefined,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,

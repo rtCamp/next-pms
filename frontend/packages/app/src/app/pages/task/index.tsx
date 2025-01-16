@@ -148,7 +148,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       status: task.selectedStatus,
       fields: viewInfo?.rows,
     },
-    "next_pms.timesheet.api.task.get_task_list_taak_page",
+    undefined,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
