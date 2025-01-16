@@ -5,25 +5,37 @@ import { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { useSelector } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  DatePicker,
+  Spinner,
+  Typography,
+  Button,
+  Checkbox,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  Input,
+  Separator,
+  TextArea,
+} from "@next-pms/design-system/components";
+import { useToast } from "@next-pms/design-system/components";
+import { getFormatedDate } from "@next-pms/design-system/date";
+import { floatToTime } from "@next-pms/design-system/utils";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { LoaderCircle, Plus, Save, Trash2 } from "lucide-react";
 import { z } from "zod";
-
 /**
  * Internal dependencies
  */
-import { DatePicker } from "@/app/components/datePicker";
-import { Spinner } from "@/app/components/spinner";
-import { Typography } from "@/app/components/typography";
-import { Button } from "@/app/components/ui/button";
-import { Checkbox } from "@/app/components/ui/checkbox";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
-import { Input } from "@/app/components/ui/input";
-import { Separator } from "@/app/components/ui/separator";
-import { Textarea } from "@/app/components/ui/textarea";
-import { useToast } from "@/app/components/ui/use-toast";
-import { cn, floatToTime, getFormatedDate, parseFrappeErrorMsg } from "@/lib/utils";
+import { cn, parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetUpdateSchema } from "@/schema/timesheet";
 import { RootState } from "@/store";
 
@@ -53,7 +65,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
     name: "data",
   });
 
-  const columns = ["Date","Hours", "Description", "Billable", ""];
+  const columns = ["Date", "Hours", "Description", "Billable", ""];
   const { toast } = useToast();
   const { call: updateTimesheet } = useFrappePostCall("next_pms.timesheet.api.timesheet.bulk_update_timesheet_detail");
   const { call: deleteTimesheet } = useFrappePostCall("next_pms.timesheet.api.timesheet.delete");
@@ -87,7 +99,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
       task: task,
       date: date,
     };
-    append(newRow,{ shouldFocus: true });
+    append(newRow, { shouldFocus: true });
   };
 
   const handleUpdate = (formData: z.infer<typeof TimesheetUpdateSchema>) => {
@@ -182,13 +194,15 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
                     ))}
                   </div>
                 </div>
-                
                 {fields.map((item, index: number) => (
-                  <div className="flex gap-2 border-b pb-5 items-start pt-1 max-md:border max-md:rounded-md max-md:p-4 max-md:flex-col" key={item.id}>
+                  <div
+                    className="flex gap-2 border-b pb-5 items-start pt-1 max-md:border max-md:rounded-md max-md:p-4 max-md:flex-col"
+                    key={item.id}
+                  >
                     <FormField
                       control={form.control}
                       name={`data.${index}.date`}
-                      render={({field}) => (
+                      render={({ field }) => (
                         <FormItem className="w-full md:max-w-28 space-y-2 truncate">
                           <FormLabel className="flex gap-2 items-center md:hidden">
                             <p title="subject" className="text-sm truncate">
@@ -196,10 +210,13 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
                             </p>
                           </FormLabel>
                           <FormControl>
-                            <DatePicker date={new Date(field.value)} onDateChange={(date)=>{
-                              if (!date) return;
-                              form.setValue(`data.${index}.date`,getFormatedDate(date), { shouldDirty: true });
-                            }} />
+                            <DatePicker
+                              date={new Date(field.value)}
+                              onDateChange={(date) => {
+                                if (!date) return;
+                                form.setValue(`data.${index}.date`, getFormatedDate(date), { shouldDirty: true });
+                              }}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -211,7 +228,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
                       render={({ field }) => {
                         return (
                           <FormItem className="w-full md:max-w-16 max-md:w-full md:px-2">
-                              <FormLabel className="flex gap-2 items-center md:hidden">
+                            <FormLabel className="flex gap-2 items-center md:hidden">
                               <p title="subject" className="text-sm truncate">
                                 Hours
                               </p>
@@ -241,7 +258,7 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
                               </p>
                             </FormLabel>
                             <FormControl>
-                              <Textarea
+                              <TextArea
                                 rows={3}
                                 {...field}
                                 onChange={field.onChange}
@@ -281,7 +298,10 @@ export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps)
                         type="button"
                         onClick={() => removeFormRow(index)}
                       >
-                        <Trash2/> <Typography className="hidden text-sm text-white max-md:block" variant="p">Delete Row</Typography>
+                        <Trash2 />{" "}
+                        <Typography className="hidden text-sm text-white max-md:block" variant="p">
+                          Delete Row
+                        </Typography>
                       </Button>
                     </div>
                   </div>

@@ -1,14 +1,9 @@
 /**
  * External dependencies
  */
-
 import { useState } from "react";
+import { Typography, Separator } from "@next-pms/design-system/components";
 import { ChevronLeft, ChevronRight, Clock } from "lucide-react";
-/**
- * Internal dependencies
- */
-import { Typography } from "@/app/components/typography";
-import { Separator } from "@/app/components/ui/separator";
 
 interface ExpandableHoursProps {
   totalHours: string;
@@ -19,9 +14,8 @@ const ExpandableHours = ({ totalHours, workingHours, timeoffHours }: ExpandableH
   const [isExpanded, setIsExpanded] = useState(false);
   return (
     <>
-      {/* Total Hours */}
       <div
-        title={isExpanded?"collapse":"expand"}
+        title={isExpanded ? "collapse" : "expand"}
         onClick={(e) => {
           e.stopPropagation();
           setIsExpanded(!isExpanded);
@@ -33,7 +27,6 @@ const ExpandableHours = ({ totalHours, workingHours, timeoffHours }: ExpandableH
           <Typography className="text-sm max-md:text-xs hover:underline font-medium">{totalHours}h</Typography>
         </span>
         {isExpanded ? <ChevronLeft className="" /> : <ChevronRight className="" />}
-        {/* Hours Breakdown */}
         {isExpanded && (
           <>
             <span className="flex items-center text-sm shrink-0">

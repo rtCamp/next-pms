@@ -4,8 +4,8 @@
 import { Suspense } from "react";
 import { Provider } from "react-redux";
 import { RouterProvider, createBrowserRouter, createRoutesFromElements } from "react-router-dom";
+import { ErrorFallback } from "@next-pms/design-system/components";
 import { FrappeProvider } from "frappe-react-sdk";
-
 /**
  * Internal dependencies.
  */
@@ -15,9 +15,8 @@ import { UserProvider } from "@/lib/UserProvider";
 import { getSiteName } from "@/lib/utils";
 import { Router } from "@/Route";
 import { store } from "@/store";
-import GenWrapper from "./app/components/GenWrapper";
 
-function App() {
+const App = () => {
   const router = createBrowserRouter(createRoutesFromElements(Router()), {
     basename: BASE_ROUTE,
   });
@@ -34,9 +33,9 @@ function App() {
           <Provider store={store}>
             <TooltipProvider>
               <Suspense fallback={<></>}>
-                <GenWrapper>
+                <ErrorFallback>
                   <RouterProvider router={router} />
-                </GenWrapper>
+                </ErrorFallback>
               </Suspense>
             </TooltipProvider>
           </Provider>
@@ -44,6 +43,6 @@ function App() {
       </FrappeProvider>
     </>
   );
-}
+};
 
 export default App;
