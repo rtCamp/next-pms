@@ -3,6 +3,18 @@
  */
 import { useCallback, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import {
+  Button,
+  Separator,
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+  Spinner,
+} from "@next-pms/design-system/components";
+import { useToast } from "@next-pms/design-system/components";
+import { getUTCDateTime, normalizeDate, getFormatedDate } from "@next-pms/design-system/date";
+import { floatToTime } from "@next-pms/design-system/utils";
 import { addDays } from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { isEmpty } from "lodash";
@@ -14,23 +26,10 @@ import { Calendar, Paperclip, Plus } from "lucide-react";
 import AddLeave from "@/app/components/AddLeave";
 import AddTime from "@/app/components/AddTime";
 import { LoadMore } from "@/app/components/loadMore";
-import { Spinner } from "@/app/components/spinner";
 import TimesheetTable, { SubmitButton } from "@/app/components/TimesheetTable";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
-import { Button } from "@/app/components/ui/button";
-import { Separator } from "@/app/components/ui/separator";
-import { useToast } from "@/app/components/ui/use-toast";
 import { Header, Footer, Main } from "@/app/layout/root";
 import { useQueryParamsState } from "@/lib/queryParam";
-import {
-  parseFrappeErrorMsg,
-  getFormatedDate,
-  floatToTime,
-  expectatedHours,
-  getDateTimeForMultipleTimeZoneSupport,
-  copyToClipboard,
-  correctDateFormat,
-} from "@/lib/utils";
+import { parseFrappeErrorMsg, expectatedHours, copyToClipboard } from "@/lib/utils";
 import { RootState } from "@/store";
 import {
   setData,
@@ -45,7 +44,7 @@ import {
 } from "@/store/timesheet";
 import { WorkingFrequency } from "@/types";
 import { HolidayProp, LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
-import { Approval } from "./Approval";
+import { Approval } from "./approval";
 import { EditTime } from "./EditTime";
 import ExpandableHours from "./ExpandableHours";
 
@@ -64,19 +63,16 @@ function Timesheet() {
     max_week: 4,
   });
   const isDateInRange = (date: string, startDate: string, endDate: string) => {
-    const targetDate = getDateTimeForMultipleTimeZoneSupport(correctDateFormat(date));
+    const targetDate = getUTCDateTime(normalizeDate(date));
 
-    return (
-      getDateTimeForMultipleTimeZoneSupport(startDate) <= targetDate &&
-      targetDate <= getDateTimeForMultipleTimeZoneSupport(endDate)
-    );
+    return getUTCDateTime(startDate) <= targetDate && targetDate <= getUTCDateTime(endDate);
   };
 
   const validateDate = useCallback(() => {
     if (!startDateParam) {
       return true;
     }
-    const date = getFormatedDate(correctDateFormat(startDateParam));
+    const date = getFormatedDate(normalizeDate(startDateParam));
     const timesheetData = timesheet.data?.data;
     if (timesheetData && Object.keys(timesheetData).length > 0) {
       const keys = Object.keys(timesheetData);
@@ -133,7 +129,7 @@ function Timesheet() {
     const timesheetData = {
       name: "",
       task: "",
-      date: getFormatedDate(getDateTimeForMultipleTimeZoneSupport()),
+      date: getFormatedDate(getUTCDateTime()),
       description: "",
       hours: 0,
       employee: user.employee,
@@ -235,15 +231,17 @@ function Timesheet() {
                   <AccordionItem value={key}>
                     <AccordionTrigger className="hover:no-underline w-full py-2 max-md:[&>svg]:hidden">
                       <div className="flex justify-between items-center w-full group gap-2 ">
-                        <div
-                          className="font-normal text-xs sm:text-base flex items-center gap-x-2 max-md:gap-x-3 sm:flex-row overflow-x-auto no-scrollbar max-md:w-4/5"
-                        >
+                        <div className="font-normal text-xs sm:text-base flex items-center gap-x-2 max-md:gap-x-3 sm:flex-row overflow-x-auto no-scrollbar max-md:w-4/5">
                           <span className="flex items-center gap-2 shrink-0">
                             <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
                             <h2 className="font-medium">{key}</h2>
                           </span>
                           <Separator orientation="vertical" className="block h-5 shrink-0" />
-                          <ExpandableHours totalHours={floatToTime(total_hours)} workingHours={floatToTime(total_hours - timeoff_hours)} timeoffHours={floatToTime(timeoff_hours)}/>
+                          <ExpandableHours
+                            totalHours={floatToTime(total_hours)}
+                            workingHours={floatToTime(total_hours - timeoff_hours)}
+                            timeoffHours={floatToTime(timeoff_hours)}
+                          />
                           <Paperclip
                             className="w-3 h-3 hidden group-hover:block shrink-0"
                             onClick={(e) => {

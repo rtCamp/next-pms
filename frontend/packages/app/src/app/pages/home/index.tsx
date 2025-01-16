@@ -4,6 +4,26 @@
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import {
+  Spinner,
+  Typography,
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+  Skeleton,
+  Table,
+  TableHeader,
+  TableHead,
+  TableRow,
+  TableBody,
+  TableCell,
+} from "@next-pms/design-system/components";
+import { useToast } from "@next-pms/design-system/components";
+import { prettyDate } from "@next-pms/design-system/date";
+import { preProcessLink, floatToTime } from "@next-pms/design-system/utils";
 import { useInfiniteScroll } from "@next-pms/hooks";
 import { isToday } from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
@@ -12,27 +32,13 @@ import { useFrappeGetCall } from "frappe-react-sdk";
  * Internal dependencies.
  */
 
-import { Spinner } from "@/app/components/spinner";
-import { Typography } from "@/app/components/typography";
-import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
-import { Skeleton } from "@/app/components/ui/skeleton";
-import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
-import { useToast } from "@/app/components/ui/use-toast";
 import { TEAM, EMPLOYEE } from "@/lib/constant";
-import {
-  cn,
-  parseFrappeErrorMsg,
-  prettyDate,
-  floatToTime,
-  calculateExtendedWorkingHour,
-  preProcessLink,
-} from "@/lib/utils";
+import { cn, parseFrappeErrorMsg, calculateExtendedWorkingHour } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setData, DateProps, setStart, updateData, setReFetchData } from "@/store/home";
 import { WorkingFrequency } from "@/types";
 import { dataItem } from "@/types/team";
-import { Header } from "./Header";
+import { Header } from "./header";
 
 type DataItem = {
   data: dataItem[];
