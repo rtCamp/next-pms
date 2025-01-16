@@ -12,6 +12,7 @@ import { CircleCheck, CircleDollarSign, CirclePlus, CircleX, Clock3, PencilLine,
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { TaskLog } from "@/app/pages/task/TaskLog";
+import { LIKED_TASK_KEY } from "@/lib/constant";
 import { hasKeyInLocalStorage, getLocalStorage, setLikedTask, removeFromLikedTask, toggleLikedByForTask, addAction } from "@/lib/storage";
 import {
   calculateWeeklyHour,
@@ -141,24 +142,23 @@ const TimesheetTable = ({
   const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<string>("");
   const { call: fetchLikedTask,loading:loadingLikedTasks } = useFrappePostCall("next_pms.timesheet.api.task.get_liked_tasks");
-  const likedTaskKey = "next_pms_liked_task";
   const task_date_range_key = dates[0] + "-" + dates[dates.length - 1];
-  const has_liked_task = hasKeyInLocalStorage(likedTaskKey);
+  const has_liked_task = hasKeyInLocalStorage(LIKED_TASK_KEY);
 
   const setTaskInLocalStorage = () => {
     fetchLikedTask({}).then((res) => {
-      setLikedTask(likedTaskKey,task_date_range_key,res.message);
+      setLikedTask(LIKED_TASK_KEY,task_date_range_key,res.message);
     });
   };
 
-  const liked_tasks = has_liked_task ? getLocalStorage(likedTaskKey)[task_date_range_key] ?? [] : []; 
+  const liked_tasks = has_liked_task ? getLocalStorage(LIKED_TASK_KEY)[task_date_range_key] ?? [] : []; 
 
   const filteredLikedTasks = liked_tasks.filter(
     (likedTask: { name: string }) => !Object.keys(tasks).includes(likedTask.name)
   );
 
   const deleteTaskFromLocalStorage = useCallback(() => {
-    removeFromLikedTask(likedTaskKey,task_date_range_key);
+    removeFromLikedTask(LIKED_TASK_KEY,task_date_range_key);
   }, [task_date_range_key]);
 
   useEffect(() => {
@@ -725,7 +725,6 @@ export const SubmitButton = ({ start_date, end_date, onApproval, status }: submi
 };
 
 const TaskHoverCard = ({ name, taskData, setSelectedTask, setIsTaskLogDialogBoxOpen }) => {
-  const likedTaskKey = "next_pms_liked_task";
   const user = useSelector((state: RootState) => state.user);
   const [taskLiked,setTaskedLiked] = useState(false)
   useEffect(()=>{
@@ -749,7 +748,7 @@ const TaskHoverCard = ({ name, taskData, setSelectedTask, setIsTaskLogDialogBoxO
     toggleLikeCall(data)
       .then(() => {
         setTaskedLiked((prev) => !prev);
-        toggleLikedByForTask(likedTaskKey,name,user?.user,add)
+        toggleLikedByForTask(LIKED_TASK_KEY,name,user?.user,add)
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
