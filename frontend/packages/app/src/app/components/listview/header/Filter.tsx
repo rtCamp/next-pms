@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useEffect } from "react";
+import { useQueryParam } from "@next-pms/hooks";
 import { CheckedState } from "@radix-ui/react-checkbox";
 import { Filter as Funnel } from "lucide-react";
 /**
@@ -24,7 +25,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/components/ui/select";
-import { useQueryParamsState } from "@/lib/queryParam";
 import { cn } from "@/lib/utils";
 
 /**
@@ -40,11 +40,11 @@ import { cn } from "@/lib/utils";
  * @returns React.FC
  */
 export const Filter = ({ filter }: { filter: FilterPops }) => {
-  const [queryParam, setQueryParam] = useQueryParamsState(filter.queryParameterName, filter.queryParameterDefault);
+  const [queryParam, setQueryParam] = useQueryParam(filter.queryParameterName ?? "", filter.queryParameterDefault);
 
   const handleChangeWrapper = (value: string | CheckedState | string[]) => {
     /* Make sure to update query parameters based on changes. */
-    if(filter.type!= "custom-filter"){
+    if (filter.type != "custom-filter") {
       setQueryParam(value);
     }
     filter.handleChange && filter.handleChange(value);
@@ -52,7 +52,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
 
   useEffect(() => {
     /** This will make sure to update the query parameter state if some filter is removed from the URL. */
-    if(filter.type!= "custom-filter"){
+    if (filter.type != "custom-filter") {
       setQueryParam(filter.value as string | CheckedState | string[]);
     }
   }, [filter.value, setQueryParam]);
@@ -80,9 +80,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
     );
   }
   if (filter.type === "custom-filter") {
-    return (
-      filter.customFilterComponent
-    );
+    return filter.customFilterComponent;
   }
   if (filter.type == "select-search") {
     // If we do not have apicall in dynamic search then do nothing.
@@ -138,8 +136,12 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
           <SelectGroup>
             <SelectLabel>{filter.label}</SelectLabel>
             {filter.data &&
-              filter.data.map((item,index) => {
-                return <SelectItem key={index} value={item.value}>{item.label}</SelectItem>;
+              filter.data.map((item, index) => {
+                return (
+                  <SelectItem key={index} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                );
               })}
           </SelectGroup>
         </SelectContent>

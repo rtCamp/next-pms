@@ -3,6 +3,7 @@
  */
 import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useQueryParam } from "@next-pms/hooks";
 import { addDays } from "date-fns";
 import { useFrappePostCall } from "frappe-react-sdk";
 import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
@@ -11,7 +12,6 @@ import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
  * Internal dependencies.
  */
 import { Header } from "@/app/components/listview/header";
-import { useQueryParamsState } from "@/lib/queryParam";
 import { getFormatedDate } from "@/lib/utils";
 import { RootState } from "@/store";
 import { PermissionProps, setDialog, setResourcePermissions } from "@/store/resource_management/allocation";
@@ -33,13 +33,13 @@ import {
  * @returns React.FC
  */
 const ResourceProjectHeaderSection = () => {
-  const [projectNameParam] = useQueryParamsState<string>("project-name", "");
-  const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParamsState<boolean>("combine-week-hours", false);
-  const [reportingNameParam] = useQueryParamsState<string>("reports-to", "");
-  const [customerNameParam] = useQueryParamsState<string[]>("customer", []);
-  const [allocationTypeParam] = useQueryParamsState<string[]>("allocation-type", []);
-  const [billingType, setBillingTypeParam] = useQueryParamsState<string[]>("billing-type", []);
-  const [viewParam, setViewParam] = useQueryParamsState<string>("view-type", "");
+  const [projectNameParam] = useQueryParam<string>("project-name", "");
+  const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParam<boolean>("combine-week-hours", false);
+  const [reportingNameParam] = useQueryParam<string>("reports-to", "");
+  const [customerNameParam] = useQueryParam<string[]>("customer", []);
+  const [allocationTypeParam] = useQueryParam<string[]>("allocation-type", []);
+  const [billingType, setBillingTypeParam] = useQueryParam<string[]>("billing-type", []);
+  const [viewParam, setViewParam] = useQueryParam<string>("view-type", "");
 
   const resourceProjectState = useSelector((state: RootState) => state.resource_project);
   const resourceProjectStateTableView = resourceProjectState.tableView;

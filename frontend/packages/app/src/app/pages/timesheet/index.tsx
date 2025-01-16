@@ -18,6 +18,7 @@ import { floatToTime } from "@next-pms/design-system/utils";
 import { addDays } from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { isEmpty } from "lodash";
+import { useQueryParam } from "@next-pms/hooks";
 import { Calendar, Paperclip, Plus } from "lucide-react";
 
 /**
@@ -28,7 +29,6 @@ import AddTime from "@/app/components/AddTime";
 import { LoadMore } from "@/app/components/loadMore";
 import TimesheetTable, { SubmitButton } from "@/app/components/TimesheetTable";
 import { Header, Footer, Main } from "@/app/layout/root";
-import { useQueryParamsState } from "@/lib/queryParam";
 import { parseFrappeErrorMsg, expectatedHours, copyToClipboard } from "@/lib/utils";
 import { RootState } from "@/store";
 import {
@@ -52,7 +52,7 @@ function Timesheet() {
   const targetRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  const [startDateParam, setstartDateParam] = useQueryParamsState<string>("date", "");
+  const [startDateParam, setstartDateParam] = useQueryParam<string>("date", "");
   const user = useSelector((state: RootState) => state.user);
   const timesheet = useSelector((state: RootState) => state.timesheet);
   const dispatch = useDispatch();

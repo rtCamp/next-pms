@@ -3,15 +3,14 @@
  */
 import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-
+import { useQueryParam } from "@next-pms/hooks";
 import { addDays } from "date-fns";
+import { useFrappePostCall } from "frappe-react-sdk";
 import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
-
 /**
  * Internal dependencies.
  */
 import { Header } from "@/app/components/listview/header";
-import { useQueryParamsState } from "@/lib/queryParam";
 import { getFormatedDate } from "@/lib/utils";
 import { RootState } from "@/store";
 import { PermissionProps, setDialog, setResourcePermissions } from "@/store/resource_management/allocation";
@@ -31,7 +30,6 @@ import {
   setSkillSearch,
 } from "@/store/resource_management/team";
 import SkillSearch from "./SkillSearch";
-import { useFrappePostCall } from "frappe-react-sdk";
 
 /**
  * This component is responsible for loading the team view header.
@@ -39,14 +37,14 @@ import { useFrappePostCall } from "frappe-react-sdk";
  * @returns React.FC
  */
 const ResourceTeamHeaderSection = () => {
-  const [businessUnitParam] = useQueryParamsState<string[]>("business-unit", []);
-  const [employeeNameParam] = useQueryParamsState<string>("employee-name", "");
-  const [reportingNameParam] = useQueryParamsState<string>("reports-to", "");
-  const [allocationTypeParam] = useQueryParamsState<string[]>("allocation-type", []);
-  const [designationParam] = useQueryParamsState<string[]>("designation", []);
-  const [viewParam, setViewParam] = useQueryParamsState<string>("view-type", "");
-  const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParamsState<boolean>("combine-week-hours", false);
-  const [skillSearchParam, setSkillSearchParam] = useQueryParamsState<Skill[]>("skill-search", []);
+  const [businessUnitParam] = useQueryParam<string[]>("business-unit", []);
+  const [employeeNameParam] = useQueryParam<string>("employee-name", "");
+  const [reportingNameParam] = useQueryParam<string>("reports-to", "");
+  const [allocationTypeParam] = useQueryParam<string[]>("allocation-type", []);
+  const [designationParam] = useQueryParam<string[]>("designation", []);
+  const [viewParam, setViewParam] = useQueryParam<string>("view-type", "");
+  const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParam<boolean>("combine-week-hours", false);
+  const [skillSearchParam, setSkillSearchParam] = useQueryParam<Skill[]>("skill-search", []);
 
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
   const resourceTeamStateTableView = resourceTeamState.tableView;
