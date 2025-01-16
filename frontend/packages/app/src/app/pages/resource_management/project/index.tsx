@@ -48,6 +48,7 @@ const ResourceTeamView = () => {
           page_length: resourceProjectState.pageLength,
           project_name: resourceProjectState.projectName,
           customer: resourceProjectState.customer,
+          billing_type: resourceProjectState.billingType,
           is_billable: getIsBillableValue(resourceProjectState.allocationType as string[]),
           start: resourceProjectState.start,
         }
