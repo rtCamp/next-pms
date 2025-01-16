@@ -12,7 +12,7 @@ import { CircleCheck, CircleDollarSign, CirclePlus, CircleX, Clock3, PencilLine,
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { TaskLog } from "@/app/pages/task/TaskLog";
-import { setLocalStorage, hasKeyInLocalStorage, getLocalStorage, removeLocalStorage } from "@/lib/storage";
+import { hasKeyInLocalStorage, getLocalStorage, setLikedTask, removeFromLikedTask, toggleLikedByForTask, addAction } from "@/lib/storage";
 import {
   calculateWeeklyHour,
   cn,
@@ -141,24 +141,25 @@ const TimesheetTable = ({
   const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<string>("");
   const { call: fetchLikedTask,loading:loadingLikedTasks } = useFrappePostCall("next_pms.timesheet.api.task.get_liked_tasks");
-  const key = dates[0] + "-" + dates[dates.length - 1];
-  const has_liked_task = hasKeyInLocalStorage(key);
+  const likedTaskKey = "next_pms_liked_task";
+  const task_date_range_key = dates[0] + "-" + dates[dates.length - 1];
+  const has_liked_task = hasKeyInLocalStorage(likedTaskKey);
 
   const setTaskInLocalStorage = () => {
     fetchLikedTask({}).then((res) => {
-      setLocalStorage(key, res.message);
+      setLikedTask(likedTaskKey,task_date_range_key,res.message);
     });
   };
 
-  const liked_tasks = has_liked_task ? getLocalStorage(key) ?? [] : [];
+  const liked_tasks = has_liked_task ? getLocalStorage(likedTaskKey)[task_date_range_key] ?? [] : []; 
 
   const filteredLikedTasks = liked_tasks.filter(
     (likedTask: { name: string }) => !Object.keys(tasks).includes(likedTask.name)
   );
 
   const deleteTaskFromLocalStorage = useCallback(() => {
-    removeLocalStorage(key);
-  }, [key]);
+    removeFromLikedTask(likedTaskKey,task_date_range_key);
+  }, [task_date_range_key]);
 
   useEffect(() => {
     if (weekly_status === "Approved") {
@@ -263,7 +264,6 @@ const TimesheetTable = ({
                       taskData={taskData}
                       setSelectedTask={setSelectedTask}
                       setIsTaskLogDialogBoxOpen={setIsTaskLogDialogBoxOpen}
-                      dates={dates}
                     />
                   </TableCell>
                   {dates.map((date: string) => {
@@ -647,7 +647,6 @@ export const EmptyRow = ({
             name={name}
             setIsTaskLogDialogBoxOpen={setIsTaskLogDialogBoxOpen}
             setSelectedTask={setSelectedTask}
-            dates={dates}
           />
         )}
       </TableCell>
@@ -725,23 +724,20 @@ export const SubmitButton = ({ start_date, end_date, onApproval, status }: submi
   );
 };
 
-const TaskHoverCard = ({ name, taskData, setSelectedTask, setIsTaskLogDialogBoxOpen,dates }) => {
+const TaskHoverCard = ({ name, taskData, setSelectedTask, setIsTaskLogDialogBoxOpen }) => {
+  const likedTaskKey = "next_pms_liked_task";
   const user = useSelector((state: RootState) => state.user);
-  const key = dates[0] + "-" + dates[dates.length - 1];
   const [taskLiked,setTaskedLiked] = useState(false)
-  console.log(taskData);
   useEffect(()=>{
-    setTaskedLiked(isLiked(taskData?._liked_by, user?.user));
+    setTaskedLiked(isLiked(JSON.stringify(taskData?._liked_by), user?.user));
   },[taskData])
   
-  
   const { call: toggleLikeCall } = useFrappePostCall("frappe.desk.like.toggle_like");
-  const { call: fetchLikedTask} = useFrappePostCall("next_pms.timesheet.api.task.get_liked_tasks");
   const { toast } = useToast();
   
   const handleLike = (e: React.MouseEvent<SVGSVGElement>) => {
     e.stopPropagation();
-    let add = "Yes";
+    let add:addAction = "Yes";
     if (taskLiked) {
       add = "No";
     }
@@ -751,11 +747,9 @@ const TaskHoverCard = ({ name, taskData, setSelectedTask, setIsTaskLogDialogBoxO
       doctype: "Task",
     };
     toggleLikeCall(data)
-      .then(async () => {
-        setTaskedLiked((prev)=>!prev)
-        await fetchLikedTask({}).then((res) => {
-          setLocalStorage(key, res.message);
-        });
+      .then(() => {
+        setTaskedLiked((prev) => !prev);
+        toggleLikedByForTask(likedTaskKey,name,user?.user,add)
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);

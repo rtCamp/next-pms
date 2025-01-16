@@ -14,6 +14,7 @@ import _ from "lodash";
 import AddTime from "@/app/components/AddTime";
 import ViewWrapper from "@/app/components/listview/ViewWrapper";
 import { useToast } from "@/app/components/ui/use-toast";
+import { addAction, toggleLikedByForTask } from "@/lib/storage";
 import {
   parseFrappeErrorMsg,
   createFalseValuedObject,
@@ -185,9 +186,10 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
 
   const handleLike = (e: React.MouseEvent<SVGSVGElement>) => {
     e.stopPropagation();
+    const likedTaskKey = "next_pms_liked_task";
     const taskName = e.currentTarget.dataset.task;
     let likedBy = e.currentTarget.dataset.likedBy;
-    let add = "Yes";
+    let add:addAction = "Yes";
     if (likedBy) {
       likedBy = JSON.parse(likedBy);
       if (likedBy && likedBy.includes(user.user)) {
@@ -202,6 +204,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     toggleLikeCall(data)
       .then(() => {
         mutate();
+        toggleLikedByForTask(likedTaskKey,taskName as string,user?.user,add)
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
