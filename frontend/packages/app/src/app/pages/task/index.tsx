@@ -178,7 +178,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, dispatch, error]);
+  }, [data, dispatch, error,viewInfo.filters.search]);
 
   const handleLike = (e: React.MouseEvent<SVGSVGElement>) => {
     e.stopPropagation();
