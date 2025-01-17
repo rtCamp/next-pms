@@ -87,7 +87,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
       currency: projectState.currency,
       order_by: `${projectState.orderColumn} ${projectState.order}`,
     },
-    "next_pms.timesheet.api.project.get_projects_project_page",
+    undefined,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
@@ -119,7 +119,11 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
       });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, dispatch, error, toast]);
+  }, [data, dispatch, error, toast,projectState.currency]);
+  
+  useEffect(()=>{
+    dispatch(setReFetchData(true));
+  },[viewInfo.rows,dispatch])
 
   useEffect(() => {
     const updateViewData = {
@@ -188,11 +192,11 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
       if (Object.keys(visibility).length == 0) {
         newColumnOrder = columnOrder;
       } else {
-        newColumnOrder = viewInfo.rows.filter((d) => visibility[d]).map((d) => d);
+        newColumnOrder = viewData.rows.filter((d) => visibility[d]).map((d) => d);
       }
       setColumnOrder(newColumnOrder);
     },
-    [columnOrder, viewInfo.rows]
+    [columnOrder,viewData.rows]
   );
 
   const updateColumnSize = (columns: Array<string>) => {
