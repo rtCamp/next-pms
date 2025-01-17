@@ -118,7 +118,7 @@ export const DataCell = ({ meta, title_field, docType, row, value, currency }: D
     const val = Number(value);
 
     return (
-      <Badge className="truncate" variant={val === 1 ? "success" : "destructive"} className="truncate" title={value}>
+      <Badge className="truncate" variant={val === 1 ? "success" : "destructive"} title={value}>
         {val === 1 ? "Yes" : "No"}
       </Badge>
     );
