@@ -1,10 +1,10 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { addDays } from "date-fns";
-import { useFrappeGetCall } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { isEmpty } from "lodash";
 import { Calendar, Paperclip, Plus } from "lucide-react";
 
@@ -128,6 +128,19 @@ function Timesheet() {
       dispatch(SetWeekDate(getFormatedDate(addDays(info.start_date, -1))));
     }
   }, [dispatch, startDateParam, timesheet.data.data, validateDate]);
+
+  const { call: fetchLikedTask,loading:loadingLikedTasks } = useFrappePostCall("next_pms.timesheet.api.task.get_liked_tasks");
+  const [likedTaskData,setLikedTaskData] = useState([]);
+    
+    const getLikedTaskData = ()=>{
+      fetchLikedTask({}).then((res) => {
+        setLikedTaskData(res.message??[]);
+      });
+    }
+  
+    useEffect(()=>{
+      getLikedTaskData();
+    },[])
 
   const handleAddTime = () => {
     const timesheetData = {
@@ -282,6 +295,9 @@ function Timesheet() {
                         weekly_status={value.status}
                         disabled={value.status === "Approved"}
                         importTasks={true}
+                        loadingLikedTasks={loadingLikedTasks}
+                        likedTaskData={likedTaskData}
+                        getLikedTaskData={getLikedTaskData}
                       />
                     </AccordionContent>
                   </AccordionItem>

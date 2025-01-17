@@ -24,7 +24,6 @@ import {
   preProcessLink,
   prettyDate,
   getBgCsssForToday,
-  isLiked,
   parseFrappeErrorMsg,
 } from "@/lib/utils";
 import { RootState } from "@/store";
@@ -52,6 +51,9 @@ type timesheetTableProps = {
   working_frequency: WorkingFrequency;
   weekly_status?: string;
   importTasks?: boolean;
+  loadingLikedTasks?:boolean;
+  likedTaskData?:Array<object>;
+  getLikedTaskData?:()=>void;
 };
 type leaveRowProps = {
   leaves: Array<LeaveProps>;
@@ -102,6 +104,9 @@ type emptyRowProps = {
   setIsTaskLogDialogBoxOpen: React.Dispatch<React.SetStateAction<boolean>>;
   taskData?: TaskDataProps;
   name?: string;
+  setTaskInLocalStorage?:()=>void;
+  likedTaskData?:Array<object>;
+  getLikedTaskData?:()=>void;
 };
 type submitButtonProps = {
   start_date: string;
@@ -137,25 +142,34 @@ const TimesheetTable = ({
   disabled,
   weekly_status,
   importTasks = false,
+  loadingLikedTasks,
+  likedTaskData,
+  getLikedTaskData,
 }: timesheetTableProps) => {
   const holiday_list = getHolidayList(holidays);
   const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<string>("");
-  const { call: fetchLikedTask,loading:loadingLikedTasks } = useFrappePostCall("next_pms.timesheet.api.task.get_liked_tasks");
   const task_date_range_key = dates[0] + "-" + dates[dates.length - 1];
   const has_liked_task = hasKeyInLocalStorage(LIKED_TASK_KEY);
+  
+
+  useEffect(()=>{
+    getLikedTaskData!();
+  },[])
 
   const setTaskInLocalStorage = () => {
-    fetchLikedTask({}).then((res) => {
-      setLikedTask(LIKED_TASK_KEY,task_date_range_key,res.message);
-    });
+      setLikedTask(LIKED_TASK_KEY,task_date_range_key,likedTaskData!);
+      setFilteredLikedTasks(likedTaskData?.filter(
+        (likedTask: { name: string }) => !Object.keys(tasks).includes(likedTask.name)
+      ))
+      
   };
 
   const liked_tasks = has_liked_task ? getLocalStorage(LIKED_TASK_KEY)[task_date_range_key] ?? [] : []; 
-
-  const filteredLikedTasks = liked_tasks.filter(
+  
+  const [filteredLikedTasks,setFilteredLikedTasks] = useState(liked_tasks.filter(
     (likedTask: { name: string }) => !Object.keys(tasks).includes(likedTask.name)
-  );
+  ))
 
   const deleteTaskFromLocalStorage = useCallback(() => {
     removeFromLikedTask(LIKED_TASK_KEY,task_date_range_key);
@@ -234,6 +248,8 @@ const TimesheetTable = ({
               setSelectedTask={setSelectedTask}
               disabled={disabled}
               setIsTaskLogDialogBoxOpen={setIsTaskLogDialogBoxOpen}
+              likedTaskData={likedTaskData!}
+              getLikedTaskData={getLikedTaskData}
             />
           )}
           {weekly_status != "Approved" &&
@@ -250,6 +266,8 @@ const TimesheetTable = ({
                   setIsTaskLogDialogBoxOpen={setIsTaskLogDialogBoxOpen}
                   name={task.name}
                   taskData={task}
+                  likedTaskData={likedTaskData}
+                  getLikedTaskData={getLikedTaskData}
                 />
               );
             })}
@@ -264,6 +282,8 @@ const TimesheetTable = ({
                       taskData={taskData}
                       setSelectedTask={setSelectedTask}
                       setIsTaskLogDialogBoxOpen={setIsTaskLogDialogBoxOpen}
+                      likedTaskData={likedTaskData}
+                      getLikedTaskData={getLikedTaskData}
                     />
                   </TableCell>
                   {dates.map((date: string) => {
@@ -636,8 +656,10 @@ export const EmptyRow = ({
   setIsTaskLogDialogBoxOpen,
   taskData,
   name,
+  likedTaskData,
+  getLikedTaskData,
 }: emptyRowProps) => {
-  const holiday_list = getHolidayList(holidays);
+  const holiday_list = getHolidayList(holidays);  
   return (
     <TableRow className={cn(rowClassName)}>
       <TableCell className={cn("max-w-sm", headingCellClassName)}>
@@ -647,6 +669,8 @@ export const EmptyRow = ({
             name={name}
             setIsTaskLogDialogBoxOpen={setIsTaskLogDialogBoxOpen}
             setSelectedTask={setSelectedTask}
+            likedTaskData={likedTaskData}
+            getLikedTaskData={getLikedTaskData}
           />
         )}
       </TableCell>
@@ -724,12 +748,13 @@ export const SubmitButton = ({ start_date, end_date, onApproval, status }: submi
   );
 };
 
-const TaskHoverCard = ({ name, taskData, setSelectedTask, setIsTaskLogDialogBoxOpen }) => {
+const TaskHoverCard = ({ name, taskData, setSelectedTask, setIsTaskLogDialogBoxOpen,likedTaskData,getLikedTaskData }) => {
+  
   const user = useSelector((state: RootState) => state.user);
   const [taskLiked,setTaskedLiked] = useState(false)
   useEffect(()=>{
-    setTaskedLiked(isLiked(JSON.stringify(taskData?._liked_by), user?.user));
-  },[taskData])
+    setTaskedLiked(likedTaskData.some(obj => obj.name === name)|| false);
+  },[taskData,likedTaskData])
   
   const { call: toggleLikeCall } = useFrappePostCall("frappe.desk.like.toggle_like");
   const { toast } = useToast();
@@ -748,7 +773,8 @@ const TaskHoverCard = ({ name, taskData, setSelectedTask, setIsTaskLogDialogBoxO
     toggleLikeCall(data)
       .then(() => {
         setTaskedLiked((prev) => !prev);
-        toggleLikedByForTask(LIKED_TASK_KEY,name,user?.user,add)
+        toggleLikedByForTask(LIKED_TASK_KEY,name,user?.user,add);
+        getLikedTaskData();
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);

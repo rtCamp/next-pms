@@ -254,6 +254,19 @@ const Timesheet = ({
   const teamState = useSelector((state: RootState) => state.team);
   const dispatch = useDispatch();
 
+  const { call: fetchLikedTask,loading:loadingLikedTasks } = useFrappePostCall("next_pms.timesheet.api.task.get_liked_tasks");
+  const [likedTaskData,setLikedTaskData] = useState([]);
+    
+    const getLikedTaskData = ()=>{
+      fetchLikedTask({}).then((res) => {
+        setLikedTaskData(res.message??[]);
+      });
+    }
+  
+    useEffect(()=>{
+      getLikedTaskData();
+    },[])
+
   const onCellClick = (timesheet: NewTimesheetProps) => {
     dispatch(setTimesheet({ timesheet, id }));
     if (timesheet.hours > 0) {
@@ -377,6 +390,9 @@ const Timesheet = ({
                     disabled={value.status === "Approved"}
                     working_frequency={teamState.timesheetData.working_frequency}
                     working_hour={teamState.timesheetData.working_hour}
+                    loadingLikedTasks={loadingLikedTasks}
+                    likedTaskData={likedTaskData}
+                    getLikedTaskData={getLikedTaskData}
                   />
                 </AccordionContent>
               </AccordionItem>
