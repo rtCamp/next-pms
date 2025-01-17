@@ -3,6 +3,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useQueryParam } from "@next-pms/hooks";
 import { addDays } from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -10,7 +11,6 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
  * Internal dependencies
  */
 import { Header as ListViewHeader } from "@/app/components/listview/header";
-import { useQueryParamsState } from "@/lib/queryParam";
 import { getFormatedDate } from "@/lib/utils";
 import { RootState } from "@/store";
 import {
@@ -28,12 +28,12 @@ export const Header = () => {
   const [projectSearch, setProjectSeach] = useState<string>("");
   const [userGroupSearch, setUserGroupSearch] = useState<string>("");
   const teamState = useSelector((state: RootState) => state.team);
-  const [projectParam] = useQueryParamsState<string[]>("project", []);
-  const [userGroupParam] = useQueryParamsState<string[]>("user-group", []);
-  const [statusParam] = useQueryParamsState<string[]>("status", []);
-  const [employeeNameParam] = useQueryParamsState<string>("employee-name", "");
-  const [reportsToParam] = useQueryParamsState<string>("reports-to", "");
-  const [employeeStatusParam] = useQueryParamsState<Array<string>>("emp-status", ["Active"]);
+  const [projectParam] = useQueryParam<string[]>("project", []);
+  const [userGroupParam] = useQueryParam<string[]>("user-group", []);
+  const [statusParam] = useQueryParam<string[]>("status", []);
+  const [employeeNameParam] = useQueryParam<string>("employee-name", "");
+  const [reportsToParam] = useQueryParam<string>("reports-to", "");
+  const [employeeStatusParam] = useQueryParam<Array<string>>("emp-status", ["Active"]);
   const dispatch = useDispatch();
   const { data: employee } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee", {
     filters: { name: reportsToParam },

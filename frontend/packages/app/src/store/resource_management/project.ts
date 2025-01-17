@@ -74,6 +74,7 @@ export interface ResourceTeamState {
   isLoading?: boolean;
   maxWeek: number;
   action: "SET" | "UPDATE";
+  billingType?: string[];
 }
 
 export const initialState: ResourceTeamState = {
@@ -104,6 +105,7 @@ export const initialState: ResourceTeamState = {
   },
   isNeedToFetchDataAfterUpdate: false,
   customer: [],
+  billingType: [],
   allocationType: [],
   isLoading: true,
   maxWeek: 5,
@@ -199,6 +201,7 @@ const ResourceTeamSlice = createSlice({
         view?: string;
         allocationType?: string[];
         combineWeekHours?: boolean;
+        billingType?: string[];
       }>
     ) => {
       state.projectName = action.payload.projectName;
@@ -217,6 +220,9 @@ const ResourceTeamSlice = createSlice({
       if (action.payload.view) {
         state.tableView.view = action.payload.view;
       }
+      if (action.payload.billingType) {
+        state.billingType = action.payload.billingType;
+      }
 
       state.start = 0;
       state.isLoading = true;
@@ -227,11 +233,12 @@ const ResourceTeamSlice = createSlice({
     deleteFilters: (
       state,
       action: PayloadAction<{
-        type: "project" | "customer" | "allocation-type";
+        type: "project" | "customer" | "allocation-type" | "billing-type";
         projectName?: string;
         reportingManager?: string[];
         customer?: string[];
         allocationType?: string[];
+        billingType?: string[];
       }>
     ) => {
       if (action.payload.type === "project") {
@@ -242,6 +249,9 @@ const ResourceTeamSlice = createSlice({
       }
       if (action.payload.type === "allocation-type") {
         state.allocationType = action.payload.allocationType;
+      }
+      if (action.payload.type === "billing-type") {
+        state.billingType = action.payload.billingType;
       }
 
       state.start = 0;
@@ -260,6 +270,14 @@ const ResourceTeamSlice = createSlice({
     },
     setCustomer: (state, action: PayloadAction<string[]>) => {
       state.customer = action.payload;
+      state.start = 0;
+      state.isLoading = true;
+      state.isNeedToFetchDataAfterUpdate = true;
+      state.action = "SET";
+      state.maxWeek = initialState.maxWeek;
+    },
+    setBillingType: (state, action: PayloadAction<string[]>) => {
+      state.billingType = action.payload;
       state.start = 0;
       state.isLoading = true;
       state.isNeedToFetchDataAfterUpdate = true;
@@ -313,5 +331,6 @@ export const {
   setReFetchData,
   setAllocationType,
   setMaxWeek,
+  setBillingType,
 } = ResourceTeamSlice.actions;
 export default ResourceTeamSlice.reducer;

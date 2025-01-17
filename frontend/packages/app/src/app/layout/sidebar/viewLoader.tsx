@@ -3,14 +3,12 @@
  */
 
 import { NavLink } from "react-router-dom";
+import { Typography, Button, Separator } from "@next-pms/design-system/components";
 import { ChevronDown, ChevronUp } from "lucide-react";
-
 /**
  * Internal dependencies.
  */
-import { Typography } from "@/app/components/typography";
-import { Button } from "@/app/components/ui/button";
-import { Separator } from "@/app/components/ui/separator";
+
 import { cn } from "@/lib/utils";
 import { ViewData } from "@/store/view";
 

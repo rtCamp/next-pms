@@ -14,6 +14,8 @@ import _ from "lodash";
 import AddTime from "@/app/components/AddTime";
 import ViewWrapper from "@/app/components/listview/ViewWrapper";
 import { useToast } from "@/app/components/ui/use-toast";
+import { LIKED_TASK_KEY } from "@/lib/constant";
+import { addAction, toggleLikedByForTask } from "@/lib/storage";
 import {
   parseFrappeErrorMsg,
   createFalseValuedObject,
@@ -95,11 +97,11 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       if (Object.keys(visibility).length == 0) {
         newColumnOrder = columnOrder;
       } else {
-        newColumnOrder = viewInfo.rows.filter((d) => visibility[d]).map((d) => d);
+        newColumnOrder = viewData.rows.filter((d) => visibility[d]).map((d) => d);
       }
       setColumnOrder(newColumnOrder!);
     },
-    [columnOrder, viewInfo.rows]
+    [columnOrder, viewData.rows]
   );
 
   const updateColumnSize = (columns: Array<string>) => {
@@ -148,7 +150,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       status: task.selectedStatus,
       fields: viewInfo?.rows,
     },
-    "next_pms.timesheet.api.task.get_task_list_taak_page",
+    undefined,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
@@ -187,7 +189,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     e.stopPropagation();
     const taskName = e.currentTarget.dataset.task;
     let likedBy = e.currentTarget.dataset.likedBy;
-    let add = "Yes";
+    let add:addAction = "Yes";
     if (likedBy) {
       likedBy = JSON.parse(likedBy);
       if (likedBy && likedBy.includes(user.user)) {
@@ -202,6 +204,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     toggleLikeCall(data)
       .then(() => {
         mutate();
+        toggleLikedByForTask(LIKED_TASK_KEY,taskName as string,user?.user,add)
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);

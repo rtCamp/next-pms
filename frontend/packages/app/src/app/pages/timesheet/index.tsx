@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   Button,
@@ -16,8 +16,9 @@ import { useToast } from "@next-pms/design-system/components";
 import { getUTCDateTime, normalizeDate, getFormatedDate } from "@next-pms/design-system/date";
 import { floatToTime } from "@next-pms/design-system/utils";
 import { addDays } from "date-fns";
-import { useFrappeGetCall } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { isEmpty } from "lodash";
+import { useQueryParam } from "@next-pms/hooks";
 import { Calendar, Paperclip, Plus } from "lucide-react";
 
 /**
@@ -28,7 +29,6 @@ import AddTime from "@/app/components/AddTime";
 import { LoadMore } from "@/app/components/loadMore";
 import TimesheetTable, { SubmitButton } from "@/app/components/TimesheetTable";
 import { Header, Footer, Main } from "@/app/layout/root";
-import { useQueryParamsState } from "@/lib/queryParam";
 import { parseFrappeErrorMsg, expectatedHours, copyToClipboard } from "@/lib/utils";
 import { RootState } from "@/store";
 import {
@@ -52,7 +52,7 @@ function Timesheet() {
   const targetRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  const [startDateParam, setstartDateParam] = useQueryParamsState<string>("date", "");
+  const [startDateParam, setstartDateParam] = useQueryParam<string>("date", "");
   const user = useSelector((state: RootState) => state.user);
   const timesheet = useSelector((state: RootState) => state.timesheet);
   const dispatch = useDispatch();
@@ -124,6 +124,19 @@ function Timesheet() {
       dispatch(SetWeekDate(getFormatedDate(addDays(info.start_date, -1))));
     }
   }, [dispatch, startDateParam, timesheet.data.data, validateDate]);
+
+  const { call: fetchLikedTask,loading:loadingLikedTasks } = useFrappePostCall("next_pms.timesheet.api.task.get_liked_tasks");
+  const [likedTaskData,setLikedTaskData] = useState([]);
+    
+    const getLikedTaskData = ()=>{
+      fetchLikedTask({}).then((res) => {
+        setLikedTaskData(res.message??[]);
+      });
+    }
+  
+    useEffect(()=>{
+      getLikedTaskData();
+    },[])
 
   const handleAddTime = () => {
     const timesheetData = {
@@ -280,6 +293,9 @@ function Timesheet() {
                         weekly_status={value.status}
                         disabled={value.status === "Approved"}
                         importTasks={true}
+                        loadingLikedTasks={loadingLikedTasks}
+                        likedTaskData={likedTaskData}
+                        getLikedTaskData={getLikedTaskData}
                       />
                     </AccordionContent>
                   </AccordionItem>
