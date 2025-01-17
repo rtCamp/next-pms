@@ -95,11 +95,20 @@ const ResourceTimeLineView = () => {
       ...allocation,
       id: allocation.name,
       group: allocation.employee,
-      title: allocation.name + " " + allocation.allocation_start_date + " " + allocation.allocation_end_date,
+      title:
+        allocation.employee_name +
+        "( " +
+        allocation.allocation_start_date +
+        " to " +
+        allocation.allocation_end_date +
+        ")",
       start_time: getDateTimeForMultipleTimeZoneSupport(allocation.allocation_start_date).getTime(),
       end_time: getDateTimeForMultipleTimeZoneSupport(allocation.allocation_end_date).setDate(
         getDateTimeForMultipleTimeZoneSupport(allocation.allocation_end_date).getDate() + 1
       ),
+      customerData: {
+        ...updatedData.customer[allocation.customer],
+      },
     }));
 
     return updatedData;

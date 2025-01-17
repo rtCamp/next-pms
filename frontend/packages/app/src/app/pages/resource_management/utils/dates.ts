@@ -93,6 +93,13 @@ function getMonthKey(dateString: string) {
   }`;
 }
 
+function getDayDiff(startString: string, endString: string): number {
+  const start = getDateTimeForMultipleTimeZoneSupport(startString);
+  const end = getDateTimeForMultipleTimeZoneSupport(endString);
+
+  return Math.abs(end.getTime() - start.getTime()) / (1000 * 3600 * 24);
+}
+
 function checkInRange(start: string, weeks: number, dateString: string) {
   const startDate = getFormatedDate(
     startOfWeek(getDateTimeForMultipleTimeZoneSupport(start), {
@@ -110,9 +117,9 @@ const getDayKeyOfMoment = (dateTime: Moment): string => {
 };
 
 export {
-  getDatesArrays,
-  getNextDate,
   checkInRange,
+  getDatesArrays, getDayDiff, getDayKeyOfMoment,
   getMonthKey,
-  getDayKeyOfMoment,
+  getNextDate
 };
+

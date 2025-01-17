@@ -45,3 +45,15 @@ html,
   width: 100vw;
   overflow: auto;
 }
+
+/** TimeLine CSS overwrite*/
+.react-calendar-timeline .rct-sidebar .rct-sidebar-row.rct-sidebar-row-odd,
+.react-calendar-timeline .rct-horizontal-lines .rct-hl-odd {
+  background: none !important;
+}
+
+.rct-day-0,
+.rct-day-6 {
+  background: transparent !important;
+  border: 0;
+}

@@ -15,6 +15,8 @@ import { TableContext } from "../contexts/tableContext";
 import { TimeLineContext } from "../contexts/timeLineContext";
 import { startOfWeek } from "date-fns";
 import { getMonthKey } from "../utils/dates";
+import moment from "moment";
+import ResourceTimeLineItem from "./item";
 
 const ResourceTimeLine = ({ data }) => {
   const { tableProperties, getCellWidthString } = useContext(TableContext);
@@ -34,16 +36,20 @@ const ResourceTimeLine = ({ data }) => {
   const getIntervalHeader = ({ getIntervalProps, intervalContext, data }): any => {
     const { interval } = intervalContext;
     const { startTime, endTime } = interval;
-    let props = getIntervalProps();
-    props = { ...props, style: { ...props.style, width: getCellWidthString(tableProperties.cellWidth * 7) } };
+
     return (
-      <Typography
-        variant="small"
-        {...props}
-        className={cn("py-2 text-center truncate cursor-pointer border-r border-gray-300")}
+      <TableHead
+        {...getIntervalProps()}
+        className={cn("h-full pb-2 pt-1 px-0 text-center truncate cursor-pointer border-r border-gray-300")}
       >
-        {getMonthKey(getDayKeyOfMoment(startTime)) + " - " + getMonthKey(getDayKeyOfMoment(endTime.add("-1", "days")))}
-      </Typography>
+        <Typography variant="small">
+          {start.getTime() >= startTime && start.getTime() <= endTime
+            ? "This Week"
+            : getMonthKey(getDayKeyOfMoment(startTime)) +
+              " - " +
+              getMonthKey(getDayKeyOfMoment(endTime.add("-1", "days")))}
+        </Typography>
+      </TableHead>
     );
   };
 
@@ -53,10 +59,21 @@ const ResourceTimeLine = ({ data }) => {
     const { date: dateStr, day } = prettyDate(getDayKeyOfMoment(startTime));
 
     let props = getIntervalProps();
-    props = { ...props, style: { ...props.style, width: getCellWidthString(tableProperties.cellWidth) } };
+
+    props = {
+      ...props,
+      style: { ...props.style, width: getCellWidthString(tableProperties.cellWidth), left: props.style.left - 1 },
+    };
 
     return (
-      <TableHead {...props} className={cn("text-xs flex flex-col justify-center items-center border-0")}>
+      <TableHead
+        {...props}
+        className={cn(
+          "text-xs flex flex-col justify-end items-center border-0 p-0 h-full pb-2",
+          day == "Sun" && "border-l border-gray-300",
+          start.getTime() == startTime && "font-semibold"
+        )}
+      >
         <Typography variant="p" className={cn("text-slate-600 text-[11px]")}>
           {day}
         </Typography>
@@ -65,6 +82,21 @@ const ResourceTimeLine = ({ data }) => {
         </Typography>
       </TableHead>
     );
+  };
+
+  const getVerticalLineClassNamesForTime = (startTime, endTime) => {
+    const today = getDateTimeForMultipleTimeZoneSupport(getTodayDate());
+    if (startTime == today.getTime()) {
+      return ["border-l border-r border-gray-300 opacity-80"];
+    }
+
+    const { date: dateStr, day } = prettyDate(getDayKeyOfMoment(moment(startTime)));
+
+    if (day == "Sun") {
+      return ["border-l border-gray-300 opacity-80"];
+    }
+
+    return ["border-0"];
   };
 
   const getDayKeyOfMoment = (dateTime: Moment): string => {
@@ -87,14 +119,20 @@ const ResourceTimeLine = ({ data }) => {
         sidebarWidth={tableProperties.firstCellWidth * 16}
         minZoom={(365.24 * 86400 * 1000) / 12}
         maxZoom={(365.24 * 86400 * 1000) / 12}
-        lineHeight={40}
+        lineHeight={50}
         itemHeightRatio={0.75}
         canChangeGroup={true}
         stackItems={true}
         canResize="both"
         groupRenderer={ResourceTimeLineGroup}
+        itemRenderer={ResourceTimeLineItem}
+        verticalLineClassNamesForTime={getVerticalLineClassNamesForTime}
+        className="overflow-x-auto"
       >
-        <TimelineHeaders className="bg-slate-50 flex items-center text-[14px]">
+        <TimelineHeaders
+          className="bg-slate-50 flex items-center text-[14px]"
+          calendarHeaderClassName="border-0 border-l border-gray-300"
+        >
           <SidebarHeader>
             {() => {
               return (
@@ -107,11 +145,11 @@ const ResourceTimeLine = ({ data }) => {
               );
             }}
           </SidebarHeader>
-          <DateHeader unit="week" height={40} intervalRenderer={getIntervalHeader} />
+          <DateHeader unit="week" height={30} intervalRenderer={getIntervalHeader} />
           <DateHeader
             style={{ width: tableProperties.cellWidth }}
             unit="day"
-            height={40}
+            height={50}
             intervalRenderer={getDateHeader}
           />
         </TimelineHeaders>
