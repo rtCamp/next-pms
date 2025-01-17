@@ -2,6 +2,8 @@
  * External dependencies.
  */
 import React from "react";
+import { Typography, TaskStatus } from "@next-pms/design-system/components";
+import { floatToTime } from "@next-pms/design-system/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { Clock, Heart } from "lucide-react";
 /**
@@ -10,11 +12,9 @@ import { Clock, Heart } from "lucide-react";
 import { DataCell } from "@/app/components/listview/DataCell";
 import { DocMetaProps, TaskData } from "@/types";
 import { TaskPriority } from "./TaskPriority";
-import { TaskStatus } from "./TaskStatus";
-import { cn, isLiked, floatToTime } from "../../../lib/utils";
+import { cn, isLiked } from "../../../lib/utils";
 import { UserState } from "../../../store/user";
 import { ColumnsType } from "../../../types/task";
-import { Typography } from "../../components/typography";
 
 export type columnWidthType = {
   subject: string;

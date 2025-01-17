@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useState } from "react";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { getUTCDateTime, getFormatedDate } from "@next-pms/design-system/date";
 import { getCoreRowModel, getSortedRowModel, useReactTable, ColumnSizingState } from "@tanstack/react-table";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import _ from "lodash";
@@ -16,19 +17,14 @@ import ViewWrapper from "@/app/components/listview/ViewWrapper";
 import { useToast } from "@/app/components/ui/use-toast";
 import { LIKED_TASK_KEY } from "@/lib/constant";
 import { addAction, toggleLikedByForTask } from "@/lib/storage";
-import {
-  parseFrappeErrorMsg,
-  createFalseValuedObject,
-  getFormatedDate,
-  getDateTimeForMultipleTimeZoneSupport,
-} from "@/lib/utils";
+import { parseFrappeErrorMsg, createFalseValuedObject } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setStart, updateTaskData, setTaskData, setSelectedTask, setFilters, setReFetchData } from "@/store/task";
 import { SetAddTimeDialog, SetTimesheet } from "@/store/timesheet";
 import { ViewData } from "@/store/view";
 import { DocMetaProps } from "@/types";
 import { ColumnsType, columnsToExcludeActionsInTablesType } from "@/types/task";
-import { AddTask } from "./AddTask";
+import { AddTask } from "./addTask";
 import { getColumn } from "./columns";
 import { Header } from "./Header";
 import { Table } from "./Table";
@@ -67,7 +63,6 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
   const [columnOrder, setColumnOrder] = useState<string[]>(viewData.rows ?? []);
   const [columnVisibility, setColumnVisibility] = useState(createFalseValuedObject(viewData.rows));
 
-  // Table property management
   const { call: toggleLikeCall } = useFrappePostCall("frappe.desk.like.toggle_like");
 
   useEffect(() => {
@@ -130,7 +125,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       name: "",
       parent: "",
       task: taskName,
-      date: getFormatedDate(getDateTimeForMultipleTimeZoneSupport()),
+      date: getFormatedDate(getUTCDateTime()),
       description: "",
       hours: 0,
       isUpdate: false,
@@ -189,7 +184,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     e.stopPropagation();
     const taskName = e.currentTarget.dataset.task;
     let likedBy = e.currentTarget.dataset.likedBy;
-    let add:addAction = "Yes";
+    let add: addAction = "Yes";
     if (likedBy) {
       likedBy = JSON.parse(likedBy);
       if (likedBy && likedBy.includes(user.user)) {
@@ -204,7 +199,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     toggleLikeCall(data)
       .then(() => {
         mutate();
-        toggleLikedByForTask(LIKED_TASK_KEY,taskName as string,user?.user,add)
+        toggleLikedByForTask(LIKED_TASK_KEY, taskName as string, user?.user, add);
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);

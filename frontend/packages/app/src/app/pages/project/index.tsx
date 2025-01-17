@@ -3,6 +3,18 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import {
+  Spinner,
+  Separator,
+  Skeleton,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@next-pms/design-system/components";
+import { useToast } from "@next-pms/design-system/components";
 import { useInfiniteScroll } from "@next-pms/hooks";
 import {
   flexRender,
@@ -13,17 +25,11 @@ import {
 } from "@tanstack/react-table";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import _ from "lodash";
-
 /**
  * Internal dependencies
  */
 
 import ViewWrapper from "@/app/components/listview/ViewWrapper";
-import { Spinner } from "@/app/components/spinner";
-import { Separator } from "@/app/components/ui/separator";
-import { Skeleton } from "@/app/components/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
-import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg, createFalseValuedObject } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setProjectData, setStart, setFilters, setReFetchData, updateProjectData } from "@/store/project";

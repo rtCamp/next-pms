@@ -1,7 +1,11 @@
 /**
+ * External dependencies
+ */
+import { Badge } from "@next-pms/design-system/components";
+/**
  * Internal dependencies
  */
-import { Badge } from "@/app/components/ui/badge";
+
 import { cn } from "@/lib/utils";
 import { TaskData } from "@/types";
 

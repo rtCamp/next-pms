@@ -1,11 +1,13 @@
 /**
+ * External dependencies.
+ */
+import { Typography, Badge, Progress } from "@next-pms/design-system/components";
+import { floatToTime } from "@next-pms/design-system/utils";
+/**
  * Internal dependencies.
  */
 import { DataCell } from "@/app/components/listview/DataCell";
-import { Typography } from "@/app/components/typography";
-import { Badge } from "@/app/components/ui/badge";
-import { Progress } from "@/app/components/ui/progress";
-import { cn, floatToTime } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { DocMetaProps } from "@/types";
 
 const HOUR_FIELD = ["actual_time", "custom_total_hours_purchased", "custom_total_hours_remaining"];

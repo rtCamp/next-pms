@@ -2,21 +2,29 @@
  * External dependencies.
  */
 import { useEffect, useState } from "react";
+import {
+  TaskStatus,
+  ComboBox,
+  Spinner,
+  Typography,
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  Separator,
+  useToast,
+} from "@next-pms/design-system/components";
+import { getTodayDate, getFormatedDate, prettyDate } from "@next-pms/design-system/date";
+import { floatToTime } from "@next-pms/design-system/utils";
 import { addDays } from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
-
 /**
  * Internal dependencies.
  */
-import { ComboxBox } from "@/app/components/comboBox";
-import { Spinner } from "@/app/components/spinner";
-import { Typography } from "@/app/components/typography";
-import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
-import { Separator } from "@/app/components/ui/separator";
-import { useToast } from "@/app/components/ui/use-toast";
-import { cn, getTodayDate, getFormatedDate, floatToTime, prettyDate, parseFrappeErrorMsg } from "@/lib/utils";
-import { TaskStatus } from "./TaskStatus";
+import { cn, parseFrappeErrorMsg } from "@/lib/utils";
 
 type Employee = {
   employee: string;
@@ -148,7 +156,7 @@ export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
                   </Typography>
                 </div>
                 <div className="w-1/5">
-                  <ComboxBox
+                  <ComboBox
                     className="float-right w-24 p-2"
                     data={dateMap}
                     value={[selectedMap]}
@@ -209,47 +217,46 @@ export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
                 <section id="log" className="max-h-96 overflow-y-auto no-scrollbar flex flex-col gap-3">
                   <>
                     {logs &&
-                      Object.entries(logs.message as Record<string, LogData[]>)
-                        .map(([key, value], index: number) => {
-                          return (
-                            <div key={index}>
-                              {/* eslint-disable-next-line @typescript-eslint/no-unused-vars */}
-                              {value.map((log: LogData, i: number) => {
-                                const employee = data?.message.worked_by?.find(
-                                  (emp: Employee) => emp.employee === log.employee
-                                );
-                                return (
-                                  <div className="border-b border-dashed p-2 bg-gray-50 ">
-                                    <div className="flex justify-between w-full">
-                                      <span className="flex gap-x-2 items-start">
-                                        <Avatar className="w-6 h-6">
-                                          <AvatarImage src={employee?.image} alt={employee?.employee_name} />
-                                          <AvatarFallback>
-                                            <Typography variant="p" className="font-semibold">
-                                              {employee?.employee_name[0]}
-                                            </Typography>
-                                          </AvatarFallback>
-                                        </Avatar>
-                                        <Typography variant="p">{employee?.employee_name}</Typography>
-                                        <Typography variant="p">{prettyDate(key).date}</Typography>
-                                      </span>
-                                      <Typography variant="p">{floatToTime(log.hours)}h</Typography>
-                                    </div>
-                                    {log.description.map((description: string) => (
-                                      <Typography
-                                        key={description}
-                                        variant="p"
-                                        className="pl-8 py-1 rounded pb-0 w-full overflow-x-auto"
-                                      >
-                                        {description}
-                                      </Typography>
-                                    ))}
+                      Object.entries(logs.message as Record<string, LogData[]>).map(([key, value], index: number) => {
+                        return (
+                          <div key={index}>
+                            {/* eslint-disable-next-line @typescript-eslint/no-unused-vars */}
+                            {value.map((log: LogData, i: number) => {
+                              const employee = data?.message.worked_by?.find(
+                                (emp: Employee) => emp.employee === log.employee
+                              );
+                              return (
+                                <div className="border-b border-dashed p-2 bg-gray-50 ">
+                                  <div className="flex justify-between w-full">
+                                    <span className="flex gap-x-2 items-start">
+                                      <Avatar className="w-6 h-6">
+                                        <AvatarImage src={employee?.image} alt={employee?.employee_name} />
+                                        <AvatarFallback>
+                                          <Typography variant="p" className="font-semibold">
+                                            {employee?.employee_name[0]}
+                                          </Typography>
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <Typography variant="p">{employee?.employee_name}</Typography>
+                                      <Typography variant="p">{prettyDate(key).date}</Typography>
+                                    </span>
+                                    <Typography variant="p">{floatToTime(log.hours)}h</Typography>
                                   </div>
-                                );
-                              })}
-                            </div>
-                          );
-                        })}
+                                  {log.description.map((description: string) => (
+                                    <Typography
+                                      key={description}
+                                      variant="p"
+                                      className="pl-8 py-1 rounded pb-0 w-full overflow-x-auto"
+                                    >
+                                      {description}
+                                    </Typography>
+                                  ))}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })}
                   </>
                 </section>
               </>
