@@ -7,6 +7,7 @@ import { Badge } from "@/app/components/ui/badge";
 import { Progress } from "@/app/components/ui/progress";
 import { cn, floatToTime } from "@/lib/utils";
 import { DocMetaProps } from "@/types";
+import { getValidUserTagsValues } from "./utils";
 
 const HOUR_FIELD = ["actual_time", "custom_total_hours_purchased", "custom_total_hours_remaining"];
 
@@ -104,6 +105,33 @@ export const getColumnInfo = (
     };
     columns.push(col);
   });
+  const userTagsCol = {
+    accessorKey: "_user_tags",
+    size: 90,
+    header: ({ column }) => {
+      return (
+        <p className="truncate" id={column.id}>
+          Tags
+        </p>
+      );
+    },
+    cell: ({ getValue, row }) => {
+      const tags = getValidUserTagsValues(getValue());
+    
+      return (
+        <div className="truncate w-full flex gap-1">
+          {tags.map((tag) => (
+            <Badge key={tag} variant="outline" className="bg-slate-100">
+              <Typography variant="p" title={tag}>
+                {tag}
+              </Typography>
+            </Badge>
+          ))}
+        </div>
+      );
+    }
+  }
+  columns.push(userTagsCol)  
   return columns;
 };
 

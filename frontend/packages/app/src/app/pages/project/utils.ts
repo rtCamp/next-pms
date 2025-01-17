@@ -34,3 +34,12 @@ export const getFilter = (projectState: ProjectState) => {
     }
     return filters;
 };
+
+
+export const getValidUserTagsValues = (input: string) => {
+  if (!input) return []; // Handle null, undefined, or empty input
+  return input
+    .split(",") // Split by comma
+    .map((value) => value.trim()) // Trim whitespace around values
+    .filter((value) => value !== "" && value !== "null"); // Exclude empty and 'null' values
+};
