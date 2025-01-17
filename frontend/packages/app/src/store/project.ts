@@ -69,6 +69,7 @@ export interface ProjectState {
   isLoading: boolean;
   hasMore: boolean;
   action: "SET" | "UPDATE";
+  tag:Array<string>;
 }
 
 export const initialState: ProjectState = {
@@ -89,6 +90,7 @@ export const initialState: ProjectState = {
   isLoading: true,
   hasMore: true,
   action: "SET",
+  tag: [],
 };
 
 export const projectSlice = createSlice({

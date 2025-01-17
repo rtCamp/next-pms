@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 /**
  * Internal dependencies
  */
-import { useFrappePostCall } from "frappe-react-sdk";
+import { useFrappeGetDocList, useFrappePostCall } from "frappe-react-sdk";
 import { Header as ListViewHeader } from "@/app/components/listview/header";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
@@ -120,6 +120,10 @@ export const Header = ({
   const handleSortChange = (order: sortOrder, orderColumn: string) => {
     dispatch(setOrderBy({ order, orderColumn }));
   };
+  const { data:tagData,mutate:mutateTagData } = useFrappeGetDocList("Tag",{
+    limit: 5,
+    asDict: false,
+  });
 
   const filters = [
     {
@@ -225,6 +229,25 @@ export const Header = ({
       handleChange: handleCurrencyChange,
       handleDelete: useCallback(() => { 
         dispatch(setCurrency(""));
+      }, [dispatch]),
+      shouldFilterComboBox: true,
+      isMultiComboBox: false,
+    },
+    {
+      type: "select-list",
+      queryParameterName: "tag",
+      label: "Tag",
+      value: projectState.tag,
+      data: tagData?.flat().map((tag) => ({
+        label: tag,
+        value: tag,
+      })),
+      queryParameterDefault: projectState.tag,
+      handleChange: ()=>{
+        // handleTagChange()
+      },
+      handleDelete: useCallback(() => { 
+        // dispatch(setTag(""));
       }, [dispatch]),
       shouldFilterComboBox: true,
       isMultiComboBox: false,
