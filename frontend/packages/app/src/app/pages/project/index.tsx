@@ -151,6 +151,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     projectState.selectedStatus,
     projectState.selectedBillingType,
     projectState.selectedBusinessUnit,
+    projectState.tag,
     viewData,
   ]);
 
@@ -304,7 +305,8 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
                 })
               ) : (
                 <TableRow className="w-full">
-                  <TableCell colSpan={viewData.rows.length} className="h-24 text-center">
+                  {/* Adding plus (+1) one to make no results span complete width */}
+                  <TableCell colSpan={viewData.rows.length+1} className="h-24 text-center">
                     No results
                   </TableCell>
                 </TableRow>

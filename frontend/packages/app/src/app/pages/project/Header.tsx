@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 /**
  * Internal dependencies
@@ -19,6 +19,7 @@ import {
   setSelectedBusinessUnit,
   setSelectedProjectType,
   setSelectedStatus,
+  setTag,
   Status,
 } from "@/store/project";
 import { updateView, ViewData } from "@/store/view";
@@ -120,10 +121,21 @@ export const Header = ({
   const handleSortChange = (order: sortOrder, orderColumn: string) => {
     dispatch(setOrderBy({ order, orderColumn }));
   };
+  const [tagSearchTerm,setTagSearchTerm] = useState("");
+
   const { data:tagData,mutate:mutateTagData } = useFrappeGetDocList("Tag",{
+    filters:[["name", "like", `%${tagSearchTerm}%`]],
     limit: 5,
     asDict: false,
   });
+
+  useEffect(()=>{
+    mutateTagData()
+  },[setTagSearchTerm]);
+
+  const handleTagChange =(tag:string[])=>{
+    dispatch(setTag(tag));
+  };
 
   const filters = [
     {
@@ -243,12 +255,13 @@ export const Header = ({
         value: tag,
       })),
       queryParameterDefault: projectState.tag,
-      handleChange: ()=>{
-        // handleTagChange()
-      },
-      handleDelete: useCallback(() => { 
-        // dispatch(setTag(""));
+      handleChange: handleTagChange,
+      handleDelete: useCallback((tag:string[]) => { 
+        dispatch(setTag(tag));        
       }, [dispatch]),
+      onSearch:(searchTerm:string)=>{
+        setTagSearchTerm(searchTerm);
+      },
       shouldFilterComboBox: true,
       isMultiComboBox: false,
     },

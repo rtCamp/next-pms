@@ -32,6 +32,9 @@ export const getFilter = (projectState: ProjectState) => {
     if (projectState.selectedBillingType.length > 0) {
         filters.push(["custom_billing_type", "in", projectState.selectedBillingType]);
     }
+    if(projectState.tag.length > 0){
+        filters.push(["_user_tags", "like", `%${projectState.tag[0]}%`]);
+    }
     return filters;
 };
 

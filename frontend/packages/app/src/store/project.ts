@@ -216,6 +216,9 @@ export const projectSlice = createSlice({
     setTotalCount: (state, action: PayloadAction<number>) => {
       state.totalCount = action.payload;
     },
+    setTag:(state, action: PayloadAction<Array<string>>)=>{
+      state.tag = action.payload;
+    },
     refreshData: (state) => {
       const pageLength = state.data.length;
       state.pageLength = pageLength;
@@ -240,6 +243,7 @@ export const {
   setSelectedBusinessUnit,
   setSelectedBilingType,
   setReFetchData,
+  setTag,
 } = projectSlice.actions;
 
 export default projectSlice.reducer;
