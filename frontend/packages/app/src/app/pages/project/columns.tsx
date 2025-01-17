@@ -71,13 +71,13 @@ export const getColumnInfo = (
           );
         } else if (meta.fieldname === "status") {
           return (
-            <Badge variant={value === "Open" ? "warning" : value === "Completed" ? "success" : "destructive"}>
+            <Badge className="truncate" variant={value === "Open" ? "warning" : value === "Completed" ? "success" : "destructive"}>
               {value}
             </Badge>
           );
         } else if (meta.fieldname === "priority") {
           return (
-            <Badge variant={value === "Low" ? "success" : value === "Medium" ? "warning" : "destructive"}>
+            <Badge className="truncate" variant={value === "Low" ? "success" : value === "Medium" ? "warning" : "destructive"}>
               {value}
             </Badge>
           );
