@@ -128,6 +128,7 @@ export const Header = ({
     limit: 5,
     asDict: false,
   });
+  const [selectedTag,setSelectedTag]=useState<string[]>([]);
 
   useEffect(()=>{
     mutateTagData()
@@ -135,6 +136,13 @@ export const Header = ({
 
   const handleTagChange =(tag:string[])=>{
     dispatch(setTag(tag));
+    setTagSearchTerm("");
+    mutateTagData();
+    if(tagSearchTerm.trim()){
+      setSelectedTag(tag);
+    }else{
+      setSelectedTag([]);
+    }
   };
 
   const filters = [
@@ -250,14 +258,14 @@ export const Header = ({
       queryParameterName: "tag",
       label: "Tag",
       value: projectState.tag,
-      data: tagData?.flat().map((tag) => ({
+      data: tagData?.flat().concat(selectedTag).map((tag) => ({
         label: tag,
         value: tag,
       })),
       queryParameterDefault: projectState.tag,
       handleChange: handleTagChange,
       handleDelete: useCallback((tag:string[]) => { 
-        dispatch(setTag(tag));        
+        dispatch(setTag(tag));     
       }, [dispatch]),
       onSearch:(searchTerm:string)=>{
         setTagSearchTerm(searchTerm);
