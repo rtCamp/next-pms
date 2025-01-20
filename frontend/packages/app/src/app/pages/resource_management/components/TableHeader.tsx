@@ -2,14 +2,15 @@
  * External dependencies.
  */
 import { useContext } from "react";
+import { TableHead, TableHeader, TableRow } from "@next-pms/design-system/components";
+import { prettyDate } from "@next-pms/design-system/date";
+import { cn } from "@next-pms/design-system/utils";
 import { isToday } from "date-fns";
 
 /**
  * Internal dependencies.
  */
 import { Typography } from "@/app/components/typography";
-import { TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
-import { cn, prettyDate } from "@/lib/utils";
 import { DateProps } from "@/store/resource_management/team";
 
 import { TableContext } from "../contexts/tableContext";
