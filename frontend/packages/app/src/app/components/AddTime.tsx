@@ -4,6 +4,7 @@
 import { useCallback, useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useToast, Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Form, FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Separator, TextArea  } from "@next-pms/design-system/components";
 import { FrappeConfig, FrappeContext, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { Clock3, LoaderCircle, Save, Search, X } from "lucide-react";
 import { z } from "zod";
@@ -15,13 +16,6 @@ import { ComboxBox } from "@/app/components/comboBox";
 import { DatePicker } from "@/app/components/datePicker";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import { Typography } from "@/app/components/typography";
-import { Button } from "@/app/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
-import { Input } from "@/app/components/ui/input";
-import { Separator } from "@/app/components/ui/separator";
-import { Textarea } from "@/app/components/ui/textarea";
-import { useToast } from "@/app/components/ui/use-toast";
 import { floatToTime } from "@/lib/utils";
 import { cn, expectatedHours, getFormatedDate, parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetSchema } from "@/schema/timesheet";
@@ -341,7 +335,7 @@ const AddTime = ({
                   <FormItem className="space-y-1">
                     <FormLabel>Comment</FormLabel>
                     <FormControl>
-                      <Textarea
+                      <TextArea
                         placeholder="Explain your progress"
                         rows={4}
                         className="w-full placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
