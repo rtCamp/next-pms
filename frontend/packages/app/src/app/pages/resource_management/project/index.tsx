@@ -3,13 +3,11 @@
  */
 import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Spinner,useToast } from "@next-pms/design-system/components";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
-
 /**
  * Internal dependencies.
  */
-import { Spinner } from "@/app/components/spinner";
-import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { AllocationDataProps, PermissionProps } from "@/store/resource_management/allocation";
@@ -17,8 +15,8 @@ import { setData, setReFetchData, updateData } from "@/store/resource_management
 
 import AddResourceAllocations from "../components/AddAllocation";
 import { getIsBillableValue } from "../utils/helper";
-import { ResourceProjectTable } from "./components/Table";
 import { ResourceProjectHeaderSection } from "./components/Header";
+import { ResourceProjectTable } from "./components/Table";
 import { getNextDate } from "../utils/dates";
 
 /**

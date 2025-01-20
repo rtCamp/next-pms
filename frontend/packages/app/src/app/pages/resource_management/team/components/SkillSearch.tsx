@@ -3,7 +3,8 @@
  */
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-
+import { Badge, Button, Popover, PopoverContent, PopoverTrigger, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Separator } from "@next-pms/design-system/components";
+import { cn } from "@next-pms/design-system/utils";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { Filter as Funnel, Search, Star, X } from "lucide-react";
 
@@ -12,12 +13,6 @@ import { Filter as Funnel, Search, Star, X } from "lucide-react";
  */
 import { DeBounceInput } from "@/app/components/deBounceInput";
 import { Typography } from "@/app/components/typography";
-import { Badge } from "@/app/components/ui/badge";
-import { Button } from "@/app/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
-import { Separator } from "@/app/components/ui/separator";
-import { cn } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setSkillSearch, Skill, SkillData } from "@/store/resource_management/team";
 
