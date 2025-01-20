@@ -4,38 +4,64 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import {
+  TaskStatus,
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  useToast,
+  Separator,
+  Button,
+  Typography,
+  ErrorFallback,
+} from "@next-pms/design-system/components";
+import { getDateFromDateAndTimeString, prettyDate } from "@next-pms/design-system/date";
+import { floatToTime, preProcessLink } from "@next-pms/design-system/utils";
 import { useFrappePostCall } from "frappe-react-sdk";
-import { CircleCheck, CircleDollarSign, CirclePlus, CircleX, Clock3, PencilLine, Import, LoaderCircle, Heart } from "lucide-react";
+import {
+  CircleCheck,
+  CircleDollarSign,
+  CirclePlus,
+  CircleX,
+  Clock3,
+  PencilLine,
+  Import,
+  LoaderCircle,
+  Heart,
+} from "lucide-react";
+
 /**
  * Internal dependencies
  */
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { TaskLog } from "@/app/pages/task/TaskLog";
 import { LIKED_TASK_KEY } from "@/lib/constant";
-import { hasKeyInLocalStorage, getLocalStorage, setLikedTask, removeFromLikedTask, toggleLikedByForTask, addAction } from "@/lib/storage";
+import {
+  hasKeyInLocalStorage,
+  getLocalStorage,
+  setLikedTask,
+  removeFromLikedTask,
+  toggleLikedByForTask,
+  addAction,
+} from "@/lib/storage";
 import {
   calculateWeeklyHour,
   cn,
   expectatedHours,
-  floatToTime,
-  getDateFromDateAndTime,
   getHolidayList,
-  preProcessLink,
-  prettyDate,
   getBgCsssForToday,
   parseFrappeErrorMsg,
 } from "@/lib/utils";
 import { RootState } from "@/store";
 import { TaskData, WorkingFrequency } from "@/types";
 import { HolidayProp, LeaveProps, TaskDataItemProps, TaskDataProps, TaskProps } from "@/types/timesheet";
-import GenWrapper from "./GenWrapper";
+
 import TaskStatusIndicator from "./taskStatusIndicator";
-import { Typography } from "./typography";
-import { Button } from "./ui/button";
-import { Separator } from "./ui/separator";
-import { useToast } from "./ui/use-toast";
-import { TaskStatus } from "../pages/task/TaskStatus";
 
 type timesheetTableProps = {
   dates: string[];
@@ -51,9 +77,9 @@ type timesheetTableProps = {
   working_frequency: WorkingFrequency;
   weekly_status?: string;
   importTasks?: boolean;
-  loadingLikedTasks?:boolean;
-  likedTaskData?:Array<object>;
-  getLikedTaskData?:()=>void;
+  loadingLikedTasks?: boolean;
+  likedTaskData?: Array<object>;
+  getLikedTaskData?: () => void;
 };
 type leaveRowProps = {
   leaves: Array<LeaveProps>;
@@ -104,9 +130,9 @@ type emptyRowProps = {
   setIsTaskLogDialogBoxOpen: React.Dispatch<React.SetStateAction<boolean>>;
   taskData?: TaskDataProps;
   name?: string;
-  setTaskInLocalStorage?:()=>void;
-  likedTaskData?:Array<object>;
-  getLikedTaskData?:()=>void;
+  setTaskInLocalStorage?: () => void;
+  likedTaskData?: Array<object>;
+  getLikedTaskData?: () => void;
 };
 type submitButtonProps = {
   start_date: string;
@@ -151,28 +177,26 @@ const TimesheetTable = ({
   const [selectedTask, setSelectedTask] = useState<string>("");
   const task_date_range_key = dates[0] + "-" + dates[dates.length - 1];
   const has_liked_task = hasKeyInLocalStorage(LIKED_TASK_KEY);
-  
 
-  useEffect(()=>{
+  useEffect(() => {
     getLikedTaskData!();
-  },[])
+  }, []);
 
   const setTaskInLocalStorage = () => {
-      setLikedTask(LIKED_TASK_KEY,task_date_range_key,likedTaskData!);
-      setFilteredLikedTasks(likedTaskData?.filter(
-        (likedTask: { name: string }) => !Object.keys(tasks).includes(likedTask.name)
-      ))
-      
+    setLikedTask(LIKED_TASK_KEY, task_date_range_key, likedTaskData!);
+    setFilteredLikedTasks(
+      likedTaskData?.filter((likedTask: { name: string }) => !Object.keys(tasks).includes(likedTask.name))
+    );
   };
 
-  const liked_tasks = has_liked_task ? getLocalStorage(LIKED_TASK_KEY)[task_date_range_key] ?? [] : []; 
-  
-  const [filteredLikedTasks,setFilteredLikedTasks] = useState(liked_tasks.filter(
-    (likedTask: { name: string }) => !Object.keys(tasks).includes(likedTask.name)
-  ))
+  const liked_tasks = has_liked_task ? getLocalStorage(LIKED_TASK_KEY)[task_date_range_key] ?? [] : [];
+
+  const [filteredLikedTasks, setFilteredLikedTasks] = useState(
+    liked_tasks.filter((likedTask: { name: string }) => !Object.keys(tasks).includes(likedTask.name))
+  );
 
   const deleteTaskFromLocalStorage = useCallback(() => {
-    removeFromLikedTask(LIKED_TASK_KEY,task_date_range_key);
+    removeFromLikedTask(LIKED_TASK_KEY, task_date_range_key);
   }, [task_date_range_key]);
 
   useEffect(() => {
@@ -181,7 +205,7 @@ const TimesheetTable = ({
     }
   }, [deleteTaskFromLocalStorage, weekly_status]);
   return (
-    <GenWrapper>
+    <ErrorFallback>
       {isTaskLogDialogBoxOpen && (
         <TaskLog task={selectedTask} isOpen={isTaskLogDialogBoxOpen} onOpenChange={setIsTaskLogDialogBoxOpen} />
       )}
@@ -194,7 +218,11 @@ const TimesheetTable = ({
                   Tasks
                   {weekly_status != "Approved" && importTasks && (
                     <span title="Import liked tasks">
-                      {loadingLikedTasks?<LoaderCircle className="animate-spin"/>:<Import onClick={setTaskInLocalStorage} className="hover:cursor-pointer" />}
+                      {loadingLikedTasks ? (
+                        <LoaderCircle className="animate-spin" />
+                      ) : (
+                        <Import onClick={setTaskInLocalStorage} className="hover:cursor-pointer" />
+                      )}
                     </span>
                   )}
                 </Typography>
@@ -253,7 +281,8 @@ const TimesheetTable = ({
             />
           )}
           {weekly_status != "Approved" &&
-            filteredLikedTasks.length > 0 && importTasks &&
+            filteredLikedTasks.length > 0 &&
+            importTasks &&
             filteredLikedTasks.map((task) => {
               return (
                 <EmptyRow
@@ -288,7 +317,7 @@ const TimesheetTable = ({
                   </TableCell>
                   {dates.map((date: string) => {
                     let data = taskData.data.filter(
-                      (data: TaskDataItemProps) => getDateFromDateAndTime(data.from_time) === date
+                      (data: TaskDataItemProps) => getDateFromDateAndTimeString(data.from_time) === date
                     );
                     data.forEach((item: TaskDataItemProps) => {
                       totalHours += item.hours;
@@ -338,7 +367,7 @@ const TimesheetTable = ({
             })}
         </TableBody>
       </Table>
-    </GenWrapper>
+    </ErrorFallback>
   );
 };
 
@@ -472,7 +501,7 @@ export const TotalHourRow = ({
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           Object.entries(tasks).map(([task, taskData]: [string, TaskDataProps]) => {
             const data = taskData.data.filter((data: TaskDataItemProps) => {
-              return getDateFromDateAndTime(data.from_time) === date;
+              return getDateFromDateAndTimeString(data.from_time) === date;
             });
             data.forEach((item: TaskDataItemProps) => {
               total_hours += item.hours;
@@ -659,7 +688,7 @@ export const EmptyRow = ({
   likedTaskData,
   getLikedTaskData,
 }: emptyRowProps) => {
-  const holiday_list = getHolidayList(holidays);  
+  const holiday_list = getHolidayList(holidays);
   return (
     <TableRow className={cn(rowClassName)}>
       <TableCell className={cn("max-w-sm", headingCellClassName)}>
@@ -748,20 +777,26 @@ export const SubmitButton = ({ start_date, end_date, onApproval, status }: submi
   );
 };
 
-const TaskHoverCard = ({ name, taskData, setSelectedTask, setIsTaskLogDialogBoxOpen,likedTaskData,getLikedTaskData }) => {
-  
+const TaskHoverCard = ({
+  name,
+  taskData,
+  setSelectedTask,
+  setIsTaskLogDialogBoxOpen,
+  likedTaskData,
+  getLikedTaskData,
+}) => {
   const user = useSelector((state: RootState) => state.user);
-  const [taskLiked,setTaskedLiked] = useState(false)
-  useEffect(()=>{
-    setTaskedLiked(likedTaskData.some(obj => obj.name === name)|| false);
-  },[taskData,likedTaskData])
-  
+  const [taskLiked, setTaskedLiked] = useState(false);
+  useEffect(() => {
+    setTaskedLiked(likedTaskData.some((obj) => obj.name === name) || false);
+  }, [taskData, likedTaskData]);
+
   const { call: toggleLikeCall } = useFrappePostCall("frappe.desk.like.toggle_like");
   const { toast } = useToast();
-  
+
   const handleLike = (e: React.MouseEvent<SVGSVGElement>) => {
     e.stopPropagation();
-    let add:addAction = "Yes";
+    let add: addAction = "Yes";
     if (taskLiked) {
       add = "No";
     }
@@ -773,7 +808,7 @@ const TaskHoverCard = ({ name, taskData, setSelectedTask, setIsTaskLogDialogBoxO
     toggleLikeCall(data)
       .then(() => {
         setTaskedLiked((prev) => !prev);
-        toggleLikedByForTask(LIKED_TASK_KEY,name,user?.user,add);
+        toggleLikedByForTask(LIKED_TASK_KEY, name, user?.user, add);
         getLikedTaskData();
       })
       .catch((err) => {
@@ -803,14 +838,9 @@ const TaskHoverCard = ({ name, taskData, setSelectedTask, setIsTaskLogDialogBoxO
                 setIsTaskLogDialogBoxOpen(true);
               }}
             >
-              <span className="truncate">
-                {taskData.subject}
-              </span>
+              <span className="truncate">{taskData.subject}</span>
               <Heart
-                className={cn(
-                  "hover:cursor-pointer shrink-0",
-                  taskLiked && "fill-destructive stroke-destructive"
-                )}
+                className={cn("hover:cursor-pointer shrink-0", taskLiked && "fill-destructive stroke-destructive")}
                 data-task={name}
                 data-liked-by={taskData?._liked_by}
                 onClick={handleLike}

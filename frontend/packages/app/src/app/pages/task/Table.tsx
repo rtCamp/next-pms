@@ -1,15 +1,22 @@
 /**
  * External dependencies.
  */
+import {
+  Spinner,
+  Separator,
+  Skeleton,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+  Table as RootTable,
+} from "@next-pms/design-system/components";
 import { useInfiniteScroll } from "@next-pms/hooks";
 import { flexRender } from "@tanstack/react-table";
 /**
  * Internal dependencies.
  */
-import { Spinner } from "@/app/components/spinner";
-import { Separator } from "@/app/components/ui/separator";
-import { Skeleton } from "@/app/components/ui/skeleton";
-import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table as RootTable } from "@/app/components/ui/table";
 import { TaskState } from "@/store/task";
 import { ColumnsType, columnsToExcludeActionsInTablesType, TaskTableType } from "@/types/task";
 

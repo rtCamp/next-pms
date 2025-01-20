@@ -5,22 +5,31 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  ComboBox,
+  Button,
+  DialogHeader,
+  DialogFooter,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  Input,
+  Separator,
+  TextArea,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+  Form,
+  useToast,
+} from "@next-pms/design-system/components";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { Search, LoaderCircle, Save, X } from "lucide-react";
 import { z } from "zod";
-
 /**
  * Internal dependencies.
  */
-import { ComboxBox } from "@/app/components/comboBox";
-import { Button } from "@/app/components/ui/button";
-import { DialogHeader, DialogFooter } from "@/app/components/ui/dialog";
-import { Dialog, DialogContent, DialogTitle } from "@/app/components/ui/dialog";
-import { FormField, FormItem, FormLabel, FormControl, FormMessage, Form } from "@/app/components/ui/form";
-import { Input } from "@/app/components/ui/input";
-import { Separator } from "@/app/components/ui/separator";
-import { Textarea } from "@/app/components/ui/textarea";
-import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { TaskSchema } from "@/schema/task";
 import { TaskState, AddTaskType, setAddTaskDialog } from "@/store/task";
@@ -106,7 +115,6 @@ export const AddTask = ({ task, mutate }: { task: TaskState; mutate: any }) => {
             <form onSubmit={form.handleSubmit(handleSubmit)}>
               <div className="flex flex-col gap-y-2">
                 <div className="grid max-sm:grid-rows-2 sm:grid-cols-12 gap-3">
-                  {/* subject field */}
                   <FormField
                     control={form.control}
                     name="subject"
@@ -118,17 +126,15 @@ export const AddTask = ({ task, mutate }: { task: TaskState; mutate: any }) => {
                           </p>
                         </FormLabel>
                         <FormControl>
-                          <>
-                            <div className="relative flex items-center">
-                              <Input
-                                placeholder="New subject"
-                                className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
-                                {...field}
-                                type="text"
-                                onChange={handleSubjectChange}
-                              />
-                            </div>
-                          </>
+                          <div className="relative flex items-center">
+                            <Input
+                              placeholder="New subject"
+                              className="placeholder:text-slate-400 placeholder:text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
+                              {...field}
+                              type="text"
+                              onChange={handleSubjectChange}
+                            />
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -145,17 +151,15 @@ export const AddTask = ({ task, mutate }: { task: TaskState; mutate: any }) => {
                         </FormLabel>
                         <FormControl>
                           <FormControl>
-                            <>
-                              <div className="relative flex items-center">
-                                <Input
-                                  placeholder="Time(in hours)"
-                                  className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
-                                  {...field}
-                                  type="text"
-                                  onChange={handleTimeChange}
-                                />
-                              </div>
-                            </>
+                            <div className="relative flex items-center">
+                              <Input
+                                placeholder="Time(in hours)"
+                                className="placeholder:text-slate-400 placeholder:text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
+                                {...field}
+                                type="text"
+                                onChange={handleTimeChange}
+                              />
+                            </div>
                           </FormControl>
                         </FormControl>
                         <FormMessage />
@@ -163,7 +167,7 @@ export const AddTask = ({ task, mutate }: { task: TaskState; mutate: any }) => {
                     )}
                   />
                 </div>
-                {/* project combobox */}
+
                 <FormField
                   control={form.control}
                   name="project"
@@ -171,7 +175,7 @@ export const AddTask = ({ task, mutate }: { task: TaskState; mutate: any }) => {
                     <FormItem>
                       <FormLabel>Projects</FormLabel>
                       <FormControl>
-                        <ComboxBox
+                        <ComboBox
                           label="Search Project"
                           showSelected
                           shouldFilter
@@ -196,7 +200,7 @@ export const AddTask = ({ task, mutate }: { task: TaskState; mutate: any }) => {
                     <FormItem>
                       <FormLabel>Description</FormLabel>
                       <FormControl>
-                        <Textarea
+                        <TextArea
                           placeholder="Explain the subject"
                           rows={4}
                           className="w-full placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
