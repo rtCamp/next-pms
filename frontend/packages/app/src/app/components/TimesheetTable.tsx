@@ -194,6 +194,10 @@ const TimesheetTable = ({
   const [filteredLikedTasks, setFilteredLikedTasks] = useState(
     liked_tasks.filter((likedTask: { name: string }) => !Object.keys(tasks).includes(likedTask.name))
   );
+  useEffect(()=>{
+    setFilteredLikedTasks(liked_tasks.filter((likedTask: { name: string }) => !Object.keys(tasks).includes(likedTask.name)));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[tasks])
 
   const deleteTaskFromLocalStorage = useCallback(() => {
     removeFromLikedTask(LIKED_TASK_KEY, task_date_range_key);
