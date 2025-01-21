@@ -30,6 +30,11 @@ type RowProps = {
   setSelectedTask: React.Dispatch<React.SetStateAction<string>>;
   setIsTaskLogDialogBoxOpen: React.Dispatch<React.SetStateAction<boolean>>;
   disabled?: boolean;
+  rowClassName?: string;
+  taskCellClassName?: string;
+  cellClassName?: string;
+  totalCellClassName?: string;
+  showEmptyCell?: boolean;
 };
 const Row = ({
   dates,
@@ -41,6 +46,11 @@ const Row = ({
   getLikedTaskData,
   setSelectedTask,
   setIsTaskLogDialogBoxOpen,
+  rowClassName,
+  taskCellClassName,
+  cellClassName,
+  totalCellClassName,
+  showEmptyCell,
 }: RowProps) => {
   return (
     <>
@@ -48,8 +58,8 @@ const Row = ({
         Object.entries(tasks).map(([task, taskData]: [string, TaskDataProps]) => {
           let totalHours = 0;
           return (
-            <TableRow key={task} className="border-b border-slate-200">
-              <TableCell className="cursor-pointer max-w-sm">
+            <TableRow key={task} className={cn("border-b border-slate-200", rowClassName)}>
+              <TableCell className={cn("cursor-pointer max-w-sm", taskCellClassName)}>
                 <TaskHoverCard
                   name={task}
                   taskData={taskData}
@@ -86,6 +96,7 @@ const Row = ({
                 return (
                   <Cell
                     key={date}
+                    className={cellClassName}
                     date={date}
                     data={data}
                     isHoliday={isHoliday}
@@ -94,7 +105,7 @@ const Row = ({
                   />
                 );
               })}
-              <TableCell className="text-center">
+              <TableCell className={cn("text-center", totalCellClassName)}>
                 <Typography
                   variant="p"
                   className={cn(
@@ -106,6 +117,7 @@ const Row = ({
                   {floatToTime(totalHours)}
                 </Typography>
               </TableCell>
+              {showEmptyCell && <TableCell className={cn("flex max-w-20 w-full justify-center items-center")}></TableCell>}
             </TableRow>
           );
         })}

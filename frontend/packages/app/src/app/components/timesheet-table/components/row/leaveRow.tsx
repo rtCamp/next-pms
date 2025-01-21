@@ -20,6 +20,7 @@ type leaveRowProps = {
   headingClassName?: string;
   dataCellClassName?: string;
   totalCellClassName?: string;
+  showEmptyCell?: boolean;
 };
 /**
  * @description This component calculates the total leaves for the perticular
@@ -44,6 +45,7 @@ export const LeaveRow = ({
   headingClassName,
   dataCellClassName,
   totalCellClassName,
+  showEmptyCell,
 }: leaveRowProps) => {
   let totalHours = 0;
 
@@ -98,6 +100,7 @@ export const LeaveRow = ({
           {floatToTime(totalHours)}
         </Typography>
       </TableCell>
+      {showEmptyCell && <TableCell className={cn("flex max-w-20 w-full justify-center items-center")}></TableCell>}
     </TableRow>
   );
 };
