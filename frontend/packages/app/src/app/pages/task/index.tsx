@@ -163,7 +163,6 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
 
   useEffect(() => {
     if (data) {
-      if (task.isNeedToFetchDataAfterUpdate) return;
       if (task.action === "SET") {
         dispatch(setTaskData(data.message));
       } else {
