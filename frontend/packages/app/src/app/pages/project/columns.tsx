@@ -6,7 +6,7 @@ import { floatToTime } from "@next-pms/design-system/utils";
 /**
  * Internal dependencies.
  */
-import { DataCell } from "@/app/components/listview/DataCell";
+import { DataCell } from "@/app/components/listview/dataCell";
 import { cn } from "@/lib/utils";
 import { DocMetaProps } from "@/types";
 import { getValidUserTagsValues } from "./utils";

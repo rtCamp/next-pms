@@ -3,17 +3,22 @@
  */
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Button,
+} from "@next-pms/design-system/components";
 import EmojiPicker, { EmojiStyle } from "emoji-picker-react";
 import { useFrappePostCall } from "frappe-react-sdk";
-
 /**
  * Internal dependencies
  */
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
 import { RootState } from "@/store";
 import { setViews } from "@/store/view";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
 
 interface CreateViewProps {
   isOpen: boolean;

@@ -1,10 +1,13 @@
 /**
+ * External dependencies
+ */
+import { Typography, Badge, Progress } from "@next-pms/design-system/components";
+import { getUTCDateTime } from "@next-pms/design-system/date";
+/**
  * Internal dependencies
  */
-import { Typography } from "@/app/components/typography";
-import { Badge } from "@/app/components/ui/badge";
-import { Progress } from "@/app/components/ui/progress";
-import { cn, getDateTimeForMultipleTimeZoneSupport, currencyFormat } from "@/lib/utils";
+
+import { cn, currencyFormat } from "@/lib/utils";
 import { fieldMetaProps } from "@/types";
 
 const NUMBER_FIELDS = ["Int", "Long Int", "Float"];
@@ -71,7 +74,7 @@ export const DataCell = ({ meta, title_field, docType, row, value, currency }: D
       </Typography>
     );
   } else if (meta.fieldtype === "Date") {
-    const date = getDateTimeForMultipleTimeZoneSupport(value).toLocaleDateString();
+    const date = getUTCDateTime(value).toLocaleDateString();
     return (
       <Typography variant="p" className="truncate" title={value}>
         {date}
@@ -106,13 +109,27 @@ export const DataCell = ({ meta, title_field, docType, row, value, currency }: D
     );
   } else if (meta.fieldtype === "Select") {
     if (SUCCESS_SELECT_VALUES.includes(value)) {
-      return <Badge className="truncate" variant="success">{value}</Badge>;
+      return (
+        <Badge className="truncate" variant="success">
+          {value}
+        </Badge>
+      );
     } else if (FAIL_SELECT_VALUES.includes(value)) {
-      return <Badge className="truncate" variant="destructive">{value}</Badge>;
+      return (
+        <Badge className="truncate" variant="destructive">
+          {value}
+        </Badge>
+      );
     } else if (OPEN_SELECT_VALUES.includes(value)) {
-      return <Badge className="truncate" variant="warning">{value}</Badge>;
+      return (
+        <Badge className="truncate" variant="warning">
+          {value}
+        </Badge>
+      );
     } else {
-      return <Badge className={cn("truncate",selectBadgeColor(value, meta.options?.split("\n") ?? []))}>{value}</Badge>;
+      return (
+        <Badge className={cn("truncate", selectBadgeColor(value, meta.options?.split("\n") ?? []))}>{value}</Badge>
+      );
     }
   } else if (meta.fieldtype === "Check") {
     const val = Number(value);
