@@ -1,8 +1,7 @@
 /**
  * External dependencies
  */
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { TouchBackend } from "react-dnd-touch-backend";
@@ -40,33 +39,32 @@ import ColumnItem from "./columnItem";
 const ColumnSelector = ({ fieldMeta, onColumnHide, setColumnOrder, columnOrder }: ColumnSelectorProps) => {
   const [localOrder, setLocalOrder] = useState<string[]>([]);
 
-  // Synchronize local state with the main columnOrder prop
   useEffect(() => {
     setLocalOrder(columnOrder);
   }, [columnOrder]);
 
-  const fieldMap = localOrder
-    .map((row) => {
-      const d = fieldMeta.find((f: { fieldname: string }) => f.fieldname === row);
-      return d !== undefined ? d : null;
-    })
-    .filter((d) => d !== null);
+  const fieldMap = useMemo(
+    () => localOrder.map((row) => fieldMeta.find((f) => f.fieldname === row) || null).filter((d) => d !== null),
+    [localOrder, fieldMeta]
+  );
 
-  const fields = fieldMeta
-    .filter((d) => !NO_VALUE_FIELDS.includes(d.fieldtype))
-    .filter((d) => !localOrder.includes(d.fieldname));
+  const fields = useMemo(
+    () =>
+      fieldMeta.filter((d) => !NO_VALUE_FIELDS.includes(d.fieldtype)).filter((d) => !localOrder.includes(d.fieldname)),
+    [fieldMeta, localOrder]
+  );
 
-  const handleColumnAdd = (fieldname: string) => {
-    setLocalOrder((old) => [...old, fieldname]);
-    setColumnOrder((old) => [...old, fieldname]);
-  };
+  const handleColumnAdd = useCallback(
+    (fieldname: string) => {
+      setLocalOrder((old) => [...old, fieldname]);
+      setColumnOrder((old) => [...old, fieldname]);
+    },
+    [setColumnOrder]
+  );
 
-  const handleReorder = (newOrder: string[]) => {
-    setLocalOrder(newOrder);
-  };
-  const handleDrop = () => {
-    setColumnOrder(localOrder); // Update the parent/main state on drop
-  };
+  const handleDrop = useCallback(() => {
+    setColumnOrder(localOrder);
+  }, [localOrder, setColumnOrder]);
 
   return (
     <DropdownMenu modal>
@@ -78,20 +76,16 @@ const ColumnSelector = ({ fieldMeta, onColumnHide, setColumnOrder, columnOrder }
       </DropdownMenuTrigger>
       <DropdownMenuContent className="[&_div]:cursor-pointer max-h-96 overflow-y-auto">
         <DndProvider backend={checkIsMobile() ? TouchBackend : HTML5Backend}>
-          {fieldMap.map((field) => {
-            return (
-              <ColumnItem
-                key={field.fieldname}
-                id={field.fieldname}
-                label={field.label}
-                onColumnHide={onColumnHide}
-                isVisible={localOrder.includes(field.fieldname)}
-                toggleVisibility={() => {}}
-                reOrder={handleReorder}
-                onDrop={handleDrop}
-              />
-            );
-          })}
+          {fieldMap.map((field) => (
+            <ColumnItem
+              key={field.fieldname}
+              id={field.fieldname}
+              label={field.label}
+              onColumnHide={onColumnHide}
+              reOrder={setLocalOrder}
+              onDrop={handleDrop}
+            />
+          ))}
         </DndProvider>
         <DropdownMenuSeparator />
         <DropdownMenuSub>

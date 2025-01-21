@@ -32,7 +32,7 @@ export interface ApiCallProps {
 export interface ColumnSelectorProps {
     fieldMeta: Array<fieldMetaProps>;
     onColumnHide: (id: string) => void;
-    setColumnOrder: (newOrder: string[]) => void;
+    setColumnOrder: React.Dispatch<React.SetStateAction<string[]>>;
     columnOrder: string[];
 }
 export interface SortProps {
