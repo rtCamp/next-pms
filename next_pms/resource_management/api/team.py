@@ -81,7 +81,6 @@ def get_resource_management_team_view_data(
         reports_to=reports_to,
         start=start,
         status=["Active"],
-        ignore_default_filters=True if len(skills) > 0 else False,
         ids=ids,
         ignore_permissions=True,
     )

@@ -12,17 +12,17 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx":  "react-jsx",
-    "incremental": true,
-    "rootDirs": [
-      "src"
-    ],
-    "paths": {
-      "@/*": [
-        "./src/*"
-      ]
-    }
+    "jsx": "react-jsx",
+    "incremental": true
   },
-  "include": ["src/**/*.tsx","src/**/*.ts"],
+  "include": ["./packages/**/*.tsx", "./packages/**/*.ts"],
+  "references": [
+    {
+      "path": "./packages/app"
+    },
+    {
+      "path": "./packages/hooks"
+    }
+  ],
   "exclude": ["node_modules"]
 }

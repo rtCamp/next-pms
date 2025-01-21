@@ -214,6 +214,9 @@ def update_timesheet_detail(
 ):
     parent_doc = frappe.get_doc("Timesheet", parent)
     parent_doc.flags.ignore_permissions = is_timesheet_manager()
+
+    logs_to_remove = []  # List to store logs that need to be removed
+
     for log in parent_doc.time_logs:
         if not name:
             continue
@@ -221,9 +224,13 @@ def update_timesheet_detail(
             log.hours = hours
             log.description = description
             log.is_billable = is_billable
-        if getdate(log.from_time) != getdate(date) and log.name == name:
-            parent_doc.time_logs.remove(log)
-            save(date, description, task, hours, parent_doc.employee, is_billable)
+            if getdate(log.from_time) != getdate(date):
+                logs_to_remove.append(log)
+                save(date, description, task, hours, parent_doc.employee, is_billable)
+
+    for log in logs_to_remove:
+        parent_doc.time_logs.remove(log)
+
     if not name:
         parent_doc.append(
             "time_logs",
@@ -331,6 +338,7 @@ def get_timesheet(dates: list, employee: str):
             "expected_time",
             "actual_time",
             "status",
+            "_liked_by",
         ],
     )
     task_details_dict = {task["name"]: task for task in task_details}
@@ -354,6 +362,7 @@ def get_timesheet(dates: list, employee: str):
                     "expected_time": task["expected_time"],
                     "actual_time": task["actual_time"],
                     "status": task["status"],
+                    "_liked_by": task["_liked_by"],
                 }
             data[task_name]["data"].append(log.as_dict())
 

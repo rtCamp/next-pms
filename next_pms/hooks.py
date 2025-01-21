@@ -237,7 +237,13 @@ doc_events = {
         ],
         "on_trash": ["next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache"],
     },
-    "Project": {"on_update": "next_pms.project_currency.doc_events.project.on_update"},
+    "Project": {
+        "on_update": [
+            "next_pms.project_currency.doc_events.project.on_update",
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+        ],
+        "on_trash": ["next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache"],
+    },
     "Customer": {"validate": "next_pms.resource_management.doc_events.customer.validate_abbr"},
 }
 #
