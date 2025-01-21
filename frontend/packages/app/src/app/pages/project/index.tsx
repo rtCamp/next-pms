@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Spinner,
@@ -30,7 +30,7 @@ import _ from "lodash";
  */
 
 import ViewWrapper from "@/app/components/list-view/viewWrapper";
-import { parseFrappeErrorMsg, createFalseValuedObject } from "@/lib/utils";
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setProjectData, setStart, setFilters, setReFetchData, updateProjectData } from "@/store/project";
 import { ViewData } from "@/store/view";
@@ -59,7 +59,6 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   const [colSizing, setColSizing] = useState<ColumnSizingState>(viewData.columns ?? {});
   const [columnOrder, setColumnOrder] = useState<string[]>(viewData.rows ?? []);
   const projectState = useSelector((state: RootState) => state.project);
-  const [columnVisibility, setColumnVisibility] = useState(createFalseValuedObject(viewData.rows));
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -78,7 +77,6 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     setViewInfo(viewData);
     setColSizing(viewData.columns);
     setColumnOrder(viewData.rows);
-    setColumnVisibility(createFalseValuedObject(viewData.rows));
     setHasViewUpdated(false);
   }, [dispatch, viewData]);
 
@@ -179,32 +177,15 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     getSortedRowModel: getSortedRowModel(),
     onColumnSizingChange: setColSizing,
     onColumnOrderChange: setColumnOrder,
-    onColumnVisibilityChange: setColumnVisibility,
     state: {
-      columnVisibility,
       columnOrder,
       columnSizing: colSizing,
     },
   });
 
   const handleColumnHide = (id: string) => {
-    setColumnVisibility((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+    setColumnOrder((prev)=>prev.filter(item => item !== id))
   };
-  const updateColumnOrder = useCallback(
-    (visibility: { [key: string]: boolean }) => {
-      let newColumnOrder;
-      if (Object.keys(visibility).length == 0) {
-        newColumnOrder = columnOrder;
-      } else {
-        newColumnOrder = viewData.rows.filter((d) => visibility[d]).map((d) => d);
-      }
-      setColumnOrder(newColumnOrder);
-    },
-    [columnOrder, viewData.rows]
-  );
 
   const updateColumnSize = (columns: Array<string>) => {
     setColSizing((prevColSizing) => {
@@ -222,10 +203,6 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     updateColumnSize(columnOrder);
   }, [columnOrder]);
 
-  useEffect(() => {
-    updateColumnOrder(columnVisibility);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [columnVisibility]);
 
   const handleLoadMore = () => {
     if (!projectState.hasMore || projectState.isLoading) return;
