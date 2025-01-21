@@ -1,5 +1,5 @@
+import { Button, ButtonProps } from "@next-pms/design-system/components";
 import { MoveDown } from "lucide-react";
-import { Button, ButtonProps } from "./ui/button";
 
 export const LoadMore = ({ className, variant, size, asChild = false, ...props }: ButtonProps) => {
   return (
