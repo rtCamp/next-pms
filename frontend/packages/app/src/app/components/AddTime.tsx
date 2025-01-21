@@ -151,7 +151,7 @@ const AddTime = ({
           variant: "success",
           description: res.message,
         });
-        onSuccess && onSuccess();
+        onSuccess?.();
         setSubmitting(false);
         handleOpen();
       })

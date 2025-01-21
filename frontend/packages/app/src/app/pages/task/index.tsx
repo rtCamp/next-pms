@@ -25,9 +25,9 @@ import { DocMetaProps } from "@/types";
 import { ColumnsType, columnsToExcludeActionsInTablesType } from "@/types/task";
 import { AddTask } from "./addTask";
 import { getColumn } from "./columns";
-import { Header } from "./Header";
-import { Table } from "./Table";
-import { TaskLog } from "./TaskLog";
+import { Header } from "./header";
+import { Table } from "./table";
+import { TaskLog } from "./taskLog";
 import { createFilter } from "./utils";
 
 const Task = () => {

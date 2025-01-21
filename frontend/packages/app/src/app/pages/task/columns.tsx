@@ -11,7 +11,7 @@ import { Clock, Heart } from "lucide-react";
  */
 import { DataCell } from "@/app/components/list-view/dataCell";
 import { DocMetaProps, TaskData } from "@/types";
-import { TaskPriority } from "./TaskPriority";
+import { TaskPriority } from "./taskPriority";
 import { cn, isLiked } from "../../../lib/utils";
 import { UserState } from "../../../store/user";
 import { ColumnsType } from "../../../types/task";

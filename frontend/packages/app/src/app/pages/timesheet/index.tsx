@@ -24,7 +24,7 @@ import { Calendar, Paperclip, Plus } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import AddLeave from "@/app/components/AddLeave";
+import AddLeave from "@/app/components/addLeave";
 import AddTime from "@/app/components/AddTime";
 import { LoadMore } from "@/app/components/loadMore";
 import TimesheetTable, { SubmitButton } from "@/app/components/TimesheetTable";
@@ -45,8 +45,8 @@ import {
 import { WorkingFrequency } from "@/types";
 import { HolidayProp, LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
 import { Approval } from "./approval";
-import { EditTime } from "./EditTime";
-import ExpandableHours from "./ExpandableHours";
+import { EditTime } from "./editTime";
+import ExpandableHours from "./expandableHours";
 
 function Timesheet() {
   const targetRef = useRef<HTMLDivElement>(null);

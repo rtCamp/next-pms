@@ -36,7 +36,7 @@ import { setProjectData, setStart, setFilters, setReFetchData, updateProjectData
 import { ViewData } from "@/store/view";
 import { DocMetaProps, sortOrder } from "@/types";
 import { getColumnInfo } from "./columns";
-import { Header as ProjectHeader } from "./Header";
+import { Header as ProjectHeader } from "./header";
 import { getFilter, createFilter } from "./utils";
 type ProjectProps = {
   viewData: ViewData;

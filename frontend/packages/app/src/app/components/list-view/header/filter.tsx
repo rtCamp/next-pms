@@ -14,9 +14,9 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
+  CheckedState,
 } from "@next-pms/design-system/components";
 import { useQueryParam } from "@next-pms/hooks";
-import { CheckedState } from "@radix-ui/react-checkbox";
 import { Filter as Funnel } from "lucide-react";
 /**
  * Internal dependencies.
