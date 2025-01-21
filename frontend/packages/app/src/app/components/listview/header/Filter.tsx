@@ -122,6 +122,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
             disabled: d.disabled,
           })) ?? []
         }
+        onSearch={filter?.onSearch}
         className="text-primary border-dashed gap-x-2 font-normal w-fit"
       />
     );

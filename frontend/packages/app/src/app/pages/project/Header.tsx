@@ -1,12 +1,12 @@
 /**
  * External dependencies
  */
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 /**
  * Internal dependencies
  */
-import { useFrappePostCall } from "frappe-react-sdk";
+import { useFrappeGetDocList, useFrappePostCall } from "frappe-react-sdk";
 import { Header as ListViewHeader } from "@/app/components/listview/header";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
@@ -19,6 +19,7 @@ import {
   setSelectedBusinessUnit,
   setSelectedProjectType,
   setSelectedStatus,
+  setTag,
   Status,
 } from "@/store/project";
 import { updateView, ViewData } from "@/store/view";
@@ -119,6 +120,29 @@ export const Header = ({
   );
   const handleSortChange = (order: sortOrder, orderColumn: string) => {
     dispatch(setOrderBy({ order, orderColumn }));
+  };
+  const [tagSearchTerm,setTagSearchTerm] = useState("");
+
+  const { data:tagData,mutate:mutateTagData } = useFrappeGetDocList("Tag",{
+    filters:[["name", "like", `%${tagSearchTerm}%`]],
+    limit: 5,
+    asDict: false,
+  });
+  const [selectedTag,setSelectedTag]=useState<string[]>([]);
+
+  useEffect(()=>{
+    mutateTagData()
+  },[setTagSearchTerm]);
+
+  const handleTagChange =(tag:string[])=>{
+    dispatch(setTag(tag));
+    setTagSearchTerm("");
+    mutateTagData();
+    if(tagSearchTerm.trim()){
+      setSelectedTag(tag);
+    }else{
+      setSelectedTag([]);
+    }
   };
 
   const filters = [
@@ -226,6 +250,26 @@ export const Header = ({
       handleDelete: useCallback(() => { 
         dispatch(setCurrency(""));
       }, [dispatch]),
+      shouldFilterComboBox: true,
+      isMultiComboBox: false,
+    },
+    {
+      type: "select-list",
+      queryParameterName: "tag",
+      label: "Tag",
+      value: projectState.tag,
+      data: tagData?.flat().concat(selectedTag).map((tag) => ({
+        label: tag,
+        value: tag,
+      })),
+      queryParameterDefault: projectState.tag,
+      handleChange: handleTagChange,
+      handleDelete: useCallback((tag:string[]) => { 
+        dispatch(setTag(tag));     
+      }, [dispatch]),
+      onSearch:(searchTerm:string)=>{
+        setTagSearchTerm(searchTerm);
+      },
       shouldFilterComboBox: true,
       isMultiComboBox: false,
     },

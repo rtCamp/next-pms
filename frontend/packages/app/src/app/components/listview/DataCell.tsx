@@ -106,19 +106,19 @@ export const DataCell = ({ meta, title_field, docType, row, value, currency }: D
     );
   } else if (meta.fieldtype === "Select") {
     if (SUCCESS_SELECT_VALUES.includes(value)) {
-      return <Badge variant="success">{value}</Badge>;
+      return <Badge className="truncate" variant="success">{value}</Badge>;
     } else if (FAIL_SELECT_VALUES.includes(value)) {
-      return <Badge variant="destructive">{value}</Badge>;
+      return <Badge className="truncate" variant="destructive">{value}</Badge>;
     } else if (OPEN_SELECT_VALUES.includes(value)) {
-      return <Badge variant="warning">{value}</Badge>;
+      return <Badge className="truncate" variant="warning">{value}</Badge>;
     } else {
-      return <Badge className={cn(selectBadgeColor(value, meta.options?.split("\n") ?? []))}>{value}</Badge>;
+      return <Badge className={cn("truncate",selectBadgeColor(value, meta.options?.split("\n") ?? []))}>{value}</Badge>;
     }
   } else if (meta.fieldtype === "Check") {
     const val = Number(value);
 
     return (
-      <Badge variant={val === 1 ? "success" : "destructive"} className="truncate" title={value}>
+      <Badge className="truncate" variant={val === 1 ? "success" : "destructive"} title={value}>
         {val === 1 ? "Yes" : "No"}
       </Badge>
     );

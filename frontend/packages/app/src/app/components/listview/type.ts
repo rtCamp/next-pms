@@ -20,6 +20,7 @@ export interface FilterPops {
     apiCall?: ApiCallProps;
     employeeName?: string;
     customFilterComponent?: React.ReactNode;
+    onSearch?:(searchTerm: string) => void;
 }
 
 export interface ApiCallProps {

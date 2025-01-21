@@ -9,6 +9,7 @@ import { floatToTime } from "@next-pms/design-system/utils";
 import { DataCell } from "@/app/components/listview/DataCell";
 import { cn } from "@/lib/utils";
 import { DocMetaProps } from "@/types";
+import { getValidUserTagsValues } from "./utils";
 
 const HOUR_FIELD = ["actual_time", "custom_total_hours_purchased", "custom_total_hours_remaining"];
 
@@ -72,13 +73,13 @@ export const getColumnInfo = (
           );
         } else if (meta.fieldname === "status") {
           return (
-            <Badge variant={value === "Open" ? "warning" : value === "Completed" ? "success" : "destructive"}>
+            <Badge className="truncate" variant={value === "Open" ? "warning" : value === "Completed" ? "success" : "destructive"}>
               {value}
             </Badge>
           );
         } else if (meta.fieldname === "priority") {
           return (
-            <Badge variant={value === "Low" ? "success" : value === "Medium" ? "warning" : "destructive"}>
+            <Badge className="truncate" variant={value === "Low" ? "success" : value === "Medium" ? "warning" : "destructive"}>
               {value}
             </Badge>
           );
@@ -106,6 +107,33 @@ export const getColumnInfo = (
     };
     columns.push(col);
   });
+  const userTagsCol = {
+    accessorKey: "_user_tags",
+    size: 90,
+    header: ({ column }) => {
+      return (
+        <p className="truncate" id={column.id}>
+          Tags
+        </p>
+      );
+    },
+    cell: ({ getValue, row }) => {
+      const tags = getValidUserTagsValues(getValue());
+    
+      return (
+        <div className="truncate w-full flex gap-1">
+          {tags.map((tag) => (
+            <Badge key={tag} variant="outline" className="bg-slate-100">
+              <Typography variant="p" title={tag}>
+                {tag}
+              </Typography>
+            </Badge>
+          ))}
+        </div>
+      );
+    }
+  }
+  columns.push(userTagsCol)  
   return columns;
 };
 

@@ -85,7 +85,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   const { data, isLoading, error, mutate } = useFrappeGetCall(
     "next_pms.timesheet.api.project.get_projects",
     {
-      fields: viewInfo.rows ?? ["*"],
+      fields: [...viewInfo.rows,"_user_tags"],
       filters: getFilter(projectState),
       start: projectState.start,
       page_length: projectState.pageLength,
@@ -157,6 +157,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     projectState.selectedStatus,
     projectState.selectedBillingType,
     projectState.selectedBusinessUnit,
+    projectState.tag,
     viewData,
   ]);
 
@@ -293,7 +294,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
                         const needToAddRef = projectState.hasMore && cellIndex == 0;
                         return (
                           <TableCell
-                            className="truncate"
+                            className="overflow-hidden"
                             key={cell.id}
                             style={{
                               width: cell.column.getSize(),
@@ -310,7 +311,8 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
                 })
               ) : (
                 <TableRow className="w-full">
-                  <TableCell colSpan={viewData.rows.length} className="h-24 text-center">
+                  {/* Adding plus (+1) one to make no results span complete width */}
+                  <TableCell colSpan={viewData.rows.length+1} className="h-24 text-center">
                     No results
                   </TableCell>
                 </TableRow>
