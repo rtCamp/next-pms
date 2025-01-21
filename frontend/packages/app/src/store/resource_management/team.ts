@@ -1,14 +1,13 @@
 /**
  * External dependencies.
  */
+import { getTodayDate, getFormatedDate } from "@next-pms/design-system/date";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-
-import { getTodayDate, getFormatedDate } from "@/lib/utils";
+import { getDatesArrays } from "@/app/pages/resource_management/utils/dates";
 import {
   ResourceAllocationObjectProps,
   ResourceCustomerObjectProps,
 } from "@/types/resource_management";
-import { getDatesArrays } from "@/app/pages/resource_management/utils/dates";
 
 export type DateRange = {
   start_date: string;

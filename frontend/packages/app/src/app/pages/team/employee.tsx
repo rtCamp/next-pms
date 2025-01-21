@@ -4,6 +4,8 @@
 import { useState } from "react";
 import { useSelector } from "react-redux";
 import { Spinner, Typography, Table, TableBody, TableCell, TableRow } from "@next-pms/design-system/components";
+import { getDateFromDateAndTimeString } from "@next-pms/design-system/date";
+import { floatToTime } from "@next-pms/design-system/utils";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { CircleDollarSign } from "lucide-react";
 /**
@@ -11,8 +13,8 @@ import { CircleDollarSign } from "lucide-react";
  */
 
 import { LeaveRow, EmptyRow, Cell } from "@/app/components/TimesheetTable";
-import { TaskLog } from "@/app/pages/task/TaskLog";
-import { cn, expectatedHours, floatToTime, getDateFromDateAndTime } from "@/lib/utils";
+import { TaskLog } from "@/app/pages/task/taskLog";
+import { cn, expectatedHours } from "@/lib/utils";
 import { RootState } from "@/store";
 import { TaskDataProps, TaskDataItemProps } from "@/types/timesheet";
 
@@ -90,7 +92,7 @@ export const Employee = ({ employee }: EmployeeProps) => {
                   </TableCell>
                   {timesheetData.dates.map((date: string, key: number) => {
                     let data = taskData.data.filter(
-                      (data: TaskDataItemProps) => getDateFromDateAndTime(data.from_time) === date
+                      (data: TaskDataItemProps) => getDateFromDateAndTimeString(data.from_time) === date
                     );
                     data.forEach((item: TaskDataItemProps) => {
                       totalHours += item.hours;

@@ -21,7 +21,14 @@ import {
   useToast,
   Typography,
 } from "@next-pms/design-system/components";
-import { getFormatedDate, getTodayDate, prettyDate } from "@next-pms/design-system/date";
+import {
+  getFormatedDate,
+  getTodayDate,
+  prettyDate,
+  getUTCDateTime,
+  normalizeDate,
+  getDateFromDateAndTimeString,
+} from "@next-pms/design-system/date";
 import { cn, floatToTime, preProcessLink } from "@next-pms/design-system/utils";
 import { useQueryParam } from "@next-pms/hooks";
 import { addDays } from "date-fns";
@@ -36,18 +43,10 @@ import EmployeeCombo from "@/app/components/employeeComboBox";
 import { LoadMore } from "@/app/components/loadMore";
 import TimesheetTable from "@/app/components/TimesheetTable";
 import { Header, Footer, Main } from "@/app/layout/root";
-import { TaskLog } from "@/app/pages/task/TaskLog";
+import { TaskLog } from "@/app/pages/task/taskLog";
 import { Status } from "@/app/pages/team";
 import { EditTime } from "@/app/pages/timesheet/editTime";
-import {
-  getDateFromDateAndTime,
-  parseFrappeErrorMsg,
-  calculateExtendedWorkingHour,
-  expectatedHours,
-  getDateTimeForMultipleTimeZoneSupport,
-  copyToClipboard,
-  correctDateFormat,
-} from "@/lib/utils";
+import { parseFrappeErrorMsg, calculateExtendedWorkingHour, expectatedHours, copyToClipboard } from "@/lib/utils";
 import { timeStringToFloat } from "@/schema/timesheet";
 import { RootState } from "@/store";
 import {
@@ -63,15 +62,12 @@ import {
 } from "@/store/team";
 import { LeaveProps, NewTimesheetProps, TaskDataItemProps, TaskDataProps, timesheet } from "@/types/timesheet";
 import { Approval } from "./approval";
-import ExpandableHours from "../timesheet/ExpandableHours";
+import ExpandableHours from "../timesheet/expandableHours";
 
 const isDateInRange = (date: string, startDate: string, endDate: string) => {
-  const targetDate = getDateTimeForMultipleTimeZoneSupport(correctDateFormat(date));
+  const targetDate = getUTCDateTime(normalizeDate(date));
 
-  return (
-    getDateTimeForMultipleTimeZoneSupport(startDate) <= targetDate &&
-    targetDate <= getDateTimeForMultipleTimeZoneSupport(endDate)
-  );
+  return getUTCDateTime(startDate) <= targetDate && targetDate <= getUTCDateTime(endDate);
 };
 
 const EmployeeDetail = () => {
@@ -85,7 +81,7 @@ const EmployeeDetail = () => {
     if (!startDateParam) {
       return true;
     }
-    const date = getFormatedDate(correctDateFormat(startDateParam));
+    const date = getFormatedDate(normalizeDate(startDateParam));
     const timesheetData = teamState.timesheetData.data;
     if (timesheetData && Object.keys(timesheetData).length > 0) {
       const keys = Object.keys(timesheetData);
@@ -118,7 +114,7 @@ const EmployeeDetail = () => {
     const timesheet = {
       name: "",
       task: "",
-      date: getFormatedDate(getDateTimeForMultipleTimeZoneSupport()),
+      date: getFormatedDate(getUTCDateTime()),
       description: "",
       hours: 0,
       isUpdate: false,
@@ -442,7 +438,7 @@ export const Time = ({
           variant: "success",
           description: res.message,
         });
-        callback && callback();
+        callback?.();
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
@@ -563,7 +559,9 @@ export const Time = ({
                     const { date: formattedDate } = prettyDate(date, true);
                     const matchingTasks = Object.entries(value.tasks).flatMap(([, task]: [string, TaskDataProps]) =>
                       task.data
-                        .filter((taskItem: TaskDataItemProps) => getDateFromDateAndTime(taskItem.from_time) === date)
+                        .filter(
+                          (taskItem: TaskDataItemProps) => getDateFromDateAndTimeString(taskItem.from_time) === date
+                        )
                         .map((taskItem: TaskDataItemProps) => ({
                           ...taskItem,
                           subject: task.subject,
@@ -628,7 +626,7 @@ export const Time = ({
                             parent: task.parent,
                             task: task.task,
                             employee: teamState.employee,
-                            date: getDateFromDateAndTime(task.from_time),
+                            date: getDateFromDateAndTimeString(task.from_time),
                             description: task.description,
                             hours: task.hours,
                             is_billable: task.is_billable,

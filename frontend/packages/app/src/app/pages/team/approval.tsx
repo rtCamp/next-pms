@@ -29,7 +29,9 @@ import {
   SheetFooter,
   TextArea,
 } from "@next-pms/design-system/components";
+import { getDateFromDateAndTimeString, prettyDate } from "@next-pms/design-system/date";
 import { useToast } from "@next-pms/design-system/hooks";
+import { floatToTime, preProcessLink } from "@next-pms/design-system/utils";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { Check, CircleDollarSign, LoaderCircle, X } from "lucide-react";
 import { z } from "zod";
@@ -37,15 +39,7 @@ import { z } from "zod";
  * Internal dependencies.
  */
 import { TimeInput } from "@/app/pages/team/employeeDetail";
-import {
-  calculateExtendedWorkingHour,
-  cn,
-  getDateFromDateAndTime,
-  parseFrappeErrorMsg,
-  prettyDate,
-  floatToTime,
-  preProcessLink,
-} from "@/lib/utils";
+import { calculateExtendedWorkingHour, cn, parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetRejectionSchema } from "@/schema/timesheet";
 import { RootState } from "@/store";
 import { setDateRange } from "@/store/team";
@@ -187,7 +181,7 @@ export const Approval = ({ onClose }: { onClose: () => void }) => {
         })
         .filter((date) => {
           const hasTimeOrSubmitted = Object.values(timesheetData.tasks).some((task) =>
-            task.data.some((entry) => getDateFromDateAndTime(entry.from_time) === date)
+            task.data.some((entry) => getDateFromDateAndTimeString(entry.from_time) === date)
           );
           return hasTimeOrSubmitted;
         });
@@ -215,7 +209,9 @@ export const Approval = ({ onClose }: { onClose: () => void }) => {
                     const matchingTasks = Object.entries(timesheetData.tasks).flatMap(
                       ([, task]: [string, TaskDataProps]) =>
                         task.data
-                          .filter((taskItem: TaskDataItemProps) => getDateFromDateAndTime(taskItem.from_time) === date)
+                          .filter(
+                            (taskItem: TaskDataItemProps) => getDateFromDateAndTimeString(taskItem.from_time) === date
+                          )
                           .map((taskItem: TaskDataItemProps) => ({
                             ...taskItem,
                             subject: task.subject,
@@ -227,7 +223,8 @@ export const Approval = ({ onClose }: { onClose: () => void }) => {
                     const holiday = holidays.find((holiday) => holiday.holiday_date === date);
                     const isHoliday = !!holiday;
                     const submittedTime = matchingTasks?.some(
-                      (timesheet) => getDateFromDateAndTime(timesheet.from_time) === date && timesheet.docstatus === 1
+                      (timesheet) =>
+                        getDateFromDateAndTimeString(timesheet.from_time) === date && timesheet.docstatus === 1
                     );
                     const leave = leaves.filter((data: LeaveProps) => {
                       return date >= data.from_date && date <= data.to_date;
@@ -288,7 +285,7 @@ export const Approval = ({ onClose }: { onClose: () => void }) => {
                             parent: task.parent,
                             task: task.task,
                             employee: teamState.employee,
-                            date: getDateFromDateAndTime(task.from_time),
+                            date: getDateFromDateAndTimeString(task.from_time),
                             description: task.description,
                             hours: task.hours,
                             is_billable: task.is_billable,

@@ -1,10 +1,9 @@
-import { startOfWeek } from "date-fns";
-
 import {
-  getDateTimeForMultipleTimeZoneSupport,
+  getUTCDateTime,
   getFormatedDate,
   getTodayDate,
-} from "@/lib/utils";
+} from "@next-pms/design-system/date";
+import { startOfWeek } from "date-fns";
 import { DateProps } from "@/store/resource_management/team";
 
 const Months = [
@@ -28,7 +27,7 @@ function getDatesArrays(
   ignoreWeekends: boolean = true
 ) {
   const dates = [];
-  const start = startOfWeek(getDateTimeForMultipleTimeZoneSupport(startDate), {
+  const start = startOfWeek(getUTCDateTime(startDate), {
     weekStartsOn: 1,
   });
   const today = getTodayDate()
@@ -67,8 +66,8 @@ function getDatesArrays(
     datesObject.key = key
       ? key
       : `${getMonthKey(datesObject.start_date)} - ${getMonthKey(
-          datesObject.end_date
-        )}`;
+        datesObject.end_date
+      )}`;
 
     dates.push(datesObject);
   }
@@ -77,7 +76,7 @@ function getDatesArrays(
 }
 
 function getNextDate(startDate: string, weeks: number) {
-  const start = startOfWeek(getDateTimeForMultipleTimeZoneSupport(startDate), {
+  const start = startOfWeek(getUTCDateTime(startDate), {
     weekStartsOn: 1,
   });
 
@@ -87,15 +86,14 @@ function getNextDate(startDate: string, weeks: number) {
 }
 
 function getMonthKey(dateString: string) {
-  const date = getDateTimeForMultipleTimeZoneSupport(dateString);
-  return `${Months[date.getMonth()]} ${
-    date.getDate() < 10 ? "0" + date.getDate() : date.getDate()
-  }`;
+  const date = getUTCDateTime(dateString);
+  return `${Months[date.getMonth()]} ${date.getDate() < 10 ? "0" + date.getDate() : date.getDate()
+    }`;
 }
 
 function checkInRange(start: string, weeks: number, dateString: string) {
   const startDate = getFormatedDate(
-    startOfWeek(getDateTimeForMultipleTimeZoneSupport(start), {
+    startOfWeek(getUTCDateTime(start), {
       weekStartsOn: 1,
     })
   );

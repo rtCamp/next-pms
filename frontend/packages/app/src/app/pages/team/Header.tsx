@@ -3,6 +3,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { getFormatedDate } from "@next-pms/design-system/date";
 import { useQueryParam } from "@next-pms/hooks";
 import { addDays } from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
@@ -11,7 +12,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
  * Internal dependencies
  */
 import { Header as ListViewHeader } from "@/app/components/list-view/header";
-import { getFormatedDate } from "@/lib/utils";
+
 import { RootState } from "@/store";
 import {
   setEmployeeName,
