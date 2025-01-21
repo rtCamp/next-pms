@@ -39,7 +39,7 @@ import {
 /**
  * Internal dependencies
  */
-import { TaskLog } from "@/app/pages/task/TaskLog";
+import { TaskLog } from "@/app/pages/task/taskLog";
 import { LIKED_TASK_KEY } from "@/lib/constant";
 import {
   hasKeyInLocalStorage,
