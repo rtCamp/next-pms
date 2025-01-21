@@ -22,8 +22,8 @@ type emptyRowProps = {
   headingCellClassName?: string;
   totalCellClassName?: string;
   cellClassName?: string;
-  setSelectedTask: React.Dispatch<React.SetStateAction<string>>;
-  setIsTaskLogDialogBoxOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setSelectedTask?: React.Dispatch<React.SetStateAction<string>>;
+  setIsTaskLogDialogBoxOpen?: React.Dispatch<React.SetStateAction<boolean>>;
   taskData?: TaskDataProps;
   name?: string;
   setTaskInLocalStorage?: () => void;
@@ -67,8 +67,8 @@ export const EmptyRow = ({
           <TaskHoverCard
             taskData={taskData}
             name={name}
-            setIsTaskLogDialogBoxOpen={setIsTaskLogDialogBoxOpen}
-            setSelectedTask={setSelectedTask}
+            setIsTaskLogDialogBoxOpen={setIsTaskLogDialogBoxOpen ?? (() => {})}
+            setSelectedTask={setSelectedTask ?? (() => {})}
             likedTaskData={likedTaskData as TaskDataProps[]}
             getLikedTaskData={getLikedTaskData ?? (() => {})}
           />

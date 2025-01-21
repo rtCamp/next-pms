@@ -34,7 +34,7 @@ import { CircleCheck, Hourglass, CircleX } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { WeekTotal } from "@/app/components/TimesheetTable";
+import { WeekTotal } from "@/app/components/timesheet-table/components/weekTotal";
 import { TEAM, EMPLOYEE } from "@/lib/constant";
 import { parseFrappeErrorMsg, cn } from "@/lib/utils";
 import { RootState } from "@/store";

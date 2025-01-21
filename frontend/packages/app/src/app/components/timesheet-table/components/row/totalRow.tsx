@@ -8,10 +8,10 @@ import { floatToTime } from "@next-pms/design-system/utils";
 /**
  * Internal dependencies
  */
-import { WeekTotal } from "@/app/components/TimesheetTable";
 import { expectatedHours, cn, getBgCsssForToday } from "@/lib/utils";
 import { WorkingFrequency } from "@/types";
 import { LeaveProps, TaskProps, HolidayProp } from "@/types/timesheet";
+import { WeekTotal } from "../weekTotal";
 
 type TotalHourRowProps = {
   leaves: Array<LeaveProps>;

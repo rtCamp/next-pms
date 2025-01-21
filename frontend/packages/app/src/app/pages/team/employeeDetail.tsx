@@ -41,7 +41,7 @@ import { Calendar, CircleDollarSign, Paperclip, Plus } from "lucide-react";
 import AddTime from "@/app/components/AddTime";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import { LoadMore } from "@/app/components/loadMore";
-import TimesheetTable from "@/app/components/TimesheetTable";
+import { TimesheetTable } from "@/app/components/timesheet-table";
 import { Header, Footer, Main } from "@/app/layout/root";
 import { TaskLog } from "@/app/pages/task/taskLog";
 import { Status } from "@/app/pages/team";
@@ -400,8 +400,8 @@ const Timesheet = ({
                     tasks={value.tasks}
                     onCellClick={onCellClick}
                     disabled={value.status === "Approved"}
-                    working_frequency={teamState.timesheetData.working_frequency}
-                    working_hour={teamState.timesheetData.working_hour}
+                    workingFrequency={teamState.timesheetData.working_frequency}
+                    workingHour={teamState.timesheetData.working_hour}
                     loadingLikedTasks={loadingLikedTasks}
                     likedTaskData={likedTaskData}
                     getLikedTaskData={getLikedTaskData}

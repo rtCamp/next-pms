@@ -12,7 +12,9 @@ import { CircleDollarSign } from "lucide-react";
  * Internal dependencies.
  */
 
-import { LeaveRow, EmptyRow, Cell } from "@/app/components/TimesheetTable";
+import { Cell } from "@/app/components/timesheet-table/components/dataCell";
+import { EmptyRow } from "@/app/components/timesheet-table/components/row/emptyRow";
+import { LeaveRow } from "@/app/components/timesheet-table/components/row/leaveRow";
 import { TaskLog } from "@/app/pages/task/taskLog";
 import { cn, expectatedHours } from "@/lib/utils";
 import { RootState } from "@/store";
@@ -48,7 +50,7 @@ export const Employee = ({ employee }: EmployeeProps) => {
           {leaves.length > 0 && (
             <LeaveRow
               dates={timesheetData.dates}
-              holidays={holidays}
+              holidayList={holidays}
               leaves={leaves}
               rowClassName="flex"
               headingClassName="w-full min-w-md text-left max-w-md"
@@ -60,7 +62,7 @@ export const Employee = ({ employee }: EmployeeProps) => {
           {Object.keys(timesheetData.tasks).length == 0 && (
             <EmptyRow
               dates={timesheetData.dates}
-              holidays={holidays}
+              holidayList={holidays}
               rowClassName="flex"
               disabled
               headingCellClassName="w-full max-w-md "
