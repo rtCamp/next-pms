@@ -195,7 +195,8 @@ const TimesheetTable = ({
     liked_tasks.filter((likedTask: { name: string }) => !Object.keys(tasks).includes(likedTask.name))
   );
   useEffect(()=>{
-    setFilteredLikedTasks(liked_tasks.filter((likedTask: { name: string }) => !Object.keys(tasks).includes(likedTask.name)));
+    const filteredLikedTasks = liked_tasks.filter((likedTask: { name: string }) => !Object.keys(tasks).includes(likedTask.name));
+    setFilteredLikedTasks(filteredLikedTasks);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   },[tasks])
 
