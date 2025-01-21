@@ -7,17 +7,16 @@ import { Avatar, AvatarFallback, AvatarImage, Table, TableBody, TableRow } from 
 import {
   prettyDate,
 } from "@next-pms/design-system/date";
-import { cn } from "@next-pms/design-system/utils";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
+import { cn } from "@/lib/utils";
 import { RootState } from "@/store";
 import { AllocationDataProps, setResourceFormData } from "@/store/resource_management/allocation";
 import { DateProps } from "@/store/resource_management/team";
 import { ResourceAllocationObjectProps, ResourceCustomerObjectProps } from "@/types/resource_management";
-
 import { ResourceAllocationList } from "../../components/ResourceAllocationList";
 import { ResourceTableCell, TableInformationCellContent } from "../../components/TableCell";
 import { getCellBackGroundColor } from "../../utils/cell";

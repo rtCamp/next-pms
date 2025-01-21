@@ -2,15 +2,23 @@
  * External dependencies.
  */
 import React from "react";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Avatar, AvatarFallback, AvatarImage, TableRow } from "@next-pms/design-system/components";
-import { cn } from "@next-pms/design-system/utils";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  TableRow,
+} from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
  */
+import { cn } from "@/lib/utils";
 import { TableInformationCellContent } from "./TableCell";
 import { getTableCellRow } from "../utils/helper";
-
 interface ResourceTeamTableRowProps {
   name: string;
   avatar: string;

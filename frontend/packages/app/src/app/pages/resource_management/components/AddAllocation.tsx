@@ -5,7 +5,27 @@ import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Form, FormControl, FormField, FormItem, FormLabel, FormMessage, Input, Separator, TextArea, useToast  } from "@next-pms/design-system/components";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  Input,
+  Separator,
+  TextArea,
+  useToast,
+  ComboBox,
+  DatePicker,
+  Typography,
+} from "@next-pms/design-system/components";
 import {
   getFormatedDate,
 } from "@next-pms/design-system/date";
@@ -17,14 +37,10 @@ import { z } from "zod";
 /**
  * Internal dependencies.
  */
-import { ComboxBox } from "@/app/components/comboBox";
-import { DatePicker } from "@/app/components/datePicker";
 import EmployeeCombo from "@/app/components/employeeComboBox";
-import { Typography } from "@/app/components/typography";
 import { ResourceAllocationSchema } from "@/schema/resource";
 import { RootState } from "@/store";
 import { AllocationDataProps, ResourceKeys, setDialog } from "@/store/resource_management/allocation";
-
 import { resetState } from "@/store/resource_management/allocation";
 import { getRoundOfValue } from "../utils/helper";
 
@@ -330,7 +346,7 @@ const AddResourceAllocations = ({
                       Customer <span className="text-red-400">*</span>
                     </FormLabel>
                     <FormControl>
-                      <ComboxBox
+                      <ComboBox
                         label="Search Customer"
                         onSelect={(value) => {
                           handleSearchChange("customer", value, setCustomerSearch);
@@ -366,7 +382,7 @@ const AddResourceAllocations = ({
                 render={() => (
                   <FormItem className="space-y-1 col-span-3">
                     <FormLabel>Projects</FormLabel>
-                    <ComboxBox
+                    <ComboBox
                       label={
                         form.getValues("customer")
                           ? "Search " + form.getValues("customer") + " Projects"

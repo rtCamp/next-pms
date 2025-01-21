@@ -3,16 +3,28 @@
  */
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Badge, Button, Popover, PopoverContent, PopoverTrigger, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Separator } from "@next-pms/design-system/components";
-import { cn } from "@next-pms/design-system/utils";
+import {
+  Badge,
+  Button,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Separator,
+  DeBouncedInput,
+  Typography,
+} from "@next-pms/design-system/components";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { Filter as Funnel, Search, Star, X } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
-import { DeBounceInput } from "@/app/components/deBounceInput";
-import { Typography } from "@/app/components/typography";
+import { cn } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setSkillSearch, Skill, SkillData } from "@/store/resource_management/team";
 
@@ -134,7 +146,7 @@ const SkillSearch = ({
         <div className="space-y-4 pt-4">
           {/* SkillSearch Input */}
           <div className="relative w-full">
-            <DeBounceInput
+            <DeBouncedInput
               placeholder="Search skills..."
               value={searchQuery}
               deBounceValue={300}

@@ -3,7 +3,7 @@
  */
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Avatar, AvatarFallback, AvatarImage, Button, useToast } from "@next-pms/design-system/components";
+import { Avatar, AvatarFallback, AvatarImage, Button, useToast, Typography } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
 import { cn } from "@next-pms/design-system/utils";
 import { useFrappeDeleteDoc } from "frappe-react-sdk";
@@ -12,7 +12,6 @@ import { Clipboard, Pencil, Plus } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { Typography } from "@/app/components/typography";
 import { RootState } from "@/store";
 import { AllocationDataProps, PermissionProps, setResourceFormData } from "@/store/resource_management/allocation";
 import {

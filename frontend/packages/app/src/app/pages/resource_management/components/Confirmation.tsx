@@ -9,13 +9,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTrigger,
+  Typography,
 } from "@next-pms/design-system/components";
 import { LoaderCircle, Trash2, X } from "lucide-react";
-
-/**
- * Internal dependencies.
- */
-import { Typography } from "@/app/components/typography";
 
 /**
  * The resource delete allocation alert dialog.
