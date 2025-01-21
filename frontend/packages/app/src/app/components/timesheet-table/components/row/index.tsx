@@ -35,6 +35,7 @@ type RowProps = {
   cellClassName?: string;
   totalCellClassName?: string;
   showEmptyCell?: boolean;
+  hideLikeButton?: boolean;
 };
 const Row = ({
   dates,
@@ -51,6 +52,7 @@ const Row = ({
   cellClassName,
   totalCellClassName,
   showEmptyCell,
+  hideLikeButton,
 }: RowProps) => {
   return (
     <>
@@ -62,6 +64,7 @@ const Row = ({
               <TableCell className={cn("cursor-pointer max-w-sm", taskCellClassName)}>
                 <TaskHoverCard
                   name={task}
+                  hideLikeButton={hideLikeButton}
                   taskData={taskData}
                   setSelectedTask={setSelectedTask}
                   setIsTaskLogDialogBoxOpen={setIsTaskLogDialogBoxOpen}
@@ -117,7 +120,9 @@ const Row = ({
                   {floatToTime(totalHours)}
                 </Typography>
               </TableCell>
-              {showEmptyCell && <TableCell className={cn("flex max-w-20 w-full justify-center items-center")}></TableCell>}
+              {showEmptyCell && (
+                <TableCell className={cn("flex max-w-20 w-full justify-center items-center")}></TableCell>
+              )}
             </TableRow>
           );
         })}

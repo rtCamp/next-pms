@@ -74,6 +74,7 @@ export const Employee = ({ employee }: EmployeeProps) => {
               holidayList={holidays}
               onCellClick={() => {}}
               disabled
+              hideLikeButton
               likedTaskData={[]}
               rowClassName="border-b border-slate-200 flex w-full"
               taskCellClassName="min-w-24 w-full max-w-md"

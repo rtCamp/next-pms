@@ -33,6 +33,7 @@ type TaskHoverCardProps = {
   setIsTaskLogDialogBoxOpen: (val: boolean) => void;
   likedTaskData: TaskDataProps[];
   getLikedTaskData: () => void;
+  hideLikeButton?: boolean;
 };
 export const TaskHoverCard = ({
   name,
@@ -40,7 +41,8 @@ export const TaskHoverCard = ({
   setSelectedTask,
   setIsTaskLogDialogBoxOpen,
   likedTaskData,
-  getLikedTaskData
+  getLikedTaskData,
+  hideLikeButton = false,
 }: TaskHoverCardProps) => {
   const user = useSelector((state: RootState) => state.user);
   const [taskLiked, setTaskedLiked] = useState(false);
@@ -96,12 +98,14 @@ export const TaskHoverCard = ({
               }}
             >
               <span className="truncate">{taskData.subject}</span>
-              <Heart
-                className={cn("hover:cursor-pointer shrink-0", taskLiked && "fill-destructive stroke-destructive")}
-                data-task={name}
-                data-liked-by={taskData?._liked_by}
-                onClick={handleLike}
-              />
+              {!hideLikeButton && (
+                <Heart
+                  className={cn("hover:cursor-pointer shrink-0", taskLiked && "fill-destructive stroke-destructive")}
+                  data-task={name}
+                  data-liked-by={taskData?._liked_by}
+                  onClick={handleLike}
+                />
+              )}
             </Typography>
 
             <Typography variant="small" className="text-slate-500 whitespace-nowrap text-ellipsis overflow-hidden ">
