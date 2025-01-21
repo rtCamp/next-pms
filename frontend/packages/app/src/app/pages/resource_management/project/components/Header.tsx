@@ -11,7 +11,7 @@ import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { Header } from "@/app/components/listview/header";
+import { Header } from "@/app/components/list-view/header";
 import { RootState } from "@/store";
 import { PermissionProps, setDialog, setResourcePermissions } from "@/store/resource_management/allocation";
 import {

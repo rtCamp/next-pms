@@ -5,34 +5,41 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useSelector, useDispatch } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Spinner,
+  Typography,
+  Checkbox,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogTitle,
+  DialogTrigger,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  Separator,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+  TextArea,
+} from "@next-pms/design-system/components";
+import { getDateFromDateAndTimeString, prettyDate } from "@next-pms/design-system/date";
+import { useToast } from "@next-pms/design-system/hooks";
+import { floatToTime, preProcessLink } from "@next-pms/design-system/utils";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { Check, CircleDollarSign, LoaderCircle, X } from "lucide-react";
 import { z } from "zod";
-
 /**
  * Internal dependencies.
  */
-import { Spinner } from "@/app/components/spinner";
-import { Typography } from "@/app/components/typography";
-import { Button } from "@/app/components/ui/button";
-import { Checkbox } from "@/app/components/ui/checkbox";
-import { Dialog, DialogContent, DialogFooter, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
-import { Separator } from "@/app/components/ui/separator";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/app/components/ui/sheet";
-import { Textarea } from "@/app/components/ui/textarea";
-import { useToast } from "@/app/components/ui/use-toast";
 import { TimeInput } from "@/app/pages/team/employeeDetail";
-import {
-  calculateExtendedWorkingHour,
-  cn,
-  getDateFromDateAndTime,
-  parseFrappeErrorMsg,
-  prettyDate,
-  floatToTime,
-  preProcessLink,
-  expectatedHours,
-} from "@/lib/utils";
+import { calculateExtendedWorkingHour, cn, parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetRejectionSchema } from "@/schema/timesheet";
 import { RootState } from "@/store";
 import { setDateRange } from "@/store/team";
@@ -174,7 +181,7 @@ export const Approval = ({ onClose }: { onClose: () => void }) => {
         })
         .filter((date) => {
           const hasTimeOrSubmitted = Object.values(timesheetData.tasks).some((task) =>
-            task.data.some((entry) => getDateFromDateAndTime(entry.from_time) === date)
+            task.data.some((entry) => getDateFromDateAndTimeString(entry.from_time) === date)
           );
           return hasTimeOrSubmitted;
         });
@@ -202,7 +209,9 @@ export const Approval = ({ onClose }: { onClose: () => void }) => {
                     const matchingTasks = Object.entries(timesheetData.tasks).flatMap(
                       ([, task]: [string, TaskDataProps]) =>
                         task.data
-                          .filter((taskItem: TaskDataItemProps) => getDateFromDateAndTime(taskItem.from_time) === date)
+                          .filter(
+                            (taskItem: TaskDataItemProps) => getDateFromDateAndTimeString(taskItem.from_time) === date
+                          )
                           .map((taskItem: TaskDataItemProps) => ({
                             ...taskItem,
                             subject: task.subject,
@@ -214,7 +223,8 @@ export const Approval = ({ onClose }: { onClose: () => void }) => {
                     const holiday = holidays.find((holiday) => holiday.holiday_date === date);
                     const isHoliday = !!holiday;
                     const submittedTime = matchingTasks?.some(
-                      (timesheet) => getDateFromDateAndTime(timesheet.from_time) === date && timesheet.docstatus === 1
+                      (timesheet) =>
+                        getDateFromDateAndTimeString(timesheet.from_time) === date && timesheet.docstatus === 1
                     );
                     const leave = leaves.filter((data: LeaveProps) => {
                       return date >= data.from_date && date <= data.to_date;
@@ -275,7 +285,7 @@ export const Approval = ({ onClose }: { onClose: () => void }) => {
                             parent: task.parent,
                             task: task.task,
                             employee: teamState.employee,
-                            date: getDateFromDateAndTime(task.from_time),
+                            date: getDateFromDateAndTimeString(task.from_time),
                             description: task.description,
                             hours: task.hours,
                             is_billable: task.is_billable,
@@ -416,7 +426,7 @@ const TimesheetRejectConfirmationDialog = ({
                 <FormItem>
                   <FormLabel htmlFor="note">Please add reason for rejection.</FormLabel>
                   <FormControl>
-                    <Textarea {...field} placeholder="Add a note" rows={4} />
+                    <TextArea {...field} placeholder="Add a note" rows={4} />
                   </FormControl>
                   <FormMessage {...field} />
                 </FormItem>

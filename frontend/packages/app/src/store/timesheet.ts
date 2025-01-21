@@ -2,12 +2,12 @@
  * External dependencies.
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { getTodayDate } from "@next-pms/design-system/date"
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
 /**
  * Internal dependencies.
  */
-import { getTodayDate } from "@/lib/utils";
 import { DataProp } from "@/types/timesheet";
 
 export interface TimesheetState {

@@ -19,17 +19,17 @@ import {
   TabsList,
   TabsTrigger,
   useToast,
+  Typography,
 } from "@next-pms/design-system/components";
 import {
   getFormatedDate,
   getTodayDate,
   prettyDate,
+  getUTCDateTime,
+  normalizeDate,
+  getDateFromDateAndTimeString,
 } from "@next-pms/design-system/date";
-import {
-  cn,
-  floatToTime,
-  preProcessLink
-} from "@next-pms/design-system/utils";
+import { cn, floatToTime, preProcessLink } from "@next-pms/design-system/utils";
 import { useQueryParam } from "@next-pms/hooks";
 import { addDays } from "date-fns";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
@@ -42,20 +42,11 @@ import AddTime from "@/app/components/AddTime";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import { LoadMore } from "@/app/components/loadMore";
 import TimesheetTable from "@/app/components/TimesheetTable";
-import { Typography } from "@/app/components/typography";
 import { Header, Footer, Main } from "@/app/layout/root";
-import { TaskLog } from "@/app/pages/task/TaskLog";
+import { TaskLog } from "@/app/pages/task/taskLog";
 import { Status } from "@/app/pages/team";
-import { EditTime } from "@/app/pages/timesheet/EditTime";
-import {
-  getDateFromDateAndTime,
-  parseFrappeErrorMsg,
-  calculateExtendedWorkingHour,
-  expectatedHours,
-  getDateTimeForMultipleTimeZoneSupport,
-  copyToClipboard,
-  correctDateFormat,
-} from "@/lib/utils";
+import { EditTime } from "@/app/pages/timesheet/editTime";
+import { parseFrappeErrorMsg, calculateExtendedWorkingHour, expectatedHours, copyToClipboard } from "@/lib/utils";
 import { timeStringToFloat } from "@/schema/timesheet";
 import { RootState } from "@/store";
 import {
@@ -71,15 +62,12 @@ import {
 } from "@/store/team";
 import { LeaveProps, NewTimesheetProps, TaskDataItemProps, TaskDataProps, timesheet } from "@/types/timesheet";
 import { Approval } from "./approval";
-import ExpandableHours from "../timesheet/ExpandableHours";
+import ExpandableHours from "../timesheet/expandableHours";
 
 const isDateInRange = (date: string, startDate: string, endDate: string) => {
-  const targetDate = getDateTimeForMultipleTimeZoneSupport(correctDateFormat(date));
+  const targetDate = getUTCDateTime(normalizeDate(date));
 
-  return (
-    getDateTimeForMultipleTimeZoneSupport(startDate) <= targetDate &&
-    targetDate <= getDateTimeForMultipleTimeZoneSupport(endDate)
-  );
+  return getUTCDateTime(startDate) <= targetDate && targetDate <= getUTCDateTime(endDate);
 };
 
 const EmployeeDetail = () => {
@@ -93,7 +81,7 @@ const EmployeeDetail = () => {
     if (!startDateParam) {
       return true;
     }
-    const date = getFormatedDate(correctDateFormat(startDateParam));
+    const date = getFormatedDate(normalizeDate(startDateParam));
     const timesheetData = teamState.timesheetData.data;
     if (timesheetData && Object.keys(timesheetData).length > 0) {
       const keys = Object.keys(timesheetData);
@@ -126,7 +114,7 @@ const EmployeeDetail = () => {
     const timesheet = {
       name: "",
       task: "",
-      date: getFormatedDate(getDateTimeForMultipleTimeZoneSupport()),
+      date: getFormatedDate(getUTCDateTime()),
       description: "",
       hours: 0,
       isUpdate: false,
@@ -182,8 +170,10 @@ const EmployeeDetail = () => {
   const onEmployeeChange = (name: string) => {
     navigate(`/team/employee/${name}`);
   };
-  const { data: employee } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee", { filters: { name: id } });
-  
+  const { data: employee } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee", {
+    filters: { name: id },
+  });
+
   return (
     <>
       {teamState.isAprrovalDialogOpen && <Approval onClose={mutate} />}
@@ -217,7 +207,14 @@ const EmployeeDetail = () => {
         />
       )}
       <Header>
-        <EmployeeCombo employeeName={employee?.message?.employee_name} onSelect={onEmployeeChange} pageLength={20} value={id as string} className="w-full lg:w-fit" ignoreDefaultFilters={true} />
+        <EmployeeCombo
+          employeeName={employee?.message?.employee_name}
+          onSelect={onEmployeeChange}
+          pageLength={20}
+          value={id as string}
+          className="w-full lg:w-fit"
+          ignoreDefaultFilters={true}
+        />
       </Header>
 
       <Main>
@@ -265,18 +262,20 @@ const Timesheet = ({
   const teamState = useSelector((state: RootState) => state.team);
   const dispatch = useDispatch();
 
-  const { call: fetchLikedTask,loading:loadingLikedTasks } = useFrappePostCall("next_pms.timesheet.api.task.get_liked_tasks");
-  const [likedTaskData,setLikedTaskData] = useState([]);
-    
-    const getLikedTaskData = ()=>{
-      fetchLikedTask({}).then((res) => {
-        setLikedTaskData(res.message??[]);
-      });
-    }
-  
-    useEffect(()=>{
-      getLikedTaskData();
-    },[])
+  const { call: fetchLikedTask, loading: loadingLikedTasks } = useFrappePostCall(
+    "next_pms.timesheet.api.task.get_liked_tasks"
+  );
+  const [likedTaskData, setLikedTaskData] = useState([]);
+
+  const getLikedTaskData = () => {
+    fetchLikedTask({}).then((res) => {
+      setLikedTaskData(res.message ?? []);
+    });
+  };
+
+  useEffect(() => {
+    getLikedTaskData();
+  }, []);
 
   const onCellClick = (timesheet: NewTimesheetProps) => {
     dispatch(setTimesheet({ timesheet, id }));
@@ -352,15 +351,17 @@ const Timesheet = ({
               <AccordionItem value={key}>
                 <AccordionTrigger className="hover:no-underline w-full max-md:[&>svg]:hidden">
                   <div className="flex justify-between items-center w-full pr-2 group">
-                    <div
-                      className="font-normal text-xs sm:text-base flex items-center gap-x-2 max-md:gap-x-3 sm:flex-row overflow-x-auto no-scrollbar max-md:w-4/5"
-                    >
+                    <div className="font-normal text-xs sm:text-base flex items-center gap-x-2 max-md:gap-x-3 sm:flex-row overflow-x-auto no-scrollbar max-md:w-4/5">
                       <span className="flex items-center gap-2 shrink-0">
-                          <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
-                          <h2 className="font-medium">{key}</h2>
-                        </span>
-                        <Separator orientation="vertical" className="block h-5 shrink-0" />
-                        <ExpandableHours totalHours={floatToTime(total_hours)} workingHours={floatToTime(total_hours - timeoff_hours)} timeoffHours={floatToTime(timeoff_hours)}/>
+                        <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
+                        <h2 className="font-medium">{key}</h2>
+                      </span>
+                      <Separator orientation="vertical" className="block h-5 shrink-0" />
+                      <ExpandableHours
+                        totalHours={floatToTime(total_hours)}
+                        workingHours={floatToTime(total_hours - timeoff_hours)}
+                        timeoffHours={floatToTime(timeoff_hours)}
+                      />
                       <Paperclip
                         className="w-3 h-3 hidden group-hover:block shrink-0"
                         onClick={(e) => {
@@ -437,7 +438,7 @@ export const Time = ({
           variant: "success",
           description: res.message,
         });
-        callback && callback();
+        callback?.();
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
@@ -518,7 +519,11 @@ export const Time = ({
                         <h2 className="font-medium">{key}</h2>
                       </span>
                       <Separator orientation="vertical" className="block h-5 shrink-0" />
-                      <ExpandableHours totalHours={floatToTime(total_hours)} workingHours={floatToTime(total_hours - timeoff_hours)} timeoffHours={floatToTime(timeoff_hours)}/>
+                      <ExpandableHours
+                        totalHours={floatToTime(total_hours)}
+                        workingHours={floatToTime(total_hours - timeoff_hours)}
+                        timeoffHours={floatToTime(timeoff_hours)}
+                      />
                       <Paperclip
                         className="w-3 h-3 hidden group-hover:block shrink-0"
                         onClick={(e) => {
@@ -554,7 +559,9 @@ export const Time = ({
                     const { date: formattedDate } = prettyDate(date, true);
                     const matchingTasks = Object.entries(value.tasks).flatMap(([, task]: [string, TaskDataProps]) =>
                       task.data
-                        .filter((taskItem: TaskDataItemProps) => getDateFromDateAndTime(taskItem.from_time) === date)
+                        .filter(
+                          (taskItem: TaskDataItemProps) => getDateFromDateAndTimeString(taskItem.from_time) === date
+                        )
                         .map((taskItem: TaskDataItemProps) => ({
                           ...taskItem,
                           subject: task.subject,
@@ -619,7 +626,7 @@ export const Time = ({
                             parent: task.parent,
                             task: task.task,
                             employee: teamState.employee,
-                            date: getDateFromDateAndTime(task.from_time),
+                            date: getDateFromDateAndTimeString(task.from_time),
                             description: task.description,
                             hours: task.hours,
                             is_billable: task.is_billable,
@@ -714,7 +721,7 @@ export const TimeInput = ({
   };
   const updateTime = () => {
     if (timeStringToFloat(prevHour) === timeStringToFloat(hour)) return;
-    
+
     if (hour.trim() == "" || Number.isNaN(hour)) return;
     const value = {
       ...data,
