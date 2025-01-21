@@ -1,8 +1,11 @@
 /**
+ * External dependencies
+ */
+import { Typography } from "@next-pms/design-system/components";
+/**
  * Internal dependencies.
  */
 import { LoadMore } from "@/app/components/loadMore";
-import { Typography } from "@/app/components/typography";
 import { Footer } from "@/app/layout/root";
 
 interface FooterSectionProps {

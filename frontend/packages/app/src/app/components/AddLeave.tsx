@@ -5,26 +5,41 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useSelector } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  ComboBox,
+  DatePicker,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  Separator,
+  TextArea,
+  useToast,
+  Checkbox,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@next-pms/design-system/components";
 import { useFrappeCreateDoc, useFrappeGetCall } from "frappe-react-sdk";
 import { LoaderCircle, Save, Search, X } from "lucide-react";
 import { z } from "zod";
 /**
  * Internal Dependencies
  */
-import { ComboxBox } from "@/app/components/comboBox";
-import { DatePicker } from "@/app/components/datePicker";
 import EmployeeCombo from "@/app/components/employeeComboBox";
-import { Button } from "@/app/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
-import { Separator } from "@/app/components/ui/separator";
-import { Textarea } from "@/app/components/ui/textarea";
-import { useToast } from "@/app/components/ui/use-toast";
 import { getFormatedDate, getTodayDate, parseFrappeErrorMsg } from "@/lib/utils";
 import { LeaveSchema } from "@/schema/timesheet";
 import { RootState } from "@/store";
-import { Checkbox } from "./ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 // interfaces
 interface LeaveTimeProps {
@@ -190,7 +205,7 @@ const AddLeave = ({ employee, open = false, onOpenChange, onSuccess }: LeaveTime
                   </div>
                   <FormItem className="space-y-1">
                     <FormLabel>Leave Type</FormLabel>
-                    <ComboxBox
+                    <ComboBox
                       isMulti={false}
                       label="Search Leave Type"
                       showSelected
@@ -208,7 +223,7 @@ const AddLeave = ({ employee, open = false, onOpenChange, onSuccess }: LeaveTime
                       <FormItem className="space-y-1">
                         <FormLabel>Reason</FormLabel>
                         <FormControl>
-                          <Textarea
+                          <TextArea
                             placeholder="Reason for leave"
                             rows={4}
                             className="w-full placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"

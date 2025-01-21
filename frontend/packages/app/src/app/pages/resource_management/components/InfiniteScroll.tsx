@@ -2,11 +2,11 @@
  * External dependencies.
  */
 import { ReactNode } from "react";
+import { Skeleton } from "@next-pms/design-system/components";
 import { useInfiniteScroll } from "@next-pms/hooks";
 /**
  * Internal dependencies.
  */
-import { Skeleton } from "@/app/components/ui/skeleton";
 
 
 interface InfiniteScrollProps {

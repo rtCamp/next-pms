@@ -2,16 +2,15 @@
  * External dependencies.
  */
 import { useContext } from "react";
+import { TableHead, TableHeader, TableRow, Typography } from "@next-pms/design-system/components";
+import { prettyDate ,getUTCDateTime} from "@next-pms/design-system/date";
 import { isToday } from "date-fns";
 
 /**
  * Internal dependencies.
  */
-import { Typography } from "@/app/components/typography";
-import { TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
-import { cn, prettyDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { DateProps } from "@/store/resource_management/team";
-
 import { TableContext } from "../contexts/tableContext";
 import { getTableCellClass } from "../utils/helper";
 
@@ -121,12 +120,18 @@ const TableHeaderCell = ({
       style={style}
       ref={date == dateToAddHeaderRef ? cellHeaderRef : null}
     >
-      <Typography variant="p" className={cn("text-slate-600 text-[11px]", isToday(date) && "font-semibold")}>
+      <Typography
+        variant="p"
+        className={cn("text-slate-600 text-[11px]", isToday(getUTCDateTime(date)) && "font-semibold")}
+      >
         {day}
       </Typography>
       <Typography
         variant="small"
-        className={cn("text-slate-500 text-[11px] max-lg:text-[0.65rem]", isToday(date) && "font-semibold")}
+        className={cn(
+          "text-slate-500 text-[11px] max-lg:text-[0.65rem]",
+          isToday(getUTCDateTime(date)) && "font-semibold"
+        )}
       >
         {dateStr}
       </Typography>

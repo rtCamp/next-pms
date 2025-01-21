@@ -1,21 +1,17 @@
 /**
  * External dependencies.
  */
-import { LoaderCircle, Trash2, X } from "lucide-react";
-
-/**
- * Internal dependencies.
- */
-import { Typography } from "@/app/components/typography";
-import { Button } from "@/app/components/ui/button";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTrigger,
-} from "@/app/components/ui/dialog";
+  Typography,
+} from "@next-pms/design-system/components";
+import { LoaderCircle, Trash2, X } from "lucide-react";
 
 /**
  * The resource delete allocation alert dialog.
