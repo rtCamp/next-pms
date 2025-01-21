@@ -9,7 +9,7 @@ import { Plus } from "lucide-react";
 /**
  * Internal dependencies
  */
-import { Header as ListViewHeader } from "@/app/components/listview/header";
+import { Header as ListViewHeader } from "@/app/components/list-view/header";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setAddTaskDialog, setSearch, setSelectedProject, setSelectedStatus, TaskStatusType } from "@/store/task";
@@ -23,20 +23,28 @@ interface HeaderProps {
   setColumnOrder: React.Dispatch<React.SetStateAction<string[]>>;
   onColumnHide: (column: string) => void;
   view: ViewData;
-  stateUpdated:boolean;
-  setStateUpdated:(value:boolean)=>void;
+  stateUpdated: boolean;
+  setStateUpdated: (value: boolean) => void;
 }
-export const Header = ({ meta, columnOrder, setColumnOrder, onColumnHide, view,stateUpdated,setStateUpdated }: HeaderProps) => {
+export const Header = ({
+  meta,
+  columnOrder,
+  setColumnOrder,
+  onColumnHide,
+  view,
+  stateUpdated,
+  setStateUpdated,
+}: HeaderProps) => {
   const taskState = useSelector((state: RootState) => state.task);
   const [projectSearch, setProjectSeach] = useState<string>("");
-  const {toast} = useToast();
+  const { toast } = useToast();
   const dispatch = useDispatch();
 
   // frappe-call for updating view
   const { call } = useFrappePostCall("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view");
 
   // Handle save changes
-  const handleSaveChanges= () => {
+  const handleSaveChanges = () => {
     call({
       view: view,
     })
@@ -171,7 +179,7 @@ export const Header = ({ meta, columnOrder, setColumnOrder, onColumnHide, view,s
       handleClick: () => {
         handleSaveChanges();
       },
-      hide:!stateUpdated,
+      hide: !stateUpdated,
       label: "Save changes",
       variant: "ghost",
       className: "h-10 px-2 py-2",

@@ -2,21 +2,11 @@
  * External dependencies.
  */
 import { useEffect } from "react";
-import { useQueryParam } from "@next-pms/hooks";
-import { CheckedState } from "@radix-ui/react-checkbox";
-import { Filter as Funnel } from "lucide-react";
-/**
- * Internal dependencies.
- */
-
-import { ComboxBox } from "@/app/components/comboBox";
-import { DeBounceInput } from "@/app/components/deBounceInput";
-import EmployeeCombo from "@/app/components/employeeComboBox";
-import ComboBoxWrapper from "@/app/components/listview/header/ComboBoxWrapper";
-import { FilterPops } from "@/app/components/listview/type";
-import { Badge } from "@/app/components/ui/badge";
-import { Checkbox } from "@/app/components/ui/checkbox";
 import {
+  DeBouncedInput,
+  ComboBox,
+  Badge,
+  Checkbox,
   Select,
   SelectContent,
   SelectGroup,
@@ -24,7 +14,17 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/app/components/ui/select";
+} from "@next-pms/design-system/components";
+import { useQueryParam } from "@next-pms/hooks";
+import { CheckedState } from "@radix-ui/react-checkbox";
+import { Filter as Funnel } from "lucide-react";
+/**
+ * Internal dependencies.
+ */
+
+import EmployeeCombo from "@/app/components/employeeComboBox";
+import ComboBoxWrapper from "@/app/components/list-view/header/comboBoxWrapper";
+import { FilterPops } from "@/app/components/list-view/type";
 import { cn } from "@/lib/utils";
 
 /**
@@ -59,7 +59,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
 
   if (filter.type == "search") {
     return (
-      <DeBounceInput
+      <DeBouncedInput
         placeholder={filter.label}
         value={filter.value as string}
         deBounceValue={300}
@@ -91,7 +91,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
   }
   if (filter.type == "select-list") {
     return (
-      <ComboxBox
+      <ComboBox
         value={filter.value as string[]}
         label={filter.label as string}
         isMulti={filter?.isMultiComboBox ?? false}

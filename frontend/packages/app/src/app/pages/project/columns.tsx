@@ -6,7 +6,7 @@ import { floatToTime } from "@next-pms/design-system/utils";
 /**
  * Internal dependencies.
  */
-import { DataCell } from "@/app/components/listview/dataCell";
+import { DataCell } from "@/app/components/list-view/dataCell";
 import { cn } from "@/lib/utils";
 import { DocMetaProps } from "@/types";
 import { getValidUserTagsValues } from "./utils";
@@ -73,13 +73,19 @@ export const getColumnInfo = (
           );
         } else if (meta.fieldname === "status") {
           return (
-            <Badge className="truncate" variant={value === "Open" ? "warning" : value === "Completed" ? "success" : "destructive"}>
+            <Badge
+              className="truncate"
+              variant={value === "Open" ? "warning" : value === "Completed" ? "success" : "destructive"}
+            >
               {value}
             </Badge>
           );
         } else if (meta.fieldname === "priority") {
           return (
-            <Badge className="truncate" variant={value === "Low" ? "success" : value === "Medium" ? "warning" : "destructive"}>
+            <Badge
+              className="truncate"
+              variant={value === "Low" ? "success" : value === "Medium" ? "warning" : "destructive"}
+            >
               {value}
             </Badge>
           );
@@ -119,7 +125,7 @@ export const getColumnInfo = (
     },
     cell: ({ getValue, row }) => {
       const tags = getValidUserTagsValues(getValue());
-    
+
       return (
         <div className="truncate w-full flex gap-1">
           {tags.map((tag) => (
@@ -131,9 +137,9 @@ export const getColumnInfo = (
           ))}
         </div>
       );
-    }
-  }
-  columns.push(userTagsCol)  
+    },
+  };
+  columns.push(userTagsCol);
   return columns;
 };
 

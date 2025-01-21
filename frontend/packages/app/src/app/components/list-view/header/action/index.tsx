@@ -2,20 +2,20 @@
  * External dependencies
  */
 import { useState } from "react";
-import { Download, Ellipsis, Plus } from "lucide-react";
-/**
- * Internal dependencies
- */
-import { CreateView } from "@/app/components/listview/createView";
-import { Export } from "@/app/components/listview/Export";
-import { Typography } from "@/app/components/typography";
-import { Button } from "@/app/components/ui/button";
 import {
+  Typography,
+  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/app/components/ui/dropdown-menu";
+} from "@next-pms/design-system/components";
+import { Download, Ellipsis, Plus } from "lucide-react";
+/**
+ * Internal dependencies
+ */
+import { CreateView } from "@/app/components/list-view/createView";
+import { Export } from "@/app/components/list-view/export";
 import { canExport, canCreate } from "@/lib/utils";
 import { ActionProps } from "../../type";
 

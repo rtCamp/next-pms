@@ -2,11 +2,11 @@
  * External dependencies
  */
 import { useState, useEffect } from "react";
+import { Badge } from "@next-pms/design-system/components";
 import { X } from "lucide-react";
 /**
  * Internal dependencies
  */
-import { Badge } from "@/app/components/ui/badge";
 import { removeValueFromArray } from "@/app/pages/resource_management/utils/helper";
 import { FilterPops } from "../type";
 
@@ -42,7 +42,7 @@ const FilterValue = ({ filters }: { filters: FilterPops[] }) => {
       <div className="px-2 rounded text-sm">Filters</div>
       <div className="flex gap-x-2 overflow-scroll w-fit px-4 no-scrollbar">
         {updateFilters &&
-          updateFilters.map((filter: FilterPops,idx) => {
+          updateFilters.map((filter: FilterPops, idx) => {
             if (Array.isArray(filter.value)) {
               return (
                 <div key={idx} className="flex gap-2 flex-shrink-0">

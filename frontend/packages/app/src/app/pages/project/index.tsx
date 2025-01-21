@@ -29,7 +29,7 @@ import _ from "lodash";
  * Internal dependencies
  */
 
-import ViewWrapper from "@/app/components/listview/ViewWrapper";
+import ViewWrapper from "@/app/components/list-view/viewWrapper";
 import { parseFrappeErrorMsg, createFalseValuedObject } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setProjectData, setStart, setFilters, setReFetchData, updateProjectData } from "@/store/project";
@@ -85,7 +85,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   const { data, isLoading, error, mutate } = useFrappeGetCall(
     "next_pms.timesheet.api.project.get_projects",
     {
-      fields: [...viewInfo.rows,"_user_tags"],
+      fields: [...viewInfo.rows, "_user_tags"],
       filters: getFilter(projectState),
       start: projectState.start,
       page_length: projectState.pageLength,
@@ -124,12 +124,12 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
         description: err,
       });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, dispatch, error, toast,projectState.currency]);
-  
-  useEffect(()=>{
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, dispatch, error, toast, projectState.currency]);
+
+  useEffect(() => {
     dispatch(setReFetchData(true));
-  },[viewInfo.rows,dispatch])
+  }, [viewInfo.rows, dispatch]);
 
   useEffect(() => {
     const updateViewData = {
@@ -203,7 +203,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
       }
       setColumnOrder(newColumnOrder);
     },
-    [columnOrder,viewData.rows]
+    [columnOrder, viewData.rows]
   );
 
   const updateColumnSize = (columns: Array<string>) => {
@@ -312,7 +312,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
               ) : (
                 <TableRow className="w-full">
                   {/* Adding plus (+1) one to make no results span complete width */}
-                  <TableCell colSpan={viewData.rows.length+1} className="h-24 text-center">
+                  <TableCell colSpan={viewData.rows.length + 1} className="h-24 text-center">
                     No results
                   </TableCell>
                 </TableRow>

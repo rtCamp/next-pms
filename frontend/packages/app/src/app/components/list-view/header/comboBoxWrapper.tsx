@@ -1,14 +1,13 @@
 /**
  * External dependencies
  */
+import { ComboBox } from "@next-pms/design-system/components";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { Filter } from "lucide-react";
-
 /**
  * Internal dependencies
  */
-import { ComboxBox } from "@/app/components/comboBox";
-import { FilterPops, ApiCallProps } from "@/app/components/listview/type";
+import { FilterPops, ApiCallProps } from "@/app/components/list-view/type";
 import { Badge } from "@/app/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -36,7 +35,7 @@ const ComboBoxWrapper = ({ filter, handleChangeWrapper }: { filter: FilterPops; 
   };
 
   return (
-    <ComboxBox
+    <ComboBox
       value={filter.value as string[]}
       label={filter.label as string}
       isMulti={filter?.isMultiComboBox ?? false}

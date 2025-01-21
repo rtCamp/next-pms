@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ExportProps } from "@/app/components/listview/Export";
+import { ExportProps } from "@/app/components/list-view/export";
 import { fieldMetaProps, sortOrder } from "@/types";
 export interface FilterPops {
     queryParameterName?: string;
@@ -20,7 +20,7 @@ export interface FilterPops {
     apiCall?: ApiCallProps;
     employeeName?: string;
     customFilterComponent?: React.ReactNode;
-    onSearch?:(searchTerm: string) => void;
+    onSearch?: (searchTerm: string) => void;
 }
 
 export interface ApiCallProps {

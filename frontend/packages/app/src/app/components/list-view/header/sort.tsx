@@ -2,21 +2,20 @@
  * External dependencies
  */
 import { useEffect, useState } from "react";
-import { ArrowDownAZ, ArrowDownZA } from "lucide-react";
-
-/**
- * Internal dependencies
- */
-import { Button } from "@/app/components/ui/button";
 import {
+  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuCheckboxItem,
   DropdownMenuTrigger,
-} from "@/app/components/ui/dropdown-menu";
+} from "@next-pms/design-system/components";
+import { ArrowDownAZ, ArrowDownZA } from "lucide-react";
+/**
+ * Internal dependencies
+ */
+
 import { sortOrder } from "@/types";
 import { SortProps } from "../type";
-
 
 /**
  * Sort Component

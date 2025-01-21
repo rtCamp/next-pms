@@ -10,7 +10,7 @@ import { ChevronRight, ChevronLeft } from "lucide-react";
 /**
  * Internal dependencies
  */
-import { Header as ListViewHeader } from "@/app/components/listview/header";
+import { Header as ListViewHeader } from "@/app/components/list-view/header";
 import { RootState } from "@/store";
 import { setEmployeeName, setFilters, setStatus, setWeekDate } from "@/store/home";
 

@@ -4,19 +4,30 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Checkbox,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Separator,
+  Typography,
+  Button,
+} from "@next-pms/design-system/components";
 import { FileDown } from "lucide-react";
 import { z } from "zod";
-
-/**
- * Internal dependencies
- */
-import { Checkbox } from "@/app/components/ui/checkbox";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
-import { Separator } from "@/app/components/ui/separator";
-import { Typography } from "../typography";
-import { Button } from "../ui/button";
 
 export interface ExportProps {
   doctype: string;

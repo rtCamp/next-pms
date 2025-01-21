@@ -13,7 +13,7 @@ import _ from "lodash";
  * Internal dependencies.
  */
 import AddTime from "@/app/components/AddTime";
-import ViewWrapper from "@/app/components/listview/ViewWrapper";
+import ViewWrapper from "@/app/components/list-view/viewWrapper";
 import { useToast } from "@/app/components/ui/use-toast";
 import { LIKED_TASK_KEY } from "@/lib/constant";
 import { addAction, toggleLikedByForTask } from "@/lib/storage";
@@ -178,7 +178,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, dispatch, error,viewInfo.filters.search]);
+  }, [data, dispatch, error, viewInfo.filters.search]);
 
   const handleLike = (e: React.MouseEvent<SVGSVGElement>) => {
     e.stopPropagation();

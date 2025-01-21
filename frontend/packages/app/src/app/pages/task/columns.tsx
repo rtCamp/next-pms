@@ -9,7 +9,7 @@ import { Clock, Heart } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { DataCell } from "@/app/components/listview/DataCell";
+import { DataCell } from "@/app/components/list-view/dataCell";
 import { DocMetaProps, TaskData } from "@/types";
 import { TaskPriority } from "./TaskPriority";
 import { cn, isLiked } from "../../../lib/utils";

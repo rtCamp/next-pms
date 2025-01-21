@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
  * Internal dependencies
  */
 import { useFrappeGetDocList, useFrappePostCall } from "frappe-react-sdk";
-import { Header as ListViewHeader } from "@/app/components/listview/header";
+import { Header as ListViewHeader } from "@/app/components/list-view/header";
 import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
@@ -121,26 +121,26 @@ export const Header = ({
   const handleSortChange = (order: sortOrder, orderColumn: string) => {
     dispatch(setOrderBy({ order, orderColumn }));
   };
-  const [tagSearchTerm,setTagSearchTerm] = useState("");
+  const [tagSearchTerm, setTagSearchTerm] = useState("");
 
-  const { data:tagData,mutate:mutateTagData } = useFrappeGetDocList("Tag",{
-    filters:[["name", "like", `%${tagSearchTerm}%`]],
+  const { data: tagData, mutate: mutateTagData } = useFrappeGetDocList("Tag", {
+    filters: [["name", "like", `%${tagSearchTerm}%`]],
     limit: 5,
     asDict: false,
   });
-  const [selectedTag,setSelectedTag]=useState<string[]>([]);
+  const [selectedTag, setSelectedTag] = useState<string[]>([]);
 
-  useEffect(()=>{
-    mutateTagData()
-  },[setTagSearchTerm]);
+  useEffect(() => {
+    mutateTagData();
+  }, [setTagSearchTerm]);
 
-  const handleTagChange =(tag:string[])=>{
+  const handleTagChange = (tag: string[]) => {
     dispatch(setTag(tag));
     setTagSearchTerm("");
     mutateTagData();
-    if(tagSearchTerm.trim()){
+    if (tagSearchTerm.trim()) {
       setSelectedTag(tag);
-    }else{
+    } else {
       setSelectedTag([]);
     }
   };
@@ -247,7 +247,7 @@ export const Header = ({
       })),
       queryParameterDefault: projectState.currency,
       handleChange: handleCurrencyChange,
-      handleDelete: useCallback(() => { 
+      handleDelete: useCallback(() => {
         dispatch(setCurrency(""));
       }, [dispatch]),
       shouldFilterComboBox: true,
@@ -258,16 +258,22 @@ export const Header = ({
       queryParameterName: "tag",
       label: "Tag",
       value: projectState.tag,
-      data: tagData?.flat().concat(selectedTag).map((tag) => ({
-        label: tag,
-        value: tag,
-      })),
+      data: tagData
+        ?.flat()
+        .concat(selectedTag)
+        .map((tag) => ({
+          label: tag,
+          value: tag,
+        })),
       queryParameterDefault: projectState.tag,
       handleChange: handleTagChange,
-      handleDelete: useCallback((tag:string[]) => { 
-        dispatch(setTag(tag));     
-      }, [dispatch]),
-      onSearch:(searchTerm:string)=>{
+      handleDelete: useCallback(
+        (tag: string[]) => {
+          dispatch(setTag(tag));
+        },
+        [dispatch]
+      ),
+      onSearch: (searchTerm: string) => {
         setTagSearchTerm(searchTerm);
       },
       shouldFilterComboBox: true,

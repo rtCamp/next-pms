@@ -4,14 +4,13 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useSearchParams } from "react-router-dom";
+import { Spinner } from "@next-pms/design-system/components";
+import { useToast } from "@next-pms/design-system/hooks";
 import { FrappeContext, FrappeConfig, useFrappeGetCall } from "frappe-react-sdk";
-
 /**
  * Internal dependencies
  */
-import { getDefaultView } from "@/app/components/listview/utils";
-import { Spinner } from "@/app/components/spinner";
-import { useToast } from "@/app/components/ui/use-toast";
+import { getDefaultView } from "@/app/components/list-view/utils";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setViews, ViewData } from "@/store/view";
@@ -27,7 +26,7 @@ type ViewWrapperProps = {
  * @description This component handles the default/custom view for the list view.
  * First it checks if the view is available in the URL, if not then it checks the user's default view.
  * If the view is not available then it creates a default view for the user.
- * and updates the view data, then it renders the children with the view data and meta. 
+ * and updates the view data, then it renders the children with the view data and meta.
  */
 const ViewWrapper = ({ docType, children }: ViewWrapperProps) => {
   const views = useSelector((state: RootState) => state.view);
@@ -38,12 +37,17 @@ const ViewWrapper = ({ docType, children }: ViewWrapperProps) => {
   const dispatch = useDispatch();
   const { toast } = useToast();
   const view = searchParams.get("view");
-  const { data: meta } = useFrappeGetCall("next_pms.timesheet.api.app.get_doc_meta", {
-    doctype: docType,
-  }, undefined, {
-    revalidateIfStale: false,
-    revalidateOnFocus: false,
-  });
+  const { data: meta } = useFrappeGetCall(
+    "next_pms.timesheet.api.app.get_doc_meta",
+    {
+      doctype: docType,
+    },
+    undefined,
+    {
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+    }
+  );
 
   const defaultFields = useMemo(() => {
     return meta?.message?.default_fields?.map((field: { fieldname: string }) => field.fieldname) || [];

@@ -6,15 +6,9 @@ import { useState, useEffect } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { TouchBackend } from "react-dnd-touch-backend";
-import { Columns2 } from "lucide-react";
-
-/**
- * Internal dependencies
- */
-import { ColumnSelectorProps } from "@/app/components/listview/type";
-import { Typography } from "@/app/components/typography";
-import { Button } from "@/app/components/ui/button";
 import {
+  Typography,
+  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -24,10 +18,14 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@/app/components/ui/dropdown-menu";
-
+} from "@next-pms/design-system/components";
+import { Columns2 } from "lucide-react";
+/**
+ * Internal dependencies
+ */
+import { ColumnSelectorProps } from "@/app/components/list-view/type";
 import { checkIsMobile, NO_VALUE_FIELDS } from "@/lib/utils";
-import ColumnItem from "./ColumnItem";
+import ColumnItem from "./columnItem";
 
 /**
  * ColumnSelector Component

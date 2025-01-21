@@ -1,13 +1,19 @@
+/**
+ * External dependencies
+ */
 import React from "react";
-import { Filter } from "@/app/components/listview/header/Filter";
-import { HeaderProps, FilterPops, ButtonProps } from "@/app/components/listview/type";
-import { Button } from "@/app/components/ui/button";
+import { Button } from "@next-pms/design-system/components";
+/**
+ * Internal dependencies
+ */
+import { HeaderProps, FilterPops, ButtonProps } from "@/app/components/list-view/type";
 import { Header as RootHeader } from "@/app/layout/root";
 import { cn } from "@/lib/utils";
 import Action from "./action";
-import ColumnSelector from "./columnSelector";
-import FilterValue from "./FilterValue";
-import Sort from "./Sort";
+import ColumnSelector from "./column-selector";
+import { Filter } from "./filter";
+import FilterValue from "./filterValue";
+import Sort from "./sort";
 /**
  * This component is responsible for rendering the header section of pages.
  *
@@ -35,10 +41,7 @@ export const Header = ({
 }: HeaderProps) => {
   return (
     <div className="border-b">
-      <RootHeader
-        className={cn("flex items-center max-md:flex-col gap-x-3", className)}
-        parentClassName="border-0"
-      >
+      <RootHeader className={cn("flex items-center max-md:flex-col gap-x-3", className)} parentClassName="border-0">
         <div id="filters" className="flex gap-x-2 max-md:w-full items-center overflow-y-hidden no-scrollbar">
           {filters &&
             filters.map((filter: FilterPops, idx) => {
@@ -50,14 +53,12 @@ export const Header = ({
         </div>
         <div className="flex gap-x-2">
           {customComponents && (
-              <div className="flex gap-x-2 items-center max-md:p-1 max-md:w-full max-md:justify-between max-md:m-2">
-                {customComponents.map((Component, idx) => (
-                    <React.Fragment key={idx}>{Component}</React.Fragment>
-                  )
-                )}
-              </div>
-            )
-          }
+            <div className="flex gap-x-2 items-center max-md:p-1 max-md:w-full max-md:justify-between max-md:m-2">
+              {customComponents.map((Component, idx) => (
+                <React.Fragment key={idx}>{Component}</React.Fragment>
+              ))}
+            </div>
+          )}
           {buttons && (
             <div className="flex gap-x-2 items-center max-md:p-1 max-md:w-full max-md:justify-between max-md:m-2">
               {buttons.map((button: ButtonProps, idx) => {

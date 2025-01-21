@@ -10,7 +10,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 /**
  * Internal dependencies
  */
-import { Header as ListViewHeader } from "@/app/components/listview/header";
+import { Header as ListViewHeader } from "@/app/components/list-view/header";
 import { getFormatedDate } from "@/lib/utils";
 import { RootState } from "@/store";
 import {
@@ -49,7 +49,7 @@ export const Header = () => {
     };
     dispatch(setFilters(payload));
   }, [dispatch, employeeNameParam, employeeStatusParam, projectParam, reportsToParam, statusParam, userGroupParam]);
-  
+
   const handleEmployeeChange = useCallback(
     (text: string) => {
       dispatch(setEmployeeName(text.trim()));

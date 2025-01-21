@@ -1,15 +1,13 @@
 /**
  * External dependencies
  */
-
 import { useDrag, useDrop } from "react-dnd";
+import { Typography, DropdownMenuItem } from "@next-pms/design-system/components";
 import { GripVertical, X } from "lucide-react";
-
 /**
  * Internal dependencies
  */
-import { Typography } from "@/app/components/typography";
-import { DropdownMenuItem } from "@/app/components/ui/dropdown-menu";
+
 import { cn } from "@/lib/utils";
 
 interface ColumnItemProps {
