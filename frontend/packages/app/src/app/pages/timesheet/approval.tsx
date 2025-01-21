@@ -21,8 +21,8 @@ import {
   FormMessage,
   TextArea,
 } from "@next-pms/design-system/components";
-import { useToast } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
+import { useToast } from "@next-pms/design-system/hooks";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { LoaderCircle, Send } from "lucide-react";
 import { z } from "zod";

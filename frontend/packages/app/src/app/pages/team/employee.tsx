@@ -3,16 +3,14 @@
  */
 import { useState } from "react";
 import { useSelector } from "react-redux";
+import { Spinner, Typography, Table, TableBody, TableCell, TableRow } from "@next-pms/design-system/components";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { CircleDollarSign } from "lucide-react";
-
 /**
  * Internal dependencies.
  */
-import { Spinner } from "@/app/components/spinner";
+
 import { LeaveRow, EmptyRow, Cell } from "@/app/components/TimesheetTable";
-import { Typography } from "@/app/components/typography";
-import { Table, TableBody, TableCell, TableRow } from "@/app/components/ui/table";
 import { TaskLog } from "@/app/pages/task/TaskLog";
 import { cn, expectatedHours, floatToTime, getDateFromDateAndTime } from "@/lib/utils";
 import { RootState } from "@/store";

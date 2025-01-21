@@ -3,12 +3,12 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import {useToast} from "@next-pms/design-system/hooks"
 /**
  * Internal dependencies
  */
 import { useFrappeGetDocList, useFrappePostCall } from "frappe-react-sdk";
 import { Header as ListViewHeader } from "@/app/components/list-view/header";
-import { useToast } from "@/app/components/ui/use-toast";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import {

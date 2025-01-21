@@ -5,23 +5,37 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useSelector, useDispatch } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Spinner,
+  Typography,
+  Checkbox,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogTitle,
+  DialogTrigger,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  Separator,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+  TextArea,
+} from "@next-pms/design-system/components";
+import { useToast } from "@next-pms/design-system/hooks";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { Check, CircleDollarSign, LoaderCircle, X } from "lucide-react";
 import { z } from "zod";
-
 /**
  * Internal dependencies.
  */
-import { Spinner } from "@/app/components/spinner";
-import { Typography } from "@/app/components/typography";
-import { Button } from "@/app/components/ui/button";
-import { Checkbox } from "@/app/components/ui/checkbox";
-import { Dialog, DialogContent, DialogFooter, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
-import { Separator } from "@/app/components/ui/separator";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/app/components/ui/sheet";
-import { Textarea } from "@/app/components/ui/textarea";
-import { useToast } from "@/app/components/ui/use-toast";
 import { TimeInput } from "@/app/pages/team/employeeDetail";
 import {
   calculateExtendedWorkingHour,
@@ -31,7 +45,6 @@ import {
   prettyDate,
   floatToTime,
   preProcessLink,
-  expectatedHours,
 } from "@/lib/utils";
 import { TimesheetRejectionSchema } from "@/schema/timesheet";
 import { RootState } from "@/store";
@@ -416,7 +429,7 @@ const TimesheetRejectConfirmationDialog = ({
                 <FormItem>
                   <FormLabel htmlFor="note">Please add reason for rejection.</FormLabel>
                   <FormControl>
-                    <Textarea {...field} placeholder="Add a note" rows={4} />
+                    <TextArea {...field} placeholder="Add a note" rows={4} />
                   </FormControl>
                   <FormMessage {...field} />
                 </FormItem>

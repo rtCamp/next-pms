@@ -1,14 +1,13 @@
 /**
  * External dependencies
  */
-import { ComboBox } from "@next-pms/design-system/components";
+import { ComboBox, Badge } from "@next-pms/design-system/components";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { Filter } from "lucide-react";
 /**
  * Internal dependencies
  */
 import { FilterPops, ApiCallProps } from "@/app/components/list-view/type";
-import { Badge } from "@/app/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 /**

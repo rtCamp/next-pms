@@ -19,17 +19,10 @@ import {
   TabsList,
   TabsTrigger,
   useToast,
+  Typography,
 } from "@next-pms/design-system/components";
-import {
-  getFormatedDate,
-  getTodayDate,
-  prettyDate,
-} from "@next-pms/design-system/date";
-import {
-  cn,
-  floatToTime,
-  preProcessLink
-} from "@next-pms/design-system/utils";
+import { getFormatedDate, getTodayDate, prettyDate } from "@next-pms/design-system/date";
+import { cn, floatToTime, preProcessLink } from "@next-pms/design-system/utils";
 import { useQueryParam } from "@next-pms/hooks";
 import { addDays } from "date-fns";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
@@ -42,7 +35,6 @@ import AddTime from "@/app/components/AddTime";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import { LoadMore } from "@/app/components/loadMore";
 import TimesheetTable from "@/app/components/TimesheetTable";
-import { Typography } from "@/app/components/typography";
 import { Header, Footer, Main } from "@/app/layout/root";
 import { TaskLog } from "@/app/pages/task/TaskLog";
 import { Status } from "@/app/pages/team";
@@ -182,8 +174,10 @@ const EmployeeDetail = () => {
   const onEmployeeChange = (name: string) => {
     navigate(`/team/employee/${name}`);
   };
-  const { data: employee } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee", { filters: { name: id } });
-  
+  const { data: employee } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee", {
+    filters: { name: id },
+  });
+
   return (
     <>
       {teamState.isAprrovalDialogOpen && <Approval onClose={mutate} />}
@@ -217,7 +211,14 @@ const EmployeeDetail = () => {
         />
       )}
       <Header>
-        <EmployeeCombo employeeName={employee?.message?.employee_name} onSelect={onEmployeeChange} pageLength={20} value={id as string} className="w-full lg:w-fit" ignoreDefaultFilters={true} />
+        <EmployeeCombo
+          employeeName={employee?.message?.employee_name}
+          onSelect={onEmployeeChange}
+          pageLength={20}
+          value={id as string}
+          className="w-full lg:w-fit"
+          ignoreDefaultFilters={true}
+        />
       </Header>
 
       <Main>
@@ -265,18 +266,20 @@ const Timesheet = ({
   const teamState = useSelector((state: RootState) => state.team);
   const dispatch = useDispatch();
 
-  const { call: fetchLikedTask,loading:loadingLikedTasks } = useFrappePostCall("next_pms.timesheet.api.task.get_liked_tasks");
-  const [likedTaskData,setLikedTaskData] = useState([]);
-    
-    const getLikedTaskData = ()=>{
-      fetchLikedTask({}).then((res) => {
-        setLikedTaskData(res.message??[]);
-      });
-    }
-  
-    useEffect(()=>{
-      getLikedTaskData();
-    },[])
+  const { call: fetchLikedTask, loading: loadingLikedTasks } = useFrappePostCall(
+    "next_pms.timesheet.api.task.get_liked_tasks"
+  );
+  const [likedTaskData, setLikedTaskData] = useState([]);
+
+  const getLikedTaskData = () => {
+    fetchLikedTask({}).then((res) => {
+      setLikedTaskData(res.message ?? []);
+    });
+  };
+
+  useEffect(() => {
+    getLikedTaskData();
+  }, []);
 
   const onCellClick = (timesheet: NewTimesheetProps) => {
     dispatch(setTimesheet({ timesheet, id }));
@@ -352,15 +355,17 @@ const Timesheet = ({
               <AccordionItem value={key}>
                 <AccordionTrigger className="hover:no-underline w-full max-md:[&>svg]:hidden">
                   <div className="flex justify-between items-center w-full pr-2 group">
-                    <div
-                      className="font-normal text-xs sm:text-base flex items-center gap-x-2 max-md:gap-x-3 sm:flex-row overflow-x-auto no-scrollbar max-md:w-4/5"
-                    >
+                    <div className="font-normal text-xs sm:text-base flex items-center gap-x-2 max-md:gap-x-3 sm:flex-row overflow-x-auto no-scrollbar max-md:w-4/5">
                       <span className="flex items-center gap-2 shrink-0">
-                          <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
-                          <h2 className="font-medium">{key}</h2>
-                        </span>
-                        <Separator orientation="vertical" className="block h-5 shrink-0" />
-                        <ExpandableHours totalHours={floatToTime(total_hours)} workingHours={floatToTime(total_hours - timeoff_hours)} timeoffHours={floatToTime(timeoff_hours)}/>
+                        <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
+                        <h2 className="font-medium">{key}</h2>
+                      </span>
+                      <Separator orientation="vertical" className="block h-5 shrink-0" />
+                      <ExpandableHours
+                        totalHours={floatToTime(total_hours)}
+                        workingHours={floatToTime(total_hours - timeoff_hours)}
+                        timeoffHours={floatToTime(timeoff_hours)}
+                      />
                       <Paperclip
                         className="w-3 h-3 hidden group-hover:block shrink-0"
                         onClick={(e) => {
@@ -518,7 +523,11 @@ export const Time = ({
                         <h2 className="font-medium">{key}</h2>
                       </span>
                       <Separator orientation="vertical" className="block h-5 shrink-0" />
-                      <ExpandableHours totalHours={floatToTime(total_hours)} workingHours={floatToTime(total_hours - timeoff_hours)} timeoffHours={floatToTime(timeoff_hours)}/>
+                      <ExpandableHours
+                        totalHours={floatToTime(total_hours)}
+                        workingHours={floatToTime(total_hours - timeoff_hours)}
+                        timeoffHours={floatToTime(timeoff_hours)}
+                      />
                       <Paperclip
                         className="w-3 h-3 hidden group-hover:block shrink-0"
                         onClick={(e) => {
@@ -714,7 +723,7 @@ export const TimeInput = ({
   };
   const updateTime = () => {
     if (timeStringToFloat(prevHour) === timeStringToFloat(hour)) return;
-    
+
     if (hour.trim() == "" || Number.isNaN(hour)) return;
     const value = {
       ...data,

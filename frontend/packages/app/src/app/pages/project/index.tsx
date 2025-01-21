@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@next-pms/design-system/components";
-import { useToast } from "@next-pms/design-system/components";
+import { useToast } from "@next-pms/design-system/hooks";
 import { useInfiniteScroll } from "@next-pms/hooks";
 import {
   flexRender,

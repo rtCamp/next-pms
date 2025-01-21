@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { toast } from "@next-pms/design-system/hooks";
 import { type ClassValue, clsx } from "clsx";
 import { isToday } from "date-fns";
 import { Error } from "frappe-js-sdk/lib/frappe_app/types";
@@ -8,7 +9,6 @@ import { twMerge } from "tailwind-merge";
 /**
  * Internal dependencies.
  */
-import { toast } from "@/app/components/ui/use-toast"
 import { TScreenSize } from "@/store/app";
 import { TaskData, WorkingFrequency } from "@/types";
 import { HolidayProp } from "@/types/timesheet";
@@ -348,6 +348,6 @@ export const currencyFormat = (currency: string) => {
   });
 };
 
-export const getBgCsssForToday = (date: string) => { 
+export const getBgCsssForToday = (date: string) => {
   return isToday(getDateTimeForMultipleTimeZoneSupport(date)) ? "bg-slate-100" : "";
 }
