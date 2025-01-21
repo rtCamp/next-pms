@@ -38,7 +38,7 @@ import TimesheetTable from "@/app/components/TimesheetTable";
 import { Header, Footer, Main } from "@/app/layout/root";
 import { TaskLog } from "@/app/pages/task/TaskLog";
 import { Status } from "@/app/pages/team";
-import { EditTime } from "@/app/pages/timesheet/EditTime";
+import { EditTime } from "@/app/pages/timesheet/editTime";
 import {
   getDateFromDateAndTime,
   parseFrappeErrorMsg,

@@ -22,7 +22,6 @@ import {
   FormMessage,
   Separator,
   TextArea,
-  useToast,
   Checkbox,
   Select,
   SelectContent,
@@ -30,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@next-pms/design-system/components";
+import { useToast } from "@next-pms/design-system/hooks";
 import { useFrappeCreateDoc, useFrappeGetCall } from "frappe-react-sdk";
 import { LoaderCircle, Save, Search, X } from "lucide-react";
 import { z } from "zod";
@@ -50,7 +50,7 @@ interface LeaveTimeProps {
 }
 const AddLeave = ({ employee, open = false, onOpenChange, onSuccess }: LeaveTimeProps) => {
   const { toast } = useToast();
-  const { createDoc,loading,isCompleted } = useFrappeCreateDoc();
+  const { createDoc, loading, isCompleted } = useFrappeCreateDoc();
   const user = useSelector((state: RootState) => state.user);
   const [selectedEmployee, setSelectedEmployee] = useState(employee);
 
@@ -103,7 +103,7 @@ const AddLeave = ({ employee, open = false, onOpenChange, onSuccess }: LeaveTime
         });
 
         handleOpen();
-        onSuccess && onSuccess();
+        onSuccess?.();
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
@@ -287,7 +287,7 @@ const AddLeave = ({ employee, open = false, onOpenChange, onSuccess }: LeaveTime
               <DialogFooter className="sm:justify-start w-full pt-3">
                 <div className="flex gap-x-4 w-full">
                   <Button disabled={!isDirty || !isValid || (loading && !isCompleted)}>
-                    {(loading && !isCompleted) ? <LoaderCircle className="animate-spin " /> : <Save />}
+                    {loading && !isCompleted ? <LoaderCircle className="animate-spin " /> : <Save />}
                     Add Leave
                   </Button>
                   <Button variant="secondary" type="button" onClick={handleOpen}>
