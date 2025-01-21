@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getUTCDateTime, getFormatedDate } from "@next-pms/design-system/date";
@@ -17,7 +17,7 @@ import ViewWrapper from "@/app/components/listview/ViewWrapper";
 import { useToast } from "@/app/components/ui/use-toast";
 import { LIKED_TASK_KEY } from "@/lib/constant";
 import { addAction, toggleLikedByForTask } from "@/lib/storage";
-import { parseFrappeErrorMsg, createFalseValuedObject } from "@/lib/utils";
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setStart, updateTaskData, setTaskData, setSelectedTask, setFilters, setReFetchData } from "@/store/task";
 import { SetAddTimeDialog, SetTimesheet } from "@/store/timesheet";
@@ -61,7 +61,6 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
   const [hasViewUpdated, setHasViewUpdated] = useState(false);
   const [colSizing, setColSizing] = useState<ColumnSizingState>(viewData.columns ?? {});
   const [columnOrder, setColumnOrder] = useState<string[]>(viewData.rows ?? []);
-  const [columnVisibility, setColumnVisibility] = useState(createFalseValuedObject(viewData.rows));
 
   const { call: toggleLikeCall } = useFrappePostCall("frappe.desk.like.toggle_like");
 
@@ -76,28 +75,12 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     setViewInfo(viewData);
     setColSizing(viewData.columns);
     setColumnOrder(viewData.rows);
-    setColumnVisibility(createFalseValuedObject(viewData.rows));
     setHasViewUpdated(false);
   }, [dispatch, viewData]);
 
   const handleColumnHide = (id: string) => {
-    setColumnVisibility((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+    setColumnOrder((prev)=>prev.filter(item => item !== id))
   };
-  const updateColumnOrder = useCallback(
-    (visibility: { [key: string]: boolean }) => {
-      let newColumnOrder;
-      if (Object.keys(visibility).length == 0) {
-        newColumnOrder = columnOrder;
-      } else {
-        newColumnOrder = viewData.rows.filter((d) => visibility[d]).map((d) => d);
-      }
-      setColumnOrder(newColumnOrder!);
-    },
-    [columnOrder, viewData.rows]
-  );
 
   const updateColumnSize = (columns: Array<string>) => {
     setColSizing((prevColSizing) => {
@@ -115,10 +98,6 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     updateColumnSize(columnOrder);
   }, [columnOrder]);
 
-  useEffect(() => {
-    updateColumnOrder(columnVisibility);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [columnVisibility]);
 
   const handleAddTime = (taskName: string) => {
     const timesheetData = {
@@ -257,7 +236,6 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     enableColumnResizing: true,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
     columnResizeMode: "onChange",
     onColumnOrderChange: setColumnOrder,
     onColumnSizingChange: setColSizing,
@@ -265,7 +243,6 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       sorting: [{ id: "liked", desc: false }],
     },
     state: {
-      columnVisibility,
       columnOrder,
       columnSizing: colSizing,
     },
