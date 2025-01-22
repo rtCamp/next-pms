@@ -27,7 +27,8 @@ import { Calendar, Paperclip, Plus } from "lucide-react";
 import AddLeave from "@/app/components/addLeave";
 import AddTime from "@/app/components/AddTime";
 import { LoadMore } from "@/app/components/loadMore";
-import TimesheetTable, { SubmitButton } from "@/app/components/TimesheetTable";
+import { TimesheetTable } from "@/app/components/timesheet-table";
+import { SubmitButton } from "@/app/components/timesheet-table/components/submitButton";
 import { Header, Footer, Main } from "@/app/layout/root";
 import { parseFrappeErrorMsg, expectatedHours, copyToClipboard } from "@/lib/utils";
 import { RootState } from "@/store";
@@ -125,18 +126,20 @@ function Timesheet() {
     }
   }, [dispatch, startDateParam, timesheet.data.data, validateDate]);
 
-  const { call: fetchLikedTask,loading:loadingLikedTasks } = useFrappePostCall("next_pms.timesheet.api.task.get_liked_tasks");
-  const [likedTaskData,setLikedTaskData] = useState([]);
-    
-    const getLikedTaskData = ()=>{
-      fetchLikedTask({}).then((res) => {
-        setLikedTaskData(res.message??[]);
-      });
-    }
-  
-    useEffect(()=>{
-      getLikedTaskData();
-    },[])
+  const { call: fetchLikedTask, loading: loadingLikedTasks } = useFrappePostCall(
+    "next_pms.timesheet.api.task.get_liked_tasks"
+  );
+  const [likedTaskData, setLikedTaskData] = useState([]);
+
+  const getLikedTaskData = () => {
+    fetchLikedTask({}).then((res) => {
+      setLikedTaskData(res.message ?? []);
+    });
+  };
+
+  useEffect(() => {
+    getLikedTaskData();
+  }, []);
 
   const handleAddTime = () => {
     const timesheetData = {
@@ -283,14 +286,14 @@ function Timesheet() {
                       }
                     >
                       <TimesheetTable
-                        working_hour={timesheet.data.working_hour}
-                        working_frequency={timesheet.data.working_frequency as WorkingFrequency}
+                        workingHour={timesheet.data.working_hour}
+                        workingFrequency={timesheet.data.working_frequency as WorkingFrequency}
                         dates={value.dates}
                         holidays={timesheet.data.holidays}
                         leaves={timesheet.data.leaves}
                         tasks={value.tasks}
                         onCellClick={onCellClick}
-                        weekly_status={value.status}
+                        weeklyStatus={value.status}
                         disabled={value.status === "Approved"}
                         importTasks={true}
                         loadingLikedTasks={loadingLikedTasks}

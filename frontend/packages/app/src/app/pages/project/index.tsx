@@ -184,7 +184,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   });
 
   const handleColumnHide = (id: string) => {
-    setColumnOrder((prev)=>prev.filter(item => item !== id))
+    setColumnOrder((prev) => prev.filter((item) => item !== id));
   };
 
   const updateColumnSize = (columns: Array<string>) => {
@@ -202,7 +202,6 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   useEffect(() => {
     updateColumnSize(columnOrder);
   }, [columnOrder]);
-
 
   const handleLoadMore = () => {
     if (!projectState.hasMore || projectState.isLoading) return;

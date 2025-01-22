@@ -40,7 +40,7 @@ type LogData = {
 type TaskLogProps = {
   task: string;
   isOpen: boolean;
-  onOpenChange: () => void;
+  onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
