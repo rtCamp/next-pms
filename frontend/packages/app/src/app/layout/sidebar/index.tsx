@@ -228,7 +228,7 @@ const Sidebar = () => {
                             <Typography
                               variant="p"
                               className={cn(
-                                "transition-all duration-300 ease-in-out text-white",
+                                "transition-all duration-300 ease-in-out text-white truncate",
                                 !isChildActive && "text-primary",
                                 user.isSidebarCollapsed && "hidden"
                               )}
