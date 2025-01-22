@@ -40,9 +40,8 @@ import { Calendar, CircleDollarSign, Paperclip, Plus } from "lucide-react";
  */
 import AddTime from "@/app/components/AddTime";
 import EmployeeCombo from "@/app/components/employeeComboBox";
-import { LoadMore } from "@/app/components/loadMore";
 import { TimesheetTable } from "@/app/components/timesheet-table";
-import { Header, Footer, Main } from "@/app/layout/root";
+import { Header, Main } from "@/app/layout/root";
 import { TaskLog } from "@/app/pages/task/taskLog";
 import { Status } from "@/app/pages/team";
 import { EditTime } from "@/app/pages/timesheet/editTime";
@@ -62,6 +61,7 @@ import {
 } from "@/store/team";
 import { LeaveProps, NewTimesheetProps, TaskDataItemProps, TaskDataProps, timesheet } from "@/types/timesheet";
 import { Approval } from "./approval";
+import { InfiniteScroll } from "../resource_management/components/InfiniteScroll";
 import ExpandableHours from "../timesheet/expandableHours";
 
 const isDateInRange = (date: string, startDate: string, endDate: string) => {
@@ -216,36 +216,35 @@ const EmployeeDetail = () => {
           ignoreDefaultFilters={true}
         />
       </Header>
-
-      <Main>
-        <Tabs defaultValue="timesheet" className="relative">
-          <div className="flex gap-x-4 pt-3 px-0 sticky top-0 z-10 transition-shadow duration-300 backdrop-blur-sm bg-background">
-            <TabsList className="w-full justify-start">
-              <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
-              <TabsTrigger value="time">Time</TabsTrigger>
-            </TabsList>
-            <Button title="Add Time" className="float-right mb-1 px-3" onClick={handleAddTime}>
-              <Plus /> Time
-            </Button>
-          </div>
-          {isLoading && Object.keys(teamState.timesheetData.data).length == 0 ? (
-            <Spinner isFull />
-          ) : (
-            <>
-              <TabsContent value="timesheet" className="mt-0">
-                <Timesheet startDateParam={startDateParam} setStartDateParam={setstartDateParam} />
-              </TabsContent>
-              <TabsContent value="time" className="mt-0">
-                <Time callback={mutate} startDateParam={startDateParam} setStartDateParam={setstartDateParam} />
-              </TabsContent>
-            </>
-          )}
-        </Tabs>
-      </Main>
-
-      <Footer>
-        <LoadMore className="float-left" variant="outline" onClick={handleLoadData} disabled={isLoading} />
-      </Footer>
+      <div className="w-full h-full overflow-x-auto">
+        <InfiniteScroll isLoading={isLoading} hasMore={true} verticalLodMore={handleLoadData}>
+          <Main>
+            <Tabs defaultValue="timesheet" className="relative">
+              <div className="flex gap-x-4 pt-3 px-0 sticky top-0 z-10 transition-shadow duration-300 backdrop-blur-sm bg-background">
+                <TabsList className="w-full justify-start">
+                  <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
+                  <TabsTrigger value="time">Time</TabsTrigger>
+                </TabsList>
+                <Button title="Add Time" className="float-right mb-1 px-3" onClick={handleAddTime}>
+                  <Plus /> Time
+                </Button>
+              </div>
+              {isLoading && Object.keys(teamState.timesheetData.data).length == 0 ? (
+                <Spinner isFull />
+              ) : (
+                <>
+                  <TabsContent value="timesheet" className="mt-0">
+                    <Timesheet startDateParam={startDateParam} setStartDateParam={setstartDateParam} />
+                  </TabsContent>
+                  <TabsContent value="time" className="mt-0">
+                    <Time callback={mutate} startDateParam={startDateParam} setStartDateParam={setstartDateParam} />
+                  </TabsContent>
+                </>
+              )}
+            </Tabs>
+          </Main>
+        </InfiniteScroll>
+      </div>
     </>
   );
 };

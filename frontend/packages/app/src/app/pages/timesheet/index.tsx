@@ -26,10 +26,9 @@ import { Calendar, Paperclip, Plus } from "lucide-react";
  */
 import AddLeave from "@/app/components/addLeave";
 import AddTime from "@/app/components/AddTime";
-import { LoadMore } from "@/app/components/loadMore";
 import { TimesheetTable } from "@/app/components/timesheet-table";
 import { SubmitButton } from "@/app/components/timesheet-table/components/submitButton";
-import { Header, Footer, Main } from "@/app/layout/root";
+import { Header, Main } from "@/app/layout/root";
 import { parseFrappeErrorMsg, expectatedHours, copyToClipboard } from "@/lib/utils";
 import { RootState } from "@/store";
 import {
@@ -48,6 +47,7 @@ import { HolidayProp, LeaveProps, NewTimesheetProps, timesheet } from "@/types/t
 import { Approval } from "./approval";
 import { EditTime } from "./editTime";
 import ExpandableHours from "./expandableHours";
+import { InfiniteScroll } from "../resource_management/components/InfiniteScroll";
 
 function Timesheet() {
   const targetRef = useRef<HTMLDivElement>(null);
@@ -204,106 +204,109 @@ function Timesheet() {
       {isLoading && Object.keys(timesheet.data?.data).length == 0 ? (
         <Spinner isFull />
       ) : (
-        <Main>
-          {timesheet.data?.data &&
-            Object.keys(timesheet.data?.data).length > 0 &&
-            Object.entries(timesheet.data?.data).map(([key, value]: [string, timesheet], index: number) => {
-              let total_hours = value.total_hours;
-              let timeoff_hours = 0;
-              value.dates.map((date) => {
-                let isHoliday = false;
-                const holiday = timesheet.data.holidays.find((holiday: HolidayProp) => holiday.holiday_date === date);
-                if (holiday) {
-                  isHoliday = true;
-                  if (!holiday.weekly_off) {
-                    total_hours += working_hour;
-                  }
-                }
-                const leaveData = timesheet.data.leaves.filter((data: LeaveProps) => {
-                  return date >= data.from_date && date <= data.to_date;
-                });
+        <div className="w-full h-full overflow-x-auto">
+          <InfiniteScroll isLoading={isLoading} hasMore={true} verticalLodMore={loadData}>
+            <Main>
+              {timesheet.data?.data &&
+                Object.keys(timesheet.data?.data).length > 0 &&
+                Object.entries(timesheet.data?.data).map(([key, value]: [string, timesheet], index: number) => {
+                  let total_hours = value.total_hours;
+                  let timeoff_hours = 0;
+                  value.dates.map((date) => {
+                    let isHoliday = false;
+                    const holiday = timesheet.data.holidays.find(
+                      (holiday: HolidayProp) => holiday.holiday_date === date
+                    );
+                    if (holiday) {
+                      isHoliday = true;
+                      if (!holiday.weekly_off) {
+                        total_hours += working_hour;
+                      }
+                    }
+                    const leaveData = timesheet.data.leaves.filter((data: LeaveProps) => {
+                      return date >= data.from_date && date <= data.to_date;
+                    });
 
-                if (leaveData.length > 0 && !isHoliday) {
-                  leaveData.forEach((data: LeaveProps) => {
-                    const isHalfDayLeave = data.half_day && data.half_day_date == date;
-                    if (isHalfDayLeave) {
-                      total_hours += working_hour / 2;
-                      timeoff_hours += working_hour / 2;
-                    } else {
-                      total_hours += working_hour;
-                      timeoff_hours += working_hour;
+                    if (leaveData.length > 0 && !isHoliday) {
+                      leaveData.forEach((data: LeaveProps) => {
+                        const isHalfDayLeave = data.half_day && data.half_day_date == date;
+                        if (isHalfDayLeave) {
+                          total_hours += working_hour / 2;
+                          timeoff_hours += working_hour / 2;
+                        } else {
+                          total_hours += working_hour;
+                          timeoff_hours += working_hour;
+                        }
+                      });
                     }
                   });
-                }
-              });
-              return (
-                <Accordion type="multiple" key={key} defaultValue={Object.keys(timesheet.data?.data)}>
-                  <AccordionItem value={key}>
-                    <AccordionTrigger className="hover:no-underline w-full py-2 max-md:[&>svg]:hidden">
-                      <div className="flex justify-between items-center w-full group gap-2 ">
-                        <div className="font-normal text-xs sm:text-base flex items-center gap-x-2 max-md:gap-x-3 sm:flex-row overflow-x-auto no-scrollbar max-md:w-4/5">
-                          <span className="flex items-center gap-2 shrink-0">
-                            <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
-                            <h2 className="font-medium">{key}</h2>
-                          </span>
-                          <Separator orientation="vertical" className="block h-5 shrink-0" />
-                          <ExpandableHours
-                            totalHours={floatToTime(total_hours)}
-                            workingHours={floatToTime(total_hours - timeoff_hours)}
-                            timeoffHours={floatToTime(timeoff_hours)}
+                  return (
+                    <Accordion type="multiple" key={key} defaultValue={Object.keys(timesheet.data?.data)}>
+                      <AccordionItem value={key}>
+                        <AccordionTrigger className="hover:no-underline w-full py-2 max-md:[&>svg]:hidden">
+                          <div className="flex justify-between items-center w-full group gap-2 ">
+                            <div className="font-normal text-xs sm:text-base flex items-center gap-x-2 max-md:gap-x-3 sm:flex-row overflow-x-auto no-scrollbar max-md:w-4/5">
+                              <span className="flex items-center gap-2 shrink-0">
+                                <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
+                                <h2 className="font-medium">{key}</h2>
+                              </span>
+                              <Separator orientation="vertical" className="block h-5 shrink-0" />
+                              <ExpandableHours
+                                totalHours={floatToTime(total_hours)}
+                                workingHours={floatToTime(total_hours - timeoff_hours)}
+                                timeoffHours={floatToTime(timeoff_hours)}
+                              />
+                              <Paperclip
+                                className="w-3 h-3 hidden group-hover:block shrink-0"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setstartDateParam(getFormatedDate(value.start_date));
+                                  copyToClipboard(
+                                    `${window.location.origin}${window.location.pathname}?date="${value.start_date}"`
+                                  );
+                                }}
+                              />
+                            </div>
+                            <SubmitButton
+                              start_date={value.start_date}
+                              end_date={value.end_date}
+                              onApproval={handleApproval}
+                              status={value.status}
+                            />
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent
+                          className="pb-0"
+                          ref={
+                            !isEmpty(startDateParam) && isDateInRange(startDateParam, value.start_date, value.end_date)
+                              ? targetRef
+                              : null
+                          }
+                        >
+                          <TimesheetTable
+                            workingHour={timesheet.data.working_hour}
+                            workingFrequency={timesheet.data.working_frequency as WorkingFrequency}
+                            dates={value.dates}
+                            holidays={timesheet.data.holidays}
+                            leaves={timesheet.data.leaves}
+                            tasks={value.tasks}
+                            onCellClick={onCellClick}
+                            weeklyStatus={value.status}
+                            disabled={value.status === "Approved"}
+                            importTasks={true}
+                            loadingLikedTasks={loadingLikedTasks}
+                            likedTaskData={likedTaskData}
+                            getLikedTaskData={getLikedTaskData}
                           />
-                          <Paperclip
-                            className="w-3 h-3 hidden group-hover:block shrink-0"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setstartDateParam(getFormatedDate(value.start_date));
-                              copyToClipboard(
-                                `${window.location.origin}${window.location.pathname}?date="${value.start_date}"`
-                              );
-                            }}
-                          />
-                        </div>
-                        <SubmitButton
-                          start_date={value.start_date}
-                          end_date={value.end_date}
-                          onApproval={handleApproval}
-                          status={value.status}
-                        />
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent
-                      className="pb-0"
-                      ref={
-                        !isEmpty(startDateParam) && isDateInRange(startDateParam, value.start_date, value.end_date)
-                          ? targetRef
-                          : null
-                      }
-                    >
-                      <TimesheetTable
-                        workingHour={timesheet.data.working_hour}
-                        workingFrequency={timesheet.data.working_frequency as WorkingFrequency}
-                        dates={value.dates}
-                        holidays={timesheet.data.holidays}
-                        leaves={timesheet.data.leaves}
-                        tasks={value.tasks}
-                        onCellClick={onCellClick}
-                        weeklyStatus={value.status}
-                        disabled={value.status === "Approved"}
-                        importTasks={true}
-                        loadingLikedTasks={loadingLikedTasks}
-                        likedTaskData={likedTaskData}
-                        getLikedTaskData={getLikedTaskData}
-                      />
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              );
-            })}
-        </Main>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  );
+                })}
+            </Main>
+          </InfiniteScroll>
+        </div>
       )}
-      <Footer>
-        <LoadMore className="float-left" variant="outline" onClick={loadData} disabled={isLoading} />
-      </Footer>
       {timesheet.isDialogOpen && (
         <AddTime
           open={timesheet.isDialogOpen}
