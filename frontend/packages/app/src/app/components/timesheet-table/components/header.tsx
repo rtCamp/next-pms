@@ -59,7 +59,7 @@ export const Header = ({
           const { date: formattedDate, day } = prettyDate(date);
           const isHoliday = holidayList.includes(date);
           return (
-            <TableHead key={date} className={cn("max-w-20 text-center px-2", getBgCsssForToday(date))}>
+            <TableHead key={date} className={cn("max-w-20 text-center px-2 min-w-20", getBgCsssForToday(date))}>
               <Typography variant="p" className={cn("text-slate-600 font-medium", isHoliday && "text-slate-400")}>
                 {day}
               </Typography>
