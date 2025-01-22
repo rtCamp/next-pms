@@ -313,7 +313,6 @@ const Timesheet = ({
         Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet], index: number) => {
           let total_hours = value.total_hours;
           let timeoff_hours = 0;
-          let k = "";
           value.dates.map((date) => {
             let isHoliday = false;
             const leaveData = teamState.timesheetData.leaves.filter((data: LeaveProps) => {
@@ -340,14 +339,9 @@ const Timesheet = ({
                 }
               });
             }
-            if (startDateParam && isDateInRange(startDateParam, value.start_date, value.end_date)) {
-              k = key;
-            } else if (isEmpty(startDateParam) && index === 0) {
-              k = key;
-            }
           });
           return (
-            <Accordion type="multiple" key={key} defaultValue={[k]}>
+            <Accordion type="multiple" key={key} defaultValue={Object.keys(teamState.timesheetData.data)}>
               <AccordionItem value={key}>
                 <AccordionTrigger className="hover:no-underline w-full max-md:[&>svg]:hidden">
                   <div className="flex justify-between items-center w-full pr-2 group">
@@ -484,7 +478,6 @@ export const Time = ({
         Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet], index: number) => {
           let total_hours = value.total_hours;
           let timeoff_hours = 0;
-          let k = "";
           value.dates.map((date) => {
             const leaveData = teamState.timesheetData.leaves.filter((data: LeaveProps) => {
               return date >= data.from_date && date <= data.to_date;
@@ -502,14 +495,9 @@ export const Time = ({
                 }
               });
             }
-            if (startDateParam && isDateInRange(startDateParam, value.start_date, value.end_date)) {
-              k = key;
-            } else if (!startDateParam && index === 0) {
-              k = key;
-            }
           });
           return (
-            <Accordion type="multiple" key={key} defaultValue={[k]}>
+            <Accordion type="multiple" key={key} defaultValue={Object.keys(teamState.timesheetData.data)}>
               <AccordionItem value={key}>
                 <AccordionTrigger className="hover:no-underline w-full max-md:[&>svg]:hidden">
                   <div className="flex justify-between w-full pr-2 group">

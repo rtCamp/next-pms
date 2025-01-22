@@ -210,7 +210,6 @@ function Timesheet() {
             Object.entries(timesheet.data?.data).map(([key, value]: [string, timesheet], index: number) => {
               let total_hours = value.total_hours;
               let timeoff_hours = 0;
-              let k = "";
               value.dates.map((date) => {
                 let isHoliday = false;
                 const holiday = timesheet.data.holidays.find((holiday: HolidayProp) => holiday.holiday_date === date);
@@ -237,13 +236,8 @@ function Timesheet() {
                   });
                 }
               });
-              if (startDateParam && isDateInRange(startDateParam, value.start_date, value.end_date)) {
-                k = key;
-              } else if (isEmpty(startDateParam) && index === 0) {
-                k = key;
-              }
               return (
-                <Accordion type="multiple" key={key} defaultValue={[k]}>
+                <Accordion type="multiple" key={key} defaultValue={Object.keys(timesheet.data?.data)}>
                   <AccordionItem value={key}>
                     <AccordionTrigger className="hover:no-underline w-full py-2 max-md:[&>svg]:hidden">
                       <div className="flex justify-between items-center w-full group gap-2 ">
