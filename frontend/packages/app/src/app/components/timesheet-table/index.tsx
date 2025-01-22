@@ -35,6 +35,7 @@ type timesheetTableProps = {
   loadingLikedTasks?: boolean;
   likedTaskData?: Array<object>;
   getLikedTaskData?: () => void;
+  hideLikeButton?:boolean;
 };
 
 export const TimesheetTable = ({
@@ -52,6 +53,7 @@ export const TimesheetTable = ({
   loadingLikedTasks,
   likedTaskData,
   getLikedTaskData,
+  hideLikeButton,
 }: timesheetTableProps) => {
   const holidayList = getHolidayList(holidays);
   const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState(false);
@@ -167,6 +169,7 @@ export const TimesheetTable = ({
             setIsTaskLogDialogBoxOpen={setIsTaskLogDialogBoxOpen}
             workingFrequency={workingFrequency}
             workingHour={workingHour}
+            hideLikeButton={hideLikeButton}
           />
         </TableBody>
       </Table>

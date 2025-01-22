@@ -399,6 +399,7 @@ const Timesheet = ({
                     loadingLikedTasks={loadingLikedTasks}
                     likedTaskData={likedTaskData}
                     getLikedTaskData={getLikedTaskData}
+                    hideLikeButton={true}
                   />
                 </AccordionContent>
               </AccordionItem>
