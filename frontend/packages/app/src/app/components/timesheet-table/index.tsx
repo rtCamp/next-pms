@@ -61,10 +61,6 @@ export const TimesheetTable = ({
   const task_date_range_key = dates[0] + "-" + dates[dates.length - 1];
   const has_liked_task = hasKeyInLocalStorage(LIKED_TASK_KEY);
 
-  useEffect(() => {
-    getLikedTaskData!();
-  }, []);
-
   const setTaskInLocalStorage = () => {
     setLikedTask(LIKED_TASK_KEY, task_date_range_key, likedTaskData!);
     setFilteredLikedTasks(
