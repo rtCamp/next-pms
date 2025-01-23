@@ -64,9 +64,9 @@ export const TaskHoverCard = ({
       add: add,
       doctype: "Task",
     };
+    setTaskedLiked((prev) => !prev);
     toggleLikeCall(data)
       .then(() => {
-        setTaskedLiked((prev) => !prev);
         toggleLikedByForTask(LIKED_TASK_KEY, name, user?.user, add);
         getLikedTaskData();
       })

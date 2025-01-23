@@ -35,6 +35,7 @@ type timesheetTableProps = {
   loadingLikedTasks?: boolean;
   likedTaskData?: Array<object>;
   getLikedTaskData?: () => void;
+  hideLikeButton?:boolean;
 };
 
 export const TimesheetTable = ({
@@ -52,16 +53,13 @@ export const TimesheetTable = ({
   loadingLikedTasks,
   likedTaskData,
   getLikedTaskData,
+  hideLikeButton,
 }: timesheetTableProps) => {
   const holidayList = getHolidayList(holidays);
   const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<string>("");
   const task_date_range_key = dates[0] + "-" + dates[dates.length - 1];
   const has_liked_task = hasKeyInLocalStorage(LIKED_TASK_KEY);
-
-  useEffect(() => {
-    getLikedTaskData!();
-  }, []);
 
   const setTaskInLocalStorage = () => {
     setLikedTask(LIKED_TASK_KEY, task_date_range_key, likedTaskData!);
@@ -167,6 +165,7 @@ export const TimesheetTable = ({
             setIsTaskLogDialogBoxOpen={setIsTaskLogDialogBoxOpen}
             workingFrequency={workingFrequency}
             workingHour={workingHour}
+            hideLikeButton={hideLikeButton}
           />
         </TableBody>
       </Table>

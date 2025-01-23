@@ -40,9 +40,8 @@ import { Calendar, CircleDollarSign, Paperclip, Plus } from "lucide-react";
  */
 import AddTime from "@/app/components/AddTime";
 import EmployeeCombo from "@/app/components/employeeComboBox";
-import { LoadMore } from "@/app/components/loadMore";
 import { TimesheetTable } from "@/app/components/timesheet-table";
-import { Header, Footer, Main } from "@/app/layout/root";
+import { Header, Main } from "@/app/layout/root";
 import { TaskLog } from "@/app/pages/task/taskLog";
 import { Status } from "@/app/pages/team";
 import { EditTime } from "@/app/pages/timesheet/editTime";
@@ -62,6 +61,7 @@ import {
 } from "@/store/team";
 import { LeaveProps, NewTimesheetProps, TaskDataItemProps, TaskDataProps, timesheet } from "@/types/timesheet";
 import { Approval } from "./approval";
+import { InfiniteScroll } from "../resource_management/components/InfiniteScroll";
 import ExpandableHours from "../timesheet/expandableHours";
 
 const isDateInRange = (date: string, startDate: string, endDate: string) => {
@@ -216,36 +216,35 @@ const EmployeeDetail = () => {
           ignoreDefaultFilters={true}
         />
       </Header>
-
-      <Main>
-        <Tabs defaultValue="timesheet" className="relative">
-          <div className="flex gap-x-4 pt-3 px-0 sticky top-0 z-10 transition-shadow duration-300 backdrop-blur-sm bg-background">
-            <TabsList className="w-full justify-start">
-              <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
-              <TabsTrigger value="time">Time</TabsTrigger>
-            </TabsList>
-            <Button title="Add Time" className="float-right mb-1 px-3" onClick={handleAddTime}>
-              <Plus /> Time
-            </Button>
-          </div>
-          {isLoading && Object.keys(teamState.timesheetData.data).length == 0 ? (
-            <Spinner isFull />
-          ) : (
-            <>
-              <TabsContent value="timesheet" className="mt-0">
-                <Timesheet startDateParam={startDateParam} setStartDateParam={setstartDateParam} />
-              </TabsContent>
-              <TabsContent value="time" className="mt-0">
-                <Time callback={mutate} startDateParam={startDateParam} setStartDateParam={setstartDateParam} />
-              </TabsContent>
-            </>
-          )}
-        </Tabs>
-      </Main>
-
-      <Footer>
-        <LoadMore className="float-left" variant="outline" onClick={handleLoadData} disabled={isLoading} />
-      </Footer>
+      <div className="w-full h-full overflow-y-auto">
+        <InfiniteScroll isLoading={isLoading} hasMore={true} verticalLodMore={handleLoadData} className="w-full">
+          <Main>
+            <Tabs defaultValue="timesheet" className="relative">
+              <div className="flex gap-x-4 pt-3 px-0 sticky top-0 z-10 transition-shadow duration-300 backdrop-blur-sm bg-background">
+                <TabsList className="w-full justify-start">
+                  <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
+                  <TabsTrigger value="time">Time</TabsTrigger>
+                </TabsList>
+                <Button title="Add Time" className="float-right mb-1 px-3" onClick={handleAddTime}>
+                  <Plus /> Time
+                </Button>
+              </div>
+              {isLoading && Object.keys(teamState.timesheetData.data).length == 0 ? (
+                <Spinner isFull />
+              ) : (
+                <>
+                  <TabsContent value="timesheet" className="mt-0">
+                    <Timesheet startDateParam={startDateParam} setStartDateParam={setstartDateParam} />
+                  </TabsContent>
+                  <TabsContent value="time" className="mt-0">
+                    <Time callback={mutate} startDateParam={startDateParam} setStartDateParam={setstartDateParam} />
+                  </TabsContent>
+                </>
+              )}
+            </Tabs>
+          </Main>
+        </InfiniteScroll>
+      </div>
     </>
   );
 };
@@ -313,7 +312,6 @@ const Timesheet = ({
         Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet], index: number) => {
           let total_hours = value.total_hours;
           let timeoff_hours = 0;
-          let k = "";
           value.dates.map((date) => {
             let isHoliday = false;
             const leaveData = teamState.timesheetData.leaves.filter((data: LeaveProps) => {
@@ -340,14 +338,9 @@ const Timesheet = ({
                 }
               });
             }
-            if (startDateParam && isDateInRange(startDateParam, value.start_date, value.end_date)) {
-              k = key;
-            } else if (isEmpty(startDateParam) && index === 0) {
-              k = key;
-            }
           });
           return (
-            <Accordion type="multiple" key={key} defaultValue={[k]}>
+            <Accordion type="single" key={key} collapsible defaultValue={key}>
               <AccordionItem value={key}>
                 <AccordionTrigger className="hover:no-underline w-full max-md:[&>svg]:hidden">
                   <div className="flex justify-between items-center w-full pr-2 group">
@@ -405,6 +398,7 @@ const Timesheet = ({
                     loadingLikedTasks={loadingLikedTasks}
                     likedTaskData={likedTaskData}
                     getLikedTaskData={getLikedTaskData}
+                    hideLikeButton={true}
                   />
                 </AccordionContent>
               </AccordionItem>
@@ -484,7 +478,6 @@ export const Time = ({
         Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet], index: number) => {
           let total_hours = value.total_hours;
           let timeoff_hours = 0;
-          let k = "";
           value.dates.map((date) => {
             const leaveData = teamState.timesheetData.leaves.filter((data: LeaveProps) => {
               return date >= data.from_date && date <= data.to_date;
@@ -502,14 +495,9 @@ export const Time = ({
                 }
               });
             }
-            if (startDateParam && isDateInRange(startDateParam, value.start_date, value.end_date)) {
-              k = key;
-            } else if (!startDateParam && index === 0) {
-              k = key;
-            }
           });
           return (
-            <Accordion type="multiple" key={key} defaultValue={[k]}>
+            <Accordion type="multiple" key={key} defaultValue={Object.keys(teamState.timesheetData.data)}>
               <AccordionItem value={key}>
                 <AccordionTrigger className="hover:no-underline w-full max-md:[&>svg]:hidden">
                   <div className="flex justify-between w-full pr-2 group">

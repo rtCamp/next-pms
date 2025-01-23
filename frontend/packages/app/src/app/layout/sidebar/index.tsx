@@ -215,7 +215,7 @@ const Sidebar = () => {
                         >
                           <div
                             className={cn(
-                              "flex w-full pl-2 rounded-lg items-center py-2 hover:bg-slate-200 text-primary gap-x-2 ",
+                              "flex w-full p-2 rounded-lg items-center py-2 hover:bg-slate-200 text-primary gap-x-2 max-md:justify-center",
                               isChildActive && "bg-primary shadow-md hover:bg-slate-700 ",
                               !user.isSidebarCollapsed && "pl-3"
                             )}
@@ -228,7 +228,7 @@ const Sidebar = () => {
                             <Typography
                               variant="p"
                               className={cn(
-                                "transition-all duration-300 ease-in-out text-white",
+                                "transition-all duration-300 ease-in-out text-white truncate",
                                 !isChildActive && "text-primary",
                                 user.isSidebarCollapsed && "hidden"
                               )}
@@ -251,7 +251,7 @@ const Sidebar = () => {
                   {({ isActive }) => (
                     <div
                       className={cn(
-                        "flex w-full pl-2 rounded-lg items-center  p-2 hover:bg-slate-200 text-primary gap-x-2 ",
+                        "flex w-full pl-2 rounded-lg items-center p-2 hover:bg-slate-200 text-primary gap-x-2 max-md:justify-center",
                         isActive && "bg-primary shadow-md hover:bg-slate-700 "
                       )}
                     >
