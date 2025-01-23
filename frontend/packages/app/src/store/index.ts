@@ -8,7 +8,6 @@ import { configureStore } from "@reduxjs/toolkit";
  * Internal dependencies.
  */
 import appReducer from "./app";
-import homeReducer from "./home";
 import projectReducer from "./project";
 import resourceTeamReducer from "./resource_management/team";
 import taskReducer from "./task";
@@ -28,7 +27,6 @@ export const store = configureStore({
     resource_project: resourceProjectReducer,
     resource_allocation_form: resourceAllocationFormReducer,
     team: teamReducer,
-    home: homeReducer,
     app: appReducer,
     task: taskReducer,
     project: projectReducer,
