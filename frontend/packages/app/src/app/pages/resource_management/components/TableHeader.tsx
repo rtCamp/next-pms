@@ -12,7 +12,7 @@ import { TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { cn, prettyDate } from "@/lib/utils";
 import { DateProps } from "@/store/resource_management/team";
 
-import { TableContext } from "../contexts/tableContext";
+import { TableContext } from "../store/tableContext";
 import { getTableCellClass } from "../utils/helper";
 
 interface ResourceTableHeaderProps {

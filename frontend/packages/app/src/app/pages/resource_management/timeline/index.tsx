@@ -8,12 +8,13 @@ import { useFrappePostCall } from "frappe-react-sdk";
  */
 import { getDateTimeForMultipleTimeZoneSupport, parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
-import { AllocationDataProps, PermissionProps } from "@/store/resource_management/allocation";
+import { PermissionProps } from "@/store/resource_management/allocation";
 import { setReFetchData } from "@/store/resource_management/team";
 
-import { TableContextProvider } from "../contexts/tableContext";
-import { TimeLineContextProvider } from "../contexts/timeLineContext";
 import { ResourceTimeLine } from "./timeLine";
+import { ResourceAllocationEmployeeProps, ResourceAllocationTimeLineProps, ResourceTimeLineDataProps } from "./types";
+import { TableContextProvider } from "../store/tableContext";
+import { TimeLineContextProvider } from "../store/timeLineContext";
 import { ResourceTeamHeaderSection } from "../team/components/Header";
 import { getIsBillableValue } from "../utils/helper";
 
@@ -29,12 +30,16 @@ const ResourceTimeLineView = () => {
 
   const dispatch = useDispatch();
 
-  const resourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
+  // const resourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
   const resourceAllocationPermission: PermissionProps = useSelector(
     (state: RootState) => state.resource_allocation_form.permissions
   );
 
-  const [apiData, setApiData] = useState({});
+  const [timeLineData, setTimeLineData] = useState<ResourceTimeLineDataProps>({
+    employees: [],
+    resource_allocations: [],
+    customer: {},
+  });
 
   const { call: fetchData, loading } = useFrappePostCall(
     "next_pms.resource_management.api.team.get_resource_management_team_view_data"
@@ -54,7 +59,10 @@ const ResourceTimeLineView = () => {
           reports_to: resourceTeamState.reportingManager,
           designation: JSON.stringify(resourceTeamState.designation),
           is_billable: getIsBillableValue(resourceTeamState.allocationType as string[]),
-          skills: resourceTeamState?.skillSearch?.length > 0 ? JSON.stringify(resourceTeamState.skillSearch) : null,
+          skills:
+            resourceTeamState?.skillSearch && resourceTeamState?.skillSearch?.length > 0
+              ? JSON.stringify(resourceTeamState.skillSearch)
+              : null,
         };
         return newReqBody;
       }
@@ -82,34 +90,36 @@ const ResourceTimeLineView = () => {
     [fetchData, getFilterApiBody, toast]
   );
 
-  const filterApiData = (data) => {
+  const filterApiData = (data: ResourceTimeLineDataProps) => {
     const updatedData = { ...data };
 
-    updatedData.employees = updatedData.employees.map((employee) => ({
+    updatedData.employees = updatedData.employees.map((employee: ResourceAllocationEmployeeProps) => ({
       ...employee,
       id: employee.name,
       title: employee.employee_name,
     }));
 
-    updatedData.resource_allocations = updatedData.resource_allocations.map((allocation) => ({
-      ...allocation,
-      id: allocation.name,
-      group: allocation.employee,
-      title:
-        allocation.employee_name +
-        "( " +
-        allocation.allocation_start_date +
-        " to " +
-        allocation.allocation_end_date +
-        ")",
-      start_time: getDateTimeForMultipleTimeZoneSupport(allocation.allocation_start_date).getTime(),
-      end_time: getDateTimeForMultipleTimeZoneSupport(allocation.allocation_end_date).setDate(
-        getDateTimeForMultipleTimeZoneSupport(allocation.allocation_end_date).getDate() + 1
-      ),
-      customerData: {
-        ...updatedData.customer[allocation.customer],
-      },
-    }));
+    updatedData.resource_allocations = updatedData.resource_allocations.map(
+      (allocation: ResourceAllocationTimeLineProps) => ({
+        ...allocation,
+        id: allocation.name,
+        group: allocation.employee,
+        title:
+          allocation.employee_name +
+          "( " +
+          allocation.allocation_start_date +
+          " to " +
+          allocation.allocation_end_date +
+          ")",
+        start_time: getDateTimeForMultipleTimeZoneSupport(allocation.allocation_start_date).getTime(),
+        end_time: getDateTimeForMultipleTimeZoneSupport(allocation.allocation_end_date).setDate(
+          getDateTimeForMultipleTimeZoneSupport(allocation.allocation_end_date).getDate() + 1
+        ),
+        customerData: {
+          ...updatedData.customer[allocation.customer],
+        },
+      })
+    );
 
     return updatedData;
   };
@@ -125,7 +135,7 @@ const ResourceTimeLineView = () => {
 
     if (!mainThredData) return;
 
-    setApiData(filterApiData(mainThredData));
+    setTimeLineData(filterApiData(mainThredData));
   }, [handleApiCall, resourceTeamState.maxWeek, resourceTeamState.start, resourceTeamState.weekDate]);
 
   useEffect(() => {
@@ -143,7 +153,7 @@ const ResourceTimeLineView = () => {
         <Spinner isFull />
       ) : (
         <TimeLineContextProvider>
-          <ResourceTimeLine data={apiData} />
+          <ResourceTimeLine data={timeLineData} />
         </TimeLineContextProvider>
       )}
     </TableContextProvider>

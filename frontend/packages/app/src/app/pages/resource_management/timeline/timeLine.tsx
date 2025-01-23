@@ -3,22 +3,23 @@
  */
 import { useContext, useEffect } from "react";
 import Timeline, { DateHeader, SidebarHeader, TimelineHeaders } from "react-calendar-timeline";
-import { TableHead, Typography } from "@next-pms/design-system/components";
-import { Moment } from "moment";
+import { TableHead } from "@next-pms/design-system/components";
+import { startOfWeek } from "date-fns";
+import moment from "moment";
 
 /**
  * Internal dependencies.
  */
 import { cn, getDateTimeForMultipleTimeZoneSupport, getTodayDate, prettyDate } from "@/lib/utils";
 import ResourceTimeLineGroup from "./group";
-import { TableContext } from "../contexts/tableContext";
-import { TimeLineContext } from "../contexts/timeLineContext";
-import { startOfWeek } from "date-fns";
-import { getMonthKey } from "../utils/dates";
-import moment from "moment";
+import { TimeLineDateHeader, TimeLineIntervalHeader } from "./header";
 import ResourceTimeLineItem from "./item";
+import { ResourceTimeLineDataProps } from "./types";
+import { TableContext } from "../store/tableContext";
+import { TimeLineContext } from "../store/timeLineContext";
+import { getDayKeyOfMoment } from "../utils/dates";
 
-const ResourceTimeLine = ({ data }) => {
+const ResourceTimeLine = ({ data }: { data: ResourceTimeLineDataProps }) => {
   const { tableProperties, getCellWidthString } = useContext(TableContext);
   const { employees, allocations, setEmployeesData, setCustomerData, setAllocationsData } = useContext(TimeLineContext);
 
@@ -29,78 +30,23 @@ const ResourceTimeLine = ({ data }) => {
   useEffect(() => {
     if (!data.employees) return;
     setEmployeesData(data.employees, "SET");
-    setCustomerData(data.customers, "SET");
+    setCustomerData(data.customer, "SET");
     setAllocationsData(data.resource_allocations, "SET");
   }, [data, setAllocationsData, setCustomerData, setEmployeesData]);
 
-  const getIntervalHeader = ({ getIntervalProps, intervalContext, data }): any => {
-    const { interval } = intervalContext;
-    const { startTime, endTime } = interval;
-
-    return (
-      <TableHead
-        {...getIntervalProps()}
-        className={cn("h-full pb-2 pt-1 px-0 text-center truncate cursor-pointer border-r border-gray-300")}
-      >
-        <Typography variant="small">
-          {start.getTime() >= startTime && start.getTime() <= endTime
-            ? "This Week"
-            : getMonthKey(getDayKeyOfMoment(startTime)) +
-              " - " +
-              getMonthKey(getDayKeyOfMoment(endTime.add("-1", "days")))}
-        </Typography>
-      </TableHead>
-    );
-  };
-
-  const getDateHeader = ({ getIntervalProps, intervalContext, data }): any => {
-    const { interval } = intervalContext;
-    const { startTime, endTime } = interval;
-    const { date: dateStr, day } = prettyDate(getDayKeyOfMoment(startTime));
-
-    let props = getIntervalProps();
-
-    props = {
-      ...props,
-      style: { ...props.style, width: getCellWidthString(tableProperties.cellWidth), left: props.style.left - 1 },
-    };
-
-    return (
-      <TableHead
-        {...props}
-        className={cn(
-          "text-xs flex flex-col justify-end items-center border-0 p-0 h-full pb-2",
-          day == "Sun" && "border-l border-gray-300",
-          start.getTime() == startTime && "font-semibold"
-        )}
-      >
-        <Typography variant="p" className={cn("text-slate-600 text-[11px]")}>
-          {day}
-        </Typography>
-        <Typography variant="small" className={cn("text-slate-500 text-center text-[11px] max-lg:text-[0.65rem]")}>
-          {dateStr}
-        </Typography>
-      </TableHead>
-    );
-  };
-
-  const getVerticalLineClassNamesForTime = (startTime, endTime) => {
+  const getVerticalLineClassNamesForTime = (startTime: number) => {
     const today = getDateTimeForMultipleTimeZoneSupport(getTodayDate());
     if (startTime == today.getTime()) {
       return ["border-l border-r border-gray-300 opacity-80"];
     }
 
-    const { date: dateStr, day } = prettyDate(getDayKeyOfMoment(moment(startTime)));
+    const { day } = prettyDate(getDayKeyOfMoment(moment(startTime)));
 
     if (day == "Sun") {
       return ["border-l border-gray-300 opacity-80"];
     }
 
     return ["border-0"];
-  };
-
-  const getDayKeyOfMoment = (dateTime: Moment): string => {
-    return dateTime.format("YYYY-MM-DD");
   };
 
   if (employees.length == 0) {
@@ -117,8 +63,8 @@ const ResourceTimeLine = ({ data }) => {
         defaultTimeStart={start.getTime()}
         defaultTimeEnd={start.getTime() + 18 * 60 * 60 * 1000 * 24}
         sidebarWidth={tableProperties.firstCellWidth * 16}
-        minZoom={(365.24 * 86400 * 1000) / 12}
-        maxZoom={(365.24 * 86400 * 1000) / 12}
+        minZoom={18 * 60 * 60 * 1000 * 24}
+        maxZoom={18 * 60 * 60 * 1000 * 24}
         lineHeight={50}
         itemHeightRatio={0.75}
         canChangeGroup={true}
@@ -145,12 +91,12 @@ const ResourceTimeLine = ({ data }) => {
               );
             }}
           </SidebarHeader>
-          <DateHeader unit="week" height={30} intervalRenderer={getIntervalHeader} />
+          <DateHeader unit="week" height={30} intervalRenderer={TimeLineIntervalHeader} />
           <DateHeader
             style={{ width: tableProperties.cellWidth }}
             unit="day"
             height={50}
-            intervalRenderer={getDateHeader}
+            intervalRenderer={TimeLineDateHeader}
           />
         </TimelineHeaders>
       </Timeline>

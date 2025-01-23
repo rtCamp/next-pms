@@ -7,9 +7,14 @@ import { AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 /**
  * Internal dependencies.
  */
+import { ResourceAllocationEmployeeProps } from "./types";
 import { TableInformationCellContent } from "../components/TableCell";
 
-const ResourceTimeLineGroup = ({ group }) => {
+interface ResourceTimeLineGroupProps {
+  group: ResourceAllocationEmployeeProps;
+}
+
+const ResourceTimeLineGroup = ({ group }: ResourceTimeLineGroupProps) => {
   return (
     <TableInformationCellContent
       cellClassName="overflow-hidden flex items-center font-normal bg-none"

@@ -1,21 +1,22 @@
 /**
  * External dependencies.
  */
-
-import { cn, prettyDate } from "@/lib/utils";
+import { ItemContext } from "react-calendar-timeline";
 import { Avatar, AvatarFallback, AvatarImage, Typography } from "@next-pms/design-system/components";
-import { getFilterValue, getInitials } from "../utils/helper";
-import { getDayDiff } from "../utils/dates";
 
 /**
  * Internal dependencies.
  */
+import { cn, prettyDate } from "@/lib/utils";
+import { ResourceAllocationItemProps, ResourceAllocationTimeLineProps } from "./types";
+import { getDayDiff } from "../utils/dates";
+import { getFilterValue, getInitials } from "../utils/helper";
 
 interface ResourceTimeLineItemProps {
-  item: any;
-  itemContext: any;
-  getItemProps: any;
-  getResizeProps: () => { left: any; right: any };
+  item: ResourceAllocationTimeLineProps;
+  itemContext: ItemContext;
+  getItemProps: (itemProps: ResourceAllocationItemProps) => ResourceAllocationItemProps;
+  getResizeProps: () => { left: object; right: object };
 }
 
 const ResourceTimeLineItem = ({
@@ -53,7 +54,7 @@ const ResourceTimeLineItem = ({
     style: {
       ...itemProps.style,
       padding: "1px",
-      backgroundColor: resourceAllocation.is_billable?"rgba(147, 221, 137, 0.39)":"#d7d77b26",
+      background: resourceAllocation.is_billable ? "rgba(147, 221, 137, 0.39)" : "#d7d77b26",
       borderRadius: "4px",
       border: "1px solid #d1d5db",
     },
