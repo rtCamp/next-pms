@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useContext, useEffect } from "react";
+import { useContext } from "react";
 import Timeline, { DateHeader, SidebarHeader, TimelineHeaders } from "react-calendar-timeline";
 import { TableHead } from "@next-pms/design-system/components";
 import { startOfWeek } from "date-fns";
@@ -14,25 +14,17 @@ import { cn, getDateTimeForMultipleTimeZoneSupport, getTodayDate, prettyDate } f
 import ResourceTimeLineGroup from "./group";
 import { TimeLineDateHeader, TimeLineIntervalHeader } from "./header";
 import ResourceTimeLineItem from "./item";
-import { ResourceTimeLineDataProps } from "./types";
 import { TableContext } from "../store/tableContext";
 import { TimeLineContext } from "../store/timeLineContext";
 import { getDayKeyOfMoment } from "../utils/dates";
 
-const ResourceTimeLine = ({ data }: { data: ResourceTimeLineDataProps }) => {
+const ResourceTimeLine = () => {
   const { tableProperties, getCellWidthString } = useContext(TableContext);
-  const { employees, allocations, setEmployeesData, setCustomerData, setAllocationsData } = useContext(TimeLineContext);
+  const { employees, allocations } = useContext(TimeLineContext);
 
   const start = startOfWeek(getDateTimeForMultipleTimeZoneSupport(getTodayDate()), {
     weekStartsOn: 1,
   });
-
-  useEffect(() => {
-    if (!data.employees) return;
-    setEmployeesData(data.employees, "SET");
-    setCustomerData(data.customer, "SET");
-    setAllocationsData(data.resource_allocations, "SET");
-  }, [data, setAllocationsData, setCustomerData, setEmployeesData]);
 
   const getVerticalLineClassNamesForTime = (startTime: number) => {
     const today = getDateTimeForMultipleTimeZoneSupport(getTodayDate());

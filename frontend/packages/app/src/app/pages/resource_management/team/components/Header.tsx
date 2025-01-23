@@ -143,6 +143,7 @@ const ResourceTeamHeaderSection = () => {
           label: "Reporting Manager",
           hide: !resourceAllocationPermission.write,
           queryParameterDefault: [],
+          className: "z-100",
         },
         {
           type: "custom-filter",

@@ -105,6 +105,7 @@ def get_resource_management_team_view_data(
         dates[0].get("start_date"),
         dates[-1].get("end_date"),
         is_billable,
+        is_need_fetch_all_weeks=not need_hours_summary,
     )
 
     # Make the map of resource allocation data for given employee

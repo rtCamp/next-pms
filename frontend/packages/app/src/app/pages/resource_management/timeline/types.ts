@@ -1,3 +1,4 @@
+import { Skill } from "@/store/resource_management/team";
 import { ResourceAllocationProps } from "@/types/resource_management";
 
 interface ResourceAllocationItemProps {
@@ -9,6 +10,18 @@ interface ResourceAllocationItemProps {
     width: number | string;
     left: number;
   };
+}
+
+interface ResourceAllocationTimeLineFilterProps {
+  employeeName?: string;
+  businessUnit?: string[];
+  reportingManager?: string;
+  designation?: string[];
+  allocationType?: string[];
+  skillSearch?: Skill[];
+  start?: 0;
+  page_length?: 20;
+  weekDate?: string;
 }
 
 interface ResourceAllocationEmployeeProps {
@@ -43,10 +56,11 @@ interface ResourceTimeLineDataProps {
 }
 
 export type {
-    ResourceAllocationCustomerProps,
-    ResourceAllocationEmployeeProps,
-    ResourceAllocationItemProps,
-    ResourceAllocationTimeLineProps,
-    ResourceTimeLineDataProps
+  ResourceAllocationCustomerProps,
+  ResourceAllocationEmployeeProps,
+  ResourceAllocationItemProps,
+  ResourceAllocationTimeLineFilterProps,
+  ResourceAllocationTimeLineProps,
+  ResourceTimeLineDataProps
 };
 

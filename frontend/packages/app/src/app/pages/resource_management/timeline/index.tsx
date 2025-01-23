@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useCallback, useContext, useEffect } from "react";
+import { useSelector } from "react-redux";
 import { Spinner, useToast } from "@next-pms/design-system/components";
 import { useFrappePostCall } from "frappe-react-sdk";
 
@@ -9,39 +9,47 @@ import { useFrappePostCall } from "frappe-react-sdk";
 import { getDateTimeForMultipleTimeZoneSupport, parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { PermissionProps } from "@/store/resource_management/allocation";
-import { setReFetchData } from "@/store/resource_management/team";
 
+import { ResourceTimLineHeaderSection } from "./header";
 import { ResourceTimeLine } from "./timeLine";
 import { ResourceAllocationEmployeeProps, ResourceAllocationTimeLineProps, ResourceTimeLineDataProps } from "./types";
 import { TableContextProvider } from "../store/tableContext";
-import { TimeLineContextProvider } from "../store/timeLineContext";
-import { ResourceTeamHeaderSection } from "../team/components/Header";
+import { TimeLineContext, TimeLineContextProvider } from "../store/timeLineContext";
 import { getIsBillableValue } from "../utils/helper";
 
 interface ResourceTeamAPIBodyProps {
   date: string;
-  max_week: number;
   start: number;
 }
 
 const ResourceTimeLineView = () => {
-  const { toast } = useToast();
-  const resourceTeamState = useSelector((state: RootState) => state.resource_team);
+  return (
+    <TableContextProvider>
+      <TimeLineContextProvider>
+        <ResourceTimeLineComponet />
+      </TimeLineContextProvider>
+    </TableContextProvider>
+  );
+};
 
-  const dispatch = useDispatch();
+const ResourceTimeLineComponet = () => {
+  const { toast } = useToast();
+  const {
+    apiControler,
+    employees,
+    filters,
+    updateApiControler,
+    setEmployeesData,
+    setCustomerData,
+    setAllocationsData,
+  } = useContext(TimeLineContext);
 
   // const resourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
   const resourceAllocationPermission: PermissionProps = useSelector(
     (state: RootState) => state.resource_allocation_form.permissions
   );
 
-  const [timeLineData, setTimeLineData] = useState<ResourceTimeLineDataProps>({
-    employees: [],
-    resource_allocations: [],
-    customer: {},
-  });
-
-  const { call: fetchData, loading } = useFrappePostCall(
+  const { call: fetchData } = useFrappePostCall(
     "next_pms.resource_management.api.team.get_resource_management_team_view_data"
   );
 
@@ -49,27 +57,24 @@ const ResourceTimeLineView = () => {
     (req: ResourceTeamAPIBodyProps): ResourceTeamAPIBodyProps => {
       let newReqBody = {
         ...req,
-        employee_name: resourceTeamState.employeeName,
-        page_length: resourceTeamState.pageLength,
+        employee_name: filters.employeeName,
+        page_length: filters.page_length,
       };
       if (resourceAllocationPermission.write) {
         newReqBody = {
           ...newReqBody,
-          business_unit: JSON.stringify(resourceTeamState.businessUnit),
-          reports_to: resourceTeamState.reportingManager,
-          designation: JSON.stringify(resourceTeamState.designation),
-          is_billable: getIsBillableValue(resourceTeamState.allocationType as string[]),
-          skills:
-            resourceTeamState?.skillSearch && resourceTeamState?.skillSearch?.length > 0
-              ? JSON.stringify(resourceTeamState.skillSearch)
-              : null,
+          business_unit: JSON.stringify(filters.businessUnit),
+          reports_to: filters.reportingManager,
+          designation: JSON.stringify(filters.designation),
+          is_billable: getIsBillableValue(filters.allocationType as string[]),
+          skills: filters?.skillSearch && filters?.skillSearch?.length > 0 ? JSON.stringify(filters.skillSearch) : null,
         };
         return newReqBody;
       }
 
       return newReqBody;
     },
-    [resourceAllocationPermission.write, resourceTeamState]
+    [resourceAllocationPermission.write, filters]
   );
 
   const handleApiCall = useCallback(
@@ -126,37 +131,33 @@ const ResourceTimeLineView = () => {
 
   const loadIntialData = useCallback(async () => {
     const req = {
-      date: resourceTeamState.weekDate,
-      max_week: resourceTeamState.maxWeek,
-      start: resourceTeamState.start,
+      date: filters.weekDate,
+      start: filters.start,
     };
 
     const mainThredData = await handleApiCall(req);
 
     if (!mainThredData) return;
 
-    setTimeLineData(filterApiData(mainThredData));
-  }, [handleApiCall, resourceTeamState.maxWeek, resourceTeamState.start, resourceTeamState.weekDate]);
+    const data = filterApiData(mainThredData);
+
+    setEmployeesData(data.employees, mainThredData.has_more);
+    setCustomerData(data.customer);
+    setAllocationsData(data.resource_allocations);
+  }, [filters.weekDate, filters.start, handleApiCall, setEmployeesData, setCustomerData, setAllocationsData]);
 
   useEffect(() => {
-    if (resourceTeamState.isNeedToFetchDataAfterUpdate) {
+    if (apiControler.isNeedToFetchDataAfterUpdate) {
       loadIntialData();
-      dispatch(setReFetchData(false));
+      updateApiControler({ isNeedToFetchDataAfterUpdate: false });
     }
-  }, [dispatch, loadIntialData, resourceTeamState.isNeedToFetchDataAfterUpdate]);
+  }, [loadIntialData, apiControler.isNeedToFetchDataAfterUpdate, updateApiControler]);
 
   return (
-    <TableContextProvider>
-      <ResourceTeamHeaderSection />
-
-      {loading ? (
-        <Spinner isFull />
-      ) : (
-        <TimeLineContextProvider>
-          <ResourceTimeLine data={timeLineData} />
-        </TimeLineContextProvider>
-      )}
-    </TableContextProvider>
+    <>
+      <ResourceTimLineHeaderSection />
+      {apiControler.isLoading && employees.length == 0 ? <Spinner isFull /> : <ResourceTimeLine />}
+    </>
   );
 };
 

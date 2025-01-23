@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { useContext } from "react";
 import { Avatar } from "@next-pms/design-system/components";
 import { AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
 
@@ -9,12 +10,17 @@ import { AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
  */
 import { ResourceAllocationEmployeeProps } from "./types";
 import { TableInformationCellContent } from "../components/TableCell";
+import { TimeLineContext } from "../store/timeLineContext";
 
 interface ResourceTimeLineGroupProps {
   group: ResourceAllocationEmployeeProps;
 }
 
 const ResourceTimeLineGroup = ({ group }: ResourceTimeLineGroupProps) => {
+  const { getLastTimeLineItem, verticalLoderRef } = useContext(TimeLineContext);
+
+  const lastEmployee = getLastTimeLineItem() == group.name;
+
   return (
     <TableInformationCellContent
       cellClassName="overflow-hidden flex items-center font-normal bg-none"
@@ -27,6 +33,7 @@ const ResourceTimeLineGroup = ({ group }: ResourceTimeLineGroupProps) => {
         );
       }}
       value={group.employee_name}
+      cellRef={lastEmployee ? verticalLoderRef : null}
     />
   );
 };

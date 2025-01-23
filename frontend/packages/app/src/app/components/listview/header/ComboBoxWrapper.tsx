@@ -68,7 +68,7 @@ const ComboBoxWrapper = ({ filter, handleChangeWrapper }: { filter: FilterPops; 
           value: d.name,
         })) ?? []
       }
-      className="text-primary border-dashed gap-x-2 font-normal w-fit"
+      className="text-primary border-dashed gap-x-2 font-normal w-fit z-100"
     />
   );
 };
