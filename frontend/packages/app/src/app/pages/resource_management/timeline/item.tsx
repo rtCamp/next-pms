@@ -2,12 +2,13 @@
  * External dependencies.
  */
 import { ItemContext } from "react-calendar-timeline";
+import { prettyDate } from "@next-pms/design-system";
 import { Avatar, AvatarFallback, AvatarImage, Typography } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
  */
-import { cn, prettyDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { ResourceAllocationItemProps, ResourceAllocationTimeLineProps } from "./types";
 import { getDayDiff } from "../utils/dates";
 import { getFilterValue, getInitials } from "../utils/helper";

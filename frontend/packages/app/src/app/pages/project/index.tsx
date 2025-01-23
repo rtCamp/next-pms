@@ -1,8 +1,20 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import {
+  Spinner,
+  Separator,
+  Skeleton,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@next-pms/design-system/components";
+import { useToast } from "@next-pms/design-system/hooks";
 import { useInfiniteScroll } from "@next-pms/hooks";
 import {
   flexRender,
@@ -13,24 +25,18 @@ import {
 } from "@tanstack/react-table";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import _ from "lodash";
-
 /**
  * Internal dependencies
  */
 
-import ViewWrapper from "@/app/components/listview/ViewWrapper";
-import { Spinner } from "@/app/components/spinner";
-import { Separator } from "@/app/components/ui/separator";
-import { Skeleton } from "@/app/components/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
-import { useToast } from "@/app/components/ui/use-toast";
-import { parseFrappeErrorMsg, createFalseValuedObject } from "@/lib/utils";
+import ViewWrapper from "@/app/components/list-view/viewWrapper";
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setProjectData, setStart, setFilters, setReFetchData, updateProjectData } from "@/store/project";
 import { ViewData } from "@/store/view";
 import { DocMetaProps, sortOrder } from "@/types";
 import { getColumnInfo } from "./columns";
-import { Header as ProjectHeader } from "./Header";
+import { Header as ProjectHeader } from "./header";
 import { getFilter, createFilter } from "./utils";
 type ProjectProps = {
   viewData: ViewData;
@@ -53,7 +59,6 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   const [colSizing, setColSizing] = useState<ColumnSizingState>(viewData.columns ?? {});
   const [columnOrder, setColumnOrder] = useState<string[]>(viewData.rows ?? []);
   const projectState = useSelector((state: RootState) => state.project);
-  const [columnVisibility, setColumnVisibility] = useState(createFalseValuedObject(viewData.rows));
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -72,14 +77,13 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     setViewInfo(viewData);
     setColSizing(viewData.columns);
     setColumnOrder(viewData.rows);
-    setColumnVisibility(createFalseValuedObject(viewData.rows));
     setHasViewUpdated(false);
   }, [dispatch, viewData]);
 
   const { data, isLoading, error, mutate } = useFrappeGetCall(
     "next_pms.timesheet.api.project.get_projects",
     {
-      fields: viewInfo.rows ?? ["*"],
+      fields: [...viewInfo.rows, "_user_tags"],
       filters: getFilter(projectState),
       start: projectState.start,
       page_length: projectState.pageLength,
@@ -87,7 +91,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
       currency: projectState.currency,
       order_by: `${projectState.orderColumn} ${projectState.order}`,
     },
-    "next_pms.timesheet.api.project.get_projects_project_page",
+    undefined,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
@@ -118,8 +122,12 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
         description: err,
       });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, dispatch, error, toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, dispatch, error, toast, projectState.currency]);
+
+  useEffect(() => {
+    dispatch(setReFetchData(true));
+  }, [viewInfo.rows, dispatch]);
 
   useEffect(() => {
     const updateViewData = {
@@ -147,6 +155,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     projectState.selectedStatus,
     projectState.selectedBillingType,
     projectState.selectedBusinessUnit,
+    projectState.tag,
     viewData,
   ]);
 
@@ -168,32 +177,15 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     getSortedRowModel: getSortedRowModel(),
     onColumnSizingChange: setColSizing,
     onColumnOrderChange: setColumnOrder,
-    onColumnVisibilityChange: setColumnVisibility,
     state: {
-      columnVisibility,
       columnOrder,
       columnSizing: colSizing,
     },
   });
 
   const handleColumnHide = (id: string) => {
-    setColumnVisibility((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+    setColumnOrder((prev) => prev.filter((item) => item !== id));
   };
-  const updateColumnOrder = useCallback(
-    (visibility: { [key: string]: boolean }) => {
-      let newColumnOrder;
-      if (Object.keys(visibility).length == 0) {
-        newColumnOrder = columnOrder;
-      } else {
-        newColumnOrder = viewInfo.rows.filter((d) => visibility[d]).map((d) => d);
-      }
-      setColumnOrder(newColumnOrder);
-    },
-    [columnOrder, viewInfo.rows]
-  );
 
   const updateColumnSize = (columns: Array<string>) => {
     setColSizing((prevColSizing) => {
@@ -210,11 +202,6 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   useEffect(() => {
     updateColumnSize(columnOrder);
   }, [columnOrder]);
-
-  useEffect(() => {
-    updateColumnOrder(columnVisibility);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [columnVisibility]);
 
   const handleLoadMore = () => {
     if (!projectState.hasMore || projectState.isLoading) return;
@@ -283,7 +270,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
                         const needToAddRef = projectState.hasMore && cellIndex == 0;
                         return (
                           <TableCell
-                            className="truncate"
+                            className="overflow-hidden"
                             key={cell.id}
                             style={{
                               width: cell.column.getSize(),
@@ -300,7 +287,8 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
                 })
               ) : (
                 <TableRow className="w-full">
-                  <TableCell colSpan={viewData.rows.length} className="h-24 text-center">
+                  {/* Adding plus (+1) one to make no results span complete width */}
+                  <TableCell colSpan={viewData.rows.length + 1} className="h-24 text-center">
                     No results
                   </TableCell>
                 </TableRow>

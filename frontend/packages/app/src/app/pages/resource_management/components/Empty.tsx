@@ -3,13 +3,13 @@
  */
 import { useState } from "react";
 import { useSelector } from "react-redux";
+import { TableBody, TableCell, TableRow } from "@next-pms/design-system/components";
+import { cn } from "@next-pms/design-system/utils";
 import { CirclePlus } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
-import { TableBody, TableCell, TableRow } from "@/app/components/ui/table";
-import { cn } from "@/lib/utils";
 import { RootState } from "@/store";
 import { PermissionProps } from "@/store/resource_management/allocation";
 

@@ -5,6 +5,31 @@ import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  Input,
+  Separator,
+  TextArea,
+  useToast,
+  ComboBox,
+  DatePicker,
+  Typography,
+} from "@next-pms/design-system/components";
+import {
+  getFormatedDate,
+} from "@next-pms/design-system/date";
+import { cn } from "@next-pms/design-system/utils";
 import { useFrappeCreateDoc, useFrappeGetCall, useFrappeUpdateDoc } from "frappe-react-sdk";
 import { CircleDollarSign, Clock3, LoaderCircle, Save, Search, X } from "lucide-react";
 import { z } from "zod";
@@ -12,22 +37,10 @@ import { z } from "zod";
 /**
  * Internal dependencies.
  */
-import { ComboxBox } from "@/app/components/comboBox";
-import { DatePicker } from "@/app/components/datePicker";
 import EmployeeCombo from "@/app/components/employeeComboBox";
-import { Typography } from "@/app/components/typography";
-import { Button } from "@/app/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
-import { Input } from "@/app/components/ui/input";
-import { Separator } from "@/app/components/ui/separator";
-import { Textarea } from "@/app/components/ui/textarea";
-import { useToast } from "@/app/components/ui/use-toast";
-import { cn, getFormatedDate } from "@/lib/utils";
 import { ResourceAllocationSchema } from "@/schema/resource";
 import { RootState } from "@/store";
 import { AllocationDataProps, ResourceKeys, setDialog } from "@/store/resource_management/allocation";
-
 import { resetState } from "@/store/resource_management/allocation";
 import { getRoundOfValue } from "../utils/helper";
 
@@ -333,7 +346,7 @@ const AddResourceAllocations = ({
                       Customer <span className="text-red-400">*</span>
                     </FormLabel>
                     <FormControl>
-                      <ComboxBox
+                      <ComboBox
                         label="Search Customer"
                         onSelect={(value) => {
                           handleSearchChange("customer", value, setCustomerSearch);
@@ -369,7 +382,7 @@ const AddResourceAllocations = ({
                 render={() => (
                   <FormItem className="space-y-1 col-span-3">
                     <FormLabel>Projects</FormLabel>
-                    <ComboxBox
+                    <ComboBox
                       label={
                         form.getValues("customer")
                           ? "Search " + form.getValues("customer") + " Projects"
@@ -542,7 +555,7 @@ const AddResourceAllocations = ({
                 <FormItem className="space-y-1">
                   <FormLabel>Note</FormLabel>
                   <FormControl>
-                    <Textarea
+                    <TextArea
                       placeholder="Put Note here..."
                       rows={4}
                       className="w-full placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"

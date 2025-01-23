@@ -3,19 +3,20 @@
  */
 import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Avatar, AvatarFallback, AvatarImage, Table, TableBody, TableRow } from "@next-pms/design-system/components";
+import {
+  prettyDate,
+} from "@next-pms/design-system/date";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
-import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
-import { Table, TableBody, TableRow } from "@/app/components/ui/table";
-import { cn, prettyDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { RootState } from "@/store";
 import { AllocationDataProps, setResourceFormData } from "@/store/resource_management/allocation";
 import { DateProps } from "@/store/resource_management/team";
 import { ResourceAllocationObjectProps, ResourceCustomerObjectProps } from "@/types/resource_management";
-
 import { ResourceAllocationList } from "../../components/ResourceAllocationList";
 import { ResourceTableCell, TableInformationCellContent } from "../../components/TableCell";
 import { getCellBackGroundColor } from "../../utils/cell";

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import { ErrorFallback, Typography, Button } from "@next-pms/design-system/components";
 import {
   ArrowLeftToLine,
   ChevronDown,
@@ -18,22 +19,18 @@ import {
   GanttChartSquareIcon,
 } from "lucide-react";
 import { Home, Users } from "lucide-react";
-
 /**
  * Internal dependencies.
  */
 
-import GenWrapper from "@/app/components/GenWrapper";
-import { Typography } from "@/app/components/typography";
-import { Button } from "@/app/components/ui/button";
 import { HOME, PROJECT, RESOURCE_MANAGEMENT, ROLES, TASK, TEAM, TIMESHEET } from "@/lib/constant";
 import { cn } from "@/lib/utils";
-import logo from "@/logo.svg";
-import { RootState } from "@/store";
 import { setSidebarCollapsed } from "@/store/user";
-import { ViewData } from "@/store/view";
-import UserNavigation from "./UserNavigation";
-import ViewLoader from "./ViewLoader";
+import UserNavigation from "./userNavigation";
+import ViewLoader from "./viewLoader";
+import logo from "../../../logo.svg";
+import { RootState } from "../../../store";
+import { ViewData } from "../../../store/view";
 
 type NestedRoute = {
   to: string;
@@ -150,7 +147,7 @@ const Sidebar = () => {
   }, [screenSize]);
 
   return (
-    <GenWrapper>
+    <ErrorFallback>
       <aside
         className={cn(
           "bg-slate-100  w-1/5 transition-all duration-300 ease-in-out px-4 py-4 flex flex-col ",
@@ -225,7 +222,7 @@ const Sidebar = () => {
                         >
                           <div
                             className={cn(
-                              "flex w-full pl-2 rounded-lg items-center py-2 hover:bg-slate-200 text-primary gap-x-2 ",
+                              "flex w-full p-2 rounded-lg items-center py-2 hover:bg-slate-200 text-primary gap-x-2 max-md:justify-center",
                               isChildActive && "bg-primary shadow-md hover:bg-slate-700 ",
                               !user.isSidebarCollapsed && "pl-3"
                             )}
@@ -238,7 +235,7 @@ const Sidebar = () => {
                             <Typography
                               variant="p"
                               className={cn(
-                                "transition-all duration-300 ease-in-out text-white",
+                                "transition-all duration-300 ease-in-out text-white truncate",
                                 !isChildActive && "text-primary",
                                 user.isSidebarCollapsed && "hidden"
                               )}
@@ -261,7 +258,7 @@ const Sidebar = () => {
                   {({ isActive }) => (
                     <div
                       className={cn(
-                        "flex w-full pl-2 rounded-lg items-center  p-2 hover:bg-slate-200 text-primary gap-x-2 ",
+                        "flex w-full pl-2 rounded-lg items-center p-2 hover:bg-slate-200 text-primary gap-x-2 max-md:justify-center",
                         isActive && "bg-primary shadow-md hover:bg-slate-700 "
                       )}
                     >
@@ -320,7 +317,7 @@ const Sidebar = () => {
           )}
         </div>
       </aside>
-    </GenWrapper>
+    </ErrorFallback>
   );
 };
 

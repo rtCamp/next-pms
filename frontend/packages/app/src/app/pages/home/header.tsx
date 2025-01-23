@@ -4,21 +4,21 @@
 import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getFormatedDate } from "@next-pms/design-system/date";
+import { useQueryParam } from "@next-pms/hooks";
 import { addDays } from "date-fns";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 /**
  * Internal dependencies
  */
-import { Header as ListViewHeader } from "@/app/components/listview/header";
-import { useQueryParamsState } from "@/lib/queryParam";
+import { Header as ListViewHeader } from "@/app/components/list-view/header";
 import { RootState } from "@/store";
 import { setEmployeeName, setFilters, setStatus, setWeekDate } from "@/store/home";
 
 export const Header = () => {
   const homeState = useSelector((state: RootState) => state.home);
   const dispatch = useDispatch();
-  const [employeeNameParam] = useQueryParamsState<string>("employee-name", "");
-  const [employeeStatusParam] = useQueryParamsState<Array<string>>("status", ["Active"]);
+  const [employeeNameParam] = useQueryParam<string>("employee-name", "");
+  const [employeeStatusParam] = useQueryParam<Array<string>>("status", ["Active"]);
 
   useEffect(() => {
     const payload = {

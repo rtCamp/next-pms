@@ -1,11 +1,15 @@
-import { startOfWeek } from "date-fns";
+/**
+ * External dependencies.
+ */
 
+import { DateProps } from "@/store/resource_management/team";
 import {
-  getDateTimeForMultipleTimeZoneSupport,
   getFormatedDate,
   getTodayDate,
-} from "@/lib/utils";
-import { DateProps } from "@/store/resource_management/team";
+  getUTCDateTime,
+} from "@next-pms/design-system/date";
+import { startOfWeek } from "date-fns";
+import { Moment } from "moment";
 
 const Months = [
   "Jan",
@@ -28,7 +32,7 @@ function getDatesArrays(
   ignoreWeekends: boolean = true
 ) {
   const dates = [];
-  const start = startOfWeek(getDateTimeForMultipleTimeZoneSupport(startDate), {
+  const start = startOfWeek(getUTCDateTime(startDate), {
     weekStartsOn: 1,
   });
   const today = getTodayDate();
@@ -77,7 +81,7 @@ function getDatesArrays(
 }
 
 function getNextDate(startDate: string, weeks: number) {
-  const start = startOfWeek(getDateTimeForMultipleTimeZoneSupport(startDate), {
+  const start = startOfWeek(getUTCDateTime(startDate), {
     weekStartsOn: 1,
   });
 
@@ -87,22 +91,22 @@ function getNextDate(startDate: string, weeks: number) {
 }
 
 function getMonthKey(dateString: string) {
-  const date = getDateTimeForMultipleTimeZoneSupport(dateString);
+  const date = getUTCDateTime(dateString);
   return `${Months[date.getMonth()]} ${
     date.getDate() < 10 ? "0" + date.getDate() : date.getDate()
   }`;
 }
 
 function getDayDiff(startString: string, endString: string): number {
-  const start = getDateTimeForMultipleTimeZoneSupport(startString);
-  const end = getDateTimeForMultipleTimeZoneSupport(endString);
+  const start = getUTCDateTime(startString);
+  const end = getUTCDateTime(endString);
 
   return Math.abs(end.getTime() - start.getTime()) / (1000 * 3600 * 24);
 }
 
 function checkInRange(start: string, weeks: number, dateString: string) {
   const startDate = getFormatedDate(
-    startOfWeek(getDateTimeForMultipleTimeZoneSupport(start), {
+    startOfWeek(getUTCDateTime(start), {
       weekStartsOn: 1,
     })
   );
@@ -118,7 +122,9 @@ const getDayKeyOfMoment = (dateTime: Moment): string => {
 
 export {
   checkInRange,
-  getDatesArrays, getDayDiff, getDayKeyOfMoment,
+  getDatesArrays,
+  getDayDiff,
+  getDayKeyOfMoment,
   getMonthKey,
   getNextDate
 };

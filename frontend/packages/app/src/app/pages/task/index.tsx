@@ -1,36 +1,33 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { getUTCDateTime, getFormatedDate } from "@next-pms/design-system/date";
+import { useToast } from "@next-pms/design-system/hooks";
 import { getCoreRowModel, getSortedRowModel, useReactTable, ColumnSizingState } from "@tanstack/react-table";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import _ from "lodash";
-
 /**
  * Internal dependencies.
  */
 import AddTime from "@/app/components/AddTime";
-import ViewWrapper from "@/app/components/listview/ViewWrapper";
-import { useToast } from "@/app/components/ui/use-toast";
-import {
-  parseFrappeErrorMsg,
-  createFalseValuedObject,
-  getFormatedDate,
-  getDateTimeForMultipleTimeZoneSupport,
-} from "@/lib/utils";
+import ViewWrapper from "@/app/components/list-view/viewWrapper";
+import { LIKED_TASK_KEY } from "@/lib/constant";
+import { addAction, toggleLikedByForTask } from "@/lib/storage";
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setStart, updateTaskData, setTaskData, setSelectedTask, setFilters, setReFetchData } from "@/store/task";
 import { SetAddTimeDialog, SetTimesheet } from "@/store/timesheet";
 import { ViewData } from "@/store/view";
 import { DocMetaProps } from "@/types";
 import { ColumnsType, columnsToExcludeActionsInTablesType } from "@/types/task";
-import { AddTask } from "./AddTask";
+import { AddTask } from "./addTask";
 import { getColumn } from "./columns";
-import { Header } from "./Header";
-import { Table } from "./Table";
-import { TaskLog } from "./TaskLog";
+import { Header } from "./header";
+import { Table } from "./table";
+import { TaskLog } from "./taskLog";
 import { createFilter } from "./utils";
 
 const Task = () => {
@@ -63,9 +60,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
   const [hasViewUpdated, setHasViewUpdated] = useState(false);
   const [colSizing, setColSizing] = useState<ColumnSizingState>(viewData.columns ?? {});
   const [columnOrder, setColumnOrder] = useState<string[]>(viewData.rows ?? []);
-  const [columnVisibility, setColumnVisibility] = useState(createFalseValuedObject(viewData.rows));
 
-  // Table property management
   const { call: toggleLikeCall } = useFrappePostCall("frappe.desk.like.toggle_like");
 
   useEffect(() => {
@@ -79,28 +74,12 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     setViewInfo(viewData);
     setColSizing(viewData.columns);
     setColumnOrder(viewData.rows);
-    setColumnVisibility(createFalseValuedObject(viewData.rows));
     setHasViewUpdated(false);
   }, [dispatch, viewData]);
 
   const handleColumnHide = (id: string) => {
-    setColumnVisibility((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+    setColumnOrder((prev)=>prev.filter(item => item !== id))
   };
-  const updateColumnOrder = useCallback(
-    (visibility: { [key: string]: boolean }) => {
-      let newColumnOrder;
-      if (Object.keys(visibility).length == 0) {
-        newColumnOrder = columnOrder;
-      } else {
-        newColumnOrder = viewInfo.rows.filter((d) => visibility[d]).map((d) => d);
-      }
-      setColumnOrder(newColumnOrder!);
-    },
-    [columnOrder, viewInfo.rows]
-  );
 
   const updateColumnSize = (columns: Array<string>) => {
     setColSizing((prevColSizing) => {
@@ -118,17 +97,13 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     updateColumnSize(columnOrder);
   }, [columnOrder]);
 
-  useEffect(() => {
-    updateColumnOrder(columnVisibility);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [columnVisibility]);
 
   const handleAddTime = (taskName: string) => {
     const timesheetData = {
       name: "",
       parent: "",
       task: taskName,
-      date: getFormatedDate(getDateTimeForMultipleTimeZoneSupport()),
+      date: getFormatedDate(getUTCDateTime()),
       description: "",
       hours: 0,
       isUpdate: false,
@@ -148,7 +123,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       status: task.selectedStatus,
       fields: viewInfo?.rows,
     },
-    "next_pms.timesheet.api.task.get_task_list_taak_page",
+    undefined,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
@@ -166,7 +141,6 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
 
   useEffect(() => {
     if (data) {
-      if (task.isNeedToFetchDataAfterUpdate) return;
       if (task.action === "SET") {
         dispatch(setTaskData(data.message));
       } else {
@@ -181,13 +155,13 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, dispatch, error]);
+  }, [data, dispatch, error, viewInfo.filters.search]);
 
   const handleLike = (e: React.MouseEvent<SVGSVGElement>) => {
     e.stopPropagation();
     const taskName = e.currentTarget.dataset.task;
     let likedBy = e.currentTarget.dataset.likedBy;
-    let add = "Yes";
+    let add: addAction = "Yes";
     if (likedBy) {
       likedBy = JSON.parse(likedBy);
       if (likedBy && likedBy.includes(user.user)) {
@@ -202,6 +176,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     toggleLikeCall(data)
       .then(() => {
         mutate();
+        toggleLikedByForTask(LIKED_TASK_KEY, taskName as string, user?.user, add);
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
@@ -260,7 +235,6 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     enableColumnResizing: true,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
     columnResizeMode: "onChange",
     onColumnOrderChange: setColumnOrder,
     onColumnSizingChange: setColSizing,
@@ -268,7 +242,6 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       sorting: [{ id: "liked", desc: false }],
     },
     state: {
-      columnVisibility,
       columnOrder,
       columnSizing: colSizing,
     },

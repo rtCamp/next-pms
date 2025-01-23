@@ -3,18 +3,20 @@
  */
 import { useContext, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { getUTCDateTime, getTodayDate, prettyDate } from "@next-pms/design-system";
 import { TableHead, Typography } from "@next-pms/design-system/components";
+import { useQueryParam } from "@next-pms/hooks";
 import { startOfWeek } from "date-fns";
 import { useFrappePostCall } from "frappe-react-sdk";
 import { Plus } from "lucide-react";
 import moment from "moment";
 
+
 /**
  * Internal dependencies.
  */
-import { Header } from "@/app/components/listview/header";
-import { useQueryParamsState } from "@/lib/queryParam";
-import { cn, getDateTimeForMultipleTimeZoneSupport, getTodayDate, prettyDate } from "@/lib/utils";
+import { Header } from "@/app/components/list-view/header";
+import { cn } from "@/lib/utils";
 import { RootState } from "@/store";
 import { PermissionProps, setResourcePermissions } from "@/store/resource_management/allocation";
 import { Skill } from "@/store/resource_management/team";
@@ -36,12 +38,12 @@ interface TimeLineHeaderFunctionProps {
  * @returns React.FC
  */
 const ResourceTimLineHeaderSection = () => {
-  const [businessUnitParam] = useQueryParamsState<string[]>("business-unit", []);
-  const [employeeNameParam] = useQueryParamsState<string>("employee-name", "");
-  const [reportingNameParam] = useQueryParamsState<string>("reports-to", "");
-  const [allocationTypeParam] = useQueryParamsState<string[]>("allocation-type", []);
-  const [designationParam] = useQueryParamsState<string[]>("designation", []);
-  const [skillSearchParam, setSkillSearchParam] = useQueryParamsState<Skill[]>("skill-search", []);
+  const [businessUnitParam] = useQueryParam<string[]>("business-unit", []);
+  const [employeeNameParam] = useQueryParam<string>("employee-name", "");
+  const [reportingNameParam] = useQueryParam<string>("reports-to", "");
+  const [allocationTypeParam] = useQueryParam<string[]>("allocation-type", []);
+  const [designationParam] = useQueryParam<string[]>("designation", []);
+  const [skillSearchParam, setSkillSearchParam] = useQueryParam<Skill[]>("skill-search", []);
 
   const resourceAllocationPermission: PermissionProps = useSelector(
     (state: RootState) => state.resource_allocation_form.permissions
@@ -246,7 +248,7 @@ const ResourceTimLineHeaderSection = () => {
 const TimeLineIntervalHeader = ({ getIntervalProps, intervalContext }: TimeLineHeaderFunctionProps) => {
   const { interval } = intervalContext;
   const { startTime, endTime } = interval;
-  const start = startOfWeek(getDateTimeForMultipleTimeZoneSupport(getTodayDate()), {
+  const start = startOfWeek(getUTCDateTime(getTodayDate()), {
     weekStartsOn: 1,
   });
 
@@ -271,7 +273,7 @@ const TimeLineDateHeader = ({ getIntervalProps, intervalContext }: TimeLineHeade
   const { startTime } = interval;
   const { date: dateStr, day } = prettyDate(getDayKeyOfMoment(startTime));
 
-  const start = startOfWeek(getDateTimeForMultipleTimeZoneSupport(getTodayDate()), {
+  const start = startOfWeek(getUTCDateTime(getTodayDate()), {
     weekStartsOn: 1,
   });
 

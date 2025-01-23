@@ -2,8 +2,7 @@
  * External dependencies.
  */
 import { useContext } from "react";
-import { Avatar } from "@next-pms/design-system/components";
-import { AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.

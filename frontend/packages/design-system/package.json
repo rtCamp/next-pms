@@ -9,7 +9,8 @@
         "./index.css": "./src/index.css",
         "./date": "./src/utils/date.ts",
         "./utils": "./src/utils/index.ts",
-        "./components": "./src/components/index.ts"
+        "./components": "./src/components/index.ts",
+        "./hooks": "./src/hooks.ts"
     },
     "files": [
         "src",

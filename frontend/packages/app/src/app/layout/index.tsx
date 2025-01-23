@@ -1,22 +1,20 @@
 /**
  * External dependencies.
  */
-import { lazy, Suspense, useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { ErrorFallback } from "@next-pms/design-system/components";
+import { useToast, Toaster } from "@next-pms/design-system/components";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
-import { Toaster } from "@/app/components/ui/toaster";
-import { useToast } from "@/app/components/ui/use-toast";
 import Sidebar from "@/app/layout/sidebar";
 import { checkScreenSize, parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { updateScreenSize } from "@/store/app";
 import { setInitialData } from "@/store/user";
-
-const GenWrapper = lazy(() => import("@/app/components/GenWrapper"));
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const user = useSelector((state: RootState) => state.user);
@@ -61,11 +59,11 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   return (
-    <GenWrapper>
+    <ErrorFallback>
       <div className="flex flex-row h-screen w-full">
-        <GenWrapper>
+        <ErrorFallback>
           <Sidebar />
-        </GenWrapper>
+        </ErrorFallback>
         <div
           className="w-full overflow-hidden"
           style={{
@@ -77,14 +75,14 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           {(user.employee || user.user == "Administrator") && (
             <>
               <Suspense fallback={<></>}>
-                <GenWrapper>{children}</GenWrapper>
+                <ErrorFallback>{children}</ErrorFallback>
               </Suspense>
             </>
           )}
         </div>
       </div>
       <Toaster />
-    </GenWrapper>
+    </ErrorFallback>
   );
 };
 

@@ -4,17 +4,16 @@
 import { Suspense } from "react";
 import { Provider } from "react-redux";
 import { RouterProvider, createBrowserRouter, createRoutesFromElements } from "react-router-dom";
-import { ErrorFallback } from "@next-pms/design-system/components";
+import { ErrorFallback, TooltipProvider } from "@next-pms/design-system/components";
 import { FrappeProvider } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import { TooltipProvider } from "@/app/components/ui/tooltip";
 import { BASE_ROUTE } from "@/lib/constant";
 import { UserProvider } from "@/lib/UserProvider";
 import { getSiteName } from "@/lib/utils";
-import { Router } from "@/Route";
-import { store } from "@/store";
+import { Router } from "./route";
+import { store } from "./store";
 
 const App = () => {
   const router = createBrowserRouter(createRoutesFromElements(Router()), {

@@ -1,13 +1,12 @@
 /**
  * External dependencies.
  */
+import { getTodayDate, getFormatedDate } from "@next-pms/design-system/date";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { addDays } from "date-fns";
-
 /**
  * Internal dependencies.
  */
-import { getTodayDate, getFormatedDate } from "@/lib/utils";
 import { DataProp as timesheetDataProps } from "@/types/timesheet";
 
 type DateRange = {

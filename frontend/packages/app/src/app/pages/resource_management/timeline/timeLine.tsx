@@ -3,6 +3,7 @@
  */
 import { useContext } from "react";
 import Timeline, { DateHeader, SidebarHeader, TimelineHeaders } from "react-calendar-timeline";
+import { getTodayDate, getUTCDateTime, prettyDate } from "@next-pms/design-system";
 import { TableHead } from "@next-pms/design-system/components";
 import { startOfWeek } from "date-fns";
 import moment from "moment";
@@ -10,7 +11,7 @@ import moment from "moment";
 /**
  * Internal dependencies.
  */
-import { cn, getDateTimeForMultipleTimeZoneSupport, getTodayDate, prettyDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import ResourceTimeLineGroup from "./group";
 import { TimeLineDateHeader, TimeLineIntervalHeader } from "./header";
 import ResourceTimeLineItem from "./item";
@@ -22,12 +23,12 @@ const ResourceTimeLine = () => {
   const { tableProperties, getCellWidthString } = useContext(TableContext);
   const { employees, allocations } = useContext(TimeLineContext);
 
-  const start = startOfWeek(getDateTimeForMultipleTimeZoneSupport(getTodayDate()), {
+  const start = startOfWeek(getUTCDateTime(getTodayDate()), {
     weekStartsOn: 1,
   });
 
   const getVerticalLineClassNamesForTime = (startTime: number) => {
-    const today = getDateTimeForMultipleTimeZoneSupport(getTodayDate());
+    const today = getUTCDateTime(getTodayDate());
     if (startTime == today.getTime()) {
       return ["border-l border-r border-gray-300 opacity-80"];
     }

@@ -1,3 +1,6 @@
+/**
+ * External dependencies.
+ */
 import { Skill } from "@/store/resource_management/team";
 import { ResourceAllocationProps } from "@/types/resource_management";
 

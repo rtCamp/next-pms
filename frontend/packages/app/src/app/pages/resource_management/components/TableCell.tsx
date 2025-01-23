@@ -2,14 +2,18 @@
  * External dependencies.
  */
 import React, { useContext } from "react";
-import { HoverCard, HoverCardTrigger } from "@radix-ui/react-hover-card";
+import {
+  HoverCardContent,
+  Typography,
+  TableCell,
+  HoverCard,
+  HoverCardTrigger,
+} from "@next-pms/design-system/components";
+
 
 /**
  * Internal dependencies.
  */
-import { Typography } from "@/app/components/typography";
-import { HoverCardContent } from "@/app/components/ui/hover-card";
-import { TableCell } from "@/app/components/ui/table";
 import { cn } from "@/lib/utils";
 import { EmptyTableCell } from "./Empty";
 import { TableContext } from "../store/tableContext";

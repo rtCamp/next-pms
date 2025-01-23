@@ -1,7 +1,7 @@
 import { useState, createContext, ReactNode } from "react";
 
+import { getFormatedDate, getTodayDate } from "@next-pms/design-system";
 import { useInfiniteScroll } from "@next-pms/hooks";
-import { getFormatedDate, getTodayDate } from "@/lib/utils";
 
 import {
   ResourceAllocationCustomerProps,
@@ -16,7 +16,7 @@ interface TimeLineContextProps {
   customer: ResourceAllocationCustomerProps;
   filters: ResourceAllocationTimeLineFilterProps;
   apiControler: APIControlerProps;
-  setEmployeesData: (value: ResourceAllocationEmployeeProps[]) => void;
+  setEmployeesData: (value: ResourceAllocationEmployeeProps[], hasMore: boolean) => void;
   setAllocationsData: (value: ResourceAllocationTimeLineProps[]) => void;
   setCustomerData: (value: ResourceAllocationCustomerProps) => void;
   getLastTimeLineItem: () => string;

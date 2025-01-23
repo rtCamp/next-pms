@@ -1,12 +1,16 @@
+/**
+ * External dependencies.
+ */
 import { useCallback, useContext, useEffect } from "react";
 import { useSelector } from "react-redux";
+import { getUTCDateTime } from "@next-pms/design-system";
 import { Spinner, useToast } from "@next-pms/design-system/components";
 import { useFrappePostCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
-import { getDateTimeForMultipleTimeZoneSupport, parseFrappeErrorMsg } from "@/lib/utils";
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { PermissionProps } from "@/store/resource_management/allocation";
 
@@ -24,11 +28,13 @@ interface ResourceTeamAPIBodyProps {
 
 const ResourceTimeLineView = () => {
   return (
-    <TableContextProvider>
-      <TimeLineContextProvider>
-        <ResourceTimeLineComponet />
-      </TimeLineContextProvider>
-    </TableContextProvider>
+    <>
+      <TableContextProvider>
+        <TimeLineContextProvider>
+          <ResourceTimeLineComponet />
+        </TimeLineContextProvider>
+      </TableContextProvider>
+    </>
   );
 };
 
@@ -44,7 +50,6 @@ const ResourceTimeLineComponet = () => {
     setAllocationsData,
   } = useContext(TimeLineContext);
 
-  // const resourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
   const resourceAllocationPermission: PermissionProps = useSelector(
     (state: RootState) => state.resource_allocation_form.permissions
   );
@@ -116,9 +121,9 @@ const ResourceTimeLineComponet = () => {
           " to " +
           allocation.allocation_end_date +
           ")",
-        start_time: getDateTimeForMultipleTimeZoneSupport(allocation.allocation_start_date).getTime(),
-        end_time: getDateTimeForMultipleTimeZoneSupport(allocation.allocation_end_date).setDate(
-          getDateTimeForMultipleTimeZoneSupport(allocation.allocation_end_date).getDate() + 1
+        start_time: getUTCDateTime(allocation.allocation_start_date).getTime(),
+        end_time: getUTCDateTime(allocation.allocation_end_date).setDate(
+          getUTCDateTime(allocation.allocation_end_date).getDate() + 1
         ),
         customerData: {
           ...updatedData.customer[allocation.customer],

@@ -4,26 +4,39 @@
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import {
+  Table,
+  TableHead,
+  TableHeader,
+  TableRow,
+  TableBody,
+  TableCell,
+  Typography,
+  Skeleton,
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+  Spinner,
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@next-pms/design-system/components";
+import { prettyDate } from "@next-pms/design-system/date";
+import { useToast } from "@next-pms/design-system/hooks";
+import { floatToTime, preProcessLink } from "@next-pms/design-system/utils";
 import { useInfiniteScroll } from "@next-pms/hooks";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { CircleCheck, Hourglass, CircleX } from "lucide-react";
-
 /**
  * Internal dependencies.
  */
-
-import { Spinner } from "@/app/components/spinner";
-import { WeekTotal } from "@/app/components/TimesheetTable";
-import { Typography } from "@/app/components/typography";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
-import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar";
-
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/app/components/ui/hover-card";
-import { Skeleton } from "@/app/components/ui/skeleton";
-import { Table, TableHead, TableHeader, TableRow, TableBody, TableCell } from "@/app/components/ui/table";
-import { useToast } from "@/app/components/ui/use-toast";
+import { WeekTotal } from "@/app/components/timesheet-table/components/weekTotal";
 import { TEAM, EMPLOYEE } from "@/lib/constant";
-import { parseFrappeErrorMsg, prettyDate, floatToTime, cn, preProcessLink } from "@/lib/utils";
+import { parseFrappeErrorMsg, cn } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setData, setStart, updateData, setDateRange, setEmployee, setReFetchData } from "@/store/team";
 import { ItemProps, dataItem } from "@/types/team";

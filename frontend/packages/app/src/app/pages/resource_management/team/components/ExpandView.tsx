@@ -3,16 +3,16 @@
  */
 import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Table, TableBody, TableRow } from "@next-pms/design-system/components";
+import { prettyDate } from "@next-pms/design-system/date";
 
 /**
  * Internal dependencies.
  */
-import { Table, TableBody, TableRow } from "@/app/components/ui/table";
-import { cn, prettyDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { RootState } from "@/store";
 import { AllocationDataProps, setResourceFormData } from "@/store/resource_management/allocation";
 import { DateProps, EmployeeDataProps } from "@/store/resource_management/team";
-
 import { EmptyRow } from "../../components/Empty";
 import { ResourceAllocationList } from "../../components/ResourceAllocationList";
 import { ResourceTableCell, TableInformationCellContent } from "../../components/TableCell";
