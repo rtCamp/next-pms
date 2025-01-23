@@ -204,8 +204,8 @@ function Timesheet() {
       {isLoading && Object.keys(timesheet.data?.data).length == 0 ? (
         <Spinner isFull />
       ) : (
-        <div className="w-full h-full overflow-x-auto">
-          <InfiniteScroll isLoading={isLoading} hasMore={true} verticalLodMore={loadData}>
+        <div className="w-full h-full overflow-y-auto">
+          <InfiniteScroll isLoading={isLoading} hasMore={true} verticalLodMore={loadData} className="w-full">
             <Main>
               {timesheet.data?.data &&
                 Object.keys(timesheet.data?.data).length > 0 &&

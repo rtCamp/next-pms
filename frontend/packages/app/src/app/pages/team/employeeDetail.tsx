@@ -216,8 +216,8 @@ const EmployeeDetail = () => {
           ignoreDefaultFilters={true}
         />
       </Header>
-      <div className="w-full h-full overflow-x-auto">
-        <InfiniteScroll isLoading={isLoading} hasMore={true} verticalLodMore={handleLoadData}>
+      <div className="w-full h-full overflow-y-auto">
+        <InfiniteScroll isLoading={isLoading} hasMore={true} verticalLodMore={handleLoadData} className="w-full">
           <Main>
             <Tabs defaultValue="timesheet" className="relative">
               <div className="flex gap-x-4 pt-3 px-0 sticky top-0 z-10 transition-shadow duration-300 backdrop-blur-sm bg-background">
