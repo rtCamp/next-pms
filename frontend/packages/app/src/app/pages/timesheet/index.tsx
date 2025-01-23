@@ -241,7 +241,7 @@ function Timesheet() {
                     }
                   });
                   return (
-                    <Accordion type="multiple" key={key} defaultValue={Object.keys(timesheet.data?.data)}>
+                    <Accordion type="single" collapsible key={key} defaultValue={key}>
                       <AccordionItem value={key}>
                         <AccordionTrigger className="hover:no-underline w-full py-2 max-md:[&>svg]:hidden">
                           <div className="flex justify-between items-center w-full group gap-2 ">
