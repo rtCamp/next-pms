@@ -51,7 +51,7 @@ type Holiday = {
   description: string;
 };
 
-export const Approval = ({ onClose }: { onClose: () => void }) => {
+export const Approval = ({ onClose }: { onClose: (data:any) => void }) => {
   const { toast } = useToast();
   const teamState = useSelector((state: RootState) => state.team);
   const [timesheetData, setTimesheetData] = useState<timesheet>();
@@ -93,7 +93,7 @@ export const Approval = ({ onClose }: { onClose: () => void }) => {
   const handleOpen = () => {
     if (isRejecting || isSubmitting) return;
     const data = { start_date: "", end_date: "" };
-    onClose();
+    onClose(selectedDates[0]);
     dispatch(setDateRange({ dateRange: data, isAprrovalDialogOpen: false }));
   };
   const handleApproval = () => {
