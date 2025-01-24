@@ -1,5 +1,25 @@
 import { getFormatedDate, getUTCDateTime, normalizeDate } from "@next-pms/design-system";
-import { TimesheetState } from "@/store/timesheet";
+import { DataProp } from "@/types/timesheet";
+
+export interface TimesheetState {
+  timesheet: {
+    name: string;
+    task: string;
+    date: string;
+    description: string;
+    hours: number;
+    employee: string;
+    project?: string;
+  };
+  dateRange: { start_date: string; end_date: string };
+
+  data: DataProp;
+  isDialogOpen: boolean;
+  isEditDialogOpen: boolean;
+  isAprrovalDialogOpen: boolean;
+  isLeaveDialogOpen: boolean;
+  weekDate: string;
+}
 
 export const isDateInRange = (
   date: string,
