@@ -31,8 +31,8 @@ export type AllocationDataProps = {
   project_name: string;
   customer: string;
   customer_name: string;
-  total_allocated_hours: number;
-  hours_allocated_per_day: number;
+  total_allocated_hours: string;
+  hours_allocated_per_day: string;
   allocation_start_date: string;
   allocation_end_date: string;
   note: string;
@@ -64,7 +64,7 @@ const ResourceTeamSlice = createSlice({
   name: "resource_allocation_form",
   initialState,
   reducers: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     setDialog: (state, action: PayloadAction<boolean>) => {
       state.isShowDialog = action.payload;
     },
@@ -118,6 +118,6 @@ export const {
   setResourceFormData,
   setResourcePermissions,
   resetState,
-  resetResourcePermissions
+  resetResourcePermissions,
 } = ResourceTeamSlice.actions;
 export default ResourceTeamSlice.reducer;

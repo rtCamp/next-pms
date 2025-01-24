@@ -17,7 +17,7 @@ import { Moment } from "moment";
 import { Header } from "@/app/components/list-view/header";
 import { cn } from "@/lib/utils";
 import { RootState } from "@/store";
-import { PermissionProps, setResourcePermissions } from "@/store/resource_management/allocation";
+import { PermissionProps, setDialog, setResourcePermissions } from "@/store/resource_management/allocation";
 import { Skill } from "@/store/resource_management/team";
 
 import { ResourceAllocationItemProps } from "./types";
@@ -232,7 +232,7 @@ const ResourceTimLineHeaderSection = () => {
         {
           title: "add-allocation",
           handleClick: () => {
-            // dispatch(setDialog(true));
+            dispatch(setDialog(true));
           },
           className: "px-3",
           icon: () => <Plus className="w-4 max-md:w-3 h-4 max-md:h-3 bg" />,

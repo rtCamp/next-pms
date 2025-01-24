@@ -307,7 +307,7 @@ const AddResourceAllocations = ({
 
   return (
     <Dialog open={resourceAllocationForm?.isShowDialog} onOpenChange={handleOpen}>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="max-w-xl bg-none z-[1000]">
         <DialogHeader>
           <DialogTitle className="flex gap-x-2 mb-2">
             {resourceAllocationForm.isNeedToEdit ? "Edit" : "Add"} Allocation

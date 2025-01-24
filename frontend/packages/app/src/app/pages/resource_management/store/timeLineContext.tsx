@@ -23,6 +23,7 @@ interface TimeLineContextProps {
   verticalLoderRef: (element: HTMLElement | null) => void;
   updateFilters: (filters: ResourceAllocationTimeLineFilterProps) => void;
   updateApiControler: (apiControler: APIControlerProps) => void;
+  getAllocationWithID: (id: string) => ResourceAllocationTimeLineProps;
 }
 
 interface APIControlerProps {
@@ -48,6 +49,7 @@ const TimeLineContext = createContext<TimeLineContextProps>({
   verticalLoderRef: () => {},
   updateFilters: () => {},
   updateApiControler: () => {},
+  getAllocationWithID: () => undefined,
 });
 
 const TimeLineContextProvider = ({ children }: TimeLineContextProviderProps) => {
@@ -88,6 +90,10 @@ const TimeLineContextProvider = ({ children }: TimeLineContextProviderProps) => 
   };
   const setCustomerData = (updatedCustomer: ResourceAllocationCustomerProps) => {
     setCustomer({ ...customer, ...updatedCustomer });
+  };
+
+  const getAllocationWithID = (id: string) => {
+    return allocations.find((allocation) => allocation.name == id);
   };
 
   const updateFilters = (updatedFilters: ResourceAllocationTimeLineFilterProps) => {
@@ -137,6 +143,7 @@ const TimeLineContextProvider = ({ children }: TimeLineContextProviderProps) => 
         verticalLoderRef,
         updateFilters,
         updateApiControler,
+        getAllocationWithID,
       }}
     >
       {children}

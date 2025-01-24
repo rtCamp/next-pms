@@ -3,6 +3,7 @@
  */
 import { useContext } from "react";
 import Timeline, { DateHeader, SidebarHeader, TimelineHeaders } from "react-calendar-timeline";
+import { useDispatch, useSelector } from "react-redux";
 import { getTodayDate, getUTCDateTime, prettyDate } from "@next-pms/design-system";
 import { TableHead } from "@next-pms/design-system/components";
 import { startOfWeek } from "date-fns";
@@ -12,16 +13,25 @@ import moment from "moment";
  * Internal dependencies.
  */
 import { cn } from "@/lib/utils";
+import { RootState } from "@/store";
+import { PermissionProps, setResourceFormData } from "@/store/resource_management/allocation";
 import ResourceTimeLineGroup from "./group";
 import { TimeLineDateHeader, TimeLineIntervalHeader } from "./header";
 import ResourceTimeLineItem from "./item";
+import { ResourceAllocationTimeLineProps } from "./types";
 import { TableContext } from "../store/tableContext";
 import { TimeLineContext } from "../store/timeLineContext";
 import { getDayKeyOfMoment } from "../utils/dates";
+import { getFormatedStringValue } from "../utils/value";
 
 const ResourceTimeLine = () => {
   const { tableProperties, getCellWidthString } = useContext(TableContext);
-  const { employees, allocations } = useContext(TimeLineContext);
+  const { employees, allocations, getAllocationWithID } = useContext(TimeLineContext);
+  const resourceAllocationPermission: PermissionProps = useSelector(
+    (state: RootState) => state.resource_allocation_form.permissions
+  );
+
+  const dispatch = useDispatch();
 
   const start = startOfWeek(getTodayDate(), {
     weekStartsOn: 1,
@@ -40,6 +50,53 @@ const ResourceTimeLine = () => {
     }
 
     return ["border-0"];
+  };
+
+  const setResourceAllocationDate = (resourceAllocation: ResourceAllocationTimeLineProps) => {
+    if (!resourceAllocationPermission.write) {
+      return;
+    }
+
+    dispatch(
+      setResourceFormData({
+        isShowDialog: true,
+        employee: resourceAllocation.employee,
+        employee_name: resourceAllocation.employee_name,
+        project: resourceAllocation.project,
+        allocation_start_date: resourceAllocation.allocation_start_date,
+        allocation_end_date: resourceAllocation.allocation_end_date,
+        is_billable: resourceAllocation.is_billable == 1,
+        customer: resourceAllocation.customer,
+        total_allocated_hours: getFormatedStringValue(resourceAllocation.total_allocated_hours),
+        hours_allocated_per_day: getFormatedStringValue(resourceAllocation.hours_allocated_per_day),
+        note: getFormatedStringValue(resourceAllocation.note),
+        project_name: resourceAllocation.project_name,
+        customer_name: resourceAllocation.customerData.name,
+        isNeedToEdit: false,
+        name: resourceAllocation.name,
+      })
+    );
+  };
+
+  const onItemMove = (itemId: string, dragTime: number, newGroupOrder: number) => {
+    console.log("onItemMove", itemId, dragTime, newGroupOrder);
+  };
+
+  const onItemResize = (itemId: string, time: number, edge: "left" | "right") => {
+    console.log("onItemResize", itemId, time, edge);
+  };
+
+  const onItemSelect = (itemId: string, e: MouseEvent, time: number) => {
+    console.log("onItemSelect", itemId, e, time);
+  };
+
+  const onItemClick = (itemId: string, e: MouseEvent, time: number) => {
+    console.log("onItemClick", itemId, e, time);
+  };
+
+  const onItemDoubleClick = (itemId: string) => {
+    const allocation = getAllocationWithID(itemId);
+    setResourceAllocationDate(allocation);
   };
 
   if (employees.length == 0) {
@@ -66,6 +123,11 @@ const ResourceTimeLine = () => {
         groupRenderer={ResourceTimeLineGroup}
         itemRenderer={ResourceTimeLineItem}
         verticalLineClassNamesForTime={getVerticalLineClassNamesForTime}
+        onItemMove={onItemMove}
+        onItemResize={onItemResize}
+        onItemSelect={onItemSelect}
+        onItemClick={onItemClick}
+        onItemDoubleClick={onItemDoubleClick}
         className="overflow-x-auto"
       >
         <TimelineHeaders

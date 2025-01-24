@@ -12,7 +12,7 @@ import { useFrappePostCall } from "frappe-react-sdk";
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
-import { PermissionProps } from "@/store/resource_management/allocation";
+import { AllocationDataProps, PermissionProps } from "@/store/resource_management/allocation";
 
 import { ResourceTimLineHeaderSection } from "./header";
 import { ResourceTimeLine } from "./timeLine";
@@ -20,6 +20,7 @@ import { ResourceAllocationEmployeeProps, ResourceAllocationTimeLineProps, Resou
 import { TableContextProvider } from "../store/tableContext";
 import { TimeLineContext, TimeLineContextProvider } from "../store/timeLineContext";
 import { getIsBillableValue } from "../utils/helper";
+import AddResourceAllocations from "../components/AddAllocation";
 
 interface ResourceTeamAPIBodyProps {
   date: string;
@@ -48,11 +49,13 @@ const ResourceTimeLineComponet = () => {
     setEmployeesData,
     setCustomerData,
     setAllocationsData,
+    updateFilters,
   } = useContext(TimeLineContext);
 
   const resourceAllocationPermission: PermissionProps = useSelector(
     (state: RootState) => state.resource_allocation_form.permissions
   );
+  const resourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
 
   const { call: fetchData } = useFrappePostCall(
     "next_pms.resource_management.api.team.get_resource_management_team_view_data"
@@ -162,6 +165,15 @@ const ResourceTimeLineComponet = () => {
     <>
       <ResourceTimLineHeaderSection />
       {apiControler.isLoading && employees.length == 0 ? <Spinner isFull /> : <ResourceTimeLine />}
+
+      {resourceAllocationForm.isShowDialog && (
+        <AddResourceAllocations
+          onSubmit={() => {
+            updateFilters(filters);
+            loadIntialData();
+          }}
+        />
+      )}
     </>
   );
 };
