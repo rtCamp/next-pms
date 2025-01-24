@@ -305,11 +305,9 @@ function Timesheet() {
           date={timesheet.timesheet.date}
           task={timesheet.timesheet.task}
           open={timesheet.isEditDialogOpen}
-          onClose={(data) => {
+          onClose={() => {
             dispatch({ type: "setEditDialogState", payload: false });
-            if (data?.length > 0) {
-              dispatch({ type: "setWeekDate", payload: data[0].date });
-            }
+            dispatch({ type: "setWeekDate", payload: timesheet.timesheet.date })
             mutate();
           }}
           user={user}

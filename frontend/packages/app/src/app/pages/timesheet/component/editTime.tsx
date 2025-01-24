@@ -43,7 +43,7 @@ interface EditTimeProps {
   date: string;
   task: string;
   open: boolean;
-  onClose: (data:any) => void;
+  onClose: () => void;
   user: UserState;
 }
 
@@ -152,7 +152,7 @@ export const EditTime = ({ employee, date, task, open, onClose,user }: EditTimeP
       });
   };
   return (
-    <Dialog open={open} onOpenChange={()=>onClose(form.getValues())}>
+    <Dialog open={open} onOpenChange={()=>onClose()}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Edit Time</DialogTitle>

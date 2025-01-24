@@ -213,8 +213,8 @@ const EmployeeDetail = () => {
           date={teamState.timesheet.date}
           task={teamState.timesheet.task}
           user={user}
-          onClose={(data) => {
-            dispatch(setEmployeeWeekDate(data.date));
+          onClose={() => {
+            dispatch(setEmployeeWeekDate(teamState.timesheet.date));
             dispatch(setEditDialog(false));
             mutate();
           }}
