@@ -23,7 +23,7 @@ const ResourceTimeLine = () => {
   const { tableProperties, getCellWidthString } = useContext(TableContext);
   const { employees, allocations } = useContext(TimeLineContext);
 
-  const start = startOfWeek(getUTCDateTime(getTodayDate()), {
+  const start = startOfWeek(getTodayDate(), {
     weekStartsOn: 1,
   });
 

@@ -27,20 +27,17 @@ def get_allocation_list_for_employee_for_given_range(
         return []
 
     if is_need_fetch_all_weeks:
-        # nosemgrep
-        return frappe.db.sql(
-            f"""
-        SELECT { ', '.join(columns)} FROM `tabResource Allocation`
-            WHERE {"employee" if value_key == "employee" else "project"} IN %(names)s
-            {get_is_billable_condition(is_billable)}
-            ORDER BY employee_name, allocation_start_date, allocation_end_date;
-    """,
-            {
-                "list_key": value_key,
-                "names": values,
-            },
-            as_dict=True,
-        )  # nosemgrep
+        filters = {}
+
+        if value_key == "employee":
+            filters["employee"] = ["in", values]
+        else:
+            filters["project"] = ["in", values]
+
+        if is_billable == "0" or is_billable == "1":
+            filters["is_billable"] = is_billable
+
+        return frappe.db.get_all("Resource Allocation", filters=filters, fields=columns)
 
     # Only ways was to write sql for this, normal frappe methods are not working, also try with query build but looks like it dont have support of nesting condition.
     # nosemgrep

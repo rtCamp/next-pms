@@ -26,7 +26,6 @@ import {
   setReportingManager,
   setView,
   setWeekDate,
-  setReFetchData,
   Skill,
   setSkillSearch,
 } from "@/store/resource_management/team";
@@ -167,10 +166,11 @@ const ResourceTeamHeaderSection = () => {
           hide: !resourceAllocationPermission.write,
           customFilterComponent: (
             <SkillSearch
-              onSubmit={() => {
-                dispatch(setReFetchData(true));
+              onSubmit={(skills) => {
+                dispatch(setSkillSearch(skills));
               }}
               setSkillSearchParam={setSkillSearchParam}
+              skillSearch={resourceTeamState?.skillSearch || []}
             />
           ),
         },
