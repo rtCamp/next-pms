@@ -17,10 +17,10 @@ import { AllocationDataProps, PermissionProps } from "@/store/resource_managemen
 import { ResourceTimLineHeaderSection } from "./header";
 import { ResourceTimeLine } from "./timeLine";
 import { ResourceAllocationEmployeeProps, ResourceAllocationTimeLineProps, ResourceTimeLineDataProps } from "./types";
+import AddResourceAllocations from "../components/AddAllocation";
 import { TableContextProvider } from "../store/tableContext";
 import { TimeLineContext, TimeLineContextProvider } from "../store/timeLineContext";
 import { getIsBillableValue } from "../utils/helper";
-import AddResourceAllocations from "../components/AddAllocation";
 
 interface ResourceTeamAPIBodyProps {
   date: string;
@@ -44,12 +44,13 @@ const ResourceTimeLineComponet = () => {
   const {
     apiControler,
     employees,
+    customer,
+    allocations,
     filters,
     updateApiControler,
     setEmployeesData,
     setCustomerData,
     setAllocationsData,
-    updateFilters,
   } = useContext(TimeLineContext);
 
   const resourceAllocationPermission: PermissionProps = useSelector(
@@ -117,13 +118,7 @@ const ResourceTimeLineComponet = () => {
         ...allocation,
         id: allocation.name,
         group: allocation.employee,
-        title:
-          allocation.employee_name +
-          "( " +
-          allocation.allocation_start_date +
-          " to " +
-          allocation.allocation_end_date +
-          ")",
+        title: allocation.name,
         start_time: getUTCDateTime(allocation.allocation_start_date).getTime(),
         end_time: getUTCDateTime(allocation.allocation_end_date).setDate(
           getUTCDateTime(allocation.allocation_end_date).getDate() + 1
@@ -154,6 +149,46 @@ const ResourceTimeLineComponet = () => {
     setAllocationsData(data.resource_allocations);
   }, [filters.weekDate, filters.start, handleApiCall, setEmployeesData, setCustomerData, setAllocationsData]);
 
+  const handleFormSubmite = useCallback(
+    (oldData: AllocationDataProps, newData: AllocationDataProps) => {
+      const employeeList = [];
+      const isOldEmployeeExits = employees.find((employee) => employee.name == oldData.employee);
+      const isNewEmployeeExits = employees.find((employee) => employee.name == oldData.employee);
+
+      if (isOldEmployeeExits) {
+        employeeList.push(oldData.employee);
+      }
+      if (isNewEmployeeExits) {
+        employeeList.push(newData.employee);
+      }
+
+      fetchData({
+        date: filters.weekDate,
+        employee_id: JSON.stringify(employeeList),
+        is_billable: getIsBillableValue(filters.allocationType as string[]),
+      }).then((res) => {
+        if (res.message) {
+          const updatedAllocations = allocations.filter(
+            (allocation) => allocation.employee != oldData.employee && allocation.employee != newData.employee
+          );
+          const filterData = filterApiData(res.message);
+          setAllocationsData([...updatedAllocations, ...filterData.resource_allocations], "Set");
+          setCustomerData({ ...customer, ...filterData.customer });
+        }
+      });
+    },
+    [
+      allocations,
+      customer,
+      employees,
+      fetchData,
+      filters.allocationType,
+      filters.weekDate,
+      setAllocationsData,
+      setCustomerData,
+    ]
+  );
+
   useEffect(() => {
     if (apiControler.isNeedToFetchDataAfterUpdate) {
       loadIntialData();
@@ -166,14 +201,7 @@ const ResourceTimeLineComponet = () => {
       <ResourceTimLineHeaderSection />
       {apiControler.isLoading && employees.length == 0 ? <Spinner isFull /> : <ResourceTimeLine />}
 
-      {resourceAllocationForm.isShowDialog && (
-        <AddResourceAllocations
-          onSubmit={() => {
-            updateFilters(filters);
-            loadIntialData();
-          }}
-        />
-      )}
+      {resourceAllocationForm.isShowDialog && <AddResourceAllocations onSubmit={handleFormSubmite} />}
     </>
   );
 };

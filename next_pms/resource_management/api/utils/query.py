@@ -37,7 +37,12 @@ def get_allocation_list_for_employee_for_given_range(
         if is_billable == "0" or is_billable == "1":
             filters["is_billable"] = is_billable
 
-        return frappe.db.get_all("Resource Allocation", filters=filters, fields=columns)
+        return frappe.db.get_all(
+            "Resource Allocation",
+            filters=filters,
+            fields=columns,
+            order_by="employee_name, allocation_start_date, allocation_end_date",
+        )
 
     # Only ways was to write sql for this, normal frappe methods are not working, also try with query build but looks like it dont have support of nesting condition.
     # nosemgrep

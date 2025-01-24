@@ -50,6 +50,12 @@ html,
 .react-calendar-timeline .rct-sidebar .rct-sidebar-row.rct-sidebar-row-odd,
 .react-calendar-timeline .rct-horizontal-lines .rct-hl-odd {
   background: none !important;
+  border-color: rgb(209 213 219) !important;
+}
+
+.react-calendar-timeline .rct-sidebar .rct-sidebar-row.rct-sidebar-row-even,
+.react-calendar-timeline .rct-horizontal-lines .rct-hl-event {
+  border-color: rgb(209 213 219) !important;
 }
 
 .rct-day-0,

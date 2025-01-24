@@ -5,8 +5,9 @@ import { useContext } from "react";
 import Timeline, { DateHeader, SidebarHeader, TimelineHeaders } from "react-calendar-timeline";
 import { useDispatch, useSelector } from "react-redux";
 import { getTodayDate, getUTCDateTime, prettyDate } from "@next-pms/design-system";
-import { TableHead } from "@next-pms/design-system/components";
+import { TableHead, useToast } from "@next-pms/design-system/components";
 import { startOfWeek } from "date-fns";
+import { useFrappeCreateDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
 import moment from "moment";
 
 /**
@@ -21,12 +22,13 @@ import ResourceTimeLineItem from "./item";
 import { ResourceAllocationTimeLineProps } from "./types";
 import { TableContext } from "../store/tableContext";
 import { TimeLineContext } from "../store/timeLineContext";
-import { getDayKeyOfMoment } from "../utils/dates";
+import { getDayDiff, getDayKeyOfMoment } from "../utils/dates";
 import { getFormatedStringValue } from "../utils/value";
 
 const ResourceTimeLine = () => {
   const { tableProperties, getCellWidthString } = useContext(TableContext);
-  const { employees, allocations, getAllocationWithID } = useContext(TimeLineContext);
+  const { employees, allocations, getAllocationWithID, updateAllocation, getEmployeeWithIndex } =
+    useContext(TimeLineContext);
   const resourceAllocationPermission: PermissionProps = useSelector(
     (state: RootState) => state.resource_allocation_form.permissions
   );
@@ -37,19 +39,61 @@ const ResourceTimeLine = () => {
     weekStartsOn: 1,
   });
 
+  const { createDoc: createAllocations } = useFrappeCreateDoc();
+  const { updateDoc: updateAllocations } = useFrappeUpdateDoc();
+
+  const { toast } = useToast();
+
   const getVerticalLineClassNamesForTime = (startTime: number) => {
     const today = getUTCDateTime(getTodayDate());
     if (startTime == today.getTime()) {
-      return ["border-l border-r border-gray-300 opacity-80"];
+      return ["border-l border-r border-gray-200 opacity-80"];
     }
 
     const { day } = prettyDate(getDayKeyOfMoment(moment(startTime)));
 
     if (day == "Sun") {
-      return ["border-l border-gray-300 opacity-80"];
+      return ["border-l border-gray-200 opacity-80"];
     }
 
     return ["border-0"];
+  };
+
+  const getAllocationApi = (data: ResourceAllocationTimeLineProps) => {
+    const doctypeDoc = {
+      employee: data.employee,
+      project: data.project,
+      customer: data.customer,
+      total_allocated_hours: data.total_allocated_hours,
+      hours_allocated_per_day: data.hours_allocated_per_day,
+      allocation_start_date: data.allocation_start_date,
+      allocation_end_date: data.allocation_end_date,
+      is_billable: data.is_billable ? 1 : 0,
+      note: data.note,
+    };
+    if (data.name) {
+      return updateAllocations("Resource Allocation", data.name, doctypeDoc);
+    }
+    return createAllocations("Resource Allocation", doctypeDoc);
+  };
+
+  const updateAllocationApi = (allocation: ResourceAllocationTimeLineProps) => {
+    const updatedAllocation = updateAllocation({
+      ...allocation,
+    });
+    getAllocationApi(updatedAllocation)
+      .then(() => {
+        toast({
+          variant: "success",
+          description: "Resouce allocation updated successfully",
+        });
+      })
+      .catch(() => {
+        toast({
+          variant: "destructive",
+          description: "Failed to updated resource allocation",
+        });
+      });
   };
 
   const setResourceAllocationDate = (resourceAllocation: ResourceAllocationTimeLineProps) => {
@@ -72,26 +116,53 @@ const ResourceTimeLine = () => {
         note: getFormatedStringValue(resourceAllocation.note),
         project_name: resourceAllocation.project_name,
         customer_name: resourceAllocation.customerData.name,
-        isNeedToEdit: false,
+        isNeedToEdit: true,
         name: resourceAllocation.name,
       })
     );
   };
 
   const onItemMove = (itemId: string, dragTime: number, newGroupOrder: number) => {
-    console.log("onItemMove", itemId, dragTime, newGroupOrder);
+    const allocation: ResourceAllocationTimeLineProps = getAllocationWithID(itemId);
+    const newStartData: string = getDayKeyOfMoment(moment(dragTime));
+    const diffOfDays = getDayDiff(allocation.allocation_start_date, allocation.allocation_end_date);
+    const newEndData: string = getDayKeyOfMoment(moment(dragTime).add(diffOfDays, "days"));
+    const employee = getEmployeeWithIndex(newGroupOrder);
+
+    updateAllocationApi({
+      ...allocation,
+      allocation_start_date: newStartData,
+      allocation_end_date: newEndData,
+      start_time: getUTCDateTime(newStartData).getTime(),
+      end_time: getUTCDateTime(newEndData).setDate(getUTCDateTime(newEndData).getDate() + 1),
+      employee: employee.name,
+      employee_name: employee.employee_name,
+      group: employee.name,
+    });
   };
 
   const onItemResize = (itemId: string, time: number, edge: "left" | "right") => {
-    console.log("onItemResize", itemId, time, edge);
-  };
+    const allocation: ResourceAllocationTimeLineProps = getAllocationWithID(itemId);
+    const diffOfDays = getDayDiff(allocation.allocation_start_date, allocation.allocation_end_date);
 
-  const onItemSelect = (itemId: string, e: MouseEvent, time: number) => {
-    console.log("onItemSelect", itemId, e, time);
-  };
+    let newStartData = "",
+      newEndData = "";
 
-  const onItemClick = (itemId: string, e: MouseEvent, time: number) => {
-    console.log("onItemClick", itemId, e, time);
+    if (edge === "left") {
+      newStartData = getDayKeyOfMoment(moment(time));
+      newEndData = getDayKeyOfMoment(moment(time).add(diffOfDays, "days"));
+    } else {
+      newEndData = getDayKeyOfMoment(moment(time));
+      newStartData = getDayKeyOfMoment(moment(time).add(-diffOfDays, "days"));
+    }
+
+    updateAllocationApi({
+      ...allocation,
+      allocation_start_date: newStartData,
+      allocation_end_date: newEndData,
+      start_time: getUTCDateTime(newStartData).getTime(),
+      end_time: getUTCDateTime(newEndData).setDate(getUTCDateTime(newEndData).getDate() + 1),
+    });
   };
 
   const onItemDoubleClick = (itemId: string) => {
@@ -125,8 +196,6 @@ const ResourceTimeLine = () => {
         verticalLineClassNamesForTime={getVerticalLineClassNamesForTime}
         onItemMove={onItemMove}
         onItemResize={onItemResize}
-        onItemSelect={onItemSelect}
-        onItemClick={onItemClick}
         onItemDoubleClick={onItemDoubleClick}
         className="overflow-x-auto"
       >

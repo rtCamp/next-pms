@@ -58,6 +58,8 @@ const ResourceTimeLineItem = ({
       background: resourceAllocation.is_billable ? "rgba(147, 221, 137, 0.39)" : "#d7d77b26",
       borderRadius: "4px",
       border: "1px solid #d1d5db",
+      borderWidth: 0,
+      transform: itemContext.selected ? "scaleY(1.07)" : "scaleY(1)",
     },
   };
 

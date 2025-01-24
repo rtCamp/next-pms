@@ -17,13 +17,15 @@ interface TimeLineContextProps {
   filters: ResourceAllocationTimeLineFilterProps;
   apiControler: APIControlerProps;
   setEmployeesData: (value: ResourceAllocationEmployeeProps[], hasMore: boolean) => void;
-  setAllocationsData: (value: ResourceAllocationTimeLineProps[]) => void;
+  setAllocationsData: (value: ResourceAllocationTimeLineProps[], type?: "Set" | "Update") => void;
   setCustomerData: (value: ResourceAllocationCustomerProps) => void;
   getLastTimeLineItem: () => string;
   verticalLoderRef: (element: HTMLElement | null) => void;
   updateFilters: (filters: ResourceAllocationTimeLineFilterProps) => void;
   updateApiControler: (apiControler: APIControlerProps) => void;
   getAllocationWithID: (id: string) => ResourceAllocationTimeLineProps;
+  updateAllocation: (updatedAllocation: ResourceAllocationTimeLineProps) => ResourceAllocationTimeLineProps;
+  getEmployeeWithIndex: (index: number) => ResourceAllocationEmployeeProps | -1;
 }
 
 interface APIControlerProps {
@@ -49,7 +51,9 @@ const TimeLineContext = createContext<TimeLineContextProps>({
   verticalLoderRef: () => {},
   updateFilters: () => {},
   updateApiControler: () => {},
-  getAllocationWithID: () => undefined,
+  getAllocationWithID: () => {},
+  updateAllocation: () => {},
+  getEmployeeWithIndex: () => -1,
 });
 
 const TimeLineContextProvider = ({ children }: TimeLineContextProviderProps) => {
@@ -85,8 +89,12 @@ const TimeLineContextProvider = ({ children }: TimeLineContextProviderProps) => 
     setEmployees([...employees, ...updatedEmployees]);
     updateApiControler({ isNeedToFetchDataAfterUpdate: false, isLoading: false, hasMore: hasMore });
   };
-  const setAllocationsData = (updatedAllocations: ResourceAllocationTimeLineProps[]) => {
-    setAllocations([...allocations, ...updatedAllocations]);
+  const setAllocationsData = (updatedAllocations: ResourceAllocationTimeLineProps[], type = "Update") => {
+    if (type == "Update") {
+      setAllocations([...allocations, ...updatedAllocations]);
+      return;
+    }
+    setAllocations(updatedAllocations);
   };
   const setCustomerData = (updatedCustomer: ResourceAllocationCustomerProps) => {
     setCustomer({ ...customer, ...updatedCustomer });
@@ -94,6 +102,20 @@ const TimeLineContextProvider = ({ children }: TimeLineContextProviderProps) => 
 
   const getAllocationWithID = (id: string) => {
     return allocations.find((allocation) => allocation.name == id);
+  };
+
+  const getEmployeeWithIndex = (index: number) => {
+    return index <= employees.length - 1 ? employees[index] : -1;
+  };
+
+  const updateAllocation = (updatedAllocation: ResourceAllocationTimeLineProps) => {
+    const updatedAllocations = allocations.map((allocation) => {
+      return allocation.name === updatedAllocation.name ? updatedAllocation : allocation;
+    });
+
+    setAllocations([...updatedAllocations]);
+
+    return updatedAllocation;
   };
 
   const updateFilters = (updatedFilters: ResourceAllocationTimeLineFilterProps) => {
@@ -144,6 +166,8 @@ const TimeLineContextProvider = ({ children }: TimeLineContextProviderProps) => 
         updateFilters,
         updateApiControler,
         getAllocationWithID,
+        getEmployeeWithIndex,
+        updateAllocation,
       }}
     >
       {children}
