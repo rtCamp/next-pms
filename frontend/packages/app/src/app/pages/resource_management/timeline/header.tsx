@@ -3,7 +3,7 @@
  */
 import { useContext, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getTodayDate, prettyDate } from "@next-pms/design-system";
+import { getMonthKey, getTodayDate, prettyDate } from "@next-pms/design-system";
 import { TableHead, Typography } from "@next-pms/design-system/components";
 import { useQueryParam } from "@next-pms/hooks";
 import { startOfWeek } from "date-fns";
@@ -24,7 +24,7 @@ import { ResourceAllocationItemProps } from "./types";
 import { TableContext } from "../store/tableContext";
 import { TimeLineContext } from "../store/timeLineContext";
 import SkillSearch from "../team/components/SkillSearch";
-import { getDayKeyOfMoment, getMonthKey } from "../utils/dates";
+import { getDayKeyOfMoment } from "../utils/dates";
 
 interface TimeLineHeaderFunctionProps {
   getIntervalProps: () => ResourceAllocationItemProps;

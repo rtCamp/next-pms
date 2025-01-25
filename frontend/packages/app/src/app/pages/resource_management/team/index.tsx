@@ -3,6 +3,7 @@
  */
 import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { getNextDate } from "@next-pms/design-system";
 import { Spinner, useToast } from "@next-pms/design-system/components";
 import { useInfiniteScroll } from "@next-pms/hooks";
 import { useFrappePostCall } from "frappe-react-sdk";
@@ -25,7 +26,7 @@ import {
 import AddResourceAllocations from "../components/AddAllocation";
 import { ResourceTeamHeaderSection } from "./components/Header";
 import { ResourceTeamTable } from "./components/Table";
-import { getDatesArrays, getNextDate } from "../utils/dates";
+import { getDatesArrays } from "../utils/dates";
 import { getIsBillableValue } from "../utils/helper";
 
 interface ResourceTeamAPIBodyProps {
@@ -217,7 +218,7 @@ const ResourceTeamView = () => {
           data = updateHorizontalData(
             {
               ...res,
-              date: getNextDate(req.date, req.max_week + isNeedToUpdateReqWeeks ? 10 : 0),
+              date: getNextDate(req.date, req.max_week + (isNeedToUpdateReqWeeks ? 10 : 0)),
               max_week: req.max_week,
               start: currentStartCopy,
               page_length: resourceTeamState.pageLength,

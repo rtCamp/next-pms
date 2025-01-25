@@ -132,7 +132,7 @@ const SkillSearch = ({
           {skillSearch!.length > 0 && <Badge className="p-0 justify-center w-5 h-5">{skillSearch?.length}</Badge>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80">
+      <PopoverContent align="end" className="w-80 z-[1000]">
         <div>
           <h1>Skill Search</h1>
         </div>
