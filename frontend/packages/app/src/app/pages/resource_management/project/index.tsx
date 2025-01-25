@@ -3,6 +3,7 @@
  */
 import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { getNextDate } from "@next-pms/design-system";
 import { Spinner, useToast } from "@next-pms/design-system/components";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 /**
@@ -17,7 +18,6 @@ import AddResourceAllocations from "../components/AddAllocation";
 import { ResourceProjectHeaderSection } from "./components/Header";
 import { getIsBillableValue } from "../utils/helper";
 import { ResourceProjectTable } from "./components/Table";
-import { getNextDate } from "../utils/dates";
 
 /**
  * This is main component which is responsible for rendering the project view of resource management.

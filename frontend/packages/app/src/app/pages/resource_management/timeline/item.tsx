@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { ItemContext } from "react-calendar-timeline";
-import { prettyDate } from "@next-pms/design-system";
+import { getDayDiff, prettyDate } from "@next-pms/design-system";
 import { Avatar, AvatarFallback, AvatarImage, Typography } from "@next-pms/design-system/components";
 
 /**
@@ -10,7 +10,6 @@ import { Avatar, AvatarFallback, AvatarImage, Typography } from "@next-pms/desig
  */
 import { cn } from "@/lib/utils";
 import { ResourceAllocationItemProps, ResourceAllocationTimeLineProps } from "./types";
-import { getDayDiff } from "../utils/dates";
 import { getFilterValue, getInitials } from "../utils/helper";
 
 interface ResourceTimeLineItemProps {

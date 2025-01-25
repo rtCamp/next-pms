@@ -49,7 +49,7 @@ const DatePicker = ({ date, disabled, onDateChange, disabledDates, ...props }: D
             <CalendarIcon className=" stroke-slate-400" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent>
+        <PopoverContent className="z-[1000]">
           {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
           {/* @ts-expect-error */}
           <Calendar mode="single" selected={pickerDate} onSelect={onDateSelect} disabled={disabledDates} {...props} />
