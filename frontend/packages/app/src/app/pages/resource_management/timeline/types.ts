@@ -53,6 +53,8 @@ interface ResourceAllocationTimeLineProps extends ResourceAllocationProps {
   group: string;
   start_time: number;
   end_time: number;
+  canDelete: boolean;
+  onDelete: () => void;
 }
 
 interface ResourceTimeLineDataProps {

@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { ResourceAllocationItemProps, ResourceAllocationTimeLineProps } from "./types";
 import { getDayDiff } from "../utils/dates";
 import { getFilterValue, getInitials } from "../utils/helper";
+import { DeleteIcon } from "../components/ResourceAllocationList";
 
 interface ResourceTimeLineItemProps {
   item: ResourceAllocationTimeLineProps;
@@ -35,12 +36,8 @@ const ResourceTimeLineItem = ({
 
     const title = `${startDate} - ${endDate} (${resourceAllocation.hours_allocated_per_day} hours/day)`;
 
-    if (dayDiff <= 0) {
-      return getFilterValue(title, 2);
-    }
-
-    if (dayDiff <= 2) {
-      return getFilterValue(title, 4);
+    if (dayDiff <= 4) {
+      return getFilterValue(title, 3);
     }
 
     return title;
@@ -92,6 +89,14 @@ const ResourceTimeLineItem = ({
           >
             {getTitle()}
           </Typography>
+          {itemContext.selected && resourceAllocation.canDelete && (
+            <DeleteIcon
+              resourceAllocation={resourceAllocation}
+              resourceAllocationPermission={{ delete: resourceAllocation.canDelete }}
+              buttonClassName={cn("text-red-500 z-[1000] cusror-pointer hover:text-red-600 ml-2  w-3")}
+              onSubmit={resourceAllocation.onDelete}
+            />
+          )}
         </div>
       </div>
 

@@ -104,6 +104,7 @@ const ResourceTimeLineComponet = () => {
     [fetchData, getFilterApiBody, toast]
   );
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const filterApiData = (data: ResourceTimeLineDataProps) => {
     const updatedData = { ...data };
 
@@ -126,6 +127,8 @@ const ResourceTimeLineComponet = () => {
         customerData: {
           ...updatedData.customer[allocation.customer],
         },
+        canDelete: resourceAllocationPermission.delete,
+        onDelete: handleFormSubmite,
       })
     );
 
@@ -147,7 +150,7 @@ const ResourceTimeLineComponet = () => {
     setEmployeesData(data.employees, mainThredData.has_more);
     setCustomerData(data.customer);
     setAllocationsData(data.resource_allocations);
-  }, [filters.weekDate, filters.start, handleApiCall, setEmployeesData, setCustomerData, setAllocationsData]);
+  }, [filters.weekDate, filters.start, handleApiCall, filterApiData, setEmployeesData, setCustomerData, setAllocationsData]);
 
   const handleFormSubmite = useCallback(
     (oldData: AllocationDataProps, newData: AllocationDataProps) => {
@@ -177,16 +180,7 @@ const ResourceTimeLineComponet = () => {
         }
       });
     },
-    [
-      allocations,
-      customer,
-      employees,
-      fetchData,
-      filters.allocationType,
-      filters.weekDate,
-      setAllocationsData,
-      setCustomerData,
-    ]
+    [allocations, customer, employees, fetchData, filterApiData, filters.allocationType, filters.weekDate, setAllocationsData, setCustomerData]
   );
 
   useEffect(() => {
