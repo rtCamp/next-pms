@@ -16,6 +16,7 @@ interface TimeLineContextProps {
   customer: ResourceAllocationCustomerProps;
   filters: ResourceAllocationTimeLineFilterProps;
   apiControler: APIControlerProps;
+  allocationData: { isNeedToDelete: boolean; old?: ResourceAllocationTimeLineProps; new?: ResourceAllocationTimeLineProps };
   setEmployeesData: (value: ResourceAllocationEmployeeProps[], hasMore: boolean) => void;
   setAllocationsData: (value: ResourceAllocationTimeLineProps[], type?: "Set" | "Update") => void;
   setCustomerData: (value: ResourceAllocationCustomerProps) => void;
@@ -24,8 +25,13 @@ interface TimeLineContextProps {
   updateFilters: (filters: ResourceAllocationTimeLineFilterProps) => void;
   updateApiControler: (apiControler: APIControlerProps) => void;
   getAllocationWithID: (id: string) => ResourceAllocationTimeLineProps;
-  updateAllocation: (updatedAllocation: ResourceAllocationTimeLineProps) => ResourceAllocationTimeLineProps;
+  updateAllocation: (
+    updatedAllocation: ResourceAllocationTimeLineProps,
+    type?: "Append" | "Update"
+  ) => ResourceAllocationTimeLineProps;
   getEmployeeWithIndex: (index: number) => ResourceAllocationEmployeeProps | -1;
+  isEmployeeExits: (name: string) => boolean | undefined;
+  setAllocationData: (value: { isNeedToDelete: boolean; old?: ResourceAllocationTimeLineProps; new?: ResourceAllocationTimeLineProps }) => void;
 }
 
 interface APIControlerProps {
@@ -54,6 +60,8 @@ const TimeLineContext = createContext<TimeLineContextProps>({
   getAllocationWithID: () => {},
   updateAllocation: () => {},
   getEmployeeWithIndex: () => -1,
+  isEmployeeExits: () => false,
+  setAllocationData: () => {},
 });
 
 const TimeLineContextProvider = ({ children }: TimeLineContextProviderProps) => {
@@ -78,6 +86,12 @@ const TimeLineContextProvider = ({ children }: TimeLineContextProviderProps) => 
     hasMore: true,
     isNeedToFetchDataAfterUpdate: false,
   });
+
+  const [allocationData, setAllocationData] = useState<{
+    old?: ResourceAllocationTimeLineProps;
+    new?: ResourceAllocationTimeLineProps;
+    isNeedToDelete: boolean;
+  }>({ isNeedToDelete: false });
 
   const verticalLoderRef = useInfiniteScroll({
     isLoading: apiControler.isLoading,
@@ -108,7 +122,16 @@ const TimeLineContextProvider = ({ children }: TimeLineContextProviderProps) => 
     return index <= employees.length - 1 ? employees[index] : -1;
   };
 
-  const updateAllocation = (updatedAllocation: ResourceAllocationTimeLineProps) => {
+  const isEmployeeExits = (name: string) => {
+    return employees.find((employee) => employee.name == name) ? true : false;
+  };
+
+  const updateAllocation = (updatedAllocation: ResourceAllocationTimeLineProps, type = "Update") => {
+    if (type == "Append") {
+      setAllocations([...allocations, updatedAllocation]);
+      return updatedAllocation;
+    }
+
     const updatedAllocations = allocations.map((allocation) => {
       return allocation.name === updatedAllocation.name ? updatedAllocation : allocation;
     });
@@ -158,7 +181,9 @@ const TimeLineContextProvider = ({ children }: TimeLineContextProviderProps) => 
         customer,
         filters,
         apiControler,
+        allocationData,
         setEmployeesData,
+        setAllocationData,
         setAllocationsData,
         setCustomerData,
         getLastTimeLineItem,
@@ -168,6 +193,7 @@ const TimeLineContextProvider = ({ children }: TimeLineContextProviderProps) => 
         getAllocationWithID,
         getEmployeeWithIndex,
         updateAllocation,
+        isEmployeeExits,
       }}
     >
       {children}

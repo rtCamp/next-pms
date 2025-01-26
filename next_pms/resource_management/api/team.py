@@ -55,33 +55,34 @@ def get_resource_management_team_view_data(
 
     ids = None
 
-    if not skills:
-        skills = []
-    if isinstance(skills, str):
-        skills = json.loads(skills)
-    if skills:
-        ids = get_employees_by_skills(skills)
-        if len(ids) == 0:
-            if not need_hours_summary:
-                res["employees"] = []
-                res["resource_allocations"] = []
-                res["customer"] = {}
-                res["total_count"] = 0
-                res["has_more"] = False
-                res["permissions"] = permissions
-                return res
-
-            res["data"] = data
-            res["customer"] = customer
-            res["total_count"] = 0
-            res["has_more"] = False
-            res["permissions"] = permissions
-            return res
-
     if employee_id:
         if isinstance(employee_id, str):
             employee_id = json.loads(employee_id)
         ids = employee_id
+
+    if not employee_id:
+        if not skills:
+            skills = []
+        if isinstance(skills, str):
+            skills = json.loads(skills)
+        if skills:
+            ids = get_employees_by_skills(skills)
+            if len(ids) == 0:
+                if not need_hours_summary:
+                    res["employees"] = []
+                    res["resource_allocations"] = []
+                    res["customer"] = {}
+                    res["total_count"] = 0
+                    res["has_more"] = False
+                    res["permissions"] = permissions
+                    return res
+
+                res["data"] = data
+                res["customer"] = customer
+                res["total_count"] = 0
+                res["has_more"] = False
+                res["permissions"] = permissions
+                return res
 
     employees, total_count = filter_employees(
         employee_name,

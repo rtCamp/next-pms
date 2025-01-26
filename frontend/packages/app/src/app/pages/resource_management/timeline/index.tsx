@@ -47,10 +47,13 @@ const ResourceTimeLineComponet = () => {
     customer,
     allocations,
     filters,
+    allocationData,
     updateApiControler,
     setEmployeesData,
     setCustomerData,
     setAllocationsData,
+    isEmployeeExits,
+    setAllocationData,
   } = useContext(TimeLineContext);
 
   const resourceAllocationPermission: PermissionProps = useSelector(
@@ -104,36 +107,49 @@ const ResourceTimeLineComponet = () => {
     [fetchData, getFilterApiBody, toast]
   );
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const filterApiData = (data: ResourceTimeLineDataProps) => {
-    const updatedData = { ...data };
+  const handleDelete = useCallback(
+    (oldData: AllocationDataProps, newData: AllocationDataProps) => {
+      setAllocationData({
+        old: oldData,
+        new: newData,
+        isNeedToDelete: true,
+      });
+    },
+    [setAllocationData]
+  );
 
-    updatedData.employees = updatedData.employees.map((employee: ResourceAllocationEmployeeProps) => ({
-      ...employee,
-      id: employee.name,
-      title: employee.employee_name,
-    }));
+  const filterApiData = useCallback(
+    (data: ResourceTimeLineDataProps) => {
+      const updatedData = { ...data };
 
-    updatedData.resource_allocations = updatedData.resource_allocations.map(
-      (allocation: ResourceAllocationTimeLineProps) => ({
-        ...allocation,
-        id: allocation.name,
-        group: allocation.employee,
-        title: allocation.name,
-        start_time: getUTCDateTime(allocation.allocation_start_date).getTime(),
-        end_time: getUTCDateTime(allocation.allocation_end_date).setDate(
-          getUTCDateTime(allocation.allocation_end_date).getDate() + 1
-        ),
-        customerData: {
-          ...updatedData.customer[allocation.customer],
-        },
-        canDelete: resourceAllocationPermission.delete,
-        onDelete: handleFormSubmite,
-      })
-    );
+      updatedData.employees = updatedData.employees.map((employee: ResourceAllocationEmployeeProps) => ({
+        ...employee,
+        id: employee.name,
+        title: employee.employee_name,
+      }));
 
-    return updatedData;
-  };
+      updatedData.resource_allocations = updatedData.resource_allocations.map(
+        (allocation: ResourceAllocationTimeLineProps) => ({
+          ...allocation,
+          id: allocation.name,
+          group: allocation.employee,
+          title: allocation.name,
+          start_time: getUTCDateTime(allocation.allocation_start_date).getTime(),
+          end_time: getUTCDateTime(allocation.allocation_end_date).setDate(
+            getUTCDateTime(allocation.allocation_end_date).getDate() + 1
+          ),
+          customerData: {
+            ...updatedData.customer[allocation.customer],
+          },
+          canDelete: resourceAllocationPermission.delete,
+          onDelete: handleDelete,
+        })
+      );
+
+      return updatedData;
+    },
+    [handleDelete, resourceAllocationPermission.delete]
+  );
 
   const loadIntialData = useCallback(async () => {
     const req = {
@@ -150,13 +166,25 @@ const ResourceTimeLineComponet = () => {
     setEmployeesData(data.employees, mainThredData.has_more);
     setCustomerData(data.customer);
     setAllocationsData(data.resource_allocations);
-  }, [filters.weekDate, filters.start, handleApiCall, filterApiData, setEmployeesData, setCustomerData, setAllocationsData]);
+  }, [
+    filters.weekDate,
+    filters.start,
+    handleApiCall,
+    filterApiData,
+    setEmployeesData,
+    setCustomerData,
+    setAllocationsData,
+  ]);
 
-  const handleFormSubmite = useCallback(
-    (oldData: AllocationDataProps, newData: AllocationDataProps) => {
+  const handleFormSubmit = useCallback(
+    (
+      oldData: ResourceAllocationTimeLineProps | undefined = undefined,
+      newData: ResourceAllocationTimeLineProps | undefined = undefined
+    ) => {
+      if (!oldData || !newData) return;
       const employeeList = [];
-      const isOldEmployeeExits = employees.find((employee) => employee.name == oldData.employee);
-      const isNewEmployeeExits = employees.find((employee) => employee.name == oldData.employee);
+      const isOldEmployeeExits = isEmployeeExits(oldData.employee);
+      const isNewEmployeeExits = isEmployeeExits(newData.employee);
 
       if (isOldEmployeeExits) {
         employeeList.push(oldData.employee);
@@ -164,6 +192,8 @@ const ResourceTimeLineComponet = () => {
       if (isNewEmployeeExits) {
         employeeList.push(newData.employee);
       }
+
+      if (employeeList.length == 0) return;
 
       fetchData({
         date: filters.weekDate,
@@ -180,7 +210,7 @@ const ResourceTimeLineComponet = () => {
         }
       });
     },
-    [allocations, customer, employees, fetchData, filterApiData, filters.allocationType, filters.weekDate, setAllocationsData, setCustomerData]
+    [allocations, customer, fetchData, filterApiData, filters, isEmployeeExits, setAllocationsData, setCustomerData]
   );
 
   useEffect(() => {
@@ -190,12 +220,23 @@ const ResourceTimeLineComponet = () => {
     }
   }, [loadIntialData, apiControler.isNeedToFetchDataAfterUpdate, updateApiControler]);
 
+  useEffect(() => {
+    if (allocationData.isNeedToDelete) {
+      handleFormSubmit(allocationData.old, allocationData.new);
+      setAllocationData({ isNeedToDelete: false });
+    }
+  }, [allocationData.isNeedToDelete, allocationData.new, allocationData.old, handleFormSubmit, setAllocationData]);
+
   return (
     <>
       <ResourceTimLineHeaderSection />
-      {apiControler.isLoading && employees.length == 0 ? <Spinner isFull /> : <ResourceTimeLine />}
+      {apiControler.isLoading && employees.length == 0 ? (
+        <Spinner isFull />
+      ) : (
+        <ResourceTimeLine handleFormSubmit={handleFormSubmit} />
+      )}
 
-      {resourceAllocationForm.isShowDialog && <AddResourceAllocations onSubmit={handleFormSubmite} />}
+      {resourceAllocationForm.isShowDialog && <AddResourceAllocations onSubmit={handleFormSubmit} />}
     </>
   );
 };
