@@ -1,9 +1,22 @@
 /**
  * External dependencies.
  */
+import { useState } from "react";
 import { ItemContext } from "react-calendar-timeline";
 import { getDayDiff, prettyDate } from "@next-pms/design-system";
-import { Avatar, AvatarFallback, AvatarImage, Typography } from "@next-pms/design-system/components";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  Typography,
+} from "@next-pms/design-system/components";
+import { X, Move, Copy } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -30,19 +43,31 @@ const ResourceTimeLineItem = ({
   const { date: startDate } = prettyDate(resourceAllocation.allocation_start_date);
   const { date: endDate } = prettyDate(resourceAllocation.allocation_end_date);
 
-  const getTitle = () => {
+  const getTitle = (isNeedFullTitle=false) => {
     const dayDiff = getDayDiff(resourceAllocation.allocation_start_date, resourceAllocation.allocation_end_date);
 
-    const title = `${startDate} - ${endDate} (${resourceAllocation.hours_allocated_per_day} hours/day)`;
+    const title = `${
+      resourceAllocation.project_name ? resourceAllocation.project_name + " " : ""
+    }${startDate} - ${endDate} (${resourceAllocation.hours_allocated_per_day} hours/day)`;
 
-    if (dayDiff <= 4) {
+    if(isNeedFullTitle){
+      return title;
+    }
+
+    if (dayDiff <= 0) {
+      return "";
+    }
+
+    if (dayDiff <= 2) {
       return getFilterValue(title, 3);
+    }
+
+    if (dayDiff <= 3) {
+      return getFilterValue(title, 2);
     }
 
     return title;
   };
-
-  const titleToolTip = `${resourceAllocation.customerData.name} : ${resourceAllocation.hours_allocated_per_day} hours/day (${startDate} - ${endDate})`;
 
   let itemProps = getItemProps(resourceAllocation.itemProps);
 
@@ -55,7 +80,6 @@ const ResourceTimeLineItem = ({
       borderRadius: "4px",
       border: "1px solid #d1d5db",
       borderWidth: 0,
-      transform: itemContext.selected ? "scaleY(1.07)" : "scaleY(1)",
     },
   };
 
@@ -66,7 +90,7 @@ const ResourceTimeLineItem = ({
       <div
         className={cn("rct-item-content overflow-hidden")}
         style={{ maxHeight: `${itemContext.dimensions.height}` }}
-        title={titleToolTip}
+        title={getTitle(true)}
       >
         <div className="flex justify-center gap-[2px] h-full w-full" style={{ alignItems: "center" }}>
           <Avatar className="w-5 h-5">
@@ -92,7 +116,7 @@ const ResourceTimeLineItem = ({
             <DeleteIcon
               resourceAllocation={resourceAllocation}
               resourceAllocationPermission={{ delete: resourceAllocation.canDelete }}
-              buttonClassName={cn("text-red-500 z-[1000] cusror-pointer hover:text-red-600 ml-2  w-3")}
+              buttonClassName={cn("text-red-500 z-[1000] cusror-pointer hover:text-red-600  w-3")}
               onSubmit={resourceAllocation.onDelete}
             />
           )}
@@ -101,6 +125,77 @@ const ResourceTimeLineItem = ({
 
       {itemContext.useResizeHandle ? <div {...rightResizeProps} /> : ""}
     </div>
+  );
+};
+
+interface ItemAllocationActionDialogProps {
+  handleMove: () => void;
+  handleCopy: () => void;
+  handleCancel: () => void;
+}
+
+export const ItemAllocationActionDialog = ({
+  handleMove,
+  handleCopy,
+  handleCancel,
+}: ItemAllocationActionDialogProps) => {
+  const [open, setOpen] = useState(true);
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(open: boolean) => {
+        setOpen(open);
+        handleCancel();
+      }}
+    >
+      <DialogContent className="sm:max-w-[425px] z-[1000]">
+        <DialogHeader>
+          <DialogDescription>
+            <Typography className="text-xl mb-2 mt-3 font-semibold">
+              Are you sure you want to move or copy this allocation?
+            </Typography>
+            <Typography className="text-sm">
+              This action will either move or copy the given allocation. Please confirm your choice.
+            </Typography>
+          </DialogDescription>
+        </DialogHeader>
+
+        <DialogFooter>
+          <Button
+            className="outline-none"
+            onClick={() => {
+              setOpen(false);
+              handleMove();
+            }}
+          >
+            <Move className="w-4 h-4" />
+            Move
+          </Button>
+          <Button
+            className="outline-none"
+            onClick={() => {
+              setOpen(false);
+              handleCopy();
+            }}
+          >
+            <Copy className="w-4 h-4" />
+            Copy
+          </Button>
+          <Button
+            type="button"
+            className="outline-none"
+            variant="secondary"
+            onClick={() => {
+              handleCancel();
+            }}
+          >
+            <X className="w-4 h-4" />
+            Cancel
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import Timeline, { DateHeader, SidebarHeader, TimelineHeaders } from "react-calendar-timeline";
 import { useDispatch, useSelector } from "react-redux";
 import { getDayDiff, getTodayDate, getUTCDateTime, prettyDate } from "@next-pms/design-system";
@@ -18,22 +18,35 @@ import { RootState } from "@/store";
 import { PermissionProps, setResourceFormData } from "@/store/resource_management/allocation";
 import ResourceTimeLineGroup from "./group";
 import { TimeLineDateHeader, TimeLineIntervalHeader } from "./header";
-import ResourceTimeLineItem from "./item";
+import ResourceTimeLineItem, { ItemAllocationActionDialog } from "./item";
 import { ResourceAllocationTimeLineProps } from "./types";
 import { TableContext } from "../store/tableContext";
 import { TimeLineContext } from "../store/timeLineContext";
 import { getDayKeyOfMoment } from "../utils/dates";
 import { getFormatedStringValue } from "../utils/value";
 
-const ResourceTimeLine = () => {
+interface ResourceTimeLineProps {
+  handleFormSubmit: (oldData: ResourceAllocationTimeLineProps, newData: ResourceAllocationTimeLineProps) => void;
+}
+
+const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
   const { tableProperties, getCellWidthString } = useContext(TableContext);
-  const { employees, allocations, getAllocationWithID, updateAllocation, getEmployeeWithIndex } =
-    useContext(TimeLineContext);
+  const {
+    employees,
+    allocations,
+    allocationData,
+    getAllocationWithID,
+    updateAllocation,
+    getEmployeeWithIndex,
+    setAllocationData,
+  } = useContext(TimeLineContext);
   const resourceAllocationPermission: PermissionProps = useSelector(
     (state: RootState) => state.resource_allocation_form.permissions
   );
 
   const dispatch = useDispatch();
+
+  const [showItemAllocationActionDialog, setShowItemAllocationActionDialog] = useState(false);
 
   const start = startOfWeek(getTodayDate(), {
     weekStartsOn: 1,
@@ -77,18 +90,26 @@ const ResourceTimeLine = () => {
     return createAllocations("Resource Allocation", doctypeDoc);
   };
 
-  const updateAllocationApi = (allocation: ResourceAllocationTimeLineProps) => {
-    const updatedAllocation = updateAllocation({
-      ...allocation,
-    });
+  const updateAllocationApi = (allocation: ResourceAllocationTimeLineProps, needsStateRefresh: boolean = true) => {
+    let updatedAllocation = allocation;
+
+    if (needsStateRefresh) {
+      updatedAllocation = updateAllocation({
+        ...allocation,
+      });
+    }
+
     getAllocationApi(updatedAllocation)
       .then(() => {
+        if (!needsStateRefresh) {
+          handleFormSubmit(allocationData.old, allocationData.new);
+        }
         toast({
           variant: "success",
           description: "Resouce allocation updated successfully",
         });
       })
-      .catch(() => {
+      .catch((err) => {
         toast({
           variant: "destructive",
           description: "Failed to updated resource allocation",
@@ -96,7 +117,7 @@ const ResourceTimeLine = () => {
       });
   };
 
-  const setResourceAllocationDate = (resourceAllocation: ResourceAllocationTimeLineProps) => {
+  const setResourceAllocationData = (resourceAllocation: ResourceAllocationTimeLineProps) => {
     if (!resourceAllocationPermission.write) {
       return;
     }
@@ -129,7 +150,7 @@ const ResourceTimeLine = () => {
     const newEndData: string = getDayKeyOfMoment(moment(dragTime).add(diffOfDays, "days"));
     const employee = getEmployeeWithIndex(newGroupOrder);
 
-    updateAllocationApi({
+    const updatedAllocation = {
       ...allocation,
       allocation_start_date: newStartData,
       allocation_end_date: newEndData,
@@ -138,22 +159,29 @@ const ResourceTimeLine = () => {
       employee: employee.name,
       employee_name: employee.employee_name,
       group: employee.name,
-    });
+    };
+
+    if (employee.name !== allocation.employee) {
+      setAllocationData({ old: allocation, new: updatedAllocation, isNeedToDelete: false });
+      setShowItemAllocationActionDialog(true);
+      return;
+    }
+
+    updateAllocationApi(updatedAllocation);
   };
 
   const onItemResize = (itemId: string, time: number, edge: "left" | "right") => {
     const allocation: ResourceAllocationTimeLineProps = getAllocationWithID(itemId);
-    const diffOfDays = getDayDiff(allocation.allocation_start_date, allocation.allocation_end_date);
 
     let newStartData = "",
       newEndData = "";
 
     if (edge === "left") {
       newStartData = getDayKeyOfMoment(moment(time));
-      newEndData = getDayKeyOfMoment(moment(time).add(diffOfDays, "days"));
+      newEndData = allocation.allocation_end_date;
     } else {
       newEndData = getDayKeyOfMoment(moment(time));
-      newStartData = getDayKeyOfMoment(moment(time).add(-diffOfDays, "days"));
+      newStartData = allocation.allocation_start_date;
     }
 
     updateAllocationApi({
@@ -167,7 +195,7 @@ const ResourceTimeLine = () => {
 
   const onItemDoubleClick = (itemId: string) => {
     const allocation = getAllocationWithID(itemId);
-    setResourceAllocationDate(allocation);
+    setResourceAllocationData(allocation);
   };
 
   if (employees.length == 0) {
@@ -224,6 +252,22 @@ const ResourceTimeLine = () => {
           />
         </TimelineHeaders>
       </Timeline>
+
+      {showItemAllocationActionDialog && (
+        <ItemAllocationActionDialog
+          handleMove={() => {
+            updateAllocationApi(allocationData.new, false);
+            setShowItemAllocationActionDialog(false);
+          }}
+          handleCopy={() => {
+            updateAllocationApi({ ...allocationData.new, name: "" }, false);
+            setShowItemAllocationActionDialog(false);
+          }}
+          handleCancel={() => {
+            setShowItemAllocationActionDialog(false);
+          }}
+        />
+      )}
     </>
   );
 };

@@ -303,6 +303,7 @@ const DeleteIcon = ({
         });
         if (onSubmit) {
           onSubmit(resourceAllocation, resourceAllocation);
+          setIsOpen(false)
         }
       })
       .catch(() => {

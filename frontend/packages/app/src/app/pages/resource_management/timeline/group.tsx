@@ -2,23 +2,57 @@
  * External dependencies.
  */
 import { useContext } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getFormatedDate, getTodayDate } from "@next-pms/design-system";
 import { Avatar, AvatarFallback, AvatarImage } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
  */
+import { RootState } from "@/store";
+import { PermissionProps, setResourceFormData } from "@/store/resource_management/allocation";
 import { ResourceAllocationEmployeeProps } from "./types";
 import { TableInformationCellContent } from "../components/TableCell";
 import { TimeLineContext } from "../store/timeLineContext";
+import { getIsBillableValue } from "../utils/helper";
 
 interface ResourceTimeLineGroupProps {
   group: ResourceAllocationEmployeeProps;
 }
 
 const ResourceTimeLineGroup = ({ group }: ResourceTimeLineGroupProps) => {
-  const { getLastTimeLineItem, verticalLoderRef } = useContext(TimeLineContext);
-
+  const { getLastTimeLineItem, verticalLoderRef, filters } = useContext(TimeLineContext);
   const lastEmployee = getLastTimeLineItem() == group.name;
+  const dispatch = useDispatch();
+  const resourceAllocationPermission: PermissionProps = useSelector(
+    (state: RootState) => state.resource_allocation_form.permissions
+  );
+
+  const setResourceAllocationData = () => {
+    if (!resourceAllocationPermission.write) {
+      return;
+    }
+
+    dispatch(
+      setResourceFormData({
+        isShowDialog: true,
+        employee: group.name,
+        employee_name: group.employee_name,
+        project: "",
+        allocation_start_date: getFormatedDate(getTodayDate()),
+        allocation_end_date: getFormatedDate(getTodayDate()),
+        is_billable: getIsBillableValue(filters.allocationType as string[]) != "0",
+        customer: "",
+        total_allocated_hours: "0",
+        hours_allocated_per_day: "0",
+        note: "",
+        project_name: "",
+        customer_name: "",
+        isNeedToEdit: false,
+        name: "",
+      })
+    );
+  };
 
   return (
     <TableInformationCellContent
@@ -33,6 +67,7 @@ const ResourceTimeLineGroup = ({ group }: ResourceTimeLineGroupProps) => {
       }}
       value={group.employee_name}
       cellRef={lastEmployee ? verticalLoderRef : null}
+      onClick={setResourceAllocationData}
     />
   );
 };
