@@ -78,7 +78,7 @@ const ResourceTimeLineItem = ({
       border: "1px solid #d1d5db",
       borderWidth: 0,
       borderRightWidth: resourceAllocation.canDelete && itemContext.selected ? 3 : 0,
-      overflow: "hidden",
+      overflow: dayDiff <= 10 ? "hidden" : "visible",
     },
   };
 
@@ -92,7 +92,7 @@ const ResourceTimeLineItem = ({
         title={getTitle(true)}
       >
         <div
-          className={cn("flex justify-start gap-[2px] h-full overflow-hidden", dayDiff == 0 && "justify-center")}
+          className={cn("flex justify-start gap-[2px] h-full w-full", dayDiff == 0 && "justify-center")}
           style={{ alignItems: "center" }}
         >
           {itemContext.selected && resourceAllocation.canDelete && (
@@ -119,7 +119,7 @@ const ResourceTimeLineItem = ({
             <Typography
               variant="small"
               className={cn(
-                "text-[12px] truncate overflow-hidden",
+                "text-[12px] truncate overflow-hidden block",
                 resourceAllocation.is_billable
                   ? "bg-gradient-to-r from-green-500 to-green-800 bg-clip-text text-transparent"
                   : "text-yellow-500"
