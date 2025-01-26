@@ -22,9 +22,9 @@ import { X, Move, Copy } from "lucide-react";
  * Internal dependencies.
  */
 import { cn } from "@/lib/utils";
-import { ResourceAllocationItemProps, ResourceAllocationTimeLineProps } from "./types";
-import { DeleteIcon } from "../components/ResourceAllocationList";
-import { getFilterValue, getInitials } from "../utils/helper";
+import { ResourceAllocationItemProps, ResourceAllocationTimeLineProps } from "../types";
+import { DeleteIcon } from "../../components/ResourceAllocationList";
+import { getFilterValue, getInitials } from "../../utils/helper";
 
 interface ResourceTimeLineItemProps {
   item: ResourceAllocationTimeLineProps;
@@ -43,14 +43,14 @@ const ResourceTimeLineItem = ({
   const { date: startDate } = prettyDate(resourceAllocation.allocation_start_date);
   const { date: endDate } = prettyDate(resourceAllocation.allocation_end_date);
 
-  const getTitle = (isNeedFullTitle=false) => {
+  const getTitle = (isNeedFullTitle = false) => {
     const dayDiff = getDayDiff(resourceAllocation.allocation_start_date, resourceAllocation.allocation_end_date);
 
     const title = `${
       resourceAllocation.project_name ? resourceAllocation.project_name + " " : ""
     }${startDate} - ${endDate} (${resourceAllocation.hours_allocated_per_day} hours/day)`;
 
-    if(isNeedFullTitle){
+    if (isNeedFullTitle) {
       return title;
     }
 
@@ -80,6 +80,7 @@ const ResourceTimeLineItem = ({
       borderRadius: "4px",
       border: "1px solid #d1d5db",
       borderWidth: 0,
+      borderRightWidth: resourceAllocation.canDelete && itemContext.selected ? 3 : 0,
     },
   };
 

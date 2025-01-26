@@ -18,12 +18,12 @@ import { RootState } from "@/store";
 import { PermissionProps, setResourceFormData } from "@/store/resource_management/allocation";
 import ResourceTimeLineGroup from "./group";
 import { TimeLineDateHeader, TimeLineIntervalHeader } from "./header";
+import { ResourceAllocationTimeLineProps } from "../types";
 import ResourceTimeLineItem, { ItemAllocationActionDialog } from "./item";
-import { ResourceAllocationTimeLineProps } from "./types";
-import { TableContext } from "../store/tableContext";
-import { TimeLineContext } from "../store/timeLineContext";
-import { getDayKeyOfMoment } from "../utils/dates";
-import { getFormatedStringValue } from "../utils/value";
+import { TableContext } from "../../store/tableContext";
+import { TimeLineContext } from "../../store/timeLineContext";
+import { getDayKeyOfMoment } from "../../utils/dates";
+import { getFormatedStringValue } from "../../utils/value";
 
 interface ResourceTimeLineProps {
   handleFormSubmit: (oldData: ResourceAllocationTimeLineProps, newData: ResourceAllocationTimeLineProps) => void;
@@ -58,18 +58,27 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
   const { toast } = useToast();
 
   const getVerticalLineClassNamesForTime = (startTime: number) => {
-    const today = getUTCDateTime(getTodayDate());
-    if (startTime == today.getTime()) {
-      return ["border-l border-r border-gray-200 opacity-80"];
-    }
-
+    const today = getTodayDate();
+    const currentDay = getDayKeyOfMoment(moment(startTime));
     const { day } = prettyDate(getDayKeyOfMoment(moment(startTime)));
 
+    let classNames = ["border-0"];
+
     if (day == "Sun") {
-      return ["border-l border-gray-200 opacity-80"];
+      classNames = ["border-r border-gray-300 opacity-80"];
     }
 
-    return ["border-0"];
+    if (currentDay == today) {
+      if (day == "Sat") {
+        classNames = ["border-l border-gray-300 opacity-80 rct-day-6-today"];
+      } else if (day == "Sun") {
+        classNames = ["border-l border-gray-300 opacity-80 rct-day-0-today"];
+      } else {
+        classNames = ["border-l border-r border-gray-300 opacity-80"];
+      }
+    }
+
+    return classNames;
   };
 
   const getAllocationApi = (data: ResourceAllocationTimeLineProps) => {
@@ -144,6 +153,10 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
   };
 
   const onItemMove = (itemId: string, dragTime: number, newGroupOrder: number) => {
+    if (!resourceAllocationPermission.write) {
+      return;
+    }
+
     const allocation: ResourceAllocationTimeLineProps = getAllocationWithID(itemId);
     const newStartData: string = getDayKeyOfMoment(moment(dragTime));
     const diffOfDays = getDayDiff(allocation.allocation_start_date, allocation.allocation_end_date);
@@ -171,6 +184,10 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
   };
 
   const onItemResize = (itemId: string, time: number, edge: "left" | "right") => {
+    if (!resourceAllocationPermission.write) {
+      return;
+    }
+
     const allocation: ResourceAllocationTimeLineProps = getAllocationWithID(itemId);
 
     let newStartData = "",
@@ -194,6 +211,9 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
   };
 
   const onItemDoubleClick = (itemId: string) => {
+    if (!resourceAllocationPermission.write) {
+      return;
+    }
     const allocation = getAllocationWithID(itemId);
     setResourceAllocationData(allocation);
   };
@@ -216,9 +236,12 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
         maxZoom={18 * 60 * 60 * 1000 * 24}
         lineHeight={50}
         itemHeightRatio={0.75}
-        canChangeGroup={true}
+        canMove={resourceAllocationPermission.write}
+        canChangeGroup={resourceAllocationPermission.write}
+        itemTouchSendsClick={resourceAllocationPermission.write}
         stackItems={true}
-        canResize="both"
+        showCursorLine
+        canResize={resourceAllocationPermission.write ? "both" : undefined}
         groupRenderer={ResourceTimeLineGroup}
         itemRenderer={ResourceTimeLineItem}
         verticalLineClassNamesForTime={getVerticalLineClassNamesForTime}
@@ -228,7 +251,7 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
         className="overflow-x-auto"
       >
         <TimelineHeaders
-          className="bg-slate-50 flex items-center text-[14px]"
+          className="bg-slate-50 flex items-center text-[14px] sticky"
           calendarHeaderClassName="border-0 border-l border-gray-300"
         >
           <SidebarHeader>

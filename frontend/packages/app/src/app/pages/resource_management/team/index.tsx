@@ -66,6 +66,7 @@ const ResourceTeamView = () => {
         ...req,
         employee_name: resourceTeamState.employeeName,
         page_length: resourceTeamState.pageLength,
+        need_hours_summary: true,
       };
       if (resourceAllocationPermission.write) {
         newReqBody = {
@@ -75,7 +76,6 @@ const ResourceTeamView = () => {
           designation: JSON.stringify(resourceTeamState.designation),
           is_billable: getIsBillableValue(resourceTeamState.allocationType as string[]),
           skills: resourceTeamState?.skillSearch?.length > 0 ? JSON.stringify(resourceTeamState.skillSearch) : null,
-          need_hours_summary: true,
         };
         return newReqBody;
       }

@@ -14,8 +14,8 @@ import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { AllocationDataProps, PermissionProps } from "@/store/resource_management/allocation";
 
-import { ResourceTimLineHeaderSection } from "./header";
-import { ResourceTimeLine } from "./timeLine";
+import { ResourceTimLineHeaderSection } from "./components/header";
+import { ResourceTimeLine } from "./components/timeLine";
 import { ResourceAllocationEmployeeProps, ResourceAllocationTimeLineProps, ResourceTeamAPIBodyProps, ResourceTimeLineDataProps } from "./types";
 import AddResourceAllocations from "../components/AddAllocation";
 import { TableContextProvider } from "../store/tableContext";
