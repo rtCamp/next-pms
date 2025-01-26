@@ -16,16 +16,11 @@ import { AllocationDataProps, PermissionProps } from "@/store/resource_managemen
 
 import { ResourceTimLineHeaderSection } from "./header";
 import { ResourceTimeLine } from "./timeLine";
-import { ResourceAllocationEmployeeProps, ResourceAllocationTimeLineProps, ResourceTimeLineDataProps } from "./types";
+import { ResourceAllocationEmployeeProps, ResourceAllocationTimeLineProps, ResourceTeamAPIBodyProps, ResourceTimeLineDataProps } from "./types";
 import AddResourceAllocations from "../components/AddAllocation";
 import { TableContextProvider } from "../store/tableContext";
 import { TimeLineContext, TimeLineContextProvider } from "../store/timeLineContext";
 import { getIsBillableValue } from "../utils/helper";
-
-interface ResourceTeamAPIBodyProps {
-  date: string;
-  start: number;
-}
 
 const ResourceTimeLineView = () => {
   return (
@@ -64,7 +59,7 @@ const ResourceTimeLineComponet = () => {
 
   const getFilterApiBody = useCallback(
     (req: ResourceTeamAPIBodyProps): ResourceTeamAPIBodyProps => {
-      let newReqBody = {
+      let newReqBody: ResourceTeamAPIBodyProps = {
         ...req,
         employee_name: filters.employeeName,
         page_length: filters.page_length,
@@ -76,11 +71,11 @@ const ResourceTimeLineComponet = () => {
           reports_to: filters.reportingManager,
           designation: JSON.stringify(filters.designation),
           is_billable: getIsBillableValue(filters.allocationType as string[]),
-          skills: filters?.skillSearch && filters?.skillSearch?.length > 0 ? JSON.stringify(filters.skillSearch) : null,
+          skills: filters?.skillSearch && filters?.skillSearch?.length > 0 ? JSON.stringify(filters.skillSearch) : "[]",
         };
         return newReqBody;
       }
-
+      
       return newReqBody;
     },
     [resourceAllocationPermission.write, filters]
@@ -136,7 +131,7 @@ const ResourceTimeLineComponet = () => {
   };
 
   const loadIntialData = useCallback(async () => {
-    const req = {
+    const req: ResourceTeamAPIBodyProps = {
       date: filters.weekDate,
       start: filters.start,
     };
@@ -150,7 +145,15 @@ const ResourceTimeLineComponet = () => {
     setEmployeesData(data.employees, mainThredData.has_more);
     setCustomerData(data.customer);
     setAllocationsData(data.resource_allocations);
-  }, [filters.weekDate, filters.start, handleApiCall, filterApiData, setEmployeesData, setCustomerData, setAllocationsData]);
+  }, [
+    filters.weekDate,
+    filters.start,
+    handleApiCall,
+    filterApiData,
+    setEmployeesData,
+    setCustomerData,
+    setAllocationsData,
+  ]);
 
   const handleFormSubmite = useCallback(
     (oldData: AllocationDataProps, newData: AllocationDataProps) => {
@@ -180,7 +183,17 @@ const ResourceTimeLineComponet = () => {
         }
       });
     },
-    [allocations, customer, employees, fetchData, filterApiData, filters.allocationType, filters.weekDate, setAllocationsData, setCustomerData]
+    [
+      allocations,
+      customer,
+      employees,
+      fetchData,
+      filterApiData,
+      filters.allocationType,
+      filters.weekDate,
+      setAllocationsData,
+      setCustomerData,
+    ]
   );
 
   useEffect(() => {

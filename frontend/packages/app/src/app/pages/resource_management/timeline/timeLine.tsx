@@ -4,7 +4,7 @@
 import { useContext } from "react";
 import Timeline, { DateHeader, SidebarHeader, TimelineHeaders } from "react-calendar-timeline";
 import { useDispatch, useSelector } from "react-redux";
-import { getTodayDate, getUTCDateTime, prettyDate } from "@next-pms/design-system";
+import { getDayDiff, getTodayDate, getUTCDateTime, prettyDate } from "@next-pms/design-system";
 import { TableHead, useToast } from "@next-pms/design-system/components";
 import { startOfWeek } from "date-fns";
 import { useFrappeCreateDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
@@ -22,7 +22,7 @@ import ResourceTimeLineItem from "./item";
 import { ResourceAllocationTimeLineProps } from "./types";
 import { TableContext } from "../store/tableContext";
 import { TimeLineContext } from "../store/timeLineContext";
-import { getDayDiff, getDayKeyOfMoment } from "../utils/dates";
+import { getDayKeyOfMoment } from "../utils/dates";
 import { getFormatedStringValue } from "../utils/value";
 
 const ResourceTimeLine = () => {

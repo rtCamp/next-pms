@@ -10,8 +10,8 @@ import { Avatar, AvatarFallback, AvatarImage, Typography } from "@next-pms/desig
  */
 import { cn } from "@/lib/utils";
 import { ResourceAllocationItemProps, ResourceAllocationTimeLineProps } from "./types";
-import { getFilterValue, getInitials } from "../utils/helper";
 import { DeleteIcon } from "../components/ResourceAllocationList";
+import { getFilterValue, getInitials } from "../utils/helper";
 
 interface ResourceTimeLineItemProps {
   item: ResourceAllocationTimeLineProps;
