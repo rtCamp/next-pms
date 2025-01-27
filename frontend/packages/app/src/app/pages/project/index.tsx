@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@next-pms/design-system/components";
-import { useToast } from "@next-pms/design-system/components";
+import { useToast } from "@next-pms/design-system/hooks";
 import { useInfiniteScroll } from "@next-pms/hooks";
 import {
   flexRender,
@@ -29,14 +29,14 @@ import _ from "lodash";
  * Internal dependencies
  */
 
-import ViewWrapper from "@/app/components/listview/ViewWrapper";
+import ViewWrapper from "@/app/components/list-view/viewWrapper";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setProjectData, setStart, setFilters, setReFetchData, updateProjectData } from "@/store/project";
 import { ViewData } from "@/store/view";
 import { DocMetaProps, sortOrder } from "@/types";
 import { getColumnInfo } from "./columns";
-import { Header as ProjectHeader } from "./Header";
+import { Header as ProjectHeader } from "./header";
 import { getFilter, createFilter } from "./utils";
 type ProjectProps = {
   viewData: ViewData;
@@ -83,7 +83,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   const { data, isLoading, error, mutate } = useFrappeGetCall(
     "next_pms.timesheet.api.project.get_projects",
     {
-      fields: [...viewInfo.rows,"_user_tags"],
+      fields: [...viewInfo.rows, "_user_tags"],
       filters: getFilter(projectState),
       start: projectState.start,
       page_length: projectState.pageLength,
@@ -122,12 +122,12 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
         description: err,
       });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, dispatch, error, toast,projectState.currency]);
-  
-  useEffect(()=>{
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, dispatch, error, toast, projectState.currency]);
+
+  useEffect(() => {
     dispatch(setReFetchData(true));
-  },[viewInfo.rows,dispatch])
+  }, [viewInfo.rows, dispatch]);
 
   useEffect(() => {
     const updateViewData = {
@@ -184,7 +184,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   });
 
   const handleColumnHide = (id: string) => {
-    setColumnOrder((prev)=>prev.filter(item => item !== id))
+    setColumnOrder((prev) => prev.filter((item) => item !== id));
   };
 
   const updateColumnSize = (columns: Array<string>) => {
@@ -202,7 +202,6 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   useEffect(() => {
     updateColumnSize(columnOrder);
   }, [columnOrder]);
-
 
   const handleLoadMore = () => {
     if (!projectState.hasMore || projectState.isLoading) return;
@@ -289,7 +288,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
               ) : (
                 <TableRow className="w-full">
                   {/* Adding plus (+1) one to make no results span complete width */}
-                  <TableCell colSpan={viewData.rows.length+1} className="h-24 text-center">
+                  <TableCell colSpan={viewData.rows.length + 1} className="h-24 text-center">
                     No results
                   </TableCell>
                 </TableRow>

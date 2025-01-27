@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { hourSchema } from "./timesheet";
+
 
 export const ResourceAllocationSchema = z
   .object({
@@ -8,19 +8,8 @@ export const ResourceAllocationSchema = z
       .trim()
       .min(1, { message: "Please select a customer." }),
     customer_name: z.string(),
-    // .string({
-    //   required_error: "Please select a customer.",
-    // })
-    // .trim()
-    // .min(1, { message: "Please select a customer." }),
     project: z.string(),
     project_name: z.string(),
-    //.string({
-    // .string({
-    //   required_error: "Please select a customer.",
-    // })
-    // .trim()
-    // .min(1, { message: "Please select a customer." }),
     hours_allocated_per_day: z.string(),
     total_allocated_hours: z.string().optional(),
     is_billable: z.boolean(),

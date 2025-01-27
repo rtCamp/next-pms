@@ -4,6 +4,7 @@
 export { default as Button, type ButtonProps } from "./button";
 export { default as Badge, type BadgeProps } from "./badge";
 export { default as Checkbox } from "./checkbox";
+export { type CheckedState } from "@radix-ui/react-checkbox"
 export { default as DeBouncedInput, type DeBounceInputProps } from "./debounced-input";
 export { default as Input, type InputProps } from "./input";
 export { default as Spinner, type SpinnerProp } from "./spinner";

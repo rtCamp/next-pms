@@ -5,16 +5,15 @@ import { useEffect, useState } from "react";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getUTCDateTime, getFormatedDate } from "@next-pms/design-system/date";
+import { useToast } from "@next-pms/design-system/hooks";
 import { getCoreRowModel, getSortedRowModel, useReactTable, ColumnSizingState } from "@tanstack/react-table";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import _ from "lodash";
-
 /**
  * Internal dependencies.
  */
 import AddTime from "@/app/components/AddTime";
-import ViewWrapper from "@/app/components/listview/ViewWrapper";
-import { useToast } from "@/app/components/ui/use-toast";
+import ViewWrapper from "@/app/components/list-view/viewWrapper";
 import { LIKED_TASK_KEY } from "@/lib/constant";
 import { addAction, toggleLikedByForTask } from "@/lib/storage";
 import { parseFrappeErrorMsg } from "@/lib/utils";
@@ -26,9 +25,9 @@ import { DocMetaProps } from "@/types";
 import { ColumnsType, columnsToExcludeActionsInTablesType } from "@/types/task";
 import { AddTask } from "./addTask";
 import { getColumn } from "./columns";
-import { Header } from "./Header";
-import { Table } from "./Table";
-import { TaskLog } from "./TaskLog";
+import { Header } from "./header";
+import { Table } from "./table";
+import { TaskLog } from "./taskLog";
 import { createFilter } from "./utils";
 
 const Task = () => {
@@ -156,7 +155,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, dispatch, error,viewInfo.filters.search]);
+  }, [data, dispatch, error, viewInfo.filters.search]);
 
   const handleLike = (e: React.MouseEvent<SVGSVGElement>) => {
     e.stopPropagation();

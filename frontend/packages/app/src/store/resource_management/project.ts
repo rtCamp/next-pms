@@ -1,9 +1,8 @@
 /**
  * External dependencies.
  */
+import { getTodayDate, getFormatedDate } from "@next-pms/design-system/date";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-
-import { getTodayDate, getFormatedDate } from "@/lib/utils";
 import {
   ResourceAllocationObjectProps,
   ResourceCustomerObjectProps,
