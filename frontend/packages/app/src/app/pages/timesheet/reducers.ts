@@ -1,3 +1,6 @@
+/**
+ * Internal dependencies
+ */
 import { initialState, TimesheetState } from "@/store/timesheet";
 import { DataProp } from "@/types/timesheet";
 
