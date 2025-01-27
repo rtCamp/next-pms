@@ -22,7 +22,7 @@ import { X, Move, Copy } from "lucide-react";
  * Internal dependencies.
  */
 import { cn } from "@/lib/utils";
-import { DeleteIcon } from "../../components/ResourceAllocationList";
+import { DeleteIcon } from "../../components/resourceAllocationList";
 import { getInitials } from "../../utils/helper";
 
 import { ResourceAllocationItemProps, ResourceAllocationTimeLineProps } from "../types";

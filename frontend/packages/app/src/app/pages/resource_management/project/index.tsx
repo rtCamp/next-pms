@@ -17,7 +17,7 @@ import { setData, setReFetchData, updateData } from "@/store/resource_management
 import AddResourceAllocations from "../components/AddAllocation";
 import { ResourceProjectHeaderSection } from "./components/Header";
 import { getIsBillableValue } from "../utils/helper";
-import { ResourceProjectTable } from "./components/Table";
+import { ResourceProjectTable } from "./components/table";
 
 /**
  * This is main component which is responsible for rendering the project view of resource management.

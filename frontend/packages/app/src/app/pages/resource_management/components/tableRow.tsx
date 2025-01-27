@@ -17,7 +17,7 @@ import {
  * Internal dependencies.
  */
 import { cn } from "@/lib/utils";
-import { TableInformationCellContent } from "./TableCell";
+import { TableInformationCellContent } from "./tableCell";
 import { getTableCellRow } from "../utils/helper";
 interface ResourceTeamTableRowProps {
   name: string;

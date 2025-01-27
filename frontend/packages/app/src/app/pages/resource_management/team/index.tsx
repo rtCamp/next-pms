@@ -24,8 +24,8 @@ import {
 } from "@/store/resource_management/team";
 
 import AddResourceAllocations from "../components/AddAllocation";
-import { ResourceTeamHeaderSection } from "./components/Header";
-import { ResourceTeamTable } from "./components/Table";
+import { ResourceTeamHeaderSection } from "./components/header";
+import { ResourceTeamTable } from "./components/table";
 import { getDatesArrays } from "../utils/dates";
 import { getIsBillableValue } from "../utils/helper";
 

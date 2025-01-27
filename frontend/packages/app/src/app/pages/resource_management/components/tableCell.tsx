@@ -15,7 +15,7 @@ import {
  * Internal dependencies.
  */
 import { cn } from "@/lib/utils";
-import { EmptyTableCell } from "./Empty";
+import { EmptyTableCell } from "./empty";
 import { TableContext } from "../store/tableContext";
 import { getFilterValue } from "../utils/helper";
 

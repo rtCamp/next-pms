@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@next-pms/design-system/com
  */
 import { RootState } from "@/store";
 import { PermissionProps, setResourceFormData } from "@/store/resource_management/allocation";
-import { TableInformationCellContent } from "../../components/TableCell";
+import { TableInformationCellContent } from "../../components/tableCell";
 import { TimeLineContext } from "../../store/timeLineContext";
 import { getIsBillableValue } from "../../utils/helper";
 import { ResourceAllocationEmployeeProps } from "../types";

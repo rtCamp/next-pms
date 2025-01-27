@@ -20,12 +20,12 @@ import {
 } from "@/store/resource_management/team";
 import { ResourceAllocationObjectProps } from "@/types/resource_management";
 
-import { ResourceExpandView } from "./ExpandView";
-import { EmptyTableBody } from "../../components/Empty";
-import { ResourceAllocationList } from "../../components/ResourceAllocationList";
-import { ResourceTableCell } from "../../components/TableCell";
+import { ResourceExpandView } from "./expandView";
+import { EmptyTableBody } from "../../components/empty";
+import { ResourceAllocationList } from "../../components/resourceAllocationList";
+import { ResourceTableCell } from "../../components/tableCell";
 import ResourceTeamTableHeader from "../../components/TableHeader";
-import { ResourceTableRow } from "../../components/TableRow";
+import { ResourceTableRow } from "../../components/tableRow";
 import { TableContextProvider } from "../../store/tableContext";
 import { getCellBackGroundColor } from "../../utils/cell";
 import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
