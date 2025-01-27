@@ -51,8 +51,9 @@ export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }
       hours = data.reduce((sum, item) => sum + (item.hours || 0), 0);
       description = data.reduce((desc, item) => desc + (item.description ? item.description + "\n" : ""), "").trim();
       isTimeBothBillableAndNonBillable =
-        data.some((item) => item.is_billable === false) && data.some((item) => item.is_billable === true);
-      isTimeBillable = data.every((item) => item.is_billable === true);
+        data.some((item) => item.is_billable === false ||item.is_billable === 0) &&
+        data.some((item) => item.is_billable === true || item.is_billable === 1);
+      isTimeBillable = data.every((item) => item.is_billable === true||item.is_billable === 1);
     }
 
     return { hours, description, isTimeBothBillableAndNonBillable, isTimeBillable };
