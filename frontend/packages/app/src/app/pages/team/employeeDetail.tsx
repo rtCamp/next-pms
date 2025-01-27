@@ -89,10 +89,8 @@ const EmployeeDetail = () => {
       hours: 0,
       isUpdate: false,
     };
-    dispatch({type:"setTimesheet",payload:{ timesheet, id }});
-    // dispatch(setTimesheet({ timesheet, id }));
-    dispatch({type:"setDialog",payload:true});
-    // dispatch(setDialog(true));
+    dispatch({type:"SET_TIMESHEET",payload:{ timesheet, id }});
+    dispatch({type:"SET_DIALOG",payload:true});
   };
   const handleLoadData = () => {
     if (teamState.timesheetData.data == undefined || Object.keys(teamState.timesheetData.data).length == 0) return;
@@ -101,28 +99,22 @@ const EmployeeDetail = () => {
     const obj = teamState.timesheetData.data[Object.keys(teamState.timesheetData.data).pop()];
     setstartDateParam("");
     const date = getFormatedDate(addDays(obj.start_date, -1));
-    dispatch({type:"setEmployeeWeekDate",payload:date});
-    // dispatch(setEmployeeWeekDate(date));
+    dispatch({type:"SET_EMPLOYEE_WEEK_DATE",payload:date});
   };
   useEffect(() => {
-    dispatch({type:"resetTimesheetDataState"});
-    // dispatch(resetTimesheetDataState());
+    dispatch({type:"RESET_TIMESHEET_DATA_STATE"});
     const date = getTodayDate();
-    dispatch({type:"setEmployeeWeekDate",payload:date});
-    // dispatch(setEmployeeWeekDate(date));
-    dispatch({type:"setEmployee",payload:id as string});
-    // dispatch(setEmployee(id as string));
+    dispatch({type:"SET_EMPLOYEE_WEEK_DATE",payload:date});
+    dispatch({type:"SET_EMPLOYEE",payload:id as string});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
     if (data) {
       if (teamState.timesheetData.data && Object.keys(teamState.timesheetData.data).length > 0) {
-        dispatch({type:"updateTimesheetData",payload:data.message});
-        // dispatch(updateTimesheetData(data.message));
+        dispatch({type:"UPDATE_TIMESHEET_DATA",payload:data.message});
       } else {
-        dispatch({type:"setTimesheetData",payload:data.message});
-        // dispatch(setTimesheetData(data.message));
+        dispatch({type:"SET_TIMESHEET_DATA",payload:data.message});
       }
     }
     if (error) {
@@ -141,8 +133,8 @@ const EmployeeDetail = () => {
       const obj = teamState.timesheetData.data;
       const info = obj[Object.keys(obj).pop()!];
       const date = getFormatedDate(addDays(info.start_date, -1));
-      dispatch({type:"setEmployeeWeekDate",payload:date});
-      // dispatch(setEmployeeWeekDate(date));
+      dispatch({type:"SET_EMPLOYEE_WEEK_DATE",payload:date});
+      // dispatch(SET_EMPLOYEE_WEEK_DATE(date));
     }
   }, [startDateParam, teamState.timesheetData.data]);
 
@@ -162,8 +154,8 @@ const EmployeeDetail = () => {
           end_date={teamState.dateRange.end_date}
           start_date={teamState.dateRange.start_date}
           onClose={(data) => {
-            dispatch({type:"setEmployeeWeekDate",payload:data});
-            dispatch({type:"setDateRange",payload:{ dateRange: { start_date: "", end_date: "" }, isAprrovalDialogOpen: false }});
+            dispatch({type:"SET_EMPLOYEE_WEEK_DATE",payload:data});
+            dispatch({type:"SET_DATE_RANGE",payload:{ dateRange: { start_date: "", end_date: "" }, isAprrovalDialogOpen: false }});
             mutate();
           }}
         />
@@ -172,15 +164,15 @@ const EmployeeDetail = () => {
         <AddTime
           open={teamState.isDialogOpen}
           onOpenChange={(data) => {
-            dispatch({type:"setEmployeeWeekDate",payload:data.date});
-            // dispatch(setEmployeeWeekDate(data.date));
+            dispatch({type:"SET_EMPLOYEE_WEEK_DATE",payload:data.date});
+            // dispatch(SET_EMPLOYEE_WEEK_DATE(data.date));
             mutate();
-            dispatch({type:"setDialog",payload:false});
-            // dispatch(setDialog(false));
+            dispatch({type:"SET_DIALOG",payload:false});
+            // dispatch(SET_DIALOG(false));
           }}
           onSuccess={(data) => {
-            dispatch({type:"setEmployeeWeekDate",payload:data.date});
-            // dispatch(setEmployeeWeekDate(data.date));
+            dispatch({type:"SET_EMPLOYEE_WEEK_DATE",payload:data.date});
+            // dispatch(SET_EMPLOYEE_WEEK_DATE(data.date));
             mutate();
           }}
           task={teamState.timesheet.task}
@@ -200,10 +192,10 @@ const EmployeeDetail = () => {
           task={teamState.timesheet.task}
           user={user}
           onClose={() => {
-            dispatch({type:"setEmployeeWeekDate",payload:teamState.timesheet.date});
-            // dispatch(setEmployeeWeekDate(teamState.timesheet.date));
-            dispatch({type:"setEditDialog",payload:false});
-            // dispatch(setEditDialog(false));
+            dispatch({type:"SET_EMPLOYEE_WEEK_DATE",payload:teamState.timesheet.date});
+            // dispatch(SET_EMPLOYEE_WEEK_DATE(teamState.timesheet.date));
+            dispatch({type:"SET_EDIT_DIALOG",payload:false});
+            // dispatch(SET_EDIT_DIALOG(false));
             mutate();
           }}
         />
@@ -281,14 +273,11 @@ const Timesheet = ({
   }, []);
 
   const onCellClick = (timesheet: NewTimesheetProps) => {
-    dispatch({type:"setTimesheet",payload:{ timesheet, id }});
-    // dispatch(setTimesheet({ timesheet, id }));
+    dispatch({type:"SET_TIMESHEET",payload:{ timesheet, id }});
     if (timesheet.hours > 0) {
-      dispatch({type:"setEditDialog",payload:true});
-      // dispatch(setEditDialog(true));
+      dispatch({type:"SET_EDIT_DIALOG",payload:true});
     } else {
-      dispatch({type:"setDialog",payload:true});
-      // dispatch(setDialog(true));
+      dispatch({type:"SET_DIALOG",payload:true});
     }
   };
 
@@ -309,8 +298,7 @@ const Timesheet = ({
       start_date: start_date,
       end_date: end_date,
     };    
-    dispatch({type:"setDateRange",payload:{ dateRange: data, isAprrovalDialogOpen: true }});
-    // dispatch(setDateRange({ dateRange: data, isAprrovalDialogOpen: true }));
+    dispatch({type:"SET_DATE_RANGE",payload:{ dateRange: data, isAprrovalDialogOpen: true }});
   };
   const working_hour = expectatedHours(teamState.timesheetData.working_hour, teamState.timesheetData.working_frequency);
   return (
@@ -468,8 +456,8 @@ export const Time = ({
       start_date: start_date,
       end_date: end_date,
     };
-    dispatch({type:"setDateRange",payload:{ dateRange: data, isAprrovalDialogOpen: true }})
-    // dispatch(setDateRange({ dateRange: data, isAprrovalDialogOpen: true }));
+    dispatch({type:"SET_DATE_RANGE",payload:{ dateRange: data, isAprrovalDialogOpen: true }})
+    // dispatch(SET_DATE_RANGE({ dateRange: data, isAprrovalDialogOpen: true }));
   };
   const holidays = teamState.timesheetData.holidays.map((holiday) => {
     if (typeof holiday === "object" && "holiday_date" in holiday) {

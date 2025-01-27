@@ -80,20 +80,17 @@ const Team = () => {
   useEffect(() => {
     if (teamState.isNeedToFetchDataAfterUpdate) {
       mutate();
-      dispatch({type:"setReFetchData",payload:false});
-      // dispatch(setReFetchData(false));
+      dispatch({type:"SET_REFETCH_DATA",payload:false});
     }
   }, [dispatch, mutate, teamState.isNeedToFetchDataAfterUpdate]);
 
   useEffect(() => {
     if (data) {
       if (teamState.action == "SET") {
-        dispatch({type:"setData",payload:data.message});
-        // dispatch(setData(data.message));
+        dispatch({type:"SET_DATA",payload:data.message});
         console.log("SET");
       } else {
-        dispatch({type:"updateData",payload:data.message});
-        // dispatch(updateData(data.message));
+        dispatch({type:"UPDATE_DATA",payload:data.message});
         console.log("UPDATE");
       }
     }
@@ -110,8 +107,7 @@ const Team = () => {
   const handleLoadMore = () => {
     if (teamState.isLoading) return;
     if (!teamState.hasMore) return;
-    dispatch({type:"setStart",payload:teamState.start + teamState.pageLength});
-    // dispatch(setStart(teamState.start + teamState.pageLength));
+    dispatch({type:"SET_START",payload:teamState.start + teamState.pageLength});
   };
 
   const onStatusClick = (start_date: string, end_date: string, employee: string) => {
@@ -119,10 +115,8 @@ const Team = () => {
       start_date,
       end_date,
     };
-    dispatch({type:"setEmployee",payload:employee});
-    // dispatch(setEmployee(employee));
-    dispatch({type:"setDateRange",payload:{ dateRange: data, isAprrovalDialogOpen: true }});
-    // dispatch(setDateRange({ dateRange: data, isAprrovalDialogOpen: true }));
+    dispatch({type:"SET_EMPLOYEE",payload:employee});
+    dispatch({type:"SET_DATE_RANGE",payload:{ dateRange: data, isAprrovalDialogOpen: true }});
   };
 
   const cellRef = useInfiniteScroll({
@@ -141,7 +135,7 @@ const Team = () => {
           start_date={teamState.dateRange.start_date}
           onClose={() => {
             mutate();
-            dispatch({type:"setDateRange",payload:{ dateRange: { start_date: "", end_date: "" }, isAprrovalDialogOpen: false }});
+            dispatch({type:"SET_DATE_RANGE",payload:{ dateRange: { start_date: "", end_date: "" }, isAprrovalDialogOpen: false }});
           }}
         />
       )}
