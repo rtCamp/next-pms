@@ -1,8 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useEffect, useReducer } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Spinner,
@@ -34,12 +33,10 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 
 import { TEAM, EMPLOYEE } from "@/lib/constant";
 import { cn, parseFrappeErrorMsg, calculateExtendedWorkingHour } from "@/lib/utils";
-import { RootState } from "@/store";
-import { setData, DateProps, setStart, updateData, setReFetchData } from "@/store/home";
 import { WorkingFrequency } from "@/types";
 import { dataItem } from "@/types/team";
 import { Header } from "./header";
-
+import { initialState, homeReducer, DateProps } from "./reducer";
 type DataItem = {
   data: dataItem[];
   name: string;
@@ -51,9 +48,7 @@ type DataItem = {
 };
 const Home = () => {
   const { toast } = useToast();
-  const homeState = useSelector((state: RootState) => state.home);
-
-  const dispatch = useDispatch();
+  const [homeState, dispatch] = useReducer(homeReducer, initialState);
   const navigate = useNavigate();
 
   const { data, isLoading, error, mutate } = useFrappeGetCall(
@@ -77,16 +72,16 @@ const Home = () => {
   useEffect(() => {
     if (homeState.isNeedToFetchDataAfterUpdate) {
       mutate();
-      dispatch(setReFetchData(false));
+      dispatch({ type: "SET_REFETCH_DATA", payload: false });
     }
-  }, [dispatch, mutate, homeState.isNeedToFetchDataAfterUpdate]);
+  }, [mutate, homeState.isNeedToFetchDataAfterUpdate]);
 
   useEffect(() => {
     if (data) {
       if (homeState.action == "SET") {
-        dispatch(setData(data.message));
+        dispatch({ type: "SET_DATA", payload: data.message });
       } else {
-        dispatch(updateData(data.message));
+        dispatch({ type: "UPDATE_DATA", payload: data.message });
       }
     }
     if (error) {
@@ -101,20 +96,20 @@ const Home = () => {
 
   const handleLoadMore = () => {
     if (homeState.isLoading) return;
-    if (!homeState.data.has_more) return;
-    dispatch(setStart(homeState.start + homeState.pageLength));
+    if (!homeState.data.hasMore) return;
+    dispatch({ type: "SET_START", payload: homeState.start + homeState.pageLength });
   };
 
   const cellRef = useInfiniteScroll({
     isLoading: homeState.isLoading,
-    hasMore: homeState.data.has_more,
+    hasMore: homeState.data.hasMore,
     next: handleLoadMore,
   });
 
   return (
     <>
-      <Header />
-      {isLoading && Object.keys(homeState.data.data).length == 0 ? (
+      <Header homeState={homeState} dispatch={dispatch} />
+      {isLoading ? (
         <Spinner isFull />
       ) : (
         <Table className="[&_tr]:pr-3 relative">
@@ -158,8 +153,7 @@ const Home = () => {
             {Object.entries(homeState.data?.data).length > 0 ? (
               Object.entries(homeState.data?.data as Record<string, DataItem>).map(
                 ([key, item]: [string, DataItem], index: number) => {
-                  const needToAddRef = homeState.data.has_more && index == Object.keys(homeState.data?.data).length - 2;
-
+                  const needToAddRef = homeState.data.hasMore && index == Object.keys(homeState.data?.data).length - 2;
                   return (
                     <TableRow key={key} ref={needToAddRef ? cellRef : null}>
                       <TableCell className="flex items-center gap-x-2 max-w-sm min-w-96">
@@ -193,10 +187,10 @@ const Home = () => {
                             <TableCell
                               className={cn(
                                 "text-xs hover:cursor-pointer bg-transparent",
-                                expectedTime == 2 && "bg-warning/40",
+                                expectedTime == 2 && "bg-warning/20",
                                 expectedTime == 1 && "bg-success/20",
-                                expectedTime == 0 && data.hour != 0 && "bg-destructive/10",
-                                data.is_leave && "bg-warning/20",
+                                expectedTime == 0 && data.hour != 0 && "bg-destructive/20",
+                                data.is_leave && "bg-gray-200",
                                 isToday(data.date) && "bg-slate-50",
                                 data.hour == 0 && "text-center"
                               )}
@@ -224,7 +218,7 @@ const Home = () => {
               </TableRow>
             )}
 
-            {homeState?.data && homeState.data.has_more && (
+            {homeState?.data && homeState.data.hasMore && (
               <TableRow>
                 <TableCell colSpan={15} className="text-center p-0">
                   <Skeleton className="h-10 w-full" />
