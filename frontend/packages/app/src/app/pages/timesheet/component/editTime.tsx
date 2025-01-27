@@ -3,7 +3,6 @@
  */
 import { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
-import { useSelector } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   DatePicker,
@@ -37,7 +36,7 @@ import { z } from "zod";
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetUpdateSchema } from "@/schema/timesheet";
-import { RootState } from "@/store";
+import { UserState } from "@/store/user";
 
 interface EditTimeProps {
   employee: string;
@@ -45,11 +44,11 @@ interface EditTimeProps {
   task: string;
   open: boolean;
   onClose: () => void;
+  user: UserState;
 }
 
-export const EditTime = ({ employee, date, task, open, onClose }: EditTimeProps) => {
+export const EditTime = ({ employee, date, task, open, onClose,user }: EditTimeProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const user = useSelector((state: RootState) => state.user);
   const hasAccess = user.roles.includes("Projects Manager") || user.roles.includes("Timesheet Manager");
 
   const form = useForm<z.infer<typeof TimesheetUpdateSchema>>({

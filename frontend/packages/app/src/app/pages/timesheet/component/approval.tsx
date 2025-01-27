@@ -3,7 +3,6 @@
  */
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useDispatch, useSelector } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ComboBox,
@@ -31,14 +30,19 @@ import { z } from "zod";
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetApprovalSchema } from "@/schema/timesheet";
-import { RootState } from "@/store";
-import { setApprovalDialog, setDateRange } from "@/store/timesheet";
+import { TimesheetState } from "@/store/timesheet";
+import { UserState } from "@/store/user";
+import { Action } from "../reducers";
 
-export const Approval = ({ onClose }: { onClose: () => void }) => {
+interface ApprovalProps {
+  onClose: (data:any) => void;
+  user: UserState;
+  timesheetState: TimesheetState;
+  dispatch:(value: Action) => void;
+}
+
+export const Approval = ({ onClose, user, timesheetState,dispatch }: ApprovalProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const timesheetState = useSelector((state: RootState) => state.timesheet);
-  const user = useSelector((state: RootState) => state.user);
-  const dispatch = useDispatch();
   const { toast } = useToast();
   const { call } = useFrappePostCall("next_pms.timesheet.api.timesheet.submit_for_approval");
   const { data } = useFrappeGetCall("next_pms.timesheet.api.get_employee_with_role", {
@@ -60,9 +64,9 @@ export const Approval = ({ onClose }: { onClose: () => void }) => {
     if (isSubmitting) return;
     form.reset();
     const data = { start_date: "", end_date: "" };
-    dispatch(setDateRange(data));
-    dispatch(setApprovalDialog(false));
-    onClose();
+    dispatch({type:"SET_DATE_RANGE",payload:data});
+    dispatch({type:"SET_APPROVAL_DIALOG_STATE",payload:false});
+    onClose(form.getValues());
   };
   const handleSubmit = (data: z.infer<typeof TimesheetApprovalSchema>) => {
     setIsSubmitting(true);
