@@ -136,9 +136,9 @@ def validate_dates(doc):
             allowed_days = frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries_till_employee")
         holidays = get_holiday_dates_for_employee(doc.employee, doc.start_date, today_date)
         leaves = get_employee_leaves(
-            str(add_days(doc.start_date, -28)),
-            str(add_days(today_date, 28)),
-            doc.employee,
+            start_date=add_days(doc.start_date, -28),
+            end_date=add_days(today_date, 28),
+            employee=doc.employee,
         )
 
         for leave in leaves:

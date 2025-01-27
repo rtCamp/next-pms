@@ -95,9 +95,9 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
     )
 
     leaves = get_employee_leaves(
-        add_days(start_date, -max_week * 7),
-        add_days(start_date, max_week * 7),
-        employee,
+        start_date=add_days(start_date, -max_week * 7),
+        end_date=add_days(start_date, max_week * 7),
+        employee=employee,
     )
     res["leaves"] = leaves
     res["holidays"] = holidays
@@ -392,23 +392,21 @@ def get_remaining_hour_for_employee(employee: str, date: str):
         working_hours.update({"working_hour": working_hours.get("working_hour") / 5})
 
     date = getdate(date)
-    timesheets = frappe.get_all(
+    timesheet_hours = frappe.get_all(
         "Timesheet",
         filters={
             "employee": employee,
             "start_date": date,
             "end_date": date,
         },
-        fields=["total_hours"],
+        pluck="total_hours",
     )
-    total_hours = 0
-    for timesheet in timesheets:
-        total_hours += timesheet.total_hours
+    total_hours = sum(timesheet_hours)
 
     leaves = get_employee_leaves(
-        add_days(date, -4 * 7),
-        add_days(date, 4 * 7),
-        employee,
+        start_date=add_days(date, -4 * 7),
+        end_date=add_days(date, 4 * 7),
+        employee=employee,
     )
     data = [leave for leave in leaves if leave.get("from_date") <= date <= leave.get("to_date")]
 

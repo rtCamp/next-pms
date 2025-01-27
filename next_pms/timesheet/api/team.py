@@ -108,8 +108,8 @@ def get_compact_view_data(
         local_data["data"] = []
 
         leaves = get_employee_leaves(
-            from_date=add_days(dates[0].get("start_date"), -max_week * 7),
-            to_date=add_days(dates[-1].get("end_date"), max_week * 7),
+            start_date=add_days(dates[0].get("start_date"), -max_week * 7),
+            end_date=add_days(dates[-1].get("end_date"), max_week * 7),
             employee=employee.name,
         )
         holidays = get_holidays(employee.name, dates[0].get("start_date"), dates[-1].get("end_date"))
