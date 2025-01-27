@@ -5,11 +5,11 @@ from frappe.core.doctype.recorder.recorder import redis_cache
 from frappe.utils import DATE_FORMAT
 
 from next_pms.resource_management.api.utils.helpers import (
+    add_customer_data_if_not_exists,
     find_worked_hours,
     get_allocation_objects,
     get_dates_date,
     get_employees_by_skills,
-    handle_customer,
     is_on_leave,
     resource_api_permissions_check,
 )
@@ -123,7 +123,7 @@ def get_resource_management_team_view_data(
     for resource_allocation in resource_allocation_data:
         if resource_allocation.employee not in resource_allocation_map:
             resource_allocation_map[resource_allocation.employee] = []
-        customer = handle_customer(customer, resource_allocation.customer)
+        customer = add_customer_data_if_not_exists(customer, resource_allocation.customer)
         resource_allocation_map[resource_allocation.employee].append(resource_allocation)
 
     if not need_hours_summary:

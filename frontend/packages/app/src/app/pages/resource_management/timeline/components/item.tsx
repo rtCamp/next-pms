@@ -104,7 +104,7 @@ const ResourceTimeLineItem = ({
             />
           )}
 
-          {!itemContext.selected && (
+          {(!itemContext.selected || !resourceAllocation.canDelete) && (
             <Avatar className="w-5 h-5 mr-1">
               {resourceAllocation.customerData.image && (
                 <AvatarImage src={decodeURIComponent(resourceAllocation.customerData.image)} />
