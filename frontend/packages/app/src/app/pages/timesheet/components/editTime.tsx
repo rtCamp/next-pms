@@ -152,7 +152,7 @@ export const EditTime = ({ employee, date, task, open, onClose,user }: EditTimeP
       });
   };
   return (
-    <Dialog open={open} onOpenChange={()=>onClose()}>
+    <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Edit Time</DialogTitle>
