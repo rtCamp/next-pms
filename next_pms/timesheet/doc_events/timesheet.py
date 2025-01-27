@@ -102,8 +102,8 @@ def validate_dates(doc):
     from frappe import get_roles
     from hrms.hr.utils import get_holiday_dates_for_employee
 
+    from next_pms.resource_management.api.utils.query import get_employee_leaves
     from next_pms.timesheet.api.employee import get_employee_from_user
-    from next_pms.timesheet.api.utils import get_leaves_for_employee
 
     if frappe.session.user == "Administrator":
         return
@@ -135,7 +135,7 @@ def validate_dates(doc):
         else:
             allowed_days = frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries_till_employee")
         holidays = get_holiday_dates_for_employee(doc.employee, doc.start_date, today_date)
-        leaves = get_leaves_for_employee(
+        leaves = get_employee_leaves(
             str(add_days(doc.start_date, -28)),
             str(add_days(today_date, 28)),
             doc.employee,

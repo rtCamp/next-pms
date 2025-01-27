@@ -8,6 +8,8 @@ from frappe.utils import (
     nowdate,
 )
 
+from next_pms.resource_management.api.utils.query import get_employee_leaves
+
 from .employee import (
     get_employee_daily_working_norm,
     get_employee_from_user,
@@ -16,7 +18,6 @@ from .employee import (
 from .utils import (
     apply_role_permission_for_doctype,
     get_holidays,
-    get_leaves_for_employee,
     get_week_dates,
     is_timesheet_manager,
     is_timesheet_user,
@@ -93,7 +94,7 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
         add_days(start_date, max_week * 7),
     )
 
-    leaves = get_leaves_for_employee(
+    leaves = get_employee_leaves(
         add_days(start_date, -max_week * 7),
         add_days(start_date, max_week * 7),
         employee,
@@ -404,7 +405,7 @@ def get_remaining_hour_for_employee(employee: str, date: str):
     for timesheet in timesheets:
         total_hours += timesheet.total_hours
 
-    leaves = get_leaves_for_employee(
+    leaves = get_employee_leaves(
         add_days(date, -4 * 7),
         add_days(date, 4 * 7),
         employee,

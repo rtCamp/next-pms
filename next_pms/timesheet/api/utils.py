@@ -16,12 +16,6 @@ def is_timesheet_manager():
     return READ_WRITE_ROLE in frappe.get_roles()
 
 
-def get_leaves_for_employee(from_date: str, to_date: str, employee: str):
-    from next_pms.resource_management.api.utils.query import get_employee_leaves
-
-    return get_employee_leaves(employee, from_date, to_date)
-
-
 def get_week_dates(date, current_week: bool = False, ignore_weekend=False):
     """Returns the dates map with dates and other details.
     example:
