@@ -64,8 +64,8 @@ export const Approval = ({ onClose, user, timesheetState,dispatch }: ApprovalPro
     if (isSubmitting) return;
     form.reset();
     const data = { start_date: "", end_date: "" };
-    dispatch({type:"setDateRange",payload:data});
-    dispatch({type:"setApprovalDialogState",payload:false});
+    dispatch({type:"SET_DATE_RANGE",payload:data});
+    dispatch({type:"SET_APPROVAL_DIALOG_STATE",payload:false});
     onClose(form.getValues());
   };
   const handleSubmit = (data: z.infer<typeof TimesheetApprovalSchema>) => {

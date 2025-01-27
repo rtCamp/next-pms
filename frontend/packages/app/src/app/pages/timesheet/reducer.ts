@@ -5,63 +5,63 @@ import { initialState, TimesheetState } from "@/store/timesheet";
 import { DataProp } from "@/types/timesheet";
 
 export type Action =
-  | { type: "setData"; payload: DataProp }
-  | { type: "setDateRange"; payload: { start_date: string; end_date: string } }
-  | { type: "setTimesheet"; payload: TimesheetState["timesheet"] }
-  | { type: "setWeekDate"; payload: string }
-  | { type: "setDialogState"; payload: boolean }
-  | { type: "setApprovalDialogState"; payload: boolean }
-  | { type: "setLeaveDialogState"; payload: boolean }
-  | { type: "setEditDialogState"; payload: boolean }
-  | { type: "appendData"; payload: DataProp }
-  | { type: "resetState" }
-  | { type: "setWeekDate"; payload: string };
+  | { type: "SET_DATA"; payload: DataProp }
+  | { type: "SET_DATE_RANGE"; payload: { start_date: string; end_date: string } }
+  | { type: "SET_TIMESHEET"; payload: TimesheetState["timesheet"] }
+  | { type: "SET_WEEK_DATE"; payload: string }
+  | { type: "SET_DIALOG_STATE"; payload: boolean }
+  | { type: "SET_APPROVAL_DIALOG_STATE"; payload: boolean }
+  | { type: "SET_LEAVE_DIALOG_STATE"; payload: boolean }
+  | { type: "SET_EDIT_DIALOG_STATE"; payload: boolean }
+  | { type: "APPEND_DATA"; payload: DataProp }
+  | { type: "RESET_STATE" }
+  | { type: "SET_WEEK_DATE"; payload: string };
 
 const actionHandlers = {
-  setData: (state: TimesheetState, payload: DataProp): TimesheetState => ({
+  SET_DATA: (state: TimesheetState, payload: DataProp): TimesheetState => ({
     ...state,
     data: payload,
   }),
-  setDateRange: (
+  SET_DATE_RANGE: (
     state: TimesheetState,
     payload: { start_date: string; end_date: string }
   ): TimesheetState => ({
     ...state,
     dateRange: payload,
   }),
-  setTimesheet: (
+  SET_TIMESHEET: (
     state: TimesheetState,
     payload: TimesheetState["timesheet"]
   ): TimesheetState => ({
     ...state,
     timesheet: payload,
   }),
-  setWeekDate: (state: TimesheetState, payload: string): TimesheetState => ({
+  SET_WEEK_DATE: (state: TimesheetState, payload: string): TimesheetState => ({
     ...state,
     weekDate: payload,
   }),
-  setDialogState: (
+  SET_DIALOG_STATE: (
     state: TimesheetState,
     payload: boolean
   ): TimesheetState => ({
     ...state,
     isDialogOpen: payload,
   }),
-  setApprovalDialogState: (
+  SET_APPROVAL_DIALOG_STATE: (
     state: TimesheetState,
     payload: boolean
   ): TimesheetState => ({
     ...state,
     isAprrovalDialogOpen: payload,
   }),
-  setLeaveDialogState: (
+  SET_LEAVE_DIALOG_STATE: (
     state: TimesheetState,
     payload: boolean
   ): TimesheetState => ({
     ...state,
     isLeaveDialogOpen: payload,
   }),
-  setEditDialogState: (
+  SET_EDIT_DIALOG_STATE: (
     state: TimesheetState,
     payload: boolean
   ): TimesheetState => ({
@@ -69,7 +69,7 @@ const actionHandlers = {
     isEditDialogOpen: payload,
     timesheet: payload ? state.timesheet : initialState.timesheet,
   }),
-  appendData: (state: TimesheetState, payload: DataProp): TimesheetState => {
+  APPEND_DATA: (state: TimesheetState, payload: DataProp): TimesheetState => {
     const newData = { ...state.data.data, ...payload.data };
     const existingLeaveIds = new Set(state.data.leaves.map((leave) => leave.name));
     const newLeaves = payload.leaves.filter(
@@ -86,7 +86,7 @@ const actionHandlers = {
       },
     };
   },
-  resetState: (): TimesheetState => initialState,
+  RESET_STATE: (): TimesheetState => initialState,
 };
 
 export const reducer = (state: TimesheetState, action: Action): TimesheetState => {

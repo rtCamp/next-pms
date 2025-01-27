@@ -71,9 +71,9 @@ function Timesheet() {
   useEffect(() => {
     if (data) {
       if (timesheet.data?.data && Object.keys(timesheet.data?.data).length > 0) {
-        dispatch({type:"appendData",payload:data.message});
+        dispatch({type:"APPEND_DATA",payload:data.message});
       } else {
-        dispatch({type:"setData",payload:data.message});
+        dispatch({type:"SET_DATA",payload:data.message});
       }
     }
     if (error) {
@@ -93,7 +93,7 @@ function Timesheet() {
       const lastKey = Object.keys(obj).pop();
       if (!lastKey) return;
       const info = obj[lastKey];
-      dispatch({type:"setWeekDate",payload:getFormatedDate(addDays(info.start_date, -1))})
+      dispatch({type:"SET_WEEK_DATE",payload:getFormatedDate(addDays(info.start_date, -1))})
     }
   }, [dispatch, startDateParam, timesheet.data.data, validateDate]);
 
@@ -122,20 +122,20 @@ function Timesheet() {
       employee: user.employee,
       project: "",
     };
-    dispatch({type:"setTimesheet",payload:timesheetData})
-    dispatch({type:"setDialogState",payload:true})
+    dispatch({type:"SET_TIMESHEET",payload:timesheetData})
+    dispatch({type:"SET_DIALOG_STATE",payload:true})
   };
   const handleAddLeave = () => {
-    dispatch({type:"setLeaveDialogState",payload:true})
+    dispatch({type:"SET_LEAVE_DIALOG_STATE",payload:true})
   };
 
   const onCellClick = (data: NewTimesheetProps) => {
     data.employee = user.employee;
-    dispatch({type:"setTimesheet",payload:data})
+    dispatch({type:"SET_TIMESHEET",payload:data})
     if (data.hours > 0) {
-      dispatch({type:"setEditDialogState",payload:true})
+      dispatch({type:"SET_EDIT_DIALOG_STATE",payload:true})
     } else {
-      dispatch({type:"setDialogState",payload:true})
+      dispatch({type:"SET_DIALOG_STATE",payload:true})
     }
   };
   const loadData = () => {
@@ -146,15 +146,15 @@ function Timesheet() {
     if (!lastKey) return;
     const obj = data[lastKey];
     setStartDateParam("");
-    dispatch({type:"setWeekDate",payload:getFormatedDate(addDays(obj.start_date, -1))})
+    dispatch({type:"SET_WEEK_DATE",payload:getFormatedDate(addDays(obj.start_date, -1))})
   };
   const handleApproval = (start_date: string, end_date: string) => {
     const data = {
       start_date: start_date,
       end_date: end_date,
     };
-    dispatch({type:"setDateRange",payload:data})
-    dispatch({type:"setApprovalDialogState",payload:true})
+    dispatch({type:"SET_DATE_RANGE",payload:data})
+    dispatch({type:"SET_APPROVAL_DIALOG_STATE",payload:true})
   };
   if (error) {
     return <></>;
@@ -282,12 +282,12 @@ function Timesheet() {
         <AddTime
           open={timesheet.isDialogOpen}
           onOpenChange={(data) => {
-            dispatch({ type: "setDialogState", payload: false });
-            dispatch({ type: "setWeekDate", payload: data?.date });
+            dispatch({ type: "SET_DIALOG_STATE", payload: false });
+            dispatch({ type: "SET_WEEK_DATE", payload: data?.date });
             mutate();
           }}
           onSuccess={(data) => {
-            dispatch({ type: "setWeekDate", payload: data?.date });
+            dispatch({ type: "SET_WEEK_DATE", payload: data?.date });
             mutate();
           }}
           initialDate={timesheet.timesheet.date}
@@ -306,8 +306,8 @@ function Timesheet() {
           task={timesheet.timesheet.task}
           open={timesheet.isEditDialogOpen}
           onClose={() => {
-            dispatch({ type: "setEditDialogState", payload: false });
-            dispatch({ type: "setWeekDate", payload: timesheet.timesheet.date })
+            dispatch({ type: "SET_EDIT_DIALOG_STATE", payload: false });
+            dispatch({ type: "SET_WEEK_DATE", payload: timesheet.timesheet.date })
             mutate();
           }}
           user={user}
@@ -319,7 +319,7 @@ function Timesheet() {
           dispatch={dispatch}
           timesheetState={timesheet}
           onClose={(data) => {
-            dispatch({ type: "setWeekDate", payload: data.start_date });
+            dispatch({ type: "SET_WEEK_DATE", payload: data.start_date });
             mutate();
           }}
         />
@@ -329,7 +329,7 @@ function Timesheet() {
           employee={user.employee}
           open={timesheet.isLeaveDialogOpen}
           onOpenChange={() => {
-            dispatch({ type: "setLeaveDialogState", payload: false });
+            dispatch({ type: "SET_LEAVE_DIALOG_STATE", payload: false });
             mutate();
           }}
           onSuccess={() => {
