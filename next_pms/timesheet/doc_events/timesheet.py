@@ -60,13 +60,14 @@ def on_submit(doc, method=None):
 
 #  Custom Methods for Timesheet DocType events
 def set_date(doc):
-    if doc.docstatus < 2 and doc.time_logs:
-        start_date = min(getdate(d.from_time) for d in doc.time_logs)
-        end_date = max(getdate(d.to_time) for d in doc.time_logs)
+    if doc.docstatus == 2 and not doc.time_logs:
+        return
+    start_date = min(getdate(d.from_time) for d in doc.time_logs)
+    end_date = max(getdate(d.to_time) for d in doc.time_logs)
 
-        if start_date and end_date:
-            doc.start_date = getdate(start_date)
-            doc.end_date = getdate(end_date)
+    if start_date and end_date:
+        doc.start_date = getdate(start_date)
+        doc.end_date = getdate(end_date)
 
 
 def update_note(doc):

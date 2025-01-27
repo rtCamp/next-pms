@@ -50,7 +50,7 @@ def get_week_dates(date, current_week: bool = False, ignore_weekend=False):
             end_date_for_key = add_days(end_date, -2)
         else:
             end_date_for_key = end_date
-        key = f'{start_date.strftime("%b %d")} - {end_date_for_key.strftime("%b %d")}'
+        key = f"{start_date.strftime('%b %d')} - {end_date_for_key.strftime('%b %d')}"
 
     data = {"start_date": start_date, "end_date": end_date, "key": key}
 
@@ -261,3 +261,13 @@ def get_holidays(employee: str, start_date: str, end_date: str):
         fields=["holiday_date", "description", "weekly_off"],
     )
     return holidays
+
+
+def apply_role_permission_for_doctype(roles: list[str], doctype: str, ptype: str = "read", doc=None):
+    if frappe.session.user == "Administrator":
+        return
+
+    user_roles = frappe.get_roles()
+
+    if not set(roles).intersection(user_roles):
+        frappe.has_permission(doctype, ptype, doc, throw=True)
