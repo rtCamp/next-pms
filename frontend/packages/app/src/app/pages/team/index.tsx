@@ -88,10 +88,8 @@ const Team = () => {
     if (data) {
       if (teamState.action == "SET") {
         dispatch({type:"SET_DATA",payload:data.message});
-        console.log("SET");
       } else {
         dispatch({type:"UPDATE_DATA",payload:data.message});
-        console.log("UPDATE");
       }
     }
     if (error) {

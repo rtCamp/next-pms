@@ -50,6 +50,7 @@ export const Header = ({teamState,dispatch}:HeaderProps) => {
   );
   const handleReportsToChange = useCallback(
     (value: string | string[]) => {
+      dispatch({type:"SET_ACTION",payload:"SET"});
       dispatch({type:"SET_REPORTS_TO",payload:value as string});
     },
     [dispatch]
@@ -101,7 +102,6 @@ export const Header = ({teamState,dispatch}:HeaderProps) => {
       handleChange: handleEmployeeChange,
       handleDelete: useCallback(() => {
         dispatch({type:"SET_EMPLOYEE_NAME",payload:""});
-        // dispatch(SET_EMPLOYEE_NAME(""));
       }, [dispatch]),
     },
     {
@@ -110,7 +110,6 @@ export const Header = ({teamState,dispatch}:HeaderProps) => {
       handleChange: handleReportsToChange,
       handleDelete: useCallback(() => {
         dispatch({type:"SET_REPORTS_TO",payload:""});
-        // dispatch(SET_REPORTS_TO(""));
       }, [dispatch]),
       value: teamState.reportsTo,
       label: "Reports To",
