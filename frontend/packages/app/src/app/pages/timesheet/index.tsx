@@ -31,15 +31,12 @@ import { SubmitButton } from "@/app/components/timesheet-table/components/submit
 import { Header, Main } from "@/app/layout/root";
 import { parseFrappeErrorMsg, expectatedHours, copyToClipboard } from "@/lib/utils";
 import { RootState } from "@/store";
-import {
-  initialState,
-} from "@/store/timesheet";
 import { WorkingFrequency } from "@/types";
 import { HolidayProp, LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
 import { Approval } from "./components/approval";
 import { EditTime } from "./components/editTime";
 import ExpandableHours from "./components/expandableHours";
-import { reducer } from "./reducer";
+import { initialState, reducer } from "./reducer";
 import { isDateInRange, validateDate } from "./utils";
 import { InfiniteScroll } from "../resource_management/components/InfiniteScroll";
 
