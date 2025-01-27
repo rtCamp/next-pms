@@ -1,9 +1,8 @@
 /**
  * External dependencies.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useSelector, useDispatch } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Spinner,
@@ -41,10 +40,9 @@ import { z } from "zod";
 import { TimeInput } from "@/app/pages/team/employeeDetail";
 import { calculateExtendedWorkingHour, cn, parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetRejectionSchema } from "@/schema/timesheet";
-import { RootState } from "@/store";
-import { setDateRange } from "@/store/team";
 import { WorkingFrequency } from "@/types";
 import { LeaveProps, NewTimesheetProps, TaskDataItemProps, TaskDataProps, timesheet } from "@/types/timesheet";
+import { initialState, reducer } from "../reducer";
 
 type Holiday = {
   holiday_date: string;
@@ -53,7 +51,7 @@ type Holiday = {
 
 export const Approval = ({ onClose }: { onClose: (data:any) => void }) => {
   const { toast } = useToast();
-  const teamState = useSelector((state: RootState) => state.team);
+  const [teamState, dispatch] = useReducer(reducer, initialState);
   const [timesheetData, setTimesheetData] = useState<timesheet>();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isRejecting, setIsRejecting] = useState<boolean>(false);
@@ -62,7 +60,6 @@ export const Approval = ({ onClose }: { onClose: (data:any) => void }) => {
   const [holidays, setHoliday] = useState<Array<Holiday>>([]);
   const [leaves, setLeave] = useState<LeaveProps[]>([]);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
-  const dispatch = useDispatch();
 
   const { call } = useFrappePostCall("next_pms.timesheet.api.team.approve_or_reject_timesheet");
   const { call: updateTime } = useFrappePostCall("next_pms.timesheet.api.timesheet.update_timesheet_detail");
@@ -94,7 +91,8 @@ export const Approval = ({ onClose }: { onClose: (data:any) => void }) => {
     if (isRejecting || isSubmitting) return;
     const data = { start_date: "", end_date: "" };
     onClose(selectedDates[0]);
-    dispatch(setDateRange({ dateRange: data, isAprrovalDialogOpen: false }));
+    dispatch({type:"setDateRange",payload:{ dateRange: data, isAprrovalDialogOpen: false }});
+    // dispatch(setDateRange({ dateRange: data, isAprrovalDialogOpen: false }));
   };
   const handleApproval = () => {
     setIsSubmitting(true);

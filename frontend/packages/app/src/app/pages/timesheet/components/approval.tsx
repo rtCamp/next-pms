@@ -32,7 +32,7 @@ import { parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetApprovalSchema } from "@/schema/timesheet";
 import { TimesheetState } from "@/store/timesheet";
 import { UserState } from "@/store/user";
-import { Action } from "../reducers";
+import { Action } from "../reducer";
 
 interface ApprovalProps {
   onClose: (data:any) => void;

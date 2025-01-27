@@ -1,8 +1,8 @@
 /**
  * External dependencies.
  */
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useReducer, useRef, useState } from "react";
+import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import {
@@ -26,7 +26,6 @@ import {
   getTodayDate,
   prettyDate,
   getUTCDateTime,
-  normalizeDate,
   getDateFromDateAndTimeString,
 } from "@next-pms/design-system/date";
 import { cn, floatToTime, preProcessLink } from "@next-pms/design-system/utils";
@@ -44,58 +43,28 @@ import { TimesheetTable } from "@/app/components/timesheet-table";
 import { Header, Main } from "@/app/layout/root";
 import { TaskLog } from "@/app/pages/task/taskLog";
 import { Status } from "@/app/pages/team";
-import { EditTime } from "@/app/pages/timesheet/component/editTime";
+import { EditTime } from "@/app/pages/timesheet/components/editTime";
 import { parseFrappeErrorMsg, calculateExtendedWorkingHour, expectatedHours, copyToClipboard } from "@/lib/utils";
 import { timeStringToFloat } from "@/schema/timesheet";
 import { RootState } from "@/store";
-import {
-  setTimesheet,
-  setTimesheetData,
-  updateTimesheetData,
-  setEmployeeWeekDate,
-  resetTimesheetDataState,
-  setEmployee,
-  setDialog,
-  setEditDialog,
-  setDateRange,
-} from "@/store/team";
 import { LeaveProps, NewTimesheetProps, TaskDataItemProps, TaskDataProps, timesheet } from "@/types/timesheet";
-import { Approval } from "./approval";
+import { Approval } from "./components/approval";
+import { Action, initialState, reducer, TeamState } from "./reducer";
+import { isDateInRange, validateDate } from "./utils";
 import { InfiniteScroll } from "../resource_management/components/InfiniteScroll";
-import ExpandableHours from "../timesheet/component/expandableHours";
+import ExpandableHours from "../timesheet/components/expandableHours";
 
-const isDateInRange = (date: string, startDate: string, endDate: string) => {
-  const targetDate = getUTCDateTime(normalizeDate(date));
 
-  return getUTCDateTime(startDate) <= targetDate && targetDate <= getUTCDateTime(endDate);
-};
 
 const EmployeeDetail = () => {
   const { id } = useParams();
-  const teamState = useSelector((state: RootState) => state.team);
+  const [teamState, dispatch] = useReducer(reducer, initialState);
   const user = useSelector((state: RootState) => state.user);
   const [startDateParam, setstartDateParam] = useQueryParam<string>("date", "");
-  const dispatch = useDispatch();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const validateDate = () => {
-    if (!startDateParam) {
-      return true;
-    }
-    const date = getFormatedDate(normalizeDate(startDateParam));
-    const timesheetData = teamState.timesheetData.data;
-    if (timesheetData && Object.keys(timesheetData).length > 0) {
-      const keys = Object.keys(timesheetData);
-      const firstObject = timesheetData[keys[0]];
-      const lastObject = timesheetData[keys[keys.length - 1]];
-      if (isDateInRange(date, lastObject.start_date, firstObject.end_date)) {
-        return true;
-      }
-    }
-
-    return false;
-  };
-  useLayoutEffect(() => {
+ 
+  useEffect(() => {
     if (!id) {
       const EMPLOYEE_ID_NOT_FOUND = "Please pick an employee from the combo box.";
       toast({
@@ -120,8 +89,10 @@ const EmployeeDetail = () => {
       hours: 0,
       isUpdate: false,
     };
-    dispatch(setTimesheet({ timesheet, id }));
-    dispatch(setDialog(true));
+    dispatch({type:"setTimesheet",payload:{ timesheet, id }});
+    // dispatch(setTimesheet({ timesheet, id }));
+    dispatch({type:"setDialog",payload:true});
+    // dispatch(setDialog(true));
   };
   const handleLoadData = () => {
     if (teamState.timesheetData.data == undefined || Object.keys(teamState.timesheetData.data).length == 0) return;
@@ -130,22 +101,28 @@ const EmployeeDetail = () => {
     const obj = teamState.timesheetData.data[Object.keys(teamState.timesheetData.data).pop()];
     setstartDateParam("");
     const date = getFormatedDate(addDays(obj.start_date, -1));
-    dispatch(setEmployeeWeekDate(date));
+    dispatch({type:"setEmployeeWeekDate",payload:date});
+    // dispatch(setEmployeeWeekDate(date));
   };
   useEffect(() => {
-    dispatch(resetTimesheetDataState());
+    dispatch({type:"resetTimesheetDataState"});
+    // dispatch(resetTimesheetDataState());
     const date = getTodayDate();
-    dispatch(setEmployeeWeekDate(date));
-    dispatch(setEmployee(id as string));
+    dispatch({type:"setEmployeeWeekDate",payload:date});
+    // dispatch(setEmployeeWeekDate(date));
+    dispatch({type:"setEmployee",payload:id as string});
+    // dispatch(setEmployee(id as string));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
     if (data) {
       if (teamState.timesheetData.data && Object.keys(teamState.timesheetData.data).length > 0) {
-        dispatch(updateTimesheetData(data.message));
+        dispatch({type:"updateTimesheetData",payload:data.message});
+        // dispatch(updateTimesheetData(data.message));
       } else {
-        dispatch(setTimesheetData(data.message));
+        dispatch({type:"setTimesheetData",payload:data.message});
+        // dispatch(setTimesheetData(data.message));
       }
     }
     if (error) {
@@ -160,11 +137,12 @@ const EmployeeDetail = () => {
 
   useEffect(() => {
     if (Object.keys(teamState.timesheetData.data).length == 0) return;
-    if (!validateDate()) {
+    if (!validateDate(startDateParam,teamState)) {
       const obj = teamState.timesheetData.data;
-      const info = obj[Object.keys(obj).pop()];
+      const info = obj[Object.keys(obj).pop()!];
       const date = getFormatedDate(addDays(info.start_date, -1));
-      dispatch(setEmployeeWeekDate(date));
+      dispatch({type:"setEmployeeWeekDate",payload:date});
+      // dispatch(setEmployeeWeekDate(date));
     }
   }, [startDateParam, teamState.timesheetData.data]);
 
@@ -180,7 +158,8 @@ const EmployeeDetail = () => {
       {teamState.isAprrovalDialogOpen && (
         <Approval
           onClose={(data) => {
-            dispatch(setEmployeeWeekDate(data));
+            dispatch({type:"setEmployeeWeekDate",payload:data});
+            // dispatch(setEmployeeWeekDate(data));
             mutate();
           }}
         />
@@ -189,12 +168,15 @@ const EmployeeDetail = () => {
         <AddTime
           open={teamState.isDialogOpen}
           onOpenChange={(data) => {
-            dispatch(setEmployeeWeekDate(data.date));
+            dispatch({type:"setEmployeeWeekDate",payload:data.date});
+            // dispatch(setEmployeeWeekDate(data.date));
             mutate();
-            dispatch(setDialog(false));
+            dispatch({type:"setDialog",payload:false});
+            // dispatch(setDialog(false));
           }}
           onSuccess={(data) => {
-            dispatch(setEmployeeWeekDate(data.date));
+            dispatch({type:"setEmployeeWeekDate",payload:data.date});
+            // dispatch(setEmployeeWeekDate(data.date));
             mutate();
           }}
           task={teamState.timesheet.task}
@@ -214,8 +196,10 @@ const EmployeeDetail = () => {
           task={teamState.timesheet.task}
           user={user}
           onClose={() => {
-            dispatch(setEmployeeWeekDate(teamState.timesheet.date));
-            dispatch(setEditDialog(false));
+            dispatch({type:"setEmployeeWeekDate",payload:teamState.timesheet.date});
+            // dispatch(setEmployeeWeekDate(teamState.timesheet.date));
+            dispatch({type:"setEditDialog",payload:false});
+            // dispatch(setEditDialog(false));
             mutate();
           }}
         />
@@ -248,10 +232,10 @@ const EmployeeDetail = () => {
               ) : (
                 <>
                   <TabsContent value="timesheet" className="mt-0">
-                    <Timesheet startDateParam={startDateParam} setStartDateParam={setstartDateParam} />
+                    <Timesheet teamState={teamState} dispatch={dispatch} startDateParam={startDateParam} setStartDateParam={setstartDateParam} />
                   </TabsContent>
                   <TabsContent value="time" className="mt-0">
-                    <Time callback={mutate} startDateParam={startDateParam} setStartDateParam={setstartDateParam} />
+                    <Time teamState={teamState} dispatch={dispatch} callback={mutate} startDateParam={startDateParam} setStartDateParam={setstartDateParam} />
                   </TabsContent>
                 </>
               )}
@@ -266,14 +250,16 @@ const EmployeeDetail = () => {
 const Timesheet = ({
   startDateParam,
   setStartDateParam,
+  teamState,
+  dispatch,
 }: {
   startDateParam: string;
   setStartDateParam: React.Dispatch<React.SetStateAction<string>>;
+  teamState:TeamState;
+  dispatch:React.Dispatch<Action>;
 }) => {
   const { id } = useParams();
   const targetRef = useRef(null);
-  const teamState = useSelector((state: RootState) => state.team);
-  const dispatch = useDispatch();
 
   const { call: fetchLikedTask, loading: loadingLikedTasks } = useFrappePostCall(
     "next_pms.timesheet.api.task.get_liked_tasks"
@@ -291,11 +277,14 @@ const Timesheet = ({
   }, []);
 
   const onCellClick = (timesheet: NewTimesheetProps) => {
-    dispatch(setTimesheet({ timesheet, id }));
+    dispatch({type:"setTimesheet",payload:{ timesheet, id }});
+    // dispatch(setTimesheet({ timesheet, id }));
     if (timesheet.hours > 0) {
-      dispatch(setEditDialog(true));
+      dispatch({type:"setEditDialog",payload:true});
+      // dispatch(setEditDialog(true));
     } else {
-      dispatch(setDialog(true));
+      dispatch({type:"setDialog",payload:true});
+      // dispatch(setDialog(true));
     }
   };
 
@@ -315,8 +304,9 @@ const Timesheet = ({
     const data = {
       start_date: start_date,
       end_date: end_date,
-    };
-    dispatch(setDateRange({ dateRange: data, isAprrovalDialogOpen: true }));
+    };    
+    dispatch({type:"setDateRange",payload:{ dateRange: data, isAprrovalDialogOpen: true }});
+    // dispatch(setDateRange({ dateRange: data, isAprrovalDialogOpen: true }));
   };
   const working_hour = expectatedHours(teamState.timesheetData.working_hour, teamState.timesheetData.working_frequency);
   return (
@@ -384,7 +374,7 @@ const Timesheet = ({
                       variant="ghost"
                       className="p-1 h-fit"
                       onClick={(e) => {
-                        e.stopPropagation();
+                        e.stopPropagation();                        
                         handleStatusClick(value.start_date, value.end_date);
                       }}
                     >
@@ -427,18 +417,20 @@ export const Time = ({
   callback,
   startDateParam,
   setStartDateParam,
+  teamState,
+  dispatch,
 }: {
   callback?: () => void;
   startDateParam: string;
   setStartDateParam: React.Dispatch<React.SetStateAction<string>>;
+  teamState:TeamState;
+  dispatch:React.Dispatch<Action>;
 }) => {
   const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<string>("");
   const targetRef = useRef(null);
-  const teamState = useSelector((state: RootState) => state.team);
   const { call } = useFrappePostCall("next_pms.timesheet.api.timesheet.update_timesheet_detail");
   const { toast } = useToast();
-  const dispatch = useDispatch();
   const updateTime = (value: NewTimesheetProps) => {
     call(value)
       .then((res) => {
@@ -472,7 +464,8 @@ export const Time = ({
       start_date: start_date,
       end_date: end_date,
     };
-    dispatch(setDateRange({ dateRange: data, isAprrovalDialogOpen: true }));
+    dispatch({type:"setDateRange",payload:{ dateRange: data, isAprrovalDialogOpen: true }})
+    // dispatch(setDateRange({ dateRange: data, isAprrovalDialogOpen: true }));
   };
   const holidays = teamState.timesheetData.holidays.map((holiday) => {
     if (typeof holiday === "object" && "holiday_date" in holiday) {

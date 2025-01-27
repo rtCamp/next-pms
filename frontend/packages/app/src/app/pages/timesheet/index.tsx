@@ -36,10 +36,10 @@ import {
 } from "@/store/timesheet";
 import { WorkingFrequency } from "@/types";
 import { HolidayProp, LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
-import { Approval } from "./component/approval";
-import { EditTime } from "./component/editTime";
-import ExpandableHours from "./component/expandableHours";
-import { reducer } from "./reducers";
+import { Approval } from "./components/approval";
+import { EditTime } from "./components/editTime";
+import ExpandableHours from "./components/expandableHours";
+import { reducer } from "./reducer";
 import { isDateInRange, validateDate } from "./utils";
 import { InfiniteScroll } from "../resource_management/components/InfiniteScroll";
 

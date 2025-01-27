@@ -2,7 +2,6 @@
  * External dependencies
  */
 import { useCallback, useEffect, useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
 import { getFormatedDate } from "@next-pms/design-system/date";
 import { useQueryParam } from "@next-pms/hooks";
 import { addDays } from "date-fns";
@@ -12,30 +11,22 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
  * Internal dependencies
  */
 import { Header as ListViewHeader } from "@/app/components/list-view/header";
+import { Action, TeamState } from "../reducer";
 
-import { RootState } from "@/store";
-import {
-  setEmployeeName,
-  setFilters,
-  setProject,
-  setReportsTo,
-  setStatus,
-  setStatusFilter,
-  setUsergroup,
-  setWeekDate,
-} from "@/store/team";
+interface HeaderProps {
+  teamState: TeamState;
+  dispatch:React.Dispatch<Action>;
+}
 
-export const Header = () => {
+export const Header = ({teamState,dispatch}:HeaderProps) => {
   const [projectSearch, setProjectSeach] = useState<string>("");
   const [userGroupSearch, setUserGroupSearch] = useState<string>("");
-  const teamState = useSelector((state: RootState) => state.team);
   const [projectParam] = useQueryParam<string[]>("project", []);
   const [userGroupParam] = useQueryParam<string[]>("user-group", []);
   const [statusParam] = useQueryParam<string[]>("status", []);
   const [employeeNameParam] = useQueryParam<string>("employee-name", "");
   const [reportsToParam] = useQueryParam<string>("reports-to", "");
   const [employeeStatusParam] = useQueryParam<Array<string>>("emp-status", ["Active"]);
-  const dispatch = useDispatch();
   const { data: employee } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee", {
     filters: { name: reportsToParam },
   });
@@ -48,55 +39,64 @@ export const Header = () => {
       reportsTo: reportsToParam,
       status: employeeStatusParam,
     };
-    dispatch(setFilters(payload));
+    dispatch({type:"setFilters",payload:payload});
+    // dispatch(setFilters(payload));
   }, [dispatch, employeeNameParam, employeeStatusParam, projectParam, reportsToParam, statusParam, userGroupParam]);
 
   const handleEmployeeChange = useCallback(
     (text: string) => {
-      dispatch(setEmployeeName(text.trim()));
+      dispatch({type:"setEmployeeName",payload:text.trim()});
+      // dispatch(setEmployeeName(text.trim()));
     },
     [dispatch]
   );
   const handleReportsToChange = useCallback(
     (value: string | string[]) => {
-      dispatch(setReportsTo(value as string));
+      dispatch({type:"setReportsTo",payload:value as string});
+      // dispatch(setReportsTo(value as string));
     },
     [dispatch]
   );
   const handleStatusChange = useCallback(
     (filters: string | string[]) => {
       const normalizedFilters = Array.isArray(filters) ? filters : [filters];
-      dispatch(setStatusFilter(normalizedFilters));
+      dispatch({type:"setStatusFilter",payload:normalizedFilters});
+      // dispatch(setStatusFilter(normalizedFilters));
     },
 
     [dispatch]
   );
   const handleEmployeeStatusChange = useCallback(
     (value: string | string[]) => {
-      dispatch(setStatus(value as string[]));
+      dispatch({type:"setStatus",payload:value as string[]});
+      // dispatch(setStatus(value as string[]));
     },
     [dispatch]
   );
   const handleProjectChange = useCallback(
     (value: string | string[]) => {
-      dispatch(setProject(value as string[]));
+      dispatch({type:"setProject",payload:value as string[]});
+      // dispatch(setProject(value as string[]));
     },
     [dispatch]
   );
   const handleUserGroupChange = useCallback(
     (value: string | string[]) => {
-      dispatch(setUsergroup(value as string[]));
+      dispatch({type:"setUsergroup",payload:value as string[]});
+      // dispatch(setUsergroup(value as string[]));
     },
     [dispatch]
   );
   const handleprevWeek = useCallback(() => {
     const date = getFormatedDate(addDays(teamState.weekDate, -7));
-    dispatch(setWeekDate(date));
+    dispatch({type:"setWeekDate",payload:date});
+    // dispatch(setWeekDate(date));
   }, [dispatch, teamState.weekDate]);
 
   const handlenextWeek = useCallback(() => {
     const date = getFormatedDate(addDays(teamState.weekDate, 7));
-    dispatch(setWeekDate(date));
+    dispatch({type:"setWeekDate",payload:date});
+    // dispatch(setWeekDate(date));
   }, [dispatch, teamState.weekDate]);
 
   const filters = [
@@ -109,7 +109,8 @@ export const Header = () => {
       queryParameterDefault: teamState.employeeName,
       handleChange: handleEmployeeChange,
       handleDelete: useCallback(() => {
-        dispatch(setEmployeeName(""));
+        dispatch({type:"setEmployeeName",payload:""});
+        // dispatch(setEmployeeName(""));
       }, [dispatch]),
     },
     {
@@ -117,7 +118,8 @@ export const Header = () => {
       queryParameterName: "reports-to",
       handleChange: handleReportsToChange,
       handleDelete: useCallback(() => {
-        dispatch(setReportsTo(""));
+        dispatch({type:"setReportsTo",payload:""});
+        // dispatch(setReportsTo(""));
       }, [dispatch]),
       value: teamState.reportsTo,
       label: "Reports To",
