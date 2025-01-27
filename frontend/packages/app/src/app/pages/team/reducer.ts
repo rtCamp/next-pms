@@ -1,5 +1,12 @@
+/**
+ * External dependencies
+ */
 import { getTodayDate, getFormatedDate } from "@next-pms/design-system/date";
 import { addDays } from "date-fns";
+
+/**
+ * Internal dependencies
+ */
 import { DataProp as timesheetDataProps } from "@/types/timesheet";
 
 type DateRange = {

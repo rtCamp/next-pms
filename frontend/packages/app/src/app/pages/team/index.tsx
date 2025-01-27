@@ -133,7 +133,18 @@ const Team = () => {
 
   return (
     <>
-      {teamState.isAprrovalDialogOpen && <Approval onClose={mutate} />}
+      {teamState.isAprrovalDialogOpen && (
+        <Approval
+          employee={teamState.employee}
+          isAprrovalDialogOpen={teamState.isAprrovalDialogOpen}
+          end_date={teamState.dateRange.end_date}
+          start_date={teamState.dateRange.start_date}
+          onClose={() => {
+            mutate();
+            dispatch({type:"setDateRange",payload:{ dateRange: { start_date: "", end_date: "" }, isAprrovalDialogOpen: false }});
+          }}
+        />
+      )}
       <Header teamState={teamState} dispatch={dispatch} />
 
       {isLoading && Object.keys(teamState.data.data).length == 0 ? (
