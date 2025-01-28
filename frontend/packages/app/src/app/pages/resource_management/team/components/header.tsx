@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { getFormatedDate } from "@next-pms/design-system/date";
 import { useQueryParam } from "@next-pms/hooks";
 import { addDays } from "date-fns";
-import { useFrappePostCall } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
 /**
  * Internal dependencies.
@@ -56,6 +56,10 @@ const ResourceTeamHeaderSection = () => {
   const { call, loading } = useFrappePostCall(
     "next_pms.resource_management.api.permission.get_user_resources_permissions"
   );
+
+  const { data: employee } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee", {
+    filters: { name: reportingNameParam },
+  });
 
   useEffect(() => {
     if (Object.keys(resourceAllocationPermission).length != 0) {
@@ -142,6 +146,7 @@ const ResourceTeamHeaderSection = () => {
           hide: !resourceAllocationPermission.write,
           queryParameterDefault: [],
           className: "z-100",
+          employeeName: employee?.message?.employee_name,
         },
         {
           type: "custom-filter",
