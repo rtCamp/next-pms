@@ -275,14 +275,15 @@ const DeleteIcon = ({
   resourceAllocation,
   resourceAllocationPermission,
   onSubmit,
+  buttonClassName,
 }: {
   resourceAllocation: ResourceAllocationProps;
   resourceAllocationPermission: PermissionProps;
-  onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
+  onSubmit?: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
+  buttonClassName?: string;
 }) => {
   const { toast } = useToast();
   const { deleteDoc } = useFrappeDeleteDoc();
-  const dispatch = useDispatch();
 
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -300,7 +301,10 @@ const DeleteIcon = ({
           variant: "success",
           description: "Resouce allocation deleted successfully",
         });
-        onSubmit(resourceAllocation, resourceAllocation);
+        if (onSubmit) {
+          onSubmit(resourceAllocation, resourceAllocation);
+          setIsOpen(false)
+        }
       })
       .catch(() => {
         toast({
@@ -317,6 +321,7 @@ const DeleteIcon = ({
     <DeleteAllocation
       onDelete={handleResourceAllocationDelete}
       isLoading={isLoading}
+      buttonClassName={buttonClassName}
       isOpen={isOpen}
       onOpen={() => {
         setIsOpen(true);
@@ -327,3 +332,5 @@ const DeleteIcon = ({
     />
   );
 };
+
+export { DeleteIcon };

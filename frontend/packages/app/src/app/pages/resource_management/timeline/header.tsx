@@ -17,7 +17,7 @@ import { Moment } from "moment";
 import { Header } from "@/app/components/list-view/header";
 import { cn } from "@/lib/utils";
 import { RootState } from "@/store";
-import { PermissionProps, setResourcePermissions } from "@/store/resource_management/allocation";
+import { PermissionProps, setDialog, setResourcePermissions } from "@/store/resource_management/allocation";
 import { Skill } from "@/store/resource_management/team";
 
 import { ResourceAllocationItemProps } from "./types";
@@ -232,7 +232,7 @@ const ResourceTimLineHeaderSection = () => {
         {
           title: "add-allocation",
           handleClick: () => {
-            // dispatch(setDialog(true));
+            dispatch(setDialog(true));
           },
           className: "px-3",
           icon: () => <Plus className="w-4 max-md:w-3 h-4 max-md:h-3 bg" />,
@@ -276,16 +276,20 @@ const TimeLineDateHeader = ({ getIntervalProps, intervalContext }: TimeLineHeade
 
   const { tableProperties, getCellWidthString } = useContext(TableContext);
 
-  let props: ResourceAllocationItemProps = getIntervalProps();
+  let headerProps: ResourceAllocationItemProps = getIntervalProps();
 
-  props = {
-    ...props,
-    style: { ...props.style, width: getCellWidthString(tableProperties.cellWidth), left: props.style.left - 1 },
+  headerProps = {
+    ...headerProps,
+    style: {
+      ...headerProps.style,
+      width: getCellWidthString(tableProperties.cellWidth),
+      left: headerProps.style.left - 1,
+    },
   };
 
   return (
     <TableHead
-      {...props}
+      {...headerProps}
       className={cn(
         "text-xs flex flex-col justify-end items-start border-0 p-0 h-full pb-2",
         day == "Sun" && "border-l border-gray-300",
@@ -294,7 +298,7 @@ const TimeLineDateHeader = ({ getIntervalProps, intervalContext }: TimeLineHeade
     >
       <Typography
         variant="p"
-        className={cn("text-slate-600 text-[11px] pl-3", dateStr == toDayStr && "pl-4 font-semibold")}
+        className={cn("text-slate-600 text-[11px] pl-4", dateStr == toDayStr && "pl-4 font-semibold")}
       >
         {day}
       </Typography>

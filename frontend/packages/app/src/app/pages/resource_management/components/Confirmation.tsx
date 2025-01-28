@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { cn } from "@next-pms/design-system";
 import {
   Button,
   Dialog,
@@ -32,19 +33,27 @@ const DeleteAllocation = ({
   isLoading,
   onOpen,
   onCancel,
+  buttonClassName,
 }: {
   onDelete: () => void;
   isOpen: boolean;
   isLoading: boolean;
   onOpen: () => void;
   onCancel: () => void;
+  buttonClassName?: string;
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onCancel()}>
       <DialogTrigger asChild>
-        <Trash2 className="w-4 hover:text-red-500" size={16} strokeWidth={1.25} aria-label="Delete" onClick={onOpen} />
+        <Trash2
+          className={cn("w-4 hover:text-red-500", buttonClassName)}
+          size={16}
+          strokeWidth={1.25}
+          aria-label="Delete"
+          onClick={onOpen}
+        />
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] z-[1000]">
         <DialogHeader>
           <DialogDescription>
             <Typography className="text-xl mb-2 mt-3 font-semibold">

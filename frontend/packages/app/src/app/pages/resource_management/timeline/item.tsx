@@ -1,15 +1,29 @@
 /**
  * External dependencies.
  */
+import { useState } from "react";
 import { ItemContext } from "react-calendar-timeline";
 import { getDayDiff, prettyDate } from "@next-pms/design-system";
-import { Avatar, AvatarFallback, AvatarImage, Typography } from "@next-pms/design-system/components";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  Typography,
+} from "@next-pms/design-system/components";
+import { X, Move, Copy } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
 import { cn } from "@/lib/utils";
 import { ResourceAllocationItemProps, ResourceAllocationTimeLineProps } from "./types";
+import { DeleteIcon } from "../components/ResourceAllocationList";
 import { getFilterValue, getInitials } from "../utils/helper";
 
 interface ResourceTimeLineItemProps {
@@ -32,14 +46,20 @@ const ResourceTimeLineItem = ({
   const getTitle = () => {
     const dayDiff = getDayDiff(resourceAllocation.allocation_start_date, resourceAllocation.allocation_end_date);
 
-    const title = `${startDate} - ${endDate} (${resourceAllocation.hours_allocated_per_day} hours/day)`;
+    const title = `${
+      resourceAllocation.project_name ? resourceAllocation.project_name + " " : ""
+    }${startDate} - ${endDate} (${resourceAllocation.hours_allocated_per_day} hours/day)`;
 
     if (dayDiff <= 0) {
-      return getFilterValue(title, 2);
+      return "";
     }
 
     if (dayDiff <= 2) {
-      return getFilterValue(title, 4);
+      return getFilterValue(title, 3);
+    }
+
+    if (dayDiff <= 3) {
+      return getFilterValue(title, 2);
     }
 
     return title;
@@ -57,6 +77,7 @@ const ResourceTimeLineItem = ({
       background: resourceAllocation.is_billable ? "rgba(147, 221, 137, 0.39)" : "#d7d77b26",
       borderRadius: "4px",
       border: "1px solid #d1d5db",
+      borderWidth: 0,
     },
   };
 
@@ -89,11 +110,90 @@ const ResourceTimeLineItem = ({
           >
             {getTitle()}
           </Typography>
+          {itemContext.selected && resourceAllocation.canDelete && (
+            <DeleteIcon
+              resourceAllocation={resourceAllocation}
+              resourceAllocationPermission={{ delete: resourceAllocation.canDelete }}
+              buttonClassName={cn("text-red-500 z-[1000] cusror-pointer hover:text-red-600  w-3")}
+              onSubmit={resourceAllocation.onDelete}
+            />
+          )}
         </div>
       </div>
 
       {itemContext.useResizeHandle ? <div {...rightResizeProps} /> : ""}
     </div>
+  );
+};
+
+interface ItemAllocationActionDialogProps {
+  handleMove: () => void;
+  handleCopy: () => void;
+  handleCancel: () => void;
+}
+
+export const ItemAllocationActionDialog = ({
+  handleMove,
+  handleCopy,
+  handleCancel,
+}: ItemAllocationActionDialogProps) => {
+  const [open, setOpen] = useState(true);
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(open: boolean) => {
+        setOpen(open);
+        handleCancel();
+      }}
+    >
+      <DialogContent className="sm:max-w-[425px] z-[1000]">
+        <DialogHeader>
+          <DialogDescription>
+            <Typography className="text-xl mb-2 mt-3 font-semibold">
+              Are you sure you want to move or copy this allocation?
+            </Typography>
+            <Typography className="text-sm">
+              This action will either move or copy the given allocation. Please confirm your choice.
+            </Typography>
+          </DialogDescription>
+        </DialogHeader>
+
+        <DialogFooter>
+          <Button
+            className="outline-none"
+            onClick={() => {
+              setOpen(false);
+              handleMove();
+            }}
+          >
+            <Move className="w-4 h-4" />
+            Move
+          </Button>
+          <Button
+            className="outline-none"
+            onClick={() => {
+              setOpen(false);
+              handleCopy();
+            }}
+          >
+            <Copy className="w-4 h-4" />
+            Copy
+          </Button>
+          <Button
+            type="button"
+            className="outline-none"
+            variant="secondary"
+            onClick={() => {
+              handleCancel();
+            }}
+          >
+            <X className="w-4 h-4" />
+            Cancel
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 
