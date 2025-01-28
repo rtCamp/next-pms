@@ -148,7 +148,7 @@ const EmployeeCombo = ({
           <ChevronDown size={24} className="w-4 h-4 shrink-0 transition-transform duration-400" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0">
+      <PopoverContent className="p-0 z-[1000]">
         <Command shouldFilter={false}>
           <CommandInput placeholder="Search Employee" value={search} onValueChange={onInputChange} />
           <CommandEmpty>No data.</CommandEmpty>

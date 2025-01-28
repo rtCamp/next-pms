@@ -3,7 +3,7 @@
  */
 import { useContext } from "react";
 import { TableHead, TableHeader, TableRow, Typography } from "@next-pms/design-system/components";
-import { prettyDate ,getUTCDateTime} from "@next-pms/design-system/date";
+import { prettyDate, getUTCDateTime } from "@next-pms/design-system/date";
 import { isToday } from "date-fns";
 
 /**
@@ -11,7 +11,8 @@ import { isToday } from "date-fns";
  */
 import { cn } from "@/lib/utils";
 import { DateProps } from "@/store/resource_management/team";
-import { TableContext } from "../contexts/tableContext";
+
+import { TableContext } from "../store/tableContext";
 import { getTableCellClass } from "../utils/helper";
 
 interface ResourceTableHeaderProps {

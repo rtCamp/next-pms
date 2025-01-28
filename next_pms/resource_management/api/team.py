@@ -36,6 +36,7 @@ def get_resource_management_team_view_data(
     start=0,
     skills=None,
     employee_id=None,
+    need_hours_summary=False,
 ):
     permissions = resource_api_permissions_check()
 
@@ -61,6 +62,15 @@ def get_resource_management_team_view_data(
     if skills:
         ids = get_employees_by_skills(skills)
         if len(ids) == 0:
+            if not need_hours_summary:
+                res["employees"] = []
+                res["resource_allocations"] = []
+                res["customer"] = {}
+                res["total_count"] = 0
+                res["has_more"] = False
+                res["permissions"] = permissions
+                return res
+
             res["data"] = data
             res["customer"] = customer
             res["total_count"] = 0
@@ -104,6 +114,7 @@ def get_resource_management_team_view_data(
         dates[0].get("start_date"),
         dates[-1].get("end_date"),
         is_billable,
+        is_need_fetch_all_weeks=not need_hours_summary,
     )
 
     # Make the map of resource allocation data for given employee
@@ -111,9 +122,21 @@ def get_resource_management_team_view_data(
     for resource_allocation in resource_allocation_data:
         if resource_allocation.employee not in resource_allocation_map:
             resource_allocation_map[resource_allocation.employee] = []
+        customer = handle_customer(customer, resource_allocation.customer)
         resource_allocation_map[resource_allocation.employee].append(resource_allocation)
 
+    if not need_hours_summary:
+        res["employees"] = employees
+        res["resource_allocations"] = resource_allocation_data
+        res["customer"] = customer
+        res["total_count"] = total_count
+        res["has_more"] = int(start) + int(page_length) < total_count
+        res["permissions"] = permissions
+        return res
+
     for employee in employees:
+        employee_resource_allocation = resource_allocation_map.get(employee.name, [])
+
         working_hours = get_employee_working_hours(employee.name)
 
         # convert working hours in date format to hours per day
@@ -122,8 +145,6 @@ def get_resource_management_team_view_data(
             if working_hours.get("working_frequency") == "Per Day"
             else working_hours.get("working_hour") / 5
         )
-
-        employee_resource_allocation = resource_allocation_map.get(employee.name, [])
 
         timesheet_data = frappe.get_all(
             "Timesheet",
@@ -180,8 +201,6 @@ def get_resource_management_team_view_data(
                             resource_allocation.allocation_start_date <= date
                             and resource_allocation.allocation_end_date >= date
                         ):
-                            customer = handle_customer(customer, resource_allocation.customer)
-
                             total_allocated_hours_for_given_date += resource_allocation.get("hours_allocated_per_day")
                             total_worked_hours_resource_allocation = find_worked_hours(
                                 timesheet_data=timesheet_data, date=date, project=resource_allocation.project

@@ -3,7 +3,8 @@
  */
 import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Spinner,useToast } from "@next-pms/design-system/components";
+import { getNextDate } from "@next-pms/design-system";
+import { Spinner, useToast } from "@next-pms/design-system/components";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
@@ -14,10 +15,9 @@ import { AllocationDataProps, PermissionProps } from "@/store/resource_managemen
 import { setData, setReFetchData, updateData } from "@/store/resource_management/project";
 
 import AddResourceAllocations from "../components/AddAllocation";
-import { getIsBillableValue } from "../utils/helper";
 import { ResourceProjectHeaderSection } from "./components/Header";
+import { getIsBillableValue } from "../utils/helper";
 import { ResourceProjectTable } from "./components/Table";
-import { getNextDate } from "../utils/dates";
 
 /**
  * This is main component which is responsible for rendering the project view of resource management.

@@ -16,7 +16,7 @@ import {
  */
 import { cn } from "@/lib/utils";
 import { EmptyTableCell } from "./Empty";
-import { TableContext } from "../contexts/tableContext";
+import { TableContext } from "../store/tableContext";
 import { getFilterValue } from "../utils/helper";
 
 interface ResourceTableProps {

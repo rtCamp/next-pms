@@ -3,7 +3,13 @@ from frappe.query_builder.functions import Sum
 
 
 def get_allocation_list_for_employee_for_given_range(
-    columns: list, value_key: str, values: list, start_date, end_date, is_billable=-1
+    columns: list,
+    value_key: str,
+    values: list,
+    start_date,
+    end_date,
+    is_billable=-1,
+    is_need_fetch_all_weeks=False,
 ):
     """
     Returns a list of resource allocations for the given list for given key, within the given date range.
@@ -19,6 +25,19 @@ def get_allocation_list_for_employee_for_given_range(
     """
     if not values:
         return []
+
+    if is_need_fetch_all_weeks:
+        filters = {}
+
+        if value_key == "employee":
+            filters["employee"] = ["in", values]
+        else:
+            filters["project"] = ["in", values]
+
+        if is_billable == "0" or is_billable == "1":
+            filters["is_billable"] = is_billable
+
+        return frappe.db.get_all("Resource Allocation", filters=filters, fields=columns)
 
     # Only ways was to write sql for this, normal frappe methods are not working, also try with query build but looks like it dont have support of nesting condition.
     # nosemgrep

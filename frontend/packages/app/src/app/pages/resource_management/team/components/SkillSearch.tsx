@@ -2,7 +2,6 @@
  * External dependencies.
  */
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import {
   Badge,
   Button,
@@ -25,8 +24,7 @@ import { Filter as Funnel, Search, Star, X } from "lucide-react";
  * Internal dependencies.
  */
 import { cn } from "@/lib/utils";
-import { RootState } from "@/store";
-import { setSkillSearch, Skill, SkillData } from "@/store/resource_management/team";
+import { Skill, SkillData } from "@/store/resource_management/team";
 
 // Comparison options map with descriptions
 const COMPARISON_OPTIONS = {
@@ -40,16 +38,16 @@ const COMPARISON_OPTIONS = {
 const SkillSearch = ({
   onSubmit,
   setSkillSearchParam,
+  skillSearch,
 }: {
-  onSubmit: () => void;
+  onSubmit: (skills: Skill[]) => void;
   setSkillSearchParam: (skills: Skill[]) => void;
+  skillSearch: Skill[];
 }) => {
-  const resourceTeamState = useSelector((state: RootState) => state.resource_team);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const dispatch = useDispatch();
   const [skills, setSkills] = useState<SkillData[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSkills, setSelectedSkills] = useState<Skill[]>(resourceTeamState?.skillSearch || []);
+  const [selectedSkills, setSelectedSkills] = useState<Skill[]>(skillSearch || []);
 
   const { data } = useFrappeGetCall(
     "frappe.client.get_list",
@@ -90,7 +88,6 @@ const SkillSearch = ({
   const removeSkill = (skillId: string) => {
     const updatedSkills = selectedSkills.filter((skill) => skill.name !== skillId);
     setSelectedSkills(updatedSkills);
-    dispatch(setSkillSearch(updatedSkills));
   };
 
   const updateSkillComparison = (skillId: string, operator: string) => {
@@ -104,16 +101,15 @@ const SkillSearch = ({
   };
 
   const handleSearchClick = () => {
-    dispatch(setSkillSearch(selectedSkills));
-    onSubmit();
+    onSubmit(selectedSkills);
     setIsPopoverOpen(false);
   };
 
   useEffect(() => {
-    if (resourceTeamState.skillSearch) {
-      setSkillSearchParam(resourceTeamState.skillSearch);
+    if (skillSearch) {
+      setSkillSearchParam(skillSearch);
     }
-  }, [resourceTeamState.skillSearch, setSkillSearchParam]);
+  }, [skillSearch, setSkillSearchParam]);
 
   return (
     <Popover
@@ -122,23 +118,21 @@ const SkillSearch = ({
         if (!value) {
           setSelectedSkills([]);
         } else {
-          setSelectedSkills(resourceTeamState?.skillSearch || []);
+          setSelectedSkills(skillSearch || []);
         }
         setIsPopoverOpen(value);
       }}
     >
       <PopoverTrigger asChild>
         <Button variant="outline" className="border-dashed gap-x-2">
-          <Funnel className={cn("h-4 w-4", resourceTeamState?.skillSearch!.length > 0 && "fill-primary")} />
+          <Funnel className={cn("h-4 w-4", skillSearch!.length > 0 && "fill-primary")} />
           <Typography variant="p" className="truncate max-w-md">
             Skill
           </Typography>
-          {resourceTeamState?.skillSearch!.length > 0 && (
-            <Badge className="p-0 justify-center w-5 h-5">{resourceTeamState?.skillSearch?.length}</Badge>
-          )}
+          {skillSearch!.length > 0 && <Badge className="p-0 justify-center w-5 h-5">{skillSearch?.length}</Badge>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80">
+      <PopoverContent align="end" className="w-80 z-[1000]">
         <div>
           <h1>Skill Search</h1>
         </div>
@@ -250,7 +244,7 @@ const SkillSearch = ({
                 onClick={() => {
                   setIsPopoverOpen(false);
                   setSelectedSkills([]);
-                  dispatch(setSkillSearch([]));
+                  onSubmit([]);
                 }}
               >
                 <X className="w-4 h-4" />

@@ -30,7 +30,7 @@ import { ResourceTableCell } from "../../components/TableCell";
 
 import ResourceProjectTableHeader from "../../components/TableHeader";
 import { ResourceTableRow } from "../../components/TableRow";
-import { TableContextProvider } from "../../contexts/tableContext";
+import { TableContextProvider } from "../../store/tableContext";
 import { getCellBackGroundColor } from "../../utils/cell";
 import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
 

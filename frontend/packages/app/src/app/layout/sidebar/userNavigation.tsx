@@ -45,7 +45,7 @@ const UserNavigation = () => {
             {user.userName}
           </Typography>
         </PopoverTrigger>
-        <PopoverContent className="flex flex-col p-1 w-52">
+        <PopoverContent className="flex flex-col p-1 w-52 z-[1000]">
           <a
             className="flex justify-start text-sm hover:no-underline hover:bg-accent p-2 gap-x-2 items-center"
             href={DESK}
