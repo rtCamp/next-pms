@@ -134,7 +134,6 @@ const EmployeeDetail = () => {
       const info = obj[Object.keys(obj).pop()!];
       const date = getFormatedDate(addDays(info.start_date, -1));
       dispatch({type:"SET_EMPLOYEE_WEEK_DATE",payload:date});
-      // dispatch(SET_EMPLOYEE_WEEK_DATE(date));
     }
   }, [startDateParam, teamState.timesheetData.data]);
 
@@ -151,11 +150,11 @@ const EmployeeDetail = () => {
         <Approval
           employee={teamState.employee}
           isAprrovalDialogOpen={teamState.isAprrovalDialogOpen}
-          end_date={teamState.dateRange.end_date}
-          start_date={teamState.dateRange.start_date}
+          endDate={teamState.dateRange.endDate}
+          startDate={teamState.dateRange.startDate}
           onClose={(data) => {
             dispatch({type:"SET_EMPLOYEE_WEEK_DATE",payload:data});
-            dispatch({type:"SET_DATE_RANGE",payload:{ dateRange: { start_date: "", end_date: "" }, isAprrovalDialogOpen: false }});
+            dispatch({type:"SET_DATE_RANGE",payload:{ dateRange: { startDate: "", endDate: "" }, isAprrovalDialogOpen: false }});
             mutate();
           }}
         />
@@ -293,10 +292,10 @@ const Timesheet = ({
     return () => observer.disconnect();
   }, []);
 
-  const handleStatusClick = (start_date: string, end_date: string) => {
+  const handleStatusClick = (startDate: string, endDate: string) => {
     const data = {
-      start_date: start_date,
-      end_date: end_date,
+      startDate: startDate,
+      endDate: endDate,
     };    
     dispatch({type:"SET_DATE_RANGE",payload:{ dateRange: data, isAprrovalDialogOpen: true }});
   };
@@ -451,13 +450,12 @@ export const Time = ({
     observer.observe(document.body, { childList: true, subtree: true });
     return () => observer.disconnect();
   }, []);
-  const handleStatusClick = (start_date: string, end_date: string) => {
+  const handleStatusClick = (startDate: string, endDate: string) => {
     const data = {
-      start_date: start_date,
-      end_date: end_date,
+      startDate: startDate,
+      endDate: endDate,
     };
     dispatch({type:"SET_DATE_RANGE",payload:{ dateRange: data, isAprrovalDialogOpen: true }})
-    // dispatch(SET_DATE_RANGE({ dateRange: data, isAprrovalDialogOpen: true }));
   };
   const holidays = teamState.timesheetData.holidays.map((holiday) => {
     if (typeof holiday === "object" && "holiday_date" in holiday) {

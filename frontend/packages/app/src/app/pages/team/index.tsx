@@ -36,18 +36,12 @@ import { CircleCheck, Hourglass, CircleX } from "lucide-react";
 import { WeekTotal } from "@/app/components/timesheet-table/components/weekTotal";
 import { TEAM, EMPLOYEE } from "@/lib/constant";
 import { parseFrappeErrorMsg, cn } from "@/lib/utils";
-import { ItemProps, dataItem } from "@/types/team";
+import { DateProps, ItemProps, dataItem } from "@/types/team";
 import { Approval } from "./components/approval";
 import { Employee } from "./components/employee";
-import { Header } from "./components/Header";
+import { Header } from "./components/header";
 import { initialState, reducer } from "./reducer";
 
-type DateProps = {
-  start_date: string;
-  end_date: string;
-  key: string;
-  dates: Array<string>;
-};
 
 const Team = () => {
   const { toast } = useToast();
@@ -108,10 +102,10 @@ const Team = () => {
     dispatch({type:"SET_START",payload:teamState.start + teamState.pageLength});
   };
 
-  const onStatusClick = (start_date: string, end_date: string, employee: string) => {
+  const onStatusClick = (startDate: string, endDate: string, employee: string) => {
     const data = {
-      start_date,
-      end_date,
+      startDate,
+      endDate,
     };
     dispatch({type:"SET_EMPLOYEE",payload:employee});
     dispatch({type:"SET_DATE_RANGE",payload:{ dateRange: data, isAprrovalDialogOpen: true }});
@@ -129,11 +123,11 @@ const Team = () => {
         <Approval
           employee={teamState.employee}
           isAprrovalDialogOpen={teamState.isAprrovalDialogOpen}
-          end_date={teamState.dateRange.end_date}
-          start_date={teamState.dateRange.start_date}
+          endDate={teamState.dateRange.endDate}
+          startDate={teamState.dateRange.startDate}
           onClose={() => {
             mutate();
-            dispatch({type:"SET_DATE_RANGE",payload:{ dateRange: { start_date: "", end_date: "" }, isAprrovalDialogOpen: false }});
+            dispatch({type:"SET_DATE_RANGE",payload:{ dateRange: { startDate: "", endDate: "" }, isAprrovalDialogOpen: false }});
           }}
         />
       )}

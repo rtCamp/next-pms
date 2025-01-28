@@ -7,14 +7,8 @@ import { addDays } from "date-fns";
 /**
  * Internal dependencies
  */
+import { DateProps, DateRange, teamStateActionType } from "@/types/team";
 import { DataProp as timesheetDataProps } from "@/types/timesheet";
-
-type DateRange = {
-  start_date: string;
-  end_date: string;
-};
-
-export type teamStateActionType = "SET" | "UPDATE";
 
 export interface TeamState {
   data: dataProps;
@@ -56,12 +50,6 @@ export interface dataProps {
   has_more: boolean;
 }
 
-export type DateProps = {
-  start_date: string;
-  end_date: string;
-  key: string;
-  dates: string[];
-};
 
 export const initialState: TeamState = {
   action: "SET",
@@ -96,8 +84,8 @@ export const initialState: TeamState = {
   start: 0,
   hasMore: true,
   dateRange: {
-    start_date: "",
-    end_date: "",
+    startDate: "",
+    endDate: "",
   },
   timesheetData: {
     working_hour: 0,

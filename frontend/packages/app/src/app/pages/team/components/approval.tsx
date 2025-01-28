@@ -50,11 +50,11 @@ type Holiday = {
 interface ApprovalProp {
   onClose: (data: any) => void;
   employee:string;
-  start_date:string;
-  end_date:string;
+  startDate:string;
+  endDate:string;
   isAprrovalDialogOpen:boolean
 }
-export const Approval = ({ onClose,employee,start_date,end_date,isAprrovalDialogOpen }: ApprovalProp) => {
+export const Approval = ({ onClose,employee,startDate,endDate,isAprrovalDialogOpen }: ApprovalProp) => {
   const { toast } = useToast();
   const [timesheetData, setTimesheetData] = useState<timesheet>();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -87,7 +87,7 @@ export const Approval = ({ onClose,employee,start_date,end_date,isAprrovalDialog
   };
   const { data, isLoading, error, mutate } = useFrappeGetCall("next_pms.timesheet.api.timesheet.get_timesheet_data", {
     employee: employee,
-    start_date: start_date,
+    start_date: startDate,
     max_week: 1,
     holiday_with_description: true,
   });
@@ -197,8 +197,8 @@ export const Approval = ({ onClose,employee,start_date,end_date,isAprrovalDialog
           <>
             <SheetHeader>
               <SheetTitle>
-                Week of {prettyDate(start_date).date} -{" "}
-                {prettyDate(end_date).date}
+                Week of {prettyDate(startDate).date} -{" "}
+                {prettyDate(endDate).date}
               </SheetTitle>
             </SheetHeader>
             <div className="flex flex-col gap-y-4 mt-6">
