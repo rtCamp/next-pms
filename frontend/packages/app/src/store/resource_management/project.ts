@@ -7,8 +7,7 @@ import {
   ResourceAllocationObjectProps,
   ResourceCustomerObjectProps,
 } from "@/types/resource_management";
-import { DateProps } from "../team";
-import { DateRange } from "./team";
+import { DateRange,DateProps } from "./team";
 
 export type ProjectDataProps = {
   name: string;
