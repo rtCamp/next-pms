@@ -44,7 +44,7 @@ import { TimesheetTable } from "@/app/components/timesheet-table";
 import { Header, Main } from "@/app/layout/root";
 import { TaskLog } from "@/app/pages/task/taskLog";
 import { Status } from "@/app/pages/team";
-import { EditTime } from "@/app/pages/timesheet/editTime";
+import { EditTime } from "@/app/pages/timesheet/component/editTime";
 import { parseFrappeErrorMsg, calculateExtendedWorkingHour, expectatedHours, copyToClipboard } from "@/lib/utils";
 import { timeStringToFloat } from "@/schema/timesheet";
 import { RootState } from "@/store";
@@ -62,7 +62,7 @@ import {
 import { LeaveProps, NewTimesheetProps, TaskDataItemProps, TaskDataProps, timesheet } from "@/types/timesheet";
 import { Approval } from "./approval";
 import { InfiniteScroll } from "../resource_management/components/InfiniteScroll";
-import ExpandableHours from "../timesheet/expandableHours";
+import ExpandableHours from "../timesheet/component/expandableHours";
 
 const isDateInRange = (date: string, startDate: string, endDate: string) => {
   const targetDate = getUTCDateTime(normalizeDate(date));
@@ -73,6 +73,7 @@ const isDateInRange = (date: string, startDate: string, endDate: string) => {
 const EmployeeDetail = () => {
   const { id } = useParams();
   const teamState = useSelector((state: RootState) => state.team);
+  const user = useSelector((state: RootState) => state.user);
   const [startDateParam, setstartDateParam] = useQueryParam<string>("date", "");
   const dispatch = useDispatch();
   const { toast } = useToast();
@@ -176,15 +177,26 @@ const EmployeeDetail = () => {
 
   return (
     <>
-      {teamState.isAprrovalDialogOpen && <Approval onClose={mutate} />}
+      {teamState.isAprrovalDialogOpen && (
+        <Approval
+          onClose={(data) => {
+            dispatch(setEmployeeWeekDate(data));
+            mutate();
+          }}
+        />
+      )}
       {teamState.isDialogOpen && (
         <AddTime
           open={teamState.isDialogOpen}
-          onOpenChange={() => {
+          onOpenChange={(data) => {
+            dispatch(setEmployeeWeekDate(data.date));
             mutate();
             dispatch(setDialog(false));
           }}
-          onSuccess={mutate}
+          onSuccess={(data) => {
+            dispatch(setEmployeeWeekDate(data.date));
+            mutate();
+          }}
           task={teamState.timesheet.task}
           initialDate={teamState.timesheet.date}
           employee={teamState.employee}
@@ -200,7 +212,9 @@ const EmployeeDetail = () => {
           employee={teamState.employee}
           date={teamState.timesheet.date}
           task={teamState.timesheet.task}
+          user={user}
           onClose={() => {
+            dispatch(setEmployeeWeekDate(teamState.timesheet.date));
             dispatch(setEditDialog(false));
             mutate();
           }}
@@ -309,7 +323,7 @@ const Timesheet = ({
     <div className="flex flex-col">
       {teamState.timesheetData.data &&
         Object.keys(teamState.timesheetData.data).length > 0 &&
-        Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet], index: number) => {
+        Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet]) => {
           let total_hours = value.total_hours;
           let timeoff_hours = 0;
           value.dates.map((date) => {
@@ -475,7 +489,7 @@ export const Time = ({
       )}
       {teamState.timesheetData.data &&
         Object.keys(teamState.timesheetData.data).length > 0 &&
-        Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet], index: number) => {
+        Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet]) => {
           let total_hours = value.total_hours;
           let timeoff_hours = 0;
           value.dates.map((date) => {
