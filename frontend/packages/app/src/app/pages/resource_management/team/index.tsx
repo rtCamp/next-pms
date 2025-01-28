@@ -24,8 +24,8 @@ import {
 } from "@/store/resource_management/team";
 
 import AddResourceAllocations from "../components/AddAllocation";
-import { ResourceTeamHeaderSection } from "./components/header";
-import { ResourceTeamTable } from "./components/table";
+import { ResourceTeamHeaderSection } from "./components/Header";
+import { ResourceTeamTable } from "./components/Table";
 import { getDatesArrays } from "../utils/dates";
 import { getIsBillableValue } from "../utils/helper";
 
@@ -66,7 +66,6 @@ const ResourceTeamView = () => {
         ...req,
         employee_name: resourceTeamState.employeeName,
         page_length: resourceTeamState.pageLength,
-        need_hours_summary: true,
       };
       if (resourceAllocationPermission.write) {
         newReqBody = {
@@ -76,6 +75,7 @@ const ResourceTeamView = () => {
           designation: JSON.stringify(resourceTeamState.designation),
           is_billable: getIsBillableValue(resourceTeamState.allocationType as string[]),
           skills: resourceTeamState?.skillSearch?.length > 0 ? JSON.stringify(resourceTeamState.skillSearch) : null,
+          need_hours_summary: true,
         };
         return newReqBody;
       }
@@ -275,6 +275,7 @@ const ResourceTeamView = () => {
         max_week: resourceTeamState.maxWeek,
         employee_id: JSON.stringify([oldData.employee, newData.employee]),
         is_billable: getIsBillableValue(resourceTeamState.allocationType as string[]),
+        need_hours_summary: true,
       }).then((res) => {
         const newEmployeeData = res.message?.data;
         if (newEmployeeData && newEmployeeData.length > 0) {
@@ -285,7 +286,13 @@ const ResourceTeamView = () => {
             }
             return item;
           });
-          dispatch(setData({ ...resourceTeamState.data, data: updatedData, customer: res.message?.customer }));
+          dispatch(
+            setData({
+              ...resourceTeamState.data,
+              data: updatedData,
+              customer: { ...resourceTeamState.data.customer, ...res.message?.customer },
+            })
+          );
         }
       });
     },
