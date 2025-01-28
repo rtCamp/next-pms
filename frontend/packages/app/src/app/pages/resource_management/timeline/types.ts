@@ -53,8 +53,8 @@ interface ResourceAllocationTimeLineProps extends ResourceAllocationProps {
   group: string;
   start_time: number;
   end_time: number;
-  canDelete: boolean;
-  onDelete: () => void;
+  canDelete?: boolean;
+  onDelete?: () => void;
 }
 
 interface ResourceTimeLineDataProps {
@@ -63,12 +63,23 @@ interface ResourceTimeLineDataProps {
   customer: ResourceAllocationCustomerProps;
 }
 
+interface ResourceTeamAPIBodyProps {
+  date?: string;
+  start?: number;
+  employee_name?: string;
+  page_length?: number;
+  business_unit?: string;
+  reports_to?: string;
+  designation?: string;
+  is_billable?: string;
+  skills?: string;
+}
+
 export type {
   ResourceAllocationCustomerProps,
   ResourceAllocationEmployeeProps,
   ResourceAllocationItemProps,
   ResourceAllocationTimeLineFilterProps,
-  ResourceAllocationTimeLineProps,
-  ResourceTimeLineDataProps
+  ResourceAllocationTimeLineProps, ResourceTeamAPIBodyProps, ResourceTimeLineDataProps
 };
 

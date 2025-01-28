@@ -13,9 +13,9 @@ import { cn } from "@/lib/utils";
 import { RootState } from "@/store";
 import { AllocationDataProps, setResourceFormData } from "@/store/resource_management/allocation";
 import { DateProps, EmployeeDataProps } from "@/store/resource_management/team";
-import { EmptyRow } from "../../components/Empty";
-import { ResourceAllocationList } from "../../components/ResourceAllocationList";
-import { ResourceTableCell, TableInformationCellContent } from "../../components/TableCell";
+import { EmptyRow } from "../../components/empty";
+import { ResourceAllocationList } from "../../components/resourceAllocationList";
+import { ResourceTableCell, TableInformationCellContent } from "../../components/tableCell";
 import { CombinedResourceDataProps, CombinedResourceObjectProps, groupAllocations } from "../../utils/group";
 import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
 

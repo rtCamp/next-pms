@@ -1,6 +1,6 @@
 import { useState, createContext, ReactNode } from "react";
 
-import { getFormatedDate, getTodayDate } from "@next-pms/design-system";
+import { getTodayDate } from "@next-pms/design-system";
 import { useInfiniteScroll } from "@next-pms/hooks";
 
 import {
@@ -16,7 +16,11 @@ interface TimeLineContextProps {
   customer: ResourceAllocationCustomerProps;
   filters: ResourceAllocationTimeLineFilterProps;
   apiControler: APIControlerProps;
-  allocationData: { isNeedToDelete: boolean; old?: ResourceAllocationTimeLineProps; new?: ResourceAllocationTimeLineProps };
+  allocationData: {
+    isNeedToDelete: boolean;
+    old?: ResourceAllocationTimeLineProps;
+    new?: ResourceAllocationTimeLineProps;
+  };
   setEmployeesData: (value: ResourceAllocationEmployeeProps[], hasMore: boolean) => void;
   setAllocationsData: (value: ResourceAllocationTimeLineProps[], type?: "Set" | "Update") => void;
   setCustomerData: (value: ResourceAllocationCustomerProps) => void;
@@ -31,7 +35,11 @@ interface TimeLineContextProps {
   ) => ResourceAllocationTimeLineProps;
   getEmployeeWithIndex: (index: number) => ResourceAllocationEmployeeProps | -1;
   isEmployeeExits: (name: string) => boolean | undefined;
-  setAllocationData: (value: { isNeedToDelete: boolean; old?: ResourceAllocationTimeLineProps; new?: ResourceAllocationTimeLineProps }) => void;
+  setAllocationData: (value: {
+    isNeedToDelete: boolean;
+    old?: ResourceAllocationTimeLineProps;
+    new?: ResourceAllocationTimeLineProps;
+  }) => void;
 }
 
 interface APIControlerProps {
@@ -78,7 +86,7 @@ const TimeLineContextProvider = ({ children }: TimeLineContextProviderProps) => 
     skillSearch: [],
     start: 0,
     page_length: 20,
-    weekDate: getFormatedDate(getTodayDate()),
+    weekDate: getTodayDate(),
   });
 
   const [apiControler, setApiControler] = useState<APIControlerProps>({

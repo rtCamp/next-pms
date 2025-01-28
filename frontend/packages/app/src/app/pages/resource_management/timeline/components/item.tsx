@@ -22,9 +22,10 @@ import { X, Move, Copy } from "lucide-react";
  * Internal dependencies.
  */
 import { cn } from "@/lib/utils";
-import { ResourceAllocationItemProps, ResourceAllocationTimeLineProps } from "./types";
-import { DeleteIcon } from "../components/ResourceAllocationList";
-import { getFilterValue, getInitials } from "../utils/helper";
+import { DeleteIcon } from "../../components/resourceAllocationList";
+import { getInitials } from "../../utils/helper";
+
+import { ResourceAllocationItemProps, ResourceAllocationTimeLineProps } from "../types";
 
 interface ResourceTimeLineItemProps {
   item: ResourceAllocationTimeLineProps;
@@ -43,29 +44,27 @@ const ResourceTimeLineItem = ({
   const { date: startDate } = prettyDate(resourceAllocation.allocation_start_date);
   const { date: endDate } = prettyDate(resourceAllocation.allocation_end_date);
 
-  const getTitle = () => {
-    const dayDiff = getDayDiff(resourceAllocation.allocation_start_date, resourceAllocation.allocation_end_date);
+  const dayDiff = getDayDiff(resourceAllocation.allocation_start_date, resourceAllocation.allocation_end_date);
 
+  const getTitle = (isNeedFullTitle = false) => {
     const title = `${
       resourceAllocation.project_name ? resourceAllocation.project_name + " " : ""
     }${startDate} - ${endDate} (${resourceAllocation.hours_allocated_per_day} hours/day)`;
+
+    if (isNeedFullTitle) {
+      return title;
+    }
 
     if (dayDiff <= 0) {
       return "";
     }
 
-    if (dayDiff <= 2) {
-      return getFilterValue(title, 3);
-    }
-
-    if (dayDiff <= 3) {
-      return getFilterValue(title, 2);
+    if (dayDiff <= 4) {
+      return `${startDate} - ${endDate} (${resourceAllocation.hours_allocated_per_day} hours/day)`;
     }
 
     return title;
   };
-
-  const titleToolTip = `${resourceAllocation.customerData.name} : ${resourceAllocation.hours_allocated_per_day} hours/day (${startDate} - ${endDate})`;
 
   let itemProps = getItemProps(resourceAllocation.itemProps);
 
@@ -78,6 +77,8 @@ const ResourceTimeLineItem = ({
       borderRadius: "4px",
       border: "1px solid #d1d5db",
       borderWidth: 0,
+      borderRightWidth: resourceAllocation.canDelete && itemContext.selected ? 3 : 0,
+      overflow: dayDiff <= 10 ? "hidden" : "visible",
     },
   };
 
@@ -88,35 +89,44 @@ const ResourceTimeLineItem = ({
       <div
         className={cn("rct-item-content overflow-hidden")}
         style={{ maxHeight: `${itemContext.dimensions.height}` }}
-        title={titleToolTip}
+        title={getTitle(true)}
       >
-        <div className="flex justify-center gap-[2px] h-full w-full" style={{ alignItems: "center" }}>
-          <Avatar className="w-5 h-5">
-            {resourceAllocation.customerData.image && (
-              <AvatarImage src={decodeURIComponent(resourceAllocation.customerData.image)} />
-            )}
-            <AvatarFallback className="bg-gray-300 text-black">
-              {getInitials(resourceAllocation.customerData.name[0])}
-            </AvatarFallback>
-          </Avatar>
-          <Typography
-            variant="small"
-            className={cn(
-              "pl-[2px] truncate overflow-hidden text-[12px]",
-              resourceAllocation.is_billable
-                ? "bg-gradient-to-r from-green-500 to-green-800 bg-clip-text text-transparent"
-                : "text-yellow-500"
-            )}
-          >
-            {getTitle()}
-          </Typography>
+        <div
+          className={cn("flex justify-start gap-[2px] h-full w-full", dayDiff == 0 && "justify-center")}
+          style={{ alignItems: "center" }}
+        >
           {itemContext.selected && resourceAllocation.canDelete && (
             <DeleteIcon
               resourceAllocation={resourceAllocation}
               resourceAllocationPermission={{ delete: resourceAllocation.canDelete }}
-              buttonClassName={cn("text-red-500 z-[1000] cusror-pointer hover:text-red-600  w-3")}
+              buttonClassName={cn("text-red-500 z-[1000] cusror-pointer hover:text-red-600 w-4 h-4")}
               onSubmit={resourceAllocation.onDelete}
             />
+          )}
+
+          {(!itemContext.selected || !resourceAllocation.canDelete) && (
+            <Avatar className="w-5 h-5 mr-1">
+              {resourceAllocation.customerData.image && (
+                <AvatarImage src={decodeURIComponent(resourceAllocation.customerData.image)} />
+              )}
+              <AvatarFallback className="bg-gray-300 text-black">
+                {getInitials(resourceAllocation.customerData.name[0])}
+              </AvatarFallback>
+            </Avatar>
+          )}
+
+          {dayDiff != 0 && (
+            <Typography
+              variant="small"
+              className={cn(
+                "text-[12px] truncate overflow-hidden block",
+                resourceAllocation.is_billable
+                  ? "bg-gradient-to-r from-green-500 to-green-800 bg-clip-text text-transparent"
+                  : "text-yellow-500"
+              )}
+            >
+              {getTitle()}
+            </Typography>
           )}
         </div>
       </div>

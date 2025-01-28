@@ -7,9 +7,9 @@ from frappe.email.doctype.auto_email_report.auto_email_report import DATE_FORMAT
 from frappe.utils import add_days
 
 from next_pms.resource_management.api.utils.helpers import (
+    add_customer_data_if_not_exists,
     filter_project_list,
     get_dates_date,
-    handle_customer,
     resource_api_permissions_check,
 )
 from next_pms.resource_management.api.utils.query import (
@@ -96,7 +96,7 @@ def get_resource_management_project_view_data(
 
                 for resource_allocation_name in project_resource_allocation:
                     resource_allocation = project_resource_allocation[resource_allocation_name]
-                    customer = handle_customer(customer, resource_allocation.customer)
+                    customer = add_customer_data_if_not_exists(customer, resource_allocation.customer)
 
                     if resource_allocation.allocation_start_date <= date <= resource_allocation.allocation_end_date:
                         total_allocated_hours_for_given_date += resource_allocation.hours_allocated_per_day
@@ -226,7 +226,7 @@ def get_employees_resrouce_data_for_given_project(project: str, start_date: str,
             for resource_allocation_name in employee_resource_allocation:
                 resource_allocation = employee_resource_allocation[resource_allocation_name]
 
-                customer = handle_customer(customer, resource_allocation.customer)
+                customer = add_customer_data_if_not_exists(customer, resource_allocation.customer)
 
                 if resource_allocation.allocation_start_date <= current_date <= resource_allocation.allocation_end_date:
                     total_allocated_hours_for_employee += resource_allocation.hours_allocated_per_day

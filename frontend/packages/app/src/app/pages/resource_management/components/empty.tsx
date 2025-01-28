@@ -13,7 +13,7 @@ import { CirclePlus } from "lucide-react";
 import { RootState } from "@/store";
 import { PermissionProps } from "@/store/resource_management/allocation";
 
-import { ResourceTableCell, TableCellContent, TableInformationCellContent } from "./TableCell";
+import { ResourceTableCell, TableCellContent, TableInformationCellContent } from "./tableCell";
 import { getTableCellClass, getTableCellRow, getTodayDateCellClass } from "../utils/helper";
 
 /**

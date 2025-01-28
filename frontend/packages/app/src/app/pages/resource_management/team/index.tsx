@@ -275,6 +275,7 @@ const ResourceTeamView = () => {
         max_week: resourceTeamState.maxWeek,
         employee_id: JSON.stringify([oldData.employee, newData.employee]),
         is_billable: getIsBillableValue(resourceTeamState.allocationType as string[]),
+        need_hours_summary: true,
       }).then((res) => {
         const newEmployeeData = res.message?.data;
         if (newEmployeeData && newEmployeeData.length > 0) {
@@ -285,7 +286,13 @@ const ResourceTeamView = () => {
             }
             return item;
           });
-          dispatch(setData({ ...resourceTeamState.data, data: updatedData, customer: res.message?.customer }));
+          dispatch(
+            setData({
+              ...resourceTeamState.data,
+              data: updatedData,
+              customer: { ...resourceTeamState.data.customer, ...res.message?.customer },
+            })
+          );
         }
       });
     },
