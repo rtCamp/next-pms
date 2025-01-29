@@ -15,7 +15,7 @@ import { AllocationDataProps, PermissionProps } from "@/store/resource_managemen
 import { setData, setReFetchData, updateData } from "@/store/resource_management/project";
 
 import AddResourceAllocations from "../components/AddAllocation";
-import { ResourceProjectHeaderSection } from "./components/Header";
+import { ResourceProjectHeaderSection } from "./components/header";
 import { getIsBillableValue } from "../utils/helper";
 import { ResourceProjectTable } from "./components/table";
 
