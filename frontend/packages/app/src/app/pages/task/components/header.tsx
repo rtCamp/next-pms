@@ -161,7 +161,9 @@ export const Header = ({
       orderBy: `${taskState.orderColumn}  ${taskState.order}`,
       fields: columnOrder.reduce((acc: { [key: string]: string }, value) => {
         const m = meta.fields.find((field: { fieldname: string }) => field.fieldname === value);
-        acc[value] = m?.label ?? value;
+        if (m) {
+          acc[value] = m?.label ?? value;
+        }
         return acc;
       }, {}),
     },

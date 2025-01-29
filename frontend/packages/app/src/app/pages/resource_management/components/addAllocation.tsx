@@ -24,11 +24,9 @@ import {
   useToast,
   ComboBox,
   DatePicker,
-  Typography,
+  Typography
 } from "@next-pms/design-system/components";
-import {
-  getFormatedDate,
-} from "@next-pms/design-system/date";
+import { getFormatedDate } from "@next-pms/design-system/date";
 import { cn } from "@next-pms/design-system/utils";
 import { useFrappeCreateDoc, useFrappeGetCall, useFrappeUpdateDoc } from "frappe-react-sdk";
 import { CircleDollarSign, Clock3, LoaderCircle, Save, Search, X } from "lucide-react";
@@ -307,7 +305,7 @@ const AddResourceAllocations = ({
 
   return (
     <Dialog open={resourceAllocationForm?.isShowDialog} onOpenChange={handleOpen}>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="max-w-xl bg-none z-[1000]">
         <DialogHeader>
           <DialogTitle className="flex gap-x-2 mb-2">
             {resourceAllocationForm.isNeedToEdit ? "Edit" : "Add"} Allocation

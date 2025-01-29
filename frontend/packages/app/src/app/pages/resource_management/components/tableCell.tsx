@@ -15,8 +15,8 @@ import {
  * Internal dependencies.
  */
 import { cn } from "@/lib/utils";
-import { EmptyTableCell } from "./Empty";
-import { TableContext } from "../contexts/tableContext";
+import { EmptyTableCell } from "./empty";
+import { TableContext } from "../store/tableContext";
 import { getFilterValue } from "../utils/helper";
 
 interface ResourceTableProps {

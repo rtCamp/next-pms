@@ -5,7 +5,7 @@ from frappe.utils.data import add_days, getdate
 from next_pms.timesheet.api.team import get_week_dates
 
 
-def handle_customer(customer, customer_name):
+def add_customer_data_if_not_exists(customer, customer_name):
     """If customer is not present in the customer dictionary then add it with name, image and abbr information.
 
     Args:

@@ -1,58 +1,59 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect } from "react";
+import { useContext, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getFormatedDate } from "@next-pms/design-system/date";
+import { getMonthKey, getTodayDate, prettyDate } from "@next-pms/design-system";
+import { TableHead, Typography } from "@next-pms/design-system/components";
 import { useQueryParam } from "@next-pms/hooks";
-import { addDays } from "date-fns";
-import { useFrappePostCall } from "frappe-react-sdk";
-import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
+import { startOfWeek } from "date-fns";
+import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import { Plus } from "lucide-react";
+import { Moment } from "moment";
+
 /**
  * Internal dependencies.
  */
 import { Header } from "@/app/components/list-view/header";
-
+import { cn } from "@/lib/utils";
 import { RootState } from "@/store";
 import { PermissionProps, setDialog, setResourcePermissions } from "@/store/resource_management/allocation";
-import {
-  deleteFilters,
-  setAllocationType,
-  setBusinessUnit,
-  setCombineWeekHours,
-  setDesignation,
-  setEmployeeName,
-  setFilters,
-  setReportingManager,
-  setView,
-  setWeekDate,
-  setReFetchData,
-  Skill,
-  setSkillSearch,
-} from "@/store/resource_management/team";
-import SkillSearch from "./SkillSearch";
+import { Skill } from "@/store/resource_management/team";
+
+import { TableContext } from "../../store/tableContext";
+import { TimeLineContext } from "../../store/timeLineContext";
+import SkillSearch from "../../team/components/SkillSearch";
+import { getDayKeyOfMoment } from "../../utils/dates";
+import { ResourceAllocationItemProps } from "../types";
+
+interface TimeLineHeaderFunctionProps {
+  getIntervalProps: () => ResourceAllocationItemProps;
+  intervalContext: { interval: { startTime: Moment; endTime: Moment } };
+}
 
 /**
  * This component is responsible for loading the team view header.
  *
  * @returns React.FC
  */
-const ResourceTeamHeaderSection = () => {
+const ResourceTimLineHeaderSection = () => {
   const [businessUnitParam] = useQueryParam<string[]>("business-unit", []);
   const [employeeNameParam] = useQueryParam<string>("employee-name", "");
   const [reportingNameParam] = useQueryParam<string>("reports-to", "");
   const [allocationTypeParam] = useQueryParam<string[]>("allocation-type", []);
   const [designationParam] = useQueryParam<string[]>("designation", []);
-  const [viewParam, setViewParam] = useQueryParam<string>("view-type", "");
-  const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParam<boolean>("combine-week-hours", false);
   const [skillSearchParam, setSkillSearchParam] = useQueryParam<Skill[]>("skill-search", []);
 
-  const resourceTeamState = useSelector((state: RootState) => state.resource_team);
-  const resourceTeamStateTableView = resourceTeamState.tableView;
-  const dispatch = useDispatch();
   const resourceAllocationPermission: PermissionProps = useSelector(
     (state: RootState) => state.resource_allocation_form.permissions
   );
+  const dispatch = useDispatch();
+
+  const { data: employee } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee", {
+    filters: { name: reportingNameParam },
+  });
+
+  const { updateFilters, filters } = useContext(TimeLineContext);
 
   const { call, loading } = useFrappePostCall(
     "next_pms.resource_management.api.permission.get_user_resources_permissions"
@@ -60,56 +61,29 @@ const ResourceTeamHeaderSection = () => {
 
   useEffect(() => {
     if (Object.keys(resourceAllocationPermission).length != 0) {
-      updateFilters(resourceAllocationPermission);
+      updateData();
       return;
     }
     if (loading) return;
 
     call({}).then((res: { message: PermissionProps }) => {
       const resResourceAllocationPermission = res.message;
-      updateFilters(resResourceAllocationPermission);
       dispatch(setResourcePermissions(resResourceAllocationPermission));
+      updateData();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const updateFilters = (resResourceAllocationPermission: PermissionProps) => {
-    let CurrentViewParam = viewParam;
-    if (!CurrentViewParam) {
-      CurrentViewParam = "planned-vs-capacity";
-      if (resResourceAllocationPermission.write) {
-        setViewParam(CurrentViewParam);
-      }
-    }
-
-    dispatch(
-      setFilters({
-        businessUnit: businessUnitParam,
-        employeeName: employeeNameParam,
-        reportingManager: reportingNameParam,
-        designation: designationParam,
-        allocationType: allocationTypeParam,
-        view: CurrentViewParam,
-        combineWeekHours: combineWeekHoursParam,
-        skillSearch: skillSearchParam,
-      })
-    );
+  const updateData = () => {
+    updateFilters({
+      businessUnit: businessUnitParam,
+      employeeName: employeeNameParam,
+      reportingManager: reportingNameParam,
+      designation: designationParam,
+      allocationType: allocationTypeParam,
+      skillSearch: skillSearchParam,
+    });
   };
-
-  const handleWeekViewChange = useCallback(() => {
-    setCombineWeekHoursParam(!resourceTeamStateTableView.combineWeekHours);
-    dispatch(setCombineWeekHours(!resourceTeamStateTableView.combineWeekHours));
-  }, [dispatch, resourceTeamStateTableView.combineWeekHours, setCombineWeekHoursParam]);
-
-  const handlePrevWeek = useCallback(() => {
-    const date = getFormatedDate(addDays(resourceTeamState.data.dates[0].start_date, -3));
-    dispatch(setWeekDate(date));
-  }, [dispatch, resourceTeamState.data.dates]);
-
-  const handleNextWeek = useCallback(() => {
-    const date = getFormatedDate(addDays(resourceTeamState.data.dates[0].end_date, +3));
-    dispatch(setWeekDate(date));
-  }, [dispatch, resourceTeamState.data.dates]);
 
   return (
     <Header
@@ -117,13 +91,13 @@ const ResourceTeamHeaderSection = () => {
         {
           queryParameterName: "employee-name",
           handleChange: (value: string) => {
-            dispatch(setEmployeeName(value));
+            updateFilters({ employeeName: value });
           },
-          handleDelete: (value: string) => {
-            dispatch(deleteFilters({ type: "employee", employeeName: "" }));
+          handleDelete: () => {
+            updateFilters({ employeeName: "" });
           },
           type: "search",
-          value: resourceTeamState.employeeName,
+          value: filters.employeeName,
           defaultValue: "",
           label: "Employee Name",
           queryParameterDefault: "",
@@ -131,24 +105,25 @@ const ResourceTeamHeaderSection = () => {
         {
           queryParameterName: "reports-to",
           handleChange: (value: string | string[]) => {
-            dispatch(setReportingManager(value as string));
+            updateFilters({ reportingManager: value as string });
           },
-          handleDelete: (value: string[] | undefined) => {
-            dispatch(deleteFilters({ type: "repots-to", reportingManager: "" }));
+          handleDelete: () => {
+            updateFilters({ reportingManager: "" });
           },
           type: "search-employee",
-          value: resourceTeamState.reportingManager,
+          value: filters.reportingManager,
           defaultValue: "",
           label: "Reporting Manager",
           hide: !resourceAllocationPermission.write,
           queryParameterDefault: [],
+          employeeName: employee?.message?.employee_name,
         },
         {
           type: "custom-filter",
           queryParameterDefault: [],
           label: "Skill",
           handleDelete: (value: string[]) => {
-            let prev_data = resourceTeamState?.skillSearch;
+            let prev_data = filters?.skillSearch;
             const operators = [">", "<", ">=", "<=", "="];
             const skills = value.map((value) => {
               // Iterate through each value and extract skill name
@@ -160,29 +135,30 @@ const ResourceTeamHeaderSection = () => {
               return value.trim();
             });
             prev_data = prev_data!.filter((obj) => skills.includes(obj.name));
-            dispatch(setSkillSearch(prev_data));
+            updateFilters({ skillSearch: prev_data });
           },
-          value: resourceTeamState.skillSearch?.map((obj) => obj.name + " " + obj.operator + " " + obj.proficiency * 5),
+          value: filters.skillSearch?.map((obj) => obj.name + " " + obj.operator + " " + obj.proficiency * 5),
           hide: !resourceAllocationPermission.write,
           customFilterComponent: (
             <SkillSearch
-              onSubmit={() => {
-                dispatch(setReFetchData(true));
+              onSubmit={(skills) => {
+                updateFilters({ skillSearch: skills });
               }}
               setSkillSearchParam={setSkillSearchParam}
+              skillSearch={filters.skillSearch}
             />
           ),
         },
         {
           queryParameterName: "business-unit",
           handleChange: (value: string | string[]) => {
-            dispatch(setBusinessUnit(value as string[]));
+            updateFilters({ businessUnit: value as string[] });
           },
           handleDelete: (value: string[] | undefined) => {
-            dispatch(deleteFilters({ type: "business-unit", businessUnit: value }));
+            updateFilters({ businessUnit: value as string[] });
           },
           type: "select-search",
-          value: resourceTeamState.businessUnit,
+          value: filters.businessUnit,
           label: "Business Unit",
           shouldFilterComboBox: true,
           isMultiComboBox: true,
@@ -199,18 +175,18 @@ const ResourceTeamHeaderSection = () => {
               revalidateIfStale: false,
             },
           },
-          queryParameterDefault: resourceTeamState.businessUnit,
+          queryParameterDefault: filters.businessUnit,
         },
         {
           queryParameterName: "designation",
           handleChange: (value: string | string[]) => {
-            dispatch(setDesignation(value as string[]));
+            updateFilters({ designation: value as string[] });
           },
           handleDelete: (value: string[] | undefined) => {
-            dispatch(deleteFilters({ type: "designation", designation: value }));
+            updateFilters({ designation: value as string[] });
           },
           type: "select-search",
-          value: resourceTeamState.designation,
+          value: filters.designation,
           shouldFilterComboBox: true,
           isMultiComboBox: true,
           label: "Designation",
@@ -228,18 +204,18 @@ const ResourceTeamHeaderSection = () => {
               revalidateIfStale: false,
             },
           },
-          queryParameterDefault: resourceTeamState.designation,
+          queryParameterDefault: filters.designation,
         },
         {
           queryParameterName: "allocation-type",
           handleChange: (value: string | string[]) => {
-            dispatch(setAllocationType(value as string[]));
+            updateFilters({ allocationType: value as string[] });
           },
           handleDelete: (value: string[] | undefined) => {
-            dispatch(deleteFilters({ type: "allocation-type", allocationType: value }));
+            updateFilters({ allocationType: value as string[] });
           },
           type: "select-list",
-          value: resourceTeamState.allocationType,
+          value: filters.allocationType,
           shouldFilterComboBox: true,
           isMultiComboBox: true,
           label: "Allocation Type",
@@ -253,39 +229,8 @@ const ResourceTeamHeaderSection = () => {
               value: "Non-Billable",
             },
           ],
-          queryParameterDefault: resourceTeamState.allocationType,
+          queryParameterDefault: filters.allocationType,
           hide: !resourceAllocationPermission.write,
-        },
-        {
-          queryParameterName: "view-type",
-          handleChange: (value: string) => {
-            dispatch(setView(value));
-          },
-          type: "select",
-          value: resourceTeamStateTableView.view,
-          defaultValue: "planned-vs-capacity",
-          label: "Views",
-          data: [
-            {
-              label: "Planned vs Capacity",
-              value: "planned-vs-capacity",
-            },
-            {
-              label: "Actual vs Planned",
-              value: "actual-vs-planned",
-            },
-          ],
-          hide: !resourceAllocationPermission.write,
-          queryParameterDefault: "planned-vs-capacity",
-        },
-        {
-          queryParameterName: "combine-week-hours",
-          handleChange: handleWeekViewChange,
-          type: "checkbox",
-          value: resourceTeamStateTableView.combineWeekHours,
-          defaultValue: false,
-          label: "Combine Week Hours",
-          queryParameterDefault: false,
         },
       ]}
       buttons={[
@@ -299,20 +244,80 @@ const ResourceTeamHeaderSection = () => {
           variant: "default",
           hide: !resourceAllocationPermission.write,
         },
-        {
-          title: "previous-week",
-          handleClick: handlePrevWeek,
-          icon: () => <ChevronLeftIcon className="w-4 max-md:w-3 h-4 max-md:h-3" />,
-        },
-        {
-          title: "next-week",
-          handleClick: handleNextWeek,
-          icon: () => <ChevronRight className="w-4 max-md:w-3 h-4 max-md:h-3" />,
-        },
       ]}
       showFilterValue
     />
   );
 };
 
-export { ResourceTeamHeaderSection };
+const TimeLineIntervalHeader = ({ getIntervalProps, intervalContext }: TimeLineHeaderFunctionProps) => {
+  const { interval } = intervalContext;
+  const { startTime, endTime } = interval;
+  const start = startOfWeek(getTodayDate(), {
+    weekStartsOn: 1,
+  });
+
+  return (
+    <TableHead
+      {...getIntervalProps()}
+      className={cn("h-full pb-2 pt-1 px-0 text-center truncate cursor-pointer border-r border-gray-300")}
+    >
+      <Typography variant="small">
+        {start.getTime() >= startTime && start.getTime() <= endTime
+          ? "This Week"
+          : `${getMonthKey(getDayKeyOfMoment(startTime))} - ${getMonthKey(
+              getDayKeyOfMoment(endTime.add("-1", "days"))
+            )}`}
+      </Typography>
+    </TableHead>
+  );
+};
+
+const TimeLineDateHeader = ({ getIntervalProps, intervalContext }: TimeLineHeaderFunctionProps) => {
+  const { interval } = intervalContext;
+  const { startTime } = interval;
+  const { date: dateStr, day } = prettyDate(getDayKeyOfMoment(startTime));
+  const { date: toDayStr } = prettyDate(getTodayDate());
+
+  const { tableProperties, getCellWidthString } = useContext(TableContext);
+
+  let headerProps: ResourceAllocationItemProps = getIntervalProps();
+
+  headerProps = {
+    ...headerProps,
+    style: {
+      ...headerProps.style,
+      width: getCellWidthString(tableProperties.cellWidth),
+      left: headerProps.style.left - 1,
+    },
+  };
+
+  return (
+    <TableHead
+      {...headerProps}
+      className={cn(
+        "text-xs flex flex-col justify-end items-start border-0 p-0 h-full pb-2",
+        day == "Sun" && "border-l border-gray-300",
+        dateStr == toDayStr && "font-semibold"
+      )}
+    >
+      <Typography
+        variant="p"
+        className={cn("text-slate-600 text-[11px] pl-4", dateStr == toDayStr && "pl-4 font-semibold")}
+      >
+        {day}
+      </Typography>
+      <Typography
+        variant="small"
+        className={cn(
+          "text-slate-500 text-center text-[11px] max-lg:text-[0.65rem] pl-2",
+          dateStr == toDayStr && "pl-2 font-semibold"
+        )}
+      >
+        {dateStr}
+      </Typography>
+    </TableHead>
+  );
+};
+
+export { TimeLineIntervalHeader, TimeLineDateHeader, ResourceTimLineHeaderSection };

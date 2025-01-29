@@ -37,7 +37,8 @@ const DialogContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => (
   <DialogPortal>
-    <DialogOverlay />
+    {/* No found way to pass value hear (https://github.com/shadcn-ui/ui/discussions/3784)*/}
+    <DialogOverlay className="z-[1000]" /> 
     <DialogPrimitive.Content
       ref={ref}
       className={cn(

@@ -1,25 +1,16 @@
+/**
+ * External dependencies.
+ */
+
+import { DateProps } from "@/store/resource_management/team";
 import {
-  getUTCDateTime,
   getFormatedDate,
+  getMonthKey,
   getTodayDate,
+  getUTCDateTime,
 } from "@next-pms/design-system/date";
 import { startOfWeek } from "date-fns";
-import { DateProps } from "@/store/resource_management/team";
-
-const Months = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
+import { Moment } from "moment";
 
 function getDatesArrays(
   startDate: string,
@@ -30,7 +21,7 @@ function getDatesArrays(
   const start = startOfWeek(getUTCDateTime(startDate), {
     weekStartsOn: 1,
   });
-  const today = getTodayDate()
+  const today = getTodayDate();
 
   for (let weekCount = 0; weekCount < weeks; weekCount++) {
     const datesObject: DateProps = {
@@ -66,8 +57,8 @@ function getDatesArrays(
     datesObject.key = key
       ? key
       : `${getMonthKey(datesObject.start_date)} - ${getMonthKey(
-        datesObject.end_date
-      )}`;
+          datesObject.end_date
+        )}`;
 
     dates.push(datesObject);
   }
@@ -75,32 +66,8 @@ function getDatesArrays(
   return dates;
 }
 
-function getNextDate(startDate: string, weeks: number) {
-  const start = startOfWeek(getUTCDateTime(startDate), {
-    weekStartsOn: 1,
-  });
+const getDayKeyOfMoment = (dateTime: Moment): string => {
+  return dateTime.format("YYYY-MM-DD");
+};
 
-  start.setDate(start.getDate() + weeks * 7);
-
-  return getFormatedDate(start);
-}
-
-function getMonthKey(dateString: string) {
-  const date = getUTCDateTime(dateString);
-  return `${Months[date.getMonth()]} ${date.getDate() < 10 ? "0" + date.getDate() : date.getDate()
-    }`;
-}
-
-function checkInRange(start: string, weeks: number, dateString: string) {
-  const startDate = getFormatedDate(
-    startOfWeek(getUTCDateTime(start), {
-      weekStartsOn: 1,
-    })
-  );
-
-  const endDate = getNextDate(startDate, weeks);
-
-  return startDate <= dateString && dateString <= endDate;
-}
-
-export { getDatesArrays, getNextDate, checkInRange };
+export { getDatesArrays, getDayKeyOfMoment };

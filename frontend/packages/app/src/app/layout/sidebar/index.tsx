@@ -16,6 +16,7 @@ import {
   GanttChart,
   FolderKanban,
   BookUser,
+  GanttChartSquareIcon,
 } from "lucide-react";
 import { Home, Users } from "lucide-react";
 /**
@@ -110,14 +111,20 @@ const Sidebar = () => {
       isPmRoute: false,
       children: [
         {
+          to: RESOURCE_MANAGEMENT + "/timeline",
+          label: "Timeline",
+          key: "timeline-view",
+          icon: GanttChartSquareIcon,
+        },
+        {
           to: RESOURCE_MANAGEMENT + "/team",
-          label: "Team View",
+          label: "Team",
           key: "team-view",
           icon: BookUser,
         },
         {
           to: RESOURCE_MANAGEMENT + "/project",
-          label: "Project View",
+          label: "Project",
           key: "project-view",
           icon: FolderKanban,
         },

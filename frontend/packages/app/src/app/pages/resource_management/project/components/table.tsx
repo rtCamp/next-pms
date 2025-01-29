@@ -22,15 +22,15 @@ import {
 import { DateProps } from "@/store/resource_management/team";
 import { ResourceAllocationObjectProps } from "@/types/resource_management";
 
-import { ResourceExpandView } from "./ExpandView";
-import { EmptyTableBody } from "../../components/Empty";
+import { ResourceExpandView } from "./expandView";
+import { EmptyTableBody } from "../../components/empty";
 import { InfiniteScroll } from "../../components/InfiniteScroll";
-import { ResourceAllocationList } from "../../components/ResourceAllocationList";
-import { ResourceTableCell } from "../../components/TableCell";
+import { ResourceAllocationList } from "../../components/resourceAllocationList";
+import { ResourceTableCell } from "../../components/tableCell";
 
 import ResourceProjectTableHeader from "../../components/TableHeader";
-import { ResourceTableRow } from "../../components/TableRow";
-import { TableContextProvider } from "../../contexts/tableContext";
+import { ResourceTableRow } from "../../components/tableRow";
+import { TableContextProvider } from "../../store/tableContext";
 import { getCellBackGroundColor } from "../../utils/cell";
 import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
 

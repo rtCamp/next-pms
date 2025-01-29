@@ -17,8 +17,8 @@ import { RootState } from "@/store";
 import { AllocationDataProps, setResourceFormData } from "@/store/resource_management/allocation";
 import { DateProps } from "@/store/resource_management/team";
 import { ResourceAllocationObjectProps, ResourceCustomerObjectProps } from "@/types/resource_management";
-import { ResourceAllocationList } from "../../components/ResourceAllocationList";
-import { ResourceTableCell, TableInformationCellContent } from "../../components/TableCell";
+import { ResourceAllocationList } from "../../components/resourceAllocationList";
+import { ResourceTableCell, TableInformationCellContent } from "../../components/tableCell";
 import { getCellBackGroundColor } from "../../utils/cell";
 import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
 

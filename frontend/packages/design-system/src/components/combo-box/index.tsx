@@ -118,7 +118,7 @@ const ComboBox = ({
           {rightIcon && <span className="shrink-0">{rightIcon}</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0 w-96">
+      <PopoverContent className="p-0 w-96 z-[1000]">
         <Command
           shouldFilter={shouldFilter}
           filter={(value: string, search: string, keywords?: string[]) => {

@@ -4,9 +4,7 @@
  * @param value The value to be formatted.
  * @returns string
  */
-const getFormatedStringValue = (
-  value: string | undefined | number
-): string | number => {
+const getFormatedStringValue = (value: string | undefined | number): string => {
   if (typeof value === "number") {
     return value.toString();
   }
