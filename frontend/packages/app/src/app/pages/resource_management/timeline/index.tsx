@@ -16,7 +16,12 @@ import { AllocationDataProps, PermissionProps } from "@/store/resource_managemen
 
 import { ResourceTimLineHeaderSection } from "./components/header";
 import { ResourceTimeLine } from "./components/timeLine";
-import { ResourceAllocationEmployeeProps, ResourceAllocationTimeLineProps, ResourceTeamAPIBodyProps, ResourceTimeLineDataProps } from "./types";
+import {
+  ResourceAllocationEmployeeProps,
+  ResourceAllocationTimeLineProps,
+  ResourceTeamAPIBodyProps,
+  ResourceTimeLineDataProps,
+} from "./types";
 import AddResourceAllocations from "../components/AddAllocation";
 import { TableContextProvider } from "../store/tableContext";
 import { TimeLineContext, TimeLineContextProvider } from "../store/timeLineContext";
@@ -78,7 +83,7 @@ const ResourceTimeLineComponet = () => {
         };
         return newReqBody;
       }
-      
+
       return newReqBody;
     },
     [resourceAllocationPermission.write, filters]
@@ -138,8 +143,20 @@ const ResourceTimeLineComponet = () => {
           },
           canDelete: resourceAllocationPermission.delete,
           onDelete: handleDelete,
+          type: "allocation",
         })
       );
+
+      updatedData.leaves = updatedData.leaves.map((leave: ResourceAllocationTimeLineProps) => ({
+        ...leave,
+        id: leave.name,
+        group: leave.employee,
+        title: leave.name,
+        start_time: getUTCDateTime(leave.from_date).getTime(),
+        end_time: getUTCDateTime(leave.to_date).setDate(getUTCDateTime(leave.to_date).getDate() + 1),
+        canDelete: false,
+        type: "leave",
+      }));
 
       return updatedData;
     },
@@ -160,7 +177,7 @@ const ResourceTimeLineComponet = () => {
 
     setEmployeesData(data.employees, mainThredData.has_more);
     setCustomerData(data.customer);
-    setAllocationsData(data.resource_allocations);
+    setAllocationsData([...data.leaves, ...data.resource_allocations]);
   }, [
     filters.weekDate,
     filters.start,
@@ -200,7 +217,7 @@ const ResourceTimeLineComponet = () => {
             (allocation) => allocation.employee != oldData.employee && allocation.employee != newData.employee
           );
           const filterData = filterApiData(res.message);
-          setAllocationsData([...updatedAllocations, ...filterData.resource_allocations], "Set");
+          setAllocationsData([...updatedAllocations, ...filterData.leaves, ...filterData.resource_allocations], "Set");
           setCustomerData({ ...customer, ...filterData.customer });
         }
       });

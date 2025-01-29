@@ -16,7 +16,7 @@ import {
   DialogHeader,
   Typography,
 } from "@next-pms/design-system/components";
-import { X, Move, Copy } from "lucide-react";
+import { X, Move, Copy, CalendarX } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -34,7 +34,85 @@ interface ResourceTimeLineItemProps {
   getResizeProps: () => { left: object; right: object };
 }
 
-const ResourceTimeLineItem = ({
+const ResourceTimeLineItem = ({ item, itemContext, getItemProps, getResizeProps }: ResourceTimeLineItemProps) => {
+  if (item.type == "leave") {
+    return (
+      <LeaveItemRender
+        item={item}
+        itemContext={itemContext}
+        getItemProps={getItemProps}
+        getResizeProps={getResizeProps}
+      />
+    );
+  }
+  return (
+    <AllocationItemRender
+      item={item}
+      itemContext={itemContext}
+      getItemProps={getItemProps}
+      getResizeProps={getResizeProps}
+    />
+  );
+};
+
+const LeaveItemRender = ({ item: leave, itemContext, getItemProps, getResizeProps }: ResourceTimeLineItemProps) => {
+  const dayDiff = getDayDiff(leave.from_date as string, leave.to_date as string);
+
+  const { date: startDate } = prettyDate(leave.from_date as string);
+  const { date: endDate } = prettyDate(leave.to_date as string);
+
+  let itemProps = getItemProps(leave.itemProps);
+
+  itemProps = {
+    ...itemProps,
+    style: {
+      ...itemProps.style,
+      padding: "1px 6px",
+      background: "rgba(211, 211, 211, 0.58)",
+      borderRadius: "4px",
+      border: "1px solid #d1d5db",
+      borderWidth: 0,
+      borderRightWidth: 0,
+      overflow: dayDiff <= 7 ? "hidden" : "visible",
+    },
+  };
+
+  const getTitle = (isNeedFullTitle = false) => {
+    if (isNeedFullTitle) {
+      if (dayDiff == 0) {
+        return `${startDate}`;
+      }
+      return `${startDate} - ${endDate} (${leave.total_leave_days} days)`;
+    }
+    if (dayDiff == 0) {
+      return `${startDate} `;
+    }
+    if (dayDiff <= 3) {
+      return `${startDate} - ${endDate}`;
+    }
+    return `${startDate} - ${endDate} (${leave.total_leave_days} days)`;
+  };
+
+  return (
+    <div style={itemProps.style}>
+      <div className={cn("rct-item-content overflow-hidden")} style={{ maxHeight: `${itemContext.dimensions.height}` }}>
+        <div
+          className={cn("flex justify-start gap-1 h-full w-full", dayDiff == 0 && "justify-center")}
+          style={{ alignItems: "center" }}
+          title={getTitle(true)}
+        >
+          <CalendarX className={cn("z-[1000] text-gray-500 cusror-pointer w-4 h-4 mr-1")} size={16} strokeWidth={2} />
+
+          <Typography variant="small" className={cn("text-[12px] truncate overflow-hidden block text-gray-500")}>
+            {getTitle()}
+          </Typography>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const AllocationItemRender = ({
   item: resourceAllocation,
   itemContext,
   getItemProps,
@@ -52,11 +130,16 @@ const ResourceTimeLineItem = ({
     }${startDate} - ${endDate} (${resourceAllocation.hours_allocated_per_day} hours/day)`;
 
     if (isNeedFullTitle) {
+      if (dayDiff == 0) {
+        return `${resourceAllocation.project_name ? resourceAllocation.project_name + " " : ""}${startDate} (${
+          resourceAllocation.hours_allocated_per_day
+        } hours/day)`;
+      }
       return title;
     }
 
     if (dayDiff <= 0) {
-      return "";
+      return `${startDate}`;
     }
 
     if (dayDiff <= 4) {
@@ -78,7 +161,7 @@ const ResourceTimeLineItem = ({
       border: "1px solid #d1d5db",
       borderWidth: 0,
       borderRightWidth: resourceAllocation.canDelete && itemContext.selected ? 3 : 0,
-      overflow: dayDiff <= 10 ? "hidden" : "visible",
+      overflow: dayDiff <= 7 ? "hidden" : "visible",
     },
   };
 
