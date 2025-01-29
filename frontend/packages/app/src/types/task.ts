@@ -15,3 +15,20 @@ export type ColumnsType = ColumnDef<TaskData>[];
 
 export type columnsToExcludeActionsInTablesType = string[];
 
+export type taskStateActionType = "SET" | "UPDATE";
+
+export type TaskStatusType =
+  | "Open"
+  | "Working"
+  | "Pending Review"
+  | "Overdue"
+  | "Template"
+  | "Completed"
+  | "Cancelled";
+
+export type AddTaskType = {
+  subject: string;
+  project: string;
+  expected_time: string;
+  description: string;
+};

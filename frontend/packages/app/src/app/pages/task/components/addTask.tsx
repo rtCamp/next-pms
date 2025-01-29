@@ -3,7 +3,6 @@
  */
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useDispatch } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ComboBox,
@@ -32,12 +31,14 @@ import { z } from "zod";
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { TaskSchema } from "@/schema/task";
-import { TaskState, AddTaskType, setAddTaskDialog } from "@/store/task";
 import { ProjectProps } from "@/types";
+import { AddTaskType } from "@/types/task";
+import { Action, TaskState } from "../reducer";
 
-export const AddTask = ({ task, mutate }: { task: TaskState; mutate: any }) => {
+type AddTaskPropType = { task: TaskState; mutate: any; dispatch: React.Dispatch<Action> };
+
+export const AddTask = ({ task, mutate, dispatch }: AddTaskPropType) => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const dispatch = useDispatch();
   const { toast } = useToast();
 
   const { call } = useFrappePostCall("next_pms.timesheet.api.task.add_task");
@@ -90,7 +91,7 @@ export const AddTask = ({ task, mutate }: { task: TaskState; mutate: any }) => {
   const closeAddTaskDialog = () => {
     if (isSubmitting) return;
     form.reset();
-    dispatch(setAddTaskDialog(false));
+    dispatch({ type: "SET_ADD_TASK_DIALOG", payload: false });
     mutate();
   };
   const handleSubjectChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {

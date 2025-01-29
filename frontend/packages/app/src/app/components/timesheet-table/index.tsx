@@ -6,7 +6,7 @@ import { ErrorFallback, Table, TableBody } from "@next-pms/design-system/compone
 /**
  * Internal dependencies
  */
-import { TaskLog } from "@/app/pages/task/taskLog";
+import { TaskLog } from "@/app/pages/task/components/taskLog";
 import { LIKED_TASK_KEY } from "@/lib/constant";
 import { getLocalStorage, hasKeyInLocalStorage, removeFromLikedTask, setLikedTask } from "@/lib/storage";
 import { expectatedHours, getHolidayList } from "@/lib/utils";

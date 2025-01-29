@@ -11,7 +11,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 import { Row } from "@/app/components/timesheet-table/components/row";
 import { EmptyRow } from "@/app/components/timesheet-table/components/row/emptyRow";
 import { LeaveRow } from "@/app/components/timesheet-table/components/row/leaveRow";
-import { TaskLog } from "@/app/pages/task/taskLog";
+import { TaskLog } from "@/app/pages/task/components/taskLog";
 import { expectatedHours } from "@/lib/utils";
 import { TeamState } from "../reducer";
 

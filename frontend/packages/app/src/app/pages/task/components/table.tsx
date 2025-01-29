@@ -17,8 +17,8 @@ import { flexRender } from "@tanstack/react-table";
 /**
  * Internal dependencies.
  */
-import { TaskState } from "@/store/task";
 import { ColumnsType, columnsToExcludeActionsInTablesType, TaskTableType } from "@/types/task";
+import { TaskState } from "../reducer";
 
 export const Table = ({
   table,

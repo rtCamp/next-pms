@@ -41,7 +41,7 @@ import AddTime from "@/app/components/AddTime";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import { TimesheetTable } from "@/app/components/timesheet-table";
 import { Header, Main } from "@/app/layout/root";
-import { TaskLog } from "@/app/pages/task/taskLog";
+import { TaskLog } from "@/app/pages/task/components/taskLog";
 import { Status } from "@/app/pages/team";
 import { EditTime } from "@/app/pages/timesheet/components/editTime";
 import { parseFrappeErrorMsg, calculateExtendedWorkingHour, expectatedHours, copyToClipboard } from "@/lib/utils";
