@@ -40,7 +40,7 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
     updateAllocation,
     getEmployeeWithIndex,
     setAllocationData,
-    getEmployeeWithID
+    getEmployeeWithID,
   } = useContext(TimeLineContext);
   const resourceAllocationPermission: PermissionProps = useSelector(
     (state: RootState) => state.resource_allocation_form.permissions
@@ -148,7 +148,7 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
         note: getFormatedStringValue(resourceAllocation.note),
         project_name: resourceAllocation.project_name,
         customer_name: resourceAllocation?.customerData?.name,
-        isNeedToEdit: true,
+        isNeedToEdit: resourceAllocation.name ? true : false,
         name: resourceAllocation.name,
       })
     );
@@ -185,11 +185,9 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
     updateAllocationApi(updatedAllocation);
   };
 
-  const onCanvasClick = (groupId: number, time: number) => {
+  const onCanvasClick = (groupId: string, time: number) => {
     const employee = getEmployeeWithID(groupId);
     const date: string = getDayKeyOfMoment(moment(time));
-
-    console.log(groupId, date);
 
     setResourceAllocationData({
       name: "",
