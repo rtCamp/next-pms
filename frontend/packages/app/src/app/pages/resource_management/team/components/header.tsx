@@ -29,7 +29,7 @@ import {
   Skill,
   setSkillSearch,
 } from "@/store/resource_management/team";
-import SkillSearch from "./SkillSearch";
+import SkillSearch from "./skillSearch";
 
 /**
  * This component is responsible for loading the team view header.

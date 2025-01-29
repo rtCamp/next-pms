@@ -38,7 +38,7 @@ import { EditTime } from "./components/editTime";
 import ExpandableHours from "./components/expandableHours";
 import { initialState, reducer } from "./reducer";
 import { isDateInRange, validateDate } from "./utils";
-import { InfiniteScroll } from "../resource_management/components/InfiniteScroll";
+import { InfiniteScroll } from "../resource_management/components/infiniteScroll";
 
 function Timesheet() {
   const targetRef = useRef<HTMLDivElement>(null);

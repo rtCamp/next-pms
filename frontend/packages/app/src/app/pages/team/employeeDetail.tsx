@@ -51,7 +51,7 @@ import { LeaveProps, NewTimesheetProps, TaskDataItemProps, TaskDataProps, timesh
 import { Approval } from "./components/approval";
 import { Action, initialState, reducer, TeamState } from "./reducer";
 import { isDateInRange, validateDate } from "./utils";
-import { InfiniteScroll } from "../resource_management/components/InfiniteScroll";
+import { InfiniteScroll } from "../resource_management/components/infiniteScroll";
 import ExpandableHours from "../timesheet/components/expandableHours";
 
 
