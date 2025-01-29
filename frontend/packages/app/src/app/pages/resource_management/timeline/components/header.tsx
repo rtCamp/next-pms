@@ -22,7 +22,7 @@ import { Skill } from "@/store/resource_management/team";
 
 import { TableContext } from "../../store/tableContext";
 import { TimeLineContext } from "../../store/timeLineContext";
-import SkillSearch from "../../team/components/SkillSearch";
+import SkillSearch from "../../team/components/skillSearch";
 import { getDayKeyOfMoment } from "../../utils/dates";
 import { ResourceAllocationItemProps } from "../types";
 

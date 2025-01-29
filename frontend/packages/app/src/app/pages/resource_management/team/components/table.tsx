@@ -8,7 +8,6 @@ import { prettyDate } from "@next-pms/design-system/date";
 /**
  * Internal dependencies.
  */
-import { InfiniteScroll } from "@/app/pages/resource_management/components/InfiniteScroll";
 import { cn } from "@/lib/utils";
 import { RootState } from "@/store";
 import { AllocationDataProps, setResourceFormData } from "@/store/resource_management/allocation";
@@ -22,9 +21,10 @@ import { ResourceAllocationObjectProps } from "@/types/resource_management";
 
 import { ResourceExpandView } from "./expandView";
 import { EmptyTableBody } from "../../components/empty";
+import { InfiniteScroll } from "../../components/infiniteScroll";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
 import { ResourceTableCell } from "../../components/tableCell";
-import ResourceTeamTableHeader from "../../components/TableHeader";
+import ResourceTeamTableHeader from "../../components/tableHeader";
 import { ResourceTableRow } from "../../components/tableRow";
 import { TableContextProvider } from "../../store/tableContext";
 import { getCellBackGroundColor } from "../../utils/cell";

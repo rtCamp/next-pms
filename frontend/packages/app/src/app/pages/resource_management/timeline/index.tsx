@@ -17,7 +17,7 @@ import { AllocationDataProps, PermissionProps } from "@/store/resource_managemen
 import { ResourceTimLineHeaderSection } from "./components/header";
 import { ResourceTimeLine } from "./components/timeLine";
 import { ResourceAllocationEmployeeProps, ResourceAllocationTimeLineProps, ResourceTeamAPIBodyProps, ResourceTimeLineDataProps } from "./types";
-import AddResourceAllocations from "../components/AddAllocation";
+import AddResourceAllocations from "../components/addAllocation";
 import { TableContextProvider } from "../store/tableContext";
 import { TimeLineContext, TimeLineContextProvider } from "../store/timeLineContext";
 import { getIsBillableValue } from "../utils/helper";

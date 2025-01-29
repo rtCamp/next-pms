@@ -61,7 +61,7 @@ import {
 } from "@/store/team";
 import { LeaveProps, NewTimesheetProps, TaskDataItemProps, TaskDataProps, timesheet } from "@/types/timesheet";
 import { Approval } from "./approval";
-import { InfiniteScroll } from "../resource_management/components/InfiniteScroll";
+import { InfiniteScroll } from "../resource_management/components/infiniteScroll";
 import ExpandableHours from "../timesheet/component/expandableHours";
 
 const isDateInRange = (date: string, startDate: string, endDate: string) => {
