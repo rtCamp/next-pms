@@ -1,7 +1,6 @@
 # Copyright (c) 2024, rtCamp and contributors
 # For license information, please see license.txt
 
-# import frappe
 import frappe
 from frappe.model.document import Document
 from frappe.utils.background_jobs import is_job_enqueued
@@ -14,6 +13,10 @@ from next_pms.resource_management.api.team import get_resource_management_team_v
 
 
 class ResourceAllocation(Document):
+    def validate(self):
+        if self.allocation_end_date < self.allocation_start_date:
+            return frappe.throw(frappe._("End date should be greater than or equal to start date"))
+
     def on_update(self):
         # Clear all type of allocation related chache if something is changed in allocation
         clear_cache()
