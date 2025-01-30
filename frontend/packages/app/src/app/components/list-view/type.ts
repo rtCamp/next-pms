@@ -73,6 +73,7 @@ export interface ButtonProps {
     | null
     | undefined;
     hide?: boolean;
+    disabled?: boolean;
 }
 export interface ActionProps {
     docType: string;

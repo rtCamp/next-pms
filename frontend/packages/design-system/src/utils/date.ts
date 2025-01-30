@@ -1,10 +1,10 @@
 import {
-    format,
-    formatISO,
-    isToday,
-    isYesterday,
-    parseISO,
-    startOfWeek,
+  format,
+  formatISO,
+  isToday,
+  isYesterday,
+  parseISO,
+  startOfWeek,
 } from "date-fns";
 
 export const Months = [
@@ -47,6 +47,11 @@ export const getMonthKey = (dateString: string) => {
   return `${Months[date.getMonth()]} ${
     date.getDate() < 10 ? "0" + date.getDate() : date.getDate()
   }`;
+};
+
+export const getMonthYearKey = (dateString: string) => {
+  const date = getUTCDateTime(dateString);
+  return `${Months[date.getMonth()]} ${date.getFullYear()}`;
 };
 
 export const getDayDiff = (startString: string, endString: string): number => {

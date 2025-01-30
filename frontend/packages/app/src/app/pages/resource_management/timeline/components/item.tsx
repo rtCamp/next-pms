@@ -55,7 +55,7 @@ const ResourceTimeLineItem = ({
       return title;
     }
 
-    if (dayDiff <= 0) {
+    if (dayDiff <= 2 || (resourceAllocation.isShowMonth && dayDiff <= 10)) {
       return "";
     }
 
@@ -68,6 +68,8 @@ const ResourceTimeLineItem = ({
 
   let itemProps = getItemProps(resourceAllocation.itemProps);
 
+  const title = getTitle();
+
   itemProps = {
     ...itemProps,
     style: {
@@ -78,7 +80,7 @@ const ResourceTimeLineItem = ({
       border: "1px solid #d1d5db",
       borderWidth: 0,
       borderRightWidth: resourceAllocation.canDelete && itemContext.selected ? 3 : 0,
-      overflow: dayDiff <= 10 ? "hidden" : "visible",
+      overflow: dayDiff <= (resourceAllocation.isShowMonth ? 30 * 3 : 10) ? "hidden" : "visible",
     },
   };
 
@@ -87,19 +89,24 @@ const ResourceTimeLineItem = ({
       {itemContext.useResizeHandle ? <div {...leftResizeProps} /> : ""}
 
       <div
-        className={cn("rct-item-content overflow-hidden")}
-        style={{ maxHeight: `${itemContext.dimensions.height}` }}
+        className={cn("rct-item-content")}
+        style={
+          title
+            ? { maxHeight: `${itemContext.dimensions.height}` }
+            : { maxHeight: `${itemContext.dimensions.height}`, width: `${itemProps.style.width}` }
+        }
         title={getTitle(true)}
       >
         <div
-          className={cn("flex justify-start gap-[2px] h-full w-full", dayDiff == 0 && "justify-center")}
-          style={{ alignItems: "center" }}
+          className={cn("flex justify-start gap-[2px] h-full w-full", !title && "justify-center")}
+          style={{ alignItems: "center", maxHeight: `${itemContext.dimensions.height}` }}
+          title={getTitle(true)}
         >
           {itemContext.selected && resourceAllocation.canDelete && (
             <DeleteIcon
               resourceAllocation={resourceAllocation}
               resourceAllocationPermission={{ delete: resourceAllocation.canDelete }}
-              buttonClassName={cn("text-red-500 z-[1000] cusror-pointer hover:text-red-600 w-4 h-4")}
+              buttonClassName={cn("text-red-500 z-[1000] mr-1 cusror-pointer hover:text-red-600 w-7 h-4 p-0")}
               onSubmit={resourceAllocation.onDelete}
             />
           )}
@@ -115,7 +122,7 @@ const ResourceTimeLineItem = ({
             </Avatar>
           )}
 
-          {dayDiff != 0 && (
+          {title && (
             <Typography
               variant="small"
               className={cn(
@@ -125,12 +132,11 @@ const ResourceTimeLineItem = ({
                   : "text-yellow-500"
               )}
             >
-              {getTitle()}
+              {title}
             </Typography>
           )}
         </div>
       </div>
-
       {itemContext.useResizeHandle ? <div {...rightResizeProps} /> : ""}
     </div>
   );

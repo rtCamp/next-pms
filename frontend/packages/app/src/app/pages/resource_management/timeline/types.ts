@@ -25,6 +25,7 @@ interface ResourceAllocationTimeLineFilterProps {
   start?: 0;
   page_length?: 20;
   weekDate?: string;
+  isShowMonth?: boolean;
 }
 
 interface ResourceAllocationEmployeeProps {
@@ -55,6 +56,7 @@ interface ResourceAllocationTimeLineProps extends ResourceAllocationProps {
   end_time: number;
   canDelete?: boolean;
   onDelete?: () => void;
+  isShowMonth?: boolean;
 }
 
 interface ResourceTimeLineDataProps {

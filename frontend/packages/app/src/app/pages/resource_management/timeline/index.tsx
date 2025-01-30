@@ -16,7 +16,12 @@ import { AllocationDataProps, PermissionProps } from "@/store/resource_managemen
 
 import { ResourceTimLineHeaderSection } from "./components/header";
 import { ResourceTimeLine } from "./components/timeLine";
-import { ResourceAllocationEmployeeProps, ResourceAllocationTimeLineProps, ResourceTeamAPIBodyProps, ResourceTimeLineDataProps } from "./types";
+import {
+  ResourceAllocationEmployeeProps,
+  ResourceAllocationTimeLineProps,
+  ResourceTeamAPIBodyProps,
+  ResourceTimeLineDataProps,
+} from "./types";
 import AddResourceAllocations from "../components/AddAllocation";
 import { TableContextProvider } from "../store/tableContext";
 import { TimeLineContext, TimeLineContextProvider } from "../store/timeLineContext";
@@ -78,7 +83,7 @@ const ResourceTimeLineComponet = () => {
         };
         return newReqBody;
       }
-      
+
       return newReqBody;
     },
     [resourceAllocationPermission.write, filters]
@@ -138,12 +143,13 @@ const ResourceTimeLineComponet = () => {
           },
           canDelete: resourceAllocationPermission.delete,
           onDelete: handleDelete,
+          isShowMonth: filters.isShowMonth,
         })
       );
 
       return updatedData;
     },
-    [handleDelete, resourceAllocationPermission.delete]
+    [filters, handleDelete, resourceAllocationPermission.delete]
   );
 
   const loadIntialData = useCallback(async () => {
