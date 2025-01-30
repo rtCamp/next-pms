@@ -1,22 +1,10 @@
 import {
   getFormatedDate,
-  getUTCDateTime,
   normalizeDate,
 } from "@next-pms/design-system";
+import { isDateInRange } from "@/lib/utils";
 import { TeamState } from "./reducer";
 
-export const isDateInRange = (
-  date: string,
-  startDate: string,
-  endDate: string
-) => {
-  const targetDate = getUTCDateTime(normalizeDate(date));
-
-  return (
-    getUTCDateTime(startDate) <= targetDate &&
-    targetDate <= getUTCDateTime(endDate)
-  );
-};
 
 export const validateDate = (startDateParam: string, teamState: TeamState) => {
   if (!startDateParam) {

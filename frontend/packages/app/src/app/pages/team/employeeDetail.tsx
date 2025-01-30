@@ -44,13 +44,13 @@ import { Header, Main } from "@/app/layout/root";
 import { TaskLog } from "@/app/pages/task/components/taskLog";
 import { Status } from "@/app/pages/team";
 import { EditTime } from "@/app/pages/timesheet/components/editTime";
-import { parseFrappeErrorMsg, calculateExtendedWorkingHour, expectatedHours, copyToClipboard } from "@/lib/utils";
+import { parseFrappeErrorMsg, calculateExtendedWorkingHour, expectatedHours, copyToClipboard, isDateInRange } from "@/lib/utils";
 import { timeStringToFloat } from "@/schema/timesheet";
 import { RootState } from "@/store";
 import { LeaveProps, NewTimesheetProps, TaskDataItemProps, TaskDataProps, timesheet } from "@/types/timesheet";
 import { Approval } from "./components/approval";
 import { Action, initialState, reducer, TeamState } from "./reducer";
-import { isDateInRange, validateDate } from "./utils";
+import { validateDate } from "./utils";
 import { InfiniteScroll } from "../resource_management/components/infiniteScroll";
 import ExpandableHours from "../timesheet/components/expandableHours";
 
