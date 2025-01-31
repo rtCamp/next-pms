@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-
 export const ResourceAllocationSchema = z
   .object({
     customer: z
@@ -41,6 +40,13 @@ export const ResourceAllocationSchema = z
         code: z.ZodIssueCode.custom,
         path: ["hours_allocated_per_day"],
         message: "Hour / Day should be less than 24",
+      });
+    }
+    if (v.allocation_start_date > v.allocation_end_date) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["allocation_end_date"],
+        message: "End date should be greater than or equal to start date",
       });
     }
   });
