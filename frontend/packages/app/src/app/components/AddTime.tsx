@@ -44,9 +44,9 @@ interface AddTimeProps {
   initialDate: string;
   employee: string;
   open: boolean;
-  onOpenChange: () => void;
+  onOpenChange: (data:any) => void;
   workingHours: number;
-  onSuccess?: () => void;
+  onSuccess?: (data:any) => void;
   workingFrequency: WorkingFrequency;
   task?: string;
   project?: string;
@@ -104,7 +104,7 @@ const AddTime = ({
   const handleOpen = () => {
     if (submitting) return;
     form.reset();
-    onOpenChange();
+    onOpenChange(form.getValues());
   };
   const handleDateChange = (date: Date | undefined) => {
     if (!date) return;
@@ -151,7 +151,7 @@ const AddTime = ({
           variant: "success",
           description: res.message,
         });
-        onSuccess?.();
+        onSuccess?.(form.getValues());
         setSubmitting(false);
         handleOpen();
       })

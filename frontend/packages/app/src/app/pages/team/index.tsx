@@ -71,7 +71,7 @@ const Team = () => {
       reports_to: teamState.reportsTo,
       status: teamState.status,
     },
-    "next_pms.timesheet.api.team.get_compact_view_data_team_page",
+    undefined,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,

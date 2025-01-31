@@ -21,7 +21,7 @@ import {
   ResourceCustomerProps,
 } from "@/types/resource_management";
 
-import { DeleteAllocation } from "./Confirmation";
+import { DeleteAllocation } from "./confirmation";
 import { getFilterValue, getInitials } from "../utils/helper";
 import { getFormatedStringValue } from "../utils/value";
 

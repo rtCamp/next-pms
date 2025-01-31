@@ -24,11 +24,11 @@ import { ResourceAllocationObjectProps } from "@/types/resource_management";
 
 import { ResourceExpandView } from "./expandView";
 import { EmptyTableBody } from "../../components/empty";
-import { InfiniteScroll } from "../../components/InfiniteScroll";
+import { InfiniteScroll } from "../../components/infiniteScroll";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
 import { ResourceTableCell } from "../../components/tableCell";
 
-import ResourceProjectTableHeader from "../../components/TableHeader";
+import ResourceProjectTableHeader from "../../components/tableHeader";
 import { ResourceTableRow } from "../../components/tableRow";
 import { TableContextProvider } from "../../store/tableContext";
 import { getCellBackGroundColor } from "../../utils/cell";

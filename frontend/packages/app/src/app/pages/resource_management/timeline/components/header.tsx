@@ -7,7 +7,7 @@ import { getMonthKey, getMonthYearKey, getTodayDate, prettyDate } from "@next-pm
 import { TableHead, Typography } from "@next-pms/design-system/components";
 import { useQueryParam } from "@next-pms/hooks";
 import { startOfWeek } from "date-fns";
-import { useFrappePostCall } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { Plus, ZoomIn, ZoomOut } from "lucide-react";
 import { Moment } from "moment";
 
@@ -22,7 +22,7 @@ import { Skill } from "@/store/resource_management/team";
 
 import { TableContext } from "../../store/tableContext";
 import { TimeLineContext } from "../../store/timeLineContext";
-import SkillSearch from "../../team/components/SkillSearch";
+import SkillSearch from "../../team/components/skillSearch";
 import { getDayKeyOfMoment } from "../../utils/dates";
 import { ResourceAllocationItemProps } from "../types";
 
@@ -49,6 +49,10 @@ const ResourceTimLineHeaderSection = () => {
     (state: RootState) => state.resource_allocation_form.permissions
   );
   const dispatch = useDispatch();
+
+  const { data: employee } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee", {
+    filters: { name: reportingNameParam },
+  });
 
   const { updateFilters, filters } = useContext(TimeLineContext);
 
@@ -113,6 +117,7 @@ const ResourceTimLineHeaderSection = () => {
           label: "Reporting Manager",
           hide: !resourceAllocationPermission.write,
           queryParameterDefault: [],
+          employeeName: employee?.message?.employee_name,
         },
         {
           type: "custom-filter",

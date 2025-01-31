@@ -26,7 +26,7 @@ const InfiniteScroll = ({ children, isLoading, hasMore, verticalLodMore,classNam
       {children}
       {hasMore && (
         <div ref={verticalLoderRef} className={cn("flex flex-col items-start w-screen sticky left-0 h-30",className)}>
-          <Skeleton className="h-10 w-full rounded-none  bg-gray-200" />
+          <Skeleton className="h-10 w-full rounded-none" />
         </div>
       )}
     </div>
