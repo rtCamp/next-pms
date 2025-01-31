@@ -78,7 +78,7 @@ repos:
           - '@typescript-eslint/parser@^8.20.0'
           - '@typescript-eslint/eslint-plugin@^8.20.0'
           - '@eslint/js@^8.57.0'
-          - 'eslint@^9.18.0'
+          #- 'eslint@^9.18.0'
           - 'globals@^15.14.0'
           - 'eslint-plugin-react-hooks@^5.0.0'
           - 'eslint-plugin-react-refresh@^0.4.16'
