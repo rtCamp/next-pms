@@ -18,6 +18,11 @@ jobs:
       image: python:alpine
 
     steps:
+      - name: Add dependency in alpine container image
+        run: |
+          apk --no-cache add tar nodejs npm precommit
+          apk --no-cache add prettier --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing
+
       - uses: actions/checkout@v4
 
       - run: |
@@ -31,12 +36,6 @@ jobs:
           echo "Diff between ${{ github.base_ref }} and ${{ github.sha }}"
           echo "files=$( echo "$DIFF" | xargs echo )" >> $GITHUB_OUTPUT
 
-      - name: fix tar dependency in alpine container image
-        run: |
-          apk --no-cache add tar nodejs npm precommit
-          apk --no-cache add prettier --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing
-          # check python modules installed versions
-          python -m pip freeze --local
 
       - name: Cache pre-commit since we use pre-commit from container
         uses: actions/cache@v4
