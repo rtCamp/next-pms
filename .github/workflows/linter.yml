@@ -15,14 +15,16 @@ jobs:
     name: "Frappe Linter"
     runs-on: ["self-hosted", "python"]
     container:
-      image: python:alpine
+      image: ubuntu:latest
 
     steps:
-      - name: Add dependency in alpine container image
+      - name: Install dependencies
         run: |
-          apk --no-cache add tar nodejs@18 npm pre-commit git
-          apk --no-cache add prettier --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing
-          npm install -g npm@latest
+          apt-get update
+          apt-get install -y curl git python3-pip  # Base dependencies
+          curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+          apt-get install -y nodejs  # Node.js runtime for JS/TS linters
+          python3 -m pip install pre-commit  # Main tool
 
       - uses: actions/checkout@v4
 
