@@ -47,6 +47,7 @@ def get_data(filters=None):
             revenue = get_total_revenue(start_date, end_date, project_names, customer)
             labor_cost = get_labor_cost(start_date, end_date, project_names)
             profit = revenue - labor_cost
+            profit_percentage = (profit / revenue) * 100 if revenue != 0 else 0
             data = {
                 "client": customer,
                 "project_type": ptype,
@@ -55,7 +56,7 @@ def get_data(filters=None):
                 "total_hours": total_hours,
                 "avg_cost_rate": labor_cost / total_hours if total_hours else 0,
                 "profit": profit,
-                "profit_percentage": (profit / revenue) * 100 if revenue != 0 else 0,
+                "profit_percentage": profit_percentage if profit_percentage > 0 else 0,
             }
             res.append(data)
     return res
