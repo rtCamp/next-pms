@@ -22,7 +22,7 @@ jobs:
         run: |
           apt-get update
           apt-get install -y python3-pip git  # Python + Git in Node.js container
-          python3 -m pip install pre-commit  # Main tool
+          python3 -m pip install pre-commit --break-system-packages  # Main tool
 
       - uses: actions/checkout@v4
 
