@@ -15,7 +15,7 @@
  "module": "Resource Management",
  "name": "Capacity Planning",
  "owner": "Administrator",
- "prepared_report": 0,
+ "prepared_report": 1,
  "ref_doctype": "Resource Allocation",
  "report_name": "Capacity Planning",
  "report_type": "Script Report",
