@@ -15,14 +15,15 @@ import moment from "moment";
  */
 import { RootState } from "@/store";
 import { PermissionProps, setResourceFormData } from "@/store/resource_management/allocation";
+import { ResourceAllocationProps } from "@/types/resource_management";
 import ResourceTimeLineGroup from "./group";
 import { ResourceAllocationTimeLineProps } from "../types";
+import { TimeLineDateHeader, TimeLineIntervalHeader } from "./header";
 import ResourceTimeLineItem, { ItemAllocationActionDialog } from "./item";
 import { TableContext } from "../../store/tableContext";
 import { TimeLineContext } from "../../store/timeLineContext";
 import { getDayKeyOfMoment } from "../../utils/dates";
 import { getFormatedStringValue } from "../../utils/value";
-import { TimeLineDateHeader, TimeLineIntervalHeader } from "./header";
 
 interface ResourceTimeLineProps {
   handleFormSubmit: (oldData: ResourceAllocationTimeLineProps, newData: ResourceAllocationTimeLineProps) => void;
@@ -39,6 +40,7 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
     getEmployeeWithIndex,
     setAllocationData,
     filters,
+    getEmployeeWithID,
   } = useContext(TimeLineContext);
   const resourceAllocationPermission: PermissionProps = useSelector(
     (state: RootState) => state.resource_allocation_form.permissions
@@ -137,7 +139,7 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
       });
   };
 
-  const setResourceAllocationData = (resourceAllocation: ResourceAllocationTimeLineProps) => {
+  const setResourceAllocationData = (resourceAllocation: ResourceAllocationProps) => {
     if (!resourceAllocationPermission.write) {
       return;
     }
@@ -156,8 +158,8 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
         hours_allocated_per_day: getFormatedStringValue(resourceAllocation.hours_allocated_per_day),
         note: getFormatedStringValue(resourceAllocation.note),
         project_name: resourceAllocation.project_name,
-        customer_name: resourceAllocation.customerData.name,
-        isNeedToEdit: true,
+        customer_name: resourceAllocation?.customerData?.name,
+        isNeedToEdit: resourceAllocation.name ? true : false,
         name: resourceAllocation.name,
       })
     );
@@ -192,6 +194,26 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
     }
 
     updateAllocationApi(updatedAllocation);
+  };
+
+  const onCanvasClick = (groupId: string, time: number) => {
+    const employee = getEmployeeWithID(groupId);
+    const date: string = getDayKeyOfMoment(moment(time));
+
+    setResourceAllocationData({
+      name: "",
+      employee: employee.name,
+      employee_name: employee.employee_name,
+      allocation_start_date: date,
+      allocation_end_date: date,
+      hours_allocated_per_day: 0,
+      total_allocated_hours: 0,
+      project: "",
+      project_name: "",
+      customer: "",
+      is_billable: 0,
+      note: "",
+    });
   };
 
   const onItemResize = (itemId: string, time: number, edge: "left" | "right") => {
@@ -272,6 +294,7 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
         onItemMove={onItemMove}
         onItemResize={onItemResize}
         onItemDoubleClick={onItemDoubleClick}
+        onCanvasClick={onCanvasClick}
         className="overflow-x-auto"
       >
         <TimelineHeaders

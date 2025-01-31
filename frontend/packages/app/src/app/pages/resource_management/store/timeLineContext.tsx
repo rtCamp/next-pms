@@ -30,6 +30,7 @@ interface TimeLineContextProps {
   updateFilters: (filters: ResourceAllocationTimeLineFilterProps) => void;
   updateApiControler: (apiControler: APIControlerProps) => void;
   getAllocationWithID: (id: string) => ResourceAllocationTimeLineProps;
+  getEmployeeWithID: (id: string) => ResourceAllocationEmployeeProps;
   updateAllocation: (
     updatedAllocation: ResourceAllocationTimeLineProps,
     type?: "Append" | "Update"
@@ -68,6 +69,7 @@ const TimeLineContext = createContext<TimeLineContextProps>({
   updateApiControler: () => {},
   getAllocationWithID: () => {},
   updateAllocation: () => {},
+  getEmployeeWithID: () => {},
   getEmployeeWithIndex: () => -1,
   isEmployeeExits: () => false,
   setAllocationData: () => {},
@@ -126,6 +128,10 @@ const TimeLineContextProvider = ({ children }: TimeLineContextProviderProps) => 
 
   const getAllocationWithID = (id: string) => {
     return allocations.find((allocation) => allocation.name == id);
+  };
+
+  const getEmployeeWithID = (id: string) => {
+    return employees.find((employe) => employe.name == id);
   };
 
   const getEmployeeWithIndex = (index: number) => {
@@ -201,6 +207,7 @@ const TimeLineContextProvider = ({ children }: TimeLineContextProviderProps) => 
         updateFilters,
         updateApiControler,
         getAllocationWithID,
+        getEmployeeWithID,
         getEmployeeWithIndex,
         updateAllocation,
         isEmployeeExits,

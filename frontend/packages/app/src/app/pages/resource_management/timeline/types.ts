@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { AllocationDataProps } from "@/store/resource_management/allocation";
 import { Skill } from "@/store/resource_management/team";
 import { ResourceAllocationProps } from "@/types/resource_management";
 
@@ -51,18 +52,26 @@ interface ResourceAllocationTimeLineProps extends ResourceAllocationProps {
     image: string;
   };
   itemProps: ResourceAllocationItemProps;
+  from_date?: string;
+  to_date?: string;
+  total_leave_days?: number;
   group: string;
   start_time: number;
   end_time: number;
   canDelete?: boolean;
-  onDelete?: () => void;
   isShowMonth?: boolean;
+  onDelete?: (
+    oldData: AllocationDataProps,
+    newData: AllocationDataProps
+  ) => void;
+  type: "allocation" | "leave";
 }
 
 interface ResourceTimeLineDataProps {
   resource_allocations: ResourceAllocationTimeLineProps[];
   employees: ResourceAllocationEmployeeProps[];
   customer: ResourceAllocationCustomerProps;
+  leaves: ResourceAllocationTimeLineProps[];
 }
 
 interface ResourceTeamAPIBodyProps {
@@ -82,6 +91,8 @@ export type {
   ResourceAllocationEmployeeProps,
   ResourceAllocationItemProps,
   ResourceAllocationTimeLineFilterProps,
-  ResourceAllocationTimeLineProps, ResourceTeamAPIBodyProps, ResourceTimeLineDataProps
+  ResourceAllocationTimeLineProps,
+  ResourceTeamAPIBodyProps,
+  ResourceTimeLineDataProps
 };
 

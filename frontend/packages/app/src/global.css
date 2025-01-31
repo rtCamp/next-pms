@@ -71,3 +71,7 @@ html,
 .rct-day-6-today {
   border-left: 1px solid;
 }
+
+.rct-scroll{
+  cursor: cell !important;
+}

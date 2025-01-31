@@ -65,6 +65,8 @@ const ResourceTimeLineComponet = () => {
     "next_pms.resource_management.api.team.get_resource_management_team_view_data"
   );
 
+  const user = useSelector((state: RootState) => state.user);
+
   const getFilterApiBody = useCallback(
     (req: ResourceTeamAPIBodyProps): ResourceTeamAPIBodyProps => {
       let newReqBody: ResourceTeamAPIBodyProps = {
@@ -144,8 +146,21 @@ const ResourceTimeLineComponet = () => {
           canDelete: resourceAllocationPermission.delete,
           onDelete: handleDelete,
           isShowMonth: filters.isShowMonth,
+          type: "allocation",
         })
       );
+
+      updatedData.leaves = updatedData.leaves.map((leave: ResourceAllocationTimeLineProps) => ({
+        ...leave,
+        id: leave.name,
+        group: leave.employee,
+        title: leave.name,
+        start_time: getUTCDateTime(leave.from_date).getTime(),
+        end_time: getUTCDateTime(leave.to_date).setDate(getUTCDateTime(leave.to_date).getDate() + 1),
+        canDelete: false,
+        isShowMonth: filters.isShowMonth,
+        type: "leave",
+      }));
 
       return updatedData;
     },
@@ -166,7 +181,7 @@ const ResourceTimeLineComponet = () => {
 
     setEmployeesData(data.employees, mainThredData.has_more);
     setCustomerData(data.customer);
-    setAllocationsData(data.resource_allocations);
+    setAllocationsData([...data.leaves, ...data.resource_allocations]);
   }, [
     filters.weekDate,
     filters.start,
@@ -206,7 +221,7 @@ const ResourceTimeLineComponet = () => {
             (allocation) => allocation.employee != oldData.employee && allocation.employee != newData.employee
           );
           const filterData = filterApiData(res.message);
-          setAllocationsData([...updatedAllocations, ...filterData.resource_allocations], "Set");
+          setAllocationsData([...updatedAllocations, ...filterData.leaves, ...filterData.resource_allocations], "Set");
           setCustomerData({ ...customer, ...filterData.customer });
         }
       });
@@ -227,6 +242,20 @@ const ResourceTimeLineComponet = () => {
       setAllocationData({ isNeedToDelete: false });
     }
   }, [allocationData.isNeedToDelete, allocationData.new, allocationData.old, handleFormSubmit, setAllocationData]);
+
+  useEffect(() => {
+    // This way will make sure the timeline width changes when the user collapses the sidebar.
+    setTimeout(() => {
+      const container = document.querySelector<HTMLDivElement>(".react-calendar-timeline");
+      const scrollContainer = document.querySelector<HTMLDivElement>(".rct-scroll");
+      const sidebar = document.querySelector<HTMLDivElement>(".rct-sidebar");
+
+      if (container && scrollContainer && sidebar) {
+        scrollContainer.style.transition = "width 0.2s ease";
+        scrollContainer.style.width = `${container.offsetWidth - sidebar.offsetWidth}px`;
+      }
+    }, 500);
+  }, [user.isSidebarCollapsed]);
 
   return (
     <>

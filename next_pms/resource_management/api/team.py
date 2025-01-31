@@ -71,6 +71,7 @@ def get_resource_management_team_view_data(
                 if not need_hours_summary:
                     res["employees"] = []
                     res["resource_allocations"] = []
+                    res["leaves"] = []
                     res["customer"] = {}
                     res["total_count"] = 0
                     res["has_more"] = False
@@ -127,7 +128,26 @@ def get_resource_management_team_view_data(
         resource_allocation_map[resource_allocation.employee].append(resource_allocation)
 
     if not need_hours_summary:
+        all_leave_data = frappe.get_all(
+            "Leave Application",
+            filters={
+                "employee": ["in", [employee.name for employee in employees]],
+                "docstatus": ["in", [0, 1]],
+                "status": ["in", ["Approved", "Open"]],
+            },
+            fields=[
+                "employee",
+                "employee_name",
+                "from_date",
+                "to_date",
+                "half_day",
+                "half_day_date",
+                "total_leave_days",
+                "name",
+            ],
+        )
         res["employees"] = employees
+        res["leaves"] = all_leave_data
         res["resource_allocations"] = resource_allocation_data
         res["customer"] = customer
         res["total_count"] = total_count
