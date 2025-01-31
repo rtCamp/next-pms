@@ -4,7 +4,7 @@
 import { useContext, useState } from "react";
 import Timeline, { DateHeader, SidebarHeader, TimelineHeaders } from "react-calendar-timeline";
 import { useDispatch, useSelector } from "react-redux";
-import { getDayDiff, getTodayDate, getUTCDateTime, prettyDate } from "@next-pms/design-system";
+import { cn, getDayDiff, getMonthYearKey, getTodayDate, getUTCDateTime, prettyDate } from "@next-pms/design-system";
 import { TableHead, useToast } from "@next-pms/design-system/components";
 import { startOfWeek } from "date-fns";
 import { useFrappeCreateDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
@@ -13,18 +13,17 @@ import moment from "moment";
 /**
  * Internal dependencies.
  */
-import { cn } from "@/lib/utils";
 import { RootState } from "@/store";
 import { PermissionProps, setResourceFormData } from "@/store/resource_management/allocation";
+import { ResourceAllocationProps } from "@/types/resource_management";
 import ResourceTimeLineGroup from "./group";
-import { TimeLineDateHeader, TimeLineIntervalHeader } from "./header";
 import { ResourceAllocationTimeLineProps } from "../types";
+import { TimeLineDateHeader, TimeLineIntervalHeader } from "./header";
 import ResourceTimeLineItem, { ItemAllocationActionDialog } from "./item";
 import { TableContext } from "../../store/tableContext";
 import { TimeLineContext } from "../../store/timeLineContext";
 import { getDayKeyOfMoment } from "../../utils/dates";
 import { getFormatedStringValue } from "../../utils/value";
-import { ResourceAllocationProps } from "@/types/resource_management";
 
 interface ResourceTimeLineProps {
   handleFormSubmit: (oldData: ResourceAllocationTimeLineProps, newData: ResourceAllocationTimeLineProps) => void;
@@ -40,6 +39,7 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
     updateAllocation,
     getEmployeeWithIndex,
     setAllocationData,
+    filters,
     getEmployeeWithID,
   } = useContext(TimeLineContext);
   const resourceAllocationPermission: PermissionProps = useSelector(
@@ -65,6 +65,17 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
     const { day } = prettyDate(getDayKeyOfMoment(moment(startTime)));
 
     let classNames = ["border-0"];
+
+    if (filters.isShowMonth) {
+      const currentMonth = getMonthYearKey(getDayKeyOfMoment(moment(startTime)));
+      const nextMonth = getMonthYearKey(getDayKeyOfMoment(moment(startTime).add(-1, "days")));
+
+      if (currentMonth !== nextMonth) {
+        return [" border-0 border-r border-gray-300 opacity-80"];
+      }
+
+      return classNames;
+    }
 
     if (day == "Sun") {
       classNames = ["border-r border-gray-300 opacity-80"];
@@ -251,11 +262,24 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
       <Timeline
         groups={employees}
         items={allocations}
-        defaultTimeStart={start.getTime()}
-        defaultTimeEnd={start.getTime() + 18 * 60 * 60 * 1000 * 24}
         sidebarWidth={tableProperties.firstCellWidth * 16}
-        minZoom={18 * 60 * 60 * 1000 * 24}
-        maxZoom={18 * 60 * 60 * 1000 * 24}
+        defaultTimeStart={start.getTime()}
+        defaultTimeEnd={
+          start.getTime() +
+          (filters.isShowMonth
+            ? moment.duration(3, "months").asMilliseconds()
+            : moment.duration(18, "days").asMilliseconds())
+        }
+        minZoom={
+          filters.isShowMonth
+            ? moment.duration(3, "months").asMilliseconds()
+            : moment.duration(18, "days").asMilliseconds()
+        }
+        maxZoom={
+          filters.isShowMonth
+            ? moment.duration(3, "months").asMilliseconds()
+            : moment.duration(18, "days").asMilliseconds()
+        }
         lineHeight={50}
         itemHeightRatio={0.75}
         canMove={resourceAllocationPermission.write}
@@ -289,13 +313,32 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
               );
             }}
           </SidebarHeader>
-          <DateHeader unit="week" height={30} intervalRenderer={TimeLineIntervalHeader} />
-          <DateHeader
-            style={{ width: tableProperties.cellWidth }}
-            unit="day"
-            height={50}
-            intervalRenderer={TimeLineDateHeader}
-          />
+          {filters.isShowMonth ? (
+            <>
+              <DateHeader
+                unit="month"
+                intervalRenderer={TimeLineIntervalHeader}
+                headerData={{ unit: "month", showYear: true }}
+              />
+              <DateHeader unit="month" intervalRenderer={TimeLineIntervalHeader} headerData={{ unit: "month" }} />
+            </>
+          ) : (
+            <>
+              <DateHeader
+                unit="week"
+                height={30}
+                intervalRenderer={TimeLineIntervalHeader}
+                headerData={{ unit: "week" }}
+              />
+              <DateHeader
+                style={{ width: tableProperties.cellWidth }}
+                unit="day"
+                height={50}
+                intervalRenderer={TimeLineDateHeader}
+                headerData={{ unit: "day" }}
+              />
+            </>
+          )}
         </TimelineHeaders>
       </Timeline>
 

@@ -72,6 +72,7 @@ export const Header = ({
                     variant={button.variant || "outline"}
                     onClick={button.handleClick}
                     key={idx}
+                    disabled={button.disabled}
                   >
                     {button.icon && <button.icon />}
                     {button.label}

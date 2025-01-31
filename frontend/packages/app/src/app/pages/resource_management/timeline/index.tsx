@@ -145,6 +145,7 @@ const ResourceTimeLineComponet = () => {
           },
           canDelete: resourceAllocationPermission.delete,
           onDelete: handleDelete,
+          isShowMonth: filters.isShowMonth,
           type: "allocation",
         })
       );
@@ -157,12 +158,13 @@ const ResourceTimeLineComponet = () => {
         start_time: getUTCDateTime(leave.from_date).getTime(),
         end_time: getUTCDateTime(leave.to_date).setDate(getUTCDateTime(leave.to_date).getDate() + 1),
         canDelete: false,
+        isShowMonth: filters.isShowMonth,
         type: "leave",
       }));
 
       return updatedData;
     },
-    [handleDelete, resourceAllocationPermission.delete]
+    [filters, handleDelete, resourceAllocationPermission.delete]
   );
 
   const loadIntialData = useCallback(async () => {

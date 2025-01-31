@@ -3,12 +3,12 @@
  */
 import { useContext, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getMonthKey, getTodayDate, prettyDate } from "@next-pms/design-system";
+import { getMonthKey, getMonthYearKey, getTodayDate, prettyDate } from "@next-pms/design-system";
 import { TableHead, Typography } from "@next-pms/design-system/components";
 import { useQueryParam } from "@next-pms/hooks";
 import { startOfWeek } from "date-fns";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
-import { Plus } from "lucide-react";
+import { Plus, ZoomIn, ZoomOut } from "lucide-react";
 import { Moment } from "moment";
 
 /**
@@ -29,6 +29,7 @@ import { ResourceAllocationItemProps } from "../types";
 interface TimeLineHeaderFunctionProps {
   getIntervalProps: () => ResourceAllocationItemProps;
   intervalContext: { interval: { startTime: Moment; endTime: Moment } };
+  data: { unit: string; showYear?: boolean };
 }
 
 /**
@@ -244,36 +245,70 @@ const ResourceTimLineHeaderSection = () => {
           variant: "default",
           hide: !resourceAllocationPermission.write,
         },
+        {
+          title: "Zoom In",
+          handleClick: () => {
+            updateFilters({ isShowMonth: true });
+          },
+          className: "px-3",
+          icon: () => <ZoomIn className="w-4 max-md:w-3 h-4 max-md:h-3 bg" />,
+          variant: "outline",
+          hide: !resourceAllocationPermission.write,
+          disabled: filters.isShowMonth,
+        },
+        ,
+        {
+          title: "Zoom Out",
+          handleClick: () => {
+            updateFilters({ isShowMonth: false });
+          },
+          className: "px-3",
+          icon: () => <ZoomOut className="w-4 max-md:w-3 h-4 max-md:h-3 bg" />,
+          variant: "outline",
+          hide: !resourceAllocationPermission.write,
+          disabled: !filters.isShowMonth,
+        },
       ]}
       showFilterValue
     />
   );
 };
 
-const TimeLineIntervalHeader = ({ getIntervalProps, intervalContext }: TimeLineHeaderFunctionProps) => {
+const TimeLineIntervalHeader = ({ getIntervalProps, intervalContext, data }: TimeLineHeaderFunctionProps) => {
   const { interval } = intervalContext;
   const { startTime, endTime } = interval;
   const start = startOfWeek(getTodayDate(), {
     weekStartsOn: 1,
   });
 
+  const getKey = () => {
+    const keys = { week: "Week", month: "Month", year: "Year" };
+
+    if (start.getTime() >= startTime && start.getTime() <= endTime) {
+      if (data.unit === "week") {
+        return `This ${keys[data.unit]}`;
+      }
+    }
+    if (data.unit === "month" && data.showYear) {
+      return getMonthYearKey(getDayKeyOfMoment(startTime));
+    }
+
+    return `${getMonthKey(getDayKeyOfMoment(startTime))} - ${getMonthKey(
+      getDayKeyOfMoment(endTime.add("-1", "days"))
+    )}`;
+  };
+
   return (
     <TableHead
       {...getIntervalProps()}
       className={cn("h-full pb-2 pt-1 px-0 text-center truncate cursor-pointer border-r border-gray-300")}
     >
-      <Typography variant="small">
-        {start.getTime() >= startTime && start.getTime() <= endTime
-          ? "This Week"
-          : `${getMonthKey(getDayKeyOfMoment(startTime))} - ${getMonthKey(
-              getDayKeyOfMoment(endTime.add("-1", "days"))
-            )}`}
-      </Typography>
+      <Typography variant="small">{getKey()}</Typography>
     </TableHead>
   );
 };
 
-const TimeLineDateHeader = ({ getIntervalProps, intervalContext }: TimeLineHeaderFunctionProps) => {
+const TimeLineDateHeader = ({ getIntervalProps, intervalContext, data }: TimeLineHeaderFunctionProps) => {
   const { interval } = intervalContext;
   const { startTime } = interval;
   const { date: dateStr, day } = prettyDate(getDayKeyOfMoment(startTime));

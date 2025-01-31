@@ -63,49 +63,72 @@ const LeaveItemRender = ({ item: leave, itemContext, getItemProps, getResizeProp
 
   let itemProps = getItemProps(leave.itemProps);
 
+  const getTitle = (isNeedFullTitle = false) => {
+    const title = `${startDate} - ${endDate} (${leave.total_leave_days} days)`;
+
+    if (isNeedFullTitle) {
+      return title;
+    }
+
+    if (dayDiff <= 2 || (leave.isShowMonth && dayDiff <= 20)) {
+      return "";
+    }
+
+    if (dayDiff <= 3 || (leave.isShowMonth && dayDiff <= 50)) {
+      return `${startDate} - ${endDate}`;
+    }
+
+    return title;
+  };
+
+  const title = getTitle();
+
   itemProps = {
     ...itemProps,
     style: {
       ...itemProps.style,
-      padding: "1px 6px",
+      padding: !title ? "0" : "1px 6px",
       background: "rgba(211, 211, 211, 0.58)",
       borderRadius: "4px",
       border: "1px solid #d1d5db",
       borderWidth: 0,
       borderRightWidth: 0,
-      overflow: dayDiff <= 7 ? "hidden" : "visible",
+      overflow: dayDiff <= (leave.isShowMonth ? 30 * 3 : 10) ? "hidden" : "visible",
     },
   };
 
-  const getTitle = (isNeedFullTitle = false) => {
-    if (isNeedFullTitle) {
-      if (dayDiff == 0) {
-        return `${startDate}`;
-      }
-      return `${startDate} - ${endDate} (${leave.total_leave_days} days)`;
-    }
-    if (dayDiff == 0) {
-      return `${startDate} `;
-    }
-    if (dayDiff <= 3) {
-      return `${startDate} - ${endDate}`;
-    }
-    return `${startDate} - ${endDate} (${leave.total_leave_days} days)`;
-  };
-
   return (
-    <div style={itemProps.style}>
-      <div className={cn("rct-item-content overflow-hidden")} style={{ maxHeight: `${itemContext.dimensions.height}` }}>
+    <div style={itemProps.style} title={getTitle(true)}>
+      <div
+        className={cn("rct-item-content")}
+        style={
+          title
+            ? { maxHeight: itemContext.dimensions.height }
+            : {
+                maxHeight: itemContext.dimensions.height,
+                height: itemContext.dimensions.height,
+                width: itemProps.style.width,
+              }
+        }
+      >
         <div
-          className={cn("flex justify-start gap-1 h-full w-full", dayDiff == 0 && "justify-center")}
-          style={{ alignItems: "center" }}
-          title={getTitle(true)}
+          className={cn("flex justify-start gap-[2px] h-full w-full", !title && "justify-center")}
+          style={{
+            alignItems: "center",
+            maxHeight: itemContext.dimensions.height,
+          }}
         >
-          <CalendarX className={cn("z-[1000] text-gray-500 cusror-pointer w-4 h-4 mr-1")} size={16} strokeWidth={2} />
+          <CalendarX
+            className={cn("z-[1000] text-gray-500 cusror-pointer w-4 h-4", title && "mr-1")}
+            size={16}
+            strokeWidth={2}
+          />
 
-          <Typography variant="small" className={cn("text-[12px] truncate overflow-hidden block text-gray-500")}>
-            {getTitle()}
-          </Typography>
+          {title && (
+            <Typography variant="small" className={cn("text-[12px] truncate overflow-hidden block text-gray-500")}>
+              {title}
+            </Typography>
+          )}
         </div>
       </div>
     </div>
@@ -138,8 +161,8 @@ const AllocationItemRender = ({
       return title;
     }
 
-    if (dayDiff <= 0) {
-      return `${startDate}`;
+    if (dayDiff <= 2 || (resourceAllocation.isShowMonth && dayDiff <= 10)) {
+      return "";
     }
 
     if (dayDiff <= 4) {
@@ -151,6 +174,8 @@ const AllocationItemRender = ({
 
   let itemProps = getItemProps(resourceAllocation.itemProps);
 
+  const title = getTitle();
+
   itemProps = {
     ...itemProps,
     style: {
@@ -161,28 +186,31 @@ const AllocationItemRender = ({
       border: "1px solid #d1d5db",
       borderWidth: 0,
       borderRightWidth: resourceAllocation.canDelete && itemContext.selected ? 3 : 0,
-      overflow: dayDiff <= 7 ? "hidden" : "visible",
+      overflow: dayDiff <= (resourceAllocation.isShowMonth ? 30 * 3 : 10) ? "hidden" : "visible",
     },
   };
 
   return (
-    <div {...itemProps}>
+    <div {...itemProps} title={getTitle(true)}>
       {itemContext.useResizeHandle ? <div {...leftResizeProps} /> : ""}
 
       <div
-        className={cn("rct-item-content overflow-hidden")}
-        style={{ maxHeight: `${itemContext.dimensions.height}` }}
-        title={getTitle(true)}
+        className={cn("rct-item-content")}
+        style={
+          title
+            ? { maxHeight: itemContext.dimensions.height }
+            : { maxHeight: itemContext.dimensions.height, width: itemProps.style.width }
+        }
       >
         <div
-          className={cn("flex justify-start gap-[2px] h-full w-full", dayDiff == 0 && "justify-center")}
-          style={{ alignItems: "center" }}
+          className={cn("flex justify-start gap-[2px] h-full w-full", !title && "justify-center")}
+          style={{ alignItems: "center", maxHeight: itemContext.dimensions.height }}
         >
           {itemContext.selected && resourceAllocation.canDelete && (
             <DeleteIcon
               resourceAllocation={resourceAllocation}
               resourceAllocationPermission={{ delete: resourceAllocation.canDelete }}
-              buttonClassName={cn("text-red-500 z-[1000] cusror-pointer hover:text-red-600 w-4 h-4")}
+              buttonClassName={cn("text-red-500 z-[1000] mr-1 cusror-pointer hover:text-red-600 w-7 h-4 p-0")}
               onSubmit={resourceAllocation.onDelete}
             />
           )}
@@ -198,7 +226,7 @@ const AllocationItemRender = ({
             </Avatar>
           )}
 
-          {dayDiff != 0 && (
+          {title && (
             <Typography
               variant="small"
               className={cn(
@@ -208,12 +236,11 @@ const AllocationItemRender = ({
                   : "text-yellow-500"
               )}
             >
-              {getTitle()}
+              {title}
             </Typography>
           )}
         </div>
       </div>
-
       {itemContext.useResizeHandle ? <div {...rightResizeProps} /> : ""}
     </div>
   );

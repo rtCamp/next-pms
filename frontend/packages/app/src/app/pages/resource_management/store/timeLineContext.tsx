@@ -21,6 +21,7 @@ interface TimeLineContextProps {
     old?: ResourceAllocationTimeLineProps;
     new?: ResourceAllocationTimeLineProps;
   };
+  isShowMonth: boolean;
   setEmployeesData: (value: ResourceAllocationEmployeeProps[], hasMore: boolean) => void;
   setAllocationsData: (value: ResourceAllocationTimeLineProps[], type?: "Set" | "Update") => void;
   setCustomerData: (value: ResourceAllocationCustomerProps) => void;
@@ -89,6 +90,7 @@ const TimeLineContextProvider = ({ children }: TimeLineContextProviderProps) => 
     start: 0,
     page_length: 20,
     weekDate: getTodayDate(),
+    isShowMonth: false,
   });
 
   const [apiControler, setApiControler] = useState<APIControlerProps>({

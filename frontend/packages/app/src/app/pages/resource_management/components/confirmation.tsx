@@ -48,7 +48,6 @@ const DeleteAllocation = ({
         <Trash2
           className={cn("w-4 hover:text-red-500", buttonClassName)}
           size={16}
-          strokeWidth={1.25}
           aria-label="Delete"
           onClick={onOpen}
         />
