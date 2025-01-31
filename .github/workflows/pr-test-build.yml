@@ -5,12 +5,20 @@ on:
     paths:
       - 'frontend/**'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
-    runs-on: ubuntu-latest
-
+    runs-on: self-hosted
+    container:
+      image: node:18
+    defaults:
+      run:
+        shell: bash
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -22,6 +30,16 @@ jobs:
         run: |
           cd frontend
           npm ci
+        env:
+          npm_config_cache: ~/.npm
+        
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
       - name: Build app
         run: |
