@@ -230,7 +230,7 @@ const ResourceTimeLineComponet = () => {
   }, [allocationData.isNeedToDelete, allocationData.new, allocationData.old, handleFormSubmit, setAllocationData]);
 
   useEffect(() => {
-    // This way will make suer timeline width changes on user collapsed the sidebar
+    // This way will make sure the timeline width changes when the user collapses the sidebar.
     setTimeout(() => {
       const container = document.querySelector<HTMLDivElement>(".react-calendar-timeline");
       const scrollContainer = document.querySelector<HTMLDivElement>(".rct-scroll");
