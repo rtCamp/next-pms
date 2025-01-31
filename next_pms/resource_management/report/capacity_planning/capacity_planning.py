@@ -4,7 +4,7 @@
 from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
 from erpnext.setup.utils import get_exchange_rate
 from frappe import _, get_doc, get_list, get_meta, get_value
-from frappe.utils import add_days, get_date_str, getdate
+from frappe.utils import add_days, flt, get_date_str, getdate
 
 from next_pms.resource_management.api.utils.helpers import is_on_leave
 from next_pms.resource_management.api.utils.query import (
@@ -117,8 +117,14 @@ def calculate_hours_and_revenue(employees, resource_allocations, start_date, end
     start_date = getdate(start_date)
     end_date = getdate(end_date)
 
+    resource_allocation_map = {}
+    for resource_allocation in resource_allocations:
+        if resource_allocation.employee not in resource_allocation_map:
+            resource_allocation_map[resource_allocation.employee] = []
+        resource_allocation_map[resource_allocation.employee].append(resource_allocation)
+
     for employee in employees:
-        employee_allocations = [resource for resource in resource_allocations if resource.employee == employee.employee]
+        employee_allocations = resource_allocation_map.get(employee.employee, [])
         daily_hours = get_employee_daily_working_norm(employee.employee)
         free_hours = calculate_employee_free_hours(
             employee.employee, daily_hours, start_date, end_date, resource_allocations
@@ -204,7 +210,7 @@ def calculate_employee_free_hours(employee, daily_hours, start_date, end_date, r
         if not data.get("on_leave"):
             total_hours += daily_hours
         else:
-            total_hours += data.get("leave_work_hours")
+            total_hours += flt(data.get("leave_work_hours"))
         start_date = add_days(start_date, 1)
 
     for resource in resource_allocations:
