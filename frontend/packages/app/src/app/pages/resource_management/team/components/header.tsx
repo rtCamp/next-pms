@@ -122,7 +122,7 @@ const ResourceTeamHeaderSection = () => {
           handleChange: (value: string) => {
             dispatch(setEmployeeName(value));
           },
-          handleDelete: (value: string) => {
+          handleDelete: () => {
             dispatch(deleteFilters({ type: "employee", employeeName: "" }));
           },
           type: "search",
@@ -136,7 +136,7 @@ const ResourceTeamHeaderSection = () => {
           handleChange: (value: string | string[]) => {
             dispatch(setReportingManager(value as string));
           },
-          handleDelete: (value: string[] | undefined) => {
+          handleDelete: () => {
             dispatch(deleteFilters({ type: "repots-to", reportingManager: "" }));
           },
           type: "search-employee",

@@ -13,11 +13,12 @@ import { RootState } from "@/store";
 import { AllocationDataProps, setResourceFormData } from "@/store/resource_management/allocation";
 import {
   DateProps,
+  EmployeeAllWeekDataProps,
   EmployeeDataProps,
   EmployeeResourceProps,
   emptyEmployeeDayData,
 } from "@/store/resource_management/team";
-import { ResourceAllocationObjectProps } from "@/types/resource_management";
+import { ResourceAllocationObjectProps, ResourceAllocationProps } from "@/types/resource_management";
 
 import { ResourceExpandView } from "./expandView";
 import { EmptyTableBody } from "../../components/empty";
@@ -43,7 +44,7 @@ const ResourceTeamTable = ({
   handleVerticalLoadMore,
 }: {
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
-  cellHeaderRef: any;
+  cellHeaderRef: React.LegacyRef<HTMLTableCellElement>;
   dateToAddHeaderRef: string;
   handleVerticalLoadMore: () => void;
 }) => {
@@ -123,7 +124,7 @@ const ResourceTeamTableBody = ({
 
                       let weekData = {
                         total_allocated_hours: 0,
-                        total_working_hours: parseInt(employeeData.employee_daily_working_hours) * 5,
+                        total_working_hours: employeeData.employee_daily_working_hours * 5,
                         total_worked_hours: 0,
                       };
 
@@ -184,7 +185,7 @@ const ResourceTeamTableCell = ({
   onSubmit,
 }: {
   employeeSingleDay: EmployeeResourceProps;
-  weekData: any;
+  weekData: EmployeeAllWeekDataProps;
   rowCount: number;
   employee: string;
   employee_name: string;
@@ -313,7 +314,9 @@ const ResourceTeamTableCell = ({
       CustomHoverCardContent={() => {
         return (
           <ResourceAllocationList
-            resourceAllocationList={employeeSingleDay.employee_resource_allocation_for_given_date}
+            resourceAllocationList={
+              employeeSingleDay.employee_resource_allocation_for_given_date as unknown as ResourceAllocationProps[]
+            }
             employeeAllocations={employeeAllocations}
             customer={customer}
             onButtonClick={onCellClick}

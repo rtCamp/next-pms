@@ -16,7 +16,7 @@ import { DateProps, EmployeeDataProps } from "@/store/resource_management/team";
 import { EmptyRow } from "../../components/empty";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
 import { ResourceTableCell, TableInformationCellContent } from "../../components/tableCell";
-import { CombinedResourceDataProps, CombinedResourceObjectProps, groupAllocations } from "../../utils/group";
+import { CombinedResourceDataProps, CombinedResourceObjectProps, groupAllocations, ResourceMergeAllocationProps } from "../../utils/group";
 import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
 
 /**
@@ -33,8 +33,7 @@ export const ResourceExpandView = ({
   employeeData: EmployeeDataProps;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-
+  
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
   const dates = useSelector((state: RootState) => state.resource_team.data.dates);
 
@@ -81,7 +80,7 @@ export const ResourceExpandView = ({
                           employee_name={employeeData.employee_name}
                           project={item}
                           project_name={itemData.project_name}
-                          customer_name={itemData.customer_name}
+                          customer_name={itemData.customer_name || ""}
                           weekIndex={weekIndex}
                           onSubmit={onSubmit}
                         />
@@ -125,7 +124,7 @@ const ExpandViewCell = ({
   weekIndex,
   onSubmit,
 }: {
-  allocationsData: any;
+  allocationsData: ResourceMergeAllocationProps;
   index: number;
   date: string;
   project: string;

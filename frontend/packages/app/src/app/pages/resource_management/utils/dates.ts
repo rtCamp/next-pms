@@ -1,8 +1,6 @@
 /**
  * External dependencies.
  */
-
-import { DateProps } from "@/store/resource_management/team";
 import {
   getFormatedDate,
   getMonthKey,
@@ -11,6 +9,7 @@ import {
 } from "@next-pms/design-system/date";
 import { startOfWeek } from "date-fns";
 import { Moment } from "moment";
+import { DateProps } from "@/store/resource_management/team";
 
 function getDatesArrays(
   startDate: string,

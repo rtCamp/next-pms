@@ -24,7 +24,7 @@ import {
   useToast,
   ComboBox,
   DatePicker,
-  Typography
+  Typography,
 } from "@next-pms/design-system/components";
 import { getFormatedDate } from "@next-pms/design-system/date";
 import { cn } from "@next-pms/design-system/utils";
@@ -144,7 +144,11 @@ const AddResourceAllocations = ({
     }
   };
 
-  const handleSearchChange = (key: ResourceKeys, value: string | string[], handleValueChange) => {
+  const handleSearchChange = (
+    key: ResourceKeys,
+    value: string | string[],
+    handleValueChange: (value: string) => void
+  ) => {
     if (typeof value === "string") {
       form.setValue(key, value);
       if (key === "project") {
@@ -313,6 +317,7 @@ const AddResourceAllocations = ({
           <Separator />
         </DialogHeader>
         <Form {...form}>
+          {/* @ts-expect-error : form.handleSubmit has a type mismatch issue. */}
           <form className="flex flex-col gap-y-4" onSubmit={form.handleSubmit(handleSubmit)}>
             <FormField
               control={form.control}

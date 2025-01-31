@@ -4,9 +4,7 @@
 import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Avatar, AvatarFallback, AvatarImage, Table, TableBody, TableRow } from "@next-pms/design-system/components";
-import {
-  prettyDate,
-} from "@next-pms/design-system/date";
+import { prettyDate } from "@next-pms/design-system/date";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
@@ -15,8 +13,12 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 import { cn } from "@/lib/utils";
 import { RootState } from "@/store";
 import { AllocationDataProps, setResourceFormData } from "@/store/resource_management/allocation";
-import { DateProps } from "@/store/resource_management/team";
-import { ResourceAllocationObjectProps, ResourceCustomerObjectProps } from "@/types/resource_management";
+import { DateProps, EmployeeDataProps, EmployeeResourceProps } from "@/store/resource_management/team";
+import {
+  ResourceAllocationObjectProps,
+  ResourceAllocationProps,
+  ResourceCustomerObjectProps,
+} from "@/types/resource_management";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
 import { ResourceTableCell, TableInformationCellContent } from "../../components/tableCell";
 import { getCellBackGroundColor } from "../../utils/cell";
@@ -27,7 +29,7 @@ interface ResourceExpandViewProps {
   project_name: string;
   start_date: string;
   end_date: string;
-  is_billable: number;
+  is_billable: string;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }
 
@@ -50,8 +52,6 @@ export const ResourceExpandView = ({
   is_billable,
   onSubmit,
 }: ResourceExpandViewProps) => {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-
   const dates = useSelector((state: RootState) => state.resource_project.data.dates);
 
   const { data } = useFrappeGetCall(
@@ -69,9 +69,7 @@ export const ResourceExpandView = ({
     <Table>
       <TableBody className="[&_tr]:pr-0">
         {data &&
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //   @ts-ignore
-          data.message.data.map((employeeData: any) => {
+          data.message.data.map((employeeData: EmployeeDataProps & { allocations: ResourceAllocationObjectProps }) => {
             return (
               <TableRow key={employeeData.name} className="flex items-center w-full border-0">
                 <TableInformationCellContent
@@ -89,11 +87,15 @@ export const ResourceExpandView = ({
 
                 {dates.map((item: DateProps, weekIndex: number) => {
                   return item?.dates?.map((date, index: number) => {
-                    let employeeSingleDayData = {
+                    let employeeSingleDayData: EmployeeResourceProps = {
                       date: "",
                       total_allocated_hours: 0,
                       total_worked_hours: 0,
                       employee_resource_allocation_for_given_date: [],
+                      total_working_hours: 0,
+                      is_on_leave: false,
+                      total_leave_hours: 0,
+                      total_allocation_count: 0,
                     };
 
                     if (date in employeeData.all_dates_data) {
@@ -155,7 +157,7 @@ const ExpandViewCell = ({
   project_name,
   onSubmit,
 }: {
-  allocationsData: any;
+  allocationsData: EmployeeResourceProps;
   index: number;
   employee: string;
   employee_name: string;
@@ -196,7 +198,7 @@ const ExpandViewCell = ({
         project: project,
         allocation_start_date: allocationsData.date,
         allocation_end_date: allocationsData.date,
-        is_billable: getIsBillableValue(allocationType) != "0",
+        is_billable: getIsBillableValue(allocationType as string[]) != "0",
         customer: "",
         total_allocated_hours: "0",
         hours_allocated_per_day: "0",
@@ -242,7 +244,9 @@ const ExpandViewCell = ({
       CustomHoverCardContent={() => {
         return (
           <ResourceAllocationList
-            resourceAllocationList={allocationsData.employee_resource_allocation_for_given_date}
+            resourceAllocationList={
+              allocationsData.employee_resource_allocation_for_given_date as unknown as ResourceAllocationProps[]
+            }
             employeeAllocations={employeeAllocations}
             customer={customer}
             onButtonClick={onCellClick}

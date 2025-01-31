@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useContext } from "react";
+import { RefObject, useContext } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getTodayDate } from "@next-pms/design-system";
 import { Avatar, AvatarFallback, AvatarImage } from "@next-pms/design-system/components";
@@ -66,7 +66,7 @@ const ResourceTimeLineGroup = ({ group }: ResourceTimeLineGroupProps) => {
         );
       }}
       value={group.employee_name}
-      cellRef={lastEmployee ? verticalLoderRef : null}
+      cellRef={lastEmployee ? verticalLoderRef as unknown as RefObject<HTMLTableCellElement> : undefined}
       onClick={setResourceAllocationData}
     />
   );

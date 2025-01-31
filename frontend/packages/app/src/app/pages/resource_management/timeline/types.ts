@@ -13,6 +13,9 @@ interface ResourceAllocationItemProps {
     border: string;
     width: number | string;
     left: number;
+    borderWidth?: number;
+    borderRightWidth?: number;
+    overflow?: string;
   };
 }
 
@@ -76,6 +79,7 @@ interface ResourceTimeLineDataProps {
 
 interface ResourceTeamAPIBodyProps {
   date?: string;
+  max_week?: number;
   start?: number;
   employee_name?: string;
   page_length?: number;
@@ -84,6 +88,7 @@ interface ResourceTeamAPIBodyProps {
   designation?: string;
   is_billable?: string;
   skills?: string;
+  need_hours_summary?: boolean;
 }
 
 export type {
@@ -93,6 +98,5 @@ export type {
   ResourceAllocationTimeLineFilterProps,
   ResourceAllocationTimeLineProps,
   ResourceTeamAPIBodyProps,
-  ResourceTimeLineDataProps
+  ResourceTimeLineDataProps,
 };
-

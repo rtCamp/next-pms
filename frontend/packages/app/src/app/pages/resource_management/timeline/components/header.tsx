@@ -127,7 +127,6 @@ const ResourceTimLineHeaderSection = () => {
             let prev_data = filters?.skillSearch;
             const operators = [">", "<", ">=", "<=", "="];
             const skills = value.map((value) => {
-              // Iterate through each value and extract skill name
               for (const operator of operators) {
                 if (value.includes(` ${operator} `)) {
                   return value.split(` ${operator} `)[0].trim();
@@ -146,7 +145,7 @@ const ResourceTimLineHeaderSection = () => {
                 updateFilters({ skillSearch: skills });
               }}
               setSkillSearchParam={setSkillSearchParam}
-              skillSearch={filters.skillSearch}
+              skillSearch={filters.skillSearch as Skill[]}
             />
           ),
         },
@@ -256,7 +255,6 @@ const ResourceTimLineHeaderSection = () => {
           hide: !resourceAllocationPermission.write,
           disabled: filters.isShowMonth,
         },
-        ,
         {
           title: "Zoom Out",
           handleClick: () => {
@@ -284,7 +282,7 @@ const TimeLineIntervalHeader = ({ getIntervalProps, intervalContext, data }: Tim
   const getKey = () => {
     const keys = { week: "Week", month: "Month", year: "Year" };
 
-    if (start.getTime() >= startTime && start.getTime() <= endTime) {
+    if (start.getTime() >= startTime.toDate().getTime() && start.getTime() <= endTime.toDate().getTime()) {
       if (data.unit === "week") {
         return `This ${keys[data.unit]}`;
       }
@@ -308,7 +306,7 @@ const TimeLineIntervalHeader = ({ getIntervalProps, intervalContext, data }: Tim
   );
 };
 
-const TimeLineDateHeader = ({ getIntervalProps, intervalContext, data }: TimeLineHeaderFunctionProps) => {
+const TimeLineDateHeader = ({ getIntervalProps, intervalContext }: TimeLineHeaderFunctionProps) => {
   const { interval } = intervalContext;
   const { startTime } = interval;
   const { date: dateStr, day } = prettyDate(getDayKeyOfMoment(startTime));

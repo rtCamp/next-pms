@@ -118,7 +118,7 @@ const ResourceProjectHeaderSection = () => {
           handleChange: (value: string) => {
             dispatch(setProjectName(value));
           },
-          handleDelete: (value: string) => {
+          handleDelete: () => {
             dispatch(deleteFilters({ projectName: "", type: "project" }));
           },
           type: "search",

@@ -55,7 +55,7 @@ const ResourceTimeLineItem = ({ item, itemContext, getItemProps, getResizeProps 
   );
 };
 
-const LeaveItemRender = ({ item: leave, itemContext, getItemProps, getResizeProps }: ResourceTimeLineItemProps) => {
+const LeaveItemRender = ({ item: leave, itemContext, getItemProps }: ResourceTimeLineItemProps) => {
   const dayDiff = getDayDiff(leave.from_date as string, leave.to_date as string);
 
   const { date: startDate } = prettyDate(leave.from_date as string);

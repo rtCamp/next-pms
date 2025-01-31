@@ -14,13 +14,14 @@ import { RootState } from "@/store";
 import { AllocationDataProps, setResourceFormData } from "@/store/resource_management/allocation";
 import {
   emptyProjectDayData,
+  ProjectAllWeekDataProps,
   ProjectDataProps,
   ProjectResourceProps,
   setMaxWeek,
   setStart,
 } from "@/store/resource_management/project";
 import { DateProps } from "@/store/resource_management/team";
-import { ResourceAllocationObjectProps } from "@/types/resource_management";
+import { ResourceAllocationObjectProps, ResourceAllocationProps } from "@/types/resource_management";
 
 import { ResourceExpandView } from "./expandView";
 import { EmptyTableBody } from "../../components/empty";
@@ -86,7 +87,7 @@ const ResourceProjectTable = ({
           cellHeaderRef={cellHeaderRef}
           dateToAddHeaderRef={dateToAddHeaderRef}
         />
-        <InfiniteScroll isLoading={isLoading} hasMore={hasMore} verticalLodMore={handleVerticalLoadMore}>
+        <InfiniteScroll isLoading={isLoading ? true : false} hasMore={hasMore} verticalLodMore={handleVerticalLoadMore}>
           <ResourceProjectTableBody onSubmit={onSubmit} />
         </InfiniteScroll>
       </Table>
@@ -202,7 +203,7 @@ const ResourceProjectTableCell = ({
   onSubmit,
 }: {
   projectSingleDay: ProjectResourceProps;
-  allWeekData: any;
+  allWeekData: ProjectAllWeekDataProps[];
   rowCount: number;
   midIndex: number;
   project: string;
@@ -351,7 +352,9 @@ const ResourceProjectTableCell = ({
       CustomHoverCardContent={() => {
         return (
           <ResourceAllocationList
-            resourceAllocationList={projectSingleDay.project_resource_allocation_for_given_date}
+            resourceAllocationList={
+              projectSingleDay.project_resource_allocation_for_given_date as unknown as ResourceAllocationProps[]
+            }
             employeeAllocations={projectAllocations}
             customer={customer}
             onButtonClick={onCellClick}
