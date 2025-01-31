@@ -65,36 +65,28 @@ repos:
             )$
 
 
-  - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.44.0
+  - repo: local
     hooks:
-      - id: eslint
+      - id: eslint-react
         name: "ESlint React"
-        language: node
-        files: ^.*\.(jsx|tsx|ts)$  # *.jsx, *.tsx, *.ts
+        entry: bash -c 'cd frontend && npm run lint:precommit -- "${@#frontend/}" ' --
+        language: system
+        files: \.(jsx|tsx|ts)$
         types: [file]
-        args: ['--config', 'frontend/eslint.config.js']
-        additional_dependencies:
-          - '@typescript-eslint/parser'
-          - '@typescript-eslint/eslint-plugin'
-          - '@eslint/js'
-          - 'eslint'
-          - 'globals'
-          - 'typescript-eslint'
-          - 'eslint-plugin-import'
+        pass_filenames: true
         exclude: |
             (?x)^(
                 .*node_modules.*
             )$
 
-  - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.44.0
+  - repo: local
     hooks:
-      - id: eslint
+      - id: eslint-js
         name: "ESlint JS"
-        types: [javascript]
-        args: ['--config', '.eslintrc']
-        # Ignore any files that might contain jinja / bundles
+        entry: bash -c 'npx run eslint --config .eslintrc -- "$@"' --
+        language: system
+        files: \.(js)$
+        types: [file]
         exclude: |
             (?x)^(
                 next_pms/public/dist/.*|
