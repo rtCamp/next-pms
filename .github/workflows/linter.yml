@@ -15,15 +15,13 @@ jobs:
     name: "Frappe Linter"
     runs-on: ["self-hosted", "python"]
     container:
-      image: ubuntu:latest
+      image: node:18-bookworm
 
     steps:
       - name: Install dependencies
         run: |
           apt-get update
-          apt-get install -y curl git python3-pip  # Base dependencies
-          curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-          apt-get install -y nodejs  # Node.js runtime for JS/TS linters
+          apt-get install -y python3-pip git  # Python + Git in Node.js container
           python3 -m pip install pre-commit  # Main tool
 
       - uses: actions/checkout@v4
