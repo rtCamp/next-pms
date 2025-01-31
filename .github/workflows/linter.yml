@@ -16,9 +16,7 @@ jobs:
     runs-on: ["self-hosted", "python"]
     container:
       image: python:alpine
-    defaults:
-      run:
-        shell: bash
+
     steps:
       - uses: actions/checkout@v4
 
