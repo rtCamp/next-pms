@@ -16,7 +16,12 @@ import { AllocationDataProps, PermissionProps } from "@/store/resource_managemen
 
 import { ResourceTimLineHeaderSection } from "./components/header";
 import { ResourceTimeLine } from "./components/timeLine";
-import { ResourceAllocationEmployeeProps, ResourceAllocationTimeLineProps, ResourceTeamAPIBodyProps, ResourceTimeLineDataProps } from "./types";
+import {
+  ResourceAllocationEmployeeProps,
+  ResourceAllocationTimeLineProps,
+  ResourceTeamAPIBodyProps,
+  ResourceTimeLineDataProps,
+} from "./types";
 import AddResourceAllocations from "../components/addAllocation";
 import { TableContextProvider } from "../store/tableContext";
 import { TimeLineContext, TimeLineContextProvider } from "../store/timeLineContext";
@@ -60,6 +65,8 @@ const ResourceTimeLineComponet = () => {
     "next_pms.resource_management.api.team.get_resource_management_team_view_data"
   );
 
+  const user = useSelector((state: RootState) => state.user);
+
   const getFilterApiBody = useCallback(
     (req: ResourceTeamAPIBodyProps): ResourceTeamAPIBodyProps => {
       let newReqBody: ResourceTeamAPIBodyProps = {
@@ -78,7 +85,7 @@ const ResourceTimeLineComponet = () => {
         };
         return newReqBody;
       }
-      
+
       return newReqBody;
     },
     [resourceAllocationPermission.write, filters]
@@ -221,6 +228,20 @@ const ResourceTimeLineComponet = () => {
       setAllocationData({ isNeedToDelete: false });
     }
   }, [allocationData.isNeedToDelete, allocationData.new, allocationData.old, handleFormSubmit, setAllocationData]);
+
+  useEffect(() => {
+    // This way will make sure the timeline width changes when the user collapses the sidebar.
+    setTimeout(() => {
+      const container = document.querySelector<HTMLDivElement>(".react-calendar-timeline");
+      const scrollContainer = document.querySelector<HTMLDivElement>(".rct-scroll");
+      const sidebar = document.querySelector<HTMLDivElement>(".rct-sidebar");
+
+      if (container && scrollContainer && sidebar) {
+        scrollContainer.style.transition = "width 0.2s ease";
+        scrollContainer.style.width = `${container.offsetWidth - sidebar.offsetWidth}px`;
+      }
+    }, 500);
+  }, [user.isSidebarCollapsed]);
 
   return (
     <>
