@@ -75,15 +75,14 @@ repos:
         types: [file]
         args: ['--config', 'frontend/eslint.config.js']
         additional_dependencies:
-          - '@typescript-eslint/parser@^8.20.0'
-          - '@typescript-eslint/eslint-plugin@^8.20.0'
-          - '@eslint/js@^8.57.0'
-          - 'eslint@^9.18.0'
-          - 'globals@^15.14.0'
-          - 'eslint-plugin-react-hooks@^5.0.0'
-          - 'eslint-plugin-react-refresh@^0.4.16'
-          - 'typescript-eslint@^8.18.2'
-          - 'eslint-plugin-import@^2.31.0'
+          - '@typescript-eslint/parser@5.62.0'
+          - '@typescript-eslint/eslint-plugin@5.62.0'
+          - 'eslint@8.57.0'
+          - '@eslint/eslintrc@2.1.4'
+          - 'globals@13.24.0'
+          - 'eslint-plugin-react-hooks@4.6.0'
+          - 'eslint-plugin-react-refresh@0.4.5'
+          - 'eslint-plugin-import@2.29.1'
         exclude: |
             (?x)^(
                 .*node_modules.*
