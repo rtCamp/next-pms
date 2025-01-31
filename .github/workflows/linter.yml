@@ -20,8 +20,10 @@ jobs:
     steps:
       - name: Add dependency in alpine container image
         run: |
-          apk --no-cache add tar nodejs npm pre-commit git
-          apk --no-cache add prettier --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing
+          apk --no-cache add tar nodejs@18 npm pre-commit git
+          apk --no-cache add prettier
+--repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing
+          npm install -g npm@latest
 
       - uses: actions/checkout@v4
 
