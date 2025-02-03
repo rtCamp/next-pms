@@ -1,0 +1,28 @@
+{
+ "add_total_row": 1,
+ "columns": [],
+ "creation": "2025-02-03 14:35:36.268493",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letter_head": "rtCamp",
+ "letterhead": null,
+ "modified": "2025-02-03 14:50:54.025308",
+ "modified_by": "Administrator",
+ "module": "Resource Management",
+ "name": "Employee Billability",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Employee",
+ "report_name": "Employee Billability",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "Delivery Manager"
+  }
+ ],
+ "timeout": 3600
+}
