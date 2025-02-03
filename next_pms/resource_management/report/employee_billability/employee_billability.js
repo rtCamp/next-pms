@@ -16,6 +16,15 @@ frappe.query_reports["Employee Billability"] = {
 			fieldtype: "Date",
 			reqd: 1,
 			default: frappe.datetime.get_today(),
+		},
+		{
+			fieldname: "designation",
+			label: __("Designation"),
+			fieldtype: "MultiSelectList",
+			reqd: 0,
+			get_data: function (txt) {
+				return frappe.db.get_link_options("Designation", txt);
+			},
 		}
 	],
 	formatter: function (value, row, column, data, default_formatter) {
