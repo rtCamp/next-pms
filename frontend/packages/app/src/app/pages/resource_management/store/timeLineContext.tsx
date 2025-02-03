@@ -192,7 +192,7 @@ const TimeLineContextProvider = ({ children }: TimeLineContextProviderProps) => 
   };
 
   const updateFilters = (updatedFilters: ResourceAllocationTimeLineFilterProps) => {
-    setFilters({ ...filters, ...updatedFilters });
+    setFilters({ ...filters, ...updatedFilters, start: 0 });
     setEmployees([]);
     setAllocations([]);
     setCustomer({});
