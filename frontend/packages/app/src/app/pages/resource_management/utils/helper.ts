@@ -7,7 +7,7 @@ import { isToday } from "date-fns";
  * Internal dependencies.
  */
 import { store } from "@/store";
-import { DateProps } from "@/store/team";
+import { DateProps } from "../../team/reducer";
 
 /**
  * Genrate th cell css based on cell and week index.

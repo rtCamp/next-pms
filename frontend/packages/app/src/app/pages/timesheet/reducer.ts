@@ -1,8 +1,58 @@
 /**
+ * External dependencies
+ */
+import { getTodayDate } from "@next-pms/design-system";
+
+/**
  * Internal dependencies
  */
-import { initialState, TimesheetState } from "@/store/timesheet";
 import { DataProp } from "@/types/timesheet";
+
+export interface TimesheetState {
+  timesheet: {
+    name: string;
+    task: string;
+    date: string;
+    description: string;
+    hours: number;
+    employee: string;
+    project?: string;
+  };
+  dateRange: { start_date: string; end_date: string };
+
+  data: DataProp;
+  isDialogOpen: boolean;
+  isEditDialogOpen: boolean;
+  isAprrovalDialogOpen: boolean;
+  isLeaveDialogOpen: boolean;
+  weekDate: string;
+}
+
+export const initialState: TimesheetState = {
+  timesheet: {
+    name: "",
+    task: "",
+    date: "",
+    description: "",
+    hours: 0,
+    employee: "",
+    project: "",
+  },
+  dateRange: { start_date: "", end_date: "" },
+
+  data: {
+    working_hour: 0,
+    working_frequency: "Per Day",
+    data: {},
+    leaves: [],
+    holidays: [],
+  },
+  isDialogOpen: false,
+  isEditDialogOpen: false,
+  isAprrovalDialogOpen: false,
+  isLeaveDialogOpen: false,
+  weekDate: getTodayDate(),
+};
 
 export type Action =
   | { type: "SET_DATA"; payload: DataProp }

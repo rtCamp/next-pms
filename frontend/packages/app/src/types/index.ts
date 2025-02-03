@@ -1,4 +1,4 @@
-import { TaskStatusType } from "@/store/task";
+import { TaskStatusType } from "./task";
 
 export type Employee = {
   name: string;

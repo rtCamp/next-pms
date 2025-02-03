@@ -2,7 +2,6 @@
  * External dependencies.
  */
 import { useState } from "react";
-import { useSelector } from "react-redux";
 import { Spinner, Table, TableBody } from "@next-pms/design-system/components";
 import { useFrappeGetCall } from "frappe-react-sdk";
 /**
@@ -12,18 +11,18 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 import { Row } from "@/app/components/timesheet-table/components/row";
 import { EmptyRow } from "@/app/components/timesheet-table/components/row/emptyRow";
 import { LeaveRow } from "@/app/components/timesheet-table/components/row/leaveRow";
-import { TaskLog } from "@/app/pages/task/taskLog";
+import { TaskLog } from "@/app/pages/task/components/taskLog";
 import { expectatedHours } from "@/lib/utils";
-import { RootState } from "@/store";
+import { TeamState } from "../reducer";
 
 interface EmployeeProps {
   employee: string;
+  teamState: TeamState;
 }
 
-export const Employee = ({ employee }: EmployeeProps) => {
+export const Employee = ({ employee,teamState }: EmployeeProps) => {
   const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<string>("");
-  const teamState = useSelector((state: RootState) => state.team);
   const { data, isLoading } = useFrappeGetCall("next_pms.timesheet.api.timesheet.get_timesheet_data", {
     employee: employee,
     start_date: teamState.weekDate,

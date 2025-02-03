@@ -10,9 +10,6 @@ import { configureStore } from "@reduxjs/toolkit";
 import appReducer from "./app";
 import projectReducer from "./project";
 import resourceTeamReducer from "./resource_management/team";
-import taskReducer from "./task";
-import teamReducer from "./team";
-import timesheetReducer from "./timesheet";
 import userReducer from "./user";
 import viewReducer from "./view";
 import resourceProjectReducer from "./resource_management/project";
@@ -22,13 +19,10 @@ import resourceAllocationFormReducer from "./resource_management/allocation";
 export const store = configureStore({
   reducer: {
     user: userReducer,
-    timesheet: timesheetReducer,
     resource_team: resourceTeamReducer,
     resource_project: resourceProjectReducer,
     resource_allocation_form: resourceAllocationFormReducer,
-    team: teamReducer,
     app: appReducer,
-    task: taskReducer,
     project: projectReducer,
     view: viewReducer,
   },

@@ -5,11 +5,11 @@ import {
   EmployeeAllocationForDateProps,
   EmployeeResourceObjectProps,
 } from "@/store/resource_management/team";
-import { DateProps } from "@/store/team";
 import {
   ResourceAllocationObjectProps,
   ResourceAllocationProps,
 } from "@/types/resource_management";
+import { DateProps } from "../../team/reducer";
 
 export interface CombinedResourceObjectProps {
   [key: string]: CombinedResourceDataProps;

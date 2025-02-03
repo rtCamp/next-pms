@@ -3,7 +3,6 @@
  */
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useSelector, useDispatch } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Spinner,
@@ -41,8 +40,6 @@ import { z } from "zod";
 import { TimeInput } from "@/app/pages/team/employeeDetail";
 import { calculateExtendedWorkingHour, cn, parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetRejectionSchema } from "@/schema/timesheet";
-import { RootState } from "@/store";
-import { setDateRange } from "@/store/team";
 import { WorkingFrequency } from "@/types";
 import { LeaveProps, NewTimesheetProps, TaskDataItemProps, TaskDataProps, timesheet } from "@/types/timesheet";
 
@@ -50,10 +47,15 @@ type Holiday = {
   holiday_date: string;
   description: string;
 };
-
-export const Approval = ({ onClose }: { onClose: (data:any) => void }) => {
+interface ApprovalProp {
+  onClose: (data: any) => void;
+  employee:string;
+  startDate:string;
+  endDate:string;
+  isAprrovalDialogOpen:boolean
+}
+export const Approval = ({ onClose,employee,startDate,endDate,isAprrovalDialogOpen }: ApprovalProp) => {
   const { toast } = useToast();
-  const teamState = useSelector((state: RootState) => state.team);
   const [timesheetData, setTimesheetData] = useState<timesheet>();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isRejecting, setIsRejecting] = useState<boolean>(false);
@@ -62,7 +64,6 @@ export const Approval = ({ onClose }: { onClose: (data:any) => void }) => {
   const [holidays, setHoliday] = useState<Array<Holiday>>([]);
   const [leaves, setLeave] = useState<LeaveProps[]>([]);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
-  const dispatch = useDispatch();
 
   const { call } = useFrappePostCall("next_pms.timesheet.api.team.approve_or_reject_timesheet");
   const { call: updateTime } = useFrappePostCall("next_pms.timesheet.api.timesheet.update_timesheet_detail");
@@ -85,23 +86,21 @@ export const Approval = ({ onClose }: { onClose: (data:any) => void }) => {
       });
   };
   const { data, isLoading, error, mutate } = useFrappeGetCall("next_pms.timesheet.api.timesheet.get_timesheet_data", {
-    employee: teamState.employee,
-    start_date: teamState.dateRange.start_date,
+    employee: employee,
+    start_date: startDate,
     max_week: 1,
     holiday_with_description: true,
   });
   const handleOpen = () => {
     if (isRejecting || isSubmitting) return;
-    const data = { start_date: "", end_date: "" };
     onClose(selectedDates[0]);
-    dispatch(setDateRange({ dateRange: data, isAprrovalDialogOpen: false }));
   };
   const handleApproval = () => {
     setIsSubmitting(true);
     const data = {
       dates: selectedDates,
       status: "Approved",
-      employee: teamState.employee,
+      employee: employee,
     };
     call(data)
       .then((res) => {
@@ -126,7 +125,7 @@ export const Approval = ({ onClose }: { onClose: (data:any) => void }) => {
     const data = {
       dates: selectedDates,
       status: "Rejected",
-      employee: teamState.employee,
+      employee: employee,
       note: reason,
     };
     call(data)
@@ -190,7 +189,7 @@ export const Approval = ({ onClose }: { onClose: (data:any) => void }) => {
   }, [holidays, leaves, timesheetData]);
 
   return (
-    <Sheet open={teamState.isAprrovalDialogOpen} onOpenChange={handleOpen} modal={true}>
+    <Sheet open={isAprrovalDialogOpen} onOpenChange={handleOpen} modal={true}>
       <SheetContent className="sm:max-w-4xl overflow-auto">
         {isLoading ? (
           <Spinner />
@@ -198,8 +197,8 @@ export const Approval = ({ onClose }: { onClose: (data:any) => void }) => {
           <>
             <SheetHeader>
               <SheetTitle>
-                Week of {prettyDate(teamState.dateRange.start_date).date} -{" "}
-                {prettyDate(teamState.dateRange.end_date).date}
+                Week of {prettyDate(startDate).date} -{" "}
+                {prettyDate(endDate).date}
               </SheetTitle>
             </SheetHeader>
             <div className="flex flex-col gap-y-4 mt-6">
@@ -284,7 +283,7 @@ export const Approval = ({ onClose }: { onClose: (data:any) => void }) => {
                             name: task.name,
                             parent: task.parent,
                             task: task.task,
-                            employee: teamState.employee,
+                            employee: employee,
                             date: getDateFromDateAndTimeString(task.from_time),
                             description: task.description,
                             hours: task.hours,
@@ -298,7 +297,7 @@ export const Approval = ({ onClose }: { onClose: (data:any) => void }) => {
                                 data={data}
                                 className="w-10 p-1 ml-6  h-8"
                                 callback={handleTimeChange}
-                                employee={teamState.employee}
+                                employee={employee}
                               />
                               <div className="md:grid w-full md:grid-cols-3 gap-x-2 flex flex-col max-md:overflow-hidden max-md:text-wrap ">
                                 <div className="flex gap-1">
@@ -352,7 +351,7 @@ export const Approval = ({ onClose }: { onClose: (data:any) => void }) => {
                 onRejection={handleRejection}
                 isSubmitting={isRejecting}
                 dates={selectedDates}
-                employee={teamState.employee}
+                employee={employee}
                 disabled={selectedDates.length == 0 || isRejecting}
               />
             </SheetFooter>

@@ -2,7 +2,7 @@
  * External dependencies
  */
 import { useCallback, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useToast } from "@next-pms/design-system/components";
 import { useFrappePostCall } from "frappe-react-sdk";
 import { Plus } from "lucide-react";
@@ -11,11 +11,11 @@ import { Plus } from "lucide-react";
  */
 import { Header as ListViewHeader } from "@/app/components/list-view/header";
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { RootState } from "@/store";
-import { setAddTaskDialog, setSearch, setSelectedProject, setSelectedStatus, TaskStatusType } from "@/store/task";
 import { updateView, ViewData } from "@/store/view";
 import { DocMetaProps } from "@/types";
-import { createFilter } from "./utils";
+import { TaskStatusType } from "@/types/task";
+import { Action, TaskState } from "../reducer";
+import { createFilter } from "../utils";
 
 interface HeaderProps {
   meta: DocMetaProps;
@@ -25,6 +25,8 @@ interface HeaderProps {
   view: ViewData;
   stateUpdated: boolean;
   setStateUpdated: (value: boolean) => void;
+  taskState:TaskState;
+  taskDispatch: React.Dispatch<Action>;
 }
 export const Header = ({
   meta,
@@ -34,8 +36,9 @@ export const Header = ({
   view,
   stateUpdated,
   setStateUpdated,
+  taskState,
+  taskDispatch,
 }: HeaderProps) => {
-  const taskState = useSelector((state: RootState) => state.task);
   const [projectSearch, setProjectSeach] = useState<string>("");
   const { toast } = useToast();
   const dispatch = useDispatch();
@@ -66,21 +69,21 @@ export const Header = ({
   };
 
   const handleSearch = (text: string) => {
-    dispatch(setSearch(text));
+    taskDispatch({type:"SET_SEARCH",payload:text})
   };
   const handleProjectChange = useCallback(
     (filters: string | string[]) => {
       const normalizedFilters = Array.isArray(filters) ? filters : [filters];
-      dispatch(setSelectedProject(normalizedFilters));
+      taskDispatch({type:"SET_SELECTED_PROJECT",payload:normalizedFilters})
     },
-    [dispatch]
+    [taskDispatch]
   );
   const handleStatusChange = useCallback(
     (filters: string | string[]) => {
       const normalizedFilters = Array.isArray(filters) ? filters : [filters];
-      dispatch(setSelectedStatus(normalizedFilters as TaskStatusType[]));
+      taskDispatch({type:"SET_SELECTED_STATUS",payload:normalizedFilters as TaskStatusType[]})
     },
-    [dispatch]
+    [taskDispatch]
   );
   const filters = [
     {
@@ -91,8 +94,8 @@ export const Header = ({
       queryParameterDefault: taskState.search,
       handleChange: handleSearch,
       handleDelete: useCallback(() => {
-        dispatch(setSearch(""));
-      }, [dispatch]),
+        taskDispatch({type:"SET_SEARCH",payload:""})
+      }, [taskDispatch]),
     },
     {
       type: "select-search",
@@ -189,7 +192,7 @@ export const Header = ({
     {
       title: "Task",
       handleClick: () => {
-        dispatch(setAddTaskDialog(true));
+        taskDispatch({type:"SET_ADD_TASK_DIALOG",payload:true})
       },
       label: "Task",
       icon: Plus,

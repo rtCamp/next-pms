@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getUTCDateTime, getFormatedDate } from "@next-pms/design-system/date";
@@ -18,17 +18,17 @@ import { LIKED_TASK_KEY } from "@/lib/constant";
 import { addAction, toggleLikedByForTask } from "@/lib/storage";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
-import { setStart, updateTaskData, setTaskData, setSelectedTask, setFilters, setReFetchData } from "@/store/task";
-import { SetAddTimeDialog, SetTimesheet } from "@/store/timesheet";
 import { ViewData } from "@/store/view";
 import { DocMetaProps } from "@/types";
 import { ColumnsType, columnsToExcludeActionsInTablesType } from "@/types/task";
-import { AddTask } from "./addTask";
-import { getColumn } from "./columns";
-import { Header } from "./header";
-import { Table } from "./table";
-import { TaskLog } from "./taskLog";
+import { AddTask } from "./components/addTask";
+import { getColumn } from "./components/columns";
+import { Header } from "./components/header";
+import { Table } from "./components/table";
+import { TaskLog } from "./components/taskLog";
+import { initialState, reducer } from "./reducer";
 import { createFilter } from "./utils";
+import { initialState as timesheetInitialState, reducer as timesheetReducer } from "../timesheet/reducer";
 
 const Task = () => {
   const docType = "Task";
@@ -47,11 +47,11 @@ interface TaskTableProps {
 }
 
 const TaskTable = ({ viewData, meta }: TaskTableProps) => {
-  const task = useSelector((state: RootState) => state.task);
+  const [task, taskDispatch ] = useReducer(reducer, initialState);
   const [viewInfo, setViewInfo] = useState<ViewData>(viewData);
 
   const user = useSelector((state: RootState) => state.user);
-  const timesheet = useSelector((state: RootState) => state.timesheet);
+  const [timesheet, timesheetDispatch ] = useReducer(timesheetReducer, timesheetInitialState);
   const columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType = ["liked", "timesheetAction"];
 
   const dispatch = useDispatch();
@@ -64,18 +64,19 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
   const { call: toggleLikeCall } = useFrappePostCall("frappe.desk.like.toggle_like");
 
   useEffect(() => {
-    dispatch(
-      setFilters({
+    taskDispatch({
+      type: "SET_FILTERS",
+      payload: {
         search: viewData.filters.search ?? "",
         selectedProject: viewData.filters.projects ?? [],
         selectedStatus: viewData.filters.status ?? ["Open", "Working"],
-      })
-    );
+      },
+    });
     setViewInfo(viewData);
     setColSizing(viewData.columns);
     setColumnOrder(viewData.rows);
     setHasViewUpdated(false);
-  }, [dispatch, viewData]);
+  }, [dispatch, viewData, taskDispatch]);
 
   const handleColumnHide = (id: string) => {
     setColumnOrder((prev)=>prev.filter(item => item !== id))
@@ -109,8 +110,8 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       isUpdate: false,
       employee: user.employee,
     };
-    dispatch(SetTimesheet(timesheetData));
-    dispatch(SetAddTimeDialog(true));
+    timesheetDispatch({type:"SET_TIMESHEET",payload:timesheetData});
+    timesheetDispatch({type:"SET_DIALOG_STATE",payload:true});
   };
 
   const { data, isLoading, error, mutate } = useFrappeGetCall(
@@ -135,16 +136,25 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
   useEffect(() => {
     if (task.isNeedToFetchDataAfterUpdate) {
       mutate();
-      dispatch(setReFetchData(false));
+      taskDispatch({
+        type: "SET_REFETCH_DATA",
+        payload: false
+      });
     }
-  }, [dispatch, mutate, task.isNeedToFetchDataAfterUpdate]);
+  }, [dispatch, mutate, task.isNeedToFetchDataAfterUpdate, taskDispatch]);
 
   useEffect(() => {
     if (data) {
       if (task.action === "SET") {
-        dispatch(setTaskData(data.message));
+        taskDispatch({
+          type: "SET_TASK_DATA",
+          payload: data.message
+        });
       } else {
-        dispatch(updateTaskData(data.message));
+        taskDispatch({
+          type: "UPDATE_TASK_DATA",
+          payload: data.message
+        });
       }
     }
     if (error) {
@@ -155,7 +165,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, dispatch, error, viewInfo.filters.search]);
+  }, [data, dispatch, error, viewInfo.filters.search, taskDispatch]);
 
   const handleLike = (e: React.MouseEvent<SVGSVGElement>) => {
     e.stopPropagation();
@@ -188,7 +198,10 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
   };
 
   const openTaskLog = (taskName: string) => {
-    dispatch(setSelectedTask({ task: taskName, isOpen: true }));
+    taskDispatch({
+      type: "SET_SELECTED_TASK",
+      payload: { task: taskName, isOpen: true }
+    });
   };
 
   useEffect(() => {
@@ -250,12 +263,17 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
   const handleLoadMore = () => {
     if (task.isLoading) return;
     if (!task.hasMore) return;
-    dispatch(setStart(task.start + task.pageLength));
+    taskDispatch({
+      type: "SET_START",
+      payload: task.start + task.pageLength
+    });
   };
 
   return (
     <>
       <Header
+        taskState={task}
+        taskDispatch={taskDispatch}
         meta={meta}
         columnOrder={columnOrder}
         setColumnOrder={setColumnOrder}
@@ -274,7 +292,10 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
               isOpen: false,
               task: "",
             };
-            dispatch(setSelectedTask(data));
+            taskDispatch({
+              type: "SET_SELECTED_TASK",
+              payload: data
+            });
           }}
         />
       )}
@@ -295,13 +316,13 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
           initialDate={timesheet.timesheet.date}
           open={timesheet.isDialogOpen}
           onOpenChange={() => {
-            dispatch(SetAddTimeDialog(false));
+            timesheetDispatch({type:"SET_DIALOG_STATE",payload:false});
           }}
           workingFrequency={user.workingFrequency}
           workingHours={user.workingHours}
         />
       )}
-      {task.isAddTaskDialogBoxOpen && <AddTask mutate={mutate} task={task} />}
+      {task.isAddTaskDialogBoxOpen && <AddTask dispatch={taskDispatch} mutate={mutate} task={task} />}
     </>
   );
 };

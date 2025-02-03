@@ -1,8 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useEffect, useReducer } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Table,
@@ -37,24 +36,16 @@ import { CircleCheck, Hourglass, CircleX } from "lucide-react";
 import { WeekTotal } from "@/app/components/timesheet-table/components/weekTotal";
 import { TEAM, EMPLOYEE } from "@/lib/constant";
 import { parseFrappeErrorMsg, cn } from "@/lib/utils";
-import { RootState } from "@/store";
-import { setData, setStart, updateData, setDateRange, setEmployee, setReFetchData } from "@/store/team";
-import { ItemProps, dataItem } from "@/types/team";
-import { Approval } from "./approval";
-import { Employee } from "./employee";
-import { Header } from "./Header";
+import { DateProps, ItemProps, dataItem } from "@/types/team";
+import { Approval } from "./components/approval";
+import { Employee } from "./components/employee";
+import { Header } from "./components/header";
+import { initialState, reducer } from "./reducer";
 
-type DateProps = {
-  start_date: string;
-  end_date: string;
-  key: string;
-  dates: Array<string>;
-};
 
 const Team = () => {
   const { toast } = useToast();
-  const teamState = useSelector((state: RootState) => state.team);
-  const dispatch = useDispatch();
+  const [teamState, dispatch] = useReducer(reducer, initialState);
   const navigate = useNavigate();
 
   const { data, isLoading, error, mutate } = useFrappeGetCall(
@@ -83,16 +74,16 @@ const Team = () => {
   useEffect(() => {
     if (teamState.isNeedToFetchDataAfterUpdate) {
       mutate();
-      dispatch(setReFetchData(false));
+      dispatch({type:"SET_REFETCH_DATA",payload:false});
     }
   }, [dispatch, mutate, teamState.isNeedToFetchDataAfterUpdate]);
 
   useEffect(() => {
     if (data) {
       if (teamState.action == "SET") {
-        dispatch(setData(data.message));
+        dispatch({type:"SET_DATA",payload:data.message});
       } else {
-        dispatch(updateData(data.message));
+        dispatch({type:"UPDATE_DATA",payload:data.message});
       }
     }
     if (error) {
@@ -108,16 +99,16 @@ const Team = () => {
   const handleLoadMore = () => {
     if (teamState.isLoading) return;
     if (!teamState.hasMore) return;
-    dispatch(setStart(teamState.start + teamState.pageLength));
+    dispatch({type:"SET_START",payload:teamState.start + teamState.pageLength});
   };
 
-  const onStatusClick = (start_date: string, end_date: string, employee: string) => {
+  const onStatusClick = (startDate: string, endDate: string, employee: string) => {
     const data = {
-      start_date,
-      end_date,
+      startDate,
+      endDate,
     };
-    dispatch(setEmployee(employee));
-    dispatch(setDateRange({ dateRange: data, isAprrovalDialogOpen: true }));
+    dispatch({type:"SET_EMPLOYEE",payload:employee});
+    dispatch({type:"SET_DATE_RANGE",payload:{ dateRange: data, isAprrovalDialogOpen: true }});
   };
 
   const cellRef = useInfiniteScroll({
@@ -128,8 +119,19 @@ const Team = () => {
 
   return (
     <>
-      {teamState.isAprrovalDialogOpen && <Approval onClose={mutate} />}
-      <Header />
+      {teamState.isAprrovalDialogOpen && (
+        <Approval
+          employee={teamState.employee}
+          isAprrovalDialogOpen={teamState.isAprrovalDialogOpen}
+          endDate={teamState.dateRange.endDate}
+          startDate={teamState.dateRange.startDate}
+          onClose={() => {
+            mutate();
+            dispatch({type:"SET_DATE_RANGE",payload:{ dateRange: { startDate: "", endDate: "" }, isAprrovalDialogOpen: false }});
+          }}
+        />
+      )}
+      <Header teamState={teamState} dispatch={dispatch} />
 
       {isLoading && Object.keys(teamState.data.data).length == 0 ? (
         <Spinner isFull />
@@ -234,7 +236,7 @@ const Team = () => {
                         </span>
                       </AccordionTrigger>
                       <AccordionContent className="pb-0">
-                        <Employee employee={item.name} />
+                        <Employee teamState={teamState} employee={item.name} />
                       </AccordionContent>
                     </AccordionItem>
                   </Accordion>

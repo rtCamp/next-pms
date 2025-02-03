@@ -1,4 +1,5 @@
-import { TaskState } from "@/store/task";
+import { TaskState } from "./reducer";
+
 
 
 export const createFilter = (taskState: TaskState) => {
