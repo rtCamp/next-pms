@@ -296,9 +296,19 @@ const TimeLineIntervalHeader = ({ getIntervalProps, intervalContext, data }: Tim
     )}`;
   };
 
+  let headerProps: ResourceAllocationItemProps = getIntervalProps();
+
+  headerProps = {
+    ...headerProps,
+    style: {
+      ...headerProps.style,
+      left: headerProps.style.left + (data.unit === "week" ? 1 : -0.5),
+    },
+  };
+
   return (
     <TableHead
-      {...getIntervalProps()}
+      {...headerProps}
       className={cn("h-full pb-2 pt-1 px-0 text-center truncate cursor-pointer border-r border-gray-300")}
     >
       <Typography variant="small">{getKey()}</Typography>
@@ -321,7 +331,6 @@ const TimeLineDateHeader = ({ getIntervalProps, intervalContext }: TimeLineHeade
     style: {
       ...headerProps.style,
       width: getCellWidthString(tableProperties.cellWidth),
-      left: headerProps.style.left - 1,
     },
   };
 
@@ -329,26 +338,25 @@ const TimeLineDateHeader = ({ getIntervalProps, intervalContext }: TimeLineHeade
     <TableHead
       {...headerProps}
       className={cn(
-        "text-xs flex flex-col justify-end items-start border-0 p-0 h-full pb-2",
+        "text-xs flex flex-col justify-end items-center border-0 p-0 h-full pb-2",
         day == "Sun" && "border-l border-gray-300",
         dateStr == toDayStr && "font-semibold"
       )}
     >
-      <Typography
-        variant="p"
-        className={cn("text-slate-600 text-[11px] pl-4", dateStr == toDayStr && "pl-4 font-semibold")}
-      >
-        {day}
-      </Typography>
-      <Typography
-        variant="small"
-        className={cn(
-          "text-slate-500 text-center text-[11px] max-lg:text-[0.65rem] pl-2",
-          dateStr == toDayStr && "pl-2 font-semibold"
-        )}
-      >
-        {dateStr}
-      </Typography>
+      <div className={cn("text-xs flex flex-col justify-end items-center pr-2")}>
+        <Typography variant="p" className={cn("text-slate-600 text-[11px] ", dateStr == toDayStr && "font-semibold")}>
+          {day}
+        </Typography>
+        <Typography
+          variant="small"
+          className={cn(
+            "text-slate-500 text-center text-[11px] max-lg:text-[0.65rem]",
+            dateStr == toDayStr && "font-semibold"
+          )}
+        >
+          {dateStr}
+        </Typography>
+      </div>
     </TableHead>
   );
 };

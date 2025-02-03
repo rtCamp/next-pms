@@ -319,7 +319,7 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
               return (
                 <TableHead
                   className={cn("flex items-center")}
-                  style={{ width: getCellWidthString(tableProperties.firstCellWidth) }}
+                  style={{ width: getCellWidthString(tableProperties.firstCellWidth - 0.05) }}
                 >
                   Members
                 </TableHead>
