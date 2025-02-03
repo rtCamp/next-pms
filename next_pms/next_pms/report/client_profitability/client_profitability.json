@@ -8,7 +8,7 @@
  "filters": [],
  "idx": 0,
  "is_standard": "Yes",
- "letter_head": "rtCamp",
+ "letter_head": null,
  "letterhead": null,
  "modified": "2025-01-31 12:02:35.153726",
  "modified_by": "Administrator",
@@ -21,16 +21,7 @@
  "report_type": "Script Report",
  "roles": [
   {
-   "role": "Projects Manager"
-  },
-  {
-   "role": "Projects User"
-  },
-  {
-   "role": "Timesheet Manager"
-  },
-  {
-   "role": "Timesheet User"
+   "role": "Delivery Manager"
   }
  ],
  "timeout": 0
