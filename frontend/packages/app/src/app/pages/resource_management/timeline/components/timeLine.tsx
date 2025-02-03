@@ -311,7 +311,7 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
         className="overflow-x-auto"
       >
         <TimelineHeaders
-          className="bg-slate-50 flex items-center text-[14px] sticky"
+          className="bg-slate-50 text-[14px] sticky z-[1000] top-0"
           calendarHeaderClassName="border-0 border-l border-gray-300"
         >
           <SidebarHeader>
@@ -319,7 +319,7 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
               return (
                 <TableHead
                   className={cn("flex items-center")}
-                  style={{ width: getCellWidthString(tableProperties.firstCellWidth) }}
+                  style={{ width: getCellWidthString(tableProperties.firstCellWidth - 0.05) }}
                 >
                   Members
                 </TableHead>

@@ -72,6 +72,8 @@ html,
   border-left: 1px solid;
 }
 
-.rct-scroll{
+.rct-scroll {
   cursor: cell !important;
+  -webkit-cursor: cell !important;
+  -moz-cursor: cell !important;
 }
