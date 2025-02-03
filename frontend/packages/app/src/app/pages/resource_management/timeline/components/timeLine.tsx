@@ -311,8 +311,9 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
         className="overflow-x-auto"
       >
         <TimelineHeaders
-          className="bg-slate-50 flex items-center text-[14px] sticky"
+          className="bg-slate-50 text-[14px] sticky"
           calendarHeaderClassName="border-0 border-l border-gray-300"
+          style={{ position: "sticky", top: 0, zIndex: 1000 }}
         >
           <SidebarHeader>
             {() => {
