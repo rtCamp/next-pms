@@ -33,7 +33,7 @@ def get_data(meta, filters=None):
     if meta.has_field("custom_business_unit"):
         fields.append("custom_business_unit")
 
-    employees = get_list("Employee", fields=fields, filters={"status": employee_status})
+    employees = get_list("Employee", fields=fields, filters={"status": employee_status}, order_by="employee_name ASC")
     employee_names = [employee.employee for employee in employees]
 
     resource_allocations = get_allocation_list_for_employee_for_given_range(
