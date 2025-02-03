@@ -9,6 +9,12 @@ import {
   ResourceCustomerObjectProps,
 } from "@/types/resource_management";
 
+export type EmployeeAllWeekDataProps = {
+  total_allocated_hours: number;
+  total_worked_hours: number;
+  total_working_hours: number;
+};
+
 export type DateRange = {
   start_date: string;
   end_date: string;
@@ -30,15 +36,14 @@ export type EmployeeDataProps = {
   working_hour: string;
   working_frequency: string;
   all_dates_data: EmployeeResourceObjectProps;
-  all_week_data: [];
-  all_leave_data: EmployeeLeaveProps[];
+  all_week_data: Record<string, EmployeeAllWeekDataProps>;
+  all_leave_data: Record<string, number>;
   employee_allocations: ResourceAllocationObjectProps;
   max_allocation_count_for_single_date: number;
   employee_daily_working_hours: number;
 };
 
 export interface ResourceTeamDataProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: EmployeeDataProps[];
   dates: DateProps[];
   customer: ResourceCustomerObjectProps;
@@ -54,10 +59,6 @@ export interface TableViewProps {
     height: number;
   };
 }
-
-export type EmployeeLeaveProps = {
-  string: string;
-};
 
 export type EmployeeResourceProps = {
   date: string;
@@ -88,8 +89,7 @@ export interface Skill {
 
 export interface SkillData {
   name: string;
-} 
-
+}
 
 export interface ResourceTeamState {
   data: ResourceTeamDataProps;
@@ -146,6 +146,7 @@ export const initialState: ResourceTeamState = {
   businessUnit: [],
   maxWeek: 5,
   skillSearch: [],
+  action: "SET"
 };
 
 const ResourceTeamSlice = createSlice({

@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useContext } from "react";
+import { LegacyRef, useContext } from "react";
 import { TableHead, TableHeader, TableRow, Typography } from "@next-pms/design-system/components";
 import { prettyDate, getUTCDateTime } from "@next-pms/design-system/date";
 import { isToday } from "date-fns";
@@ -18,8 +18,9 @@ import { getTableCellClass } from "../utils/helper";
 interface ResourceTableHeaderProps {
   dates: DateProps[];
   title: string;
-  cellHeaderRef: any;
+  cellHeaderRef: LegacyRef<HTMLTableCellElement>;
   dateToAddHeaderRef: string;
+  isLoading?: boolean;
 }
 
 /**
@@ -105,10 +106,10 @@ const TableHeaderCell = ({
   style,
 }: {
   date: string;
-  isLoading: boolean;
+  isLoading?: boolean;
   index: number;
   weekIndex: number;
-  cellHeaderRef: any;
+  cellHeaderRef: LegacyRef<HTMLTableCellElement>;
   dateToAddHeaderRef: string;
   style: React.CSSProperties;
 }) => {

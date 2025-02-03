@@ -12,6 +12,11 @@ export type ResourceAllocationProps = {
   is_billable: number;
   numberDays?: number;
   note: string;
+  customerData?: {
+    name: string;
+    abbr: string;
+    image: string;
+  };
 };
 
 export interface ResourceCustomerObjectProps {

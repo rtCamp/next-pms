@@ -29,7 +29,7 @@ interface TimeLineContextProps {
   verticalLoderRef: (element: HTMLElement | null) => void;
   updateFilters: (filters: ResourceAllocationTimeLineFilterProps) => void;
   updateApiControler: (apiControler: APIControlerProps) => void;
-  getAllocationWithID: (id: string) => ResourceAllocationTimeLineProps;
+  getAllocationWithID: (id: string) => ResourceAllocationTimeLineProps | undefined;
   getEmployeeWithID: (id: string) => ResourceAllocationEmployeeProps;
   updateAllocation: (
     updatedAllocation: ResourceAllocationTimeLineProps,
@@ -54,6 +54,40 @@ interface TimeLineContextProviderProps {
   children: ReactNode;
 }
 
+const defaultResourceAllocation: ResourceAllocationTimeLineProps = {
+  customerData: {
+    name: "",
+    abbr: "",
+    image: "",
+  },
+  itemProps: {
+    style: {
+      padding: "",
+      background: "",
+      borderRadius: "",
+      border: "",
+      width: "",
+      left: 0,
+    },
+  },
+  group: "",
+  start_time: 0,
+  end_time: 0,
+  type: "allocation",
+  name: "",
+  employee: "",
+  employee_name: "",
+  allocation_start_date: "",
+  allocation_end_date: "",
+  hours_allocated_per_day: 0,
+  total_allocated_hours: 0,
+  project: "",
+  project_name: "",
+  customer: "",
+  is_billable: 0,
+  note: "",
+};
+
 const TimeLineContext = createContext<TimeLineContextProps>({
   employees: [],
   allocations: [],
@@ -67,8 +101,8 @@ const TimeLineContext = createContext<TimeLineContextProps>({
   verticalLoderRef: () => {},
   updateFilters: () => {},
   updateApiControler: () => {},
-  getAllocationWithID: () => {},
-  updateAllocation: () => {},
+  getAllocationWithID: () => defaultResourceAllocation,
+  updateAllocation: () => defaultResourceAllocation,
   getEmployeeWithID: () => {},
   getEmployeeWithIndex: () => -1,
   isEmployeeExits: () => false,
@@ -107,7 +141,7 @@ const TimeLineContextProvider = ({ children }: TimeLineContextProviderProps) => 
 
   const verticalLoderRef = useInfiniteScroll({
     isLoading: apiControler.isLoading,
-    hasMore: apiControler.hasMore,
+    hasMore: apiControler.hasMore ? true : false,
     next: () => verticalLodMore(),
   });
 

@@ -12,7 +12,7 @@ import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { AllocationDataProps, PermissionProps } from "@/store/resource_management/allocation";
-import { setData, setReFetchData, updateData } from "@/store/resource_management/project";
+import { ProjectDataProps, setData, setReFetchData, updateData } from "@/store/resource_management/project";
 
 import AddResourceAllocations from "../components/addAllocation";
 import { ResourceProjectHeaderSection } from "./components/header";
@@ -72,7 +72,7 @@ const ResourceTeamView = () => {
         const newProject = res.message?.data;
         if (newProject && newProject.length > 0) {
           const updatedData = resourceProjectState.data.data.map((item) => {
-            const index = newProject.findIndex((project) => project.name == item.name);
+            const index = newProject.findIndex((project: ProjectDataProps) => project.name == item.name);
             if (index != -1) {
               return newProject[index];
             }

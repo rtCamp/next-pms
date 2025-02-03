@@ -302,8 +302,11 @@ const DeleteIcon = ({
           description: "Resouce allocation deleted successfully",
         });
         if (onSubmit) {
-          onSubmit(resourceAllocation, resourceAllocation);
-          setIsOpen(false)
+          onSubmit(
+            resourceAllocation as unknown as AllocationDataProps,
+            resourceAllocation as unknown as AllocationDataProps
+          );
+          setIsOpen(false);
         }
       })
       .catch(() => {

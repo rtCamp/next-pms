@@ -17,7 +17,7 @@ import { RootState } from "@/store";
 import { PermissionProps, setResourceFormData } from "@/store/resource_management/allocation";
 import { ResourceAllocationProps } from "@/types/resource_management";
 import ResourceTimeLineGroup from "./group";
-import { ResourceAllocationTimeLineProps } from "../types";
+import { ResourceAllocationEmployeeProps, ResourceAllocationTimeLineProps } from "../types";
 import { TimeLineDateHeader, TimeLineIntervalHeader } from "./header";
 import ResourceTimeLineItem, { ItemAllocationActionDialog } from "./item";
 import { TableContext } from "../../store/tableContext";
@@ -124,14 +124,17 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
     getAllocationApi(updatedAllocation)
       .then(() => {
         if (!needsStateRefresh) {
-          handleFormSubmit(allocationData.old, allocationData.new);
+          handleFormSubmit(
+            allocationData.old as ResourceAllocationTimeLineProps,
+            allocationData.new as ResourceAllocationTimeLineProps
+          );
         }
         toast({
           variant: "success",
           description: "Resouce allocation updated successfully",
         });
       })
-      .catch((err) => {
+      .catch(() => {
         toast({
           variant: "destructive",
           description: "Failed to updated resource allocation",
@@ -158,7 +161,7 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
         hours_allocated_per_day: getFormatedStringValue(resourceAllocation.hours_allocated_per_day),
         note: getFormatedStringValue(resourceAllocation.note),
         project_name: resourceAllocation.project_name,
-        customer_name: resourceAllocation?.customerData?.name,
+        customer_name: resourceAllocation?.customerData ? resourceAllocation?.customerData?.name : "",
         isNeedToEdit: resourceAllocation.name ? true : false,
         name: resourceAllocation.name,
       })
@@ -170,11 +173,18 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
       return;
     }
 
-    const allocation: ResourceAllocationTimeLineProps = getAllocationWithID(itemId);
+    const allocation: ResourceAllocationTimeLineProps | undefined = getAllocationWithID(itemId);
+    if (!allocation) {
+      return;
+    }
     const newStartData: string = getDayKeyOfMoment(moment(dragTime));
     const diffOfDays = getDayDiff(allocation.allocation_start_date, allocation.allocation_end_date);
     const newEndData: string = getDayKeyOfMoment(moment(dragTime).add(diffOfDays, "days"));
-    const employee = getEmployeeWithIndex(newGroupOrder);
+    const employee: ResourceAllocationEmployeeProps | -1 = getEmployeeWithIndex(newGroupOrder);
+
+    if (employee == -1) {
+      return;
+    }
 
     const updatedAllocation = {
       ...allocation,
@@ -221,7 +231,11 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
       return;
     }
 
-    const allocation: ResourceAllocationTimeLineProps = getAllocationWithID(itemId);
+    const allocation: ResourceAllocationTimeLineProps | undefined = getAllocationWithID(itemId);
+
+    if (!allocation) {
+      return;
+    }
 
     let newStartData = "",
       newEndData = "";
@@ -248,7 +262,7 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
       return;
     }
     const allocation = getAllocationWithID(itemId);
-    setResourceAllocationData(allocation);
+    setResourceAllocationData(allocation as ResourceAllocationProps);
   };
 
   if (employees.length == 0) {
@@ -258,7 +272,6 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
   return (
     <>
       {/* Full ts support is in beta version for now */}
-      {/* @ts-ignore */}
       <Timeline
         groups={employees}
         items={allocations}
@@ -345,11 +358,11 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
       {showItemAllocationActionDialog && (
         <ItemAllocationActionDialog
           handleMove={() => {
-            updateAllocationApi(allocationData.new, false);
+            updateAllocationApi(allocationData.new as ResourceAllocationTimeLineProps, false);
             setShowItemAllocationActionDialog(false);
           }}
           handleCopy={() => {
-            updateAllocationApi({ ...allocationData.new, name: "" }, false);
+            updateAllocationApi({ ...allocationData.new, name: "" } as ResourceAllocationTimeLineProps, false);
             setShowItemAllocationActionDialog(false);
           }}
           handleCancel={() => {

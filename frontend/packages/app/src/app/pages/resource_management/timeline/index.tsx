@@ -98,6 +98,8 @@ const ResourceTimeLineComponet = () => {
         const res = await fetchData(filterReqBody);
         return res.message;
       } catch (err) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore: Ignore type checking for parseFrappeErrorMsg
         const error = parseFrappeErrorMsg(err);
         toast({
           variant: "destructive",
