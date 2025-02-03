@@ -3,6 +3,7 @@
  */
 import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { getNextDate } from "@next-pms/design-system";
 import { Spinner, useToast } from "@next-pms/design-system/components";
 import { useInfiniteScroll } from "@next-pms/hooks";
 import { useFrappePostCall } from "frappe-react-sdk";
@@ -13,6 +14,7 @@ import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { AllocationDataProps, PermissionProps } from "@/store/resource_management/allocation";
 import {
+  EmployeeDataProps,
   ResourceTeamDataProps,
   setData,
   setDates,
@@ -22,17 +24,12 @@ import {
   updateData,
 } from "@/store/resource_management/team";
 
-import AddResourceAllocations from "../components/AddAllocation";
-import { ResourceTeamHeaderSection } from "./components/Header";
-import { ResourceTeamTable } from "./components/Table";
-import { getDatesArrays, getNextDate } from "../utils/dates";
+import AddResourceAllocations from "../components/addAllocation";
+import { ResourceTeamHeaderSection } from "./components/header";
+import { ResourceTeamTable } from "./components/table";
+import { ResourceTeamAPIBodyProps } from "../timeline/types";
+import { getDatesArrays } from "../utils/dates";
 import { getIsBillableValue } from "../utils/helper";
-
-interface ResourceTeamAPIBodyProps {
-  date: string;
-  max_week: number;
-  start: number;
-}
 
 interface PreProcessDataProps extends ResourceTeamDataProps {
   date: string;
@@ -73,7 +70,11 @@ const ResourceTeamView = () => {
           reports_to: resourceTeamState.reportingManager,
           designation: JSON.stringify(resourceTeamState.designation),
           is_billable: getIsBillableValue(resourceTeamState.allocationType as string[]),
-          skills: resourceTeamState?.skillSearch?.length > 0 ? JSON.stringify(resourceTeamState.skillSearch) : null,
+          skills:
+            resourceTeamState?.skillSearch?.length && resourceTeamState?.skillSearch?.length > 0
+              ? JSON.stringify(resourceTeamState.skillSearch)
+              : "[]",
+          need_hours_summary: true,
         };
         return newReqBody;
       }
@@ -90,6 +91,8 @@ const ResourceTeamView = () => {
         const res = await fetchData(filterReqBody);
         return res.message;
       } catch (err) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore: Ignore type checking for parseFrappeErrorMsg
         const error = parseFrappeErrorMsg(err);
         toast({
           variant: "destructive",
@@ -176,6 +179,8 @@ const ResourceTeamView = () => {
     while (currentWeek <= resourceTeamState.maxWeek) {
       const currentWeekCopy = currentWeek;
       handleApiCall({ ...req, date: getNextDate(req.date, currentWeekCopy) }).then((res) => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore: Ignore type checking for the following line
         newData = updateHorizontalData(
           {
             ...res,
@@ -213,10 +218,12 @@ const ResourceTeamView = () => {
       while (currentStart <= resourceTeamState.start) {
         const currentStartCopy = currentStart;
         handleApiCall({ ...req, start: currentStartCopy, date: getNextDate(req.date, req.max_week) }).then((res) => {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore: Ignore type checking for the following line
           data = updateHorizontalData(
             {
               ...res,
-              date: getNextDate(req.date, req.max_week + isNeedToUpdateReqWeeks ? 10 : 0),
+              date: getNextDate(req.date, req.max_week + (isNeedToUpdateReqWeeks ? 10 : 0)),
               max_week: req.max_week,
               start: currentStartCopy,
               page_length: resourceTeamState.pageLength,
@@ -272,18 +279,25 @@ const ResourceTeamView = () => {
         date: resourceTeamState.weekDate,
         max_week: resourceTeamState.maxWeek,
         employee_id: JSON.stringify([oldData.employee, newData.employee]),
-        is_billable: getIsBillableValue(resourceTeamState.allocationType as string[])
+        is_billable: getIsBillableValue(resourceTeamState.allocationType as string[]),
+        need_hours_summary: true,
       }).then((res) => {
         const newEmployeeData = res.message?.data;
         if (newEmployeeData && newEmployeeData.length > 0) {
           const updatedData = resourceTeamState.data.data.map((item) => {
-            const index = newEmployeeData.findIndex((employee) => employee.name == item.name);
+            const index = newEmployeeData.findIndex((employee: EmployeeDataProps) => employee.name == item.name);
             if (index != -1) {
               return newEmployeeData[index];
             }
             return item;
           });
-          dispatch(setData({ ...resourceTeamState.data, data: updatedData, customer: res.message?.customer }));
+          dispatch(
+            setData({
+              ...resourceTeamState.data,
+              data: updatedData,
+              customer: { ...resourceTeamState.data.customer, ...res.message?.customer },
+            })
+          );
         }
       });
     },

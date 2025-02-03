@@ -1,0 +1,324 @@
+/**
+ * External dependencies.
+ */
+import { useCallback, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getFormatedDate } from "@next-pms/design-system/date";
+import { useQueryParam } from "@next-pms/hooks";
+import { addDays } from "date-fns";
+import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
+/**
+ * Internal dependencies.
+ */
+import { Header } from "@/app/components/list-view/header";
+
+import { RootState } from "@/store";
+import { PermissionProps, setDialog, setResourcePermissions } from "@/store/resource_management/allocation";
+import {
+  deleteFilters,
+  setAllocationType,
+  setBusinessUnit,
+  setCombineWeekHours,
+  setDesignation,
+  setEmployeeName,
+  setFilters,
+  setReportingManager,
+  setView,
+  setWeekDate,
+  Skill,
+  setSkillSearch,
+} from "@/store/resource_management/team";
+import SkillSearch from "./skillSearch";
+
+/**
+ * This component is responsible for loading the team view header.
+ *
+ * @returns React.FC
+ */
+const ResourceTeamHeaderSection = () => {
+  const [businessUnitParam] = useQueryParam<string[]>("business-unit", []);
+  const [employeeNameParam] = useQueryParam<string>("employee-name", "");
+  const [reportingNameParam] = useQueryParam<string>("reports-to", "");
+  const [allocationTypeParam] = useQueryParam<string[]>("allocation-type", []);
+  const [designationParam] = useQueryParam<string[]>("designation", []);
+  const [viewParam, setViewParam] = useQueryParam<string>("view-type", "");
+  const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParam<boolean>("combine-week-hours", false);
+  const [skillSearchParam, setSkillSearchParam] = useQueryParam<Skill[]>("skill-search", []);
+
+  const resourceTeamState = useSelector((state: RootState) => state.resource_team);
+  const resourceTeamStateTableView = resourceTeamState.tableView;
+  const dispatch = useDispatch();
+  const resourceAllocationPermission: PermissionProps = useSelector(
+    (state: RootState) => state.resource_allocation_form.permissions
+  );
+
+  const { call, loading } = useFrappePostCall(
+    "next_pms.resource_management.api.permission.get_user_resources_permissions"
+  );
+
+  const { data: employee } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee", {
+    filters: { name: reportingNameParam },
+  });
+
+  useEffect(() => {
+    if (Object.keys(resourceAllocationPermission).length != 0) {
+      updateFilters(resourceAllocationPermission);
+      return;
+    }
+    if (loading) return;
+
+    call({}).then((res: { message: PermissionProps }) => {
+      const resResourceAllocationPermission = res.message;
+      updateFilters(resResourceAllocationPermission);
+      dispatch(setResourcePermissions(resResourceAllocationPermission));
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const updateFilters = (resResourceAllocationPermission: PermissionProps) => {
+    let CurrentViewParam = viewParam;
+    if (!CurrentViewParam) {
+      CurrentViewParam = "planned-vs-capacity";
+      if (resResourceAllocationPermission.write) {
+        setViewParam(CurrentViewParam);
+      }
+    }
+
+    dispatch(
+      setFilters({
+        businessUnit: businessUnitParam,
+        employeeName: employeeNameParam,
+        reportingManager: reportingNameParam,
+        designation: designationParam,
+        allocationType: allocationTypeParam,
+        view: CurrentViewParam,
+        combineWeekHours: combineWeekHoursParam,
+        skillSearch: skillSearchParam,
+      })
+    );
+  };
+
+  const handleWeekViewChange = useCallback(() => {
+    setCombineWeekHoursParam(!resourceTeamStateTableView.combineWeekHours);
+    dispatch(setCombineWeekHours(!resourceTeamStateTableView.combineWeekHours));
+  }, [dispatch, resourceTeamStateTableView.combineWeekHours, setCombineWeekHoursParam]);
+
+  const handlePrevWeek = useCallback(() => {
+    const date = getFormatedDate(addDays(resourceTeamState.data.dates[0].start_date, -3));
+    dispatch(setWeekDate(date));
+  }, [dispatch, resourceTeamState.data.dates]);
+
+  const handleNextWeek = useCallback(() => {
+    const date = getFormatedDate(addDays(resourceTeamState.data.dates[0].end_date, +3));
+    dispatch(setWeekDate(date));
+  }, [dispatch, resourceTeamState.data.dates]);
+
+  return (
+    <Header
+      filters={[
+        {
+          queryParameterName: "employee-name",
+          handleChange: (value: string) => {
+            dispatch(setEmployeeName(value));
+          },
+          handleDelete: () => {
+            dispatch(deleteFilters({ type: "employee", employeeName: "" }));
+          },
+          type: "search",
+          value: resourceTeamState.employeeName,
+          defaultValue: "",
+          label: "Employee Name",
+          queryParameterDefault: "",
+        },
+        {
+          queryParameterName: "reports-to",
+          handleChange: (value: string | string[]) => {
+            dispatch(setReportingManager(value as string));
+          },
+          handleDelete: () => {
+            dispatch(deleteFilters({ type: "repots-to", reportingManager: "" }));
+          },
+          type: "search-employee",
+          value: resourceTeamState.reportingManager,
+          defaultValue: "",
+          label: "Reporting Manager",
+          hide: !resourceAllocationPermission.write,
+          queryParameterDefault: [],
+          className: "z-100",
+          employeeName: employee?.message?.employee_name,
+        },
+        {
+          type: "custom-filter",
+          queryParameterDefault: [],
+          label: "Skill",
+          handleDelete: (value: string[]) => {
+            let prev_data = resourceTeamState?.skillSearch;
+            const operators = [">", "<", ">=", "<=", "="];
+            const skills = value.map((value) => {
+              // Iterate through each value and extract skill name
+              for (const operator of operators) {
+                if (value.includes(` ${operator} `)) {
+                  return value.split(` ${operator} `)[0].trim();
+                }
+              }
+              return value.trim();
+            });
+            prev_data = prev_data!.filter((obj) => skills.includes(obj.name));
+            dispatch(setSkillSearch(prev_data));
+          },
+          value: resourceTeamState.skillSearch?.map((obj) => obj.name + " " + obj.operator + " " + obj.proficiency * 5),
+          hide: !resourceAllocationPermission.write,
+          customFilterComponent: (
+            <SkillSearch
+              onSubmit={(skills) => {
+                dispatch(setSkillSearch(skills));
+              }}
+              setSkillSearchParam={setSkillSearchParam}
+              skillSearch={resourceTeamState?.skillSearch || []}
+            />
+          ),
+        },
+        {
+          queryParameterName: "business-unit",
+          handleChange: (value: string | string[]) => {
+            dispatch(setBusinessUnit(value as string[]));
+          },
+          handleDelete: (value: string[] | undefined) => {
+            dispatch(deleteFilters({ type: "business-unit", businessUnit: value }));
+          },
+          type: "select-search",
+          value: resourceTeamState.businessUnit,
+          label: "Business Unit",
+          shouldFilterComboBox: true,
+          isMultiComboBox: true,
+          hide: !resourceAllocationPermission.write,
+          apiCall: {
+            url: "frappe.client.get_list",
+            filters: {
+              doctype: "Business Unit",
+              fields: ["name"],
+              limit_page_length: 0,
+            },
+            options: {
+              revalidateOnFocus: false,
+              revalidateIfStale: false,
+            },
+          },
+          queryParameterDefault: resourceTeamState.businessUnit,
+        },
+        {
+          queryParameterName: "designation",
+          handleChange: (value: string | string[]) => {
+            dispatch(setDesignation(value as string[]));
+          },
+          handleDelete: (value: string[] | undefined) => {
+            dispatch(deleteFilters({ type: "designation", designation: value }));
+          },
+          type: "select-search",
+          value: resourceTeamState.designation,
+          shouldFilterComboBox: true,
+          isMultiComboBox: true,
+          label: "Designation",
+          hide: !resourceAllocationPermission.write,
+          apiCall: {
+            url: "frappe.client.get_list",
+            filters: {
+              doctype: "Designation",
+              filter: { custom_enabled: true },
+              fields: ["name"],
+              limit_page_length: 0,
+            },
+            options: {
+              revalidateOnFocus: false,
+              revalidateIfStale: false,
+            },
+          },
+          queryParameterDefault: resourceTeamState.designation,
+        },
+        {
+          queryParameterName: "allocation-type",
+          handleChange: (value: string | string[]) => {
+            dispatch(setAllocationType(value as string[]));
+          },
+          handleDelete: (value: string[] | undefined) => {
+            dispatch(deleteFilters({ type: "allocation-type", allocationType: value }));
+          },
+          type: "select-list",
+          value: resourceTeamState.allocationType,
+          shouldFilterComboBox: true,
+          isMultiComboBox: true,
+          label: "Allocation Type",
+          data: [
+            {
+              label: "Billable",
+              value: "Billable",
+            },
+            {
+              label: "Non-Billable",
+              value: "Non-Billable",
+            },
+          ],
+          queryParameterDefault: resourceTeamState.allocationType,
+          hide: !resourceAllocationPermission.write,
+        },
+        {
+          queryParameterName: "view-type",
+          handleChange: (value: string) => {
+            dispatch(setView(value));
+          },
+          type: "select",
+          value: resourceTeamStateTableView.view,
+          defaultValue: "planned-vs-capacity",
+          label: "Views",
+          data: [
+            {
+              label: "Planned vs Capacity",
+              value: "planned-vs-capacity",
+            },
+            {
+              label: "Actual vs Planned",
+              value: "actual-vs-planned",
+            },
+          ],
+          hide: !resourceAllocationPermission.write,
+          queryParameterDefault: "planned-vs-capacity",
+        },
+        {
+          queryParameterName: "combine-week-hours",
+          handleChange: handleWeekViewChange,
+          type: "checkbox",
+          value: resourceTeamStateTableView.combineWeekHours,
+          defaultValue: false,
+          label: "Combine Week Hours",
+          queryParameterDefault: false,
+        },
+      ]}
+      buttons={[
+        {
+          title: "add-allocation",
+          handleClick: () => {
+            dispatch(setDialog(true));
+          },
+          className: "px-3",
+          icon: () => <Plus className="w-4 max-md:w-3 h-4 max-md:h-3 bg" />,
+          variant: "default",
+          hide: !resourceAllocationPermission.write,
+        },
+        {
+          title: "previous-week",
+          handleClick: handlePrevWeek,
+          icon: () => <ChevronLeftIcon className="w-4 max-md:w-3 h-4 max-md:h-3" />,
+        },
+        {
+          title: "next-week",
+          handleClick: handleNextWeek,
+          icon: () => <ChevronRight className="w-4 max-md:w-3 h-4 max-md:h-3" />,
+        },
+      ]}
+      showFilterValue
+    />
+  );
+};
+
+export { ResourceTeamHeaderSection };

@@ -5,11 +5,11 @@ import {
   EmployeeAllocationForDateProps,
   EmployeeResourceObjectProps,
 } from "@/store/resource_management/team";
-import { DateProps } from "@/store/team";
 import {
   ResourceAllocationObjectProps,
   ResourceAllocationProps,
 } from "@/types/resource_management";
+import { DateProps } from "../../team/reducer";
 
 export interface CombinedResourceObjectProps {
   [key: string]: CombinedResourceDataProps;
@@ -20,20 +20,22 @@ export interface CombinedResourceDataProps {
   customer_name?: string;
   total_allocated_hours: number;
   all_allocation: {
-    [date: string]: {
-      allocations: MergedAllocationProps[];
-      total_allocated_hours: number;
-      total_worked_hours_resource_allocation: number;
-    };
+    [date: string]: ResourceMergeAllocationProps;
   };
 }
+
+export type ResourceMergeAllocationProps = {
+  allocations: MergedAllocationProps[];
+  total_allocated_hours: number;
+  total_worked_hours_resource_allocation: number;
+};
 
 export type MergedAllocationProps = EmployeeAllocationForDateProps &
   ResourceAllocationProps;
 
 /**
  * Group the allocations list based on projects.
- * 
+ *
  * @param resourceData The resource data.
  * @param employee_allocations The employee allocation.
  * @param dates The dates of the allocations.

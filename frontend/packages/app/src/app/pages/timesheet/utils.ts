@@ -1,4 +1,5 @@
-import { getFormatedDate, getUTCDateTime, normalizeDate } from "@next-pms/design-system";
+import { getFormatedDate, normalizeDate } from "@next-pms/design-system";
+import { isDateInRange } from "@/lib/utils";
 import { DataProp } from "@/types/timesheet";
 
 export interface TimesheetState {
@@ -21,18 +22,6 @@ export interface TimesheetState {
   weekDate: string;
 }
 
-export const isDateInRange = (
-  date: string,
-  startDate: string,
-  endDate: string
-) => {
-  const targetDate = getUTCDateTime(normalizeDate(date));
-
-  return (
-    getUTCDateTime(startDate) <= targetDate &&
-    targetDate <= getUTCDateTime(endDate)
-  );
-};
 
 export const validateDate = (startDateParam:string,timesheet:TimesheetState) => {
   if (!startDateParam) {

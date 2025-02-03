@@ -7,20 +7,23 @@ import {
   ResourceAllocationObjectProps,
   ResourceCustomerObjectProps,
 } from "@/types/resource_management";
-import { DateProps } from "../team";
-import { DateRange } from "./team";
+import { DateRange,DateProps } from "./team";
+
+export type ProjectAllWeekDataProps = {
+  total_allocated_hours: number;
+  total_worked_hours: number;
+};
 
 export type ProjectDataProps = {
   name: string;
   image: string;
   project_name: string;
   all_dates_data: ProjectResourceObjectProps;
-  all_week_data: [];
+  all_week_data: ProjectAllWeekDataProps[];
   project_allocations: ResourceAllocationObjectProps;
 };
 
 export interface ResourceProjectDataProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: ProjectDataProps[];
   dates: DateProps[];
   customer: ResourceCustomerObjectProps;

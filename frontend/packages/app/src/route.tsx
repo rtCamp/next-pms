@@ -24,6 +24,7 @@ const HomeComponent = lazy(() => import("@/app/pages/home"));
 const TeamComponent = lazy(() => import("@/app/pages/team"));
 const ResourceTeamComponent = lazy(() => import("@/app/pages/resource_management/team"));
 const ResourceProjectComponent = lazy(() => import("@/app/pages/resource_management/project"));
+const ResourceTimeLineComponet = lazy(() => import("@/app/pages/resource_management/timeline"));
 const EmployeeDetailComponent = lazy(() => import("@/app/pages/team/employeeDetail"));
 const TaskComponent = lazy(() => import("@/app/pages/task"));
 const ProjectComponent = lazy(() => import("@/app/pages/project"));
@@ -44,6 +45,7 @@ export function Router() {
           <Route path={`${PROJECT}/:type?`} element={<ProjectComponent />} />
         </Route>
         <Route path={TASK} element={<TaskComponent />} />
+        <Route path={`${RESOURCE_MANAGEMENT}/timeline`} element={<ResourceTimeLineComponet />} />
         <Route path={`${RESOURCE_MANAGEMENT}/team`} element={<ResourceTeamComponent />} />
         <Route path={`${RESOURCE_MANAGEMENT}/project`} element={<ResourceProjectComponent />} />
       </Route>

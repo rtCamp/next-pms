@@ -64,6 +64,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
         value={filter.value as string}
         deBounceValue={300}
         callback={(e) => handleChangeWrapper(e.target.value)}
+        className={filter.className}
       />
     );
   }
@@ -75,7 +76,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
         status={filter.employeeComboStatus ?? []}
         onSelect={handleChangeWrapper}
         employeeName={filter?.employeeName}
-        className="border-dashed min-w-48 w-full max-w-48"
+        className={cn("border-dashed min-w-48 w-full max-w-48", filter.className)}
       />
     );
   }
@@ -133,7 +134,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
         <SelectTrigger className="max-w-44 min-w-44">
           <SelectValue placeholder="Select a view type" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className={filter.className}>
           <SelectGroup>
             <SelectLabel>{filter.label}</SelectLabel>
             {filter.data &&

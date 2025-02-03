@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { getUTCDateTime } from "@next-pms/design-system/date";
+import { getUTCDateTime, normalizeDate } from "@next-pms/design-system/date";
 import { toast } from "@next-pms/design-system/hooks";
 import { type ClassValue, clsx } from "clsx";
 import { isToday } from "date-fns";
@@ -216,3 +216,16 @@ export const currencyFormat = (currency: string) => {
 export const getBgCsssForToday = (date: string) => {
   return isToday(getUTCDateTime(date)) ? "bg-slate-100" : "";
 }
+
+export const isDateInRange = (
+  date: string,
+  startDate: string,
+  endDate: string
+) => {
+  const targetDate = getUTCDateTime(normalizeDate(date));
+
+  return (
+    getUTCDateTime(startDate) <= targetDate &&
+    targetDate <= getUTCDateTime(endDate)
+  );
+};

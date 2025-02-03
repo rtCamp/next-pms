@@ -29,19 +29,16 @@ import AddTime from "@/app/components/AddTime";
 import { TimesheetTable } from "@/app/components/timesheet-table";
 import { SubmitButton } from "@/app/components/timesheet-table/components/submitButton";
 import { Header, Main } from "@/app/layout/root";
-import { parseFrappeErrorMsg, expectatedHours, copyToClipboard } from "@/lib/utils";
+import { parseFrappeErrorMsg, expectatedHours, copyToClipboard, isDateInRange } from "@/lib/utils";
 import { RootState } from "@/store";
-import {
-  initialState,
-} from "@/store/timesheet";
 import { WorkingFrequency } from "@/types";
 import { HolidayProp, LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
-import { Approval } from "./component/approval";
-import { EditTime } from "./component/editTime";
-import ExpandableHours from "./component/expandableHours";
-import { reducer } from "./reducers";
-import { isDateInRange, validateDate } from "./utils";
-import { InfiniteScroll } from "../resource_management/components/InfiniteScroll";
+import { Approval } from "./components/approval";
+import { EditTime } from "./components/editTime";
+import ExpandableHours from "./components/expandableHours";
+import { initialState, reducer } from "./reducer";
+import { validateDate } from "./utils";
+import { InfiniteScroll } from "../resource_management/components/infiniteScroll";
 
 function Timesheet() {
   const targetRef = useRef<HTMLDivElement>(null);

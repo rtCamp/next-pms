@@ -19,3 +19,17 @@ export type ItemProps = {
     working_hour: number;
     working_frequency: WorkingFrequency;
 };
+
+export type DateRange = {
+  startDate: string;
+  endDate: string;
+};
+
+export type teamStateActionType = "SET" | "UPDATE";
+
+export type DateProps = {
+  startDate: string;
+  endDate: string;
+  key: string;
+  dates: string[];
+};
