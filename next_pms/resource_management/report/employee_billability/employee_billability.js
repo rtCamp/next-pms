@@ -17,5 +17,13 @@ frappe.query_reports["Employee Billability"] = {
 			reqd: 1,
 			default: frappe.datetime.get_today(),
 		}
-	]
+	],
+	formatter: function (value, row, column, data, default_formatter) {
+		value = default_formatter(value, row, column, data);
+		if (column.id === "billing_percentage") {
+			value = `<span style="display:flex;justify-content: flex-end;">${value}%</span>`;
+		}
+		return value;
+	},
+
 };
