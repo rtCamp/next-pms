@@ -62,6 +62,7 @@ const ResourceTeamView = () => {
         ...req,
         employee_name: resourceTeamState.employeeName,
         page_length: resourceTeamState.pageLength,
+        need_hours_summary: true,
       };
       if (resourceAllocationPermission.write) {
         newReqBody = {
