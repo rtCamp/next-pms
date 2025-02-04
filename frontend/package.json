@@ -17,6 +17,7 @@
   ],
   "dependencies": {
     "@next-pms/app": "*",
+    "@next-pms/resource-management": "*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

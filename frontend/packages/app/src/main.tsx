@@ -9,6 +9,7 @@ import ReactDOM from "react-dom/client";
  */
 import App from "./app";
 import "@next-pms/design-system/index.css"
+import "@next-pms/resource-management/index.css";
 import "./global.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

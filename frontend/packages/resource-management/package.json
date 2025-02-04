@@ -1,0 +1,33 @@
+{
+    "name": "@next-pms/resource-management",
+    "private": true,
+    "version": "0.0.1",
+    "main": "./src/index.ts",
+    "type": "module",
+    "exports": {
+        ".": "./src/index.ts",
+        "./index.css": "./src/index.css",
+        "./utils": "./src/utils/index.ts",
+        "./components": "./src/components/index.ts"
+    },
+    "files": [
+        "src",
+        "README.md"
+    ],
+    "scripts": {
+        "dev": "vite --config ../../vite.config.ts",
+        "clean": "rm -rf dist",
+        "build": "npm install && vite build --config ../../vite.config.ts",
+        "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+        "lint:fix": "eslint . --ext ts,tsx --fix"
+    },
+    "dependencies": {
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1",
+        "react-router-dom": "^6.25.1"
+    },
+    "devDependencies": {
+        "@types/react": "^18.3.18",
+        "@types/react-dom": "^18.3.5"
+    }
+}
