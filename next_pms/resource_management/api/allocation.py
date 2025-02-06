@@ -1,11 +1,17 @@
 import frappe
 from frappe.automation.doctype.auto_repeat.auto_repeat import add_days
 
+from next_pms.resource_management.api.utils.helpers import resource_api_permissions_check
 from next_pms.resource_management.api.utils.http import send_http_response
 
 
 @frappe.whitelist(methods=["POST"])
 def handle_create_and_update_of_allocation(allocation: object, repeat_till_week_count: int = 0):
+    permission = resource_api_permissions_check()
+
+    if not permission["write"]:
+        return send_http_response(403, {"message": "You are not allowed to perform this action."})
+
     try:
         if not allocation:
             return send_http_response(400, {"message": "Allocation is required."})
@@ -26,7 +32,7 @@ def add_allocation(allocation: object, repeat_till_week_count: int = 0):
     new_allocation.save()
 
     if repeat_till_week_count:
-        for count in range(repeat_till_week_count):
+        for _ in range(repeat_till_week_count):
             next_allocation_dict = allocation
 
             next_allocation_dict["allocation_start_date"] = add_days(allocation["allocation_start_date"], 7)
