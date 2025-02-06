@@ -8,8 +8,7 @@
   "private": true,
   "scripts": {
     "dev": "cd frontend && npm run dev",
-    "build": "cd frontend && npm install && npm run build"
-    "lint": "cd frontend && npm install && npm run build"
+    "build": "cd frontend && npm install && npm run build",
   },
   "devDependencies": {
   }
