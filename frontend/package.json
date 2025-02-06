@@ -8,8 +8,9 @@
     "dev:app": "npm run dev -w @next-pms/app",
     "build:app": "npm run build -w @next-pms/app",
     "build": "npm install && npm run build:app",
-    "lint": "eslint .  --report-unused-disable-directives --max-warnings 0",
-    "lint:fix": "eslint --fix ",
+    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "lint:precommit": "eslint --fix --config eslint.config.js",
     "preview": "vite preview"
   },
   "workspaces": [

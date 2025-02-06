@@ -69,10 +69,11 @@ repos:
     hooks:
       - id: eslint-react
         name: "ESlint React"
-        entry: bash -c 'cd frontend && npm run lint:fix -- "$@"'
+        entry: bash -c 'cd frontend && npm run lint:precommit -- "${@#frontend/}" ' --
         language: system
         files: \.(jsx|tsx|ts)$
         types: [file]
+        pass_filenames: true
         exclude: |
             (?x)^(
                 .*node_modules.*
@@ -82,7 +83,7 @@ repos:
     hooks:
       - id: eslint-js
         name: "ESlint JS"
-        entry: bash -c 'npm run lint:changed -- "$@"'
+        entry: bash -c 'npx run eslint --config .eslintrc -- "$@"' --
         language: system
         files: \.(js)$
         types: [file]
