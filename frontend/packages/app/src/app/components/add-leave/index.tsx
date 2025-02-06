@@ -3,7 +3,6 @@
  */
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useSelector } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ComboBox,
@@ -40,19 +39,20 @@ import { z } from "zod";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { LeaveSchema } from "@/schema/timesheet";
-import { RootState } from "@/store";
+import { LeaveInfo } from "./leaveInfo";
 
-// interfaces
+
 interface LeaveTimeProps {
   employee: string;
+  employeeName: string;
   open: boolean;
   onOpenChange: () => void;
   onSuccess?: () => void;
 }
-const AddLeave = ({ employee, open = false, onOpenChange, onSuccess }: LeaveTimeProps) => {
+const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSuccess }: LeaveTimeProps) => {
   const { toast } = useToast();
   const { createDoc, loading, isCompleted } = useFrappeCreateDoc();
-  const user = useSelector((state: RootState) => state.user);
+
   const [selectedEmployee, setSelectedEmployee] = useState(employee);
 
   const [selectedFromDate, setSelectedFromDate] = useState(getTodayDate());
@@ -149,12 +149,13 @@ const AddLeave = ({ employee, open = false, onOpenChange, onSuccess }: LeaveTime
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpen}>
-        <DialogContent className="max-w-xl" onPointerDownOutside={event?.preventDefault}>
+        <DialogContent className="max-w-xl " onPointerDownOutside={event?.preventDefault}>
           <DialogHeader>
             <DialogTitle className="flex gap-x-2">Add Leave</DialogTitle>
             <Separator />
           </DialogHeader>
 
+          <LeaveInfo leaveInfo={leaveDetails?.message?.leave_allocation} />
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)}>
               <div className="max-h-dvh overflow-y-auto no-scrollbar">
@@ -168,7 +169,7 @@ const AddLeave = ({ employee, open = false, onOpenChange, onSuccess }: LeaveTime
                         <FormControl>
                           <EmployeeCombo
                             onSelect={onEmployeeChange}
-                            employeeName={user.employeeName}
+                            employeeName={employeeName}
                             value={selectedEmployee}
                           />
                         </FormControl>
