@@ -69,8 +69,10 @@ repos:
     hooks:
       - id: eslint-react
         name: "ESlint React"
-        entry: bash -c "cd frontend && npx eslint $(git diff --cached --name-only --diff-filter=ACM | sed 's|^frontend/||' | grep -E '\.jsx?$|\.tsx?$|\.ts?$') --fix"
+        entry: bash -c 'cd frontend && npm run lint:fix -- "$@"'
         language: system
+        files: \.(jsx|tsx|ts)$
+        types: [file]
         exclude: |
             (?x)^(
                 .*node_modules.*

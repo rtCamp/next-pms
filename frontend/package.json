@@ -9,7 +9,7 @@
     "build:app": "npm run build -w @next-pms/app",
     "build": "npm install && npm run build:app",
     "lint": "eslint .  --report-unused-disable-directives --max-warnings 0",
-    "lint:fix": "eslint .  --fix",
+    "lint:fix": "eslint --fix ",
     "preview": "vite preview"
   },
   "workspaces": [
