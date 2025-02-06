@@ -112,7 +112,7 @@ const AddResourceAllocations = ({
   const { toast } = useToast();
 
   const { call: handleCreateAndUpdateOfallocation, loading } = useFrappePostCall(
-    "next_pms.resource_management.api.allocation.handle_create_and_update_of_allocation"
+    "next_pms.resource_management.api.allocation.handle_allocation"
   );
 
   const handleEmployeeChange = (value: string) => {

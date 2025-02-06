@@ -6,7 +6,7 @@ from next_pms.resource_management.api.utils.http import send_http_response
 
 
 @frappe.whitelist(methods=["POST"])
-def handle_create_and_update_of_allocation(allocation: object, repeat_till_week_count: int = 0):
+def handle_allocation(allocation: object, repeat_till_week_count: int = 0):
     permission = resource_api_permissions_check()
 
     if not permission["write"]:
