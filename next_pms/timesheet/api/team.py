@@ -5,12 +5,13 @@ from frappe import _, throw
 from frappe.utils import nowdate
 from frappe.utils.data import add_days, getdate
 
+from next_pms.resource_management.api.utils.query import get_employee_leaves
+
 from .employee import get_employee_working_hours
 from .timesheet import get_timesheet_state
 from .utils import (
     filter_employees,
     get_holidays,
-    get_leaves_for_employee,
     get_week_dates,
     is_timesheet_manager,
     update_weekly_status_of_timesheet,
@@ -106,9 +107,9 @@ def get_compact_view_data(
         local_data["status"] = status
         local_data["data"] = []
 
-        leaves = get_leaves_for_employee(
-            from_date=add_days(dates[0].get("start_date"), -max_week * 7),
-            to_date=add_days(dates[-1].get("end_date"), max_week * 7),
+        leaves = get_employee_leaves(
+            start_date=add_days(dates[0].get("start_date"), -max_week * 7),
+            end_date=add_days(dates[-1].get("end_date"), max_week * 7),
             employee=employee.name,
         )
         holidays = get_holidays(employee.name, dates[0].get("start_date"), dates[-1].get("end_date"))
@@ -175,7 +176,10 @@ def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | s
         ["name", "start_date"],
     )
     if not timesheets:
-        return throw(_("No timesheet found for the given date range."), exc=frappe.DoesNotExistError)
+        return throw(
+            _("No timesheet found for the given date range."),
+            exc=frappe.DoesNotExistError,
+        )
 
     for timesheet in timesheets:
         if str(timesheet.start_date) not in dates:

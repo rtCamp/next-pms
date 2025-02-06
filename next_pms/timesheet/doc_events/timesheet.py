@@ -60,13 +60,14 @@ def on_submit(doc, method=None):
 
 #  Custom Methods for Timesheet DocType events
 def set_date(doc):
-    if doc.docstatus < 2 and doc.time_logs:
-        start_date = min(getdate(d.from_time) for d in doc.time_logs)
-        end_date = max(getdate(d.to_time) for d in doc.time_logs)
+    if doc.docstatus == 2 and not doc.time_logs:
+        return
+    start_date = min(getdate(d.from_time) for d in doc.time_logs)
+    end_date = max(getdate(d.to_time) for d in doc.time_logs)
 
-        if start_date and end_date:
-            doc.start_date = getdate(start_date)
-            doc.end_date = getdate(end_date)
+    if start_date and end_date:
+        doc.start_date = getdate(start_date)
+        doc.end_date = getdate(end_date)
 
 
 def update_note(doc):
@@ -101,8 +102,8 @@ def validate_dates(doc):
     from frappe import get_roles
     from hrms.hr.utils import get_holiday_dates_for_employee
 
+    from next_pms.resource_management.api.utils.query import get_employee_leaves
     from next_pms.timesheet.api.employee import get_employee_from_user
-    from next_pms.timesheet.api.utils import get_leaves_for_employee
 
     if frappe.session.user == "Administrator":
         return
@@ -134,10 +135,10 @@ def validate_dates(doc):
         else:
             allowed_days = frappe.db.get_single_value("Timesheet Settings", "allow_backdated_entries_till_employee")
         holidays = get_holiday_dates_for_employee(doc.employee, doc.start_date, today_date)
-        leaves = get_leaves_for_employee(
-            str(add_days(doc.start_date, -28)),
-            str(add_days(today_date, 28)),
-            doc.employee,
+        leaves = get_employee_leaves(
+            start_date=add_days(doc.start_date, -28),
+            end_date=add_days(today_date, 28),
+            employee=doc.employee,
         )
 
         for leave in leaves:

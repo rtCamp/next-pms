@@ -55,9 +55,11 @@ ignore = [
     "UP032", # Use f-string instead of `format` call (translations)
     "UP030", # Use implicit references for positional format fields (translations)
     "B007",
-    "RUF013"
+    "RUF013",
+    "T20"
 ]
 typing-modules = ["frappe.types.DF"]
+fixable = ["ALL"]
 
 [tool.ruff.format]
 quote-style = "double"
