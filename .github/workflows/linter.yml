@@ -44,6 +44,20 @@ jobs:
           path: ~/.cache/pre-commit
           key: pre-commit-3|${{ hashFiles('.pre-commit-config.yaml') }}
 
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            **/node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install npm dependencies
+        run: |
+          npm ci
+          cd frontend && npm ci
+          
       - name: Execute pre-commit
         run: |
           pre-commit run --color=always --show-diff-on-failure --files ${{ steps.file_changes.outputs.files }}

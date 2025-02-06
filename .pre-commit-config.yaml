@@ -65,37 +65,25 @@ repos:
             )$
 
 
-  - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.18.0
+  - repo: local
     hooks:
-      - id: eslint
+      - id: eslint-react
         name: "ESlint React"
-        language: node
-        files: ^.*\.(jsx|tsx|ts)$
-        types: [file]
-        args: ['--config', 'frontend/eslint.config.js']
-        additional_dependencies:
-          - '@typescript-eslint/parser@^8.20.0'
-          - '@typescript-eslint/eslint-plugin@^8.20.0'
-          - '@eslint/js@^8.57.0'
-          #- 'eslint@^9.18.0'
-          - 'globals@^15.14.0'
-          - 'eslint-plugin-react-hooks@^5.0.0'
-          - 'eslint-plugin-react-refresh@^0.4.16'
-          - 'eslint-plugin-import@^2.31.0'
-          - 'eslint-plugin-react@^7.34.0'
+        entry: bash -c "cd frontend && npx eslint $(git diff --cached --name-only --diff-filter=ACM | sed 's|^frontend/||' | grep -E '\.jsx?$|\.tsx?$|\.ts?$') --fix"
+        language: system
         exclude: |
             (?x)^(
                 .*node_modules.*
             )$
 
-  - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.18.0
+  - repo: local
     hooks:
-      - id: eslint
+      - id: eslint-js
         name: "ESlint JS"
-        types: [javascript]
-        args: ['--config', '.eslintrc']
+        entry: bash -c 'npm run lint:changed -- "$@"'
+        language: system
+        files: \.(js)$
+        types: [file]
         exclude: |
             (?x)^(
                 next_pms/public/dist/.*|
