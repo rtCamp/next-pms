@@ -8,14 +8,16 @@ from frappe.utils import (
     nowdate,
 )
 
+from next_pms.resource_management.api.utils.query import get_employee_leaves
+
 from .employee import (
     get_employee_daily_working_norm,
     get_employee_from_user,
     get_employee_working_hours,
 )
 from .utils import (
+    apply_role_permission_for_doctype,
     get_holidays,
-    get_leaves_for_employee,
     get_week_dates,
     is_timesheet_manager,
     is_timesheet_user,
@@ -27,14 +29,10 @@ now = nowdate()
 @frappe.whitelist()
 def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
     """Get timesheet data for the given employee for the given number of weeks."""
-    user_roles = frappe.get_roles()
 
     if not employee:
         employee = get_employee_from_user()
-    if frappe.session.user != "Administrator" and (
-        "Timesheet Manager" not in user_roles and "Timesheet User" not in user_roles
-    ):
-        frappe.has_permission("Employee", "read", employee, throw=True)
+    apply_role_permission_for_doctype(["Timesheet User", "Timesheet Manager"], "Employee", "read", employee)
 
     def generate_week_data(start_date, max_week, employee=None, leaves=None, holidays=None):
         data = {}
@@ -96,10 +94,10 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
         add_days(start_date, max_week * 7),
     )
 
-    leaves = get_leaves_for_employee(
-        add_days(start_date, -max_week * 7),
-        add_days(start_date, max_week * 7),
-        employee,
+    leaves = get_employee_leaves(
+        start_date=add_days(start_date, -max_week * 7),
+        end_date=add_days(start_date, max_week * 7),
+        employee=employee,
     )
     res["leaves"] = leaves
     res["holidays"] = holidays
@@ -285,8 +283,7 @@ def create_timesheet_detail(
             "is_billable": is_billable if is_billable is not None else custom_is_billable,
         },
     )
-    timesheet.flags.ignore_permissions = is_timesheet_manager()
-    timesheet.save()
+    timesheet.save(ignore_permissions=is_timesheet_manager())
 
 
 def get_timesheet(dates: list, employee: str):
@@ -312,20 +309,21 @@ def get_timesheet(dates: list, employee: str):
     """
     data = {}
     total_hours = 0
-    timesheets = frappe.get_list(
+    timesheet_logs = frappe.get_list(
         "Timesheet",
         filters={
             "employee": employee,
             "start_date": ["in", dates],
             "docstatus": ["!=", 2],
         },
+        fields=["time_logs.name"],
         ignore_permissions=is_timesheet_user() or is_timesheet_manager(),
     )
-    if not timesheets:
+    if not timesheet_logs:
         return [data, total_hours]
+    timesheet_logs = [frappe.get_doc("Timesheet Detail", ts.name) for ts in timesheet_logs]
 
-    timesheet_docs = [frappe.get_doc("Timesheet", ts.name) for ts in timesheets]
-    task_ids = [log.task for ts in timesheet_docs for log in ts.time_logs if log.task]
+    task_ids = [ts.task for ts in timesheet_logs if ts.task]
     task_details = frappe.get_all(
         "Task",
         filters={"name": ["in", task_ids]},
@@ -342,29 +340,28 @@ def get_timesheet(dates: list, employee: str):
         ],
     )
     task_details_dict = {task["name"]: task for task in task_details}
-    for timesheet in timesheet_docs:
-        total_hours += timesheet.total_hours
-        for log in timesheet.time_logs:
-            if not log.task:
-                continue
-            task = task_details_dict.get(log.task)
-            if not task:
-                continue
-            task_name = task["name"]
-            if task_name not in data:
-                data[task_name] = {
-                    "name": task_name,
-                    "subject": task["subject"],
-                    "data": [],
-                    "is_billable": task["custom_is_billable"],
-                    "project_name": task["project_name"],
-                    "project": task["project"],
-                    "expected_time": task["expected_time"],
-                    "actual_time": task["actual_time"],
-                    "status": task["status"],
-                    "_liked_by": task["_liked_by"],
-                }
-            data[task_name]["data"].append(log.as_dict())
+    for log in timesheet_logs:
+        total_hours += log.hours
+        if not log.task:
+            continue
+        task = task_details_dict.get(log.task)
+        if not task:
+            continue
+        task_name = task["name"]
+        if task_name not in data:
+            data[task_name] = {
+                "name": task_name,
+                "subject": task["subject"],
+                "data": [],
+                "is_billable": task["custom_is_billable"],
+                "project_name": task["project_name"],
+                "project": task["project"],
+                "expected_time": task["expected_time"],
+                "actual_time": task["actual_time"],
+                "status": task["status"],
+                "_liked_by": task["_liked_by"],
+            }
+        data[task_name]["data"].append(log.as_dict())
 
     return [data, total_hours]
 
@@ -395,23 +392,21 @@ def get_remaining_hour_for_employee(employee: str, date: str):
         working_hours.update({"working_hour": working_hours.get("working_hour") / 5})
 
     date = getdate(date)
-    timesheets = frappe.get_all(
+    timesheet_hours = frappe.get_all(
         "Timesheet",
         filters={
             "employee": employee,
             "start_date": date,
             "end_date": date,
         },
-        fields=["total_hours"],
+        pluck="total_hours",
     )
-    total_hours = 0
-    for timesheet in timesheets:
-        total_hours += timesheet.total_hours
+    total_hours = sum(timesheet_hours)
 
-    leaves = get_leaves_for_employee(
-        add_days(date, -4 * 7),
-        add_days(date, 4 * 7),
-        employee,
+    leaves = get_employee_leaves(
+        start_date=add_days(date, -4 * 7),
+        end_date=add_days(date, 4 * 7),
+        employee=employee,
     )
     data = [leave for leave in leaves if leave.get("from_date") <= date <= leave.get("to_date")]
 
