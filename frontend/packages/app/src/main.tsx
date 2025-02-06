@@ -1,16 +1,15 @@
 /**
  * External dependencies.
  */
-import ReactDOM from "react-dom/client";
 import React from "react";
-
+import ReactDOM from "react-dom/client";
 
 /**
  * Internal dependencies.
  */
+import App from "./app";
 import "@next-pms/design-system/index.css"
 import "./global.css";
-import App from "./app";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
