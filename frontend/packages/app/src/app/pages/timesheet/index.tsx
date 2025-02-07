@@ -24,7 +24,7 @@ import { Calendar, Paperclip, Plus } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import AddLeave from "@/app/components/addLeave";
+import AddLeave from "@/app/components/add-leave";
 import AddTime from "@/app/components/AddTime";
 import { TimesheetTable } from "@/app/components/timesheet-table";
 import { SubmitButton } from "@/app/components/timesheet-table/components/submitButton";
@@ -324,6 +324,7 @@ function Timesheet() {
       {timesheet.isLeaveDialogOpen && (
         <AddLeave
           employee={user.employee}
+          employeeName={user.employeeName}
           open={timesheet.isLeaveDialogOpen}
           onOpenChange={() => {
             dispatch({ type: "SET_LEAVE_DIALOG_STATE", payload: false });
