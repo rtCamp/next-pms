@@ -158,7 +158,7 @@ const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSucces
           <LeaveInfo leaveInfo={leaveDetails?.message?.leave_allocation} />
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)}>
-              <div className="max-h-dvh overflow-y-auto no-scrollbar">
+              <div className="overflow-y-auto no-scrollbar">
                 <div className="flex flex-col gap-y-4">
                   <FormField
                     control={form.control}
