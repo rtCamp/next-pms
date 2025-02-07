@@ -26,9 +26,10 @@ import {
   DatePicker,
   Typography,
 } from "@next-pms/design-system/components";
-import { getFormatedDate } from "@next-pms/design-system/date";
+import { getFormatedDate, getUTCDateTime } from "@next-pms/design-system/date";
 import { cn } from "@next-pms/design-system/utils";
-import { useFrappeCreateDoc, useFrappeGetCall, useFrappeUpdateDoc } from "frappe-react-sdk";
+import { endOfWeek, startOfWeek } from "date-fns";
+import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { CircleDollarSign, Clock3, LoaderCircle, Save, Search, X } from "lucide-react";
 import { z } from "zod";
 
@@ -58,6 +59,7 @@ const AddResourceAllocations = ({
 
   const [projectSearch, setProjectSearch] = useState(resourceAllocationForm.project_name);
   const [customerSearch, setCustomerSearch] = useState(resourceAllocationForm.customer_name);
+  const [enableRepeatOnWeek, setEnableRepeatOnWeek] = useState(false);
 
   const form = useForm<z.infer<typeof ResourceAllocationSchema>>({
     resolver: zodResolver(ResourceAllocationSchema),
@@ -73,6 +75,7 @@ const AddResourceAllocations = ({
       allocation_start_date: resourceAllocationForm.allocation_start_date,
       allocation_end_date: resourceAllocationForm.allocation_end_date,
       note: resourceAllocationForm.note,
+      repeat_till_week_count: 0,
     },
     mode: "onSubmit",
   });
@@ -108,8 +111,9 @@ const AddResourceAllocations = ({
 
   const { toast } = useToast();
 
-  const { createDoc: createAllocations, loading: loadingCreation } = useFrappeCreateDoc();
-  const { updateDoc: updateAllocations, loading: loadingUpdation } = useFrappeUpdateDoc();
+  const { call: handleCreateAndUpdateOfallocation, loading } = useFrappePostCall(
+    "next_pms.resource_management.api.allocation.handle_allocation"
+  );
 
   const handleEmployeeChange = (value: string) => {
     form.setValue("employee", value);
@@ -165,6 +169,27 @@ const AddResourceAllocations = ({
       form.setValue(key, "");
       handleValueChange("");
     }
+  };
+
+  const updateRepeatOnWeekCount = () => {
+    const start = form.getValues("allocation_start_date");
+    const end = form.getValues("allocation_end_date");
+
+    if (!start || !end || end < start) return;
+
+    const startDate = getUTCDateTime(start);
+    const endDate = getUTCDateTime(end);
+
+    const startWeekDate = startOfWeek(startDate, {
+      weekStartsOn: 1,
+    });
+    const endWeekDate = endOfWeek(startDate, { weekStartsOn: 1 });
+
+    if (startDate >= startWeekDate && endDate <= endWeekDate) {
+      return setEnableRepeatOnWeek(true);
+    }
+    form.setValue("repeat_till_week_count", 0);
+    setEnableRepeatOnWeek(false);
   };
 
   const handleDateChange = (key: ResourceKeys, date: Date | undefined) => {
@@ -248,8 +273,9 @@ const AddResourceAllocations = ({
     }
   };
 
-  const getAllocationApi = (data: AllocationDataProps) => {
+  const getAllocationApi = (data: AllocationDataProps & { repeat_till_week_count: number }) => {
     const doctypeDoc = {
+      doctype: "Resource Allocation",
       employee: data.employee,
       project: data.project,
       customer: data.customer,
@@ -261,12 +287,15 @@ const AddResourceAllocations = ({
       note: data.note,
     };
     if (resourceAllocationForm.isNeedToEdit) {
-      return updateAllocations("Resource Allocation", resourceAllocationForm.name, doctypeDoc);
+      return handleCreateAndUpdateOfallocation({ allocation: doctypeDoc });
     }
-    return createAllocations("Resource Allocation", doctypeDoc);
+    return handleCreateAndUpdateOfallocation({
+      allocation: doctypeDoc,
+      repeat_till_week_count: data.repeat_till_week_count,
+    });
   };
 
-  const handleSubmit = (data: AllocationDataProps) => {
+  const handleSubmit = (data: AllocationDataProps & { repeat_till_week_count: number }) => {
     if (!data) {
       return;
     }
@@ -305,6 +334,8 @@ const AddResourceAllocations = ({
 
   useEffect(() => {
     handleHoursAutoComplete();
+    updateRepeatOnWeekCount();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handleHoursAutoComplete, leaveData]);
 
   return (
@@ -475,6 +506,42 @@ const AddResourceAllocations = ({
               />
             </div>
 
+            {!resourceAllocationForm.isNeedToEdit && (
+              <div>
+                <FormField
+                  control={form.control}
+                  name="repeat_till_week_count"
+                  render={({ field }) => (
+                    <FormItem className="w-full space-y-1">
+                      <FormControl>
+                        <div className="flex items-center w-full gap-1">
+                          <Typography variant="p">Repeat weekly for </Typography>
+
+                          <Input
+                            placeholder="0"
+                            className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0 w-16"
+                            type="text"
+                            {...field}
+                            onChange={(e) => {
+                              const number = parseInt(e.target.value);
+                              if (number) {
+                                form.setValue("repeat_till_week_count", number);
+                              } else {
+                                form.setValue("repeat_till_week_count", 0);
+                              }
+                            }}
+                            disabled={!enableRepeatOnWeek}
+                          />
+                          <Typography variant="p">weeks</Typography>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+
             <div className="grid gap-x-4 grid-cols-2">
               <FormField
                 control={form.control}
@@ -572,11 +639,7 @@ const AddResourceAllocations = ({
             <DialogFooter className="sm:justify-start w-full pt-3">
               <div className="flex gap-x-4 w-full">
                 <Button>
-                  {loadingCreation || loadingUpdation ? (
-                    <LoaderCircle className="animate-spin w-4 h-4" />
-                  ) : (
-                    <Save className="w-4 h-4" />
-                  )}
+                  {loading ? <LoaderCircle className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
                   {resourceAllocationForm.isNeedToEdit ? "Save" : "Create"}
                 </Button>
                 <Button
