@@ -41,7 +41,6 @@ import { parseFrappeErrorMsg } from "@/lib/utils";
 import { LeaveSchema } from "@/schema/timesheet";
 import { LeaveInfo } from "./leaveInfo";
 
-
 interface LeaveTimeProps {
   employee: string;
   employeeName: string;
