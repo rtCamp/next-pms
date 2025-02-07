@@ -4,16 +4,16 @@ from frappe.utils import add_days, get_first_day_of_week, get_last_day_of_week, 
 from frappe.utils.data import getdate
 
 now = nowdate()
-READ_ONLY_ROLE = "Timesheet User"
-READ_WRITE_ROLE = "Timesheet Manager"
+READ_ONLY_ROLE = ["Timesheet User", "Projects User"]
+READ_WRITE_ROLE = ["Timesheet Manager", "Projects Manager"]
 
 
 def is_timesheet_user():
-    return READ_ONLY_ROLE in frappe.get_roles()
+    return "Timesheet User" in frappe.get_roles()
 
 
 def is_timesheet_manager():
-    return READ_WRITE_ROLE in frappe.get_roles()
+    return "Timesheet Manager" in frappe.get_roles()
 
 
 def get_week_dates(date, current_week: bool = False, ignore_weekend=False):
@@ -265,3 +265,21 @@ def apply_role_permission_for_doctype(roles: list[str], doctype: str, ptype: str
 
     if not set(roles).intersection(user_roles):
         frappe.has_permission(doctype, ptype, doc, throw=True)
+
+
+def employee_has_higher_access(employee: str, ptype: str = "read") -> bool:
+    from .employee import validate_current_employee
+
+    if frappe.session.user == "Administrator":
+        return True
+    roles = frappe.get_roles()
+
+    if set(roles).intersection(READ_ONLY_ROLE + READ_WRITE_ROLE) and ptype == "read":
+        return True
+    if ptype == "write" and set(roles).intersection(READ_WRITE_ROLE):
+        return True
+    is_current_employee = validate_current_employee(employee)
+    if is_current_employee:
+        return True
+
+    return False

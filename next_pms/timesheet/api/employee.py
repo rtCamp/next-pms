@@ -136,3 +136,8 @@ def get_workable_days_for_employee(employee: str, start_date: str | datetime.dat
         "total_working_days": date_diff(end_date, start_date) + 1 - total_leave_hours - len(holidays),
         "leave_days": total_leave_hours + len(holidays),
     }
+
+
+def validate_current_employee(employee: str):
+    session_employee = get_employee_from_user()
+    return employee == session_employee
