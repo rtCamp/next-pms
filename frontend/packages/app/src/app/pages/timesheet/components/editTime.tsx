@@ -27,7 +27,7 @@ import {
   useToast,
 } from "@next-pms/design-system/components";
 import { getFormatedDate } from "@next-pms/design-system/date";
-import { floatToTime,cn } from "@next-pms/design-system/utils";
+import { floatToTime, cn } from "@next-pms/design-system/utils";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { LoaderCircle, Plus, Save, Trash2 } from "lucide-react";
 import { z } from "zod";
@@ -47,7 +47,7 @@ interface EditTimeProps {
   user: UserState;
 }
 
-export const EditTime = ({ employee, date, task, open, onClose,user }: EditTimeProps) => {
+export const EditTime = ({ employee, date, task, open, onClose, user }: EditTimeProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const hasAccess = user.roles.includes("Projects Manager") || user.roles.includes("Timesheet Manager");
 
@@ -76,6 +76,10 @@ export const EditTime = ({ employee, date, task, open, onClose,user }: EditTimeP
 
   useEffect(() => {
     if (data) {
+      if (data.message.data.length === 0) {
+        onClose();
+        return;
+      }
       const updatedData = data.message.data.map((item) => {
         return {
           ...item,
@@ -92,7 +96,6 @@ export const EditTime = ({ employee, date, task, open, onClose,user }: EditTimeP
     const newRow = {
       hours: "00:00",
       description: "",
-      is_billable: false,
       name: "",
       parent: parent,
       task: task,

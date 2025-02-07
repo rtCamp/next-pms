@@ -107,39 +107,10 @@ def find_worked_hours(timesheet_data: list, date: str, project: str = None):
     return total_hours
 
 
-def filter_employee_list(
-    employee_name=None,
-    business_unit=None,
-    designation=None,
-    page_length=10,
-    status=None,
-    reports_to=None,
-    start=0,
-    ignore_permissions=False,
-):
-    from next_pms.timesheet.api.utils import filter_employees
-
-    start = int(start)
-    page_length = int(page_length)
-
-    employees, count = filter_employees(
-        employee_name,
-        page_length=page_length,
-        start=start,
-        business_unit=business_unit,
-        designation=designation,
-        status=status,
-        reports_to=reports_to,
-        ignore_permissions=True,
-    )
-
-    return employees, count
-
-
 def filter_project_list(project_name=None, customer=None, billing_type=None, page_length=10, start=0, ids=None):
     import json
 
-    from next_pms.timesheet.api.utils import get_count
+    from next_pms.timesheet.api import get_count
 
     start = int(start)
     page_length = int(page_length)

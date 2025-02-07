@@ -4,16 +4,13 @@ from frappe.utils import add_days, get_first_day_of_week, get_last_day_of_week, 
 from frappe.utils.data import getdate
 
 now = nowdate()
-READ_ONLY_ROLE = "Timesheet User"
-READ_WRITE_ROLE = "Timesheet Manager"
+READ_ONLY_ROLE = ["Timesheet User", "Projects User"]
+READ_WRITE_ROLE = ["Timesheet Manager", "Projects Manager"]
 
 
-def is_timesheet_user():
-    return READ_ONLY_ROLE in frappe.get_roles()
-
-
-def is_timesheet_manager():
-    return READ_WRITE_ROLE in frappe.get_roles()
+def has_write_access():
+    roles = frappe.get_roles()
+    return set(roles).intersection(READ_WRITE_ROLE)
 
 
 def get_week_dates(date, current_week: bool = False, ignore_weekend=False):
@@ -56,143 +53,6 @@ def get_week_dates(date, current_week: bool = False, ignore_weekend=False):
         start_date = add_days(start_date, 1)
     data["dates"] = dates
     return data
-
-
-def filter_employees(
-    employee_name=None,
-    department=None,
-    project=None,
-    page_length=10,
-    start=0,
-    user_group=None,
-    status=None,
-    ids: list[str] | None = None,
-    reports_to: None | str = None,
-    business_unit=None,
-    designation=None,
-    ignore_default_filters=False,
-    ignore_permissions=False,
-):
-    import json
-
-    from .utils import READ_ONLY_ROLE, READ_WRITE_ROLE
-
-    roles = frappe.get_roles()
-
-    if not ignore_permissions:
-        ignore_permissions = READ_ONLY_ROLE in roles or READ_WRITE_ROLE in roles
-
-    fields = ["name", "image", "employee_name", "department", "designation"]
-    employee_ids = []
-    filters = {"status": ["in", ["Active"]]}
-    or_filters = {}
-
-    if reports_to:
-        filters["reports_to"] = reports_to
-
-    if isinstance(department, str):
-        department = json.loads(department)
-
-    if isinstance(business_unit, str):
-        business_unit = json.loads(business_unit)
-
-    if isinstance(designation, str):
-        designation = json.loads(designation)
-
-    if isinstance(status, str):
-        status = json.loads(status)
-        if len(status) > 0:
-            filters["status"] = ["in", status]
-
-    if isinstance(status, list):
-        if len(status) > 0:
-            filters["status"] = ["in", status]
-
-    if isinstance(project, str):
-        project = json.loads(project)
-
-    if isinstance(user_group, str):
-        user_group = json.loads(user_group)
-
-    if employee_name:
-        or_filters["employee_name"] = ["like", f"%{employee_name}%"]
-
-    if department and len(department) > 0:
-        filters["department"] = ["in", department]
-
-    if designation and len(designation) > 0:
-        filters["designation"] = ["in", designation]
-
-    if business_unit and len(business_unit) > 0:
-        filters["custom_business_unit"] = ["in", business_unit]
-
-    if ids:
-        employee_ids.extend(ids)
-
-    if project and len(project) > 0:
-        project_employee = frappe.get_all(
-            "DocShare",
-            filters={"share_doctype": "Project", "share_name": ["IN", project]},
-            pluck="user",
-        )
-        ids = [frappe.get_value("Employee", {"user_id": employee}) for employee in project_employee]
-        employee_ids.extend(ids)
-
-    if user_group and len(user_group) > 0:
-        users = frappe.get_all("User Group Member", pluck="user", filters={"parent": ["in", user_group]})
-        ids = [frappe.get_value("Employee", {"user_id": user}, cache=True) for user in users]
-        employee_ids.extend(ids)
-
-    if len(employee_ids) > 0:
-        filters["name"] = ["in", employee_ids]
-
-    if ignore_default_filters:
-        filters.pop("status", None)
-
-    employees = frappe.get_list(
-        "Employee",
-        fields=fields,
-        or_filters=or_filters,
-        filters=filters,
-        page_length=page_length,
-        start=start,
-        ignore_permissions=ignore_permissions,
-        order_by="employee_name asc",
-    )
-    total_count = get_count(
-        "Employee",
-        filters=filters,
-        or_filters=or_filters,
-        ignore_permissions=ignore_permissions,
-    )
-
-    return employees, total_count
-
-
-def get_count(
-    doctype: str,
-    limit: int | None = None,
-    distinct: bool = False,
-    filters=None,
-    or_filters=None,
-    ignore_permissions=False,
-) -> int:
-    from frappe.desk.reportview import execute
-
-    distinct = "distinct " if distinct else ""
-    fieldname = f"{distinct}`tab{doctype}`.name"
-
-    fieldname = [f"count({fieldname}) as total_count"]
-    count = execute(
-        doctype,
-        distinct=distinct,
-        limit=limit,
-        fields=fieldname,
-        filters=filters,
-        or_filters=or_filters,
-        ignore_permissions=ignore_permissions,
-    )[0].get("total_count")
-    return count
 
 
 def update_weekly_status_of_timesheet(employee: str, date: str):
@@ -265,3 +125,27 @@ def apply_role_permission_for_doctype(roles: list[str], doctype: str, ptype: str
 
     if not set(roles).intersection(user_roles):
         frappe.has_permission(doctype, ptype, doc, throw=True)
+
+
+def employee_has_higher_access(employee: str, ptype: str = "read") -> bool:
+    from .employee import get_employee_from_user
+
+    if frappe.session.user == "Administrator":
+        return True
+    roles = frappe.get_roles()
+    session_employee = get_employee_from_user()
+    if set(roles).intersection(["Projects Manager", "Projects User"]) and ptype == "write":
+        if employee == session_employee:
+            return True
+        else:
+            reports_to = frappe.db.get_value("Employee", employee, "reports_to")
+            if reports_to == session_employee:
+                return True
+            else:
+                return False
+    if set(roles).intersection(READ_ONLY_ROLE + READ_WRITE_ROLE) and ptype == "read":
+        return True
+    if set(roles).intersection(READ_WRITE_ROLE) and ptype == "write":
+        return True
+
+    return employee == session_employee
