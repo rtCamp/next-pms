@@ -24,7 +24,7 @@ import { Calendar, Paperclip, Plus } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import AddLeave from "@/app/components/addLeave";
+import AddLeave from "@/app/components/add-leave";
 import AddTime from "@/app/components/AddTime";
 import { TimesheetTable } from "@/app/components/timesheet-table";
 import { SubmitButton } from "@/app/components/timesheet-table/components/submitButton";
@@ -64,13 +64,13 @@ function Timesheet() {
     observer.observe(document.body, { childList: true, subtree: true });
     return () => observer.disconnect();
   }, []);
-  
+
   useEffect(() => {
     if (data) {
       if (timesheet.data?.data && Object.keys(timesheet.data?.data).length > 0) {
-        dispatch({type:"APPEND_DATA",payload:data.message});
+        dispatch({ type: "APPEND_DATA", payload: data.message });
       } else {
-        dispatch({type:"SET_DATA",payload:data.message});
+        dispatch({ type: "SET_DATA", payload: data.message });
       }
     }
     if (error) {
@@ -85,12 +85,12 @@ function Timesheet() {
 
   useEffect(() => {
     if (Object.keys(timesheet.data.data).length == 0) return;
-    if (!validateDate(startDateParam,timesheet)) {
+    if (!validateDate(startDateParam, timesheet)) {
       const obj = timesheet.data.data;
       const lastKey = Object.keys(obj).pop();
       if (!lastKey) return;
       const info = obj[lastKey];
-      dispatch({type:"SET_WEEK_DATE",payload:getFormatedDate(addDays(info.start_date, -1))})
+      dispatch({ type: "SET_WEEK_DATE", payload: getFormatedDate(addDays(info.start_date, -1)) });
     }
   }, [dispatch, startDateParam, timesheet.data.data, validateDate]);
 
@@ -119,20 +119,20 @@ function Timesheet() {
       employee: user.employee,
       project: "",
     };
-    dispatch({type:"SET_TIMESHEET",payload:timesheetData})
-    dispatch({type:"SET_DIALOG_STATE",payload:true})
+    dispatch({ type: "SET_TIMESHEET", payload: timesheetData });
+    dispatch({ type: "SET_DIALOG_STATE", payload: true });
   };
   const handleAddLeave = () => {
-    dispatch({type:"SET_LEAVE_DIALOG_STATE",payload:true})
+    dispatch({ type: "SET_LEAVE_DIALOG_STATE", payload: true });
   };
 
   const onCellClick = (data: NewTimesheetProps) => {
     data.employee = user.employee;
-    dispatch({type:"SET_TIMESHEET",payload:data})
+    dispatch({ type: "SET_TIMESHEET", payload: data });
     if (data.hours > 0) {
-      dispatch({type:"SET_EDIT_DIALOG_STATE",payload:true})
+      dispatch({ type: "SET_EDIT_DIALOG_STATE", payload: true });
     } else {
-      dispatch({type:"SET_DIALOG_STATE",payload:true})
+      dispatch({ type: "SET_DIALOG_STATE", payload: true });
     }
   };
   const loadData = () => {
@@ -143,15 +143,15 @@ function Timesheet() {
     if (!lastKey) return;
     const obj = data[lastKey];
     setStartDateParam("");
-    dispatch({type:"SET_WEEK_DATE",payload:getFormatedDate(addDays(obj.start_date, -1))})
+    dispatch({ type: "SET_WEEK_DATE", payload: getFormatedDate(addDays(obj.start_date, -1)) });
   };
   const handleApproval = (start_date: string, end_date: string) => {
     const data = {
       start_date: start_date,
       end_date: end_date,
     };
-    dispatch({type:"SET_DATE_RANGE",payload:data})
-    dispatch({type:"SET_APPROVAL_DIALOG_STATE",payload:true})
+    dispatch({ type: "SET_DATE_RANGE", payload: data });
+    dispatch({ type: "SET_APPROVAL_DIALOG_STATE", payload: true });
   };
   if (error) {
     return <></>;
@@ -304,7 +304,7 @@ function Timesheet() {
           open={timesheet.isEditDialogOpen}
           onClose={() => {
             dispatch({ type: "SET_EDIT_DIALOG_STATE", payload: false });
-            dispatch({ type: "SET_WEEK_DATE", payload: timesheet.timesheet.date })
+            dispatch({ type: "SET_WEEK_DATE", payload: timesheet.timesheet.date });
             mutate();
           }}
           user={user}
@@ -324,6 +324,7 @@ function Timesheet() {
       {timesheet.isLeaveDialogOpen && (
         <AddLeave
           employee={user.employee}
+          employeeName={user.employeeName}
           open={timesheet.isLeaveDialogOpen}
           onOpenChange={() => {
             dispatch({ type: "SET_LEAVE_DIALOG_STATE", payload: false });
