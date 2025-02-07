@@ -4,7 +4,7 @@ from erpnext.accounts.report.utils import get_rate_as_at
 from frappe import get_list, get_meta, whitelist
 from frappe.utils import flt, getdate
 
-from .utils import get_count
+from . import get_count
 
 
 @whitelist()

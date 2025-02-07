@@ -7,15 +7,10 @@ from frappe.utils.data import add_days, getdate
 
 from next_pms.resource_management.api.utils.query import get_employee_leaves
 
+from . import filter_employees
 from .employee import get_employee_working_hours
 from .timesheet import get_timesheet_state
-from .utils import (
-    filter_employees,
-    get_holidays,
-    get_week_dates,
-    is_timesheet_manager,
-    update_weekly_status_of_timesheet,
-)
+from .utils import employee_has_higher_access, get_holidays, get_week_dates, update_weekly_status_of_timesheet
 
 now = nowdate()
 
@@ -185,9 +180,8 @@ def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | s
         if str(timesheet.start_date) not in dates:
             continue
         doc = frappe.get_doc("Timesheet", timesheet.name)
-        doc.flags.ignore_permissions = is_timesheet_manager()
         doc.custom_approval_status = status
-        doc.save()
+        doc.save(ignore_permissions=employee_has_higher_access(employee, ptype="write"))
         if status == "Approved":
             doc.submit()
 
