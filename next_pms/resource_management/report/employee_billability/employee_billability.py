@@ -96,7 +96,12 @@ def get_employee_time(start_date, end_date, employee_names):
     timesheets = get_all(
         "Timesheet",
         fields=["employee", "time_logs.hours", "time_logs.is_billable"],
-        filters={"start_date": [">=", start_date], "end_date": ["<=", end_date], "employee": ["in", employee_names]},
+        filters={
+            "start_date": [">=", start_date],
+            "end_date": ["<=", end_date],
+            "employee": ["in", employee_names],
+            "docstatus": ["in", [0, 1]],
+        },
     )
 
     for employee in employee_names:

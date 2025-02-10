@@ -6,7 +6,7 @@ from frappe.query_builder import functions as fn
 from frappe.utils import getdate
 from pypika import Criterion, Order
 
-from .utils import get_count
+from . import get_count
 
 
 @frappe.whitelist()

@@ -17,9 +17,9 @@ from next_pms.resource_management.api.utils.query import (
     get_allocation_list_for_employee_for_given_range,
     get_employee_leaves,
 )
+from next_pms.timesheet.api import filter_employees
 from next_pms.timesheet.api.employee import get_employee_working_hours
 from next_pms.timesheet.api.team import get_holidays
-from next_pms.timesheet.api.utils import filter_employees
 
 
 @frappe.whitelist()

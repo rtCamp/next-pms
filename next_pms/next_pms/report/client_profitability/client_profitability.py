@@ -97,7 +97,7 @@ def get_total_hours_from_timesheet(start_date: date | str, end_date: date | str,
         .where(timesheets.start_date >= start_date)
         .where(timesheets.end_date <= end_date)
         .where(timesheets.parent_project.isin(projects))
-        .where(timesheets.docstatus == 1)
+        .where(timesheets.docstatus.isin([0, 1]))
     ).run(as_dict=True)
     return result[0].get("hours", 0.0) or 0.0 if result else 0.0
 
@@ -113,7 +113,7 @@ def get_labor_cost(start_date: date | str, end_date: date | str, projects: list[
         .where(timesheets.start_date >= start_date)
         .where(timesheets.end_date <= end_date)
         .where(timesheets.parent_project.isin(projects))
-        .where(timesheets.docstatus == 1)
+        .where(timesheets.docstatus.isin([0, 1]))
         .groupby(timesheets.currency)
     ).run(as_dict=True)
 
