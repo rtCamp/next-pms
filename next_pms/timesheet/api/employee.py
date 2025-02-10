@@ -1,4 +1,5 @@
 import datetime
+from functools import wraps
 
 import frappe
 
@@ -82,7 +83,7 @@ def get_employee_list(
     reports_to: str | None = None,
     ignore_default_filters=False,
 ):
-    from .utils import filter_employees
+    from . import filter_employees
 
     employees, count = filter_employees(
         employee_name=employee_name,
@@ -136,3 +137,20 @@ def get_workable_days_for_employee(employee: str, start_date: str | datetime.dat
         "total_working_days": date_diff(end_date, start_date) + 1 - total_leave_hours - len(holidays),
         "leave_days": total_leave_hours + len(holidays),
     }
+
+
+def validate_current_employee(ptype: str = "read"):
+    from .utils import employee_has_higher_access
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            employee = kwargs.get("employee") or (args[0] if args else None)
+
+            if not employee_has_higher_access(employee, ptype):
+                frappe.throw(frappe._("You are not authorized to perform this action."), frappe.PermissionError)
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
