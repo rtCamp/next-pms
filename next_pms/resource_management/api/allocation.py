@@ -8,7 +8,7 @@ from next_pms.resource_management.api.utils.helpers import resource_api_permissi
 def handle_allocation(allocation: object, repeat_till_week_count: int = 0):
     permission = resource_api_permissions_check()
 
-    if permission["write"]:
+    if not permission["write"]:
         return frappe.throw(frappe._("You are not allowed to perform this action."), exc=frappe.PermissionError)
 
     if not allocation:

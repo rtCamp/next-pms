@@ -287,7 +287,7 @@ const AddResourceAllocations = ({
       note: data.note,
     };
     if (resourceAllocationForm.isNeedToEdit) {
-      return handleCreateAndUpdateOfallocation({ allocation: doctypeDoc });
+      return handleCreateAndUpdateOfallocation({ allocation: { ...doctypeDoc, name: resourceAllocationForm.name } });
     }
     return handleCreateAndUpdateOfallocation({
       allocation: doctypeDoc,
