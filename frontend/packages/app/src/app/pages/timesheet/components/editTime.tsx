@@ -160,7 +160,7 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
         <DialogHeader>
           <DialogTitle>Edit Time</DialogTitle>
           <Separator />
-          <div className="flex justify-between w-full overflow-hidden">
+          <div className="flex justify-between w-full ">
             <span className="flex flex-col items-start">
               <Typography title={data?.message?.task} variant="p" className="max-w-80 truncate font-semibold">
                 {data?.message?.task}
@@ -176,7 +176,7 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
             {isLoading ? (
               <Spinner />
             ) : (
-              <div className="max-h-64 overflow-y-auto max-md:flex max-md:flex-col max-md:gap-y-3">
+              <div className=" max-md:flex max-md:flex-col max-md:gap-y-3">
                 <div className="flex flex-col max-md:hidden">
                   <div className="py-2 bg-muted rounded-lg flex items-center gap-2 h-10 mb-5">
                     {columns.map((column, key) => (
