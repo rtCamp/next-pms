@@ -37,24 +37,25 @@ import { z } from "zod";
 /**
  * Internal dependencies.
  */
-import { TimeInput } from "@/app/pages/team/employeeDetail";
 import { calculateExtendedWorkingHour, cn, parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetRejectionSchema } from "@/schema/timesheet";
 import { WorkingFrequency } from "@/types";
 import { LeaveProps, NewTimesheetProps, TaskDataItemProps, TaskDataProps, timesheet } from "@/types/timesheet";
+import { HourInput } from "../employee-detail/hourInput";
 
 type Holiday = {
   holiday_date: string;
   description: string;
 };
 interface ApprovalProp {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onClose: (data: any) => void;
-  employee:string;
-  startDate:string;
-  endDate:string;
-  isAprrovalDialogOpen:boolean
+  employee: string;
+  startDate: string;
+  endDate: string;
+  isAprrovalDialogOpen: boolean;
 }
-export const Approval = ({ onClose,employee,startDate,endDate,isAprrovalDialogOpen }: ApprovalProp) => {
+export const Approval = ({ onClose, employee, startDate, endDate, isAprrovalDialogOpen }: ApprovalProp) => {
   const { toast } = useToast();
   const [timesheetData, setTimesheetData] = useState<timesheet>();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -197,8 +198,7 @@ export const Approval = ({ onClose,employee,startDate,endDate,isAprrovalDialogOp
           <>
             <SheetHeader>
               <SheetTitle>
-                Week of {prettyDate(startDate).date} -{" "}
-                {prettyDate(endDate).date}
+                Week of {prettyDate(startDate).date} - {prettyDate(endDate).date}
               </SheetTitle>
             </SheetHeader>
             <div className="flex flex-col gap-y-4 mt-6">
@@ -292,7 +292,7 @@ export const Approval = ({ onClose,employee,startDate,endDate,isAprrovalDialogOp
                           const description = preProcessLink(task.description ?? "");
                           return (
                             <div className="flex gap-x-2 py-1 pl-1 border-b last:border-b-0" key={index}>
-                              <TimeInput
+                              <HourInput
                                 disabled={task.docstatus == 1}
                                 data={data}
                                 className="w-10 p-1 ml-6  h-8"

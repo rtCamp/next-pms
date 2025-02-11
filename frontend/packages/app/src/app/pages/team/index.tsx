@@ -29,7 +29,7 @@ import { useToast } from "@next-pms/design-system/hooks";
 import { floatToTime, preProcessLink } from "@next-pms/design-system/utils";
 import { useInfiniteScroll } from "@next-pms/hooks";
 import { useFrappeGetCall } from "frappe-react-sdk";
-import { CircleCheck, Hourglass, CircleX } from "lucide-react";
+import { CircleCheck } from "lucide-react";
 /**
  * Internal dependencies.
  */
@@ -38,10 +38,10 @@ import { TEAM, EMPLOYEE } from "@/lib/constant";
 import { parseFrappeErrorMsg, cn } from "@/lib/utils";
 import { DateProps, ItemProps, dataItem } from "@/types/team";
 import { Approval } from "./components/approval";
-import { Employee } from "./components/employee";
+import { EmployeeTimesheetTable } from "./components/employeeTimesheetTable";
 import { Header } from "./components/header";
+import { StatusIndicator } from "./components/statusIndicator";
 import { initialState, reducer } from "./reducer";
-
 
 const Team = () => {
   const { toast } = useToast();
@@ -74,16 +74,16 @@ const Team = () => {
   useEffect(() => {
     if (teamState.isNeedToFetchDataAfterUpdate) {
       mutate();
-      dispatch({type:"SET_REFETCH_DATA",payload:false});
+      dispatch({ type: "SET_REFETCH_DATA", payload: false });
     }
   }, [dispatch, mutate, teamState.isNeedToFetchDataAfterUpdate]);
 
   useEffect(() => {
     if (data) {
       if (teamState.action == "SET") {
-        dispatch({type:"SET_DATA",payload:data.message});
+        dispatch({ type: "SET_DATA", payload: data.message });
       } else {
-        dispatch({type:"UPDATE_DATA",payload:data.message});
+        dispatch({ type: "UPDATE_DATA", payload: data.message });
       }
     }
     if (error) {
@@ -99,7 +99,7 @@ const Team = () => {
   const handleLoadMore = () => {
     if (teamState.isLoading) return;
     if (!teamState.hasMore) return;
-    dispatch({type:"SET_START",payload:teamState.start + teamState.pageLength});
+    dispatch({ type: "SET_START", payload: teamState.start + teamState.pageLength });
   };
 
   const onStatusClick = (startDate: string, endDate: string, employee: string) => {
@@ -107,8 +107,8 @@ const Team = () => {
       startDate,
       endDate,
     };
-    dispatch({type:"SET_EMPLOYEE",payload:employee});
-    dispatch({type:"SET_DATE_RANGE",payload:{ dateRange: data, isAprrovalDialogOpen: true }});
+    dispatch({ type: "SET_EMPLOYEE", payload: employee });
+    dispatch({ type: "SET_DATE_RANGE", payload: { dateRange: data, isAprrovalDialogOpen: true } });
   };
 
   const cellRef = useInfiniteScroll({
@@ -127,7 +127,10 @@ const Team = () => {
           startDate={teamState.dateRange.startDate}
           onClose={() => {
             mutate();
-            dispatch({type:"SET_DATE_RANGE",payload:{ dateRange: { startDate: "", endDate: "" }, isAprrovalDialogOpen: false }});
+            dispatch({
+              type: "SET_DATE_RANGE",
+              payload: { dateRange: { startDate: "", endDate: "" }, isAprrovalDialogOpen: false },
+            });
           }}
         />
       )}
@@ -231,12 +234,12 @@ const Team = () => {
                               onStatusClick(item.data[0].date, item.data[item.data.length - 1].date, item.name);
                             }}
                           >
-                            <Status status={item.status} />
+                            <StatusIndicator status={item.status} />
                           </TableCell>
                         </span>
                       </AccordionTrigger>
                       <AccordionContent className="pb-0">
-                        <Employee teamState={teamState} employee={item.name} />
+                        <EmployeeTimesheetTable teamState={teamState} employee={item.name} />
                       </AccordionContent>
                     </AccordionItem>
                   </Accordion>
@@ -256,19 +259,6 @@ const Team = () => {
       )}
     </>
   );
-};
-
-export const Status = ({ status, className }: { status: string; className?: string }) => {
-  if (status === "Approval Pending") {
-    return <Hourglass className={cn("w-4 h-4 stroke-warning", className)} />;
-  }
-  if (status === "Approved" || status === "Partially Approved") {
-    return <CircleCheck className={cn("w-4 h-4 stroke-success", className)} />;
-  }
-  if (status === "Rejected" || status === "Partially Rejected") {
-    return <CircleX className={cn("w-4 h-4 stroke-destructive", className)} />;
-  }
-  return <CircleCheck className={cn("w-4 h-4", className)} />;
 };
 
 export default Team;
