@@ -6,7 +6,8 @@ import { floatToTime } from "@next-pms/design-system/utils";
 /**
  * Internal dependencies
  */
-import { calculateWeeklyHour, cn } from "@/lib/utils";
+import { calculateExtendedWorkingHour, cn, calculateWeeklyHour } from "@/lib/utils";
+
 import { WorkingFrequency } from "@/types";
 type weekTotalProps = {
   total: number;
@@ -26,16 +27,16 @@ type weekTotalProps = {
  * @param {string} props.className - Class name for the component
  */
 export const WeekTotal = ({ total, expected_hour, frequency, className }: weekTotalProps) => {
-  const expectedWeekTime = calculateWeeklyHour(expected_hour, frequency);
+  const isExtended = calculateExtendedWorkingHour(total, calculateWeeklyHour(expected_hour, frequency), frequency);
   return (
     <TableCell className={cn(className)}>
       <Typography
         variant="p"
         className={cn(
           "text-right font-medium",
-          expectedWeekTime == total && "text-success",
-          expectedWeekTime < 2 && "text-warning",
-          expectedWeekTime > total && "text-destructive"
+          isExtended == 0 && "text-destructive",
+          isExtended && "text-success",
+          isExtended == 2 && "text-warning"
         )}
       >
         {floatToTime(total)}

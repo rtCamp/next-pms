@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { floatToTime } from "@next-pms/design-system";
 import { getUTCDateTime, normalizeDate } from "@next-pms/design-system/date";
 import { toast } from "@next-pms/design-system/hooks";
 import { type ClassValue, clsx } from "clsx";
@@ -10,11 +11,14 @@ import { twMerge } from "tailwind-merge";
 /**
  * Internal dependencies.
  */
+import { timeStringToFloat } from "@/schema/timesheet";
 import { TScreenSize } from "@/store/app";
 import { WorkingFrequency } from "@/types";
 import { HolidayProp } from "@/types/timesheet";
 
-export const NO_VALUE_FIELDS = ["Section Break", "Column Break",
+export const NO_VALUE_FIELDS = [
+  "Section Break",
+  "Column Break",
   "Tab Break",
   "HTML",
   "Table",
@@ -22,7 +26,8 @@ export const NO_VALUE_FIELDS = ["Section Break", "Column Break",
   "Button",
   "Image",
   "Fold",
-  "Heading"];
+  "Heading",
+];
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -65,42 +70,46 @@ export function removeHtmlString(data: string) {
   return data.replace(/<\/?[^>]+(>|$)/g, "");
 }
 
-
 export function calculateExtendedWorkingHour(
   hours: number,
   expected_hours: number,
-  frequency: WorkingFrequency,
+  frequency: WorkingFrequency
 ) {
+  const flotTime = floatToTime(hours);
+  const timeToFloat = timeStringToFloat(flotTime);
   if (frequency === "Per Day") {
-    if (hours > expected_hours) {
+    if (timeToFloat > expected_hours) {
       return 2;
-    } else if (hours < expected_hours) {
+    } else if (timeToFloat < expected_hours) {
       return 0;
     } else {
       return 1;
     }
   }
   const perDay = expected_hours / 5;
-  if (hours > perDay) {
+  if (timeToFloat > perDay) {
     return 2;
-  } else if (hours < perDay) {
+  } else if (timeToFloat < perDay) {
     return 0;
   } else {
     return 1;
   }
 }
 
-export function calculateWeeklyHour(expected_hours: number, frequency: WorkingFrequency
+export function calculateWeeklyHour(
+  expected_hours: number,
+  frequency: WorkingFrequency
 ) {
   if (frequency === "Per Day") {
     return expected_hours * 5;
   } else {
     return expected_hours;
   }
-
 }
 
-export const expectatedHours = (expected_hours: number, frequency: WorkingFrequency
+export const expectatedHours = (
+  expected_hours: number,
+  frequency: WorkingFrequency
 ): number => {
   if (frequency === "Per Day") {
     return expected_hours;
@@ -190,21 +199,22 @@ export const getErrorMessages = (error: Error) => {
 };
 
 export const checkIsMobile = () => {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-}
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
+};
 
 export const copyToClipboard = (text: string) => {
-  navigator.clipboard.writeText(text)
-  toast({ title: "Copied to clipboard", variant: "success" })
-}
-
+  navigator.clipboard.writeText(text);
+  toast({ title: "Copied to clipboard", variant: "success" });
+};
 
 export const canExport = (doctype: string) => {
   return window.frappe?.boot?.user?.can_export?.includes(doctype) ?? true;
-}
+};
 export const canCreate = (doctype: string) => {
   return window.frappe?.boot?.user?.can_create?.includes(doctype) ?? true;
-}
+};
 
 export const currencyFormat = (currency: string) => {
   return new Intl.NumberFormat("en-IN", {
@@ -215,7 +225,7 @@ export const currencyFormat = (currency: string) => {
 
 export const getBgCsssForToday = (date: string) => {
   return isToday(getUTCDateTime(date)) ? "bg-slate-100" : "";
-}
+};
 
 export const isDateInRange = (
   date: string,
