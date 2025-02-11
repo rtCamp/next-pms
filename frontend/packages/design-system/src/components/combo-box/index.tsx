@@ -7,11 +7,11 @@ import { Check } from "lucide-react";
 /**
  * Internal Dependencies
  */
-import { Button, Checkbox } from "../index";
+import { cn, deBounce } from "../../utils";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../command";
+import { Button, Checkbox } from "../index";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 import { default as Typography } from "../typography";
-import { cn, deBounce } from "../../utils";
 
 export type ComboBoxProp = {
   isOpen?: boolean;
@@ -60,7 +60,7 @@ const ComboBox = ({
       return;
     }
     setSelectedValues([]);
-    onSelect && onSelect([]);
+    onSelect?.([]);
     setOpen(!open);
   };
   const handleComboClose = () => {
@@ -70,7 +70,7 @@ const ComboBox = ({
     if (!isMulti) {
       if (selectedValues.includes(value)) return clearFilter();
       setSelectedValues([value]);
-      onSelect && onSelect([value]);
+      onSelect?.([value]);
       setOpen(false);
       return;
     }
@@ -81,12 +81,12 @@ const ComboBox = ({
       values.push(value);
     }
     setSelectedValues(values);
-    onSelect && onSelect(values);
+    onSelect?.(values);
   };
 
   useEffect(() => {
     if (selectedValues.length == 0) {
-      onunSelect && onunSelect();
+      onunSelect?.();
     }
   }, [onunSelect, selectedValues.length]);
 
@@ -99,7 +99,7 @@ const ComboBox = ({
   };
 
   const onInputChange = deBounce((search) => {
-    onSearch && onSearch(search);
+    onSearch?.(search);
   }, deBounceTime);
 
   return (

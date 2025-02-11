@@ -7,8 +7,8 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { buttonVariants } from "../button/buttonVariants";
 import { cn } from "../../utils";
+import { buttonVariants } from "../button/buttonVariants";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
