@@ -2,7 +2,7 @@
  * External dependencies.
  */
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { ErrorFallback, Typography, Button } from "@next-pms/design-system/components";
@@ -24,8 +24,8 @@ import { Home, Users } from "lucide-react";
  */
 
 import { HOME, PROJECT, RESOURCE_MANAGEMENT, ROLES, TASK, TEAM, TIMESHEET } from "@/lib/constant";
-import { cn } from "@/lib/utils";
-import { setSidebarCollapsed } from "@/store/user";
+import { checkIsMobile, cn } from "@/lib/utils";
+
 import UserNavigation from "./userNavigation";
 import ViewLoader from "./viewLoader";
 import logo from "../../../logo.svg";
@@ -53,9 +53,9 @@ type Route = {
 const Sidebar = () => {
   const user = useSelector((state: RootState) => state.user);
   const viewInfo = useSelector((state: RootState) => state.view);
-  const screenSize = useSelector((state: RootState) => state.app.screenSize);
+  const [isMobile, setIsMobile] = useState(checkIsMobile());
+  // const isMobile = checkIsMobile();
 
-  const dispatch = useDispatch();
   const location = useLocation();
 
   const [openRoutes, setOpenRoutes] = useState<{ [key: string]: boolean }>({
@@ -135,26 +135,23 @@ const Sidebar = () => {
     setOpenRoutes((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const handleCollapse = () => {
-    dispatch(setSidebarCollapsed(!user.isSidebarCollapsed));
+  const handleResize = () => {
+    setIsMobile(checkIsMobile());
   };
   useEffect(() => {
-    if (screenSize === "sm" || screenSize === "md") {
-      dispatch(setSidebarCollapsed(true));
-    } else {
-      dispatch(setSidebarCollapsed(false));
-    }
-  }, [screenSize]);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <ErrorFallback>
       <aside
         className={cn(
           "bg-slate-100  w-1/5 transition-all duration-300 ease-in-out px-4 py-4 flex flex-col ",
-          user.isSidebarCollapsed && "w-16 items-center"
+          isMobile && "w-16 items-center"
         )}
       >
-        <div className={cn("flex shrink-0 gap-x-2 items-center ", !user.isSidebarCollapsed && "px-2")} id="app-logo">
+        <div className={cn("flex shrink-0 gap-x-2 items-center ", !isMobile && "px-2")} id="app-logo">
           <img
             src={logo}
             alt="app-logo"
@@ -165,7 +162,7 @@ const Sidebar = () => {
             variant="h5"
             className={cn(
               "transition-all cursor-pointer duration-300 truncate ease-in-out max-md:hidden ",
-              user.isSidebarCollapsed && "hidden"
+              isMobile && "hidden"
             )}
           >
             Next PMS
@@ -183,17 +180,14 @@ const Sidebar = () => {
                     className={cn(
                       "flex items-center gap-x-2 w-full text-left p-2 hover:bg-slate-200 rounded-lg",
                       openRoutes[route.key] && "bg-slate-200",
-                      user.isSidebarCollapsed && "hidden"
+                      isMobile && "hidden"
                     )}
                     onClick={() => toggleNestedRoutes(route.key)}
                   >
                     <route.icon className="w-4 h-4 shrink-0" />
                     <Typography
                       variant="p"
-                      className={cn(
-                        "transition-all duration-300 ease-in-out truncate",
-                        user.isSidebarCollapsed && "hidden"
-                      )}
+                      className={cn("transition-all duration-300 ease-in-out truncate", isMobile && "hidden")}
                     >
                       {route.label}
                     </Typography>
@@ -207,8 +201,8 @@ const Sidebar = () => {
                     className={cn(
                       "transition-all duration-300 ease-in-out flex flex-col gap-y-1",
                       openRoutes[route.key] ? "flex" : "hidden",
-                      !user.isSidebarCollapsed && "pl-2 pt-2",
-                      user.isSidebarCollapsed && "flex"
+                      !isMobile && "pl-2 pt-2",
+                      isMobile && "flex"
                     )}
                   >
                     {route.children.map((child: NestedRoute) => {
@@ -224,7 +218,7 @@ const Sidebar = () => {
                             className={cn(
                               "flex w-full p-2 rounded-lg items-center py-2 hover:bg-slate-200 text-primary gap-x-2 max-md:justify-center",
                               isChildActive && "bg-primary shadow-md hover:bg-slate-700 ",
-                              !user.isSidebarCollapsed && "pl-3"
+                              !isMobile && "pl-3"
                             )}
                           >
                             {child.icon && (
@@ -237,7 +231,7 @@ const Sidebar = () => {
                               className={cn(
                                 "transition-all duration-300 ease-in-out text-white truncate",
                                 !isChildActive && "text-primary",
-                                user.isSidebarCollapsed && "hidden"
+                                isMobile && "hidden"
                               )}
                             >
                               {child.label}
@@ -268,7 +262,7 @@ const Sidebar = () => {
                         className={cn(
                           "transition-all duration-300 ease-in-out text-white",
                           !isActive && "text-primary",
-                          user.isSidebarCollapsed && "hidden"
+                          isMobile && "hidden"
                         )}
                       >
                         {route.label}
@@ -281,7 +275,7 @@ const Sidebar = () => {
           </div>
           <ViewLoader
             label="Private Views"
-            isSidebarCollapsed={user.isSidebarCollapsed}
+            isSidebarCollapsed={isMobile}
             openRoutes={openRoutes}
             hasPmRole={hasPmRole}
             id="private_view"
@@ -290,7 +284,7 @@ const Sidebar = () => {
           />
           <ViewLoader
             label="Public Views"
-            isSidebarCollapsed={user.isSidebarCollapsed}
+            isSidebarCollapsed={isMobile}
             openRoutes={openRoutes}
             hasPmRole={hasPmRole}
             views={publicViews}
@@ -299,22 +293,18 @@ const Sidebar = () => {
           />
         </div>
         <div className="grow"></div>
-        <div className={cn("flex justify-between items-center", user.isSidebarCollapsed && "flex-col ")}>
-          <UserNavigation />
-          {screenSize !== "sm" && screenSize !== "md" && (
-            <Button
-              variant="ghost"
-              className="justify-end shrink-0 gap-x-2 transition-all duration-300 ease-in-out h-6"
-              onClick={handleCollapse}
-            >
-              <ArrowLeftToLine
-                className={cn(
-                  "stroke-primary h-4 w-4 transition-all duration-600",
-                  user.isSidebarCollapsed && "rotate-180"
-                )}
-              />
-            </Button>
-          )}
+        <div className={cn("flex justify-between items-center", isMobile && "flex-col ")}>
+          <UserNavigation user={user} isMobile={isMobile} />
+
+          <Button
+            variant="ghost"
+            className="justify-end shrink-0 gap-x-2 max-md:hidden transition-all duration-300 ease-in-out h-6"
+            onClick={() => setIsMobile(!isMobile)}
+          >
+            <ArrowLeftToLine
+              className={cn("stroke-primary h-4 w-4 transition-all duration-600", isMobile && "rotate-180")}
+            />
+          </Button>
         </div>
       </aside>
     </ErrorFallback>

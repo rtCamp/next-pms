@@ -12,7 +12,7 @@ import { twMerge } from "tailwind-merge";
  * Internal dependencies.
  */
 import { timeStringToFloat } from "@/schema/timesheet";
-import { TScreenSize } from "@/store/app";
+
 import { WorkingFrequency } from "@/types";
 import { HolidayProp } from "@/types/timesheet";
 
@@ -117,31 +117,6 @@ export const expectatedHours = (
   return expected_hours / 5;
 };
 
-export const checkScreenSize = (): TScreenSize => {
-  const width = window.innerWidth;
-
-  if (width < 640) {
-    return "sm";
-  } else if (width >= 640 && width < 768) {
-    return "md";
-  } else if (width >= 768 && width < 1024) {
-    return "lg";
-  } else if (width >= 1024 && width < 1280) {
-    return "xl";
-  } else {
-    return "2xl";
-  }
-};
-
-export const createFalseValuedObject = (obj) => {
-  const newFalseValueObject: { [key: string]: boolean } = {};
-  if (Object.keys(obj).length > 0) {
-    for (const key of obj) {
-      newFalseValueObject[key] = true;
-    }
-  }
-  return newFalseValueObject;
-};
 export const isLiked = (likedBy: string, user: string) => {
   if (likedBy) {
     likedBy = JSON.parse(likedBy);
@@ -210,9 +185,11 @@ export const copyToClipboard = (text: string) => {
 };
 
 export const canExport = (doctype: string) => {
+  // @ts-expect-error - frappe is global object provided by frappe
   return window.frappe?.boot?.user?.can_export?.includes(doctype) ?? true;
 };
 export const canCreate = (doctype: string) => {
+  // @ts-expect-error - frappe is global object provided by frappe
   return window.frappe?.boot?.user?.can_create?.includes(doctype) ?? true;
 };
 

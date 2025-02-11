@@ -13,7 +13,7 @@ import { TIMESHEET, HOME, TEAM, TASK, PROJECT, RESOURCE_MANAGEMENT, ROLES } from
 import { UserContext } from "@/lib/UserProvider";
 import { default as Layout } from "./app/layout";
 import { RootState } from "./store";
-import { setCurrency } from "./store/app";
+import { setCurrency } from "./store/user";
 import { setRole } from "./store/user";
 import { setViews } from "./store/view";
 /**

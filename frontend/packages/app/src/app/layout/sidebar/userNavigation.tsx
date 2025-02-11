@@ -2,7 +2,6 @@
  * External dependencies.
  */
 import { useContext } from "react";
-import { useSelector } from "react-redux";
 import {
   ErrorFallback,
   Typography,
@@ -24,8 +23,12 @@ import { UserContext } from "@/lib/UserProvider";
 import { cn } from "@/lib/utils";
 import { RootState } from "@/store";
 
-const UserNavigation = () => {
-  const user = useSelector((state: RootState) => state.user);
+interface UserNavigationProps {
+  user: RootState["user"];
+  isMobile: boolean;
+}
+
+const UserNavigation = ({ user, isMobile }: UserNavigationProps) => {
   const { logout } = useContext(UserContext);
   return (
     <ErrorFallback>
@@ -39,7 +42,7 @@ const UserNavigation = () => {
             variant="p"
             className={cn(
               "transition-all duration-800 max-md:hidden overflow-hidden max-w-full max-lg:1/3 truncate",
-              user.isSidebarCollapsed && "hidden"
+              isMobile && "hidden"
             )}
           >
             {user.userName}

@@ -32,11 +32,11 @@ export interface UserState {
   workingFrequency: WorkingFrequency;
   reportsTo: string;
   employeeName: string;
+  currencies: Array<string>;
 }
 
-
 const initialState: UserState = {
-  //@ts-ignore
+  // @ts-expect-error - frappe is global object provided by frappe
   roles: window.frappe?.boot?.user?.roles ?? [],
   userName: decodeURIComponent(fullName as string) ?? "",
   image: userImage ?? "",
@@ -47,7 +47,8 @@ const initialState: UserState = {
   workingHours: 0,
   workingFrequency: "Per Day",
   reportsTo: "",
-
+  // @ts-expect-error - frappe is global object provided by frappe
+  currencies: window.frappe?.boot?.currencies ?? [],
 };
 
 const userSlice = createSlice({
@@ -64,7 +65,7 @@ const userSlice = createSlice({
       state.image = action.payload;
     },
     setReportsTo: (state, action: PayloadAction<string>) => {
-      state.reportsTo = action.payload
+      state.reportsTo = action.payload;
     },
     setSidebarCollapsed: (state, action: PayloadAction<boolean>) => {
       state.isSidebarCollapsed = action.payload;
@@ -72,12 +73,15 @@ const userSlice = createSlice({
     setEmployee: (state, action: PayloadAction<string>) => {
       state.employee = action.payload;
     },
+    setCurrency: (state, action: PayloadAction<Array<string>>) => {
+      state.currencies = action.payload;
+    },
     setWorkingDetail: (
       state,
       action: PayloadAction<{
         workingHours: number;
         workingFrequency: WorkingFrequency;
-      }>,
+      }>
     ) => {
       state.workingHours = action.payload.workingHours;
       state.workingFrequency = action.payload.workingFrequency;
@@ -88,7 +92,7 @@ const userSlice = createSlice({
       state.workingFrequency = action.payload.workingFrequency;
       state.reportsTo = action.payload.reportsTo;
       state.employeeName = action.payload.employeeName;
-    }
+    },
   },
 });
 
@@ -99,7 +103,8 @@ export const {
   setSidebarCollapsed,
   setEmployee,
   setWorkingDetail,
-  setInitialData
+  setInitialData,
+  setCurrency,
 } = userSlice.actions;
 
 export default userSlice.reducer;
