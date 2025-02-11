@@ -20,7 +20,7 @@ interface EmployeeProps {
   teamState: TeamState;
 }
 
-export const Employee = ({ employee,teamState }: EmployeeProps) => {
+export const Employee = ({ employee, teamState }: EmployeeProps) => {
   const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<string>("");
   const { data, isLoading } = useFrappeGetCall("next_pms.timesheet.api.timesheet.get_timesheet_data", {
