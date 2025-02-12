@@ -7,8 +7,8 @@ import { Input } from "@next-pms/design-system/components";
 /**
  * Internal dependencies
  */
-import { timeStringToFloat } from "../../../../schema/timesheet";
-import { NewTimesheetProps } from "../../../../types/timesheet";
+import { timeStringToFloat } from "@/schema/timesheet";
+import { NewTimesheetProps } from "@/types/timesheet";
 
 type HourInputprops = {
   data: NewTimesheetProps;
@@ -60,7 +60,7 @@ export const HourInput = ({ data, employee, disabled = false, className, callbac
     <Input
       ref={inputRef}
       defaultValue={hour}
-      className={cn("w-20", className)}
+      className={cn("w-20 text-sm", className)}
       onBlur={updateTime}
       onChange={handleHourChange}
       disabled={disabled}

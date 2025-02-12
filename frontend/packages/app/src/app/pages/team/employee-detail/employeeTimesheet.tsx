@@ -19,9 +19,9 @@ import { Calendar, Paperclip } from "lucide-react";
  * Internal dependencies
  */
 import { TimesheetTable } from "@/app/components/timesheet-table";
-import { copyToClipboard, expectatedHours, getTimesheetHours, isDateInRange } from "../../../../lib/utils";
-import { NewTimesheetProps, timesheet } from "../../../../types/timesheet";
-import ExpandableHours from "../../timesheet/components/expandableHours";
+import ExpandableHours from "@/app/pages/timesheet/components/expandableHours";
+import { copyToClipboard, expectatedHours, getTimesheetHours, isDateInRange } from "@/lib/utils";
+import { NewTimesheetProps, timesheet } from "@/types/timesheet";
 import { StatusIndicator } from "../components/statusIndicator";
 import { Action, TeamState } from "../reducer";
 

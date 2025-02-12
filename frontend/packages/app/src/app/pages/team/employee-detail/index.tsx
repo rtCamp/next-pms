@@ -21,16 +21,23 @@ import { Plus } from "lucide-react";
 /**
  * Internal dependencies
  */
-import { parseFrappeErrorMsg } from "../../../../lib/utils";
-import { Main } from "../../../layout/root";
-import { InfiniteScroll } from "../../resource_management/components/infiniteScroll";
+import { Main } from "@/app/layout/root";
+import { InfiniteScroll } from "@/app/pages/resource_management/components/infiniteScroll";
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import { initialState, reducer } from "../reducer";
 import { validateDate } from "../utils";
+import EmployeeTimesheetList from "./employee-timesheet-list";
 import { EmployeeTimesheet } from "./employeeTimesheet";
-import { EmployeeTimesheetList } from "./employeeTimesheetList";
 import { EmployeeDetailHeader } from "./header";
 
-const EmployeeDetail = () => {
+/**
+ * EmployeeDetail component
+ *
+ * This component displays employee's timesheets in grid as well as list formate.
+ *
+ * @returns {JSX.Element} The rendered EmployeeDetail component.
+ */
+const EmployeeDetail = (): JSX.Element => {
   const { id } = useParams();
   const [teamState, dispatch] = useReducer(reducer, initialState);
 
