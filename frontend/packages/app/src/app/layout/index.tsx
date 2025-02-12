@@ -11,9 +11,8 @@ import { useFrappeGetCall } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import Sidebar from "@/app/layout/sidebar";
-import { checkScreenSize, parseFrappeErrorMsg } from "@/lib/utils";
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
-import { updateScreenSize } from "@/store/app";
 import { setInitialData } from "@/store/user";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
@@ -46,32 +45,13 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, error]);
 
-  const screenSize = useSelector((state: RootState) => state.app.screenSize);
-  const handleScreenSize = () => {
-    dispatch(updateScreenSize(checkScreenSize()));
-  };
-
-  useEffect(() => {
-    window.addEventListener("resize", handleScreenSize);
-    () => {
-      window.removeEventListener("resize", handleScreenSize);
-    };
-  }, []);
-
   return (
     <ErrorFallback>
       <div className="flex flex-row h-screen w-full">
         <ErrorFallback>
           <Sidebar />
         </ErrorFallback>
-        <div
-          className="w-full overflow-hidden"
-          style={{
-            width: `${screenSize === "sm" || screenSize === "md" ? "calc(100% - 64px)" : "100%"}`,
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
+        <div className="w-full overflow-hidden flex flex-col">
           {(user.employee || user.user == "Administrator") && (
             <>
               <Suspense fallback={<></>}>

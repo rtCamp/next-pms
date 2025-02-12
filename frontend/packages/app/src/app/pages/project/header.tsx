@@ -3,7 +3,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {useToast} from "@next-pms/design-system/hooks"
+import { useToast } from "@next-pms/design-system/hooks";
 /**
  * Internal dependencies
  */
@@ -45,7 +45,7 @@ export const Header = ({
   setStateUpdated,
 }: HeaderProps) => {
   const projectState = useSelector((state: RootState) => state.project);
-  const appInfo = useSelector((state: RootState) => state.app);
+  const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
   const { toast } = useToast();
 
@@ -132,7 +132,7 @@ export const Header = ({
 
   useEffect(() => {
     mutateTagData();
-  }, [setTagSearchTerm]);
+  }, [mutateTagData, setTagSearchTerm]);
 
   const handleTagChange = (tag: string[]) => {
     dispatch(setTag(tag));
@@ -241,7 +241,7 @@ export const Header = ({
       queryParameterName: "currency",
       label: "Currency",
       value: projectState.currency,
-      data: appInfo.currencies.map((currency) => ({
+      data: user.currencies.map((currency) => ({
         label: currency,
         value: currency,
       })),
