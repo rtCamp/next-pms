@@ -20,16 +20,13 @@ import { Check, LoaderCircle } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { calculateExtendedWorkingHour, cn, parseFrappeErrorMsg } from "@/lib/utils";
+import { calculateExtendedWorkingHour, cn, expectatedHours, parseFrappeErrorMsg } from "@/lib/utils";
 import { WorkingFrequency } from "@/types";
-import { LeaveProps, NewTimesheetProps, TaskDataItemProps, TaskDataProps, timesheet } from "@/types/timesheet";
+import { HolidayProp, LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
 import { RejectTimesheet } from "./rejectTimesheet";
 import { EmployeeTimesheetListItem } from "../employee-detail/employee-timesheet-list/timesheetListItem";
+import { getTaskDataForDate, getTimesheetHourForDate } from "../utils";
 
-type Holiday = {
-  holiday_date: string;
-  description: string;
-};
 interface ApprovalProp {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onClose: (data: any) => void;
@@ -45,7 +42,7 @@ export const Approval = ({ onClose, employee, startDate, endDate, isAprrovalDial
   const [isRejecting, setIsRejecting] = useState<boolean>(false);
   const [workingHour, setWorkingHour] = useState<number>(0);
   const [WorkingFrequency, setWorkingFrequency] = useState<WorkingFrequency>("Per Day");
-  const [holidays, setHoliday] = useState<Array<Holiday>>([]);
+  const [holidays, setHoliday] = useState<Array<HolidayProp>>([]);
   const [leaves, setLeave] = useState<LeaveProps[]>([]);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
 
@@ -146,7 +143,7 @@ export const Approval = ({ onClose, employee, startDate, endDate, isAprrovalDial
       setSelectedDates(filteredDates ?? []);
     }
   }, [holidays, leaves, timesheetData]);
-
+  const dailyWorkingHour = expectatedHours(workingHour, WorkingFrequency);
   return (
     <Sheet open={isAprrovalDialogOpen} onOpenChange={handleOpen} modal={true}>
       <SheetContent className="md:max-w-4xl w-full sm:max-w-full overflow-auto ">
@@ -163,63 +160,36 @@ export const Approval = ({ onClose, employee, startDate, endDate, isAprrovalDial
               <div>
                 {timesheetData &&
                   timesheetData.dates.map((date: string, index: number) => {
-                    const matchingTasks = Object.entries(timesheetData.tasks).flatMap(
-                      ([, task]: [string, TaskDataProps]) =>
-                        task.data
-                          .filter(
-                            (taskItem: TaskDataItemProps) => getDateFromDateAndTimeString(taskItem.from_time) === date
-                          )
-                          .map((taskItem: TaskDataItemProps) => ({
-                            ...taskItem,
-                            subject: task.subject,
-                            project_name: task.project_name,
-                          }))
-                    );
-                    let totalHours = matchingTasks.reduce((sum, task) => sum + task.hours, 0);
+                    const matchingTasks = getTaskDataForDate(timesheetData.tasks, date);
+                    const data = getTimesheetHourForDate(date, matchingTasks, holidays, leaves, dailyWorkingHour);
                     const isChecked = selectedDates.includes(date);
-                    const holiday = holidays.find((holiday) => holiday.holiday_date === date);
-                    const isHoliday = !!holiday;
                     const submittedTime = matchingTasks?.some(
                       (timesheet) =>
                         getDateFromDateAndTimeString(timesheet.from_time) === date && timesheet.docstatus === 1
                     );
-                    const leave = leaves.filter((data: LeaveProps) => {
-                      return date >= data.from_date && date <= data.to_date;
-                    });
-                    let isHalfDayLeave = false;
-                    if (leave.length > 0 && !isHoliday) {
-                      leave.forEach((data: LeaveProps) => {
-                        isHalfDayLeave = data.half_day && data.half_day_date == date;
-                        if (isHalfDayLeave) {
-                          totalHours += workingHour / 2;
-                        } else {
-                          totalHours += workingHour;
-                        }
-                      });
-                    }
-                    const isExtended = calculateExtendedWorkingHour(totalHours, workingHour, WorkingFrequency);
+                    const isExtended = calculateExtendedWorkingHour(data.totalHours, workingHour, WorkingFrequency);
                     return (
                       <EmployeeTimesheetListItem
                         employee={employee}
-                        hasLeave={leave.length > 0}
+                        hasLeave={data.hasLeave}
                         showCheckbox
                         onCheckedChange={handleCheckboxChange}
                         checkboxClassName={cn(submittedTime && "data-[state=checked]:bg-success border-success")}
                         isCheckboxChecked={isChecked || submittedTime}
                         isCheckboxDisabled={
                           submittedTime ||
-                          isHoliday ||
-                          (leave.length != 0 && !isHoliday && matchingTasks.length == 0) ||
+                          data.isHoliday ||
+                          (data.hasLeave && !data.isHoliday && matchingTasks.length == 0) ||
                           matchingTasks.length == 0
                         }
                         tasks={matchingTasks}
                         date={date}
                         isTimeExtended={isExtended}
-                        isHoliday={isHoliday}
-                        holidayDescription={holiday?.description}
+                        isHoliday={data.isHoliday}
+                        holidayDescription={data.holidayDescription}
                         dailyWorkingHour={workingHour}
-                        totalHours={totalHours}
-                        isHalfDayLeave={isHalfDayLeave}
+                        totalHours={data.totalHours}
+                        isHalfDayLeave={data.isHalfDayLeave}
                         index={index}
                         handleTimeChange={handleTimeChange}
                         hourInputClassName="max-sm:ml-0 "

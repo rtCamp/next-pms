@@ -10,7 +10,6 @@ import {
   Button,
   Separator,
 } from "@next-pms/design-system/components";
-import { getDateFromDateAndTimeString } from "@next-pms/design-system/date";
 import { useToast } from "@next-pms/design-system/hooks";
 import { floatToTime } from "@next-pms/design-system/utils";
 import { useFrappePostCall } from "frappe-react-sdk";
@@ -30,10 +29,11 @@ import {
   isDateInRange,
   parseFrappeErrorMsg,
 } from "@/lib/utils";
-import { LeaveProps, NewTimesheetProps, TaskDataItemProps, TaskDataProps, timesheet } from "@/types/timesheet";
+import { NewTimesheetProps, timesheet } from "@/types/timesheet";
 import { EmployeeTimesheetListItem } from "./timesheetListItem";
 import { StatusIndicator } from "../../components/statusIndicator";
 import { Action, TeamState } from "../../reducer";
+import { getTaskDataForDate, getTimesheetHourForDate } from "../../utils";
 
 type EmployeeTimesheetListProps = {
   callback?: () => void;
@@ -174,54 +174,32 @@ const EmployeeTimesheetList = ({
                   }
                 >
                   {value.dates.map((date: string, index: number) => {
-                    const matchingTasks = Object.entries(value.tasks).flatMap(([, task]: [string, TaskDataProps]) =>
-                      task.data
-                        .filter(
-                          (taskItem: TaskDataItemProps) => getDateFromDateAndTimeString(taskItem.from_time) === date
-                        )
-                        .map((taskItem: TaskDataItemProps) => ({
-                          ...taskItem,
-                          subject: task.subject,
-                          project_name: task.project_name,
-                        }))
+                    const matchingTasks = getTaskDataForDate(value.tasks, date);
+                    const data = getTimesheetHourForDate(
+                      date,
+                      matchingTasks,
+                      teamState.timesheetData.holidays,
+                      teamState.timesheetData.leaves,
+                      dailyWorkingHour
                     );
-                    const holiday = teamState.timesheetData.holidays.find(
-                      (holiday) => typeof holiday !== "string" && holiday.holiday_date === date
-                    );
-                    const isHoliday = !!holiday;
-                    let totalHours = matchingTasks.reduce((sum, task) => sum + task.hours, 0);
-                    const leave = teamState.timesheetData.leaves.filter((data: LeaveProps) => {
-                      return date >= data.from_date && date <= data.to_date;
-                    });
 
-                    let isHalfDayLeave = false;
-                    if (leave.length > 0 && !isHoliday) {
-                      leave.forEach((data: LeaveProps) => {
-                        isHalfDayLeave = data.half_day && data.half_day_date == date;
-                        if (isHalfDayLeave) {
-                          totalHours += dailyWorkingHour / 2;
-                        } else {
-                          totalHours += dailyWorkingHour;
-                        }
-                      });
-                    }
                     const isExtended = calculateExtendedWorkingHour(
-                      totalHours,
+                      data.totalHours,
                       teamState.timesheetData.working_hour,
                       teamState.timesheetData.working_frequency
                     );
                     return (
                       <EmployeeTimesheetListItem
                         employee={teamState.employee}
-                        hasLeave={leave.length > 0}
+                        hasLeave={data.hasLeave}
                         tasks={matchingTasks}
                         date={date}
                         isTimeExtended={isExtended}
-                        isHoliday={isHoliday}
-                        holidayDescription={holiday?.description}
+                        isHoliday={data.isHoliday}
+                        holidayDescription={data.holidayDescription}
                         dailyWorkingHour={dailyWorkingHour}
-                        totalHours={totalHours}
-                        isHalfDayLeave={isHalfDayLeave}
+                        totalHours={data.totalHours}
+                        isHalfDayLeave={data.isHalfDayLeave}
                         index={index}
                         handleTimeChange={handleTimeChange}
                         onTaskClick={(name) => {
