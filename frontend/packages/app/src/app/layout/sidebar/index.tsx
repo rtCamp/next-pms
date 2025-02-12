@@ -13,7 +13,6 @@ import {
   ClipboardList,
   Clock3,
   FolderDot,
-  GanttChart,
   FolderKanban,
   BookUser,
   GanttChartSquareIcon,
@@ -105,7 +104,6 @@ const Sidebar = () => {
     },
     {
       to: RESOURCE_MANAGEMENT,
-      icon: GanttChart,
       label: "Resource Management",
       key: "resource-management",
       isPmRoute: false,
@@ -173,35 +171,35 @@ const Sidebar = () => {
             {routes.map((route: Route) => {
               if (route.isPmRoute && !hasPmRole) return null;
               return route.children ? (
-                <div key={route.key}>
+                <>
                   <Button
+                    key={route.key}
                     variant="ghost"
                     title={route.label}
                     className={cn(
-                      "flex items-center gap-x-2 w-full text-left p-2 hover:bg-slate-200 rounded-lg",
+                      "flex items-center gap-x-2 justify-start w-full text-left p-2 hover:bg-slate-200 rounded-lg",
                       openRoutes[route.key] && "bg-slate-200",
                       isMobile && "hidden"
                     )}
                     onClick={() => toggleNestedRoutes(route.key)}
                   >
-                    <route.icon className="w-4 h-4 shrink-0" />
+                    {openRoutes[route.key] ? (
+                      <ChevronUp className=" w-4 h-4 shrink-0" />
+                    ) : (
+                      <ChevronDown className=" w-4 h-4 shrink-0" />
+                    )}
                     <Typography
                       variant="p"
                       className={cn("transition-all duration-300 ease-in-out truncate", isMobile && "hidden")}
                     >
                       {route.label}
                     </Typography>
-                    {openRoutes[route.key] ? (
-                      <ChevronUp className="ml-auto w-4 h-4 shrink-0" />
-                    ) : (
-                      <ChevronDown className="ml-auto w-4 h-4 shrink-0" />
-                    )}
                   </Button>
                   <div
                     className={cn(
                       "transition-all duration-300 ease-in-out flex flex-col gap-y-1",
                       openRoutes[route.key] ? "flex" : "hidden",
-                      !isMobile && "pl-2 pt-2",
+                      !isMobile && "pl-2",
                       isMobile && "flex"
                     )}
                   >
@@ -216,7 +214,7 @@ const Sidebar = () => {
                         >
                           <div
                             className={cn(
-                              "flex w-full p-2 rounded-lg items-center py-2 hover:bg-slate-200 text-primary gap-x-2 max-md:justify-center",
+                              "flex w-full p-2 rounded-lg items-center  hover:bg-slate-200 text-primary gap-x-2 max-md:justify-center",
                               isChildActive && "bg-primary shadow-md hover:bg-slate-700 ",
                               !isMobile && "pl-3"
                             )}
@@ -241,7 +239,7 @@ const Sidebar = () => {
                       );
                     })}
                   </div>
-                </div>
+                </>
               ) : (
                 <NavLink
                   to={route.to}
