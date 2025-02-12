@@ -11,6 +11,7 @@ import {
   AccordionItem,
   AccordionTrigger,
   Spinner,
+  Typography,
 } from "@next-pms/design-system/components";
 import { useToast } from "@next-pms/design-system/components";
 import { getUTCDateTime, getFormatedDate } from "@next-pms/design-system/date";
@@ -24,18 +25,15 @@ import { Calendar, Paperclip, Plus } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import AddLeave from "@/app/components/add-leave";
-import AddTime from "@/app/components/AddTime";
 import { TimesheetTable } from "@/app/components/timesheet-table";
 import { SubmitButton } from "@/app/components/timesheet-table/components/submitButton";
 import { Header, Main } from "@/app/layout/root";
-import { parseFrappeErrorMsg, expectatedHours, copyToClipboard, isDateInRange } from "@/lib/utils";
+import { parseFrappeErrorMsg, expectatedHours, copyToClipboard, isDateInRange, getTimesheetHours } from "@/lib/utils";
 import { RootState } from "@/store";
 import { WorkingFrequency } from "@/types";
-import { HolidayProp, LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
-import { Approval } from "./components/approval";
-import { EditTime } from "./components/editTime";
+import { NewTimesheetProps, timesheet } from "@/types/timesheet";
 import ExpandableHours from "./components/expandableHours";
+import { Footer } from "./components/footer";
 import { initialState, reducer } from "./reducer";
 import { validateDate } from "./utils";
 import { InfiniteScroll } from "../resource_management/components/infiniteScroll";
@@ -47,7 +45,7 @@ function Timesheet() {
   const [startDateParam, setStartDateParam] = useQueryParam<string>("date", "");
   const user = useSelector((state: RootState) => state.user);
   const [timesheet, dispatch] = useReducer(reducer, initialState);
-  const working_hour = expectatedHours(user.workingHours, user.workingFrequency);
+  const dailyWorkingHour = expectatedHours(user.workingHours, user.workingFrequency);
   const { data, isLoading, error, mutate } = useFrappeGetCall("next_pms.timesheet.api.timesheet.get_timesheet_data", {
     employee: user.employee,
     start_date: timesheet.weekDate,
@@ -92,6 +90,7 @@ function Timesheet() {
       const info = obj[lastKey];
       dispatch({ type: "SET_WEEK_DATE", payload: getFormatedDate(addDays(info.start_date, -1)) });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, startDateParam, timesheet.data.data, validateDate]);
 
   const { call: fetchLikedTask, loading: loadingLikedTasks } = useFrappePostCall(
@@ -107,6 +106,7 @@ function Timesheet() {
 
   useEffect(() => {
     getLikedTaskData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleAddTime = () => {
@@ -153,9 +153,7 @@ function Timesheet() {
     dispatch({ type: "SET_DATE_RANGE", payload: data });
     dispatch({ type: "SET_APPROVAL_DIALOG_STATE", payload: true });
   };
-  if (error) {
-    return <></>;
-  }
+
   return (
     <>
       <Header className="justify-end gap-x-3">
@@ -172,169 +170,92 @@ function Timesheet() {
       {isLoading && Object.keys(timesheet.data?.data).length == 0 ? (
         <Spinner isFull />
       ) : (
-        <div className="w-full h-full overflow-y-auto">
-          <InfiniteScroll isLoading={isLoading} hasMore={true} verticalLodMore={loadData} className="w-full">
-            <Main>
-              {timesheet.data?.data &&
-                Object.keys(timesheet.data?.data).length > 0 &&
-                Object.entries(timesheet.data?.data).map(([key, value]: [string, timesheet]) => {
-                  let total_hours = value.total_hours;
-                  let timeoff_hours = 0;
-                  value.dates.map((date) => {
-                    let isHoliday = false;
-                    const holiday = timesheet.data.holidays.find(
-                      (holiday: HolidayProp) => holiday.holiday_date === date
+        <>
+          {Object.keys(timesheet.data?.data).length == 0 ? (
+            <Typography className="flex items-center justify-center">No Data</Typography>
+          ) : (
+            <Main className="w-full h-full overflow-y-auto">
+              <InfiniteScroll isLoading={isLoading} hasMore={true} verticalLodMore={loadData} className="w-full">
+                {timesheet.data?.data &&
+                  Object.keys(timesheet.data?.data).length > 0 &&
+                  Object.entries(timesheet.data?.data).map(([key, value]: [string, timesheet]) => {
+                    const data = getTimesheetHours(
+                      value.dates,
+                      value.total_hours,
+                      timesheet.data.leaves,
+                      timesheet.data.holidays,
+                      dailyWorkingHour
                     );
-                    if (holiday) {
-                      isHoliday = true;
-                      if (!holiday.weekly_off) {
-                        total_hours += working_hour;
-                      }
-                    }
-                    const leaveData = timesheet.data.leaves.filter((data: LeaveProps) => {
-                      return date >= data.from_date && date <= data.to_date;
-                    });
-
-                    if (leaveData.length > 0 && !isHoliday) {
-                      leaveData.forEach((data: LeaveProps) => {
-                        const isHalfDayLeave = data.half_day && data.half_day_date == date;
-                        if (isHalfDayLeave) {
-                          total_hours += working_hour / 2;
-                          timeoff_hours += working_hour / 2;
-                        } else {
-                          total_hours += working_hour;
-                          timeoff_hours += working_hour;
-                        }
-                      });
-                    }
-                  });
-                  return (
-                    <Accordion type="single" collapsible key={key} defaultValue={key}>
-                      <AccordionItem value={key}>
-                        <AccordionTrigger className="hover:no-underline w-full py-2 max-md:[&>svg]:hidden">
-                          <div className="flex justify-between items-center w-full group gap-2 ">
-                            <div className="font-normal text-xs sm:text-base flex items-center gap-x-2 max-md:gap-x-3 sm:flex-row overflow-x-auto no-scrollbar max-md:w-4/5">
-                              <span className="flex items-center gap-2 shrink-0">
-                                <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
-                                <h2 className="font-medium">{key}</h2>
-                              </span>
-                              <Separator orientation="vertical" className="block h-5 shrink-0" />
-                              <ExpandableHours
-                                totalHours={floatToTime(total_hours)}
-                                workingHours={floatToTime(total_hours - timeoff_hours)}
-                                timeoffHours={floatToTime(timeoff_hours)}
-                              />
-                              <Paperclip
-                                className="w-3 h-3 hidden group-hover:block shrink-0"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setStartDateParam(getFormatedDate(value.start_date));
-                                  copyToClipboard(
-                                    `${window.location.origin}${window.location.pathname}?date="${value.start_date}"`
-                                  );
-                                }}
+                    return (
+                      <Accordion type="single" collapsible key={key} defaultValue={key}>
+                        <AccordionItem value={key}>
+                          <AccordionTrigger className="hover:no-underline w-full py-2 max-md:[&>svg]:hidden">
+                            <div className="flex justify-between items-center w-full group gap-2 ">
+                              <div className="font-normal text-xs sm:text-base flex items-center gap-x-2 max-md:gap-x-3 sm:flex-row overflow-x-auto no-scrollbar max-md:w-4/5">
+                                <span className="flex items-center gap-2 shrink-0">
+                                  <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
+                                  <h2 className="font-medium">{key}</h2>
+                                </span>
+                                <Separator orientation="vertical" className="block h-5 shrink-0" />
+                                <ExpandableHours
+                                  totalHours={floatToTime(data.totalHours)}
+                                  workingHours={floatToTime(data.totalHours - data.timeOffHours)}
+                                  timeoffHours={floatToTime(data.timeOffHours)}
+                                />
+                                <Paperclip
+                                  className="w-3 h-3 hidden group-hover:block shrink-0"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setStartDateParam(getFormatedDate(value.start_date));
+                                    copyToClipboard(
+                                      `${window.location.origin}${window.location.pathname}?date="${value.start_date}"`
+                                    );
+                                  }}
+                                />
+                              </div>
+                              <SubmitButton
+                                start_date={value.start_date}
+                                end_date={value.end_date}
+                                onApproval={handleApproval}
+                                status={value.status}
                               />
                             </div>
-                            <SubmitButton
-                              start_date={value.start_date}
-                              end_date={value.end_date}
-                              onApproval={handleApproval}
-                              status={value.status}
+                          </AccordionTrigger>
+                          <AccordionContent
+                            className="pb-0"
+                            ref={
+                              !isEmpty(startDateParam) &&
+                              isDateInRange(startDateParam, value.start_date, value.end_date)
+                                ? targetRef
+                                : null
+                            }
+                          >
+                            <TimesheetTable
+                              workingHour={timesheet.data.working_hour}
+                              workingFrequency={timesheet.data.working_frequency as WorkingFrequency}
+                              dates={value.dates}
+                              holidays={timesheet.data.holidays}
+                              leaves={timesheet.data.leaves}
+                              tasks={value.tasks}
+                              onCellClick={onCellClick}
+                              weeklyStatus={value.status}
+                              disabled={value.status === "Approved"}
+                              importTasks={true}
+                              loadingLikedTasks={loadingLikedTasks}
+                              likedTaskData={likedTaskData}
+                              getLikedTaskData={getLikedTaskData}
                             />
-                          </div>
-                        </AccordionTrigger>
-                        <AccordionContent
-                          className="pb-0"
-                          ref={
-                            !isEmpty(startDateParam) && isDateInRange(startDateParam, value.start_date, value.end_date)
-                              ? targetRef
-                              : null
-                          }
-                        >
-                          <TimesheetTable
-                            workingHour={timesheet.data.working_hour}
-                            workingFrequency={timesheet.data.working_frequency as WorkingFrequency}
-                            dates={value.dates}
-                            holidays={timesheet.data.holidays}
-                            leaves={timesheet.data.leaves}
-                            tasks={value.tasks}
-                            onCellClick={onCellClick}
-                            weeklyStatus={value.status}
-                            disabled={value.status === "Approved"}
-                            importTasks={true}
-                            loadingLikedTasks={loadingLikedTasks}
-                            likedTaskData={likedTaskData}
-                            getLikedTaskData={getLikedTaskData}
-                          />
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                  );
-                })}
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    );
+                  })}
+              </InfiniteScroll>
             </Main>
-          </InfiniteScroll>
-        </div>
+          )}
+        </>
       )}
-      {timesheet.isDialogOpen && (
-        <AddTime
-          open={timesheet.isDialogOpen}
-          onOpenChange={(data) => {
-            dispatch({ type: "SET_DIALOG_STATE", payload: false });
-            dispatch({ type: "SET_WEEK_DATE", payload: data?.date });
-            mutate();
-          }}
-          onSuccess={(data) => {
-            dispatch({ type: "SET_WEEK_DATE", payload: data?.date });
-            mutate();
-          }}
-          initialDate={timesheet.timesheet.date}
-          employee={user.employee}
-          workingFrequency={user.workingFrequency}
-          workingHours={user.workingHours}
-          task={timesheet.timesheet.task}
-          project={timesheet.timesheet.project}
-          employeeName={user.employeeName}
-        />
-      )}
-      {timesheet.isEditDialogOpen && (
-        <EditTime
-          employee={timesheet.timesheet.employee as string}
-          date={timesheet.timesheet.date}
-          task={timesheet.timesheet.task}
-          open={timesheet.isEditDialogOpen}
-          onClose={() => {
-            dispatch({ type: "SET_EDIT_DIALOG_STATE", payload: false });
-            dispatch({ type: "SET_WEEK_DATE", payload: timesheet.timesheet.date });
-            mutate();
-          }}
-          user={user}
-        />
-      )}
-      {timesheet.isAprrovalDialogOpen && (
-        <Approval
-          user={user}
-          dispatch={dispatch}
-          timesheetState={timesheet}
-          onClose={(data) => {
-            dispatch({ type: "SET_WEEK_DATE", payload: data.start_date });
-            mutate();
-          }}
-        />
-      )}
-      {timesheet.isLeaveDialogOpen && (
-        <AddLeave
-          employee={user.employee}
-          employeeName={user.employeeName}
-          open={timesheet.isLeaveDialogOpen}
-          onOpenChange={() => {
-            dispatch({ type: "SET_LEAVE_DIALOG_STATE", payload: false });
-            mutate();
-          }}
-          onSuccess={() => {
-            mutate();
-          }}
-        />
-      )}
+      <Footer timesheet={timesheet} user={user} dispatch={dispatch} callback={mutate} />
     </>
   );
 }

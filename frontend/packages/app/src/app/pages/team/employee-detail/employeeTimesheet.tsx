@@ -19,8 +19,8 @@ import { Calendar, Paperclip } from "lucide-react";
  * Internal dependencies
  */
 import { TimesheetTable } from "@/app/components/timesheet-table";
-import { copyToClipboard, expectatedHours, isDateInRange } from "../../../../lib/utils";
-import { LeaveProps, NewTimesheetProps, timesheet } from "../../../../types/timesheet";
+import { copyToClipboard, expectatedHours, getTimesheetHours, isDateInRange } from "../../../../lib/utils";
+import { NewTimesheetProps, timesheet } from "../../../../types/timesheet";
 import ExpandableHours from "../../timesheet/components/expandableHours";
 import { StatusIndicator } from "../components/statusIndicator";
 import { Action, TeamState } from "../reducer";
@@ -97,41 +97,23 @@ export const EmployeeTimesheet = ({
     };
     dispatch({ type: "SET_DATE_RANGE", payload: { dateRange: data, isAprrovalDialogOpen: true } });
   };
-  const working_hour = expectatedHours(teamState.timesheetData.working_hour, teamState.timesheetData.working_frequency);
+  const dailyWorkingHour = expectatedHours(
+    teamState.timesheetData.working_hour,
+    teamState.timesheetData.working_frequency
+  );
   return (
     <>
       {teamState.timesheetData.data &&
         Object.keys(teamState.timesheetData.data).length > 0 &&
         Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet]) => {
-          let total_hours = value.total_hours;
-          let timeoff_hours = 0;
-          value.dates.map((date) => {
-            let isHoliday = false;
-            const leaveData = teamState.timesheetData.leaves.filter((data: LeaveProps) => {
-              return date >= data.from_date && date <= data.to_date;
-            });
-            const holiday = teamState.timesheetData.holidays.find((holiday) => holiday.holiday_date === date);
+          const data = getTimesheetHours(
+            value.dates,
+            value.total_hours,
+            teamState.timesheetData.leaves,
+            teamState.timesheetData.holidays,
+            dailyWorkingHour
+          );
 
-            if (holiday) {
-              isHoliday = true;
-              if (!holiday.weekly_off) {
-                total_hours += working_hour;
-              }
-            }
-
-            if (leaveData.length > 0 && !isHoliday) {
-              leaveData.forEach((data: LeaveProps) => {
-                const isHalfDayLeave = data.half_day && data.half_day_date == date;
-                if (isHalfDayLeave) {
-                  total_hours += working_hour / 2;
-                  timeoff_hours += working_hour / 2;
-                } else {
-                  total_hours += working_hour;
-                  timeoff_hours += working_hour;
-                }
-              });
-            }
-          });
           return (
             <Accordion type="single" key={key} collapsible defaultValue={key}>
               <AccordionItem value={key}>
@@ -144,9 +126,9 @@ export const EmployeeTimesheet = ({
                       </span>
                       <Separator orientation="vertical" className="block h-5 shrink-0" />
                       <ExpandableHours
-                        totalHours={floatToTime(total_hours)}
-                        workingHours={floatToTime(total_hours - timeoff_hours)}
-                        timeoffHours={floatToTime(timeoff_hours)}
+                        totalHours={floatToTime(data.totalHours)}
+                        workingHours={floatToTime(data.totalHours - data.timeOffHours)}
+                        timeoffHours={floatToTime(data.timeOffHours)}
                       />
                       <Paperclip
                         className="w-3 h-3 hidden group-hover:block shrink-0"

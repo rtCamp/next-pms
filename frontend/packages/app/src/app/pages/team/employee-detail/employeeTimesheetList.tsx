@@ -25,6 +25,7 @@ import {
   cn,
   copyToClipboard,
   expectatedHours,
+  getTimesheetHours,
   isDateInRange,
   parseFrappeErrorMsg,
 } from "../../../../lib/utils";
@@ -110,15 +111,11 @@ export const EmployeeTimesheetList = ({
     };
     dispatch({ type: "SET_DATE_RANGE", payload: { dateRange: data, isAprrovalDialogOpen: true } });
   };
-  const holidays = teamState.timesheetData.holidays.map((holiday) => {
-    if (typeof holiday === "object" && "holiday_date" in holiday) {
-      return holiday.holiday_date;
-    } else {
-      return holiday;
-    }
-  });
 
-  const working_hour = expectatedHours(teamState.timesheetData.working_hour, teamState.timesheetData.working_frequency);
+  const dailyWorkingHour = expectatedHours(
+    teamState.timesheetData.working_hour,
+    teamState.timesheetData.working_frequency
+  );
 
   return (
     <>
@@ -128,26 +125,14 @@ export const EmployeeTimesheetList = ({
       {teamState.timesheetData.data &&
         Object.keys(teamState.timesheetData.data).length > 0 &&
         Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet]) => {
-          let total_hours = value.total_hours;
-          let timeoff_hours = 0;
-          value.dates.map((date) => {
-            const leaveData = teamState.timesheetData.leaves.filter((data: LeaveProps) => {
-              return date >= data.from_date && date <= data.to_date;
-            });
-            const isHoliday = holidays.includes(date);
-            if (leaveData.length > 0 && !isHoliday) {
-              leaveData.forEach((data: LeaveProps) => {
-                const isHalfDayLeave = data.half_day && data.half_day_date == date;
-                if (isHalfDayLeave) {
-                  total_hours += working_hour / 2;
-                  timeoff_hours += working_hour / 2;
-                } else {
-                  total_hours += working_hour;
-                  timeoff_hours += working_hour;
-                }
-              });
-            }
-          });
+          const data = getTimesheetHours(
+            value.dates,
+            value.total_hours,
+            teamState.timesheetData.leaves,
+            teamState.timesheetData.holidays,
+            dailyWorkingHour
+          );
+
           return (
             <Accordion type="multiple" key={key} defaultValue={Object.keys(teamState.timesheetData.data)}>
               <AccordionItem value={key}>
@@ -160,9 +145,9 @@ export const EmployeeTimesheetList = ({
                       </span>
                       <Separator orientation="vertical" className="block h-5 shrink-0" />
                       <ExpandableHours
-                        totalHours={floatToTime(total_hours)}
-                        workingHours={floatToTime(total_hours - timeoff_hours)}
-                        timeoffHours={floatToTime(timeoff_hours)}
+                        totalHours={floatToTime(data.totalHours)}
+                        workingHours={floatToTime(data.totalHours - data.timeOffHours)}
+                        timeoffHours={floatToTime(data.timeOffHours)}
                       />
                       <Paperclip
                         className="w-3 h-3 hidden group-hover:block shrink-0"
@@ -222,9 +207,9 @@ export const EmployeeTimesheetList = ({
                       leave.forEach((data: LeaveProps) => {
                         isHalfDayLeave = data.half_day && data.half_day_date == date;
                         if (isHalfDayLeave) {
-                          totalHours += working_hour / 2;
+                          totalHours += dailyWorkingHour / 2;
                         } else {
-                          totalHours += working_hour;
+                          totalHours += dailyWorkingHour;
                         }
                       });
                     }
@@ -254,7 +239,7 @@ export const EmployeeTimesheetList = ({
                           )}
                           {leave.length > 0 && !isHoliday && (
                             <Typography variant="p" className="text-gray-600">
-                              ({isHalfDayLeave && totalHours != working_hour ? "Half day leave" : "Full Day Leave"})
+                              ({isHalfDayLeave && totalHours != dailyWorkingHour ? "Half day leave" : "Full Day Leave"})
                             </Typography>
                           )}
                         </div>
