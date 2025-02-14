@@ -27,10 +27,10 @@ export const EmployeeDetailHeader = ({ state, dispatch, callback, employeeId }: 
     {
       filters: { name: employeeId },
     },
-    undefined,
+    "employeedetail/header/" + employeeId,
     {
       errorRetryCount: 1,
-      revalidateOnFocus: false,
+      revalidateOnFocus: true,
       revalidateIfStale: false,
     }
   );
