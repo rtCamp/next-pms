@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
 import { useLocation } from "react-router-dom";
@@ -16,8 +16,9 @@ import {
   FolderKanban,
   BookUser,
   GanttChartSquareIcon,
+  Home,
+  Users,
 } from "lucide-react";
-import { Home, Users } from "lucide-react";
 /**
  * Internal dependencies.
  */
@@ -176,7 +177,7 @@ const Sidebar = () => {
             {routes.map((route: Route) => {
               if (route.isPmRoute && !hasPmRole) return null;
               return route.children ? (
-                <>
+                <React.Fragment key={route.key}>
                   <Button
                     key={route.key}
                     variant="ghost"
@@ -243,7 +244,7 @@ const Sidebar = () => {
                       );
                     })}
                   </div>
-                </>
+                </React.Fragment>
               ) : (
                 <NavLink
                   to={route.to}
