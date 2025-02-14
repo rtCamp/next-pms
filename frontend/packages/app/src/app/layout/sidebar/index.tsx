@@ -23,8 +23,8 @@ import { Home, Users } from "lucide-react";
  */
 
 import { HOME, PROJECT, RESOURCE_MANAGEMENT, ROLES, TASK, TEAM, TIMESHEET } from "@/lib/constant";
+import { getLocalStorage, setLocalStorage } from "@/lib/storage";
 import { checkIsMobile, cn } from "@/lib/utils";
-
 import UserNavigation from "./userNavigation";
 import ViewLoader from "./viewLoader";
 import logo from "../../../logo.svg";
@@ -52,8 +52,7 @@ type Route = {
 const Sidebar = () => {
   const user = useSelector((state: RootState) => state.user);
   const viewInfo = useSelector((state: RootState) => state.view);
-  const [isMobile, setIsMobile] = useState(checkIsMobile());
-  // const isMobile = checkIsMobile();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(getLocalStorage("next-pms:isSidebarCollapsed"));
 
   const location = useLocation();
 
@@ -133,23 +132,29 @@ const Sidebar = () => {
     setOpenRoutes((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const handleResize = () => {
-    setIsMobile(checkIsMobile());
+  const handleSidebarCollapse = () => {
+    setIsSidebarCollapsed(checkIsMobile());
   };
   useEffect(() => {
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    setLocalStorage("next-pms:isSidebarCollapsed", isSidebarCollapsed);
+  }, [isSidebarCollapsed]);
+  useEffect(() => {
+    if (checkIsMobile()) {
+      setIsSidebarCollapsed(true);
+    }
+    window.addEventListener("resize", handleSidebarCollapse);
+    return () => window.removeEventListener("resize", handleSidebarCollapse);
   }, []);
 
   return (
     <ErrorFallback>
       <aside
         className={cn(
-          "bg-slate-100  w-1/5 transition-all duration-300 ease-in-out px-4 py-4 flex flex-col ",
-          isMobile && "w-16 items-center"
+          "bg-slate-100  w-1/5 transition-all duration-300 ease-in-out px-4 py-4 flex flex-col",
+          isSidebarCollapsed && "w-16 items-center"
         )}
       >
-        <div className={cn("flex shrink-0 gap-x-2 items-center ", !isMobile && "px-2")} id="app-logo">
+        <div className={cn("flex shrink-0 gap-x-2 items-center", !isSidebarCollapsed && "px-2")} id="app-logo">
           <img
             src={logo}
             alt="app-logo"
@@ -159,8 +164,8 @@ const Sidebar = () => {
             title="Next PMS"
             variant="h5"
             className={cn(
-              "transition-all cursor-pointer duration-300 truncate ease-in-out max-md:hidden ",
-              isMobile && "hidden"
+              "transition-all cursor-pointer duration-300 truncate ease-in-out max-md:hidden",
+              isSidebarCollapsed && "hidden"
             )}
           >
             Next PMS
@@ -179,7 +184,7 @@ const Sidebar = () => {
                     className={cn(
                       "flex items-center gap-x-2 justify-start w-full text-left p-2 hover:bg-slate-200 rounded-lg",
                       openRoutes[route.key] && "bg-slate-200",
-                      isMobile && "hidden"
+                      isSidebarCollapsed && "hidden"
                     )}
                     onClick={() => toggleNestedRoutes(route.key)}
                   >
@@ -190,7 +195,7 @@ const Sidebar = () => {
                     )}
                     <Typography
                       variant="p"
-                      className={cn("transition-all duration-300 ease-in-out truncate", isMobile && "hidden")}
+                      className={cn("transition-all duration-300 ease-in-out truncate", isSidebarCollapsed && "hidden")}
                     >
                       {route.label}
                     </Typography>
@@ -199,8 +204,7 @@ const Sidebar = () => {
                     className={cn(
                       "transition-all duration-300 ease-in-out flex flex-col gap-y-1",
                       openRoutes[route.key] ? "flex" : "hidden",
-                      !isMobile && "pl-2",
-                      isMobile && "flex"
+                      isSidebarCollapsed ? "flex" : "pl-2"
                     )}
                   >
                     {route.children.map((child: NestedRoute) => {
@@ -216,7 +220,7 @@ const Sidebar = () => {
                             className={cn(
                               "flex w-full p-2 rounded-lg items-center  hover:bg-slate-200 text-primary gap-x-2 max-md:justify-center",
                               isChildActive && "bg-primary shadow-md hover:bg-slate-700 ",
-                              !isMobile && "pl-3"
+                              !isSidebarCollapsed && "pl-3"
                             )}
                           >
                             {child.icon && (
@@ -229,7 +233,7 @@ const Sidebar = () => {
                               className={cn(
                                 "transition-all duration-300 ease-in-out text-white truncate",
                                 !isChildActive && "text-primary",
-                                isMobile && "hidden"
+                                isSidebarCollapsed && "hidden"
                               )}
                             >
                               {child.label}
@@ -258,9 +262,9 @@ const Sidebar = () => {
                       <Typography
                         variant="p"
                         className={cn(
-                          "transition-all duration-300 ease-in-out text-white",
+                          "transition-all duration-300 ease-in-out text-white ",
                           !isActive && "text-primary",
-                          isMobile && "hidden"
+                          isSidebarCollapsed && "hidden"
                         )}
                       >
                         {route.label}
@@ -273,7 +277,7 @@ const Sidebar = () => {
           </div>
           <ViewLoader
             label="Private Views"
-            isSidebarCollapsed={isMobile}
+            isSidebarCollapsed={isSidebarCollapsed}
             openRoutes={openRoutes}
             hasPmRole={hasPmRole}
             id="private_view"
@@ -282,7 +286,7 @@ const Sidebar = () => {
           />
           <ViewLoader
             label="Public Views"
-            isSidebarCollapsed={isMobile}
+            isSidebarCollapsed={isSidebarCollapsed}
             openRoutes={openRoutes}
             hasPmRole={hasPmRole}
             views={publicViews}
@@ -291,16 +295,16 @@ const Sidebar = () => {
           />
         </div>
         <div className="grow"></div>
-        <div className={cn("flex justify-between items-center", isMobile && "flex-col ")}>
-          <UserNavigation user={user} isMobile={isMobile} />
+        <div className={cn("flex justify-between items-center", isSidebarCollapsed && "flex-col")}>
+          <UserNavigation user={user} isSidebarCollapsed={isSidebarCollapsed} />
 
           <Button
             variant="ghost"
             className="justify-end shrink-0 gap-x-2 max-md:hidden transition-all duration-300 ease-in-out h-6"
-            onClick={() => setIsMobile(!isMobile)}
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           >
             <ArrowLeftToLine
-              className={cn("stroke-primary h-4 w-4 transition-all duration-600", isMobile && "rotate-180")}
+              className={cn("stroke-primary h-4 w-4 transition-all duration-600", isSidebarCollapsed && "rotate-180")}
             />
           </Button>
         </div>

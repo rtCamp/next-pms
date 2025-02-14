@@ -173,9 +173,12 @@ export const getErrorMessages = (error: Error) => {
 };
 
 export const checkIsMobile = () => {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-    navigator.userAgent
-  );
+  const width = window.innerWidth;
+  if (width < 769) {
+    return true;
+  } else {
+    return false;
+  }
 };
 
 export const copyToClipboard = (text: string) => {

@@ -24,7 +24,7 @@ const ExpandableHours = ({ totalHours, workingHours, timeoffHours }: ExpandableH
       >
         <span className="flex items-center gap-2 shrink-0">
           <Clock className="w-4 h-4 text-primary shrink-0" />
-          <Typography className="text-sm max-md:text-xs hover:underline font-medium">{totalHours}h</Typography>
+          <Typography className="text-sm  hover:underline font-medium">{totalHours}h</Typography>
         </span>
         {isExpanded ? <ChevronLeft className="" /> : <ChevronRight className="" />}
         {isExpanded && (
@@ -32,7 +32,7 @@ const ExpandableHours = ({ totalHours, workingHours, timeoffHours }: ExpandableH
             <span className="flex items-center text-sm shrink-0">
               <span className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-green-500" />
-                <Typography className="text-sm max-md:text-xs font-medium">{workingHours}h</Typography>
+                <Typography className="text-sm  font-medium">{workingHours}h</Typography>
                 <span className="text-muted-foreground text-xs">Work</span>
               </span>
             </span>
@@ -40,7 +40,7 @@ const ExpandableHours = ({ totalHours, workingHours, timeoffHours }: ExpandableH
             <span className="flex items-center text-sm shrink-0">
               <span className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-warning" />
-                <Typography className="text-sm max-md:text-xs font-medium">{timeoffHours}h</Typography>
+                <Typography className="text-sm  font-medium">{timeoffHours}h</Typography>
                 <span className="text-muted-foreground text-xs">Time Off</span>
               </span>
             </span>
