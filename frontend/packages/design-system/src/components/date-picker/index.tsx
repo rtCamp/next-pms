@@ -8,11 +8,11 @@ import { Calendar as CalendarIcon } from "lucide-react";
 /**
  * Internal dependencies
  */
+import { getUTCDateTime, getDisplayDate } from "../../utils/date";
 import { default as Button } from "../button";
 import { default as Calendar, CalendarProps } from "../calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 import Typography from "../typography";
-import { getUTCDateTime, getDisplayDate } from "../../utils/date";
 
 export type DatePickerProp = CalendarProps & {
   date?: Date | string;
@@ -36,7 +36,7 @@ const DatePicker = ({ date, disabled, onDateChange, disabledDates, ...props }: D
 
   const onDateSelect = (date: Date) => {
     setPickerDate(date);
-    onDateChange && onDateChange(date);
+    onDateChange?.(date);
     setIsOpen(false);
   };
 

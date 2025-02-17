@@ -7,7 +7,7 @@ import { configureStore } from "@reduxjs/toolkit";
 /**
  * Internal dependencies.
  */
-import appReducer from "./app";
+
 import projectReducer from "./project";
 import resourceTeamReducer from "./resource_management/team";
 import userReducer from "./user";
@@ -15,14 +15,12 @@ import viewReducer from "./view";
 import resourceProjectReducer from "./resource_management/project";
 import resourceAllocationFormReducer from "./resource_management/allocation";
 
-
 export const store = configureStore({
   reducer: {
     user: userReducer,
     resource_team: resourceTeamReducer,
     resource_project: resourceProjectReducer,
     resource_allocation_form: resourceAllocationFormReducer,
-    app: appReducer,
     project: projectReducer,
     view: viewReducer,
   },

@@ -8,8 +8,8 @@ import { Slot } from "@radix-ui/react-slot";
 /**
  * Internal dependencies.
  */
-import Label from "../label";
 import { cn } from "../../utils";
+import Label from "../label";
 import { FormFieldContext, FormItemContext, useFormField } from "./hooks";
 
 const Form = FormProvider;

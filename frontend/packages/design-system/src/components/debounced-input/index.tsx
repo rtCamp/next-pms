@@ -6,8 +6,8 @@ import { Search, X } from "lucide-react";
 /**
  * Internal dependencies
  */
-import { default as Input, InputProps } from "../input";
 import { cn, deBounce } from "../../utils";
+import { default as Input, InputProps } from "../input";
 
 export interface DeBounceInputProps extends InputProps {
   callback?: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -18,7 +18,7 @@ const DeBouncedInput = ({ value, className, callback, deBounceValue = 400, ...pr
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const onInputChange = useCallback(
     deBounce((e: React.ChangeEvent<HTMLInputElement>) => {
-      callback && callback(e);
+      callback?.(e);
     }, deBounceValue),
     []
   );

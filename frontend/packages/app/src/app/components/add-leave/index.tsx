@@ -272,7 +272,7 @@ const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSucces
                               <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select Half" />
                               </SelectTrigger>
-                              <SelectContent side="top">
+                              <SelectContent>
                                 <SelectItem value="First Half">First Half</SelectItem>
                                 <SelectItem value="Second Half">Second Half</SelectItem>
                               </SelectContent>

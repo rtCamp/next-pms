@@ -9,8 +9,8 @@ import { Search, X } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { Dialog, DialogContent } from "../dialog";
 import { cn } from "../../utils";
+import { Dialog, DialogContent } from "../dialog";
 
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,
@@ -27,9 +27,7 @@ const Command = React.forwardRef<
 ));
 Command.displayName = CommandPrimitive.displayName;
 
-interface CommandDialogProps extends DialogProps {}
-
-const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
+const CommandDialog = ({ children, ...props }: DialogProps) => {
   return (
     <Dialog {...props}>
       <DialogContent className="overflow-hidden p-0 shadow-lg">

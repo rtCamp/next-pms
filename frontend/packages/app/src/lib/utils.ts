@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { floatToTime } from "@next-pms/design-system";
 import { getUTCDateTime, normalizeDate } from "@next-pms/design-system/date";
 import { toast } from "@next-pms/design-system/hooks";
 import { type ClassValue, clsx } from "clsx";
@@ -10,11 +11,13 @@ import { twMerge } from "tailwind-merge";
 /**
  * Internal dependencies.
  */
-import { TScreenSize } from "@/store/app";
+import { timeStringToFloat } from "@/schema/timesheet";
 import { WorkingFrequency } from "@/types";
-import { HolidayProp } from "@/types/timesheet";
+import { HolidayProp, LeaveProps } from "@/types/timesheet";
 
-export const NO_VALUE_FIELDS = ["Section Break", "Column Break",
+export const NO_VALUE_FIELDS = [
+  "Section Break",
+  "Column Break",
   "Tab Break",
   "HTML",
   "Table",
@@ -22,7 +25,8 @@ export const NO_VALUE_FIELDS = ["Section Break", "Column Break",
   "Button",
   "Image",
   "Fold",
-  "Heading"];
+  "Heading",
+];
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -65,42 +69,46 @@ export function removeHtmlString(data: string) {
   return data.replace(/<\/?[^>]+(>|$)/g, "");
 }
 
-
 export function calculateExtendedWorkingHour(
   hours: number,
   expected_hours: number,
-  frequency: WorkingFrequency,
+  frequency: WorkingFrequency
 ) {
+  const flotTime = floatToTime(hours);
+  const timeToFloat = timeStringToFloat(flotTime);
   if (frequency === "Per Day") {
-    if (hours > expected_hours) {
+    if (timeToFloat > expected_hours) {
       return 2;
-    } else if (hours < expected_hours) {
+    } else if (timeToFloat < expected_hours) {
       return 0;
     } else {
       return 1;
     }
   }
   const perDay = expected_hours / 5;
-  if (hours > perDay) {
+  if (timeToFloat > perDay) {
     return 2;
-  } else if (hours < perDay) {
+  } else if (timeToFloat < perDay) {
     return 0;
   } else {
     return 1;
   }
 }
 
-export function calculateWeeklyHour(expected_hours: number, frequency: WorkingFrequency
+export function calculateWeeklyHour(
+  expected_hours: number,
+  frequency: WorkingFrequency
 ) {
   if (frequency === "Per Day") {
     return expected_hours * 5;
   } else {
     return expected_hours;
   }
-
 }
 
-export const expectatedHours = (expected_hours: number, frequency: WorkingFrequency
+export const expectatedHours = (
+  expected_hours: number,
+  frequency: WorkingFrequency
 ): number => {
   if (frequency === "Per Day") {
     return expected_hours;
@@ -108,31 +116,6 @@ export const expectatedHours = (expected_hours: number, frequency: WorkingFreque
   return expected_hours / 5;
 };
 
-export const checkScreenSize = (): TScreenSize => {
-  const width = window.innerWidth;
-
-  if (width < 640) {
-    return "sm";
-  } else if (width >= 640 && width < 768) {
-    return "md";
-  } else if (width >= 768 && width < 1024) {
-    return "lg";
-  } else if (width >= 1024 && width < 1280) {
-    return "xl";
-  } else {
-    return "2xl";
-  }
-};
-
-export const createFalseValuedObject = (obj) => {
-  const newFalseValueObject: { [key: string]: boolean } = {};
-  if (Object.keys(obj).length > 0) {
-    for (const key of obj) {
-      newFalseValueObject[key] = true;
-    }
-  }
-  return newFalseValueObject;
-};
 export const isLiked = (likedBy: string, user: string) => {
   if (likedBy) {
     likedBy = JSON.parse(likedBy);
@@ -190,21 +173,27 @@ export const getErrorMessages = (error: Error) => {
 };
 
 export const checkIsMobile = () => {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-}
+  const width = window.innerWidth;
+  if (width < 769) {
+    return true;
+  } else {
+    return false;
+  }
+};
 
 export const copyToClipboard = (text: string) => {
-  navigator.clipboard.writeText(text)
-  toast({ title: "Copied to clipboard", variant: "success" })
-}
-
+  navigator.clipboard.writeText(text);
+  toast({ title: "Copied to clipboard", variant: "success" });
+};
 
 export const canExport = (doctype: string) => {
+  // @ts-expect-error - frappe is global object provided by frappe
   return window.frappe?.boot?.user?.can_export?.includes(doctype) ?? true;
-}
+};
 export const canCreate = (doctype: string) => {
+  // @ts-expect-error - frappe is global object provided by frappe
   return window.frappe?.boot?.user?.can_create?.includes(doctype) ?? true;
-}
+};
 
 export const currencyFormat = (currency: string) => {
   return new Intl.NumberFormat("en-IN", {
@@ -215,7 +204,7 @@ export const currencyFormat = (currency: string) => {
 
 export const getBgCsssForToday = (date: string) => {
   return isToday(getUTCDateTime(date)) ? "bg-slate-100" : "";
-}
+};
 
 export const isDateInRange = (
   date: string,
@@ -228,4 +217,42 @@ export const isDateInRange = (
     getUTCDateTime(startDate) <= targetDate &&
     targetDate <= getUTCDateTime(endDate)
   );
+};
+
+export const getTimesheetHours = (
+  dates: Array<string>,
+  timesheetTotalHour: number,
+  leaves: Array<LeaveProps>,
+  holidays: Array<HolidayProp>,
+  dailyWorkingHours: number
+) => {
+  let totalHours = timesheetTotalHour;
+  let timeOffHours = 0;
+
+  dates.map((date) => {
+    let isHoliday = false;
+    const holiday = holidays.find((holiday) => holiday.holiday_date === date);
+    if (holiday) {
+      isHoliday = true;
+      if (!holiday.weekly_off) {
+        totalHours += dailyWorkingHours;
+      }
+    }
+    const leaveData = leaves.filter((data) => {
+      return date >= data.from_date && date <= data.to_date;
+    });
+    if (leaveData.length > 0 && !isHoliday) {
+      leaveData.forEach((data: LeaveProps) => {
+        const isHalfDayLeave = data.half_day && data.half_day_date == date;
+        if (isHalfDayLeave) {
+          totalHours += dailyWorkingHours / 2;
+          timeOffHours += dailyWorkingHours / 2;
+        } else {
+          totalHours += dailyWorkingHours;
+          timeOffHours += dailyWorkingHours;
+        }
+      });
+    }
+  });
+  return { totalHours, timeOffHours };
 };
