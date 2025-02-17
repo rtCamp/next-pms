@@ -2,7 +2,6 @@
  * External dependencies
  */
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
 import {
   Accordion,
   AccordionContent,
@@ -11,6 +10,7 @@ import {
   Button,
   Separator,
 } from "@next-pms/design-system/components";
+import { useToast } from "@next-pms/design-system/hooks";
 import { floatToTime } from "@next-pms/design-system/utils";
 import { useFrappePostCall } from "frappe-react-sdk";
 import { isEmpty } from "lodash";
@@ -18,14 +18,25 @@ import { Calendar, Paperclip } from "lucide-react";
 /**
  * Internal dependencies
  */
-import { TimesheetTable } from "@/app/components/timesheet-table";
-import ExpandableHours from "@/app/pages/timesheet/components/expandableHours";
-import { copyToClipboard, expectatedHours, getTimesheetHours, isDateInRange } from "@/lib/utils";
-import { NewTimesheetProps, timesheet } from "@/types/timesheet";
-import { StatusIndicator } from "../components/statusIndicator";
-import { Action, TeamState } from "../reducer";
 
-type EmployeeTimesheetProps = {
+import { TaskLog } from "@/app/pages/task/components/taskLog";
+import ExpandableHours from "@/app/pages/timesheet/components/expandableHours";
+import {
+  calculateExtendedWorkingHour,
+  copyToClipboard,
+  expectatedHours,
+  getTimesheetHours,
+  isDateInRange,
+  parseFrappeErrorMsg,
+} from "@/lib/utils";
+import { NewTimesheetProps, timesheet } from "@/types/timesheet";
+import { EmployeeTimesheetListItem } from "./timesheetListItem";
+import { StatusIndicator } from "../../components/statusIndicator";
+import { Action, TeamState } from "../../reducer";
+import { getTaskDataForDate, getTimesheetHourForDate } from "../../utils";
+
+type EmployeeTimesheetListProps = {
+  callback?: () => void;
   startDateParam: string;
   setStartDateParam: React.Dispatch<React.SetStateAction<string>>;
   teamState: TeamState;
@@ -33,51 +44,48 @@ type EmployeeTimesheetProps = {
 };
 
 /**
- * EmployeeTimesheet component displays the timesheet details of an employee.
- * It fetches liked tasks data and displays timesheet data in an accordion format.
+ * EmployeeTimesheetList component displays a employee timesheet in flat list form.
+ * It includes functionality to update timesheet details, handle status updates,
+ * and display task logs in a dialog box.
  *
- * @param {Object} props - The component props
- * @param {string} props.startDateParam - The start date parameter
- * @param {React.Dispatch<React.SetStateAction<string>>} props.setStartDateParam - Function to set the start date parameter
- * @param {TeamState} props.teamState - The state of the team
- * @param {React.Dispatch<Action>} props.dispatch - The dispatch function to update the team state
+ * @param {Object} props - The component props.
+ * @param {Function} [props.callback] - Optional callback function to be called after updating timesheet details.
+ * @param {string} props.startDateParam - The start date parameter for filtering timesheets.
+ * @param {React.Dispatch<React.SetStateAction<string>>} props.setStartDateParam - Function to set the start date parameter.
+ * @param {TeamState} props.teamState - The state of the team, including timesheet data, holidays, and leaves.
+ * @param {React.Dispatch<Action>} props.dispatch - Dispatch function for updating the team state.
  *
- * @returns {JSX.Element} The EmployeeTimesheet component
+ * @returns {JSX.Element} The rendered EmployeeTimesheetList component.
  */
-export const EmployeeTimesheet = ({
+const EmployeeTimesheetList = ({
+  callback,
   startDateParam,
   setStartDateParam,
   teamState,
   dispatch,
-}: EmployeeTimesheetProps): JSX.Element => {
-  const { id } = useParams();
+}: EmployeeTimesheetListProps): JSX.Element => {
+  const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState<boolean>(false);
+  const [selectedTask, setSelectedTask] = useState<string>("");
   const targetRef = useRef<HTMLDivElement>(null);
-
-  const { call: fetchLikedTask, loading: loadingLikedTasks } = useFrappePostCall(
-    "next_pms.timesheet.api.task.get_liked_tasks"
-  );
-  const [likedTaskData, setLikedTaskData] = useState([]);
-
-  const getLikedTaskData = () => {
-    fetchLikedTask({}).then((res) => {
-      setLikedTaskData(res.message ?? []);
-    });
+  const { call } = useFrappePostCall("next_pms.timesheet.api.timesheet.update_timesheet_detail");
+  const { toast } = useToast();
+  const handleTimeChange = (value: NewTimesheetProps) => {
+    call(value)
+      .then((res) => {
+        toast({
+          variant: "success",
+          description: res.message,
+        });
+        callback?.();
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          description: error,
+        });
+      });
   };
-
-  useEffect(() => {
-    getLikedTaskData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const onCellClick = (timesheet: NewTimesheetProps) => {
-    dispatch({ type: "SET_TIMESHEET", payload: { timesheet, id } });
-    if (timesheet.hours > 0) {
-      dispatch({ type: "SET_EDIT_DIALOG", payload: true });
-    } else {
-      dispatch({ type: "SET_DIALOG", payload: true });
-    }
-  };
-
   useEffect(() => {
     const scrollToElement = () => {
       if (targetRef.current) {
@@ -89,7 +97,6 @@ export const EmployeeTimesheet = ({
     observer.observe(document.body, { childList: true, subtree: true });
     return () => observer.disconnect();
   }, []);
-
   const handleStatusClick = (startDate: string, endDate: string) => {
     const data = {
       startDate: startDate,
@@ -97,12 +104,17 @@ export const EmployeeTimesheet = ({
     };
     dispatch({ type: "SET_DATE_RANGE", payload: { dateRange: data, isAprrovalDialogOpen: true } });
   };
+
   const dailyWorkingHour = expectatedHours(
     teamState.timesheetData.working_hour,
     teamState.timesheetData.working_frequency
   );
+
   return (
     <>
+      {isTaskLogDialogBoxOpen && (
+        <TaskLog task={selectedTask} isOpen={isTaskLogDialogBoxOpen} onOpenChange={setIsTaskLogDialogBoxOpen} />
+      )}
       {teamState.timesheetData.data &&
         Object.keys(teamState.timesheetData.data).length > 0 &&
         Object.entries(teamState.timesheetData.data).map(([key, value]: [string, timesheet]) => {
@@ -115,10 +127,10 @@ export const EmployeeTimesheet = ({
           );
 
           return (
-            <Accordion type="single" key={key} collapsible defaultValue={key}>
+            <Accordion type="multiple" key={key} defaultValue={Object.keys(teamState.timesheetData.data)}>
               <AccordionItem value={key}>
                 <AccordionTrigger className="hover:no-underline w-full max-md:[&>svg]:hidden">
-                  <div className="flex justify-between items-center w-full pr-2 group">
+                  <div className="flex justify-between w-full pr-2 group">
                     <div className="font-normal text-xs sm:text-base flex items-center gap-x-2 max-md:gap-x-3 sm:flex-row overflow-x-auto no-scrollbar max-md:w-4/5">
                       <span className="flex items-center gap-2 shrink-0">
                         <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
@@ -161,20 +173,44 @@ export const EmployeeTimesheet = ({
                       : null
                   }
                 >
-                  <TimesheetTable
-                    dates={value.dates}
-                    holidays={teamState.timesheetData.holidays}
-                    leaves={teamState.timesheetData.leaves}
-                    tasks={value.tasks}
-                    onCellClick={onCellClick}
-                    disabled={value.status === "Approved"}
-                    workingFrequency={teamState.timesheetData.working_frequency}
-                    workingHour={teamState.timesheetData.working_hour}
-                    loadingLikedTasks={loadingLikedTasks}
-                    likedTaskData={likedTaskData}
-                    getLikedTaskData={getLikedTaskData}
-                    hideLikeButton={true}
-                  />
+                  {value.dates.map((date: string, index: number) => {
+                    const matchingTasks = getTaskDataForDate(value.tasks, date);
+                    const data = getTimesheetHourForDate(
+                      date,
+                      matchingTasks,
+                      teamState.timesheetData.holidays,
+                      teamState.timesheetData.leaves,
+                      dailyWorkingHour
+                    );
+
+                    const isExtended = calculateExtendedWorkingHour(
+                      data.totalHours,
+                      teamState.timesheetData.working_hour,
+                      teamState.timesheetData.working_frequency
+                    );
+                    return (
+                      <EmployeeTimesheetListItem
+                        employee={teamState.employee}
+                        hasLeave={data.hasLeave}
+                        tasks={matchingTasks}
+                        date={date}
+                        isTimeExtended={isExtended}
+                        isHoliday={data.isHoliday}
+                        holidayDescription={data.holidayDescription}
+                        dailyWorkingHour={dailyWorkingHour}
+                        totalHours={data.totalHours}
+                        isHalfDayLeave={data.isHalfDayLeave}
+                        index={index}
+                        handleTimeChange={handleTimeChange}
+                        onTaskClick={(name) => {
+                          setSelectedTask(name);
+                          setIsTaskLogDialogBoxOpen(true);
+                        }}
+                        hourInputClassName="ml-0 w-12"
+                        taskClassName="lg:max-w-xs"
+                      />
+                    );
+                  })}
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -183,3 +219,5 @@ export const EmployeeTimesheet = ({
     </>
   );
 };
+
+export default EmployeeTimesheetList;

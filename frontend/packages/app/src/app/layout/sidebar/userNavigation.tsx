@@ -25,10 +25,10 @@ import { RootState } from "@/store";
 
 interface UserNavigationProps {
   user: RootState["user"];
-  isMobile: boolean;
+  isSidebarCollapsed: boolean;
 }
 
-const UserNavigation = ({ user, isMobile }: UserNavigationProps) => {
+const UserNavigation = ({ user, isSidebarCollapsed }: UserNavigationProps) => {
   const { logout } = useContext(UserContext);
   return (
     <ErrorFallback>
@@ -42,7 +42,7 @@ const UserNavigation = ({ user, isMobile }: UserNavigationProps) => {
             variant="p"
             className={cn(
               "transition-all duration-800 max-md:hidden overflow-hidden max-w-full max-lg:1/3 truncate",
-              isMobile && "hidden"
+              isSidebarCollapsed && "hidden"
             )}
           >
             {user.userName}

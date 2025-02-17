@@ -12,9 +12,8 @@ import { twMerge } from "tailwind-merge";
  * Internal dependencies.
  */
 import { timeStringToFloat } from "@/schema/timesheet";
-
 import { WorkingFrequency } from "@/types";
-import { HolidayProp } from "@/types/timesheet";
+import { HolidayProp, LeaveProps } from "@/types/timesheet";
 
 export const NO_VALUE_FIELDS = [
   "Section Break",
@@ -174,9 +173,12 @@ export const getErrorMessages = (error: Error) => {
 };
 
 export const checkIsMobile = () => {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-    navigator.userAgent
-  );
+  const width = window.innerWidth;
+  if (width < 769) {
+    return true;
+  } else {
+    return false;
+  }
 };
 
 export const copyToClipboard = (text: string) => {
@@ -215,4 +217,42 @@ export const isDateInRange = (
     getUTCDateTime(startDate) <= targetDate &&
     targetDate <= getUTCDateTime(endDate)
   );
+};
+
+export const getTimesheetHours = (
+  dates: Array<string>,
+  timesheetTotalHour: number,
+  leaves: Array<LeaveProps>,
+  holidays: Array<HolidayProp>,
+  dailyWorkingHours: number
+) => {
+  let totalHours = timesheetTotalHour;
+  let timeOffHours = 0;
+
+  dates.map((date) => {
+    let isHoliday = false;
+    const holiday = holidays.find((holiday) => holiday.holiday_date === date);
+    if (holiday) {
+      isHoliday = true;
+      if (!holiday.weekly_off) {
+        totalHours += dailyWorkingHours;
+      }
+    }
+    const leaveData = leaves.filter((data) => {
+      return date >= data.from_date && date <= data.to_date;
+    });
+    if (leaveData.length > 0 && !isHoliday) {
+      leaveData.forEach((data: LeaveProps) => {
+        const isHalfDayLeave = data.half_day && data.half_day_date == date;
+        if (isHalfDayLeave) {
+          totalHours += dailyWorkingHours / 2;
+          timeOffHours += dailyWorkingHours / 2;
+        } else {
+          totalHours += dailyWorkingHours;
+          timeOffHours += dailyWorkingHours;
+        }
+      });
+    }
+  });
+  return { totalHours, timeOffHours };
 };

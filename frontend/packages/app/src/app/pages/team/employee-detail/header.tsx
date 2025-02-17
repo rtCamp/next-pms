@@ -6,9 +6,9 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies
  */
-import AddTime from "../../../components/AddTime";
-import EmployeeCombo from "../../../components/employeeComboBox";
-import { Header } from "../../../layout/root";
+import AddTime from "@/app/components/AddTime";
+import EmployeeCombo from "@/app/components/employeeComboBox";
+import { Header } from "@/app/layout/root";
 import { Approval } from "../components/approval";
 import { TeamState, Action } from "../reducer";
 
@@ -27,10 +27,10 @@ export const EmployeeDetailHeader = ({ state, dispatch, callback, employeeId }: 
     {
       filters: { name: employeeId },
     },
-    undefined,
+    "employeedetail/header/" + employeeId,
     {
       errorRetryCount: 1,
-      revalidateOnFocus: false,
+      revalidateOnFocus: true,
       revalidateIfStale: false,
     }
   );
