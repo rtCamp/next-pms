@@ -76,6 +76,7 @@ const EmployeeTimesheetList = ({
           variant: "success",
           description: res.message,
         });
+        dispatch({ type: "SET_EMPLOYEE_WEEK_DATE", payload: value.date });
         callback?.();
       })
       .catch((err) => {

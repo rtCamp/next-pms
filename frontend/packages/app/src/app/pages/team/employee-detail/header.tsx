@@ -1,6 +1,7 @@
 /**
  * External dependencies
  */
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useFrappeGetCall } from "frappe-react-sdk";
 /**
@@ -9,6 +10,8 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 import AddTime from "@/app/components/AddTime";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import { Header } from "@/app/layout/root";
+import { RootState } from "@/store";
+import { EditTime } from "../../timesheet/components/editTime";
 import { Approval } from "../components/approval";
 import { TeamState, Action } from "../reducer";
 
@@ -21,7 +24,7 @@ type EmployeeDetailHeaderProps = {
 
 export const EmployeeDetailHeader = ({ state, dispatch, callback, employeeId }: EmployeeDetailHeaderProps) => {
   const navigate = useNavigate();
-
+  const user = useSelector((state: RootState) => state.user);
   const { data: employee } = useFrappeGetCall(
     "next_pms.timesheet.api.employee.get_employee",
     {
@@ -86,6 +89,20 @@ export const EmployeeDetailHeader = ({ state, dispatch, callback, employeeId }: 
           workingHours={state.timesheetData.working_hour}
           project={state.timesheet.project}
           employeeName={employee?.message?.employee_name}
+        />
+      )}
+      {state.isEditDialogOpen && (
+        <EditTime
+          open={state.isEditDialogOpen}
+          employee={state.employee}
+          date={state.timesheet.date}
+          task={state.timesheet.task}
+          user={user}
+          onClose={() => {
+            dispatch({ type: "SET_EMPLOYEE_WEEK_DATE", payload: state.timesheet.date });
+            dispatch({ type: "SET_EDIT_DIALOG", payload: false });
+            callback();
+          }}
         />
       )}
     </>
