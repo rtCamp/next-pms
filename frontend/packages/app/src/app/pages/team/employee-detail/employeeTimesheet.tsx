@@ -70,6 +70,7 @@ export const EmployeeTimesheet = ({
   }, []);
 
   const onCellClick = (timesheet: NewTimesheetProps) => {
+    console.log("timesheet", timesheet);
     dispatch({ type: "SET_TIMESHEET", payload: { timesheet, id } });
     if (timesheet.hours > 0) {
       dispatch({ type: "SET_EDIT_DIALOG", payload: true });

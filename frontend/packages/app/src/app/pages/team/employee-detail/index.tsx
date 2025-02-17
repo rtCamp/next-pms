@@ -84,7 +84,6 @@ const EmployeeDetail = (): JSX.Element => {
     {
       errorRetryCount: 1,
       revalidateOnFocus: false,
-      revalidateIfStale: false,
     }
   );
 
