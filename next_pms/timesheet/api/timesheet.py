@@ -382,6 +382,7 @@ def get_remaining_hour_for_employee(employee: str, date: str):
             "employee": employee,
             "start_date": date,
             "end_date": date,
+            "docstatus": ["!=", 2],
         },
         pluck="total_hours",
     )
