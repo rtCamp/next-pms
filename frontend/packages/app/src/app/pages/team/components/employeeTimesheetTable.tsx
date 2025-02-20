@@ -15,12 +15,12 @@ import { TaskLog } from "@/app/pages/task/components/taskLog";
 import { expectatedHours } from "@/lib/utils";
 import { TeamState } from "../reducer";
 
-interface EmployeeProps {
+interface EmployeeTimesheerTableProps {
   employee: string;
   teamState: TeamState;
 }
 
-export const Employee = ({ employee,teamState }: EmployeeProps) => {
+export const EmployeeTimesheetTable = ({ employee, teamState }: EmployeeTimesheerTableProps) => {
   const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<string>("");
   const { data, isLoading } = useFrappeGetCall("next_pms.timesheet.api.timesheet.get_timesheet_data", {

@@ -13,7 +13,7 @@ import { TIMESHEET, HOME, TEAM, TASK, PROJECT, RESOURCE_MANAGEMENT, ROLES } from
 import { UserContext } from "@/lib/UserProvider";
 import { default as Layout } from "./app/layout";
 import { RootState } from "./store";
-import { setCurrency } from "./store/app";
+import { setCurrency } from "./store/user";
 import { setRole } from "./store/user";
 import { setViews } from "./store/view";
 /**
@@ -25,7 +25,7 @@ const TeamComponent = lazy(() => import("@/app/pages/team"));
 const ResourceTeamComponent = lazy(() => import("@/app/pages/resource_management/team"));
 const ResourceProjectComponent = lazy(() => import("@/app/pages/resource_management/project"));
 const ResourceTimeLineComponet = lazy(() => import("@/app/pages/resource_management/timeline"));
-const EmployeeDetailComponent = lazy(() => import("@/app/pages/team/employeeDetail"));
+const EmployeeDetailComponent = lazy(() => import("@/app/pages/team/employee-detail"));
 const TaskComponent = lazy(() => import("@/app/pages/task"));
 const ProjectComponent = lazy(() => import("@/app/pages/project"));
 const NotFound = lazy(() => import("@/app/pages/404"));

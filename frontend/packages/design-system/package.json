@@ -20,8 +20,8 @@
         "dev": "vite --config ../../vite.config.ts",
         "clean": "rm -rf dist",
         "build": "npm install && vite build --config ../../vite.config.ts",
-        "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-        "lint:fix": "eslint . --ext ts,tsx --fix"
+        "lint": "eslint .  --report-unused-disable-directives --max-warnings 0",
+        "lint:fix": "eslint .  --fix"
     },
     "dependencies": {
         "@radix-ui/react-accordion": "^1.2.0",

@@ -56,7 +56,7 @@ def get_logged_hours(employees, start_date, end_date):
         .where(timesheets.employee.isin(employee_names))
         .where(timesheets.start_date >= start_date)
         .where(timesheets.end_date <= end_date)
-        .where(timesheets.docstatus == 1)
+        .where(timesheets.docstatus.isin([0, 1]))
         .groupby(timesheets.employee)
     )
     data = query.run(as_dict=True)

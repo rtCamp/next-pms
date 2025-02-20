@@ -100,7 +100,7 @@ def get_employee_time(start_date, end_date, employee_names):
             "start_date": [">=", start_date],
             "end_date": ["<=", end_date],
             "employee": ["in", employee_names],
-            "docstatus": ["=", 1],
+            "docstatus": ["in", [0, 1]],
         },
     )
 

@@ -134,7 +134,11 @@ def employee_has_higher_access(employee: str, ptype: str = "read") -> bool:
         return True
     roles = frappe.get_roles()
     session_employee = get_employee_from_user()
-    if set(roles).intersection(["Projects Manager", "Projects User"]) and ptype == "write":
+    if (
+        set(roles).intersection(["Projects Manager", "Projects User"])
+        and ptype == "write"
+        and not set(roles).intersection(["Timesheet Manager"])
+    ):
         if employee == session_employee:
             return True
         else:
