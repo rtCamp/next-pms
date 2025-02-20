@@ -44,9 +44,11 @@ interface AddTimeProps {
   initialDate: string;
   employee: string;
   open: boolean;
-  onOpenChange: (data:any) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onOpenChange: (data: any) => void;
   workingHours: number;
-  onSuccess?: (data:any) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onSuccess?: (data: any) => void;
   workingFrequency: WorkingFrequency;
   task?: string;
   project?: string;
@@ -108,7 +110,11 @@ const AddTime = ({
   };
   const handleDateChange = (date: Date | undefined) => {
     if (!date) return;
-    form.setValue("date", getFormatedDate(date));
+    form.setValue("date", getFormatedDate(date), {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
     setSelectedDate(getFormatedDate(date));
   };
   const handleTaskSearch = (searchTerm: string) => {
@@ -116,9 +122,17 @@ const AddTime = ({
   };
   const handleTaskChange = (value: string | string[]) => {
     if (value instanceof Array) {
-      form.setValue("task", value[0]);
+      form.setValue("task", value[0], {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
     } else {
-      form.setValue("task", value);
+      form.setValue("task", value, {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
     }
     updateProject(value[0]);
   };
@@ -141,7 +155,11 @@ const AddTime = ({
       setSelectedProject([value]);
     }
     setSearchTask("");
-    form.setValue("task", "");
+    form.setValue("task", "", {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
   };
   const handleSubmit = (data: z.infer<typeof TimesheetSchema>) => {
     setSubmitting(true);
@@ -195,7 +213,11 @@ const AddTime = ({
   );
   const onEmployeeChange = (value: string) => {
     setSelectedEmployee(value);
-    form.setValue("employee", value);
+    form.setValue("employee", value, {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
   };
 
   useEffect(() => {

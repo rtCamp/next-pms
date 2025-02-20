@@ -216,7 +216,11 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
                               date={new Date(field.value)}
                               onDateChange={(date) => {
                                 if (!date) return;
-                                form.setValue(`data.${index}.date`, getFormatedDate(date), { shouldDirty: true });
+                                form.setValue(`data.${index}.date`, getFormatedDate(date), {
+                                  shouldValidate: true,
+                                  shouldDirty: true,
+                                  shouldTouch: true,
+                                });
                               }}
                             />
                           </FormControl>
