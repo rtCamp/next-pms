@@ -56,6 +56,7 @@ def on_submit(doc, method=None):
     from next_pms.timesheet.api.utils import update_weekly_status_of_timesheet
 
     update_weekly_status_of_timesheet(doc.employee, getdate(doc.start_date))
+    validate_self_approval(doc)
 
 
 #  Custom Methods for Timesheet DocType events
@@ -225,3 +226,16 @@ def set_parent_project(doc):
         return
 
     doc.parent_project = doc.time_logs[0].project
+
+
+def validate_self_approval(doc):
+    from next_pms.timesheet.api.employee import get_employee_from_user
+
+    if "System Manager" in frappe.get_roles():
+        return
+    employee = get_employee_from_user()
+    if not employee:
+        throw(_("Employee not found for currently logged in user."))
+
+    if doc.employee == employee:
+        throw(_("You cannot approve your own timesheets."))
