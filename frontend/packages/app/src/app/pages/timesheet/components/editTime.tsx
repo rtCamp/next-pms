@@ -94,7 +94,7 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
       form.reset({ data: updatedData });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, mutate]);
+  }, [data]);
 
   const addEmptyFormRow = () => {
     const parent = fields[0]?.parent || "";
