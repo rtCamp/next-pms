@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -37,7 +37,11 @@ import { z } from "zod";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetUpdateSchema } from "@/schema/timesheet";
 import { UserState } from "@/store/user";
+import { TaskDataItemProps } from "@/types/timesheet";
 
+type TimesheetDetail = Pick<TaskDataItemProps, "parent" | "name" | "hours" | "description" | "task" | "is_billable"> & {
+  date: string;
+};
 interface EditTimeProps {
   employee: string;
   date: string;
@@ -55,7 +59,7 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
     resolver: zodResolver(TimesheetUpdateSchema),
     defaultValues: {
       data: [],
-    }, // Empty array by default
+    },
     mode: "onSubmit",
   });
 
@@ -74,18 +78,19 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
     task: task,
   });
 
+  const updatedData = useMemo(() => {
+    if (!data) return [];
+    const updatedData = data.message.data.map((item: TimesheetDetail) => {
+      return {
+        ...item,
+        hours: floatToTime(item.hours),
+      };
+    });
+    return updatedData;
+  }, [data]);
+
   useEffect(() => {
     if (data) {
-      if (data.message.data.length === 0) {
-        onClose();
-        return;
-      }
-      const updatedData = data.message.data.map((item) => {
-        return {
-          ...item,
-          hours: floatToTime(item.hours),
-        };
-      });
       form.reset({ data: updatedData });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -112,6 +117,7 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
     updateTimesheet(data)
       .then((res) => {
         mutate();
+        form.reset({ data: updatedData });
         toast({
           variant: "success",
           description: res.message,
@@ -154,6 +160,7 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
         });
       });
   };
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
