@@ -16,9 +16,9 @@ import {
 /**
  * Internal dependencies.
  */
-import { cn } from "@/lib/utils";
 import { TableInformationCellContent } from "./tableCell";
-import { getTableCellRow } from "../utils/helper";
+import { getTableCellRow } from "../../../../app/src/app/pages/resource_management/utils/helper";
+import { cn } from "../../utils";
 interface ResourceTeamTableRowProps {
   name: string;
   avatar: string;

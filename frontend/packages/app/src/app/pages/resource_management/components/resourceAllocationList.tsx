@@ -4,8 +4,10 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Avatar, AvatarFallback, AvatarImage, Button, useToast, Typography } from "@next-pms/design-system/components";
+import { DeleteConfirmationDialog } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
 import { cn } from "@next-pms/design-system/utils";
+import { getFilterValue } from "@next-pms/resource-management/utils";
 import { useFrappeDeleteDoc } from "frappe-react-sdk";
 import { Clipboard, Pencil, Plus } from "lucide-react";
 
@@ -21,8 +23,7 @@ import {
   ResourceCustomerProps,
 } from "@/types/resource_management";
 
-import { DeleteAllocation } from "./confirmation";
-import { getFilterValue, getInitials } from "../utils/helper";
+import { getInitials } from "../utils/helper";
 import { getFormatedStringValue } from "../utils/value";
 
 /**
@@ -321,7 +322,7 @@ const DeleteIcon = ({
   };
 
   return (
-    <DeleteAllocation
+    <DeleteConfirmationDialog
       onDelete={handleResourceAllocationDelete}
       isLoading={isLoading}
       buttonClassName={buttonClassName}
@@ -332,6 +333,8 @@ const DeleteIcon = ({
       onCancel={() => {
         setIsOpen(false);
       }}
+      title="Are you sure you want to delete this allocation?"
+      description="This action cannot be undone. This will permanently delete the given allocation."
     />
   );
 };

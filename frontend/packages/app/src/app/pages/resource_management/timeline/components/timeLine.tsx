@@ -20,7 +20,7 @@ import ResourceTimeLineGroup from "./group";
 import { ResourceAllocationEmployeeProps, ResourceAllocationTimeLineProps } from "../types";
 import { TimeLineDateHeader, TimeLineIntervalHeader } from "./header";
 import ResourceTimeLineItem, { ItemAllocationActionDialog } from "./item";
-import { TableContext } from "../../store/tableContext";
+import { TableContext } from "../../../../../../../resource-management/src/store/tableContext";
 import { TimeLineContext } from "../../store/timeLineContext";
 import { getDayKeyOfMoment } from "../../utils/dates";
 import { getFormatedStringValue } from "../../utils/value";

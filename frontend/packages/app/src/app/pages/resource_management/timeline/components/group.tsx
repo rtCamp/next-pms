@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@next-pms/design-system/com
  */
 import { RootState } from "@/store";
 import { PermissionProps, setResourceFormData } from "@/store/resource_management/allocation";
-import { TableInformationCellContent } from "../../components/tableCell";
+import { TableInformationCellContent } from "../../../../../../../resource-management/src/components/table/tableCell";
 import { TimeLineContext } from "../../store/timeLineContext";
 import { getIsBillableValue } from "../../utils/helper";
 import { ResourceAllocationEmployeeProps } from "../types";
@@ -66,7 +66,7 @@ const ResourceTimeLineGroup = ({ group }: ResourceTimeLineGroupProps) => {
         );
       }}
       value={group.employee_name}
-      cellRef={lastEmployee ? verticalLoderRef as unknown as RefObject<HTMLTableCellElement> : undefined}
+      cellRef={lastEmployee ? (verticalLoderRef as unknown as RefObject<HTMLTableCellElement>) : undefined}
       onClick={setResourceAllocationData}
     />
   );

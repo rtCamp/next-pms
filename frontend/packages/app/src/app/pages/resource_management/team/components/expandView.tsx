@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Table, TableBody, TableRow } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
+import { ResourceTableCell, TableInformationCellContent } from "@next-pms/resource-management/components";
 
 /**
  * Internal dependencies.
@@ -15,8 +16,12 @@ import { AllocationDataProps, setResourceFormData } from "@/store/resource_manag
 import { DateProps, EmployeeDataProps } from "@/store/resource_management/team";
 import { EmptyRow } from "../../components/empty";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
-import { ResourceTableCell, TableInformationCellContent } from "../../components/tableCell";
-import { CombinedResourceDataProps, CombinedResourceObjectProps, groupAllocations, ResourceMergeAllocationProps } from "../../utils/group";
+import {
+  CombinedResourceDataProps,
+  CombinedResourceObjectProps,
+  groupAllocations,
+  ResourceMergeAllocationProps,
+} from "../../utils/group";
 import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
 
 /**
@@ -33,7 +38,6 @@ export const ResourceExpandView = ({
   employeeData: EmployeeDataProps;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
   const dates = useSelector((state: RootState) => state.resource_team.data.dates);
 

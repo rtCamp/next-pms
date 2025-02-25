@@ -5,6 +5,11 @@ import { useState } from "react";
 import { useSelector } from "react-redux";
 import { TableBody, TableCell, TableRow } from "@next-pms/design-system/components";
 import { cn } from "@next-pms/design-system/utils";
+import {
+  ResourceTableCell,
+  TableCellContent,
+  TableInformationCellContent,
+} from "@next-pms/resource-management/components";
 import { CirclePlus } from "lucide-react";
 
 /**
@@ -13,7 +18,6 @@ import { CirclePlus } from "lucide-react";
 import { RootState } from "@/store";
 import { PermissionProps } from "@/store/resource_management/allocation";
 
-import { ResourceTableCell, TableCellContent, TableInformationCellContent } from "./tableCell";
 import { getTableCellClass, getTableCellRow, getTodayDateCellClass } from "../utils/helper";
 
 /**

@@ -22,8 +22,8 @@ import {
   ResourceTeamAPIBodyProps,
   ResourceTimeLineDataProps,
 } from "./types";
+import { TableContextProvider } from "../../../../../../resource-management/src/store/tableContext";
 import AddResourceAllocations from "../components/addAllocation";
-import { TableContextProvider } from "../store/tableContext";
 import { TimeLineContext, TimeLineContextProvider } from "../store/timeLineContext";
 import { getIsBillableValue } from "../utils/helper";
 

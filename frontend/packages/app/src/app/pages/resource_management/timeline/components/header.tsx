@@ -20,7 +20,7 @@ import { RootState } from "@/store";
 import { PermissionProps, setDialog, setResourcePermissions } from "@/store/resource_management/allocation";
 import { Skill } from "@/store/resource_management/team";
 
-import { TableContext } from "../../store/tableContext";
+import { TableContext } from "../../../../../../../resource-management/src/store/tableContext";
 import { TimeLineContext } from "../../store/timeLineContext";
 import SkillSearch from "../../team/components/skillSearch";
 import { getDayKeyOfMoment } from "../../utils/dates";

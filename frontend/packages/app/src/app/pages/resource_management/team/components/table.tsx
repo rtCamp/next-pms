@@ -5,6 +5,13 @@ import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Table, TableBody } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
+import {
+  ResourceTableCell,
+  ResourceTableRow,
+  ResourceTableHeader as ResourceTeamTableHeader,
+} from "@next-pms/resource-management/components";
+import { InfiniteScroll } from "@/app/components/infiniteScroll";
+
 /**
  * Internal dependencies.
  */
@@ -21,13 +28,9 @@ import {
 import { ResourceAllocationObjectProps, ResourceAllocationProps } from "@/types/resource_management";
 
 import { ResourceExpandView } from "./expandView";
+import { TableContextProvider } from "../../../../../../../resource-management/src/store/tableContext";
 import { EmptyTableBody } from "../../components/empty";
-import { InfiniteScroll } from "../../components/infiniteScroll";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
-import { ResourceTableCell } from "../../components/tableCell";
-import ResourceTeamTableHeader from "../../components/tableHeader";
-import { ResourceTableRow } from "../../components/tableRow";
-import { TableContextProvider } from "../../store/tableContext";
 import { getCellBackGroundColor } from "../../utils/cell";
 import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
 

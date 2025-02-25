@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Avatar, AvatarFallback, AvatarImage, Table, TableBody, TableRow } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
+import { ResourceTableCell, TableInformationCellContent } from "@next-pms/resource-management/components";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
@@ -20,7 +21,6 @@ import {
   ResourceCustomerObjectProps,
 } from "@/types/resource_management";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
-import { ResourceTableCell, TableInformationCellContent } from "../../components/tableCell";
 import { getCellBackGroundColor } from "../../utils/cell";
 import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
 

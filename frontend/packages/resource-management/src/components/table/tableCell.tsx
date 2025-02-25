@@ -10,14 +10,12 @@ import {
   HoverCardTrigger,
 } from "@next-pms/design-system/components";
 
-
 /**
  * Internal dependencies.
  */
-import { cn } from "@/lib/utils";
-import { EmptyTableCell } from "./empty";
-import { TableContext } from "../store/tableContext";
-import { getFilterValue } from "../utils/helper";
+import { EmptyTableCell } from "../../../../app/src/app/pages/resource_management/components/empty";
+import { TableContext } from "../../store/tableContext";
+import { cn, getFilterValue } from "../../utils";
 
 interface ResourceTableProps {
   type: "hovercard" | "empty" | "default";
