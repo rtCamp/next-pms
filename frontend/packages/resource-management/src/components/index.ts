@@ -3,5 +3,5 @@ export {
   TableCellContent,
   TableInformationCellContent,
 } from "./table/tableCell";
-export { ResourceTableRow } from "./table/tableRow";
+export { ResourceTableRow, TableDiableRow } from "./table/tableRow";
 export { ResourceTableHeader } from "./table/tableHeader";

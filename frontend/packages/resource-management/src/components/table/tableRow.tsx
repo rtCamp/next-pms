@@ -16,9 +16,9 @@ import {
 /**
  * Internal dependencies.
  */
-import { TableInformationCellContent } from "./tableCell";
-import { getTableCellRow } from "../../../../app/src/app/pages/resource_management/utils/helper";
-import { cn } from "../../utils";
+import { ResourceTableCell, TableInformationCellContent } from "./tableCell";
+import { cn, getTableCellClass, getTableCellRow, getTodayDateCellClass } from "../../utils";
+
 interface ResourceTeamTableRowProps {
   name: string;
   avatar: string;
@@ -73,4 +73,42 @@ const ResourceTableRow = ({
   );
 };
 
-export { ResourceTableRow };
+/**
+ * Reander the Leave data of employee.
+ *
+ * @param props.dates The dates list
+ * @param props.employeeData The employee data
+ * @returns React.FC
+ */
+const TableDiableRow = ({
+  dates,
+  data,
+  className,
+  informationCellClassName,
+  cellClassName,
+}: {
+  dates: string[];
+  data?: Record<string, number>;
+  className?: string;
+  informationCellClassName?: string;
+  cellClassName?: string;
+}) => {
+  return (
+    <TableRow className={cn("flex items-center w-full border-0", className)}>
+      <TableInformationCellContent cellClassName={cn("pl-12", informationCellClassName)} value="Time Off" />
+
+      {dates.map((date: string, index: number) => {
+        return (
+          <ResourceTableCell
+            type="default"
+            key={date}
+            cellClassName={cn(getTableCellClass(index, 0), "bg-gray-200", getTodayDateCellClass(date), cellClassName)}
+            value={data && data[date] ? data[date] : "-"}
+          />
+        );
+      })}
+    </TableRow>
+  );
+};
+
+export { ResourceTableRow, TableDiableRow };

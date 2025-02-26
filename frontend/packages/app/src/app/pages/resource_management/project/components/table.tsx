@@ -11,6 +11,7 @@ import {
   ResourceTableRow,
   ResourceTableHeader as ResourceProjectTableHeader,
 } from "@next-pms/resource-management/components";
+import { getTableCellClass, getTodayDateCellClass } from "@next-pms/resource-management/utils";
 import { InfiniteScroll } from "@/app/components/infiniteScroll";
 
 /**
@@ -35,7 +36,7 @@ import { TableContextProvider } from "../../../../../../../resource-management/s
 import { EmptyTableBody } from "../../components/empty";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
 import { getCellBackGroundColor } from "../../utils/cell";
-import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
+import { getIsBillableValue } from "../../utils/helper";
 
 /**
  * This component is responsible for loading the table for project view.

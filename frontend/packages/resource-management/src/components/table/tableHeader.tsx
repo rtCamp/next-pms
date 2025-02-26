@@ -9,9 +9,8 @@ import { isToday } from "date-fns";
 /**
  * Internal dependencies.
  */
-import { getTableCellClass } from "../../../../app/src/app/pages/resource_management/utils/helper";
 import { TableContext } from "../../store/tableContext";
-import { cn } from "../../utils";
+import { cn, getTableCellClass } from "../../utils";
 
 export type DateProps = {
   startDate: string;

@@ -5,7 +5,12 @@ import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Table, TableBody, TableRow } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
-import { ResourceTableCell, TableInformationCellContent } from "@next-pms/resource-management/components";
+import {
+  ResourceTableCell,
+  TableDiableRow,
+  TableInformationCellContent,
+} from "@next-pms/resource-management/components";
+import { getTableCellClass, getTodayDateCellClass } from "@next-pms/resource-management/utils";
 
 /**
  * Internal dependencies.
@@ -22,7 +27,7 @@ import {
   groupAllocations,
   ResourceMergeAllocationProps,
 } from "../../utils/group";
-import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
+import { getIsBillableValue } from "../../utils/helper";
 
 /**
  * This component is responsible for loading Team view expand view data.
@@ -97,7 +102,7 @@ export const ResourceExpandView = ({
           )}
 
         {Object.keys(employeeData.all_leave_data).length != 0 && (
-          <TimeOffRow dates={employeeResourceData.allDates} employeeData={employeeData} />
+          <TableDiableRow dates={employeeResourceData.allDates} data={employeeData.all_leave_data} />
         )}
       </TableBody>
     </Table>
@@ -205,31 +210,5 @@ const ExpandViewCell = ({
         );
       }}
     />
-  );
-};
-
-/**
- * Reander the Leave data of employee.
- *
- * @param props.dates The dates list
- * @param props.employeeData The employee data
- * @returns React.FC
- */
-const TimeOffRow = ({ dates, employeeData }: { dates: string[]; employeeData: EmployeeDataProps }) => {
-  return (
-    <TableRow className="flex items-center w-full border-0">
-      <TableInformationCellContent cellClassName="pl-12" value="Time Off" />
-
-      {dates.map((date: string, index: number) => {
-        return (
-          <ResourceTableCell
-            type="default"
-            key={date}
-            cellClassName={cn(getTableCellClass(index, 0), "bg-gray-200", getTodayDateCellClass(date))}
-            value={employeeData.all_leave_data[date] ? employeeData.all_leave_data[date] : "-"}
-          />
-        );
-      })}
-    </TableRow>
   );
 };

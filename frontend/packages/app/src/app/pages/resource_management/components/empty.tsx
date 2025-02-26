@@ -10,6 +10,7 @@ import {
   TableCellContent,
   TableInformationCellContent,
 } from "@next-pms/resource-management/components";
+import { getTableCellClass, getTableCellRow, getTodayDateCellClass } from "@next-pms/resource-management/utils";
 import { CirclePlus } from "lucide-react";
 
 /**
@@ -17,8 +18,6 @@ import { CirclePlus } from "lucide-react";
  */
 import { RootState } from "@/store";
 import { PermissionProps } from "@/store/resource_management/allocation";
-
-import { getTableCellClass, getTableCellRow, getTodayDateCellClass } from "../utils/helper";
 
 /**
  * This component is responsible for rendering the empty table body.
