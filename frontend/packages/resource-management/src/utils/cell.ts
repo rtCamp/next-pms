@@ -4,6 +4,32 @@
 import { isToday } from "date-fns";
 
 /**
+ * Get the colour based on percentage provided.
+ *
+ * @param allocationPercentage This percentage of the allocation based on this colour will be returned.
+ * @returns String describing the colour
+ */
+const getCellBackGroundColor = (allocationPercentage: number) => {
+  if (allocationPercentage === -1) {
+    return "bg-gray-200";
+  }
+
+  if (allocationPercentage >= 100 || allocationPercentage < 0) {
+    return "bg-destructive/30";
+  }
+
+  if (allocationPercentage <= 10) {
+    return "bg-success/20";
+  }
+
+  if (allocationPercentage <= 20) {
+    return "bg-customYellow";
+  }
+
+  return "bg-destructive/10";
+};
+
+/**
  * Genrate th cell css based on cell and week index.
  *
  * @param index The index of the cell
@@ -48,4 +74,9 @@ const getTodayDateCellClass = (date: string): string => {
   return "";
 };
 
-export { getTableCellClass, getTableCellRow, getTodayDateCellClass };
+export {
+  getTableCellClass,
+  getTableCellRow,
+  getTodayDateCellClass,
+  getCellBackGroundColor,
+};

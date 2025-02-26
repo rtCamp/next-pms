@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage, Button, useToast, Typography } fro
 import { DeleteConfirmationDialog } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
 import { cn } from "@next-pms/design-system/utils";
-import { getFilterValue } from "@next-pms/resource-management/utils";
+import { getFilterValue, getFormatedStringValue } from "@next-pms/resource-management/utils";
 import { useFrappeDeleteDoc } from "frappe-react-sdk";
 import { Clipboard, Pencil, Plus } from "lucide-react";
 
@@ -24,7 +24,6 @@ import {
 } from "@/types/resource_management";
 
 import { getInitials } from "../utils/helper";
-import { getFormatedStringValue } from "../utils/value";
 
 /**
  * This component is responsible for rendering the list of resource allocations in Card.

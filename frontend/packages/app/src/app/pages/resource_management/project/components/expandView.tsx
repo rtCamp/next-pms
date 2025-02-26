@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Avatar, AvatarFallback, AvatarImage, Table, TableBody, TableRow } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
 import { ResourceTableCell, TableInformationCellContent } from "@next-pms/resource-management/components";
-import { getTableCellClass, getTodayDateCellClass } from "@next-pms/resource-management/utils";
+import { getTableCellClass, getTodayDateCellClass, getCellBackGroundColor } from "@next-pms/resource-management/utils";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
@@ -22,7 +22,6 @@ import {
   ResourceCustomerObjectProps,
 } from "@/types/resource_management";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
-import { getCellBackGroundColor } from "../../utils/cell";
 import { getIsBillableValue } from "../../utils/helper";
 
 interface ResourceExpandViewProps {

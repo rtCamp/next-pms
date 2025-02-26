@@ -6,6 +6,8 @@ import Timeline, { DateHeader, SidebarHeader, TimelineHeaders } from "react-cale
 import { useDispatch, useSelector } from "react-redux";
 import { cn, getDayDiff, getMonthYearKey, getTodayDate, getUTCDateTime, prettyDate } from "@next-pms/design-system";
 import { TableHead, useToast } from "@next-pms/design-system/components";
+import { TableContext } from "@next-pms/resource-management/store";
+import { getFormatedStringValue } from "@next-pms/resource-management/utils";
 import { startOfWeek } from "date-fns";
 import { useFrappeCreateDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
 import moment from "moment";
@@ -20,10 +22,8 @@ import ResourceTimeLineGroup from "./group";
 import { ResourceAllocationEmployeeProps, ResourceAllocationTimeLineProps } from "../types";
 import { TimeLineDateHeader, TimeLineIntervalHeader } from "./header";
 import ResourceTimeLineItem, { ItemAllocationActionDialog } from "./item";
-import { TableContext } from "../../../../../../../resource-management/src/store/tableContext";
 import { TimeLineContext } from "../../store/timeLineContext";
 import { getDayKeyOfMoment } from "../../utils/dates";
-import { getFormatedStringValue } from "../../utils/value";
 
 interface ResourceTimeLineProps {
   handleFormSubmit: (oldData: ResourceAllocationTimeLineProps, newData: ResourceAllocationTimeLineProps) => void;

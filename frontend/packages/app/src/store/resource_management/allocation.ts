@@ -1,9 +1,9 @@
 /**
  * External dependencies.
  */
-import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+import { getFormatedStringValue } from "@next-pms/resource-management/utils";
 
-import { getFormatedStringValue } from "@/app/pages/resource_management/utils/value";
+import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
 export type ResourceKeys =
   | "project"
@@ -64,7 +64,6 @@ const ResourceTeamSlice = createSlice({
   name: "resource_allocation_form",
   initialState,
   reducers: {
-     
     setDialog: (state, action: PayloadAction<boolean>) => {
       state.isShowDialog = action.payload;
     },

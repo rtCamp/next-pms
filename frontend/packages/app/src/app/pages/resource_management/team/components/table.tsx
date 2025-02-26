@@ -10,7 +10,8 @@ import {
   ResourceTableRow,
   ResourceTableHeader as ResourceTeamTableHeader,
 } from "@next-pms/resource-management/components";
-import { getTableCellClass, getTodayDateCellClass } from "@next-pms/resource-management/utils";
+import { TableContextProvider } from "@next-pms/resource-management/store";
+import { getTableCellClass, getTodayDateCellClass, getCellBackGroundColor } from "@next-pms/resource-management/utils";
 import { InfiniteScroll } from "@/app/components/infiniteScroll";
 
 /**
@@ -29,10 +30,8 @@ import {
 import { ResourceAllocationObjectProps, ResourceAllocationProps } from "@/types/resource_management";
 
 import { ResourceExpandView } from "./expandView";
-import { TableContextProvider } from "../../../../../../../resource-management/src/store/tableContext";
 import { EmptyTableBody } from "../../components/empty";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
-import { getCellBackGroundColor } from "../../utils/cell";
 import { getIsBillableValue } from "../../utils/helper";
 
 /**
@@ -227,6 +226,8 @@ const ResourceTeamTableCell = ({
   ]);
 
   const cellBackGroundColor = useMemo(() => getCellBackGroundColor(allocationPercentage), [allocationPercentage]);
+
+  console.log(cellBackGroundColor, "-----");
 
   if (tableView.combineWeekHours) {
     return (

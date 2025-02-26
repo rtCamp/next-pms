@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { getMonthKey, getMonthYearKey, getTodayDate, prettyDate } from "@next-pms/design-system";
 import { TableHead, Typography } from "@next-pms/design-system/components";
 import { useQueryParam } from "@next-pms/hooks";
+import { TableContext } from "@next-pms/resource-management/store";
 import { startOfWeek } from "date-fns";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { Plus, ZoomIn, ZoomOut } from "lucide-react";
@@ -20,7 +21,6 @@ import { RootState } from "@/store";
 import { PermissionProps, setDialog, setResourcePermissions } from "@/store/resource_management/allocation";
 import { Skill } from "@/store/resource_management/team";
 
-import { TableContext } from "../../../../../../../resource-management/src/store/tableContext";
 import { TimeLineContext } from "../../store/timeLineContext";
 import SkillSearch from "../../team/components/skillSearch";
 import { getDayKeyOfMoment } from "../../utils/dates";
