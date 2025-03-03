@@ -1,8 +1,8 @@
 /**
  * External dependencies.
  */
-import { useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useContext, useMemo } from "react";
+import { useSelector } from "react-redux";
 import { Table, TableBody, TableRow } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
 import {
@@ -17,10 +17,11 @@ import { getTableCellClass, getTodayDateCellClass } from "@next-pms/resource-man
  */
 import { cn } from "@/lib/utils";
 import { RootState } from "@/store";
-import { AllocationDataProps, setResourceFormData } from "@/store/resource_management/allocation";
 import { DateProps, EmployeeDataProps } from "@/store/resource_management/team";
 import { EmptyRow } from "../../components/empty";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
+import { ResourceFormContext } from "../../store/resourceFormContext";
+import { AllocationDataProps } from "../../store/types";
 import {
   CombinedResourceDataProps,
   CombinedResourceObjectProps,
@@ -145,7 +146,7 @@ const ExpandViewCell = ({
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
-  const dispatch = useDispatch();
+  const { updateAllocationData, updateDialogState } = useContext(ResourceFormContext);
 
   const { date: dateStr, day } = prettyDate(date);
   const title = project_name + " (" + dateStr + " - " + day + ")";
@@ -155,25 +156,25 @@ const ExpandViewCell = ({
   const total_worked_hours = allocationsData ? allocationsData.total_worked_hours_resource_allocation : 0;
 
   const onCellClick = () => {
-    dispatch(
-      setResourceFormData({
-        isShowDialog: true,
-        employee: employee,
-        employee_name: employee_name,
-        project: project,
-        allocation_start_date: date,
-        allocation_end_date: date,
-        is_billable: getIsBillableValue(resourceTeamState.allocationType as string[]) != "0",
-        customer: customer_name,
-        total_allocated_hours: "0",
-        hours_allocated_per_day: "0",
-        note: "",
-        project_name: project_name,
-        customer_name: customer_name,
-        isNeedToEdit: false,
-        name: "",
-      })
-    );
+    updateDialogState({
+      isShowDialog: true,
+      isNeedToEdit: false,
+    });
+    updateAllocationData({
+      employee: employee,
+      employee_name: employee_name,
+      project: project,
+      allocation_start_date: date,
+      allocation_end_date: date,
+      is_billable: getIsBillableValue(resourceTeamState.allocationType as string[]) != "0",
+      customer: customer_name,
+      total_allocated_hours: "0",
+      hours_allocated_per_day: "0",
+      note: "",
+      project_name: project_name,
+      customer_name: customer_name,
+      name: "",
+    });
   };
 
   if (total_allocated_hours == 0 && total_allocated_hours == 0) {

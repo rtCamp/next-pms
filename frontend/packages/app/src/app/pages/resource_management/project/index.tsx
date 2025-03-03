@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect } from "react";
+import { useCallback, useContext, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getNextDate } from "@next-pms/design-system";
 import { Spinner, useToast } from "@next-pms/design-system/components";
@@ -11,13 +11,22 @@ import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
-import { AllocationDataProps, PermissionProps } from "@/store/resource_management/allocation";
 import { ProjectDataProps, setData, setReFetchData, updateData } from "@/store/resource_management/project";
 
 import AddResourceAllocations from "../components/addAllocation";
 import { ResourceProjectHeaderSection } from "./components/header";
 import { getIsBillableValue } from "../utils/helper";
 import { ResourceProjectTable } from "./components/table";
+import { ResourceContextProvider, ResourceFormContext } from "../store/resourceFormContext";
+import { AllocationDataProps } from "../store/types";
+
+const ResourceTeamViewWrapper = () => {
+  return (
+    <ResourceContextProvider>
+      <ResourceTeamView />
+    </ResourceContextProvider>
+  );
+};
 
 /**
  * This is main component which is responsible for rendering the project view of resource management.
@@ -27,10 +36,9 @@ import { ResourceProjectTable } from "./components/table";
 const ResourceTeamView = () => {
   const { toast } = useToast();
   const resourceProjectState = useSelector((state: RootState) => state.resource_project);
-  const ResourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
-  const resourceAllocationPermission: PermissionProps = useSelector(
-    (state: RootState) => state.resource_allocation_form.permissions
-  );
+  const { permission: resourceAllocationPermission, dialogState: resourceAllocationDialogState } =
+    useContext(ResourceFormContext);
+
   const dispatch = useDispatch();
 
   const { call: fetchSingleRecord } = useFrappePostCall(
@@ -131,9 +139,9 @@ const ResourceTeamView = () => {
         />
       )}
 
-      {ResourceAllocationForm.isShowDialog && <AddResourceAllocations onSubmit={onFormSubmit} />}
+      {resourceAllocationDialogState.isShowDialog && <AddResourceAllocations onSubmit={onFormSubmit} />}
     </>
   );
 };
 
-export default ResourceTeamView;
+export default ResourceTeamViewWrapper;

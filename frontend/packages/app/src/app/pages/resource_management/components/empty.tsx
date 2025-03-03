@@ -1,8 +1,7 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
-import { useSelector } from "react-redux";
+import { useContext, useState } from "react";
 import { TableBody, TableCell, TableRow } from "@next-pms/design-system/components";
 import { cn } from "@next-pms/design-system/utils";
 import {
@@ -16,8 +15,7 @@ import { CirclePlus } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { RootState } from "@/store";
-import { PermissionProps } from "@/store/resource_management/allocation";
+import { ResourceFormContext } from "../store/resourceFormContext";
 
 /**
  * This component is responsible for rendering the empty table body.
@@ -54,9 +52,7 @@ interface EmptyTableCellProps {
  */
 const EmptyTableCell = ({ cellClassName, title, textClassName, onCellClick }: EmptyTableCellProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  const resourceAllocationPermission: PermissionProps = useSelector(
-    (state: RootState) => state.resource_allocation_form.permissions
-  );
+  const { permission: resourceAllocationPermission } = useContext(ResourceFormContext);
 
   if (!onCellClick || !resourceAllocationPermission.write) {
     return (

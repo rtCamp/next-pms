@@ -22,8 +22,8 @@ import { setViews } from "./store/view";
 const TimesheetComponent = lazy(() => import("@/app/pages/timesheet"));
 const HomeComponent = lazy(() => import("@/app/pages/home"));
 const TeamComponent = lazy(() => import("@/app/pages/team"));
-// const ResourceTeamComponent = lazy(() => import("@/app/pages/resource_management/team"));
-// const ResourceProjectComponent = lazy(() => import("@/app/pages/resource_management/project"));
+const ResourceTeamComponent = lazy(() => import("@/app/pages/resource_management/team"));
+const ResourceProjectComponent = lazy(() => import("@/app/pages/resource_management/project"));
 const ResourceTimeLineComponet = lazy(() => import("@/app/pages/resource_management/timeline"));
 const EmployeeDetailComponent = lazy(() => import("@/app/pages/team/employee-detail"));
 const TaskComponent = lazy(() => import("@/app/pages/task"));
@@ -46,8 +46,8 @@ export function Router() {
         </Route>
         <Route path={TASK} element={<TaskComponent />} />
         <Route path={`${RESOURCE_MANAGEMENT}/timeline`} element={<ResourceTimeLineComponet />} />
-        {/* <Route path={`${RESOURCE_MANAGEMENT}/team`} element={<ResourceTeamComponent />} />
-        <Route path={`${RESOURCE_MANAGEMENT}/project`} element={<ResourceProjectComponent />} /> */}
+        <Route path={`${RESOURCE_MANAGEMENT}/team`} element={<ResourceTeamComponent />} />
+        <Route path={`${RESOURCE_MANAGEMENT}/project`} element={<ResourceProjectComponent />} />
       </Route>
       <Route path={TASK} element={<TaskComponent />} />
       <Route path="*" element={<NotFound />} />

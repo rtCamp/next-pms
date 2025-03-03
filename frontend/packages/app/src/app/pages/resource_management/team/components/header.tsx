@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect } from "react";
+import { useCallback, useContext, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getFormatedDate } from "@next-pms/design-system/date";
 import { useQueryParam } from "@next-pms/hooks";
@@ -14,7 +14,6 @@ import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
 import { Header } from "@/app/components/list-view/header";
 
 import { RootState } from "@/store";
-import { PermissionProps, setDialog, setResourcePermissions } from "@/store/resource_management/allocation";
 import {
   deleteFilters,
   setAllocationType,
@@ -30,6 +29,8 @@ import {
   setSkillSearch,
 } from "@/store/resource_management/team";
 import SkillSearch from "./skillSearch";
+import { ResourceFormContext } from "../../store/resourceFormContext";
+import { PermissionProps } from "../../store/types";
 
 /**
  * This component is responsible for loading the team view header.
@@ -49,9 +50,12 @@ const ResourceTeamHeaderSection = () => {
   const resourceTeamState = useSelector((state: RootState) => state.resource_team);
   const resourceTeamStateTableView = resourceTeamState.tableView;
   const dispatch = useDispatch();
-  const resourceAllocationPermission: PermissionProps = useSelector(
-    (state: RootState) => state.resource_allocation_form.permissions
-  );
+
+  const {
+    permission: resourceAllocationPermission,
+    updatePermission,
+    updateDialogState,
+  } = useContext(ResourceFormContext);
 
   const { call, loading } = useFrappePostCall(
     "next_pms.resource_management.api.permission.get_user_resources_permissions"
@@ -62,7 +66,7 @@ const ResourceTeamHeaderSection = () => {
   });
 
   useEffect(() => {
-    if (Object.keys(resourceAllocationPermission).length != 0) {
+    if (!resourceAllocationPermission.isNeedToSetPermission) {
       updateFilters(resourceAllocationPermission);
       return;
     }
@@ -71,7 +75,7 @@ const ResourceTeamHeaderSection = () => {
     call({}).then((res: { message: PermissionProps }) => {
       const resResourceAllocationPermission = res.message;
       updateFilters(resResourceAllocationPermission);
-      dispatch(setResourcePermissions(resResourceAllocationPermission));
+      updatePermission(resResourceAllocationPermission);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -298,7 +302,7 @@ const ResourceTeamHeaderSection = () => {
         {
           title: "add-allocation",
           handleClick: () => {
-            dispatch(setDialog(true));
+            updateDialogState({ isShowDialog: true, isNeedToEdit: false });
           },
           className: "px-3",
           icon: () => <Plus className="w-4 max-md:w-3 h-4 max-md:h-3 bg" />,

@@ -1,8 +1,8 @@
 /**
  * External dependencies.
  */
-import { useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useContext, useMemo } from "react";
+import { useSelector } from "react-redux";
 import { Avatar, AvatarFallback, AvatarImage, Table, TableBody, TableRow } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
 import { ResourceTableCell, TableInformationCellContent } from "@next-pms/resource-management/components";
@@ -14,7 +14,6 @@ import { useFrappeGetCall } from "frappe-react-sdk";
  */
 import { cn } from "@/lib/utils";
 import { RootState } from "@/store";
-import { AllocationDataProps, setResourceFormData } from "@/store/resource_management/allocation";
 import { DateProps, EmployeeDataProps, EmployeeResourceProps } from "@/store/resource_management/team";
 import {
   ResourceAllocationObjectProps,
@@ -22,6 +21,8 @@ import {
   ResourceCustomerObjectProps,
 } from "@/types/resource_management";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
+import { ResourceFormContext } from "../../store/resourceFormContext";
+import { AllocationDataProps } from "../../store/types";
 import { getIsBillableValue } from "../../utils/helper";
 
 interface ResourceExpandViewProps {
@@ -171,7 +172,7 @@ const ExpandViewCell = ({
   const tableView = useSelector((state: RootState) => state.resource_project.tableView);
   const allocationType = useSelector((state: RootState) => state.resource_project.allocationType);
 
-  const dispatch = useDispatch();
+  const { updateAllocationData, updateDialogState } = useContext(ResourceFormContext);
 
   const allocationPercentage = useMemo(() => {
     if (allocationsData.total_allocated_hours == 0) {
@@ -190,25 +191,22 @@ const ExpandViewCell = ({
   }, [allocationPercentage, tableView.view]);
 
   const onCellClick = () => {
-    dispatch(
-      setResourceFormData({
-        isShowDialog: true,
-        employee: employee,
-        employee_name: employee_name,
-        project: project,
-        allocation_start_date: allocationsData.date,
-        allocation_end_date: allocationsData.date,
-        is_billable: getIsBillableValue(allocationType as string[]) != "0",
-        customer: "",
-        total_allocated_hours: "0",
-        hours_allocated_per_day: "0",
-        note: "",
-        project_name: project_name,
-        customer_name: "",
-        isNeedToEdit: false,
-        name: "",
-      })
-    );
+    updateDialogState({ isShowDialog: true, isNeedToEdit: false });
+    updateAllocationData({
+      employee: employee,
+      employee_name: employee_name,
+      project: project,
+      allocation_start_date: allocationsData.date,
+      allocation_end_date: allocationsData.date,
+      is_billable: getIsBillableValue(allocationType as string[]) != "0",
+      customer: "",
+      total_allocated_hours: "0",
+      hours_allocated_per_day: "0",
+      note: "",
+      project_name: project_name,
+      customer_name: "",
+      name: "",
+    });
   };
 
   const { date: dateStr, day } = prettyDate(allocationsData.date);

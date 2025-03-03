@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Table, TableBody } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
@@ -20,7 +20,6 @@ import { InfiniteScroll } from "@/app/components/infiniteScroll";
  */
 import { cn } from "@/lib/utils";
 import { RootState } from "@/store";
-import { AllocationDataProps, setResourceFormData } from "@/store/resource_management/allocation";
 import {
   emptyProjectDayData,
   ProjectAllWeekDataProps,
@@ -35,6 +34,8 @@ import { ResourceAllocationObjectProps, ResourceAllocationProps } from "@/types/
 import { ResourceExpandView } from "./expandView";
 import { EmptyTableBody } from "../../components/empty";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
+import { ResourceFormContext } from "../../store/resourceFormContext";
+import { AllocationDataProps } from "../../store/types";
 import { getIsBillableValue } from "../../utils/helper";
 
 /**
@@ -217,7 +218,7 @@ const ResourceProjectTableCell = ({
   const customer = useSelector((state: RootState) => state.resource_project.data.customer);
   const allocationType = useSelector((state: RootState) => state.resource_project.allocationType);
 
-  const dispatch = useDispatch();
+  const { updateAllocationData, updateDialogState } = useContext(ResourceFormContext);
 
   const allocationPercentage = useMemo(() => {
     if (tableView.combineWeekHours) {
@@ -286,25 +287,22 @@ const ResourceProjectTableCell = ({
   ]);
 
   const onCellClick = () => {
-    dispatch(
-      setResourceFormData({
-        isShowDialog: true,
-        employee: "",
-        employee_name: "",
-        project: project,
-        allocation_start_date: projectSingleDay.date,
-        allocation_end_date: projectSingleDay.date,
-        is_billable: getIsBillableValue(allocationType as string[]) != "0",
-        customer: "",
-        total_allocated_hours: "0",
-        hours_allocated_per_day: "0",
-        note: "",
-        project_name: project_name,
-        customer_name: "",
-        isNeedToEdit: false,
-        name: "",
-      })
-    );
+    updateDialogState({ isShowDialog: true, isNeedToEdit: false });
+    updateAllocationData({
+      employee: "",
+      employee_name: "",
+      project: project,
+      allocation_start_date: projectSingleDay.date,
+      allocation_end_date: projectSingleDay.date,
+      is_billable: getIsBillableValue(allocationType as string[]) != "0",
+      customer: "",
+      total_allocated_hours: "0",
+      hours_allocated_per_day: "0",
+      note: "",
+      project_name: project_name,
+      customer_name: "",
+      name: "",
+    });
   };
 
   const { date: dateStr, day } = prettyDate(projectSingleDay.date);
