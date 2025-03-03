@@ -7,6 +7,27 @@ export type PermissionProps = {
   isNeedToSetPermission?: boolean;
 };
 
+export type DateProps = {
+  start_date: string;
+  end_date: string;
+  key: string;
+  dates: string[];
+};
+
+export type DateRange = {
+  start_date: string;
+  end_date: string;
+};
+
+export interface TableViewProps {
+  combineWeekHours: boolean;
+  view: string;
+  tableCell?: {
+    width: number;
+    height: number;
+  };
+}
+
 export type ResourceKeys =
   | "project"
   | "employee"
