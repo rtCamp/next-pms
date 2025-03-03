@@ -1,0 +1,26 @@
+{
+  "TC6": {
+    "taskInfo": {
+      "duration": "1",
+      "project": "QE - Fixed Cost",
+      "task": "Prod support calls",
+      "desc": "Task added via automation."
+    },
+    "cell": { "rowName": "Prod support calls", "col": "Fri" },
+    "payloadCreateTimesheet": {
+      "task": "TASK-2025-00617",
+      "description": "Task added via automation.",
+      "hours": "1",
+      "date": "<Dynamic date>",
+      "employee": "<Dynamic Employee ID>"
+    },
+    "payloadFilterTimeEntry": {
+      "subject": "Prod support calls",
+      "description": "Task added via automation.",
+      "project_name": "QE - Fixed Cost",
+      "from_time": "<Dynamic date>",
+      "employee": "<Dynamic Employee ID>",
+      "max_week": "1"
+    }
+  }
+}
