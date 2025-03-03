@@ -18,7 +18,7 @@ on:
 jobs:
   test:
     runs-on: self-hosted
-    environment: Stage
+    environment: Stage # Retrive secrets from 'Stage' environment
     env:
       STAGE_IP: ${{ secrets.FRONTEND_STAGE_SERVER_IP }}
       PROD_IP: ${{ secrets.FRONTEND_PROD_SERVER_IP }}
@@ -116,14 +116,14 @@ jobs:
 
       - name: Run e2e Tests.
         run: |
-          cd tests/e2e-playwright/
+          cd tests/e2e/
           npm run e2e:test --
 
       - name: Extract test results
         if: ${{ success() || failure() }}
         run: |
           # Define the path to your report file
-          REPORT_FILE="tests/e2e/html-report.index.html"
+          REPORT_FILE="tests/e2e/html-report/index.html"
 
           # Get the counts of passed and failed tests
           PASSED_COUNT=$(grep -oP '(?<=<span class="passed">)\d+' "$REPORT_FILE")
@@ -149,12 +149,12 @@ jobs:
           echo "Passed Tests: ${{ env.passed_count }}"
           echo "Failed Tests: ${{ env.failed_count }}"
 
-      # - name: Upload screenshots
-        # if: always()
-        # uses: actions/upload-artifact@v4
-        # with:
-          # name: screenshots
-          # path: tests/e2e-playwright/tests/
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: tests/e2e-playwright/tests/
 
       - name: Create ZIP file
         if: ${{ success() || failure() }}
@@ -165,7 +165,7 @@ jobs:
           cp ${{ github.workspace }}/tests/e2e-playwright/assets/style.css report_package/assets/
           zip -r report.zip report_package
 
-      - name: Set the email body message for pull request merge or schdule message
+      - name: Set the email body message for pull request merge or schedule message
         if: ${{ success() || failure() }}
         run: |
           if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
