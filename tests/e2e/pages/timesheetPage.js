@@ -30,8 +30,7 @@ export class TimesheetPage {
    * Navigates to the timesheet page and waits for it to fully load.
    */
   async goto() {
-    await this.page.goto("/next-pms/timesheet");
-    await this.page.waitForLoadState();
+    await this.page.goto("/next-pms/timesheet", { waitUntil: "domcontentloaded" });
   }
 
   /**

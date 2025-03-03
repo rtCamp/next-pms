@@ -1,4 +1,36 @@
 {
+  "TC5": {
+    "taskInfo": {
+      "duration": "2:15",
+      "project": "QE - Time and Material",
+      "task": "Unit Testing",
+      "desc": "New row added to task via automation."
+    },
+    "cell": { "rowName": "Unit Testing", "col": "Thu" },
+    "payloadCreateTimesheet": {
+      "task": "TASK-2025-00621",
+      "description": "Task added via automation.",
+      "hours": "1",
+      "date": "<Update dynamically>",
+      "employee": "<Update dynamically>"
+    },
+    "payloadFilterTimeEntry1": {
+      "subject": "Unit Testing",
+      "description": "Task added via automation.",
+      "project_name": "QE - Time and Material",
+      "from_time": "<Update dynamically>",
+      "employee": "<Update dynamically>",
+      "max_week": "1"
+    },
+    "payloadFilterTimeEntry2": {
+      "subject": "Unit Testing",
+      "description": "New row added to task via automation.",
+      "project_name": "QE - Time and Material",
+      "from_time": "<Update dynamically>",
+      "employee": "<Update dynamically>",
+      "max_week": "1"
+    }
+  },
   "TC6": {
     "taskInfo": {
       "duration": "1",
@@ -11,15 +43,15 @@
       "task": "TASK-2025-00617",
       "description": "Task added via automation.",
       "hours": "1",
-      "date": "<Dynamic date>",
-      "employee": "<Dynamic Employee ID>"
+      "date": "<Update dynamically>",
+      "employee": "<Update dynamically>"
     },
     "payloadFilterTimeEntry": {
       "subject": "Prod support calls",
       "description": "Task added via automation.",
       "project_name": "QE - Fixed Cost",
-      "from_time": "<Dynamic date>",
-      "employee": "<Dynamic Employee ID>",
+      "from_time": "<Update dynamically>",
+      "employee": "<Update dynamically>",
       "max_week": "1"
     }
   }

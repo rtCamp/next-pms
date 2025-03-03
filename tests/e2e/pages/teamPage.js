@@ -17,8 +17,7 @@ export class TeamPage {
    * Navigates to the team page and waits for it to fully load.
    */
   async goto() {
-    await this.page.goto("/next-pms/team");
-    await this.page.waitForLoadState();
+    await this.page.goto("/next-pms/team", { waitUntil: "domcontentloaded" });
   }
 
   /**

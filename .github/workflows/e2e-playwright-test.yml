@@ -1,0 +1,331 @@
+name: Playwright Tests
+
+# Controls when the workflow will run
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+    types:
+      - closed
+
+  push:
+    branches:
+      - test-setup-automation-framework
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: self-hosted
+    environment: Stage
+    env:
+      STAGE_IP: ${{ secrets.FRONTEND_STAGE_SERVER_IP }}
+      PROD_IP: ${{ secrets.FRONTEND_PROD_SERVER_IP }}
+      stagingURL: "https://careers-stage.rt.gw/"
+      prodURL: "https://careers.rtcamp.com/"
+      stagingBackendURL: "https://erp-stage.rt.gw"
+      prodBackendURL: "https://erp.rtcamp.com/"
+      EMAIL: "shraddha.gore@rtcamp.com"
+
+      BASE_URL: ${{ secrets.BASE_URL }}
+      EMP_ID: ${{ secrets.EMP_ID }}
+      EMP_EMAIL: ${{ secrets.EMP_EMAIL }}
+      EMP_PASS: ${{ secrets.EMP_PASS }}
+      EMP_NAME: ${{ secrets.EMP_NAME }}
+      REP_MAN_ID: ${{ secrets.REP_MAN_ID }}
+      REP_MAN_EMAIL: ${{ secrets.REP_MAN_EMAIL }}
+      REP_MAN_PASS: ${{ secrets.REP_MAN_PASS }}
+      REP_MAN_NAME: ${{ secrets.REP_MAN_NAME }}
+
+    steps:
+      - name: Own the dir if not owned
+        shell: bash
+        run: |
+          echo "Current working dir: '$(pwd)'"
+          echo 'Going to own a dir above the working dir.'
+          bash -c "sudo chown -R $(whoami):$(whoami) \"$(dirname '${{ github.workspace }}')\""
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set environment variables
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            if [[ "${{ github.event.pull_request.base.ref }}" == "develop" ]]; then
+              echo "BRANCH_NAME=stage" >> $GITHUB_ENV
+              echo "ENVIRONMENT=staging" >> $GITHUB_ENV  # Set staging environment for PRs
+            elif [[ "${{ github.event.pull_request.base.ref }}" == "main" ]]; then
+              echo "BRANCH_NAME=main" >> $GITHUB_ENV
+              echo "ENVIRONMENT=production" >> $GITHUB_ENV  # Set production environment for PRs
+            fi
+          elif [[ "${{ github.event_name }}" == "schedule" ]]; then
+            echo "BRANCH_NAME=main" >> $GITHUB_ENV
+            echo "ENVIRONMENT=production" >> $GITHUB_ENV  # Set production for scheduled runs
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            # Default values for manual runs
+            echo "BRANCH_NAME=stage" >> $GITHUB_ENV
+            echo "ENVIRONMENT=staging" >> $GITHUB_ENV  # Set staging environment for PRs
+          else
+            echo "Unknown event: ${{ github.event_name }}"
+             exit 1
+          fi
+
+      - name: Add host entry
+        run: |
+
+          GITHUB_COMMENT="# Added by GitHub Actions - Run ${{ github.run_id }} (${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          if [[ "${{ env.ENVIRONMENT }}" == "staging" ]]; then
+            CAREERS_HOST=$(echo "${{ env.stagingURL }}" | sed 's/https:\/\///' | sed 's/\/.*//') 
+            BACKEND_HOST=$(echo "${{ env.stagingBackendURL }}" | sed 's/https:\/\///' | sed 's/\/.*//') 
+            # Remove any existing entries for these hosts
+            sudo sed -i "/Added by GitHub Actions.*$/d" /etc/hosts
+            # Add new entries
+            echo "${{ env.STAGE_IP }} $CAREERS_HOST $GITHUB_COMMENT" | sudo tee -a /etc/hosts
+            echo "${{ env.STAGE_IP }} $BACKEND_HOST $GITHUB_COMMENT" | sudo tee -a /etc/hosts
+          elif [[ "${{ env.ENVIRONMENT }}" == "production" ]]; then
+            CAREERS_HOST=$(echo "${{ env.prodURL }}" | sed 's/https:\/\///' | sed 's/\/.*//') 
+            BACKEND_HOST=$(echo "${{ env.prodBackendURL }}" | sed 's/https:\/\///' | sed 's/\/.*//') 
+            # Remove any existing entries for these hosts
+            sudo sed -i "/Added by GitHub Actions.*$/d" /etc/hosts
+            # Add new entries
+            echo "${{ env.PROD_IP }} $CAREERS_HOST $GITHUB_COMMENT" | sudo tee -a /etc/hosts
+            echo "${{ env.PROD_IP }} $BACKEND_HOST $GITHUB_COMMENT" | sudo tee -a /etc/hosts
+          fi
+
+      # Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: "frontend/.nvmrc"
+          cache: "npm"
+
+      # Install dependancies
+      - name: Install dependancies
+        run: |
+          pwd
+          ls -al
+          cd tests/e2e-playwright/
+          npm install
+
+      # Install Playwright
+      - name: Install playwright
+        run: |
+          cd tests/e2e/
+          npx playwright install
+
+      - name: Run e2e Tests.
+        run: |
+          cd tests/e2e-playwright/
+          npm run e2e:test --
+
+      - name: Extract test results
+        if: ${{ success() || failure() }}
+        run: |
+          # Define the path to your report file
+          REPORT_FILE="tests/e2e/html-report.index.html"
+
+          # Get the counts of passed and failed tests
+          PASSED_COUNT=$(grep -oP '(?<=<span class="passed">)\d+' "$REPORT_FILE")
+          FAILED_COUNT=$(grep -oP '(?<=<span class="failed">)\d+' "$REPORT_FILE")
+
+          # Output the results
+          echo "Passed Tests: $PASSED_COUNT"
+          echo "Failed Tests: $FAILED_COUNT"
+
+          # Optionally set them as output variables
+          echo "passed_count=$PASSED_COUNT" >> $GITHUB_ENV
+          echo "failed_count=$FAILED_COUNT" >> $GITHUB_ENV
+
+          PASSED=${{ env.PASSED }}
+          FAILED=${{ env.FAILED }}
+          TOTAL=$((PASSED + FAILED))
+          # Set environment variables
+          echo "TOTAL=$TOTAL" >> $GITHUB_ENV
+
+      - name: Display counts
+        if: ${{ success() || failure() }}
+        run: |
+          echo "Passed Tests: ${{ env.passed_count }}"
+          echo "Failed Tests: ${{ env.failed_count }}"
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: tests/e2e-playwright/tests/
+
+      - name: Create ZIP file
+        if: ${{ success() || failure() }}
+        run: |
+          mkdir report_package
+          cp ${{ github.workspace }}/tests/e2e/html-report.index.html report_package/
+          mkdir -p report_package/assets
+          cp ${{ github.workspace }}/tests/e2e-playwright/assets/style.css report_package/assets/
+          zip -r report.zip report_package
+
+      - name: Set the email body message for pull request merge or schdule message
+        if: ${{ success() || failure() }}
+        run: |
+          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
+            echo "message=<p>For the latest pull request merge titled <b><a href='${{ github.event.pull_request.html_url }}'> ${{ github.event.pull_request.title }}</a></b>, the automation tests have been completed. Below is the summary:</p>" >> $GITHUB_ENV
+          else
+            echo "message=<p>This is to inform you that the scheduled automation tests have been executed on the production environment. Below is the summary::</p>" >> $GITHUB_ENV
+          fi
+
+      - name: Send Report via Email
+        if: ${{ success() || failure() }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.QA_WORKFLOW_EMAIL }}
+          password: ${{ secrets.QA_WORKFLOW_EMAIL_PASSWORD }}
+          subject: Test Automation Report - Next PMS Site
+          html_body: |
+            <html>
+              <head>
+                <style>
+                  body {
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    color: #333;
+                    margin: 0;
+                    padding: 0;
+                    background-color: #f9f9f9;
+                  }
+                  .container {
+                    width: 80%;
+                    max-width: 600px;
+                    margin: 20px auto;
+                    background: #fff;
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                    padding: 20px;
+                  }
+                  .header {
+                    text-align: center;
+                    padding-bottom: 20px;
+                    border-bottom: 1px solid #ddd;
+                  }
+                  .header h1 {
+                    margin: 0;
+                    color: #333;
+                  }
+                  .content {
+                    margin-top: 20px;
+                  }
+                  .content p {
+                    margin: 0 0 10px;
+                  }
+                  .content ul {
+                    list-style: none;
+                    padding: 0;
+                  }
+                  .content li {
+                    padding: 8px 0;
+                    border-bottom: 1px solid #eee;
+                  }
+                  .content li:last-child {
+                    border-bottom: none;
+                  }
+                  .chart-container {
+                    margin: 20px 0;
+                    text-align: center;
+                  }
+                  .chart-title {
+                    margin-bottom: 10px;
+                    font-weight: bold;
+                  }
+                  .chart-container img {
+                    max-width: 100%;
+                    height: 240px;
+                  }
+                  .footer {
+                    margin-top: 20px;
+                    text-align: left;
+                    font-size: 0.9em;
+                    color: #777;
+                  }
+                  .footer p {
+                    margin: 5px 0;
+                  }
+                  .footer a {
+                    color: #007bff;
+                    text-decoration: none;
+                  }
+                  .footer a:hover {
+                    text-decoration: underline;
+                  }
+                  .content a {
+
+                    text-decoration: none;
+                  }
+                  .content a:hover {
+                    text-decoration: underline; /* Underline on hover */
+                  }
+                   table {
+                  width: 100%;
+                  border-collapse: collapse;
+                  margin: 20px 0;
+                  background-color: #ffffff;
+                  border-radius: 5px;
+                  overflow: hidden;
+                  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                }
+                th, td {
+                  border: 1px solid #dddddd;
+                  padding: 12px;
+                  text-align: left;
+                }
+                th {
+                  background-color: #4CAF50;
+                  color: white;
+                }
+                tr:nth-child(even) {
+                  background-color: #f2f2f2;
+                }
+                tr:hover {
+                  background-color: #ddd;
+                }
+                </style>
+              </head>
+              <body>
+                <div class="container">
+                  <div class="header">
+                    <h1>Test Automation Report</h1>
+                  </div>
+                  <div class="content">
+                    <p>Hi Team,</p>
+                    ${{ env.message }}
+                    <p><b>Automation Test Summary:</b></p>
+                    <ul>
+                      <li><b>Tests Passed:</b> ${{ env.passed_count }}</li>
+                      <li><b>Tests Failed:</b> ${{ env.failed_count }}</li>
+                    </ul>
+                  </div>
+
+              <p>For a comprehensive overview, please see the test report attached below.</p>
+              <p>To view the build details and see what changes have been merged, visit the build link:</p><a href="https://github.com/rtcamp/next-pms/actions/runs/${{ github.run_id }}">Build Details</a>
+              <p>If you have any questions, please feel free to revert back.</p>
+                  <div class="footer">
+                    <p>Best regards,</p>
+                    <p>QA Team</p>
+                  </div>
+                </div>
+              </body>
+            </html>
+          to: shraddha.gore@rtcamp.com
+          from: no-replay@gmail.com
+          attachments: |
+            report.zip
+
+      - name: Remove host entries
+        if: always()
+        run: |
+          sudo sed -i "/Added by GitHub Actions.*$/d" /etc/hosts
+
+      - name: Cleanup
+        if: ${{ always() }}
+        uses: rtCamp/action-cleanup@master

@@ -19,8 +19,7 @@ export class LoginPage {
    * Navigates to the login page and waits for it to fully load.
    */
   async goto() {
-    await this.page.goto("/login");
-    await this.page.waitForLoadState();
+    await this.page.goto("/login", { waitUntil: "domcontentloaded" });
   }
 
   /**
