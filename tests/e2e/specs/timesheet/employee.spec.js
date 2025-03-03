@@ -23,7 +23,7 @@ let filteredTimeEntry = {};
 let TC5data = data.TC5;
 let TC6data = data.TC6;
 
-test.beforeAll("Before All - Create test entries", async ({}) => {
+test.beforeAll("Before All - Create time entries", async ({}) => {
   // Fetch TC5 task, update dynamic fields and create time entry
   formattedDate = await getFormattedDate(getDateForWeekday(TC5data.cell.col));
 
@@ -47,7 +47,7 @@ test.beforeAll("Before All - Create test entries", async ({}) => {
   await createTimesheet(TC6data.payloadCreateTimesheet);
 });
 
-test.afterAll("After All - Delete test entries", async ({}) => {
+test.afterAll("After All - Delete time entries", async ({}) => {
   // Fetch TC5 time entries, update dynamic fields and delete time entries
   filteredTimeEntry = await filterTimesheetEntry(TC5data.payloadFilterTimeEntry1);
   await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
