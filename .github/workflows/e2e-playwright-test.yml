@@ -8,6 +8,9 @@ on:
       - develop
     types:
       - closed
+  push:
+    branches:
+      - test-setup-automation-framework
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -146,12 +149,12 @@ jobs:
           echo "Passed Tests: ${{ env.passed_count }}"
           echo "Failed Tests: ${{ env.failed_count }}"
 
-      - name: Upload screenshots
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: screenshots
-          path: tests/e2e-playwright/tests/
+      # - name: Upload screenshots
+        # if: always()
+        # uses: actions/upload-artifact@v4
+        # with:
+          # name: screenshots
+          # path: tests/e2e-playwright/tests/
 
       - name: Create ZIP file
         if: ${{ success() || failure() }}
