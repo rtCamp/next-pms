@@ -1,9 +1,8 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useDispatch, useSelector } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Button,
@@ -38,9 +37,8 @@ import { z } from "zod";
  */
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import { ResourceAllocationSchema } from "@/schema/resource";
-import { RootState } from "@/store";
-import { AllocationDataProps, ResourceKeys, setDialog } from "@/store/resource_management/allocation";
-import { resetState } from "@/store/resource_management/allocation";
+import { ResourceFormContext } from "../store/resourceFormContext";
+import { AllocationDataProps, ResourceKeys } from "../store/types";
 import { getRoundOfValue } from "../utils/helper";
 
 /**
@@ -54,8 +52,11 @@ const AddResourceAllocations = ({
 }: {
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const resourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
-  const dispatch = useDispatch();
+  const {
+    allocationData: resourceAllocationForm,
+    dialogState: resourceDialogState,
+    resetState,
+  } = useContext(ResourceFormContext);
 
   const [projectSearch, setProjectSearch] = useState(resourceAllocationForm.project_name);
   const [customerSearch, setCustomerSearch] = useState(resourceAllocationForm.customer_name);
@@ -264,12 +265,11 @@ const AddResourceAllocations = ({
   );
 
   const handleOpen = (open: boolean): void => {
-    dispatch(setDialog(open));
     if (open === false) {
       form.reset();
       setProjectSearch("");
       setCustomerSearch("");
-      dispatch(resetState());
+      resetState();
     }
   };
 
@@ -286,7 +286,7 @@ const AddResourceAllocations = ({
       is_billable: data.is_billable ? 1 : 0,
       note: data.note,
     };
-    if (resourceAllocationForm.isNeedToEdit) {
+    if (resourceDialogState.isNeedToEdit) {
       return handleCreateAndUpdateOfallocation({ allocation: { ...doctypeDoc, name: resourceAllocationForm.name } });
     }
     return handleCreateAndUpdateOfallocation({
@@ -303,7 +303,7 @@ const AddResourceAllocations = ({
       .then(() => {
         toast({
           variant: "success",
-          description: `Resouce allocation ${resourceAllocationForm.isNeedToEdit ? "updated" : "created"} successfully`,
+          description: `Resouce allocation ${resourceDialogState.isNeedToEdit ? "updated" : "created"} successfully`,
         });
         onSubmit(resourceAllocationForm, data);
         handleOpen(false);
@@ -311,7 +311,7 @@ const AddResourceAllocations = ({
       .catch(() => {
         toast({
           variant: "destructive",
-          description: `Failed to ${resourceAllocationForm.isNeedToEdit ? "updated" : "create"} resource allocation`,
+          description: `Failed to ${resourceDialogState.isNeedToEdit ? "updated" : "create"} resource allocation`,
         });
       });
   };
@@ -339,11 +339,11 @@ const AddResourceAllocations = ({
   }, [handleHoursAutoComplete, leaveData]);
 
   return (
-    <Dialog open={resourceAllocationForm?.isShowDialog} onOpenChange={handleOpen}>
+    <Dialog open={resourceDialogState.isShowDialog} onOpenChange={handleOpen}>
       <DialogContent className="max-w-xl bg-none z-[1000]">
         <DialogHeader>
           <DialogTitle className="flex gap-x-2 mb-2">
-            {resourceAllocationForm.isNeedToEdit ? "Edit" : "Add"} Allocation
+            {resourceDialogState.isNeedToEdit ? "Edit" : "Add"} Allocation
           </DialogTitle>
           <Separator />
         </DialogHeader>
@@ -506,7 +506,7 @@ const AddResourceAllocations = ({
               />
             </div>
 
-            {!resourceAllocationForm.isNeedToEdit && (
+            {!resourceDialogState.isNeedToEdit && (
               <div>
                 <FormField
                   control={form.control}
@@ -640,7 +640,7 @@ const AddResourceAllocations = ({
               <div className="flex gap-x-4 w-full">
                 <Button>
                   {loading ? <LoaderCircle className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
-                  {resourceAllocationForm.isNeedToEdit ? "Save" : "Create"}
+                  {resourceDialogState.isNeedToEdit ? "Save" : "Create"}
                 </Button>
                 <Button
                   type="button"
