@@ -8,6 +8,9 @@ on:
       - develop
     types:
       - closed
+  push:
+    branches:
+      - test-setup-automation-framework
 
   #Triggers at 5 AM IST every day
   schedule:
