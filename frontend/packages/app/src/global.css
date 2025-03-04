@@ -45,3 +45,36 @@ html,
   width: 100vw;
   overflow: auto;
 }
+
+
+/** TimeLine CSS overwrite*/
+.react-calendar-timeline .rct-sidebar .rct-sidebar-row.rct-sidebar-row-odd,
+.react-calendar-timeline .rct-horizontal-lines .rct-hl-odd {
+  background: none !important;
+  border-color: rgb(209 213 219) !important;
+}
+
+.react-calendar-timeline .rct-sidebar .rct-sidebar-row.rct-sidebar-row-even,
+.react-calendar-timeline .rct-horizontal-lines .rct-hl-event {
+  border-color: rgb(209 213 219) !important;
+}
+
+.rct-day-0,
+.rct-day-6 {
+  background: transparent !important;
+  border: 0;
+}
+
+.rct-day-0-today {
+  border-right: 1px solid;
+}
+
+.rct-day-6-today {
+  border-left: 1px solid;
+}
+
+.rct-scroll {
+  cursor: cell !important;
+  -webkit-cursor: cell !important;
+  -moz-cursor: cell !important;
+}
