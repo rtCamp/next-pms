@@ -105,8 +105,7 @@ jobs:
         run: |
           pwd
           ls -al
-          cd tests/e2e-playwright/
-          npm install
+          npm ci
 
       # Install Playwright
       - name: Install playwright
@@ -123,7 +122,7 @@ jobs:
         if: ${{ success() || failure() }}
         run: |
           # Define the path to your report file
-          REPORT_FILE="tests/e2e/html-report/index.html"
+          REPORT_FILE="tests/e2e/playwright-report/"
 
           # Get the counts of passed and failed tests
           PASSED_COUNT=$(grep -oP '(?<=<span class="passed">)\d+' "$REPORT_FILE")
@@ -154,7 +153,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: screenshots
-          path: tests/e2e-playwright/tests/
+          path: tests/e2e/playwright-report/
 
       - name: Create ZIP file
         if: ${{ success() || failure() }}
@@ -316,7 +315,7 @@ jobs:
               </body>
             </html>
           to: shraddha.gore@rtcamp.com
-          from: no-replay@gmail.com
+          from: no-reply@gmail.com
           attachments: |
             report.zip
 

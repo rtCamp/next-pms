@@ -12,6 +12,10 @@ require("dotenv").config({ path: path.resolve(__dirname, ".env") });
  * @see https://playwright.dev/docs/test-configuration
  */
 module.exports = defineConfig({
+  /* Directory with specs */
+  testDir: "./specs",
+
+  /* Test results directory */
   outputDir: "test-results",
 
   /* Run tests in files in parallel */
@@ -27,21 +31,21 @@ module.exports = defineConfig({
   workers: process.env.CI ? 2 : undefined, // Use 2 workers on CI, defaults to the number of CPU cores otherwise
 
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: [["html", { open: "never", outputFolder: "html-report" }]],
+  reporter: [["html", { open: "never", outputFolder: "playwright-report" }]],
 
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: process.env.BASE_URL,
 
-    /* Collect trace when retrying the failed test. */
-    trace: "on-all-retries",
+    /* Collect trace. */
+    trace: "on",
 
-    /* Capture screenshot when the test fails. */
-    screenshot: "only-on-failure",
+    /* Capture screenshot. */
+    screenshot: "on",
 
-    /* Record video when retrying the failed test. */
-    video: "retain-on-failure",
+    /* Record video. */
+    video: "on",
 
     launchOptions: {
       slowMo: 500, // Slow down tests by 500ms

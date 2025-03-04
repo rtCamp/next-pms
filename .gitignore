@@ -10,9 +10,5 @@ dist/
 next_pms/www/next-pms/index.html
 next_pms/public/frontend/
 
-# Playwright test reports
-html-report
-test-results
-
 # Env file
 .env
