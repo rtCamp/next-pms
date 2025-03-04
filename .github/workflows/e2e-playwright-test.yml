@@ -84,7 +84,7 @@ jobs:
         if: ${{ success() || failure() }}
         run: |
           # Define the path to your report file
-          REPORT_FILE="tests/e2e/playwright-report/results.json"
+          REPORT_FILE="tests/e2e/results.json"
 
           # Check if the report file exists
           if [[ ! -f "$REPORT_FILE" ]]; then
