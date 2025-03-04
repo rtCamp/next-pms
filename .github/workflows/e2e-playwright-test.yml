@@ -142,15 +142,6 @@ jobs:
           name: playwright-report
           path: tests/e2e/playwright-report/
 
-      - name: Create ZIP file
-        if: ${{ success() || failure() }}
-        run: |
-          mkdir report_package
-          cp ${{ github.workspace }}/tests/e2e/playwright-report/index.html report_package/
-          mkdir -p report_package/assets
-          cp ${{ github.workspace }}/tests/e2e-playwright/assets/style.css report_package/assets/
-          zip -r report.zip report_package
-
       - name: Set the email body message for pull request merge or schedule message
         if: ${{ success() || failure() }}
         run: |
