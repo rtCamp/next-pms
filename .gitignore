@@ -11,8 +11,9 @@ next_pms/www/next-pms/index.html
 next_pms/public/frontend/
 
 # Playwright reports
-playwright-report/
-test-results/
+tests/e2e/playwright-report/
+tests/e2e/test-results/
+tests/e2e/results.json
 
 # Env file
 .env

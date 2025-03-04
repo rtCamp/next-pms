@@ -31,7 +31,10 @@ module.exports = defineConfig({
   workers: process.env.CI ? 2 : undefined, // Use 2 workers on CI, defaults to the number of CPU cores otherwise
 
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: [["html", { open: "never", outputFolder: "playwright-report" }]],
+  reporter: [
+    ["html", { open: "never", outputFolder: "playwright-report" }],
+    ["json", { outputFile: "results.json" }],
+  ],
 
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
