@@ -8,9 +8,6 @@ on:
       - develop
     types:
       - closed
-  push:
-    branches:
-      - test-setup-automation-framework
 
   #Triggers at 5 AM IST every day
   schedule:
@@ -97,7 +94,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: report
           path: tests/e2e/playwright-report/
 
       - name: Create ZIP file
@@ -265,7 +262,7 @@ jobs:
                 </div>
               </body>
             </html>
-          to: shraddha.gore@rtcamp.com
+          to: bots-erp-rtcamp-com-aaaajmbbbavnlkxccfuvoqjqsy@rtcamp.slack.com
           from: no-reply@gmail.com
           attachments: |
             report.zip
