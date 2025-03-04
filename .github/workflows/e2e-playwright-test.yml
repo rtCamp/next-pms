@@ -8,9 +8,6 @@ on:
       - develop
     types:
       - closed
-  push:
-    branches:
-      - test-setup-automation-framework
 
   #Triggers at 5 AM IST every day
   schedule:
@@ -24,8 +21,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: Stage # Retrive secrets from 'Stage' environment
     env:
-      EMAIL: "shraddha.gore@rtcamp.com"
-
       BASE_URL: ${{ secrets.BASE_URL }}
       EMP_ID: ${{ secrets.EMP_ID }}
       EMP_EMAIL: ${{ secrets.EMP_EMAIL }}
@@ -252,7 +247,7 @@ jobs:
                 </div>
               </body>
             </html>
-          to: shraddha.gore@rtcamp.com
+          to: bots-erp-rtcamp-com-aaaajmbbbavnlkxccfuvoqjqsy@rtcamp.slack.com
           from: no-reply@gmail.com
           attachments: |
             report.zip
