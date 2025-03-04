@@ -93,8 +93,8 @@ jobs:
           fi
 
           # Get the counts of passed and failed tests
-          PASSED_COUNT=$(grep -oP '(?<=<span class="passed">)\d+' "$REPORT_FILE")
-          FAILED_COUNT=$(grep -oP '(?<=<span class="failed">)\d+' "$REPORT_FILE")
+          PASSED_COUNT=$(grep -oP '(?<=<span class="passed">)\d+' "$REPORT_FILE" || echo 0)
+          FAILED_COUNT=$(grep -oP '(?<=<span class="failed">)\d+' "$REPORT_FILE" || echo 0)
 
           # Output the results
           echo "Passed Tests: $PASSED_COUNT"
