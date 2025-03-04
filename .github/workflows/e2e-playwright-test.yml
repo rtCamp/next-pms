@@ -86,6 +86,12 @@ jobs:
           # Define the path to your report file
           REPORT_FILE="tests/e2e/playwright-report/index.html"
 
+          # Check if the report file exists
+          if [[ ! -f "$REPORT_FILE" ]]; then
+            echo "Error: Report file not found at $REPORT_FILE"
+            exit 1
+          fi
+
           # Get the counts of passed and failed tests
           PASSED_COUNT=$(grep -oP '(?<=<span class="passed">)\d+' "$REPORT_FILE")
           FAILED_COUNT=$(grep -oP '(?<=<span class="failed">)\d+' "$REPORT_FILE")
