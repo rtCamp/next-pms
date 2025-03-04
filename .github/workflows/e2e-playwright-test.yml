@@ -8,6 +8,9 @@ on:
       - develop
     types:
       - closed
+  push:
+    branches:
+      - test-setup-automation-framework
 
   #Triggers at 5 AM IST every day
   schedule:
@@ -97,11 +100,26 @@ jobs:
           name: playwright-report
           path: tests/e2e/playwright-report/
 
+      - name: Create ZIP file
+        if: ${{ success() || failure() }}
+        run: |
+          # Define the report directory dynamically
+          REPORT_DIR="${{ github.workspace }}/tests/e2e/playwright-report"
+
+          # Ensure the directory exists before zipping
+          if [ -d "$REPORT_DIR" ]; then
+            echo "Zipping report folder..."
+            zip -r report.zip "$REPORT_DIR"
+          else
+            echo "Error: Report directory not found at $REPORT_DIR"
+            exit 1
+          fi
+
       - name: Set the email body message for pull request merge or schedule message
         if: ${{ success() || failure() }}
         run: |
           if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
-            echo "message=<p>For the latest pull request merge titled <b><a href='${{ github.event.pull_request.html_url }}'> ${{ github.event.pull_request.title }}</a></b>, the automation tests have been completed. Below is the summary:</p>" >> $GITHUB_ENV
+            echo "message=<p>For the latest pull request merge titled <b><a href='${{ github.event.pull_request.html_url }}'> ${{ github.event.pull_request.title }}</a></b>, the automation tests have been executed on the staging environment. Below is the summary:</p>" >> $GITHUB_ENV
           else
             echo "message=<p>This is to inform you that the scheduled automation tests have been executed on the staging environment. Below is the summary::</p>" >> $GITHUB_ENV
           fi
@@ -247,7 +265,7 @@ jobs:
                 </div>
               </body>
             </html>
-          to: bots-erp-rtcamp-com-aaaajmbbbavnlkxccfuvoqjqsy@rtcamp.slack.com
+          to: shraddha.gore@rtcamp.com
           from: no-reply@gmail.com
           attachments: |
             report.zip
