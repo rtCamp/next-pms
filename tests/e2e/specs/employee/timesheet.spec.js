@@ -10,7 +10,7 @@ import {
 import { createTimesheet, deleteTimesheet } from "../../utils/api/timesheetRequests";
 import { filterTimesheetEntry } from "../../helpers/timesheetHelper";
 import { TimesheetPage } from "../../pages/timesheetPage";
-import data from "../../data/timesheet/employee.json";
+import data from "../../data/employee/timesheet.json";
 
 let timesheetPage;
 

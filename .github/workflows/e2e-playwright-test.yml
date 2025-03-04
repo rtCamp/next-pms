@@ -8,9 +8,10 @@ on:
       - develop
     types:
       - closed
-  push:
-    branches:
-      - test-setup-automation-framework
+
+  #Triggers at 5 AM IST every day
+  schedule:
+    - cron: "30 23 * * *"
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -35,31 +36,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Set environment variables
-        run: |
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            if [[ "${{ github.event.pull_request.base.ref }}" == "develop" ]]; then
-              echo "BRANCH_NAME=stage" >> $GITHUB_ENV
-              echo "ENVIRONMENT=staging" >> $GITHUB_ENV  # Set staging environment for PRs
-            elif [[ "${{ github.event.pull_request.base.ref }}" == "main" ]]; then
-              echo "BRANCH_NAME=main" >> $GITHUB_ENV
-              echo "ENVIRONMENT=production" >> $GITHUB_ENV  # Set production environment for PRs
-            fi
-          elif [[ "${{ github.event_name }}" == "schedule" ]]; then
-            echo "BRANCH_NAME=main" >> $GITHUB_ENV
-            echo "ENVIRONMENT=production" >> $GITHUB_ENV  # Set production for scheduled runs
-          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            # Default values for manual runs
-            echo "BRANCH_NAME=stage" >> $GITHUB_ENV
-            echo "ENVIRONMENT=staging" >> $GITHUB_ENV  # Set staging environment for PRs
-          elif [[ "${{ github.event_name }}" == "push" ]]; then
-            echo "BRANCH_NAME=stage" >> $GITHUB_ENV
-            echo "ENVIRONMENT=staging" >> $GITHUB_ENV  # Set staging environment for PRs
-          else
-            echo "Unknown event: ${{ github.event_name }}"
-             exit 1
-          fi
 
       # Setup Node.js
       - name: Setup Node.js
@@ -129,7 +105,7 @@ jobs:
           if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
             echo "message=<p>For the latest pull request merge titled <b><a href='${{ github.event.pull_request.html_url }}'> ${{ github.event.pull_request.title }}</a></b>, the automation tests have been completed. Below is the summary:</p>" >> $GITHUB_ENV
           else
-            echo "message=<p>This is to inform you that the scheduled automation tests have been executed on the production environment. Below is the summary::</p>" >> $GITHUB_ENV
+            echo "message=<p>This is to inform you that the scheduled automation tests have been executed on the staging environment. Below is the summary::</p>" >> $GITHUB_ENV
           fi
 
       - name: Send Report via Email
