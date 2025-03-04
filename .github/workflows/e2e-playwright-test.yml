@@ -109,7 +109,7 @@ jobs:
           # Ensure the directory exists before zipping
           if [ -d "$REPORT_DIR" ]; then
             echo "Zipping Playwright report folder..."
-            cd "$REPORT_DIR" && zip -r "$GITHUB_WORKSPACE/tests/e2e/report.zip" ./*
+            cd "$REPORT_DIR" && zip -r "$GITHUB_WORKSPACE/report.zip" ./*
           else
             echo "Error: Report directory not found at $REPORT_DIR"
             exit 1
@@ -119,9 +119,9 @@ jobs:
         if: ${{ success() || failure() }}
         run: |
           if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
-            echo "message=<p>For the latest pull request merge titled <b><a href='${{ github.event.pull_request.html_url }}'> ${{ github.event.pull_request.title }}</a></b>, the automation tests have been executed on the staging environment. Below is the summary:</p>" >> $GITHUB_ENV
+            echo "message=<p>For the latest pull request merge titled <b><a href='${{ github.event.pull_request.html_url }}'> ${{ github.event.pull_request.title }}</a></b>, the E2E automation tests have been executed on the staging environment. Below is the summary:</p>" >> $GITHUB_ENV
           else
-            echo "message=<p>This is to inform you that the scheduled automation tests have been executed on the staging environment. Below is the summary::</p>" >> $GITHUB_ENV
+            echo "message=<p>This is to inform you that the scheduled E2E automation tests have been executed on the staging environment. Below is the summary::</p>" >> $GITHUB_ENV
           fi
 
       - name: Send Report via Email
