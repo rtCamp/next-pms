@@ -103,13 +103,7 @@ jobs:
       # Install dependancies
       - name: Install dependancies
         run: |
-          pwd
-          ls -al
           npm ci
-
-      # Install Playwright
-      - name: Install playwright
-        run: |
           cd tests/e2e/
           npx playwright install
 
@@ -122,7 +116,7 @@ jobs:
         if: ${{ success() || failure() }}
         run: |
           # Define the path to your report file
-          REPORT_FILE="tests/e2e/playwright-report/"
+          REPORT_FILE="tests/e2e/playwright-report/index.html"
 
           # Get the counts of passed and failed tests
           PASSED_COUNT=$(grep -oP '(?<=<span class="passed">)\d+' "$REPORT_FILE")
@@ -148,18 +142,18 @@ jobs:
           echo "Passed Tests: ${{ env.passed_count }}"
           echo "Failed Tests: ${{ env.failed_count }}"
 
-      - name: Upload screenshots
+      - name: Upload Playwright reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: screenshots
+          name: playwright-report
           path: tests/e2e/playwright-report/
 
       - name: Create ZIP file
         if: ${{ success() || failure() }}
         run: |
           mkdir report_package
-          cp ${{ github.workspace }}/tests/e2e/playwright-report report_package/
+          cp ${{ github.workspace }}/tests/e2e/playwright-report/index.html report_package/
           mkdir -p report_package/assets
           cp ${{ github.workspace }}/tests/e2e-playwright/assets/style.css report_package/assets/
           zip -r report.zip report_package
