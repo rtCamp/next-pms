@@ -159,7 +159,7 @@ jobs:
         if: ${{ success() || failure() }}
         run: |
           mkdir report_package
-          cp ${{ github.workspace }}/tests/e2e/html-report.index.html report_package/
+          cp ${{ github.workspace }}/tests/e2e/playwright-report report_package/
           mkdir -p report_package/assets
           cp ${{ github.workspace }}/tests/e2e-playwright/assets/style.css report_package/assets/
           zip -r report.zip report_package
