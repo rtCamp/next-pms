@@ -9,7 +9,6 @@ import { configureStore } from "@reduxjs/toolkit";
  */
 
 import projectReducer from "./project";
-import resourceTeamReducer from "./resource_management/team";
 import userReducer from "./user";
 import viewReducer from "./view";
 import resourceProjectReducer from "./resource_management/project";
@@ -17,7 +16,6 @@ import resourceProjectReducer from "./resource_management/project";
 export const store = configureStore({
   reducer: {
     user: userReducer,
-    resource_team: resourceTeamReducer,
     resource_project: resourceProjectReducer,
     project: projectReducer,
     view: viewReducer,

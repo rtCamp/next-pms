@@ -17,9 +17,9 @@ import { Moment } from "moment";
  */
 import { Header } from "@/app/components/list-view/header";
 import { cn } from "@/lib/utils";
-import { Skill } from "@/store/resource_management/team";
 
 import { ResourceFormContext } from "../../store/resourceFormContext";
+import { Skill } from "../../store/teamContext";
 import { TimeLineContext } from "../../store/timeLineContext";
 import { PermissionProps } from "../../store/types";
 import SkillSearch from "../../team/components/skillSearch";

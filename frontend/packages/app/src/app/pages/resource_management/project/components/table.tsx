@@ -28,14 +28,13 @@ import {
   setMaxWeek,
   setStart,
 } from "@/store/resource_management/project";
-import { DateProps } from "@/store/resource_management/team";
 import { ResourceAllocationObjectProps, ResourceAllocationProps } from "@/types/resource_management";
 
 import { ResourceExpandView } from "./expandView";
 import { EmptyTableBody } from "../../components/empty";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
 import { ResourceFormContext } from "../../store/resourceFormContext";
-import { AllocationDataProps } from "../../store/types";
+import { AllocationDataProps, DateProps } from "../../store/types";
 import { getIsBillableValue } from "../../utils/helper";
 
 /**

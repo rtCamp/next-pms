@@ -14,7 +14,6 @@ import { useFrappeGetCall } from "frappe-react-sdk";
  */
 import { cn } from "@/lib/utils";
 import { RootState } from "@/store";
-import { DateProps, EmployeeDataProps, EmployeeResourceProps } from "@/store/resource_management/team";
 import {
   ResourceAllocationObjectProps,
   ResourceAllocationProps,
@@ -22,7 +21,8 @@ import {
 } from "@/types/resource_management";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
 import { ResourceFormContext } from "../../store/resourceFormContext";
-import { AllocationDataProps } from "../../store/types";
+import { EmployeeDataProps, EmployeeResourceProps } from "../../store/teamContext";
+import { AllocationDataProps, DateProps } from "../../store/types";
 import { getIsBillableValue } from "../../utils/helper";
 
 interface ResourceExpandViewProps {
