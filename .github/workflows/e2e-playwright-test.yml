@@ -20,12 +20,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: Stage # Retrive secrets from 'Stage' environment
     env:
-      STAGE_IP: ${{ secrets.FRONTEND_STAGE_SERVER_IP }}
-      PROD_IP: ${{ secrets.FRONTEND_PROD_SERVER_IP }}
-      stagingURL: "https://careers-stage.rt.gw/"
-      prodURL: "https://careers.rtcamp.com/"
-      stagingBackendURL: "https://erp-stage.rt.gw"
-      prodBackendURL: "https://erp.rtcamp.com/"
       EMAIL: "shraddha.gore@rtcamp.com"
 
       BASE_URL: ${{ secrets.BASE_URL }}
@@ -59,7 +53,7 @@ jobs:
             # Default values for manual runs
             echo "BRANCH_NAME=stage" >> $GITHUB_ENV
             echo "ENVIRONMENT=staging" >> $GITHUB_ENV  # Set staging environment for PRs
-          if [[ "${{ github.event_name }}" == "push" ]]; then
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
             echo "BRANCH_NAME=stage" >> $GITHUB_ENV
             echo "ENVIRONMENT=staging" >> $GITHUB_ENV  # Set staging environment for PRs
           else
