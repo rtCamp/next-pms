@@ -13,20 +13,50 @@ import { TimesheetPage } from "../../pages/timesheetPage";
 import data from "../../data/employee/timesheet.json";
 
 let timesheetPage;
+let formattedDate;
+let filteredTimeEntry = {};
 
+// Load env variables
 const empID = process.env.EMP_ID;
 const empEmail = process.env.EMP_EMAIL;
 const empPass = process.env.EMP_PASS;
 
-let formattedDate;
-let filteredTimeEntry = {};
+// Load test data
+let TC2data = data.TC2;
+let TC3data = data.TC3;
 let TC4data = data.TC4;
 let TC5data = data.TC5;
 let TC6data = data.TC6;
 
 test.beforeAll("Before All - Create time entries", async ({}) => {
+  // Fetch TC2 task and update dynamic fields
+  TC2data.cell.col = getWeekdayName(new Date()); // Get today's weekday name
+
+  formattedDate = getFormattedDate(getDateForWeekday(TC2data.cell.col));
+
+  TC2data.payloadFilterTimeEntry.from_time = formattedDate;
+  TC2data.payloadFilterTimeEntry.employee = empID;
+
+  // Fetch TC3 task and update dynamic fields
+  formattedDate = getFormattedDate(getDateForWeekday(TC3data.cell.col));
+
+  TC3data.payloadFilterTimeEntry.from_time = formattedDate;
+  TC3data.payloadFilterTimeEntry.employee = empID;
+
+  // Fetch TC4 task, update dynamic fields and create time entry
+  formattedDate = getFormattedDate(getDateForWeekday(TC4data.cell.col));
+
+  TC4data.payloadCreateTimesheet.date = formattedDate;
+  TC4data.payloadCreateTimesheet.employee = empID;
+  TC4data.payloadFilterTimeEntry1.from_time = formattedDate;
+  TC4data.payloadFilterTimeEntry1.employee = empID;
+  TC4data.payloadFilterTimeEntry2.from_time = formattedDate;
+  TC4data.payloadFilterTimeEntry2.employee = empID;
+
+  await createTimesheet(TC4data.payloadCreateTimesheet);
+
   // Fetch TC5 task, update dynamic fields and create time entry
-  formattedDate = await getFormattedDate(getDateForWeekday(TC5data.cell.col));
+  formattedDate = getFormattedDate(getDateForWeekday(TC5data.cell.col));
 
   TC5data.payloadCreateTimesheet.date = formattedDate;
   TC5data.payloadCreateTimesheet.employee = empID;
@@ -38,7 +68,7 @@ test.beforeAll("Before All - Create time entries", async ({}) => {
   await createTimesheet(TC5data.payloadCreateTimesheet);
 
   // Fetch TC6 task, update dynamic fields and create time entry
-  formattedDate = await getFormattedDate(getDateForWeekday(TC6data.cell.col));
+  formattedDate = getFormattedDate(getDateForWeekday(TC6data.cell.col));
 
   TC6data.payloadCreateTimesheet.date = formattedDate;
   TC6data.payloadCreateTimesheet.employee = empID;
@@ -48,7 +78,24 @@ test.beforeAll("Before All - Create time entries", async ({}) => {
   await createTimesheet(TC6data.payloadCreateTimesheet);
 });
 
+// ------------------------------------------------------------------------------------------
+
 test.afterAll("After All - Delete time entries", async ({}) => {
+  // Fetch TC2 time entry, update dynamic fields and delete time entry
+  filteredTimeEntry = await filterTimesheetEntry(TC2data.payloadFilterTimeEntry);
+  await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
+
+  // Fetch TC3 time entry, update dynamic fields and delete time entry
+  filteredTimeEntry = await filterTimesheetEntry(TC3data.payloadFilterTimeEntry);
+  await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
+
+  // Fetch TC4 time entries, update dynamic fields and delete time entries
+  filteredTimeEntry = await filterTimesheetEntry(TC4data.payloadFilterTimeEntry1);
+  await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
+
+  filteredTimeEntry = await filterTimesheetEntry(TC5data.payloadFilterTimeEntry2);
+  await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
+
   // Fetch TC5 time entries, update dynamic fields and delete time entries
   filteredTimeEntry = await filterTimesheetEntry(TC5data.payloadFilterTimeEntry1);
   await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
@@ -61,178 +108,69 @@ test.afterAll("After All - Delete time entries", async ({}) => {
   await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
 });
 
+// ------------------------------------------------------------------------------------------
+
 test.beforeEach(async ({ page }) => {
   // Login to Next PMS
   await loginNextPMS(page, empEmail, empPass);
   timesheetPage = new TimesheetPage(page);
 });
 
+// ------------------------------------------------------------------------------------------
+
 test("TC2: Time should be added using the ‘Add’ button at the top.", async ({ page }) => {
-  // Define task and cell details
-  const taskDetails = {
-    duration: "1:00",
-    project: "QE - Retainer",
-    task: "Documentation",
-    desc: "Task added via automation.",
-  };
-  const cellInfo = { rowName: taskDetails.task, col: getWeekdayName(new Date()) };
-  const formattedDate = getFormattedDate(getDateForWeekday(cellInfo.col));
+  // Add time entry using "Time" button
+  await timesheetPage.addTimeViaTimeButton(TC2data.taskInfo);
 
-  try {
-    // Add time entry using "Time" button
-    await timesheetPage.addTimeViaButton(taskDetails);
+  // Reload page to ensure changes are reflected
+  await page.reload();
 
-    // Reload page to ensure changes are reflected
-    await page.reload();
-
-    // Assertions
-    const cellText = await timesheetPage.getCellText(cellInfo);
-    expect(cellText).toContain(taskDetails.duration);
-  } catch (e) {
-    // This empty catch block ensures finally block is executed
-  } finally {
-    // Teardown
-    // Fetch time entry details required for deletion (API)
-    const payloadFilterTimeEntry = {
-      subject: taskDetails.task,
-      description: taskDetails.desc,
-      project_name: taskDetails.project,
-      from_time: formattedDate,
-      employee: empID,
-      max_week: "1",
-    };
-    const timeEntryDetails = await filterTimesheetEntry(payloadFilterTimeEntry);
-
-    // Delete time entry (API)
-    const payloadDeleteTimesheet = { parent: timeEntryDetails.parent, name: timeEntryDetails.name };
-
-    await deleteTimesheet(payloadDeleteTimesheet);
-  }
+  // Assertions
+  const cellText = await timesheetPage.getCellText(TC2data.cell);
+  expect(cellText).toContain(TC2data.taskInfo.duration);
 });
 
 test("TC3: Time should be added using the direct timesheet add buttons.", async ({ page }) => {
-  // Define task and cell details
-  const taskDetails = {
-    duration: "1:30",
-    project: "QE - Fixed Cost",
-    task: "Design dashboard",
-    desc: "Task added via automation.",
-  };
-  const cellInfo = { rowName: taskDetails.task, col: "Mon" };
-  const formattedDate = getFormattedDate(getDateForWeekday(cellInfo.col));
+  // Import liked tasks
+  await timesheetPage.importLikedTasks();
 
-  try {
-    // Import liked tasks
-    await timesheetPage.importLikedTasks();
+  // Add time entry using "+" button in timesheet
+  await timesheetPage.addTimeViaCell(TC3data.cell, {
+    duration: TC3data.taskInfo.duration,
+    desc: TC3data.taskInfo.desc,
+  });
 
-    // Add time entry using "+" button in timesheet
-    await timesheetPage.addTimeViaCell(cellInfo, { duration: taskDetails.duration, desc: taskDetails.desc });
+  // Reload page to ensure changes are reflected
+  await page.reload();
 
-    // Reload page to ensure changes are reflected
-    await page.reload();
-
-    // Assertions
-    const cellText = await timesheetPage.getCellText(cellInfo);
-    expect(cellText).toContain(taskDetails.duration);
-  } catch (e) {
-    // This empty catch block ensures finally block is executed
-  } finally {
-    // Teardown
-    // Fetch time entry details required for deletion (API)
-    const payloadFilterTimeEntry = {
-      subject: taskDetails.task,
-      description: taskDetails.desc,
-      project_name: taskDetails.project,
-      from_time: formattedDate,
-      employee: empID,
-      max_week: "1",
-    };
-    const timeEntryDetails = await filterTimesheetEntry(payloadFilterTimeEntry);
-
-    // Delete time entry (API)
-    const payloadDeleteTimesheet = { parent: timeEntryDetails.parent, name: timeEntryDetails.name };
-
-    await deleteTimesheet(payloadDeleteTimesheet);
-  }
+  // Assertions
+  const cellText = await timesheetPage.getCellText(TC3data.cell);
+  expect(cellText).toContain(TC3data.taskInfo.duration);
 });
 
 test("TC4: Added time and description should be editable.", async ({ page }) => {
-  // Define task and cell details
-  const taskDetails = {
-    duration: "0:30",
-    project: "QE - Retainer",
-    task: "App support",
-    desc: "Updated task via automation.",
-  };
-  const cellInfo = { rowName: taskDetails.task, col: "Tue" };
-  const formattedDate = getFormattedDate(getDateForWeekday(cellInfo.col));
-
-  // Setup
-  // Create time entry (API)
-  let payloadCreateTimesheet = {
-    task: "TASK-2025-00619",
-    description: "Task added via automation.",
-    hours: "1",
-    date: formattedDate,
-    employee: empID,
-  };
-
-  await createTimesheet(payloadCreateTimesheet);
-
   // Wait for 1 second
   await page.waitForTimeout(1000);
 
   // Reload page to ensure changes are reflected
   await page.reload();
 
-  try {
-    // Update time entry
-    await timesheetPage.updateTimeRow(cellInfo, {
-      desc: payloadCreateTimesheet.description,
-      newDesc: taskDetails.desc,
-      newDuration: taskDetails.duration,
-    });
+  // Update time entry
+  await timesheetPage.updateTimeRow(TC4data.cell, {
+    desc: TC4data.payloadCreateTimesheet.description,
+    newDesc: TC4data.taskInfo.desc,
+    newDuration: TC4data.taskInfo.duration,
+  });
 
-    // Reload page to ensure changes are reflected
-    await page.reload();
+  // Reload page to ensure changes are reflected
+  await page.reload();
 
-    // Assertions
-    const cellText = await timesheetPage.getCellText(cellInfo);
-    expect(cellText).toContain(taskDetails.duration);
+  // Assertions
+  const cellText = await timesheetPage.getCellText(TC4data.cell);
+  expect(cellText).toContain(TC4data.taskInfo.duration);
 
-    const cellTooltipText = await timesheetPage.getCellTooltipText(cellInfo);
-    expect(cellTooltipText).toContain(taskDetails.desc);
-  } catch (e) {
-    // This empty catch block ensures finally block is executed
-  } finally {
-    // Teardown
-    // Fetch time entry details required for deletion (API)
-    const payloadFilterTimeEntry1 = {
-      subject: taskDetails.task,
-      description: payloadCreateTimesheet.description,
-      project_name: taskDetails.project,
-      from_time: formattedDate,
-      employee: empID,
-      max_week: "1",
-    };
-    const payloadFilterTimeEntry2 = {
-      subject: taskDetails.task,
-      description: taskDetails.desc,
-      project_name: taskDetails.project,
-      from_time: formattedDate,
-      employee: empID,
-      max_week: "1",
-    };
-    const timeEntryDetails1 = await filterTimesheetEntry(payloadFilterTimeEntry1);
-    const timeEntryDetails2 = await filterTimesheetEntry(payloadFilterTimeEntry2);
-
-    // Delete time entry (API)
-    const payloadDeleteTimesheet1 = { parent: timeEntryDetails1.parent, name: timeEntryDetails1.name };
-    const payloadDeleteTimesheet2 = { parent: timeEntryDetails2.parent, name: timeEntryDetails2.name };
-
-    await deleteTimesheet(payloadDeleteTimesheet1);
-    await deleteTimesheet(payloadDeleteTimesheet2);
-  }
+  const cellTooltipText = await timesheetPage.getCellTooltipText(TC4data.cell);
+  expect(cellTooltipText).toContain(TC4data.taskInfo.desc);
 });
 
 test("TC5: Add a new row in the already added time.", async ({ page }) => {

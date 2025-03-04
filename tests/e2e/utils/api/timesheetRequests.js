@@ -21,7 +21,7 @@ export const login = async () => {
     },
   });
 
-  return response;
+  return await response;
 };
 
 /**
@@ -43,7 +43,7 @@ export const createTimesheet = async ({ task, description, hours, date, employee
     },
   });
 
-  return response;
+  return await response;
 };
 
 /**
@@ -62,7 +62,7 @@ export const deleteTimesheet = async ({ parent, name }) => {
     },
   });
 
-  return response;
+  return await response;
 };
 
 /**
@@ -86,5 +86,5 @@ export const getTimesheetDetails = async ({ employee, start_date, max_week }) =>
     `/api/method/next_pms.timesheet.api.timesheet.get_timesheet_data?${queryParams.toString()}`
   );
 
-  return response;
+  return await response;
 };

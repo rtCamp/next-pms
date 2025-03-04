@@ -7,10 +7,12 @@ import data from "../../data/manager/timesheet.json";
 let teamPage;
 let timesheetPage;
 
+// Load env variables
 const repManEmail = process.env.REP_MAN_EMAIL;
 const repManPass = process.env.REP_MAN_PASS;
 const empName = process.env.EMP_NAME;
 
+// Load test data
 let TC37data = data.TC37;
 
 test.beforeEach(async ({ page }) => {

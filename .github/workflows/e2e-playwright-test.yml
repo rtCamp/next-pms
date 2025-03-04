@@ -52,7 +52,7 @@ jobs:
       - name: Run e2e Tests.
         run: |
           cd tests/e2e/
-          npm run e2e:test --
+          npm run e2e:tests --
 
       - name: Extract test results
         if: ${{ success() || failure() }}
@@ -129,7 +129,7 @@ jobs:
           server_port: 587
           username: ${{ secrets.QA_WORKFLOW_EMAIL }}
           password: ${{ secrets.QA_WORKFLOW_EMAIL_PASSWORD }}
-          subject: Test Automation Report - Next PMS Site
+          subject: Test Automation Report - Next PMS
           html_body: |
             <html>
               <head>

@@ -168,7 +168,7 @@ export class TimesheetPage {
   /**
    * Adds a time entry by interacting with the "Time" button.
    */
-  async addTimeViaButton(taskInfo) {
+  async addTimeViaTimeButton(taskInfo) {
     await this.timeButton.click();
     await this.AddTime(taskInfo);
   }

@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "cd frontend && npm run dev",
     "build": "cd frontend && npm install && npm run build",
-    "e2e:test": "npx playwright test --config=tests/e2e/playwright.config.js"
+    "e2e:tests": "npx playwright test --config=tests/e2e/playwright.config.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.50.1"
