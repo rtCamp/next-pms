@@ -1,4 +1,36 @@
 {
+  "TC4": {
+    "taskInfo": {
+      "duration": "0:30",
+      "project": "QE - Retainer",
+      "task": "App support",
+      "desc": "Updated task via automation."
+    },
+    "cell": { "rowName": "App support", "col": "Tue" },
+    "payloadCreateTimesheet": {
+      "task": "TASK-2025-00619",
+      "description": "Task added via automation.",
+      "hours": "1",
+      "date": "<Update dynamically>",
+      "employee": "<Update dynamically>"
+    },
+    "payloadFilterTimeEntry1": {
+      "subject": "App support",
+      "description": "Task added via automation.",
+      "project_name": "QE - Retainer",
+      "from_time": "<Update dynamically>",
+      "employee": "<Update dynamically>",
+      "max_week": "1"
+    },
+    "payloadFilterTimeEntry2": {
+      "subject": "App support",
+      "description": "Updated task via automation.",
+      "project_name": "QE - Retainer",
+      "from_time": "<Update dynamically>",
+      "employee": "<Update dynamically>",
+      "max_week": "1"
+    }
+  },
   "TC5": {
     "taskInfo": {
       "duration": "2:15",

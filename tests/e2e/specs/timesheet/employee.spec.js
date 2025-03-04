@@ -20,6 +20,7 @@ const empPass = process.env.EMP_PASS;
 
 let formattedDate;
 let filteredTimeEntry = {};
+let TC4data = data.TC4;
 let TC5data = data.TC5;
 let TC6data = data.TC6;
 

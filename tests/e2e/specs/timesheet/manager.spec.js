@@ -7,10 +7,8 @@ import data from "../../data/timesheet/manager.json";
 let teamPage;
 let timesheetPage;
 
-const repManID = process.env.REP_MAN_ID;
 const repManEmail = process.env.REP_MAN_EMAIL;
 const repManPass = process.env.REP_MAN_PASS;
-const empID = process.env.EMP_ID;
 const empName = process.env.EMP_NAME;
 
 let TC37data = data.TC37;

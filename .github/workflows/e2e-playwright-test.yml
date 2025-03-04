@@ -59,31 +59,12 @@ jobs:
             # Default values for manual runs
             echo "BRANCH_NAME=stage" >> $GITHUB_ENV
             echo "ENVIRONMENT=staging" >> $GITHUB_ENV  # Set staging environment for PRs
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "BRANCH_NAME=stage" >> $GITHUB_ENV
+            echo "ENVIRONMENT=staging" >> $GITHUB_ENV  # Set staging environment for PRs
           else
             echo "Unknown event: ${{ github.event_name }}"
              exit 1
-          fi
-
-      - name: Add host entry
-        run: |
-
-          GITHUB_COMMENT="# Added by GitHub Actions - Run ${{ github.run_id }} (${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
-          if [[ "${{ env.ENVIRONMENT }}" == "staging" ]]; then
-            CAREERS_HOST=$(echo "${{ env.stagingURL }}" | sed 's/https:\/\///' | sed 's/\/.*//') 
-            BACKEND_HOST=$(echo "${{ env.stagingBackendURL }}" | sed 's/https:\/\///' | sed 's/\/.*//') 
-            # Remove any existing entries for these hosts
-            sudo sed -i "/Added by GitHub Actions.*$/d" /etc/hosts
-            # Add new entries
-            echo "${{ env.STAGE_IP }} $CAREERS_HOST $GITHUB_COMMENT" | sudo tee -a /etc/hosts
-            echo "${{ env.STAGE_IP }} $BACKEND_HOST $GITHUB_COMMENT" | sudo tee -a /etc/hosts
-          elif [[ "${{ env.ENVIRONMENT }}" == "production" ]]; then
-            CAREERS_HOST=$(echo "${{ env.prodURL }}" | sed 's/https:\/\///' | sed 's/\/.*//') 
-            BACKEND_HOST=$(echo "${{ env.prodBackendURL }}" | sed 's/https:\/\///' | sed 's/\/.*//') 
-            # Remove any existing entries for these hosts
-            sudo sed -i "/Added by GitHub Actions.*$/d" /etc/hosts
-            # Add new entries
-            echo "${{ env.PROD_IP }} $CAREERS_HOST $GITHUB_COMMENT" | sudo tee -a /etc/hosts
-            echo "${{ env.PROD_IP }} $BACKEND_HOST $GITHUB_COMMENT" | sudo tee -a /etc/hosts
           fi
 
       # Setup Node.js
