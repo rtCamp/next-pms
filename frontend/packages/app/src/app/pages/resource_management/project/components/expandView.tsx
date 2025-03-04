@@ -2,7 +2,6 @@
  * External dependencies.
  */
 import { useContext, useMemo } from "react";
-import { useSelector } from "react-redux";
 import { Avatar, AvatarFallback, AvatarImage, Table, TableBody, TableRow } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
 import { ResourceTableCell, TableInformationCellContent } from "@next-pms/resource-management/components";
@@ -13,13 +12,13 @@ import { useFrappeGetCall } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import { cn } from "@/lib/utils";
-import { RootState } from "@/store";
 import {
   ResourceAllocationObjectProps,
   ResourceAllocationProps,
   ResourceCustomerObjectProps,
 } from "@/types/resource_management";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
+import { ProjectContext } from "../../store/projectContext";
 import { ResourceFormContext } from "../../store/resourceFormContext";
 import { EmployeeDataProps, EmployeeResourceProps } from "../../store/teamContext";
 import { AllocationDataProps, DateProps } from "../../store/types";
@@ -53,7 +52,9 @@ export const ResourceExpandView = ({
   is_billable,
   onSubmit,
 }: ResourceExpandViewProps) => {
-  const dates = useSelector((state: RootState) => state.resource_project.data.dates);
+  const { projectData } = useContext(ProjectContext);
+
+  const dates = projectData.dates;
 
   const { data } = useFrappeGetCall(
     "next_pms.resource_management.api.project.get_employees_resrouce_data_for_given_project",
@@ -169,10 +170,10 @@ const ExpandViewCell = ({
   customer: ResourceCustomerObjectProps;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const tableView = useSelector((state: RootState) => state.resource_project.tableView);
-  const allocationType = useSelector((state: RootState) => state.resource_project.allocationType);
-
+  const { tableView, filters } = useContext(ProjectContext);
   const { updateAllocationData, updateDialogState } = useContext(ResourceFormContext);
+
+  const allocationType = filters.allocationType;
 
   const allocationPercentage = useMemo(() => {
     if (allocationsData.total_allocated_hours == 0) {

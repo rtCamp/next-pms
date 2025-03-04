@@ -7,7 +7,7 @@ import {
   ResourceAllocationObjectProps,
   ResourceCustomerObjectProps,
 } from "@/types/resource_management";
-import { DateRange,DateProps } from "./team";
+import { DateRange, DateProps } from "./team";
 
 export type ProjectAllWeekDataProps = {
   total_allocated_hours: number;
@@ -80,36 +80,17 @@ export interface ResourceTeamState {
 }
 
 export const initialState: ResourceTeamState = {
-  action: "SET",
   projectName: "",
-  isEditDialogOpen: false,
   reportingManager: "",
   pageLength: 20,
-  data: {
-    data: [],
-    dates: [],
-    customer: {},
-    total_count: 0,
-    has_more: false,
-  },
-  isDialogOpen: false,
   weekDate: getFormatedDate(getTodayDate()),
   employeeWeekDate: getFormatedDate(getTodayDate()),
   start: 0,
   hasMore: true,
-  dateRange: {
-    start_date: "",
-    end_date: "",
-  },
-  tableView: {
-    combineWeekHours: false,
-    view: "planned",
-  },
   isNeedToFetchDataAfterUpdate: false,
   customer: [],
   billingType: [],
   allocationType: [],
-  isLoading: true,
   maxWeek: 5,
 };
 

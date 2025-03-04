@@ -8,7 +8,7 @@ import { ResourceAllocationObjectProps, ResourceCustomerObjectProps } from "@/ty
 /**
  * Internal dependencies.
  */
-import { ContextProviderProps, DateProps, TableViewProps } from "./types";
+import { APIController, ContextProviderProps, DateProps, TableViewProps } from "./types";
 import { getDatesArrays } from "../utils/dates";
 
 export type EmployeeAllWeekDataProps = {
@@ -119,12 +119,6 @@ interface TeamContextProps extends ResourceTeamState {
   setDates: (dates: DateProps[]) => void;
   setCombineWeekHours: (value: boolean) => void;
   setWeekDate: (value: string) => void;
-}
-
-interface APIController {
-  isNeedToFetchDataAfterUpdate: boolean;
-  isLoading: boolean;
-  action: "SET" | "UPDATE";
 }
 
 const defaultEmployeeDayData: EmployeeResourceProps = {
