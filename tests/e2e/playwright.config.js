@@ -39,13 +39,13 @@ module.exports = defineConfig({
     baseURL: process.env.BASE_URL,
 
     /* Collect trace. */
-    trace: "on",
+    trace: "retain-on-failure",
 
     /* Capture screenshot. */
-    screenshot: "on",
+    screenshot: "only-on-failure",
 
     /* Record video. */
-    video: "on",
+    video: "retain-on-failure",
 
     launchOptions: {
       slowMo: 500, // Slow down tests by 500ms
