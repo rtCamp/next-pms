@@ -15,12 +15,16 @@ const empName = process.env.EMP_NAME;
 // Load test data
 let TC37data = data.TC37;
 
+// ------------------------------------------------------------------------------------------
+
 test.beforeEach(async ({ page }) => {
   // Login to Next PMS
   await loginNextPMS(page, repManEmail, repManPass);
   teamPage = new TeamPage(page);
   timesheetPage = new TimesheetPage(page);
 });
+
+// ------------------------------------------------------------------------------------------
 
 test("TC36: Validate the timesheets for individual employees for all weeks.", async ({ page }) => {
   // Switch to Team tab

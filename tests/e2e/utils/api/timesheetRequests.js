@@ -1,4 +1,8 @@
 import { request } from "@playwright/test";
+import config from "../../playwright.config";
+
+// Load config variables
+const baseURL = config.use?.baseURL;
 
 // Load env variables
 const repManEmail = process.env.REP_MAN_EMAIL;
@@ -6,12 +10,14 @@ const repManPass = process.env.REP_MAN_PASS;
 
 let context; // Global request context to maintain session
 
+// ------------------------------------------------------------------------------------------
+
 /**
  * Login to the system and create a new request context.
  */
 export const login = async () => {
   // Create new request context
-  context = await request.newContext();
+  context = await request.newContext({ baseURL: baseURL });
 
   const response = await context.post(`/login`, {
     data: {
@@ -23,6 +29,8 @@ export const login = async () => {
 
   return await response;
 };
+
+// ------------------------------------------------------------------------------------------
 
 /**
  * Create a new timesheet entry.
@@ -46,6 +54,8 @@ export const createTimesheet = async ({ task, description, hours, date, employee
   return await response;
 };
 
+// ------------------------------------------------------------------------------------------
+
 /**
  * Delete a timesheet entry.
  */
@@ -64,6 +74,8 @@ export const deleteTimesheet = async ({ parent, name }) => {
 
   return await response;
 };
+
+// ------------------------------------------------------------------------------------------
 
 /**
  * Get timesheet details for the specified employee.

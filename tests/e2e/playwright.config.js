@@ -12,6 +12,12 @@ require("dotenv").config({ path: path.resolve(__dirname, ".env") });
  * @see https://playwright.dev/docs/test-configuration
  */
 module.exports = defineConfig({
+  /* Global setup file */
+  globalSetup: "./globals/globalSetup.js",
+
+  /* Global teardown file */
+  globalTeardown: "./globals/globalTeardown.js",
+
   /* Directory with specs */
   testDir: "./specs",
 

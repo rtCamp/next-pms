@@ -1,6 +1,9 @@
 {
   "TC2": {
-    "cell": { "rowName": "Documentation", "col": "<Update dynamically>" },
+    "cell": {
+      "rowName": "Documentation",
+      "col": "Wed"
+    },
     "taskInfo": {
       "duration": "1:00",
       "project": "QE - Retainer",
@@ -11,13 +14,16 @@
       "subject": "Documentation",
       "description": "TC2 - Task added via automation.",
       "project_name": "QE - Retainer",
-      "from_time": "<Update dynamically>",
-      "employee": "<Update dynamically>",
+      "from_time": "2025-03-05",
+      "employee": "EMP-00089",
       "max_week": "1"
     }
   },
   "TC3": {
-    "cell": { "rowName": "Design dashboard", "col": "Mon" },
+    "cell": {
+      "rowName": "Design dashboard",
+      "col": "Mon"
+    },
     "taskInfo": {
       "duration": "1:30",
       "project": "QE - Fixed Cost",
@@ -28,13 +34,16 @@
       "subject": "Design dashboard",
       "description": "TC3 - Task added via automation.",
       "project_name": "QE - Fixed Cost",
-      "from_time": "<Update dynamically>",
-      "employee": "<Update dynamically>",
+      "from_time": "2025-03-03",
+      "employee": "EMP-00089",
       "max_week": "1"
     }
   },
   "TC4": {
-    "cell": { "rowName": "App support", "col": "Tue" },
+    "cell": {
+      "rowName": "App support",
+      "col": "Tue"
+    },
     "taskInfo": {
       "duration": "0:30",
       "project": "QE - Retainer",
@@ -45,28 +54,31 @@
       "task": "TASK-2025-00619",
       "description": "TC4 - Task added via automation.",
       "hours": "1",
-      "date": "<Update dynamically>",
-      "employee": "<Update dynamically>"
+      "date": "2025-03-04",
+      "employee": "EMP-00089"
     },
     "payloadFilterTimeEntry1": {
       "subject": "App support",
       "description": "TC4 - Task added via automation.",
       "project_name": "QE - Retainer",
-      "from_time": "<Update dynamically>",
-      "employee": "<Update dynamically>",
+      "from_time": "2025-03-04",
+      "employee": "EMP-00089",
       "max_week": "1"
     },
     "payloadFilterTimeEntry2": {
       "subject": "App support",
       "description": "TC4 - Updated task via automation.",
       "project_name": "QE - Retainer",
-      "from_time": "<Update dynamically>",
-      "employee": "<Update dynamically>",
+      "from_time": "2025-03-04",
+      "employee": "EMP-00089",
       "max_week": "1"
     }
   },
   "TC5": {
-    "cell": { "rowName": "Unit Testing", "col": "Thu" },
+    "cell": {
+      "rowName": "Unit Testing",
+      "col": "Thu"
+    },
     "taskInfo": {
       "duration": "2:15",
       "project": "QE - Time and Material",
@@ -77,28 +89,31 @@
       "task": "TASK-2025-00621",
       "description": "TC5 - Task added via automation.",
       "hours": "1",
-      "date": "<Update dynamically>",
-      "employee": "<Update dynamically>"
+      "date": "2025-03-06",
+      "employee": "EMP-00089"
     },
     "payloadFilterTimeEntry1": {
       "subject": "Unit Testing",
       "description": "TC5 - Task added via automation.",
       "project_name": "QE - Time and Material",
-      "from_time": "<Update dynamically>",
-      "employee": "<Update dynamically>",
+      "from_time": "2025-03-06",
+      "employee": "EMP-00089",
       "max_week": "1"
     },
     "payloadFilterTimeEntry2": {
       "subject": "Unit Testing",
       "description": "TC5 - New row added to task via automation.",
       "project_name": "QE - Time and Material",
-      "from_time": "<Update dynamically>",
-      "employee": "<Update dynamically>",
+      "from_time": "2025-03-06",
+      "employee": "EMP-00089",
       "max_week": "1"
     }
   },
   "TC6": {
-    "cell": { "rowName": "Prod support calls", "col": "Fri" },
+    "cell": {
+      "rowName": "Prod support calls",
+      "col": "Fri"
+    },
     "taskInfo": {
       "duration": "1",
       "project": "QE - Fixed Cost",
@@ -109,15 +124,15 @@
       "task": "TASK-2025-00617",
       "description": "TC6 - Task added via automation.",
       "hours": "1",
-      "date": "<Update dynamically>",
-      "employee": "<Update dynamically>"
+      "date": "2025-03-07",
+      "employee": "EMP-00089"
     },
     "payloadFilterTimeEntry": {
       "subject": "Prod support calls",
       "description": "TC6 - Task added via automation.",
       "project_name": "QE - Fixed Cost",
-      "from_time": "<Update dynamically>",
-      "employee": "<Update dynamically>",
+      "from_time": "2025-03-07",
+      "employee": "EMP-00089",
       "max_week": "1"
     }
   }

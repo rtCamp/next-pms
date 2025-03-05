@@ -2,6 +2,8 @@ export const getWeekdayName = (date) => {
   return date.toString().split(" ")[0];
 };
 
+// ------------------------------------------------------------------------------------------
+
 export const getDateForWeekday = (weekday) => {
   const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const today = new Date();
@@ -15,6 +17,8 @@ export const getDateForWeekday = (weekday) => {
   return targetDate;
 };
 
+// ------------------------------------------------------------------------------------------
+
 export const getFormattedDate = (date) => {
   let day = date.getDate();
   let month = date.getMonth() + 1;
@@ -25,6 +29,8 @@ export const getFormattedDate = (date) => {
 
   return `${year}-${month}-${day}`;
 };
+
+// ------------------------------------------------------------------------------------------
 
 export const durationToSeconds = (duration) => {
   duration = duration.toString();
@@ -37,6 +43,8 @@ export const durationToSeconds = (duration) => {
     return parseInt(duration.split(":")[0]) * 3600 + parseInt(duration.split(":")[1]) * 60;
   }
 };
+
+// ------------------------------------------------------------------------------------------
 
 export const secondsToDuration = (seconds) => {
   seconds = Number(seconds);
