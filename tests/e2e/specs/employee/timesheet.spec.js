@@ -106,3 +106,14 @@ test("TC6: Delete the added time entry from the non-submitted timesheet.", async
   const cellText = await timesheetPage.getCellText(TC6data.cell);
   expect(cellText).toContain("-");
 });
+
+test("TC71: Verify that the review timesheet panel is not available for an employee.", async ({}) => {
+  // Click on timesheet status
+  await timesheetPage.openSubmitForApprovalModal();
+
+  // Assertions
+  const isSubmitForApprovalModalVisible = await timesheetPage.isSubmitForApprovalModalVisible();
+  expect(isSubmitForApprovalModalVisible).toBeTruthy();
+  const isReviewTimesheetPaneVisible = await timesheetPage.isReviewTimesheetPaneVisible();
+  expect(isReviewTimesheetPaneVisible).toBeFalsy();
+});

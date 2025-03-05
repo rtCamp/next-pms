@@ -20,7 +20,17 @@ export class TimesheetPage {
     // Modals
     this.addTimeModal = page.getByRole("dialog", { name: "Add Time" });
     this.editTimeModal = page.getByRole("dialog", { name: "Edit Time" });
-    this.approvalModal = page.getByRole("dialog").locator("h2", { hasText: "Week of" });
+    this.submitTimesheetModal = page.getByRole("dialog").filter({
+      has: page.locator("h2", { hasText: /^Week of/ }),
+      has: page.getByRole("button", { name: "Submit For Approval" }),
+    });
+
+    // Panes
+    this.reviewTimesheetPane = page.getByRole("dialog").filter({
+      has: page.locator("h2", { hasText: /^Week of/ }),
+      has: page.getByRole("button", { name: "Approve" }),
+      has: page.getByRole("button", { name: "Reject" }),
+    });
 
     // Latest Timesheet Elements
     this.latestTimesheetDiv = page.locator("//div[@data-orientation='vertical']").first();
@@ -39,8 +49,6 @@ export class TimesheetPage {
    * Checks if the timesheet page is visible.
    */
   async isPageVisible() {
-    await this.timeButton.waitFor({ state: "visible" });
-
     return await this.timeButton.isVisible();
   }
 
@@ -237,5 +245,20 @@ export class TimesheetPage {
 
     await button.waitFor("visible");
     await button.click();
+  }
+
+  async openSubmitForApprovalModal() {
+    const button = this.latestTimesheetTitleDiv.locator("//span[contains(@class,'text-slate')]");
+
+    await button.waitFor("visible");
+    await button.click();
+  }
+
+  async isSubmitForApprovalModalVisible() {
+    return await this.submitTimesheetModal.isVisible();
+  }
+
+  async isReviewTimesheetPaneVisible() {
+    return await this.reviewTimesheetPane.isVisible();
   }
 }
