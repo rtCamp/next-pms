@@ -82,11 +82,11 @@ repos:
   - repo: local
     hooks:
       - id: eslint-js
-        name: "ESlint JS"
-        entry: bash -c 'npx run eslint --config .eslintrc -- "$@"' --
+        name: "ESLint JS"
+        entry: bash -c 'npx eslint --config .eslintrc -- "$@"' --
         language: system
-        files: \.(js)$
-        types: [file]
+        files: '\.js$'
+        types: [javascript]
         exclude: |
             (?x)^(
                 next_pms/public/dist/.*|
