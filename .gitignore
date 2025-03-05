@@ -17,3 +17,6 @@ tests/e2e/results.json
 
 # Env file
 .env
+
+# Dynamically generated temp files
+tests/e2e/data/**/shared*

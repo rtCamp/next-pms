@@ -47,13 +47,16 @@ module.exports = defineConfig({
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: process.env.BASE_URL,
 
-    /* Collect trace. */
+    /* Storage state file */
+    storageState: path.resolve(__dirname, "./auth/user.json"),
+
+    /* Collect trace */
     trace: "retain-on-failure",
 
-    /* Capture screenshot. */
+    /* Capture screenshot */
     screenshot: "only-on-failure",
 
-    /* Record video. */
+    /* Record video */
     video: "retain-on-failure",
 
     launchOptions: {

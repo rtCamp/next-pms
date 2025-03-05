@@ -17,8 +17,11 @@ let TC37data = data.TC37;
 
 // ------------------------------------------------------------------------------------------
 
-test.beforeEach(async ({ page }) => {
-  // Login to Next PMS
+test.beforeEach(async ({ page, context }) => {
+  // Clear cookies to remove session state
+  await context.clearCookies();
+
+  // Login
   await loginNextPMS(page, repManEmail, repManPass);
   teamPage = new TeamPage(page);
   timesheetPage = new TimesheetPage(page);
@@ -32,9 +35,6 @@ test("TC36: Validate the timesheets for individual employees for all weeks.", as
 
   // Navigate to employee's timesheet
   await teamPage.navigateToEmpTimesheet(empName);
-
-  // Wait for 1 second
-  await page.waitForTimeout(1000);
 
   // Assertions
   const selectedEmployee = await timesheetPage.getSelectedEmployee();

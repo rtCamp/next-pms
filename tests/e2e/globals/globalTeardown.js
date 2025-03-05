@@ -1,5 +1,7 @@
 import { deleteStaleTimeEntires } from "../helpers/timesheetHelper";
 
+// ------------------------------------------------------------------------------------------
+
 /**
  * Global teardown function to delete the stale test data after running tests.
  */

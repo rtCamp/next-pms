@@ -1,14 +1,9 @@
 import { test, expect } from "@playwright/test";
-import { loginNextPMS } from "../../helpers/loginHelper";
 import { secondsToDuration, durationToSeconds } from "../../utils/dateUtils";
 import { TimesheetPage } from "../../pages/timesheetPage";
 import data from "../../data/employee/timesheet.json";
 
 let timesheetPage;
-
-// Load env variables
-const empEmail = process.env.EMP_EMAIL;
-const empPass = process.env.EMP_PASS;
 
 // Load test data
 let TC2data = data.TC2;
@@ -20,9 +15,9 @@ let TC6data = data.TC6;
 // ------------------------------------------------------------------------------------------
 
 test.beforeEach(async ({ page }) => {
-  // Login to Next PMS
-  await loginNextPMS(page, empEmail, empPass);
+  // Open Timesheet tab
   timesheetPage = new TimesheetPage(page);
+  timesheetPage.goto();
 });
 
 // ------------------------------------------------------------------------------------------

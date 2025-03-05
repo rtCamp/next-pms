@@ -1,0 +1,55 @@
+{
+  "cookies": [
+    {
+      "name": "system_user",
+      "value": "yes",
+      "domain": "erp-stage.rt.gw",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "sid",
+      "value": "fbfc9f53e46e7dc031d18c84455017ef13d8f0fde6477ee54468c3e2",
+      "domain": "erp-stage.rt.gw",
+      "path": "/",
+      "expires": 1741382718.994551,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "full_name",
+      "value": "Abhishek%20Kumar",
+      "domain": "erp-stage.rt.gw",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "user_id",
+      "value": "abhishek.kumar%40rtcamp.com",
+      "domain": "erp-stage.rt.gw",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "user_image",
+      "value": "https%3A//secure.gravatar.com/avatar/aeeb358b362d3c9782419656250aefde%3Fd%3D404%26s%3D200",
+      "domain": "erp-stage.rt.gw",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": []
+}
