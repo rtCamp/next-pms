@@ -29,7 +29,7 @@ test.beforeEach(async ({ page, context }) => {
 
 // ------------------------------------------------------------------------------------------
 
-test("TC36: Validate the timesheets for individual employees for all weeks.", async ({ page }) => {
+test("TC36: Validate the timesheets for individual employees for all weeks.", async ({}) => {
   // Switch to Team tab
   await teamPage.goto();
 

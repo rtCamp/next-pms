@@ -20,9 +20,11 @@ export class TimesheetPage {
     // Modals
     this.addTimeModal = page.getByRole("dialog", { name: "Add Time" });
     this.editTimeModal = page.getByRole("dialog", { name: "Edit Time" });
+    this.approvalModal = page.getByRole("dialog").locator("h2", { hasText: "Week of" });
 
     // Latest Timesheet Elements
     this.latestTimesheetDiv = page.locator("//div[@data-orientation='vertical']").first();
+    this.latestTimesheetTitleDiv = this.latestTimesheetDiv.locator("//button[@data-orientation='vertical']");
     this.latestTimesheetTable = this.latestTimesheetDiv.getByRole("table");
   }
 
