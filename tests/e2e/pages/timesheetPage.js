@@ -247,6 +247,9 @@ export class TimesheetPage {
     await button.click();
   }
 
+  /**
+   * Clicks on timesheet status to open 'Submit For Approval' modal.
+   */
   async openSubmitForApprovalModal() {
     const button = this.latestTimesheetTitleDiv.locator("//span[contains(@class,'text-slate')]");
 
@@ -254,10 +257,16 @@ export class TimesheetPage {
     await button.click();
   }
 
+  /**
+   * Checks if the 'Submit For Approval' modal is visible.
+   */
   async isSubmitForApprovalModalVisible() {
     return await this.submitTimesheetModal.isVisible();
   }
 
+  /**
+   * Checks if the 'Review Timeshee' panel is visible.
+   */
   async isReviewTimesheetPaneVisible() {
     return await this.reviewTimesheetPane.isVisible();
   }
