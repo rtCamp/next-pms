@@ -8,7 +8,9 @@
   "private": true,
   "scripts": {
     "dev": "cd frontend && npm run dev",
-    "build": "cd frontend && npm install && npm run build"
+    "build": "cd frontend && npm install && npm run build",
+    "e2e:tests": "npx playwright test --config=tests/e2e/playwright.config.js",
+    "lint:precommit": "eslint --fix --config .eslint.config.cjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.50.1",
@@ -19,3 +21,4 @@
   "dependencies": {
     "dotenv": "^16.4.7"
   }
+}
