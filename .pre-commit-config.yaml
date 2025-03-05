@@ -83,7 +83,7 @@ repos:
     hooks:
       - id: eslint-js
         name: "ESLint JS"
-        entry: bash -c 'npx eslint --config .eslintrc -- "$@"' --
+        entry: bash -c 'npm run lint:precommit -- "${@#next-pms/}" ' --
         language: system
         files: '\.js$'
         types: [javascript]
