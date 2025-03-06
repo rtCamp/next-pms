@@ -1,0 +1,273 @@
+/**
+ * TimesheetPage class handles interactions with the timesheet page.
+ */
+export class TimesheetPage {
+  /**
+   * Initializes the TeamPage object.
+   * @param {import('@playwright/test').Page} page - Playwright page instance.
+   */
+  constructor(page) {
+    this.page = page;
+
+    // Column Index Map
+    this.dayIndexObj = { task: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6, sun: 7, total: 8 };
+
+    // Header Buttons
+    this.employeeButton = page.locator("//header//button[@aria-haspopup='dialog']");
+    this.leaveButton = page.getByRole("button", { name: "Leave" });
+    this.timeButton = page.getByRole("button", { name: "Time" });
+
+    // Modals
+    this.addTimeModal = page.getByRole("dialog", { name: "Add Time" });
+    this.editTimeModal = page.getByRole("dialog", { name: "Edit Time" });
+    this.submitTimesheetModal = page.getByRole("dialog").filter({
+      has: page.locator("h2", { hasText: /^Week of/ }),
+      has: page.getByRole("button", { name: "Submit For Approval" }),
+    });
+
+    // Panes
+    this.reviewTimesheetPane = page.getByRole("dialog").filter({
+      has: page.locator("h2", { hasText: /^Week of/ }),
+      has: page.getByRole("button", { name: "Approve" }),
+      has: page.getByRole("button", { name: "Reject" }),
+    });
+
+    // Latest Timesheet Elements
+    this.latestTimesheetDiv = page.locator("//div[@data-orientation='vertical']").first();
+    this.latestTimesheetTitleDiv = this.latestTimesheetDiv.locator("//button[@data-orientation='vertical']");
+    this.latestTimesheetTable = this.latestTimesheetDiv.getByRole("table");
+  }
+
+  /**
+   * Navigates to the timesheet page and waits for it to fully load.
+   */
+  async goto() {
+    await this.page.goto("/next-pms/timesheet", { waitUntil: "domcontentloaded" });
+  }
+
+  /**
+   * Checks if the timesheet page is visible.
+   */
+  async isPageVisible() {
+    return await this.timeButton.isVisible();
+  }
+
+  /**
+   * Retrieves the name of the currently displayed employee's timesheet.
+   */
+  async getSelectedEmployee() {
+    const selectedEmployee = this.employeeButton.getByRole("paragraph");
+
+    await selectedEmployee.waitFor({ state: "visible" });
+
+    return await selectedEmployee.textContent();
+  }
+
+  /**
+   * Selects an employee and displays their timesheet.
+   */
+  async selectEmployee(name) {
+    const searchInput = this.page.getByRole("dialog").getByPlaceholder("Search Employee");
+
+    await this.employeeButton.click();
+    await searchInput.fill(name);
+    await this.page.getByRole("option", { name: name }).click();
+    await this.page.waitForLoadState();
+  }
+
+  /**
+   * Retrieves a specific row in the timesheet table based on the provided row name.
+   * Handles predefined row types like header, duration, time off, and new entry as well as dynamic row names.
+   */
+  async getRow(rowName) {
+    switch (rowName.toLowerCase()) {
+      case "header":
+        return this.latestTimesheetTable.locator("thead").getByRole("row");
+      case "duration":
+        return this.latestTimesheetTable.locator("tbody").getByRole("row").first();
+      case "time off":
+        return this.latestTimesheetTable.getByRole("row", { name: "Time Off" });
+      case "new entry":
+        return this.latestTimesheetTable.locator("//tr[not(contains(@class, 'border-slate'))]").last();
+      default:
+        return this.latestTimesheetTable.getByRole("row", { name: rowName });
+    }
+  }
+
+  /**
+   * Retrieves a specific cell from the timesheet table based on the row and column name.
+   */
+  async getCell({ rowName, col }) {
+    const row = await this.getRow(rowName);
+    const colIndex = this.dayIndexObj[col.toLowerCase()];
+    const cell = row.getByRole("cell").nth(colIndex);
+
+    await cell.waitFor({ state: "visible" });
+
+    return cell;
+  }
+
+  /**
+   * Retrieves the text content from a specific timesheet cell.
+   */
+  async getCellText(cellInfo) {
+    const cell = await this.getCell(cellInfo);
+
+    return (await cell.isVisible()) ? await cell.textContent() : "-";
+  }
+
+  /**
+   * Retrieves the tooltip text from a specific timesheet cell.
+   */
+  async getCellTooltipText(cellInfo) {
+    const cell = await this.getCell(cellInfo);
+    const tooltip = cell.locator("//div[@data-radix-popper-content-wrapper]");
+
+    await cell.hover();
+    await tooltip.waitFor({ state: "visible" });
+
+    return (await tooltip.isVisible()) ? await tooltip.textContent() : "";
+  }
+
+  /**
+   * Retrieves the date of a specific timesheet column.
+   */
+  async getColDate(col) {
+    const cell = await this.getCell({ rowName: "header", col: col });
+    const date = cell.locator("//span");
+
+    return (await cell.isVisible()) ? await date.textContent() : "-";
+  }
+
+  /**
+   * Opens a cell for dialog interaction.
+   */
+  async openCell(cell) {
+    await cell.waitFor({ state: "visible" });
+    await cell.click();
+  }
+
+  /**
+   * Performs a search and selection within a modal based on a placeholder text.
+   */
+  async searchAndSelectOption(placeholder, value) {
+    const searchButton = this.addTimeModal.getByRole("button", { name: placeholder });
+    const searchInput = this.page.getByRole("dialog").getByPlaceholder(`${placeholder}`);
+
+    await searchButton.click();
+    await searchInput.fill(value);
+    await searchInput.press("ArrowDown+Enter");
+  }
+
+  /**
+   * Adds a time entry to the timesheet by filling in the required fields.
+   * Optional params: project, task.
+   */
+  async AddTime({ duration, project, task, desc }) {
+    await this.addTimeModal.getByPlaceholder("00:00").fill(duration);
+    if (project) {
+      await this.searchAndSelectOption("Search Projects", project);
+    }
+    if (task) {
+      await this.searchAndSelectOption("Search Task", task);
+    }
+    await this.addTimeModal.getByPlaceholder("Explain your progress").fill(desc);
+    await this.addTimeModal.getByRole("button", { name: "Add Time" }).click();
+  }
+
+  /**
+   * Adds a time entry by interacting with the "Time" button.
+   */
+  async addTimeViaTimeButton(taskInfo) {
+    await this.timeButton.click();
+    await this.AddTime(taskInfo);
+  }
+
+  /**
+   * Adds a time entry by interacting with the timesheet cell.
+   */
+  async addTimeViaCell(cellInfo, taskInfo) {
+    const cell = await this.getCell(cellInfo);
+
+    await this.openCell(cell);
+    await this.AddTime(taskInfo);
+  }
+
+  /**
+   * Adds a new time row to an existing time entry by interacting with the timesheet cell.
+   */
+  async addTimeRow(cellInfo, { duration, desc }) {
+    const cell = await this.getCell(cellInfo);
+    const newRow = this.editTimeModal.locator("//div[contains(@class, 'items-start')]").last();
+
+    await this.openCell(cell);
+    await this.editTimeModal.getByRole("button", { name: "Add Row" }).click();
+    await newRow.getByPlaceholder("00:00").fill(duration);
+    await newRow.locator("textarea").fill(desc);
+    await this.editTimeModal.getByRole("button", { name: "Save" }).click();
+  }
+
+  /**
+   * Updates an existing time entry by interacting with the timesheet cell.
+   */
+  async updateTimeRow(cellInfo, { desc, newDesc, newDuration }) {
+    const cell = await this.getCell(cellInfo);
+    const row = this.editTimeModal.locator(
+      `//textarea[contains(text(), '${desc}')]/ancestor::div[contains(@class, 'items-start')]`
+    );
+
+    await this.openCell(cell);
+    await row.getByPlaceholder("00:00").fill(newDuration);
+    await row.locator("textarea").fill(newDesc);
+    await this.editTimeModal.getByRole("button", { name: "Save" }).click();
+    await this.editTimeModal.getByRole("button", { name: "Close" }).click();
+  }
+
+  /**
+   * Deletes an existing time entry by interacting with the timesheet cell.
+   */
+  async deleteTimeRow(cellInfo, { desc }) {
+    const cell = await this.getCell(cellInfo);
+    const row = this.editTimeModal.locator(
+      `//textarea[contains(text(), '${desc}')]/ancestor::div[contains(@class, 'items-start')]`
+    );
+
+    await this.openCell(cell);
+    await row.locator("//button[contains(@class,'bg-destructive')]").first().click();
+    await this.editTimeModal.getByRole("button", { name: "Close" }).click();
+  }
+
+  /**
+   * Imports liked tasks into the timesheet by clicking the import button.
+   */
+  async importLikedTasks() {
+    const button = this.latestTimesheetTable.locator("//span[@title='Import liked tasks']");
+
+    await button.waitFor("visible");
+    await button.click();
+  }
+
+  /**
+   * Clicks on timesheet status to open 'Submit For Approval' modal.
+   */
+  async openSubmitForApprovalModal() {
+    const button = this.latestTimesheetTitleDiv.locator("//span[contains(@class,'text-slate')]");
+
+    await button.waitFor("visible");
+    await button.click();
+  }
+
+  /**
+   * Checks if the 'Submit For Approval' modal is visible.
+   */
+  async isSubmitForApprovalModalVisible() {
+    return await this.submitTimesheetModal.isVisible();
+  }
+
+  /**
+   * Checks if the 'Review Timeshee' panel is visible.
+   */
+  async isReviewTimesheetPaneVisible() {
+    return await this.reviewTimesheetPane.isVisible();
+  }
+}
