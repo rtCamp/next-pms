@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { loginNextPMS } from "../../helpers/loginHelper";
-import { TeamPage } from "../../pages/teamPage";
-import { TimesheetPage } from "../../pages/timesheetPage";
+import { TeamPage } from "../../pageObjects/teamPage";
+import { TimesheetPage } from "../../pageObjects/timesheetPage";
 import data from "../../data/manager/team.json";
 
 let teamPage;
@@ -23,16 +23,18 @@ test.beforeEach(async ({ page, context }) => {
 
   // Login
   await loginNextPMS(page, repManEmail, repManPass);
+
+  // Instantiate page objects
   teamPage = new TeamPage(page);
   timesheetPage = new TimesheetPage(page);
+
+  // Switch to Team tab
+  await teamPage.goto();
 });
 
 // ------------------------------------------------------------------------------------------
 
 test("TC36: Validate the timesheets for individual employees for all weeks.", async ({}) => {
-  // Switch to Team tab
-  await teamPage.goto();
-
   // Navigate to employee's timesheet
   await teamPage.navigateToEmpTimesheet(empName);
 
@@ -42,9 +44,6 @@ test("TC36: Validate the timesheets for individual employees for all weeks.", as
 });
 
 test("TC37: Change the employee selected from the top search and verify that the timesheets below are updated accordingly.", async () => {
-  // Switch to Team tab
-  await teamPage.goto();
-
   // Navigate to employee's timesheet
   await teamPage.navigateToEmpTimesheet(empName);
 

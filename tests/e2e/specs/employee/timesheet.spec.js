@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { secondsToDuration, durationToSeconds } from "../../utils/dateUtils";
-import { TimesheetPage } from "../../pages/timesheetPage";
+import { TimesheetPage } from "../../pageObjects/timesheetPage";
 import data from "../../data/employee/shared-timesheet.json";
 
 let timesheetPage;
@@ -16,8 +16,10 @@ let TC72data = data.TC72;
 // ------------------------------------------------------------------------------------------
 
 test.beforeEach(async ({ page }) => {
-  // Open Timesheet tab
+  // Instantiate page objects
   timesheetPage = new TimesheetPage(page);
+
+  // Switch to Timesheet tab
   timesheetPage.goto();
 });
 
