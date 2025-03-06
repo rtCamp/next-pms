@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { secondsToDuration, durationToSeconds } from "../../utils/dateUtils";
 import { TimesheetPage } from "../../pages/timesheetPage";
-import data from "../../data/employee/timesheet.json";
+import data from "../../data/employee/shared-timesheet.json";
 
 let timesheetPage;
 
