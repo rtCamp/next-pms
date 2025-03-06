@@ -52,15 +52,15 @@ export const FormDialog = ({ fields, butttons, formObject, dialogObject, onSubmi
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
               <FormDialogFieldGroup fields={fields} form={form} />
+              <DialogFooter className={cn("sm:justify-start pt-2 w-full", dialogObject.footerClassName)}>
+                <div className={cn("flex gap-x-4 w-full", dialogObject.footerButtonClassName)}>
+                  {butttons.map((button, index) => {
+                    return <FormDialogButton key={index} {...button} />;
+                  })}
+                </div>
+              </DialogFooter>
             </form>
           </Form>
-          <DialogFooter className={cn("sm:justify-start pt-2 w-full", dialogObject.footerClassName)}>
-            <div className={cn("flex gap-x-4 w-full", dialogObject.footerButtonClassName)}>
-              {butttons.map((button, index) => {
-                return <FormDialogButton key={index} {...button} />;
-              })}
-            </div>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

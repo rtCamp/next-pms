@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface FieldProps {
   label: string;
@@ -37,6 +39,7 @@ export interface ButtonProps {
     | "link"
     | null
     | undefined;
+  type: "submit" | "default";
 }
 
 export interface FormObjectProps {
@@ -62,6 +65,6 @@ export interface FormDialogProps {
   butttons: ButtonProps[];
   formObject: FormObjectProps;
   dialogObject: DialogObjectProps;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: z.infer<any>) => void;
   onClose: () => void;
 }
