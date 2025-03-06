@@ -26,6 +26,8 @@ import {
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { Search, LoaderCircle, Save, X } from "lucide-react";
 import { z } from "zod";
+import { FormDialog } from "@/app/components/form-dialog";
+
 /**
  * Internal dependencies.
  */
@@ -35,9 +37,105 @@ import { ProjectProps } from "@/types";
 import { AddTaskType } from "@/types/task";
 import { Action, TaskState } from "../reducer";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AddTaskPropType = { task: TaskState; mutate: any; dispatch: React.Dispatch<Action> };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const AddTask = ({ task, mutate, dispatch }: AddTaskPropType) => {
+  return (
+    <FormDialog
+      fields={[
+        [
+          {
+            label: "Subject",
+            name: "subject",
+            placeholder: "New subject",
+            value: "",
+            onChange: () => {},
+            type: "text",
+            className: "sm:col-span-9",
+          },
+          {
+            label: "Expected Time",
+            name: "expected_time",
+            placeholder: "Time(in hours)",
+            value: "",
+            onChange: () => {},
+            type: "text",
+            className: "sm:col-span-3",
+          },
+        ],
+        [
+          {
+            label: "Project",
+            name: "project",
+            placeholder: "Search Project",
+            value: "",
+            data: [
+              {
+                label: "Project 1",
+                value: "project-1",
+              },
+            ],
+            onChange: () => {},
+            type: "search",
+            className: "sm:col-span-12",
+          },
+        ],
+        [
+          {
+            label: "Description",
+            name: "description",
+            placeholder: "Explain the subject",
+            value: "",
+            onChange: () => {},
+            type: "text-area",
+            className: "sm:col-span-12",
+          },
+        ],
+      ]}
+      butttons={[
+        {
+          label: "Add Task",
+          Icon: () => {
+            return <LoaderCircle className="animate-spin w-4 h-4" />;
+          },
+          onClick: () => {},
+          variant: "default",
+        },
+        {
+          label: "Cancel",
+          Icon: () => {
+            return <X />;
+          },
+          onClick: () => {},
+          variant: "secondary",
+        },
+      ]}
+      formObject={{
+        schema: TaskSchema,
+        defaultValues: {
+          subject: "",
+          project: "",
+          expected_time: "",
+          description: "",
+        },
+        mode: "onSubmit",
+      }}
+      dialogObject={{
+        open: true,
+        onOpenChange: () => {},
+        title: "Add Task",
+      }}
+      onSubmit={(value) => {
+        console.log(value);
+      }}
+      onClose={() => {}}
+    ></FormDialog>
+  );
+};
+
+export const AddTask1 = ({ task, mutate, dispatch }: AddTaskPropType) => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const { toast } = useToast();
 
@@ -179,7 +277,7 @@ export const AddTask = ({ task, mutate, dispatch }: AddTaskPropType) => {
                         <ComboBox
                           label="Search Project"
                           showSelected
-                          shouldFilter
+                          shouldFilter2
                           value={form.getValues("project") ? [form.getValues("project")] : []}
                           data={projects?.message?.map((item: ProjectProps) => ({
                             label: item.project_name,
