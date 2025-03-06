@@ -16,11 +16,23 @@ export class LoginPage {
   }
 
   /**
+   * =========================================
+   * General
+   * =========================================
+   */
+
+  /**
    * Navigates to the login page and waits for it to fully load.
    */
   async goto() {
     await this.page.goto("/login", { waitUntil: "domcontentloaded" });
   }
+
+  /**
+   * =========================================
+   * Login Form Actions
+   * =========================================
+   */
 
   /**
    * Performs login with the provided credentials.

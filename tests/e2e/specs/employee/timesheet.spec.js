@@ -11,6 +11,7 @@ let TC3data = data.TC3;
 let TC4data = data.TC4;
 let TC5data = data.TC5;
 let TC6data = data.TC6;
+let TC72data = data.TC72;
 
 // ------------------------------------------------------------------------------------------
 
@@ -107,13 +108,39 @@ test("TC6: Delete the added time entry from the non-submitted timesheet.", async
   expect(cellText).toContain("-");
 });
 
+test("TC7: Submit the weekly timesheet", async ({ page }) => {
+  // Submit timesheet
+  await timesheetPage.submitTimesheet();
+
+  // Reload page to ensure changes are reflected
+  await page.reload();
+
+  // Get timesheet status
+  const status = await timesheetPage.getTimesheetStatus();
+
+  // Assertions
+  expect(status).toBe("Approval Pending");
+});
+
 test("TC71: Verify that the review timesheet panel is not available for an employee.", async ({}) => {
   // Click on timesheet status
-  await timesheetPage.openSubmitForApprovalModal();
+  await timesheetPage.clickonTimesheetStatus();
 
   // Assertions
   const isSubmitForApprovalModalVisible = await timesheetPage.isSubmitForApprovalModalVisible();
   expect(isSubmitForApprovalModalVisible).toBeTruthy();
+
   const isReviewTimesheetPaneVisible = await timesheetPage.isReviewTimesheetPaneVisible();
   expect(isReviewTimesheetPaneVisible).toBeFalsy();
+});
+
+test("TC72: Verify the 'Import liked tasks' option.", async ({}) => {
+  // Import liked tasks
+  await timesheetPage.importLikedTasks();
+
+  // Retrive tasks from the timesheet
+  const tasks = await timesheetPage.getTimesheetTasks();
+
+  // Assertions
+  expect(tasks.sort()).toEqual(TC72data.tasks.sort());
 });

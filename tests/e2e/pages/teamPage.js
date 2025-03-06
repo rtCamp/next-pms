@@ -14,11 +14,23 @@ export class TeamPage {
   }
 
   /**
+   * =========================================
+   * General
+   * =========================================
+   */
+
+  /**
    * Navigates to the team page and waits for it to fully load.
    */
   async goto() {
     await this.page.goto("/next-pms/team", { waitUntil: "domcontentloaded" });
   }
+
+  /**
+   * =========================================
+   * Top Employee Selection Dropdown
+   * =========================================
+   */
 
   /**
    * Searches for an employee in the search input.

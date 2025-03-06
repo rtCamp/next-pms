@@ -20,6 +20,7 @@ const empID = process.env.EMP_ID;
  * - TC4: Updates time entry and creates a timesheet entry.
  * - TC5: Updates time entry and creates a timesheet entry.
  * - TC6: Updates time entry and creates a timesheet entry.
+ * - TC7: Updates time entry and creates a timesheet entry.
  */
 export const createInitialTimeEntires = async () => {
   const employeeTimesheetDataFilePath = path.resolve(__dirname, "../data/employee/shared-timesheet.json"); // File path of the employee timesheet data JSON file
@@ -74,6 +75,16 @@ export const createInitialTimeEntires = async () => {
 
   await createTimesheet(employeeTimesheetData.TC6.payloadCreateTimesheet);
 
+  // Fetch TC7 task, update dynamic fields and create time entry
+  formattedDate = getFormattedDate(getDateForWeekday(employeeTimesheetData.TC7.cell.col));
+
+  employeeTimesheetData.TC7.payloadCreateTimesheet.date = formattedDate;
+  employeeTimesheetData.TC7.payloadCreateTimesheet.employee = empID;
+  employeeTimesheetData.TC7.payloadFilterTimeEntry.from_time = formattedDate;
+  employeeTimesheetData.TC7.payloadFilterTimeEntry.employee = empID;
+
+  await createTimesheet(employeeTimesheetData.TC7.payloadCreateTimesheet);
+
   // Write back updated JSON
   fs.writeFileSync(employeeTimesheetDataFilePath, JSON.stringify(employeeTimesheetData, null, 2));
 };
@@ -84,7 +95,7 @@ export const createInitialTimeEntires = async () => {
  * Deletes stale time entries from the timesheet data.
  * Uses `filterTimesheetEntry` to retrieve existing time entries.
  * Calls `deleteTimesheet` to remove each fetched entry from the system.
- * Test Cases: TC2, TC3, TC4, TC5, TC6
+ * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7
  */
 export const deleteStaleTimeEntires = async () => {
   const sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
@@ -114,6 +125,10 @@ export const deleteStaleTimeEntires = async () => {
 
   // Fetch TC6 time entry and delete time entry
   filteredTimeEntry = await filterTimesheetEntry(sharedEmployeeTimesheetData.TC6.payloadFilterTimeEntry);
+  await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
+
+  // Fetch TC7 time entry and delete time entry
+  filteredTimeEntry = await filterTimesheetEntry(sharedEmployeeTimesheetData.TC7.payloadFilterTimeEntry);
   await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
 };
 

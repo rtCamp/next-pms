@@ -39,6 +39,12 @@ export class TimesheetPage {
   }
 
   /**
+   * =========================================
+   * General
+   * =========================================
+   */
+
+  /**
    * Navigates to the timesheet page and waits for it to fully load.
    */
   async goto() {
@@ -51,6 +57,40 @@ export class TimesheetPage {
   async isPageVisible() {
     return await this.timeButton.isVisible();
   }
+
+  /**
+   * Performs a search and selection within a modal based on a placeholder text.
+   */
+  async searchAndSelectOption(placeholder, value) {
+    const searchButton = this.addTimeModal.getByRole("button", { name: placeholder });
+    const searchInput = this.page.getByRole("dialog").getByPlaceholder(`${placeholder}`);
+
+    await searchButton.click();
+    await searchInput.fill(value);
+    await searchInput.press("ArrowDown+Enter");
+  }
+
+  /**
+   * Adds a time entry to the timesheet by filling in the required fields.
+   * Optional params: project, task.
+   */
+  async AddTime({ duration, project, task, desc }) {
+    await this.addTimeModal.getByPlaceholder("00:00").fill(duration);
+    if (project) {
+      await this.searchAndSelectOption("Search Projects", project);
+    }
+    if (task) {
+      await this.searchAndSelectOption("Search Task", task);
+    }
+    await this.addTimeModal.getByPlaceholder("Explain your progress").fill(desc);
+    await this.addTimeModal.getByRole("button", { name: "Add Time" }).click();
+  }
+
+  /**
+   * =========================================
+   * Top Employee Selection Dropdown
+   * =========================================
+   */
 
   /**
    * Retrieves the name of the currently displayed employee's timesheet.
@@ -76,6 +116,85 @@ export class TimesheetPage {
   }
 
   /**
+   * =========================================
+   * Top Add Time Button
+   * =========================================
+   */
+
+  /**
+   * Adds a time entry by interacting with the "Time" button.
+   */
+  async addTimeViaTimeButton(taskInfo) {
+    await this.timeButton.click();
+    await this.AddTime(taskInfo);
+  }
+
+  /**
+   * =========================================
+   * Timesheet Submission Actions
+   * =========================================
+   */
+
+  /**
+   * Retrives the timesheet status.
+   */
+  async getTimesheetStatus() {
+    const button = this.latestTimesheetTitleDiv.locator("span").last();
+    return await button.textContent();
+  }
+
+  /**
+   * Clicks on timesheet status to open 'Submit For Approval' modal.
+   */
+  async clickonTimesheetStatus() {
+    const button = this.latestTimesheetTitleDiv.locator("span").last();
+
+    await button.waitFor("visible");
+    await button.click();
+  }
+
+  /**
+   * Checks if the 'Submit For Approval' modal is visible.
+   */
+  async isSubmitForApprovalModalVisible() {
+    return await this.submitTimesheetModal.isVisible();
+  }
+
+  /**
+   * Submits the timesheet.
+   */
+  async submitTimesheet() {
+    await this.clickonTimesheetStatus();
+    await this.submitTimesheetModal.getByRole("button", { name: "Submit For Approval" }).click();
+  }
+
+  /**
+   * =========================================
+   * Review Timesheet Panel
+   * =========================================
+   */
+
+  /**
+   * Checks if the 'Review Timesheet' panel is visible.
+   */
+  async isReviewTimesheetPaneVisible() {
+    return await this.reviewTimesheetPane.isVisible();
+  }
+
+  /**
+   * =========================================
+   * Latest Timesheet Actions
+   * =========================================
+   */
+
+  /**
+   * Retrieves all rows of the timesheet table.
+   */
+  async getRows() {
+    return this.latestTimesheetTable.getByRole("row");
+  }
+
+  /**
    * Retrieves a specific row in the timesheet table based on the provided row name.
    * Handles predefined row types like header, duration, time off, and new entry as well as dynamic row names.
    */
@@ -92,6 +211,54 @@ export class TimesheetPage {
       default:
         return this.latestTimesheetTable.getByRole("row", { name: rowName });
     }
+  }
+
+  /**
+   * Checks if the "Time Off" row is present in the timesheet table.
+   */
+  async isTimeOffRowPresent() {
+    const rows = await this.getRows();
+
+    // Iterate through all rows to check for "Time Off" in the first cell
+    for (const row of await rows.all()) {
+      const cellText = await row.getByRole("cell").first().textContent();
+      if (cellText === "Time Off") return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Retrieves the task rows from the timesheet table, excluding header rows.
+   */
+  async getTaskRows() {
+    const rows = await this.getRows();
+    const isTimeOffRowPresent = await this.isTimeOffRowPresent();
+    const rowsToSkip = isTimeOffRowPresent ? 4 : 3;
+
+    // Remove header rows
+    for (let i = 0; i < rowsToSkip; i++) {
+      await rows.nth(0).evaluate((el) => el.remove());
+    }
+
+    return rows;
+  }
+
+  /**
+   * Retrieves a list of timesheet task names from the table.
+   */
+  async getTimesheetTasks() {
+    const tasks = [];
+    const rows = await this.getTaskRows();
+
+    // Iterate through each row to extract the task name from the first cell
+    for (const row of await rows.all()) {
+      const cell = row.getByRole("cell").first();
+      const task = await cell.locator("//span[@class='truncate']").textContent();
+      tasks.push(task);
+    }
+
+    return tasks;
   }
 
   /**
@@ -145,42 +312,6 @@ export class TimesheetPage {
   async openCell(cell) {
     await cell.waitFor({ state: "visible" });
     await cell.click();
-  }
-
-  /**
-   * Performs a search and selection within a modal based on a placeholder text.
-   */
-  async searchAndSelectOption(placeholder, value) {
-    const searchButton = this.addTimeModal.getByRole("button", { name: placeholder });
-    const searchInput = this.page.getByRole("dialog").getByPlaceholder(`${placeholder}`);
-
-    await searchButton.click();
-    await searchInput.fill(value);
-    await searchInput.press("ArrowDown+Enter");
-  }
-
-  /**
-   * Adds a time entry to the timesheet by filling in the required fields.
-   * Optional params: project, task.
-   */
-  async AddTime({ duration, project, task, desc }) {
-    await this.addTimeModal.getByPlaceholder("00:00").fill(duration);
-    if (project) {
-      await this.searchAndSelectOption("Search Projects", project);
-    }
-    if (task) {
-      await this.searchAndSelectOption("Search Task", task);
-    }
-    await this.addTimeModal.getByPlaceholder("Explain your progress").fill(desc);
-    await this.addTimeModal.getByRole("button", { name: "Add Time" }).click();
-  }
-
-  /**
-   * Adds a time entry by interacting with the "Time" button.
-   */
-  async addTimeViaTimeButton(taskInfo) {
-    await this.timeButton.click();
-    await this.AddTime(taskInfo);
   }
 
   /**
@@ -245,29 +376,5 @@ export class TimesheetPage {
 
     await button.waitFor("visible");
     await button.click();
-  }
-
-  /**
-   * Clicks on timesheet status to open 'Submit For Approval' modal.
-   */
-  async openSubmitForApprovalModal() {
-    const button = this.latestTimesheetTitleDiv.locator("//span[contains(@class,'text-slate')]");
-
-    await button.waitFor("visible");
-    await button.click();
-  }
-
-  /**
-   * Checks if the 'Submit For Approval' modal is visible.
-   */
-  async isSubmitForApprovalModalVisible() {
-    return await this.submitTimesheetModal.isVisible();
-  }
-
-  /**
-   * Checks if the 'Review Timeshee' panel is visible.
-   */
-  async isReviewTimesheetPaneVisible() {
-    return await this.reviewTimesheetPane.isVisible();
   }
 }

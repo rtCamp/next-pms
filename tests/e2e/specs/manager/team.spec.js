@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { loginNextPMS } from "../../helpers/loginHelper";
 import { TeamPage } from "../../pages/teamPage";
 import { TimesheetPage } from "../../pages/timesheetPage";
-import data from "../../data/manager/timesheet.json";
+import data from "../../data/manager/team.json";
 
 let teamPage;
 let timesheetPage;

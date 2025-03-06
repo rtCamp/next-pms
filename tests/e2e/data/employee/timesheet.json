@@ -135,5 +135,44 @@
       "employee": "EMP-00089",
       "max_week": "1"
     }
+  },
+  "TC7": {
+    "cell": {
+      "rowName": "Meetings",
+      "col": "Mon"
+    },
+    "taskInfo": {
+      "duration": "1",
+      "project": "QE - Non-Billable",
+      "task": "Meetings",
+      "desc": "TC7 - Task added via automation."
+    },
+    "payloadCreateTimesheet": {
+      "task": "TASK-2025-00614",
+      "description": "TC7 - Task added via automation.",
+      "hours": "1",
+      "date": "2025-03-07",
+      "employee": "EMP-00089"
+    },
+    "payloadFilterTimeEntry": {
+      "subject": "Meetings",
+      "description": "TC7 - Task added via automation.",
+      "project_name": "QE - Non-Billable",
+      "from_time": "2025-03-07",
+      "employee": "EMP-00089",
+      "max_week": "1"
+    }
+  },
+  "TC72": {
+    "tasks": [
+      "Design dashboard",
+      "Documentation",
+      "Meetings",
+      "Create UI Designs",
+      "Bug fixes",
+      "App support",
+      "Unit Testing",
+      "Prod support calls"
+    ]
   }
 }
