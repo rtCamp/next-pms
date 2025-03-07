@@ -124,6 +124,18 @@ test("TC7: Submit the weekly timesheet", async ({ page }) => {
   expect(status).toBe("Approval Pending");
 });
 
+test("TC9: Open task details popup", async ({}) => {
+  // Import liked tasks
+  await timesheetPage.importLikedTasks();
+
+  // Open random task details
+  const randomTask = await timesheetPage.openRandomTaskDetails();
+
+  // Assertions
+  const isTaskDetailsDialogVisible = await timesheetPage.isTaskDetailsDialogVisible(randomTask);
+  expect(isTaskDetailsDialogVisible).toBeTruthy();
+});
+
 test("TC71: Verify that the review timesheet panel is not available for an employee.", async ({}) => {
   // Click on timesheet status
   await timesheetPage.clickonTimesheetStatus();

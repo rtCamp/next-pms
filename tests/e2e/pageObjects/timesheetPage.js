@@ -262,6 +262,16 @@ export class TimesheetPage {
   }
 
   /**
+   * Retrieves a random task name from the timesheet tasks.
+   */
+  async getRandomTimesheetTask() {
+    const tasks = await this.getTimesheetTasks();
+    const index = Math.floor(Math.random() * tasks.length); // Generate a random index
+
+    return tasks[index];
+  }
+
+  /**
    * Retrieves a specific cell from the timesheet table based on the row and column name.
    */
   async getCell({ rowName, col }) {
@@ -369,6 +379,12 @@ export class TimesheetPage {
   }
 
   /**
+   * =========================================
+   * Import Liked Tasks
+   * =========================================
+   */
+
+  /**
    * Imports liked tasks into the timesheet by clicking the import button.
    */
   async importLikedTasks() {
@@ -376,5 +392,38 @@ export class TimesheetPage {
 
     await button.waitFor("visible");
     await button.click();
+  }
+
+  /**
+   * =========================================
+   * Task Details Dialog
+   * =========================================
+   */
+
+  /**
+   * Opens the details dialog of a specified task.
+   */
+  async openTaskDetails(task) {
+    const taskSpan = this.latestTimesheetTable.locator(`//span[@class='truncate' and text()='${task}']`);
+
+    await taskSpan.click();
+  }
+
+  /**
+   * Selects a random task from the timesheet and opens its details dialog.
+   */
+  async openRandomTaskDetails() {
+    const randomTask = await this.getRandomTimesheetTask();
+
+    await this.openTaskDetails(randomTask);
+
+    return randomTask;
+  }
+
+  /**
+   * Checks if the task details dialog with the specified name is visible.
+   */
+  async isTaskDetailsDialogVisible(name) {
+    return this.page.getByRole("dialog", { name: name }).isVisible();
   }
 }
