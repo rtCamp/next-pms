@@ -13,12 +13,12 @@ test.beforeEach(async ({ page }) => {
   sidebar = new Sidebar(page);
 
   // Switch to Timesheet tab
-  timesheetPage.goto();
+  await timesheetPage.goto();
 });
 
 // ------------------------------------------------------------------------------------------
 
-test("TC76: Verify the 'Team' tab isn't displayed for an employee.", async ({}) => {
+test("TC75: Verify the 'Team' tab isn't displayed for an employee.", async ({}) => {
   // Assertions
   const isTeamTabAvailable = await sidebar.isTabAvailable("Team");
   expect(isTeamTabAvailable).toBeFalsy();

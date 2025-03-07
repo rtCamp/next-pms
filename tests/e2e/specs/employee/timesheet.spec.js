@@ -20,7 +20,7 @@ test.beforeEach(async ({ page }) => {
   timesheetPage = new TimesheetPage(page);
 
   // Switch to Timesheet tab
-  timesheetPage.goto();
+  await timesheetPage.goto();
 });
 
 // ------------------------------------------------------------------------------------------
