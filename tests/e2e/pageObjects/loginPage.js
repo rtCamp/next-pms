@@ -15,11 +15,9 @@ export class LoginPage {
     this.loginButton = page.getByRole("button", { name: "Login" });
   }
 
-  /**
-   * =========================================
-   * General
-   * =========================================
-   */
+  // --------------------------------------
+  // General
+  // --------------------------------------
 
   /**
    * Navigates to the login page and waits for it to fully load.
@@ -28,11 +26,9 @@ export class LoginPage {
     await this.page.goto("/login", { waitUntil: "domcontentloaded" });
   }
 
-  /**
-   * =========================================
-   * Login Form Actions
-   * =========================================
-   */
+  // --------------------------------------
+  // Login Form Actions
+  // --------------------------------------
 
   /**
    * Performs login with the provided credentials.

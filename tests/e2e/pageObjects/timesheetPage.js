@@ -38,11 +38,9 @@ export class TimesheetPage {
     this.latestTimesheetTable = this.latestTimesheetDiv.getByRole("table");
   }
 
-  /**
-   * =========================================
-   * General
-   * =========================================
-   */
+  // --------------------------------------
+  // General
+  // --------------------------------------
 
   /**
    * Navigates to the timesheet page and waits for it to fully load.
@@ -86,11 +84,9 @@ export class TimesheetPage {
     await this.addTimeModal.getByRole("button", { name: "Add Time" }).click();
   }
 
-  /**
-   * =========================================
-   * Top Employee Selection Dropdown
-   * =========================================
-   */
+  // --------------------------------------
+  // Top Employee Selection Dropdown
+  // --------------------------------------
 
   /**
    * Retrieves the name of the currently displayed employee's timesheet.
@@ -115,11 +111,9 @@ export class TimesheetPage {
     await this.page.waitForLoadState();
   }
 
-  /**
-   * =========================================
-   * Top Add Time Button
-   * =========================================
-   */
+  // --------------------------------------
+  // Top Add Time Button
+  // --------------------------------------
 
   /**
    * Adds a time entry by interacting with the "Time" button.
@@ -129,17 +123,18 @@ export class TimesheetPage {
     await this.AddTime(taskInfo);
   }
 
-  /**
-   * =========================================
-   * Timesheet Submission Actions
-   * =========================================
-   */
+  // --------------------------------------
+  // Timesheet Submission Actions
+  // --------------------------------------
 
   /**
    * Retrives the timesheet status.
    */
   async getTimesheetStatus() {
     const button = this.latestTimesheetTitleDiv.locator("span").last();
+
+    await button.waitFor("visible");
+
     return await button.textContent();
   }
 
@@ -168,11 +163,9 @@ export class TimesheetPage {
     await this.submitTimesheetModal.getByRole("button", { name: "Submit For Approval" }).click();
   }
 
-  /**
-   * =========================================
-   * Review Timesheet Panel
-   * =========================================
-   */
+  // --------------------------------------
+  // Review Timesheet Panel
+  // --------------------------------------
 
   /**
    * Checks if the 'Review Timesheet' panel is visible.
@@ -181,16 +174,16 @@ export class TimesheetPage {
     return await this.reviewTimesheetPane.isVisible();
   }
 
-  /**
-   * =========================================
-   * Latest Timesheet Actions
-   * =========================================
-   */
+  // --------------------------------------
+  // Latest Timesheet Actions
+  // --------------------------------------
 
   /**
    * Retrieves all rows of the timesheet table.
    */
   async getRows() {
+    await this.latestTimesheetTable.waitFor("visible");
+
     return this.latestTimesheetTable.getByRole("row");
   }
 
@@ -199,6 +192,8 @@ export class TimesheetPage {
    * Handles predefined row types like header, duration, time off, and new entry as well as dynamic row names.
    */
   async getRow(rowName) {
+    await this.latestTimesheetTable.waitFor("visible");
+
     switch (rowName.toLowerCase()) {
       case "header":
         return this.latestTimesheetTable.locator("thead").getByRole("row");
@@ -378,11 +373,9 @@ export class TimesheetPage {
     await this.editTimeModal.getByRole("button", { name: "Close" }).click();
   }
 
-  /**
-   * =========================================
-   * Import Liked Tasks
-   * =========================================
-   */
+  // --------------------------------------
+  // Import Liked Tasks
+  // --------------------------------------
 
   /**
    * Imports liked tasks into the timesheet by clicking the import button.
@@ -394,11 +387,9 @@ export class TimesheetPage {
     await button.click();
   }
 
-  /**
-   * =========================================
-   * Task Details Dialog
-   * =========================================
-   */
+  // --------------------------------------
+  // Task Details Dialog
+  // --------------------------------------
 
   /**
    * Opens the details dialog of a specified task.

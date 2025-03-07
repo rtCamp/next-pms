@@ -17,11 +17,9 @@ export class Sidebar {
     this.taskLink = page.getByRole("link", { name: "Task" });
   }
 
-  /**
-   * =========================================
-   * Sidebar Actions
-   * =========================================
-   */
+  // --------------------------------------
+  // Sidebar Actions
+  // --------------------------------------
 
   /**
  * Checks if a tab with the specified name is available in sidebar.
