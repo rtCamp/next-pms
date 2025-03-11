@@ -8,7 +8,7 @@ import { ResourceAllocationObjectProps, ResourceCustomerObjectProps } from "@/ty
 /**
  * Internal dependencies.
  */
-import { ContextProviderProps, DateProps, TableViewProps } from "./types";
+import { APIController, ContextProviderProps, DateProps, TableViewProps } from "./types";
 
 export type ProjectAllWeekDataProps = {
   total_allocated_hours: number;
@@ -91,12 +91,6 @@ interface ProjectContextProps extends ResourceProjectState {
   setDates: (dates: DateProps[]) => void;
   setCombineWeekHours: (value: boolean) => void;
   setWeekDate: (value: string) => void;
-}
-
-interface APIController {
-  isNeedToFetchDataAfterUpdate: boolean;
-  isLoading: boolean;
-  action: "SET" | "UPDATE";
 }
 
 const emptyProjectDayData: ProjectResourceProps = {

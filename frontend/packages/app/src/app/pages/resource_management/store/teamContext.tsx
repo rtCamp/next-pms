@@ -3,11 +3,11 @@
  */
 import { createContext, useState } from "react";
 import { getFormatedDate, getTodayDate } from "@next-pms/design-system";
-import { ResourceAllocationObjectProps, ResourceCustomerObjectProps } from "@/types/resource_management";
 
 /**
  * Internal dependencies.
  */
+import { ResourceAllocationObjectProps, ResourceCustomerObjectProps } from "@/types/resource_management";
 import { APIController, ContextProviderProps, DateProps, TableViewProps } from "./types";
 import { getDatesArrays } from "../utils/dates";
 
