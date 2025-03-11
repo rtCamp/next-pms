@@ -2,7 +2,6 @@
  * External dependencies.
  */
 import { useContext, useEffect } from "react";
-// import { useDispatch } from "react-redux";
 import { getMonthKey, getMonthYearKey, getTodayDate, prettyDate } from "@next-pms/design-system";
 import { TableHead, Typography } from "@next-pms/design-system/components";
 import { useQueryParam } from "@next-pms/hooks";
@@ -18,7 +17,6 @@ import { Moment } from "moment";
 import { Header } from "@/app/components/list-view/header";
 import { cn } from "@/lib/utils";
 import { Skill } from "@/store/resource_management/team";
-
 import { ResourceFormContext } from "../../store/resourceFormContext";
 import { TimeLineContext } from "../../store/timeLineContext";
 import { PermissionProps } from "../../store/types";

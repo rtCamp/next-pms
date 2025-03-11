@@ -9,7 +9,7 @@ import {
   ResourceAllocationObjectProps,
   ResourceAllocationProps,
 } from "@/types/resource_management";
-import { DateProps } from "../../team/reducer";
+import { DateProps } from "../store/types";
 
 export interface CombinedResourceObjectProps {
   [key: string]: CombinedResourceDataProps;
@@ -45,7 +45,6 @@ function groupAllocations(
   resourceData: EmployeeResourceObjectProps,
   employee_allocations: ResourceAllocationObjectProps,
   dates: DateProps[]
-  //   isGroupByProject: boolean = true
 ): { combinedResourceData: CombinedResourceObjectProps; allDates: string[] } {
   let allResourceAllocation: MergedAllocationProps[] = [];
   let allDates: string[] = [];

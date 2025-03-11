@@ -3,11 +3,11 @@
  */
 import { createContext, useState } from "react";
 import { getFormatedDate, getTodayDate } from "@next-pms/design-system";
-import { ResourceAllocationObjectProps, ResourceCustomerObjectProps } from "@/types/resource_management";
 
 /**
  * Internal dependencies.
  */
+import { ResourceAllocationObjectProps, ResourceCustomerObjectProps } from "@/types/resource_management";
 import { ContextProviderProps, DateProps, TableViewProps } from "./types";
 import { getDatesArrays } from "../utils/dates";
 
@@ -104,16 +104,6 @@ interface APIController {
   action: "SET" | "UPDATE";
 }
 
-// export const defaultEmployeeDayData: EmployeeResourceProps = {
-//   date: "None",
-//   total_allocated_hours: 0,
-//   total_working_hours: 0,
-//   total_worked_hours: 0,
-//   employee_resource_allocation_for_given_date: [],
-//   is_on_leave: false,
-//   total_leave_hours: 0,
-//   total_allocation_count: 0,
-// };
 const defaultFilters: ResourceTeamFilters = {
   employeeName: "",
   pageLength: 20,
