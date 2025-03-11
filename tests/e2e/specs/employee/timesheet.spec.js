@@ -1,16 +1,13 @@
 import path from "path";
 import fs from "fs";
 import { test, expect } from "@playwright/test";
-import { getWeekdayName, getFormattedDate } from "../../utils/dateUtils";
+import { getWeekdayName } from "../../utils/dateUtils";
 import { secondsToDuration, durationToSeconds } from "../../utils/dateUtils";
 import { TimesheetPage } from "../../pageObjects/timesheetPage";
 import data from "../../data/employee/shared-timesheet.json";
 
 const employeeTimesheetDataFilePath = path.resolve(__dirname, "../../data/employee/shared-timesheet.json"); // File path of the employee timesheet data JSON file
 let timesheetPage;
-
-// Load env variables
-const empID = process.env.EMP_ID;
 
 // Load test data
 let TC2data = data.TC2;
@@ -19,7 +16,6 @@ let TC4data = data.TC4;
 let TC5data = data.TC5;
 let TC6data = data.TC6;
 let TC72data = data.TC72;
-let TC73data = data.TC73;
 
 // ------------------------------------------------------------------------------------------
 
