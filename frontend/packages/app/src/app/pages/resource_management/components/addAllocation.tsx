@@ -116,7 +116,11 @@ const AddResourceAllocations = ({
   );
 
   const handleEmployeeChange = (value: string) => {
-    form.setValue("employee", value);
+    form.setValue("employee", value, {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
     fetchLeaveData();
   };
 
@@ -131,20 +135,36 @@ const AddResourceAllocations = ({
 
     if (!projectData.customer) {
       if (!form.getValues("customer")) {
-        form.setValue("customer", "");
+        form.setValue("customer", "", {
+          shouldValidate: true,
+          shouldDirty: true,
+          shouldTouch: true,
+        });
         setCustomerSearch("");
       }
     } else {
       if (!form.getValues("customer")) {
-        form.setValue("customer", projectData.customer);
+        form.setValue("customer", projectData.customer, {
+          shouldValidate: true,
+          shouldDirty: true,
+          shouldTouch: true,
+        });
         setCustomerSearch(projectData.customer);
       }
     }
 
     if (projectData.custom_billing_type != "Non-Billable") {
-      form.setValue("is_billable", true);
+      form.setValue("is_billable", true, {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
     } else {
-      form.setValue("is_billable", false);
+      form.setValue("is_billable", false, {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
     }
   };
 
@@ -154,7 +174,11 @@ const AddResourceAllocations = ({
     handleValueChange: (value: string) => void
   ) => {
     if (typeof value === "string") {
-      form.setValue(key, value);
+      form.setValue(key, value, {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
       if (key === "project") {
         handleCustomerAutoComplete(value);
       }
@@ -163,10 +187,18 @@ const AddResourceAllocations = ({
       }
     }
     if (value.length > 0) {
-      form.setValue(key, value[0]);
+      form.setValue(key, value[0], {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
       handleCustomerAutoComplete(value[0]);
     } else {
-      form.setValue(key, "");
+      form.setValue(key, "", {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
       handleValueChange("");
     }
   };
@@ -188,13 +220,21 @@ const AddResourceAllocations = ({
     if (startDate >= startWeekDate && endDate <= endWeekDate) {
       return setEnableRepeatOnWeek(true);
     }
-    form.setValue("repeat_till_week_count", 0);
+    form.setValue("repeat_till_week_count", 0, {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
     setEnableRepeatOnWeek(false);
   };
 
   const handleDateChange = (key: ResourceKeys, date: Date | undefined) => {
     if (!date) return;
-    form.setValue(key, getFormatedDate(date));
+    form.setValue(key, getFormatedDate(date), {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
     if (isNeedToShowLeaveData()) {
       fetchLeaveData();
     }
@@ -229,7 +269,12 @@ const AddResourceAllocations = ({
           if (hours_allocated_per_day) {
             return form.setValue(
               "total_allocated_hours",
-              getRoundOfValue(hours_allocated_per_day * leaveData.message.total_working_days).toString()
+              getRoundOfValue(hours_allocated_per_day * leaveData.message.total_working_days).toString(),
+              {
+                shouldValidate: true,
+                shouldDirty: true,
+                shouldTouch: true,
+              }
             );
           }
 
@@ -237,25 +282,48 @@ const AddResourceAllocations = ({
             if (leaveData.message.total_working_days) {
               return form.setValue(
                 "hours_allocated_per_day",
-                getRoundOfValue(total_allocated_hours / leaveData.message.total_working_days).toString()
+                getRoundOfValue(total_allocated_hours / leaveData.message.total_working_days).toString(),
+                {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                  shouldTouch: true,
+                }
               );
             } else {
-              return form.setValue("hours_allocated_per_day", "0");
+              return form.setValue("hours_allocated_per_day", "0", {
+                shouldValidate: true,
+                shouldDirty: true,
+                shouldTouch: true,
+              });
             }
           }
         } else if (needToSet == "total") {
           return form.setValue(
             "total_allocated_hours",
-            getRoundOfValue(hours_allocated_per_day * leaveData.message.total_working_days).toString()
+            getRoundOfValue(hours_allocated_per_day * leaveData.message.total_working_days).toString(),
+            {
+              shouldValidate: true,
+              shouldDirty: true,
+              shouldTouch: true,
+            }
           );
         } else {
           if (leaveData.message.total_working_days) {
             return form.setValue(
               "hours_allocated_per_day",
-              getRoundOfValue(total_allocated_hours / leaveData.message.total_working_days).toString()
+              getRoundOfValue(total_allocated_hours / leaveData.message.total_working_days).toString(),
+              {
+                shouldValidate: true,
+                shouldDirty: true,
+                shouldTouch: true,
+              }
             );
           } else {
-            return form.setValue("hours_allocated_per_day", "0");
+            return form.setValue("hours_allocated_per_day", "0", {
+              shouldValidate: true,
+              shouldDirty: true,
+              shouldTouch: true,
+            });
           }
         }
       }
@@ -385,7 +453,11 @@ const AddResourceAllocations = ({
                         onSelect={(value) => {
                           handleSearchChange("customer", value, setCustomerSearch);
                           fetchProjects();
-                          form.setValue("project", "");
+                          form.setValue("project", "", {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                            shouldTouch: true,
+                          });
                           setProjectSearch("");
                         }}
                         onSearch={(value) => {
@@ -456,7 +528,13 @@ const AddResourceAllocations = ({
                           "flex items-center justify-center cursor-pointer rounded-sm py-3 px-1",
                           field.value ? "bg-gradient-to-r from-green-400 to-green-600" : "bg-yellow-500"
                         )}
-                        onClick={() => form.setValue("is_billable", !field.value)}
+                        onClick={() =>
+                          form.setValue("is_billable", !field.value, {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                            shouldTouch: true,
+                          })
+                        }
                       >
                         <CircleDollarSign size={36} className="text-white" />
                       </div>
@@ -525,9 +603,17 @@ const AddResourceAllocations = ({
                             onChange={(e) => {
                               const number = parseInt(e.target.value);
                               if (number) {
-                                form.setValue("repeat_till_week_count", number);
+                                form.setValue("repeat_till_week_count", number, {
+                                  shouldValidate: true,
+                                  shouldDirty: true,
+                                  shouldTouch: true,
+                                });
                               } else {
-                                form.setValue("repeat_till_week_count", 0);
+                                form.setValue("repeat_till_week_count", 0, {
+                                  shouldValidate: true,
+                                  shouldDirty: true,
+                                  shouldTouch: true,
+                                });
                               }
                             }}
                             disabled={!enableRepeatOnWeek}
@@ -560,7 +646,11 @@ const AddResourceAllocations = ({
                             type="text"
                             {...field}
                             onChange={(e) => {
-                              form.setValue("total_allocated_hours", handleNumberInputValue(String(e.target.value)));
+                              form.setValue("total_allocated_hours", handleNumberInputValue(String(e.target.value)), {
+                                shouldValidate: true,
+                                shouldDirty: true,
+                                shouldTouch: true,
+                              });
                               handleHoursAutoComplete("per_day");
                             }}
                           />
@@ -604,7 +694,11 @@ const AddResourceAllocations = ({
                             type="text"
                             {...field}
                             onChange={(e) => {
-                              form.setValue("hours_allocated_per_day", handleNumberInputValue(String(e.target.value)));
+                              form.setValue("hours_allocated_per_day", handleNumberInputValue(String(e.target.value)), {
+                                shouldValidate: true,
+                                shouldDirty: true,
+                                shouldTouch: true,
+                              });
                               handleHoursAutoComplete("total");
                             }}
                           />
@@ -638,7 +732,7 @@ const AddResourceAllocations = ({
             />
             <DialogFooter className="sm:justify-start w-full pt-3">
               <div className="flex gap-x-4 w-full">
-                <Button>
+                <Button disabled={!form.formState.isValid || !form.formState.isDirty || loading}>
                   {loading ? <LoaderCircle className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
                   {resourceAllocationForm.isNeedToEdit ? "Save" : "Create"}
                 </Button>

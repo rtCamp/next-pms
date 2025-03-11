@@ -44,7 +44,7 @@ def get_data(filters=None):
                 continue
             project_names = [p.name for p in filter_projects]
             total_hours = get_total_hours_from_timesheet(start_date, end_date, project_names)
-            revenue = get_total_revenue(start_date, end_date, project_names, customer)
+            revenue, unpaid_revenue, paid_revenue = get_total_revenue(start_date, end_date, project_names, customer)
             labor_cost = get_labor_cost(start_date, end_date, project_names)
             profit = revenue - labor_cost
             profit_percentage = (profit / revenue) * 100 if revenue != 0 else 0
@@ -52,6 +52,8 @@ def get_data(filters=None):
                 "client": customer,
                 "project_type": ptype,
                 "revenue": revenue,
+                "unpaid_revenue": unpaid_revenue,
+                "paid_revenue": paid_revenue,
                 "labour_cost": labor_cost,
                 "total_hours": total_hours,
                 "avg_cost_rate": labor_cost / total_hours if total_hours else 0,
@@ -64,11 +66,13 @@ def get_data(filters=None):
 
 def get_total_revenue(start_date: date | str, end_date: date | str, projects: list[str], customer: str):
     revenue = 0.0
+    unpaid_revenue = 0.0
+    paid_revenue = 0.0
     sales_invoices = DocType("Sales Invoice")
 
     result = (
         frappe.qb.from_(sales_invoices)
-        .select(Sum(sales_invoices.grand_total).as_("revenue"), sales_invoices.currency)
+        .select(Sum(sales_invoices.grand_total).as_("revenue"), sales_invoices.currency, sales_invoices.status)
         .where(sales_invoices.posting_date >= start_date)
         .where(sales_invoices.posting_date <= end_date)
         .where(sales_invoices.customer == customer)
@@ -77,13 +81,21 @@ def get_total_revenue(start_date: date | str, end_date: date | str, projects: li
         .groupby(sales_invoices.currency)
     ).run(as_dict=True)
     if not result:
-        return revenue
+        return revenue, unpaid_revenue, paid_revenue
+
     for row in result:
+        data = 0.0
         if row.currency == CURRENCY:
-            revenue += row.revenue
+            data = row.revenue
         else:
-            revenue += (get_exchange_rate(row.currency, CURRENCY) or 1) * row.revenue
-    return revenue
+            data = (get_exchange_rate(row.currency, CURRENCY) or 1) * row.revenue
+        if row.status == "Paid":
+            paid_revenue += data
+        else:
+            unpaid_revenue += data
+        revenue += data
+
+    return revenue, unpaid_revenue, paid_revenue
 
 
 def get_total_hours_from_timesheet(start_date: date | str, end_date: date | str, projects: list[str]):
@@ -147,6 +159,16 @@ def get_columns():
         {
             "fieldname": "revenue",
             "label": _("Revenue $"),
+            "fieldtype": "Float",
+        },
+        {
+            "fieldname": "unpaid_revenue",
+            "label": _("UnPaid Invoices $"),
+            "fieldtype": "Float",
+        },
+        {
+            "fieldname": "paid_revenue",
+            "label": _("Paid Invoices $"),
             "fieldtype": "Float",
         },
         {
