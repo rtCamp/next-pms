@@ -12,7 +12,8 @@ const globalSetup = async () => {
   await createInitialTimeEntires();
 
   // Perform login and store authentication state for later use
-  await storeStorageState();
+  await storeStorageState("employee");
+  await storeStorageState("manager");
 };
 
 export default globalSetup;

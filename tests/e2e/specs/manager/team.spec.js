@@ -1,5 +1,5 @@
+import path from "path";
 import { test, expect } from "@playwright/test";
-import { loginNextPMS } from "../../helpers/loginHelper";
 import { TeamPage } from "../../pageObjects/teamPage";
 import { TimesheetPage } from "../../pageObjects/timesheetPage";
 import data from "../../data/manager/team.json";
@@ -8,8 +8,6 @@ let teamPage;
 let timesheetPage;
 
 // Load env variables
-const repManEmail = process.env.REP_MAN_EMAIL;
-const repManPass = process.env.REP_MAN_PASS;
 const empName = process.env.EMP_NAME;
 
 // Load test data
@@ -19,13 +17,10 @@ let TC76data = data.TC76;
 
 // ------------------------------------------------------------------------------------------
 
-test.beforeEach(async ({ page, context }) => {
-  // Clear cookies to remove session state
-  await context.clearCookies();
+// Load authentication state from 'manager.json'
+test.use({ storageState: path.resolve(__dirname, "../../auth/manager.json") });
 
-  // Login
-  await loginNextPMS(page, repManEmail, repManPass);
-
+test.beforeEach(async ({ page }) => {
   // Instantiate page objects
   teamPage = new TeamPage(page);
   timesheetPage = new TimesheetPage(page);
