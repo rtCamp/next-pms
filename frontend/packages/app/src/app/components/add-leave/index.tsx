@@ -120,28 +120,48 @@ const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSucces
 
   const onEmployeeChange = (value: string) => {
     setSelectedEmployee(value);
-    form.setValue("employee", value);
+    form.setValue("employee", value, {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
   };
 
   const handleFromDateChange = (date: Date | undefined) => {
     if (!date) return;
-    form.setValue("from_date", getFormatedDate(date));
+    form.setValue("from_date", getFormatedDate(date), {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
     setSelectedFromDate(getFormatedDate(date));
   };
 
   const handleToDateChange = (date: Date | undefined) => {
     if (!date) return;
-    form.setValue("to_date", getFormatedDate(date));
+    form.setValue("to_date", getFormatedDate(date), {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
     setSelectedToDate(getFormatedDate(date));
   };
 
   const handleLeaveChange = (value: string | string[]) => {
     if (value instanceof Array) {
       setSelectedLeaveType(value);
-      form.setValue("leave_type", value[0]);
+      form.setValue("leave_type", value[0], {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
     } else {
       setSelectedLeaveType([value]);
-      form.setValue("leave_type", value);
+      form.setValue("leave_type", value, {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
     }
   };
 
@@ -245,7 +265,11 @@ const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSucces
                           <Checkbox
                             checked={field.value}
                             onCheckedChange={(value) => {
-                              form.setValue("half_day", value as boolean);
+                              form.setValue("half_day", value as boolean, {
+                                shouldValidate: true,
+                                shouldDirty: true,
+                                shouldTouch: true,
+                              });
                               setIsHalfDay(value as boolean);
                             }}
                           />
@@ -265,7 +289,11 @@ const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSucces
                           <FormControl>
                             <Select
                               onValueChange={(value) => {
-                                form.setValue("custom_first_halfsecond_half", value);
+                                form.setValue("custom_first_halfsecond_half", value, {
+                                  shouldValidate: true,
+                                  shouldDirty: true,
+                                  shouldTouch: true,
+                                });
                               }}
                               defaultValue="First Half"
                             >
