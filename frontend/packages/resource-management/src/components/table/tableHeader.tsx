@@ -4,12 +4,12 @@
 import { LegacyRef, useContext } from "react";
 import { TableHead, TableHeader, TableRow, Typography } from "@next-pms/design-system/components";
 import { prettyDate, getUTCDateTime } from "@next-pms/design-system/date";
-import { TableContext } from "@next-pms/resource-management/store";
 import { isToday } from "date-fns";
 
 /**
  * Internal dependencies.
  */
+import { TableContext } from "../../store";
 import { cn, getTableCellClass } from "../../utils";
 
 export type DateProps = {

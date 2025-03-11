@@ -1,3 +1,6 @@
+/**
+ * External dependencies.
+ */
 import { ReactNode } from "react";
 
 export type PermissionProps = {

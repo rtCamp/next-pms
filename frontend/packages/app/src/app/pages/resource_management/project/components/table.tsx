@@ -31,7 +31,7 @@ import {
 import { ResourceAllocationObjectProps, ResourceAllocationProps } from "@/types/resource_management";
 
 import { ResourceExpandView } from "./expandView";
-import { EmptyTableBody } from "../../components/empty";
+import { EmptyTableBody, EmptyTableCell } from "../../components/empty";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
 import { ResourceFormContext } from "../../store/resourceFormContext";
 import { AllocationDataProps, DateProps } from "../../store/types";
@@ -324,8 +324,7 @@ const ResourceProjectTableCell = ({
 
   if (cellValue == "-") {
     return (
-      <ResourceTableCell
-        type="empty"
+      <EmptyTableCell
         title={title}
         cellClassName={cn(
           getTableCellClass(rowCount, midIndex),
