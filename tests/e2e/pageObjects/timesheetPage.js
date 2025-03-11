@@ -18,6 +18,7 @@ export class TimesheetPage {
     this.timeButton = page.getByRole("button", { name: "Time" });
 
     // Modals
+    this.addLeaveModal = page.getByRole("dialog", { name: "Add Leave" });
     this.addTimeModal = page.getByRole("dialog", { name: "Add Time" });
     this.editTimeModal = page.getByRole("dialog", { name: "Edit Time" });
     this.submitTimesheetModal = page.getByRole("dialog").filter({
@@ -60,7 +61,7 @@ export class TimesheetPage {
    * Performs a search and selection within a modal based on a placeholder text.
    */
   async searchAndSelectOption(placeholder, value) {
-    const searchButton = this.addTimeModal.getByRole("button", { name: placeholder });
+    const searchButton = this.page.getByRole("button", { name: placeholder });
     const searchInput = this.page.getByRole("dialog").getByPlaceholder(`${placeholder}`);
 
     await searchButton.click();
@@ -109,6 +110,21 @@ export class TimesheetPage {
     await searchInput.fill(name);
     await this.page.getByRole("option", { name: name }).click();
     await this.page.waitForLoadState();
+  }
+
+  // --------------------------------------
+  // Top Add Leave Button
+  // --------------------------------------
+
+  /**
+   * Applies for leave by selecting the leave type and providing a reason.
+   * The selected leave type is 'Unpaid Time Off'.
+   */
+  async applyForLeave(reason) {
+    await this.leaveButton.click();
+    await this.searchAndSelectOption("Search Leave Type", "Unpaid Time Off");
+    await this.addLeaveModal.getByPlaceholder("Reason for leave").fill(reason);
+    await this.addLeaveModal.getByRole("button", { name: "Add Leave" }).click();
   }
 
   // --------------------------------------

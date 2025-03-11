@@ -1,9 +1,15 @@
+/**
+ * Gets the abbreviated weekday name (e.g., "Mon") from a Date object.
+ */
 export const getWeekdayName = (date) => {
   return date.toString().split(" ")[0];
 };
 
 // ------------------------------------------------------------------------------------------
 
+/**
+ * Gets the Date object for a given weekday.
+ */
 export const getDateForWeekday = (weekday) => {
   const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const today = new Date();
@@ -19,6 +25,9 @@ export const getDateForWeekday = (weekday) => {
 
 // ------------------------------------------------------------------------------------------
 
+/**
+ * Formats a Date object into a string in the format YYYY-MM-DD.
+ */
 export const getFormattedDate = (date) => {
   let day = date.getDate();
   let month = date.getMonth() + 1;
@@ -32,6 +41,9 @@ export const getFormattedDate = (date) => {
 
 // ------------------------------------------------------------------------------------------
 
+/**
+ * Converts a duration string (HH:MM or hours) to seconds.
+ */
 export const durationToSeconds = (duration) => {
   duration = duration.toString();
 
@@ -46,6 +58,9 @@ export const durationToSeconds = (duration) => {
 
 // ------------------------------------------------------------------------------------------
 
+/**
+ * Converts a duration from seconds into an "HH:MM" formatted string.
+ */
 export const secondsToDuration = (seconds) => {
   seconds = Number(seconds);
 

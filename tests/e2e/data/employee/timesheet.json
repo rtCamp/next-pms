@@ -149,5 +149,13 @@
       "Unit Testing",
       "Prod support calls"
     ]
+  },
+  "TC73": {
+    "cell": {
+      "rowName": "Time Off"
+    },
+    "leave": {
+      "desc": "TC73 - Leave added via automation."
+    }
   }
 }

@@ -77,17 +77,20 @@ export const actOnLeave = async ({ action, leaveDetails }) => {
 // ------------------------------------------------------------------------------------------
 
 /**
- * Retrieves leave application details for a specific employee and date range.
+ * Retrieves leave application details with specified filters.
  */
-export const getLeaveDetails = async ({ employee, from_date, to_date }) => {
+export const getLeaveDetails = async ({ filters }) => {
   // Ensure the user is logged in before making API requests
   if (context === undefined || context === null) {
     await login();
   }
 
-  const response = await context.get(
-    `/api/resource/Leave%20Application?fields=["*"]&filters={"employee":"${employee}","from_date":"${from_date}","to_date":"${to_date}"}`
-  );
+  const endpoint = `/api/resource/Leave%20Application?fields=["*"]&filters=${encodeURIComponent(
+    JSON.stringify(filters)
+  )}`;
+
+  // Fetch leave details
+  const response = await context.get(endpoint);
 
   return await response;
 };
