@@ -7,7 +7,7 @@ import { Table, TableBody, TableRow } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
 import {
   ResourceTableCell,
-  TableDiableRow,
+  TableDisabledRow,
   TableInformationCellContent,
 } from "@next-pms/resource-management/components";
 import { getTableCellClass, getTodayDateCellClass } from "@next-pms/resource-management/utils";
@@ -18,7 +18,7 @@ import { getTableCellClass, getTodayDateCellClass } from "@next-pms/resource-man
 import { cn } from "@/lib/utils";
 import { RootState } from "@/store";
 import { DateProps, EmployeeDataProps } from "@/store/resource_management/team";
-import { EmptyRow } from "../../components/empty";
+import { EmptyRow, EmptyTableCell } from "../../components/empty";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
 import { ResourceFormContext } from "../../store/resourceFormContext";
 import { AllocationDataProps } from "../../store/types";
@@ -103,7 +103,7 @@ export const ResourceExpandView = ({
           )}
 
         {Object.keys(employeeData.all_leave_data).length != 0 && (
-          <TableDiableRow dates={employeeResourceData.allDates} data={employeeData.all_leave_data} />
+          <TableDisabledRow dates={employeeResourceData.allDates} data={employeeData.all_leave_data} />
         )}
       </TableBody>
     </Table>
@@ -179,8 +179,7 @@ const ExpandViewCell = ({
 
   if (total_allocated_hours == 0 && total_allocated_hours == 0) {
     return (
-      <ResourceTableCell
-        type="empty"
+      <EmptyTableCell
         title={title}
         cellClassName={cn(getTableCellClass(index, weekIndex), getTodayDateCellClass(date))}
         onCellClick={onCellClick}
