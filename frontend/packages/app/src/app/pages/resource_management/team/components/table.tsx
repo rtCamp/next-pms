@@ -30,7 +30,7 @@ import {
 import { ResourceAllocationObjectProps, ResourceAllocationProps } from "@/types/resource_management";
 
 import { ResourceExpandView } from "./expandView";
-import { EmptyTableBody } from "../../components/empty";
+import { EmptyTableBody, EmptyTableCell } from "../../components/empty";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
 import { getIsBillableValue } from "../../utils/helper";
 
@@ -273,8 +273,7 @@ const ResourceTeamTableCell = ({
 
   if (!tableView.combineWeekHours && !employeeSingleDay.is_on_leave && employeeSingleDay.total_allocated_hours == 0) {
     return (
-      <ResourceTableCell
-        type="empty"
+      <EmptyTableCell
         title={title}
         cellClassName={cn(
           getTableCellClass(rowCount, midIndex),

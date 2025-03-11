@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 import { RootState } from "@/store";
 import { AllocationDataProps, setResourceFormData } from "@/store/resource_management/allocation";
 import { DateProps, EmployeeDataProps } from "@/store/resource_management/team";
-import { EmptyRow } from "../../components/empty";
+import { EmptyRow, EmptyTableCell } from "../../components/empty";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
 import {
   CombinedResourceDataProps,
@@ -178,8 +178,7 @@ const ExpandViewCell = ({
 
   if (total_allocated_hours == 0 && total_allocated_hours == 0) {
     return (
-      <ResourceTableCell
-        type="empty"
+      <EmptyTableCell
         title={title}
         cellClassName={cn(getTableCellClass(index, weekIndex), getTodayDateCellClass(date))}
         onCellClick={onCellClick}
