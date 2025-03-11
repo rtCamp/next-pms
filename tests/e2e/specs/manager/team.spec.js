@@ -9,9 +9,11 @@ let timesheetPage;
 
 // Load env variables
 const empName = process.env.EMP_NAME;
+const manName = process.env.REP_MAN_NAME;
 
 // Load test data
 let TC30data = data.TC30;
+let TC31data = data.TC31;
 let TC37data = data.TC37;
 let TC76data = data.TC76;
 
@@ -39,6 +41,17 @@ test("TC30: Validate the search functionality", async ({}) => {
   const filteredEmployees = await teamPage.getEmployees();
   expect(filteredEmployees.length).toBe(1);
   expect(filteredEmployees[0]).toBe(TC30data.employee);
+});
+
+test("TC31: The reporting manager filter", async ({}) => {
+  // Apply 'Reports To' filter
+  await teamPage.applyReportsTo(manName);
+
+  // Retrive employees from the parent table
+  const employees = await teamPage.getEmployees();
+
+  // Assertions
+  expect(employees.sort()).toEqual(TC31data.employees.sort());
 });
 
 test("TC36: Validate the timesheets for individual employees for all weeks.", async ({}) => {

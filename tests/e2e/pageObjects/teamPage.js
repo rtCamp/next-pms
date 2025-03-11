@@ -14,6 +14,7 @@ export class TeamPage {
 
     // Header Filters
     this.searchInput = page.getByPlaceholder("Employee Name");
+    this.reportsToDrodpown = page.getByRole("button", { name: "Reports To" });
 
     // Prev & Next Buttons
     this.prevButton = page.getByRole("button", { name: "prev-week" });
@@ -32,6 +33,16 @@ export class TeamPage {
    */
   async goto() {
     await this.page.goto("/next-pms/team", { waitUntil: "domcontentloaded" });
+  }
+
+  /**
+   * Performs a search and selection within a modal based on a placeholder text.
+   */
+  async searchAndSelectOption(placeholder, value) {
+    const searchInput = this.page.getByRole("dialog").getByPlaceholder(`${placeholder}`);
+
+    await searchInput.fill(value);
+    await this.page.getByRole("option", { name: value }).click();
   }
 
   // --------------------------------------
@@ -53,6 +64,18 @@ export class TeamPage {
     await this.seearchEmployee(name);
     await this.page.locator(`//p[text()='${name}']`).click();
     await this.page.waitForLoadState();
+  }
+
+  // --------------------------------------
+  // Top Reports To Selection Dropdown
+  // --------------------------------------
+
+  /**
+   * Applies the 'Reports To' filter by selecting an employee from the dropdown.
+   */
+  async applyReportsTo(name) {
+    await this.reportsToDrodpown.click();
+    await this.searchAndSelectOption("Search Employee", name);
   }
 
   // --------------------------------------
