@@ -4,5 +4,5 @@ export {
   TableInformationCellContent,
   EmptyTableCell,
 } from "./table/tableCell";
-export { ResourceTableRow, TableDiableRow } from "./table/tableRow";
+export { ResourceTableRow, TableDisabledRow } from "./table/tableRow";
 export { ResourceTableHeader } from "./table/tableHeader";

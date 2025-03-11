@@ -5,13 +5,13 @@ import { RefObject, useContext } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getTodayDate } from "@next-pms/design-system";
 import { Avatar, AvatarFallback, AvatarImage } from "@next-pms/design-system/components";
+import { TableInformationCellContent } from "@next-pms/resource-management/components";
 
 /**
  * Internal dependencies.
  */
 import { RootState } from "@/store";
 import { PermissionProps, setResourceFormData } from "@/store/resource_management/allocation";
-import { TableInformationCellContent } from "../../../../../../../resource-management/src/components/table/tableCell";
 import { TimeLineContext } from "../../store/timeLineContext";
 import { getIsBillableValue } from "../../utils/helper";
 import { ResourceAllocationEmployeeProps } from "../types";

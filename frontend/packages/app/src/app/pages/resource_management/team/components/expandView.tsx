@@ -7,7 +7,7 @@ import { Table, TableBody, TableRow } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
 import {
   ResourceTableCell,
-  TableDiableRow,
+  TableDisabledRow,
   TableInformationCellContent,
 } from "@next-pms/resource-management/components";
 import { getTableCellClass, getTodayDateCellClass } from "@next-pms/resource-management/utils";
@@ -102,7 +102,7 @@ export const ResourceExpandView = ({
           )}
 
         {Object.keys(employeeData.all_leave_data).length != 0 && (
-          <TableDiableRow dates={employeeResourceData.allDates} data={employeeData.all_leave_data} />
+          <TableDisabledRow dates={employeeResourceData.allDates} data={employeeData.all_leave_data} />
         )}
       </TableBody>
     </Table>
