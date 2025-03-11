@@ -28,6 +28,7 @@ const ResourceTimeLineComponet = lazy(() => import("@/app/pages/resource_managem
 const EmployeeDetailComponent = lazy(() => import("@/app/pages/team/employee-detail"));
 const TaskComponent = lazy(() => import("@/app/pages/task"));
 const ProjectComponent = lazy(() => import("@/app/pages/project"));
+const ProjectDetailComponent = lazy(() => import("@/app/pages/project/project-detail"));
 const NotFound = lazy(() => import("@/app/pages/404"));
 
 export function Router() {
@@ -42,7 +43,10 @@ export function Router() {
             <Route path={`${TEAM}/`} element={<TeamComponent />} />
             <Route path={`${TEAM}/employee/:id?`} element={<EmployeeDetailComponent />} />
           </Route>
-          <Route path={`${PROJECT}/:type?`} element={<ProjectComponent />} />
+          <Route path={PROJECT}>
+            <Route path={`${PROJECT}/`} element={<ProjectComponent />} />
+            <Route path={`${PROJECT}/:projectId`} element={<ProjectDetailComponent />} />
+          </Route>
         </Route>
         <Route path={TASK} element={<TaskComponent />} />
         <Route path={`${RESOURCE_MANAGEMENT}/timeline`} element={<ResourceTimeLineComponet />} />

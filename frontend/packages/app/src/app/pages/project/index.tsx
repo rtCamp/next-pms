@@ -3,6 +3,7 @@
  */
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import {
   Spinner,
   Separator,
@@ -55,6 +56,7 @@ const Project = () => {
 const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   const [viewInfo, setViewInfo] = useState<ViewData>(viewData);
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [hasViewUpdated, setHasViewUpdated] = useState(false);
   const [colSizing, setColSizing] = useState<ColumnSizingState>(viewData.columns ?? {});
   const [columnOrder, setColumnOrder] = useState<string[]>(viewData.rows ?? []);
@@ -83,7 +85,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   const { data, isLoading, error, mutate } = useFrappeGetCall(
     "next_pms.timesheet.api.project.get_projects",
     {
-      fields: [...viewInfo.rows, "_user_tags"],
+      fields: [...viewInfo.rows, "_user_tags", "name"],
       filters: getFilter(projectState),
       start: projectState.start,
       page_length: projectState.pageLength,
@@ -165,7 +167,8 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     viewInfo.columns,
     meta.title_field,
     meta.doctype,
-    projectState.currency
+    projectState.currency,
+    navigate
   );
 
   const table = useReactTable({
