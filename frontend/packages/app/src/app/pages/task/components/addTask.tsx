@@ -35,7 +35,7 @@ import { ProjectProps } from "@/types";
 import { AddTaskType } from "@/types/task";
 import { Action, TaskState } from "../reducer";
 
-type AddTaskPropType = { task: TaskState; mutate: any; dispatch: React.Dispatch<Action> };
+type AddTaskPropType = { task: TaskState; mutate: React.Dispatch<Action>; dispatch: React.Dispatch<Action> };
 
 export const AddTask = ({ task, mutate, dispatch }: AddTaskPropType) => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -95,13 +95,13 @@ export const AddTask = ({ task, mutate, dispatch }: AddTaskPropType) => {
     mutate();
   };
   const handleSubjectChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
-    form.setValue("subject", event.target.value);
+    form.setValue("subject", event.target.value, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
   };
   const handleTimeChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
-    form.setValue("expected_time", event.target.value);
+    form.setValue("expected_time", event.target.value, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
   };
   const handleProjectChange = (data: string[] | string) => {
-    form.setValue("project", data[0]);
+    form.setValue("project", data[0], { shouldValidate: true, shouldDirty: true, shouldTouch: true });
   };
 
   return (

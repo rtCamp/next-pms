@@ -37,6 +37,7 @@ def clear_cache(doc=None, method=None):
     if not is_job_enqueued(job_name):
         frappe.enqueue(
             clear_cache_job,
+            job_id=job_name,
             job_name=job_name,
             queue="default",
             is_async=False,
