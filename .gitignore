@@ -9,3 +9,17 @@ dist/
 .frappe-semgrep
 next_pms/www/next-pms/index.html
 next_pms/public/frontend/
+
+# Playwright reports
+tests/e2e/playwright-report/
+tests/e2e/test-results/
+tests/e2e/results.json
+
+# Authentication file
+tests/e2e/auth/user.json
+
+# Dynamically generated temp files
+tests/e2e/data/**/shared*
+
+# Env file
+.env

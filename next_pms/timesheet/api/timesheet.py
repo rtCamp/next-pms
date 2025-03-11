@@ -241,29 +241,28 @@ def update_timesheet_detail(
         parent_doc.time_logs.remove(log)
 
     if not name:
-        log = {
-            "task": task,
-            "hours": hours,
-            "description": description,
-            "from_time": getdate(date),
-            "to_time": getdate(date),
-            "project": frappe.get_value("Task", task, "project"),
-        }
-        if has_write_access() and is_billable is not None:
-            log["is_billable"] = is_billable
-        else:
-            log["is_billable"] = frappe.get_value("Task", task, "custom_is_billable")
+        if parent_doc.start_date <= getdate(date) <= parent_doc.end_date:
+            log = {
+                "task": task,
+                "hours": hours,
+                "description": description,
+                "from_time": getdate(date),
+                "to_time": getdate(date),
+                "project": frappe.get_value("Task", task, "project"),
+            }
+            if has_write_access() and is_billable is not None:
+                log["is_billable"] = is_billable
+            else:
+                log["is_billable"] = frappe.get_value("Task", task, "custom_is_billable")
 
-        parent_doc.append("time_logs", log)
+            parent_doc.append("time_logs", log)
+        else:
+            save(date, description, task, hours, parent_doc.employee)
 
     if not parent_doc.time_logs:
         parent_doc.delete(ignore_permissions=ignore_permissions)
     else:
         parent_doc.save(ignore_permissions=ignore_permissions)
-
-    parent_doc.reload()
-    if parent_doc.total_hours == 0:
-        parent_doc.delete(ignore_permissions=ignore_permissions)
 
     return _("Time entry updated successfully.")
 

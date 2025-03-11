@@ -13,11 +13,11 @@ import {
 } from "@next-pms/resource-management/components";
 import { TableContextProvider } from "@next-pms/resource-management/store";
 import { getTableCellClass, getTodayDateCellClass, getCellBackGroundColor } from "@next-pms/resource-management/utils";
-import { InfiniteScroll } from "@/app/components/infiniteScroll";
 
 /**
  * Internal dependencies.
  */
+import { InfiniteScroll } from "@/app/components/infiniteScroll";
 import { cn } from "@/lib/utils";
 import { RootState } from "@/store";
 import {
