@@ -15,13 +15,7 @@
     "src",
     "README.md"
   ],
-  "scripts": {
-    "dev": "vite --config ../../vite.config.ts",
-    "clean": "rm -rf dist",
-    "build": "npm install && vite build --config ../../vite.config.ts",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "lint:fix": "eslint . --ext ts,tsx --fix"
-  },
+  "scripts": {},
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
