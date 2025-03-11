@@ -74,13 +74,16 @@ const ResourceTableRow = ({
 };
 
 /**
- * Reander the Leave data of employee.
+ * Renders the disabled row for the resource management table.
  *
- * @param props.dates The dates list
- * @param props.employeeData The employee data
+ * @param dates The dates list
+ * @param data The data to render, can be used to handle to show any data instead of - in emptycell.
+ * @param className The class name for the row.
+ * @param informationCellClassName The class name for the first cell.
+ * @param cellClassName The class name for cell.
  * @returns React.FC
  */
-const TableDiableRow = ({
+const TableDisabledRow = ({
   dates,
   data,
   className,
@@ -111,4 +114,4 @@ const TableDiableRow = ({
   );
 };
 
-export { ResourceTableRow, TableDiableRow };
+export { ResourceTableRow, TableDisabledRow };

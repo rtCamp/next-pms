@@ -45,7 +45,6 @@ function groupAllocations(
   resourceData: EmployeeResourceObjectProps,
   employee_allocations: ResourceAllocationObjectProps,
   dates: DateProps[]
-  //   isGroupByProject: boolean = true
 ): { combinedResourceData: CombinedResourceObjectProps; allDates: string[] } {
   let allResourceAllocation: MergedAllocationProps[] = [];
   let allDates: string[] = [];

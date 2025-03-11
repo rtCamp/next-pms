@@ -40,7 +40,7 @@ const DefaultAllocationData: AllocationDataProps = {
   note: "",
   name: "",
 };
-const DedaultPermission: PermissionProps = {
+const DefaultPermission: PermissionProps = {
   read: false,
   write: false,
   delete: false,
@@ -50,7 +50,7 @@ const DedaultPermission: PermissionProps = {
 const ResourceFormContext = createContext<ResourceFormContextProps>({
   dialogState: DefaultDialogState,
   allocationData: DefaultAllocationData,
-  permission: DedaultPermission,
+  permission: DefaultPermission,
   updateDialogState: () => {},
   updateAllocationData: () => {},
   updatePermission: () => {},
@@ -60,28 +60,29 @@ const ResourceFormContext = createContext<ResourceFormContextProps>({
 const ResourceContextProvider = ({ children }: ContextProviderProps) => {
   const [dialogState, setDialogState] = useState<DialogStateProps>(DefaultDialogState);
   const [allocationData, setAllocationData] = useState<AllocationDataProps>(DefaultAllocationData);
-  const [permission, setPermission] = useState<PermissionProps>(DedaultPermission);
+  const [permission, setPermission] = useState<PermissionProps>(DefaultPermission);
 
   const updateDialogState = (value: DialogStateProps) => {
     setDialogState({ ...dialogState, ...value });
   };
 
   const updateAllocationData = (updatedData: AllocationDataProps) => {
-    const oldData = { ...allocationData };
-    oldData.employee_name = updatedData.employee_name;
-    oldData.employee = getFormatedStringValue(updatedData.employee) as string;
-    oldData.is_billable = updatedData.is_billable;
-    oldData.project = getFormatedStringValue(updatedData.project) as string;
-    oldData.project_name = getFormatedStringValue(updatedData.project_name) as string;
-    oldData.customer = getFormatedStringValue(updatedData.customer) as string;
-    oldData.customer_name = getFormatedStringValue(updatedData.customer_name) as string;
-    oldData.total_allocated_hours = updatedData.total_allocated_hours;
-    oldData.hours_allocated_per_day = updatedData.hours_allocated_per_day;
-    oldData.allocation_start_date = getFormatedStringValue(updatedData.allocation_start_date) as string;
-    oldData.allocation_end_date = getFormatedStringValue(updatedData.allocation_end_date) as string;
-    oldData.note = updatedData.note;
-    oldData.name = getFormatedStringValue(updatedData.name) as string;
-    setAllocationData({ ...allocationData, ...oldData });
+    setAllocationData((prevData) => ({
+      ...prevData,
+      employee_name: updatedData.employee_name,
+      employee: getFormatedStringValue(updatedData.employee) as string,
+      is_billable: updatedData.is_billable,
+      project: getFormatedStringValue(updatedData.project) as string,
+      project_name: getFormatedStringValue(updatedData.project_name) as string,
+      customer: getFormatedStringValue(updatedData.customer) as string,
+      customer_name: getFormatedStringValue(updatedData.customer_name) as string,
+      total_allocated_hours: updatedData.total_allocated_hours,
+      hours_allocated_per_day: updatedData.hours_allocated_per_day,
+      allocation_start_date: getFormatedStringValue(updatedData.allocation_start_date) as string,
+      allocation_end_date: getFormatedStringValue(updatedData.allocation_end_date) as string,
+      note: updatedData.note,
+      name: getFormatedStringValue(updatedData.name) as string,
+    }));
   };
   const updatePermission = (value: PermissionProps) => {
     setPermission({ ...permission, ...value, isNeedToSetPermission: false });

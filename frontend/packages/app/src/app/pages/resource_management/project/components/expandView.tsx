@@ -17,6 +17,7 @@ import {
   ResourceAllocationProps,
   ResourceCustomerObjectProps,
 } from "@/types/resource_management";
+import { EmptyTableCell } from "../../components/empty";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
 import { ProjectContext } from "../../store/projectContext";
 import { ResourceFormContext } from "../../store/resourceFormContext";
@@ -215,8 +216,7 @@ const ExpandViewCell = ({
 
   if (allocationsData.total_allocated_hours == 0 && allocationsData.total_worked_hours == 0) {
     return (
-      <ResourceTableCell
-        type="empty"
+      <EmptyTableCell
         title={title}
         cellClassName={cn(getTableCellClass(index, weekIndex), getTodayDateCellClass(allocationsData.date))}
         onCellClick={onCellClick}

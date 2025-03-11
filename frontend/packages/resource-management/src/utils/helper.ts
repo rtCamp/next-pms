@@ -1,9 +1,9 @@
 /**
- * Returns the Trim value of the given value.
+ * Trims the given string to the specified length.
  *
  * @param value The value to trim.
  * @param lenght The length of the string to trim, in characters.
- * @returns
+ * @returns The trimmed string or the original value
  */
 const getFilterValue = (
   value: string | number | undefined | boolean,
@@ -18,11 +18,11 @@ const getFilterValue = (
   return value.length > lenght ? `${value.slice(0, lenght)}...` : value;
 };
 
-/*
- * Based on value type retunr the empty string.
+/**
+ * Return an empty string based on the value type.
  *
- * @param value The value to be formatted.
- * @returns string
+ * @param value value The value to be formatted.
+ * @returns The formatted string.
  */
 const getFormatedStringValue = (value: string | undefined | number): string => {
   if (typeof value === "number") {
