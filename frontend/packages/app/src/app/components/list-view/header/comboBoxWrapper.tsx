@@ -17,10 +17,17 @@ import { cn } from "@/lib/utils";
  * @param props.handleChangeWrapper The handle change wrapper function.
  * @returns React.FC
  */
-const ComboBoxWrapper = ({ filter, handleChangeWrapper }: { filter: FilterPops; handleChangeWrapper: any }) => {
+
+const ComboBoxWrapper = ({
+  filter,
+  handleChangeWrapper,
+}: {
+  filter: FilterPops;
+  handleChangeWrapper: (value: string | string[]) => void;
+}) => {
   const apiCall: ApiCallProps | undefined = filter.apiCall;
 
-  const { data, mutate } = useFrappeGetCall(
+  const { data, mutate, isLoading } = useFrappeGetCall(
     apiCall?.url as string,
     apiCall?.filters,
     undefined,
@@ -43,6 +50,7 @@ const ComboBoxWrapper = ({ filter, handleChangeWrapper }: { filter: FilterPops; 
       onSelect={handleChangeWrapper}
       onSearch={filter.onComboSearch}
       onClick={handleOnClick}
+      isLoading={isLoading}
       rightIcon={
         filter?.isMultiComboBox
           ? ((filter.value as string[])?.length ?? 0) > 0 && (
