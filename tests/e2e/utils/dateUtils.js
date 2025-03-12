@@ -42,6 +42,15 @@ export const getFormattedDate = (date) => {
 // ------------------------------------------------------------------------------------------
 
 /**
+ * Formats a Date object into a locale date string in the format MMM DD.
+ */
+export const getShortFormattedDate = (date) => {
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+};
+
+// ------------------------------------------------------------------------------------------
+
+/**
  * Converts a duration string (HH:MM or hours) to seconds.
  */
 export const durationToSeconds = (duration) => {

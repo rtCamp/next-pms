@@ -2,6 +2,9 @@
   "TC31": {
     "employees": ["Abhishek Kumar", "Abhishek Sharma"]
   },
+  "TC34": {
+    "col": "Mon"
+  },
   "TC37": {
     "employee": "Abhishek Sharma"
   },

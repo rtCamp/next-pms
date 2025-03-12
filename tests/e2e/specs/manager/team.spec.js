@@ -3,6 +3,7 @@ import { test, expect } from "@playwright/test";
 import { TeamPage } from "../../pageObjects/teamPage";
 import { TimesheetPage } from "../../pageObjects/timesheetPage";
 import data from "../../data/manager/team.json";
+import { getDateForWeekday, getShortFormattedDate } from "../../utils/dateUtils";
 
 let teamPage;
 let timesheetPage;
@@ -13,6 +14,7 @@ const manName = process.env.REP_MAN_NAME;
 
 // Load test data
 let TC31data = data.TC31;
+let TC34data = data.TC34;
 let TC37data = data.TC37;
 let TC75data = data.TC75;
 
@@ -51,6 +53,31 @@ test("TC31: The reporting manager filter", async ({}) => {
 
   // Assertions
   expect(employees.sort()).toEqual(TC31data.employees.sort());
+});
+
+test("TC34: Validate the functionality of the ‘Next’ and ‘Previous’ week change buttons.", async ({}) => {
+  // Navigate to the next week and fetch the column date
+  await teamPage.viewNextWeek();
+  const nextColDate = await teamPage.getColDate(TC34data.col);
+
+  // Navigate to the next week again, then go back to the previous week and fetch the column date
+  await teamPage.viewNextWeek();
+  await teamPage.viewPreviousWeek();
+  const prevColDate = await teamPage.getColDate(TC34data.col);
+
+  // Assertions
+  const expectedColDate = getShortFormattedDate(getDateForWeekday(TC34data.col)); // Compute expected column date
+  expect(prevColDate).toBe(expectedColDate);
+  expect(nextColDate).toBe(expectedColDate);
+});
+
+test("TC35: Validate that the timesheet dropdown section is working.", async ({}) => {
+  // Toggle employee timesheet
+  await teamPage.toggleEmployeeTimesheet(empName);
+
+  // Assertions
+  const isEmployeeTimesheetVisible = await teamPage.isEmployeeTimesheetVisible(empName);
+  expect(isEmployeeTimesheetVisible).toBeTruthy();
 });
 
 test("TC36: Validate the timesheets for individual employees for all weeks.", async ({}) => {

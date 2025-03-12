@@ -133,6 +133,15 @@ export class TeamPage {
   }
 
   /**
+   * Checks if the timesheet of the specified employee is visible.
+   */
+  async isEmployeeTimesheetVisible(name) {
+    return this.parentTable
+      .locator(`//p[text()='${name}']//ancestor::div[@data-state and @data-orientation='vertical']//table`)
+      .isVisible();
+  }
+
+  /**
    * Retrieves the timesheet element for a specific employee.
    */
   async getEmployeeTimesheet(name) {
