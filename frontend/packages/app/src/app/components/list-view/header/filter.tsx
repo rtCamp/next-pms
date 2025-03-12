@@ -40,14 +40,14 @@ import { cn } from "@/lib/utils";
  * @returns React.FC
  */
 export const Filter = ({ filter }: { filter: FilterPops }) => {
-  const [queryParam, setQueryParam] = useQueryParam(filter.queryParameterName ?? "", filter.queryParameterDefault);
+  const [, setQueryParam] = useQueryParam(filter.queryParameterName ?? "", filter.queryParameterDefault);
 
   const handleChangeWrapper = (value: string | CheckedState | string[]) => {
     /* Make sure to update query parameters based on changes. */
     if (filter.type != "custom-filter") {
       setQueryParam(value);
     }
-    filter.handleChange && filter.handleChange(value);
+    filter?.handleChange(value);
   };
 
   useEffect(() => {
@@ -55,6 +55,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
     if (filter.type != "custom-filter") {
       setQueryParam(filter.value as string | CheckedState | string[]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter.value, setQueryParam]);
 
   if (filter.type == "search") {
@@ -96,7 +97,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
         value={filter.value as string[]}
         label={filter.label as string}
         isMulti={filter?.isMultiComboBox ?? false}
-        shouldFilter={filter?.shouldFilterComboBox ?? false}
+        shouldFilter={filter?.shouldFilterComboBox ?? true}
         showSelected={false}
         onSelect={handleChangeWrapper}
         rightIcon={

@@ -87,6 +87,7 @@ const AddTime = ({
   const [searchTask, setSearchTask] = useState(task);
   const [tasks, setTask] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [isTaskLoading, setIsTaskLoading] = useState(false);
   const [selectedProject, setSelectedProject] = useState<string[]>(project ? [project] : []);
   const [selectedDate, setSelectedDate] = useState(getFormatedDate(initialDate));
   const [selectedEmployee, setSelectedEmployee] = useState(employee);
@@ -183,6 +184,7 @@ const AddTime = ({
       });
   };
   const fetchTask = useCallback(() => {
+    setIsTaskLoading(true);
     call
       .get("next_pms.timesheet.api.task.get_task_list", {
         search: searchTask,
@@ -191,10 +193,19 @@ const AddTime = ({
       })
       .then((res) => {
         setTask(res.message.task);
+        setIsTaskLoading(false);
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          description: error,
+        });
+        setIsTaskLoading(false);
       });
-  }, [call, searchTask, selectedProject]);
+  }, [call, searchTask, selectedProject, toast]);
 
-  const { data: projects } = useFrappeGetCall("frappe.client.get_list", {
+  const { data: projects, isLoading: isProjectLoading } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Project",
     fields: ["name", "project_name"],
     limit_page_length: "null",
@@ -333,6 +344,7 @@ const AddTime = ({
                       value: item.name,
                       disabled: false,
                     }))}
+                    isLoading={isProjectLoading}
                     onSelect={handleProjectChange}
                     rightIcon={<Search className="h-4 w-4 stroke-slate-400" />}
                   />
@@ -351,6 +363,7 @@ const AddTime = ({
                           value={
                             form.getValues("task") && form.getValues("task").length > 0 ? [form.getValues("task")] : []
                           }
+                          isLoading={isTaskLoading}
                           data={
                             tasks.map((item: TaskData) => ({
                               label: item.subject,
