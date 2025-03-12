@@ -2,7 +2,6 @@
  * External dependencies.
  */
 import { useContext, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { getMonthKey, getMonthYearKey, getTodayDate, prettyDate } from "@next-pms/design-system";
 import { TableHead, Typography } from "@next-pms/design-system/components";
 import { useQueryParam } from "@next-pms/hooks";
@@ -17,11 +16,11 @@ import { Moment } from "moment";
  */
 import { Header } from "@/app/components/list-view/header";
 import { cn } from "@/lib/utils";
-import { RootState } from "@/store";
-import { PermissionProps, setDialog, setResourcePermissions } from "@/store/resource_management/allocation";
-import { Skill } from "@/store/resource_management/team";
 
+import { ResourceFormContext } from "../../store/resourceFormContext";
+import { Skill } from "../../store/teamContext";
 import { TimeLineContext } from "../../store/timeLineContext";
+import { PermissionProps } from "../../store/types";
 import SkillSearch from "../../team/components/skillSearch";
 import { getDayKeyOfMoment } from "../../utils/dates";
 import { ResourceAllocationItemProps } from "../types";
@@ -45,10 +44,11 @@ const ResourceTimLineHeaderSection = () => {
   const [designationParam] = useQueryParam<string[]>("designation", []);
   const [skillSearchParam, setSkillSearchParam] = useQueryParam<Skill[]>("skill-search", []);
 
-  const resourceAllocationPermission: PermissionProps = useSelector(
-    (state: RootState) => state.resource_allocation_form.permissions
-  );
-  const dispatch = useDispatch();
+  const {
+    permission: resourceAllocationPermission,
+    updatePermission,
+    updateDialogState,
+  } = useContext(ResourceFormContext);
 
   const { data: employee } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee", {
     filters: { name: reportingNameParam },
@@ -61,7 +61,7 @@ const ResourceTimLineHeaderSection = () => {
   );
 
   useEffect(() => {
-    if (Object.keys(resourceAllocationPermission).length != 0) {
+    if (!resourceAllocationPermission.isNeedToSetPermission) {
       updateData();
       return;
     }
@@ -69,7 +69,7 @@ const ResourceTimLineHeaderSection = () => {
 
     call({}).then((res: { message: PermissionProps }) => {
       const resResourceAllocationPermission = res.message;
-      dispatch(setResourcePermissions(resResourceAllocationPermission));
+      updatePermission(resResourceAllocationPermission);
       updateData();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -237,7 +237,7 @@ const ResourceTimLineHeaderSection = () => {
         {
           title: "add-allocation",
           handleClick: () => {
-            dispatch(setDialog(true));
+            updateDialogState({ isShowDialog: true, isNeedToEdit: false });
           },
           className: "px-3",
           icon: () => <Plus className="w-4 max-md:w-3 h-4 max-md:h-3 bg" />,

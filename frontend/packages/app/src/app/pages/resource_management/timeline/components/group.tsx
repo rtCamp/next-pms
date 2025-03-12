@@ -2,7 +2,6 @@
  * External dependencies.
  */
 import { RefObject, useContext } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { getTodayDate } from "@next-pms/design-system";
 import { Avatar, AvatarFallback, AvatarImage } from "@next-pms/design-system/components";
 import { TableInformationCellContent } from "@next-pms/resource-management/components";
@@ -10,8 +9,7 @@ import { TableInformationCellContent } from "@next-pms/resource-management/compo
 /**
  * Internal dependencies.
  */
-import { RootState } from "@/store";
-import { PermissionProps, setResourceFormData } from "@/store/resource_management/allocation";
+import { ResourceFormContext } from "../../store/resourceFormContext";
 import { TimeLineContext } from "../../store/timeLineContext";
 import { getIsBillableValue } from "../../utils/helper";
 import { ResourceAllocationEmployeeProps } from "../types";
@@ -23,35 +21,34 @@ interface ResourceTimeLineGroupProps {
 const ResourceTimeLineGroup = ({ group }: ResourceTimeLineGroupProps) => {
   const { getLastTimeLineItem, verticalLoderRef, filters } = useContext(TimeLineContext);
   const lastEmployee = getLastTimeLineItem() == group.name;
-  const dispatch = useDispatch();
-  const resourceAllocationPermission: PermissionProps = useSelector(
-    (state: RootState) => state.resource_allocation_form.permissions
-  );
+  const {
+    permission: resourceAllocationPermission,
+    updateDialogState,
+    updateAllocationData,
+  } = useContext(ResourceFormContext);
 
   const setResourceAllocationData = () => {
     if (!resourceAllocationPermission.write) {
       return;
     }
 
-    dispatch(
-      setResourceFormData({
-        isShowDialog: true,
-        employee: group.name,
-        employee_name: group.employee_name,
-        project: "",
-        allocation_start_date: getTodayDate(),
-        allocation_end_date: getTodayDate(),
-        is_billable: getIsBillableValue(filters.allocationType as string[]) != "0",
-        customer: "",
-        total_allocated_hours: "0",
-        hours_allocated_per_day: "0",
-        note: "",
-        project_name: "",
-        customer_name: "",
-        isNeedToEdit: false,
-        name: "",
-      })
-    );
+    updateDialogState({ isShowDialog: true, isNeedToEdit: false });
+
+    updateAllocationData({
+      employee: group.name,
+      employee_name: group.employee_name,
+      project: "",
+      allocation_start_date: getTodayDate(),
+      allocation_end_date: getTodayDate(),
+      is_billable: getIsBillableValue(filters.allocationType as string[]) != "0",
+      customer: "",
+      total_allocated_hours: "0",
+      hours_allocated_per_day: "0",
+      note: "",
+      project_name: "",
+      customer_name: "",
+      name: "",
+    });
   };
 
   return (

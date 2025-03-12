@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useSelector } from "react-redux";
+import { useContext } from "react";
 import { TableBody, TableCell, TableRow } from "@next-pms/design-system/components";
 import { cn } from "@next-pms/design-system/utils";
 import {
@@ -14,8 +14,7 @@ import { getTableCellClass, getTableCellRow, getTodayDateCellClass } from "@next
 /**
  * Internal dependencies.
  */
-import { RootState } from "@/store";
-import { PermissionProps } from "@/store/resource_management/allocation";
+import { ResourceFormContext } from "../store/resourceFormContext";
 
 /**
  * This component is responsible for rendering the empty table body.
@@ -51,9 +50,7 @@ interface EmptyTableCellProps {
  * @returns React.FC
  */
 const EmptyTableCell = ({ cellClassName, title, textClassName, onCellClick }: EmptyTableCellProps) => {
-  const resourceAllocationPermission: PermissionProps = useSelector(
-    (state: RootState) => state.resource_allocation_form.permissions
-  );
+  const { permission: resourceAllocationPermission } = useContext(ResourceFormContext);
 
   if (!onCellClick || !resourceAllocationPermission.write) {
     return (

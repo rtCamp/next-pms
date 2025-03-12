@@ -1,8 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useCallback, useContext, useEffect } from "react";
 import { getNextDate } from "@next-pms/design-system";
 import { Spinner, useToast } from "@next-pms/design-system/components";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
@@ -10,14 +9,23 @@ import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
  * Internal dependencies.
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { RootState } from "@/store";
-import { AllocationDataProps, PermissionProps } from "@/store/resource_management/allocation";
-import { ProjectDataProps, setData, setReFetchData, updateData } from "@/store/resource_management/project";
-
 import AddResourceAllocations from "../components/addAllocation";
 import { ResourceProjectHeaderSection } from "./components/header";
 import { getIsBillableValue } from "../utils/helper";
 import { ResourceProjectTable } from "./components/table";
+import { ProjectContext, ProjectContextProvider, ProjectDataProps } from "../store/projectContext";
+import { ResourceContextProvider, ResourceFormContext } from "../store/resourceFormContext";
+import { AllocationDataProps } from "../store/types";
+
+const ResourceTeamViewWrapper = () => {
+  return (
+    <ResourceContextProvider>
+      <ProjectContextProvider>
+        <ResourceTeamView />
+      </ProjectContextProvider>
+    </ResourceContextProvider>
+  );
+};
 
 /**
  * This is main component which is responsible for rendering the project view of resource management.
@@ -26,12 +34,9 @@ import { ResourceProjectTable } from "./components/table";
  */
 const ResourceTeamView = () => {
   const { toast } = useToast();
-  const resourceProjectState = useSelector((state: RootState) => state.resource_project);
-  const ResourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
-  const resourceAllocationPermission: PermissionProps = useSelector(
-    (state: RootState) => state.resource_allocation_form.permissions
-  );
-  const dispatch = useDispatch();
+  const { permission: resourceAllocationPermission, dialogState: resourceAllocationDialogState } =
+    useContext(ResourceFormContext);
+  const { projectData, filters, apiController, updateProjectData, setReFetchData } = useContext(ProjectContext);
 
   const { call: fetchSingleRecord } = useFrappePostCall(
     "next_pms.resource_management.api.project.get_resource_management_project_view_data"
@@ -41,21 +46,21 @@ const ResourceTeamView = () => {
     "next_pms.resource_management.api.project.get_resource_management_project_view_data",
     resourceAllocationPermission.write
       ? {
-          date: resourceProjectState.weekDate,
-          max_week: resourceProjectState.maxWeek,
-          page_length: resourceProjectState.pageLength,
-          project_name: resourceProjectState.projectName,
-          customer: resourceProjectState.customer,
-          billing_type: resourceProjectState.billingType,
-          is_billable: getIsBillableValue(resourceProjectState.allocationType as string[]),
-          start: resourceProjectState.start,
+          date: filters.weekDate,
+          max_week: filters.maxWeek,
+          page_length: filters.pageLength,
+          project_name: filters.projectName,
+          customer: filters.customer,
+          billing_type: filters.billingType,
+          is_billable: getIsBillableValue(filters.allocationType as string[]),
+          start: filters.start,
         }
       : {
-          date: resourceProjectState.weekDate,
-          max_week: resourceProjectState.maxWeek,
-          page_length: resourceProjectState.pageLength,
-          project_name: resourceProjectState.projectName,
-          start: resourceProjectState.start,
+          date: filters.weekDate,
+          max_week: filters.maxWeek,
+          page_length: filters.pageLength,
+          project_name: filters.projectName,
+          start: filters.start,
         },
     "next_pms.resource_management.api.project.get_resource_management_project_view_data_resource_project_page",
     { revalidateOnFocus: false, revalidateOnReconnect: false, revalidateIfStale: false, revalidateOnMount: false }
@@ -64,47 +69,40 @@ const ResourceTeamView = () => {
   const onFormSubmit = useCallback(
     (oldData: AllocationDataProps, newData: AllocationDataProps) => {
       fetchSingleRecord({
-        date: resourceProjectState.weekDate,
-        max_week: resourceProjectState.maxWeek,
+        date: filters.weekDate,
+        max_week: filters.maxWeek,
         project_id: JSON.stringify([oldData.project, newData.project]),
-        is_billable: getIsBillableValue(resourceProjectState.allocationType as string[]),
+        is_billable: getIsBillableValue(filters.allocationType as string[]),
       }).then((res) => {
         const newProject = res.message?.data;
         if (newProject && newProject.length > 0) {
-          const updatedData = resourceProjectState.data.data.map((item) => {
+          const updatedData = projectData.data.map((item) => {
             const index = newProject.findIndex((project: ProjectDataProps) => project.name == item.name);
             if (index != -1) {
               return newProject[index];
             }
             return item;
           });
-          dispatch(setData({ ...resourceProjectState.data, data: updatedData }));
+          updateProjectData({ ...projectData, data: updatedData });
         }
       });
     },
-    [
-      dispatch,
-      fetchSingleRecord,
-      resourceProjectState.allocationType,
-      resourceProjectState.data,
-      resourceProjectState.maxWeek,
-      resourceProjectState.weekDate,
-    ]
+    [fetchSingleRecord, filters.weekDate, filters.maxWeek, filters.allocationType, projectData, updateProjectData]
   );
 
   useEffect(() => {
-    if (resourceProjectState.isNeedToFetchDataAfterUpdate) {
+    if (apiController.isNeedToFetchDataAfterUpdate) {
       mutate();
-      dispatch(setReFetchData(false));
+      setReFetchData(false);
     }
-  }, [data, dispatch, mutate, resourceProjectState.isNeedToFetchDataAfterUpdate]);
+  }, [data, mutate, apiController.isNeedToFetchDataAfterUpdate, setReFetchData]);
 
   useEffect(() => {
     if (data) {
-      if (resourceProjectState.action == "SET") {
-        dispatch(setData(data.message));
+      if (apiController.action == "SET") {
+        updateProjectData(data.message);
       } else {
-        dispatch(updateData(data.message));
+        updateProjectData(data.message, "UPDATE");
       }
     }
 
@@ -122,18 +120,18 @@ const ResourceTeamView = () => {
     <>
       <ResourceProjectHeaderSection />
 
-      {(isLoading || isValidating) && resourceProjectState.data.data.length == 0 ? (
+      {(isLoading || isValidating) && projectData.data.length == 0 ? (
         <Spinner isFull />
       ) : (
         <ResourceProjectTable
-          dateToAddHeaderRef={getNextDate(resourceProjectState.weekDate, resourceProjectState.maxWeek - 1)}
+          dateToAddHeaderRef={getNextDate(filters.weekDate, filters.maxWeek - 1)}
           onSubmit={onFormSubmit}
         />
       )}
 
-      {ResourceAllocationForm.isShowDialog && <AddResourceAllocations onSubmit={onFormSubmit} />}
+      {resourceAllocationDialogState.isShowDialog && <AddResourceAllocations onSubmit={onFormSubmit} />}
     </>
   );
 };
 
-export default ResourceTeamView;
+export default ResourceTeamViewWrapper;

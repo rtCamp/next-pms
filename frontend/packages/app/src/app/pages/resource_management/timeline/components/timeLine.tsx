@@ -3,7 +3,6 @@
  */
 import { useContext, useState } from "react";
 import Timeline, { DateHeader, SidebarHeader, TimelineHeaders } from "react-calendar-timeline";
-import { useDispatch, useSelector } from "react-redux";
 import { cn, getDayDiff, getMonthYearKey, getTodayDate, getUTCDateTime, prettyDate } from "@next-pms/design-system";
 import { TableHead, useToast } from "@next-pms/design-system/components";
 import { TableContext } from "@next-pms/resource-management/store";
@@ -15,13 +14,12 @@ import moment from "moment";
 /**
  * Internal dependencies.
  */
-import { RootState } from "@/store";
-import { PermissionProps, setResourceFormData } from "@/store/resource_management/allocation";
 import { ResourceAllocationProps } from "@/types/resource_management";
 import ResourceTimeLineGroup from "./group";
 import { ResourceAllocationEmployeeProps, ResourceAllocationTimeLineProps } from "../types";
 import { TimeLineDateHeader, TimeLineIntervalHeader } from "./header";
 import ResourceTimeLineItem, { ItemAllocationActionDialog } from "./item";
+import { ResourceFormContext } from "../../store/resourceFormContext";
 import { TimeLineContext } from "../../store/timeLineContext";
 import { getDayKeyOfMoment } from "../../utils/dates";
 
@@ -42,11 +40,11 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
     filters,
     getEmployeeWithID,
   } = useContext(TimeLineContext);
-  const resourceAllocationPermission: PermissionProps = useSelector(
-    (state: RootState) => state.resource_allocation_form.permissions
-  );
-
-  const dispatch = useDispatch();
+  const {
+    permission: resourceAllocationPermission,
+    updateDialogState,
+    updateAllocationData,
+  } = useContext(ResourceFormContext);
 
   const [showItemAllocationActionDialog, setShowItemAllocationActionDialog] = useState(false);
 
@@ -147,25 +145,23 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
       return;
     }
 
-    dispatch(
-      setResourceFormData({
-        isShowDialog: true,
-        employee: resourceAllocation.employee,
-        employee_name: resourceAllocation.employee_name,
-        project: resourceAllocation.project,
-        allocation_start_date: resourceAllocation.allocation_start_date,
-        allocation_end_date: resourceAllocation.allocation_end_date,
-        is_billable: resourceAllocation.is_billable == 1,
-        customer: resourceAllocation.customer,
-        total_allocated_hours: getFormatedStringValue(resourceAllocation.total_allocated_hours),
-        hours_allocated_per_day: getFormatedStringValue(resourceAllocation.hours_allocated_per_day),
-        note: getFormatedStringValue(resourceAllocation.note),
-        project_name: resourceAllocation.project_name,
-        customer_name: resourceAllocation?.customerData ? resourceAllocation?.customerData?.name : "",
-        isNeedToEdit: resourceAllocation.name ? true : false,
-        name: resourceAllocation.name,
-      })
-    );
+    updateDialogState({ isShowDialog: true, isNeedToEdit: resourceAllocation.name ? true : false });
+
+    updateAllocationData({
+      employee: resourceAllocation.employee,
+      employee_name: resourceAllocation.employee_name,
+      project: resourceAllocation.project,
+      allocation_start_date: resourceAllocation.allocation_start_date,
+      allocation_end_date: resourceAllocation.allocation_end_date,
+      is_billable: resourceAllocation.is_billable == 1,
+      customer: resourceAllocation.customer,
+      total_allocated_hours: getFormatedStringValue(resourceAllocation.total_allocated_hours),
+      hours_allocated_per_day: getFormatedStringValue(resourceAllocation.hours_allocated_per_day),
+      note: getFormatedStringValue(resourceAllocation.note),
+      project_name: resourceAllocation.project_name,
+      customer_name: resourceAllocation?.customerData ? resourceAllocation?.customerData?.name : "",
+      name: resourceAllocation.name,
+    });
   };
 
   const onItemMove = (itemId: string, dragTime: number, newGroupOrder: number) => {
