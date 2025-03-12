@@ -134,14 +134,14 @@ const Sidebar = () => {
   };
 
   const handleSidebarCollapse = () => {
-    setSidebarCollapsed(checkIsMobile());
+    dispatch(setSidebarCollapsed(checkIsMobile()));
   };
   useEffect(() => {
     setLocalStorage("next-pms:isSidebarCollapsed", user.isSidebarCollapsed);
   }, [user.isSidebarCollapsed]);
   useEffect(() => {
     if (checkIsMobile()) {
-      setSidebarCollapsed(true);
+      dispatch(setSidebarCollapsed(true));
     }
     window.addEventListener("resize", handleSidebarCollapse);
     return () => window.removeEventListener("resize", handleSidebarCollapse);
