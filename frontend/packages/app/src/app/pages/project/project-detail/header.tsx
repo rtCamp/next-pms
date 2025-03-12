@@ -20,7 +20,9 @@ export const EmployeeDetailHeader = () => {
 
   return (
     <>
-      <Header>Header</Header>
+      <Header>
+        <></>
+      </Header>
     </>
   );
 };

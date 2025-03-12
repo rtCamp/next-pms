@@ -1,7 +1,7 @@
 import json
 
 from erpnext.accounts.report.utils import get_rate_as_at
-from frappe import get_list, get_meta, whitelist
+from frappe import get_doc, get_list, get_meta, whitelist
 from frappe.utils import flt, getdate
 
 from . import get_count
@@ -75,3 +75,37 @@ def get_currency_fields(meta_fields):
 def convert(value, rate):
     converted_value = flt(value) * (rate or 1)
     return converted_value
+
+
+@whitelist()
+def get_project_details(name):
+    """Fetch all fields (excluding non-data fields) and their values categorized under respective tabs."""
+    doctype_meta = get_meta("Project")
+    project_doc = get_doc("Project", name)
+
+    tab_fields = {}
+    current_tab = "Details"  # Default tab for fields before first Tab Break
+
+    for df in doctype_meta.fields:
+        if df.fieldtype in ["Section Break", "Column Break"]:
+            continue
+
+        if df.fieldtype == "Tab Break":
+            current_tab = df.label
+            tab_fields[current_tab] = []
+            continue
+
+        field_value = project_doc.get(df.fieldname)
+
+        if df.fieldtype == "Table" and field_value:
+            child_table_data = [{field: getattr(row, field) for field in row.as_dict().keys()} for row in field_value]
+            field_value = child_table_data
+
+        if current_tab not in tab_fields:
+            tab_fields[current_tab] = []
+
+        tab_fields[current_tab].append(
+            {"label": df.label, "fieldname": df.fieldname, "fieldtype": df.fieldtype, "value": field_value}
+        )
+
+    return {"tabs": list(tab_fields.keys()), "fields_by_tab": tab_fields}
