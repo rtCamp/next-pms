@@ -25,10 +25,9 @@ import { RootState } from "@/store";
 
 interface UserNavigationProps {
   user: RootState["user"];
-  isSidebarCollapsed: boolean;
 }
 
-const UserNavigation = ({ user, isSidebarCollapsed }: UserNavigationProps) => {
+const UserNavigation = ({ user }: UserNavigationProps) => {
   const { logout } = useContext(UserContext);
   return (
     <ErrorFallback>
@@ -42,7 +41,7 @@ const UserNavigation = ({ user, isSidebarCollapsed }: UserNavigationProps) => {
             variant="p"
             className={cn(
               "transition-all duration-800 max-md:hidden overflow-hidden max-w-full max-lg:1/3 truncate",
-              isSidebarCollapsed && "hidden"
+              user.isSidebarCollapsed && "hidden"
             )}
           >
             {user.userName}

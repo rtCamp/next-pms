@@ -6,6 +6,7 @@ import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 /**
  * Internal dependencies.
  */
+import { getLocalStorage } from "@/lib/storage";
 import { getCookie } from "@/lib/utils";
 import { WorkingFrequency } from "@/types";
 
@@ -40,7 +41,7 @@ const initialState: UserState = {
   roles: window.frappe?.boot?.user?.roles ?? [],
   userName: decodeURIComponent(fullName as string) ?? "",
   image: userImage ?? "",
-  isSidebarCollapsed: false,
+  isSidebarCollapsed: getLocalStorage("next-pms:isSidebarCollapsed") || false,
   employee: "",
   employeeName: "",
   user: decodeURIComponent(user ?? ""),
