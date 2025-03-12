@@ -2,7 +2,6 @@
  * External dependencies.
  */
 import { useContext, useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { Table, TableBody } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
 import { useInfiniteScroll } from "@next-pms/hooks";
@@ -19,20 +18,18 @@ import { getTableCellClass, getTodayDateCellClass, getCellBackGroundColor } from
  */
 import { InfiniteScroll } from "@/app/components/infiniteScroll";
 import { cn } from "@/lib/utils";
-import { RootState } from "@/store";
-import {
-  emptyProjectDayData,
-  ProjectAllWeekDataProps,
-  ProjectDataProps,
-  ProjectResourceProps,
-  setMaxWeek,
-  setStart,
-} from "@/store/resource_management/project";
 import { ResourceAllocationObjectProps, ResourceAllocationProps } from "@/types/resource_management";
 
 import { ResourceExpandView } from "./expandView";
 import { EmptyTableBody, EmptyTableCell } from "../../components/empty";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
+import {
+  emptyProjectDayData,
+  ProjectAllWeekDataProps,
+  ProjectContext,
+  ProjectDataProps,
+  ProjectResourceProps,
+} from "../../store/projectContext";
 import { ResourceFormContext } from "../../store/resourceFormContext";
 import { AllocationDataProps, DateProps } from "../../store/types";
 import { getIsBillableValue } from "../../utils/helper";
@@ -51,25 +48,25 @@ const ResourceProjectTable = ({
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
   dateToAddHeaderRef: string;
 }) => {
-  const dates: DateProps[] = useSelector((state: RootState) => state.resource_project.data.dates);
-  const isLoading = useSelector((state: RootState) => state.resource_project.isLoading);
-  const maxWeek = useSelector((state: RootState) => state.resource_project.maxWeek);
-  const hasMore = useSelector((state: RootState) => state.resource_project.hasMore);
-  const start = useSelector((state: RootState) => state.resource_project.start);
-  const pageLength = useSelector((state: RootState) => state.resource_project.pageLength);
+  const { projectData, filters, apiController, getHasMore, setMaxWeek, setStart } = useContext(ProjectContext);
 
-  const dispatch = useDispatch();
+  const dates: DateProps[] = projectData.dates;
+  const isLoading = apiController.isLoading;
+  const maxWeek = filters.maxWeek;
+  const hasMore = getHasMore();
+  const start = filters.start;
+  const pageLength = filters.pageLength;
 
   const handleLoadMore = () => {
     if (isLoading) return;
-    dispatch(setMaxWeek(maxWeek + 3));
+    setMaxWeek(maxWeek + 3);
   };
 
   const cellHeaderRef = useInfiniteScroll({ isLoading: isLoading, hasMore: true, next: () => handleLoadMore() });
 
   const handleVerticalLoadMore = () => {
     if (!hasMore) return;
-    dispatch(setStart(start + pageLength));
+    setStart(start + pageLength);
   };
 
   if (dates.length == 0) {
@@ -108,9 +105,11 @@ const ResourceProjectTableBody = ({
 }: {
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const data = useSelector((state: RootState) => state.resource_project.data.data);
-  const dates = useSelector((state: RootState) => state.resource_project.data.dates);
-  const allocationType = useSelector((state: RootState) => state.resource_project.allocationType);
+  const { projectData, filters } = useContext(ProjectContext);
+
+  const data = projectData.data;
+  const dates = projectData.dates;
+  const allocationType = filters.allocationType;
 
   if (data.length == 0) {
     return <EmptyTableBody />;
@@ -213,9 +212,10 @@ const ResourceProjectTableCell = ({
   projectAllocations: ResourceAllocationObjectProps;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const tableView = useSelector((state: RootState) => state.resource_project.tableView);
-  const customer = useSelector((state: RootState) => state.resource_project.data.customer);
-  const allocationType = useSelector((state: RootState) => state.resource_project.allocationType);
+  const { projectData, tableView, filters } = useContext(ProjectContext);
+
+  const customer = projectData.customer;
+  const allocationType = filters.allocationType;
 
   const { updateAllocationData, updateDialogState } = useContext(ResourceFormContext);
 
