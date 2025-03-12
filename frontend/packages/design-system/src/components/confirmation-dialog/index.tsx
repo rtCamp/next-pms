@@ -27,13 +27,15 @@ import { LoaderCircle, Trash2, X } from "lucide-react";
  * @param props.onCancel The function to cancel the dialog.
  * @returns React.FC
  */
-const DeleteAllocation = ({
+const DeleteConfirmationDialog = ({
   onDelete,
   isOpen,
   isLoading,
   onOpen,
   onCancel,
   buttonClassName,
+  title,
+  description,
 }: {
   onDelete: () => void;
   isOpen: boolean;
@@ -41,6 +43,8 @@ const DeleteAllocation = ({
   onOpen: () => void;
   onCancel: () => void;
   buttonClassName?: string;
+  title: string;
+  description: string;
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onCancel()}>
@@ -55,12 +59,8 @@ const DeleteAllocation = ({
       <DialogContent className="sm:max-w-[425px] z-[1000]">
         <DialogHeader>
           <DialogDescription>
-            <Typography className="text-xl mb-2 mt-3 font-semibold">
-              Are you sure you want to delete this allocation?
-            </Typography>
-            <Typography className="text-sm">
-              This action cannot be undone. This will permanently delete the given allocation.
-            </Typography>
+            <Typography className="text-xl mb-2 mt-3 font-semibold">{title}</Typography>
+            <Typography className="text-sm">{description}</Typography>
           </DialogDescription>
         </DialogHeader>
 
@@ -83,4 +83,4 @@ const DeleteAllocation = ({
   );
 };
 
-export { DeleteAllocation };
+export { DeleteConfirmationDialog };

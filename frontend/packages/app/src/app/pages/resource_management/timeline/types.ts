@@ -1,9 +1,9 @@
 /**
- * External dependencies.
+ * Internal dependencies.
  */
-import { AllocationDataProps } from "@/store/resource_management/allocation";
-import { Skill } from "@/store/resource_management/team";
 import { ResourceAllocationProps } from "@/types/resource_management";
+import { Skill } from "../store/teamContext";
+import { AllocationDataProps } from "../store/types";
 
 interface ResourceAllocationItemProps {
   style: {

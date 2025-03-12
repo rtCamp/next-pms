@@ -9,11 +9,15 @@ import { isToday } from "date-fns";
 /**
  * Internal dependencies.
  */
-import { cn } from "@/lib/utils";
-import { DateProps } from "@/store/resource_management/team";
+import { TableContext } from "../../store";
+import { cn, getTableCellClass } from "../../utils";
 
-import { TableContext } from "../store/tableContext";
-import { getTableCellClass } from "../utils/helper";
+export type DateProps = {
+  startDate: string;
+  endDate: string;
+  key: string;
+  dates: string[];
+};
 
 interface ResourceTableHeaderProps {
   dates: DateProps[];
@@ -141,4 +145,4 @@ const TableHeaderCell = ({
   );
 };
 
-export default ResourceTableHeader;
+export { ResourceTableHeader };

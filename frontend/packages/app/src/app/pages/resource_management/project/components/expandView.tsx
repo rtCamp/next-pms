@@ -1,28 +1,29 @@
 /**
  * External dependencies.
  */
-import { useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useContext, useMemo } from "react";
 import { Avatar, AvatarFallback, AvatarImage, Table, TableBody, TableRow } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
+import { ResourceTableCell, TableInformationCellContent } from "@next-pms/resource-management/components";
+import { getTableCellClass, getTodayDateCellClass, getCellBackGroundColor } from "@next-pms/resource-management/utils";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
 import { cn } from "@/lib/utils";
-import { RootState } from "@/store";
-import { AllocationDataProps, setResourceFormData } from "@/store/resource_management/allocation";
-import { DateProps, EmployeeDataProps, EmployeeResourceProps } from "@/store/resource_management/team";
 import {
   ResourceAllocationObjectProps,
   ResourceAllocationProps,
   ResourceCustomerObjectProps,
 } from "@/types/resource_management";
+import { EmptyTableCell } from "../../components/empty";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
-import { ResourceTableCell, TableInformationCellContent } from "../../components/tableCell";
-import { getCellBackGroundColor } from "../../utils/cell";
-import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
+import { ProjectContext } from "../../store/projectContext";
+import { ResourceFormContext } from "../../store/resourceFormContext";
+import { EmployeeDataProps, EmployeeResourceProps } from "../../store/teamContext";
+import { AllocationDataProps, DateProps } from "../../store/types";
+import { getIsBillableValue } from "../../utils/helper";
 
 interface ResourceExpandViewProps {
   project: string;
@@ -52,7 +53,9 @@ export const ResourceExpandView = ({
   is_billable,
   onSubmit,
 }: ResourceExpandViewProps) => {
-  const dates = useSelector((state: RootState) => state.resource_project.data.dates);
+  const { projectData } = useContext(ProjectContext);
+
+  const dates = projectData.dates;
 
   const { data } = useFrappeGetCall(
     "next_pms.resource_management.api.project.get_employees_resrouce_data_for_given_project",
@@ -168,10 +171,10 @@ const ExpandViewCell = ({
   customer: ResourceCustomerObjectProps;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const tableView = useSelector((state: RootState) => state.resource_project.tableView);
-  const allocationType = useSelector((state: RootState) => state.resource_project.allocationType);
+  const { tableView, filters } = useContext(ProjectContext);
+  const { updateAllocationData, updateDialogState } = useContext(ResourceFormContext);
 
-  const dispatch = useDispatch();
+  const allocationType = filters.allocationType;
 
   const allocationPercentage = useMemo(() => {
     if (allocationsData.total_allocated_hours == 0) {
@@ -190,25 +193,22 @@ const ExpandViewCell = ({
   }, [allocationPercentage, tableView.view]);
 
   const onCellClick = () => {
-    dispatch(
-      setResourceFormData({
-        isShowDialog: true,
-        employee: employee,
-        employee_name: employee_name,
-        project: project,
-        allocation_start_date: allocationsData.date,
-        allocation_end_date: allocationsData.date,
-        is_billable: getIsBillableValue(allocationType as string[]) != "0",
-        customer: "",
-        total_allocated_hours: "0",
-        hours_allocated_per_day: "0",
-        note: "",
-        project_name: project_name,
-        customer_name: "",
-        isNeedToEdit: false,
-        name: "",
-      })
-    );
+    updateDialogState({ isShowDialog: true, isNeedToEdit: false });
+    updateAllocationData({
+      employee: employee,
+      employee_name: employee_name,
+      project: project,
+      allocation_start_date: allocationsData.date,
+      allocation_end_date: allocationsData.date,
+      is_billable: getIsBillableValue(allocationType as string[]) != "0",
+      customer: "",
+      total_allocated_hours: "0",
+      hours_allocated_per_day: "0",
+      note: "",
+      project_name: project_name,
+      customer_name: "",
+      name: "",
+    });
   };
 
   const { date: dateStr, day } = prettyDate(allocationsData.date);
@@ -216,8 +216,7 @@ const ExpandViewCell = ({
 
   if (allocationsData.total_allocated_hours == 0 && allocationsData.total_worked_hours == 0) {
     return (
-      <ResourceTableCell
-        type="empty"
+      <EmptyTableCell
         title={title}
         cellClassName={cn(getTableCellClass(index, weekIndex), getTodayDateCellClass(allocationsData.date))}
         onCellClick={onCellClick}

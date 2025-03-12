@@ -1,29 +1,27 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useContext, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage, Button, useToast, Typography } from "@next-pms/design-system/components";
+import { DeleteConfirmationDialog } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
 import { cn } from "@next-pms/design-system/utils";
+import { getFilterValue, getFormatedStringValue } from "@next-pms/resource-management/utils";
 import { useFrappeDeleteDoc } from "frappe-react-sdk";
 import { Clipboard, Pencil, Plus } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
-import { RootState } from "@/store";
-import { AllocationDataProps, PermissionProps, setResourceFormData } from "@/store/resource_management/allocation";
 import {
   ResourceAllocationObjectProps,
   ResourceAllocationProps,
   ResourceCustomerObjectProps,
   ResourceCustomerProps,
 } from "@/types/resource_management";
-
-import { DeleteAllocation } from "./confirmation";
-import { getFilterValue, getInitials } from "../utils/helper";
-import { getFormatedStringValue } from "../utils/value";
+import { ResourceFormContext } from "../store/resourceFormContext";
+import { AllocationDataProps, PermissionProps } from "../store/types";
+import { getInitials } from "../utils/helper";
 
 /**
  * This component is responsible for rendering the list of resource allocations in Card.
@@ -50,9 +48,7 @@ export const ResourceAllocationList = ({
   onButtonClick?: () => void;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const resourceAllocationPermission: PermissionProps = useSelector(
-    (state: RootState) => state.resource_allocation_form.permissions
-  );
+  const { permission: resourceAllocationPermission } = useContext(ResourceFormContext);
 
   return (
     <div className={cn("flex flex-col items-center overflow-y-auto max-h-60")}>
@@ -108,37 +104,36 @@ export const ResourceAllocationCard = ({
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
   const customerData: ResourceCustomerProps = customer[resourceAllocation.customer];
-  const resourceAllocationPermission: PermissionProps = useSelector(
-    (state: RootState) => state.resource_allocation_form.permissions
-  );
+
+  const {
+    permission: resourceAllocationPermission,
+    updateDialogState,
+    updateAllocationData,
+  } = useContext(ResourceFormContext);
 
   const { date: startDate } = prettyDate(resourceAllocation.allocation_start_date);
   const { date: endDate } = prettyDate(resourceAllocation.allocation_end_date);
-  const dispatch = useDispatch();
 
   const handleResourceAllocationEdit = () => {
     if (!resourceAllocationPermission.write) {
       return;
     }
-    dispatch(
-      setResourceFormData({
-        isShowDialog: true,
-        employee: resourceAllocation.employee,
-        employee_name: resourceAllocation.employee_name,
-        project: resourceAllocation.project,
-        allocation_start_date: resourceAllocation.allocation_start_date,
-        allocation_end_date: resourceAllocation.allocation_end_date,
-        is_billable: resourceAllocation.is_billable == 1,
-        customer: resourceAllocation.customer,
-        total_allocated_hours: getFormatedStringValue(resourceAllocation.total_allocated_hours),
-        hours_allocated_per_day: getFormatedStringValue(resourceAllocation.hours_allocated_per_day),
-        note: getFormatedStringValue(resourceAllocation.note),
-        project_name: resourceAllocation.project_name,
-        customer_name: customerData.name,
-        isNeedToEdit: true,
-        name: resourceAllocation.name,
-      })
-    );
+    updateDialogState({ isShowDialog: true, isNeedToEdit: true });
+    updateAllocationData({
+      employee: resourceAllocation.employee,
+      employee_name: resourceAllocation.employee_name,
+      project: resourceAllocation.project,
+      allocation_start_date: resourceAllocation.allocation_start_date,
+      allocation_end_date: resourceAllocation.allocation_end_date,
+      is_billable: resourceAllocation.is_billable == 1,
+      customer: resourceAllocation.customer,
+      total_allocated_hours: getFormatedStringValue(resourceAllocation.total_allocated_hours),
+      hours_allocated_per_day: getFormatedStringValue(resourceAllocation.hours_allocated_per_day),
+      note: getFormatedStringValue(resourceAllocation.note),
+      project_name: resourceAllocation.project_name,
+      customer_name: customerData.name,
+      name: resourceAllocation.name,
+    });
   };
 
   const handleResourceAllocationCopy = () => {
@@ -146,25 +141,22 @@ export const ResourceAllocationCard = ({
       return;
     }
 
-    dispatch(
-      setResourceFormData({
-        isShowDialog: true,
-        employee: resourceAllocation.employee,
-        employee_name: resourceAllocation.employee_name,
-        project: resourceAllocation.project,
-        allocation_start_date: resourceAllocation.allocation_start_date,
-        allocation_end_date: resourceAllocation.allocation_end_date,
-        is_billable: resourceAllocation.is_billable == 1,
-        customer: resourceAllocation.customer,
-        total_allocated_hours: getFormatedStringValue(resourceAllocation.total_allocated_hours),
-        hours_allocated_per_day: getFormatedStringValue(resourceAllocation.hours_allocated_per_day),
-        note: getFormatedStringValue(resourceAllocation.note),
-        project_name: resourceAllocation.project_name,
-        customer_name: customerData.name,
-        isNeedToEdit: false,
-        name: "",
-      })
-    );
+    updateDialogState({ isShowDialog: true, isNeedToEdit: false });
+    updateAllocationData({
+      employee: resourceAllocation.employee,
+      employee_name: resourceAllocation.employee_name,
+      project: resourceAllocation.project,
+      allocation_start_date: resourceAllocation.allocation_start_date,
+      allocation_end_date: resourceAllocation.allocation_end_date,
+      is_billable: resourceAllocation.is_billable == 1,
+      customer: resourceAllocation.customer,
+      total_allocated_hours: getFormatedStringValue(resourceAllocation.total_allocated_hours),
+      hours_allocated_per_day: getFormatedStringValue(resourceAllocation.hours_allocated_per_day),
+      note: getFormatedStringValue(resourceAllocation.note),
+      project_name: resourceAllocation.project_name,
+      customer_name: customerData.name,
+      name: "",
+    });
   };
 
   return (
@@ -321,7 +313,7 @@ const DeleteIcon = ({
   };
 
   return (
-    <DeleteAllocation
+    <DeleteConfirmationDialog
       onDelete={handleResourceAllocationDelete}
       isLoading={isLoading}
       buttonClassName={buttonClassName}
@@ -332,6 +324,8 @@ const DeleteIcon = ({
       onCancel={() => {
         setIsOpen(false);
       }}
+      title="Are you sure you want to delete this allocation?"
+      description="This action cannot be undone. This will permanently delete the given allocation."
     />
   );
 };
