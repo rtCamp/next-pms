@@ -22,6 +22,12 @@ export type DateRange = {
   end_date: string;
 };
 
+export interface APIController {
+  isNeedToFetchDataAfterUpdate: boolean;
+  isLoading: boolean;
+  action: "SET" | "UPDATE";
+}
+
 export interface TableViewProps {
   combineWeekHours: boolean;
   view: string;

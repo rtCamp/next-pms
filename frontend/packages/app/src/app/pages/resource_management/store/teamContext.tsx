@@ -8,7 +8,7 @@ import { getFormatedDate, getTodayDate } from "@next-pms/design-system";
  * Internal dependencies.
  */
 import { ResourceAllocationObjectProps, ResourceCustomerObjectProps } from "@/types/resource_management";
-import { ContextProviderProps, DateProps, TableViewProps } from "./types";
+import { APIController, ContextProviderProps, DateProps, TableViewProps } from "./types";
 import { getDatesArrays } from "../utils/dates";
 
 export type EmployeeAllWeekDataProps = {
@@ -60,6 +60,10 @@ export interface Skill {
   operator: string;
 }
 
+export interface SkillData {
+  name: string;
+}
+
 export interface ResourceTeamDataProps {
   data: EmployeeDataProps[];
   dates: DateProps[];
@@ -82,6 +86,20 @@ export interface ResourceTeamFilters {
   skillSearch?: Skill[];
 }
 
+interface OptionalResourceTeamFilters {
+  employeeName?: string;
+  businessUnit?: string[];
+  reportingManager?: string;
+  designation?: string[];
+  weekDate?: string;
+  employeeWeekDate?: string;
+  allocationType?: string[];
+  start?: number;
+  pageLength?: number;
+  maxWeek?: number;
+  skillSearch?: Skill[];
+}
+
 interface ResourceTeamState {
   teamData: ResourceTeamDataProps;
   filters: ResourceTeamFilters;
@@ -94,16 +112,25 @@ interface TeamContextProps extends ResourceTeamState {
   updateTableView: (updatedTableView: TableViewProps) => void;
   resetState: () => void;
   setReFetchData: (value: boolean) => void;
-  updateFilter: (updatedFilters: ResourceTeamFilters) => void;
+  updateFilter: (updatedFilters: OptionalResourceTeamFilters) => void;
   updateTeamData: (updatedTeamData: ResourceTeamDataProps, type?: "SET" | "UPDATE") => void;
+  getHasMore: () => boolean;
+  setMaxWeek: (maxWeek: number) => void;
+  setDates: (dates: DateProps[]) => void;
+  setCombineWeekHours: (value: boolean) => void;
+  setWeekDate: (value: string) => void;
 }
 
-interface APIController {
-  isNeedToFetchDataAfterUpdate: boolean;
-  isLoading: boolean;
-  action: "SET" | "UPDATE";
-}
-
+const defaultEmployeeDayData: EmployeeResourceProps = {
+  date: "None",
+  total_allocated_hours: 0,
+  total_working_hours: 0,
+  total_worked_hours: 0,
+  employee_resource_allocation_for_given_date: [],
+  is_on_leave: false,
+  total_leave_hours: 0,
+  total_allocation_count: 0,
+};
 const defaultFilters: ResourceTeamFilters = {
   employeeName: "",
   pageLength: 20,
@@ -144,6 +171,11 @@ const defaulTeamState: TeamContextProps = {
   setReFetchData: () => {},
   updateFilter: () => {},
   updateTeamData: () => {},
+  getHasMore: () => false,
+  setMaxWeek: () => {},
+  setDates: () => {},
+  setCombineWeekHours: () => {},
+  setWeekDate: () => {},
 };
 
 const TeamContext = createContext<TeamContextProps>(defaulTeamState);
@@ -157,23 +189,25 @@ const TeamContextProvider = ({ children }: ContextProviderProps) => {
   const updateTeamData = (updatedTeamData: ResourceTeamDataProps, type: "SET" | "UPDATE" = "SET") => {
     if (type === "SET") {
       setTeanData({
-        ...updatedTeamData,
+        ...teamData,
         data: updatedTeamData.data,
+        dates: updatedTeamData.dates ? updatedTeamData.dates : teamData.dates,
         customer: updatedTeamData.customer,
         total_count: updatedTeamData.total_count,
         has_more: updatedTeamData.has_more,
       });
     } else {
       setTeanData({
-        ...updatedTeamData,
+        ...teamData,
         data: [...teamData.data, ...updatedTeamData.data],
+        dates: updatedTeamData.dates ? updatedTeamData.dates : teamData.dates,
         customer: { ...updatedTeamData.customer, ...updatedTeamData.customer },
         total_count: updatedTeamData.total_count,
         has_more: updatedTeamData.has_more,
       });
     }
 
-    setApiController({ ...apiController, isLoading: false });
+    setApiController({ ...apiController, isNeedToFetchDataAfterUpdate: false, isLoading: false });
   };
 
   const setStart = (start: number) => {
@@ -181,7 +215,7 @@ const TeamContextProvider = ({ children }: ContextProviderProps) => {
     setApiController({ ...apiController, isLoading: true });
   };
 
-  const updateFilter = (updatedFilters: ResourceTeamFilters) => {
+  const updateFilter = (updatedFilters: OptionalResourceTeamFilters) => {
     setFilters({ ...filters, ...updatedFilters, start: 0, maxWeek: defaultFilters.maxWeek });
     setTeanData(defaultData);
     setApiController({ ...apiController, isLoading: true, isNeedToFetchDataAfterUpdate: true });
@@ -195,11 +229,40 @@ const TeamContextProvider = ({ children }: ContextProviderProps) => {
     setApiController({ ...apiController, isNeedToFetchDataAfterUpdate: value });
   };
 
+  const setMaxWeek = (maxWeek: number) => {
+    if (maxWeek === filters.maxWeek) return;
+    setFilters({ ...filters, maxWeek });
+  };
+
+  const setDates = (dates: DateProps[]) => {
+    setTeanData({ ...teamData, dates });
+  };
+
+  const setWeekDate = (value: string) => {
+    setFilters({
+      ...filters,
+      weekDate: value,
+      start: 0,
+      pageLength: defaultFilters.pageLength,
+      maxWeek: defaultFilters.maxWeek,
+    });
+    setApiController({ ...apiController, isLoading: true, isNeedToFetchDataAfterUpdate: true });
+    setTeanData({ ...defaultData, dates: getDatesArrays(value, 10) });
+  };
+
   const resetState = () => {
     setTeanData(defaultData);
     setFilters(defaultFilters);
     setTableView(defaultTableView);
     setApiController(defaultApiController);
+  };
+
+  const setCombineWeekHours = (value: boolean) => {
+    setTableView({ ...tableView, combineWeekHours: value });
+  };
+
+  const getHasMore = () => {
+    return teamData.has_more;
   };
 
   return (
@@ -215,6 +278,11 @@ const TeamContextProvider = ({ children }: ContextProviderProps) => {
         setReFetchData: setReFetchData,
         updateFilter: updateFilter,
         updateTeamData: updateTeamData,
+        getHasMore: getHasMore,
+        setMaxWeek: setMaxWeek,
+        setDates: setDates,
+        setCombineWeekHours: setCombineWeekHours,
+        setWeekDate: setWeekDate,
       }}
     >
       {children}
@@ -222,4 +290,4 @@ const TeamContextProvider = ({ children }: ContextProviderProps) => {
   );
 };
 
-export { TeamContext, TeamContextProvider };
+export { defaultEmployeeDayData, TeamContext, TeamContextProvider };
