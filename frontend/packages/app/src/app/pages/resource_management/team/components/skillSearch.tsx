@@ -24,7 +24,7 @@ import { Filter as Funnel, Search, Star, X } from "lucide-react";
  * Internal dependencies.
  */
 import { cn } from "@/lib/utils";
-import { Skill, SkillData } from "@/store/resource_management/team";
+import { Skill, SkillData } from "../../store/teamContext";
 
 // Comparison options map with descriptions
 const COMPARISON_OPTIONS = {

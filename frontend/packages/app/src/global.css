@@ -46,6 +46,7 @@ html,
   overflow: auto;
 }
 
+
 /** TimeLine CSS overwrite*/
 .react-calendar-timeline .rct-sidebar .rct-sidebar-row.rct-sidebar-row-odd,
 .react-calendar-timeline .rct-horizontal-lines .rct-hl-odd {

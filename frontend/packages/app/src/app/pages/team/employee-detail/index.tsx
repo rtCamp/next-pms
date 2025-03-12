@@ -21,8 +21,8 @@ import { Plus } from "lucide-react";
 /**
  * Internal dependencies
  */
+import { InfiniteScroll } from "@/app/components/infiniteScroll";
 import { Main } from "@/app/layout/root";
-import { InfiniteScroll } from "@/app/pages/resource_management/components/infiniteScroll";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { initialState, reducer } from "../reducer";
 import { validateDate } from "../utils";

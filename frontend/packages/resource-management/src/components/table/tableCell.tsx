@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import {
   HoverCardContent,
   Typography,
@@ -9,15 +9,14 @@ import {
   HoverCard,
   HoverCardTrigger,
 } from "@next-pms/design-system/components";
-
+import { TableContext } from "@next-pms/resource-management/store";
+import { CirclePlus } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
-import { cn } from "@/lib/utils";
-import { EmptyTableCell } from "./empty";
-import { TableContext } from "../store/tableContext";
-import { getFilterValue } from "../utils/helper";
+import { EmptyTableCellProps } from "./types";
+import { cn, getFilterValue } from "../../utils";
 
 interface ResourceTableProps {
   type: "hovercard" | "empty" | "default";
@@ -56,7 +55,6 @@ const ResourceTableCell = ({
   ref,
   value,
   style,
-  onCellClick,
 }: ResourceTableProps) => {
   const { tableProperties, getCellWidthString } = useContext(TableContext);
 
@@ -81,12 +79,6 @@ const ResourceTableCell = ({
           {CustomHoverCardContent && <CustomHoverCardContent />}
         </HoverCardContent>
       </HoverCard>
-    );
-  }
-
-  if (type == "empty") {
-    return (
-      <EmptyTableCell title={title} cellClassName={mergeCellClassName} textClassName="h-6" onCellClick={onCellClick} />
     );
   }
 
@@ -179,4 +171,34 @@ const TableCellContent = ({
   );
 };
 
-export { ResourceTableCell, TableCellContent, TableInformationCellContent };
+/**
+ * This component is responsible for rendering the empty table cell.
+ *
+ * @param props.cellClassName class of the given cell.
+ * @param props.textClassName class of the given cell text.
+ * @param props.title title of the given cell.
+ * @param props.onCellClick on cell click event for cell based on this will decide where to show + icon on hover or not.
+ * @returns React.FC
+ */
+const EmptyTableCell = ({ cellClassName, title, textClassName, onCellClick }: EmptyTableCellProps) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <TableCell
+      className={cn("cursor-pointer text-xs flex px-2 py-2 w-16 justify-center items-center", cellClassName)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={onCellClick}
+      title={title}
+    >
+      <TableCellContent
+        className={textClassName}
+        TextComponet={
+          isHovered ? () => <CirclePlus className={cn("text-center cursor-pointer")} size={4} /> : () => <>{"-"}</>
+        }
+      />
+    </TableCell>
+  );
+};
+
+export { ResourceTableCell, TableCellContent, TableInformationCellContent, EmptyTableCell };
