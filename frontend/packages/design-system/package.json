@@ -36,26 +36,16 @@
         "@radix-ui/react-radio-group": "^1.2.0",
         "@radix-ui/react-select": "^2.1.2",
         "@radix-ui/react-separator": "^1.1.0",
-        "@radix-ui/react-slot": "^1.1.0",
+        "@radix-ui/react-slot": "^1.1.2",
         "@radix-ui/react-tabs": "^1.1.0",
         "@radix-ui/react-toast": "^1.2.1",
         "@radix-ui/react-tooltip": "^1.1.2",
         "@reduxjs/toolkit": "^2.2.6",
         "@tanstack/react-table": "^8.20.5",
-        "class-variance-authority": "^0.7.0",
-        "clsx": "^2.1.1",
         "cmdk": "^1.0.0",
-        "date-fns": "^3.6.0",
         "lucide-react": "^0.408.0",
-        "react": "^18.3.1",
-        "react-day-picker": "^8.10.1",
-        "react-dom": "^18.3.1",
-        "react-hook-form": "^7.52.1",
-        "tailwind-merge": "^2.4.0",
-        "tailwindcss-animate": "^1.0.7"
+        "react-day-picker": "^8.10.1"
     },
     "devDependencies": {
-        "@types/react": "^18.3.18",
-        "@types/react-dom": "^18.3.5"
     }
 }
