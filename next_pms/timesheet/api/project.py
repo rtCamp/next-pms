@@ -1,7 +1,7 @@
 import json
 
 from erpnext.accounts.report.utils import get_rate_as_at
-from frappe import get_doc, get_list, get_meta, whitelist
+from frappe import PermissionError, _, get_doc, get_list, get_meta, get_roles, session, throw, whitelist
 from frappe.utils import flt, getdate
 
 from . import get_count
@@ -80,11 +80,17 @@ def convert(value, rate):
 @whitelist()
 def get_project_details(name):
     """Fetch all fields (excluding non-data fields) and their values categorized under respective tabs."""
+
+    if not set(["Projects Manager", "Timesheet Manager", "Timesheet User"]) & set(get_roles(session.user)):
+        throw(_("You do not have enough permissions to access the document"), PermissionError)
+
     doctype_meta = get_meta("Project")
     project_doc = get_doc("Project", name)
 
     tab_fields = {}
     current_tab = "Details"  # Default tab for fields before first Tab Break
+
+    permitted_fields = doctype_meta.get_permitted_fieldnames()
 
     for df in doctype_meta.fields:
         if df.fieldtype in ["Section Break", "Column Break"]:
@@ -95,11 +101,22 @@ def get_project_details(name):
             tab_fields[current_tab] = []
             continue
 
+        if df.fieldname not in permitted_fields:
+            continue
+
+        if (
+            df.fieldtype == "Table"
+            or df.fieldtype == "HTML"
+            or df.fieldtype == "HTML Editor"
+            or df.fieldtype == "Text Editor"
+        ):
+            continue
+
         field_value = project_doc.get(df.fieldname)
 
-        if df.fieldtype == "Table" and field_value:
-            child_table_data = [{field: getattr(row, field) for field in row.as_dict().keys()} for row in field_value]
-            field_value = child_table_data
+        # if df.fieldtype == "Table" and field_value:
+        #     # child_table_data = [{field: getattr(row, field) for field in row.as_dict().keys()} for row in field_value]
+        #     # field_value = child_table_data
 
         if current_tab not in tab_fields:
             tab_fields[current_tab] = []
@@ -108,7 +125,7 @@ def get_project_details(name):
             {"label": df.label, "fieldname": df.fieldname, "fieldtype": df.fieldtype, "value": field_value}
         )
 
-    return {"tabs": list(tab_fields.keys()), "fields_by_tab": tab_fields}
+    return {"tabs": list(tab_fields.keys()), "fields_by_tab": tab_fields, "permitted": permitted_fields}
 
 
 @whitelist()
