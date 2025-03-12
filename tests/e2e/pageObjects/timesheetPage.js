@@ -149,7 +149,7 @@ export class TimesheetPage {
   async getTimesheetStatus() {
     const button = this.latestTimesheetTitleDiv.locator("span").last();
 
-    await button.waitFor("visible");
+    await button.waitFor({ state: "visible" });
 
     return await button.textContent();
   }
@@ -160,7 +160,7 @@ export class TimesheetPage {
   async clickonTimesheetStatus() {
     const button = this.latestTimesheetTitleDiv.locator("span").last();
 
-    await button.waitFor("visible");
+    await button.waitFor({ state: "visible" });
     await button.click();
   }
 
@@ -198,7 +198,7 @@ export class TimesheetPage {
    * Retrieves all rows of the timesheet table.
    */
   async getRows() {
-    await this.latestTimesheetTable.waitFor("visible");
+    await this.latestTimesheetTable.waitFor({ state: "visible" });
 
     return this.latestTimesheetTable.getByRole("row");
   }
@@ -208,7 +208,7 @@ export class TimesheetPage {
    * Handles predefined row types like header, duration, time off, and new entry as well as dynamic row names.
    */
   async getRow(rowName) {
-    await this.latestTimesheetTable.waitFor("visible");
+    await this.latestTimesheetTable.waitFor({ state: "visible" });
 
     switch (rowName.toLowerCase()) {
       case "header":
@@ -399,7 +399,7 @@ export class TimesheetPage {
   async importLikedTasks() {
     const button = this.latestTimesheetTable.locator("//span[@title='Import liked tasks']");
 
-    await button.waitFor("visible");
+    await button.waitFor({ state: "visible" });
     await button.click();
   }
 

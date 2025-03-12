@@ -111,7 +111,7 @@ export class TeamPage {
    * Retrieves all employee rows from the parent table.
    */
   async getEmployeeRows() {
-    await this.parentTable.waitFor("visible");
+    await this.parentTable.waitFor({ state: "visible" });
 
     return this.parentTable.locator("//button[@type='button']");
   }
@@ -136,7 +136,7 @@ export class TeamPage {
    * Retrieves the timesheet element for a specific employee.
    */
   async getEmployeeTimesheet(name) {
-    await this.parentTable.waitFor("visible");
+    await this.parentTable.waitFor({ state: "visible" });
 
     return this.parentTable.locator(
       `//p[text()='${name}']//ancestor::div[@data-state and @data-orientation='vertical']`
@@ -163,7 +163,7 @@ export class TeamPage {
     }
 
     const timesheet = await this.getEmployeeTimesheet(employee);
-    await timesheet.waitFor("visible");
+    await timesheet.waitFor({ state: "visible" });
 
     switch (rowName.toLowerCase()) {
       case "employee header":

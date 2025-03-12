@@ -12,10 +12,9 @@ const empName = process.env.EMP_NAME;
 const manName = process.env.REP_MAN_NAME;
 
 // Load test data
-let TC30data = data.TC30;
 let TC31data = data.TC31;
 let TC37data = data.TC37;
-let TC76data = data.TC76;
+let TC75data = data.TC75;
 
 // ------------------------------------------------------------------------------------------
 
@@ -35,12 +34,12 @@ test.beforeEach(async ({ page }) => {
 
 test("TC30: Validate the search functionality", async ({}) => {
   // Search employee
-  await teamPage.seearchEmployee(TC30data.employee);
+  await teamPage.seearchEmployee(empName);
 
   // Assertions
   const filteredEmployees = await teamPage.getEmployees();
   expect(filteredEmployees.length).toBe(1);
-  expect(filteredEmployees[0]).toBe(TC30data.employee);
+  expect(filteredEmployees[0]).toBe(empName);
 });
 
 test("TC31: The reporting manager filter", async ({}) => {
@@ -75,10 +74,10 @@ test("TC37: Change the employee selected from the top search and verify that the
   expect(selectedEmployee).toContain(TC37data.employee);
 });
 
-test("TC76: Verify the manager view.", async ({}) => {
+test("TC75: Verify the manager view.", async ({}) => {
   // Retrive employees from the parent table
   const employees = await teamPage.getEmployees();
 
   // Assertions
-  expect(employees.sort()).toEqual(TC76data.employees.sort());
+  expect(employees.sort()).toEqual(TC75data.employees.sort());
 });
