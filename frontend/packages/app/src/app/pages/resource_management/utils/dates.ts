@@ -9,7 +9,7 @@ import {
 } from "@next-pms/design-system/date";
 import { startOfWeek } from "date-fns";
 import { Moment } from "moment";
-import { DateProps } from "@/store/resource_management/team";
+import { DateProps } from "../store/types";
 
 function getDatesArrays(
   startDate: string,

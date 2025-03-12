@@ -1,20 +1,20 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
-import { useSelector } from "react-redux";
+import { useContext } from "react";
 import { TableBody, TableCell, TableRow } from "@next-pms/design-system/components";
 import { cn } from "@next-pms/design-system/utils";
-import { CirclePlus } from "lucide-react";
+import {
+  ResourceTableCell,
+  TableInformationCellContent,
+  EmptyTableCell as ResourceEmptyTableCell,
+} from "@next-pms/resource-management/components";
+import { getTableCellClass, getTableCellRow, getTodayDateCellClass } from "@next-pms/resource-management/utils";
 
 /**
  * Internal dependencies.
  */
-import { RootState } from "@/store";
-import { PermissionProps } from "@/store/resource_management/allocation";
-
-import { ResourceTableCell, TableCellContent, TableInformationCellContent } from "./tableCell";
-import { getTableCellClass, getTableCellRow, getTodayDateCellClass } from "../utils/helper";
+import { ResourceFormContext } from "../store/resourceFormContext";
 
 /**
  * This component is responsible for rendering the empty table body.
@@ -50,10 +50,7 @@ interface EmptyTableCellProps {
  * @returns React.FC
  */
 const EmptyTableCell = ({ cellClassName, title, textClassName, onCellClick }: EmptyTableCellProps) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const resourceAllocationPermission: PermissionProps = useSelector(
-    (state: RootState) => state.resource_allocation_form.permissions
-  );
+  const { permission: resourceAllocationPermission } = useContext(ResourceFormContext);
 
   if (!onCellClick || !resourceAllocationPermission.write) {
     return (
@@ -68,20 +65,12 @@ const EmptyTableCell = ({ cellClassName, title, textClassName, onCellClick }: Em
 
   if (onCellClick) {
     return (
-      <TableCell
-        className={cn("cursor-pointer", cellClassName)}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onClick={onCellClick}
+      <ResourceEmptyTableCell
+        cellClassName={cellClassName}
         title={title}
-      >
-        <TableCellContent
-          className={textClassName}
-          TextComponet={
-            isHovered ? () => <CirclePlus className={cn("text-center cursor-pointer")} size={4} /> : () => <>{"-"}</>
-          }
-        />
-      </TableCell>
+        textClassName={textClassName}
+        onCellClick={onCellClick}
+      />
     );
   }
 

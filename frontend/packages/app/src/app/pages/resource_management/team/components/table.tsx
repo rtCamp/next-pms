@@ -1,35 +1,37 @@
 /**
  * External dependencies.
  */
-import { useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useContext, useMemo } from "react";
 import { Table, TableBody } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
+import {
+  ResourceTableCell,
+  ResourceTableRow,
+  ResourceTableHeader as ResourceTeamTableHeader,
+} from "@next-pms/resource-management/components";
+import { TableContextProvider } from "@next-pms/resource-management/store";
+import { getTableCellClass, getTodayDateCellClass, getCellBackGroundColor } from "@next-pms/resource-management/utils";
+import { InfiniteScroll } from "@/app/components/infiniteScroll";
+
 /**
  * Internal dependencies.
  */
 import { cn } from "@/lib/utils";
-import { RootState } from "@/store";
-import { AllocationDataProps, setResourceFormData } from "@/store/resource_management/allocation";
-import {
-  DateProps,
-  EmployeeAllWeekDataProps,
-  EmployeeDataProps,
-  EmployeeResourceProps,
-  emptyEmployeeDayData,
-} from "@/store/resource_management/team";
 import { ResourceAllocationObjectProps, ResourceAllocationProps } from "@/types/resource_management";
 
 import { ResourceExpandView } from "./expandView";
-import { EmptyTableBody } from "../../components/empty";
-import { InfiniteScroll } from "../../components/infiniteScroll";
+import { EmptyTableBody, EmptyTableCell } from "../../components/empty";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
-import { ResourceTableCell } from "../../components/tableCell";
-import ResourceTeamTableHeader from "../../components/tableHeader";
-import { ResourceTableRow } from "../../components/tableRow";
-import { TableContextProvider } from "../../store/tableContext";
-import { getCellBackGroundColor } from "../../utils/cell";
-import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
+import { ResourceFormContext } from "../../store/resourceFormContext";
+import {
+  defaultEmployeeDayData,
+  EmployeeAllWeekDataProps,
+  EmployeeDataProps,
+  EmployeeResourceProps,
+  TeamContext,
+} from "../../store/teamContext";
+import { AllocationDataProps, DateProps } from "../../store/types";
+import { getIsBillableValue } from "../../utils/helper";
 
 /**
  * This component is responsible for loading the table for table view.
@@ -48,9 +50,11 @@ const ResourceTeamTable = ({
   dateToAddHeaderRef: string;
   handleVerticalLoadMore: () => void;
 }) => {
-  const dates: DateProps[] = useSelector((state: RootState) => state.resource_team.data.dates);
-  const isLoading = useSelector((state: RootState) => state.resource_team.isLoading);
-  const hasMore = useSelector((state: RootState) => state.resource_team.hasMore);
+  const { teamData, apiController, getHasMore } = useContext(TeamContext);
+
+  const dates: DateProps[] = teamData.dates;
+  const isLoading = apiController.isLoading;
+  const hasMore = getHasMore();
 
   if (dates.length == 0) {
     return (
@@ -88,8 +92,10 @@ const ResourceTeamTableBody = ({
 }: {
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const data = useSelector((state: RootState) => state.resource_team.data.data);
-  const dates: DateProps[] = useSelector((state: RootState) => state.resource_team.data.dates);
+  const { teamData } = useContext(TeamContext);
+
+  const data = teamData.data;
+  const dates = teamData.dates;
 
   if (data.length == 0) {
     return <EmptyTableBody />;
@@ -110,7 +116,7 @@ const ResourceTeamTableBody = ({
                 <>
                   {dates.map((week: DateProps, week_index: number) => {
                     return week.dates.map((date: string, index: number) => {
-                      let employeeSingleDay = emptyEmployeeDayData;
+                      let employeeSingleDay = defaultEmployeeDayData;
 
                       if (date in employeeData.all_dates_data) {
                         employeeSingleDay = employeeData.all_dates_data[date];
@@ -193,14 +199,15 @@ const ResourceTeamTableCell = ({
   employeeAllocations: ResourceAllocationObjectProps;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const tableView = useSelector((state: RootState) => state.resource_team.tableView);
-  const customer = useSelector((state: RootState) => state.resource_team.data.customer);
-  const allocationType = useSelector((state: RootState) => state.resource_team.allocationType);
+  const { teamData, tableView, filters } = useContext(TeamContext);
+
+  const customer = teamData.customer;
+  const allocationType = filters.allocationType;
 
   const { date: dateStr, day } = prettyDate(employeeSingleDay.date);
   const title = employee_name + " (" + dateStr + " - " + day + ")";
 
-  const dispatch = useDispatch();
+  const { updateAllocationData, updateDialogState } = useContext(ResourceFormContext);
 
   const allocationPercentage = useMemo(() => {
     if (tableView.combineWeekHours) {
@@ -245,31 +252,27 @@ const ResourceTeamTableCell = ({
   }
 
   const onCellClick = () => {
-    dispatch(
-      setResourceFormData({
-        isShowDialog: true,
-        employee: employee,
-        employee_name: employee_name,
-        allocation_start_date: employeeSingleDay.date,
-        allocation_end_date: employeeSingleDay.date,
-        is_billable: getIsBillableValue(allocationType as string[]) != "0",
-        total_allocated_hours: "0",
-        hours_allocated_per_day: "0",
-        note: "",
-        project: "",
-        project_name: "",
-        customer: "",
-        customer_name: "",
-        isNeedToEdit: false,
-        name: "",
-      })
-    );
+    updateDialogState({ isShowDialog: true, isNeedToEdit: false });
+    updateAllocationData({
+      employee: employee,
+      employee_name: employee_name,
+      allocation_start_date: employeeSingleDay.date,
+      allocation_end_date: employeeSingleDay.date,
+      is_billable: getIsBillableValue(allocationType as string[]) != "0",
+      total_allocated_hours: "0",
+      hours_allocated_per_day: "0",
+      note: "",
+      project: "",
+      project_name: "",
+      customer: "",
+      customer_name: "",
+      name: "",
+    });
   };
 
   if (!tableView.combineWeekHours && !employeeSingleDay.is_on_leave && employeeSingleDay.total_allocated_hours == 0) {
     return (
-      <ResourceTableCell
-        type="empty"
+      <EmptyTableCell
         title={title}
         cellClassName={cn(
           getTableCellClass(rowCount, midIndex),

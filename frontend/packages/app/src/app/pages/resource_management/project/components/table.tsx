@@ -1,39 +1,38 @@
 /**
  * External dependencies.
  */
-import { useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useContext, useMemo } from "react";
 import { Table, TableBody } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
 import { useInfiniteScroll } from "@next-pms/hooks";
+import {
+  ResourceTableCell,
+  ResourceTableRow,
+  ResourceTableHeader as ResourceProjectTableHeader,
+} from "@next-pms/resource-management/components";
+import { TableContextProvider } from "@next-pms/resource-management/store";
+import { getTableCellClass, getTodayDateCellClass, getCellBackGroundColor } from "@next-pms/resource-management/utils";
+
 /**
  * Internal dependencies.
  */
+import { InfiniteScroll } from "@/app/components/infiniteScroll";
 import { cn } from "@/lib/utils";
-import { RootState } from "@/store";
-import { AllocationDataProps, setResourceFormData } from "@/store/resource_management/allocation";
-import {
-  emptyProjectDayData,
-  ProjectAllWeekDataProps,
-  ProjectDataProps,
-  ProjectResourceProps,
-  setMaxWeek,
-  setStart,
-} from "@/store/resource_management/project";
-import { DateProps } from "@/store/resource_management/team";
 import { ResourceAllocationObjectProps, ResourceAllocationProps } from "@/types/resource_management";
 
 import { ResourceExpandView } from "./expandView";
-import { EmptyTableBody } from "../../components/empty";
-import { InfiniteScroll } from "../../components/infiniteScroll";
+import { EmptyTableBody, EmptyTableCell } from "../../components/empty";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
-import { ResourceTableCell } from "../../components/tableCell";
-
-import ResourceProjectTableHeader from "../../components/tableHeader";
-import { ResourceTableRow } from "../../components/tableRow";
-import { TableContextProvider } from "../../store/tableContext";
-import { getCellBackGroundColor } from "../../utils/cell";
-import { getIsBillableValue, getTableCellClass, getTodayDateCellClass } from "../../utils/helper";
+import {
+  emptyProjectDayData,
+  ProjectAllWeekDataProps,
+  ProjectContext,
+  ProjectDataProps,
+  ProjectResourceProps,
+} from "../../store/projectContext";
+import { ResourceFormContext } from "../../store/resourceFormContext";
+import { AllocationDataProps, DateProps } from "../../store/types";
+import { getIsBillableValue } from "../../utils/helper";
 
 /**
  * This component is responsible for loading the table for project view.
@@ -49,25 +48,25 @@ const ResourceProjectTable = ({
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
   dateToAddHeaderRef: string;
 }) => {
-  const dates: DateProps[] = useSelector((state: RootState) => state.resource_project.data.dates);
-  const isLoading = useSelector((state: RootState) => state.resource_project.isLoading);
-  const maxWeek = useSelector((state: RootState) => state.resource_project.maxWeek);
-  const hasMore = useSelector((state: RootState) => state.resource_project.hasMore);
-  const start = useSelector((state: RootState) => state.resource_project.start);
-  const pageLength = useSelector((state: RootState) => state.resource_project.pageLength);
+  const { projectData, filters, apiController, getHasMore, setMaxWeek, setStart } = useContext(ProjectContext);
 
-  const dispatch = useDispatch();
+  const dates: DateProps[] = projectData.dates;
+  const isLoading = apiController.isLoading;
+  const maxWeek = filters.maxWeek;
+  const hasMore = getHasMore();
+  const start = filters.start;
+  const pageLength = filters.pageLength;
 
   const handleLoadMore = () => {
     if (isLoading) return;
-    dispatch(setMaxWeek(maxWeek + 3));
+    setMaxWeek(maxWeek + 3);
   };
 
   const cellHeaderRef = useInfiniteScroll({ isLoading: isLoading, hasMore: true, next: () => handleLoadMore() });
 
   const handleVerticalLoadMore = () => {
     if (!hasMore) return;
-    dispatch(setStart(start + pageLength));
+    setStart(start + pageLength);
   };
 
   if (dates.length == 0) {
@@ -106,9 +105,11 @@ const ResourceProjectTableBody = ({
 }: {
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const data = useSelector((state: RootState) => state.resource_project.data.data);
-  const dates = useSelector((state: RootState) => state.resource_project.data.dates);
-  const allocationType = useSelector((state: RootState) => state.resource_project.allocationType);
+  const { projectData, filters } = useContext(ProjectContext);
+
+  const data = projectData.data;
+  const dates = projectData.dates;
+  const allocationType = filters.allocationType;
 
   if (data.length == 0) {
     return <EmptyTableBody />;
@@ -211,11 +212,12 @@ const ResourceProjectTableCell = ({
   projectAllocations: ResourceAllocationObjectProps;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const tableView = useSelector((state: RootState) => state.resource_project.tableView);
-  const customer = useSelector((state: RootState) => state.resource_project.data.customer);
-  const allocationType = useSelector((state: RootState) => state.resource_project.allocationType);
+  const { projectData, tableView, filters } = useContext(ProjectContext);
 
-  const dispatch = useDispatch();
+  const customer = projectData.customer;
+  const allocationType = filters.allocationType;
+
+  const { updateAllocationData, updateDialogState } = useContext(ResourceFormContext);
 
   const allocationPercentage = useMemo(() => {
     if (tableView.combineWeekHours) {
@@ -284,25 +286,22 @@ const ResourceProjectTableCell = ({
   ]);
 
   const onCellClick = () => {
-    dispatch(
-      setResourceFormData({
-        isShowDialog: true,
-        employee: "",
-        employee_name: "",
-        project: project,
-        allocation_start_date: projectSingleDay.date,
-        allocation_end_date: projectSingleDay.date,
-        is_billable: getIsBillableValue(allocationType as string[]) != "0",
-        customer: "",
-        total_allocated_hours: "0",
-        hours_allocated_per_day: "0",
-        note: "",
-        project_name: project_name,
-        customer_name: "",
-        isNeedToEdit: false,
-        name: "",
-      })
-    );
+    updateDialogState({ isShowDialog: true, isNeedToEdit: false });
+    updateAllocationData({
+      employee: "",
+      employee_name: "",
+      project: project,
+      allocation_start_date: projectSingleDay.date,
+      allocation_end_date: projectSingleDay.date,
+      is_billable: getIsBillableValue(allocationType as string[]) != "0",
+      customer: "",
+      total_allocated_hours: "0",
+      hours_allocated_per_day: "0",
+      note: "",
+      project_name: project_name,
+      customer_name: "",
+      name: "",
+    });
   };
 
   const { date: dateStr, day } = prettyDate(projectSingleDay.date);
@@ -325,8 +324,7 @@ const ResourceProjectTableCell = ({
 
   if (cellValue == "-") {
     return (
-      <ResourceTableCell
-        type="empty"
+      <EmptyTableCell
         title={title}
         cellClassName={cn(
           getTableCellClass(rowCount, midIndex),

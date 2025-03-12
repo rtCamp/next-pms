@@ -5,6 +5,7 @@ import { useCallback, useContext, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { getUTCDateTime } from "@next-pms/design-system";
 import { Spinner, useToast } from "@next-pms/design-system/components";
+import { TableContextProvider } from "@next-pms/resource-management/store";
 import { useFrappePostCall } from "frappe-react-sdk";
 
 /**
@@ -12,7 +13,6 @@ import { useFrappePostCall } from "frappe-react-sdk";
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
-import { AllocationDataProps, PermissionProps } from "@/store/resource_management/allocation";
 
 import { ResourceTimLineHeaderSection } from "./components/header";
 import { ResourceTimeLine } from "./components/timeLine";
@@ -23,17 +23,20 @@ import {
   ResourceTimeLineDataProps,
 } from "./types";
 import AddResourceAllocations from "../components/addAllocation";
-import { TableContextProvider } from "../store/tableContext";
+import { ResourceContextProvider, ResourceFormContext } from "../store/resourceFormContext";
 import { TimeLineContext, TimeLineContextProvider } from "../store/timeLineContext";
+import { AllocationDataProps } from "../store/types";
 import { getIsBillableValue } from "../utils/helper";
 
 const ResourceTimeLineView = () => {
   return (
     <>
       <TableContextProvider>
-        <TimeLineContextProvider>
-          <ResourceTimeLineComponet />
-        </TimeLineContextProvider>
+        <ResourceContextProvider>
+          <TimeLineContextProvider>
+            <ResourceTimeLineComponet />
+          </TimeLineContextProvider>
+        </ResourceContextProvider>
       </TableContextProvider>
     </>
   );
@@ -56,10 +59,8 @@ const ResourceTimeLineComponet = () => {
     setAllocationData,
   } = useContext(TimeLineContext);
 
-  const resourceAllocationPermission: PermissionProps = useSelector(
-    (state: RootState) => state.resource_allocation_form.permissions
-  );
-  const resourceAllocationForm: AllocationDataProps = useSelector((state: RootState) => state.resource_allocation_form);
+  const { permission: resourceAllocationPermission, dialogState: resourceDialogState } =
+    useContext(ResourceFormContext);
 
   const { call: fetchData } = useFrappePostCall(
     "next_pms.resource_management.api.team.get_resource_management_team_view_data"
@@ -196,8 +197,8 @@ const ResourceTimeLineComponet = () => {
 
   const handleFormSubmit = useCallback(
     (
-      oldData: ResourceAllocationTimeLineProps | undefined = undefined,
-      newData: ResourceAllocationTimeLineProps | undefined = undefined
+      oldData: ResourceAllocationTimeLineProps | AllocationDataProps | undefined = undefined,
+      newData: ResourceAllocationTimeLineProps | AllocationDataProps | undefined = undefined
     ) => {
       if (!oldData || !newData) return;
       const employeeList = [];
@@ -268,7 +269,7 @@ const ResourceTimeLineComponet = () => {
         <ResourceTimeLine handleFormSubmit={handleFormSubmit} />
       )}
 
-      {resourceAllocationForm.isShowDialog && <AddResourceAllocations onSubmit={handleFormSubmit} />}
+      {resourceDialogState.isShowDialog && <AddResourceAllocations onSubmit={handleFormSubmit} />}
     </>
   );
 };

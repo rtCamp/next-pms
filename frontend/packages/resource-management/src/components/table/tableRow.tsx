@@ -16,9 +16,9 @@ import {
 /**
  * Internal dependencies.
  */
-import { cn } from "@/lib/utils";
-import { TableInformationCellContent } from "./tableCell";
-import { getTableCellRow } from "../utils/helper";
+import { ResourceTableCell, TableInformationCellContent } from "./tableCell";
+import { cn, getTableCellClass, getTableCellRow, getTodayDateCellClass } from "../../utils";
+
 interface ResourceTeamTableRowProps {
   name: string;
   avatar: string;
@@ -73,4 +73,45 @@ const ResourceTableRow = ({
   );
 };
 
-export { ResourceTableRow };
+/**
+ * Renders the disabled row for the resource management table.
+ *
+ * @param dates The dates list
+ * @param data The data to render, can be used to handle to show any data instead of - in emptycell.
+ * @param className The class name for the row.
+ * @param informationCellClassName The class name for the first cell.
+ * @param cellClassName The class name for cell.
+ * @returns React.FC
+ */
+const TableDisabledRow = ({
+  dates,
+  data,
+  className,
+  informationCellClassName,
+  cellClassName,
+}: {
+  dates: string[];
+  data?: Record<string, number>;
+  className?: string;
+  informationCellClassName?: string;
+  cellClassName?: string;
+}) => {
+  return (
+    <TableRow className={cn("flex items-center w-full border-0", className)}>
+      <TableInformationCellContent cellClassName={cn("pl-12", informationCellClassName)} value="Time Off" />
+
+      {dates.map((date: string, index: number) => {
+        return (
+          <ResourceTableCell
+            type="default"
+            key={date}
+            cellClassName={cn(getTableCellClass(index, 0), "bg-gray-200", getTodayDateCellClass(date), cellClassName)}
+            value={data && data[date] ? data[date] : "-"}
+          />
+        );
+      })}
+    </TableRow>
+  );
+};
+
+export { ResourceTableRow, TableDisabledRow };

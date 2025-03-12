@@ -1,8 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useCallback, useContext, useEffect } from "react";
 import { getFormatedDate } from "@next-pms/design-system/date";
 import { useQueryParam } from "@next-pms/hooks";
 import { addDays } from "date-fns";
@@ -13,23 +12,10 @@ import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
  */
 import { Header } from "@/app/components/list-view/header";
 
-import { RootState } from "@/store";
-import { PermissionProps, setDialog, setResourcePermissions } from "@/store/resource_management/allocation";
-import {
-  deleteFilters,
-  setAllocationType,
-  setBusinessUnit,
-  setCombineWeekHours,
-  setDesignation,
-  setEmployeeName,
-  setFilters,
-  setReportingManager,
-  setView,
-  setWeekDate,
-  Skill,
-  setSkillSearch,
-} from "@/store/resource_management/team";
 import SkillSearch from "./skillSearch";
+import { ResourceFormContext } from "../../store/resourceFormContext";
+import { Skill, TeamContext } from "../../store/teamContext";
+import { PermissionProps } from "../../store/types";
 
 /**
  * This component is responsible for loading the team view header.
@@ -46,12 +32,14 @@ const ResourceTeamHeaderSection = () => {
   const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParam<boolean>("combine-week-hours", false);
   const [skillSearchParam, setSkillSearchParam] = useQueryParam<Skill[]>("skill-search", []);
 
-  const resourceTeamState = useSelector((state: RootState) => state.resource_team);
-  const resourceTeamStateTableView = resourceTeamState.tableView;
-  const dispatch = useDispatch();
-  const resourceAllocationPermission: PermissionProps = useSelector(
-    (state: RootState) => state.resource_allocation_form.permissions
-  );
+  const { teamData, filters, tableView, updateFilter, setWeekDate, setCombineWeekHours, updateTableView } =
+    useContext(TeamContext);
+
+  const {
+    permission: resourceAllocationPermission,
+    updatePermission,
+    updateDialogState,
+  } = useContext(ResourceFormContext);
 
   const { call, loading } = useFrappePostCall(
     "next_pms.resource_management.api.permission.get_user_resources_permissions"
@@ -62,7 +50,7 @@ const ResourceTeamHeaderSection = () => {
   });
 
   useEffect(() => {
-    if (Object.keys(resourceAllocationPermission).length != 0) {
+    if (!resourceAllocationPermission.isNeedToSetPermission) {
       updateFilters(resourceAllocationPermission);
       return;
     }
@@ -71,7 +59,7 @@ const ResourceTeamHeaderSection = () => {
     call({}).then((res: { message: PermissionProps }) => {
       const resResourceAllocationPermission = res.message;
       updateFilters(resResourceAllocationPermission);
-      dispatch(setResourcePermissions(resResourceAllocationPermission));
+      updatePermission(resResourceAllocationPermission);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -85,34 +73,31 @@ const ResourceTeamHeaderSection = () => {
       }
     }
 
-    dispatch(
-      setFilters({
-        businessUnit: businessUnitParam,
-        employeeName: employeeNameParam,
-        reportingManager: reportingNameParam,
-        designation: designationParam,
-        allocationType: allocationTypeParam,
-        view: CurrentViewParam,
-        combineWeekHours: combineWeekHoursParam,
-        skillSearch: skillSearchParam,
-      })
-    );
+    updateFilter({
+      businessUnit: businessUnitParam,
+      employeeName: employeeNameParam,
+      reportingManager: reportingNameParam,
+      designation: designationParam,
+      allocationType: allocationTypeParam,
+      skillSearch: skillSearchParam,
+    });
+    updateTableView({ ...tableView, view: CurrentViewParam, combineWeekHours: combineWeekHoursParam });
   };
 
   const handleWeekViewChange = useCallback(() => {
-    setCombineWeekHoursParam(!resourceTeamStateTableView.combineWeekHours);
-    dispatch(setCombineWeekHours(!resourceTeamStateTableView.combineWeekHours));
-  }, [dispatch, resourceTeamStateTableView.combineWeekHours, setCombineWeekHoursParam]);
+    setCombineWeekHoursParam(!tableView.combineWeekHours);
+    setCombineWeekHours(!tableView.combineWeekHours);
+  }, [setCombineWeekHours, setCombineWeekHoursParam, tableView.combineWeekHours]);
 
   const handlePrevWeek = useCallback(() => {
-    const date = getFormatedDate(addDays(resourceTeamState.data.dates[0].start_date, -3));
-    dispatch(setWeekDate(date));
-  }, [dispatch, resourceTeamState.data.dates]);
+    const date = getFormatedDate(addDays(teamData.dates[0].start_date, -3));
+    setWeekDate(date);
+  }, [setWeekDate, teamData.dates]);
 
   const handleNextWeek = useCallback(() => {
-    const date = getFormatedDate(addDays(resourceTeamState.data.dates[0].end_date, +3));
-    dispatch(setWeekDate(date));
-  }, [dispatch, resourceTeamState.data.dates]);
+    const date = getFormatedDate(addDays(teamData.dates[0].end_date, +3));
+    setWeekDate(date);
+  }, [setWeekDate, teamData.dates]);
 
   return (
     <Header
@@ -120,13 +105,13 @@ const ResourceTeamHeaderSection = () => {
         {
           queryParameterName: "employee-name",
           handleChange: (value: string) => {
-            dispatch(setEmployeeName(value));
+            updateFilter({ employeeName: value });
           },
           handleDelete: () => {
-            dispatch(deleteFilters({ type: "employee", employeeName: "" }));
+            updateFilter({ employeeName: "" });
           },
           type: "search",
-          value: resourceTeamState.employeeName,
+          value: filters.employeeName,
           defaultValue: "",
           label: "Employee Name",
           queryParameterDefault: "",
@@ -134,13 +119,13 @@ const ResourceTeamHeaderSection = () => {
         {
           queryParameterName: "reports-to",
           handleChange: (value: string | string[]) => {
-            dispatch(setReportingManager(value as string));
+            updateFilter({ reportingManager: value as string });
           },
           handleDelete: () => {
-            dispatch(deleteFilters({ type: "repots-to", reportingManager: "" }));
+            updateFilter({ reportingManager: "" });
           },
           type: "search-employee",
-          value: resourceTeamState.reportingManager,
+          value: filters.reportingManager,
           defaultValue: "",
           label: "Reporting Manager",
           hide: !resourceAllocationPermission.write,
@@ -153,7 +138,7 @@ const ResourceTeamHeaderSection = () => {
           queryParameterDefault: [],
           label: "Skill",
           handleDelete: (value: string[]) => {
-            let prev_data = resourceTeamState?.skillSearch;
+            let prev_data = filters?.skillSearch;
             const operators = [">", "<", ">=", "<=", "="];
             const skills = value.map((value) => {
               // Iterate through each value and extract skill name
@@ -165,30 +150,30 @@ const ResourceTeamHeaderSection = () => {
               return value.trim();
             });
             prev_data = prev_data!.filter((obj) => skills.includes(obj.name));
-            dispatch(setSkillSearch(prev_data));
+            updateFilter({ skillSearch: prev_data });
           },
-          value: resourceTeamState.skillSearch?.map((obj) => obj.name + " " + obj.operator + " " + obj.proficiency * 5),
+          value: filters.skillSearch?.map((obj) => obj.name + " " + obj.operator + " " + obj.proficiency * 5),
           hide: !resourceAllocationPermission.write,
           customFilterComponent: (
             <SkillSearch
               onSubmit={(skills) => {
-                dispatch(setSkillSearch(skills));
+                updateFilter({ skillSearch: skills });
               }}
               setSkillSearchParam={setSkillSearchParam}
-              skillSearch={resourceTeamState?.skillSearch || []}
+              skillSearch={filters?.skillSearch || []}
             />
           ),
         },
         {
           queryParameterName: "business-unit",
           handleChange: (value: string | string[]) => {
-            dispatch(setBusinessUnit(value as string[]));
+            updateFilter({ businessUnit: value as string[] });
           },
           handleDelete: (value: string[] | undefined) => {
-            dispatch(deleteFilters({ type: "business-unit", businessUnit: value }));
+            updateFilter({ businessUnit: value });
           },
           type: "select-search",
-          value: resourceTeamState.businessUnit,
+          value: filters.businessUnit,
           label: "Business Unit",
           shouldFilterComboBox: true,
           isMultiComboBox: true,
@@ -205,18 +190,18 @@ const ResourceTeamHeaderSection = () => {
               revalidateIfStale: false,
             },
           },
-          queryParameterDefault: resourceTeamState.businessUnit,
+          queryParameterDefault: filters.businessUnit,
         },
         {
           queryParameterName: "designation",
           handleChange: (value: string | string[]) => {
-            dispatch(setDesignation(value as string[]));
+            updateFilter({ designation: value as string[] });
           },
           handleDelete: (value: string[] | undefined) => {
-            dispatch(deleteFilters({ type: "designation", designation: value }));
+            updateFilter({ designation: value });
           },
           type: "select-search",
-          value: resourceTeamState.designation,
+          value: filters.designation,
           shouldFilterComboBox: true,
           isMultiComboBox: true,
           label: "Designation",
@@ -234,18 +219,18 @@ const ResourceTeamHeaderSection = () => {
               revalidateIfStale: false,
             },
           },
-          queryParameterDefault: resourceTeamState.designation,
+          queryParameterDefault: filters.designation,
         },
         {
           queryParameterName: "allocation-type",
           handleChange: (value: string | string[]) => {
-            dispatch(setAllocationType(value as string[]));
+            updateFilter({ allocationType: value as string[] });
           },
           handleDelete: (value: string[] | undefined) => {
-            dispatch(deleteFilters({ type: "allocation-type", allocationType: value }));
+            updateFilter({ allocationType: value });
           },
           type: "select-list",
-          value: resourceTeamState.allocationType,
+          value: filters.allocationType,
           shouldFilterComboBox: true,
           isMultiComboBox: true,
           label: "Allocation Type",
@@ -259,16 +244,16 @@ const ResourceTeamHeaderSection = () => {
               value: "Non-Billable",
             },
           ],
-          queryParameterDefault: resourceTeamState.allocationType,
+          queryParameterDefault: filters.allocationType,
           hide: !resourceAllocationPermission.write,
         },
         {
           queryParameterName: "view-type",
           handleChange: (value: string) => {
-            dispatch(setView(value));
+            updateTableView({ ...tableView, view: value });
           },
           type: "select",
-          value: resourceTeamStateTableView.view,
+          value: tableView.view,
           defaultValue: "planned-vs-capacity",
           label: "Views",
           data: [
@@ -288,7 +273,7 @@ const ResourceTeamHeaderSection = () => {
           queryParameterName: "combine-week-hours",
           handleChange: handleWeekViewChange,
           type: "checkbox",
-          value: resourceTeamStateTableView.combineWeekHours,
+          value: tableView.combineWeekHours,
           defaultValue: false,
           label: "Combine Week Hours",
           queryParameterDefault: false,
@@ -298,7 +283,7 @@ const ResourceTeamHeaderSection = () => {
         {
           title: "add-allocation",
           handleClick: () => {
-            dispatch(setDialog(true));
+            updateDialogState({ isShowDialog: true, isNeedToEdit: false });
           },
           className: "px-3",
           icon: () => <Plus className="w-4 max-md:w-3 h-4 max-md:h-3 bg" />,
