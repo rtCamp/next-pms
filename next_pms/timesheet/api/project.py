@@ -109,3 +109,35 @@ def get_project_details(name):
         )
 
     return {"tabs": list(tab_fields.keys()), "fields_by_tab": tab_fields}
+
+
+@whitelist()
+def get_project_list(project_name=None, page_length=10, start=0, status=None, ignore_permissions=False):
+    fields = ["name", "project_name"]
+    filters = {"status": ["in", ["Open"]]}
+    or_filters = {}
+
+    if isinstance(status, str):
+        status = json.loads(status)
+        if len(status) > 0:
+            filters["status"] = ["in", status]
+
+    if isinstance(status, list):
+        if len(status) > 0:
+            filters["status"] = ["in", status]
+
+    if project_name:
+        or_filters["project_name"] = ["like", f"%{project_name}%"]
+
+    projects = get_list(
+        "Project",
+        fields=fields,
+        filters=filters,
+        or_filters=or_filters,
+        page_length=page_length,
+        start=start,
+        ignore_permissions=ignore_permissions,
+        order_by="project_name asc",
+    )
+
+    return projects

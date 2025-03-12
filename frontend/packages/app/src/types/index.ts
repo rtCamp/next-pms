@@ -28,7 +28,6 @@ export type ProjectProps = {
   name: string;
 };
 
-
 export type sortOrder = "asc" | "desc";
 
 export type fieldMetaProps = {
@@ -36,11 +35,16 @@ export type fieldMetaProps = {
   fieldname: string;
   fieldtype: string;
   options?: string;
-}
+};
 
 export interface DocMetaProps {
   default_fields: Array<fieldMetaProps>;
   doctype: string;
   fields: Array<fieldMetaProps>;
   title_field: string;
-} 
+}
+
+export type Project = {
+  name: string;
+  project_name: string;
+};

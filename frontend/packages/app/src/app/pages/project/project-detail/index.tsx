@@ -43,7 +43,7 @@ const ProjectDetail = () => {
   }, [data, isLoading, error, mutate]);
   return (
     <>
-      <EmployeeDetailHeader />
+      <EmployeeDetailHeader projectId={projectId!} />
       <Main className="w-full h-full overflow-y-auto">
         {isLoading ? <Spinner isFull /> : data?.message?.tabs && <ProjectTabs tabs={data?.message?.tabs} />}
       </Main>
