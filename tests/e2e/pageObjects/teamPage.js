@@ -122,6 +122,13 @@ export class TeamPage {
     await cell.click();
   }
 
+  /**
+   * Retrieves the time entry section for the specified date.
+   */
+  async getTimeEntrySection(date) {
+    return this.reviewTimesheetPane.locator(`//p[contains(text(),'${date}')]/parent::div/parent::div`);
+  }
+
   // --------------------------------------
   // Parent Table Actions
   // --------------------------------------
