@@ -16,6 +16,7 @@ let TC4data = data.TC4;
 let TC5data = data.TC5;
 let TC6data = data.TC6;
 let TC72data = data.TC72;
+let TC73data = data.TC73;
 
 // ------------------------------------------------------------------------------------------
 
@@ -169,4 +170,13 @@ test("TC72: Verify the 'Import liked tasks' option.", async ({}) => {
 
   // Assertions
   expect(tasks.sort()).toEqual(TC72data.tasks.sort());
+});
+
+test("TC73: Verify an employee can apply for leave via Timesheet tab.", async ({}) => {
+  // Apply for leave
+  await timesheetPage.applyForLeave(TC73data.leave.desc);
+
+  // Assertions
+  const cellText = await timesheetPage.getCellText(TC73data.cell);
+  expect(cellText).toContain("8");
 });

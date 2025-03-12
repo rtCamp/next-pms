@@ -1,5 +1,6 @@
-import { createInitialTimeEntires } from "../helpers/timesheetHelper";
+import { createInitialTimeEntries } from "../helpers/timesheetHelper";
 import { storeStorageState } from "../helpers/storageStateHelper";
+import { updateInitialLeaveEntries } from "../helpers/leaveHelper";
 
 // ------------------------------------------------------------------------------------------
 
@@ -9,7 +10,10 @@ import { storeStorageState } from "../helpers/storageStateHelper";
  */
 const globalSetup = async () => {
   // Create initial time entries required for tests
-  await createInitialTimeEntires();
+  await createInitialTimeEntries();
+
+  // Update dynamic fields of initial leave entries
+  await updateInitialLeaveEntries();
 
   // Perform login and store authentication state for later use
   await storeStorageState("employee");

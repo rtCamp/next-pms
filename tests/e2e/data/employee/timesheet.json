@@ -156,6 +156,11 @@
     },
     "leave": {
       "desc": "TC73 - Leave added via automation."
+    },
+    "payloadFilterLeaveEntry": {
+      "description": "TC73 - Leave added via automation.",
+      "status": "Open",
+      "leave_type": "Unpaid Time Off"
     }
   }
 }

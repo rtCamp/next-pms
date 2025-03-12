@@ -77,9 +77,9 @@ export const actOnLeave = async ({ action, leaveDetails }) => {
 // ------------------------------------------------------------------------------------------
 
 /**
- * Retrieves leave application details with specified filters.
+ * Retrieves leave applications with specified filters.
  */
-export const getLeaveDetails = async ({ filters }) => {
+export const getLeaves = async (filters) => {
   // Ensure the user is logged in before making API requests
   if (context === undefined || context === null) {
     await login();
@@ -89,8 +89,24 @@ export const getLeaveDetails = async ({ filters }) => {
     JSON.stringify(filters)
   )}`;
 
-  // Fetch leave details
+  // Fetch leave applications
   const response = await context.get(endpoint);
+
+  return await response;
+};
+
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Retrieves details of a specified leave.
+ */
+export const getLeaveDetails = async (name) => {
+  // Ensure the user is logged in before making API requests
+  if (context === undefined || context === null) {
+    await login();
+  }
+
+  const response = await context.get(`/api/resource/Leave%20Application/${name}`);
 
   return await response;
 };

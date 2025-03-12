@@ -22,7 +22,7 @@ const empID = process.env.EMP_ID;
  * - TC6: Updates time entry and creates a timesheet entry.
  * - TC7: Updates time entry and creates a timesheet entry.
  */
-export const createInitialTimeEntires = async () => {
+export const createInitialTimeEntries = async () => {
   const employeeTimesheetDataFilePath = path.resolve(__dirname, "../data/employee/shared-timesheet.json"); // File path of the employee timesheet data JSON file
 
   var formattedDate;
@@ -97,7 +97,7 @@ export const createInitialTimeEntires = async () => {
  * Calls `deleteTimesheet` to remove each fetched entry from the system.
  * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7
  */
-export const deleteStaleTimeEntires = async () => {
+export const deleteStaleTimeEntries = async () => {
   const sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
   var filteredTimeEntry = {};
 
