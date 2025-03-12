@@ -20,6 +20,13 @@ export class TeamPage {
     this.prevButton = page.getByRole("button", { name: "prev-week" });
     this.nextButton = page.getByRole("button", { name: "next-week" });
 
+    // Review Timesheet Pane
+    this.reviewTimesheetPane = page.getByRole("dialog").filter({
+      has: page.locator("h2", { hasText: /^Week of/ }),
+      has: page.getByRole("button", { name: "Approve" }),
+      has: page.getByRole("button", { name: "Reject" }),
+    });
+
     // Parent Table
     this.parentTable = page.getByRole("table").first();
   }
@@ -94,6 +101,25 @@ export class TeamPage {
    */
   async viewNextWeek() {
     await this.nextButton.click();
+  }
+
+  // --------------------------------------
+  // Review Timesheet Pane
+  // --------------------------------------
+
+  /**
+   * Checks if the 'Review Timesheet' pane is visible.
+   */
+  async isReviewTimesheetPaneVisible() {
+    return await this.reviewTimesheetPane.isVisible();
+  }
+
+  /**
+   * Opens the 'Review Timesheet' pane for a specified employee.
+   */
+  async openReviewTimesheetPane(employee) {
+    const cell = await this.getCell({ employee: employee, rowName: "employee header", col: "status" });
+    await cell.click();
   }
 
   // --------------------------------------

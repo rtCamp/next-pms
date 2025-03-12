@@ -149,7 +149,7 @@ test("TC9: Open task details popup", async ({}) => {
   expect(isTaskDetailsDialogVisible).toBeTruthy();
 });
 
-test("TC71: Verify that the review timesheet panel is not available for an employee.", async ({}) => {
+test("TC71: Verify that the review timesheet pane is not available for an employee.", async ({}) => {
   // Click on timesheet status
   await timesheetPage.clickonTimesheetStatus();
 

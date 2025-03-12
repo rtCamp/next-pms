@@ -26,7 +26,7 @@ export class TimesheetPage {
       has: page.getByRole("button", { name: "Submit For Approval" }),
     });
 
-    // Panes
+    // Review Timesheet Pane (Not a part of this page)
     this.reviewTimesheetPane = page.getByRole("dialog").filter({
       has: page.locator("h2", { hasText: /^Week of/ }),
       has: page.getByRole("button", { name: "Approve" }),
@@ -180,11 +180,11 @@ export class TimesheetPage {
   }
 
   // --------------------------------------
-  // Review Timesheet Panel
+  // Review Timesheet Pane
   // --------------------------------------
 
   /**
-   * Checks if the 'Review Timesheet' panel is visible.
+   * Checks if the 'Review Timesheet' pane is visible.
    */
   async isReviewTimesheetPaneVisible() {
     return await this.reviewTimesheetPane.isVisible();
