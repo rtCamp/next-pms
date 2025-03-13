@@ -21,7 +21,7 @@
         "README.md"
     ],
     "dependencies": {
-        "frappe-react-sdk": "^1.9.0"
+        "frappe-react-sdk": "^1.11.0"
     },
     "peerDependencies": {
         "react": "^18.3.1",
