@@ -137,7 +137,7 @@ test("TC39: Validate the modification of the employee timesheet or the deletion 
   expect(cellText).toContain(TC39data.taskInfo.duration);
 });
 
-test("TC41: Approving or rejecting timesheet for the employee", async ({ page }) => {
+test("TC41: Rejecting timesheet for the employee", async ({ page }) => {
   // View next week
   await teamPage.viewNextWeek();
 
