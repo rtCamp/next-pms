@@ -20,24 +20,13 @@ import {
 } from "@next-pms/design-system/components";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { ChevronDown, Check } from "lucide-react";
+
 /**
  * Internal dependencies.
  */
-
 import { cn } from "@/lib/utils";
-import { Employee } from "@/types";
-
-interface EmployeeComboProps {
-  disabled?: boolean;
-  value: string;
-  onSelect: (name: string) => void;
-  className?: string;
-  label?: string;
-  status?: Array<string>;
-  employeeName?: string;
-  pageLength?: number;
-  ignoreDefaultFilters?: boolean;
-}
+import type { Employee } from "@/types";
+import type { EmployeeComboProps } from "./types";
 
 /**
  * Variation of combo box for selecting employee.

@@ -30,22 +30,13 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-
 import { TEAM, EMPLOYEE } from "@/lib/constant";
 import { cn, parseFrappeErrorMsg, calculateExtendedWorkingHour } from "@/lib/utils";
-import { WorkingFrequency } from "@/types";
 import { dataItem } from "@/types/team";
 import { Header } from "./header";
-import { initialState, homeReducer, DateProps } from "./reducer";
-type DataItem = {
-  data: dataItem[];
-  name: string;
-  image: string;
-  employee_name: string;
-  working_hour: number;
-  working_frequency: WorkingFrequency;
-  status: string;
-};
+import { initialState, homeReducer } from "./reducer";
+import type { DataItem, DateProps } from "./types";
+
 const Home = () => {
   const { toast } = useToast();
   const [homeState, dispatch] = useReducer(homeReducer, initialState);

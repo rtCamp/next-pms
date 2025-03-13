@@ -13,10 +13,9 @@ import { useFrappePostCall } from "frappe-react-sdk";
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
-
 import { ResourceTimLineHeaderSection } from "./components/header";
 import { ResourceTimeLine } from "./components/timeLine";
-import {
+import type {
   ResourceAllocationEmployeeProps,
   ResourceAllocationTimeLineProps,
   ResourceTeamAPIBodyProps,
@@ -25,7 +24,7 @@ import {
 import AddResourceAllocations from "../components/addAllocation";
 import { ResourceContextProvider, ResourceFormContext } from "../store/resourceFormContext";
 import { TimeLineContext, TimeLineContextProvider } from "../store/timeLineContext";
-import { AllocationDataProps } from "../store/types";
+import type { AllocationDataProps } from "../store/types";
 import { getIsBillableValue } from "../utils/helper";
 
 const ResourceTimeLineView = () => {

@@ -14,18 +14,14 @@ import moment from "moment";
 /**
  * Internal dependencies.
  */
-import { ResourceAllocationProps } from "@/types/resource_management";
+import type { ResourceAllocationProps } from "@/types/resource_management";
 import ResourceTimeLineGroup from "./group";
-import { ResourceAllocationEmployeeProps, ResourceAllocationTimeLineProps } from "../types";
+import type { ResourceAllocationEmployeeProps, ResourceAllocationTimeLineProps, ResourceTimeLineProps } from "../types";
 import { TimeLineDateHeader, TimeLineIntervalHeader } from "./header";
 import ResourceTimeLineItem, { ItemAllocationActionDialog } from "./item";
 import { ResourceFormContext } from "../../store/resourceFormContext";
 import { TimeLineContext } from "../../store/timeLineContext";
 import { getDayKeyOfMoment } from "../../utils/dates";
-
-interface ResourceTimeLineProps {
-  handleFormSubmit: (oldData: ResourceAllocationTimeLineProps, newData: ResourceAllocationTimeLineProps) => void;
-}
 
 const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
   const { tableProperties, getCellWidthString } = useContext(TableContext);

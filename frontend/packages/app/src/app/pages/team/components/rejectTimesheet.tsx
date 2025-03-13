@@ -3,7 +3,6 @@
  */
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Dialog,
@@ -32,15 +31,7 @@ import { z } from "zod";
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetRejectionSchema } from "@/schema/timesheet";
-
-type TimesheetRejectionProps = {
-  onRejection: () => void;
-  dates: Array<string>;
-  employee: string;
-  disabled: boolean;
-  isRejecting: boolean;
-  setIsRejecting: React.Dispatch<React.SetStateAction<boolean>>;
-};
+import type { TimesheetRejectionProps } from "./types";
 
 export const RejectTimesheet = ({
   onRejection,

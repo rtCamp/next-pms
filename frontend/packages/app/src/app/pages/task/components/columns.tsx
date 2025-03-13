@@ -1,35 +1,22 @@
 /**
  * External dependencies.
  */
-import React from "react";
 import { Typography, TaskStatus } from "@next-pms/design-system/components";
 import { floatToTime } from "@next-pms/design-system/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { Clock, Heart } from "lucide-react";
+
 /**
  * Internal dependencies.
  */
 import { DataCell } from "@/app/components/list-view/dataCell";
 import { cn, isLiked } from "@/lib/utils";
 import { UserState } from "@/store/user";
-import { DocMetaProps, TaskData } from "@/types";
-import { ColumnsType } from "@/types/task";
+import type { TaskData } from "@/types";
+import type { ColumnsType } from "@/types/task";
 import { TaskPriority } from "./taskPriority";
+import type { FieldMeta, handleAddTimeType, handleLikeType, openTaskLogType } from "./types";
 
-export type columnWidthType = {
-  subject: string;
-  due_date: string;
-  project_name: string;
-  status: string;
-  priority: string;
-  expected_time: string;
-  actual_time: string;
-};
-export type openTaskLogType = (taskName: string) => void;
-export type handleAddTimeType = (taskName: string) => void;
-export type handleLikeType = (e: React.MouseEvent<SVGSVGElement>) => void;
-
-type FieldMeta = Omit<DocMetaProps, "title_field" | "doctype" | "default_fields">;
 export const getColumn = (
   fieldMeta: FieldMeta["fields"],
   fieldInfo: Array<string>,

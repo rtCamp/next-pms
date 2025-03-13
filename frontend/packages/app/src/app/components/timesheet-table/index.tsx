@@ -10,33 +10,13 @@ import { TaskLog } from "@/app/pages/task/components/taskLog";
 import { LIKED_TASK_KEY } from "@/lib/constant";
 import { getLocalStorage, hasKeyInLocalStorage, removeFromLikedTask, setLikedTask } from "@/lib/storage";
 import { expectatedHours, getHolidayList } from "@/lib/utils";
-import { WorkingFrequency } from "@/types";
-import { HolidayProp, LeaveProps, TaskDataProps, TaskProps } from "@/types/timesheet";
+import { TaskDataProps } from "@/types/timesheet";
 import { Header } from "./components/header";
 import { Row } from "./components/row";
 import { EmptyRow } from "./components/row/emptyRow";
 import { LeaveRow } from "./components/row/leaveRow";
 import { TotalHourRow } from "./components/row/totalRow";
-
-type timesheetTableProps = {
-  dates: string[];
-  holidays: Array<HolidayProp>;
-  tasks: TaskProps;
-  leaves: Array<LeaveProps>;
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  onCellClick?: (data) => void;
-  showHeading?: boolean;
-  workingHour: number;
-  disabled?: boolean;
-  workingFrequency: WorkingFrequency;
-  weeklyStatus?: string;
-  importTasks?: boolean;
-  loadingLikedTasks?: boolean;
-  likedTaskData?: Array<object>;
-  getLikedTaskData?: () => void;
-  hideLikeButton?:boolean;
-};
+import type { timesheetTableProps } from "./components/types";
 
 export const TimesheetTable = ({
   dates,

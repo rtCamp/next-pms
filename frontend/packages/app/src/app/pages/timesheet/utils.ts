@@ -1,29 +1,14 @@
+/**
+ * Internal dependencies
+ */
 import { getFormatedDate, normalizeDate } from "@next-pms/design-system";
 import { isDateInRange } from "@/lib/utils";
-import { DataProp } from "@/types/timesheet";
+import type { TimesheetState } from "./components/types";
 
-export interface TimesheetState {
-  timesheet: {
-    name: string;
-    task: string;
-    date: string;
-    description: string;
-    hours: number;
-    employee: string;
-    project?: string;
-  };
-  dateRange: { start_date: string; end_date: string };
-
-  data: DataProp;
-  isDialogOpen: boolean;
-  isEditDialogOpen: boolean;
-  isAprrovalDialogOpen: boolean;
-  isLeaveDialogOpen: boolean;
-  weekDate: string;
-}
-
-
-export const validateDate = (startDateParam:string,timesheet:TimesheetState) => {
+export const validateDate = (
+  startDateParam: string,
+  timesheet: TimesheetState
+) => {
   if (!startDateParam) {
     return true;
   }

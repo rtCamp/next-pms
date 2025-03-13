@@ -6,7 +6,7 @@ import { Button } from "@next-pms/design-system/components";
 /**
  * Internal dependencies
  */
-import { HeaderProps, FilterPops, ButtonProps } from "@/app/components/list-view/type";
+import type { HeaderProps, FilterPops, ButtonProps } from "@/app/components/list-view/types";
 import { Header as RootHeader } from "@/app/layout/root";
 import { cn } from "@/lib/utils";
 import Action from "./action";

@@ -38,7 +38,7 @@ import { z } from "zod";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import { ResourceAllocationSchema } from "@/schema/resource";
 import { ResourceFormContext } from "../store/resourceFormContext";
-import { AllocationDataProps, ResourceKeys } from "../store/types";
+import type { AllocationDataProps, ResourceKeys } from "../store/types";
 import { getRoundOfValue } from "../utils/helper";
 
 /**

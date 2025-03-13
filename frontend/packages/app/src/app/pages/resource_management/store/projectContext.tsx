@@ -3,95 +3,21 @@
  */
 import { createContext, useState } from "react";
 import { getFormatedDate, getTodayDate } from "@next-pms/design-system";
-import { ResourceAllocationObjectProps, ResourceCustomerObjectProps } from "@/types/resource_management";
 
 /**
  * Internal dependencies.
  */
-import { APIController, ContextProviderProps, DateProps, TableViewProps } from "./types";
-
-export type ProjectAllWeekDataProps = {
-  total_allocated_hours: number;
-  total_worked_hours: number;
-};
-
-export interface ResourceProjectDataProps {
-  data: ProjectDataProps[];
-  dates: DateProps[];
-  customer: ResourceCustomerObjectProps;
-  total_count: number;
-  has_more: boolean;
-}
-
-export type ProjectAllocationForDateProps = {
-  name: string;
-  date: string;
-};
-
-export type ProjectResourceProps = {
-  date: string;
-  total_allocated_hours: number;
-  total_worked_hours: number;
-  project_resource_allocation_for_given_date: ProjectAllocationForDateProps[];
-};
-
-export type ProjectDataProps = {
-  name: string;
-  image: string;
-  project_name: string;
-  all_dates_data: Record<string, ProjectResourceProps>;
-  all_week_data: ProjectAllWeekDataProps[];
-  project_allocations: ResourceAllocationObjectProps;
-};
-
-export interface ResourceProjectFilter {
-  projectName?: string;
-  weekDate: string;
-  pageLength: number;
-  businessUnit?: string[];
-  start: number;
-  reportingManager: string;
-  customer?: string[];
-  allocationType?: string[];
-  maxWeek: number;
-  employeeWeekDate: string;
-  billingType?: string[];
-}
-
-export interface OptionalResourceProjectFilters {
-  projectName?: string;
-  weekDate?: string;
-  pageLength?: number;
-  businessUnit?: string[];
-  start?: number;
-  reportingManager?: string;
-  customer?: string[];
-  allocationType?: string[];
-  maxWeek?: number;
-  employeeWeekDate?: string;
-  billingType?: string[];
-}
-
-export interface ResourceProjectState {
-  projectData: ResourceProjectDataProps;
-  filters: ResourceProjectFilter;
-  tableView: TableViewProps;
-  apiController: APIController;
-}
-
-interface ProjectContextProps extends ResourceProjectState {
-  setStart: (start: number) => void;
-  updateTableView: (updatedTableView: TableViewProps) => void;
-  resetState: () => void;
-  setReFetchData: (value: boolean) => void;
-  updateFilter: (updatedFilters: OptionalResourceProjectFilters) => void;
-  updateProjectData: (updatedProjectData: ResourceProjectDataProps, type?: "SET" | "UPDATE") => void;
-  getHasMore: () => boolean;
-  setMaxWeek: (maxWeek: number) => void;
-  setDates: (dates: DateProps[]) => void;
-  setCombineWeekHours: (value: boolean) => void;
-  setWeekDate: (value: string) => void;
-}
+import type {
+  APIController,
+  ContextProviderProps,
+  DateProps,
+  OptionalResourceProjectFilters,
+  ProjectContextProps,
+  ProjectResourceProps,
+  ResourceProjectDataProps,
+  ResourceProjectFilter,
+  TableViewProps,
+} from "./types";
 
 const emptyProjectDayData: ProjectResourceProps = {
   date: "None",

@@ -1,17 +1,24 @@
+/**
+ * External dependencies
+ */
 import {
   getDateFromDateAndTimeString,
   getFormatedDate,
   normalizeDate,
 } from "@next-pms/design-system";
+
+/**
+ * Internal dependencies
+ */
 import { isDateInRange } from "@/lib/utils";
-import {
+import type {
   TaskDataItemProps,
   TaskDataProps,
   TaskProps,
   HolidayProp,
   LeaveProps,
 } from "@/types/timesheet";
-import { TeamState } from "./reducer";
+import type { TeamState } from "./employee-detail/types";
 
 export const validateDate = (startDateParam: string, teamState: TeamState) => {
   if (!startDateParam) {

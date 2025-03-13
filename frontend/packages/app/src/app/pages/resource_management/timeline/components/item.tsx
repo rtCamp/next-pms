@@ -2,7 +2,6 @@
  * External dependencies.
  */
 import { useState } from "react";
-import { ItemContext } from "react-calendar-timeline";
 import { getDayDiff, prettyDate } from "@next-pms/design-system";
 import {
   Avatar,
@@ -24,15 +23,7 @@ import { X, Move, Copy, CalendarX } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DeleteIcon } from "../../components/resourceAllocationList";
 import { getInitials } from "../../utils/helper";
-
-import { ResourceAllocationItemProps, ResourceAllocationTimeLineProps } from "../types";
-
-interface ResourceTimeLineItemProps {
-  item: ResourceAllocationTimeLineProps;
-  itemContext: ItemContext;
-  getItemProps: (itemProps: ResourceAllocationItemProps) => ResourceAllocationItemProps;
-  getResizeProps: () => { left: object; right: object };
-}
+import type { ResourceTimeLineItemProps } from "../types";
 
 const ResourceTimeLineItem = ({ item, itemContext, getItemProps, getResizeProps }: ResourceTimeLineItemProps) => {
   if (item.type == "leave") {

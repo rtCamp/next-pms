@@ -22,34 +22,16 @@ import {
 /**
  * Internal dependencies.
  */
-
 import { HOME, PROJECT, RESOURCE_MANAGEMENT, ROLES, TASK, TEAM, TIMESHEET } from "@/lib/constant";
 import { setLocalStorage } from "@/lib/storage";
 import { checkIsMobile, cn } from "@/lib/utils";
 import { setSidebarCollapsed } from "@/store/user";
+import type { NestedRoute, Route } from "./types";
 import UserNavigation from "./userNavigation";
 import ViewLoader from "./viewLoader";
 import logo from "../../../logo.svg";
 import { RootState } from "../../../store";
-import { ViewData } from "../../../store/view";
-
-type NestedRoute = {
-  to: string;
-  label: string;
-  key: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  icon?: any;
-};
-
-type Route = {
-  to: string;
-  label: string;
-  key: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  icon?: any;
-  children?: NestedRoute[];
-  isPmRoute: boolean;
-};
+import type { ViewData } from "../../../store/view";
 
 const Sidebar = () => {
   const user = useSelector((state: RootState) => state.user);

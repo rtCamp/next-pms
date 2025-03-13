@@ -15,21 +15,8 @@ import { CirclePlus } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { EmptyTableCellProps } from "./types";
+import type { EmptyTableCellProps, ResourceTableProps } from "./types";
 import { cn, getFilterValue } from "../../utils";
-
-interface ResourceTableProps {
-  type: "hovercard" | "empty" | "default";
-  CustomHoverCardContent?: React.FC;
-  cellTypographyClassName?: string;
-  cellClassName?: string;
-  CellContent?: React.FC;
-  title?: string;
-  ref?: React.RefObject<HTMLTableCellElement>;
-  value: number | string | boolean | "";
-  style?: React.CSSProperties;
-  onCellClick?: () => void;
-}
 
 /**
  * This component is responsible to render a table cell based on it type dynamically.

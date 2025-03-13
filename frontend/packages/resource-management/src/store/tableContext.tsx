@@ -1,13 +1,12 @@
-import { useState, createContext, ReactNode, useCallback } from "react";
+/**
+ * External dependencies.
+ */
+import { useState, createContext, useCallback } from "react";
 
-interface TableContextProps {
-  cellWidth: number;
-  firstCellWidth: number;
-}
-
-interface TableContextProviderProps {
-  children: ReactNode;
-}
+/**
+ * Internal dependencies.
+ */
+import type { TableContextProps, TableContextProviderProps } from "./types";
 
 const TableContext = createContext<{
   tableProperties: TableContextProps;

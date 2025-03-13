@@ -6,27 +6,21 @@ import { getNextDate } from "@next-pms/design-system";
 import { Spinner, useToast } from "@next-pms/design-system/components";
 import { useInfiniteScroll } from "@next-pms/hooks";
 import { useFrappePostCall } from "frappe-react-sdk";
+
 /**
  * Internal dependencies.
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
-
 import AddResourceAllocations from "../components/addAllocation";
 import { ResourceTeamHeaderSection } from "./components/header";
 import { ResourceTeamTable } from "./components/table";
 import { ResourceContextProvider, ResourceFormContext } from "../store/resourceFormContext";
-import { EmployeeDataProps, ResourceTeamDataProps, TeamContext, TeamContextProvider } from "../store/teamContext";
-import { AllocationDataProps, DateProps } from "../store/types";
-import { ResourceTeamAPIBodyProps } from "../timeline/types";
+import { TeamContext, TeamContextProvider } from "../store/teamContext";
+import type { AllocationDataProps, DateProps, EmployeeDataProps, ResourceTeamDataProps } from "../store/types";
+import type { ResourceTeamAPIBodyProps } from "../timeline/types";
 import { getDatesArrays } from "../utils/dates";
 import { getIsBillableValue } from "../utils/helper";
-
-interface PreProcessDataProps extends ResourceTeamDataProps {
-  date: string;
-  max_week: number;
-  start: number;
-  page_length: number;
-}
+import type { PreProcessDataProps } from "./components/types";
 
 const ResourceTeamViewWrapper = () => {
   return (

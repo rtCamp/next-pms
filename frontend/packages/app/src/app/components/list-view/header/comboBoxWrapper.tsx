@@ -7,7 +7,7 @@ import { Filter } from "lucide-react";
 /**
  * Internal dependencies
  */
-import { FilterPops, ApiCallProps } from "@/app/components/list-view/type";
+import type { FilterPops, ApiCallProps } from "@/app/components/list-view/types";
 import { cn } from "@/lib/utils";
 
 /**
@@ -17,7 +17,13 @@ import { cn } from "@/lib/utils";
  * @param props.handleChangeWrapper The handle change wrapper function.
  * @returns React.FC
  */
-const ComboBoxWrapper = ({ filter, handleChangeWrapper }: { filter: FilterPops; handleChangeWrapper: any }) => {
+const ComboBoxWrapper = ({
+  filter,
+  handleChangeWrapper,
+}: {
+  filter: FilterPops;
+  handleChangeWrapper: (value: string | string[]) => void;
+}) => {
   const apiCall: ApiCallProps | undefined = filter.apiCall;
 
   const { data, mutate } = useFrappeGetCall(

@@ -24,7 +24,6 @@ export const Header = ({ children, className, parentClassName }: Props) => {
   );
 };
 
-
 export const Main = ({ children, className }: Props) => {
   return (
     <div className="overflow-auto h-full w-full">
