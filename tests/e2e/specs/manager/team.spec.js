@@ -18,7 +18,7 @@ let TC34data = data.TC34;
 let TC39data = data.TC39;
 let TC41data = data.TC41;
 let TC37data = data.TC37;
-let TC75data = data.TC75;
+let TC77data = data.TC77;
 
 // ------------------------------------------------------------------------------------------
 
@@ -157,10 +157,10 @@ test("TC41: Rejecting timesheet for the employee", async ({ page }) => {
   expect(status).toBe("Rejected");
 });
 
-test("TC75: Verify the manager view.", async ({}) => {
+test("TC77: Verify the manager view.", async ({}) => {
   // Retrive employees from the parent table
   const employees = await teamPage.getEmployees();
 
   // Assertions
-  expect(employees.sort()).toEqual(TC75data.employees.sort());
+  expect(employees.sort()).toEqual(TC77data.employees.sort());
 });
