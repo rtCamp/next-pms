@@ -95,7 +95,7 @@
   "TC6": {
     "cell": {
       "rowName": "Prod support calls",
-      "col": "Fri"
+      "col": "Tue"
     },
     "taskInfo": {
       "duration": "1",
@@ -119,12 +119,6 @@
     "cell": {
       "rowName": "Meetings",
       "col": "Mon"
-    },
-    "taskInfo": {
-      "duration": "1",
-      "project": "QE - Non-Billable",
-      "task": "Meetings",
-      "desc": "TC7 - Task added via automation."
     },
     "payloadCreateTimesheet": {
       "task": "TASK-2025-00614",

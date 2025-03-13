@@ -3,6 +3,7 @@ import fs from "fs";
 import { getWeekdayName, getFormattedDate, getDateForWeekday } from "../utils/dateUtils";
 import { createTimesheet, getTimesheetDetails, deleteTimesheet } from "../utils/api/timesheetRequests";
 import employeeTimesheetData from "../data/employee/timesheet.json";
+import managerTeamData from "../data/manager/team.json";
 import { readJSONFile } from "../utils/fileUtils";
 
 // Load env variables
@@ -14,16 +15,11 @@ const empID = process.env.EMP_ID;
  * Updates employee timesheet data by dynamically setting date values for different test cases.
  * It modifies the JSON data with the current date values, associates it with the employee ID,
  * and creates time entries for specific test cases. Finally, it writes the updated data back to the file.
- *
- * - TC2: Updates time entry with today's weekday.
- * - TC3: Updates time entry based on stored weekday column.
- * - TC4: Updates time entry and creates a timesheet entry.
- * - TC5: Updates time entry and creates a timesheet entry.
- * - TC6: Updates time entry and creates a timesheet entry.
- * - TC7: Updates time entry and creates a timesheet entry.
+ * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC39, TC41
  */
 export const createInitialTimeEntries = async () => {
   const employeeTimesheetDataFilePath = path.resolve(__dirname, "../data/employee/shared-timesheet.json"); // File path of the employee timesheet data JSON file
+  const managerTeamDataFilePath = path.resolve(__dirname, "../data/manager/shared-team.json"); // File path of the manager team data JSON file
 
   var formattedDate;
 
@@ -85,8 +81,29 @@ export const createInitialTimeEntries = async () => {
 
   await createTimesheet(employeeTimesheetData.TC7.payloadCreateTimesheet);
 
+  // Fetch TC39 task, update dynamic fields and create time entry
+  formattedDate = getFormattedDate(getDateForWeekday(managerTeamData.TC39.cell.col));
+
+  managerTeamData.TC39.payloadCreateTimesheet.date = formattedDate;
+  managerTeamData.TC39.payloadCreateTimesheet.employee = empID;
+  managerTeamData.TC39.payloadFilterTimeEntry.from_time = formattedDate;
+  managerTeamData.TC39.payloadFilterTimeEntry.employee = empID;
+
+  await createTimesheet(managerTeamData.TC39.payloadCreateTimesheet);
+
+  // Fetch TC41 task, update dynamic fields and create time entry
+  formattedDate = getFormattedDate(getDateForWeekday(managerTeamData.TC41.cell.col));
+
+  managerTeamData.TC41.payloadCreateTimesheet.date = formattedDate;
+  managerTeamData.TC41.payloadCreateTimesheet.employee = empID;
+  managerTeamData.TC41.payloadFilterTimeEntry.from_time = formattedDate;
+  managerTeamData.TC41.payloadFilterTimeEntry.employee = empID;
+
+  await createTimesheet(managerTeamData.TC41.payloadCreateTimesheet);
+
   // Write back updated JSON
   fs.writeFileSync(employeeTimesheetDataFilePath, JSON.stringify(employeeTimesheetData, null, 2));
+  fs.writeFileSync(managerTeamDataFilePath, JSON.stringify(managerTeamData, null, 2));
 };
 
 // ------------------------------------------------------------------------------------------
@@ -95,10 +112,11 @@ export const createInitialTimeEntries = async () => {
  * Deletes stale time entries from the timesheet data.
  * Uses `filterTimesheetEntry` to retrieve existing time entries.
  * Calls `deleteTimesheet` to remove each fetched entry from the system.
- * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7
+ * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC39, TC41
  */
 export const deleteStaleTimeEntries = async () => {
   const sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
+  const sharedManagerTeamData = await readJSONFile("../data/manager/shared-team.json");
   var filteredTimeEntry = {};
 
   // Fetch TC2 time entry and delete time entry
@@ -129,6 +147,14 @@ export const deleteStaleTimeEntries = async () => {
 
   // Fetch TC7 time entry and delete time entry
   filteredTimeEntry = await filterTimesheetEntry(sharedEmployeeTimesheetData.TC7.payloadFilterTimeEntry);
+  await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
+
+  // Fetch TC39 time entries and delete time entries
+  filteredTimeEntry = await filterTimesheetEntry(sharedManagerTeamData.TC39.payloadFilterTimeEntry);
+  await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
+
+  // Fetch TC41 time entries and delete time entries
+  filteredTimeEntry = await filterTimesheetEntry(sharedManagerTeamData.TC41.payloadFilterTimeEntry);
   await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
 };
 

@@ -20,6 +20,11 @@ export class TeamPage {
     this.prevButton = page.getByRole("button", { name: "prev-week" });
     this.nextButton = page.getByRole("button", { name: "next-week" });
 
+    // Reject Timesheet Modal
+    this.rejectTimesheetModal = page.getByRole("dialog").filter({
+      has: page.locator("h2", { name: "Reject timesheet" }),
+    });
+
     // Review Timesheet Pane
     this.reviewTimesheetPane = page.getByRole("dialog").filter({
       has: page.locator("h2", { hasText: /^Week of/ }),
@@ -104,6 +109,20 @@ export class TeamPage {
   }
 
   // --------------------------------------
+  // Reject Timesheet Modal
+  // --------------------------------------
+
+  /**
+   * Rejects the timesheet of a specified employee.
+   */
+  async rejectTimesheet({ employee, reason }) {
+    await this.openReviewTimesheetPane(employee);
+    await this.actOnTimeEntry("Reject");
+    await this.rejectTimesheetModal.getByPlaceholder("Add a note").fill(reason);
+    await this.rejectTimesheetModal.getByRole("button", { name: "Reject" }).click();
+  }
+
+  // --------------------------------------
   // Review Timesheet Pane
   // --------------------------------------
 
@@ -127,6 +146,39 @@ export class TeamPage {
    */
   async getTimeEntrySection(date) {
     return this.reviewTimesheetPane.locator(`//p[contains(text(),'${date}')]/parent::div/parent::div`);
+  }
+
+  /**
+   * Retrieves the time entry row for the specified metadata.
+   */
+  async getTimeEntryRow({ date, project, task }) {
+    return this.reviewTimesheetPane.locator(
+      `//p[contains(text(),'${date}')]/parent::div/parent::div//div[descendant::p[contains(text(), '${task}')] and descendant::span[contains(text(), '${project}')] and descendant::input]`
+    );
+  }
+
+  /**
+   * Toggles time entry selection
+   */
+  async toggleTimeEntrySelection(date) {
+    const section = await this.getTimeEntrySection(date);
+    await section.getByRole("checkbox").check();
+  }
+
+  /**
+   * Updates duration of the specified time entry.
+   */
+  async updateDurationOfTimeEntry({ date, project, task, newDuration }) {
+    const row = await this.getTimeEntryRow({ date: date, project: project, task: task });
+    await row.getByRole("textbox").fill(newDuration);
+    await row.click();
+  }
+
+  /**
+   * Performs an action on a time entry by clicking the corresponding button.
+   */
+  async actOnTimeEntry(action) {
+    await this.reviewTimesheetPane.getByRole("button", { name: action }).click();
   }
 
   // --------------------------------------
@@ -193,6 +245,23 @@ export class TeamPage {
     const cell = await this.getCell(cellInfo);
 
     await cell.click();
+  }
+
+  /**
+   * Retrieves the timesheet status of a given employee by analyzing the status icon's class attributes.
+   */
+  async getTimesheetStatus(name) {
+    const cellInfo = { employee: name, rowName: "employee header", col: "status" };
+    const cell = await this.getCell(cellInfo);
+    const classList = await cell.locator("svg").getAttribute("class");
+
+    if (classList.includes("stroke-success")) {
+      return "Approved";
+    } else if (classList.includes("stroke-destructive")) {
+      return "Rejected";
+    } else {
+      return "Not Submitted";
+    }
   }
 
   /**

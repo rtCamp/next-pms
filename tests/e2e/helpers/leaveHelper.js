@@ -14,8 +14,7 @@ const empID = process.env.EMP_ID;
  * Updates employee timesheet data by dynamically setting date values for different test cases.
  * It modifies the JSON data with the current date values, associates it with the employee ID
  * and writes the updated data back to the file.
- *
- * - TC73: Updates leave entry with today's weekday.
+ * Test Cases: TC73
  */
 export const updateInitialLeaveEntries = async () => {
   const employeeTimesheetDataFilePath = path.resolve(__dirname, "../data/employee/shared-timesheet.json"); // File path of the employee timesheet data JSON file
