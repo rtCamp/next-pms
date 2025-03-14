@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-expressions */
 /**
  * External dependencies.
  */
@@ -48,7 +47,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
     if (filter.type != "custom-filter") {
       setQueryParam(value);
     }
-    filter.handleChange && filter.handleChange(value);
+    filter?.handleChange(value);
   };
 
   useEffect(() => {
@@ -56,6 +55,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
     if (filter.type != "custom-filter") {
       setQueryParam(filter.value as string | CheckedState | string[]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter.value, setQueryParam]);
 
   if (filter.type == "search") {
@@ -97,7 +97,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
         value={filter.value as string[]}
         label={filter.label as string}
         isMulti={filter?.isMultiComboBox ?? false}
-        shouldFilter={filter?.shouldFilterComboBox ?? false}
+        shouldFilter={filter?.shouldFilterComboBox ?? true}
         showSelected={false}
         onSelect={handleChangeWrapper}
         rightIcon={

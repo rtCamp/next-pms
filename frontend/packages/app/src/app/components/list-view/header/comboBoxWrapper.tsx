@@ -17,6 +17,7 @@ import { mergeClassNames } from "@/lib/utils";
  * @param props.handleChangeWrapper The handle change wrapper function.
  * @returns React.FC
  */
+
 const ComboBoxWrapper = ({
   filter,
   handleChangeWrapper,
@@ -26,7 +27,7 @@ const ComboBoxWrapper = ({
 }) => {
   const apiCall: ApiCallProps | undefined = filter.apiCall;
 
-  const { data, mutate } = useFrappeGetCall(
+  const { data, mutate, isLoading } = useFrappeGetCall(
     apiCall?.url as string,
     apiCall?.filters,
     undefined,
@@ -49,6 +50,7 @@ const ComboBoxWrapper = ({
       onSelect={handleChangeWrapper}
       onSearch={filter.onComboSearch}
       onClick={handleOnClick}
+      isLoading={isLoading}
       rightIcon={
         filter?.isMultiComboBox
           ? ((filter.value as string[])?.length ?? 0) > 0 && (
