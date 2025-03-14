@@ -58,13 +58,13 @@ export class TeamPage {
   }
 
   // --------------------------------------
-  // Top Employee Selection Dropdown
+  // Top Employee Search
   // --------------------------------------
 
   /**
    * Searches for an employee in the search input.
    */
-  async seearchEmployee(name) {
+  async searchEmployee(name) {
     await this.searchInput.fill(name);
     await this.searchInput.press("ArrowDown+Enter");
   }
@@ -73,7 +73,7 @@ export class TeamPage {
    * Navigates to the employee's timesheet.
    */
   async navigateToEmpTimesheet(name) {
-    await this.seearchEmployee(name);
+    await this.searchEmployee(name);
     await this.page.locator(`//p[text()='${name}']`).click();
     await this.page.waitForLoadState();
   }
