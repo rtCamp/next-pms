@@ -9,7 +9,7 @@ import { Check } from "lucide-react";
  */
 import { cn, deBounce } from "../../utils";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../command";
-import { Button, Checkbox } from "../index";
+import { Button, Checkbox, Spinner } from "../index";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 import { default as Typography } from "../typography";
 
@@ -30,6 +30,7 @@ export type ComboBoxProp = {
   shouldFilter?: boolean;
   deBounceTime?: number;
   onClick?: () => void;
+  isLoading?: boolean;
 };
 
 const ComboBox = ({
@@ -49,6 +50,7 @@ const ComboBox = ({
   shouldFilter = false,
   deBounceTime = 400,
   onClick,
+  isLoading,
 }: ComboBoxProp) => {
   const [selectedValues, setSelectedValues] = useState<string[]>(typeof value === "string" ? [value] : value ?? []);
   useEffect(() => {
@@ -131,10 +133,11 @@ const ComboBox = ({
           }}
         >
           <CommandInput placeholder={label} onValueChange={onInputChange} />
-          <CommandEmpty>No data.</CommandEmpty>
+          {isLoading ? <Spinner className="py-6" /> : <CommandEmpty>No data found.</CommandEmpty>}
           <CommandGroup>
             <CommandList>
               {data.length != 0 &&
+                !isLoading &&
                 data.map((item, index) => {
                   const isActive = selectedValues.includes(item.value);
                   return (

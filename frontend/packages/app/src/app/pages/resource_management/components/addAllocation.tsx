@@ -81,7 +81,11 @@ const AddResourceAllocations = ({
     mode: "onSubmit",
   });
 
-  const { data: projects, mutate: fetchProjects } = useFrappeGetCall("frappe.client.get_list", {
+  const {
+    data: projects,
+    mutate: fetchProjects,
+    isLoading: isProjectLoading,
+  } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Project",
     filters: form.getValues("customer")
       ? [
@@ -94,7 +98,7 @@ const AddResourceAllocations = ({
     limit_page_length: 20,
   });
 
-  const { data: customers } = useFrappeGetCall("frappe.client.get_list", {
+  const { data: customers, isLoading: isCustomerLoading } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Customer",
     filters: [["customer_name", "like", `%${customerSearch}%`]],
     fields: ["name", "customer_name"],
@@ -449,6 +453,7 @@ const AddResourceAllocations = ({
                     </FormLabel>
                     <FormControl>
                       <ComboBox
+                        isLoading={isCustomerLoading}
                         label="Search Customer"
                         onSelect={(value) => {
                           handleSearchChange("customer", value, setCustomerSearch);
@@ -489,6 +494,7 @@ const AddResourceAllocations = ({
                   <FormItem className="space-y-1 col-span-3">
                     <FormLabel>Projects</FormLabel>
                     <ComboBox
+                      isLoading={isProjectLoading}
                       label={
                         form.getValues("customer")
                           ? "Search " + form.getValues("customer") + " Projects"
