@@ -30,17 +30,9 @@ import { z } from "zod";
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetApprovalSchema } from "@/schema/timesheet";
-import { UserState } from "@/store/user";
-import { Action, TimesheetState } from "../reducer";
+import type { ApprovalProps } from "./types";
 
-interface ApprovalProps {
-  onClose: (data:any) => void;
-  user: UserState;
-  timesheetState: TimesheetState;
-  dispatch:(value: Action) => void;
-}
-
-export const Approval = ({ onClose, user, timesheetState,dispatch }: ApprovalProps) => {
+export const Approval = ({ onClose, user, timesheetState, dispatch }: ApprovalProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const { call } = useFrappePostCall("next_pms.timesheet.api.timesheet.submit_for_approval");
@@ -63,8 +55,8 @@ export const Approval = ({ onClose, user, timesheetState,dispatch }: ApprovalPro
     if (isSubmitting) return;
     form.reset();
     const data = { start_date: "", end_date: "" };
-    dispatch({type:"SET_DATE_RANGE",payload:data});
-    dispatch({type:"SET_APPROVAL_DIALOG_STATE",payload:false});
+    dispatch({ type: "SET_DATE_RANGE", payload: data });
+    dispatch({ type: "SET_APPROVAL_DIALOG_STATE", payload: false });
     onClose(form.getValues());
   };
   const handleSubmit = (data: z.infer<typeof TimesheetApprovalSchema>) => {

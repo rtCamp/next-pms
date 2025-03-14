@@ -10,12 +10,8 @@ import { ChevronRight, ChevronLeft } from "lucide-react";
  * Internal dependencies
  */
 import { Header as ListViewHeader } from "@/app/components/list-view/header";
-import { Action, HomeState } from "./reducer";
+import type { HeaderProps } from "./types";
 
-type HeaderProps = {
-  homeState: HomeState;
-  dispatch: React.Dispatch<Action>;
-};
 export const Header = ({ homeState, dispatch }: HeaderProps) => {
   const [employeeNameParam] = useQueryParam<string>("employee-name", "");
   const [employeeStatusParam] = useQueryParam<Array<string>>("status", ["Active"]);

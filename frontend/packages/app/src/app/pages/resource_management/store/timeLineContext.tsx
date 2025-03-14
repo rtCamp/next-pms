@@ -1,58 +1,20 @@
-import { useState, createContext, ReactNode } from "react";
-
+/**
+ * External dependencies.
+ */
+import { useState, createContext } from "react";
 import { getTodayDate } from "@next-pms/design-system";
 import { useInfiniteScroll } from "@next-pms/hooks";
 
-import {
+/**
+ * Internal dependencies.
+ */
+import type { APIControlerProps, TimeLineContextProps, TimeLineContextProviderProps } from "./types";
+import type {
   ResourceAllocationCustomerProps,
   ResourceAllocationEmployeeProps,
   ResourceAllocationTimeLineFilterProps,
   ResourceAllocationTimeLineProps,
 } from "../timeline/types";
-
-interface TimeLineContextProps {
-  employees: ResourceAllocationEmployeeProps[];
-  allocations: ResourceAllocationTimeLineProps[];
-  customer: ResourceAllocationCustomerProps;
-  filters: ResourceAllocationTimeLineFilterProps;
-  apiControler: APIControlerProps;
-  allocationData: {
-    isNeedToDelete: boolean;
-    old?: ResourceAllocationTimeLineProps;
-    new?: ResourceAllocationTimeLineProps;
-  };
-  isShowMonth: boolean;
-  setEmployeesData: (value: ResourceAllocationEmployeeProps[], hasMore: boolean) => void;
-  setAllocationsData: (value: ResourceAllocationTimeLineProps[], type?: "Set" | "Update") => void;
-  setCustomerData: (value: ResourceAllocationCustomerProps) => void;
-  getLastTimeLineItem: () => string;
-  verticalLoderRef: (element: HTMLElement | null) => void;
-  updateFilters: (filters: ResourceAllocationTimeLineFilterProps) => void;
-  updateApiControler: (apiControler: APIControlerProps) => void;
-  getAllocationWithID: (id: string) => ResourceAllocationTimeLineProps | undefined;
-  getEmployeeWithID: (id: string) => ResourceAllocationEmployeeProps;
-  updateAllocation: (
-    updatedAllocation: ResourceAllocationTimeLineProps,
-    type?: "Append" | "Update"
-  ) => ResourceAllocationTimeLineProps;
-  getEmployeeWithIndex: (index: number) => ResourceAllocationEmployeeProps | -1;
-  isEmployeeExits: (name: string) => boolean | undefined;
-  setAllocationData: (value: {
-    isNeedToDelete: boolean;
-    old?: ResourceAllocationTimeLineProps;
-    new?: ResourceAllocationTimeLineProps;
-  }) => void;
-}
-
-interface APIControlerProps {
-  isLoading?: boolean;
-  hasMore?: boolean;
-  isNeedToFetchDataAfterUpdate?: boolean;
-}
-
-interface TimeLineContextProviderProps {
-  children: ReactNode;
-}
 
 const defaultResourceAllocation: ResourceAllocationTimeLineProps = {
   customerData: {

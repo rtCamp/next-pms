@@ -18,13 +18,13 @@ import {
 } from "@next-pms/design-system/components";
 import { useQueryParam } from "@next-pms/hooks";
 import { Filter as Funnel } from "lucide-react";
+
 /**
  * Internal dependencies.
  */
-
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import ComboBoxWrapper from "@/app/components/list-view/header/comboBoxWrapper";
-import { FilterPops } from "@/app/components/list-view/type";
+import type { FilterPops } from "@/app/components/list-view/types";
 import { cn } from "@/lib/utils";
 
 /**

@@ -25,19 +25,16 @@ import {
 } from "@next-pms/design-system/components";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { Search, LoaderCircle, Save, X } from "lucide-react";
-import { type KeyedMutator } from "swr";
 import { z } from "zod";
+
 /**
  * Internal dependencies.
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { TaskSchema } from "@/schema/task";
-import { ProjectProps } from "@/types";
-import { AddTaskType } from "@/types/task";
-import { Action, TaskState } from "../reducer";
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AddTaskPropType = { task: TaskState; mutate: KeyedMutator<any>; dispatch: React.Dispatch<Action> };
+import type { ProjectProps } from "@/types";
+import type { AddTaskType } from "@/types/task";
+import type { AddTaskPropType } from "./types";
 
 export const AddTask = ({ task, mutate, dispatch }: AddTaskPropType) => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);

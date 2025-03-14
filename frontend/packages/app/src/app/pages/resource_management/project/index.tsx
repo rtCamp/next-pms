@@ -13,9 +13,9 @@ import AddResourceAllocations from "../components/addAllocation";
 import { ResourceProjectHeaderSection } from "./components/header";
 import { getIsBillableValue } from "../utils/helper";
 import { ResourceProjectTable } from "./components/table";
-import { ProjectContext, ProjectContextProvider, ProjectDataProps } from "../store/projectContext";
+import { ProjectContext, ProjectContextProvider } from "../store/projectContext";
 import { ResourceContextProvider, ResourceFormContext } from "../store/resourceFormContext";
-import { AllocationDataProps } from "../store/types";
+import type { AllocationDataProps, ProjectDataProps } from "../store/types";
 
 const ResourceTeamViewWrapper = () => {
   return (

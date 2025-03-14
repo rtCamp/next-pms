@@ -34,26 +34,11 @@ import { z } from "zod";
 /**
  * Internal Dependencies
  */
-
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import { cn, expectatedHours, parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetSchema } from "@/schema/timesheet";
-import { WorkingFrequency, TaskData } from "@/types";
-
-interface AddTimeProps {
-  initialDate: string;
-  employee: string;
-  open: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onOpenChange: (data: any) => void;
-  workingHours: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onSuccess?: (data: any) => void;
-  workingFrequency: WorkingFrequency;
-  task?: string;
-  project?: string;
-  employeeName?: string;
-}
+import type { TaskData } from "@/types";
+import type { AddTimeProps } from "./types";
 
 /**
  * Add Time Component

@@ -14,12 +14,7 @@ import { getDefaultView } from "@/app/components/list-view/utils";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setViews, ViewData } from "@/store/view";
-import { DocMetaProps } from "@/types";
-
-type ViewWrapperProps = {
-  docType: string;
-  children: (props: { viewData: ViewData; meta: { message: DocMetaProps } }) => React.ReactNode;
-};
+import type { ViewWrapperProps } from "./types";
 
 /**
  * Custom View Wrapper

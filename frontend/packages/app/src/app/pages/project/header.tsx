@@ -4,13 +4,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useToast } from "@next-pms/design-system/hooks";
+import { useFrappeGetDocList, useFrappePostCall } from "frappe-react-sdk";
+
 /**
  * Internal dependencies
  */
-import { useFrappeGetDocList, useFrappePostCall } from "frappe-react-sdk";
 import { Header as ListViewHeader } from "@/app/components/list-view/header";
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { RootState } from "@/store";
+import type { RootState } from "@/store";
 import {
   setCurrency,
   setOrderBy,
@@ -22,19 +23,11 @@ import {
   setTag,
   Status,
 } from "@/store/project";
-import { updateView, ViewData } from "@/store/view";
-import { DocMetaProps, sortOrder } from "@/types";
+import { updateView } from "@/store/view";
+import type { sortOrder } from "@/types";
+import type { HeaderProps } from "./types";
 import { createFilter } from "./utils";
 
-interface HeaderProps {
-  meta: DocMetaProps;
-  columnOrder: Array<string>;
-  setColumnOrder: React.Dispatch<React.SetStateAction<string[]>>;
-  onColumnHide: (column: string) => void;
-  view: ViewData;
-  stateUpdated: boolean;
-  setStateUpdated: (value: boolean) => void;
-}
 export const Header = ({
   meta,
   columnOrder,

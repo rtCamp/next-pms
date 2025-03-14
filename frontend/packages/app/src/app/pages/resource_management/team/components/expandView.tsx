@@ -18,8 +18,8 @@ import { cn } from "@/lib/utils";
 import { EmptyRow, EmptyTableCell } from "../../components/empty";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
 import { ResourceFormContext } from "../../store/resourceFormContext";
-import { EmployeeDataProps, TeamContext } from "../../store/teamContext";
-import { AllocationDataProps, DateProps } from "../../store/types";
+import { TeamContext } from "../../store/teamContext";
+import type { AllocationDataProps, DateProps, EmployeeDataProps } from "../../store/types";
 import {
   CombinedResourceDataProps,
   CombinedResourceObjectProps,

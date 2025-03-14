@@ -7,7 +7,7 @@ import { Filter } from "lucide-react";
 /**
  * Internal dependencies
  */
-import { FilterPops, ApiCallProps } from "@/app/components/list-view/type";
+import type { FilterPops, ApiCallProps } from "@/app/components/list-view/types";
 import { cn } from "@/lib/utils";
 
 /**

@@ -1,14 +1,10 @@
+/**
+ * Internal dependencies.
+ */
 import { cn } from "@/lib/utils";
+import { TaskIndicatorProps } from "./types";
 
-interface TaskIndicatorProps {
-  className?: string;
-  expectedTime: number;
-  actualTime: number;
-  status: string;
-}
-
-const TaskStatusIndicator = ({ className, expectedTime, actualTime,status }: TaskIndicatorProps) => {
-  
+const TaskStatusIndicator = ({ className, expectedTime, actualTime, status }: TaskIndicatorProps) => {
   let color: string;
 
   if (status === "Completed") {

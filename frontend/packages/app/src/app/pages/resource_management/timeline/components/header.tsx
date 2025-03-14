@@ -9,27 +9,18 @@ import { TableContext } from "@next-pms/resource-management/store";
 import { startOfWeek } from "date-fns";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { Plus, ZoomIn, ZoomOut } from "lucide-react";
-import { Moment } from "moment";
 
 /**
  * Internal dependencies.
  */
 import { Header } from "@/app/components/list-view/header";
 import { cn } from "@/lib/utils";
-
 import { ResourceFormContext } from "../../store/resourceFormContext";
-import { Skill } from "../../store/teamContext";
 import { TimeLineContext } from "../../store/timeLineContext";
-import { PermissionProps } from "../../store/types";
+import type { PermissionProps, Skill } from "../../store/types";
 import SkillSearch from "../../team/components/skillSearch";
 import { getDayKeyOfMoment } from "../../utils/dates";
-import { ResourceAllocationItemProps } from "../types";
-
-interface TimeLineHeaderFunctionProps {
-  getIntervalProps: () => ResourceAllocationItemProps;
-  intervalContext: { interval: { startTime: Moment; endTime: Moment } };
-  data: { unit: string; showYear?: boolean };
-}
+import type { ResourceAllocationItemProps, TimeLineHeaderFunctionProps } from "../types";
 
 /**
  * This component is responsible for loading the team view header.

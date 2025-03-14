@@ -1,15 +1,15 @@
 /**
  * Internal dependencies.
  */
-import {
+import type {
   ResourceAllocationObjectProps,
   ResourceAllocationProps,
 } from "@/types/resource_management";
-import {
+import type {
+  DateProps,
   EmployeeAllocationForDateProps,
   EmployeeResourceObjectProps,
-} from "../store/teamContext";
-import { DateProps } from "../store/types";
+} from "../store/types";
 
 export interface CombinedResourceObjectProps {
   [key: string]: CombinedResourceDataProps;

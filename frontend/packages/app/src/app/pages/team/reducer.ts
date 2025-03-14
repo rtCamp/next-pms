@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * External dependencies
  */
@@ -7,49 +8,9 @@ import { addDays } from "date-fns";
 /**
  * Internal dependencies
  */
-import { DateProps, DateRange, teamStateActionType } from "@/types/team";
+import { DateRange, teamStateActionType } from "@/types/team";
 import { DataProp as timesheetDataProps } from "@/types/timesheet";
-
-export interface TeamState {
-  data: dataProps;
-  action: teamStateActionType;
-  statusFilter: Array<string>;
-  status: Array<string>;
-  employeeName?: string;
-  isDialogOpen: boolean;
-  isEditDialogOpen: boolean;
-  isAprrovalDialogOpen: boolean;
-  weekDate: string;
-  employeeWeekDate: string;
-  project: Array<string>;
-  userGroup: Array<string>;
-  pageLength: number;
-  reportsTo: string;
-  timesheet: {
-    name: string;
-    parent: string;
-    task: string;
-    date: string;
-    description: string;
-    hours: number;
-    project?: string;
-  };
-  timesheetData: timesheetDataProps;
-  start: number;
-  dateRange: DateRange;
-  employee: string;
-  hasMore: boolean;
-  isLoading: boolean;
-  isNeedToFetchDataAfterUpdate: boolean;
-}
-
-export interface dataProps {
-  data: any;
-  dates: DateProps[];
-  total_count: number;
-  has_more: boolean;
-}
-
+import type { TeamState } from "./employee-detail/types";
 
 export const initialState: TeamState = {
   action: "SET",
@@ -98,47 +59,6 @@ export const initialState: TeamState = {
   isNeedToFetchDataAfterUpdate: false,
 };
 
-// Define action types
-export type Action =
-  | { type: "SET_DATA"; payload: any }
-  | { type: "SET_REFETCH_DATA"; payload: boolean }
-  | { type: "SET_EMPLOYEE_NAME"; payload: string }
-  | { type: "SET_STATUS_FILTER"; payload: Array<string> }
-  | { type: "UPDATE_DATA"; payload: any }
-  | { type: "SET_TIMESHEET"; payload: any }
-  | { type: "SET_WEEK_DATE"; payload: string }
-  | { type: "SET_EMPLOYEE_WEEK_DATE"; payload: string }
-  | { type: "SET_PROJECT"; payload: Array<string> }
-  | { type: "SET_START"; payload: number }
-  | { type: "SET_HAS_MORE"; payload: boolean }
-  | {
-      type: "SET_DATE_RANGE";
-      payload: { dateRange: DateRange; isAprrovalDialogOpen: boolean };
-    }
-  | { type: "SET_APPROVAL_DIALOG"; payload: boolean }
-  | { type: "SET_EDIT_DIALOG"; payload: boolean }
-  | { type: "SET_EMPLOYEE"; payload: string }
-  | { type: "SET_DIALOG"; payload: boolean }
-  | { type: "RESET_STATE" }
-  | { type: "RESET_TIMESHEET_DATA_STATE" }
-  | { type: "SET_TIMESHEET_DATA"; payload: timesheetDataProps }
-  | { type: "UPDATE_TIMESHEET_DATA"; payload: timesheetDataProps }
-  | { type: "SET_USER_GROUP"; payload: Array<string> }
-  | { type: "SET_REPORTS_TO"; payload: string }
-  | { type: "SET_STATUS"; payload: Array<string> }
-  | { type: "SET_ACTION"; payload: teamStateActionType }
-  | {
-      type: "SET_FILTERS";
-      payload: {
-        project: Array<string>;
-        userGroup: Array<string>;
-        statusFilter: Array<string>;
-        employeeName: string;
-        reportsTo: string;
-        status: Array<string>;
-      };
-    };
-
 const actionHandlers = {
   SET_DATA: (state: TeamState, payload: any) => ({
     ...state,
@@ -147,9 +67,9 @@ const actionHandlers = {
     pageLength: initialState.pageLength,
     isLoading: false,
   }),
-  SET_ACTION: (state: TeamState,payload:teamStateActionType) => ({
+  SET_ACTION: (state: TeamState, payload: teamStateActionType) => ({
     ...state,
-    action:payload
+    action: payload,
   }),
   SET_REFETCH_DATA: (state: TeamState, payload: boolean) => ({
     ...state,

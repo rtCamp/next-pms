@@ -11,16 +11,9 @@ import AddTime from "@/app/components/AddTime";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import { Header } from "@/app/layout/root";
 import { RootState } from "@/store";
+import type { EmployeeDetailHeaderProps } from "./types";
 import { EditTime } from "../../timesheet/components/editTime";
 import { Approval } from "../components/approval";
-import { TeamState, Action } from "../reducer";
-
-type EmployeeDetailHeaderProps = {
-  state: TeamState;
-  employeeId: string;
-  callback: () => void;
-  dispatch: React.Dispatch<Action>;
-};
 
 export const EmployeeDetailHeader = ({ state, dispatch, callback, employeeId }: EmployeeDetailHeaderProps) => {
   const navigate = useNavigate();

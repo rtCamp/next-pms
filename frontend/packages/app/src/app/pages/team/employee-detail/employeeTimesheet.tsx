@@ -21,16 +21,9 @@ import { Calendar, Paperclip } from "lucide-react";
 import { TimesheetTable } from "@/app/components/timesheet-table";
 import ExpandableHours from "@/app/pages/timesheet/components/expandableHours";
 import { copyToClipboard, expectatedHours, getTimesheetHours, isDateInRange } from "@/lib/utils";
-import { NewTimesheetProps, timesheet } from "@/types/timesheet";
+import type { NewTimesheetProps, timesheet } from "@/types/timesheet";
+import type { EmployeeTimesheetProps } from "./types";
 import { StatusIndicator } from "../components/statusIndicator";
-import { Action, TeamState } from "../reducer";
-
-type EmployeeTimesheetProps = {
-  startDateParam: string;
-  setStartDateParam: React.Dispatch<React.SetStateAction<string>>;
-  teamState: TeamState;
-  dispatch: React.Dispatch<Action>;
-};
 
 /**
  * EmployeeTimesheet component displays the timesheet details of an employee.

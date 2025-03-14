@@ -7,18 +7,12 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-
 import { Row } from "@/app/components/timesheet-table/components/row";
 import { EmptyRow } from "@/app/components/timesheet-table/components/row/emptyRow";
 import { LeaveRow } from "@/app/components/timesheet-table/components/row/leaveRow";
 import { TaskLog } from "@/app/pages/task/components/taskLog";
 import { expectatedHours } from "@/lib/utils";
-import { TeamState } from "../reducer";
-
-interface EmployeeTimesheerTableProps {
-  employee: string;
-  teamState: TeamState;
-}
+import type { EmployeeTimesheerTableProps } from "./types";
 
 export const EmployeeTimesheetTable = ({ employee, teamState }: EmployeeTimesheerTableProps) => {
   const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState(false);

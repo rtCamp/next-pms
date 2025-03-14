@@ -19,7 +19,6 @@ import { addAction, toggleLikedByForTask } from "@/lib/storage";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { ViewData } from "@/store/view";
-import { DocMetaProps } from "@/types";
 import { ColumnsType, columnsToExcludeActionsInTablesType } from "@/types/task";
 import { AddTask } from "./components/addTask";
 import { getColumn } from "./components/columns";
@@ -29,6 +28,7 @@ import { TaskLog } from "./components/taskLog";
 import { initialState, reducer } from "./reducer";
 import { createFilter } from "./utils";
 import { initialState as timesheetInitialState, reducer as timesheetReducer } from "../timesheet/reducer";
+import type { TaskTableProps } from "./components/types";
 
 const Task = () => {
   const docType = "Task";
@@ -41,17 +41,12 @@ const Task = () => {
 
 export default Task;
 
-interface TaskTableProps {
-  viewData: ViewData;
-  meta: DocMetaProps;
-}
-
 const TaskTable = ({ viewData, meta }: TaskTableProps) => {
-  const [task, taskDispatch ] = useReducer(reducer, initialState);
+  const [task, taskDispatch] = useReducer(reducer, initialState);
   const [viewInfo, setViewInfo] = useState<ViewData>(viewData);
 
   const user = useSelector((state: RootState) => state.user);
-  const [timesheet, timesheetDispatch ] = useReducer(timesheetReducer, timesheetInitialState);
+  const [timesheet, timesheetDispatch] = useReducer(timesheetReducer, timesheetInitialState);
   const columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType = ["liked", "timesheetAction"];
 
   const dispatch = useDispatch();
@@ -79,7 +74,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
   }, [dispatch, viewData, taskDispatch]);
 
   const handleColumnHide = (id: string) => {
-    setColumnOrder((prev)=>prev.filter(item => item !== id))
+    setColumnOrder((prev) => prev.filter((item) => item !== id));
   };
 
   const updateColumnSize = (columns: Array<string>) => {
@@ -98,7 +93,6 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     updateColumnSize(columnOrder);
   }, [columnOrder]);
 
-
   const handleAddTime = (taskName: string) => {
     const timesheetData = {
       name: "",
@@ -110,8 +104,8 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       isUpdate: false,
       employee: user.employee,
     };
-    timesheetDispatch({type:"SET_TIMESHEET",payload:timesheetData});
-    timesheetDispatch({type:"SET_DIALOG_STATE",payload:true});
+    timesheetDispatch({ type: "SET_TIMESHEET", payload: timesheetData });
+    timesheetDispatch({ type: "SET_DIALOG_STATE", payload: true });
   };
 
   const { data, isLoading, error, mutate } = useFrappeGetCall(
@@ -138,7 +132,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       mutate();
       taskDispatch({
         type: "SET_REFETCH_DATA",
-        payload: false
+        payload: false,
       });
     }
   }, [dispatch, mutate, task.isNeedToFetchDataAfterUpdate, taskDispatch]);
@@ -148,12 +142,12 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       if (task.action === "SET") {
         taskDispatch({
           type: "SET_TASK_DATA",
-          payload: data.message
+          payload: data.message,
         });
       } else {
         taskDispatch({
           type: "UPDATE_TASK_DATA",
-          payload: data.message
+          payload: data.message,
         });
       }
     }
@@ -200,7 +194,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
   const openTaskLog = (taskName: string) => {
     taskDispatch({
       type: "SET_SELECTED_TASK",
-      payload: { task: taskName, isOpen: true }
+      payload: { task: taskName, isOpen: true },
     });
   };
 
@@ -265,7 +259,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     if (!task.hasMore) return;
     taskDispatch({
       type: "SET_START",
-      payload: task.start + task.pageLength
+      payload: task.start + task.pageLength,
     });
   };
 
@@ -294,7 +288,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
             };
             taskDispatch({
               type: "SET_SELECTED_TASK",
-              payload: data
+              payload: data,
             });
           }}
         />
@@ -316,7 +310,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
           initialDate={timesheet.timesheet.date}
           open={timesheet.isDialogOpen}
           onOpenChange={() => {
-            timesheetDispatch({type:"SET_DIALOG_STATE",payload:false});
+            timesheetDispatch({ type: "SET_DIALOG_STATE", payload: false });
           }}
           workingFrequency={user.workingFrequency}
           workingHours={user.workingHours}

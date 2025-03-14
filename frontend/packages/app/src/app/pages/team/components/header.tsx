@@ -11,14 +11,9 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
  * Internal dependencies
  */
 import { Header as ListViewHeader } from "@/app/components/list-view/header";
-import { Action, TeamState } from "../reducer";
+import type { HeaderProps } from "./types";
 
-interface HeaderProps {
-  teamState: TeamState;
-  dispatch:React.Dispatch<Action>;
-}
-
-export const Header = ({teamState,dispatch}:HeaderProps) => {
+export const Header = ({ teamState, dispatch }: HeaderProps) => {
   const [projectSearch, setProjectSeach] = useState<string>("");
   const [userGroupSearch, setUserGroupSearch] = useState<string>("");
   const [projectParam] = useQueryParam<string[]>("project", []);
@@ -39,56 +34,56 @@ export const Header = ({teamState,dispatch}:HeaderProps) => {
       reportsTo: reportsToParam,
       status: employeeStatusParam,
     };
-    dispatch({type:"SET_FILTERS",payload:payload});
+    dispatch({ type: "SET_FILTERS", payload: payload });
   }, [dispatch, employeeNameParam, employeeStatusParam, projectParam, reportsToParam, statusParam, userGroupParam]);
 
   const handleEmployeeChange = useCallback(
     (text: string) => {
-      dispatch({type:"SET_EMPLOYEE_NAME",payload:text.trim()});
+      dispatch({ type: "SET_EMPLOYEE_NAME", payload: text.trim() });
     },
     [dispatch]
   );
   const handleReportsToChange = useCallback(
     (value: string | string[]) => {
-      dispatch({type:"SET_ACTION",payload:"SET"});
-      dispatch({type:"SET_REPORTS_TO",payload:value as string});
+      dispatch({ type: "SET_ACTION", payload: "SET" });
+      dispatch({ type: "SET_REPORTS_TO", payload: value as string });
     },
     [dispatch]
   );
   const handleStatusChange = useCallback(
     (filters: string | string[]) => {
       const normalizedFilters = Array.isArray(filters) ? filters : [filters];
-      dispatch({type:"SET_STATUS_FILTER",payload:normalizedFilters});
+      dispatch({ type: "SET_STATUS_FILTER", payload: normalizedFilters });
     },
 
     [dispatch]
   );
   const handleEmployeeStatusChange = useCallback(
     (value: string | string[]) => {
-      dispatch({type:"SET_STATUS",payload:value as string[]});
+      dispatch({ type: "SET_STATUS", payload: value as string[] });
     },
     [dispatch]
   );
   const handleProjectChange = useCallback(
     (value: string | string[]) => {
-      dispatch({type:"SET_PROJECT",payload:value as string[]});
+      dispatch({ type: "SET_PROJECT", payload: value as string[] });
     },
     [dispatch]
   );
   const handleUserGroupChange = useCallback(
     (value: string | string[]) => {
-      dispatch({type:"SET_USER_GROUP",payload:value as string[]});
+      dispatch({ type: "SET_USER_GROUP", payload: value as string[] });
     },
     [dispatch]
   );
   const handleprevWeek = useCallback(() => {
     const date = getFormatedDate(addDays(teamState.weekDate, -7));
-    dispatch({type:"SET_WEEK_DATE",payload:date});
+    dispatch({ type: "SET_WEEK_DATE", payload: date });
   }, [dispatch, teamState.weekDate]);
 
   const handlenextWeek = useCallback(() => {
     const date = getFormatedDate(addDays(teamState.weekDate, 7));
-    dispatch({type:"SET_WEEK_DATE",payload:date});
+    dispatch({ type: "SET_WEEK_DATE", payload: date });
   }, [dispatch, teamState.weekDate]);
 
   const filters = [
@@ -101,7 +96,7 @@ export const Header = ({teamState,dispatch}:HeaderProps) => {
       queryParameterDefault: teamState.employeeName,
       handleChange: handleEmployeeChange,
       handleDelete: useCallback(() => {
-        dispatch({type:"SET_EMPLOYEE_NAME",payload:""});
+        dispatch({ type: "SET_EMPLOYEE_NAME", payload: "" });
       }, [dispatch]),
     },
     {
@@ -109,7 +104,7 @@ export const Header = ({teamState,dispatch}:HeaderProps) => {
       queryParameterName: "reports-to",
       handleChange: handleReportsToChange,
       handleDelete: useCallback(() => {
-        dispatch({type:"SET_REPORTS_TO",payload:""});
+        dispatch({ type: "SET_REPORTS_TO", payload: "" });
       }, [dispatch]),
       value: teamState.reportsTo,
       label: "Reports To",

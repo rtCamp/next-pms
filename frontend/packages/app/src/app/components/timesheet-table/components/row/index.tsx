@@ -9,34 +9,11 @@ import { CircleDollarSign } from "lucide-react";
  * Internal dependencies
  */
 import { cn } from "@/lib/utils";
-import { WorkingFrequency } from "@/types";
-import { TaskDataItemProps, TaskDataProps, TaskProps } from "@/types/timesheet";
+import type { TaskDataItemProps, TaskDataProps } from "@/types/timesheet";
 import { Cell } from "../dataCell";
 import { TaskHoverCard } from "../taskHoverCard";
+import type { RowProps } from "./types";
 
-type RowProps = {
-  dates: string[];
-  tasks: TaskProps;
-  holidayList: Array<string>;
-  workingHour: number;
-  workingFrequency: WorkingFrequency;
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  onCellClick?: (data) => void;
-  importTasks?: boolean;
-  loadingLikedTasks?: boolean;
-  likedTaskData?: Array<object>;
-  getLikedTaskData?: () => void;
-  setSelectedTask: React.Dispatch<React.SetStateAction<string>>;
-  setIsTaskLogDialogBoxOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  disabled?: boolean;
-  rowClassName?: string;
-  taskCellClassName?: string;
-  cellClassName?: string;
-  totalCellClassName?: string;
-  showEmptyCell?: boolean;
-  hideLikeButton?: boolean;
-};
 const Row = ({
   dates,
   tasks,

@@ -3,17 +3,9 @@
  */
 import AddLeave from "@/app/components/add-leave";
 import AddTime from "@/app/components/AddTime";
-import { RootState } from "@/store";
 import { Approval } from "./approval";
 import { EditTime } from "./editTime";
-import { Action, TimesheetState } from "../reducer";
-
-type FooterProps = {
-  timesheet: TimesheetState;
-  user: RootState["user"];
-  dispatch: React.Dispatch<Action>;
-  callback: () => void;
-};
+import type { FooterProps } from "./types";
 
 export const Footer = ({ timesheet, user, dispatch, callback }: FooterProps) => {
   return (
