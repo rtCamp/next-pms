@@ -1,4 +1,8 @@
 /**
+ * External dependencies.
+ */
+import type { KeyedMutator } from "swr";
+/**
  * Internal dependencies.
  */
 import type { ViewData } from "@/store/view";
@@ -7,7 +11,8 @@ import type { Action, TaskState } from "../types";
 
 export type AddTaskPropType = {
   task: TaskState;
-  mutate: React.Dispatch<Action>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  mutate: KeyedMutator<any>;
   dispatch: React.Dispatch<Action>;
 };
 
