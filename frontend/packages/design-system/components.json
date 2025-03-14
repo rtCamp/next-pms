@@ -1,5 +1,5 @@
 {
-    "$schema": "https://ui.shadcn.com/schema.json",
+    "$schema": "https://ui.shadmergeClassNames.com/schema.json",
     "style": "default",
     "rsc": false,
     "tsx": true,

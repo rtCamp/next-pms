@@ -6,7 +6,7 @@ import { TableCell, TableRow } from "@next-pms/design-system/components";
 /**
  * Internal dependencies
  */
-import { cn } from "@/lib/utils";
+import { mergeClassNames } from "@/lib/utils";
 import type { TaskDataProps } from "@/types/timesheet";
 import { Cell } from "../dataCell";
 import { TaskHoverCard } from "../taskHoverCard";
@@ -43,8 +43,8 @@ export const EmptyRow = ({
   getLikedTaskData,
 }: emptyRowProps) => {
   return (
-    <TableRow className={cn(rowClassName)}>
-      <TableCell className={cn("max-w-sm", headingCellClassName)}>
+    <TableRow className={mergeClassNames(rowClassName)}>
+      <TableCell className={mergeClassNames("max-w-sm", headingCellClassName)}>
         {name && (
           <TaskHoverCard
             taskData={taskData}
@@ -83,7 +83,7 @@ export const EmptyRow = ({
           />
         );
       })}
-      <TableCell className={cn(totalCellClassName)}></TableCell>
+      <TableCell className={mergeClassNames(totalCellClassName)}></TableCell>
     </TableRow>
   );
 };

@@ -11,7 +11,7 @@ import { isToday } from "date-fns";
  */
 import type { DateProps, ResourceTableHeaderProps } from "./types";
 import { TableContext } from "../../store";
-import { cn, getTableCellClass } from "../../utils";
+import { mergeClassNames, getTableCellClass } from "../../utils";
 
 /**
  * This component is used to render the table header for the resource management table.
@@ -35,7 +35,7 @@ const ResourceTableHeader = ({
     <TableHeader className="border-t-0 sticky top-0 z-30">
       <TableRow className="flex items-center flex-shrink-0">
         <TableHead
-          className={cn("flex items-center")}
+          className={mergeClassNames("flex items-center")}
           style={{ width: getCellWidthString(tableProperties.firstCellWidth) }}
         >
           {title}
@@ -47,7 +47,7 @@ const ResourceTableHeader = ({
                 <Typography
                   key={weekIndex}
                   variant="small"
-                  className={cn(
+                  className={mergeClassNames(
                     "py-2 text-center truncate cursor-pointer border-r border-gray-300",
                     weekIndex == 0 && "border-l"
                   )}
@@ -108,19 +108,22 @@ const TableHeaderCell = ({
   return (
     <TableHead
       key={date}
-      className={cn(getTableCellClass(index, weekIndex), "text-xs flex flex-col px-2 py-2 justify-center items-center")}
+      className={mergeClassNames(
+        getTableCellClass(index, weekIndex),
+        "text-xs flex flex-col px-2 py-2 justify-center items-center"
+      )}
       style={style}
       ref={date == dateToAddHeaderRef ? cellHeaderRef : null}
     >
       <Typography
         variant="p"
-        className={cn("text-slate-600 text-[11px]", isToday(getUTCDateTime(date)) && "font-semibold")}
+        className={mergeClassNames("text-slate-600 text-[11px]", isToday(getUTCDateTime(date)) && "font-semibold")}
       >
         {day}
       </Typography>
       <Typography
         variant="small"
-        className={cn(
+        className={mergeClassNames(
           "text-slate-500 text-[11px] max-lg:text-[0.65rem]",
           isToday(getUTCDateTime(date)) && "font-semibold"
         )}

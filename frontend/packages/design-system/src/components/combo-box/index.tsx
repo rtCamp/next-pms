@@ -7,7 +7,7 @@ import { Check } from "lucide-react";
 /**
  * Internal Dependencies
  */
-import { cn, deBounce } from "../../utils";
+import { mergeClassNames, deBounce } from "../../utils";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../command";
 import { Button, Checkbox } from "../index";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";
@@ -107,7 +107,7 @@ const ComboBox = ({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className={cn("justify-between w-full text-slate-400", hasValue && "text-primary", className)}
+          className={mergeClassNames("justify-between w-full text-slate-400", hasValue && "text-primary", className)}
           disabled={disabled}
           onClick={onClick}
         >
@@ -146,7 +146,7 @@ const ComboBox = ({
                       value={item.value}
                     >
                       {!isMulti ? (
-                        <Check className={cn("mr-2 h-4 w-4", isActive ? "opacity-100" : "opacity-0")} />
+                        <Check className={mergeClassNames("mr-2 h-4 w-4", isActive ? "opacity-100" : "opacity-0")} />
                       ) : (
                         <Checkbox checked={isActive} />
                       )}

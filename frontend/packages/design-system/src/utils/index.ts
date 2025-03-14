@@ -9,7 +9,7 @@ import { twMerge } from "tailwind-merge";
  */
 import { getUTCDateTime } from "./date";
 
-export function cn(...inputs: ClassValue[]) {
+export function mergeClassNames(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 

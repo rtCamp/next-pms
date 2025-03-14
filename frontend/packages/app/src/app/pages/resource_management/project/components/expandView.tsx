@@ -11,7 +11,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-import { cn } from "@/lib/utils";
+import { mergeClassNames } from "@/lib/utils";
 import {
   ResourceAllocationObjectProps,
   ResourceAllocationProps,
@@ -209,7 +209,10 @@ const ExpandViewCell = ({
     return (
       <EmptyTableCell
         title={title}
-        cellClassName={cn(getTableCellClass(index, weekIndex), getTodayDateCellClass(allocationsData.date))}
+        cellClassName={mergeClassNames(
+          getTableCellClass(index, weekIndex),
+          getTodayDateCellClass(allocationsData.date)
+        )}
         onCellClick={onCellClick}
         value={"-"}
       />
@@ -221,7 +224,7 @@ const ExpandViewCell = ({
       key={index}
       type="hovercard"
       title={title}
-      cellClassName={cn(
+      cellClassName={mergeClassNames(
         getTableCellClass(index, weekIndex),
         cellBackGroundColor,
         getTodayDateCellClass(allocationsData.date)

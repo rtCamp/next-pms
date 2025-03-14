@@ -10,7 +10,7 @@ import { Clock, Heart } from "lucide-react";
  * Internal dependencies.
  */
 import { DataCell } from "@/app/components/list-view/dataCell";
-import { cn, isLiked } from "@/lib/utils";
+import { mergeClassNames, isLiked } from "@/lib/utils";
 import { UserState } from "@/store/user";
 import type { TaskData } from "@/types";
 import type { ColumnsType } from "@/types/task";
@@ -156,7 +156,7 @@ export const getColumn = (
         return (
           <span title="Like">
             <Heart
-              className={cn(
+              className={mergeClassNames(
                 "hover:cursor-pointer",
                 isLiked(row.original._liked_by, user.user) && "fill-destructive stroke-destructive"
               )}

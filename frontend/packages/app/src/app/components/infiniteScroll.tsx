@@ -3,7 +3,7 @@
  */
 import { Skeleton } from "@next-pms/design-system/components";
 import { useInfiniteScroll } from "@next-pms/hooks";
-import { cn } from "@/lib/utils";
+import { mergeClassNames } from "@/lib/utils";
 /**
  * Internal dependencies.
  */
@@ -16,7 +16,10 @@ const InfiniteScroll = ({ children, isLoading, hasMore, verticalLodMore, classNa
     <div>
       {children}
       {hasMore && (
-        <div ref={verticalLoderRef} className={cn("flex flex-col items-start w-screen sticky left-0 h-30", className)}>
+        <div
+          ref={verticalLoderRef}
+          className={mergeClassNames("flex flex-col items-start w-screen sticky left-0 h-30", className)}
+        >
           <Skeleton className="h-10 w-full rounded-none" />
         </div>
       )}

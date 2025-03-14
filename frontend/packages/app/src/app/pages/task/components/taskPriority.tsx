@@ -6,7 +6,7 @@ import { Badge } from "@next-pms/design-system/components";
  * Internal dependencies
  */
 
-import { cn } from "@/lib/utils";
+import { mergeClassNames } from "@/lib/utils";
 import type { TaskData } from "@/types";
 
 export const TaskPriority = ({ priority }: { priority: TaskData["priority"] }) => {
@@ -16,5 +16,5 @@ export const TaskPriority = ({ priority }: { priority: TaskData["priority"] }) =
     High: "bg-orange-200 text-orange-900 hover:bg-orange-200",
     Urgent: "bg-destructive/20 text-destructive hover:bg-destructive/20",
   };
-  return <Badge className={cn(priorityCss[priority])}>{priority}</Badge>;
+  return <Badge className={mergeClassNames(priorityCss[priority])}>{priority}</Badge>;
 };

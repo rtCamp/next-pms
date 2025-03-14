@@ -16,7 +16,7 @@ import { InfiniteScroll } from "@/app/components/infiniteScroll";
 /**
  * Internal dependencies.
  */
-import { cn } from "@/lib/utils";
+import { mergeClassNames } from "@/lib/utils";
 import type { ResourceAllocationObjectProps, ResourceAllocationProps } from "@/types/resource_management";
 import { ResourceExpandView } from "./expandView";
 import { EmptyTableBody, EmptyTableCell } from "../../components/empty";
@@ -235,7 +235,7 @@ const ResourceTeamTableCell = ({
       <ResourceTableCell
         type="default"
         title={title}
-        cellClassName={cn(
+        cellClassName={mergeClassNames(
           getTableCellClass(rowCount, midIndex),
           cellBackGroundColor,
           getTodayDateCellClass(employeeSingleDay.date)
@@ -273,7 +273,7 @@ const ResourceTeamTableCell = ({
     return (
       <EmptyTableCell
         title={title}
-        cellClassName={cn(
+        cellClassName={mergeClassNames(
           getTableCellClass(rowCount, midIndex),
           cellBackGroundColor,
           getTodayDateCellClass(employeeSingleDay.date)
@@ -289,7 +289,7 @@ const ResourceTeamTableCell = ({
       <ResourceTableCell
         type="default"
         title={title}
-        cellClassName={cn(
+        cellClassName={mergeClassNames(
           getTableCellClass(rowCount),
           cellBackGroundColor,
           getTodayDateCellClass(employeeSingleDay.date)
@@ -303,7 +303,7 @@ const ResourceTeamTableCell = ({
     <ResourceTableCell
       type="hovercard"
       title={title}
-      cellClassName={cn(
+      cellClassName={mergeClassNames(
         getTableCellClass(rowCount, midIndex),
         cellBackGroundColor,
         getTodayDateCellClass(employeeSingleDay.date)

@@ -17,7 +17,7 @@ import { getTableCellClass, getTodayDateCellClass, getCellBackGroundColor } from
  * Internal dependencies.
  */
 import { InfiniteScroll } from "@/app/components/infiniteScroll";
-import { cn } from "@/lib/utils";
+import { mergeClassNames } from "@/lib/utils";
 import { ResourceAllocationObjectProps, ResourceAllocationProps } from "@/types/resource_management";
 import { ResourceExpandView } from "./expandView";
 import { EmptyTableBody, EmptyTableCell } from "../../components/empty";
@@ -311,7 +311,7 @@ const ResourceProjectTableCell = ({
       <ResourceTableCell
         type="default"
         title={title}
-        cellClassName={cn(
+        cellClassName={mergeClassNames(
           getTableCellClass(rowCount, midIndex),
           cellBackGroundColor,
           getTodayDateCellClass(projectSingleDay.date)
@@ -325,7 +325,7 @@ const ResourceProjectTableCell = ({
     return (
       <EmptyTableCell
         title={title}
-        cellClassName={cn(
+        cellClassName={mergeClassNames(
           getTableCellClass(rowCount, midIndex),
           cellBackGroundColor,
           getTodayDateCellClass(projectSingleDay.date)
@@ -340,7 +340,7 @@ const ResourceProjectTableCell = ({
     <ResourceTableCell
       type="hovercard"
       title={title}
-      cellClassName={cn(
+      cellClassName={mergeClassNames(
         getTableCellClass(rowCount, midIndex),
         cellBackGroundColor,
         getTodayDateCellClass(projectSingleDay.date)

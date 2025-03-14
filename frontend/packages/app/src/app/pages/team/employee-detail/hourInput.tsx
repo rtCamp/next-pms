@@ -2,7 +2,7 @@
  * External dependencies
  */
 import { useState, useRef } from "react";
-import { floatToTime, cn } from "@next-pms/design-system";
+import { floatToTime, mergeClassNames } from "@next-pms/design-system";
 import { Input } from "@next-pms/design-system/components";
 /**
  * Internal dependencies
@@ -52,7 +52,7 @@ export const HourInput = ({ data, employee, disabled = false, className, callbac
     <Input
       ref={inputRef}
       defaultValue={hour}
-      className={cn("w-20 text-sm", className)}
+      className={mergeClassNames("w-20 text-sm", className)}
       onBlur={updateTime}
       onChange={handleHourChange}
       disabled={disabled}
