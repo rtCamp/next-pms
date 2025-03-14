@@ -16,7 +16,7 @@ import {
   ResourceAllocationObjectProps,
   ResourceAllocationProps,
   ResourceCustomerObjectProps,
-} from "@/types/resource_management";
+} from "@/types/resource-management";
 import type { ResourceExpandViewProps } from "./types";
 import { EmptyTableCell } from "../../components/empty";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
@@ -49,7 +49,7 @@ export const ResourceExpandView = ({
   const dates = projectData.dates;
 
   const { data } = useFrappeGetCall(
-    "next_pms.resource_management.api.project.get_employees_resrouce_data_for_given_project",
+    "next_pms.resource-management.api.project.get_employees_resrouce_data_for_given_project",
     {
       project: project,
       start_date: start_date,

@@ -7,7 +7,7 @@ import { X } from "lucide-react";
 /**
  * Internal dependencies
  */
-import { removeValueFromArray } from "@/app/pages/resource_management/utils/helper";
+import { removeValueFromArray } from "@/app/pages/resource-management/utils/helper";
 import type { FilterPops } from "../types";
 
 /**

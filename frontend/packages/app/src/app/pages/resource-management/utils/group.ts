@@ -4,7 +4,7 @@
 import type {
   ResourceAllocationObjectProps,
   ResourceAllocationProps,
-} from "@/types/resource_management";
+} from "@/types/resource-management";
 import type {
   DateProps,
   EmployeeAllocationForDateProps,

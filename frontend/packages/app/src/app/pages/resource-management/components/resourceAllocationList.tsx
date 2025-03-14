@@ -18,7 +18,7 @@ import type {
   ResourceAllocationProps,
   ResourceCustomerObjectProps,
   ResourceCustomerProps,
-} from "@/types/resource_management";
+} from "@/types/resource-management";
 import { ResourceFormContext } from "../store/resourceFormContext";
 import type { AllocationDataProps, PermissionProps } from "../store/types";
 import { getInitials } from "../utils/helper";
