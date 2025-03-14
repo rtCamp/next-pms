@@ -23,7 +23,7 @@ import { Filter as Funnel, Search, Star, X } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { cn } from "@/lib/utils";
+import { mergeClassNames } from "@/lib/utils";
 import type { Skill, SkillData } from "../../store/types";
 
 // Comparison options map with descriptions
@@ -125,7 +125,7 @@ const SkillSearch = ({
     >
       <PopoverTrigger asChild>
         <Button variant="outline" className="border-dashed gap-x-2">
-          <Funnel className={cn("h-4 w-4", skillSearch!.length > 0 && "fill-primary")} />
+          <Funnel className={mergeClassNames("h-4 w-4", skillSearch!.length > 0 && "fill-primary")} />
           <Typography variant="p" className="truncate max-w-md">
             Skill
           </Typography>
@@ -145,12 +145,12 @@ const SkillSearch = ({
               value={searchQuery}
               deBounceValue={300}
               callback={(e) => setSearchQuery(e.target.value)}
-              className={cn("w-full min-w-full", skills.length > 0 && "[&>input]:rounded-b-none")}
+              className={mergeClassNames("w-full min-w-full", skills.length > 0 && "[&>input]:rounded-b-none")}
             />
             {/* Skill suggestion */}
             {skills.length > 0 && (
               <div
-                className={cn(
+                className={mergeClassNames(
                   "absolute z-10 w-full max-h-[200px] overflow-y-auto rounded-md border bg-background shadow-md",
                   skills.length > 0 && "border-t-0 rounded-t-none"
                 )}
@@ -206,7 +206,7 @@ const SkillSearch = ({
                       className="focus:outline-none"
                     >
                       <Star
-                        className={cn(
+                        className={mergeClassNames(
                           "h-5 w-5",
                           rating <= Math.round(skill.proficiency * 5)
                             ? "fill-yellow-400 text-yellow-400"

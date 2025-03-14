@@ -8,7 +8,7 @@ import { CircleDollarSign } from "lucide-react";
 /**
  * Internal dependencies
  */
-import { cn } from "@/lib/utils";
+import { mergeClassNames } from "@/lib/utils";
 import type { TaskDataItemProps, TaskDataProps } from "@/types/timesheet";
 import { Cell } from "../dataCell";
 import { TaskHoverCard } from "../taskHoverCard";
@@ -37,8 +37,8 @@ const Row = ({
         Object.entries(tasks).map(([task, taskData]: [string, TaskDataProps]) => {
           let totalHours = 0;
           return (
-            <TableRow key={task} className={cn("border-b border-slate-200", rowClassName)}>
-              <TableCell className={cn("cursor-pointer max-w-sm", taskCellClassName)}>
+            <TableRow key={task} className={mergeClassNames("border-b border-slate-200", rowClassName)}>
+              <TableCell className={mergeClassNames("cursor-pointer max-w-sm", taskCellClassName)}>
                 <TaskHoverCard
                   name={task}
                   hideLikeButton={hideLikeButton}
@@ -85,10 +85,10 @@ const Row = ({
                   />
                 );
               })}
-              <TableCell className={cn("text-center", totalCellClassName)}>
+              <TableCell className={mergeClassNames("text-center", totalCellClassName)}>
                 <Typography
                   variant="p"
-                  className={cn(
+                  className={mergeClassNames(
                     "text-slate-800 font-medium text-right flex justify-between items-center",
                     !taskData.is_billable && "justify-end"
                   )}
@@ -98,7 +98,7 @@ const Row = ({
                 </Typography>
               </TableCell>
               {showEmptyCell && (
-                <TableCell className={cn("flex max-w-20 w-full justify-center items-center")}></TableCell>
+                <TableCell className={mergeClassNames("flex max-w-20 w-full justify-center items-center")}></TableCell>
               )}
             </TableRow>
           );

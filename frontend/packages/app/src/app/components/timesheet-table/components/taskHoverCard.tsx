@@ -20,7 +20,7 @@ import { Heart } from "lucide-react";
  */
 import { LIKED_TASK_KEY } from "@/lib/constant";
 import { addAction, toggleLikedByForTask } from "@/lib/storage";
-import { cn, parseFrappeErrorMsg } from "@/lib/utils";
+import { mergeClassNames, parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import type { TaskData } from "@/types";
 import type { TaskDataProps } from "@/types/timesheet";
@@ -92,7 +92,10 @@ export const TaskHoverCard = ({
               <span className="truncate">{taskData.subject}</span>
               {!hideLikeButton && (
                 <Heart
-                  className={cn("hover:cursor-pointer shrink-0", taskLiked && "fill-destructive stroke-destructive")}
+                  className={mergeClassNames(
+                    "hover:cursor-pointer shrink-0",
+                    taskLiked && "fill-destructive stroke-destructive"
+                  )}
                   data-task={name}
                   data-liked-by={taskData?._liked_by}
                   onClick={handleLike}
@@ -127,7 +130,7 @@ export const TaskHoverCard = ({
         <div className="flex  justify-between">
           <Typography>Actual Time</Typography>
           <Typography
-            className={cn(
+            className={mergeClassNames(
               taskData.actual_time > taskData.expected_time && "text-destructive",
               taskData.actual_time < taskData.expected_time && "text-success"
             )}

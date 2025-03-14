@@ -3,7 +3,14 @@
  */
 import { useContext, useState } from "react";
 import Timeline, { DateHeader, SidebarHeader, TimelineHeaders } from "react-calendar-timeline";
-import { cn, getDayDiff, getMonthYearKey, getTodayDate, getUTCDateTime, prettyDate } from "@next-pms/design-system";
+import {
+  mergeClassNames,
+  getDayDiff,
+  getMonthYearKey,
+  getTodayDate,
+  getUTCDateTime,
+  prettyDate,
+} from "@next-pms/design-system";
 import { TableHead, useToast } from "@next-pms/design-system/components";
 import { TableContext } from "@next-pms/resource-management/store";
 import { getFormatedStringValue } from "@next-pms/resource-management/utils";
@@ -310,7 +317,7 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
             {() => {
               return (
                 <TableHead
-                  className={cn("flex items-center")}
+                  className={mergeClassNames("flex items-center")}
                   style={{ width: getCellWidthString(tableProperties.firstCellWidth - 0.05) }}
                 >
                   Members

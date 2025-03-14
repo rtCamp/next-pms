@@ -20,7 +20,7 @@ import { X, Move, Copy, CalendarX } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { cn } from "@/lib/utils";
+import { mergeClassNames } from "@/lib/utils";
 import { DeleteIcon } from "../../components/resourceAllocationList";
 import { getInitials } from "../../utils/helper";
 import type { ResourceTimeLineItemProps } from "../types";
@@ -91,7 +91,7 @@ const LeaveItemRender = ({ item: leave, itemContext, getItemProps }: ResourceTim
   return (
     <div style={itemProps.style} title={getTitle(true)}>
       <div
-        className={cn("rct-item-content")}
+        className={mergeClassNames("rct-item-content")}
         style={
           title
             ? { maxHeight: itemContext.dimensions.height }
@@ -103,20 +103,23 @@ const LeaveItemRender = ({ item: leave, itemContext, getItemProps }: ResourceTim
         }
       >
         <div
-          className={cn("flex justify-start gap-[2px] h-full w-full", !title && "justify-center")}
+          className={mergeClassNames("flex justify-start gap-[2px] h-full w-full", !title && "justify-center")}
           style={{
             alignItems: "center",
             maxHeight: itemContext.dimensions.height,
           }}
         >
           <CalendarX
-            className={cn("z-[1000] text-gray-500 cusror-pointer w-4 h-4", title && "mr-1")}
+            className={mergeClassNames("z-[1000] text-gray-500 cusror-pointer w-4 h-4", title && "mr-1")}
             size={16}
             strokeWidth={2}
           />
 
           {title && (
-            <Typography variant="small" className={cn("text-[12px] truncate overflow-hidden block text-gray-500")}>
+            <Typography
+              variant="small"
+              className={mergeClassNames("text-[12px] truncate overflow-hidden block text-gray-500")}
+            >
               {title}
             </Typography>
           )}
@@ -186,7 +189,7 @@ const AllocationItemRender = ({
       {itemContext.useResizeHandle ? <div {...leftResizeProps} /> : ""}
 
       <div
-        className={cn("rct-item-content")}
+        className={mergeClassNames("rct-item-content")}
         style={
           title
             ? { maxHeight: itemContext.dimensions.height }
@@ -194,14 +197,16 @@ const AllocationItemRender = ({
         }
       >
         <div
-          className={cn("flex justify-start gap-[2px] h-full w-full", !title && "justify-center")}
+          className={mergeClassNames("flex justify-start gap-[2px] h-full w-full", !title && "justify-center")}
           style={{ alignItems: "center", maxHeight: itemContext.dimensions.height }}
         >
           {itemContext.selected && resourceAllocation.canDelete && (
             <DeleteIcon
               resourceAllocation={resourceAllocation}
               resourceAllocationPermission={{ delete: resourceAllocation.canDelete }}
-              buttonClassName={cn("text-red-500 z-[1000] mr-1 cusror-pointer hover:text-red-600 w-7 h-4 p-0")}
+              buttonClassName={mergeClassNames(
+                "text-red-500 z-[1000] mr-1 cusror-pointer hover:text-red-600 w-7 h-4 p-0"
+              )}
               onSubmit={resourceAllocation.onDelete}
             />
           )}
@@ -220,7 +225,7 @@ const AllocationItemRender = ({
           {title && (
             <Typography
               variant="small"
-              className={cn(
+              className={mergeClassNames(
                 "text-[12px] truncate overflow-hidden block",
                 resourceAllocation.is_billable
                   ? "bg-gradient-to-r from-green-500 to-green-800 bg-clip-text text-transparent"

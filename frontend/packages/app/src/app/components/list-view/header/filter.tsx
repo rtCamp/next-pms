@@ -25,7 +25,7 @@ import { Filter as Funnel } from "lucide-react";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import ComboBoxWrapper from "@/app/components/list-view/header/comboBoxWrapper";
 import type { FilterPops } from "@/app/components/list-view/types";
-import { cn } from "@/lib/utils";
+import { mergeClassNames } from "@/lib/utils";
 
 /**
  * Filter component is responsible for rendering the filter section of the list view or pages.
@@ -77,7 +77,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
         status={filter.employeeComboStatus ?? []}
         onSelect={handleChangeWrapper}
         employeeName={filter?.employeeName}
-        className={cn("border-dashed min-w-48 w-full max-w-48", filter.className)}
+        className={mergeClassNames("border-dashed min-w-48 w-full max-w-48", filter.className)}
       />
     );
   }
@@ -109,7 +109,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
         }
         leftIcon={
           <Funnel
-            className={cn(
+            className={mergeClassNames(
               "h-4 w-4",
               filter?.isMultiComboBox
                 ? (filter.value as string[])?.length != 0 && "fill-primary"

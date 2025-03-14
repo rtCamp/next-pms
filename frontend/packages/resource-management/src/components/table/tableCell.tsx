@@ -16,7 +16,7 @@ import { CirclePlus } from "lucide-react";
  * Internal dependencies.
  */
 import type { EmptyTableCellProps, ResourceTableProps } from "./types";
-import { cn, getFilterValue } from "../../utils";
+import { mergeClassNames, getFilterValue } from "../../utils";
 
 /**
  * This component is responsible to render a table cell based on it type dynamically.
@@ -45,7 +45,7 @@ const ResourceTableCell = ({
 }: ResourceTableProps) => {
   const { tableProperties, getCellWidthString } = useContext(TableContext);
 
-  const mergeCellClassName = cn(
+  const mergeCellClassName = mergeClassNames(
     "cursor-pointer text-xs flex px-2 py-2 w-16 justify-center items-center",
     cellClassName
   );
@@ -108,14 +108,14 @@ const TableInformationCellContent = ({
 
   return (
     <TableCell
-      className={cn("overflow-hidden sticky left-0 align-super h-full", cellClassName)}
+      className={mergeClassNames("overflow-hidden sticky left-0 align-super h-full", cellClassName)}
       onClick={onClick}
       style={{ width: getCellWidthString(tableProperties.firstCellWidth) }}
       ref={cellRef}
     >
       <Typography
         variant="p"
-        className={cn(
+        className={mergeClassNames(
           "flex gap-x-2 items-center font-normal text-[13px] hover:underline w-full cursor-pointer",
           cellTypographyClassName
         )}
@@ -150,7 +150,11 @@ const TableCellContent = ({
   title?: string;
 }) => {
   return (
-    <Typography className={cn("text-gray-800 text-[11px] h-6 flex items-center", className)} variant="p" title={title}>
+    <Typography
+      className={mergeClassNames("text-gray-800 text-[11px] h-6 flex items-center", className)}
+      variant="p"
+      title={title}
+    >
       {!value && !TextComponet && " "}
       {getFilterValue(value)}
       {TextComponet && <TextComponet />}
@@ -172,7 +176,10 @@ const EmptyTableCell = ({ cellClassName, title, textClassName, onCellClick }: Em
 
   return (
     <TableCell
-      className={cn("cursor-pointer text-xs flex px-2 py-2 w-16 justify-center items-center", cellClassName)}
+      className={mergeClassNames(
+        "cursor-pointer text-xs flex px-2 py-2 w-16 justify-center items-center",
+        cellClassName
+      )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={onCellClick}
@@ -181,7 +188,9 @@ const EmptyTableCell = ({ cellClassName, title, textClassName, onCellClick }: Em
       <TableCellContent
         className={textClassName}
         TextComponet={
-          isHovered ? () => <CirclePlus className={cn("text-center cursor-pointer")} size={4} /> : () => <>{"-"}</>
+          isHovered
+            ? () => <CirclePlus className={mergeClassNames("text-center cursor-pointer")} size={4} />
+            : () => <>{"-"}</>
         }
       />
     </TableCell>

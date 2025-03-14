@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { cn } from "@next-pms/design-system";
+import { mergeClassNames } from "@next-pms/design-system";
 import {
   Button,
   Dialog,
@@ -18,7 +18,7 @@ import { LoaderCircle, Trash2, X } from "lucide-react";
  * The resource delete allocation alert dialog.
  *
  * Why not use react-alert-dialog?
- * The above package was creating issues for form dynamic field selection, also it has bugs in recent versions: https://github.com/shadcn-ui/ui/issues/1655 so for now I have used dialog only.
+ * The above package was creating issues for form dynamic field selection, also it has bugs in recent versions: https://github.com/shadmergeClassNames-ui/ui/issues/1655 so for now I have used dialog only.
  *
  * @param props.onDelete The function to be called when delete dialog is clicked.
  * @param props.isOpen The state to open the dialog.
@@ -50,7 +50,7 @@ const DeleteConfirmationDialog = ({
     <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onCancel()}>
       <DialogTrigger asChild>
         <Trash2
-          className={cn("w-4 hover:text-red-500", buttonClassName)}
+          className={mergeClassNames("w-4 hover:text-red-500", buttonClassName)}
           size={16}
           aria-label="Delete"
           onClick={onOpen}

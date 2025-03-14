@@ -20,7 +20,7 @@ import { Check, LoaderCircle } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { calculateExtendedWorkingHour, cn, expectatedHours, parseFrappeErrorMsg } from "@/lib/utils";
+import { calculateExtendedWorkingHour, mergeClassNames, expectatedHours, parseFrappeErrorMsg } from "@/lib/utils";
 import type { WorkingFrequency } from "@/types";
 import type { HolidayProp, LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
 import { RejectTimesheet } from "./rejectTimesheet";
@@ -167,7 +167,9 @@ export const Approval = ({ onClose, employee, startDate, endDate, isAprrovalDial
                         hasLeave={data.hasLeave}
                         showCheckbox
                         onCheckedChange={handleCheckboxChange}
-                        checkboxClassName={cn(submittedTime && "data-[state=checked]:bg-success border-success")}
+                        checkboxClassName={mergeClassNames(
+                          submittedTime && "data-[state=checked]:bg-success border-success"
+                        )}
                         isCheckboxChecked={isChecked || submittedTime}
                         isCheckboxDisabled={
                           submittedTime ||

@@ -14,7 +14,7 @@ import { getTableCellClass, getTodayDateCellClass } from "@next-pms/resource-man
 /**
  * Internal dependencies.
  */
-import { cn } from "@/lib/utils";
+import { mergeClassNames } from "@/lib/utils";
 import { EmptyRow, EmptyTableCell } from "../../components/empty";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
 import { ResourceFormContext } from "../../store/resourceFormContext";
@@ -176,7 +176,7 @@ const ExpandViewCell = ({
     return (
       <EmptyTableCell
         title={title}
-        cellClassName={cn(getTableCellClass(index, weekIndex), getTodayDateCellClass(date))}
+        cellClassName={mergeClassNames(getTableCellClass(index, weekIndex), getTodayDateCellClass(date))}
         onCellClick={onCellClick}
         value={"-"}
       />
@@ -188,7 +188,7 @@ const ExpandViewCell = ({
       key={index}
       type="hovercard"
       title={title}
-      cellClassName={cn(getTableCellClass(index, weekIndex), getTodayDateCellClass(date))}
+      cellClassName={mergeClassNames(getTableCellClass(index, weekIndex), getTodayDateCellClass(date))}
       value={
         tableView.view == "planned-vs-capacity" || tableView.view == "customer-view"
           ? total_allocated_hours

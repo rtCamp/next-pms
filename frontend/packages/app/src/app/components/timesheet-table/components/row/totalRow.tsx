@@ -8,7 +8,7 @@ import { floatToTime } from "@next-pms/design-system/utils";
 /**
  * Internal dependencies
  */
-import { expectatedHours, cn, getBgCsssForToday } from "@/lib/utils";
+import { expectatedHours, mergeClassNames, getBgCsssForToday } from "@/lib/utils";
 import type { LeaveProps, TaskProps } from "@/types/timesheet";
 import { WeekTotal } from "../weekTotal";
 import type { TotalHourRowProps } from "./types";
@@ -41,7 +41,7 @@ export const TotalHourRow = ({ leaves, dates, tasks, holidays, workingHour, work
           }
           return (
             <TableCell key={date} className="text-center">
-              <Typography variant="p" className={cn("text-slate-400")}>
+              <Typography variant="p" className={mergeClassNames("text-slate-400")}>
                 {holiday.weekly_off ? "-" : floatToTime(workingHour)}
               </Typography>
             </TableCell>
@@ -52,8 +52,8 @@ export const TotalHourRow = ({ leaves, dates, tasks, holidays, workingHour, work
         total += totalHours;
 
         return (
-          <TableCell key={date} className={cn("text-center px-2", getBgCsssForToday(date))}>
-            <Typography variant="p" className={cn("text-slate-600")}>
+          <TableCell key={date} className={mergeClassNames("text-center px-2", getBgCsssForToday(date))}>
+            <Typography variant="p" className={mergeClassNames("text-slate-600")}>
               {floatToTime(totalHours)}
             </Typography>
           </TableCell>

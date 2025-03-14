@@ -6,7 +6,7 @@ import { CircleCheck, CircleX, Clock3 } from "lucide-react";
 /**
  * Internal dependencies
  */
-import { cn } from "@/lib/utils";
+import { mergeClassNames } from "@/lib/utils";
 import type { submitButtonProps } from "./types";
 
 /**
@@ -26,7 +26,7 @@ export const SubmitButton = ({ start_date, end_date, onApproval, status }: submi
     <Button
       variant="ghost"
       asChild
-      className={cn(
+      className={mergeClassNames(
         "font-normal",
         (status == "Approved" || status == "Partially Approved") && "bg-green-50 text-success",
         (status == "Rejected" || status == "Partially Rejected") && "bg-red-50 text-destructive",

@@ -8,7 +8,7 @@ import { floatToTime } from "@next-pms/design-system/utils";
  * Internal dependencies.
  */
 import { DataCell } from "@/app/components/list-view/dataCell";
-import { cn } from "@/lib/utils";
+import { mergeClassNames } from "@/lib/utils";
 import type { FieldMeta } from "./types";
 import { getValidUserTagsValues } from "./utils";
 
@@ -56,12 +56,17 @@ export const getColumnInfo = (
             <span>
               <Typography
                 variant="small"
-                className={cn("truncate", per < 0 && "text-destructive")}
+                className={mergeClassNames("truncate", per < 0 && "text-destructive")}
                 title={per.toString()}
               >
                 {per}%
               </Typography>
-              <Progress className="h-2" indicatorClassName={cn(color)} value={per} title={per.toString()} />
+              <Progress
+                className="h-2"
+                indicatorClassName={mergeClassNames(color)}
+                value={per}
+                title={per.toString()}
+              />
             </span>
           );
         } else if (HOUR_FIELD.includes(meta.fieldname)) {

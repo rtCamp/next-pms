@@ -5,7 +5,7 @@ import { useContext, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage, Button, useToast, Typography } from "@next-pms/design-system/components";
 import { DeleteConfirmationDialog } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
-import { cn } from "@next-pms/design-system/utils";
+import { mergeClassNames } from "@next-pms/design-system/utils";
 import { getFilterValue, getFormatedStringValue } from "@next-pms/resource-management/utils";
 import { useFrappeDeleteDoc } from "frappe-react-sdk";
 import { Clipboard, Pencil, Plus } from "lucide-react";
@@ -51,7 +51,7 @@ export const ResourceAllocationList = ({
   const { permission: resourceAllocationPermission } = useContext(ResourceFormContext);
 
   return (
-    <div className={cn("flex flex-col items-center overflow-y-auto max-h-60")}>
+    <div className={mergeClassNames("flex flex-col items-center overflow-y-auto max-h-60")}>
       {resourceAllocationList.map((resourceAllocation: ResourceAllocationProps, index: number) => (
         <ResourceAllocationCard
           key={resourceAllocation.name}
@@ -69,7 +69,7 @@ export const ResourceAllocationList = ({
       {resourceAllocationPermission.write && onButtonClick && (
         <Button
           title={"Add Resource Allocation"}
-          className={cn("p-1 h-fit text-xs w-11/12")}
+          className={mergeClassNames("p-1 h-fit text-xs w-11/12")}
           variant={"default"}
           onClick={onButtonClick}
         >
@@ -160,7 +160,9 @@ export const ResourceAllocationCard = ({
   };
 
   return (
-    <div className={cn("flex flex-col items-center gap-2 relative mt-2 mb-4 w-full", isLastItem && "mb-3")}>
+    <div
+      className={mergeClassNames("flex flex-col items-center gap-2 relative mt-2 mb-4 w-full", isLastItem && "mb-3")}
+    >
       <div className="flex gap-1 items-center w-11/12">
         <Avatar className="w-6 h-6">
           <AvatarImage src={decodeURIComponent(customerData.image)} />
@@ -206,7 +208,7 @@ export const ResourceAllocationCard = ({
           </Typography>
         </div>
         <Typography
-          className={cn(
+          className={mergeClassNames(
             "text-xs font-semibold",
             resourceAllocation.is_billable
               ? "bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent"
