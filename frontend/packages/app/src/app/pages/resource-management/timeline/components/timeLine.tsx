@@ -21,11 +21,11 @@ import moment from "moment";
 /**
  * Internal dependencies.
  */
-import type { ResourceAllocationProps } from "@/types/resource-management";
+import type { ResourceAllocationProps } from "@/types/resource_management";
 import ResourceTimeLineGroup from "./group";
 import type { ResourceAllocationEmployeeProps, ResourceAllocationTimeLineProps, ResourceTimeLineProps } from "../types";
 import { TimeLineDateHeader, TimeLineIntervalHeader } from "./header";
-import ResourceTimeLineItem, { ItemAllocationActionDialog } from "./item";
+import { ResourceTimeLineItem, ItemAllocationActionDialog } from "./item";
 import { ResourceFormContext } from "../../store/resourceFormContext";
 import { TimeLineContext } from "../../store/timeLineContext";
 import { getDayKeyOfMoment } from "../../utils/dates";

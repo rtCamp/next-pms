@@ -2,11 +2,7 @@
  * External dependencies.
  */
 import { useContext, useEffect } from "react";
-import { getMonthKey, getMonthYearKey, getTodayDate, prettyDate } from "@next-pms/design-system";
-import { TableHead, Typography } from "@next-pms/design-system/components";
 import { useQueryParam } from "@next-pms/hooks";
-import { TableContext } from "@next-pms/resource-management/store";
-import { startOfWeek } from "date-fns";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { Plus, ZoomIn, ZoomOut } from "lucide-react";
 
@@ -14,13 +10,10 @@ import { Plus, ZoomIn, ZoomOut } from "lucide-react";
  * Internal dependencies.
  */
 import { Header } from "@/app/components/list-view/header";
-import { mergeClassNames } from "@/lib/utils";
-import { ResourceFormContext } from "../../store/resourceFormContext";
-import { TimeLineContext } from "../../store/timeLineContext";
-import type { PermissionProps, Skill } from "../../store/types";
-import SkillSearch from "../../team/components/skillSearch";
-import { getDayKeyOfMoment } from "../../utils/dates";
-import type { ResourceAllocationItemProps, TimeLineHeaderFunctionProps } from "../types";
+import { ResourceFormContext } from "../../../store/resourceFormContext";
+import { TimeLineContext } from "../../../store/timeLineContext";
+import type { PermissionProps, Skill } from "../../../store/types";
+import SkillSearch from "../../../team/components/skillSearch";
 
 /**
  * This component is responsible for loading the team view header.
@@ -263,96 +256,4 @@ const ResourceTimLineHeaderSection = () => {
   );
 };
 
-const TimeLineIntervalHeader = ({ getIntervalProps, intervalContext, data }: TimeLineHeaderFunctionProps) => {
-  const { interval } = intervalContext;
-  const { startTime, endTime } = interval;
-  const start = startOfWeek(getTodayDate(), {
-    weekStartsOn: 1,
-  });
-
-  const getKey = () => {
-    const keys = { week: "Week", month: "Month", year: "Year" };
-
-    if (start.getTime() >= startTime.toDate().getTime() && start.getTime() <= endTime.toDate().getTime()) {
-      if (data.unit === "week") {
-        return `This ${keys[data.unit]}`;
-      }
-    }
-    if (data.unit === "month" && data.showYear) {
-      return getMonthYearKey(getDayKeyOfMoment(startTime));
-    }
-
-    return `${getMonthKey(getDayKeyOfMoment(startTime))} - ${getMonthKey(
-      getDayKeyOfMoment(endTime.add("-1", "days"))
-    )}`;
-  };
-
-  let headerProps: ResourceAllocationItemProps = getIntervalProps();
-
-  headerProps = {
-    ...headerProps,
-    style: {
-      ...headerProps.style,
-      left: headerProps.style.left + (data.unit === "week" ? 1 : -0.5),
-    },
-  };
-
-  return (
-    <TableHead
-      {...headerProps}
-      className={mergeClassNames("h-full pb-2 pt-1 px-0 text-center truncate cursor-pointer border-r border-gray-300")}
-    >
-      <Typography variant="small">{getKey()}</Typography>
-    </TableHead>
-  );
-};
-
-const TimeLineDateHeader = ({ getIntervalProps, intervalContext }: TimeLineHeaderFunctionProps) => {
-  const { interval } = intervalContext;
-  const { startTime } = interval;
-  const { date: dateStr, day } = prettyDate(getDayKeyOfMoment(startTime));
-  const { date: toDayStr } = prettyDate(getTodayDate());
-
-  const { tableProperties, getCellWidthString } = useContext(TableContext);
-
-  let headerProps: ResourceAllocationItemProps = getIntervalProps();
-
-  headerProps = {
-    ...headerProps,
-    style: {
-      ...headerProps.style,
-      width: getCellWidthString(tableProperties.cellWidth),
-    },
-  };
-
-  return (
-    <TableHead
-      {...headerProps}
-      className={mergeClassNames(
-        "text-xs flex flex-col justify-end items-center border-0 p-0 h-full pb-2",
-        day == "Sun" && "border-l border-gray-300",
-        dateStr == toDayStr && "font-semibold"
-      )}
-    >
-      <div className={mergeClassNames("text-xs flex flex-col justify-end items-center pr-2")}>
-        <Typography
-          variant="p"
-          className={mergeClassNames("text-slate-600 text-[11px] ", dateStr == toDayStr && "font-semibold")}
-        >
-          {day}
-        </Typography>
-        <Typography
-          variant="small"
-          className={mergeClassNames(
-            "text-slate-500 text-center text-[11px] max-lg:text-[0.65rem]",
-            dateStr == toDayStr && "font-semibold"
-          )}
-        >
-          {dateStr}
-        </Typography>
-      </div>
-    </TableHead>
-  );
-};
-
-export { TimeLineIntervalHeader, TimeLineDateHeader, ResourceTimLineHeaderSection };
+export { ResourceTimLineHeaderSection };

@@ -1,85 +1,25 @@
 /**
  * External dependencies.
  */
-import { useContext, useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage, Button, useToast, Typography } from "@next-pms/design-system/components";
-import { DeleteConfirmationDialog } from "@next-pms/design-system/components";
+import { useContext } from "react";
+import { Avatar, AvatarFallback, AvatarImage, Typography } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
 import { mergeClassNames } from "@next-pms/design-system/utils";
 import { getFilterValue, getFormatedStringValue } from "@next-pms/resource-management/utils";
-import { useFrappeDeleteDoc } from "frappe-react-sdk";
-import { Clipboard, Pencil, Plus } from "lucide-react";
+import { Clipboard, Pencil } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
 import type {
-  ResourceAllocationObjectProps,
   ResourceAllocationProps,
   ResourceCustomerObjectProps,
   ResourceCustomerProps,
-} from "@/types/resource-management";
-import { ResourceFormContext } from "../store/resourceFormContext";
-import type { AllocationDataProps, PermissionProps } from "../store/types";
-import { getInitials } from "../utils/helper";
-
-/**
- * This component is responsible for rendering the list of resource allocations in Card.
- *
- * @param props.resourceAllocationList The list of resource allocation whihc can have list of allocation names or allocation objects
- * @param props.employeeAllocations The employee allocations.
- * @param props.customer The customer object which holds the customer data.
- * @param props.onButtonClick The on button click event.
- * @param props.viewType The view type of resource page, team or project.
- * @returns React.FC
- */
-export const ResourceAllocationList = ({
-  resourceAllocationList,
-  employeeAllocations,
-  customer,
-  onButtonClick,
-  viewType,
-  onSubmit,
-}: {
-  resourceAllocationList: ResourceAllocationProps[];
-  employeeAllocations?: ResourceAllocationObjectProps;
-  customer: ResourceCustomerObjectProps;
-  viewType?: string;
-  onButtonClick?: () => void;
-  onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
-}) => {
-  const { permission: resourceAllocationPermission } = useContext(ResourceFormContext);
-
-  return (
-    <div className={mergeClassNames("flex flex-col items-center overflow-y-auto max-h-60")}>
-      {resourceAllocationList.map((resourceAllocation: ResourceAllocationProps, index: number) => (
-        <ResourceAllocationCard
-          key={resourceAllocation.name}
-          resourceAllocation={
-            employeeAllocations
-              ? { ...resourceAllocation, ...employeeAllocations[resourceAllocation.name] }
-              : resourceAllocation
-          }
-          customer={customer}
-          viewType={viewType}
-          isLastItem={index == resourceAllocationList.length - 1}
-          onSubmit={onSubmit}
-        />
-      ))}
-      {resourceAllocationPermission.write && onButtonClick && (
-        <Button
-          title={"Add Resource Allocation"}
-          className={mergeClassNames("p-1 h-fit text-xs w-11/12")}
-          variant={"default"}
-          onClick={onButtonClick}
-        >
-          <Plus className="w-4 max-md:w-3 h-4 max-md:h-3" />
-          Add
-        </Button>
-      )}
-    </div>
-  );
-};
+} from "@/types/resource_management";
+import { DeleteIcon } from "./deleteIcon";
+import { ResourceFormContext } from "../../store/resourceFormContext";
+import type { AllocationDataProps } from "../../store/types";
+import { getInitials } from "../../utils/helper";
 
 /**
  * This component is used to render single allocation information. also include function to create, update and destroy allocation information.
@@ -257,79 +197,3 @@ export const ResourceAllocationCard = ({
     </div>
   );
 };
-
-/**
- * The delete icon's confirm box wrapper.
- *
- * @param props.resourceAllocation The resource allocation object.
- * @param props.resourceAllocationPermission The resource allocation permission object.
- * @returns
- */
-const DeleteIcon = ({
-  resourceAllocation,
-  resourceAllocationPermission,
-  onSubmit,
-  buttonClassName,
-}: {
-  resourceAllocation: ResourceAllocationProps;
-  resourceAllocationPermission: PermissionProps;
-  onSubmit?: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
-  buttonClassName?: string;
-}) => {
-  const { toast } = useToast();
-  const { deleteDoc } = useFrappeDeleteDoc();
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
-
-  const handleResourceAllocationDelete = () => {
-    if (!resourceAllocationPermission.delete) {
-      return;
-    }
-
-    setIsLoading(true);
-
-    deleteDoc("Resource Allocation", resourceAllocation.name)
-      .then(() => {
-        toast({
-          variant: "success",
-          description: "Resouce allocation deleted successfully",
-        });
-        if (onSubmit) {
-          onSubmit(
-            resourceAllocation as unknown as AllocationDataProps,
-            resourceAllocation as unknown as AllocationDataProps
-          );
-          setIsOpen(false);
-        }
-      })
-      .catch(() => {
-        toast({
-          variant: "destructive",
-          description: "Failed to delete resource allocation",
-        });
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  };
-
-  return (
-    <DeleteConfirmationDialog
-      onDelete={handleResourceAllocationDelete}
-      isLoading={isLoading}
-      buttonClassName={buttonClassName}
-      isOpen={isOpen}
-      onOpen={() => {
-        setIsOpen(true);
-      }}
-      onCancel={() => {
-        setIsOpen(false);
-      }}
-      title="Are you sure you want to delete this allocation?"
-      description="This action cannot be undone. This will permanently delete the given allocation."
-    />
-  );
-};
-
-export { DeleteIcon };

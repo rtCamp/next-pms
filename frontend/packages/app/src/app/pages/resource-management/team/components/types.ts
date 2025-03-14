@@ -1,7 +1,7 @@
 /**
  * Internal dependencies.
  */
-import { ResourceTeamDataProps } from "../../store/types";
+import type { ResourceTeamDataProps } from "../../store/types";
 
 export interface PreProcessDataProps extends ResourceTeamDataProps {
   date: string;
