@@ -21,7 +21,7 @@ import moment from "moment";
 /**
  * Internal dependencies.
  */
-import type { ResourceAllocationProps } from "@/types/resource_management";
+import type { ResourceAllocationProps } from "@/types/resource-management";
 import ResourceTimeLineGroup from "./group";
 import type { ResourceAllocationEmployeeProps, ResourceAllocationTimeLineProps, ResourceTimeLineProps } from "../types";
 import { TimeLineDateHeader, TimeLineIntervalHeader } from "./header";

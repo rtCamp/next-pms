@@ -18,7 +18,7 @@ import { getTableCellClass, getTodayDateCellClass, getCellBackGroundColor } from
  */
 import { InfiniteScroll } from "@/app/components/infiniteScroll";
 import { mergeClassNames } from "@/lib/utils";
-import { ResourceAllocationObjectProps, ResourceAllocationProps } from "@/types/resource_management";
+import { ResourceAllocationObjectProps, ResourceAllocationProps } from "@/types/resource-management";
 import { ResourceExpandView } from "./expandView";
 import { EmptyTableBody, EmptyTableCell } from "../../components/empty";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";

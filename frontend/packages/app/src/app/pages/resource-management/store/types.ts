@@ -9,7 +9,7 @@ import type { ReactNode } from "react";
 import type {
   ResourceAllocationObjectProps,
   ResourceCustomerObjectProps,
-} from "@/types/resource_management";
+} from "@/types/resource-management";
 import type {
   ResourceAllocationCustomerProps,
   ResourceAllocationEmployeeProps,
