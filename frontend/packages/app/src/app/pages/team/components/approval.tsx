@@ -21,20 +21,13 @@ import { Check, LoaderCircle } from "lucide-react";
  * Internal dependencies.
  */
 import { calculateExtendedWorkingHour, cn, expectatedHours, parseFrappeErrorMsg } from "@/lib/utils";
-import { WorkingFrequency } from "@/types";
-import { HolidayProp, LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
+import type { WorkingFrequency } from "@/types";
+import type { HolidayProp, LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
 import { RejectTimesheet } from "./rejectTimesheet";
 import { EmployeeTimesheetListItem } from "../employee-detail/employee-timesheet-list/timesheetListItem";
 import { getTaskDataForDate, getTimesheetHourForDate } from "../utils";
+import type { ApprovalProp } from "./types";
 
-interface ApprovalProp {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onClose: (data: any) => void;
-  employee: string;
-  startDate: string;
-  endDate: string;
-  isAprrovalDialogOpen: boolean;
-}
 export const Approval = ({ onClose, employee, startDate, endDate, isAprrovalDialogOpen }: ApprovalProp) => {
   const { toast } = useToast();
   const [timesheetData, setTimesheetData] = useState<timesheet>();

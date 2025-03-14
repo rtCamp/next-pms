@@ -1,7 +1,6 @@
 /**
  * External dependencies
  */
-
 import { floatToTime } from "@next-pms/design-system";
 import { TableCell, TableRow, Typography } from "@next-pms/design-system/components";
 
@@ -9,19 +8,9 @@ import { TableCell, TableRow, Typography } from "@next-pms/design-system/compone
  * Internal dependencies
  */
 import { cn, getBgCsssForToday } from "@/lib/utils";
-import { LeaveProps } from "@/types/timesheet";
+import type { LeaveProps } from "@/types/timesheet";
+import type { leaveRowProps } from "./types";
 
-type leaveRowProps = {
-  leaves: Array<LeaveProps>;
-  dates: string[];
-  holidayList: Array<string>;
-  expectedHours: number;
-  rowClassName?: string;
-  headingClassName?: string;
-  dataCellClassName?: string;
-  totalCellClassName?: string;
-  showEmptyCell?: boolean;
-};
 /**
  * @description This component calculates the total leaves for the perticular
  * day and uses the `Cell` component to show the total hours of leave

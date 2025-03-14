@@ -7,7 +7,7 @@ import { Badge } from "@next-pms/design-system/components";
  */
 
 import { cn } from "@/lib/utils";
-import { TaskData } from "@/types";
+import type { TaskData } from "@/types";
 
 export const TaskPriority = ({ priority }: { priority: TaskData["priority"] }) => {
   const priorityCss = {

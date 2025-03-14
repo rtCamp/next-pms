@@ -21,27 +21,12 @@ import { getTodayDate, getFormatedDate, prettyDate } from "@next-pms/design-syst
 import { floatToTime } from "@next-pms/design-system/utils";
 import { addDays } from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
+
 /**
  * Internal dependencies.
  */
 import { cn, parseFrappeErrorMsg } from "@/lib/utils";
-
-type Employee = {
-  employee: string;
-  employee_name: string;
-  image: string;
-  total_hour: number;
-};
-type LogData = {
-  employee: string;
-  hours: number;
-  description: string[];
-};
-type TaskLogProps = {
-  task: string;
-  isOpen: boolean;
-  onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
-};
+import type { Employee, LogData, TaskLogProps } from "./types";
 
 export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
   const { toast } = useToast();

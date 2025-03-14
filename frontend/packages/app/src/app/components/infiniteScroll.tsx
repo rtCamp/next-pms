@@ -1,21 +1,13 @@
 /**
  * External dependencies.
  */
-import { ReactNode } from "react";
 import { Skeleton } from "@next-pms/design-system/components";
 import { useInfiniteScroll } from "@next-pms/hooks";
 import { cn } from "@/lib/utils";
 /**
  * Internal dependencies.
  */
-
-interface InfiniteScrollProps {
-  children: ReactNode;
-  isLoading: boolean;
-  hasMore: boolean;
-  verticalLodMore: () => void;
-  className?: string;
-}
+import { InfiniteScrollProps } from "./types";
 
 const InfiniteScroll = ({ children, isLoading, hasMore, verticalLodMore, className }: InfiniteScrollProps) => {
   const verticalLoderRef = useInfiniteScroll({ isLoading: isLoading, hasMore: hasMore, next: () => verticalLodMore() });

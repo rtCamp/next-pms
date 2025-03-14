@@ -1,6 +1,7 @@
-import { TaskState } from "./reducer";
-
-
+/**
+ * Internal dependencies.
+ */
+import type { TaskState } from "./types";
 
 export const createFilter = (taskState: TaskState) => {
   return {
@@ -27,4 +28,3 @@ export const getFilter = (taskState: TaskState) => {
 
   return filters;
 };
-

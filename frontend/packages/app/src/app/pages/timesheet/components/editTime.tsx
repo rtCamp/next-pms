@@ -36,20 +36,7 @@ import { z } from "zod";
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetUpdateSchema } from "@/schema/timesheet";
-import { UserState } from "@/store/user";
-import { TaskDataItemProps } from "@/types/timesheet";
-
-type TimesheetDetail = Pick<TaskDataItemProps, "parent" | "name" | "hours" | "description" | "task" | "is_billable"> & {
-  date: string;
-};
-interface EditTimeProps {
-  employee: string;
-  date: string;
-  task: string;
-  open: boolean;
-  onClose: () => void;
-  user: UserState;
-}
+import type { EditTimeProps, TimesheetDetail } from "./types";
 
 export const EditTime = ({ employee, date, task, open, onClose, user }: EditTimeProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);

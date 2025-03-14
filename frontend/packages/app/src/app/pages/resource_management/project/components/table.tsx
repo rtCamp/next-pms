@@ -19,19 +19,18 @@ import { getTableCellClass, getTodayDateCellClass, getCellBackGroundColor } from
 import { InfiniteScroll } from "@/app/components/infiniteScroll";
 import { cn } from "@/lib/utils";
 import { ResourceAllocationObjectProps, ResourceAllocationProps } from "@/types/resource_management";
-
 import { ResourceExpandView } from "./expandView";
 import { EmptyTableBody, EmptyTableCell } from "../../components/empty";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
-import {
-  emptyProjectDayData,
+import { emptyProjectDayData, ProjectContext } from "../../store/projectContext";
+import { ResourceFormContext } from "../../store/resourceFormContext";
+import type {
+  AllocationDataProps,
+  DateProps,
   ProjectAllWeekDataProps,
-  ProjectContext,
   ProjectDataProps,
   ProjectResourceProps,
-} from "../../store/projectContext";
-import { ResourceFormContext } from "../../store/resourceFormContext";
-import { AllocationDataProps, DateProps } from "../../store/types";
+} from "../../store/types";
 import { getIsBillableValue } from "../../utils/helper";
 
 /**

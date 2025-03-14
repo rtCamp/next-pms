@@ -17,20 +17,19 @@ import { InfiniteScroll } from "@/app/components/infiniteScroll";
  * Internal dependencies.
  */
 import { cn } from "@/lib/utils";
-import { ResourceAllocationObjectProps, ResourceAllocationProps } from "@/types/resource_management";
-
+import type { ResourceAllocationObjectProps, ResourceAllocationProps } from "@/types/resource_management";
 import { ResourceExpandView } from "./expandView";
 import { EmptyTableBody, EmptyTableCell } from "../../components/empty";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
 import { ResourceFormContext } from "../../store/resourceFormContext";
-import {
-  defaultEmployeeDayData,
+import { defaultEmployeeDayData, TeamContext } from "../../store/teamContext";
+import type {
+  AllocationDataProps,
+  DateProps,
   EmployeeAllWeekDataProps,
   EmployeeDataProps,
   EmployeeResourceProps,
-  TeamContext,
-} from "../../store/teamContext";
-import { AllocationDataProps, DateProps } from "../../store/types";
+} from "../../store/types";
 import { getIsBillableValue } from "../../utils/helper";
 
 /**

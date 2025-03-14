@@ -3,12 +3,12 @@
  */
 import { Typography, Badge, Progress } from "@next-pms/design-system/components";
 import { getUTCDateTime } from "@next-pms/design-system/date";
+
 /**
  * Internal dependencies
  */
-
 import { cn, currencyFormat } from "@/lib/utils";
-import { fieldMetaProps } from "@/types";
+import type { fieldMetaProps } from "@/types";
 
 const NUMBER_FIELDS = ["Int", "Long Int", "Float"];
 const NO_VALUE_FIELDS = [
@@ -43,6 +43,7 @@ interface DataCellProps {
   meta: fieldMetaProps;
   title_field: string;
   docType: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   row: any;
   value: string;
   currency?: string;

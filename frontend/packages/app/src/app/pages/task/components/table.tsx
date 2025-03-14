@@ -14,11 +14,12 @@ import {
 } from "@next-pms/design-system/components";
 import { useInfiniteScroll } from "@next-pms/hooks";
 import { flexRender } from "@tanstack/react-table";
+
 /**
  * Internal dependencies.
  */
-import { ColumnsType, columnsToExcludeActionsInTablesType, TaskTableType } from "@/types/task";
-import { TaskState } from "../reducer";
+import type { ColumnsType, columnsToExcludeActionsInTablesType, TaskTableType } from "@/types/task";
+import type { TaskState } from "../types";
 
 export const Table = ({
   table,

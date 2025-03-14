@@ -9,19 +9,8 @@ import { LoaderCircle, Import } from "lucide-react";
  * Internal dependencies
  */
 import { cn, getBgCsssForToday } from "@/lib/utils";
+import type { HeaderProps } from "./types";
 
-type HeaderProps = {
-  dates: string[];
-  holidayList: string[];
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  onCellClick?: (data) => void;
-  weeklyStatus?: string;
-  importTasks?: boolean;
-  loadingLikedTasks?: boolean;
-  showHeading: boolean;
-  setTaskInLocalStorage?: () => void;
-};
 /**
  * @description This is the header component for the timesheet table.
  * It is responsible for rendering the header of the timesheet table.

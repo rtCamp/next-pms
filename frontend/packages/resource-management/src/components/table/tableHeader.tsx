@@ -9,23 +9,9 @@ import { isToday } from "date-fns";
 /**
  * Internal dependencies.
  */
+import type { DateProps, ResourceTableHeaderProps } from "./types";
 import { TableContext } from "../../store";
 import { cn, getTableCellClass } from "../../utils";
-
-export type DateProps = {
-  startDate: string;
-  endDate: string;
-  key: string;
-  dates: string[];
-};
-
-interface ResourceTableHeaderProps {
-  dates: DateProps[];
-  title: string;
-  cellHeaderRef: LegacyRef<HTMLTableCellElement>;
-  dateToAddHeaderRef: string;
-  isLoading?: boolean;
-}
 
 /**
  * This component is used to render the table header for the resource management table.

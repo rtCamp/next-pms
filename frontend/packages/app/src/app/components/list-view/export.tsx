@@ -28,17 +28,10 @@ import {
 } from "@next-pms/design-system/components";
 import { FileDown } from "lucide-react";
 import { z } from "zod";
-
-export interface ExportProps {
-  doctype: string;
-  fields: Record<string, string>;
-  filters?: Record<string, string | number | boolean | string[]>;
-  orderBy: string;
-  pageLength: number;
-  isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  totalCount: number;
-}
+/**
+ * Internal dependencies
+ */
+import type { ExportProps } from "./types";
 
 enum fileType {
   Excel = "Excel",

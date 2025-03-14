@@ -22,7 +22,7 @@ import { Columns2 } from "lucide-react";
 /**
  * Internal dependencies
  */
-import { ColumnSelectorProps } from "@/app/components/list-view/type";
+import { ColumnSelectorProps } from "@/app/components/list-view/types";
 import { checkIsMobile, NO_VALUE_FIELDS } from "@/lib/utils";
 import ColumnItem from "./columnItem";
 

@@ -9,18 +9,10 @@ import { floatToTime } from "@next-pms/design-system/utils";
  * Internal dependencies
  */
 import { expectatedHours, cn, getBgCsssForToday } from "@/lib/utils";
-import { WorkingFrequency } from "@/types";
-import { LeaveProps, TaskProps, HolidayProp } from "@/types/timesheet";
+import type { LeaveProps, TaskProps } from "@/types/timesheet";
 import { WeekTotal } from "../weekTotal";
+import type { TotalHourRowProps } from "./types";
 
-type TotalHourRowProps = {
-  leaves: Array<LeaveProps>;
-  dates: string[];
-  tasks: TaskProps;
-  holidays: Array<HolidayProp>;
-  workingHour: number;
-  workingFrequency: WorkingFrequency;
-};
 /**
  * @description This component calculates the total working hours for the perticular
  * day including the leaves, holidays and tasks, and uses the `Cell` component to

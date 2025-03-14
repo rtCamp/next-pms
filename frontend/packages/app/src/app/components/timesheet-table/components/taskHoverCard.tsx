@@ -22,19 +22,11 @@ import { LIKED_TASK_KEY } from "@/lib/constant";
 import { addAction, toggleLikedByForTask } from "@/lib/storage";
 import { cn, parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
-import { TaskData } from "@/types";
-import { TaskDataProps } from "@/types/timesheet";
+import type { TaskData } from "@/types";
+import type { TaskDataProps } from "@/types/timesheet";
+import type { TaskHoverCardProps } from "./types";
 import TaskStatusIndicator from "../../taskStatusIndicator";
 
-type TaskHoverCardProps = {
-  name: string;
-  taskData: TaskData;
-  setSelectedTask: (name: string) => void;
-  setIsTaskLogDialogBoxOpen: (val: boolean) => void;
-  likedTaskData: TaskDataProps[];
-  getLikedTaskData: () => void;
-  hideLikeButton?: boolean;
-};
 export const TaskHoverCard = ({
   name,
   taskData,

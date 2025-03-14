@@ -17,7 +17,7 @@ import { Download, Ellipsis, Plus } from "lucide-react";
 import { CreateView } from "@/app/components/list-view/createView";
 import { Export } from "@/app/components/list-view/export";
 import { canExport, canCreate } from "@/lib/utils";
-import { ActionProps } from "../../type";
+import type { ActionProps } from "../../types";
 
 /**
  * Action component

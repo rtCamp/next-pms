@@ -7,22 +7,13 @@ import { getFormatedStringValue } from "@next-pms/resource-management/utils";
 /**
  * Internal dependencies.
  */
-import { AllocationDataProps, ContextProviderProps, PermissionProps } from "./types";
-
-interface DialogStateProps {
-  isShowDialog: boolean;
-  isNeedToEdit: boolean;
-}
-
-interface ResourceFormContextProps {
-  dialogState: DialogStateProps;
-  allocationData: AllocationDataProps;
-  permission: PermissionProps;
-  updateDialogState: (value: DialogStateProps) => void;
-  updateAllocationData: (value: AllocationDataProps) => void;
-  updatePermission: (value: PermissionProps) => void;
-  resetState: () => void;
-}
+import type {
+  AllocationDataProps,
+  ContextProviderProps,
+  DialogStateProps,
+  PermissionProps,
+  ResourceFormContextProps,
+} from "./types";
 
 const DefaultDialogState: DialogStateProps = { isShowDialog: false, isNeedToEdit: false };
 const DefaultAllocationData: AllocationDataProps = {

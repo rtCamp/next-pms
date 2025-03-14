@@ -1,9 +1,14 @@
 /**
+ * External dependencies.
+ */
+import { ItemContext } from "react-calendar-timeline";
+import { Moment } from "moment";
+
+/**
  * Internal dependencies.
  */
 import { ResourceAllocationProps } from "@/types/resource_management";
-import { Skill } from "../store/teamContext";
-import { AllocationDataProps } from "../store/types";
+import { AllocationDataProps, Skill } from "../store/types";
 
 interface ResourceAllocationItemProps {
   style: {
@@ -91,6 +96,32 @@ interface ResourceTeamAPIBodyProps {
   need_hours_summary?: boolean;
 }
 
+interface ResourceTimeLineGroupProps {
+  group: ResourceAllocationEmployeeProps;
+}
+
+interface TimeLineHeaderFunctionProps {
+  getIntervalProps: () => ResourceAllocationItemProps;
+  intervalContext: { interval: { startTime: Moment; endTime: Moment } };
+  data: { unit: string; showYear?: boolean };
+}
+
+interface ResourceTimeLineItemProps {
+  item: ResourceAllocationTimeLineProps;
+  itemContext: ItemContext;
+  getItemProps: (
+    itemProps: ResourceAllocationItemProps
+  ) => ResourceAllocationItemProps;
+  getResizeProps: () => { left: object; right: object };
+}
+
+interface ResourceTimeLineProps {
+  handleFormSubmit: (
+    oldData: ResourceAllocationTimeLineProps,
+    newData: ResourceAllocationTimeLineProps
+  ) => void;
+}
+
 export type {
   ResourceAllocationCustomerProps,
   ResourceAllocationEmployeeProps,
@@ -99,4 +130,8 @@ export type {
   ResourceAllocationTimeLineProps,
   ResourceTeamAPIBodyProps,
   ResourceTimeLineDataProps,
+  ResourceTimeLineGroupProps,
+  TimeLineHeaderFunctionProps,
+  ResourceTimeLineItemProps,
+  ResourceTimeLineProps,
 };

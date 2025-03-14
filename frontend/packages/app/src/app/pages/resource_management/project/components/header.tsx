@@ -13,7 +13,7 @@ import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
 import { Header } from "@/app/components/list-view/header";
 import { ProjectContext } from "../../store/projectContext";
 import { ResourceFormContext } from "../../store/resourceFormContext";
-import { PermissionProps } from "../../store/types";
+import type { PermissionProps } from "../../store/types";
 
 /**
  * This component is responsible for loading the project view header.
