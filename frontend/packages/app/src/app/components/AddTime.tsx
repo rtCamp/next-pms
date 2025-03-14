@@ -35,7 +35,7 @@ import { z } from "zod";
  * Internal Dependencies
  */
 import EmployeeCombo from "@/app/components/employeeComboBox";
-import { cn, expectatedHours, parseFrappeErrorMsg } from "@/lib/utils";
+import { mergeClassNames, expectatedHours, parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetSchema } from "@/schema/timesheet";
 import type { TaskData } from "@/types";
 import type { AddTimeProps } from "./types";
@@ -239,7 +239,7 @@ const AddTime = ({
             Add Time
             <Typography
               variant="p"
-              className={cn(
+              className={mergeClassNames(
                 Number(perDayEmpHours?.message) >= 0 && Number(perDayEmpHours?.message) <= expectedHours
                   ? "text-success"
                   : "text-destructive"

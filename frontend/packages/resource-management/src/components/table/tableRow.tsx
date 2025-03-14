@@ -17,7 +17,7 @@ import {
  */
 import { ResourceTableCell, TableInformationCellContent } from "./tableCell";
 import type { ResourceTeamTableRowProps } from "./types";
-import { cn, getTableCellClass, getTableCellRow, getTodayDateCellClass } from "../../utils";
+import { mergeClassNames, getTableCellClass, getTableCellRow, getTodayDateCellClass } from "../../utils";
 
 /**
  * This component is responsible for loading the resource pages row.
@@ -41,7 +41,7 @@ const ResourceTableRow = ({
   return (
     <Accordion type="multiple" key={name} className="w-full">
       <AccordionItem value={name} className="border-b-0">
-        <TableRow key={name} className={cn(getTableCellRow())}>
+        <TableRow key={name} className={mergeClassNames(getTableCellRow())}>
           <AccordionTrigger hideChevronDown={true} className="hover:no-underline py-0">
             <TableInformationCellContent
               cellClassName="overflow-hidden flex items-center font-normal hover:underline"
@@ -88,15 +88,23 @@ const TableDisabledRow = ({
   cellClassName?: string;
 }) => {
   return (
-    <TableRow className={cn("flex items-center w-full border-0", className)}>
-      <TableInformationCellContent cellClassName={cn("pl-12", informationCellClassName)} value="Time Off" />
+    <TableRow className={mergeClassNames("flex items-center w-full border-0", className)}>
+      <TableInformationCellContent
+        cellClassName={mergeClassNames("pl-12", informationCellClassName)}
+        value="Time Off"
+      />
 
       {dates.map((date: string, index: number) => {
         return (
           <ResourceTableCell
             type="default"
             key={date}
-            cellClassName={cn(getTableCellClass(index, 0), "bg-gray-200", getTodayDateCellClass(date), cellClassName)}
+            cellClassName={mergeClassNames(
+              getTableCellClass(index, 0),
+              "bg-gray-200",
+              getTodayDateCellClass(date),
+              cellClassName
+            )}
             value={data && data[date] ? data[date] : "-"}
           />
         );

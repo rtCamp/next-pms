@@ -24,7 +24,7 @@ import {
  */
 import { HOME, PROJECT, RESOURCE_MANAGEMENT, ROLES, TASK, TEAM, TIMESHEET } from "@/lib/constant";
 import { setLocalStorage } from "@/lib/storage";
-import { checkIsMobile, cn } from "@/lib/utils";
+import { checkIsMobile, mergeClassNames } from "@/lib/utils";
 import { setSidebarCollapsed } from "@/store/user";
 import type { NestedRoute, Route } from "./types";
 import UserNavigation from "./userNavigation";
@@ -132,12 +132,15 @@ const Sidebar = () => {
   return (
     <ErrorFallback>
       <aside
-        className={cn(
+        className={mergeClassNames(
           "bg-slate-100  w-1/5 transition-all duration-300 ease-in-out px-4 py-4 flex flex-col",
           user.isSidebarCollapsed && "w-16 items-center"
         )}
       >
-        <div className={cn("flex shrink-0 gap-x-2 items-center", !user.isSidebarCollapsed && "px-2")} id="app-logo">
+        <div
+          className={mergeClassNames("flex shrink-0 gap-x-2 items-center", !user.isSidebarCollapsed && "px-2")}
+          id="app-logo"
+        >
           <img
             src={logo}
             alt="app-logo"
@@ -146,7 +149,7 @@ const Sidebar = () => {
           <Typography
             title="Next PMS"
             variant="h5"
-            className={cn(
+            className={mergeClassNames(
               "transition-all cursor-pointer duration-300 truncate ease-in-out max-md:hidden",
               user.isSidebarCollapsed && "hidden"
             )}
@@ -164,7 +167,7 @@ const Sidebar = () => {
                     key={route.key}
                     variant="ghost"
                     title={route.label}
-                    className={cn(
+                    className={mergeClassNames(
                       "flex items-center gap-x-2 justify-start w-full text-left p-2 hover:bg-slate-200 rounded-lg",
                       openRoutes[route.key] && "bg-slate-200",
                       user.isSidebarCollapsed && "hidden"
@@ -178,7 +181,7 @@ const Sidebar = () => {
                     )}
                     <Typography
                       variant="p"
-                      className={cn(
+                      className={mergeClassNames(
                         "transition-all duration-300 ease-in-out truncate",
                         user.isSidebarCollapsed && "hidden"
                       )}
@@ -187,7 +190,7 @@ const Sidebar = () => {
                     </Typography>
                   </Button>
                   <div
-                    className={cn(
+                    className={mergeClassNames(
                       "transition-all duration-300 ease-in-out flex flex-col gap-y-1",
                       openRoutes[route.key] ? "flex" : "hidden",
                       user.isSidebarCollapsed ? "flex" : "pl-2"
@@ -203,7 +206,7 @@ const Sidebar = () => {
                           className="transition-all duration-300 ease-in-out flex items-center h-9"
                         >
                           <div
-                            className={cn(
+                            className={mergeClassNames(
                               "flex w-full p-2 rounded-lg items-center  hover:bg-slate-200 text-primary gap-x-2 max-md:justify-center",
                               isChildActive && "bg-primary shadow-md hover:bg-slate-700 ",
                               !user.isSidebarCollapsed && "pl-3"
@@ -211,12 +214,15 @@ const Sidebar = () => {
                           >
                             {child.icon && (
                               <child.icon
-                                className={cn("shrink-0 stroke-primary h-4 w-4", isChildActive && "stroke-background")}
+                                className={mergeClassNames(
+                                  "shrink-0 stroke-primary h-4 w-4",
+                                  isChildActive && "stroke-background"
+                                )}
                               />
                             )}
                             <Typography
                               variant="p"
-                              className={cn(
+                              className={mergeClassNames(
                                 "transition-all duration-300 ease-in-out text-white truncate",
                                 !isChildActive && "text-primary",
                                 user.isSidebarCollapsed && "hidden"
@@ -239,15 +245,17 @@ const Sidebar = () => {
                 >
                   {({ isActive }) => (
                     <div
-                      className={cn(
+                      className={mergeClassNames(
                         "flex w-full pl-2 rounded-lg items-center p-2 hover:bg-slate-200 text-primary gap-x-2 max-md:justify-center",
                         isActive && "bg-primary shadow-md hover:bg-slate-700 "
                       )}
                     >
-                      <route.icon className={cn("shrink-0 stroke-primary h-4 w-4", isActive && "stroke-background")} />
+                      <route.icon
+                        className={mergeClassNames("shrink-0 stroke-primary h-4 w-4", isActive && "stroke-background")}
+                      />
                       <Typography
                         variant="p"
-                        className={cn(
+                        className={mergeClassNames(
                           "transition-all duration-300 ease-in-out text-white ",
                           !isActive && "text-primary",
                           user.isSidebarCollapsed && "hidden"
@@ -281,7 +289,7 @@ const Sidebar = () => {
           />
         </div>
         <div className="grow"></div>
-        <div className={cn("flex justify-between items-center", user.isSidebarCollapsed && "flex-col")}>
+        <div className={mergeClassNames("flex justify-between items-center", user.isSidebarCollapsed && "flex-col")}>
           <UserNavigation user={user} />
 
           <Button
@@ -290,7 +298,7 @@ const Sidebar = () => {
             onClick={() => dispatch(setSidebarCollapsed(!user.isSidebarCollapsed))}
           >
             <ArrowLeftToLine
-              className={cn(
+              className={mergeClassNames(
                 "stroke-primary h-4 w-4 transition-all duration-600",
                 user.isSidebarCollapsed && "rotate-180"
               )}

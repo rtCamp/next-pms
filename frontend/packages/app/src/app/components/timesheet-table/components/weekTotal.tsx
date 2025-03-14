@@ -6,7 +6,7 @@ import { floatToTime } from "@next-pms/design-system/utils";
 /**
  * Internal dependencies
  */
-import { calculateExtendedWorkingHour, cn, calculateWeeklyHour } from "@/lib/utils";
+import { calculateExtendedWorkingHour, mergeClassNames, calculateWeeklyHour } from "@/lib/utils";
 import type { weekTotalProps } from "./types";
 
 /**
@@ -23,10 +23,10 @@ import type { weekTotalProps } from "./types";
 export const WeekTotal = ({ total, expected_hour, frequency, className }: weekTotalProps) => {
   const isExtended = calculateExtendedWorkingHour(total, calculateWeeklyHour(expected_hour, frequency), frequency);
   return (
-    <TableCell className={cn(className)}>
+    <TableCell className={mergeClassNames(className)}>
       <Typography
         variant="p"
-        className={cn(
+        className={mergeClassNames(
           "text-right font-medium",
           isExtended == 0 && "text-destructive",
           isExtended && "text-success",

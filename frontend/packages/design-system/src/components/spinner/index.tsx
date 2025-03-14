@@ -5,7 +5,7 @@ import { LoaderCircle } from "lucide-react";
 /**
  * Internal dependencies
  */
-import { cn } from "../../utils";
+import { mergeClassNames } from "../../utils";
 
 export type SpinnerProp = {
   isFull?: boolean;
@@ -13,7 +13,7 @@ export type SpinnerProp = {
 };
 const Spinner = ({ isFull = false, className }: SpinnerProp) => {
   return (
-    <div className={cn("flex justify-center items-center", isFull && "h-screen", className)}>
+    <div className={mergeClassNames("flex justify-center items-center", isFull && "h-screen", className)}>
       <LoaderCircle size={64} className="w-6 h-6 animate-spin" />
     </div>
   );

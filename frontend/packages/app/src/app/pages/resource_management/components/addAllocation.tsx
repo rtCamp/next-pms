@@ -26,7 +26,7 @@ import {
   Typography,
 } from "@next-pms/design-system/components";
 import { getFormatedDate, getUTCDateTime } from "@next-pms/design-system/date";
-import { cn } from "@next-pms/design-system/utils";
+import { mergeClassNames } from "@next-pms/design-system/utils";
 import { endOfWeek, startOfWeek } from "date-fns";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { CircleDollarSign, Clock3, LoaderCircle, Save, Search, X } from "lucide-react";
@@ -530,7 +530,7 @@ const AddResourceAllocations = ({
                     <FormLabel className="flex gap-2 h-[20px] items-center text-sm"></FormLabel>
                     <FormControl>
                       <div
-                        className={cn(
+                        className={mergeClassNames(
                           "flex items-center justify-center cursor-pointer rounded-sm py-3 px-1",
                           field.value ? "bg-gradient-to-r from-green-400 to-green-600" : "bg-yellow-500"
                         )}

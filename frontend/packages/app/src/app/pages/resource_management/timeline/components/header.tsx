@@ -14,7 +14,7 @@ import { Plus, ZoomIn, ZoomOut } from "lucide-react";
  * Internal dependencies.
  */
 import { Header } from "@/app/components/list-view/header";
-import { cn } from "@/lib/utils";
+import { mergeClassNames } from "@/lib/utils";
 import { ResourceFormContext } from "../../store/resourceFormContext";
 import { TimeLineContext } from "../../store/timeLineContext";
 import type { PermissionProps, Skill } from "../../store/types";
@@ -300,7 +300,7 @@ const TimeLineIntervalHeader = ({ getIntervalProps, intervalContext, data }: Tim
   return (
     <TableHead
       {...headerProps}
-      className={cn("h-full pb-2 pt-1 px-0 text-center truncate cursor-pointer border-r border-gray-300")}
+      className={mergeClassNames("h-full pb-2 pt-1 px-0 text-center truncate cursor-pointer border-r border-gray-300")}
     >
       <Typography variant="small">{getKey()}</Typography>
     </TableHead>
@@ -328,19 +328,22 @@ const TimeLineDateHeader = ({ getIntervalProps, intervalContext }: TimeLineHeade
   return (
     <TableHead
       {...headerProps}
-      className={cn(
+      className={mergeClassNames(
         "text-xs flex flex-col justify-end items-center border-0 p-0 h-full pb-2",
         day == "Sun" && "border-l border-gray-300",
         dateStr == toDayStr && "font-semibold"
       )}
     >
-      <div className={cn("text-xs flex flex-col justify-end items-center pr-2")}>
-        <Typography variant="p" className={cn("text-slate-600 text-[11px] ", dateStr == toDayStr && "font-semibold")}>
+      <div className={mergeClassNames("text-xs flex flex-col justify-end items-center pr-2")}>
+        <Typography
+          variant="p"
+          className={mergeClassNames("text-slate-600 text-[11px] ", dateStr == toDayStr && "font-semibold")}
+        >
           {day}
         </Typography>
         <Typography
           variant="small"
-          className={cn(
+          className={mergeClassNames(
             "text-slate-500 text-center text-[11px] max-lg:text-[0.65rem]",
             dateStr == toDayStr && "font-semibold"
           )}

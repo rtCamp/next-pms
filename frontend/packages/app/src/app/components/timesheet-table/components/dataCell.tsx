@@ -14,7 +14,7 @@ import { CircleDollarSign, CirclePlus, PencilLine } from "lucide-react";
 /**
  * Internal dependencies
  */
-import { cn, getBgCsssForToday } from "@/lib/utils";
+import { mergeClassNames, getBgCsssForToday } from "@/lib/utils";
 import type { cellProps } from "./types";
 
 /**
@@ -69,7 +69,7 @@ export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }
       <TableCell
         key={date}
         onClick={handleClick}
-        className={cn(
+        className={mergeClassNames(
           "text-center group px-2",
           isDisabled && "cursor-default",
           "hover:h-full hover:bg-slate-100 hover:cursor-pointer",
@@ -77,11 +77,11 @@ export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }
           className
         )}
       >
-        <HoverCardTrigger className={cn(isDisabled && "cursor-default")}>
+        <HoverCardTrigger className={mergeClassNames(isDisabled && "cursor-default")}>
           <span className="flex flex-col items-center justify-center ">
             <Typography
               variant="p"
-              className={cn(
+              className={mergeClassNames(
                 "text-slate-600",
                 isHoliday || (isDisabled && "text-slate-400"),
                 !hours && !isDisabled && "group-hover:hidden"
@@ -91,7 +91,7 @@ export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }
             </Typography>
             {(isTimeBothBillableAndNonBillable || isTimeBillable) && (
               <CircleDollarSign
-                className={cn(
+                className={mergeClassNames(
                   "stroke-slate-500 w-4 h-4 ",
                   !isDisabled && "group-hover:hidden",
                   isTimeBillable && "stroke-success"
@@ -99,10 +99,13 @@ export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }
               />
             )}
             <PencilLine
-              className={cn("text-center hidden", hours > 0 && !isDisabled && "group-hover:block")}
+              className={mergeClassNames("text-center hidden", hours > 0 && !isDisabled && "group-hover:block")}
               size={16}
             />
-            <CirclePlus className={cn("text-center hidden", !hours && !isDisabled && "group-hover:block ")} size={16} />
+            <CirclePlus
+              className={mergeClassNames("text-center hidden", !hours && !isDisabled && "group-hover:block ")}
+              size={16}
+            />
           </span>
         </HoverCardTrigger>
         {description && (

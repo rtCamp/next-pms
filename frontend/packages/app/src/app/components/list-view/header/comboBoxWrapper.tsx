@@ -8,7 +8,7 @@ import { Filter } from "lucide-react";
  * Internal dependencies
  */
 import type { FilterPops, ApiCallProps } from "@/app/components/list-view/types";
-import { cn } from "@/lib/utils";
+import { mergeClassNames } from "@/lib/utils";
 
 /**
  * A Wrapper around ComboxBox to handle the data fetching part dynamically.
@@ -60,7 +60,7 @@ const ComboBoxWrapper = ({
       }
       leftIcon={
         <Filter
-          className={cn(
+          className={mergeClassNames(
             "h-4 w-4",
             filter?.isMultiComboBox
               ? (filter.value as string[])?.length != 0 && "fill-primary"

@@ -8,7 +8,7 @@ import { Button } from "@next-pms/design-system/components";
  */
 import type { HeaderProps, FilterPops, ButtonProps } from "@/app/components/list-view/types";
 import { Header as RootHeader } from "@/app/layout/root";
-import { cn } from "@/lib/utils";
+import { mergeClassNames } from "@/lib/utils";
 import Action from "./action";
 import ColumnSelector from "./column-selector";
 import { Filter } from "./filter";
@@ -41,7 +41,10 @@ export const Header = ({
 }: HeaderProps) => {
   return (
     <div className="border-b">
-      <RootHeader className={cn("flex items-center max-md:flex-col gap-x-3", className)} parentClassName="border-0">
+      <RootHeader
+        className={mergeClassNames("flex items-center max-md:flex-col gap-x-3", className)}
+        parentClassName="border-0"
+      >
         <div id="filters" className="flex gap-x-2 max-md:w-full items-center overflow-y-hidden no-scrollbar">
           {filters &&
             filters.map((filter: FilterPops, idx) => {

@@ -27,7 +27,7 @@ import {
   useToast,
 } from "@next-pms/design-system/components";
 import { getFormatedDate } from "@next-pms/design-system/date";
-import { floatToTime, cn } from "@next-pms/design-system/utils";
+import { floatToTime, mergeClassNames } from "@next-pms/design-system/utils";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { LoaderCircle, Plus, Save, Trash2 } from "lucide-react";
 import { z } from "zod";
@@ -177,7 +177,7 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
                       <Typography
                         key={`column-${key}`}
                         variant="p"
-                        className={cn(
+                        className={mergeClassNames(
                           "w-full px-2 text-slate-600 font-medium ",
                           key != 2 && "max-w-16",
                           key == 0 && "max-w-28",
@@ -238,7 +238,9 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
                                 placeholder="00:00"
                                 type="text"
                                 {...field}
-                                className={cn("p-1 md:max-w-12 focus-visible:ring-0 focus-visible:ring-offset-0")}
+                                className={mergeClassNames(
+                                  "p-1 md:max-w-12 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                )}
                               />
                             </FormControl>
                             <FormMessage className="text-xs" />
@@ -262,7 +264,9 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
                                 rows={3}
                                 {...field}
                                 onChange={field.onChange}
-                                className={cn(" focus-visible:ring-0 focus-visible:ring-offset-0 min-h-10")}
+                                className={mergeClassNames(
+                                  " focus-visible:ring-0 focus-visible:ring-offset-0 min-h-10"
+                                )}
                               />
                             </FormControl>
                             <FormMessage className="text-xs" />

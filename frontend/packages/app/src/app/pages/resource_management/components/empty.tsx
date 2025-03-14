@@ -3,7 +3,7 @@
  */
 import { useContext } from "react";
 import { TableBody, TableCell, TableRow } from "@next-pms/design-system/components";
-import { cn } from "@next-pms/design-system/utils";
+import { mergeClassNames } from "@next-pms/design-system/utils";
 import {
   ResourceTableCell,
   TableInformationCellContent,
@@ -87,7 +87,7 @@ const EmptyTableCell = ({ cellClassName, title, textClassName, onCellClick }: Em
  */
 const EmptyRow = ({ dates }: { dates: string[] }) => {
   return (
-    <TableRow className={cn(getTableCellRow())}>
+    <TableRow className={mergeClassNames(getTableCellRow())}>
       <TableInformationCellContent />
       {dates.map((date: string, index: number) => {
         return (
