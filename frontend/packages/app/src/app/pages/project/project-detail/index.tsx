@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Spinner, useToast } from "@next-pms/design-system/components";
 import { useFrappeGetCall } from "frappe-react-sdk";
+import FormView from "@/app/components/form-view";
 
 /**
  * Internal dependencies
@@ -12,15 +13,14 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 import { Main } from "@/app/layout/root";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { EmployeeDetailHeader } from "./header";
-import ProjectTabs from "./tabs";
 
 const ProjectDetail = () => {
   const { projectId } = useParams();
-  const { toast } = useToast();
   const { data, isLoading, error, mutate } = useFrappeGetCall(
-    "next_pms.timesheet.api.project.get_project_details",
+    "next_pms.api.get_doc_with_meta",
     {
-      name: projectId,
+      docname: projectId,
+      doctype: "Project",
     },
     undefined,
     {
@@ -29,10 +29,10 @@ const ProjectDetail = () => {
       revalidateIfStale: false,
     }
   );
+
+  const { toast } = useToast();
+
   useEffect(() => {
-    if (data) {
-      console.log(data.message);
-    }
     if (error) {
       const err = parseFrappeErrorMsg(error);
       toast({
@@ -40,12 +40,13 @@ const ProjectDetail = () => {
         description: err,
       });
     }
-  }, [data, isLoading, error, mutate]);
+  }, [error, mutate, toast]);
+
   return (
     <>
       <EmployeeDetailHeader projectId={projectId!} />
       <Main className="w-full h-full overflow-y-auto">
-        {isLoading ? <Spinner isFull /> : data?.message?.tabs && <ProjectTabs tabs={data?.message?.tabs} />}
+        {isLoading ? <Spinner isFull /> : <FormView tabs={data?.message?.tabs} />}
       </Main>
     </>
   );

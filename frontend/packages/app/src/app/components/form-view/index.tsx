@@ -7,23 +7,34 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@next-pms/design-syste
 /**
  * Internal dependencies.
  */
-type ProjectTabsProps = {
-  tabs: Array<string>;
+import FieldRenderer from "./fieldRenderer";
+
+type FormViewProps = {
+  tabs: Record<string, Array<Record<string, string | number | null>>>;
 };
-const ProjectTabs = ({ tabs }: ProjectTabsProps) => {
-  const [activeTab, setActiveTab] = useState(tabs[0]);
+
+/**
+ * FormView Component
+ * @description This component renders a tabbed form interface where each tab
+ * contains different set of fields.
+ * @param tabs Data containing Tabs and it's fields
+ * @returns A JSX Component
+ */
+
+const FormView = ({ tabs }: FormViewProps) => {
+  const [activeTab, setActiveTab] = useState(Object.keys(tabs ?? {})[0]);
 
   return (
     <div className="w-full py-2">
-      <Tabs defaultValue="account" value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="border-b overflow-x-auto no-scrollbar">
           <TabsList className="flex h-10 w-full justify-start rounded-none bg-transparent p-0">
-            {tabs
-              .map((item) => ({
+            {Object.keys(tabs ?? {})
+              ?.map((item) => ({
                 id: item,
                 label: item,
               }))
-              .map((tab) => (
+              ?.map((tab) => (
                 <TabsTrigger
                   key={tab.id}
                   value={tab.id}
@@ -35,10 +46,12 @@ const ProjectTabs = ({ tabs }: ProjectTabsProps) => {
           </TabsList>
         </div>
 
-        {tabs.map((tab) => {
+        {Object.keys(tabs ?? {})?.map((tab) => {
           return (
-            <TabsContent value={tab} className="mt-6 space-y-4">
-              <div className="rounded-lg "></div>
+            <TabsContent key={tab} value={tab} className="mt-6 space-y-4">
+              <div className="rounded-lg px-4">
+                <FieldRenderer tabName={tab} fields={tabs[tab]} />
+              </div>
             </TabsContent>
           );
         })}
@@ -47,4 +60,4 @@ const ProjectTabs = ({ tabs }: ProjectTabsProps) => {
   );
 };
 
-export default ProjectTabs;
+export default FormView;
