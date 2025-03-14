@@ -12,7 +12,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
  */
 import Sidebar from "@/app/layout/sidebar";
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { RootState } from "@/store";
+import type { RootState } from "@/store";
 import { setInitialData } from "@/store/user";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {

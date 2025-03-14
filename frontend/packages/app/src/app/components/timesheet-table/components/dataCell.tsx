@@ -15,18 +15,8 @@ import { CircleDollarSign, CirclePlus, PencilLine } from "lucide-react";
  * Internal dependencies
  */
 import { cn, getBgCsssForToday } from "@/lib/utils";
-import { TaskDataItemProps } from "@/types/timesheet";
+import type { cellProps } from "./types";
 
-export type cellProps = {
-  date: string;
-  data: TaskDataItemProps[];
-  isHoliday: boolean;
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  onCellClick?: (val) => void;
-  disabled?: boolean;
-  className?: string;
-};
 /**
  * @description This is the main component for the timesheet table cell.
  * It is responsible for rendering the data in the grid, show tooltip on hover and
@@ -51,9 +41,9 @@ export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }
       hours = data.reduce((sum, item) => sum + (item.hours || 0), 0);
       description = data.reduce((desc, item) => desc + (item.description ? item.description + "\n" : ""), "").trim();
       isTimeBothBillableAndNonBillable =
-        data.some((item) => item.is_billable === false ||item.is_billable === 0) &&
+        data.some((item) => item.is_billable === false || item.is_billable === 0) &&
         data.some((item) => item.is_billable === true || item.is_billable === 1);
-      isTimeBillable = data.every((item) => item.is_billable === true||item.is_billable === 1);
+      isTimeBillable = data.every((item) => item.is_billable === true || item.is_billable === 1);
     }
 
     return { hours, description, isTimeBothBillableAndNonBillable, isTimeBillable };

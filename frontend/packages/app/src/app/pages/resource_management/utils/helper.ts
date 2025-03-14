@@ -2,7 +2,7 @@
  * Internal dependencies.
  */
 import { store } from "@/store";
-import { DateProps } from "../../team/reducer";
+import { DateProps } from "../store/types";
 
 /**
  * Remove the specified item from the array

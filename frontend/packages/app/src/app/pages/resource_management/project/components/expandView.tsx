@@ -17,22 +17,13 @@ import {
   ResourceAllocationProps,
   ResourceCustomerObjectProps,
 } from "@/types/resource_management";
+import type { ResourceExpandViewProps } from "./types";
 import { EmptyTableCell } from "../../components/empty";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";
 import { ProjectContext } from "../../store/projectContext";
 import { ResourceFormContext } from "../../store/resourceFormContext";
-import { EmployeeDataProps, EmployeeResourceProps } from "../../store/teamContext";
-import { AllocationDataProps, DateProps } from "../../store/types";
+import type { AllocationDataProps, DateProps, EmployeeDataProps, EmployeeResourceProps } from "../../store/types";
 import { getIsBillableValue } from "../../utils/helper";
-
-interface ResourceExpandViewProps {
-  project: string;
-  project_name: string;
-  start_date: string;
-  end_date: string;
-  is_billable: string;
-  onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
-}
 
 /**
  * This component is responsible for loading expand view of resource allocation project view. shows the employee wise allocation data.

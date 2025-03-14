@@ -11,11 +11,10 @@ import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
  * Internal dependencies.
  */
 import { Header } from "@/app/components/list-view/header";
-
 import SkillSearch from "./skillSearch";
 import { ResourceFormContext } from "../../store/resourceFormContext";
-import { Skill, TeamContext } from "../../store/teamContext";
-import { PermissionProps } from "../../store/types";
+import { TeamContext } from "../../store/teamContext";
+import type { PermissionProps, Skill } from "../../store/types";
 
 /**
  * This component is responsible for loading the team view header.

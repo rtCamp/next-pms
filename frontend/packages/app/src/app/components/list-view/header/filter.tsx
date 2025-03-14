@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 /**
  * External dependencies.
  */
@@ -18,13 +19,13 @@ import {
 } from "@next-pms/design-system/components";
 import { useQueryParam } from "@next-pms/hooks";
 import { Filter as Funnel } from "lucide-react";
+
 /**
  * Internal dependencies.
  */
-
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import ComboBoxWrapper from "@/app/components/list-view/header/comboBoxWrapper";
-import { FilterPops } from "@/app/components/list-view/type";
+import type { FilterPops } from "@/app/components/list-view/types";
 import { cn } from "@/lib/utils";
 
 /**
@@ -40,7 +41,7 @@ import { cn } from "@/lib/utils";
  * @returns React.FC
  */
 export const Filter = ({ filter }: { filter: FilterPops }) => {
-  const [queryParam, setQueryParam] = useQueryParam(filter.queryParameterName ?? "", filter.queryParameterDefault);
+  const [, setQueryParam] = useQueryParam(filter.queryParameterName ?? "", filter.queryParameterDefault);
 
   const handleChangeWrapper = (value: string | CheckedState | string[]) => {
     /* Make sure to update query parameters based on changes. */

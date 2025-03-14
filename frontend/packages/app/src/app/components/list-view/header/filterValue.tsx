@@ -8,7 +8,7 @@ import { X } from "lucide-react";
  * Internal dependencies
  */
 import { removeValueFromArray } from "@/app/pages/resource_management/utils/helper";
-import { FilterPops } from "../type";
+import type { FilterPops } from "../types";
 
 /**
  * This component is responsible for rendering the active filters views in the header section.

@@ -12,11 +12,7 @@ import { TableInformationCellContent } from "@next-pms/resource-management/compo
 import { ResourceFormContext } from "../../store/resourceFormContext";
 import { TimeLineContext } from "../../store/timeLineContext";
 import { getIsBillableValue } from "../../utils/helper";
-import { ResourceAllocationEmployeeProps } from "../types";
-
-interface ResourceTimeLineGroupProps {
-  group: ResourceAllocationEmployeeProps;
-}
+import type { ResourceTimeLineGroupProps } from "../types";
 
 const ResourceTimeLineGroup = ({ group }: ResourceTimeLineGroupProps) => {
   const { getLastTimeLineItem, verticalLoderRef, filters } = useContext(TimeLineContext);

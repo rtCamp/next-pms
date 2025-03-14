@@ -11,23 +11,11 @@ import { Plus } from "lucide-react";
  */
 import { Header as ListViewHeader } from "@/app/components/list-view/header";
 import { parseFrappeErrorMsg } from "@/lib/utils";
-import { updateView, ViewData } from "@/store/view";
-import { DocMetaProps } from "@/types";
+import { updateView } from "@/store/view";
 import { TaskStatusType } from "@/types/task";
-import { Action, TaskState } from "../reducer";
 import { createFilter } from "../utils";
+import type { HeaderProps } from "./types";
 
-interface HeaderProps {
-  meta: DocMetaProps;
-  columnOrder: Array<string>;
-  setColumnOrder: React.Dispatch<React.SetStateAction<string[]>>;
-  onColumnHide: (column: string) => void;
-  view: ViewData;
-  stateUpdated: boolean;
-  setStateUpdated: (value: boolean) => void;
-  taskState:TaskState;
-  taskDispatch: React.Dispatch<Action>;
-}
 export const Header = ({
   meta,
   columnOrder,
@@ -69,19 +57,19 @@ export const Header = ({
   };
 
   const handleSearch = (text: string) => {
-    taskDispatch({type:"SET_SEARCH",payload:text})
+    taskDispatch({ type: "SET_SEARCH", payload: text });
   };
   const handleProjectChange = useCallback(
     (filters: string | string[]) => {
       const normalizedFilters = Array.isArray(filters) ? filters : [filters];
-      taskDispatch({type:"SET_SELECTED_PROJECT",payload:normalizedFilters})
+      taskDispatch({ type: "SET_SELECTED_PROJECT", payload: normalizedFilters });
     },
     [taskDispatch]
   );
   const handleStatusChange = useCallback(
     (filters: string | string[]) => {
       const normalizedFilters = Array.isArray(filters) ? filters : [filters];
-      taskDispatch({type:"SET_SELECTED_STATUS",payload:normalizedFilters as TaskStatusType[]})
+      taskDispatch({ type: "SET_SELECTED_STATUS", payload: normalizedFilters as TaskStatusType[] });
     },
     [taskDispatch]
   );
@@ -94,7 +82,7 @@ export const Header = ({
       queryParameterDefault: taskState.search,
       handleChange: handleSearch,
       handleDelete: useCallback(() => {
-        taskDispatch({type:"SET_SEARCH",payload:""})
+        taskDispatch({ type: "SET_SEARCH", payload: "" });
       }, [taskDispatch]),
     },
     {
@@ -192,7 +180,7 @@ export const Header = ({
     {
       title: "Task",
       handleClick: () => {
-        taskDispatch({type:"SET_ADD_TASK_DIALOG",payload:true})
+        taskDispatch({ type: "SET_ADD_TASK_DIALOG", payload: true });
       },
       label: "Task",
       icon: Plus,

@@ -1,16 +1,14 @@
 /**
  * External dependencies.
  */
-
 import { NavLink } from "react-router-dom";
 import { Typography, Button, Separator } from "@next-pms/design-system/components";
 import { ChevronDown, ChevronUp } from "lucide-react";
 /**
  * Internal dependencies.
  */
-
 import { cn } from "@/lib/utils";
-import { ViewData } from "@/store/view";
+import type { ViewData } from "@/store/view";
 
 const ViewLoader = ({
   isSidebarCollapsed,

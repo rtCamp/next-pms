@@ -1,7 +1,6 @@
 /**
  * External dependencies.
  */
-import React from "react";
 import {
   Accordion,
   AccordionContent,
@@ -17,16 +16,8 @@ import {
  * Internal dependencies.
  */
 import { ResourceTableCell, TableInformationCellContent } from "./tableCell";
+import type { ResourceTeamTableRowProps } from "./types";
 import { cn, getTableCellClass, getTableCellRow, getTodayDateCellClass } from "../../utils";
-
-interface ResourceTeamTableRowProps {
-  name: string;
-  avatar: string;
-  avatar_abbr: string;
-  avatar_name: string;
-  RowComponent: React.FC;
-  RowExpandView?: React.FC;
-}
 
 /**
  * This component is responsible for loading the resource pages row.

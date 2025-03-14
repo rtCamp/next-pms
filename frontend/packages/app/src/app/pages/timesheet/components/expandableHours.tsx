@@ -4,12 +4,11 @@
 import { useState } from "react";
 import { Typography, Separator } from "@next-pms/design-system/components";
 import { ChevronLeft, ChevronRight, Clock } from "lucide-react";
+/**
+ * Internal dependencies
+ */
+import type { ExpandableHoursProps } from "./types";
 
-interface ExpandableHoursProps {
-  totalHours: string;
-  workingHours: string;
-  timeoffHours: string;
-}
 const ExpandableHours = ({ totalHours, workingHours, timeoffHours }: ExpandableHoursProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   return (

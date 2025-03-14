@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * External dependencies.
  */
@@ -8,12 +9,11 @@ import { floatToTime } from "@next-pms/design-system/utils";
  */
 import { DataCell } from "@/app/components/list-view/dataCell";
 import { cn } from "@/lib/utils";
-import { DocMetaProps } from "@/types";
+import type { FieldMeta } from "./types";
 import { getValidUserTagsValues } from "./utils";
 
 const HOUR_FIELD = ["actual_time", "custom_total_hours_purchased", "custom_total_hours_remaining"];
 
-type FieldMeta = Omit<DocMetaProps, "title_field" | "doctype" | "default_fields">;
 export const getColumnInfo = (
   fieldMeta: FieldMeta["fields"],
   fieldInfo: Array<string>,
@@ -123,7 +123,7 @@ export const getColumnInfo = (
         </p>
       );
     },
-    cell: ({ getValue, row }) => {
+    cell: ({ getValue }) => {
       const tags = getValidUserTagsValues(getValue());
 
       return (

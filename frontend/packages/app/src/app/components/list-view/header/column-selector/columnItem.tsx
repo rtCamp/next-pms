@@ -7,16 +7,8 @@ import { GripVertical, X } from "lucide-react";
 /**
  * Internal dependencies
  */
-
 import { cn } from "@/lib/utils";
-
-interface ColumnItemProps {
-  id: string;
-  onColumnHide: (id: string) => void;
-  reOrder: React.Dispatch<React.SetStateAction<string[]>>;
-  label: string;
-  onDrop: () => void;
-}
+import type { ColumnItemProps } from "./types";
 
 /**
  *

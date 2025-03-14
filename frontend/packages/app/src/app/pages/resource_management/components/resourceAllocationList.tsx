@@ -13,14 +13,14 @@ import { Clipboard, Pencil, Plus } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import {
+import type {
   ResourceAllocationObjectProps,
   ResourceAllocationProps,
   ResourceCustomerObjectProps,
   ResourceCustomerProps,
 } from "@/types/resource_management";
 import { ResourceFormContext } from "../store/resourceFormContext";
-import { AllocationDataProps, PermissionProps } from "../store/types";
+import type { AllocationDataProps, PermissionProps } from "../store/types";
 import { getInitials } from "../utils/helper";
 
 /**

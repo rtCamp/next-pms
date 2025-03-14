@@ -8,15 +8,7 @@ import { Input } from "@next-pms/design-system/components";
  * Internal dependencies
  */
 import { timeStringToFloat } from "@/schema/timesheet";
-import { NewTimesheetProps } from "@/types/timesheet";
-
-type HourInputprops = {
-  data: NewTimesheetProps;
-  employee: string;
-  disabled?: boolean;
-  className?: string;
-  callback: (data: NewTimesheetProps) => void;
-};
+import type { HourInputprops } from "./types";
 
 /**
  * HourInput component allows users to input and update the number of hours worked by an employee.

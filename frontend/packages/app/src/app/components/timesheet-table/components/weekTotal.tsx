@@ -7,14 +7,8 @@ import { floatToTime } from "@next-pms/design-system/utils";
  * Internal dependencies
  */
 import { calculateExtendedWorkingHour, cn, calculateWeeklyHour } from "@/lib/utils";
+import type { weekTotalProps } from "./types";
 
-import { WorkingFrequency } from "@/types";
-type weekTotalProps = {
-  total: number;
-  expected_hour: number;
-  frequency: WorkingFrequency;
-  className?: string;
-};
 /**
  * @description This component shows the total hours for the week,
  * to the far right in the timesheet grid. It calculates the expected

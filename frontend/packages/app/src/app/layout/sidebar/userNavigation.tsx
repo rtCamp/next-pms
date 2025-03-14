@@ -21,11 +21,7 @@ import { ArrowRightLeft, LogOut } from "lucide-react";
 import { DESK } from "@/lib/constant";
 import { UserContext } from "@/lib/UserProvider";
 import { cn } from "@/lib/utils";
-import { RootState } from "@/store";
-
-interface UserNavigationProps {
-  user: RootState["user"];
-}
+import type { UserNavigationProps } from "./types";
 
 const UserNavigation = ({ user }: UserNavigationProps) => {
   const { logout } = useContext(UserContext);

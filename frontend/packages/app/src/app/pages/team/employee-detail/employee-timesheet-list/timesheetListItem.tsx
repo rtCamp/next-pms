@@ -9,32 +9,9 @@ import { CircleDollarSign } from "lucide-react";
  * Internal dependencies
  */
 import { cn } from "@/lib/utils";
-import { NewTimesheetProps, TaskDataItemProps } from "@/types/timesheet";
+import type { TaskDataItemProps } from "@/types/timesheet";
 import { HourInput } from "../hourInput";
-
-interface EmployeeTimesheetListItemProps {
-  showCheckbox?: boolean;
-  onCheckedChange?: (date: string, checked: boolean | string) => void;
-  index: number;
-  className?: string;
-  isCheckboxChecked?: boolean;
-  isCheckboxDisabled?: boolean;
-  checkboxClassName?: string;
-  date: string;
-  totalHours: number;
-  isTimeExtended: number;
-  isHoliday: boolean;
-  hasLeave?: boolean;
-  holidayDescription?: string;
-  isHalfDayLeave?: boolean;
-  dailyWorkingHour?: number;
-  tasks: Array<TaskDataItemProps>;
-  employee: string;
-  handleTimeChange: (data: NewTimesheetProps) => void;
-  onTaskClick?: (name: string) => void;
-  hourInputClassName?: string;
-  taskClassName?: string;
-}
+import type { EmployeeTimesheetListItemProps } from "./types";
 
 export const EmployeeTimesheetListItem = ({
   showCheckbox,
