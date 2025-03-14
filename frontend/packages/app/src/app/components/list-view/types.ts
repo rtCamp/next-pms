@@ -48,7 +48,7 @@ export interface ApiCallProps {
 export interface ExportProps {
   doctype: string;
   fields: Record<string, string>;
-  filters?: Record<string, string | number | boolean | string[]>;
+  filters?: Record<string, any>;
   orderBy: string;
   pageLength: number;
   isOpen: boolean;
