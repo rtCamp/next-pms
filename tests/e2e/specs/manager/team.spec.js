@@ -116,6 +116,7 @@ test("TC39: Validate the modification of the employee timesheet or the deletion 
     date: date,
     project: TC39data.taskInfo.project,
     task: TC39data.taskInfo.task,
+    desc: TC39data.taskInfo.desc,
     newDuration: TC39data.taskInfo.duration,
   });
 

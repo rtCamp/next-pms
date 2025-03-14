@@ -17,6 +17,8 @@ let TC5data = data.TC5;
 let TC6data = data.TC6;
 let TC72data = data.TC72;
 let TC73data = data.TC73;
+let TC74data = data.TC74;
+let TC75data = data.TC75;
 
 // ------------------------------------------------------------------------------------------
 
@@ -179,4 +181,22 @@ test("TC73: Verify an employee can apply for leave via Timesheet tab.", async ({
   // Assertions
   const cellText = await timesheetPage.getCellText(TC73data.cell);
   expect(cellText).toContain("8");
+});
+
+test("TC74: Verify the billable status of a billable task.", async ({}) => {
+  // Import liked tasks
+  await timesheetPage.importLikedTasks();
+
+  // Assertions
+  const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC74data.cell);
+  expect(isTimeEntryBillable).toBeTruthy();
+});
+
+test("TC75: Verify the billable status of a non-billable task.", async ({}) => {
+  // Import liked tasks
+  await timesheetPage.importLikedTasks();
+
+  // Assertions
+  const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC75data.cell);
+  expect(isTimeEntryBillable).toBeFalsy();
 });

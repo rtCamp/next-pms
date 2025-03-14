@@ -15,7 +15,7 @@ const empID = process.env.EMP_ID;
  * Updates employee timesheet data by dynamically setting date values for different test cases.
  * It modifies the JSON data with the current date values, associates it with the employee ID,
  * and creates time entries for specific test cases. Finally, it writes the updated data back to the file.
- * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC39, TC41
+ * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC39, TC41, TC74, TC75
  */
 export const createInitialTimeEntries = async () => {
   const employeeTimesheetDataFilePath = path.resolve(__dirname, "../data/employee/shared-timesheet.json"); // File path of the employee timesheet data JSON file
@@ -101,6 +101,26 @@ export const createInitialTimeEntries = async () => {
 
   await createTimesheet(managerTeamData.TC41.payloadCreateTimesheet);
 
+  // Fetch TC74 task and update dynamic fields
+  formattedDate = getFormattedDate(getDateForWeekday(employeeTimesheetData.TC74.cell.col));
+
+  employeeTimesheetData.TC74.payloadCreateTimesheet.date = formattedDate;
+  employeeTimesheetData.TC74.payloadCreateTimesheet.employee = empID;
+  employeeTimesheetData.TC74.payloadFilterTimeEntry.from_time = formattedDate;
+  employeeTimesheetData.TC74.payloadFilterTimeEntry.employee = empID;
+
+  await createTimesheet(employeeTimesheetData.TC74.payloadCreateTimesheet);
+
+  // Fetch TC75 task and update dynamic fields
+  formattedDate = getFormattedDate(getDateForWeekday(employeeTimesheetData.TC75.cell.col));
+
+  employeeTimesheetData.TC75.payloadCreateTimesheet.date = formattedDate;
+  employeeTimesheetData.TC75.payloadCreateTimesheet.employee = empID;
+  employeeTimesheetData.TC75.payloadFilterTimeEntry.from_time = formattedDate;
+  employeeTimesheetData.TC75.payloadFilterTimeEntry.employee = empID;
+
+  await createTimesheet(employeeTimesheetData.TC75.payloadCreateTimesheet);
+
   // Write back updated JSON
   fs.writeFileSync(employeeTimesheetDataFilePath, JSON.stringify(employeeTimesheetData, null, 2));
   fs.writeFileSync(managerTeamDataFilePath, JSON.stringify(managerTeamData, null, 2));
@@ -112,7 +132,7 @@ export const createInitialTimeEntries = async () => {
  * Deletes stale time entries from the timesheet data.
  * Uses `filterTimesheetEntry` to retrieve existing time entries.
  * Calls `deleteTimesheet` to remove each fetched entry from the system.
- * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC39, TC41
+ * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC39, TC41, TC74, TC75
  */
 export const deleteStaleTimeEntries = async () => {
   const sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
@@ -155,6 +175,14 @@ export const deleteStaleTimeEntries = async () => {
 
   // Fetch TC41 time entries and delete time entries
   filteredTimeEntry = await filterTimesheetEntry(sharedManagerTeamData.TC41.payloadFilterTimeEntry);
+  await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
+
+  // Fetch TC74 time entries and delete time entries
+  filteredTimeEntry = await filterTimesheetEntry(sharedEmployeeTimesheetData.TC74.payloadFilterTimeEntry);
+  await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
+
+  // Fetch TC75 time entries and delete time entries
+  filteredTimeEntry = await filterTimesheetEntry(sharedEmployeeTimesheetData.TC75.payloadFilterTimeEntry);
   await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
 };
 

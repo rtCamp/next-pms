@@ -151,9 +151,9 @@ export class TeamPage {
   /**
    * Retrieves the time entry row for the specified metadata.
    */
-  async getTimeEntryRow({ date, project, task }) {
+  async getTimeEntryRow({ date, project, task, desc }) {
     return this.reviewTimesheetPane.locator(
-      `//p[contains(text(),'${date}')]/parent::div/parent::div//div[descendant::p[contains(text(), '${task}')] and descendant::span[contains(text(), '${project}')] and descendant::input]`
+      `//div[.//p[contains(text(), '${task}')] and .//span[contains(text(), '${project}')] and .//p[contains(text(), '${desc}')] and preceding-sibling::div//p[contains(text(), '${date}')]]`
     );
   }
 
@@ -168,8 +168,8 @@ export class TeamPage {
   /**
    * Updates duration of the specified time entry.
    */
-  async updateDurationOfTimeEntry({ date, project, task, newDuration }) {
-    const row = await this.getTimeEntryRow({ date: date, project: project, task: task });
+  async updateDurationOfTimeEntry({ date, project, task, desc, newDuration }) {
+    const row = await this.getTimeEntryRow({ date: date, project: project, task: task, desc: desc });
     await row.getByRole("textbox").fill(newDuration);
     await row.click();
   }
@@ -259,6 +259,8 @@ export class TeamPage {
       return "Approved";
     } else if (classList.includes("stroke-destructive")) {
       return "Rejected";
+    } else if (classList.includes("stroke-warning")) {
+      return "Approval Pending";
     } else {
       return "Not Submitted";
     }

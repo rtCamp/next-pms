@@ -156,5 +156,39 @@
       "status": "Open",
       "leave_type": "Unpaid Time Off"
     }
+  },
+  "TC74": {
+    "cell": {
+      "rowName": "Design dashboard",
+      "col": "Tue"
+    },
+    "payloadCreateTimesheet": {
+      "task": "TASK-2025-00616",
+      "description": "TC74 - Task added via automation.",
+      "hours": "1"
+    },
+    "payloadFilterTimeEntry": {
+      "subject": "Design dashboard",
+      "description": "TC74 - Task added via automation.",
+      "project_name": "QE - Fixed Cost",
+      "max_week": "1"
+    }
+  },
+  "TC75": {
+    "cell": {
+      "rowName": "Create UI Designs",
+      "col": "Thu"
+    },
+    "payloadCreateTimesheet": {
+      "task": "TASK-2025-00613",
+      "description": "TC75 - Task added via automation.",
+      "hours": "1"
+    },
+    "payloadFilterTimeEntry": {
+      "subject": "Create UI Designs",
+      "description": "TC75 - Task added via automation.",
+      "project_name": "QE - Non-Billable",
+      "max_week": "1"
+    }
   }
 }

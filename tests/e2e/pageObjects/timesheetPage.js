@@ -318,6 +318,16 @@ export class TimesheetPage {
   }
 
   /**
+   * Checks if a time entry is billable by counting the number of SVG elements in the cell.
+   */
+  async isTimeEntryBillable(cellInfo) {
+    const cell = await this.getCell(cellInfo);
+    const svgList = cell.locator("svg");
+
+    return (await svgList.count()) >= 3;
+  }
+
+  /**
    * Retrieves the date of a specific timesheet column.
    */
   async getColDate(col) {
