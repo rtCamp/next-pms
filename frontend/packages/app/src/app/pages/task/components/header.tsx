@@ -10,10 +10,11 @@ import { Plus } from "lucide-react";
  * Internal dependencies
  */
 import { Header as ListViewHeader } from "@/app/components/list-view/header";
+import { FilterPops, ButtonProps } from "@/app/components/list-view/types";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { updateView } from "@/store/view";
 import { TaskStatusType } from "@/types/task";
-import { createFilter } from "../utils";
+import { createFilter, getFilter } from "../utils";
 import type { HeaderProps } from "./types";
 
 export const Header = ({
@@ -75,7 +76,7 @@ export const Header = ({
   );
   const filters = [
     {
-      type: "search",
+      type: "search" as FilterPops["type"],
       queryParameterName: "search",
       label: "Subject",
       value: taskState.search,
@@ -86,7 +87,7 @@ export const Header = ({
       }, [taskDispatch]),
     },
     {
-      type: "select-search",
+      type: "select-search" as FilterPops["type"],
       queryParameterName: "project",
       label: "Project",
       value: taskState.selectedProject,
@@ -115,7 +116,7 @@ export const Header = ({
       },
     },
     {
-      type: "select-list",
+      type: "select-list" as FilterPops["type"],
       queryParameterName: "status",
       label: "Status",
       value: taskState.selectedStatus,
@@ -154,6 +155,7 @@ export const Header = ({
         }
         return acc;
       }, {}),
+      filters: getFilter(taskState),
     },
     viewProps: {
       rows: view.rows,
@@ -174,7 +176,7 @@ export const Header = ({
       },
       hide: !stateUpdated,
       label: "Save changes",
-      variant: "ghost",
+      variant: "ghost" as ButtonProps["variant"],
       className: "h-10 px-2 py-2",
     },
     {
@@ -184,7 +186,7 @@ export const Header = ({
       },
       label: "Task",
       icon: Plus,
-      variant: "default",
+      variant: "default" as ButtonProps["variant"],
       className: "h-10 px-2 py-2",
     },
   ];
