@@ -28,8 +28,8 @@ const FormView = ({ tabs, readOnly = false }: FormViewProps) => {
 
   return (
     <div className="w-full py-2">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="border-b overflow-x-auto no-scrollbar px-2">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full relative">
+        <div className="border-b sticky top-0 bg-white z-10 overflow-x-auto no-scrollbar px-2">
           <TabsList className="flex h-10 w-full justify-start rounded-none bg-transparent p-0">
             {Object.keys(tabs ?? {})
               ?.map((item) => ({
