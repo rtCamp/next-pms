@@ -8,6 +8,9 @@ import { readJSONFile } from "../utils/fileUtils";
 // Load env variables
 const empID = process.env.EMP_ID;
 
+// Define file paths for shared JSON data files
+const employeeTimesheetDataFilePath = path.resolve(__dirname, "../data/employee/shared-timesheet.json"); // File path of the employee timesheet data JSON file
+
 // ------------------------------------------------------------------------------------------
 
 /**
@@ -17,9 +20,7 @@ const empID = process.env.EMP_ID;
  *
  * Test Cases: TC13
  */
-export const updateInitialLeaveEntries = async () => {
-  const employeeTimesheetDataFilePath = path.resolve(__dirname, "../data/employee/shared-timesheet.json"); // File path of the employee timesheet data JSON file
-
+export const updateLeaveEntries = async () => {
   // Update TC13 dynamic fields
   employeeTimesheetData.TC13.cell.col = getWeekdayName(new Date()); // Get today's weekday name
   var formattedDate = getFormattedDate(getDateForWeekday(employeeTimesheetData.TC13.cell.col));
@@ -40,7 +41,7 @@ export const updateInitialLeaveEntries = async () => {
  *
  * Test Cases: TC13
  */
-export const rejectStaleLeaveEntries = async () => {
+export const rejectLeaveEntries = async () => {
   const sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
   const leaveEntries = [sharedEmployeeTimesheetData.TC13.payloadFilterLeaveEntry];
 

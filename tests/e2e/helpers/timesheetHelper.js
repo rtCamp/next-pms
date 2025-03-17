@@ -9,122 +9,90 @@ import { readJSONFile } from "../utils/fileUtils";
 // Load env variables
 const empID = process.env.EMP_ID;
 
+// Define file paths for shared JSON data files
+const employeeTimesheetDataFilePath = path.resolve(__dirname, "../data/employee/shared-timesheet.json"); // File path of the employee timesheet data JSON file
+const managerTeamDataFilePath = path.resolve(__dirname, "../data/manager/shared-team.json"); // File path of the manager team data JSON file
+
+// Global variables to store shared data and reused across functions
+let sharedEmployeeTimesheetData;
+let sharedManagerTeamData;
+
 // ------------------------------------------------------------------------------------------
 
 /**
- * Updates employee timesheet data by dynamically setting date values for different test cases.
- * It modifies the JSON data with the current date values, associates it with the employee ID,
- * and creates time entries for specific test cases. Finally, it writes the updated data back to the file.
+ * Updates time entry data for employees by modifying relevant fields dynamically.
+ *
+ * Adjusts time entry dates based on the current weekday.
+ * Updates 'payloadCreateTimesheet' and 'payloadFilterTimeEntry' fields with computed dates and employee ID.
+ * Saves the updated data back to the shared JSON files.
  *
  * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC14, TC15, TC45, TC47
  */
-export const createInitialTimeEntries = async () => {
-  const employeeTimesheetDataFilePath = path.resolve(__dirname, "../data/employee/shared-timesheet.json"); // File path of the employee timesheet data JSON file
-  const managerTeamDataFilePath = path.resolve(__dirname, "../data/manager/shared-team.json"); // File path of the manager team data JSON file
+export const updateTimeEntries = async () => {
+  const employeeTimesheetIDs = ["TC2", "TC3", "TC4", "TC5", "TC6", "TC7", "TC14", "TC15", "TC45", "TC47"];
+  const managerTeamIDs = ["TC45", "TC47"];
 
-  var formattedDate;
+  // Compute col value for TC2 before update
+  employeeTimesheetData.TC2.cell.col = getWeekdayName(new Date());
 
-  // Fetch TC2 task and update dynamic fields
-  employeeTimesheetData.TC2.cell.col = getWeekdayName(new Date()); // Get today's weekday name
+  const updateEntries = (data, testCases) => {
+    for (const testCaseID of testCases) {
+      if (!data[testCaseID]?.cell?.col) continue; // Skip if missing required structure
 
-  formattedDate = getFormattedDate(getDateForWeekday(employeeTimesheetData.TC2.cell.col));
+      const formattedDate = getFormattedDate(getDateForWeekday(data[testCaseID].cell.col));
 
-  employeeTimesheetData.TC2.payloadFilterTimeEntry.from_time = formattedDate;
-  employeeTimesheetData.TC2.payloadFilterTimeEntry.employee = empID;
+      // Update 'payloadCreateTimesheet' if it exists
+      if (data[testCaseID].payloadCreateTimesheet) {
+        data[testCaseID].payloadCreateTimesheet.date = formattedDate;
+        data[testCaseID].payloadCreateTimesheet.employee = empID;
+      }
 
-  // Fetch TC3 task and update dynamic fields
-  formattedDate = getFormattedDate(getDateForWeekday(employeeTimesheetData.TC3.cell.col));
+      // Update all 'payloadFilterTimeEntry' fields dynamically
+      Object.keys(data[testCaseID])
+        .filter((entryKey) => entryKey.startsWith("payloadFilterTimeEntry"))
+        .forEach((entryKey) => {
+          data[testCaseID][entryKey].from_time = formattedDate;
+          data[testCaseID][entryKey].employee = empID;
+        });
+    }
+  };
 
-  employeeTimesheetData.TC3.payloadFilterTimeEntry.from_time = formattedDate;
-  employeeTimesheetData.TC3.payloadFilterTimeEntry.employee = empID;
+  updateEntries(employeeTimesheetData, employeeTimesheetIDs);
+  updateEntries(managerTeamData, managerTeamIDs);
 
-  // Fetch TC4 task, update dynamic fields and create time entry
-  formattedDate = getFormattedDate(getDateForWeekday(employeeTimesheetData.TC4.cell.col));
-
-  employeeTimesheetData.TC4.payloadCreateTimesheet.date = formattedDate;
-  employeeTimesheetData.TC4.payloadCreateTimesheet.employee = empID;
-  employeeTimesheetData.TC4.payloadFilterTimeEntry1.from_time = formattedDate;
-  employeeTimesheetData.TC4.payloadFilterTimeEntry1.employee = empID;
-  employeeTimesheetData.TC4.payloadFilterTimeEntry2.from_time = formattedDate;
-  employeeTimesheetData.TC4.payloadFilterTimeEntry2.employee = empID;
-
-  await createTimesheet(employeeTimesheetData.TC4.payloadCreateTimesheet);
-
-  // Fetch TC5 task, update dynamic fields and create time entry
-  formattedDate = getFormattedDate(getDateForWeekday(employeeTimesheetData.TC5.cell.col));
-
-  employeeTimesheetData.TC5.payloadCreateTimesheet.date = formattedDate;
-  employeeTimesheetData.TC5.payloadCreateTimesheet.employee = empID;
-  employeeTimesheetData.TC5.payloadFilterTimeEntry1.from_time = formattedDate;
-  employeeTimesheetData.TC5.payloadFilterTimeEntry1.employee = empID;
-  employeeTimesheetData.TC5.payloadFilterTimeEntry2.from_time = formattedDate;
-  employeeTimesheetData.TC5.payloadFilterTimeEntry2.employee = empID;
-
-  await createTimesheet(employeeTimesheetData.TC5.payloadCreateTimesheet);
-
-  // Fetch TC6 task, update dynamic fields and create time entry
-  formattedDate = getFormattedDate(getDateForWeekday(employeeTimesheetData.TC6.cell.col));
-
-  employeeTimesheetData.TC6.payloadCreateTimesheet.date = formattedDate;
-  employeeTimesheetData.TC6.payloadCreateTimesheet.employee = empID;
-  employeeTimesheetData.TC6.payloadFilterTimeEntry.from_time = formattedDate;
-  employeeTimesheetData.TC6.payloadFilterTimeEntry.employee = empID;
-
-  await createTimesheet(employeeTimesheetData.TC6.payloadCreateTimesheet);
-
-  // Fetch TC7 task, update dynamic fields and create time entry
-  formattedDate = getFormattedDate(getDateForWeekday(employeeTimesheetData.TC7.cell.col));
-
-  employeeTimesheetData.TC7.payloadCreateTimesheet.date = formattedDate;
-  employeeTimesheetData.TC7.payloadCreateTimesheet.employee = empID;
-  employeeTimesheetData.TC7.payloadFilterTimeEntry.from_time = formattedDate;
-  employeeTimesheetData.TC7.payloadFilterTimeEntry.employee = empID;
-
-  await createTimesheet(employeeTimesheetData.TC7.payloadCreateTimesheet);
-
-  // Fetch TC14 task and update dynamic fields
-  formattedDate = getFormattedDate(getDateForWeekday(employeeTimesheetData.TC14.cell.col));
-
-  employeeTimesheetData.TC14.payloadCreateTimesheet.date = formattedDate;
-  employeeTimesheetData.TC14.payloadCreateTimesheet.employee = empID;
-  employeeTimesheetData.TC14.payloadFilterTimeEntry.from_time = formattedDate;
-  employeeTimesheetData.TC14.payloadFilterTimeEntry.employee = empID;
-
-  await createTimesheet(employeeTimesheetData.TC14.payloadCreateTimesheet);
-
-  // Fetch TC15 task and update dynamic fields
-  formattedDate = getFormattedDate(getDateForWeekday(employeeTimesheetData.TC15.cell.col));
-
-  employeeTimesheetData.TC15.payloadCreateTimesheet.date = formattedDate;
-  employeeTimesheetData.TC15.payloadCreateTimesheet.employee = empID;
-  employeeTimesheetData.TC15.payloadFilterTimeEntry.from_time = formattedDate;
-  employeeTimesheetData.TC15.payloadFilterTimeEntry.employee = empID;
-
-  await createTimesheet(employeeTimesheetData.TC15.payloadCreateTimesheet);
-
-  // Fetch TC45 task, update dynamic fields and create time entry
-  formattedDate = getFormattedDate(getDateForWeekday(managerTeamData.TC45.cell.col));
-
-  managerTeamData.TC45.payloadCreateTimesheet.date = formattedDate;
-  managerTeamData.TC45.payloadCreateTimesheet.employee = empID;
-  managerTeamData.TC45.payloadFilterTimeEntry.from_time = formattedDate;
-  managerTeamData.TC45.payloadFilterTimeEntry.employee = empID;
-
-  await createTimesheet(managerTeamData.TC45.payloadCreateTimesheet);
-
-  // Fetch TC47 task, update dynamic fields and create time entry
-  formattedDate = getFormattedDate(getDateForWeekday(managerTeamData.TC47.cell.col));
-
-  managerTeamData.TC47.payloadCreateTimesheet.date = formattedDate;
-  managerTeamData.TC47.payloadCreateTimesheet.employee = empID;
-  managerTeamData.TC47.payloadFilterTimeEntry.from_time = formattedDate;
-  managerTeamData.TC47.payloadFilterTimeEntry.employee = empID;
-
-  await createTimesheet(managerTeamData.TC47.payloadCreateTimesheet);
-
-  // Write back updated JSON
+  // Write updated data to shared JSON files
   fs.writeFileSync(employeeTimesheetDataFilePath, JSON.stringify(employeeTimesheetData, null, 2));
   fs.writeFileSync(managerTeamDataFilePath, JSON.stringify(managerTeamData, null, 2));
+};
+
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Creates initial time entries for employees from
+ * the shared employee and manager timesheet data.
+ *
+ * This function iterates over predefined time entry payloads and submits them
+ * to create timesheet records.
+ *
+ * Test Cases: TC4, TC5, TC6, TC7, TC14, TC15, TC45, TC47
+ */
+export const createTimeEntries = async () => {
+  sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
+  sharedManagerTeamData = await readJSONFile("../data/manager/shared-team.json");
+  const timeEntries = [
+    sharedEmployeeTimesheetData.TC4.payloadCreateTimesheet,
+    sharedEmployeeTimesheetData.TC5.payloadCreateTimesheet,
+    sharedEmployeeTimesheetData.TC6.payloadCreateTimesheet,
+    sharedEmployeeTimesheetData.TC7.payloadCreateTimesheet,
+    sharedEmployeeTimesheetData.TC14.payloadCreateTimesheet,
+    sharedEmployeeTimesheetData.TC15.payloadCreateTimesheet,
+    sharedManagerTeamData.TC45.payloadCreateTimesheet,
+    sharedManagerTeamData.TC47.payloadCreateTimesheet,
+  ];
+
+  for (const entry of timeEntries) {
+    await createTimesheet(entry);
+  }
 };
 
 // ------------------------------------------------------------------------------------------
@@ -137,9 +105,9 @@ export const createInitialTimeEntries = async () => {
  *
  * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC14, TC15, TC45, TC47
  */
-export const deleteStaleTimeEntries = async () => {
-  const sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
-  const sharedManagerTeamData = await readJSONFile("../data/manager/shared-team.json");
+export const deleteTimeEntries = async () => {
+  sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
+  sharedManagerTeamData = await readJSONFile("../data/manager/shared-team.json");
   const timeEntries = [
     sharedEmployeeTimesheetData.TC2.payloadFilterTimeEntry,
     sharedEmployeeTimesheetData.TC3.payloadFilterTimeEntry,
@@ -165,6 +133,7 @@ export const deleteStaleTimeEntries = async () => {
 
 /**
  * Filters timesheet entries and returns the metadata of the matching time entry.
+ *
  * Optional params: start_date, max_week.
  */
 export const filterTimesheetEntry = async ({ subject, description, project_name, from_time, employee, max_week }) => {

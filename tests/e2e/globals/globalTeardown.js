@@ -1,5 +1,5 @@
-import { deleteStaleTimeEntries } from "../helpers/timesheetHelper";
-import { rejectStaleLeaveEntries } from "../helpers/leaveHelper";
+import { deleteTimeEntries } from "../helpers/timesheetHelper";
+import { rejectLeaveEntries } from "../helpers/leaveHelper";
 
 // ------------------------------------------------------------------------------------------
 
@@ -8,10 +8,10 @@ import { rejectStaleLeaveEntries } from "../helpers/leaveHelper";
  */
 const globalTeardown = async () => {
   // Delete stale time entries
-  await deleteStaleTimeEntries();
+  await deleteTimeEntries();
 
   // Reject stale leave entries
-  await rejectStaleLeaveEntries();
+  await rejectLeaveEntries();
 };
 
 export default globalTeardown;

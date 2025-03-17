@@ -1,6 +1,7 @@
-import { createInitialTimeEntries } from "../helpers/timesheetHelper";
+import { createTimeEntries, updateTimeEntries } from "../helpers/timesheetHelper";
 import { storeStorageState } from "../helpers/storageStateHelper";
-import { updateInitialLeaveEntries } from "../helpers/leaveHelper";
+import { updateLeaveEntries } from "../helpers/leaveHelper";
+import { createJSONFile } from "../utils/fileUtils";
 
 // ------------------------------------------------------------------------------------------
 
@@ -9,11 +10,18 @@ import { updateInitialLeaveEntries } from "../helpers/leaveHelper";
  * It initializes test data and stores authentication details for reuse in tests.
  */
 const globalSetup = async () => {
-  // Create initial time entries required for tests
-  await createInitialTimeEntries();
+  // Create shared JSON files
+  await createJSONFile("../data/employee/shared-timesheet.json");
+  await createJSONFile("../data/manager/shared-team.json");
 
-  // Update dynamic fields of initial leave entries
-  await updateInitialLeaveEntries();
+  // Compute and update dynamic fields of time entries
+  await updateTimeEntries();
+
+  // Create initial time entries
+  await createTimeEntries();
+
+  // Compute and update dynamic fields of leave entries
+  await updateLeaveEntries();
 
   // Perform login and store authentication state for later use
   await storeStorageState("employee");
