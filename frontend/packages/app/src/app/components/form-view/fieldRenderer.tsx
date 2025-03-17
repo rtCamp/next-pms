@@ -2,6 +2,17 @@
  * External dependencies.
  */
 import { useForm, Controller } from "react-hook-form";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+  Checkbox,
+  TextArea,
+  Input,
+} from "@next-pms/design-system/components";
+
 /**
  * Internal dependencies.
  */
@@ -102,10 +113,10 @@ const renderField = (
   const isReadOnly = readOnly || field.read_only === 1 || field.read_only === "1";
 
   return (
-    <div key={field.label}>
+    <div className="space-y-2" key={field.label}>
       {field.fieldtype !== "Check" ? (
         <>
-          <label className="block font-medium">
+          <label className="text-sm">
             {field.label} {isRequired && <span className="text-red-500">*</span>}
           </label>
           <Controller
@@ -128,7 +139,7 @@ const renderField = (
                 getFieldComponent(field, handleChange, value, isReadOnly as boolean)
               }
             />
-            <label className="font-medium">
+            <label className="text-sm">
               {field.label} {isRequired && <span className="text-red-500">*</span>}
             </label>
           </div>
@@ -151,80 +162,104 @@ const getFieldComponent = (field: Field, handleChange: (value: any) => void, val
   switch (field.fieldtype) {
     case "Select":
       return (
-        <select
-          value={value}
-          onChange={(e) => handleChange(e.target.value)}
+        <Select
+          onValueChange={handleChange}
+          defaultValue={
+            (field?.options || "")
+              .split("\n")
+              .map((option) => option.trim())
+              .filter((option) => option !== "")
+              .includes(value)
+              ? value
+              : undefined
+          }
           disabled={isReadOnly}
-          className="w-full p-2 border rounded"
         >
-          {field.options?.split("\n").map((option, idx) => (
-            <option key={idx} value={option.trim()}>
-              {option.trim()}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 disabled:bg-gray-100 disabled:text-gray-600 focus:ring-gray-300 transition-all duration-200">
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
+          <SelectContent>
+            {(field?.options || "")
+              .split("\n")
+              .map((option) => option.trim())
+              .filter((option) => option !== "").length > 0 ? (
+              (field?.options || "").split("\n").map((option, idx) => {
+                const trimmedOption = option.trim();
+                return trimmedOption !== "" ? (
+                  <SelectItem className="cursor-pointer" key={idx} value={trimmedOption}>
+                    {trimmedOption}
+                  </SelectItem>
+                ) : null;
+              })
+            ) : (
+              <SelectItem disabled value="">
+                No options available
+              </SelectItem>
+            )}
+          </SelectContent>
+        </Select>
       );
     case "Check":
       return (
-        <input
-          type="checkbox"
+        <Checkbox
           checked={!!value}
-          onChange={(e) => handleChange(e.target.checked ? 1 : 0)}
+          onCheckedChange={(checked) => handleChange(checked ? 1 : 0)}
           disabled={isReadOnly}
           className="w-4 h-4"
         />
       );
     case "Date":
       return (
-        <input
+        <Input
           type="date"
           value={value}
           onChange={(e) => handleChange(e.target.value)}
           disabled={isReadOnly}
-          className="w-full p-2 border rounded"
+          className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 disabled:text-gray-600 disabled:bg-gray-100 focus:ring-gray-300 transition-all duration-200 text-sm"
         />
       );
     case "Data":
       return (
-        <input
+        <Input
           type="text"
           value={value}
           onChange={(e) => handleChange(e.target.value)}
           disabled={isReadOnly}
-          className="w-full p-2 border rounded"
+          className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 disabled:bg-gray-100 focus:ring-gray-300 transition-all duration-200 text-sm"
         />
       );
     case "Float":
     case "Percentage":
     case "Currency":
       return (
-        <input
+        <Input
           type="number"
           step="any"
           value={value}
           onChange={(e) => handleChange(parseFloat(e.target.value) || 0)}
           disabled={isReadOnly}
-          className="w-full p-2 border rounded"
+          className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 disabled:bg-gray-100 focus:ring-gray-300 transition-all duration-200 text-sm"
         />
       );
+    case "Text":
     case "Small Text":
       return (
-        <textarea
+        <TextArea
           value={value}
           onChange={(e) => handleChange(e.target.value)}
           disabled={isReadOnly}
-          className="w-full p-2 border rounded"
-          rows={2}
+          rows={7}
+          className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none disabled:bg-gray-100 focus:ring-2 focus:ring-gray-300 transition-all duration-200 text-sm"
         />
       );
     default:
       return (
-        <input
+        <Input
           type="text"
           value={value}
           onChange={(e) => handleChange(e.target.value)}
           disabled={isReadOnly}
-          className="w-full p-2 border rounded"
+          className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all duration-200 text-sm"
         />
       );
   }
