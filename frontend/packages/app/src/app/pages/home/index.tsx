@@ -30,22 +30,13 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
-
 import { TEAM, EMPLOYEE } from "@/lib/constant";
-import { cn, parseFrappeErrorMsg, calculateExtendedWorkingHour } from "@/lib/utils";
-import { WorkingFrequency } from "@/types";
+import { mergeClassNames, parseFrappeErrorMsg, calculateExtendedWorkingHour } from "@/lib/utils";
 import { dataItem } from "@/types/team";
 import { Header } from "./header";
-import { initialState, homeReducer, DateProps } from "./reducer";
-type DataItem = {
-  data: dataItem[];
-  name: string;
-  image: string;
-  employee_name: string;
-  working_hour: number;
-  working_frequency: WorkingFrequency;
-  status: string;
-};
+import { initialState, homeReducer } from "./reducer";
+import type { DataItem, DateProps } from "./types";
+
 const Home = () => {
   const { toast } = useToast();
   const [homeState, dispatch] = useReducer(homeReducer, initialState);
@@ -136,7 +127,7 @@ const Home = () => {
                   return (
                     <TableHead
                       key={`${index}-${date}`}
-                      className={cn(
+                      className={mergeClassNames(
                         "text-slate-600 font-medium max-w-20 h-8",
                         index != 0 && "bg-slate-200",
                         isToday(date) && "bg-slate-300"
@@ -185,7 +176,7 @@ const Home = () => {
                         return (
                           <HoverCard key={`${data.hour}-id-${Math.random()}`} openDelay={1000}>
                             <TableCell
-                              className={cn(
+                              className={mergeClassNames(
                                 "text-xs hover:cursor-pointer bg-transparent",
                                 expectedTime == 2 && "bg-warning/20",
                                 expectedTime == 1 && "bg-success/20",

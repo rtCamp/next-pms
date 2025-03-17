@@ -8,33 +8,10 @@ import { CircleDollarSign } from "lucide-react";
 /**
  * Internal dependencies
  */
-import { cn } from "@/lib/utils";
-import { NewTimesheetProps, TaskDataItemProps } from "@/types/timesheet";
+import { mergeClassNames } from "@/lib/utils";
+import type { TaskDataItemProps } from "@/types/timesheet";
 import { HourInput } from "../hourInput";
-
-interface EmployeeTimesheetListItemProps {
-  showCheckbox?: boolean;
-  onCheckedChange?: (date: string, checked: boolean | string) => void;
-  index: number;
-  className?: string;
-  isCheckboxChecked?: boolean;
-  isCheckboxDisabled?: boolean;
-  checkboxClassName?: string;
-  date: string;
-  totalHours: number;
-  isTimeExtended: number;
-  isHoliday: boolean;
-  hasLeave?: boolean;
-  holidayDescription?: string;
-  isHalfDayLeave?: boolean;
-  dailyWorkingHour?: number;
-  tasks: Array<TaskDataItemProps>;
-  employee: string;
-  handleTimeChange: (data: NewTimesheetProps) => void;
-  onTaskClick?: (name: string) => void;
-  hourInputClassName?: string;
-  taskClassName?: string;
-}
+import type { EmployeeTimesheetListItemProps } from "./types";
 
 export const EmployeeTimesheetListItem = ({
   showCheckbox,
@@ -61,18 +38,18 @@ export const EmployeeTimesheetListItem = ({
 }: EmployeeTimesheetListItemProps) => {
   return (
     <div key={index} className="flex flex-col ">
-      <div className={cn("bg-gray-100 rounded p-1 border-b flex items-center gap-x-2", className)}>
+      <div className={mergeClassNames("bg-gray-100 rounded p-1 border-b flex items-center gap-x-2", className)}>
         {showCheckbox && (
           <Checkbox
             checked={isCheckboxChecked}
             disabled={isCheckboxDisabled}
-            className={cn(checkboxClassName)}
+            className={mergeClassNames(checkboxClassName)}
             onCheckedChange={(checked) => onCheckedChange?.(date, checked)}
           />
         )}
         <Typography
           variant="p"
-          className={cn(
+          className={mergeClassNames(
             "max-md:text-wrap",
             isTimeExtended == 0 && "text-destructive",
             isTimeExtended && "text-success",
@@ -112,7 +89,7 @@ export const EmployeeTimesheetListItem = ({
             <HourInput
               disabled={task.docstatus == 1}
               data={data}
-              className={cn("w-10 p-1 ml-6 h-8", hourInputClassName)}
+              className={mergeClassNames("w-10 p-1 ml-6 h-8", hourInputClassName)}
               callback={handleTimeChange}
               employee={employee}
             />
@@ -120,11 +97,14 @@ export const EmployeeTimesheetListItem = ({
               <div className="flex gap-1">
                 <div
                   title={task.is_billable == 1 ? "Billable task" : ""}
-                  className={cn(task.is_billable === 1 && "cursor-pointer", "w-6 flex justify-center flex-none")}
+                  className={mergeClassNames(
+                    task.is_billable === 1 && "cursor-pointer",
+                    "w-6 flex justify-center flex-none"
+                  )}
                 >
                   {task.is_billable === 1 && <CircleDollarSign className="w-4 h-4 mt-1 stroke-success" />}
                 </div>
-                <div className={cn("flex flex-col max-w-full lg:max-w-52", taskClassName)}>
+                <div className={mergeClassNames("flex flex-col max-w-full lg:max-w-52", taskClassName)}>
                   <Typography
                     variant="p"
                     className="max-md:text-wrap truncate"

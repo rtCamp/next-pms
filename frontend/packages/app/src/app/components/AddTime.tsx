@@ -34,26 +34,11 @@ import { z } from "zod";
 /**
  * Internal Dependencies
  */
-
 import EmployeeCombo from "@/app/components/employeeComboBox";
-import { cn, expectatedHours, parseFrappeErrorMsg } from "@/lib/utils";
+import { mergeClassNames, expectatedHours, parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetSchema } from "@/schema/timesheet";
-import { WorkingFrequency, TaskData } from "@/types";
-
-interface AddTimeProps {
-  initialDate: string;
-  employee: string;
-  open: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onOpenChange: (data: any) => void;
-  workingHours: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onSuccess?: (data: any) => void;
-  workingFrequency: WorkingFrequency;
-  task?: string;
-  project?: string;
-  employeeName?: string;
-}
+import type { TaskData } from "@/types";
+import type { AddTimeProps } from "./types";
 
 /**
  * Add Time Component
@@ -87,6 +72,7 @@ const AddTime = ({
   const [searchTask, setSearchTask] = useState(task);
   const [tasks, setTask] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [isTaskLoading, setIsTaskLoading] = useState(false);
   const [selectedProject, setSelectedProject] = useState<string[]>(project ? [project] : []);
   const [selectedDate, setSelectedDate] = useState(getFormatedDate(initialDate));
   const [selectedEmployee, setSelectedEmployee] = useState(employee);
@@ -183,6 +169,7 @@ const AddTime = ({
       });
   };
   const fetchTask = useCallback(() => {
+    setIsTaskLoading(true);
     call
       .get("next_pms.timesheet.api.task.get_task_list", {
         search: searchTask,
@@ -191,10 +178,19 @@ const AddTime = ({
       })
       .then((res) => {
         setTask(res.message.task);
+        setIsTaskLoading(false);
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          description: error,
+        });
+        setIsTaskLoading(false);
       });
-  }, [call, searchTask, selectedProject]);
+  }, [call, searchTask, selectedProject, toast]);
 
-  const { data: projects } = useFrappeGetCall("frappe.client.get_list", {
+  const { data: projects, isLoading: isProjectLoading } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Project",
     fields: ["name", "project_name"],
     limit_page_length: "null",
@@ -243,7 +239,7 @@ const AddTime = ({
             Add Time
             <Typography
               variant="p"
-              className={cn(
+              className={mergeClassNames(
                 Number(perDayEmpHours?.message) >= 0 && Number(perDayEmpHours?.message) <= expectedHours
                   ? "text-success"
                   : "text-destructive"
@@ -333,6 +329,7 @@ const AddTime = ({
                       value: item.name,
                       disabled: false,
                     }))}
+                    isLoading={isProjectLoading}
                     onSelect={handleProjectChange}
                     rightIcon={<Search className="h-4 w-4 stroke-slate-400" />}
                   />
@@ -351,6 +348,7 @@ const AddTime = ({
                           value={
                             form.getValues("task") && form.getValues("task").length > 0 ? [form.getValues("task")] : []
                           }
+                          isLoading={isTaskLoading}
                           data={
                             tasks.map((item: TaskData) => ({
                               label: item.subject,

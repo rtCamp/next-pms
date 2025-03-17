@@ -7,16 +7,8 @@ import { GripVertical, X } from "lucide-react";
 /**
  * Internal dependencies
  */
-
-import { cn } from "@/lib/utils";
-
-interface ColumnItemProps {
-  id: string;
-  onColumnHide: (id: string) => void;
-  reOrder: React.Dispatch<React.SetStateAction<string[]>>;
-  label: string;
-  onDrop: () => void;
-}
+import { mergeClassNames } from "@/lib/utils";
+import type { ColumnItemProps } from "./types";
 
 /**
  *
@@ -60,7 +52,12 @@ const ColumnItem = ({ id, onColumnHide, reOrder, label, onDrop }: ColumnItemProp
       ref={(node) => dragRef(dropRef(node))}
       onSelect={(event) => event.preventDefault()}
     >
-      <span className={cn("w-full flex justify-between gap-x-2 items-center opacity-100", isDragging && "opacity-50")}>
+      <span
+        className={mergeClassNames(
+          "w-full flex justify-between gap-x-2 items-center opacity-100",
+          isDragging && "opacity-50"
+        )}
+      >
         <Typography className="flex gap-x-2 items-center">
           <GripVertical />
           {label}

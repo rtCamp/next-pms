@@ -3,12 +3,12 @@
  */
 import { Typography, Badge, Progress } from "@next-pms/design-system/components";
 import { getUTCDateTime } from "@next-pms/design-system/date";
+
 /**
  * Internal dependencies
  */
-
-import { cn, currencyFormat } from "@/lib/utils";
-import { fieldMetaProps } from "@/types";
+import { mergeClassNames, currencyFormat } from "@/lib/utils";
+import type { fieldMetaProps } from "@/types";
 
 const NUMBER_FIELDS = ["Int", "Long Int", "Float"];
 const NO_VALUE_FIELDS = [
@@ -43,6 +43,7 @@ interface DataCellProps {
   meta: fieldMetaProps;
   title_field: string;
   docType: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   row: any;
   value: string;
   currency?: string;
@@ -67,7 +68,7 @@ export const DataCell = ({ meta, title_field, docType, row, value, currency }: D
     return (
       <Typography
         variant="p"
-        className={cn("truncate text-right", val < 0 && "text-destructive")}
+        className={mergeClassNames("truncate text-right", val < 0 && "text-destructive")}
         title={val.toString()}
       >
         {formatter.format(val)}
@@ -86,10 +87,14 @@ export const DataCell = ({ meta, title_field, docType, row, value, currency }: D
     const color = progressBarColor(per);
     return (
       <span>
-        <Typography variant="small" className={cn("truncate", per < 0 && "text-destructive")} title={per.toString()}>
+        <Typography
+          variant="small"
+          className={mergeClassNames("truncate", per < 0 && "text-destructive")}
+          title={per.toString()}
+        >
           {per}%
         </Typography>
-        <Progress className="h-2" indicatorClassName={cn(color)} value={per} title={per.toString()} />
+        <Progress className="h-2" indicatorClassName={mergeClassNames(color)} value={per} title={per.toString()} />
       </span>
     );
   } else if (NUMBER_FIELDS.includes(meta.fieldtype)) {
@@ -128,7 +133,9 @@ export const DataCell = ({ meta, title_field, docType, row, value, currency }: D
       );
     } else {
       return (
-        <Badge className={cn("truncate", selectBadgeColor(value, meta.options?.split("\n") ?? []))}>{value}</Badge>
+        <Badge className={mergeClassNames("truncate", selectBadgeColor(value, meta.options?.split("\n") ?? []))}>
+          {value}
+        </Badge>
       );
     }
   } else if (meta.fieldtype === "Check") {
@@ -141,7 +148,7 @@ export const DataCell = ({ meta, title_field, docType, row, value, currency }: D
     );
   } else {
     return (
-      <Typography variant="p" className={cn("truncate", leftAlignCss(meta.fieldtype))} title={value}>
+      <Typography variant="p" className={mergeClassNames("truncate", leftAlignCss(meta.fieldtype))} title={value}>
         {value}
       </Typography>
     );

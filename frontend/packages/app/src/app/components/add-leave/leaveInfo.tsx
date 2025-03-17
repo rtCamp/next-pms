@@ -1,5 +1,5 @@
 /**
- * Internal dependencies
+ * External Dependencies
  */
 import {
   Accordion,
@@ -14,18 +14,10 @@ import {
   TableCell,
   Typography,
 } from "@next-pms/design-system/components";
-
-type LeaveInfoData = {
-  total_leaves: number;
-  expired_leaves: number;
-  leaves_taken: number;
-  leaves_pending_approval: number;
-  remaining_leaves: number;
-};
-
-type LeaveInfoProps = {
-  leaveInfo: { [key: string]: LeaveInfoData };
-};
+/**
+ * Internal dependencies
+ */
+import type { LeaveInfoProps } from "./types";
 
 export const LeaveInfo = ({ leaveInfo }: LeaveInfoProps) => {
   return (

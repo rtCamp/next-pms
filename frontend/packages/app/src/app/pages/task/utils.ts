@@ -1,6 +1,7 @@
-import { TaskState } from "./reducer";
-
-
+/**
+ * Internal dependencies.
+ */
+import type { TaskState } from "./types";
 
 export const createFilter = (taskState: TaskState) => {
   return {
@@ -11,20 +12,20 @@ export const createFilter = (taskState: TaskState) => {
 };
 
 export const getFilter = (taskState: TaskState) => {
-  const filters = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const filters: Record<string, any> = {};
 
   if (taskState.search) {
-    filters.push(["search", "like", `%${taskState.search}%`]);
+    filters["subject"] = ["LIKE", `%${taskState.search}%`];
   }
 
   if (taskState.selectedProject.length > 0) {
-    filters.push(["project_name", "in", taskState.selectedProject]);
+    filters["project"] = ["in", taskState.selectedProject];
   }
 
   if (taskState.selectedStatus.length > 0) {
-    filters.push(["status", "in", taskState.selectedStatus]);
+    filters["status"] = ["in", taskState.selectedStatus];
   }
 
   return filters;
 };
-

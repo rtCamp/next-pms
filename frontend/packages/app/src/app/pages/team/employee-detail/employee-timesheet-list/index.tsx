@@ -15,10 +15,10 @@ import { floatToTime } from "@next-pms/design-system/utils";
 import { useFrappePostCall } from "frappe-react-sdk";
 import { isEmpty } from "lodash";
 import { Calendar, Paperclip } from "lucide-react";
+
 /**
  * Internal dependencies
  */
-
 import { TaskLog } from "@/app/pages/task/components/taskLog";
 import ExpandableHours from "@/app/pages/timesheet/components/expandableHours";
 import {
@@ -29,19 +29,10 @@ import {
   isDateInRange,
   parseFrappeErrorMsg,
 } from "@/lib/utils";
-import { NewTimesheetProps, timesheet } from "@/types/timesheet";
+import type { NewTimesheetProps, timesheet } from "@/types/timesheet";
 import { EmployeeTimesheetListItem } from "./timesheetListItem";
 import { StatusIndicator } from "../../components/statusIndicator";
-import { Action, TeamState } from "../../reducer";
 import { getTaskDataForDate, getTimesheetHourForDate } from "../../utils";
-
-type EmployeeTimesheetListProps = {
-  callback?: () => void;
-  startDateParam: string;
-  setStartDateParam: React.Dispatch<React.SetStateAction<string>>;
-  teamState: TeamState;
-  dispatch: React.Dispatch<Action>;
-};
 
 /**
  * EmployeeTimesheetList component displays a employee timesheet in flat list form.

@@ -1,27 +1,16 @@
 /**
  * External dependencies
  */
-
 import { floatToTime } from "@next-pms/design-system";
 import { TableCell, TableRow, Typography } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies
  */
-import { cn, getBgCsssForToday } from "@/lib/utils";
-import { LeaveProps } from "@/types/timesheet";
+import { mergeClassNames, getBgCsssForToday } from "@/lib/utils";
+import type { LeaveProps } from "@/types/timesheet";
+import type { leaveRowProps } from "./types";
 
-type leaveRowProps = {
-  leaves: Array<LeaveProps>;
-  dates: string[];
-  holidayList: Array<string>;
-  expectedHours: number;
-  rowClassName?: string;
-  headingClassName?: string;
-  dataCellClassName?: string;
-  totalCellClassName?: string;
-  showEmptyCell?: boolean;
-};
 /**
  * @description This component calculates the total leaves for the perticular
  * day and uses the `Cell` component to show the total hours of leave
@@ -81,26 +70,31 @@ export const LeaveRow = ({
   }
 
   return (
-    <TableRow className={cn(rowClassName)}>
-      <TableCell className={cn(headingClassName)}>
+    <TableRow className={mergeClassNames(rowClassName)}>
+      <TableCell className={mergeClassNames(headingClassName)}>
         <Typography variant="p" className="text-slate-800">
           Time Off
         </Typography>
       </TableCell>
       {/* eslint-disable-next-line @typescript-eslint/no-unused-vars */}
       {leaveData.map(({ date, data, hour, isHoliday }) => (
-        <TableCell key={date} className={cn("text-center px-2", dataCellClassName, getBgCsssForToday(date))}>
+        <TableCell
+          key={date}
+          className={mergeClassNames("text-center px-2", dataCellClassName, getBgCsssForToday(date))}
+        >
           <Typography variant="p" className={isHoliday ? "text-white" : "text-warning"}>
             {hour && hour != 0 ? floatToTime(hour) : ""}
           </Typography>
         </TableCell>
       ))}
-      <TableCell className={cn(totalCellClassName)}>
+      <TableCell className={mergeClassNames(totalCellClassName)}>
         <Typography variant="p" className="text-slate-800 font-medium text-right">
           {floatToTime(totalHours)}
         </Typography>
       </TableCell>
-      {showEmptyCell && <TableCell className={cn("flex max-w-20 w-full justify-center items-center")}></TableCell>}
+      {showEmptyCell && (
+        <TableCell className={mergeClassNames("flex max-w-20 w-full justify-center items-center")}></TableCell>
+      )}
     </TableRow>
   );
 };

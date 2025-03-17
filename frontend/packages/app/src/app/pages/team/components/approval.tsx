@@ -20,21 +20,14 @@ import { Check, LoaderCircle } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { calculateExtendedWorkingHour, cn, expectatedHours, parseFrappeErrorMsg } from "@/lib/utils";
-import { WorkingFrequency } from "@/types";
-import { HolidayProp, LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
+import { calculateExtendedWorkingHour, mergeClassNames, expectatedHours, parseFrappeErrorMsg } from "@/lib/utils";
+import type { WorkingFrequency } from "@/types";
+import type { HolidayProp, LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
 import { RejectTimesheet } from "./rejectTimesheet";
 import { EmployeeTimesheetListItem } from "../employee-detail/employee-timesheet-list/timesheetListItem";
 import { getTaskDataForDate, getTimesheetHourForDate } from "../utils";
+import type { ApprovalProp } from "./types";
 
-interface ApprovalProp {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onClose: (data: any) => void;
-  employee: string;
-  startDate: string;
-  endDate: string;
-  isAprrovalDialogOpen: boolean;
-}
 export const Approval = ({ onClose, employee, startDate, endDate, isAprrovalDialogOpen }: ApprovalProp) => {
   const { toast } = useToast();
   const [timesheetData, setTimesheetData] = useState<timesheet>();
@@ -174,7 +167,9 @@ export const Approval = ({ onClose, employee, startDate, endDate, isAprrovalDial
                         hasLeave={data.hasLeave}
                         showCheckbox
                         onCheckedChange={handleCheckboxChange}
-                        checkboxClassName={cn(submittedTime && "data-[state=checked]:bg-success border-success")}
+                        checkboxClassName={mergeClassNames(
+                          submittedTime && "data-[state=checked]:bg-success border-success"
+                        )}
                         isCheckboxChecked={isChecked || submittedTime}
                         isCheckboxDisabled={
                           submittedTime ||

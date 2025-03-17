@@ -8,35 +8,12 @@ import { CircleDollarSign } from "lucide-react";
 /**
  * Internal dependencies
  */
-import { cn } from "@/lib/utils";
-import { WorkingFrequency } from "@/types";
-import { TaskDataItemProps, TaskDataProps, TaskProps } from "@/types/timesheet";
+import { mergeClassNames } from "@/lib/utils";
+import type { TaskDataItemProps, TaskDataProps } from "@/types/timesheet";
 import { Cell } from "../dataCell";
 import { TaskHoverCard } from "../taskHoverCard";
+import type { RowProps } from "./types";
 
-type RowProps = {
-  dates: string[];
-  tasks: TaskProps;
-  holidayList: Array<string>;
-  workingHour: number;
-  workingFrequency: WorkingFrequency;
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  onCellClick?: (data) => void;
-  importTasks?: boolean;
-  loadingLikedTasks?: boolean;
-  likedTaskData?: Array<object>;
-  getLikedTaskData?: () => void;
-  setSelectedTask: React.Dispatch<React.SetStateAction<string>>;
-  setIsTaskLogDialogBoxOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  disabled?: boolean;
-  rowClassName?: string;
-  taskCellClassName?: string;
-  cellClassName?: string;
-  totalCellClassName?: string;
-  showEmptyCell?: boolean;
-  hideLikeButton?: boolean;
-};
 const Row = ({
   dates,
   tasks,
@@ -60,8 +37,8 @@ const Row = ({
         Object.entries(tasks).map(([task, taskData]: [string, TaskDataProps]) => {
           let totalHours = 0;
           return (
-            <TableRow key={task} className={cn("border-b border-slate-200", rowClassName)}>
-              <TableCell className={cn("cursor-pointer max-w-sm", taskCellClassName)}>
+            <TableRow key={task} className={mergeClassNames("border-b border-slate-200", rowClassName)}>
+              <TableCell className={mergeClassNames("cursor-pointer max-w-sm", taskCellClassName)}>
                 <TaskHoverCard
                   name={task}
                   hideLikeButton={hideLikeButton}
@@ -108,10 +85,10 @@ const Row = ({
                   />
                 );
               })}
-              <TableCell className={cn("text-center", totalCellClassName)}>
+              <TableCell className={mergeClassNames("text-center", totalCellClassName)}>
                 <Typography
                   variant="p"
-                  className={cn(
+                  className={mergeClassNames(
                     "text-slate-800 font-medium text-right flex justify-between items-center",
                     !taskData.is_billable && "justify-end"
                   )}
@@ -121,7 +98,7 @@ const Row = ({
                 </Typography>
               </TableCell>
               {showEmptyCell && (
-                <TableCell className={cn("flex max-w-20 w-full justify-center items-center")}></TableCell>
+                <TableCell className={mergeClassNames("flex max-w-20 w-full justify-center items-center")}></TableCell>
               )}
             </TableRow>
           );

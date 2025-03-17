@@ -21,27 +21,12 @@ import { getTodayDate, getFormatedDate, prettyDate } from "@next-pms/design-syst
 import { floatToTime } from "@next-pms/design-system/utils";
 import { addDays } from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
+
 /**
  * Internal dependencies.
  */
-import { cn, parseFrappeErrorMsg } from "@/lib/utils";
-
-type Employee = {
-  employee: string;
-  employee_name: string;
-  image: string;
-  total_hour: number;
-};
-type LogData = {
-  employee: string;
-  hours: number;
-  description: string[];
-};
-type TaskLogProps = {
-  task: string;
-  isOpen: boolean;
-  onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
-};
+import { mergeClassNames, parseFrappeErrorMsg } from "@/lib/utils";
+import type { Employee, LogData, TaskLogProps } from "./types";
 
 export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
   const { toast } = useToast();
@@ -128,7 +113,7 @@ export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
                     Time:
                     <Typography
                       variant="p"
-                      className={cn(
+                      className={mergeClassNames(
                         "font-semibold",
                         data?.message.actual_time > data?.message.expected_time && "text-destructive",
                         data?.message.actual_time < data?.message.expected_time && "text-success"
@@ -140,7 +125,7 @@ export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
 
                   <Typography as="span" className="flex items-center gap-x-1 shrink-0">
                     Estimate:
-                    <Typography variant="p" className={cn("font-semibold")}>
+                    <Typography variant="p" className={mergeClassNames("font-semibold")}>
                       {floatToTime(data?.message.expected_time)}h
                     </Typography>
                   </Typography>

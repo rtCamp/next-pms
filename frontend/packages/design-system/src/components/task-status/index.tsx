@@ -5,7 +5,7 @@ import { cva } from "class-variance-authority";
 /**
  * Internal dependencies.
  */
-import { cn } from "../../utils";
+import { mergeClassNames } from "../../utils";
 
 export const Variants = cva("", {
   variants: {
@@ -28,7 +28,7 @@ const TaskStatus = ({ status }: { status: string }) => {
   return (
     <div
       title={status}
-      className={cn(
+      className={mergeClassNames(
         Variants({ variant: status as TaskStatusProps }),
         "py-1 px-2 truncate  w-fit max-w-40 text-xs font-bold text-center cursor-pointer rounded-full "
       )}

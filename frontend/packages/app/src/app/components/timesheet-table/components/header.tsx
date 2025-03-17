@@ -8,20 +8,9 @@ import { LoaderCircle, Import } from "lucide-react";
 /**
  * Internal dependencies
  */
-import { cn, getBgCsssForToday } from "@/lib/utils";
+import { mergeClassNames, getBgCsssForToday } from "@/lib/utils";
+import type { HeaderProps } from "./types";
 
-type HeaderProps = {
-  dates: string[];
-  holidayList: string[];
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  onCellClick?: (data) => void;
-  weeklyStatus?: string;
-  importTasks?: boolean;
-  loadingLikedTasks?: boolean;
-  showHeading: boolean;
-  setTaskInLocalStorage?: () => void;
-};
 /**
  * @description This is the header component for the timesheet table.
  * It is responsible for rendering the header of the timesheet table.
@@ -59,11 +48,17 @@ export const Header = ({
           const { date: formattedDate, day } = prettyDate(date);
           const isHoliday = holidayList.includes(date);
           return (
-            <TableHead key={date} className={cn("max-w-20 text-center px-2 min-w-20", getBgCsssForToday(date))}>
-              <Typography variant="p" className={cn("text-slate-600 font-medium", isHoliday && "text-slate-400")}>
+            <TableHead
+              key={date}
+              className={mergeClassNames("max-w-20 text-center px-2 min-w-20", getBgCsssForToday(date))}
+            >
+              <Typography
+                variant="p"
+                className={mergeClassNames("text-slate-600 font-medium", isHoliday && "text-slate-400")}
+              >
                 {day}
               </Typography>
-              <Typography variant="small" className={cn("text-slate-500", isHoliday && "text-slate-300")}>
+              <Typography variant="small" className={mergeClassNames("text-slate-500", isHoliday && "text-slate-300")}>
                 {formattedDate}
               </Typography>
             </TableHead>

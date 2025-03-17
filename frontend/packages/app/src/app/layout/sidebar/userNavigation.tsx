@@ -20,29 +20,24 @@ import { ArrowRightLeft, LogOut } from "lucide-react";
  */
 import { DESK } from "@/lib/constant";
 import { UserContext } from "@/lib/UserProvider";
-import { cn } from "@/lib/utils";
-import { RootState } from "@/store";
+import { mergeClassNames } from "@/lib/utils";
+import type { UserNavigationProps } from "./types";
 
-interface UserNavigationProps {
-  user: RootState["user"];
-  isSidebarCollapsed: boolean;
-}
-
-const UserNavigation = ({ user, isSidebarCollapsed }: UserNavigationProps) => {
+const UserNavigation = ({ user }: UserNavigationProps) => {
   const { logout } = useContext(UserContext);
   return (
     <ErrorFallback>
       <Popover>
-        <PopoverTrigger title={user.userName} className={cn("flex items-center gap-x-2 truncate")}>
+        <PopoverTrigger title={user.userName} className={mergeClassNames("flex items-center gap-x-2 truncate")}>
           <Avatar className="w-8 h-8 justify-self-end transition-all duration-600">
             <AvatarImage src={decodeURIComponent(user.image)} />
             <AvatarFallback>{user.userName[0]}</AvatarFallback>
           </Avatar>
           <Typography
             variant="p"
-            className={cn(
+            className={mergeClassNames(
               "transition-all duration-800 max-md:hidden overflow-hidden max-w-full max-lg:1/3 truncate",
-              isSidebarCollapsed && "hidden"
+              user.isSidebarCollapsed && "hidden"
             )}
           >
             {user.userName}
