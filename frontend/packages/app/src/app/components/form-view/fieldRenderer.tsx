@@ -93,7 +93,7 @@ const FieldRenderer = ({ fields, onChange, onSubmit, readOnly, currencySymbol, h
     >
       {filteredSections.map((section, index) => (
         <div key={index} className="px-4 pb-4">
-          {section.title && <h2 className="text-lg font-semibold my-3">{section.title}</h2>}
+          <h2 className="text-lg font-semibold my-3">{section.title}</h2>
           <div className="grid lg:grid-cols-2 gap-4">
             {section.left.length > 0 && (
               <div className="space-y-4">

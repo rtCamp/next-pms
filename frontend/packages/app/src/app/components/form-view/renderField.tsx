@@ -205,12 +205,12 @@ const getFieldComponent = (
         />
       );
     case "Float":
-    case "Percentage":
+    case "Percent":
       return (
         <Input
-          type="number"
+          type="text"
           step="any"
-          value={value}
+          value={Number(value)}
           onChange={(e) => handleChange(parseFloat(e.target.value) || 0)}
           disabled={isReadOnly}
           className="text-sm"
@@ -226,12 +226,12 @@ const getFieldComponent = (
         >
           <Typography className={cn("shrink-0 ", isReadOnly && "text-gray-400")}>{currencySymbol}</Typography>
           <Input
-            type="number"
+            type="text"
             step="any"
-            value={value}
+            value={Number(value)}
             onChange={(e) => handleChange(parseFloat(e.target.value) || 0)}
             disabled={isReadOnly}
-            className="border-none !px-0 !py-0 text-sm"
+            className="!border-none rounded-none focus-visible:outline-none h-auto focus-visible:ring-0 !px-0 !py-0 text-sm"
           />
         </div>
       );
