@@ -256,3 +256,22 @@ export const getTimesheetHours = (
   });
   return { totalHours, timeOffHours };
 };
+
+export const getCurrencySymbol = (currencyCode: string): string | null => {
+  if (!currencyCode) {
+    return "";
+  }
+  try {
+    return (
+      new Intl.NumberFormat("en", {
+        style: "currency",
+        currency: currencyCode,
+      })
+        .formatToParts(0)
+        .find((part) => part.type === "currency")?.value || null
+    );
+  } catch (error) {
+    console.error("Currency error:", error); // Explicit error logging
+    return null;
+  }
+};

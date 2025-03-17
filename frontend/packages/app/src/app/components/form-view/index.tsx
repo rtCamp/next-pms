@@ -7,12 +7,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@next-pms/design-syste
 /**
  * Internal dependencies.
  */
+import { cn } from "@/lib/utils";
 import FieldRenderer from "./fieldRenderer";
 import { Field } from "./types";
 
 type FormViewProps = {
   tabs: Record<string, Array<Field>>;
   readOnly?: boolean;
+  currencySymbol?: string;
+  tabHeaderClassName?: string;
+  tabBodyClassName?: string;
+  onChange?: (values: Record<string, string | number | null>) => void;
+  onSubmit?: (values: Record<string, string | number | null>) => void;
 };
 
 /**
@@ -20,17 +26,31 @@ type FormViewProps = {
  * @description This component renders a tabbed form interface where each tab
  * contains different set of fields.
  * @param tabs Data containing Tabs and it's fields
+ * @param readOnly Makes all fields readonly and form becomes un-submitabble
+ * @param currencySymbol Currency symbol string to be used for displaying currencies
+ * @param onChange Function to track form-field changes , returns form-data everytime a feild is changed
+ * @param onSubmit Function to submit form changes , returns form-data
  * @returns A JSX Component
  */
 
-const FormView = ({ tabs, readOnly = false }: FormViewProps) => {
+const FormView = ({
+  tabs,
+  currencySymbol,
+  onChange,
+  onSubmit,
+  tabHeaderClassName,
+  tabBodyClassName,
+  readOnly = false,
+}: FormViewProps) => {
   const [activeTab, setActiveTab] = useState(Object.keys(tabs ?? {})[0]);
 
   return (
     <div className="w-full py-2">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full relative">
         <div className="border-b sticky top-0 bg-white z-10 overflow-x-auto no-scrollbar px-2">
-          <TabsList className="flex h-10 w-full justify-start rounded-none bg-transparent p-0">
+          <TabsList
+            className={cn("flex h-10 w-full justify-start rounded-none bg-transparent p-0", tabHeaderClassName)}
+          >
             {Object.keys(tabs ?? {})
               ?.map((item) => ({
                 id: item,
@@ -50,12 +70,13 @@ const FormView = ({ tabs, readOnly = false }: FormViewProps) => {
 
         {Object.keys(tabs ?? {})?.map((tab) => {
           return (
-            <TabsContent key={tab} value={tab} className="mt-6 space-y-4 focus-visible:ring-0">
+            <TabsContent key={tab} value={tab} className={cn("mt-6 space-y-4 focus-visible:ring-0", tabBodyClassName)}>
               <FieldRenderer
                 fields={tabs[tab]}
                 readOnly={readOnly}
-                onChange={(value) => console.log(value)}
-                onSubmit={(value) => console.log(value)}
+                onChange={onChange}
+                onSubmit={onSubmit}
+                currencySymbol={currencySymbol}
               />
             </TabsContent>
           );

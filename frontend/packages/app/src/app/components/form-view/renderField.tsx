@@ -13,6 +13,10 @@ import {
   Input,
   Typography,
 } from "@next-pms/design-system/components";
+/**
+ * Internal dependencies.
+ */
+import { cn } from "@/lib/utils";
 import { Field } from "./types";
 
 /**
@@ -22,13 +26,15 @@ import { Field } from "./types";
  * @param control React Hook Form control
  * @param onChange Callback function for field value change
  * @param readOnly Boolean indicating if field is read-only
+ * @param currencySymbol Currency symbol for Currency field-type
  * @returns A JSX Component
  */
 const RenderField = (
   field: Field,
   control: any,
   onChange?: (values: Record<string, any>) => void,
-  readOnly?: boolean
+  readOnly?: boolean,
+  currencySymbol?: string
 ) => {
   if (!field.label) return null;
   const isRequired = field.reqd === 1 || field.reqd === "1";
@@ -46,7 +52,7 @@ const RenderField = (
             control={control}
             defaultValue={field.value || ""}
             render={({ field: { onChange: handleChange, value } }) =>
-              getFieldComponent(field, handleChange, value, isReadOnly as boolean)
+              getFieldComponent(field, handleChange, value, isReadOnly as boolean, currencySymbol as string)
             }
           />
           <Typography variant="p" className="text-xs text-gray-500">
@@ -61,7 +67,7 @@ const RenderField = (
               control={control}
               defaultValue={field.value || ""}
               render={({ field: { onChange: handleChange, value } }) =>
-                getFieldComponent(field, handleChange, value, isReadOnly as boolean)
+                getFieldComponent(field, handleChange, value, isReadOnly as boolean, currencySymbol as string)
               }
             />
             <label className="text-sm">
@@ -83,7 +89,13 @@ const RenderField = (
  * @param isReadOnly Boolean indicating if field is read-only
  * @returns JSX Element for input field
  */
-const getFieldComponent = (field: Field, handleChange: (value: any) => void, value: any, isReadOnly: boolean) => {
+const getFieldComponent = (
+  field: Field,
+  handleChange: (value: any) => void,
+  value: any,
+  isReadOnly: boolean,
+  currencySymbol: string
+) => {
   switch (field.fieldtype) {
     case "Select":
       return (
@@ -100,7 +112,7 @@ const getFieldComponent = (field: Field, handleChange: (value: any) => void, val
           }
           disabled={isReadOnly}
         >
-          <SelectTrigger className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 disabled:bg-gray-100 disabled:text-gray-900 focus:ring-gray-300 transition-all  ">
+          <SelectTrigger className="disabled:bg-transparent">
             <SelectValue placeholder="Select an option" />
           </SelectTrigger>
           <SelectContent>
@@ -140,7 +152,7 @@ const getFieldComponent = (field: Field, handleChange: (value: any) => void, val
           value={value}
           onChange={(e) => handleChange(e.target.value)}
           disabled={isReadOnly}
-          className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 disabled:text-gray-900 disabled:bg-gray-100 focus:ring-gray-300 transition-all   text-sm"
+          className="text-sm"
         />
       );
     case "Data":
@@ -150,12 +162,11 @@ const getFieldComponent = (field: Field, handleChange: (value: any) => void, val
           value={value}
           onChange={(e) => handleChange(e.target.value)}
           disabled={isReadOnly}
-          className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 disabled:text-gray-900 disabled:bg-gray-100 focus:ring-gray-300 transition-all   text-sm"
+          className="text-sm"
         />
       );
     case "Float":
     case "Percentage":
-    case "Currency":
       return (
         <Input
           type="number"
@@ -163,8 +174,27 @@ const getFieldComponent = (field: Field, handleChange: (value: any) => void, val
           value={value}
           onChange={(e) => handleChange(parseFloat(e.target.value) || 0)}
           disabled={isReadOnly}
-          className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 disabled:text-gray-900 disabled:bg-gray-100 focus:ring-gray-300 transition-all   text-sm"
+          className="text-sm"
         />
+      );
+    case "Currency":
+      return (
+        <div
+          className={cn(
+            "flex items-center gap-1 h-10 w-full rounded-md border border-input bg-background px-3 py-2 ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm text-sm",
+            isReadOnly && "border-gray-100"
+          )}
+        >
+          <Typography className={cn("shrink-0 ", isReadOnly && "text-gray-400")}>{currencySymbol}</Typography>
+          <Input
+            type="number"
+            step="any"
+            value={value}
+            onChange={(e) => handleChange(parseFloat(e.target.value) || 0)}
+            disabled={isReadOnly}
+            className="border-none !px-0 !py-0 text-sm"
+          />
+        </div>
       );
     case "Text":
     case "Small Text":
@@ -174,7 +204,7 @@ const getFieldComponent = (field: Field, handleChange: (value: any) => void, val
           onChange={(e) => handleChange(e.target.value)}
           disabled={isReadOnly}
           rows={7}
-          className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none disabled:bg-gray-100 disabled:text-gray-900 focus:ring-2 focus:ring-gray-300 transition-all   text-sm"
+          className="text-sm"
         />
       );
     default:
@@ -184,7 +214,7 @@ const getFieldComponent = (field: Field, handleChange: (value: any) => void, val
           value={value}
           onChange={(e) => handleChange(e.target.value)}
           disabled={isReadOnly}
-          className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 disabled:bg-gray-100 disabled:text-gray-900 focus:ring-gray-300 transition-all   text-sm"
+          className="text-sm"
         />
       );
   }

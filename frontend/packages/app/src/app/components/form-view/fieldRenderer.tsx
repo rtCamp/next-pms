@@ -13,6 +13,7 @@ type FieldRendererProps = {
   onChange?: (values: Record<string, string | number | null>) => void;
   onSubmit?: (values: Record<string, string | number | null>) => void;
   readOnly?: boolean;
+  currencySymbol?: string;
 };
 
 /**
@@ -22,9 +23,10 @@ type FieldRendererProps = {
  * @param onChange Called when any field's value is changed
  * @param onSubmit Called when any form is submitted
  * @param readOnly Makes all fields read-only
+ * @param currencySymbol Currency symbol for Currency field-type
  * @returns A JSX Component
  */
-const FieldRenderer = ({ fields, onChange, onSubmit, readOnly }: FieldRendererProps) => {
+const FieldRenderer = ({ fields, onChange, onSubmit, readOnly, currencySymbol }: FieldRendererProps) => {
   const { control, handleSubmit } = useForm();
 
   const sections: Section[] = [];
@@ -68,12 +70,12 @@ const FieldRenderer = ({ fields, onChange, onSubmit, readOnly }: FieldRendererPr
           <div className="grid lg:grid-cols-2 gap-4">
             {section.left.length > 0 && (
               <div className="space-y-4">
-                {section.left.map((field) => RenderField(field, control, onChange, readOnly))}
+                {section.left.map((field) => RenderField(field, control, onChange, readOnly, currencySymbol))}
               </div>
             )}
             {section.right.length > 0 && (
               <div className="space-y-4">
-                {section.right.map((field) => RenderField(field, control, onChange, readOnly))}
+                {section.right.map((field) => RenderField(field, control, onChange, readOnly, currencySymbol))}
               </div>
             )}
           </div>
