@@ -13,12 +13,12 @@ const empName = process.env.EMP_NAME;
 const manName = process.env.REP_MAN_NAME;
 
 // Load test data
-let TC31data = data.TC31;
-let TC34data = data.TC34;
-let TC39data = data.TC39;
-let TC41data = data.TC41;
 let TC37data = data.TC37;
-let TC77data = data.TC77;
+let TC40data = data.TC40;
+let TC43data = data.TC43;
+let TC45data = data.TC45;
+let TC47data = data.TC47;
+let TC51data = data.TC51;
 
 // ------------------------------------------------------------------------------------------
 
@@ -36,7 +36,7 @@ test.beforeEach(async ({ page }) => {
 
 // ------------------------------------------------------------------------------------------
 
-test("TC30: Validate the search functionality", async ({}) => {
+test("TC36: Validate the search functionality", async ({}) => {
   // Search employee
   await teamPage.searchEmployee(empName);
 
@@ -46,7 +46,7 @@ test("TC30: Validate the search functionality", async ({}) => {
   expect(filteredEmployees[0]).toBe(empName);
 });
 
-test("TC31: The reporting manager filter", async ({}) => {
+test("TC37: The reporting manager filter", async ({}) => {
   // Apply 'Reports To' filter
   await teamPage.applyReportsTo(manName);
 
@@ -54,26 +54,26 @@ test("TC31: The reporting manager filter", async ({}) => {
   const employees = await teamPage.getEmployees();
 
   // Assertions
-  expect(employees.sort()).toEqual(TC31data.employees.sort());
+  expect(employees.sort()).toEqual(TC37data.employees.sort());
 });
 
-test("TC34: Validate the functionality of the ‘Next’ and ‘Previous’ week change buttons.", async ({}) => {
+test("TC40: Validate the functionality of the ‘Next’ and ‘Previous’ week change buttons.", async ({}) => {
   // Navigate to the next week and fetch the column date
   await teamPage.viewNextWeek();
-  const nextColDate = await teamPage.getColDate(TC34data.col);
+  const nextColDate = await teamPage.getColDate(TC40data.col);
 
   // Navigate to the next week again, then go back to the previous week and fetch the column date
   await teamPage.viewNextWeek();
   await teamPage.viewPreviousWeek();
-  const prevColDate = await teamPage.getColDate(TC34data.col);
+  const prevColDate = await teamPage.getColDate(TC40data.col);
 
   // Assertions
-  const expectedColDate = getShortFormattedDate(getDateForWeekday(TC34data.col)); // Compute expected column date
+  const expectedColDate = getShortFormattedDate(getDateForWeekday(TC40data.col)); // Compute expected column date
   expect(prevColDate).toBe(expectedColDate);
   expect(nextColDate).toBe(expectedColDate);
 });
 
-test("TC35: Validate that the timesheet dropdown section is working.", async ({}) => {
+test("TC41: Validate that the timesheet dropdown section is working.", async ({}) => {
   // Toggle employee timesheet
   await teamPage.toggleEmployeeTimesheet(empName);
 
@@ -82,7 +82,7 @@ test("TC35: Validate that the timesheet dropdown section is working.", async ({}
   expect(isEmployeeTimesheetVisible).toBeTruthy();
 });
 
-test("TC36: Validate the timesheets for individual employees for all weeks.", async ({}) => {
+test("TC42: Validate the timesheets for individual employees for all weeks.", async ({}) => {
   // Navigate to employee's timesheet
   await teamPage.navigateToEmpTimesheet(empName);
 
@@ -91,19 +91,19 @@ test("TC36: Validate the timesheets for individual employees for all weeks.", as
   expect(selectedEmployee).toContain(empName);
 });
 
-test("TC37: Change the employee selected from the top search and verify that the timesheets below are updated accordingly.", async ({}) => {
+test("TC43: Change the employee selected from the top search and verify that the timesheets below are updated accordingly.", async ({}) => {
   // Navigate to employee's timesheet
   await teamPage.navigateToEmpTimesheet(empName);
 
   // Select a different employee
-  await timesheetPage.selectEmployee(TC37data.employee);
+  await timesheetPage.selectEmployee(TC43data.employee);
 
   // Assertions
   const selectedEmployee = await timesheetPage.getSelectedEmployee();
-  expect(selectedEmployee).toContain(TC37data.employee);
+  expect(selectedEmployee).toContain(TC43data.employee);
 });
 
-test("TC39: Validate the modification of the employee timesheet or the deletion of time entries.", async ({ page }) => {
+test("TC45: Validate the modification of the employee timesheet or the deletion of time entries.", async ({ page }) => {
   // View next week
   await teamPage.viewNextWeek();
 
@@ -111,13 +111,13 @@ test("TC39: Validate the modification of the employee timesheet or the deletion 
   await teamPage.openReviewTimesheetPane(empName);
 
   // Update time entry's duration
-  const date = getShortFormattedDate(getDateForWeekday(TC39data.cell.col));
+  const date = getShortFormattedDate(getDateForWeekday(TC45data.cell.col));
   await teamPage.updateDurationOfTimeEntry({
     date: date,
-    project: TC39data.taskInfo.project,
-    task: TC39data.taskInfo.task,
-    desc: TC39data.taskInfo.desc,
-    newDuration: TC39data.taskInfo.duration,
+    project: TC45data.taskInfo.project,
+    task: TC45data.taskInfo.task,
+    desc: TC45data.taskInfo.desc,
+    newDuration: TC45data.taskInfo.duration,
   });
 
   // Reload page to ensure changes are reflected
@@ -132,18 +132,18 @@ test("TC39: Validate the modification of the employee timesheet or the deletion 
   // Assertions
   const cellText = await timesheetPage.getCellText({
     employee: empName,
-    rowName: TC39data.cell.rowName,
-    col: TC39data.cell.col,
+    rowName: TC45data.cell.rowName,
+    col: TC45data.cell.col,
   });
-  expect(cellText).toContain(TC39data.taskInfo.duration);
+  expect(cellText).toContain(TC45data.taskInfo.duration);
 });
 
-test("TC41: Rejecting timesheet for the employee", async ({ page }) => {
+test("TC47: Rejecting timesheet for the employee", async ({ page }) => {
   // View next week
   await teamPage.viewNextWeek();
 
   // Reject timesheet
-  await teamPage.rejectTimesheet({ employee: empName, reason: TC41data.reason });
+  await teamPage.rejectTimesheet({ employee: empName, reason: TC47data.reason });
 
   // Reload page to ensure changes are reflected
   await page.reload();
@@ -158,10 +158,10 @@ test("TC41: Rejecting timesheet for the employee", async ({ page }) => {
   expect(status).toBe("Rejected");
 });
 
-test("TC77: Verify the manager view.", async ({}) => {
+test("TC51: Verify the manager view.", async ({}) => {
   // Retrive employees from the parent table
   const employees = await teamPage.getEmployees();
 
   // Assertions
-  expect(employees.sort()).toEqual(TC77data.employees.sort());
+  expect(employees.sort()).toEqual(TC51data.employees.sort());
 });

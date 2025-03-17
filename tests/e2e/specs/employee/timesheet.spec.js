@@ -15,16 +15,16 @@ let TC3data = data.TC3;
 let TC4data = data.TC4;
 let TC5data = data.TC5;
 let TC6data = data.TC6;
-let TC72data = data.TC72;
-let TC73data = data.TC73;
-let TC74data = data.TC74;
-let TC75data = data.TC75;
+let TC12data = data.TC12;
+let TC13data = data.TC13;
+let TC14data = data.TC14;
+let TC15data = data.TC15;
 
 // ------------------------------------------------------------------------------------------
 
 test.beforeAll(async ({}) => {
-  // Compute cell info for TC73
-  data.TC73.cell.col = getWeekdayName(new Date()); // Get today's weekday name
+  // Compute cell info for TC13
+  data.TC13.cell.col = getWeekdayName(new Date()); // Get today's weekday name
 
   // Write back updated JSON
   fs.writeFileSync(employeeTimesheetDataFilePath, JSON.stringify(data, null, 2));
@@ -151,7 +151,7 @@ test("TC9: Open task details popup", async ({}) => {
   expect(isTaskDetailsDialogVisible).toBeTruthy();
 });
 
-test("TC71: Verify that the review timesheet pane is not available for an employee.", async ({}) => {
+test("TC11: Verify that the review timesheet pane is not available for an employee.", async ({}) => {
   // Click on timesheet status
   await timesheetPage.clickonTimesheetStatus();
 
@@ -163,7 +163,7 @@ test("TC71: Verify that the review timesheet pane is not available for an employ
   expect(isReviewTimesheetPaneVisible).toBeFalsy();
 });
 
-test("TC72: Verify the 'Import liked tasks' option.", async ({}) => {
+test("TC12: Verify the 'Import liked tasks' option.", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -171,32 +171,32 @@ test("TC72: Verify the 'Import liked tasks' option.", async ({}) => {
   const tasks = await timesheetPage.getTimesheetTasks();
 
   // Assertions
-  expect(tasks.sort()).toEqual(TC72data.tasks.sort());
+  expect(tasks.sort()).toEqual(TC12data.tasks.sort());
 });
 
-test("TC73: Verify an employee can apply for leave via Timesheet tab.", async ({}) => {
+test("TC13: Verify an employee can apply for leave via Timesheet tab.", async ({}) => {
   // Apply for leave
-  await timesheetPage.applyForLeave(TC73data.leave.desc);
+  await timesheetPage.applyForLeave(TC13data.leave.desc);
 
   // Assertions
-  const cellText = await timesheetPage.getCellText(TC73data.cell);
+  const cellText = await timesheetPage.getCellText(TC13data.cell);
   expect(cellText).toContain("8");
 });
 
-test("TC74: Verify the billable status of a billable task.", async ({}) => {
+test("TC14: Verify the billable status of a billable task.", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
   // Assertions
-  const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC74data.cell);
+  const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC14data.cell);
   expect(isTimeEntryBillable).toBeTruthy();
 });
 
-test("TC75: Verify the billable status of a non-billable task.", async ({}) => {
+test("TC15: Verify the billable status of a non-billable task.", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
   // Assertions
-  const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC75data.cell);
+  const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC15data.cell);
   expect(isTimeEntryBillable).toBeFalsy();
 });

@@ -6,8 +6,8 @@ import data from "../../data/manager/task.json";
 let taskPage;
 
 // Load test data
-let TC12data = data.TC12;
-let TC14data = data.TC14;
+let TC17data = data.TC17;
+let TC19data = data.TC19;
 
 // ------------------------------------------------------------------------------------------
 
@@ -24,26 +24,26 @@ test.beforeEach(async ({ page }) => {
 
 // ------------------------------------------------------------------------------------------
 
-test("TC12: Validate the search functionality", async ({}) => {
+test("TC17: Validate the search functionality", async ({}) => {
   // Search task
-  await taskPage.searchTask(TC12data.task);
+  await taskPage.searchTask(TC17data.task);
 
   // Assertions
   const filteredTasks = await taskPage.getTasks();
   expect(filteredTasks.length).toBeGreaterThanOrEqual(1);
   filteredTasks.forEach((task) => {
-    expect(task).toContain(TC12data.task);
+    expect(task).toContain(TC17data.task);
   });
 });
 
-test("TC14: Open task details popup", async ({}) => {
+test("TC19: Open task details popup", async ({}) => {
   // Search task
-  await taskPage.searchTask(TC14data.task);
+  await taskPage.searchTask(TC19data.task);
 
   // Open task details
-  await taskPage.openTaskDetails(TC14data.task);
+  await taskPage.openTaskDetails(TC19data.task);
 
   // Assertions
-  const isTaskDetailsDialogVisible = await taskPage.isTaskDetailsDialogVisible(TC14data.task);
+  const isTaskDetailsDialogVisible = await taskPage.isTaskDetailsDialogVisible(TC19data.task);
   expect(isTaskDetailsDialogVisible).toBeTruthy();
 });

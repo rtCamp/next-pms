@@ -14,7 +14,7 @@ export class TeamPage {
 
     // Header Filters
     this.searchInput = page.getByPlaceholder("Employee Name");
-    this.reportsToDrodpown = page.getByRole("button", { name: "Reports To" });
+    this.reportsToDropdown = page.getByRole("button", { name: "Reports To" });
 
     // Prev & Next Buttons
     this.prevButton = page.getByRole("button", { name: "prev-week" });
@@ -86,7 +86,7 @@ export class TeamPage {
    * Applies the 'Reports To' filter by selecting an employee from the dropdown.
    */
   async applyReportsTo(name) {
-    await this.reportsToDrodpown.click();
+    await this.reportsToDropdown.click();
     await this.searchAndSelectOption("Search Employee", name);
   }
 
