@@ -1,8 +1,12 @@
+import path from "path";
+import fs from "fs";
 import { test, expect } from "@playwright/test";
+import { getWeekdayName } from "../../utils/dateUtils";
 import { secondsToDuration, durationToSeconds } from "../../utils/dateUtils";
-import { TimesheetPage } from "../../pages/timesheetPage";
+import { TimesheetPage } from "../../pageObjects/timesheetPage";
 import data from "../../data/employee/shared-timesheet.json";
 
+const employeeTimesheetDataFilePath = path.resolve(__dirname, "../../data/employee/shared-timesheet.json"); // File path of the employee timesheet data JSON file
 let timesheetPage;
 
 // Load test data
@@ -11,13 +15,27 @@ let TC3data = data.TC3;
 let TC4data = data.TC4;
 let TC5data = data.TC5;
 let TC6data = data.TC6;
+let TC12data = data.TC12;
+let TC13data = data.TC13;
+let TC14data = data.TC14;
+let TC15data = data.TC15;
 
 // ------------------------------------------------------------------------------------------
 
+test.beforeAll(async ({}) => {
+  // Compute cell info for TC13
+  data.TC13.cell.col = getWeekdayName(new Date()); // Get today's weekday name
+
+  // Write back updated JSON
+  fs.writeFileSync(employeeTimesheetDataFilePath, JSON.stringify(data, null, 2));
+});
+
 test.beforeEach(async ({ page }) => {
-  // Open Timesheet tab
+  // Instantiate page objects
   timesheetPage = new TimesheetPage(page);
-  timesheetPage.goto();
+
+  // Switch to Timesheet tab
+  await timesheetPage.goto();
 });
 
 // ------------------------------------------------------------------------------------------
@@ -107,13 +125,78 @@ test("TC6: Delete the added time entry from the non-submitted timesheet.", async
   expect(cellText).toContain("-");
 });
 
-test("TC71: Verify that the review timesheet panel is not available for an employee.", async ({}) => {
+test("TC7: Submit the weekly timesheet", async ({ page }) => {
+  // Submit timesheet
+  await timesheetPage.submitTimesheet();
+
+  // Reload page to ensure changes are reflected
+  await page.reload();
+
+  // Get timesheet status
+  const status = await timesheetPage.getTimesheetStatus();
+
+  // Assertions
+  expect(status).toBe("Approval Pending");
+});
+
+test("TC9: Open task details popup", async ({}) => {
+  // Import liked tasks
+  await timesheetPage.importLikedTasks();
+
+  // Open random task details
+  const randomTask = await timesheetPage.openRandomTaskDetails();
+
+  // Assertions
+  const isTaskDetailsDialogVisible = await timesheetPage.isTaskDetailsDialogVisible(randomTask);
+  expect(isTaskDetailsDialogVisible).toBeTruthy();
+});
+
+test("TC11: Verify that the review timesheet pane is not available for an employee.", async ({}) => {
   // Click on timesheet status
-  await timesheetPage.openSubmitForApprovalModal();
+  await timesheetPage.clickonTimesheetStatus();
 
   // Assertions
   const isSubmitForApprovalModalVisible = await timesheetPage.isSubmitForApprovalModalVisible();
   expect(isSubmitForApprovalModalVisible).toBeTruthy();
+
   const isReviewTimesheetPaneVisible = await timesheetPage.isReviewTimesheetPaneVisible();
   expect(isReviewTimesheetPaneVisible).toBeFalsy();
+});
+
+test("TC12: Verify the 'Import liked tasks' option.", async ({}) => {
+  // Import liked tasks
+  await timesheetPage.importLikedTasks();
+
+  // Retrive tasks from the timesheet
+  const tasks = await timesheetPage.getTimesheetTasks();
+
+  // Assertions
+  expect(tasks.sort()).toEqual(TC12data.tasks.sort());
+});
+
+test("TC13: Verify an employee can apply for leave via Timesheet tab.", async ({}) => {
+  // Apply for leave
+  await timesheetPage.applyForLeave(TC13data.leave.desc);
+
+  // Assertions
+  const cellText = await timesheetPage.getCellText(TC13data.cell);
+  expect(cellText).toContain("8");
+});
+
+test("TC14: Verify the billable status of a billable task.", async ({}) => {
+  // Import liked tasks
+  await timesheetPage.importLikedTasks();
+
+  // Assertions
+  const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC14data.cell);
+  expect(isTimeEntryBillable).toBeTruthy();
+});
+
+test("TC15: Verify the billable status of a non-billable task.", async ({}) => {
+  // Import liked tasks
+  await timesheetPage.importLikedTasks();
+
+  // Assertions
+  const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC15data.cell);
+  expect(isTimeEntryBillable).toBeFalsy();
 });

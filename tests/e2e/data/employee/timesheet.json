@@ -1,8 +1,7 @@
 {
   "TC2": {
     "cell": {
-      "rowName": "Documentation",
-      "col": "Wed"
+      "rowName": "Documentation"
     },
     "taskInfo": {
       "duration": "1:00",
@@ -14,8 +13,6 @@
       "subject": "Documentation",
       "description": "TC2 - Task added via automation.",
       "project_name": "QE - Retainer",
-      "from_time": "2025-03-05",
-      "employee": "EMP-00089",
       "max_week": "1"
     }
   },
@@ -34,8 +31,6 @@
       "subject": "Design dashboard",
       "description": "TC3 - Task added via automation.",
       "project_name": "QE - Fixed Cost",
-      "from_time": "2025-03-03",
-      "employee": "EMP-00089",
       "max_week": "1"
     }
   },
@@ -53,24 +48,18 @@
     "payloadCreateTimesheet": {
       "task": "TASK-2025-00619",
       "description": "TC4 - Task added via automation.",
-      "hours": "1",
-      "date": "2025-03-04",
-      "employee": "EMP-00089"
+      "hours": "1"
     },
     "payloadFilterTimeEntry1": {
       "subject": "App support",
       "description": "TC4 - Task added via automation.",
       "project_name": "QE - Retainer",
-      "from_time": "2025-03-04",
-      "employee": "EMP-00089",
       "max_week": "1"
     },
     "payloadFilterTimeEntry2": {
       "subject": "App support",
       "description": "TC4 - Updated task via automation.",
       "project_name": "QE - Retainer",
-      "from_time": "2025-03-04",
-      "employee": "EMP-00089",
       "max_week": "1"
     }
   },
@@ -88,31 +77,25 @@
     "payloadCreateTimesheet": {
       "task": "TASK-2025-00621",
       "description": "TC5 - Task added via automation.",
-      "hours": "1",
-      "date": "2025-03-06",
-      "employee": "EMP-00089"
+      "hours": "1"
     },
     "payloadFilterTimeEntry1": {
       "subject": "Unit Testing",
       "description": "TC5 - Task added via automation.",
       "project_name": "QE - Time and Material",
-      "from_time": "2025-03-06",
-      "employee": "EMP-00089",
       "max_week": "1"
     },
     "payloadFilterTimeEntry2": {
       "subject": "Unit Testing",
       "description": "TC5 - New row added to task via automation.",
       "project_name": "QE - Time and Material",
-      "from_time": "2025-03-06",
-      "employee": "EMP-00089",
       "max_week": "1"
     }
   },
   "TC6": {
     "cell": {
       "rowName": "Prod support calls",
-      "col": "Fri"
+      "col": "Tue"
     },
     "taskInfo": {
       "duration": "1",
@@ -123,16 +106,88 @@
     "payloadCreateTimesheet": {
       "task": "TASK-2025-00617",
       "description": "TC6 - Task added via automation.",
-      "hours": "1",
-      "date": "2025-03-07",
-      "employee": "EMP-00089"
+      "hours": "1"
     },
     "payloadFilterTimeEntry": {
       "subject": "Prod support calls",
       "description": "TC6 - Task added via automation.",
       "project_name": "QE - Fixed Cost",
-      "from_time": "2025-03-07",
-      "employee": "EMP-00089",
+      "max_week": "1"
+    }
+  },
+  "TC7": {
+    "cell": {
+      "rowName": "Meetings",
+      "col": "Mon"
+    },
+    "payloadCreateTimesheet": {
+      "task": "TASK-2025-00614",
+      "description": "TC7 - Task added via automation.",
+      "hours": "1"
+    },
+    "payloadFilterTimeEntry": {
+      "subject": "Meetings",
+      "description": "TC7 - Task added via automation.",
+      "project_name": "QE - Non-Billable",
+      "max_week": "1"
+    }
+  },
+  "TC12": {
+    "tasks": [
+      "Design dashboard",
+      "Documentation",
+      "Meetings",
+      "Create UI Designs",
+      "Bug fixes",
+      "App support",
+      "Unit Testing",
+      "Prod support calls"
+    ]
+  },
+  "TC13": {
+    "cell": {
+      "rowName": "Time Off"
+    },
+    "leave": {
+      "desc": "TC13 - Leave added via automation."
+    },
+    "payloadFilterLeaveEntry": {
+      "description": "TC13 - Leave added via automation.",
+      "status": "Open",
+      "leave_type": "Unpaid Time Off"
+    }
+  },
+  "TC14": {
+    "cell": {
+      "rowName": "Design dashboard",
+      "col": "Tue"
+    },
+    "payloadCreateTimesheet": {
+      "task": "TASK-2025-00616",
+      "description": "TC14 - Task added via automation.",
+      "hours": "1"
+    },
+    "payloadFilterTimeEntry": {
+      "subject": "Design dashboard",
+      "description": "TC14 - Task added via automation.",
+      "project_name": "QE - Fixed Cost",
+      "max_week": "1"
+    }
+  },
+  "TC15": {
+    "cell": {
+      "rowName": "Create UI Designs",
+      "col": "Thu"
+    },
+    "payloadCreateTimesheet": {
+      "task": "TASK-2025-00613",
+      "description": "TC15 - Task added via automation.",
+      "hours": "1"
+    },
+    "payloadFilterTimeEntry": {
+      "subject": "Create UI Designs",
+      "description": "TC15 - Task added via automation.",
+      "project_name": "QE - Non-Billable",
       "max_week": "1"
     }
   }
