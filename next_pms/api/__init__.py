@@ -48,6 +48,7 @@ def get_doc_with_meta(doctype, docname):
                 "hidden": getattr(df, "hidden", 0),
                 "precision": getattr(df, "precision", None),
                 "in_list_view": getattr(df, "in_list_view", 0),
+                "depends_on": getattr(df, "depends_on", None),
             }
         )
 

@@ -1,10 +1,12 @@
 /**
  * External dependencies.
  */
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
+
 /**
  * Internal dependencies.
  */
+import { evaluateDependsOn } from "@/lib/utils";
 import RenderField from "./renderField";
 import { Field, Section } from "./types";
 
@@ -19,17 +21,20 @@ type FieldRendererProps = {
 
 /**
  * FieldRenderer Component
- * @description This component renders fields of the form-view section-wise
- * @param fields Array of fields containing sections and columns
- * @param onChange Called when any field's value is changed
- * @param onSubmit Called when any form is submitted
- * @param readOnly Makes all fields read-only
- * @param currencySymbol Currency symbol for Currency field-type
- * @param hideFields All fieldnames in this list are not rendered
- * @returns A JSX Component
+ * @description This component renders fields of the form-view section-wise, while respecting depends_on conditions.
  */
 const FieldRenderer = ({ fields, onChange, onSubmit, readOnly, currencySymbol, hideFields }: FieldRendererProps) => {
   const { control, handleSubmit } = useForm();
+
+  const mapFieldsToObject = (fields: Array<Record<string, string | number | null>>) => {
+    return fields.reduce((acc, field) => {
+      acc[field.fieldname!] = field.value;
+      return acc;
+    }, {} as Record<string, string | number | null>);
+  };
+
+  // Watch all field values to dynamically check dependencies
+  const formData = useWatch({ control });
 
   const sections: Section[] = [];
   let currentSection: Section = { title: "", left: [], right: [], isRight: false };
@@ -37,6 +42,14 @@ const FieldRenderer = ({ fields, onChange, onSubmit, readOnly, currencySymbol, h
   fields?.forEach((field) => {
     if (hideFields?.includes(field.fieldname)) {
       return;
+    }
+
+    if (
+      field.depends_on &&
+      !evaluateDependsOn(field.depends_on, Object.keys(formData).length > 0 ? formData : mapFieldsToObject(fields))
+    ) {
+      // Check depends_on condition before rendering the field
+      return; // Skip rendering if dependency is not met
     }
 
     if (field.fieldtype === "Section Break") {
@@ -47,10 +60,11 @@ const FieldRenderer = ({ fields, onChange, onSubmit, readOnly, currencySymbol, h
     } else if (field.fieldtype === "Column Break") {
       currentSection.isRight = true;
     } else if (
-      field.value !== null &&
-      field.value !== undefined &&
-      field.value !== "" &&
-      (field.value !== 0 || field.fieldtype === "Check")
+      field.depends_on ||
+      (field.value !== null &&
+        field.value !== undefined &&
+        field.value !== "" &&
+        (field.value !== 0 || field.fieldtype === "Check"))
     ) {
       if (currentSection.isRight) {
         currentSection.right.push(field);

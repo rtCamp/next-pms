@@ -7,6 +7,7 @@ export type Field = {
   options?: string;
   description?: string | null;
   fieldname: string;
+  depends_on: string;
 };
 
 export type Section = {

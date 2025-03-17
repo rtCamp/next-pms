@@ -275,3 +275,31 @@ export const getCurrencySymbol = (currencyCode: string): string | null => {
     return null;
   }
 };
+
+export const evaluateDependsOn = (
+  dependsOn: string,
+  doc: Record<string, string | number | null>
+): boolean => {
+  if (!dependsOn) return true; // No condition means always true
+
+  try {
+    if (dependsOn.startsWith("eval:")) {
+      const condition = dependsOn.slice(5).replace(/\\"/g, '"'); // Remove "eval:" prefix
+      return new Function(
+        "doc",
+        `try { return Boolean(${condition}); } catch (e) { return false; }`
+      )(doc);
+    } else if (dependsOn in doc) {
+      return Boolean(doc[dependsOn]); // If it's just a fieldname, check if it's truthy
+    } else {
+      console.warn(
+        "Unsupported depends_on format or missing field:",
+        dependsOn
+      );
+      return true;
+    }
+  } catch (error) {
+    console.error("Error evaluating depends_on:", error);
+    return false;
+  }
+};
