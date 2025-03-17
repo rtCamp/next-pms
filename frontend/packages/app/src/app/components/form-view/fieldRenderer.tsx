@@ -11,6 +11,7 @@ import {
   Checkbox,
   TextArea,
   Input,
+  Typography,
 } from "@next-pms/design-system/components";
 
 /**
@@ -127,6 +128,9 @@ const renderField = (
               getFieldComponent(field, handleChange, value, isReadOnly as boolean)
             }
           />
+          <Typography variant="p" className="text-xs text-gray-500">
+            {field.description}
+          </Typography>
         </>
       ) : (
         <>
@@ -175,7 +179,7 @@ const getFieldComponent = (field: Field, handleChange: (value: any) => void, val
           }
           disabled={isReadOnly}
         >
-          <SelectTrigger className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 disabled:bg-gray-100 disabled:text-gray-600 focus:ring-gray-300 transition-all duration-200">
+          <SelectTrigger className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 disabled:bg-gray-100 disabled:text-gray-900 focus:ring-gray-300 transition-all  ">
             <SelectValue placeholder="Select an option" />
           </SelectTrigger>
           <SelectContent>
@@ -215,7 +219,7 @@ const getFieldComponent = (field: Field, handleChange: (value: any) => void, val
           value={value}
           onChange={(e) => handleChange(e.target.value)}
           disabled={isReadOnly}
-          className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 disabled:text-gray-600 disabled:bg-gray-100 focus:ring-gray-300 transition-all duration-200 text-sm"
+          className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 disabled:text-gray-900 disabled:bg-gray-100 focus:ring-gray-300 transition-all   text-sm"
         />
       );
     case "Data":
@@ -225,7 +229,7 @@ const getFieldComponent = (field: Field, handleChange: (value: any) => void, val
           value={value}
           onChange={(e) => handleChange(e.target.value)}
           disabled={isReadOnly}
-          className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 disabled:bg-gray-100 focus:ring-gray-300 transition-all duration-200 text-sm"
+          className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 disabled:text-gray-900 disabled:bg-gray-100 focus:ring-gray-300 transition-all   text-sm"
         />
       );
     case "Float":
@@ -238,7 +242,7 @@ const getFieldComponent = (field: Field, handleChange: (value: any) => void, val
           value={value}
           onChange={(e) => handleChange(parseFloat(e.target.value) || 0)}
           disabled={isReadOnly}
-          className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 disabled:bg-gray-100 focus:ring-gray-300 transition-all duration-200 text-sm"
+          className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 disabled:text-gray-900 disabled:bg-gray-100 focus:ring-gray-300 transition-all   text-sm"
         />
       );
     case "Text":
@@ -249,7 +253,7 @@ const getFieldComponent = (field: Field, handleChange: (value: any) => void, val
           onChange={(e) => handleChange(e.target.value)}
           disabled={isReadOnly}
           rows={7}
-          className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none disabled:bg-gray-100 focus:ring-2 focus:ring-gray-300 transition-all duration-200 text-sm"
+          className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none disabled:bg-gray-100 disabled:text-gray-900 focus:ring-2 focus:ring-gray-300 transition-all   text-sm"
         />
       );
     default:
@@ -259,7 +263,7 @@ const getFieldComponent = (field: Field, handleChange: (value: any) => void, val
           value={value}
           onChange={(e) => handleChange(e.target.value)}
           disabled={isReadOnly}
-          className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all duration-200 text-sm"
+          className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 disabled:bg-gray-100 disabled:text-gray-900 focus:ring-gray-300 transition-all   text-sm"
         />
       );
   }

@@ -50,7 +50,7 @@ const FormView = ({ tabs, readOnly = false }: FormViewProps) => {
 
         {Object.keys(tabs ?? {})?.map((tab) => {
           return (
-            <TabsContent key={tab} value={tab} className="mt-6 space-y-4">
+            <TabsContent key={tab} value={tab} className="mt-6 space-y-4 focus-visible:ring-0">
               <FieldRenderer
                 fields={tabs[tab]}
                 readOnly={readOnly}

@@ -5,6 +5,7 @@ export type Field = {
   reqd?: string | number;
   read_only?: string | number;
   options?: string;
+  description?: string | null;
 };
 
 export type Section = {
