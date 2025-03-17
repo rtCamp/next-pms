@@ -77,6 +77,7 @@ const FormView = ({
                 onChange={onChange}
                 onSubmit={onSubmit}
                 currencySymbol={currencySymbol}
+                hideFields={["naming_series"]}
               />
             </TabsContent>
           );

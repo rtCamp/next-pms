@@ -14,6 +14,7 @@ type FieldRendererProps = {
   onSubmit?: (values: Record<string, string | number | null>) => void;
   readOnly?: boolean;
   currencySymbol?: string;
+  hideFields?: Array<string>;
 };
 
 /**
@@ -24,15 +25,20 @@ type FieldRendererProps = {
  * @param onSubmit Called when any form is submitted
  * @param readOnly Makes all fields read-only
  * @param currencySymbol Currency symbol for Currency field-type
+ * @param hideFields All fieldnames in this list are not rendered
  * @returns A JSX Component
  */
-const FieldRenderer = ({ fields, onChange, onSubmit, readOnly, currencySymbol }: FieldRendererProps) => {
+const FieldRenderer = ({ fields, onChange, onSubmit, readOnly, currencySymbol, hideFields }: FieldRendererProps) => {
   const { control, handleSubmit } = useForm();
 
   const sections: Section[] = [];
   let currentSection: Section = { title: "", left: [], right: [], isRight: false };
 
   fields?.forEach((field) => {
+    if (hideFields?.includes(field.fieldname)) {
+      return;
+    }
+
     if (field.fieldtype === "Section Break") {
       if (currentSection.left.length || currentSection.right.length) {
         sections.push(currentSection);
