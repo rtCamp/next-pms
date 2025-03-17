@@ -17,7 +17,7 @@ import { InfiniteScroll } from "@/app/components/infiniteScroll";
  * Internal dependencies.
  */
 import { mergeClassNames } from "@/lib/utils";
-import type { ResourceAllocationObjectProps, ResourceAllocationProps } from "@/types/resource_management";
+import type { ResourceAllocationObjectProps, ResourceAllocationProps } from "@/types/resource-management";
 import { ResourceExpandView } from "./expandView";
 import { EmptyTableBody, EmptyTableCell } from "../../components/empty";
 import { ResourceAllocationList } from "../../components/resourceAllocationList";

@@ -7,7 +7,7 @@ import { Moment } from "moment";
 /**
  * Internal dependencies.
  */
-import { ResourceAllocationProps } from "@/types/resource_management";
+import { ResourceAllocationProps } from "@/types/resource-management";
 import { AllocationDataProps, Skill } from "../store/types";
 
 interface ResourceAllocationItemProps {

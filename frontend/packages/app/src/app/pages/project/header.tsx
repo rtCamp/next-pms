@@ -10,6 +10,7 @@ import { useFrappeGetDocList, useFrappePostCall } from "frappe-react-sdk";
  * Internal dependencies
  */
 import { Header as ListViewHeader } from "@/app/components/list-view/header";
+import { ButtonProps, FilterPops } from "@/app/components/list-view/types";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import type { RootState } from "@/store";
 import {
@@ -26,7 +27,7 @@ import {
 import { updateView } from "@/store/view";
 import type { sortOrder } from "@/types";
 import type { HeaderProps } from "./types";
-import { createFilter } from "./utils";
+import { createFilter, getFilter } from "./utils";
 
 export const Header = ({
   meta,
@@ -140,7 +141,7 @@ export const Header = ({
 
   const filters = [
     {
-      type: "search",
+      type: "search" as FilterPops["type"],
       queryParameterName: "search",
       label: "Project Name",
       value: projectState.search,
@@ -151,7 +152,7 @@ export const Header = ({
       }, [dispatch]),
     },
     {
-      type: "select-search",
+      type: "select-search" as FilterPops["type"],
       queryParameterName: "project-type",
       label: "Project Type",
       value: projectState.selectedProjectType,
@@ -174,7 +175,7 @@ export const Header = ({
       handleDelete: handleProjectTypeChange,
     },
     {
-      type: "select-list",
+      type: "select-list" as FilterPops["type"],
       queryParameterName: "status",
       label: "Status",
       value: projectState.selectedStatus,
@@ -190,7 +191,7 @@ export const Header = ({
       handleDelete: handleStatusChange,
     },
     {
-      type: "select-search",
+      type: "select-search" as FilterPops["type"],
       queryParameterName: "business-unit",
       label: "Business Unit",
       value: projectState.selectedBusinessUnit,
@@ -213,7 +214,7 @@ export const Header = ({
       shouldFilterComboBox: true,
     },
     {
-      type: "select-list",
+      type: "select-list" as FilterPops["type"],
       queryParameterName: "billing-type",
       label: "Billing Type",
       value: projectState.selectedBillingType,
@@ -230,7 +231,7 @@ export const Header = ({
       isMultiComboBox: true,
     },
     {
-      type: "select-list",
+      type: "select-list" as FilterPops["type"],
       queryParameterName: "currency",
       label: "Currency",
       value: projectState.currency,
@@ -247,7 +248,7 @@ export const Header = ({
       isMultiComboBox: false,
     },
     {
-      type: "select-list",
+      type: "select-list" as FilterPops["type"],
       queryParameterName: "tag",
       label: "Tag",
       value: projectState.tag,
@@ -298,6 +299,7 @@ export const Header = ({
         }
         return acc;
       }, {}),
+      filters: getFilter(projectState),
     },
     viewProps: {
       rows: view.rows,
@@ -318,7 +320,7 @@ export const Header = ({
       },
       hide: !stateUpdated,
       label: "Save changes",
-      variant: "ghost",
+      variant: "ghost" as ButtonProps["variant"],
       className: "h-10 px-2 py-2",
     },
   ];
