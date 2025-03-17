@@ -15,6 +15,7 @@ const empID = process.env.EMP_ID;
  * Updates employee timesheet data by dynamically setting date values for different test cases.
  * It modifies the JSON data with the current date values, associates it with the employee ID,
  * and creates time entries for specific test cases. Finally, it writes the updated data back to the file.
+ *
  * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC14, TC15, TC45, TC47
  */
 export const createInitialTimeEntries = async () => {
@@ -129,61 +130,35 @@ export const createInitialTimeEntries = async () => {
 // ------------------------------------------------------------------------------------------
 
 /**
- * Deletes stale time entries from the timesheet data.
- * Uses `filterTimesheetEntry` to retrieve existing time entries.
- * Calls `deleteTimesheet` to remove each fetched entry from the system.
+ * Deletes stale time entries from the shared employee and manager timesheet data.
+ *
+ * This function reads timesheet data from JSON files and iterates through predefined
+ * time entry objects, filtering each entry and deleting the corresponding timesheet record.
+ *
  * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC14, TC15, TC45, TC47
  */
 export const deleteStaleTimeEntries = async () => {
   const sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
   const sharedManagerTeamData = await readJSONFile("../data/manager/shared-team.json");
-  var filteredTimeEntry = {};
+  const timeEntries = [
+    sharedEmployeeTimesheetData.TC2.payloadFilterTimeEntry,
+    sharedEmployeeTimesheetData.TC3.payloadFilterTimeEntry,
+    sharedEmployeeTimesheetData.TC4.payloadFilterTimeEntry1,
+    sharedEmployeeTimesheetData.TC4.payloadFilterTimeEntry2,
+    sharedEmployeeTimesheetData.TC5.payloadFilterTimeEntry1,
+    sharedEmployeeTimesheetData.TC5.payloadFilterTimeEntry2,
+    sharedEmployeeTimesheetData.TC6.payloadFilterTimeEntry,
+    sharedEmployeeTimesheetData.TC7.payloadFilterTimeEntry,
+    sharedEmployeeTimesheetData.TC14.payloadFilterTimeEntry,
+    sharedEmployeeTimesheetData.TC15.payloadFilterTimeEntry,
+    sharedManagerTeamData.TC45.payloadFilterTimeEntry,
+    sharedManagerTeamData.TC47.payloadFilterTimeEntry,
+  ];
 
-  // Fetch TC2 time entry and delete time entry
-  filteredTimeEntry = await filterTimesheetEntry(sharedEmployeeTimesheetData.TC2.payloadFilterTimeEntry);
-  await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
-
-  // Fetch TC3 time entry and delete time entry
-  filteredTimeEntry = await filterTimesheetEntry(sharedEmployeeTimesheetData.TC3.payloadFilterTimeEntry);
-  await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
-
-  // Fetch TC4 time entries and delete time entries
-  filteredTimeEntry = await filterTimesheetEntry(sharedEmployeeTimesheetData.TC4.payloadFilterTimeEntry1);
-  await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
-
-  filteredTimeEntry = await filterTimesheetEntry(sharedEmployeeTimesheetData.TC4.payloadFilterTimeEntry2);
-  await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
-
-  // Fetch TC5 time entries and delete time entries
-  filteredTimeEntry = await filterTimesheetEntry(sharedEmployeeTimesheetData.TC5.payloadFilterTimeEntry1);
-  await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
-
-  filteredTimeEntry = await filterTimesheetEntry(sharedEmployeeTimesheetData.TC5.payloadFilterTimeEntry2);
-  await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
-
-  // Fetch TC6 time entry and delete time entry
-  filteredTimeEntry = await filterTimesheetEntry(sharedEmployeeTimesheetData.TC6.payloadFilterTimeEntry);
-  await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
-
-  // Fetch TC7 time entry and delete time entry
-  filteredTimeEntry = await filterTimesheetEntry(sharedEmployeeTimesheetData.TC7.payloadFilterTimeEntry);
-  await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
-
-  // Fetch TC14 time entries and delete time entries
-  filteredTimeEntry = await filterTimesheetEntry(sharedEmployeeTimesheetData.TC14.payloadFilterTimeEntry);
-  await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
-
-  // Fetch TC15 time entries and delete time entries
-  filteredTimeEntry = await filterTimesheetEntry(sharedEmployeeTimesheetData.TC15.payloadFilterTimeEntry);
-  await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
-
-  // Fetch TC45 time entries and delete time entries
-  filteredTimeEntry = await filterTimesheetEntry(sharedManagerTeamData.TC45.payloadFilterTimeEntry);
-  await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
-
-  // Fetch TC47 time entries and delete time entries
-  filteredTimeEntry = await filterTimesheetEntry(sharedManagerTeamData.TC47.payloadFilterTimeEntry);
-  await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
+  for (const entry of timeEntries) {
+    const filteredTimeEntry = await filterTimesheetEntry(entry);
+    await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name });
+  }
 };
 
 // ------------------------------------------------------------------------------------------

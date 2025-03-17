@@ -14,6 +14,7 @@ const empID = process.env.EMP_ID;
  * Updates employee timesheet data by dynamically setting date values for different test cases.
  * It modifies the JSON data with the current date values, associates it with the employee ID
  * and writes the updated data back to the file.
+ *
  * Test Cases: TC13
  */
 export const updateInitialLeaveEntries = async () => {
@@ -32,22 +33,26 @@ export const updateInitialLeaveEntries = async () => {
 };
 
 /**
- * Deletes stale leave entries from the timesheet data.
- * Uses `getLeaves` to retrieve existing leave entries.
- * Uses `getLeaveDetails` to retrieve leave details.
- * Calls `actOnLeave` to reject the leave application.
+ * Rejects stale leave entries from the shared employee timesheet data.
+ *
+ * This function reads leave entry data from a JSON file, retrieves the first matching
+ * leave entry, and if found, rejects the leave request by applying the "Reject" action.
+ *
  * Test Cases: TC13
  */
 export const rejectStaleLeaveEntries = async () => {
   const sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
+  const leaveEntries = [sharedEmployeeTimesheetData.TC13.payloadFilterLeaveEntry];
 
-  // Fetch TC13 leave entry and reject leave entry
-  const filteredLeaveEntry = await getLeaves(sharedEmployeeTimesheetData.TC13.payloadFilterLeaveEntry);
-  const filteredLeaveEntryJSON = await filteredLeaveEntry.json();
-  const firstEntry = filteredLeaveEntryJSON?.data?.[0] || {};
+  for (const entry of leaveEntries) {
+    const filteredLeaveEntry = await getLeaves(entry);
+    const filteredLeaveEntryJSON = await filteredLeaveEntry.json();
+    const firstEntry = filteredLeaveEntryJSON?.data?.[0] || {};
 
-  const leaveDetails = await getLeaveDetails(firstEntry.name);
-  const leaveDetailsJSON = await leaveDetails.json();
-
-  await actOnLeave({ action: "Reject", leaveDetails: leaveDetailsJSON.data });
+    if (firstEntry.name) {
+      const leaveDetails = await getLeaveDetails(firstEntry.name);
+      const leaveDetailsJSON = await leaveDetails.json();
+      await actOnLeave({ action: "Reject", leaveDetails: leaveDetailsJSON.data });
+    }
+  }
 };
