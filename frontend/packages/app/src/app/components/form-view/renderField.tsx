@@ -48,13 +48,26 @@ const RenderField = (
             {field.label} {isRequired && <span className="text-red-500">*</span>}
           </label>
           <Controller
-            name={field.label}
+            name={field.fieldname}
             control={control}
             defaultValue={field.value || ""}
-            render={({ field: { onChange: handleChange, value } }) =>
-              getFieldComponent(field, handleChange, value, isReadOnly as boolean, currencySymbol as string)
-            }
+            render={({ field: { onChange: handleChange, value } }) => {
+              const handleFieldChange = (newValue: any) => {
+                handleChange(newValue);
+                const updatedFormData = { ...control._formValues, [field.fieldname as string]: newValue };
+                onChange?.(updatedFormData);
+              };
+
+              return getFieldComponent(
+                field,
+                handleFieldChange,
+                value,
+                isReadOnly as boolean,
+                currencySymbol as string
+              );
+            }}
           />
+
           <Typography variant="p" className="text-xs text-gray-500">
             {field.description}
           </Typography>
@@ -63,12 +76,24 @@ const RenderField = (
         <>
           <div className="flex items-center gap-2">
             <Controller
-              name={field.label}
+              name={field.fieldname}
               control={control}
               defaultValue={field.value || ""}
-              render={({ field: { onChange: handleChange, value } }) =>
-                getFieldComponent(field, handleChange, value, isReadOnly as boolean, currencySymbol as string)
-              }
+              render={({ field: { onChange: handleChange, value } }) => {
+                const handleFieldChange = (newValue: any) => {
+                  handleChange(newValue);
+                  const updatedFormData = { ...control._formValues, [field.fieldname as string]: newValue };
+                  onChange?.(updatedFormData);
+                };
+
+                return getFieldComponent(
+                  field,
+                  handleFieldChange,
+                  value,
+                  isReadOnly as boolean,
+                  currencySymbol as string
+                );
+              }}
             />
             <label className="text-sm">
               {field.label} {isRequired && <span className="text-red-500">*</span>}

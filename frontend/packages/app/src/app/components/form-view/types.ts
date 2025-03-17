@@ -6,6 +6,7 @@ export type Field = {
   read_only?: string | number;
   options?: string;
   description?: string | null;
+  fieldname: string;
 };
 
 export type Section = {
