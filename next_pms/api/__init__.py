@@ -37,6 +37,7 @@ def get_doc_with_meta(doctype, docname):
                 "label": df.label,
                 "fieldname": df.fieldname,
                 "fieldtype": df.fieldtype,
+                "description": getattr(df, "description", ""),
                 "value": field_value,
                 "creation": doc.creation,
                 "modified": doc.modified,
