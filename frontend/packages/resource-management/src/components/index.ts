@@ -3,6 +3,6 @@ export {
   TableCellContent,
   TableInformationCellContent,
   EmptyTableCell,
-} from "./table/tableCell";
-export { ResourceTableRow, TableDisabledRow } from "./table/tableRow";
+} from "./table/cell";
+export { ResourceTableRow, TableDisabledRow } from "./table/row";
 export { ResourceTableHeader } from "./table/tableHeader";
