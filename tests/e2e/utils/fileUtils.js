@@ -13,7 +13,7 @@ export const createJSONFile = async (relativePath) => {
   try {
     // Check if file exists
     await fs.access(absolutePath);
-  } catch (error) {
+  } catch {
     // If file does not exist, create it
     await fs.writeFile(absolutePath, JSON.stringify({}, null, 2), "utf-8");
   }
