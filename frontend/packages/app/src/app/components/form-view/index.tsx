@@ -8,9 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@next-pms/design-syste
  * Internal dependencies.
  */
 import FieldRenderer from "./fieldRenderer";
+import { Field } from "./types";
 
 type FormViewProps = {
-  tabs: Record<string, Array<Record<string, string | number | null>>>;
+  tabs: Record<string, Array<Field>>;
+  readOnly?: boolean;
 };
 
 /**
@@ -21,13 +23,13 @@ type FormViewProps = {
  * @returns A JSX Component
  */
 
-const FormView = ({ tabs }: FormViewProps) => {
+const FormView = ({ tabs, readOnly = false }: FormViewProps) => {
   const [activeTab, setActiveTab] = useState(Object.keys(tabs ?? {})[0]);
 
   return (
     <div className="w-full py-2">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="border-b overflow-x-auto no-scrollbar">
+        <div className="border-b overflow-x-auto no-scrollbar px-2">
           <TabsList className="flex h-10 w-full justify-start rounded-none bg-transparent p-0">
             {Object.keys(tabs ?? {})
               ?.map((item) => ({
@@ -49,9 +51,12 @@ const FormView = ({ tabs }: FormViewProps) => {
         {Object.keys(tabs ?? {})?.map((tab) => {
           return (
             <TabsContent key={tab} value={tab} className="mt-6 space-y-4">
-              <div className="rounded-lg px-4">
-                <FieldRenderer tabName={tab} fields={tabs[tab]} />
-              </div>
+              <FieldRenderer
+                fields={tabs[tab]}
+                readOnly={readOnly}
+                onChange={(value) => console.log(value)}
+                onSubmit={(value) => console.log(value)}
+              />
             </TabsContent>
           );
         })}

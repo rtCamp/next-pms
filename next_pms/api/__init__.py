@@ -24,7 +24,7 @@ def get_doc_with_meta(doctype, docname):
         if df.fieldtype not in ["Section Break", "Column Break"] and df.fieldname not in permitted_fields:
             continue
 
-        if df.fieldtype in ["Table", "HTML", "HTML Editor", "Text Editor", "Link"]:
+        if df.fieldtype in ["Table", "HTML", "HTML Editor", "Text Editor", "Link", "Time"]:
             continue
 
         field_value = doc.get(df.fieldname)

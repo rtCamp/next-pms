@@ -45,8 +45,8 @@ const ProjectDetail = () => {
   return (
     <>
       <EmployeeDetailHeader projectId={projectId!} />
-      <Main className="w-full h-full overflow-y-auto">
-        {isLoading ? <Spinner isFull /> : <FormView tabs={data?.message?.tabs} />}
+      <Main className="w-full h-full overflow-y-auto px-0">
+        {isLoading ? <Spinner isFull /> : <FormView tabs={data?.message?.tabs} readOnly={true} />}
       </Main>
     </>
   );
