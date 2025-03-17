@@ -40,7 +40,12 @@ const FieldRenderer = ({ fields, onChange, onSubmit, readOnly, currencySymbol }:
       currentSection = { title: field.label || "", left: [], right: [], isRight: false };
     } else if (field.fieldtype === "Column Break") {
       currentSection.isRight = true;
-    } else {
+    } else if (
+      field.value !== null &&
+      field.value !== undefined &&
+      field.value !== "" &&
+      (field.value !== 0 || field.fieldtype === "Check")
+    ) {
       if (currentSection.isRight) {
         currentSection.right.push(field);
       } else {
@@ -53,7 +58,9 @@ const FieldRenderer = ({ fields, onChange, onSubmit, readOnly, currencySymbol }:
     sections.push(currentSection);
   }
 
-  if (sections.length === 0) return null;
+  const filteredSections = sections.filter((section) => section.left.length > 0 || section.right.length > 0);
+
+  if (filteredSections.length === 0) return null;
 
   return (
     <form
@@ -64,9 +71,9 @@ const FieldRenderer = ({ fields, onChange, onSubmit, readOnly, currencySymbol }:
       })}
       className="space-y-6 divide-y"
     >
-      {sections.map((section, index) => (
+      {filteredSections.map((section, index) => (
         <div key={index} className="px-4 pb-4">
-          <h2 className="text-lg font-semibold my-3">{section.title || ""}</h2>
+          {section.title && <h2 className="text-lg font-semibold my-3">{section.title}</h2>}
           <div className="grid lg:grid-cols-2 gap-4">
             {section.left.length > 0 && (
               <div className="space-y-4">
