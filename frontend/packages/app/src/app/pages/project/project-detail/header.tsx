@@ -5,8 +5,8 @@ import { useNavigate } from "react-router-dom";
 /**
  * Internal dependencies
  */
+import { Filter } from "@/app/components/list-view/header/filter";
 import { Header } from "@/app/layout/root";
-import ProjectComboBox from "./projectComboBox";
 
 type ProjectDetailHeaderProps = {
   projectId: string;
@@ -15,19 +15,14 @@ type ProjectDetailHeaderProps = {
 export const EmployeeDetailHeader = ({ projectId }: ProjectDetailHeaderProps) => {
   const navigate = useNavigate();
 
-  const onProjectChange = (name: string) => {
-    navigate(`/project/${name}`);
+  const onProjectChange = (value: string | string[]) => {
+    navigate(`/project/${value}`);
   };
 
   return (
     <>
       <Header>
-        <ProjectComboBox
-          pageLength={20}
-          className="w-full lg:w-fit"
-          value={projectId as string}
-          onSelect={onProjectChange}
-        />
+        <Filter filter={{ type: "search-project", value: projectId, handleChange: onProjectChange }} />
       </Header>
     </>
   );

@@ -25,6 +25,7 @@ import { Filter as Funnel } from "lucide-react";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import ComboBoxWrapper from "@/app/components/list-view/header/comboBoxWrapper";
 import type { FilterPops } from "@/app/components/list-view/types";
+import ProjectComboBox from "@/app/pages/project/project-detail/projectComboBox";
 import { mergeClassNames } from "@/lib/utils";
 
 /**
@@ -78,6 +79,18 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
         onSelect={handleChangeWrapper}
         employeeName={filter?.employeeName}
         className={mergeClassNames("border-dashed min-w-48 w-full max-w-48", filter.className)}
+      />
+    );
+  }
+  if (filter.type === "search-project") {
+    return (
+      <ProjectComboBox
+        label={filter.label ?? "Project"}
+        pageLength={20}
+        status={filter.employeeComboStatus ?? []}
+        value={filter.value as string}
+        onSelect={handleChangeWrapper}
+        className={mergeClassNames("w-full lg:w-fit", filter.className)}
       />
     );
   }

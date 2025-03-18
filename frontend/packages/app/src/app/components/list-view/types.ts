@@ -16,7 +16,8 @@ export interface FilterPops {
     | "checkbox"
     | "search-employee"
     | "select-list"
-    | "custom-filter";
+    | "custom-filter"
+    | "search-project";
   value?: string | number | boolean | string[] | undefined;
   defaultValue?: string | boolean | number;
   label?: string;
