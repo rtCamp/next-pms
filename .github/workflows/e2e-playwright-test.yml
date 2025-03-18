@@ -268,8 +268,8 @@ jobs:
                 </div>
               </body>
             </html>
-          to: shraddha.gore@rtcamp.com
-          from: bots-erp-rtcamp-com-aaaajmbbbavnlkxccfuvoqjqsy@rtcamp.slack.com
+          to: bots-erp-rtcamp-com-aaaajmbbbavnlkxccfuvoqjqsy@rtcamp.slack.com
+          from: no-reply@gmail.com
           attachments: |
             report.zip
 
