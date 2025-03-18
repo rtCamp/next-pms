@@ -1,0 +1,259 @@
+/**
+ * External dependencies.
+ */
+import { useContext, useEffect } from "react";
+import { useQueryParam } from "@next-pms/hooks";
+import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import { Plus, ZoomIn, ZoomOut } from "lucide-react";
+
+/**
+ * Internal dependencies.
+ */
+import { Header } from "@/app/components/list-view/header";
+import { ResourceFormContext } from "../../../store/resourceFormContext";
+import { TimeLineContext } from "../../../store/timeLineContext";
+import type { PermissionProps, Skill } from "../../../store/types";
+import SkillSearch from "../../../team/components/skillSearch";
+
+/**
+ * This component is responsible for loading the team view header.
+ *
+ * @returns React.FC
+ */
+const ResourceTimLineHeaderSection = () => {
+  const [businessUnitParam] = useQueryParam<string[]>("business-unit", []);
+  const [employeeNameParam] = useQueryParam<string>("employee-name", "");
+  const [reportingNameParam] = useQueryParam<string>("reports-to", "");
+  const [allocationTypeParam] = useQueryParam<string[]>("allocation-type", []);
+  const [designationParam] = useQueryParam<string[]>("designation", []);
+  const [skillSearchParam, setSkillSearchParam] = useQueryParam<Skill[]>("skill-search", []);
+
+  const {
+    permission: resourceAllocationPermission,
+    updatePermission,
+    updateDialogState,
+  } = useContext(ResourceFormContext);
+
+  const { data: employee } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee", {
+    filters: { name: reportingNameParam },
+  });
+
+  const { updateFilters, filters } = useContext(TimeLineContext);
+
+  const { call, loading } = useFrappePostCall(
+    "next_pms.resource_management.api.permission.get_user_resources_permissions"
+  );
+
+  useEffect(() => {
+    if (!resourceAllocationPermission.isNeedToSetPermission) {
+      updateData();
+      return;
+    }
+    if (loading) return;
+
+    call({}).then((res: { message: PermissionProps }) => {
+      const resResourceAllocationPermission = res.message;
+      updatePermission(resResourceAllocationPermission);
+      updateData();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const updateData = () => {
+    updateFilters({
+      businessUnit: businessUnitParam,
+      employeeName: employeeNameParam,
+      reportingManager: reportingNameParam,
+      designation: designationParam,
+      allocationType: allocationTypeParam,
+      skillSearch: skillSearchParam,
+    });
+  };
+
+  return (
+    <Header
+      filters={[
+        {
+          queryParameterName: "employee-name",
+          handleChange: (value: string) => {
+            updateFilters({ employeeName: value });
+          },
+          handleDelete: () => {
+            updateFilters({ employeeName: "" });
+          },
+          type: "search",
+          value: filters.employeeName,
+          defaultValue: "",
+          label: "Employee Name",
+          queryParameterDefault: "",
+        },
+        {
+          queryParameterName: "reports-to",
+          handleChange: (value: string | string[]) => {
+            updateFilters({ reportingManager: value as string });
+          },
+          handleDelete: () => {
+            updateFilters({ reportingManager: "" });
+          },
+          type: "search-employee",
+          value: filters.reportingManager,
+          defaultValue: "",
+          label: "Reporting Manager",
+          hide: !resourceAllocationPermission.write,
+          queryParameterDefault: [],
+          employeeName: employee?.message?.employee_name,
+        },
+        {
+          type: "custom-filter",
+          queryParameterDefault: [],
+          label: "Skill",
+          handleDelete: (value: string[]) => {
+            let prev_data = filters?.skillSearch;
+            const operators = [">", "<", ">=", "<=", "="];
+            const skills = value.map((value) => {
+              for (const operator of operators) {
+                if (value.includes(` ${operator} `)) {
+                  return value.split(` ${operator} `)[0].trim();
+                }
+              }
+              return value.trim();
+            });
+            prev_data = prev_data!.filter((obj) => skills.includes(obj.name));
+            updateFilters({ skillSearch: prev_data });
+          },
+          value: filters.skillSearch?.map((obj) => obj.name + " " + obj.operator + " " + obj.proficiency * 5),
+          hide: !resourceAllocationPermission.write,
+          customFilterComponent: (
+            <SkillSearch
+              onSubmit={(skills) => {
+                updateFilters({ skillSearch: skills });
+              }}
+              setSkillSearchParam={setSkillSearchParam}
+              skillSearch={filters.skillSearch as Skill[]}
+            />
+          ),
+        },
+        {
+          queryParameterName: "business-unit",
+          handleChange: (value: string | string[]) => {
+            updateFilters({ businessUnit: value as string[] });
+          },
+          handleDelete: (value: string[] | undefined) => {
+            updateFilters({ businessUnit: value as string[] });
+          },
+          type: "select-search",
+          value: filters.businessUnit,
+          label: "Business Unit",
+          shouldFilterComboBox: true,
+          isMultiComboBox: true,
+          hide: !resourceAllocationPermission.write,
+          apiCall: {
+            url: "frappe.client.get_list",
+            filters: {
+              doctype: "Business Unit",
+              fields: ["name"],
+              limit_page_length: 0,
+            },
+            options: {
+              revalidateOnFocus: false,
+              revalidateIfStale: false,
+            },
+          },
+          queryParameterDefault: filters.businessUnit,
+        },
+        {
+          queryParameterName: "designation",
+          handleChange: (value: string | string[]) => {
+            updateFilters({ designation: value as string[] });
+          },
+          handleDelete: (value: string[] | undefined) => {
+            updateFilters({ designation: value as string[] });
+          },
+          type: "select-search",
+          value: filters.designation,
+          shouldFilterComboBox: true,
+          isMultiComboBox: true,
+          label: "Designation",
+          hide: !resourceAllocationPermission.write,
+          apiCall: {
+            url: "frappe.client.get_list",
+            filters: {
+              doctype: "Designation",
+              filter: { custom_enabled: true },
+              fields: ["name"],
+              limit_page_length: 0,
+            },
+            options: {
+              revalidateOnFocus: false,
+              revalidateIfStale: false,
+            },
+          },
+          queryParameterDefault: filters.designation,
+        },
+        {
+          queryParameterName: "allocation-type",
+          handleChange: (value: string | string[]) => {
+            updateFilters({ allocationType: value as string[] });
+          },
+          handleDelete: (value: string[] | undefined) => {
+            updateFilters({ allocationType: value as string[] });
+          },
+          type: "select-list",
+          value: filters.allocationType,
+          shouldFilterComboBox: true,
+          isMultiComboBox: true,
+          label: "Allocation Type",
+          data: [
+            {
+              label: "Billable",
+              value: "Billable",
+            },
+            {
+              label: "Non-Billable",
+              value: "Non-Billable",
+            },
+          ],
+          queryParameterDefault: filters.allocationType,
+          hide: !resourceAllocationPermission.write,
+        },
+      ]}
+      buttons={[
+        {
+          title: "add-allocation",
+          handleClick: () => {
+            updateDialogState({ isShowDialog: true, isNeedToEdit: false });
+          },
+          className: "px-3",
+          icon: () => <Plus className="w-4 max-md:w-3 h-4 max-md:h-3 bg" />,
+          variant: "default",
+          hide: !resourceAllocationPermission.write,
+        },
+        {
+          title: "Zoom In",
+          handleClick: () => {
+            updateFilters({ isShowMonth: true });
+          },
+          className: "px-3",
+          icon: () => <ZoomIn className="w-4 max-md:w-3 h-4 max-md:h-3 bg" />,
+          variant: "outline",
+          hide: !resourceAllocationPermission.write,
+          disabled: filters.isShowMonth,
+        },
+        {
+          title: "Zoom Out",
+          handleClick: () => {
+            updateFilters({ isShowMonth: false });
+          },
+          className: "px-3",
+          icon: () => <ZoomOut className="w-4 max-md:w-3 h-4 max-md:h-3 bg" />,
+          variant: "outline",
+          hide: !resourceAllocationPermission.write,
+          disabled: !filters.isShowMonth,
+        },
+      ]}
+      showFilterValue
+    />
+  );
+};
+
+export { ResourceTimLineHeaderSection };

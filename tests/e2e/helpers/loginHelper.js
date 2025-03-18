@@ -1,5 +1,5 @@
-import { LoginPage } from "../pages/loginPage";
-import { TimesheetPage } from "../pages/timesheetPage";
+import { LoginPage } from "../pageObjects/loginPage";
+import { TimesheetPage } from "../pageObjects/timesheetPage";
 
 // ------------------------------------------------------------------------------------------
 

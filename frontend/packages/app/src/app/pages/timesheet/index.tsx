@@ -29,14 +29,14 @@ import { TimesheetTable } from "@/app/components/timesheet-table";
 import { SubmitButton } from "@/app/components/timesheet-table/components/submitButton";
 import { Header, Main } from "@/app/layout/root";
 import { parseFrappeErrorMsg, expectatedHours, copyToClipboard, isDateInRange, getTimesheetHours } from "@/lib/utils";
-import { RootState } from "@/store";
-import { WorkingFrequency } from "@/types";
-import { NewTimesheetProps, timesheet } from "@/types/timesheet";
+import type { RootState } from "@/store";
+import type { WorkingFrequency } from "@/types";
+import type { NewTimesheetProps, timesheet } from "@/types/timesheet";
 import ExpandableHours from "./components/expandableHours";
 import { Footer } from "./components/footer";
 import { initialState, reducer } from "./reducer";
 import { validateDate } from "./utils";
-import { InfiniteScroll } from "../resource_management/components/infiniteScroll";
+import { InfiniteScroll } from "../../components/infiniteScroll";
 
 function Timesheet() {
   const targetRef = useRef<HTMLDivElement>(null);

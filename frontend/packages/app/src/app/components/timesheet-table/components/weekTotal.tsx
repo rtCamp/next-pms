@@ -6,15 +6,9 @@ import { floatToTime } from "@next-pms/design-system/utils";
 /**
  * Internal dependencies
  */
-import { calculateExtendedWorkingHour, cn, calculateWeeklyHour } from "@/lib/utils";
+import { calculateExtendedWorkingHour, mergeClassNames, calculateWeeklyHour } from "@/lib/utils";
+import type { weekTotalProps } from "./types";
 
-import { WorkingFrequency } from "@/types";
-type weekTotalProps = {
-  total: number;
-  expected_hour: number;
-  frequency: WorkingFrequency;
-  className?: string;
-};
 /**
  * @description This component shows the total hours for the week,
  * to the far right in the timesheet grid. It calculates the expected
@@ -29,10 +23,10 @@ type weekTotalProps = {
 export const WeekTotal = ({ total, expected_hour, frequency, className }: weekTotalProps) => {
   const isExtended = calculateExtendedWorkingHour(total, calculateWeeklyHour(expected_hour, frequency), frequency);
   return (
-    <TableCell className={cn(className)}>
+    <TableCell className={mergeClassNames(className)}>
       <Typography
         variant="p"
-        className={cn(
+        className={mergeClassNames(
           "text-right font-medium",
           isExtended == 0 && "text-destructive",
           isExtended && "text-success",

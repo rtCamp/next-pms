@@ -1,0 +1,55 @@
+{
+  "TC37": {
+    "employees": ["Abhishek Kumar", "Abhishek Sharma"]
+  },
+  "TC40": {
+    "col": "Mon"
+  },
+  "TC43": {
+    "employee": "Abhishek Sharma"
+  },
+  "TC45": {
+    "cell": {
+      "rowName": "App support",
+      "col": "Wed"
+    },
+    "taskInfo": {
+      "duration": "1:45",
+      "project": "QE - Retainer",
+      "task": "App support",
+      "desc": "TC45 - Task added via automation."
+    },
+    "payloadCreateTimesheet": {
+      "task": "TASK-2025-00619",
+      "description": "TC45 - Task added via automation.",
+      "hours": "1"
+    },
+    "payloadFilterTimeEntry": {
+      "subject": "App support",
+      "description": "TC45 - Task added via automation.",
+      "project_name": "QE - Retainer",
+      "max_week": "1"
+    }
+  },
+  "TC47": {
+    "reason": "TC47 - Timesheet rejected via automation.",
+    "cell": {
+      "rowName": "Bug fixes",
+      "col": "Fri"
+    },
+    "payloadCreateTimesheet": {
+      "task": "TASK-2025-00620",
+      "description": "TC47 - Task added via automation.",
+      "hours": "1"
+    },
+    "payloadFilterTimeEntry": {
+      "subject": "Bug fixes",
+      "description": "TC47 - Task added via automation.",
+      "project_name": "QE - Time and Material",
+      "max_week": "1"
+    }
+  },
+  "TC51": {
+    "employees": ["Abhishek Kumar", "Abhishek Sharma", "Shraddha Gore"]
+  }
+}

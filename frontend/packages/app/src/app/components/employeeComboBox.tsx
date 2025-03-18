@@ -17,27 +17,17 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
+  Spinner,
 } from "@next-pms/design-system/components";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { ChevronDown, Check } from "lucide-react";
+
 /**
  * Internal dependencies.
  */
-
-import { cn } from "@/lib/utils";
-import { Employee } from "@/types";
-
-interface EmployeeComboProps {
-  disabled?: boolean;
-  value: string;
-  onSelect: (name: string) => void;
-  className?: string;
-  label?: string;
-  status?: Array<string>;
-  employeeName?: string;
-  pageLength?: number;
-  ignoreDefaultFilters?: boolean;
-}
+import { mergeClassNames } from "@/lib/utils";
+import type { Employee } from "@/types";
+import type { EmployeeComboProps } from "./types";
 
 /**
  * Variation of combo box for selecting employee.
@@ -70,7 +60,7 @@ const EmployeeCombo = ({
   const [selectedValues, setSelectedValues] = useState<string>(value);
   const [employee, setEmployee] = useState<Employee | undefined>();
   const [open, setOpen] = useState(false);
-  const { data: employees } = useFrappeGetCall(
+  const { data: employees, isLoading } = useFrappeGetCall(
     "next_pms.timesheet.api.employee.get_employee_list",
     {
       page_length: length,
@@ -124,7 +114,7 @@ const EmployeeCombo = ({
         <Button
           variant="outline"
           disabled={disabled}
-          className={cn(
+          className={mergeClassNames(
             "items-center w-full gap-x-4 px-2 justify-between [&[data-state=open]>svg]:rotate-180 truncate",
             className
           )}
@@ -151,29 +141,30 @@ const EmployeeCombo = ({
       <PopoverContent className="p-0 z-[1000]">
         <Command shouldFilter={false}>
           <CommandInput placeholder="Search Employee" value={search} onValueChange={onInputChange} />
-          <CommandEmpty>No data.</CommandEmpty>
+          {isLoading ? <Spinner className="py-6" /> : <CommandEmpty>No data found.</CommandEmpty>}
           <CommandGroup>
             <CommandList>
-              {employees?.message.data.map((item: Employee, index: number) => {
-                const isActive = selectedValues == item.name;
-                return (
-                  <CommandItem
-                    key={index}
-                    onSelect={() => {
-                      onEmployeeChange(item.name);
-                    }}
-                    className="flex gap-x-2 text-primary font-normal cursor-pointer"
-                    value={item.employee_name}
-                  >
-                    <Check className={cn("mr-2 h-4 w-4", isActive ? "opacity-100" : "opacity-0")} />
-                    <Avatar>
-                      <AvatarImage src={item.image} alt={item.employee_name} />
-                      <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
-                    </Avatar>
-                    <Typography variant="p">{item.employee_name}</Typography>
-                  </CommandItem>
-                );
-              })}
+              {!isLoading &&
+                employees?.message.data.map((item: Employee, index: number) => {
+                  const isActive = selectedValues == item.name;
+                  return (
+                    <CommandItem
+                      key={index}
+                      onSelect={() => {
+                        onEmployeeChange(item.name);
+                      }}
+                      className="flex gap-x-2 text-primary font-normal cursor-pointer"
+                      value={item.employee_name}
+                    >
+                      <Check className={mergeClassNames("mr-2 h-4 w-4", isActive ? "opacity-100" : "opacity-0")} />
+                      <Avatar>
+                        <AvatarImage src={item.image} alt={item.employee_name} />
+                        <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
+                      </Avatar>
+                      <Typography variant="p">{item.employee_name}</Typography>
+                    </CommandItem>
+                  );
+                })}
             </CommandList>
           </CommandGroup>
           <Button variant="ghost" onClick={resetState} className="border-t rounded-none font-normal w-full">

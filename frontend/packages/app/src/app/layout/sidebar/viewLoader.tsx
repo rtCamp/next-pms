@@ -1,16 +1,14 @@
 /**
  * External dependencies.
  */
-
 import { NavLink } from "react-router-dom";
 import { Typography, Button, Separator } from "@next-pms/design-system/components";
 import { ChevronDown, ChevronUp } from "lucide-react";
 /**
  * Internal dependencies.
  */
-
-import { cn } from "@/lib/utils";
-import { ViewData } from "@/store/view";
+import { mergeClassNames } from "@/lib/utils";
+import type { ViewData } from "@/store/view";
 
 const ViewLoader = ({
   isSidebarCollapsed,
@@ -39,7 +37,7 @@ const ViewLoader = ({
         {!isSidebarCollapsed && (
           <Button
             variant="ghost"
-            className={cn(
+            className={mergeClassNames(
               "flex items-center gap-x-2 w-full text-left p-2 hover:bg-slate-200 rounded-lg justify-between",
               openRoutes[id] && "bg-slate-200 "
             )}
@@ -49,7 +47,7 @@ const ViewLoader = ({
               {openRoutes[id] ? <ChevronUp /> : <ChevronDown />}
               <Typography
                 variant="p"
-                className={cn("transition-all duration-300 ease-in-out ", isSidebarCollapsed && "hidden")}
+                className={mergeClassNames("transition-all duration-300 ease-in-out ", isSidebarCollapsed && "hidden")}
               >
                 {label}
               </Typography>
@@ -57,7 +55,7 @@ const ViewLoader = ({
           </Button>
         )}
         <div
-          className={cn(
+          className={mergeClassNames(
             "transition-all duration-300 ease-in-out flex flex-col gap-y-1",
             !isSidebarCollapsed && openRoutes[id] ? "flex pl-3" : "hidden",
             isSidebarCollapsed && "flex"
@@ -73,7 +71,7 @@ const ViewLoader = ({
                 className="transition-all duration-300 ease-in-out flex items-center h-9"
               >
                 <div
-                  className={cn(
+                  className={mergeClassNames(
                     "flex w-full  rounded-lg items-center p-2 hover:bg-slate-200 text-primary gap-x-2 ",
                     isActive && "bg-primary shadow-md hover:bg-slate-700 "
                   )}
@@ -81,7 +79,7 @@ const ViewLoader = ({
                   <span>{view.icon}</span>
                   <Typography
                     variant="p"
-                    className={cn(
+                    className={mergeClassNames(
                       "transition-all duration-300 truncate ease-in-out text-white",
                       !isActive && "text-primary",
                       isSidebarCollapsed && "hidden"

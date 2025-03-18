@@ -40,14 +40,8 @@ import EmployeeCombo from "@/app/components/employeeComboBox";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { LeaveSchema } from "@/schema/timesheet";
 import { LeaveInfo } from "./leaveInfo";
+import type { LeaveTimeProps } from "./types";
 
-interface LeaveTimeProps {
-  employee: string;
-  employeeName: string;
-  open: boolean;
-  onOpenChange: () => void;
-  onSuccess?: () => void;
-}
 const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSuccess }: LeaveTimeProps) => {
   const { toast } = useToast();
   const { createDoc, loading, isCompleted } = useFrappeCreateDoc();

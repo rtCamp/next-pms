@@ -35,7 +35,7 @@ import { CircleCheck } from "lucide-react";
  */
 import { WeekTotal } from "@/app/components/timesheet-table/components/weekTotal";
 import { TEAM, EMPLOYEE } from "@/lib/constant";
-import { parseFrappeErrorMsg, cn } from "@/lib/utils";
+import { parseFrappeErrorMsg, mergeClassNames } from "@/lib/utils";
 import { DateProps, ItemProps, dataItem } from "@/types/team";
 import { Approval } from "./components/approval";
 import { EmployeeTimesheetTable } from "./components/employeeTimesheetTable";
@@ -201,10 +201,16 @@ const Team = () => {
                             total += data.hour;
                             return (
                               <HoverCard key={`${data.hour}-id-${Math.random()}`} openDelay={1000}>
-                                <TableCell key={key} className={cn("flex max-w-20 w-full justify-center items-center")}>
+                                <TableCell
+                                  key={key}
+                                  className={mergeClassNames("flex max-w-20 w-full justify-center items-center")}
+                                >
                                   <HoverCardTrigger>
                                     <Typography
-                                      className={cn(data.is_leave && "text-warning", data.hour == 0 && "text-primary")}
+                                      className={mergeClassNames(
+                                        data.is_leave && "text-warning",
+                                        data.hour == 0 && "text-primary"
+                                      )}
                                       variant="p"
                                     >
                                       {data.hour ? floatToTime(data.hour) : "-"}

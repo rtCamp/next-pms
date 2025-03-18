@@ -10,12 +10,12 @@ import {
   DropdownMenuTrigger,
 } from "@next-pms/design-system/components";
 import { ArrowDownAZ, ArrowDownZA } from "lucide-react";
+
 /**
  * Internal dependencies
  */
-
-import { sortOrder } from "@/types";
-import { SortProps } from "../type";
+import type { sortOrder } from "@/types";
+import type { SortProps } from "../types";
 
 /**
  * Sort Component

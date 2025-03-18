@@ -6,14 +6,9 @@ import { CircleCheck, CircleX, Clock3 } from "lucide-react";
 /**
  * Internal dependencies
  */
-import { cn } from "@/lib/utils";
+import { mergeClassNames } from "@/lib/utils";
+import type { submitButtonProps } from "./types";
 
-type submitButtonProps = {
-  start_date: string;
-  end_date: string;
-  onApproval?: (start_date: string, end_date: string) => void;
-  status: string;
-};
 /**
  * Submit Button
  * @description Button to show the status of the timesheet & to submit the timesheet.
@@ -31,7 +26,7 @@ export const SubmitButton = ({ start_date, end_date, onApproval, status }: submi
     <Button
       variant="ghost"
       asChild
-      className={cn(
+      className={mergeClassNames(
         "font-normal",
         (status == "Approved" || status == "Partially Approved") && "bg-green-50 text-success",
         (status == "Rejected" || status == "Partially Rejected") && "bg-red-50 text-destructive",

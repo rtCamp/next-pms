@@ -18,14 +18,14 @@ import {
 } from "@next-pms/design-system/components";
 import { useQueryParam } from "@next-pms/hooks";
 import { Filter as Funnel } from "lucide-react";
+
 /**
  * Internal dependencies.
  */
-
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import ComboBoxWrapper from "@/app/components/list-view/header/comboBoxWrapper";
-import { FilterPops } from "@/app/components/list-view/type";
-import { cn } from "@/lib/utils";
+import type { FilterPops } from "@/app/components/list-view/types";
+import { mergeClassNames } from "@/lib/utils";
 
 /**
  * Filter component is responsible for rendering the filter section of the list view or pages.
@@ -40,14 +40,14 @@ import { cn } from "@/lib/utils";
  * @returns React.FC
  */
 export const Filter = ({ filter }: { filter: FilterPops }) => {
-  const [queryParam, setQueryParam] = useQueryParam(filter.queryParameterName ?? "", filter.queryParameterDefault);
+  const [, setQueryParam] = useQueryParam(filter.queryParameterName ?? "", filter.queryParameterDefault);
 
   const handleChangeWrapper = (value: string | CheckedState | string[]) => {
     /* Make sure to update query parameters based on changes. */
     if (filter.type != "custom-filter") {
       setQueryParam(value);
     }
-    filter.handleChange && filter.handleChange(value);
+    filter?.handleChange(value);
   };
 
   useEffect(() => {
@@ -55,6 +55,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
     if (filter.type != "custom-filter") {
       setQueryParam(filter.value as string | CheckedState | string[]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter.value, setQueryParam]);
 
   if (filter.type == "search") {
@@ -76,7 +77,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
         status={filter.employeeComboStatus ?? []}
         onSelect={handleChangeWrapper}
         employeeName={filter?.employeeName}
-        className={cn("border-dashed min-w-48 w-full max-w-48", filter.className)}
+        className={mergeClassNames("border-dashed min-w-48 w-full max-w-48", filter.className)}
       />
     );
   }
@@ -96,7 +97,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
         value={filter.value as string[]}
         label={filter.label as string}
         isMulti={filter?.isMultiComboBox ?? false}
-        shouldFilter={filter?.shouldFilterComboBox ?? false}
+        shouldFilter={filter?.shouldFilterComboBox ?? true}
         showSelected={false}
         onSelect={handleChangeWrapper}
         rightIcon={
@@ -108,7 +109,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
         }
         leftIcon={
           <Funnel
-            className={cn(
+            className={mergeClassNames(
               "h-4 w-4",
               filter?.isMultiComboBox
                 ? (filter.value as string[])?.length != 0 && "fill-primary"

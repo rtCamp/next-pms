@@ -1,5 +1,5 @@
 {
-    "$schema": "https://ui.shadcn.com/schema.json",
+    "$schema": "https://ui.shadmergeClassNames.com/schema.json",
     "style": "default",
     "rsc": false,
     "tsx": true,
@@ -11,7 +11,8 @@
         "prefix": ""
     },
     "aliases": {
-        "components": "./src/components",
-        "utils": "./src/utils"
+        "components": "@/components",
+        "utils": "@/utils",
+        "ui": "@/components"
     }
 }

@@ -1,14 +1,10 @@
-import { cn } from "@/lib/utils";
+/**
+ * Internal dependencies.
+ */
+import { mergeClassNames } from "@/lib/utils";
+import { TaskIndicatorProps } from "./types";
 
-interface TaskIndicatorProps {
-  className?: string;
-  expectedTime: number;
-  actualTime: number;
-  status: string;
-}
-
-const TaskStatusIndicator = ({ className, expectedTime, actualTime,status }: TaskIndicatorProps) => {
-  
+const TaskStatusIndicator = ({ className, expectedTime, actualTime, status }: TaskIndicatorProps) => {
   let color: string;
 
   if (status === "Completed") {
@@ -20,7 +16,7 @@ const TaskStatusIndicator = ({ className, expectedTime, actualTime,status }: Tas
   } else {
     color = "bg-destructive";
   }
-  return <div className={cn("w-2 h-2 rounded-full my-2", color, className)} />;
+  return <div className={mergeClassNames("w-2 h-2 rounded-full my-2", color, className)} />;
 };
 
 export default TaskStatusIndicator;

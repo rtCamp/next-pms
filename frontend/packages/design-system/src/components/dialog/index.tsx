@@ -7,7 +7,7 @@ import { X } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { cn } from "../../utils";
+import { mergeClassNames } from "../../utils";
 
 const Dialog = DialogPrimitive.Root;
 
@@ -19,7 +19,7 @@ const DialogClose = DialogPrimitive.Close;
 
 /**
  * Moved content inside DialogOverlay for scrollability of content
- * ref: https://github.com/shadcn-ui/ui/issues/16#issuecomment-1621383437
+ * ref: https://github.com/shadmergeClassNames-ui/ui/issues/16#issuecomment-1621383437
  */
 const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
@@ -27,8 +27,8 @@ const DialogOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
     ref={ref}
-    /* No found way to pass value hear (https://github.com/shadcn-ui/ui/discussions/3784)*/
-    className={cn(
+    /* No found way to pass value hear (https://github.com/shadmergeClassNames-ui/ui/discussions/3784)*/
+    className={mergeClassNames(
       "fixed inset-0 z-[1000] bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 overflow-y-auto max-h-screen w-full grid place-items-center",
       className
     )}
@@ -45,7 +45,7 @@ const DialogContent = React.forwardRef<
     <DialogOverlay>
       <DialogPrimitive.Content
         ref={ref}
-        className={cn(
+        className={mergeClassNames(
           "z-[1000] relative grid w-full max-w-lg gap-4 bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-lg md:w-full",
           className
         )}
@@ -63,12 +63,15 @@ const DialogContent = React.forwardRef<
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("flex flex-col space-y-1.5 text-center sm:text-left", className)} {...props} />
+  <div className={mergeClassNames("flex flex-col space-y-1.5 text-center sm:text-left", className)} {...props} />
 );
 DialogHeader.displayName = "DialogHeader";
 
 const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("flex flex-col-reverse sm:flex-row justify-start sm:space-x-2", className)} {...props} />
+  <div
+    className={mergeClassNames("flex flex-col-reverse sm:flex-row justify-start sm:space-x-2", className)}
+    {...props}
+  />
 );
 DialogFooter.displayName = "DialogFooter";
 
@@ -78,7 +81,7 @@ const DialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={cn("text-lg font-semibold leading-none tracking-tight", className)}
+    className={mergeClassNames("text-lg font-semibold leading-none tracking-tight", className)}
     {...props}
   />
 ));
@@ -88,7 +91,11 @@ const DialogDescription = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Description>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
 >(({ className, ...props }, ref) => (
-  <DialogPrimitive.Description ref={ref} className={cn("text-sm text-muted-foreground", className)} {...props} />
+  <DialogPrimitive.Description
+    ref={ref}
+    className={mergeClassNames("text-sm text-muted-foreground", className)}
+    {...props}
+  />
 ));
 DialogDescription.displayName = DialogPrimitive.Description.displayName;
 

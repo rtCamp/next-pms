@@ -17,21 +17,10 @@ import { useFrappePostCall } from "frappe-react-sdk";
 /**
  * Internal dependencies
  */
-import { RootState } from "@/store";
+import type { RootState } from "@/store";
 import { setViews } from "@/store/view";
+import type { CreateViewProps } from "./types";
 
-interface CreateViewProps {
-  isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  dt: string;
-  rows: Array<string>;
-  filters: Record<string, string | number | Array<string>>;
-  orderBy: { field: string; order: string };
-  route: string;
-  isDefault: boolean;
-  columns: Record<string, number | string>;
-  isPublic: boolean;
-}
 export const CreateView = ({
   isOpen = false,
   dt,

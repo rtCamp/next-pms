@@ -28,7 +28,7 @@ export const NO_VALUE_FIELDS = [
   "Heading",
 ];
 
-export function cn(...inputs: ClassValue[]) {
+export function mergeClassNames(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 

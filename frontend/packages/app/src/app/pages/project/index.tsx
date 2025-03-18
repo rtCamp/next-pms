@@ -26,23 +26,20 @@ import {
 } from "@tanstack/react-table";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import _ from "lodash";
+
 /**
  * Internal dependencies
  */
-
 import ViewWrapper from "@/app/components/list-view/viewWrapper";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setProjectData, setStart, setFilters, setReFetchData, updateProjectData } from "@/store/project";
 import { ViewData } from "@/store/view";
-import { DocMetaProps, sortOrder } from "@/types";
+import type { sortOrder } from "@/types";
 import { getColumnInfo } from "./columns";
 import { Header as ProjectHeader } from "./header";
+import { ProjectProps } from "./types";
 import { getFilter, createFilter } from "./utils";
-type ProjectProps = {
-  viewData: ViewData;
-  meta: DocMetaProps;
-};
 
 const Project = () => {
   const docType = "Project";

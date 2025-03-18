@@ -7,8 +7,8 @@ import { Filter } from "lucide-react";
 /**
  * Internal dependencies
  */
-import { FilterPops, ApiCallProps } from "@/app/components/list-view/type";
-import { cn } from "@/lib/utils";
+import type { FilterPops, ApiCallProps } from "@/app/components/list-view/types";
+import { mergeClassNames } from "@/lib/utils";
 
 /**
  * A Wrapper around ComboxBox to handle the data fetching part dynamically.
@@ -17,10 +17,17 @@ import { cn } from "@/lib/utils";
  * @param props.handleChangeWrapper The handle change wrapper function.
  * @returns React.FC
  */
-const ComboBoxWrapper = ({ filter, handleChangeWrapper }: { filter: FilterPops; handleChangeWrapper: any }) => {
+
+const ComboBoxWrapper = ({
+  filter,
+  handleChangeWrapper,
+}: {
+  filter: FilterPops;
+  handleChangeWrapper: (value: string | string[]) => void;
+}) => {
   const apiCall: ApiCallProps | undefined = filter.apiCall;
 
-  const { data, mutate } = useFrappeGetCall(
+  const { data, mutate, isLoading } = useFrappeGetCall(
     apiCall?.url as string,
     apiCall?.filters,
     undefined,
@@ -43,6 +50,7 @@ const ComboBoxWrapper = ({ filter, handleChangeWrapper }: { filter: FilterPops; 
       onSelect={handleChangeWrapper}
       onSearch={filter.onComboSearch}
       onClick={handleOnClick}
+      isLoading={isLoading}
       rightIcon={
         filter?.isMultiComboBox
           ? ((filter.value as string[])?.length ?? 0) > 0 && (
@@ -52,7 +60,7 @@ const ComboBoxWrapper = ({ filter, handleChangeWrapper }: { filter: FilterPops; 
       }
       leftIcon={
         <Filter
-          className={cn(
+          className={mergeClassNames(
             "h-4 w-4",
             filter?.isMultiComboBox
               ? (filter.value as string[])?.length != 0 && "fill-primary"

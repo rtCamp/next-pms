@@ -6,30 +6,12 @@ import { TableCell, TableRow } from "@next-pms/design-system/components";
 /**
  * Internal dependencies
  */
-import { cn } from "@/lib/utils";
-import { TaskDataProps } from "@/types/timesheet";
+import { mergeClassNames } from "@/lib/utils";
+import type { TaskDataProps } from "@/types/timesheet";
 import { Cell } from "../dataCell";
 import { TaskHoverCard } from "../taskHoverCard";
+import type { emptyRowProps } from "./types";
 
-type emptyRowProps = {
-  dates: string[];
-  holidayList: Array<string>;
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  onCellClick?: (data) => void;
-  disabled?: boolean;
-  rowClassName?: string;
-  headingCellClassName?: string;
-  totalCellClassName?: string;
-  cellClassName?: string;
-  setSelectedTask?: React.Dispatch<React.SetStateAction<string>>;
-  setIsTaskLogDialogBoxOpen?: React.Dispatch<React.SetStateAction<boolean>>;
-  taskData?: TaskDataProps;
-  name?: string;
-  setTaskInLocalStorage?: () => void;
-  likedTaskData?: Array<object>;
-  getLikedTaskData?: () => void;
-};
 /**
  * Empty Row
  * @description The component shows table row with empty cells in timesheet grid,
@@ -61,8 +43,8 @@ export const EmptyRow = ({
   getLikedTaskData,
 }: emptyRowProps) => {
   return (
-    <TableRow className={cn(rowClassName)}>
-      <TableCell className={cn("max-w-sm", headingCellClassName)}>
+    <TableRow className={mergeClassNames(rowClassName)}>
+      <TableCell className={mergeClassNames("max-w-sm", headingCellClassName)}>
         {name && (
           <TaskHoverCard
             taskData={taskData}
@@ -101,7 +83,7 @@ export const EmptyRow = ({
           />
         );
       })}
-      <TableCell className={cn(totalCellClassName)}></TableCell>
+      <TableCell className={mergeClassNames(totalCellClassName)}></TableCell>
     </TableRow>
   );
 };

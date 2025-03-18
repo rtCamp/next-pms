@@ -14,19 +14,9 @@ import { CircleDollarSign, CirclePlus, PencilLine } from "lucide-react";
 /**
  * Internal dependencies
  */
-import { cn, getBgCsssForToday } from "@/lib/utils";
-import { TaskDataItemProps } from "@/types/timesheet";
+import { mergeClassNames, getBgCsssForToday } from "@/lib/utils";
+import type { cellProps } from "./types";
 
-export type cellProps = {
-  date: string;
-  data: TaskDataItemProps[];
-  isHoliday: boolean;
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  onCellClick?: (val) => void;
-  disabled?: boolean;
-  className?: string;
-};
 /**
  * @description This is the main component for the timesheet table cell.
  * It is responsible for rendering the data in the grid, show tooltip on hover and
@@ -51,9 +41,9 @@ export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }
       hours = data.reduce((sum, item) => sum + (item.hours || 0), 0);
       description = data.reduce((desc, item) => desc + (item.description ? item.description + "\n" : ""), "").trim();
       isTimeBothBillableAndNonBillable =
-        data.some((item) => item.is_billable === false ||item.is_billable === 0) &&
+        data.some((item) => item.is_billable === false || item.is_billable === 0) &&
         data.some((item) => item.is_billable === true || item.is_billable === 1);
-      isTimeBillable = data.every((item) => item.is_billable === true||item.is_billable === 1);
+      isTimeBillable = data.every((item) => item.is_billable === true || item.is_billable === 1);
     }
 
     return { hours, description, isTimeBothBillableAndNonBillable, isTimeBillable };
@@ -79,7 +69,7 @@ export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }
       <TableCell
         key={date}
         onClick={handleClick}
-        className={cn(
+        className={mergeClassNames(
           "text-center group px-2",
           isDisabled && "cursor-default",
           "hover:h-full hover:bg-slate-100 hover:cursor-pointer",
@@ -87,11 +77,11 @@ export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }
           className
         )}
       >
-        <HoverCardTrigger className={cn(isDisabled && "cursor-default")}>
+        <HoverCardTrigger className={mergeClassNames(isDisabled && "cursor-default")}>
           <span className="flex flex-col items-center justify-center ">
             <Typography
               variant="p"
-              className={cn(
+              className={mergeClassNames(
                 "text-slate-600",
                 isHoliday || (isDisabled && "text-slate-400"),
                 !hours && !isDisabled && "group-hover:hidden"
@@ -101,7 +91,7 @@ export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }
             </Typography>
             {(isTimeBothBillableAndNonBillable || isTimeBillable) && (
               <CircleDollarSign
-                className={cn(
+                className={mergeClassNames(
                   "stroke-slate-500 w-4 h-4 ",
                   !isDisabled && "group-hover:hidden",
                   isTimeBillable && "stroke-success"
@@ -109,10 +99,13 @@ export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }
               />
             )}
             <PencilLine
-              className={cn("text-center hidden", hours > 0 && !isDisabled && "group-hover:block")}
+              className={mergeClassNames("text-center hidden", hours > 0 && !isDisabled && "group-hover:block")}
               size={16}
             />
-            <CirclePlus className={cn("text-center hidden", !hours && !isDisabled && "group-hover:block ")} size={16} />
+            <CirclePlus
+              className={mergeClassNames("text-center hidden", !hours && !isDisabled && "group-hover:block ")}
+              size={16}
+            />
           </span>
         </HoverCardTrigger>
         {description && (
