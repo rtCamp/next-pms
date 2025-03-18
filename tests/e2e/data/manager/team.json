@@ -49,6 +49,9 @@
       "max_week": "1"
     }
   },
+  "TC48": {
+    "task": "Meetings"
+  },
   "TC51": {
     "employees": ["Abhishek Kumar", "Abhishek Sharma", "Shraddha Gore"]
   }

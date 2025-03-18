@@ -18,6 +18,7 @@ let TC40data = data.TC40;
 let TC43data = data.TC43;
 let TC45data = data.TC45;
 let TC47data = data.TC47;
+let TC48data = data.TC48;
 let TC51data = data.TC51;
 
 // ------------------------------------------------------------------------------------------
@@ -156,6 +157,21 @@ test("TC47: Rejecting timesheet for the employee", async ({ page }) => {
 
   // Assertions
   expect(status).toBe("Rejected");
+});
+
+test("TC48: Open task details popup", async ({}) => {
+  // View next week
+  await teamPage.viewNextWeek();
+
+  // Toggle employee timesheet
+  await teamPage.toggleEmployeeTimesheet(empName);
+
+  // Open task details
+  await teamPage.openTaskDetails({ employee: empName, task: TC48data.task });
+
+  // Assertions
+  const isTaskDetailsDialogVisible = await teamPage.isTaskDetailsDialogVisible(TC48data.task);
+  expect(isTaskDetailsDialogVisible).toBeTruthy();
 });
 
 test("TC51: Verify the manager view.", async ({}) => {
