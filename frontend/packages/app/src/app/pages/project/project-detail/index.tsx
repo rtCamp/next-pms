@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { Spinner, useToast } from "@next-pms/design-system/components";
 import { useFrappeGetCall, useFrappeGetDoc } from "frappe-react-sdk";
@@ -17,6 +17,7 @@ import { EmployeeDetailHeader } from "./header";
 const ProjectDetail = () => {
   const { projectId } = useParams();
   const { data: projectData, error: projectError } = useFrappeGetDoc("Project", projectId);
+  const formRef = useRef<{ submitForm: () => void }>(null);
 
   const { data, isLoading, error, mutate } = useFrappeGetCall(
     "next_pms.api.get_doc_with_meta",
@@ -68,6 +69,7 @@ const ProjectDetail = () => {
             tabBodyClassName="xl:w-4/5"
             onChange={(data) => console.log(data)}
             onSubmit={(data) => console.log(data)}
+            formRef={formRef}
           />
         )}
       </Main>

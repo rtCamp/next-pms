@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
+import { RefObject, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@next-pms/design-system/components";
 
 /**
@@ -19,6 +19,9 @@ type FormViewProps = {
   tabBodyClassName?: string;
   onChange?: (values: Record<string, string | number | null>) => void;
   onSubmit?: (values: Record<string, string | number | null>) => void;
+  formRef: RefObject<{
+    submitForm: () => void;
+  }>;
 };
 
 /**
@@ -41,6 +44,7 @@ const FormView = ({
   tabHeaderClassName,
   tabBodyClassName,
   readOnly = false,
+  formRef,
 }: FormViewProps) => {
   const [activeTab, setActiveTab] = useState(Object.keys(tabs ?? {})[0]);
 
@@ -78,6 +82,7 @@ const FormView = ({
                 onSubmit={onSubmit}
                 currencySymbol={currencySymbol}
                 hideFields={["naming_series"]}
+                ref={formRef}
               />
             </TabsContent>
           );

@@ -303,3 +303,12 @@ export const evaluateDependsOn = (
     return false;
   }
 };
+
+export const mapFieldsToObject = (
+  fields: Array<Record<string, string | number | null>>
+) => {
+  return fields.reduce((acc, field) => {
+    acc[field.fieldname!] = field.value;
+    return acc;
+  }, {} as Record<string, string | number | null>);
+};
