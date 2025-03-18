@@ -8,9 +8,6 @@ on:
       - develop
     types:
       - closed
-  push:
-    branches:
-      - test-refactor
 
   #Triggers at 5 AM IST every day
   schedule:
@@ -272,7 +269,7 @@ jobs:
               </body>
             </html>
           to: shraddha.gore@rtcamp.com
-          from: no-reply@gmail.com
+          from: bots-erp-rtcamp-com-aaaajmbbbavnlkxccfuvoqjqsy@rtcamp.slack.com
           attachments: |
             report.zip
 
