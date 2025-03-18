@@ -21,7 +21,7 @@ import { ChevronDown, Check, FolderDot } from "lucide-react";
  * Internal dependencies.
  */
 
-import { cn } from "@/lib/utils";
+import { mergeClassNames } from "@/lib/utils";
 import { Project } from "@/types";
 
 interface ProjectComboBoxProps {
@@ -116,7 +116,7 @@ const ProjectComboBox = ({
         <Button
           variant="outline"
           disabled={disabled}
-          className={cn(
+          className={mergeClassNames(
             "items-center w-full gap-x-4 px-2 justify-between [&[data-state=open]>svg]:rotate-180 truncate",
             className
           )}
@@ -154,7 +154,7 @@ const ProjectComboBox = ({
                     className="flex gap-x-2 text-primary font-normal cursor-pointer"
                     value={item.project_name}
                   >
-                    <Check className={cn("mr-2 h-4 w-4", isActive ? "opacity-100" : "opacity-0")} />
+                    <Check className={mergeClassNames("mr-2 h-4 w-4", isActive ? "opacity-100" : "opacity-0")} />
                     <Typography variant="p">{item.project_name}</Typography>
                   </CommandItem>
                 );

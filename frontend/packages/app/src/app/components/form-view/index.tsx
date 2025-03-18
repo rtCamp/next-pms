@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@next-pms/design-syste
 /**
  * Internal dependencies.
  */
-import { cn } from "@/lib/utils";
+import { mergeClassNames } from "@/lib/utils";
 import FieldRenderer from "./fieldRenderer";
 import { Field } from "./types";
 
@@ -53,7 +53,10 @@ const FormView = ({
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full relative">
         <div className="border-b sticky top-0 bg-white z-10 overflow-x-auto no-scrollbar px-2">
           <TabsList
-            className={cn("flex h-10 w-full justify-start rounded-none bg-transparent p-0", tabHeaderClassName)}
+            className={mergeClassNames(
+              "flex h-10 w-full justify-start rounded-none bg-transparent p-0",
+              tabHeaderClassName
+            )}
           >
             {Object.keys(tabs ?? {})
               ?.map((item) => ({
@@ -74,7 +77,11 @@ const FormView = ({
 
         {Object.keys(tabs ?? {})?.map((tab) => {
           return (
-            <TabsContent key={tab} value={tab} className={cn("mt-6 space-y-4 focus-visible:ring-0", tabBodyClassName)}>
+            <TabsContent
+              key={tab}
+              value={tab}
+              className={mergeClassNames("mt-6 space-y-4 focus-visible:ring-0", tabBodyClassName)}
+            >
               <FieldRenderer
                 fields={tabs[tab]}
                 readOnly={readOnly}
