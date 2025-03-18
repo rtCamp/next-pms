@@ -8,7 +8,9 @@ on:
       - develop
     types:
       - closed
-  push: test-refactor
+  push:
+    branches:
+      - test-refactor
 
   #Triggers at 5 AM IST every day
   schedule:
