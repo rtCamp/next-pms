@@ -1,34 +1,6 @@
-import { request } from "@playwright/test";
-import config from "../../playwright.config";
+import { login } from "./authRequests";
 
-// Load config variables
-const baseURL = config.use?.baseURL;
-
-// Load env variables
-const repManEmail = process.env.REP_MAN_EMAIL;
-const repManPass = process.env.REP_MAN_PASS;
-
-let context; // Global request context to maintain session
-
-// ------------------------------------------------------------------------------------------
-
-/**
- * Login to the system and create a new request context.
- */
-export const login = async () => {
-  // Create new request context
-  context = await request.newContext({ baseURL: baseURL });
-
-  const response = await context.post(`/login`, {
-    data: {
-      cmd: "login",
-      usr: repManEmail,
-      pwd: repManPass,
-    },
-  });
-
-  return await response;
-};
+let context; // Global variable for request context
 
 // ------------------------------------------------------------------------------------------
 
@@ -37,8 +9,9 @@ export const login = async () => {
  */
 export const createLeave = async ({ employee, from_date, to_date, description }) => {
   // Ensure the user is logged in before making API requests
-  if (context === undefined || context === null) {
-    await login();
+  if (!context) {
+    const loginResult = await login();
+    context = loginResult.context;
   }
 
   const response = await context.post(`/api/resource/Leave%20Application`, {
@@ -60,8 +33,9 @@ export const createLeave = async ({ employee, from_date, to_date, description })
  */
 export const actOnLeave = async ({ action, leaveDetails }) => {
   // Ensure the user is logged in before making API requests
-  if (context === undefined || context === null) {
-    await login();
+  if (!context) {
+    const loginResult = await login();
+    context = loginResult.context;
   }
 
   const response = await context.post(`/api/method/frappe.model.workflow.apply_workflow`, {
@@ -81,8 +55,9 @@ export const actOnLeave = async ({ action, leaveDetails }) => {
  */
 export const getLeaves = async (filters) => {
   // Ensure the user is logged in before making API requests
-  if (context === undefined || context === null) {
-    await login();
+  if (!context) {
+    const loginResult = await login();
+    context = loginResult.context;
   }
 
   const endpoint = `/api/resource/Leave%20Application?fields=["*"]&filters=${encodeURIComponent(
@@ -102,8 +77,9 @@ export const getLeaves = async (filters) => {
  */
 export const getLeaveDetails = async (name) => {
   // Ensure the user is logged in before making API requests
-  if (context === undefined || context === null) {
-    await login();
+  if (!context) {
+    const loginResult = await login();
+    context = loginResult.context;
   }
 
   const response = await context.get(`/api/resource/Leave%20Application/${name}`);
