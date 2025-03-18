@@ -84,7 +84,12 @@ const FieldRenderer = forwardRef(
 
     const filteredSections = sections.filter((section) => section.left.length > 0 || section.right.length > 0);
 
-    if (filteredSections.length === 0) return null;
+    if (filteredSections.length === 0)
+      return (
+        <div className="absolute w-full h-52 flex justify-center items-center text-sm">
+          <span>Nothing to show</span>
+        </div>
+      );
 
     return (
       <form
