@@ -292,14 +292,10 @@ export const evaluateDependsOn = (
     } else if (dependsOn in doc) {
       return Boolean(doc[dependsOn]); // If it's just a fieldname, check if it's truthy
     } else {
-      console.warn(
-        "Unsupported depends_on format or missing field:",
-        dependsOn
-      );
       return true;
     }
   } catch (error) {
-    console.error("Error evaluating depends_on:", error);
+    console.error("Error evaluating depends_on:", error); // explicit error console
     return false;
   }
 };
