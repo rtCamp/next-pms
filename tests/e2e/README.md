@@ -1,101 +1,127 @@
-<div align="center">
-<img src="next_pms/public/next-pms-logo.png" height="128" alt="Next PMS Logo">
-<h2>Next PMS</h2>
-</div>
+# Test Automation Project
 
-## Introduction
+## Table of Contents
 
-Next-PMS is a project management system built on the Frappe framework, with React components for a modern front-end experience. The app includes additional features to improve timesheet management and streamline project billing. 
+- [Overview](#overview)
+- [Prerequisites](#prerequisites)
+- [Environment](#environment)
+- [How to Run Tests](#how-to-run-tests)
+- [API Credentials](#api-credentials)
+- [Directory Structure](#directory-structure)
+- [Test Case Sheet](#test-case-sheet)
+- [Known Issues and Bugs](#known-issues-and-bugs)
+- [Skipped Tests & Reasons](#skipped-tests--reasons)
+- [Test Data & Configuration](#test-data--configuration)
+- [Reporting](#reporting)
 
-## Key Features
+## Overview
 
-1. Enhanced Timesheet Management: Manage and track timesheets more effectively with additional tools to log and review time entries.
-2. Streamlined Project Billing: Simplifies the billing process by integrating project-specific rates and billing information.
-3. React-Powered Timesheet App: A dedicated front-end app built with React for a smooth and responsive timesheet experience.
+This project includes end-to-end UI tests for Next PMS automation, built using the Playwright framework. Roles covered:
 
-## Prerequisite
+- Employee
+- Reporting Manager
 
-Before you begin, make sure you have following apps installed on your site:
+## Prerequisites
 
-- [ERPNext](https://github.com/frappe/erpnext)
-- [Frappe HR](https://github.com/frappe/hrms)
+Before running the tests, ensure the following prerequisites are met:
 
-## Installation & Setup
+1. Node.js is installed. You can download it from [Node.js official site](https://nodejs.org/).
+2. Clone the repository and navigate to `tests/e2e/`:
+   ```bash
+   git clone https://github.com/rtCamp/next-pms.git
+   cd next-pms/tests/e2e/
+   ```
+3. Install dependencies:
+   ```bash
+   npm install
+   npx playwright install
+   ```
+4. Create a `.env` file by copying `.env.example`:
+   ```bash
+   cp .env.example .env
+   ```
+   Request the QA team to provide the required values.
 
-1.  Download the app using the Bench CLI.
-    ```bash
-    bench get-app https://github.com/rtCamp/next-pms.git
-    ```
-2.  Install the app on your site and run the migration.
-    `bash
-    bench --site [site name] install-app next_pms
-    bench migrate
-    `
-    Upon installation completion,follow the below setup for project & timesheet.
+## Environment
 
-3.  Go to the `project Setting` and check ignore time overlap.
-    <img width="1402" src="screenshots/project-setting.png" alt="Project Setting" />
+- The tests run on the **staging** environment.
+- Ensure the correct staging credentials are set in the `.env` file.
 
-4.  If you want to allow employees to make backdated or future time entries, you can set it in `Timesheet Setting`.
+## How to Run Tests
 
-    - You can restrict the users from logging time entries for dates prior to the current day based on the `Allow Backdated Entries` field.
+1. Execute tests:
+   ```bash
+   npm run e2e:tests
+   ```
+2. Execute tests with CLI parameters:
+   ```bash
+   npm run e2e:tests -- --headed
+   ```
 
-    - You can have separate setting for both Employees & Projects Manager. For example: Employees can be log past days time where Projects Manager can log for past 30 days.
+## API Credentials
 
-## Local development setup
+- Admin's login credentials are used in API requests.
+- The concerned variables in `.env` are:
+  ```env
+  ADMIN_MAN_EMAIL=<admin-email>
+  ADMIN_MAN_PASS=<admin-password>
+  ```
+- Ensure you do **not** commit sensitive credentials to the repository.
 
-To setup your local environment for react app, follow the below steps.
+## Directory Structure
 
-- Disable CSRF in `site_config.json` by adding the key `ignore_csrf: 1`. This is only required in dev mode, Do not use it in production mode.
+```
+project-root/
+│── tests/
+│   ├── e2e/
+│   │   ├── auth/                               # Auto-generated authentication state files
+│   │   ├── data/                               # Stores shared test data for employees and managers
+│   │   │   ├── employee/
+│   │   │   │   ├── <tab-name>.json             # Static test data for UI tab
+│   │   │   │   ├── shared-<tab-name>.json      # Dynamically processed test data for UI tab
+│   │   │   ├── manager/
+│   │   │   │   ├── <tab-name>.json             # Static test data for UI tab
+│   │   │   │   ├── shared-<tab-name>.json      # Dynamically processed test data for UI tab
+│   │   ├── globals/                            # Global setup and teardown scripts for tests
+│   │   ├── helpers/                            # Helpers for various test operations
+│   │   ├── pageObjects/                        # Page Object Model implementation
+│   │   ├── playwright-report/                  # Auto-generated test execution reports
+│   │   ├── specs/                              # Test case specifications
+│   │   │   ├── employee/
+│   │   │   │   ├── <tab-name>.json
+│   │   │   ├── manager/
+│   │   │   │   ├── <tab-name>.json
+│   │   ├── test-results/                       # Auto-generated test results folder
+│   │   ├── utils/                              # Utilities used in the test framework
+│   │   ├── .env                                # Environment file with sensitive credentials
+│   │   ├── .env.example                        # Sample environment file with placeholder values
+│   │   ├── playwright.congig.js                # Playwright configuration file
+│   │   ├── README.md                           # Test framework documentation
+│   │   ├── results.json                        # Auto-generated test results JSON file
+```
 
-If you are using [Frappe Manager](https://github.com/rtCamp/Frappe-Manager) for you site, then some extra steps are required.
+## Test Case Sheet
 
-1.  Go to your `sites` directory in your `frappe-bench` and create symlink for your frappe site.
-    ```bash
-    ln -sfn <sitename> localhost # ln -sfn ./erp.localhost ./localhost
-    ```
-2.  Update the dockor compose for your `fm` site, generally all site create under `/frappe/sites/sitename/docker-compose.yml` in system root.
+- [FE PMS Test cases](https://docs.google.com/spreadsheets/d/1ezVa3BnqkgUlJEeOmc_cYCoT3b3JhQ8nGvAOk-W7Q6g/edit?pli=1&gid=1778975438#gid=1778975438)
 
-    - Update VIRTUAL_HOST in nginx
+## Known Issues and Bugs
 
-    ```yml
-    environment:
-      SITENAME: careers.localhost
-      VIRTUAL_HOST: careers.localhost,localhost // Add localhost here
-      VIRTUAL_PORT: 80
-      HSTS: off
-    ```
+- [QE Issues for FE PMS](https://docs.google.com/spreadsheets/d/1ezVa3BnqkgUlJEeOmc_cYCoT3b3JhQ8nGvAOk-W7Q6g/edit?pli=1&gid=1682583986#gid=1682583986)
 
-    - Expose port for frontend in nginx, usually it will be `5173`, but if react app is using other port it can be found in `vite.config.ts`
+## Skipped Tests & Reasons
 
-    ```yml
-    expose:
-      - 80,5173
-    ```
+- Frequently performed and automatable tests for employees and managers have been automated for each tab.
+- Some filter-related tests in the Task and Team tabs have been skipped due to buggy behavior.
 
-3.  Save the `docker-compose.yml` and restart nginx.
-4.  Go to `frappe-bench/apps/next_pms/frontend/timesheet` and create the `.env` from sample file.
-5.  Run the dev server:
-    `bash
-    cd frappe-bench/apps/next_pms
-    npm run dev
-    `
-    now you frappe site will also be accesible at `http://localhost` and your frontend at `http://localhost:5173`.
+## Test Data & Configuration
 
-## Screeenshots
+- Test data is stored in `data/`.
+- For certain test cases, time entries are created or updated in advance, while for others, they are deleted after execution. To prevent data loss and corruption, test data is read from static files, processed as needed, and stored in `shared` files. During tests and global teardown, test data is retrieved from these `shared` files.
 
-<figure>
-    <img width="1402" src="screenshots/timesheet-view.png" alt="Timesheet" />
-        <figcaption  align="center">
-        <b>Time entry view</b>
-    </figcaption>
-</figure>
+## Reporting
 
-
-## Contribution Guide
-
-Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
-
-## License
-
-This project is licensed under the [AGPLv3 License](./LICENSE).
+- We are using both HTML and JSON reporters, with HTML as the primary reporter and JSON for CI integration.
+- To view reports:
+  ```bash
+  npx playwright show-report playwright-report/
+  ```
