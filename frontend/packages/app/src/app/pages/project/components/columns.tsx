@@ -10,8 +10,8 @@ import { floatToTime } from "@next-pms/design-system/utils";
  */
 import { DataCell } from "@/app/components/list-view/dataCell";
 import { mergeClassNames } from "@/lib/utils";
-import type { FieldMeta } from "./types";
-import { getValidUserTagsValues } from "./utils";
+import type { FieldMeta } from "../types";
+import { getValidUserTagsValues } from "../utils";
 
 const HOUR_FIELD = ["actual_time", "custom_total_hours_purchased", "custom_total_hours_remaining"];
 

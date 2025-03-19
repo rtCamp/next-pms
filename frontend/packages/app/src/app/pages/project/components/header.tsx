@@ -16,6 +16,7 @@ import { parseFrappeErrorMsg } from "@/lib/utils";
 import type { RootState } from "@/store";
 import {
   setCurrency,
+  setIsAddProjectDialogOpen,
   setOrderBy,
   setSearch,
   setSelectedBilingType,
@@ -27,8 +28,8 @@ import {
 } from "@/store/project";
 import { updateView } from "@/store/view";
 import type { sortOrder } from "@/types";
-import type { HeaderProps } from "./types";
-import { createFilter, getFilter } from "./utils";
+import type { HeaderProps } from "../types";
+import { createFilter, getFilter } from "../utils";
 
 export const Header = ({
   meta,
@@ -326,7 +327,9 @@ export const Header = ({
     },
     {
       title: "Project",
-      handleClick: () => {},
+      handleClick: () => {
+        dispatch(setIsAddProjectDialogOpen(true));
+      },
       label: "Project",
       icon: Plus,
       variant: "default" as ButtonProps["variant"],

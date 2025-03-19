@@ -36,8 +36,9 @@ import { RootState } from "@/store";
 import { setProjectData, setStart, setFilters, setReFetchData, updateProjectData } from "@/store/project";
 import { ViewData } from "@/store/view";
 import type { sortOrder } from "@/types";
-import { getColumnInfo } from "./columns";
-import { Header as ProjectHeader } from "./header";
+import { AddProject } from "./components/addProject";
+import { getColumnInfo } from "./components/columns";
+import { Header as ProjectHeader } from "./components/header";
 import { ProjectProps } from "./types";
 import { getFilter, createFilter } from "./utils";
 
@@ -303,6 +304,9 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
               )}
             </TableBody>
           </Table>
+          {projectState.isAddProjectDialogOpen && (
+            <AddProject project={projectState} dispatch={dispatch} mutate={mutate} />
+          )}
         </>
       )}
     </>

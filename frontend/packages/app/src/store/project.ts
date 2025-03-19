@@ -69,7 +69,8 @@ export interface ProjectState {
   isLoading: boolean;
   hasMore: boolean;
   action: "SET" | "UPDATE";
-  tag:Array<string>;
+  tag: Array<string>;
+  isAddProjectDialogOpen: boolean;
 }
 
 export const initialState: ProjectState = {
@@ -91,6 +92,7 @@ export const initialState: ProjectState = {
   hasMore: true,
   action: "SET",
   tag: [],
+  isAddProjectDialogOpen: false,
 };
 
 export const projectSlice = createSlice({
@@ -216,7 +218,7 @@ export const projectSlice = createSlice({
     setTotalCount: (state, action: PayloadAction<number>) => {
       state.totalCount = action.payload;
     },
-    setTag:(state, action: PayloadAction<Array<string>>)=>{
+    setTag: (state, action: PayloadAction<Array<string>>) => {
       state.tag = action.payload;
     },
     refreshData: (state) => {
@@ -224,7 +226,10 @@ export const projectSlice = createSlice({
       state.pageLength = pageLength;
       state.start = 0;
       state.data = initialState.data;
-    }
+    },
+    setIsAddProjectDialogOpen: (state, action: PayloadAction<boolean>) => {
+      state.isAddProjectDialogOpen = action.payload;
+    },
   },
 });
 
@@ -244,6 +249,7 @@ export const {
   setSelectedBilingType,
   setReFetchData,
   setTag,
+  setIsAddProjectDialogOpen,
 } = projectSlice.actions;
 
 export default projectSlice.reducer;

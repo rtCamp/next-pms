@@ -102,3 +102,22 @@ def get_doc_meta(doctype: str):
         "title_field": title_field,
         "meta": doc,  # Note: Adding meta to get entire form-view structure
     }
+
+
+@whitelist()
+def get_naming_rule(doctype):
+    """Get the naming rule (autoname) and naming series options of any Doctype."""
+    meta = frappe.get_meta(doctype)
+    naming_rule = meta.get("autoname") or ""
+    naming_series_field = naming_rule.split(":")[0]
+    naming_series_options = []
+
+    options = ""
+
+    for field in meta.fields:
+        if field.fieldname == naming_series_field:
+            options = field.options
+
+    naming_series_options = options.split("\n") if options else []
+
+    return {"doctype": doctype, "naming_series_field": naming_series_field, "options": naming_series_options}

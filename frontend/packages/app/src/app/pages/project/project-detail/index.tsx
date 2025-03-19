@@ -12,7 +12,7 @@ import { useFrappeGetCall, useFrappeGetDoc } from "frappe-react-sdk";
 import FormView from "@/app/components/form-view";
 import { Main } from "@/app/layout/root";
 import { getCurrencySymbol, parseFrappeErrorMsg } from "@/lib/utils";
-import { EmployeeDetailHeader } from "./header";
+import { EmployeeDetailHeader } from "./components/header";
 
 const ProjectDetail = () => {
   const { projectId } = useParams();

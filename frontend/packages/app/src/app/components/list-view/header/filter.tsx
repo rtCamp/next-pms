@@ -25,7 +25,7 @@ import { Filter as Funnel } from "lucide-react";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import ComboBoxWrapper from "@/app/components/list-view/header/comboBoxWrapper";
 import type { FilterPops } from "@/app/components/list-view/types";
-import ProjectComboBox from "@/app/pages/project/project-detail/projectComboBox";
+import ProjectComboBox from "@/app/pages/project/project-detail/components/projectComboBox";
 import { mergeClassNames } from "@/lib/utils";
 
 /**
