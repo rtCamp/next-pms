@@ -331,4 +331,24 @@ export class TeamPage {
 
     return (await cell.isVisible()) ? await date.textContent() : "-";
   }
+
+  // --------------------------------------
+  // Task Details Dialog
+  // --------------------------------------
+
+  /**
+   * Opens the details dialog of a specified task.
+   */
+  async openTaskDetails({ employee, task }) {
+    const timesheet = await this.getEmployeeTimesheet(employee);
+    const element = timesheet.locator(`//span[text()='${task}']`);
+    await element.click();
+  }
+
+  /**
+   * Checks if the task details dialog with the specified name is visible.
+   */
+  async isTaskDetailsDialogVisible(name) {
+    return this.page.getByRole("dialog", { name: name }).isVisible();
+  }
 }
