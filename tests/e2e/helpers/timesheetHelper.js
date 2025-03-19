@@ -26,11 +26,11 @@ let sharedManagerTeamData;
  * Updates 'payloadCreateTimesheet' and 'payloadFilterTimeEntry' fields with computed dates and employee ID.
  * Saves the updated data back to the shared JSON files.
  *
- * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC14, TC15, TC45, TC47
+ * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49
  */
 export const updateTimeEntries = async () => {
-  const employeeTimesheetIDs = ["TC2", "TC3", "TC4", "TC5", "TC6", "TC7", "TC14", "TC15", "TC45", "TC47"];
-  const managerTeamIDs = ["TC45", "TC47"];
+  const employeeTimesheetIDs = ["TC2", "TC3", "TC4", "TC5", "TC6", "TC7", "TC14", "TC15"];
+  const managerTeamIDs = ["TC47", "TC49"];
 
   // Compute col value for TC2 before update
   employeeTimesheetData.TC2.cell.col = getWeekdayName(new Date());
@@ -74,7 +74,7 @@ export const updateTimeEntries = async () => {
  * This function iterates over predefined time entry payloads and submits them
  * to create timesheet records.
  *
- * Test Cases: TC4, TC5, TC6, TC7, TC14, TC15, TC45, TC47
+ * Test Cases: TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49
  */
 export const createTimeEntries = async () => {
   sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
@@ -86,8 +86,8 @@ export const createTimeEntries = async () => {
     sharedEmployeeTimesheetData.TC7.payloadCreateTimesheet,
     sharedEmployeeTimesheetData.TC14.payloadCreateTimesheet,
     sharedEmployeeTimesheetData.TC15.payloadCreateTimesheet,
-    sharedManagerTeamData.TC45.payloadCreateTimesheet,
     sharedManagerTeamData.TC47.payloadCreateTimesheet,
+    sharedManagerTeamData.TC49.payloadCreateTimesheet,
   ];
 
   for (const entry of timeEntries) {
@@ -103,7 +103,7 @@ export const createTimeEntries = async () => {
  * This function reads timesheet data from JSON files and iterates through predefined
  * time entry objects, filtering each entry and deleting the corresponding timesheet record.
  *
- * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC14, TC15, TC45, TC47
+ * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49
  */
 export const deleteTimeEntries = async () => {
   sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
@@ -119,8 +119,8 @@ export const deleteTimeEntries = async () => {
     sharedEmployeeTimesheetData.TC7.payloadFilterTimeEntry,
     sharedEmployeeTimesheetData.TC14.payloadFilterTimeEntry,
     sharedEmployeeTimesheetData.TC15.payloadFilterTimeEntry,
-    sharedManagerTeamData.TC45.payloadFilterTimeEntry,
     sharedManagerTeamData.TC47.payloadFilterTimeEntry,
+    sharedManagerTeamData.TC49.payloadFilterTimeEntry,
   ];
 
   for (const entry of timeEntries) {
