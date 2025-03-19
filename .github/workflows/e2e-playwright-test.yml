@@ -22,15 +22,21 @@ jobs:
     environment: Stage # Retrive secrets from 'Stage' environment
     env:
       BASE_URL: ${{ secrets.BASE_URL }}
-      EMP_ID: ${{ secrets.EMP_ID }}
-      EMP_EMAIL: ${{ secrets.EMP_EMAIL }}
-      EMP_PASS: ${{ secrets.EMP_PASS }}
-      EMP_NAME: ${{ secrets.EMP_NAME }}
+
+      ADMIN_ID: ${{ secrets.ADMIN_ID }}
+      ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+      ADMIN_PASS: ${{ secrets.ADMIN_PASS }}
+      ADMIN_NAME: ${{ secrets.ADMIN_NAME }}
+
       REP_MAN_ID: ${{ secrets.REP_MAN_ID }}
       REP_MAN_EMAIL: ${{ secrets.REP_MAN_EMAIL }}
       REP_MAN_PASS: ${{ secrets.REP_MAN_PASS }}
       REP_MAN_NAME: ${{ secrets.REP_MAN_NAME }}
 
+      EMP_ID: ${{ secrets.EMP_ID }}
+      EMP_EMAIL: ${{ secrets.EMP_EMAIL }}
+      EMP_PASS: ${{ secrets.EMP_PASS }}
+      EMP_NAME: ${{ secrets.EMP_NAME }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
