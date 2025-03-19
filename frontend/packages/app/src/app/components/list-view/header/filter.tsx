@@ -41,11 +41,11 @@ import { mergeClassNames } from "@/lib/utils";
  * @returns React.FC
  */
 export const Filter = ({ filter }: { filter: FilterPops }) => {
-  const [, setQueryParam] = useQueryParam(filter.queryParameterName ?? "", filter.queryParameterDefault);
+  const [, setQueryParam] = useQueryParam(filter.queryParameterName ?? "", filter.queryParameterDefault ?? "");
 
   const handleChangeWrapper = (value: string | CheckedState | string[]) => {
     /* Make sure to update query parameters based on changes. */
-    if (filter.type != "custom-filter") {
+    if (filter.type != "custom-filter" && !filter.hideQueryParam) {
       setQueryParam(value);
     }
     filter?.handleChange(value);
@@ -53,7 +53,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
 
   useEffect(() => {
     /** This will make sure to update the query parameter state if some filter is removed from the URL. */
-    if (filter.type != "custom-filter") {
+    if (filter.type != "custom-filter" && !filter.hideQueryParam) {
       setQueryParam(filter.value as string | CheckedState | string[]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -85,9 +85,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
   if (filter.type === "search-project") {
     return (
       <ProjectComboBox
-        label={filter.label ?? "Project"}
         pageLength={20}
-        status={filter.employeeComboStatus ?? []}
         value={filter.value as string}
         onSelect={handleChangeWrapper}
         className={mergeClassNames("w-full lg:w-fit", filter.className)}

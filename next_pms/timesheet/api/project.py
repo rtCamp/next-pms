@@ -80,7 +80,7 @@ def convert(value, rate):
 @whitelist()
 def get_project_list(project_name=None, page_length=10, start=0, status=None, ignore_permissions=False):
     fields = ["name", "project_name"]
-    filters = {"status": ["in", ["Open"]]}
+    filters = {}
     or_filters = {}
 
     if isinstance(status, str):

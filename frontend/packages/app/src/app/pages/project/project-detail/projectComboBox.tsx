@@ -70,7 +70,7 @@ const ProjectComboBox = ({
       status: status,
       project_name: debouncedSearch,
     },
-    undefined,
+    "projectComboBox.get_project_list",
     {
       revalidateIfStale: false,
     }

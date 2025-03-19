@@ -22,7 +22,9 @@ export const EmployeeDetailHeader = ({ projectId }: ProjectDetailHeaderProps) =>
   return (
     <>
       <Header>
-        <Filter filter={{ type: "search-project", value: projectId, handleChange: onProjectChange }} />
+        <Filter
+          filter={{ type: "search-project", value: projectId, handleChange: onProjectChange, hideQueryParam: true }}
+        />
       </Header>
     </>
   );

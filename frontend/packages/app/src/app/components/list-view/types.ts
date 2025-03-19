@@ -30,6 +30,7 @@ export interface FilterPops {
   employeeName?: string;
   customFilterComponent?: React.ReactNode;
   onSearch?: (searchTerm: string) => void;
+  hideQueryParam?: boolean;
 }
 
 export type ViewWrapperProps = {
