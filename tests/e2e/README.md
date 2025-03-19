@@ -1,4 +1,4 @@
-# Test Automation Project
+# Playwright E2E Test Automation Framework
 
 ## Table of Contents
 
@@ -16,7 +16,7 @@
 
 ## Overview
 
-This project includes end-to-end UI tests for Next PMS automation, built using the Playwright framework. Roles covered:
+This famework includes end-to-end UI automated tests for Next PMS, built using the Playwright framework. Roles covered:
 
 - Employee
 - Reporting Manager
