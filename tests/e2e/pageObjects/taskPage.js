@@ -11,6 +11,7 @@ export class TaskPage {
 
     // Header Filters
     this.searchInput = page.getByPlaceholder("Subject");
+    this.saveButton = page.getByRole("button", { name: "Save changes" });
     this.columnsButton = page.getByRole("button").filter({ has: page.locator("//p[text()='Columns']") });
 
     // Popper Modals
@@ -50,6 +51,13 @@ export class TaskPage {
   // --------------------------------------
 
   /**
+   * Saves view by clicking on 'Save changes' button.
+   */
+  async saveView() {
+    await this.saveButton.click();
+  }
+
+  /**
    * Adds a column by selecting it from the Columns menu.
    */
   async addColumn(name) {
@@ -59,7 +67,16 @@ export class TaskPage {
 
     await this.columnsButton.click();
     await this.columnMenu.getByRole("menuitem", { name: "Add Columns" }).click();
-    await columnSelectionMenu.getByRole("menuitem", { name: name }).click();
+    await columnSelectionMenu.locator(`//div[@role='menuitem' and text()='${name}']`).click();
+    await this.searchInput.click({ force: true });
+  }
+
+  /**
+   * Removes a column by de-selecting it from the Columns menu.
+   */
+  async removeColumn(name) {
+    await this.columnsButton.click();
+    await this.columnMenu.getByRole("menuitem", { name: name }).locator("//span").last().click();
     await this.searchInput.click({ force: true });
   }
 
@@ -71,6 +88,8 @@ export class TaskPage {
    * Retrieves the header row from the tasks table.
    */
   async getHeaderRow() {
+    await this.tasksTable.waitFor({ state: "visible" });
+
     return this.tasksTable.locator("//thead//tr");
   }
 
@@ -87,6 +106,8 @@ export class TaskPage {
    * Retrieves the row containing the specified task name.
    */
   async getTaskRow(name) {
+    await this.tasksTable.waitFor({ state: "visible" });
+
     return this.tasksTable.locator(`//tr[.//p[contains(text(), '${name}')]]`);
   }
 
@@ -113,6 +134,15 @@ export class TaskPage {
     const text = await this.getCellText({ task: task, col: "Is Billable" });
 
     return text === "Yes";
+  }
+
+  /**
+   * Checks if the specified column is present in table.
+   */
+  async isColumnPresent(name) {
+    const headerRow = await this.getHeaderRow();
+    const column = headerRow.locator("th", { hasText: name });
+    return await column.isVisible();
   }
 
   /**
