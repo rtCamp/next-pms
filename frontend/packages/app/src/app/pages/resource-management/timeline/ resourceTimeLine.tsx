@@ -26,7 +26,7 @@ import { TimeLineContext } from "../store/timeLineContext";
 import type { AllocationDataProps } from "../store/types";
 import { getIsBillableValue } from "../utils/helper";
 
-const ResourceTimeLine = () => {
+const ResourceTimeLineView = () => {
   const { toast } = useToast();
   const {
     apiControler,
@@ -258,4 +258,4 @@ const ResourceTimeLine = () => {
   );
 };
 
-export { ResourceTimeLine };
+export { ResourceTimeLineView };

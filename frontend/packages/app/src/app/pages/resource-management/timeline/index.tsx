@@ -6,17 +6,17 @@ import { TableContextProvider } from "@next-pms/resource-management/store";
 /**
  * Internal dependencies.
  */
-import { ResourceTimeLine } from "./ resourceTimeLine";
+import { ResourceTimeLineView } from "./ resourceTimeLine";
 import { ResourceContextProvider } from "../store/resourceFormContext";
 import { TimeLineContextProvider } from "../store/timeLineContext";
 
-const ResourceTimeLineView = () => {
+const ResourceTimeLineViewWrapper = () => {
   return (
     <>
       <TableContextProvider>
         <ResourceContextProvider>
           <TimeLineContextProvider>
-            <ResourceTimeLine />
+            <ResourceTimeLineView />
           </TimeLineContextProvider>
         </ResourceContextProvider>
       </TableContextProvider>
@@ -24,4 +24,4 @@ const ResourceTimeLineView = () => {
   );
 };
 
-export default ResourceTimeLineView;
+export default ResourceTimeLineViewWrapper;
