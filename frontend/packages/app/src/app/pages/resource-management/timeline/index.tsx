@@ -6,7 +6,7 @@ import { TableContextProvider } from "@next-pms/resource-management/store";
 /**
  * Internal dependencies.
  */
-import { ResourceTimeLineComponet } from "./ resourceTimeLine";
+import { ResourceTimeLine } from "./ resourceTimeLine";
 import { ResourceContextProvider } from "../store/resourceFormContext";
 import { TimeLineContextProvider } from "../store/timeLineContext";
 
@@ -16,7 +16,7 @@ const ResourceTimeLineView = () => {
       <TableContextProvider>
         <ResourceContextProvider>
           <TimeLineContextProvider>
-            <ResourceTimeLineComponet />
+            <ResourceTimeLine />
           </TimeLineContextProvider>
         </ResourceContextProvider>
       </TableContextProvider>
