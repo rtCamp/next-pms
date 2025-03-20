@@ -146,7 +146,7 @@ export class TaskPage {
     if ((await column.count()) > 0) {
       return true;
     }
-    
+
     return false;
   }
 
