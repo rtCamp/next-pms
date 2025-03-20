@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Spinner, useToast } from "@next-pms/design-system/components";
-import { useFrappeGetCall, useFrappeGetDoc } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappeGetDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
 
 /**
  * Internal dependencies
@@ -18,8 +18,9 @@ const ProjectDetail = () => {
   const { projectId } = useParams();
   const { data: projectData, error: projectError } = useFrappeGetDoc("Project", projectId);
   const formRef = useRef<{ submitForm: () => void }>(null);
-  const [hideSaveChanges, setHideSaveChanges] = useState(true);
+  const [hideSaveChanges, setHideSaveChanges] = useState<boolean>(true);
   const [formData, setFormData] = useState<Record<string, string | number | null>>({});
+  const [projectName, setProjectName] = useState<string>("");
 
   const { data, isLoading, error, mutate } = useFrappeGetCall(
     "next_pms.api.get_doc_with_meta",
@@ -57,14 +58,35 @@ const ProjectDetail = () => {
     }
   }, [error, mutate, toast]);
 
+  const { updateDoc, loading, error: updateError, isCompleted } = useFrappeUpdateDoc();
+
+  useEffect(() => {
+    if (isCompleted) {
+      setHideSaveChanges(true);
+      setProjectName(formData?.project_name as string);
+      toast({
+        variant: "success",
+        description: "Project updated",
+      });
+      mutate();
+    }
+    if (updateError) {
+      const err = parseFrappeErrorMsg(updateError);
+      toast({
+        variant: "destructive",
+        description: err,
+      });
+    }
+  }, [loading, updateError, toast, isCompleted, mutate]);
+
   return (
     <>
       <ProjectDetailHeader
         projectId={projectId!}
+        disabled={loading}
         hideSaveChanges={hideSaveChanges}
-        formData={formData}
-        setHideSaveChanges={setHideSaveChanges}
-        mutate={mutate}
+        projectName={projectName}
+        formRef={formRef}
       />
       <Main className="w-full h-full px-0">
         {isLoading ? (
@@ -81,7 +103,9 @@ const ProjectDetail = () => {
                 setFormData(form_data);
               }
             }}
-            onSubmit={(data) => console.log(data)}
+            onSubmit={async (data) => {
+              await updateDoc("Project", projectId as string, data);
+            }}
             formRef={formRef}
             readOnly={!data?.message?.permissions?.includes("write")}
           />

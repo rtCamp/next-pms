@@ -1,62 +1,36 @@
 /**
  * External dependencies
  */
-import { useEffect, useState } from "react";
+import { RefObject } from "react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@next-pms/design-system/components";
-import { useFrappeUpdateDoc } from "frappe-react-sdk";
-import type { KeyedMutator } from "swr";
 
 /**
  * Internal dependencies
  */
 import { Header as ListViewHeader } from "@/app/components/list-view/header";
 import { ButtonProps } from "@/app/components/list-view/types";
-import { parseFrappeErrorMsg } from "@/lib/utils";
 
 type ProjectDetailHeaderProps = {
   projectId: string;
   hideSaveChanges: boolean;
-  formData: Record<string, string | number | null>;
-  setHideSaveChanges: React.Dispatch<React.SetStateAction<boolean>>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  mutate: KeyedMutator<any>;
+  formRef: RefObject<{
+    submitForm: () => void;
+  }>;
+  projectName: string;
+  disabled: boolean;
 };
 
 export const ProjectDetailHeader = ({
   projectId,
   hideSaveChanges,
-  formData,
-  setHideSaveChanges,
-  mutate,
+  formRef,
+  projectName,
+  disabled,
 }: ProjectDetailHeaderProps) => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const onProjectChange = (value: string | string[]) => {
     navigate(`/project/${value}`);
   };
-
-  const { updateDoc, loading, error, isCompleted } = useFrappeUpdateDoc();
-  const [projectName, setProjectName] = useState("");
-
-  useEffect(() => {
-    if (isCompleted) {
-      setHideSaveChanges(true);
-      toast({
-        variant: "success",
-        description: "Project updated",
-      });
-      mutate();
-      setProjectName((formData.project_name as string) ?? "");
-    }
-    if (error) {
-      const err = parseFrappeErrorMsg(error);
-      toast({
-        variant: "destructive",
-        description: err,
-      });
-    }
-  }, [loading, error]);
 
   return (
     <>
@@ -76,11 +50,12 @@ export const ProjectDetailHeader = ({
           {
             title: "Save changes",
             handleClick: async () => {
-              await updateDoc("Project", projectId, formData);
+              formRef.current?.submitForm();
+              // await updateDoc("Project", projectId, formData);
             },
             hide: hideSaveChanges,
             label: "Save changes",
-            disabled: loading,
+            disabled: disabled,
             variant: "ghost" as ButtonProps["variant"],
             className: "h-10 px-2 py-2",
           },

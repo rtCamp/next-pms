@@ -51,19 +51,23 @@ const RenderField = (
             name={field.fieldname}
             control={control}
             defaultValue={field.value || ""}
-            render={({ field: { onChange: handleChange, value } }) => {
+            rules={{ required: isRequired ? "This field is required" : false }}
+            render={({ field: { onChange: handleChange, value }, fieldState: { error } }) => {
               const handleFieldChange = (newValue: any) => {
                 handleChange(newValue);
                 const updatedFormData = { ...control._formValues, [field.fieldname as string]: newValue };
                 onChange?.(updatedFormData);
               };
 
-              return getFieldComponent(
-                field,
-                handleFieldChange,
-                value,
-                isReadOnly as boolean,
-                currencySymbol as string
+              return (
+                <>
+                  {getFieldComponent(field, handleFieldChange, value, isReadOnly as boolean, currencySymbol as string)}
+                  {error && (
+                    <Typography variant="p" className="text-xs text-red-500">
+                      {error.message}
+                    </Typography>
+                  )}
+                </>
               );
             }}
           />
@@ -79,19 +83,29 @@ const RenderField = (
               name={field.fieldname}
               control={control}
               defaultValue={field.value || ""}
-              render={({ field: { onChange: handleChange, value } }) => {
+              rules={{ required: isRequired ? "This field is required" : false }}
+              render={({ field: { onChange: handleChange, value }, fieldState: { error } }) => {
                 const handleFieldChange = (newValue: any) => {
                   handleChange(newValue);
                   const updatedFormData = { ...control._formValues, [field.fieldname as string]: newValue };
                   onChange?.(updatedFormData);
                 };
 
-                return getFieldComponent(
-                  field,
-                  handleFieldChange,
-                  value,
-                  isReadOnly as boolean,
-                  currencySymbol as string
+                return (
+                  <>
+                    {getFieldComponent(
+                      field,
+                      handleFieldChange,
+                      value,
+                      isReadOnly as boolean,
+                      currencySymbol as string
+                    )}
+                    {error && (
+                      <Typography variant="p" className="text-xs text-red-500">
+                        {error.message}
+                      </Typography>
+                    )}
+                  </>
                 );
               }}
             />
