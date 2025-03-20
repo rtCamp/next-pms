@@ -1,12 +1,12 @@
 /**
  * External dependencies.
  */
-import { useContext } from "react";
 import { Avatar, AvatarFallback, AvatarImage, Typography } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
 import { mergeClassNames } from "@next-pms/design-system/utils";
 import { getFilterValue, getFormatedStringValue } from "@next-pms/resource-management/utils";
 import { Clipboard, Pencil } from "lucide-react";
+import { useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
@@ -49,7 +49,7 @@ export const ResourceAllocationCard = ({
     permission: resourceAllocationPermission,
     updateDialogState,
     updateAllocationData,
-  } = useContext(ResourceFormContext);
+  } = useContextSelector(ResourceFormContext, (value) => value);
 
   const { date: startDate } = prettyDate(resourceAllocation.allocation_start_date);
   const { date: endDate } = prettyDate(resourceAllocation.allocation_end_date);

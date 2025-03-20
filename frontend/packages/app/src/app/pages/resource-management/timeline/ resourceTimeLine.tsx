@@ -1,11 +1,12 @@
 /**
  * External dependencies.
  */
-import { useCallback, useContext, useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { getUTCDateTime } from "@next-pms/design-system";
 import { Spinner, useToast } from "@next-pms/design-system/components";
 import { useFrappePostCall } from "frappe-react-sdk";
+import { useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
@@ -41,10 +42,12 @@ const ResourceTimeLineView = () => {
     setAllocationsData,
     isEmployeeExits,
     setAllocationData,
-  } = useContext(TimeLineContext);
+  } = useContextSelector(TimeLineContext, (value) => value);
 
-  const { permission: resourceAllocationPermission, dialogState: resourceDialogState } =
-    useContext(ResourceFormContext);
+  const { permission: resourceAllocationPermission, dialogState: resourceDialogState } = useContextSelector(
+    ResourceFormContext,
+    (value) => value
+  );
 
   const { call: fetchData } = useFrappePostCall(
     "next_pms.resource_management.api.team.get_resource_management_team_view_data"

@@ -1,10 +1,11 @@
 /**
  * External dependencies.
  */
-import { LegacyRef, useContext } from "react";
+import { LegacyRef } from "react";
 import { TableHead, TableHeader, TableRow, Typography } from "@next-pms/design-system/components";
 import { prettyDate, getUTCDateTime } from "@next-pms/design-system/date";
 import { isToday } from "date-fns";
+import { useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
@@ -29,7 +30,7 @@ const ResourceTableHeader = ({
   dateToAddHeaderRef,
   isLoading,
 }: ResourceTableHeaderProps) => {
-  const { tableProperties, getCellWidthString } = useContext(TableContext);
+  const { tableProperties, getCellWidthString } = useContextSelector(TableContext, (value) => value);
 
   return (
     <TableHeader className="border-t-0 sticky top-0 z-30">

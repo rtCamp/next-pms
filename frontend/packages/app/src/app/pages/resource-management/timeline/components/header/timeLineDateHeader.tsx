@@ -1,10 +1,10 @@
 /**
  * External dependencies.
  */
-import { useContext } from "react";
 import { getTodayDate, prettyDate } from "@next-pms/design-system";
 import { TableHead, Typography } from "@next-pms/design-system/components";
 import { TableContext } from "@next-pms/resource-management/store";
+import { useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
@@ -19,7 +19,7 @@ const TimeLineDateHeader = ({ getIntervalProps, intervalContext }: TimeLineHeade
   const { date: dateStr, day } = prettyDate(getDayKeyOfMoment(startTime));
   const { date: toDayStr } = prettyDate(getTodayDate());
 
-  const { tableProperties, getCellWidthString } = useContext(TableContext);
+  const { tableProperties, getCellWidthString } = useContextSelector(TableContext, (value) => value);
 
   let headerProps: ResourceAllocationItemProps = getIntervalProps();
 

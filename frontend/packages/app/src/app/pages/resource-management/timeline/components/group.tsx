@@ -1,10 +1,11 @@
 /**
  * External dependencies.
  */
-import { RefObject, useContext } from "react";
+import { RefObject } from "react";
 import { getTodayDate } from "@next-pms/design-system";
 import { Avatar, AvatarFallback, AvatarImage } from "@next-pms/design-system/components";
 import { TableInformationCellContent } from "@next-pms/resource-management/components";
+import { useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
@@ -15,13 +16,13 @@ import { getIsBillableValue } from "../../utils/helper";
 import type { ResourceTimeLineGroupProps } from "../types";
 
 const ResourceTimeLineGroup = ({ group }: ResourceTimeLineGroupProps) => {
-  const { getLastTimeLineItem, verticalLoderRef, filters } = useContext(TimeLineContext);
+  const { getLastTimeLineItem, verticalLoderRef, filters } = useContextSelector(TimeLineContext, (value) => value);
   const lastEmployee = getLastTimeLineItem() == group.name;
   const {
     permission: resourceAllocationPermission,
     updateDialogState,
     updateAllocationData,
-  } = useContext(ResourceFormContext);
+  } = useContextSelector(ResourceFormContext, (value) => value);
 
   const setResourceAllocationData = () => {
     if (!resourceAllocationPermission.write) {

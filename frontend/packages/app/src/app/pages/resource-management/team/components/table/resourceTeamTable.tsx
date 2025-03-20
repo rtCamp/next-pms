@@ -1,10 +1,10 @@
 /**
  * External dependencies.
  */
-import { useContext } from "react";
 import { Table } from "@next-pms/design-system/components";
 import { ResourceTableHeader as ResourceTeamTableHeader } from "@next-pms/resource-management/components";
 import { TableContextProvider } from "@next-pms/resource-management/store";
+import { useContextSelector } from "use-context-selector";
 import { InfiniteScroll } from "@/app/components/infiniteScroll";
 
 /**
@@ -32,7 +32,7 @@ const ResourceTeamTable = ({
   dateToAddHeaderRef: string;
   handleVerticalLoadMore: () => void;
 }) => {
-  const { teamData, apiController, getHasMore } = useContext(TeamContext);
+  const { teamData, apiController, getHasMore } = useContextSelector(TeamContext, (value) => value);
 
   const dates: DateProps[] = teamData.dates;
   const isLoading = apiController.isLoading;

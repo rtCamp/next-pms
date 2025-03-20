@@ -1,10 +1,11 @@
 /**
  * External dependencies.
  */
-import { useContext, useMemo } from "react";
+import { useMemo } from "react";
 import { prettyDate } from "@next-pms/design-system/date";
 import { ResourceTableCell } from "@next-pms/resource-management/components";
 import { getTableCellClass, getTodayDateCellClass, getCellBackGroundColor } from "@next-pms/resource-management/utils";
+import { useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
@@ -59,8 +60,8 @@ const ExpandViewCell = ({
   customer: ResourceCustomerObjectProps;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const { tableView, filters } = useContext(ProjectContext);
-  const { updateAllocationData, updateDialogState } = useContext(ResourceFormContext);
+  const { tableView, filters } = useContextSelector(ProjectContext, (value) => value);
+  const { updateAllocationData, updateDialogState } = useContextSelector(ResourceFormContext, (value) => value);
 
   const allocationType = filters.allocationType;
 

@@ -1,9 +1,10 @@
 /**
  * External dependencies.
  */
-import { useContext, useMemo } from "react";
+import { useMemo } from "react";
 import { Table, TableBody, TableRow } from "@next-pms/design-system/components";
 import { TableDisabledRow, TableInformationCellContent } from "@next-pms/resource-management/components";
+import { useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
@@ -28,7 +29,7 @@ export const ResourceExpandView = ({
   employeeData: EmployeeDataProps;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const { teamData } = useContext(TeamContext);
+  const teamData = useContextSelector(TeamContext, (value) => value.teamData);
   const dates = teamData.dates;
 
   const employeeResourceData: { combinedResourceData: CombinedResourceObjectProps; allDates: string[] } = useMemo(

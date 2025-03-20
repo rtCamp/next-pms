@@ -1,8 +1,9 @@
 /**
  * External dependencies.
  */
-import { createContext, useState } from "react";
+import { useState } from "react";
 import { getFormatedDate, getTodayDate } from "@next-pms/design-system";
+import { createContext } from "use-context-selector";
 
 /**
  * Internal dependencies.

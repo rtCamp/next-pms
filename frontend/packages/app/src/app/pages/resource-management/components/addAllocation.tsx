@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -30,6 +30,7 @@ import { mergeClassNames } from "@next-pms/design-system/utils";
 import { endOfWeek, startOfWeek } from "date-fns";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { CircleDollarSign, Clock3, LoaderCircle, Save, Search, X } from "lucide-react";
+import { useContextSelector } from "use-context-selector";
 import { z } from "zod";
 
 /**
@@ -56,7 +57,7 @@ const AddResourceAllocations = ({
     allocationData: resourceAllocationForm,
     dialogState: resourceDialogState,
     resetState,
-  } = useContext(ResourceFormContext);
+  } = useContextSelector(ResourceFormContext, (value) => value);
 
   const [projectSearch, setProjectSearch] = useState(resourceAllocationForm.project_name);
   const [customerSearch, setCustomerSearch] = useState(resourceAllocationForm.customer_name);

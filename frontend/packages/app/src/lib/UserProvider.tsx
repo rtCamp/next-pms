@@ -1,12 +1,13 @@
 /**
  * External dependencies.
  */
-import { FC, PropsWithChildren,createContext } from "react";
+import { FC, PropsWithChildren } from "react";
 import { useFrappeAuth } from "frappe-react-sdk";
+import { createContext } from "use-context-selector";
 
 interface UserContextProps {
   isLoading: boolean;
-  currentUser: string|null;
+  currentUser: string | null;
   logout: () => Promise<void>;
   updateCurrentUser: VoidFunction;
 }
@@ -21,11 +22,10 @@ export const UserContext = createContext<UserContextProps>({
 export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
   const { logout, currentUser, updateCurrentUser, isLoading } = useFrappeAuth();
   const handleLogout = async () => {
-    return logout()
-      .then(() => {
-        window.location.replace("/login?redirect-to=/timesheet");
-        window.location.reload();
-      });
+    return logout().then(() => {
+      window.location.replace("/login?redirect-to=/timesheet");
+      window.location.reload();
+    });
   };
 
   return (

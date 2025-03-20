@@ -1,11 +1,11 @@
 /**
  * External dependencies.
  */
-import { useContext } from "react";
 import { Table } from "@next-pms/design-system/components";
 import { useInfiniteScroll } from "@next-pms/hooks";
 import { ResourceTableHeader as ResourceProjectTableHeader } from "@next-pms/resource-management/components";
 import { TableContextProvider } from "@next-pms/resource-management/store";
+import { useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
@@ -30,7 +30,10 @@ const ResourceProjectTable = ({
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
   dateToAddHeaderRef: string;
 }) => {
-  const { projectData, filters, apiController, getHasMore, setMaxWeek, setStart } = useContext(ProjectContext);
+  const { projectData, filters, apiController, getHasMore, setMaxWeek, setStart } = useContextSelector(
+    ProjectContext,
+    (value) => value
+  );
 
   const dates: DateProps[] = projectData.dates;
   const isLoading = apiController.isLoading;

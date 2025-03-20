@@ -1,8 +1,9 @@
 /**
  * External dependencies.
  */
-import { createContext, useState } from "react";
+import { useState } from "react";
 import { getFormatedStringValue } from "@next-pms/resource-management/utils";
+import { createContext } from "use-context-selector";
 
 /**
  * Internal dependencies.

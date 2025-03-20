@@ -1,7 +1,8 @@
 /**
  * External dependencies.
  */
-import { useState, createContext, useCallback } from "react";
+import { useState, useCallback } from "react";
+import { createContext } from "use-context-selector";
 
 /**
  * Internal dependencies.

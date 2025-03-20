@@ -1,11 +1,12 @@
 /**
  * External dependencies.
  */
-import { useCallback, useContext, useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { getNextDate } from "@next-pms/design-system";
 import { Spinner, useToast } from "@next-pms/design-system/components";
 import { useInfiniteScroll } from "@next-pms/hooks";
 import { useFrappePostCall } from "frappe-react-sdk";
+import { useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
@@ -49,10 +50,12 @@ const ResourceTeamView = () => {
     setMaxWeek,
     setDates,
     setReFetchData,
-  } = useContext(TeamContext);
+  } = useContextSelector(TeamContext, (value) => value);
 
-  const { permission: resourceAllocationPermission, dialogState: resourceAllocationDialogState } =
-    useContext(ResourceFormContext);
+  const { permission: resourceAllocationPermission, dialogState: resourceAllocationDialogState } = useContextSelector(
+    ResourceFormContext,
+    (value) => value
+  );
 
   const { call: fetchData } = useFrappePostCall(
     "next_pms.resource_management.api.team.get_resource_management_team_view_data"

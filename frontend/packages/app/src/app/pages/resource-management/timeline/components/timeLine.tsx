@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useContext, useState } from "react";
+import { useState } from "react";
 import Timeline, { DateHeader, SidebarHeader, TimelineHeaders } from "react-calendar-timeline";
 import {
   mergeClassNames,
@@ -17,6 +17,7 @@ import { getFormatedStringValue } from "@next-pms/resource-management/utils";
 import { startOfWeek } from "date-fns";
 import { useFrappeCreateDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
 import moment from "moment";
+import { useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
@@ -31,7 +32,7 @@ import { TimeLineContext } from "../../store/timeLineContext";
 import { getDayKeyOfMoment } from "../../utils/dates";
 
 const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
-  const { tableProperties, getCellWidthString } = useContext(TableContext);
+  const { tableProperties, getCellWidthString } = useContextSelector(TableContext, (value) => value);
   const {
     employees,
     allocations,
@@ -42,12 +43,12 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
     setAllocationData,
     filters,
     getEmployeeWithID,
-  } = useContext(TimeLineContext);
+  } = useContextSelector(TimeLineContext, (value) => value);
   const {
     permission: resourceAllocationPermission,
     updateDialogState,
     updateAllocationData,
-  } = useContext(ResourceFormContext);
+  } = useContextSelector(ResourceFormContext, (value) => value);
 
   const [showItemAllocationActionDialog, setShowItemAllocationActionDialog] = useState(false);
 

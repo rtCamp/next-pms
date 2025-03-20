@@ -1,10 +1,11 @@
 /**
  * External dependencies.
  */
-import { useContext, useMemo } from "react";
+import { useMemo } from "react";
 import { prettyDate } from "@next-pms/design-system/date";
 import { ResourceTableCell } from "@next-pms/resource-management/components";
 import { getTableCellClass, getTodayDateCellClass, getCellBackGroundColor } from "@next-pms/resource-management/utils";
+import { useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
@@ -51,7 +52,7 @@ const ResourceTeamTableCell = ({
   employeeAllocations: ResourceAllocationObjectProps;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const { teamData, tableView, filters } = useContext(TeamContext);
+  const { teamData, tableView, filters } = useContextSelector(TeamContext, (value) => value);
 
   const customer = teamData.customer;
   const allocationType = filters.allocationType;
@@ -59,7 +60,7 @@ const ResourceTeamTableCell = ({
   const { date: dateStr, day } = prettyDate(employeeSingleDay.date);
   const title = employee_name + " (" + dateStr + " - " + day + ")";
 
-  const { updateAllocationData, updateDialogState } = useContext(ResourceFormContext);
+  const { updateAllocationData, updateDialogState } = useContextSelector(ResourceFormContext, (value) => value);
 
   const allocationPercentage = useMemo(() => {
     if (tableView.combineWeekHours) {

@@ -1,9 +1,10 @@
 /**
  * External dependencies.
  */
-import { useState, createContext } from "react";
+import { useState } from "react";
 import { getTodayDate } from "@next-pms/design-system";
 import { useInfiniteScroll } from "@next-pms/hooks";
+import { createContext } from "use-context-selector";
 
 /**
  * Internal dependencies.
