@@ -15,6 +15,17 @@ def get_doc_with_meta(doctype, docname):
 
     permitted_fields = doctype_meta.get_permitted_fieldnames()
 
+    permissions = []
+
+    if frappe.has_permission(doctype, "read"):
+        permissions.append("read")
+    if frappe.has_permission(doctype, "write"):
+        permissions.append("write")
+    if frappe.has_permission(doctype, "create"):
+        permissions.append("create")
+    if frappe.has_permission(doctype, "delete"):
+        permissions.append("delete")
+
     for df in doctype_meta.fields:
         if df.fieldtype == "Tab Break":
             current_tab = df.label
@@ -52,7 +63,7 @@ def get_doc_with_meta(doctype, docname):
             }
         )
 
-    return {"tabs": tab_fields}
+    return {"tabs": tab_fields, "permissions": permissions}
 
 
 @whitelist()

@@ -70,6 +70,7 @@ const ProjectDetail = () => {
             onChange={(data) => console.log(data)}
             onSubmit={(data) => console.log(data)}
             formRef={formRef}
+            readOnly={!data?.message?.permissions?.includes("write")}
           />
         )}
       </Main>
