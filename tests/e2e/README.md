@@ -4,7 +4,7 @@
 
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
-- [Environment](#environment)
+- [Environment & Variables](#environment--variables)
 - [How to Run Tests](#how-to-run-tests)
 - [API Credentials](#api-credentials)
 - [Directory Structure](#directory-structure)
@@ -42,10 +42,11 @@ Before running the tests, ensure the following prerequisites are met:
    ```
    Request the QA team to provide the required values.
 
-## Environment
+## Environment & Variables
 
 - The tests run on the **staging** environment.
-- Ensure the correct staging credentials are set in the `.env` file.
+- For local execution, environment variables are read from the `.env` file. Ensure you do **not** commit `.env` file to the repository.
+- For GitHub workflow, GitHub Secrets are used. We have created a `Stage` environment in GitHub repo for managing environment variables.
 
 ## How to Run Tests
 
@@ -66,7 +67,6 @@ Before running the tests, ensure the following prerequisites are met:
   ADMIN_MAN_EMAIL=<admin-email>
   ADMIN_MAN_PASS=<admin-password>
   ```
-- Ensure you do **not** commit sensitive credentials to the repository.
 
 ## Directory Structure
 
