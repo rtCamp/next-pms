@@ -8,6 +8,8 @@ let taskPage;
 // Load test data
 let TC17data = data.TC17;
 let TC19data = data.TC19;
+let TC25data = data.TC25;
+let TC26data = data.TC26;
 
 // ------------------------------------------------------------------------------------------
 
@@ -46,4 +48,28 @@ test("TC19: Open task details popup", async ({}) => {
   // Assertions
   const isTaskDetailsDialogVisible = await taskPage.isTaskDetailsDialogVisible(TC19data.task);
   expect(isTaskDetailsDialogVisible).toBeTruthy();
+});
+
+test("TC25: Verify the billable status of a billable task.", async ({}) => {
+  // Add column to view
+  await taskPage.addColumn("Is Billable");
+
+  // Search task
+  await taskPage.searchTask(TC25data.task);
+
+  // Assertions
+  const isTaskBillable = await taskPage.isTaskBillable(TC25data.task);
+  expect(isTaskBillable).toBeTruthy();
+});
+
+test("TC26: Verify the billable status of a non-billable task.", async ({}) => {
+  // Add column to view
+  await taskPage.addColumn("Is Billable");
+
+  // Search task
+  await taskPage.searchTask(TC26data.task);
+
+  // Assertions
+  const isTaskBillable = await taskPage.isTaskBillable(TC26data.task);
+  expect(isTaskBillable).toBeFalsy();
 });

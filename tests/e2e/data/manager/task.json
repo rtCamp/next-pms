@@ -4,5 +4,11 @@
   },
   "TC19": {
     "task": "Meetings"
+  },
+  "TC25": {
+    "task": "Design dashboard"
+  },
+  "TC26": {
+    "task": "Create UI Designs"
   }
 }
