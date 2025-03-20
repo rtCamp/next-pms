@@ -115,7 +115,8 @@ project-root/
 
 ## Test Data & Configuration
 
-- Test data is stored in `data/`.
+- Test data is stored in `data/` which mirrors the `specs/`.
+- If none of the tests in a spec require dynamic data, the data is sourced from the static file.
 - For certain test cases, time entries are created or updated in advance, while for others, they are deleted after execution. To prevent data loss and corruption, test data is read from static files, processed as needed, and stored in `shared` files. During tests and global teardown, test data is retrieved from these `shared` files.
 
 ## Reporting
