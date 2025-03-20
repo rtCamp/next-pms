@@ -141,8 +141,13 @@ export class TaskPage {
    */
   async isColumnPresent(name) {
     const headerRow = await this.getHeaderRow();
-    const column = headerRow.locator("th", { hasText: name });
-    return await column.isVisible();
+    const column = headerRow.locator("//th//p", { hasText: name });
+
+    if ((await column.count()) > 0) {
+      return true;
+    }
+    
+    return false;
   }
 
   /**
