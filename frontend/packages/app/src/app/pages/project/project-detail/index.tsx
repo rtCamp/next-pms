@@ -27,7 +27,7 @@ const ProjectDetail = () => {
       docname: projectId,
       doctype: "Project",
     },
-    undefined,
+    "project-detail.get_project" + new Date(),
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
