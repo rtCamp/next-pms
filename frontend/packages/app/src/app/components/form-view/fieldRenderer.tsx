@@ -30,7 +30,7 @@ const FieldRenderer = forwardRef(
 
     useEffect(() => {
       const defaultValues = fields.reduce((acc, field) => {
-        acc[field.fieldname] = field.value as string;
+        acc[field.fieldname] = field.value || "";
         return acc;
       }, {} as Record<string, string | number | null>);
       reset(defaultValues);
