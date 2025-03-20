@@ -37,8 +37,7 @@ export const ProjectDetailHeader = ({
   };
 
   const { updateDoc, loading, error, isCompleted } = useFrappeUpdateDoc();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [callback, setCallBack] = useState<KeyedMutator<any>>();
+  const [projectName, setProjectName] = useState("");
 
   useEffect(() => {
     if (isCompleted) {
@@ -48,8 +47,7 @@ export const ProjectDetailHeader = ({
         description: "Project updated",
       });
       mutate();
-      // updates project list
-      callback?.then();
+      setProjectName((formData.project_name as string) ?? "");
     }
     if (error) {
       const err = parseFrappeErrorMsg(error);
@@ -60,10 +58,6 @@ export const ProjectDetailHeader = ({
     }
   }, [loading, error]);
 
-  const updateProjectList = (callback: VoidFunction) => {
-    setCallBack(callback);
-  };
-
   return (
     <>
       <ListViewHeader
@@ -73,7 +67,7 @@ export const ProjectDetailHeader = ({
             value: projectId,
             handleChange: onProjectChange,
             hideQueryParam: true,
-            mutate: updateProjectList,
+            projectName: projectName,
           },
         ]}
         showColumnSelector={true}
