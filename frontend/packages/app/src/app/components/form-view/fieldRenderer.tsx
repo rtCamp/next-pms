@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { forwardRef, useImperativeHandle } from "react";
+import { forwardRef, useEffect, useImperativeHandle } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
 /**
@@ -26,7 +26,15 @@ type FieldRendererProps = {
  */
 const FieldRenderer = forwardRef(
   ({ fields, onChange, onSubmit, readOnly, currencySymbol, hideFields }: FieldRendererProps, ref) => {
-    const { control, handleSubmit } = useForm();
+    const { control, handleSubmit, reset } = useForm();
+
+    useEffect(() => {
+      const defaultValues = fields.reduce((acc, field) => {
+        acc[field.fieldname] = field.value as string;
+        return acc;
+      }, {} as Record<string, string | number | null>);
+      reset(defaultValues);
+    }, [fields]);
 
     useImperativeHandle(ref, () => ({
       submitForm: () => {
