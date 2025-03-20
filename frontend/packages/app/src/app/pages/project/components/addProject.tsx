@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -62,11 +62,24 @@ export const AddProject = ({ project, mutate, dispatch }: AddProjectProps) => {
   const { data: naming_series, isLoading: isNamingSeriesLoading } = useFrappeGetCall("next_pms.api.get_naming_rule", {
     doctype: "Project",
   });
+
+  useEffect(() => {
+    if (naming_series?.message) {
+      form.setValue("naming_series", naming_series?.message?.options[0]);
+    }
+  }, [naming_series, form]);
+
   const { data: companies, isLoading: isCompanyLoading } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Company",
     fields: ["name"],
     limit_page_length: "null",
   });
+
+  useEffect(() => {
+    if (companies?.message) {
+      form.setValue("company", companies?.message[0].name);
+    }
+  }, [companies, form]);
   const { data: from_templates, isLoading: isFromTemplateLoading } = useFrappeGetCall(
     "frappe.client.get_list",
     {
