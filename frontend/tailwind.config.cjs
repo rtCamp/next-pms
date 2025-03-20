@@ -3,7 +3,7 @@ const path = require('path');
 /** @type {import('tailwindcss').Config} */
 
 module.exports = {
-     
+    // eslint-disable-line no-use-before-define
     important: true,
     darkMode: ["class"],
     content: [
@@ -104,6 +104,5 @@ module.exports = {
             },
         },
     },
-    plugins: [require("tailwindcss-animate")],  
+    plugins: [require("tailwindcss-animate")], // eslint-disable-line no-use-before-define
 };
-
