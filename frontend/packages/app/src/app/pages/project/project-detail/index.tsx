@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Spinner, useToast } from "@next-pms/design-system/components";
 import { useFrappeGetCall, useFrappeGetDoc } from "frappe-react-sdk";
@@ -12,12 +12,14 @@ import { useFrappeGetCall, useFrappeGetDoc } from "frappe-react-sdk";
 import FormView from "@/app/components/form-view";
 import { Main } from "@/app/layout/root";
 import { getCurrencySymbol, parseFrappeErrorMsg } from "@/lib/utils";
-import { EmployeeDetailHeader } from "./components/header";
+import { ProjectDetailHeader } from "./components/header";
 
 const ProjectDetail = () => {
   const { projectId } = useParams();
   const { data: projectData, error: projectError } = useFrappeGetDoc("Project", projectId);
   const formRef = useRef<{ submitForm: () => void }>(null);
+  const [hideSaveChanges, setHideSaveChanges] = useState(true);
+  const [formData, setFormData] = useState<Record<string, string | number | null>>({});
 
   const { data, isLoading, error, mutate } = useFrappeGetCall(
     "next_pms.api.get_doc_with_meta",
@@ -57,7 +59,13 @@ const ProjectDetail = () => {
 
   return (
     <>
-      <EmployeeDetailHeader projectId={projectId!} />
+      <ProjectDetailHeader
+        projectId={projectId!}
+        hideSaveChanges={hideSaveChanges}
+        formData={formData}
+        setHideSaveChanges={setHideSaveChanges}
+        mutate={mutate}
+      />
       <Main className="w-full h-full px-0">
         {isLoading ? (
           <Spinner isFull />
@@ -67,7 +75,12 @@ const ProjectDetail = () => {
             currencySymbol={getCurrencySymbol(projectData?.custom_currency) || ""}
             tabHeaderClassName="w-full"
             tabBodyClassName="xl:w-4/5"
-            onChange={(data) => console.log(data)}
+            onChange={(form_data) => {
+              if (data?.message?.permissions?.includes("write")) {
+                setHideSaveChanges(false);
+                setFormData(form_data);
+              }
+            }}
             onSubmit={(data) => console.log(data)}
             formRef={formRef}
             readOnly={!data?.message?.permissions?.includes("write")}

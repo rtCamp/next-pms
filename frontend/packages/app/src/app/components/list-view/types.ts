@@ -1,3 +1,11 @@
+/**
+ * External dependencies
+ */
+import type { KeyedMutator } from "swr";
+
+/**
+ * Internal dependencies
+ */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ViewData } from "@/store/view";
 import { fieldMetaProps, sortOrder, DocMetaProps } from "@/types";
@@ -31,6 +39,7 @@ export interface FilterPops {
   customFilterComponent?: React.ReactNode;
   onSearch?: (searchTerm: string) => void;
   hideQueryParam?: boolean;
+  mutate?: (callback: KeyedMutator<any>) => void;
 }
 
 export type ViewWrapperProps = {

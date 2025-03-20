@@ -51,7 +51,7 @@ export const Header = ({
               if (filter.hide) {
                 return <React.Fragment key={idx}></React.Fragment>;
               }
-              return <Filter filter={filter} key={filter.queryParameterName} />;
+              return <Filter filter={filter} key={filter.queryParameterName ?? idx} />;
             })}
         </div>
         <div className="flex gap-x-2">

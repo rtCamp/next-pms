@@ -89,6 +89,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
         value={filter.value as string}
         onSelect={handleChangeWrapper}
         className={mergeClassNames("w-full lg:w-fit", filter.className)}
+        mutate={filter.mutate}
       />
     );
   }

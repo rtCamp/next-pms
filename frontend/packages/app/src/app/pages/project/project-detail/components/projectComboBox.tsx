@@ -17,6 +17,7 @@ import {
 } from "@next-pms/design-system/components";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { ChevronDown, Check, FolderDot } from "lucide-react";
+import type { KeyedMutator } from "swr";
 /**
  * Internal dependencies.
  */
@@ -33,6 +34,8 @@ interface ProjectComboBoxProps {
   status?: Array<string>;
   projectName?: string;
   pageLength?: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  mutate?: (callback: KeyedMutator<any>) => void;
 }
 
 /**
@@ -56,6 +59,7 @@ const ProjectComboBox = ({
   projectName,
   pageLength,
   label = "Select Project",
+  mutate,
 }: ProjectComboBoxProps) => {
   const length = pageLength != null ? pageLength : 20;
   const [search, setSearch] = useState<string>(projectName ?? "");
@@ -63,14 +67,14 @@ const ProjectComboBox = ({
   const [selectedValues, setSelectedValues] = useState<string>(value);
   const [project, setProject] = useState<Project | undefined>();
   const [open, setOpen] = useState(false);
-  const { data: projects } = useFrappeGetCall(
+  const { data: projects, mutate: updateProjectList } = useFrappeGetCall(
     "next_pms.timesheet.api.project.get_project_list",
     {
       page_length: length,
       status: status,
       project_name: debouncedSearch,
     },
-    undefined,
+    "projectComboBox.get_project_list" + new Date(),
     {
       revalidateIfStale: false,
     }
@@ -91,7 +95,11 @@ const ProjectComboBox = ({
     setProject(res);
   }, [projects, selectedValues]);
 
-  useEffect(() => setSelectedValues(value), [value]);
+  useEffect(() => {
+    setSelectedValues(value);
+    mutate?.(updateProjectList);
+  }, [value]);
+
   const onInputChange = (search: string) => {
     setSearch(search);
   };
