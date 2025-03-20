@@ -26,7 +26,7 @@ const ResourceProjectTableBody = ({
 }: {
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const { projectData, filters } = useContextSelector(ProjectContext, (value) => value);
+  const { projectData, filters } = useContextSelector(ProjectContext, (value) => value.state);
 
   const data = projectData.data;
   const dates = projectData.dates;

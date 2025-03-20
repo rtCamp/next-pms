@@ -56,7 +56,7 @@ export function Router() {
 }
 
 const AuthenticatedRoute = () => {
-  const { currentUser, isLoading } = useContextSelector(UserContext, (value) => value);
+  const { currentUser, isLoading } = useContextSelector(UserContext, (value) => value.state);
   const { call } = useContext(FrappeContext) as FrappeConfig;
   const user = useSelector((state: RootState) => state.user);
   const views = useSelector((state: RootState) => state.view);

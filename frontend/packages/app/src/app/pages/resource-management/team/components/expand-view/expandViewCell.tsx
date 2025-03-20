@@ -53,9 +53,9 @@ const ExpandViewCell = ({
   weekIndex: number;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const { updateAllocationData, updateDialogState } = useContextSelector(ResourceFormContext, (value) => value);
+  const { updateAllocationData, updateDialogState } = useContextSelector(ResourceFormContext, (value) => value.actions);
 
-  const { teamData, filters, tableView } = useContextSelector(TeamContext, (value) => value);
+  const { teamData, filters, tableView } = useContextSelector(TeamContext, (value) => value.state);
 
   const { date: dateStr, day } = prettyDate(date);
   const title = project_name + " (" + dateStr + " - " + day + ")";

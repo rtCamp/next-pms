@@ -29,17 +29,16 @@ const ResourceTimLineHeaderSection = () => {
   const [designationParam] = useQueryParam<string[]>("designation", []);
   const [skillSearchParam, setSkillSearchParam] = useQueryParam<Skill[]>("skill-search", []);
 
-  const {
-    permission: resourceAllocationPermission,
-    updatePermission,
-    updateDialogState,
-  } = useContextSelector(ResourceFormContext, (value) => value);
+  const { permission: resourceAllocationPermission } = useContextSelector(ResourceFormContext, (value) => value.state);
+
+  const { updatePermission, updateDialogState } = useContextSelector(ResourceFormContext, (value) => value.actions);
 
   const { data: employee } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee", {
     filters: { name: reportingNameParam },
   });
 
-  const { updateFilters, filters } = useContextSelector(TimeLineContext, (value) => value);
+  const { filters } = useContextSelector(TimeLineContext, (value) => value.state);
+  const { updateFilters } = useContextSelector(TimeLineContext, (value) => value.actions);
 
   const { call, loading } = useFrappePostCall(
     "next_pms.resource_management.api.permission.get_user_resources_permissions"

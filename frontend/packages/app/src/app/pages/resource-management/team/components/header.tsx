@@ -33,14 +33,16 @@ const ResourceTeamHeaderSection = () => {
   const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParam<boolean>("combine-week-hours", false);
   const [skillSearchParam, setSkillSearchParam] = useQueryParam<Skill[]>("skill-search", []);
 
-  const { teamData, filters, tableView, updateFilter, setWeekDate, setCombineWeekHours, updateTableView } =
-    useContextSelector(TeamContext, (value) => value);
+  const { teamData, filters, tableView } = useContextSelector(TeamContext, (value) => value.state);
 
-  const {
-    permission: resourceAllocationPermission,
-    updatePermission,
-    updateDialogState,
-  } = useContextSelector(ResourceFormContext, (value) => value);
+  const { updateFilter, setWeekDate, setCombineWeekHours, updateTableView } = useContextSelector(
+    TeamContext,
+    (value) => value.actions
+  );
+
+  const { permission: resourceAllocationPermission } = useContextSelector(ResourceFormContext, (value) => value.state);
+
+  const { updatePermission, updateDialogState } = useContextSelector(ResourceFormContext, (value) => value.actions);
 
   const { call, loading } = useFrappePostCall(
     "next_pms.resource_management.api.permission.get_user_resources_permissions"

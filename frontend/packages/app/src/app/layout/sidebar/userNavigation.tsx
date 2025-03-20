@@ -25,7 +25,7 @@ import { mergeClassNames } from "@/lib/utils";
 import type { UserNavigationProps } from "./types";
 
 const UserNavigation = ({ user }: UserNavigationProps) => {
-  const logout = useContextSelector(UserContext, (value) => value.logout);
+  const logout = useContextSelector(UserContext, (value) => value.actions.logout);
 
   return (
     <ErrorFallback>

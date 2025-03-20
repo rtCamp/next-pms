@@ -45,11 +45,9 @@ export const ResourceAllocationCard = ({
 }) => {
   const customerData: ResourceCustomerProps = customer[resourceAllocation.customer];
 
-  const {
-    permission: resourceAllocationPermission,
-    updateDialogState,
-    updateAllocationData,
-  } = useContextSelector(ResourceFormContext, (value) => value);
+  const { permission: resourceAllocationPermission } = useContextSelector(ResourceFormContext, (value) => value.state);
+
+  const { updateDialogState, updateAllocationData } = useContextSelector(ResourceFormContext, (value) => value.actions);
 
   const { date: startDate } = prettyDate(resourceAllocation.allocation_start_date);
   const { date: endDate } = prettyDate(resourceAllocation.allocation_end_date);

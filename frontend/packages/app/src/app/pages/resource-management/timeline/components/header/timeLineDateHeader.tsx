@@ -19,7 +19,8 @@ const TimeLineDateHeader = ({ getIntervalProps, intervalContext }: TimeLineHeade
   const { date: dateStr, day } = prettyDate(getDayKeyOfMoment(startTime));
   const { date: toDayStr } = prettyDate(getTodayDate());
 
-  const { tableProperties, getCellWidthString } = useContextSelector(TableContext, (value) => value);
+  const { tableProperties } = useContextSelector(TableContext, (value) => value.state);
+  const { getCellWidthString } = useContextSelector(TableContext, (value) => value.actions);
 
   let headerProps: ResourceAllocationItemProps = getIntervalProps();
 

@@ -32,7 +32,8 @@ const ResourceTeamTable = ({
   dateToAddHeaderRef: string;
   handleVerticalLoadMore: () => void;
 }) => {
-  const { teamData, apiController, getHasMore } = useContextSelector(TeamContext, (value) => value);
+  const { teamData, apiController } = useContextSelector(TeamContext, (value) => value.state);
+  const { getHasMore } = useContextSelector(TeamContext, (value) => value.actions);
 
   const dates: DateProps[] = teamData.dates;
   const isLoading = apiController.isLoading;

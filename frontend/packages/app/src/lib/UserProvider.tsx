@@ -6,17 +6,25 @@ import { useFrappeAuth } from "frappe-react-sdk";
 import { createContext } from "use-context-selector";
 
 interface UserContextProps {
-  isLoading: boolean;
-  currentUser: string | null;
-  logout: () => Promise<void>;
-  updateCurrentUser: VoidFunction;
+  state: {
+    isLoading: boolean;
+    currentUser: string | null;
+  };
+  actions: {
+    logout: () => Promise<void>;
+    updateCurrentUser: VoidFunction;
+  };
 }
 
 export const UserContext = createContext<UserContextProps>({
-  currentUser: null,
-  isLoading: false,
-  logout: () => Promise.resolve(),
-  updateCurrentUser: () => {},
+  state: {
+    currentUser: null,
+    isLoading: false,
+  },
+  actions: {
+    logout: () => Promise.resolve(),
+    updateCurrentUser: () => {},
+  },
 });
 
 export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
@@ -31,10 +39,14 @@ export const UserProvider: FC<PropsWithChildren> = ({ children }) => {
   return (
     <UserContext.Provider
       value={{
-        isLoading,
-        updateCurrentUser,
-        logout: handleLogout,
-        currentUser: currentUser ?? null,
+        state: {
+          isLoading,
+          currentUser: currentUser ?? null,
+        },
+        actions: {
+          updateCurrentUser,
+          logout: handleLogout,
+        },
       }}
     >
       {children}

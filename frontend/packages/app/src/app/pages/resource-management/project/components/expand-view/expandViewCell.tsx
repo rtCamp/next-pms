@@ -60,8 +60,8 @@ const ExpandViewCell = ({
   customer: ResourceCustomerObjectProps;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const { tableView, filters } = useContextSelector(ProjectContext, (value) => value);
-  const { updateAllocationData, updateDialogState } = useContextSelector(ResourceFormContext, (value) => value);
+  const { tableView, filters } = useContextSelector(ProjectContext, (value) => value.state);
+  const { updateAllocationData, updateDialogState } = useContextSelector(ResourceFormContext, (value) => value.actions);
 
   const allocationType = filters.allocationType;
 

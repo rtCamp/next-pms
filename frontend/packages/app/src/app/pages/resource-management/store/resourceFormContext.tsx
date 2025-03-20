@@ -40,13 +40,17 @@ const DefaultPermission: PermissionProps = {
 };
 
 const ResourceFormContext = createContext<ResourceFormContextProps>({
-  dialogState: DefaultDialogState,
-  allocationData: DefaultAllocationData,
-  permission: DefaultPermission,
-  updateDialogState: () => {},
-  updateAllocationData: () => {},
-  updatePermission: () => {},
-  resetState: () => {},
+  state: {
+    dialogState: DefaultDialogState,
+    allocationData: DefaultAllocationData,
+    permission: DefaultPermission,
+  },
+  actions: {
+    updateDialogState: () => {},
+    updateAllocationData: () => {},
+    updatePermission: () => {},
+    resetState: () => {},
+  },
 });
 
 const ResourceContextProvider = ({ children }: ContextProviderProps) => {
@@ -88,13 +92,17 @@ const ResourceContextProvider = ({ children }: ContextProviderProps) => {
   return (
     <ResourceFormContext.Provider
       value={{
-        dialogState: dialogState,
-        allocationData: allocationData,
-        permission: permission,
-        updateDialogState: updateDialogState,
-        updateAllocationData: updateAllocationData,
-        updatePermission: updatePermission,
-        resetState: resetState,
+        state: {
+          dialogState: dialogState,
+          allocationData: allocationData,
+          permission: permission,
+        },
+        actions: {
+          updateDialogState: updateDialogState,
+          updateAllocationData: updateAllocationData,
+          updatePermission: updatePermission,
+          resetState: resetState,
+        },
       }}
     >
       {children}

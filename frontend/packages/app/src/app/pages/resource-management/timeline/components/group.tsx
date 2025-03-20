@@ -16,13 +16,12 @@ import { getIsBillableValue } from "../../utils/helper";
 import type { ResourceTimeLineGroupProps } from "../types";
 
 const ResourceTimeLineGroup = ({ group }: ResourceTimeLineGroupProps) => {
-  const { getLastTimeLineItem, verticalLoderRef, filters } = useContextSelector(TimeLineContext, (value) => value);
+  const { filters } = useContextSelector(TimeLineContext, (value) => value.state);
+  const { getLastTimeLineItem, verticalLoderRef } = useContextSelector(TimeLineContext, (value) => value.actions);
   const lastEmployee = getLastTimeLineItem() == group.name;
-  const {
-    permission: resourceAllocationPermission,
-    updateDialogState,
-    updateAllocationData,
-  } = useContextSelector(ResourceFormContext, (value) => value);
+  const { permission: resourceAllocationPermission } = useContextSelector(ResourceFormContext, (value) => value.state);
+
+  const { updateDialogState, updateAllocationData } = useContextSelector(ResourceFormContext, (value) => value.actions);
 
   const setResourceAllocationData = () => {
     if (!resourceAllocationPermission.write) {

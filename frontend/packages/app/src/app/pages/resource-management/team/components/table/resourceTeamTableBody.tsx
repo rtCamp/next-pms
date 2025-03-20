@@ -25,7 +25,7 @@ const ResourceTeamTableBody = ({
 }: {
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const teamData = useContextSelector(TeamContext, (value) => value.teamData);
+  const teamData = useContextSelector(TeamContext, (value) => value.state.teamData);
 
   const data = teamData.data;
   const dates = teamData.dates;

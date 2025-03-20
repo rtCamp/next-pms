@@ -30,10 +30,9 @@ const ResourceProjectTable = ({
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
   dateToAddHeaderRef: string;
 }) => {
-  const { projectData, filters, apiController, getHasMore, setMaxWeek, setStart } = useContextSelector(
-    ProjectContext,
-    (value) => value
-  );
+  const { projectData, filters, apiController } = useContextSelector(ProjectContext, (value) => value.state);
+
+  const { getHasMore, setMaxWeek, setStart } = useContextSelector(ProjectContext, (value) => value.actions);
 
   const dates: DateProps[] = projectData.dates;
   const isLoading = apiController.isLoading;

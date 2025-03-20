@@ -36,7 +36,8 @@ const ResourceTableCell = ({
   value,
   style,
 }: ResourceTableProps) => {
-  const { tableProperties, getCellWidthString } = useContextSelector(TableContext, (value) => value);
+  const { tableProperties } = useContextSelector(TableContext, (value) => value.state);
+  const { getCellWidthString } = useContextSelector(TableContext, (value) => value.actions);
 
   const mergeCellClassName = mergeClassNames(
     "cursor-pointer text-xs flex px-2 py-2 w-16 justify-center items-center",

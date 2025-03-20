@@ -36,7 +36,8 @@ const TableInformationCellContent = ({
   cellRef?: React.RefObject<HTMLTableCellElement>;
   onClick?: () => void;
 }) => {
-  const { tableProperties, getCellWidthString } = useContextSelector(TableContext, (value) => value);
+  const { tableProperties } = useContextSelector(TableContext, (value) => value.state);
+  const { getCellWidthString } = useContextSelector(TableContext, (value) => value.actions);
 
   return (
     <TableCell

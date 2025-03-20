@@ -29,24 +29,23 @@ import { getIsBillableValue } from "../utils/helper";
 
 const ResourceTimeLineView = () => {
   const { toast } = useToast();
+  const { apiControler, employees, customer, allocations, filters, allocationData } = useContextSelector(
+    TimeLineContext,
+    (value) => value.state
+  );
+
   const {
-    apiControler,
-    employees,
-    customer,
-    allocations,
-    filters,
-    allocationData,
     updateApiControler,
     setEmployeesData,
     setCustomerData,
     setAllocationsData,
     isEmployeeExits,
     setAllocationData,
-  } = useContextSelector(TimeLineContext, (value) => value);
+  } = useContextSelector(TimeLineContext, (value) => value.actions);
 
   const { permission: resourceAllocationPermission, dialogState: resourceDialogState } = useContextSelector(
     ResourceFormContext,
-    (value) => value
+    (value) => value.state
   );
 
   const { call: fetchData } = useFrappePostCall(

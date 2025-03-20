@@ -30,7 +30,8 @@ const ResourceTableHeader = ({
   dateToAddHeaderRef,
   isLoading,
 }: ResourceTableHeaderProps) => {
-  const { tableProperties, getCellWidthString } = useContextSelector(TableContext, (value) => value);
+  const { tableProperties } = useContextSelector(TableContext, (value) => value.state);
+  const { getCellWidthString } = useContextSelector(TableContext, (value) => value.actions);
 
   return (
     <TableHeader className="border-t-0 sticky top-0 z-30">
