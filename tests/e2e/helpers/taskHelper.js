@@ -2,9 +2,6 @@ import path from "path";
 import { getTaskDetails, deleteTaskEndPoint } from "../utils/api/taskRequests";
 import { readJSONFile } from "../utils/fileUtils";
 
-// Define file paths for shared JSON data files
-const managerTaskDataFilePath = path.resolve(__dirname, "../data/manager/shared-task.json"); // File path of the manager task data JSON file
-
 // Global variables to store shared data and reused across functions
 let sharedManagerTaskData;
 
