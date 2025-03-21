@@ -1,12 +1,8 @@
-import path from "path";
-import fs from "fs";
 import { test, expect } from "@playwright/test";
-import { getWeekdayName } from "../../utils/dateUtils";
 import { secondsToDuration, durationToSeconds } from "../../utils/dateUtils";
 import { TimesheetPage } from "../../pageObjects/timesheetPage";
 import data from "../../data/employee/shared-timesheet.json";
 
-const employeeTimesheetDataFilePath = path.resolve(__dirname, "../../data/employee/shared-timesheet.json"); // File path of the employee timesheet data JSON file
 //add type hints to help VS Code recognize TimesheetPage
 /** @type {TimesheetPage} */
 let timesheetPage;
@@ -22,14 +18,6 @@ let TC14data = data.TC14;
 let TC15data = data.TC15;
 
 // ------------------------------------------------------------------------------------------
-
-test.beforeAll(async ({}) => {
-  // Compute cell info for TC13
-  data.TC13.cell.col = getWeekdayName(new Date()); // Get today's weekday name
-
-  // Write back updated JSON
-  fs.writeFileSync(employeeTimesheetDataFilePath, JSON.stringify(data, null, 2));
-});
 
 test.beforeEach(async ({ page }) => {
   // Instantiate page objects
