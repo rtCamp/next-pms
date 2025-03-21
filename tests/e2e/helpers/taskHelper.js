@@ -1,13 +1,6 @@
 import path from "path";
-import fs from "fs";
-import { getWeekdayName, getFormattedDate, getDateForWeekday } from "../utils/dateUtils";
 import { getTaskDetails, deleteTaskEndPoint } from "../utils/api/taskRequests";
-import employeeTimesheetData from "../data/employee/timesheet.json";
-import managerTaskData from "../data/manager/task.json";
 import { readJSONFile } from "../utils/fileUtils";
-
-// Load env variables
-//const empID = process.env.EMP_ID;
 
 // Define file paths for shared JSON data files
 const managerTaskDataFilePath = path.resolve(__dirname, "../data/manager/shared-task.json"); // File path of the manager task data JSON file
