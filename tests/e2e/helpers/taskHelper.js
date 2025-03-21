@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs";
 import { getWeekdayName, getFormattedDate, getDateForWeekday } from "../utils/dateUtils";
-import {  getTaskDetails, deleteTaskEndPoint } from "../utils/api/taskRequests";
+import { getTaskDetails, deleteTaskEndPoint } from "../utils/api/taskRequests";
 import employeeTimesheetData from "../data/employee/timesheet.json";
 import managerTaskData from "../data/manager/task.json";
 import { readJSONFile } from "../utils/fileUtils";
@@ -27,21 +27,14 @@ let sharedManagerTaskData;
  */
 export const deleteTasks = async () => {
   sharedManagerTaskData = await readJSONFile("../data/manager/task.json");
-  const taskEntries = [
-    sharedManagerTaskData.TC24.payloadFilterTimeEntry.subject
-  ];
+
+  const taskEntries = [sharedManagerTaskData.TC24.payloadFilterTimeEntry.subject];
 
   for (const entry of taskEntries) {
-    //const taskIDtoDelete = await getTaskDetails(entry);
     const response = await getTaskDetails(entry);
     const jsonResponse = await response.json();
-    console.log("PRINTING LATEST:",jsonResponse);
-  const taskIDtoDelete = jsonResponse.message.task[0].name;
-  console.warn("Passing Task Id to the delete api end point is:",taskIDtoDelete)
-    console.log("Passing Task Id to the delete api end point is:",taskIDtoDelete)
-    const  deleteEP = await deleteTaskEndPoint(taskIDtoDelete);
-    console.warn("PRINT DELETE RESP:",await deleteEP.status());
-
+    const taskIDtoDelete = jsonResponse.message.task[0].name;
+    await deleteTaskEndPoint(taskIDtoDelete);
   }
 };
 
