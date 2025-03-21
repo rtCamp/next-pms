@@ -58,16 +58,16 @@ test("TC24: Verify task addition", async ({}) => {
   // Add a task
   await taskPage.AddTask(TC24data.taskInfo);
 
+  // Search task
+  await taskPage.searchTask(TC24data.taskInfo.task);
 
-// Search task
-await taskPage.searchTask(TC24data.taskInfo.task);
+  // Open task details
+  await taskPage.openTaskDetails(TC24data.taskInfo.task);
 
-// Open task details
-await taskPage.openTaskDetails(TC24data.taskInfo.task);
-
-// Assertions to verify that created task is visible
-const isTaskDetailsDialogVisible = await taskPage.isTaskDetailsDialogVisible(TC24data.taskInfo.task);
-expect(isTaskDetailsDialogVisible).toBeTruthy();
+  // Assertions to verify that created task is visible
+  const isTaskDetailsDialogVisible = await taskPage.isTaskDetailsDialogVisible(TC24data.taskInfo.task);
+  expect(isTaskDetailsDialogVisible).toBeTruthy();
+  
 });
 
 test("TC20: The information table columns should be customizable using the ‘Columns’ button at the top.", async ({}) => {
