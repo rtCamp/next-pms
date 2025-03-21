@@ -11,6 +11,13 @@ export class TaskPage {
 
     // Header Filters
     this.searchInput = page.getByPlaceholder("Subject");
+    this.saveButton = page.getByRole("button", { name: "Save changes" });
+    this.columnsButton = page.getByRole("button").filter({ has: page.locator("//p[text()='Columns']") });
+
+    // Popper Modals
+    this.columnMenu = page
+      .locator("//div[@data-radix-popper-content-wrapper]")
+      .filter({ has: page.getByRole("menuitem", { name: "Add Columns" }) });
 
     // Tasks Table
     this.tasksTable = page.getByRole("table");
@@ -40,6 +47,40 @@ export class TaskPage {
   }
 
   // --------------------------------------
+  // Top Columns Actions
+  // --------------------------------------
+
+  /**
+   * Saves view by clicking on 'Save changes' button.
+   */
+  async saveView() {
+    await this.saveButton.click();
+  }
+
+  /**
+   * Adds a column by selecting it from the Columns menu.
+   */
+  async addColumn(name) {
+    const columnSelectionMenu = this.page
+      .locator("//div[@data-radix-popper-content-wrapper]")
+      .filter({ hasNot: this.page.getByRole("menuitem", { name: "Add Columns" }) });
+
+    await this.columnsButton.click();
+    await this.columnMenu.getByRole("menuitem", { name: "Add Columns" }).click();
+    await columnSelectionMenu.locator(`//div[@role='menuitem' and text()='${name}']`).click();
+    await this.searchInput.click({ force: true });
+  }
+
+  /**
+   * Removes a column by de-selecting it from the Columns menu.
+   */
+  async removeColumn(name) {
+    await this.columnsButton.click();
+    await this.columnMenu.getByRole("menuitem", { name: name }).locator("//span").last().click();
+    await this.searchInput.click({ force: true });
+  }
+
+  // --------------------------------------
   // Tasks Table Actions
   // --------------------------------------
 
@@ -47,7 +88,9 @@ export class TaskPage {
    * Retrieves the header row from the tasks table.
    */
   async getHeaderRow() {
-    return this.tasksTable.locator("thead").getByRole("row");
+    await this.tasksTable.waitFor({ state: "visible" });
+
+    return this.tasksTable.locator("//thead//tr");
   }
 
   /**
@@ -63,6 +106,8 @@ export class TaskPage {
    * Retrieves the row containing the specified task name.
    */
   async getTaskRow(name) {
+    await this.tasksTable.waitFor({ state: "visible" });
+
     return this.tasksTable.locator(`//tr[.//p[contains(text(), '${name}')]]`);
   }
 
@@ -80,6 +125,70 @@ export class TaskPage {
     }
 
     return tasks;
+  }
+
+  /**
+   * Checks if a given task is billable.
+   */
+  async isTaskBillable(task) {
+    const text = await this.getCellText({ task: task, col: "Is Billable" });
+
+    return text === "Yes";
+  }
+
+  /**
+   * Checks if the specified column is present in table.
+   */
+  async isColumnPresent(name) {
+    const headerRow = await this.getHeaderRow();
+    const column = headerRow.locator("//th//p", { hasText: name });
+
+    if ((await column.count()) > 0) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Retrieves the column index by column name.
+   * Return -1 if column is not found.
+   */
+  async getColIndex(name) {
+    const headerCols = (await this.getHeaderRow()).locator("//p[@class='truncate']");
+    const count = await headerCols.count();
+
+    for (let idx = 0; idx < count; idx++) {
+      const text = await headerCols.nth(idx).textContent();
+
+      if (text === name) {
+        return idx;
+      }
+    }
+
+    return -1;
+  }
+
+  /**
+   * Retrieves a table cell element based on the task and column name.
+   */
+  async getCell({ task, col }) {
+    const row = await this.getTaskRow(task);
+    const colIndex = await this.getColIndex(col);
+    const cell = row.getByRole("cell").nth(colIndex);
+
+    await cell.waitFor({ state: "visible" });
+
+    return cell;
+  }
+
+  /**
+   * Retrieves the text content of a table cell.
+   */
+  async getCellText(cellInfo) {
+    const cell = await this.getCell(cellInfo);
+
+    return (await cell.isVisible()) ? await cell.textContent() : "-";
   }
 
   // --------------------------------------
