@@ -23,11 +23,10 @@ export class TaskPage {
     this.tasksTable = page.getByRole("table");
 
     //Task button
-    this.addTaskbutton = page.getByRole('button', { name: 'Task' });
+    this.addTaskbutton = page.getByRole("button", { name: "Task" });
 
     //Task Modal
-    this.addTaskModal = page.getByRole('dialog', { name: 'Add Task' })
-
+    this.addTaskModal = page.getByRole("dialog", { name: "Add Task" });
   }
 
   // --------------------------------------
@@ -229,7 +228,6 @@ export class TaskPage {
     await searchInput.press("ArrowDown+Enter");
   }
 
-
   /**
    * Adds a task by clicking on the Task button
    */
@@ -242,7 +240,7 @@ export class TaskPage {
     if (project) {
       await this.searchAndSelectOption("Search Project", project);
     }
-   
+
     await this.addTaskModal.getByPlaceholder("Explain the subject").fill(desc);
     await this.addTaskModal.getByRole("button", { name: "Add Task" }).click();
   }
