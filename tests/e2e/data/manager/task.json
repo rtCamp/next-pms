@@ -4,5 +4,19 @@
   },
   "TC19": {
     "task": "Meetings"
+  },
+  "TC24": {
+    "taskInfo": {
+      "duration": "10",
+      "project": "QE - Retainer",
+      "task": "TC24 - 1.Task added from the task button in Task Tab",
+      "desc": "TC24 - Desription for the task added through automation"
+    },
+    "payloadFilterTimeEntry": {
+      "subject": "TC24 - 1.Task added from the task button in Task Tab",
+      "description": "TC24 - Desription for the task added through automation",
+      "project_name": "QE - Retainer"
+      
+    }
   }
 }

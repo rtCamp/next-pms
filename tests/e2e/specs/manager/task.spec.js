@@ -3,11 +3,14 @@ import { test, expect } from "@playwright/test";
 import { TaskPage } from "../../pageObjects/taskPage";
 import data from "../../data/manager/task.json";
 
+//Add type hints to help VS Code recognize TimesheetPage
+/** @type {TaskPage} */
 let taskPage;
 
 // Load test data
 let TC17data = data.TC17;
 let TC19data = data.TC19;
+let TC24data = data.TC24;
 
 // ------------------------------------------------------------------------------------------
 
@@ -46,4 +49,20 @@ test("TC19: Open task details popup", async ({}) => {
   // Assertions
   const isTaskDetailsDialogVisible = await taskPage.isTaskDetailsDialogVisible(TC19data.task);
   expect(isTaskDetailsDialogVisible).toBeTruthy();
+});
+
+test("TC24: Verify task addition", async ({}) => {
+  // Add a task
+  await taskPage.AddTask(TC24data.taskInfo);
+
+
+// Search task
+await taskPage.searchTask(TC24data.taskInfo.task);
+
+// Open task details
+await taskPage.openTaskDetails(TC24data.taskInfo.task);
+
+// Assertions to verify that created task is visible
+const isTaskDetailsDialogVisible = await taskPage.isTaskDetailsDialogVisible(TC24data.taskInfo.task);
+expect(isTaskDetailsDialogVisible).toBeTruthy();
 });

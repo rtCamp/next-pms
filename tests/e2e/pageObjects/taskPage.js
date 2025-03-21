@@ -10,10 +10,17 @@ export class TaskPage {
     this.page = page;
 
     // Header Filters
-    this.searchInput = page.getByPlaceholder("Subject");
+    this.searchInput = page.getByPlaceholder("Subject").first();
 
     // Tasks Table
     this.tasksTable = page.getByRole("table");
+
+    //Task button
+    this.addTaskbutton = page.getByRole('button', { name: 'Task' });
+
+    //Task Modal
+    this.addTaskModal = page.getByRole('dialog', { name: 'Add Task' })
+
   }
 
   // --------------------------------------
@@ -90,7 +97,7 @@ export class TaskPage {
    * Opens the details dialog of a specified task.
    */
   async openTaskDetails(task) {
-    const element = this.tasksTable.locator(`//p[text()='${task}']`);
+    const element = this.tasksTable.locator(`//p[text()='${task}']`).first();
     await element.click();
   }
 
@@ -99,5 +106,35 @@ export class TaskPage {
    */
   async isTaskDetailsDialogVisible(name) {
     return this.page.getByRole("dialog", { name: name }).isVisible();
+  }
+
+  /**
+   * Performs a search and selection within a modal based on a placeholder text.
+   */
+  async searchAndSelectOption(placeholder, value) {
+    const searchButton = this.page.getByRole("button", { name: placeholder });
+    const searchInput = this.page.getByRole("dialog").getByPlaceholder(`${placeholder}`);
+
+    await searchButton.click();
+    await searchInput.fill(value);
+    await searchInput.press("ArrowDown+Enter");
+  }
+
+
+  /**
+   * Adds a task by clicking on the Task button
+   */
+  async AddTask({ task, duration, project, desc }) {
+    await this.page.pause();
+    await this.addTaskbutton.click();
+    await this.addTaskModal.getByPlaceholder("New subject").fill(task);
+
+    await this.addTaskModal.getByPlaceholder("Time(in hours)").fill(duration);
+    if (project) {
+      await this.searchAndSelectOption("Search Project", project);
+    }
+   
+    await this.addTaskModal.getByPlaceholder("Explain the subject").fill(desc);
+    await this.addTaskModal.getByRole("button", { name: "Add Task" }).click();
   }
 }

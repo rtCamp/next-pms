@@ -7,8 +7,9 @@ import { TimesheetPage } from "../../pageObjects/timesheetPage";
 import data from "../../data/employee/shared-timesheet.json";
 
 const employeeTimesheetDataFilePath = path.resolve(__dirname, "../../data/employee/shared-timesheet.json"); // File path of the employee timesheet data JSON file
+//add type hints to help VS Code recognize TimesheetPage
+/** @type {TimesheetPage} */
 let timesheetPage;
-
 // Load test data
 let TC2data = data.TC2;
 let TC3data = data.TC3;
