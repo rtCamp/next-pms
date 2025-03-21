@@ -38,7 +38,7 @@ def get_data(meta, filters=None):
     employees = get_list(
         "Employee",
         fields=fields,
-        filters={"status": employee_status, "name": ["in",["EMP-00234","EMP-00375"]]},
+        filters={"status": employee_status},
         order_by="employee_name ASC",
     )
     employee_names = [employee.employee for employee in employees]
