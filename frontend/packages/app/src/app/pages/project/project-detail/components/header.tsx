@@ -51,7 +51,6 @@ export const ProjectDetailHeader = ({
             title: "Save changes",
             handleClick: async () => {
               formRef.current?.submitForm();
-              // await updateDoc("Project", projectId, formData);
             },
             hide: hideSaveChanges,
             label: "Save changes",

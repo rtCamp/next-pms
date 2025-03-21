@@ -138,19 +138,7 @@ const getFieldComponent = (
   switch (field.fieldtype) {
     case "Select":
       return (
-        <Select
-          onValueChange={handleChange}
-          defaultValue={
-            (field?.options || "")
-              .split("\n")
-              .map((option) => option.trim())
-              .filter((option) => option !== "")
-              .includes(value)
-              ? value
-              : undefined
-          }
-          disabled={isReadOnly}
-        >
+        <Select onValueChange={handleChange} defaultValue={value} value={value} disabled={isReadOnly}>
           <SelectTrigger className="disabled:bg-transparent">
             <SelectValue placeholder="Select an option" />
           </SelectTrigger>
