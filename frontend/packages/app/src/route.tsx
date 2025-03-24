@@ -19,15 +19,15 @@ import { setViews } from "./store/view";
 /**
  * Lazy load components.
  */
-const TimesheetComponent = lazy(() => import("@/app/pages/timesheet"));
-const HomeComponent = lazy(() => import("@/app/pages/home"));
-const TeamComponent = lazy(() => import("@/app/pages/team"));
-const ResourceTeamComponent = lazy(() => import("@/app/pages/resource-management/team"));
-const ResourceProjectComponent = lazy(() => import("@/app/pages/resource-management/project"));
-const ResourceTimeLineComponet = lazy(() => import("@/app/pages/resource-management/timeline"));
-const EmployeeDetailComponent = lazy(() => import("@/app/pages/team/employee-detail"));
-const TaskComponent = lazy(() => import("@/app/pages/task"));
-const ProjectComponent = lazy(() => import("@/app/pages/project"));
+const Timesheet = lazy(() => import("@/app/pages/timesheet"));
+const Home = lazy(() => import("@/app/pages/home"));
+const Team = lazy(() => import("@/app/pages/team"));
+const ResourceTeam = lazy(() => import("@/app/pages/resource-management/team"));
+const ResourceProject = lazy(() => import("@/app/pages/resource-management/project"));
+const ResourceTimeLine = lazy(() => import("@/app/pages/resource-management/timeline"));
+const EmployeeDetail = lazy(() => import("@/app/pages/team/employee-detail"));
+const Task = lazy(() => import("@/app/pages/task"));
+const Project = lazy(() => import("@/app/pages/project"));
 const NotFound = lazy(() => import("@/app/pages/404"));
 
 export function Router() {
@@ -35,21 +35,21 @@ export function Router() {
     <Route>
       <Route element={<AuthenticatedRoute />}>
         <Route path="/" element={<Navigate to={TIMESHEET} replace />} />
-        <Route path={TIMESHEET} element={<TimesheetComponent />} />
+        <Route path={TIMESHEET} element={<Timesheet />} />
         <Route element={<PmRoute />}>
-          <Route path={HOME} element={<HomeComponent />} />
+          <Route path={HOME} element={<Home />} />
           <Route path={TEAM}>
-            <Route path={`${TEAM}/`} element={<TeamComponent />} />
-            <Route path={`${TEAM}/employee/:id?`} element={<EmployeeDetailComponent />} />
+            <Route path={`${TEAM}/`} element={<Team />} />
+            <Route path={`${TEAM}/employee/:id?`} element={<EmployeeDetail />} />
           </Route>
-          <Route path={`${PROJECT}/:type?`} element={<ProjectComponent />} />
+          <Route path={`${PROJECT}/:type?`} element={<Project />} />
         </Route>
-        <Route path={TASK} element={<TaskComponent />} />
-        <Route path={`${RESOURCE_MANAGEMENT}/timeline`} element={<ResourceTimeLineComponet />} />
-        <Route path={`${RESOURCE_MANAGEMENT}/team`} element={<ResourceTeamComponent />} />
-        <Route path={`${RESOURCE_MANAGEMENT}/project`} element={<ResourceProjectComponent />} />
+        <Route path={TASK} element={<Task />} />
+        <Route path={`${RESOURCE_MANAGEMENT}/timeline`} element={<ResourceTimeLine />} />
+        <Route path={`${RESOURCE_MANAGEMENT}/team`} element={<ResourceTeam />} />
+        <Route path={`${RESOURCE_MANAGEMENT}/project`} element={<ResourceProject />} />
       </Route>
-      <Route path={TASK} element={<TaskComponent />} />
+      <Route path={TASK} element={<Task />} />
       <Route path="*" element={<NotFound />} />
     </Route>
   );

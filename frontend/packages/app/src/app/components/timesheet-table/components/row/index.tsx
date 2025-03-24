@@ -17,7 +17,7 @@ import type { RowProps } from "./types";
 const Row = ({
   dates,
   tasks,
-  holidayList,
+  holidays,
   onCellClick,
   disabled,
   likedTaskData,
@@ -72,14 +72,18 @@ const Row = ({
                     },
                   ];
                 }
-                const isHoliday = holidayList.includes(date);
+                const matchingHoliday = holidays.find((item) => item.holiday_date === date);
+
+                const result = matchingHoliday
+                  ? { isHoliday: true, weekly_off: matchingHoliday.weekly_off }
+                  : { isHoliday: false, weekly_off: false };
                 return (
                   <Cell
                     key={date}
                     className={cellClassName}
                     date={date}
                     data={data}
-                    isHoliday={isHoliday}
+                    isHoliday={result.isHoliday && !result.weekly_off}
                     onCellClick={onCellClick}
                     disabled={disabled}
                   />

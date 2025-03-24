@@ -45,7 +45,7 @@ const ResourceTableRow = ({
           <AccordionTrigger hideChevronDown={true} className="hover:no-underline py-0">
             <TableInformationCellContent
               cellClassName="overflow-hidden flex items-center font-normal hover:underline"
-              CellComponet={() => {
+              CellComponent={() => {
                 return (
                   <Avatar className="w-6 h-6">
                     {<AvatarImage src={decodeURIComponent(avatar)} />}

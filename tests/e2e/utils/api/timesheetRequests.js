@@ -1,34 +1,6 @@
-import { request } from "@playwright/test";
-import config from "../../playwright.config";
+import { login } from "./authRequests";
 
-// Load config variables
-const baseURL = config.use?.baseURL;
-
-// Load env variables
-const repManEmail = process.env.REP_MAN_EMAIL;
-const repManPass = process.env.REP_MAN_PASS;
-
-let context; // Global request context to maintain session
-
-// ------------------------------------------------------------------------------------------
-
-/**
- * Login to the system and create a new request context.
- */
-export const login = async () => {
-  // Create new request context
-  context = await request.newContext({ baseURL: baseURL });
-
-  const response = await context.post(`/login`, {
-    data: {
-      cmd: "login",
-      usr: repManEmail,
-      pwd: repManPass,
-    },
-  });
-
-  return await response;
-};
+let context; // Global variable for request context
 
 // ------------------------------------------------------------------------------------------
 
@@ -37,8 +9,9 @@ export const login = async () => {
  */
 export const createTimesheet = async ({ task, description, hours, date, employee }) => {
   // Ensure the user is logged in before making API requests
-  if (context === undefined || context === null) {
-    await login();
+  if (!context) {
+    const loginResult = await login();
+    context = loginResult.context;
   }
 
   const response = await context.post(`/api/method/next_pms.timesheet.api.timesheet.save`, {
@@ -61,8 +34,9 @@ export const createTimesheet = async ({ task, description, hours, date, employee
  */
 export const deleteTimesheet = async ({ parent, name }) => {
   // Ensure the user is logged in before making API requests
-  if (context === undefined || context === null) {
-    await login();
+  if (!context) {
+    const loginResult = await login();
+    context = loginResult.context;
   }
 
   const response = await context.post(`/api/method/next_pms.timesheet.api.timesheet.delete`, {
@@ -83,8 +57,9 @@ export const deleteTimesheet = async ({ parent, name }) => {
  */
 export const getTimesheetDetails = async ({ employee, start_date, max_week }) => {
   // Ensure the user is logged in before making API requests
-  if (context === undefined || context === null) {
-    await login();
+  if (!context) {
+    const loginResult = await login();
+    context = loginResult.context;
   }
 
   // Build query string dynamically based on provided parameters

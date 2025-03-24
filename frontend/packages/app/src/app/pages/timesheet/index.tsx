@@ -218,6 +218,9 @@ function Timesheet() {
                                 end_date={value.end_date}
                                 onApproval={handleApproval}
                                 status={value.status}
+                                expectedHours={timesheet.data.working_hour}
+                                totalHours={data.totalHours}
+                                workingFrequency={timesheet.data.working_frequency as WorkingFrequency}
                               />
                             </div>
                           </AccordionTrigger>

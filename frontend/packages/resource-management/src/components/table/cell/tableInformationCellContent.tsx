@@ -15,7 +15,7 @@ import { mergeClassNames, getFilterValue } from "../../../utils";
  *
  * @param props.value The value of the cell.
  * @param props.cellClassName The class for cell.
- * @param props.CellComponet The cell component.
+ * @param props.CellComponent The cell component.
  * @param props.cellTypographyClassName The class name for cell typography.
  * @param props.onClick The onClick event for cell.
  * @returns React.FC
@@ -23,14 +23,14 @@ import { mergeClassNames, getFilterValue } from "../../../utils";
 const TableInformationCellContent = ({
   value,
   cellClassName,
-  CellComponet,
+  CellComponent,
   cellTypographyClassName,
   cellRef,
   onClick,
 }: {
   value?: string;
   cellClassName?: string;
-  CellComponet?: React.FC | undefined;
+  CellComponent?: React.FC | undefined;
   cellTypographyClassName?: string;
   cellRef?: React.RefObject<HTMLTableCellElement>;
   onClick?: () => void;
@@ -52,8 +52,8 @@ const TableInformationCellContent = ({
         )}
         title={value}
       >
-        {!value && !CellComponet && " "}
-        {CellComponet && <CellComponet />}
+        {!value && !CellComponent && " "}
+        {CellComponent && <CellComponent />}
         {getFilterValue(value)}
       </Typography>
     </TableCell>

@@ -48,7 +48,7 @@ module.exports = defineConfig({
     baseURL: process.env.BASE_URL,
 
     /* Storage state file */
-    storageState: path.resolve(__dirname, "./auth/user.json"),
+    storageState: path.resolve(__dirname, "./auth/employee.json"),
 
     /* Collect trace */
     trace: "retain-on-failure",
