@@ -23,7 +23,7 @@ export type cellProps = {
 
 export type HeaderProps = {
   dates: string[];
-  holidayList: string[];
+  holidays: HolidayProp[];
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   onCellClick?: (data) => void;

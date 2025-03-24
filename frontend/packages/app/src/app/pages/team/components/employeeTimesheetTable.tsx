@@ -64,7 +64,7 @@ export const EmployeeTimesheetTable = ({ employee, teamState }: EmployeeTimeshee
             <Row
               tasks={timesheetData.tasks}
               dates={timesheetData.dates}
-              holidayList={holidays}
+              holidays={holidays}
               onCellClick={() => {}}
               disabled
               hideLikeButton

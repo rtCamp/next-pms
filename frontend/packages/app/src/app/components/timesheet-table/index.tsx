@@ -81,7 +81,7 @@ export const TimesheetTable = ({
           showHeading={showHeading}
           dates={dates}
           importTasks={importTasks}
-          holidayList={holidayList}
+          holidays={holidays}
           loadingLikedTasks={loadingLikedTasks}
           setTaskInLocalStorage={setTaskInLocalStorage}
         />
@@ -136,7 +136,7 @@ export const TimesheetTable = ({
           <Row
             dates={dates}
             tasks={tasks}
-            holidayList={holidayList}
+            holidays={holidays}
             onCellClick={onCellClick}
             disabled={disabled}
             likedTaskData={likedTaskData}
