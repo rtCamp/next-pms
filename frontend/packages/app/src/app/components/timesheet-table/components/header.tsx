@@ -24,7 +24,7 @@ export const Header = ({
   loadingLikedTasks,
   setTaskInLocalStorage,
   dates,
-  holidayList,
+  holidays,
 }: HeaderProps) => {
   if (!showHeading) return <></>;
   return (
@@ -46,7 +46,12 @@ export const Header = ({
         </TableHead>
         {dates?.map((date: string) => {
           const { date: formattedDate, day } = prettyDate(date);
-          const isHoliday = holidayList.includes(date);
+          const matchingHoliday = holidays.find((item) => item.holiday_date === date);
+
+          const result = matchingHoliday
+            ? { isHoliday: true, weekly_off: matchingHoliday.weekly_off }
+            : { isHoliday: false, weekly_off: false };
+
           return (
             <TableHead
               key={date}
@@ -54,11 +59,20 @@ export const Header = ({
             >
               <Typography
                 variant="p"
-                className={mergeClassNames("text-slate-600 font-medium", isHoliday && "text-slate-400")}
+                className={mergeClassNames(
+                  "text-slate-600 font-medium",
+                  result.isHoliday && !result.weekly_off && "text-slate-400"
+                )}
               >
                 {day}
               </Typography>
-              <Typography variant="small" className={mergeClassNames("text-slate-500", isHoliday && "text-slate-300")}>
+              <Typography
+                variant="small"
+                className={mergeClassNames(
+                  "text-slate-500",
+                  result.isHoliday && !result.weekly_off && "text-slate-300"
+                )}
+              >
                 {formattedDate}
               </Typography>
             </TableHead>
