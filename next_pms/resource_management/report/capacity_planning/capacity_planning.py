@@ -35,7 +35,12 @@ def get_data(meta, filters=None):
     if meta.has_field("custom_business_unit"):
         fields.append("custom_business_unit")
 
-    employees = get_list("Employee", fields=fields, filters={"status": employee_status}, order_by="employee_name ASC")
+    employees = get_list(
+        "Employee",
+        fields=fields,
+        filters={"status": employee_status},
+        order_by="employee_name ASC",
+    )
     employee_names = [employee.employee for employee in employees]
 
     resource_allocations = get_allocation_list_for_employee_for_given_range(
@@ -58,7 +63,11 @@ def get_columns(meta):
             "label": _("Employee"),
             "fieldtype": "Link",
             "options": "Employee",
-            "width": 300,
+        },
+        {
+            "fieldname": "employee_name",
+            "label": _("Employee Name"),
+            "fieldtype": "Data",
         },
         {
             "fieldname": "designation",
@@ -132,15 +141,18 @@ def calculate_hours_and_revenue(employees, resource_allocations, start_date, end
         employee_leave_and_holiday = get_employee_leaves_and_holidays(employee.employee, start_date, end_date)
         holidays = employee_leave_and_holiday.get("holidays")
         leaves = employee_leave_and_holiday.get("leaves")
-
+        billable_allocations = [resource for resource in employee_allocations if resource.is_billable]
+        non_billable_allocations = [resource for resource in employee_allocations if not resource.is_billable]
         employee_free_hours = calculate_employee_free_hours(
             daily_hours, start_date, end_date, employee_allocations, holidays, leaves
         )
         free_hours_revenue = calculate_and_convert_free_hour_revenue(employee.employee, employee_free_hours)
+        employee_billable_hours = calculate_emplyee_hours(
+            daily_hours, start_date, end_date, billable_allocations, holidays, leaves
+        )
 
-        employee_billable_hours = sum(item.hours_allocated_per_day for item in employee_allocations if item.is_billable)
-        employee_non_billable_hours = sum(
-            item.hours_allocated_per_day for item in employee_allocations if not item.is_billable
+        employee_non_billable_hours = calculate_emplyee_hours(
+            daily_hours, start_date, end_date, non_billable_allocations, holidays, leaves
         )
 
         employee["booked_hous"] = employee_billable_hours
@@ -229,6 +241,32 @@ def get_employee_hourly_billing_rate(employee: str, project: str | None = None):
         return rate or 0
 
 
+def calculate_emplyee_hours(
+    daily_hours: float,
+    start_date: datetime.date,
+    end_date: datetime.date,
+    resource_allocations: list,
+    holidays: list,
+    leaves: list,
+):
+    total_hours = 0
+    date = start_date
+
+    while date <= end_date:
+        data = is_on_leave(date, daily_hours, leaves, holidays)
+        if data.get("on_leave"):
+            date = add_days(date, 1)
+            continue
+        allocation_for_date = get_employee_allocations_for_date(resource_allocations, date)
+        if not allocation_for_date:
+            date = add_days(date, 1)
+            continue
+        for allocation in allocation_for_date:
+            total_hours += allocation.hours_allocated_per_day
+        date = add_days(date, 1)
+    return total_hours
+
+
 def calculate_employee_free_hours(
     daily_hours: float,
     start_date: datetime.date,
@@ -243,18 +281,19 @@ def calculate_employee_free_hours(
     """
     total_hours = 0
     total_hours_for_resource_allocation = 0
+    date = start_date
 
-    while start_date <= end_date:
-        data = is_on_leave(start_date, daily_hours, leaves, holidays)
+    while date <= end_date:
+        data = is_on_leave(date, daily_hours, leaves, holidays)
         if not data.get("on_leave"):
             total_hours += daily_hours
-            allocation_for_date = get_employee_allocations_for_date(resource_allocations, start_date)
+            allocation_for_date = get_employee_allocations_for_date(resource_allocations, date)
             for allocation in allocation_for_date:
                 total_hours_for_resource_allocation += allocation.hours_allocated_per_day
         else:
             total_hours += flt(data.get("leave_work_hours"))
 
-        start_date = add_days(start_date, 1)
+        date = add_days(date, 1)
 
     return total_hours - total_hours_for_resource_allocation
 
