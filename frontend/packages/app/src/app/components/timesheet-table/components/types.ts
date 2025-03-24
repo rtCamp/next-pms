@@ -39,6 +39,9 @@ export type submitButtonProps = {
   end_date: string;
   onApproval?: (start_date: string, end_date: string) => void;
   status: string;
+  expectedHours: number;
+  totalHours: number;
+  workingFrequency: WorkingFrequency;
 };
 
 export type TaskHoverCardProps = {

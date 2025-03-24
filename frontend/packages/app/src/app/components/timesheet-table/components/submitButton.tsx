@@ -6,7 +6,7 @@ import { CircleCheck, CircleX, Clock3 } from "lucide-react";
 /**
  * Internal dependencies
  */
-import { mergeClassNames } from "@/lib/utils";
+import { calculateWeeklyHour, mergeClassNames } from "@/lib/utils";
 import type { submitButtonProps } from "./types";
 
 /**
@@ -18,20 +18,33 @@ import type { submitButtonProps } from "./types";
  * @param {Function} props.onApproval - Function to call when the button is clicked
  * @param {string} props.status - Status of the timesheet
  */
-export const SubmitButton = ({ start_date, end_date, onApproval, status }: submitButtonProps) => {
+export const SubmitButton = ({
+  start_date,
+  end_date,
+  onApproval,
+  status,
+  expectedHours,
+  totalHours,
+  workingFrequency,
+}: submitButtonProps) => {
   const handleClick = () => {
     onApproval?.(start_date, end_date);
   };
+  const expectedWeeklyHours = calculateWeeklyHour(expectedHours, workingFrequency);
   return (
     <Button
       variant="ghost"
       asChild
       className={mergeClassNames(
         "font-normal",
-        (status == "Approved" || status == "Partially Approved") && "bg-green-50 text-success",
-        (status == "Rejected" || status == "Partially Rejected") && "bg-red-50 text-destructive",
-        status == "Approval Pending" && "bg-orange-50 text-warning",
-        status == "Not Submitted" && "text-slate-400"
+        (status == "Approved" || status == "Partially Approved") &&
+          "bg-success/20 text-success hover:bg-success/20 hover:text-success",
+        (status == "Rejected" || status == "Partially Rejected") &&
+          "bg-destructive/20 text-destructive hover:bg-destructive/20 hover:text-destructive",
+        status == "Approval Pending" && "bg-warning/20 text-warning hover:bg-warning/20 hover:text-warning",
+        status == "Not Submitted" &&
+          totalHours >= expectedWeeklyHours &&
+          "bg-yellow-50 text-yellow-600 hover:bg-yellow-50 hover:text-yellow-600"
       )}
       onClick={(e) => {
         e.stopPropagation();
