@@ -12,9 +12,9 @@ import { FrappeProvider } from "frappe-react-sdk";
 import { BASE_ROUTE } from "@/lib/constant";
 import { UserProvider } from "@/lib/UserProvider";
 import { getSiteName } from "@/lib/utils";
+import ThemeProvider from "./providers/theme";
 import { Router } from "./route";
 import { store } from "./store";
-
 const App = () => {
   const router = createBrowserRouter(createRoutesFromElements(Router()), {
     basename: BASE_ROUTE,
@@ -28,17 +28,19 @@ const App = () => {
         enableSocket={import.meta.env.VITE_ENABLE_SOCKET === "true" ? true : false}
         siteName={getSiteName()}
       >
-        <UserProvider>
-          <Provider store={store}>
-            <TooltipProvider>
-              <Suspense fallback={<></>}>
-                <ErrorFallback>
-                  <RouterProvider router={router} />
-                </ErrorFallback>
-              </Suspense>
-            </TooltipProvider>
-          </Provider>
-        </UserProvider>
+        <ThemeProvider>
+          <UserProvider>
+            <Provider store={store}>
+              <TooltipProvider>
+                <Suspense fallback={<></>}>
+                  <ErrorFallback>
+                    <RouterProvider router={router} />
+                  </ErrorFallback>
+                </Suspense>
+              </TooltipProvider>
+            </Provider>
+          </UserProvider>
+        </ThemeProvider>
       </FrappeProvider>
     </>
   );
