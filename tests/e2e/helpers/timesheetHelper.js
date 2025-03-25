@@ -5,6 +5,8 @@ import { createTimesheet, getTimesheetDetails, deleteTimesheet } from "../utils/
 import employeeTimesheetData from "../data/employee/timesheet.json";
 import managerTeamData from "../data/manager/team.json";
 import { readJSONFile } from "../utils/fileUtils";
+import { createProject, deleteProject } from "../utils/api/projectRequests";
+import { createTask, deleteTask } from "../utils/api/taskRequests";
 
 // Load env variables
 const empID = process.env.EMP_ID;
@@ -162,4 +164,91 @@ export const filterTimesheetEntry = async ({ subject, description, project_name,
   }
 
   return {}; // Return empty object if no match is found
+};
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Creates projects for all the test cases provided in the employeeTimesheetIDs array below
+ */
+export const createProjects = async () => {
+  //Include testcase ID's below that require project to be created
+  const employeeTimesheetIDs = ["TC2"];
+  const createProjects = async (data, testCases) => {
+    for (const testCaseID of testCases) {
+      if (data[testCaseID].payloadCreateProject) {
+        const createProjectPayload = data[testCaseID].payloadCreateProject;
+        //Store the response of createProject API
+        const response = await createProject(createProjectPayload);
+        const jsonResponse = await response.json();
+        const projectId = jsonResponse.data.name;
+        console.warn("PROJECT ID:", projectId);
+        //Provide the project ID to be stored in payloadDeleteProject and payloadCreateTask
+        data[testCaseID].payloadDeleteProject.projectId = projectId;
+        if (data[testCaseID].payloadCreateTask) {
+          data[testCaseID].payloadCreateTask.project = projectId;
+        }
+      }
+    }
+  };
+  await createProjects(employeeTimesheetData, employeeTimesheetIDs);
+  // Write updated data to shared JSON files
+  fs.writeFileSync(employeeTimesheetDataFilePath, JSON.stringify(employeeTimesheetData, null, 2));
+};
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Deletes projects for all the test cases provided in the projectsToBeDeleted array below
+ */
+export const deleteProjects = async () => {
+  sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
+  //Provide the json structure in below array for the testcase that needs Project Deletion
+  const projectsToBeDeleted = [sharedEmployeeTimesheetData.TC2.payloadDeleteProject.projectId];
+  for (const entry of projectsToBeDeleted) {
+    //Delete Project
+    await deleteProject(entry);
+  }
+};
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Creates tasks for all the test cases provided in the employeeTimesheetIDs array below
+ */
+export const createTasks = async () => {
+  //Include testcase ID's below that require project to be created
+  const employeeTimesheetIDs = ["TC2"];
+
+  const createTasks = async (data, testCases) => {
+    for (const testCaseID of testCases) {
+      if (data[testCaseID].payloadCreateTask) {
+        const createTaskPayload = data[testCaseID].payloadCreateTask;
+
+        //Store the response of createProject API
+        const response = await createTask(createTaskPayload);
+
+        const jsonResponse = await response.json();
+
+        const taskID = jsonResponse.data.name;
+        console.warn("TASK ID:", taskID);
+        //Provide the project ID to be stored in payloadDeleteProject and payloadCreateTask
+        data[testCaseID].payloadDeleteTask.taskID = taskID;
+      }
+    }
+  };
+  await createTasks(employeeTimesheetData, employeeTimesheetIDs);
+  // Write updated data to shared JSON files
+  fs.writeFileSync(employeeTimesheetDataFilePath, JSON.stringify(employeeTimesheetData, null, 2));
+};
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Deletes tasks for all the test cases provided in the tasksToBeDeleted array below
+ */
+export const deleteTasks = async () => {
+  sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
+  //Provide the json structure in below array for the testcase that needs Task Deletion
+  const tasksToBeDeleted = [sharedEmployeeTimesheetData.TC2.payloadDeleteTask.taskID];
+  for (const entry of tasksToBeDeleted) {
+    //Delete Project
+    await deleteTask(entry);
+  }
 };

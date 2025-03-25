@@ -1,18 +1,39 @@
 {
-  "TC2": {
+"TC2": {
     "cell": {
-      "rowName": "Documentation"
+      "rowName": "Task for TC02"
+    },
+    "payloadCreateProject": {
+      "project_name": "TC02 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "billing_type": "Non-Billable",
+      "currency": "INR",
+      "project_type": "Non Billable",
+      "business_unit": "NB",
+      "estimated_cost": 100000
+    },
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    },
+    "payloadCreateTask": {
+      "subject": "Task for TC02",
+      "project": "filled-automatically-from-createProjects",
+      "description": "Task for TC02 created through automation"
+    },
+    "payloadDeleteTask": {
+      "taskID": "filled-automatically-from-createTasks"
+
     },
     "taskInfo": {
       "duration": "1:00",
-      "project": "QE - Retainer",
-      "task": "Documentation",
-      "desc": "TC2 - Task added via automation."
+      "project": "TC02 Project",
+      "task": "Task for TC02",
+      "desc": "Task for TC02 created through automation"
     },
     "payloadFilterTimeEntry": {
-      "subject": "Documentation",
-      "description": "TC2 - Task added via automation.",
-      "project_name": "QE - Retainer",
+      "subject": "Task for TC02",
+      "description": "Task for TC02 created through automation",
+      "project_name": "TC02 Project",
       "max_week": "1"
     }
   },

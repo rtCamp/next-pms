@@ -2,7 +2,8 @@ import { test, expect } from "@playwright/test";
 import { secondsToDuration, durationToSeconds } from "../../utils/dateUtils";
 import { TimesheetPage } from "../../pageObjects/timesheetPage";
 import data from "../../data/employee/shared-timesheet.json";
-
+//Add type hints to help VS Code recognize TimesheetPage
+/** @type {TimesheetPage} */
 let timesheetPage;
 
 // Load test data
@@ -28,8 +29,9 @@ test.beforeEach(async ({ page }) => {
 
 // ------------------------------------------------------------------------------------------
 
-test("TC2: Time should be added using the ‘Add’ button at the top.", async ({ page }) => {
+test.only("TC2: Time should be added using the ‘Add’ button at the top.", async ({ page }) => {
   // Add time entry using "Time" button
+  await page.pause();
   await timesheetPage.addTimeViaTimeButton(TC2data.taskInfo);
 
   // Reload page to ensure changes are reflected

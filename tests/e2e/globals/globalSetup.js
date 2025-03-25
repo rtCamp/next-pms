@@ -1,4 +1,4 @@
-import { createTimeEntries, updateTimeEntries } from "../helpers/timesheetHelper";
+import { createTimeEntries, updateTimeEntries, createProjects, createTasks } from "../helpers/timesheetHelper";
 import { storeStorageState } from "../helpers/storageStateHelper";
 import { updateLeaveEntries } from "../helpers/leaveHelper";
 import { createJSONFile } from "../utils/fileUtils";
@@ -20,6 +20,12 @@ const globalSetup = async () => {
   // Create initial time entries
   await createTimeEntries();
 
+  // Create projects
+  await createProjects();
+
+  // Create tasks
+  await createTasks();
+  
   // Compute and update dynamic fields of leave entries
   await updateLeaveEntries();
 
