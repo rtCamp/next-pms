@@ -20,7 +20,7 @@ import { ResourceFormContext } from "../../store/resourceFormContext";
  * @returns React.FC
  */
 const EmptyTableCell = ({ cellClassName, title, textClassName, onCellClick }: EmptyTableCellProps) => {
-  const resourceAllocationPermission = useContextSelector(ResourceFormContext, (value) => value.permission);
+  const resourceAllocationPermission = useContextSelector(ResourceFormContext, (value) => value.state.permission);
 
   if (!onCellClick || !resourceAllocationPermission.write) {
     return (

@@ -43,7 +43,7 @@ export const ResourceAllocationList = ({
   onButtonClick?: () => void;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const resourceAllocationPermission = useContextSelector(ResourceFormContext, (value) => value.permission);
+  const resourceAllocationPermission = useContextSelector(ResourceFormContext, (value) => value.state.permission);
 
   return (
     <div className={mergeClassNames("flex flex-col items-center overflow-y-auto max-h-60")}>

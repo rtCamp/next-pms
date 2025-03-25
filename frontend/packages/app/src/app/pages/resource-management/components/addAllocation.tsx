@@ -53,11 +53,12 @@ const AddResourceAllocations = ({
 }: {
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const {
-    allocationData: resourceAllocationForm,
-    dialogState: resourceDialogState,
-    resetState,
-  } = useContextSelector(ResourceFormContext, (value) => value);
+  const { allocationData: resourceAllocationForm, dialogState: resourceDialogState } = useContextSelector(
+    ResourceFormContext,
+    (value) => value.state
+  );
+
+  const { resetState } = useContextSelector(ResourceFormContext, (value) => value.actions);
 
   const [projectSearch, setProjectSearch] = useState(resourceAllocationForm.project_name);
   const [customerSearch, setCustomerSearch] = useState(resourceAllocationForm.customer_name);

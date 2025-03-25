@@ -52,7 +52,7 @@ const ResourceTeamTableCell = ({
   employeeAllocations: ResourceAllocationObjectProps;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const { teamData, tableView, filters } = useContextSelector(TeamContext, (value) => value);
+  const { teamData, tableView, filters } = useContextSelector(TeamContext, (value) => value.state);
 
   const customer = teamData.customer;
   const allocationType = filters.allocationType;
@@ -60,7 +60,7 @@ const ResourceTeamTableCell = ({
   const { date: dateStr, day } = prettyDate(employeeSingleDay.date);
   const title = employee_name + " (" + dateStr + " - " + day + ")";
 
-  const { updateAllocationData, updateDialogState } = useContextSelector(ResourceFormContext, (value) => value);
+  const { updateAllocationData, updateDialogState } = useContextSelector(ResourceFormContext, (value) => value.actions);
 
   const allocationPercentage = useMemo(() => {
     if (tableView.combineWeekHours) {

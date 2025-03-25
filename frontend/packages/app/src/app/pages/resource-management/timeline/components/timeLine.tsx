@@ -32,23 +32,17 @@ import { TimeLineContext } from "../../store/timeLineContext";
 import { getDayKeyOfMoment } from "../../utils/dates";
 
 const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
-  const { tableProperties, getCellWidthString } = useContextSelector(TableContext, (value) => value);
-  const {
-    employees,
-    allocations,
-    allocationData,
-    getAllocationWithID,
-    updateAllocation,
-    getEmployeeWithIndex,
-    setAllocationData,
-    filters,
-    getEmployeeWithID,
-  } = useContextSelector(TimeLineContext, (value) => value);
-  const {
-    permission: resourceAllocationPermission,
-    updateDialogState,
-    updateAllocationData,
-  } = useContextSelector(ResourceFormContext, (value) => value);
+  const { tableProperties } = useContextSelector(TableContext, (value) => value.state);
+  const { getCellWidthString } = useContextSelector(TableContext, (value) => value.actions);
+  const { employees, allocations, allocationData, filters } = useContextSelector(
+    TimeLineContext,
+    (value) => value.state
+  );
+  const { getAllocationWithID, updateAllocation, getEmployeeWithIndex, setAllocationData, getEmployeeWithID } =
+    useContextSelector(TimeLineContext, (value) => value.actions);
+  const { permission: resourceAllocationPermission } = useContextSelector(ResourceFormContext, (value) => value.state);
+
+  const { updateDialogState, updateAllocationData } = useContextSelector(ResourceFormContext, (value) => value.actions);
 
   const [showItemAllocationActionDialog, setShowItemAllocationActionDialog] = useState(false);
 

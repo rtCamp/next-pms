@@ -38,12 +38,11 @@ const ResourceTeamView = () => {
   const { toast } = useToast();
   const { permission: resourceAllocationPermission, dialogState: resourceAllocationDialogState } = useContextSelector(
     ResourceFormContext,
-    (value) => value
+    (value) => value.state
   );
-  const { projectData, filters, apiController, updateProjectData, setReFetchData } = useContextSelector(
-    ProjectContext,
-    (value) => value
-  );
+  const { projectData, filters, apiController } = useContextSelector(ProjectContext, (value) => value.state);
+
+  const { updateProjectData, setReFetchData } = useContextSelector(ProjectContext, (value) => value.actions);
 
   const { call: fetchSingleRecord } = useFrappePostCall(
     "next_pms.resource_management.api.project.get_resource_management_project_view_data"

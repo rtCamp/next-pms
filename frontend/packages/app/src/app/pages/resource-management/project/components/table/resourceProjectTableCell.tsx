@@ -51,12 +51,12 @@ const ResourceProjectTableCell = ({
   projectAllocations: ResourceAllocationObjectProps;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const { projectData, tableView, filters } = useContextSelector(ProjectContext, (value) => value);
+  const { projectData, tableView, filters } = useContextSelector(ProjectContext, (value) => value.state);
 
   const customer = projectData.customer;
   const allocationType = filters.allocationType;
 
-  const { updateAllocationData, updateDialogState } = useContextSelector(ResourceFormContext, (value) => value);
+  const { updateAllocationData, updateDialogState } = useContextSelector(ResourceFormContext, (value) => value.actions);
 
   const allocationPercentage = useMemo(() => {
     if (tableView.combineWeekHours) {

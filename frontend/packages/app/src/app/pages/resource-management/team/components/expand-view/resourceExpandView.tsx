@@ -29,7 +29,7 @@ export const ResourceExpandView = ({
   employeeData: EmployeeDataProps;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const teamData = useContextSelector(TeamContext, (value) => value.teamData);
+  const teamData = useContextSelector(TeamContext, (value) => value.state.teamData);
   const dates = teamData.dates;
 
   const employeeResourceData: { combinedResourceData: CombinedResourceObjectProps; allDates: string[] } = useMemo(

@@ -34,7 +34,7 @@ export const ResourceExpandView = ({
   is_billable,
   onSubmit,
 }: ResourceExpandViewProps) => {
-  const projectData = useContextSelector(ProjectContext, (value) => value.projectData);
+  const projectData = useContextSelector(ProjectContext, (value) => value.state.projectData);
 
   const dates = projectData.dates;
 

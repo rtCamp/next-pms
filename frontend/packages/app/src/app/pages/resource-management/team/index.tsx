@@ -40,21 +40,16 @@ const ResourceTeamViewWrapper = () => {
  */
 const ResourceTeamView = () => {
   const { toast } = useToast();
-  const {
-    teamData,
-    filters,
-    apiController,
-    updateTeamData,
-    getHasMore,
-    setStart,
-    setMaxWeek,
-    setDates,
-    setReFetchData,
-  } = useContextSelector(TeamContext, (value) => value);
+  const { teamData, filters, apiController } = useContextSelector(TeamContext, (value) => value.state);
+
+  const { updateTeamData, getHasMore, setStart, setMaxWeek, setDates, setReFetchData } = useContextSelector(
+    TeamContext,
+    (value) => value.actions
+  );
 
   const { permission: resourceAllocationPermission, dialogState: resourceAllocationDialogState } = useContextSelector(
     ResourceFormContext,
-    (value) => value
+    (value) => value.state
   );
 
   const { call: fetchData } = useFrappePostCall(
