@@ -127,7 +127,7 @@ const Home = () => {
                     <TableHead
                       key={`${index}-${date}`}
                       className={mergeClassNames(
-                        " font-medium max-w-20 h-8 text-center",
+                        "text-slate-500 dark:text-primary/60 font-medium max-w-20 h-8 text-center",
                         index != 0 && "bg-slate-200 dark:bg-secondary"
                       )}
                     >
