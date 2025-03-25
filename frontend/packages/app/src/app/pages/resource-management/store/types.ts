@@ -145,27 +145,31 @@ export interface OptionalResourceProjectFilters {
 }
 
 export interface ResourceProjectState {
-  projectData: ResourceProjectDataProps;
-  filters: ResourceProjectFilter;
-  tableView: TableViewProps;
-  apiController: APIController;
+  state: {
+    projectData: ResourceProjectDataProps;
+    filters: ResourceProjectFilter;
+    tableView: TableViewProps;
+    apiController: APIController;
+  };
 }
 
 export interface ProjectContextProps extends ResourceProjectState {
-  setStart: (start: number) => void;
-  updateTableView: (updatedTableView: TableViewProps) => void;
-  resetState: () => void;
-  setReFetchData: (value: boolean) => void;
-  updateFilter: (updatedFilters: OptionalResourceProjectFilters) => void;
-  updateProjectData: (
-    updatedProjectData: ResourceProjectDataProps,
-    type?: "SET" | "UPDATE"
-  ) => void;
-  getHasMore: () => boolean;
-  setMaxWeek: (maxWeek: number) => void;
-  setDates: (dates: DateProps[]) => void;
-  setCombineWeekHours: (value: boolean) => void;
-  setWeekDate: (value: string) => void;
+  actions: {
+    setStart: (start: number) => void;
+    updateTableView: (updatedTableView: TableViewProps) => void;
+    resetState: () => void;
+    setReFetchData: (value: boolean) => void;
+    updateFilter: (updatedFilters: OptionalResourceProjectFilters) => void;
+    updateProjectData: (
+      updatedProjectData: ResourceProjectDataProps,
+      type?: "SET" | "UPDATE"
+    ) => void;
+    getHasMore: () => boolean;
+    setMaxWeek: (maxWeek: number) => void;
+    setDates: (dates: DateProps[]) => void;
+    setCombineWeekHours: (value: boolean) => void;
+    setWeekDate: (value: string) => void;
+  };
 }
 
 export interface DialogStateProps {
@@ -174,13 +178,17 @@ export interface DialogStateProps {
 }
 
 export interface ResourceFormContextProps {
-  dialogState: DialogStateProps;
-  allocationData: AllocationDataProps;
-  permission: PermissionProps;
-  updateDialogState: (value: DialogStateProps) => void;
-  updateAllocationData: (value: AllocationDataProps) => void;
-  updatePermission: (value: PermissionProps) => void;
-  resetState: () => void;
+  state: {
+    dialogState: DialogStateProps;
+    allocationData: AllocationDataProps;
+    permission: PermissionProps;
+  };
+  actions: {
+    updateDialogState: (value: DialogStateProps) => void;
+    updateAllocationData: (value: AllocationDataProps) => void;
+    updatePermission: (value: PermissionProps) => void;
+    resetState: () => void;
+  };
 }
 
 export type EmployeeAllWeekDataProps = {
@@ -273,69 +281,79 @@ export interface OptionalResourceTeamFilters {
 }
 
 export interface ResourceTeamState {
-  teamData: ResourceTeamDataProps;
-  filters: ResourceTeamFilters;
-  tableView: TableViewProps;
-  apiController: APIController;
+  state: {
+    teamData: ResourceTeamDataProps;
+    filters: ResourceTeamFilters;
+    tableView: TableViewProps;
+    apiController: APIController;
+  };
 }
 
 export interface TeamContextProps extends ResourceTeamState {
-  setStart: (start: number) => void;
-  updateTableView: (updatedTableView: TableViewProps) => void;
-  resetState: () => void;
-  setReFetchData: (value: boolean) => void;
-  updateFilter: (updatedFilters: OptionalResourceTeamFilters) => void;
-  updateTeamData: (
-    updatedTeamData: ResourceTeamDataProps,
-    type?: "SET" | "UPDATE"
-  ) => void;
-  getHasMore: () => boolean;
-  setMaxWeek: (maxWeek: number) => void;
-  setDates: (dates: DateProps[]) => void;
-  setCombineWeekHours: (value: boolean) => void;
-  setWeekDate: (value: string) => void;
+  actions: {
+    setStart: (start: number) => void;
+    updateTableView: (updatedTableView: TableViewProps) => void;
+    resetState: () => void;
+    setReFetchData: (value: boolean) => void;
+    updateFilter: (updatedFilters: OptionalResourceTeamFilters) => void;
+    updateTeamData: (
+      updatedTeamData: ResourceTeamDataProps,
+      type?: "SET" | "UPDATE"
+    ) => void;
+    getHasMore: () => boolean;
+    setMaxWeek: (maxWeek: number) => void;
+    setDates: (dates: DateProps[]) => void;
+    setCombineWeekHours: (value: boolean) => void;
+    setWeekDate: (value: string) => void;
+  };
 }
 
 export interface TimeLineContextProps {
-  employees: ResourceAllocationEmployeeProps[];
-  allocations: ResourceAllocationTimeLineProps[];
-  customer: ResourceAllocationCustomerProps;
-  filters: ResourceAllocationTimeLineFilterProps;
-  apiControler: APIControlerProps;
-  allocationData: {
-    isNeedToDelete: boolean;
-    old?: ResourceAllocationTimeLineProps;
-    new?: ResourceAllocationTimeLineProps;
+  state: {
+    employees: ResourceAllocationEmployeeProps[];
+    allocations: ResourceAllocationTimeLineProps[];
+    customer: ResourceAllocationCustomerProps;
+    filters: ResourceAllocationTimeLineFilterProps;
+    apiControler: APIControlerProps;
+    allocationData: {
+      isNeedToDelete: boolean;
+      old?: ResourceAllocationTimeLineProps;
+      new?: ResourceAllocationTimeLineProps;
+    };
+    isShowMonth?: boolean;
   };
-  isShowMonth: boolean;
-  setEmployeesData: (
-    value: ResourceAllocationEmployeeProps[],
-    hasMore: boolean
-  ) => void;
-  setAllocationsData: (
-    value: ResourceAllocationTimeLineProps[],
-    type?: "Set" | "Update"
-  ) => void;
-  setCustomerData: (value: ResourceAllocationCustomerProps) => void;
-  getLastTimeLineItem: () => string;
-  verticalLoderRef: (element: HTMLElement | null) => void;
-  updateFilters: (filters: ResourceAllocationTimeLineFilterProps) => void;
-  updateApiControler: (apiControler: APIControlerProps) => void;
-  getAllocationWithID: (
-    id: string
-  ) => ResourceAllocationTimeLineProps | undefined;
-  getEmployeeWithID: (id: string) => ResourceAllocationEmployeeProps;
-  updateAllocation: (
-    updatedAllocation: ResourceAllocationTimeLineProps,
-    type?: "Append" | "Update"
-  ) => ResourceAllocationTimeLineProps;
-  getEmployeeWithIndex: (index: number) => ResourceAllocationEmployeeProps | -1;
-  isEmployeeExits: (name: string) => boolean | undefined;
-  setAllocationData: (value: {
-    isNeedToDelete: boolean;
-    old?: ResourceAllocationTimeLineProps;
-    new?: ResourceAllocationTimeLineProps;
-  }) => void;
+  actions: {
+    setEmployeesData: (
+      value: ResourceAllocationEmployeeProps[],
+      hasMore: boolean
+    ) => void;
+    setAllocationsData: (
+      value: ResourceAllocationTimeLineProps[],
+      type?: "Set" | "Update"
+    ) => void;
+    setCustomerData: (value: ResourceAllocationCustomerProps) => void;
+    getLastTimeLineItem: () => string;
+    verticalLoderRef: (element: HTMLElement | null) => void;
+    updateFilters: (filters: ResourceAllocationTimeLineFilterProps) => void;
+    updateApiControler: (apiControler: APIControlerProps) => void;
+    getAllocationWithID: (
+      id: string
+    ) => ResourceAllocationTimeLineProps | undefined;
+    getEmployeeWithID: (id: string) => ResourceAllocationEmployeeProps;
+    updateAllocation: (
+      updatedAllocation: ResourceAllocationTimeLineProps,
+      type?: "Append" | "Update"
+    ) => ResourceAllocationTimeLineProps;
+    getEmployeeWithIndex: (
+      index: number
+    ) => ResourceAllocationEmployeeProps | -1;
+    isEmployeeExits: (name: string) => boolean | undefined;
+    setAllocationData: (value: {
+      isNeedToDelete: boolean;
+      old?: ResourceAllocationTimeLineProps;
+      new?: ResourceAllocationTimeLineProps;
+    }) => void;
+  };
 }
 
 export interface APIControlerProps {

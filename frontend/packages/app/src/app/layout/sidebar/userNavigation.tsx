@@ -1,7 +1,6 @@
 /**
  * External dependencies.
  */
-import { useContext } from "react";
 import {
   ErrorFallback,
   Typography,
@@ -15,6 +14,8 @@ import {
   Separator,
 } from "@next-pms/design-system/components";
 import { ArrowRightLeft, LogOut } from "lucide-react";
+import { useContextSelector } from "use-context-selector";
+
 /**
  * Internal dependencies.
  */
@@ -24,7 +25,8 @@ import { mergeClassNames } from "@/lib/utils";
 import type { UserNavigationProps } from "./types";
 
 const UserNavigation = ({ user }: UserNavigationProps) => {
-  const { logout } = useContext(UserContext);
+  const logout = useContextSelector(UserContext, (value) => value.actions.logout);
+
   return (
     <ErrorFallback>
       <Popover>

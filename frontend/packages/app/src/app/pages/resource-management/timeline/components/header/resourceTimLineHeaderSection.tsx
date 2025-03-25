@@ -1,10 +1,11 @@
 /**
  * External dependencies.
  */
-import { useContext, useEffect } from "react";
+import { useEffect } from "react";
 import { useQueryParam } from "@next-pms/hooks";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { Plus, ZoomIn, ZoomOut } from "lucide-react";
+import { useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
@@ -28,17 +29,16 @@ const ResourceTimLineHeaderSection = () => {
   const [designationParam] = useQueryParam<string[]>("designation", []);
   const [skillSearchParam, setSkillSearchParam] = useQueryParam<Skill[]>("skill-search", []);
 
-  const {
-    permission: resourceAllocationPermission,
-    updatePermission,
-    updateDialogState,
-  } = useContext(ResourceFormContext);
+  const { permission: resourceAllocationPermission } = useContextSelector(ResourceFormContext, (value) => value.state);
+
+  const { updatePermission, updateDialogState } = useContextSelector(ResourceFormContext, (value) => value.actions);
 
   const { data: employee } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee", {
     filters: { name: reportingNameParam },
   });
 
-  const { updateFilters, filters } = useContext(TimeLineContext);
+  const { filters } = useContextSelector(TimeLineContext, (value) => value.state);
+  const { updateFilters } = useContextSelector(TimeLineContext, (value) => value.actions);
 
   const { call, loading } = useFrappePostCall(
     "next_pms.resource_management.api.permission.get_user_resources_permissions"
