@@ -6,7 +6,7 @@ import employeeTimesheetData from "../data/employee/timesheet.json";
 import managerTeamData from "../data/manager/team.json";
 import { readJSONFile } from "../utils/fileUtils";
 import { createProject, deleteProject } from "../utils/api/projectRequests";
-import { createTask, deleteTask } from "../utils/api/taskRequests";
+import { createTask, deleteTask, likeTask } from "../utils/api/taskRequests";
 
 // Load env variables
 const empID = process.env.EMP_ID;
@@ -172,7 +172,7 @@ export const filterTimesheetEntry = async ({ subject, description, project_name,
  */
 export const createProjects = async () => {
   //Include testcase ID's below that require project to be created
-  const employeeTimesheetIDs = ["TC2"];
+  const employeeTimesheetIDs = ["TC2", "TC4"];
   const createProjects = async (data, testCases) => {
     for (const testCaseID of testCases) {
       if (data[testCaseID].payloadCreateProject) {
@@ -181,6 +181,8 @@ export const createProjects = async () => {
         const response = await createProject(createProjectPayload);
         const jsonResponse = await response.json();
         const projectId = jsonResponse.data.name;
+        console.warn("RUNNING LOOP FOR CREATE PROJECT OF:", testCaseID);
+
         console.warn("PROJECT ID:", projectId);
         //Provide the project ID to be stored in payloadDeleteProject and payloadCreateTask
         data[testCaseID].payloadDeleteProject.projectId = projectId;
@@ -202,7 +204,10 @@ export const createProjects = async () => {
 export const deleteProjects = async () => {
   sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
   //Provide the json structure in below array for the testcase that needs Project Deletion
-  const projectsToBeDeleted = [sharedEmployeeTimesheetData.TC2.payloadDeleteProject.projectId];
+  const projectsToBeDeleted = [
+    sharedEmployeeTimesheetData.TC2.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC4.payloadDeleteProject.projectId,
+  ];
   for (const entry of projectsToBeDeleted) {
     //Delete Project
     await deleteProject(entry);
@@ -215,7 +220,8 @@ export const deleteProjects = async () => {
  */
 export const createTasks = async () => {
   //Include testcase ID's below that require project to be created
-  const employeeTimesheetIDs = ["TC2"];
+  const employeeTimesheetIDs = ["TC2", "TC4"];
+  let taskID;
 
   const createTasks = async (data, testCases) => {
     for (const testCaseID of testCases) {
@@ -226,11 +232,18 @@ export const createTasks = async () => {
         const response = await createTask(createTaskPayload);
 
         const jsonResponse = await response.json();
+        console.warn("RUNNING LOOP FOR CREATE TASK OF:", testCaseID);
 
-        const taskID = jsonResponse.data.name;
+        taskID = jsonResponse.data.name;
         console.warn("TASK ID:", taskID);
-        //Provide the project ID to be stored in payloadDeleteProject and payloadCreateTask
+        //Provide the taskID to be stored in payloadDeleteProject and payloadCreateTask
         data[testCaseID].payloadDeleteTask.taskID = taskID;
+      }
+      if (data[testCaseID].payloadLikeTask) {
+        await likeTask(taskID);
+      }
+      if (data[testCaseID].payloadCreateTimesheet) {
+        data[testCaseID].payloadCreateTimesheet.task = taskID;
       }
     }
   };
@@ -246,7 +259,10 @@ export const createTasks = async () => {
 export const deleteTasks = async () => {
   sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
   //Provide the json structure in below array for the testcase that needs Task Deletion
-  const tasksToBeDeleted = [sharedEmployeeTimesheetData.TC2.payloadDeleteTask.taskID];
+  const tasksToBeDeleted = [
+    sharedEmployeeTimesheetData.TC2.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC4.payloadDeleteTask.taskID,
+  ];
   for (const entry of tasksToBeDeleted) {
     //Delete Project
     await deleteTask(entry);

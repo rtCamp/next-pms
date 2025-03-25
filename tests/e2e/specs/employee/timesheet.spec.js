@@ -31,7 +31,6 @@ test.beforeEach(async ({ page }) => {
 
 test.only("TC2: Time should be added using the ‘Add’ button at the top.", async ({ page }) => {
   // Add time entry using "Time" button
-  await page.pause();
   await timesheetPage.addTimeViaTimeButton(TC2data.taskInfo);
 
   // Reload page to ensure changes are reflected
@@ -60,8 +59,9 @@ test("TC3: Time should be added using the direct timesheet add buttons.", async 
   expect(cellText).toContain(TC3data.taskInfo.duration);
 });
 
-test("TC4: Added time and description should be editable.", async ({ page }) => {
+test.only("TC4: Added time and description should be editable.", async ({ page }) => {
   // Update time entry
+
   await timesheetPage.updateTimeRow(TC4data.cell, {
     desc: TC4data.payloadCreateTimesheet.description,
     newDesc: TC4data.taskInfo.desc,

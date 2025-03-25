@@ -17,15 +17,14 @@ const globalSetup = async () => {
   // Compute and update dynamic fields of time entries
   await updateTimeEntries();
 
-  // Create initial time entries
-  await createTimeEntries();
-
   // Create projects
   await createProjects();
 
   // Create tasks
   await createTasks();
-  
+  // Create initial time entries
+  await createTimeEntries();
+
   // Compute and update dynamic fields of leave entries
   await updateLeaveEntries();
 
