@@ -93,11 +93,11 @@ const Row = ({
                 <Typography
                   variant="p"
                   className={mergeClassNames(
-                    "text-slate-800 font-medium text-right flex justify-between items-center",
+                    "font-medium text-right flex justify-between items-center",
                     !taskData.is_billable && "justify-end"
                   )}
                 >
-                  {taskData.is_billable == true && <CircleDollarSign className="stroke-success w-4 h-4" />}
+                  {taskData.is_billable == true && <CircleDollarSign className="stroke-success " />}
                   {floatToTime(totalHours)}
                 </Typography>
               </TableCell>

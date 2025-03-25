@@ -46,7 +46,7 @@ const FilterValue = ({ filters }: { filters: FilterPops[] }) => {
             if (Array.isArray(filter.value)) {
               return (
                 <div key={idx} className="flex gap-2 flex-shrink-0">
-                  <div className="bg-gray-200 px-2 py-1 rounded text-sm">{filter.label}</div>
+                  <div className="bg-gray-200 dark:bg-accent px-2 py-1 rounded text-sm">{filter.label}</div>
                   {filter.value.map((value, index) => (
                     <Badge
                       variant="secondary"
@@ -55,7 +55,7 @@ const FilterValue = ({ filters }: { filters: FilterPops[] }) => {
                       onClick={() => filter.handleDelete(removeValueFromArray(value, filter.value as string[]))}
                     >
                       <div className="w-fit">{value}</div>
-                      <X className="h-4 w-4 cursor-pointer" />
+                      <X className=" cursor-pointer" />
                     </Badge>
                   ))}
                 </div>
@@ -63,14 +63,14 @@ const FilterValue = ({ filters }: { filters: FilterPops[] }) => {
             }
             return (
               <div key={idx} className="flex gap-2 w-fit flex-shrink-0">
-                <div className="bg-gray-200 px-2 py-1 rounded text-sm">{filter.label}</div>
+                <div className="bg-gray-200 dark:bg-accent px-2 py-1 rounded text-sm">{filter.label}</div>
                 <Badge
                   variant="secondary"
                   className="break-keep gap-x-1 font-normal text-sm flex items-center cursor-pointer"
                   onClick={() => filter.handleDelete(filter.value)}
                 >
                   <div className="w-fit">{filter.value}</div>
-                  <X className="h-4 w-4 cursor-pointer" />
+                  <X className=" cursor-pointer" />
                 </Badge>
               </div>
             );

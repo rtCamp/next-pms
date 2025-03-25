@@ -208,7 +208,7 @@ def get_employee_billing_rate(
 
     if currency != timesheet_currency:
         rate = get_exchange_rate(currency, timesheet_currency, start_date)
-        return billing_rate * rate
+        return billing_rate * (rate or 1)
 
     return billing_rate
 
@@ -227,7 +227,7 @@ def get_employee_costing_rate(salary_currency: float, ctc: float, currency: floa
 
     if salary_currency != currency:
         rate = get_exchange_rate(salary_currency, currency, start_date)
-        costing_rate = costing_rate * rate
+        costing_rate = costing_rate * (rate or 1)
     return costing_rate
 
 

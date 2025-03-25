@@ -20,7 +20,7 @@ const TableHeader = React.forwardRef<HTMLTableSectionElement, React.HTMLAttribut
   ({ className, ...props }, ref) => (
     <thead
       ref={ref}
-      className={mergeClassNames("[&_tr]:border-b bg-slate-50 border-slate-200 border-t", className)}
+      className={mergeClassNames("[&_tr]:border-b bg-slate-50 dark:bg-muted  border-t", className)}
       {...props}
     />
   )
