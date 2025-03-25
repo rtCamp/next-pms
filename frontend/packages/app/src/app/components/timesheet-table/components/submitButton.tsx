@@ -36,15 +36,15 @@ export const SubmitButton = ({
       variant="ghost"
       asChild
       className={mergeClassNames(
-        "font-normal",
         (status == "Approved" || status == "Partially Approved") &&
-          "bg-success/20 text-success hover:bg-success/20 hover:text-success",
+          "bg-success/20 text-success hover:bg-success/20 hover:text-success border border-success/30",
         (status == "Rejected" || status == "Partially Rejected") &&
-          "bg-destructive/20 text-destructive hover:bg-destructive/20 hover:text-destructive",
-        status == "Approval Pending" && "bg-warning/20 text-warning hover:bg-warning/20 hover:text-warning",
+          "bg-destructive/20 text-destructive hover:bg-destructive/20 hover:text-destructive border border-destructive/30",
+        status == "Approval Pending" &&
+          "bg-warning/20 text-warning hover:bg-warning/20 hover:text-warning  border border-warning/30",
         status == "Not Submitted" &&
           totalHours >= expectedWeeklyHours &&
-          "bg-yellow-50 text-yellow-600 hover:bg-yellow-50 hover:text-yellow-600"
+          "bg-yellow-50 text-yellow-600 hover:bg-yellow-50 hover:text-yellow-600 dark:bg-yellow-400/20 border border-yellow-600"
       )}
       onClick={(e) => {
         e.stopPropagation();
