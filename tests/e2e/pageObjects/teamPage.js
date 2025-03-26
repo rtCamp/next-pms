@@ -153,7 +153,7 @@ export class TeamPage {
    */
   async getTimeEntryRow({ date, project, task, desc }) {
     return this.reviewTimesheetPane.locator(
-      `//div[.//p[contains(text(), '${task}')] and .//span[contains(text(), '${project}')] and .//p[contains(text(), '${desc}')] and preceding-sibling::div//p[contains(text(), '${date}')]]`,
+      `//div[.//p[contains(text(), '${task}')] and .//span[contains(text(), '${project}')] and .//p[contains(text(), '${desc}')] and preceding-sibling::div//p[contains(text(), '${date}')]]`
     );
   }
 
@@ -233,7 +233,7 @@ export class TeamPage {
     await this.parentTable.waitFor({ state: "visible" });
 
     return this.parentTable.locator(
-      `//p[text()='${name}']//ancestor::div[@data-state and @data-orientation='vertical']`,
+      `//p[text()='${name}']//ancestor::div[@data-state and @data-orientation='vertical']`
     );
   }
 

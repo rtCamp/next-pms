@@ -375,7 +375,7 @@ export class TimesheetPage {
   async updateTimeRow(cellInfo, { desc, newDesc, newDuration }) {
     const cell = await this.getCell(cellInfo);
     const row = this.editTimeModal.locator(
-      `//textarea[contains(text(), '${desc}')]/ancestor::div[contains(@class, 'items-start')]`,
+      `//textarea[contains(text(), '${desc}')]/ancestor::div[contains(@class, 'items-start')]`
     );
 
     await this.openCell(cell);
@@ -391,7 +391,7 @@ export class TimesheetPage {
   async deleteTimeRow(cellInfo, { desc }) {
     const cell = await this.getCell(cellInfo);
     const row = this.editTimeModal.locator(
-      `//textarea[contains(text(), '${desc}')]/ancestor::div[contains(@class, 'items-start')]`,
+      `//textarea[contains(text(), '${desc}')]/ancestor::div[contains(@class, 'items-start')]`
     );
 
     await this.openCell(cell);

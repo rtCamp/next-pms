@@ -70,7 +70,7 @@ export const getTimesheetDetails = async ({ employee, start_date, max_week }) =>
 
   // Fetch timesheet details
   const response = await context.get(
-    `/api/method/next_pms.timesheet.api.timesheet.get_timesheet_data?${queryParams.toString()}`,
+    `/api/method/next_pms.timesheet.api.timesheet.get_timesheet_data?${queryParams.toString()}`
   );
 
   return await response;
