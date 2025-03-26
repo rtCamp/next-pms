@@ -37,7 +37,7 @@ const Row = ({
         Object.entries(tasks).map(([task, taskData]: [string, TaskDataProps]) => {
           let totalHours = 0;
           return (
-            <TableRow key={task} className={mergeClassNames("border-b border-slate-200", rowClassName)}>
+            <TableRow key={task} className={mergeClassNames("border-b ", rowClassName)}>
               <TableCell className={mergeClassNames("cursor-pointer max-w-sm", taskCellClassName)}>
                 <TaskHoverCard
                   name={task}
