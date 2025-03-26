@@ -130,42 +130,82 @@
   },
   "TC5": {
     "cell": {
-      "rowName": "Unit Testing",
+      "rowName": "Task for TC05",
       "col": "Thu"
+    },
+    "payloadCreateProject": {
+      "project_name": "TC05 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "billing_type": "Non-Billable",
+      "currency": "INR",
+      "project_type": "Non Billable",
+      "business_unit": "NB",
+      "estimated_cost": 100000
+    },
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    },
+    "payloadCreateTask": {
+      "subject": "Task for TC05",
+      "project": "filled-automatically-from-createProjects",
+      "description": "Task for TC05 created through automation"
+    },
+    "payloadDeleteTask": {
+      "taskID": "filled-automatically-from-createTasks"
     },
     "taskInfo": {
       "duration": "2:15",
-      "project": "QE - Time and Material",
-      "task": "Unit Testing",
+      "project": "TC05 Project",
+      "task": "Task for TC05",
       "desc": "TC5 - New row added to task via automation."
     },
     "payloadCreateTimesheet": {
-      "task": "TASK-2025-00621",
+      "task": "filled-automatically-from-createTasks",
       "description": "TC5 - Task added via automation.",
       "hours": "1"
     },
     "payloadFilterTimeEntry1": {
-      "subject": "Unit Testing",
+      "subject": "Task for TC05",
       "description": "TC5 - Task added via automation.",
-      "project_name": "QE - Time and Material",
+      "project_name": "TC05 Project",
       "max_week": "1"
     },
     "payloadFilterTimeEntry2": {
-      "subject": "Unit Testing",
+      "subject": "Task for TC05",
       "description": "TC5 - New row added to task via automation.",
-      "project_name": "QE - Time and Material",
+      "project_name": "TC05 Project",
       "max_week": "1"
     }
   },
   "TC6": {
     "cell": {
-      "rowName": "Prod support calls",
+      "rowName": "Task for TC06",
       "col": "Tue"
+    },
+    "payloadCreateProject": {
+      "project_name": "TC06 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "billing_type": "Non-Billable",
+      "currency": "INR",
+      "project_type": "Non Billable",
+      "business_unit": "NB",
+      "estimated_cost": 100000
+    },
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    },
+    "payloadCreateTask": {
+      "subject": "Task for TC06",
+      "project": "filled-automatically-from-createProjects",
+      "description": "Task for TC06 created through automation"
+    },
+    "payloadDeleteTask": {
+      "taskID": "filled-automatically-from-createTasks"
     },
     "taskInfo": {
       "duration": "1",
-      "project": "QE - Fixed Cost",
-      "task": "Prod support calls",
+      "project": "TC06 Project",
+      "task": "Task for TC06",
       "desc": "TC6 - Task added via automation."
     },
     "payloadCreateTimesheet": {
@@ -174,9 +214,9 @@
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
-      "subject": "Prod support calls",
+      "subject": "Task for TC06",
       "description": "TC6 - Task added via automation.",
-      "project_name": "QE - Fixed Cost",
+      "project_name": "TC06 Project",
       "max_week": "1"
     }
   },

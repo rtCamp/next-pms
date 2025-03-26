@@ -172,20 +172,20 @@ export const filterTimesheetEntry = async ({ subject, description, project_name,
  */
 export const createProjects = async () => {
   //Include testcase ID's below that require project to be created
-  const employeeTimesheetIDs = ["TC2", "TC4"];
+  const employeeTimesheetIDs = ["TC2", "TC4", "TC5"];
+
   const createProjects = async (data, testCases) => {
     for (const testCaseID of testCases) {
+
       if (data[testCaseID].payloadCreateProject) {
         const createProjectPayload = data[testCaseID].payloadCreateProject;
         //Store the response of createProject API
         const response = await createProject(createProjectPayload);
         const jsonResponse = await response.json();
         const projectId = jsonResponse.data.name;
-        console.warn("RUNNING LOOP FOR CREATE PROJECT OF:", testCaseID);
-
-        console.warn("PROJECT ID:", projectId);
         //Provide the project ID to be stored in payloadDeleteProject and payloadCreateTask
         data[testCaseID].payloadDeleteProject.projectId = projectId;
+
         if (data[testCaseID].payloadCreateTask) {
           data[testCaseID].payloadCreateTask.project = projectId;
         }
@@ -207,6 +207,7 @@ export const deleteProjects = async () => {
   const projectsToBeDeleted = [
     sharedEmployeeTimesheetData.TC2.payloadDeleteProject.projectId,
     sharedEmployeeTimesheetData.TC4.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC5.payloadDeleteProject.projectId,
   ];
   for (const entry of projectsToBeDeleted) {
     //Delete Project
@@ -220,7 +221,7 @@ export const deleteProjects = async () => {
  */
 export const createTasks = async () => {
   //Include testcase ID's below that require project to be created
-  const employeeTimesheetIDs = ["TC2", "TC4"];
+  const employeeTimesheetIDs = ["TC2", "TC4", "TC5"];
   let taskID;
 
   const createTasks = async (data, testCases) => {
@@ -232,10 +233,8 @@ export const createTasks = async () => {
         const response = await createTask(createTaskPayload);
 
         const jsonResponse = await response.json();
-        console.warn("RUNNING LOOP FOR CREATE TASK OF:", testCaseID);
 
         taskID = jsonResponse.data.name;
-        console.warn("TASK ID:", taskID);
         //Provide the taskID to be stored in payloadDeleteProject and payloadCreateTask
         data[testCaseID].payloadDeleteTask.taskID = taskID;
       }
@@ -262,6 +261,7 @@ export const deleteTasks = async () => {
   const tasksToBeDeleted = [
     sharedEmployeeTimesheetData.TC2.payloadDeleteTask.taskID,
     sharedEmployeeTimesheetData.TC4.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC5.payloadDeleteTask.taskID,
   ];
   for (const entry of tasksToBeDeleted) {
     //Delete Project
