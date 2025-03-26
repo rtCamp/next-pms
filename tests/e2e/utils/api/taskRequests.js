@@ -16,7 +16,7 @@ export const createTask = async ({ subject, project, description }) => {
       subject: subject,
       project: project,
       description: description,
-    }
+    },
   });
   return await response;
 };
@@ -45,10 +45,10 @@ export const likeTask = async (taskID) => {
   }
   const response = await context.post(`/api/method/frappe.desk.like.toggle_like`, {
     data: {
-      "doctype": "Task",
-      "name": `${taskID}`,
-      "add": "Yes"
-  }
+      doctype: "Task",
+      name: `${taskID}`,
+      add: "Yes",
+    },
   });
   return await response;
 };

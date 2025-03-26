@@ -61,7 +61,7 @@ export const getLeaves = async (filters) => {
   }
 
   const endpoint = `/api/resource/Leave%20Application?fields=["*"]&filters=${encodeURIComponent(
-    JSON.stringify(filters)
+    JSON.stringify(filters),
   )}`;
 
   // Fetch leave applications

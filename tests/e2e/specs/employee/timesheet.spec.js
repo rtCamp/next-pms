@@ -92,7 +92,7 @@ test("TC5: Add a new row in the already added time.", async ({ page }) => {
   // Assertions
   const afterCellText = await timesheetPage.getCellText(TC5data.cell);
   const afterDuration = secondsToDuration(
-    durationToSeconds(beforeCellText) + durationToSeconds(TC5data.taskInfo.duration)
+    durationToSeconds(beforeCellText) + durationToSeconds(TC5data.taskInfo.duration),
   );
   expect(afterCellText).toContain(afterDuration);
 
