@@ -169,7 +169,7 @@ export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
             <Separator />
             {data?.message.worked_by?.length != 0 && (
               <>
-                <section id="worked_by w-full bg-red-500">
+                <section id="worked_by">
                   <div className="flex gap-x-4 overflow-x-auto no-scrollbar">
                     {data?.message.worked_by?.map((employee: Employee) => (
                       <div key={employee.employee} className="flex items-center gap-x-2 shrink-0">
@@ -211,7 +211,7 @@ export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
                                 (emp: Employee) => emp.employee === log.employee
                               );
                               return (
-                                <div className="border-b border-dashed p-2 bg-gray-50 ">
+                                <div className="border-b border-dashed p-2 bg-gray-50 dark:bg-muted/30 ">
                                   <div className="flex justify-between w-full">
                                     <span className="flex gap-x-2 items-start">
                                       <Avatar className="w-6 h-6">
