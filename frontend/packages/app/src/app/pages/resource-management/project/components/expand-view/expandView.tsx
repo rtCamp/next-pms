@@ -1,10 +1,10 @@
 /**
  * External dependencies.
  */
-import { useContext } from "react";
 import { Avatar, AvatarFallback, AvatarImage, Table, TableBody, TableRow } from "@next-pms/design-system/components";
 import { TableInformationCellContent } from "@next-pms/resource-management/components";
 import { useFrappeGetCall } from "frappe-react-sdk";
+import { useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
@@ -34,7 +34,7 @@ export const ResourceExpandView = ({
   is_billable,
   onSubmit,
 }: ResourceExpandViewProps) => {
-  const { projectData } = useContext(ProjectContext);
+  const projectData = useContextSelector(ProjectContext, (value) => value.state.projectData);
 
   const dates = projectData.dates;
 

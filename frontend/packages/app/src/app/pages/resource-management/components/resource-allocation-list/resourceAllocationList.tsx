@@ -1,10 +1,10 @@
 /**
  * External dependencies.
  */
-import { useContext } from "react";
 import { Button } from "@next-pms/design-system/components";
 import { mergeClassNames } from "@next-pms/design-system/utils";
 import { Plus } from "lucide-react";
+import { useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
@@ -43,7 +43,7 @@ export const ResourceAllocationList = ({
   onButtonClick?: () => void;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const { permission: resourceAllocationPermission } = useContext(ResourceFormContext);
+  const resourceAllocationPermission = useContextSelector(ResourceFormContext, (value) => value.state.permission);
 
   return (
     <div className={mergeClassNames("flex flex-col items-center overflow-y-auto max-h-60")}>

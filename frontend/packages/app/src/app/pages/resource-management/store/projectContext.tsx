@@ -1,8 +1,9 @@
 /**
  * External dependencies.
  */
-import { createContext, useState } from "react";
+import { useState } from "react";
 import { getFormatedDate, getTodayDate } from "@next-pms/design-system";
+import { createContext } from "use-context-selector";
 
 /**
  * Internal dependencies.
@@ -55,21 +56,25 @@ const defaultApiController: APIController = {
   action: "SET",
 };
 const defaulProjectState: ProjectContextProps = {
-  projectData: defaultData,
-  filters: defaultFilters,
-  tableView: defaultTableView,
-  apiController: defaultApiController,
-  setStart: () => {},
-  updateTableView: () => {},
-  resetState: () => {},
-  setReFetchData: () => {},
-  updateFilter: () => {},
-  updateProjectData: () => {},
-  getHasMore: () => false,
-  setMaxWeek: () => {},
-  setDates: () => {},
-  setCombineWeekHours: () => {},
-  setWeekDate: () => {},
+  state: {
+    projectData: defaultData,
+    filters: defaultFilters,
+    tableView: defaultTableView,
+    apiController: defaultApiController,
+  },
+  actions: {
+    setStart: () => {},
+    updateTableView: () => {},
+    resetState: () => {},
+    setReFetchData: () => {},
+    updateFilter: () => {},
+    updateProjectData: () => {},
+    getHasMore: () => false,
+    setMaxWeek: () => {},
+    setDates: () => {},
+    setCombineWeekHours: () => {},
+    setWeekDate: () => {},
+  },
 };
 
 const ProjectContext = createContext<ProjectContextProps>(defaulProjectState);
@@ -160,21 +165,25 @@ const ProjectContextProvider = ({ children }: ContextProviderProps) => {
   return (
     <ProjectContext.Provider
       value={{
-        projectData: projectData,
-        filters: filters,
-        apiController: apiController,
-        tableView: tableView,
-        setStart: setStart,
-        updateTableView: updateTableView,
-        resetState: resetState,
-        setReFetchData: setReFetchData,
-        updateFilter: updateFilter,
-        updateProjectData: updateProjectData,
-        getHasMore: getHasMore,
-        setMaxWeek: setMaxWeek,
-        setDates: setDates,
-        setCombineWeekHours: setCombineWeekHours,
-        setWeekDate: setWeekDate,
+        state: {
+          projectData: projectData,
+          filters: filters,
+          apiController: apiController,
+          tableView: tableView,
+        },
+        actions: {
+          setStart: setStart,
+          updateTableView: updateTableView,
+          resetState: resetState,
+          setReFetchData: setReFetchData,
+          updateFilter: updateFilter,
+          updateProjectData: updateProjectData,
+          getHasMore: getHasMore,
+          setMaxWeek: setMaxWeek,
+          setDates: setDates,
+          setCombineWeekHours: setCombineWeekHours,
+          setWeekDate: setWeekDate,
+        },
       }}
     >
       {children}

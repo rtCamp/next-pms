@@ -1,11 +1,12 @@
 /**
  * External dependencies.
  */
-import { useCallback, useContext, useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { getNextDate } from "@next-pms/design-system";
 import { Spinner, useToast } from "@next-pms/design-system/components";
 import { useInfiniteScroll } from "@next-pms/hooks";
 import { useFrappePostCall } from "frappe-react-sdk";
+import { useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
@@ -39,20 +40,17 @@ const ResourceTeamViewWrapper = () => {
  */
 const ResourceTeamView = () => {
   const { toast } = useToast();
-  const {
-    teamData,
-    filters,
-    apiController,
-    updateTeamData,
-    getHasMore,
-    setStart,
-    setMaxWeek,
-    setDates,
-    setReFetchData,
-  } = useContext(TeamContext);
+  const { teamData, filters, apiController } = useContextSelector(TeamContext, (value) => value.state);
 
-  const { permission: resourceAllocationPermission, dialogState: resourceAllocationDialogState } =
-    useContext(ResourceFormContext);
+  const { updateTeamData, getHasMore, setStart, setMaxWeek, setDates, setReFetchData } = useContextSelector(
+    TeamContext,
+    (value) => value.actions
+  );
+
+  const { permission: resourceAllocationPermission, dialogState: resourceAllocationDialogState } = useContextSelector(
+    ResourceFormContext,
+    (value) => value.state
+  );
 
   const { call: fetchData } = useFrappePostCall(
     "next_pms.resource_management.api.team.get_resource_management_team_view_data"

@@ -1,9 +1,9 @@
 /**
  * External dependencies.
  */
-import { useContext } from "react";
 import { TableBody } from "@next-pms/design-system/components";
 import { ResourceTableRow } from "@next-pms/resource-management/components";
+import { useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
@@ -26,7 +26,7 @@ const ResourceProjectTableBody = ({
 }: {
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const { projectData, filters } = useContext(ProjectContext);
+  const { projectData, filters } = useContextSelector(ProjectContext, (value) => value.state);
 
   const data = projectData.data;
   const dates = projectData.dates;
