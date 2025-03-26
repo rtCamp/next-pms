@@ -12,22 +12,23 @@ class GoogleBadRequest(Exception):
 
 
 @frappe.whitelist()
-def get_user_calendar_events(member: str, start_date: datetime, end_date: datetime):
+def get_user_calendar_events(start_date: datetime, end_date: datetime):
     """
     Fetch all calendar events for the current user.
 
     Args:
-        start (str, optional): Start date for filtering events. Defaults to None.
-        end (str, optional): End date for filtering events. Defaults to None.
+        start_date (str): Start date for filtering events.
+        end_date (str): End date for filtering events.
 
     Returns:
         list: List of calendar events for the user
     """
     try:
-        if not member:
+        user = frappe.session.user
+        if not user:
             return None
-        google_calendar_id = frappe.get_value("User Appointment Availability", member, "google_calendar")
-        google_calendar = frappe.get_doc("Google Calendar", google_calendar_id)
+
+        google_calendar = frappe.get_all("Google Calendar", filters={"user": user}, fields=["*"])[0]
         google_calendar_api_obj, account = get_google_calendar_object(google_calendar.name)
         time_min = datetime(start_date.year, start_date.month, start_date.day, 0, 0, 0)
         time_max = datetime(end_date.year, end_date.month, end_date.day, 23, 59, 59)
