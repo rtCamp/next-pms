@@ -46,7 +46,7 @@ const TableDisabledRow = ({
             key={date}
             cellClassName={mergeClassNames(
               getTableCellClass(index, 0),
-              "bg-gray-200",
+              "bg-gray-200 dark:bg-muted",
               getTodayDateCellClass(date),
               cellClassName
             )}

@@ -119,15 +119,18 @@ const TableHeaderCell = ({
     >
       <Typography
         variant="p"
-        className={mergeClassNames("text-slate-600 text-[11px]", isToday(getUTCDateTime(date)) && "font-semibold")}
+        className={mergeClassNames(
+          "text-slate-600 text-[11px] dark:text-primary/80",
+          isToday(getUTCDateTime(date)) && "font-semibold dark:text-primary"
+        )}
       >
         {day}
       </Typography>
       <Typography
         variant="small"
         className={mergeClassNames(
-          "text-slate-500 text-[11px] max-lg:text-[0.65rem]",
-          isToday(getUTCDateTime(date)) && "font-semibold"
+          "text-slate-500 text-[11px] max-lg:text-[0.65rem] dark:text-primary/60",
+          isToday(getUTCDateTime(date)) && "font-semibold dark:text-primary"
         )}
       >
         {dateStr}
