@@ -34,6 +34,7 @@ const ThemeProvider = ({
 
   const value = {
     theme,
+    isDarkThemeOnSystem: window.matchMedia("(prefers-color-scheme: dark)").matches,
     setTheme: (theme: Theme) => {
       localStorage.setItem(storageKey, theme);
       setTheme(theme);

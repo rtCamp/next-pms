@@ -8,6 +8,7 @@ export type ThemeProviderProps = {
 
 export type ThemeProviderState = {
   theme: Theme;
+  isDarkThemeOnSystem: boolean;
   setTheme: (theme: Theme) => void;
 };
 
