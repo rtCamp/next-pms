@@ -5,6 +5,7 @@ import AddLeave from "@/app/components/add-leave";
 import AddTime from "@/app/components/AddTime";
 import { Approval } from "./approval";
 import { EditTime } from "./editTime";
+import ImportFromGoogleCalendarDialog from "./importFromGoogleCalendarDialog";
 import type { FooterProps } from "./types";
 
 export const Footer = ({ timesheet, user, dispatch, callback }: FooterProps) => {
@@ -66,6 +67,15 @@ export const Footer = ({ timesheet, user, dispatch, callback }: FooterProps) => 
             callback();
           }}
           onSuccess={() => {
+            callback();
+          }}
+        />
+      )}
+      {timesheet.isImportFromGoogleCalendarDialogOpen && (
+        <ImportFromGoogleCalendarDialog
+          open={timesheet.isImportFromGoogleCalendarDialogOpen}
+          onOpenChange={() => {
+            dispatch({ type: "SET_IMPORT_FROM_GOOGLE_CALENDAR_DIALOG_STATE", payload: false });
             callback();
           }}
         />
