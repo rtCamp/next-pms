@@ -107,11 +107,23 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
       setSelectedEvents([]);
       setIsAllSelected(false);
     }
+    if (error) {
+      const err = parseFrappeErrorMsg(error);
+      toast({
+        variant: "destructive",
+        description: err,
+      });
+    }
   }, [eventData, ignoreAlldayEvents]);
 
   const toggleEventSelection = (eventId: string) => {
-    setSelectedEvents((prev) => (prev.includes(eventId) ? prev.filter((id) => id !== eventId) : [...prev, eventId]));
-    setIsAllSelected(selectedEvents.length + 1 === events.length);
+    setSelectedEvents((prev) => {
+      const updatedSelection = prev.includes(eventId) ? prev.filter((id) => id !== eventId) : [...prev, eventId];
+
+      setIsAllSelected(updatedSelection.length === events.length);
+
+      return updatedSelection;
+    });
   };
 
   const toggleSelectAll = () => {
@@ -212,35 +224,50 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
 
         {!isLoading ? (
           <>
-            {/* Select All Checkbox */}
-            <div className="flex items-center space-x-3 p-3 rounded-md bg-gray-100/80">
-              <Checkbox id="select_all" checked={isAllSelected} onCheckedChange={toggleSelectAll} />
-              <Label htmlFor="select_all" className="font-medium">
-                Select All Events
-              </Label>
+            <div className="flex items-center justify-between p-3 rounded-md bg-gray-100/80">
+              <span className="flex items-center space-x-3">
+                <Checkbox
+                  id="select_all"
+                  checked={isAllSelected && events.length > 0}
+                  onCheckedChange={toggleSelectAll}
+                />
+                <Label htmlFor="select_all" className="font-medium">
+                  Select All Events
+                </Label>
+              </span>
+              <span className="text-xs font-medium">
+                {events.length > 0 && `${selectedEvents.length} of ${events.length}`}
+              </span>
             </div>
 
-            {/* Events List */}
             <div className="space-y-4 max-h-60 overflow-y-auto">
               {events?.length > 0 ? (
                 events.map((event) => (
                   <div
                     key={event.id}
                     onClick={() => toggleEventSelection(event.id)}
-                    className="flex items-center space-x-3 p-3 border border-gray-200 rounded-md hover:bg-gray-50 hover:border-gray-500 cursor-pointer transition-colors group"
+                    className="flex items-center space-x-3 p-3 bg-gray-50 rounded-md hover:bg-gray-100  cursor-pointer transition-colors group"
                   >
                     <Checkbox checked={selectedEvents.includes(event.id)} />
                     <div className="flex-1">
                       <div className="flex justify-between items-center">
                         <div>
                           <h3 className="font-semibold">{event.subject}</h3>
-                          <div className="text-sm text-gray-500 flex items-center space-x-2">
-                            <Calendar size={14} />
-                            <span>{new Date(event.starts_on).toLocaleDateString()}</span>
-                            <Clock size={14} />
-                            <span>
-                              {new Date(event.starts_on).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}{" "}
-                              -{new Date(event.ends_on).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          <div className="mt-1 text-sm text-gray-500 flex items-center space-x-3">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="size-4" />
+                              <span className="text-xs">{new Date(event.starts_on).toLocaleDateString()}</span>
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="size-4" />
+                              <span className="text-xs">
+                                {new Date(event.starts_on).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}{" "}
+                                -{" "}
+                                {new Date(event.ends_on).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                              </span>
                             </span>
                           </div>
                         </div>
@@ -254,56 +281,54 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
                 </div>
               )}
             </div>
+
+            <div className="flex gap-2 mt-4">
+              {/* Project Selection */}
+              <div className="flex flex-col flex-1 gap-2">
+                <Typography className="font-medium">Projects</Typography>
+                <ComboBox
+                  label="Search Projects"
+                  showSelected
+                  shouldFilter
+                  value={selectedProject as string[]}
+                  data={projects?.message?.map((item: { project_name: string; name: string }) => ({
+                    label: item.project_name,
+                    value: item.name,
+                    disabled: false,
+                  }))}
+                  isLoading={isProjectLoading}
+                  onSelect={handleProjectChange}
+                  rightIcon={<Search className="h-4 w-4 stroke-slate-400" />}
+                />
+              </div>
+              <div className="flex flex-col flex-1 gap-2">
+                <Typography className="font-medium">Tasks</Typography>
+                {/* Task Type Selection */}
+                <ComboBox
+                  label="Search Task"
+                  showSelected
+                  deBounceTime={200}
+                  value={selectedTask && selectedTask.length > 0 ? [selectedTask[0]] : []}
+                  isLoading={isTaskLoading}
+                  data={
+                    tasks.map((item: TaskData) => ({
+                      label: item.subject,
+                      value: item.name,
+                      description: item.project_name as string,
+                      disabled: false,
+                    })) ?? []
+                  }
+                  onSelect={handleTaskChange}
+                  onSearch={handleTaskSearch}
+                  rightIcon={<Search className="h-4 w-4 stroke-slate-400" />}
+                />
+              </div>
+            </div>
           </>
         ) : (
           <Spinner isFull={true} className="h-80" />
         )}
 
-        {/* Project and Task Selection */}
-        <div className="flex gap-2 mt-4">
-          {/* Project Selection */}
-          <div className="flex flex-col flex-1 gap-2">
-            <Typography className="font-medium">Projects</Typography>
-            <ComboBox
-              label="Search Projects"
-              showSelected
-              shouldFilter
-              value={selectedProject as string[]}
-              data={projects?.message?.map((item: { project_name: string; name: string }) => ({
-                label: item.project_name,
-                value: item.name,
-                disabled: false,
-              }))}
-              isLoading={isProjectLoading}
-              onSelect={handleProjectChange}
-              rightIcon={<Search className="h-4 w-4 stroke-slate-400" />}
-            />
-          </div>
-          <div className="flex flex-col flex-1 gap-2">
-            <Typography className="font-medium">Tasks</Typography>
-            {/* Task Type Selection */}
-            <ComboBox
-              label="Search Task"
-              showSelected
-              deBounceTime={200}
-              value={selectedTask && selectedTask.length > 0 ? [selectedTask[0]] : []}
-              isLoading={isTaskLoading}
-              data={
-                tasks.map((item: TaskData) => ({
-                  label: item.subject,
-                  value: item.name,
-                  description: item.project_name as string,
-                  disabled: false,
-                })) ?? []
-              }
-              onSelect={handleTaskChange}
-              onSearch={handleTaskSearch}
-              rightIcon={<Search className="h-4 w-4 stroke-slate-400" />}
-            />
-          </div>
-        </div>
-
-        {/* Dialog Footer */}
         <DialogFooter className="sm:justify-start w-full pt-3">
           <div className="flex gap-x-4 w-full">
             <Button variant="secondary" type="button" onClick={() => onOpenChange(null)}>
