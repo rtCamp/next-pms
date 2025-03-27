@@ -21,6 +21,12 @@
   body {
     @apply bg-background text-foreground;
   }
+  .dark ::-webkit-scrollbar {
+    @apply w-3 bg-background;
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    @apply rounded bg-secondary /*color trackbar*/;
+  }
 }
 
 .custom-resource-management-team-view-bg {
@@ -45,7 +51,6 @@ html,
   width: 100vw;
   overflow: auto;
 }
-
 
 /** TimeLine CSS overwrite*/
 .react-calendar-timeline .rct-sidebar .rct-sidebar-row.rct-sidebar-row-odd,
