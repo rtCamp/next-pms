@@ -15,6 +15,7 @@ import {
   Label,
   Separator,
   Spinner,
+  Typography,
   useToast,
 } from "@next-pms/design-system/components";
 import { FrappeConfig, FrappeContext, useFrappeGetCall } from "frappe-react-sdk";
@@ -313,7 +314,7 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
         </div>
 
         {/* Recurring Events List */}
-        <div className="space-y-4 max-h-60 overflow-y-auto">
+        <div className="space-y-4 md:max-h-60 max-md:max-h-44 overflow-y-auto">
           {recurringEvents?.map((event, idx) => (
             <div
               key={idx}
@@ -341,42 +342,47 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
           ))}
         </div>
 
-        {/* Project Selection */}
-        <div className="mt-4 flex gap-2">
-          <ComboBox
-            label="Search Projects"
-            showSelected
-            shouldFilter
-            value={selectedProject as string[]}
-            data={projects?.message?.map((item: { project_name: string; name: string }) => ({
-              label: item.project_name,
-              value: item.name,
-              disabled: false,
-            }))}
-            isLoading={isProjectLoading}
-            onSelect={handleProjectChange}
-            rightIcon={<Search className="h-4 w-4 stroke-slate-400" />}
-          />
-
-          {/* Task Type Selection */}
-          <ComboBox
-            label="Search Task"
-            showSelected
-            deBounceTime={200}
-            value={selectedTask && selectedTask.length > 0 ? [selectedTask[0]] : []}
-            isLoading={isTaskLoading}
-            data={
-              tasks.map((item: TaskData) => ({
-                label: item.subject,
+        <div className="flex gap-2">
+          {/* Project Selection */}
+          <div className="flex flex-col flex-1 gap-2">
+            <Typography className="font-medium">Projects</Typography>
+            <ComboBox
+              label="Search Projects"
+              showSelected
+              shouldFilter
+              value={selectedProject as string[]}
+              data={projects?.message?.map((item: { project_name: string; name: string }) => ({
+                label: item.project_name,
                 value: item.name,
-                description: item.project_name as string,
                 disabled: false,
-              })) ?? []
-            }
-            onSelect={handleTaskChange}
-            onSearch={handleTaskSearch}
-            rightIcon={<Search className="h-4 w-4  stroke-slate-400" />}
-          />
+              }))}
+              isLoading={isProjectLoading}
+              onSelect={handleProjectChange}
+              rightIcon={<Search className="h-4 w-4 stroke-slate-400" />}
+            />
+          </div>
+          <div className="flex flex-col flex-1 gap-2">
+            <Typography className="font-medium">Tasks</Typography>
+            {/* Task Type Selection */}
+            <ComboBox
+              label="Search Task"
+              showSelected
+              deBounceTime={200}
+              value={selectedTask && selectedTask.length > 0 ? [selectedTask[0]] : []}
+              isLoading={isTaskLoading}
+              data={
+                tasks.map((item: TaskData) => ({
+                  label: item.subject,
+                  value: item.name,
+                  description: item.project_name as string,
+                  disabled: false,
+                })) ?? []
+              }
+              onSelect={handleTaskChange}
+              onSearch={handleTaskSearch}
+              rightIcon={<Search className="h-4 w-4  stroke-slate-400" />}
+            />
+          </div>
         </div>
       </>
     );
@@ -386,24 +392,26 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent aria-describedby="Content" className="sm:max-w-xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create Task from Google Calendar</DialogTitle>
+          <DialogTitle className="flex gap-x-2">Create Task from Google Calendar</DialogTitle>
         </DialogHeader>
         <Separator />
 
         {dialogStage === "search" ? renderSearchStage() : renderEventDetailsStage()}
 
-        <DialogFooter className="flex justify-start space-x-2">
-          <Button variant="secondary" type="button" onClick={handleOpen}>
-            <X className="w-4 h-4" />
-            Cancel
-          </Button>
-          <Button
-            onClick={handleCreateTask}
-            disabled={!selectedTask || !selectedProject || !recurringEvents.some((e) => e.selected)}
-          >
-            <Save className="w-4 h-4" />
-            Add Time
-          </Button>
+        <DialogFooter className="sm:justify-start w-full pt-3">
+          <div className="flex gap-x-4 w-full">
+            <Button variant="secondary" type="button" onClick={handleOpen}>
+              <X className="w-4 h-4" />
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateTask}
+              disabled={!selectedTask || !selectedProject || !recurringEvents.some((e) => e.selected)}
+            >
+              <Save className="w-4 h-4" />
+              Add Time
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
