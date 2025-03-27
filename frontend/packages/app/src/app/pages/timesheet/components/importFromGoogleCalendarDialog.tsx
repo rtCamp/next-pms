@@ -183,9 +183,9 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent aria-describedby="Content" className="sm:max-w-xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex gap-x-2">Create Timesheet From Google Calendar</DialogTitle>
+      <DialogContent aria-describedby="Content" className="sm:max-w-xl md:max-h-[80vh] overflow-y-auto">
+        <DialogHeader className="max-md:mt-2">
+          <DialogTitle className="flex w-full gap-x-2 text-left">Create Timesheet From Google Calendar</DialogTitle>
         </DialogHeader>
         <Separator />
 
@@ -282,7 +282,7 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
               )}
             </div>
 
-            <div className="flex gap-2 mt-4">
+            <div className="flex gap-2">
               {/* Project Selection */}
               <div className="flex flex-col flex-1 gap-2">
                 <Typography className="font-medium">Projects</Typography>
