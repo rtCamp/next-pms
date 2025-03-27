@@ -24,14 +24,13 @@ import { useToast } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
 import { preProcessLink, floatToTime } from "@next-pms/design-system/utils";
 import { useInfiniteScroll } from "@next-pms/hooks";
-import { isToday } from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
  */
 import { TEAM, EMPLOYEE } from "@/lib/constant";
-import { mergeClassNames, parseFrappeErrorMsg, calculateExtendedWorkingHour } from "@/lib/utils";
+import { mergeClassNames, parseFrappeErrorMsg, calculateExtendedWorkingHour, getBgCsssForToday } from "@/lib/utils";
 import { dataItem } from "@/types/team";
 import { Header } from "./header";
 import { initialState, homeReducer } from "./reducer";
@@ -112,7 +111,7 @@ const Home = () => {
                   {homeState.data?.dates[0]?.key}
                 </Typography>
               </TableHead>
-              <TableHead colSpan={7} className="h-fit divide-solid bg-slate-200">
+              <TableHead colSpan={7} className="h-fit divide-solid bg-slate-200 dark:bg-secondary ">
                 <Typography variant="p" className="w-full flex justify-center items-center">
                   {homeState.data?.dates[1]?.key}
                 </Typography>
@@ -128,9 +127,8 @@ const Home = () => {
                     <TableHead
                       key={`${index}-${date}`}
                       className={mergeClassNames(
-                        "text-slate-600 font-medium max-w-20 h-8 text-center",
-                        index != 0 && "bg-slate-200",
-                        isToday(date) && "bg-slate-300"
+                        "text-slate-500 dark:text-primary/60 font-medium max-w-20 h-8 text-center",
+                        index != 0 && "bg-slate-200 dark:bg-secondary"
                       )}
                     >
                       {formattedDate.day}
@@ -177,12 +175,12 @@ const Home = () => {
                           <HoverCard key={`${data.hour}-id-${Math.random()}`} openDelay={1000}>
                             <TableCell
                               className={mergeClassNames(
-                                "text-xs hover:cursor-pointer bg-transparent",
+                                "text-xs text-center hover:cursor-pointer bg-transparent",
                                 expectedTime == 2 && "bg-warning/20",
                                 expectedTime == 1 && "bg-success/20",
                                 expectedTime == 0 && data.hour != 0 && "bg-destructive/20",
                                 data.is_leave && "bg-gray-200",
-                                isToday(data.date) && "bg-slate-50",
+                                getBgCsssForToday(data.date),
                                 data.hour == 0 && "text-center"
                               )}
                               key={`${key}-${index}`}

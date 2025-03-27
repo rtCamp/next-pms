@@ -44,15 +44,18 @@ const TimeLineDateHeader = ({ getIntervalProps, intervalContext }: TimeLineHeade
       <div className={mergeClassNames("text-xs flex flex-col justify-end items-center pr-2")}>
         <Typography
           variant="p"
-          className={mergeClassNames("text-slate-600 text-[11px] ", dateStr == toDayStr && "font-semibold")}
+          className={mergeClassNames(
+            "text-slate-600 dark:text-primary/80 text-[11px] ",
+            dateStr == toDayStr && "font-semibold dark:text-primary"
+          )}
         >
           {day}
         </Typography>
         <Typography
           variant="small"
           className={mergeClassNames(
-            "text-slate-500 text-center text-[11px] max-lg:text-[0.65rem]",
-            dateStr == toDayStr && "font-semibold"
+            "text-slate-500 dark:text-primary/60 text-center text-[11px] max-lg:text-[0.65rem]",
+            dateStr == toDayStr && "font-semibold dark:text-primary"
           )}
         >
           {dateStr}

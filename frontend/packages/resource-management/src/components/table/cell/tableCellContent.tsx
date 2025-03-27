@@ -30,11 +30,7 @@ const TableCellContent = ({
   title?: string;
 }) => {
   return (
-    <Typography
-      className={mergeClassNames("text-gray-800 text-[11px] h-6 flex items-center", className)}
-      variant="p"
-      title={title}
-    >
+    <Typography className={mergeClassNames(" text-[11px] h-6 flex items-center", className)} variant="p" title={title}>
       {!value && !TextComponent && " "}
       {getFilterValue(value)}
       {TextComponent && <TextComponent />}

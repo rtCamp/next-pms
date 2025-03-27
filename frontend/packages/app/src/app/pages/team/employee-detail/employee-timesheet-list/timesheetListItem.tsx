@@ -38,7 +38,7 @@ export const EmployeeTimesheetListItem = ({
 }: EmployeeTimesheetListItemProps) => {
   return (
     <div key={index} className="flex flex-col ">
-      <div className={mergeClassNames("bg-gray-100 rounded p-1 border-b flex items-center gap-x-2", className)}>
+      <div className={mergeClassNames("bg-muted rounded p-1  flex items-center gap-x-2", className)}>
         {showCheckbox && (
           <Checkbox
             checked={isCheckboxChecked}
@@ -62,12 +62,12 @@ export const EmployeeTimesheetListItem = ({
           {prettyDate(date).date}
         </Typography>
         {isHoliday && (
-          <Typography variant="p" className="max-md:text-wrap text-gray-600">
+          <Typography variant="p" className="max-md:text-wrap text-primary/60">
             {holidayDescription}
           </Typography>
         )}
         {hasLeave && !isHoliday && (
-          <Typography variant="p" className="max-md:text-wrap text-gray-600">
+          <Typography variant="p" className="max-md:text-wrap text-primary/60">
             ({isHalfDayLeave && totalHours != dailyWorkingHour ? "Half day leave" : "Full Day Leave"})
           </Typography>
         )}

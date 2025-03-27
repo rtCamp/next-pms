@@ -49,7 +49,7 @@ const ResourceTableCell = ({
   if (type == "hovercard") {
     return (
       <HoverCard openDelay={200}>
-        <HoverCardTrigger asChild className="w-full h-full cursor-pointer text-center hover:bg-gray-200">
+        <HoverCardTrigger asChild className="w-full h-full cursor-pointer text-center ">
           <TableCell ref={ref} className={mergeCellClassName} style={inlineStyle}>
             {CellContent && <CellContent />}
 

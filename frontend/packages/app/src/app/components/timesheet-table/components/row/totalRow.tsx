@@ -44,7 +44,10 @@ export const TotalHourRow = ({ leaves, dates, tasks, holidays, workingHour, work
           }
           return (
             <TableCell key={date} className="text-center">
-              <Typography variant="p" className={mergeClassNames(!holiday.weekly_off && "text-slate-400")}>
+              <Typography
+                variant="p"
+                className={mergeClassNames(!holiday.weekly_off && "text-slate-400 dark:text-primary/50")}
+              >
                 {holiday.weekly_off ? floatToTime(totalHours) : floatToTime(workingHour)}
               </Typography>
             </TableCell>
@@ -53,9 +56,7 @@ export const TotalHourRow = ({ leaves, dates, tasks, holidays, workingHour, work
 
         return (
           <TableCell key={date} className={mergeClassNames("text-center px-2", getBgCsssForToday(date))}>
-            <Typography variant="p" className={mergeClassNames("text-slate-600")}>
-              {floatToTime(totalHours)}
-            </Typography>
+            <Typography variant="p">{floatToTime(totalHours)}</Typography>
           </TableCell>
         );
       })}

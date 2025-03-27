@@ -170,7 +170,6 @@ const progressBarColor = (value: number) => {
 
 const selectBadgeColor = (value: string, options: Array<string>) => {
   const colors = [
-    "bg-red-600",
     "bg-green-600",
     "bg-blue-600",
     "bg-slate-600",
