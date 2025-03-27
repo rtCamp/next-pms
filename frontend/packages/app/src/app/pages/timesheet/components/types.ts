@@ -81,7 +81,7 @@ export type Action =
   | { type: "SET_WEEK_DATE"; payload: string };
 
 export interface Event {
-  name: string;
+  id: string;
   subject: string;
   starts_on: Date;
   ends_on: Date;
