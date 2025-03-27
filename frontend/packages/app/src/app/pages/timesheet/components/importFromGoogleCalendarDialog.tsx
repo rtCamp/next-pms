@@ -406,7 +406,9 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
             </Button>
             <Button
               onClick={handleCreateTask}
-              disabled={!selectedTask || !selectedProject || !recurringEvents.some((e) => e.selected)}
+              disabled={
+                selectedTask.length == 0 || selectedProject.length == 0 || !recurringEvents.some((e) => e.selected)
+              }
             >
               <Save className="w-4 h-4" />
               Add Time
