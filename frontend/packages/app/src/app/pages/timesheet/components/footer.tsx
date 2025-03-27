@@ -75,6 +75,7 @@ export const Footer = ({ timesheet, user, dispatch, callback }: FooterProps) => 
         <ImportFromGoogleCalendarDialog
           open={timesheet.isImportFromGoogleCalendarDialogOpen}
           onOpenChange={() => {
+            console.log("hello");
             dispatch({ type: "SET_IMPORT_FROM_GOOGLE_CALENDAR_DIALOG_STATE", payload: false });
             callback();
           }}

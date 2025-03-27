@@ -19,7 +19,7 @@ import {
   DatePicker,
 } from "@next-pms/design-system/components";
 import { format, addDays } from "date-fns";
-import { FrappeConfig, FrappeContext, useFrappeGetCall } from "frappe-react-sdk";
+import { FrappeConfig, FrappeContext, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { Calendar, Clock, X, Save, Search } from "lucide-react";
 /**
  * Internal dependencies
@@ -62,6 +62,8 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
 
   const { call } = useContext(FrappeContext) as FrappeConfig;
   const { toast } = useToast();
+
+  const { call: bulkSave, loading: isSaving } = useFrappePostCall("next_pms.timesheet.api.timesheet.bulk_save");
 
   const { data: projects, isLoading: isProjectLoading } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Project",
@@ -172,14 +174,40 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
     setSelectedTask("");
   };
 
-  const handleCreateTask = useCallback(() => {
+  const handleCreateTask = () => {
     const selectedEventDetails = events.filter((event) => selectedEvents.includes(event.id));
-    console.log({
-      taskType: selectedTask,
-      project: selectedProject,
-      events: selectedEventDetails,
+    const eventsData = selectedEventDetails.map((event) => {
+      const startsOn = new Date(event.starts_on);
+      const endsOn = new Date(event.ends_on);
+      const durationMs = endsOn.getTime() - startsOn.getTime();
+      const hours = durationMs / (1000 * 60 * 60);
+
+      const description = `- ${event.subject} ${event.description}`.trim();
+
+      return {
+        date: startsOn.toISOString().split("T")[0],
+        description: description,
+        hours: Number(hours.toFixed(2)),
+        task: selectedTask[0],
+      };
     });
-  }, [selectedTask, selectedProject, selectedEvents, events]);
+
+    bulkSave({ timesheet_entries: eventsData })
+      .then((res) => {
+        toast({
+          variant: "success",
+          description: res.message,
+        });
+        onOpenChange(null);
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          description: error,
+        });
+      });
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -337,9 +365,11 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
             </Button>
             <Button
               onClick={handleCreateTask}
-              disabled={selectedTask.length == 0 || selectedProject.length == 0 || selectedEvents.length === 0}
+              disabled={
+                selectedTask.length == 0 || selectedProject.length == 0 || selectedEvents.length === 0 || isSaving
+              }
             >
-              <Save className="w-4 h-4" />
+              {isSaving ? <Spinner className="w-4 h-4" /> : <Save className="w-4 h-4" />}
               Add Time
             </Button>
           </div>
