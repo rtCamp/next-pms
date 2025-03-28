@@ -255,10 +255,10 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
         </div>
 
         {eventError ? (
-          <div className="text-center text-gray-700 dark:text-foreground py-4 flex flex-col">
+          <div className="text-center text-gray-700 dark:text-gray-300 py-4 flex flex-col">
             <span>{parseFrappeErrorMsg(eventError) as string | ""}</span>
             <span>
-              Configure your
+              Please configure your
               <a
                 href="/app/google-calendar"
                 className="ml-1 dark:hover:text-foreground hover:text-black underline cursor-pointer"
