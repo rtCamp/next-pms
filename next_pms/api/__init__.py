@@ -53,4 +53,4 @@ def get_user_calendar_events(start_date: datetime, end_date: datetime):
         return []
 
     except Exception:
-        raise GoogleBadRequest(_("Google Calendar - Could not create Google Calendar API object."))
+        frappe.throw(_("Google Calendar could not fetch events"), exc=GoogleBadRequest)

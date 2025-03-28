@@ -18,7 +18,8 @@ import {
   useToast,
   DatePicker,
 } from "@next-pms/design-system/components";
-import { format, addDays } from "date-fns";
+import { getFormatedDate, getTodayDate } from "@next-pms/design-system/date";
+import { addDays } from "date-fns";
 import { FrappeConfig, FrappeContext, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { Calendar, Clock, X, Save, Search } from "lucide-react";
 /**
@@ -39,17 +40,27 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
   onOpenChange,
   ignoreAlldayEvents = true,
 }) => {
-  const [startDate, setStartDate] = useState<Date | undefined>(new Date());
-  const [endDate, setEndDate] = useState<Date | undefined>(addDays(new Date(), 7));
+  const [startDate, setStartDate] = useState<string>(getTodayDate());
+
+  const [endDate, setEndDate] = useState<string>(getFormatedDate(addDays(getTodayDate(), 7)));
 
   const {
     data: eventData,
     isLoading,
-    error,
-  } = useFrappeGetCall("next_pms.api.get_user_calendar_events", {
-    start_date: startDate ? format(startDate, "yyyy-MM-dd") : undefined,
-    end_date: endDate ? format(endDate, "yyyy-MM-dd") : undefined,
-  });
+    error: eventError,
+  } = useFrappeGetCall(
+    "next_pms.api.get_user_calendar_events",
+    {
+      start_date: startDate,
+      end_date: endDate,
+    },
+    undefined,
+    {
+      errorRetryCount: 0,
+      shouldRetryOnError: false,
+      revalidateOnFocus: false,
+    }
+  );
 
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
@@ -108,13 +119,6 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
       setEvents(filteredEvents);
       setSelectedEvents([]);
       setIsAllSelected(false);
-    }
-    if (error) {
-      const err = parseFrappeErrorMsg(error);
-      toast({
-        variant: "destructive",
-        description: err,
-      });
     }
   }, [eventData, ignoreAlldayEvents]);
 
@@ -213,7 +217,7 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent aria-describedby="Content" className="sm:max-w-xl md:max-h-[80vh] overflow-y-auto">
         <DialogHeader className="max-md:mt-2">
-          <DialogTitle className="flex w-full gap-x-2 text-left">Create Timesheet From Google Calendar</DialogTitle>
+          <DialogTitle className="flex w-full gap-x-2 text-left">Import Events From Google Calendar</DialogTitle>
         </DialogHeader>
         <Separator />
 
@@ -225,10 +229,10 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
             <DatePicker
               date={startDate}
               onDateChange={(date) => {
-                setStartDate(date);
+                setStartDate(getFormatedDate(date));
                 // Ensure end date is not before start date
-                if (date && endDate && date > endDate) {
-                  setEndDate(date);
+                if (date && endDate && date > new Date(endDate)) {
+                  setEndDate(getFormatedDate(date));
                 }
               }}
             />
@@ -241,16 +245,27 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
               date={endDate}
               onDateChange={(date) => {
                 // Ensure end date is not before start date
-                if (startDate && date && date < startDate) {
-                  setStartDate(date);
+                if (startDate && date && date < new Date(startDate)) {
+                  setStartDate(getFormatedDate(date));
                 }
-                setEndDate(date);
+                setEndDate(getFormatedDate(date));
               }}
             />
           </div>
         </div>
 
-        {!isLoading ? (
+        {eventError ? (
+          <div className="text-center text-gray-700 py-4 flex flex-col">
+            <span>{parseFrappeErrorMsg(eventError) as string | ""}</span>
+            <span>
+              Configure your
+              <a href="/app/google-calendar" className="ml-1 hover:text-black underline cursor-pointer">
+                Google Calendar
+              </a>
+              .
+            </span>
+          </div>
+        ) : !isLoading ? (
           <>
             <div className="flex items-center justify-between p-3 rounded-md bg-gray-100/80">
               <span className="flex items-center space-x-3">
@@ -324,6 +339,7 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
                     value: item.name,
                     disabled: false,
                   }))}
+                  disabled={Boolean(eventError)}
                   isLoading={isProjectLoading}
                   onSelect={handleProjectChange}
                   rightIcon={<Search className="h-4 w-4 stroke-slate-400" />}
@@ -338,6 +354,7 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
                   deBounceTime={200}
                   value={selectedTask && selectedTask.length > 0 ? [selectedTask[0]] : []}
                   isLoading={isTaskLoading}
+                  disabled={Boolean(eventError)}
                   data={
                     tasks.map((item: TaskData) => ({
                       label: item.subject,
@@ -359,10 +376,6 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
 
         <DialogFooter className="sm:justify-start w-full pt-3">
           <div className="flex gap-x-4 w-full">
-            <Button variant="secondary" type="button" onClick={() => onOpenChange(null)}>
-              <X className="w-4 h-4" />
-              Cancel
-            </Button>
             <Button
               onClick={handleCreateTask}
               disabled={
@@ -371,6 +384,10 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
             >
               {isSaving ? <Spinner className="w-4 h-4" /> : <Save className="w-4 h-4" />}
               Add Time
+            </Button>
+            <Button variant="secondary" type="button" onClick={() => onOpenChange(null)}>
+              <X className="w-4 h-4" />
+              Cancel
             </Button>
           </div>
         </DialogFooter>

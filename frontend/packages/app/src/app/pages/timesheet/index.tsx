@@ -182,7 +182,7 @@ function Timesheet() {
           <DropdownMenuContent className="mr-2 [&_div]:cursor-pointer  [&_div]:gap-x-2">
             <DropdownMenuItem onClick={handleImportTaskFromGoogleCalendar}>
               <CalendarArrowDown />
-              <Typography variant="p">Import from Google Calendar</Typography>
+              <Typography variant="p">Import Events From Google Calendar</Typography>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
