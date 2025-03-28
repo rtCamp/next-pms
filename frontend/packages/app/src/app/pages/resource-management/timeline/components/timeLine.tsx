@@ -305,14 +305,14 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
         className="overflow-x-auto"
       >
         <TimelineHeaders
-          className="bg-slate-50 text-[14px] sticky z-[1000] top-0"
-          calendarHeaderClassName="border-0 border-l border-gray-300"
+          className="bg-slate-50 dark:bg-muted text-[14px] sticky z-[1000] top-0"
+          calendarHeaderClassName="border-0 border-l border-inherit"
         >
           <SidebarHeader>
             {() => {
               return (
                 <TableHead
-                  className={mergeClassNames("flex items-center")}
+                  className={mergeClassNames("flex items-center ")}
                   style={{ width: getCellWidthString(tableProperties.firstCellWidth - 0.05) }}
                 >
                   Members

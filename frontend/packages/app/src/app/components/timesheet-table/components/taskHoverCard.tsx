@@ -83,7 +83,7 @@ export const TaskHoverCard = ({
           <HoverCardTrigger>
             <Typography
               variant="p"
-              className="text-slate-800 truncate overflow-hidden hover:underline flex items-center gap-3"
+              className="truncate overflow-hidden hover:underline flex items-center gap-3"
               onClick={() => {
                 setSelectedTask(name);
                 setIsTaskLogDialogBoxOpen(true);
@@ -103,7 +103,7 @@ export const TaskHoverCard = ({
               )}
             </Typography>
 
-            <Typography variant="small" className="text-slate-500 whitespace-nowrap text-ellipsis overflow-hidden ">
+            <Typography variant="small" className="text-primary/80 whitespace-nowrap text-ellipsis overflow-hidden ">
               {taskData?.project_name}
             </Typography>
           </HoverCardTrigger>
@@ -114,7 +114,7 @@ export const TaskHoverCard = ({
         <span className="flex gap-x-2">
           <div>
             <Typography>{taskData.subject}</Typography>
-            <Typography variant="small" className="text-slate-500 whitespace-nowrap text-ellipsis overflow-hidden ">
+            <Typography variant="small" className="text-primary/80 whitespace-nowrap text-ellipsis overflow-hidden ">
               {taskData.project_name}
             </Typography>
           </div>

@@ -37,7 +37,6 @@ export interface UserState {
 }
 
 const initialState: UserState = {
-  // @ts-expect-error - frappe is global object provided by frappe
   roles: window.frappe?.boot?.user?.roles ?? [],
   userName: decodeURIComponent(fullName as string) ?? "",
   image: userImage ?? "",
@@ -48,7 +47,6 @@ const initialState: UserState = {
   workingHours: 0,
   workingFrequency: "Per Day",
   reportsTo: "",
-  // @ts-expect-error - frappe is global object provided by frappe
   currencies: window.frappe?.boot?.currencies ?? [],
 };
 

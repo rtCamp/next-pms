@@ -11,7 +11,7 @@ import { isToday } from "date-fns";
  */
 const getCellBackGroundColor = (allocationPercentage: number) => {
   if (allocationPercentage === -1) {
-    return "bg-gray-200";
+    return "bg-gray-200 dark:bg-muted/20";
   }
 
   if (allocationPercentage >= 100 || allocationPercentage < 0) {

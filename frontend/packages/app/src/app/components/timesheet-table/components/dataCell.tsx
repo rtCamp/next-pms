@@ -72,7 +72,7 @@ export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }
         className={mergeClassNames(
           "text-center group px-2",
           isDisabled && "cursor-default",
-          "hover:h-full hover:bg-slate-100 hover:cursor-pointer",
+          "hover:h-full hover:bg-accent hover:cursor-pointer",
           getBgCsssForToday(date),
           className
         )}
@@ -82,8 +82,7 @@ export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }
             <Typography
               variant="p"
               className={mergeClassNames(
-                "text-slate-600",
-                isHoliday || (isDisabled && "text-slate-400"),
+                isHoliday || (isDisabled && "text-slate-400 dark:text-primary/50"),
                 !hours && !isDisabled && "group-hover:hidden"
               )}
             >
@@ -91,11 +90,7 @@ export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }
             </Typography>
             {(isTimeBothBillableAndNonBillable || isTimeBillable) && (
               <CircleDollarSign
-                className={mergeClassNames(
-                  "stroke-slate-500 w-4 h-4 ",
-                  !isDisabled && "group-hover:hidden",
-                  isTimeBillable && "stroke-success"
-                )}
+                className={mergeClassNames(!isDisabled && "group-hover:hidden", isTimeBillable && "stroke-success")}
               />
             )}
             <PencilLine

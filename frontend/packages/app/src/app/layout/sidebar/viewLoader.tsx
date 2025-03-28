@@ -38,17 +38,13 @@ const ViewLoader = ({
           <Button
             variant="ghost"
             className={mergeClassNames(
-              "flex items-center gap-x-2 w-full text-left p-2 hover:bg-slate-200 rounded-lg justify-between",
-              openRoutes[id] && "bg-slate-200 "
+              "flex items-center gap-x-2 w-full text-left p-2 hover:bg-slate-200 rounded-lg justify-between dark:hover:bg-secondary"
             )}
             onClick={onClick}
           >
             <span className="flex items-center gap-x-2">
               {openRoutes[id] ? <ChevronUp /> : <ChevronDown />}
-              <Typography
-                variant="p"
-                className={mergeClassNames("transition-all duration-300 ease-in-out ", isSidebarCollapsed && "hidden")}
-              >
+              <Typography variant="p" className={mergeClassNames(" ", isSidebarCollapsed && "hidden")}>
                 {label}
               </Typography>
             </span>
@@ -56,7 +52,7 @@ const ViewLoader = ({
         )}
         <div
           className={mergeClassNames(
-            "transition-all duration-300 ease-in-out flex flex-col gap-y-1",
+            " flex flex-col gap-y-1",
             !isSidebarCollapsed && openRoutes[id] ? "flex pl-3" : "hidden",
             isSidebarCollapsed && "flex"
           )}
@@ -68,12 +64,12 @@ const ViewLoader = ({
                 to={`${view.route}?view=${view.name}`}
                 key={view.name}
                 title={view.label}
-                className="transition-all duration-300 ease-in-out flex items-center h-9"
+                className=" flex items-center h-9"
               >
                 <div
                   className={mergeClassNames(
-                    "flex w-full  rounded-lg items-center p-2 hover:bg-slate-200 text-primary gap-x-2 ",
-                    isActive && "bg-primary shadow-md hover:bg-slate-700 "
+                    "flex w-full  rounded-lg items-center p-2 hover:bg-slate-200 text-primary gap-x-2 dark:hover:bg-secondary",
+                    isActive && "bg-primary shadow-md hover:bg-slate-700 dark:hover:bg-secondary dark:bg-foreground"
                   )}
                 >
                   <span>{view.icon}</span>

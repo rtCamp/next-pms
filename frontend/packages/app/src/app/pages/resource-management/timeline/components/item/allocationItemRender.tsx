@@ -88,7 +88,7 @@ const AllocationItemRender = ({
               resourceAllocation={resourceAllocation}
               resourceAllocationPermission={{ delete: resourceAllocation.canDelete }}
               buttonClassName={mergeClassNames(
-                "text-red-500 z-[1000] mr-1 cusror-pointer hover:text-red-600 w-7 h-4 p-0"
+                "text-destructive z-[1000] mr-1 cusror-pointer hover:text-destructive/80 w-7 h-4 p-0"
               )}
               onSubmit={resourceAllocation.onDelete}
             />
@@ -111,8 +111,8 @@ const AllocationItemRender = ({
               className={mergeClassNames(
                 "text-[12px] truncate overflow-hidden block",
                 resourceAllocation.is_billable
-                  ? "bg-gradient-to-r from-green-500 to-green-800 bg-clip-text text-transparent"
-                  : "text-yellow-500"
+                  ? "bg-gradient-to-r from-success/50 to-success bg-clip-text text-transparent dark:text-primary"
+                  : "text-yellow-500 dark:text-primary"
               )}
             >
               {title}
