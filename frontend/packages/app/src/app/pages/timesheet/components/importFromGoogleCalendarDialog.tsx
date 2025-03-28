@@ -255,11 +255,14 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
         </div>
 
         {eventError ? (
-          <div className="text-center text-gray-700 py-4 flex flex-col">
+          <div className="text-center text-gray-700 dark:text-foreground py-4 flex flex-col">
             <span>{parseFrappeErrorMsg(eventError) as string | ""}</span>
             <span>
               Configure your
-              <a href="/app/google-calendar" className="ml-1 hover:text-black underline cursor-pointer">
+              <a
+                href="/app/google-calendar"
+                className="ml-1 dark:hover:text-foreground hover:text-black underline cursor-pointer"
+              >
                 Google Calendar
               </a>
               .
@@ -267,7 +270,7 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
           </div>
         ) : !isLoading ? (
           <>
-            <div className="flex items-center justify-between p-3 rounded-md bg-gray-100/80">
+            <div className="flex items-center justify-between p-3 rounded-md bg-gray-100/80 dark:bg-slate-800/60">
               <span className="flex items-center space-x-3">
                 <Checkbox
                   id="select_all"
@@ -289,14 +292,14 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
                   <div
                     key={event.id}
                     onClick={() => toggleEventSelection(event.id)}
-                    className="flex items-center space-x-3 p-3 bg-gray-50 rounded-md hover:bg-gray-100  cursor-pointer transition-colors group"
+                    className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-slate-900/60 rounded-md hover:bg-gray-100 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group"
                   >
                     <Checkbox checked={selectedEvents.includes(event.id)} />
                     <div className="flex-1">
                       <div className="flex justify-between items-center">
                         <div>
                           <h3 className="font-semibold">{event.subject}</h3>
-                          <div className="mt-1 text-sm text-gray-500 flex items-center space-x-3">
+                          <div className="mt-1 text-sm text-gray-500 dark:text-gray-400 flex items-center space-x-3">
                             <span className="flex items-center gap-1">
                               <Calendar className="size-4" />
                               <span className="text-xs">{new Date(event.starts_on).toLocaleDateString()}</span>
