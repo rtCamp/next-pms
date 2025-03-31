@@ -36,7 +36,7 @@ export const getColumn = (
     header: ({ column }) => {
       return (
         <div
-          className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
+          className="flex items-center gap-x-1 group-hover:text-black dark:group-hover:text-foreground transition-colors ease duration-200 select-none cursor-pointer w-full "
           title={column.id}
         >
           <p className="truncate">Project Name</p>
@@ -65,7 +65,7 @@ export const getColumn = (
       header: ({ column }) => {
         return (
           <div
-            className="flex items-center gap-x-1 group-hover:text-black transition-colors ease duration-200 select-none cursor-pointer w-full "
+            className="flex items-center gap-x-1 group-hover:text-black dark:group-hover:text-foreground transition-colors ease duration-200 select-none cursor-pointer w-full "
             title={column.id}
           >
             <p className="truncate" id={column.id}>
