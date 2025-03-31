@@ -1,8 +1,9 @@
 /**
  * External dependencies.
  */
-import React, { useContext } from "react";
+import React from "react";
 import { Typography, TableCell } from "@next-pms/design-system/components";
+import { useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
@@ -35,7 +36,8 @@ const TableInformationCellContent = ({
   cellRef?: React.RefObject<HTMLTableCellElement>;
   onClick?: () => void;
 }) => {
-  const { tableProperties, getCellWidthString } = useContext(TableContext);
+  const { tableProperties } = useContextSelector(TableContext, (value) => value.state);
+  const { getCellWidthString } = useContextSelector(TableContext, (value) => value.actions);
 
   return (
     <TableCell

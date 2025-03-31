@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useContext, useState } from "react";
+import { useState } from "react";
 import Timeline, { DateHeader, SidebarHeader, TimelineHeaders } from "react-calendar-timeline";
 import {
   mergeClassNames,
@@ -17,6 +17,7 @@ import { getFormatedStringValue } from "@next-pms/resource-management/utils";
 import { startOfWeek } from "date-fns";
 import { useFrappeCreateDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
 import moment from "moment";
+import { useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
@@ -31,23 +32,17 @@ import { TimeLineContext } from "../../store/timeLineContext";
 import { getDayKeyOfMoment } from "../../utils/dates";
 
 const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
-  const { tableProperties, getCellWidthString } = useContext(TableContext);
-  const {
-    employees,
-    allocations,
-    allocationData,
-    getAllocationWithID,
-    updateAllocation,
-    getEmployeeWithIndex,
-    setAllocationData,
-    filters,
-    getEmployeeWithID,
-  } = useContext(TimeLineContext);
-  const {
-    permission: resourceAllocationPermission,
-    updateDialogState,
-    updateAllocationData,
-  } = useContext(ResourceFormContext);
+  const { tableProperties } = useContextSelector(TableContext, (value) => value.state);
+  const { getCellWidthString } = useContextSelector(TableContext, (value) => value.actions);
+  const { employees, allocations, allocationData, filters } = useContextSelector(
+    TimeLineContext,
+    (value) => value.state
+  );
+  const { getAllocationWithID, updateAllocation, getEmployeeWithIndex, setAllocationData, getEmployeeWithID } =
+    useContextSelector(TimeLineContext, (value) => value.actions);
+  const { permission: resourceAllocationPermission } = useContextSelector(ResourceFormContext, (value) => value.state);
+
+  const { updateDialogState, updateAllocationData } = useContextSelector(ResourceFormContext, (value) => value.actions);
 
   const [showItemAllocationActionDialog, setShowItemAllocationActionDialog] = useState(false);
 
@@ -310,14 +305,14 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
         className="overflow-x-auto"
       >
         <TimelineHeaders
-          className="bg-slate-50 text-[14px] sticky z-[1000] top-0"
-          calendarHeaderClassName="border-0 border-l border-gray-300"
+          className="bg-slate-50 dark:bg-muted text-[14px] sticky z-[1000] top-0"
+          calendarHeaderClassName="border-0 border-l border-inherit"
         >
           <SidebarHeader>
             {() => {
               return (
                 <TableHead
-                  className={mergeClassNames("flex items-center")}
+                  className={mergeClassNames("flex items-center ")}
                   style={{ width: getCellWidthString(tableProperties.firstCellWidth - 0.05) }}
                 >
                   Members

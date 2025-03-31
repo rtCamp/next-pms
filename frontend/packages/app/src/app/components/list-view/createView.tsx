@@ -78,7 +78,7 @@ export const CreateView = ({
               lazyLoadEmojis={true}
               previewConfig={{ showPreview: false, defaultEmoji: selectedEmoji }}
               emojiStyle={EmojiStyle.NATIVE}
-              className="absolute mt-11 h-80 overflow-y-auto"
+              className="absolute mt-11 h-80 overflow-y-auto dark:bg-accent"
               onEmojiClick={(event) => {
                 setSelectedEmoji(event.emoji);
                 setOpenEmoji(false);

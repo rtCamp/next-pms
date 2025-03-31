@@ -1,12 +1,12 @@
 /**
  * External dependencies.
  */
-import { useContext } from "react";
 import { Avatar, AvatarFallback, AvatarImage, Typography } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
 import { mergeClassNames } from "@next-pms/design-system/utils";
 import { getFilterValue, getFormatedStringValue } from "@next-pms/resource-management/utils";
 import { Clipboard, Pencil } from "lucide-react";
+import { useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
@@ -45,11 +45,9 @@ export const ResourceAllocationCard = ({
 }) => {
   const customerData: ResourceCustomerProps = customer[resourceAllocation.customer];
 
-  const {
-    permission: resourceAllocationPermission,
-    updateDialogState,
-    updateAllocationData,
-  } = useContext(ResourceFormContext);
+  const { permission: resourceAllocationPermission } = useContextSelector(ResourceFormContext, (value) => value.state);
+
+  const { updateDialogState, updateAllocationData } = useContextSelector(ResourceFormContext, (value) => value.actions);
 
   const { date: startDate } = prettyDate(resourceAllocation.allocation_start_date);
   const { date: endDate } = prettyDate(resourceAllocation.allocation_end_date);
@@ -160,7 +158,7 @@ export const ResourceAllocationCard = ({
 
         {resourceAllocation.note && (
           <div className="note-section mt-2 flex items-center gap-1 w-11/12" title={"Note"}>
-            <Typography variant="small" className=" text-gray-600 italic">
+            <Typography variant="small" className=" text-gray-600 dark:text-primary italic">
               Note : {getFilterValue(resourceAllocation.note, 150)}
             </Typography>
           </div>

@@ -32,6 +32,7 @@ export const initialState: TimesheetState = {
   isEditDialogOpen: false,
   isAprrovalDialogOpen: false,
   isLeaveDialogOpen: false,
+  isImportFromGoogleCalendarDialogOpen: false,
   weekDate: getTodayDate(),
 };
 
@@ -107,6 +108,13 @@ const actionHandlers = {
     };
   },
   RESET_STATE: (): TimesheetState => initialState,
+  SET_IMPORT_FROM_GOOGLE_CALENDAR_DIALOG_STATE: (
+    state: TimesheetState,
+    payload: boolean
+  ): TimesheetState => ({
+    ...state,
+    isImportFromGoogleCalendarDialogOpen: payload,
+  }),
 };
 
 export const reducer = (

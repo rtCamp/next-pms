@@ -31,6 +31,7 @@ import {
 } from "@/lib/utils";
 import type { NewTimesheetProps, timesheet } from "@/types/timesheet";
 import { EmployeeTimesheetListItem } from "./timesheetListItem";
+import { EmployeeTimesheetListProps } from "./types";
 import { StatusIndicator } from "../../components/statusIndicator";
 import { getTaskDataForDate, getTimesheetHourForDate } from "../../utils";
 

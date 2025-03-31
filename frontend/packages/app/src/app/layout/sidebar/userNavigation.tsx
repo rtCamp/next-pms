@@ -1,7 +1,6 @@
 /**
  * External dependencies.
  */
-import { useContext } from "react";
 import {
   ErrorFallback,
   Typography,
@@ -14,17 +13,29 @@ import {
   PopoverTrigger,
   Separator,
 } from "@next-pms/design-system/components";
-import { ArrowRightLeft, LogOut } from "lucide-react";
+import { ArrowRightLeft, LogOut, Sun, Moon } from "lucide-react";
+import { useContextSelector } from "use-context-selector";
+
 /**
  * Internal dependencies.
  */
 import { DESK } from "@/lib/constant";
 import { UserContext } from "@/lib/UserProvider";
 import { mergeClassNames } from "@/lib/utils";
+import { useTheme } from "@/providers/theme/hook";
 import type { UserNavigationProps } from "./types";
 
 const UserNavigation = ({ user }: UserNavigationProps) => {
-  const { logout } = useContext(UserContext);
+  const logout = useContextSelector(UserContext, (value) => value.actions.logout);
+  const { theme, isDarkThemeOnSystem, setTheme } = useTheme();
+
+  const changeTheme = () => {
+    if (theme === "system") {
+      setTheme(isDarkThemeOnSystem ? "light" : "dark");
+    } else {
+      setTheme(theme === "light" ? "dark" : "light");
+    }
+  };
   return (
     <ErrorFallback>
       <Popover>
@@ -48,16 +59,29 @@ const UserNavigation = ({ user }: UserNavigationProps) => {
             className="flex justify-start text-sm hover:no-underline hover:bg-accent p-2 gap-x-2 items-center"
             href={DESK}
           >
-            <ArrowRightLeft className="w-4 h-4" />
+            <ArrowRightLeft />
             Switch To Desk
           </a>
           <Separator className="my-1" />
           <Button
             variant="link"
             className="flex justify-start hover:no-underline font-normal hover:bg-accent p-2 gap-x-2 items-center focus-visible:ring-0 focus-visible:ring-offset-0"
+            onClick={changeTheme}
+          >
+            {theme === "system" ? (
+              <>{isDarkThemeOnSystem ? <Sun /> : <Moon />}</>
+            ) : (
+              <>{theme === "light" ? <Moon /> : <Sun />}</>
+            )}
+            Toggle theme
+          </Button>
+          <Separator className="my-1" />
+          <Button
+            variant="link"
+            className="flex justify-start hover:no-underline font-normal hover:bg-accent p-2 gap-x-2 items-center focus-visible:ring-0 focus-visible:ring-offset-0"
             onClick={logout}
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut />
             Logout
           </Button>
         </PopoverContent>

@@ -92,6 +92,11 @@ def get_columns(meta):
             "fieldtype": "Float",
         },
         {
+            "fieldname": "total_hours",
+            "label": _("Total Hours"),
+            "fieldtype": "Float",
+        },
+        {
             "fieldname": "potential_revenue",
             "label": _("Potential Revenue"),
             "fieldtype": "Float",
@@ -178,6 +183,7 @@ def calculate_hours_and_revenue(employees, resource_allocations, start_date, end
             )
             + free_hours_revenue
         )
+        employee["total_hours"] = employee_billable_hours + employee_free_hours + employee_non_billable_hours
     return employees
 
 

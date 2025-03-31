@@ -134,10 +134,8 @@ export const getColumnInfo = (
       return (
         <div className="truncate w-full flex gap-1">
           {tags.map((tag) => (
-            <Badge key={tag} variant="outline" className="bg-slate-100">
-              <Typography variant="p" title={tag}>
-                {tag}
-              </Typography>
+            <Badge key={tag} variant="secondary">
+              {tag}
             </Badge>
           ))}
         </div>
@@ -146,10 +144,6 @@ export const getColumnInfo = (
   };
   columns.push(userTagsCol);
   return columns;
-};
-
-export const Empty = () => {
-  return <span></span>;
 };
 
 const progressBarColor = (field: string, fieldInfo: Array<string>, row: any, value: number) => {

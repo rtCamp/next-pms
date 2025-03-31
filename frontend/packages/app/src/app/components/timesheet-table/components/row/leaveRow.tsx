@@ -72,9 +72,7 @@ export const LeaveRow = ({
   return (
     <TableRow className={mergeClassNames(rowClassName)}>
       <TableCell className={mergeClassNames(headingClassName)}>
-        <Typography variant="p" className="text-slate-800">
-          Time Off
-        </Typography>
+        <Typography variant="p">Time Off</Typography>
       </TableCell>
       {/* eslint-disable-next-line @typescript-eslint/no-unused-vars */}
       {leaveData.map(({ date, data, hour, isHoliday }) => (
@@ -82,13 +80,13 @@ export const LeaveRow = ({
           key={date}
           className={mergeClassNames("text-center px-2", dataCellClassName, getBgCsssForToday(date))}
         >
-          <Typography variant="p" className={isHoliday ? "text-white" : "text-warning"}>
+          <Typography variant="p" className={isHoliday ? "text-primary" : "text-warning"}>
             {hour && hour != 0 ? floatToTime(hour) : ""}
           </Typography>
         </TableCell>
       ))}
       <TableCell className={mergeClassNames(totalCellClassName)}>
-        <Typography variant="p" className="text-slate-800 font-medium text-right">
+        <Typography variant="p" className=" font-medium text-right">
           {floatToTime(totalHours)}
         </Typography>
       </TableCell>

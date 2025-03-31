@@ -29,7 +29,7 @@ export function deBounce<T extends (...args: any[]) => void>(
 }
 
 export const getBgCsssForToday = (date: string) => {
-  return isToday(getUTCDateTime(date)) ? "bg-slate-100" : "";
+  return isToday(getUTCDateTime(date)) ? "bg-slate-100 dark:bg-muted/50" : "";
 };
 
 export function floatToTime(
