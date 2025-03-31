@@ -173,7 +173,7 @@ const SkillSearch = ({
               <div key={skill.name} className="flex items-stretch gap-3">
                 {/* Skill Name */}
                 <div
-                  className="font-medium bg-gray-100 border h-full rounded-md p-1 px-2 w-20 truncate text-sm"
+                  className="font-medium bg-gray-100 dark:bg-background border h-full rounded-md p-1 px-2 w-20 truncate text-sm"
                   title={skill.name}
                 >
                   <Typography variant="p" className="truncate max-w-md">
@@ -183,7 +183,7 @@ const SkillSearch = ({
 
                 {/* Operator Select Menu */}
                 <Select value={skill.operator} onValueChange={(value) => updateSkillComparison(skill.name, value)}>
-                  <SelectTrigger className="w-10 flex justify-center items-center [&>svg]:hidden bg-gray-100 h-full text-sm p-1 px-2">
+                  <SelectTrigger className="w-10 flex justify-center items-center [&>svg]:hidden bg-gray-100 dark:bg-background h-full text-sm p-1 px-2">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
