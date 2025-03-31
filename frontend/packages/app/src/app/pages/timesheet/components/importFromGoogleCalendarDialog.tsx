@@ -31,7 +31,7 @@ import { Event } from "./types";
 
 interface ImportFromGoogleCalendarDialogProps {
   open: boolean;
-  onOpenChange: (open: boolean | null) => void;
+  onOpenChange: (date: string | null) => void;
   ignoreAlldayEvents?: boolean;
 }
 
@@ -202,7 +202,7 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
           variant: "success",
           description: res.message,
         });
-        onOpenChange(null);
+        onOpenChange(startDate);
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);
@@ -214,7 +214,7 @@ const ImportFromGoogleCalendarDialog: React.FC<ImportFromGoogleCalendarDialogPro
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={() => onOpenChange(null)}>
       <DialogContent aria-describedby="Content" className="sm:max-w-xl md:max-h-[80vh] overflow-y-auto">
         <DialogHeader className="max-md:mt-2">
           <DialogTitle className="flex w-full gap-x-2 text-left">Import Events From Google Calendar</DialogTitle>
