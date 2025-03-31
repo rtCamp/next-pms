@@ -250,7 +250,10 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
                           <span className="w-full">
                             {flexRender(header.column.columnDef.header, header.getContext())}
                           </span>
-                          <Separator orientation="vertical" className="group-hover:w-[3px]  cursor-col-resize" />
+                          <Separator
+                            orientation="vertical"
+                            className="group-hover:w-[3px] dark:bg-primary cursor-col-resize"
+                          />
                         </div>
                       </TableHead>
                     );
