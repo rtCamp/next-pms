@@ -178,7 +178,7 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
                         key={`column-${key}`}
                         variant="p"
                         className={mergeClassNames(
-                          "w-full px-2 text-slate-600 font-medium ",
+                          "w-full px-2 text-slate-600 dark:text-slate-200 font-medium ",
                           key != 2 && "max-w-16",
                           key == 0 && "max-w-28",
                           key == 3 && "max-w-8",
