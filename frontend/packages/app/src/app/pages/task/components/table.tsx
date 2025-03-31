@@ -73,11 +73,13 @@ export const Table = ({
                       }}
                     >
                       <div className="w-full h-full flex items-center justify-between group">
-                        <div className="w-full">{flexRender(header.column.columnDef.header, header.getContext())}</div>
+                        <div className="w-full dark:group-hover:!text-white">
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                        </div>
                         {!columnsToExcludeActionsInTables.includes(header.id) && (
                           <Separator
                             orientation="vertical"
-                            className="group-hover:w-[3px]  cursor-col-resize"
+                            className="group-hover:w-[3px] dark:bg-primary cursor-col-resize"
                             {...{
                               onMouseDown: header.getResizeHandler(),
                               onTouchStart: header.getResizeHandler(),

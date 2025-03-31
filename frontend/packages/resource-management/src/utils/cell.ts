@@ -23,7 +23,7 @@ const getCellBackGroundColor = (allocationPercentage: number) => {
   }
 
   if (allocationPercentage <= 20) {
-    return "bg-customYellow";
+    return "bg-customYellow group";
   }
 
   return "bg-destructive/10";

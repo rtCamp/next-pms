@@ -21,11 +21,13 @@
   body {
     @apply bg-background text-foreground;
   }
-  .dark ::-webkit-scrollbar {
-    @apply w-3 bg-background;
-  }
-  .dark ::-webkit-scrollbar-thumb {
-    @apply rounded bg-secondary /*color trackbar*/;
+  @media (pointer: fine) { /* Only works for precise pointer devices such as laptops and desktops */
+    .dark ::-webkit-scrollbar {
+      @apply w-3 bg-background;
+    }
+    .dark ::-webkit-scrollbar-thumb {
+      @apply rounded bg-secondary /*color trackbar*/;
+    }
   }
 }
 
