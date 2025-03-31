@@ -440,3 +440,32 @@ def bulk_update_timesheet_detail(data):
             entry = frappe.parse_json(entry)
         update_timesheet_detail(**entry)
     return _("Time entries updated successfully.")
+
+
+@frappe.whitelist()
+def bulk_save(timesheet_entries):
+    """
+    Create multiple time entries in Timesheet Detail child table.
+
+    :param timesheet_entries: List of dictionaries containing timesheet entry details
+    Each dictionary should have keys:
+    - date (str, mandatory)
+    - description (str, mandatory)
+    - task (str, mandatory)
+    - hours (float, optional, default=0)
+    - employee (str, optional)
+
+    """
+    if not isinstance(timesheet_entries, list):
+        throw(_("Input must be a list of timesheet entries."), frappe.ValidationError)
+
+    for entry in timesheet_entries:
+        date = entry.get("date")
+        description = entry.get("description")
+        task = entry.get("task")
+        hours = entry.get("hours", 0)
+        employee = entry.get("employee")
+
+        save(date=date, description=description, task=task, hours=hours, employee=employee)
+
+    return _("Event Timesheet created successfully.")
