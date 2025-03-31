@@ -53,9 +53,9 @@ def before_submit(doc, method=None):
 
 
 def on_submit(doc, method=None):
-    from next_pms.timesheet.api.utils import update_weekly_status_of_timesheet
-
-    update_weekly_status_of_timesheet(doc.employee, getdate(doc.start_date))
+    # from next_pms.timesheet.api.utils import update_weekly_status_of_timesheet
+    # TODO: Need to check
+    # update_weekly_status_of_timesheet(doc.employee, getdate(doc.start_date))
     validate_self_approval(doc)
 
 
