@@ -1,17 +1,21 @@
 import { login } from "./authRequests";
 let context; // Global variable for request context
-// ------------------------------------------------------------------------------------------
-/**
- * Create a new task entry.
- */
-export const createTask = async ({ subject, project, description }) => {
-  // Ensure the user is logged in before making API requests
+
+// Helper function to ensure authentication
+const ensureAuth = async () => {
   if (!context) {
     const loginResult = await login();
     context = loginResult.context;
   }
+  return context;
+};
 
-  const response = await context.post(`/api/resource/Task`, {
+/**
+ * Create a new task entry.
+ */
+export const createTask = async ({ subject, project, description }) => {
+  const ctx = await ensureAuth();
+  const response = await ctx.post(`/api/resource/Task`, {
     data: {
       subject: subject,
       project: project,
@@ -20,30 +24,22 @@ export const createTask = async ({ subject, project, description }) => {
   });
   return await response;
 };
-// ------------------------------------------------------------------------------------------
+
 /**
  * Delete a Task entry.
  */
 export const deleteTask = async (taskID) => {
-  // Ensure the user is logged in before making API requests
-  if (!context) {
-    const loginResult = await login();
-    context = loginResult.context;
-  }
-  const response = await context.delete(`/api/resource/Task/${taskID}`);
+  const ctx = await ensureAuth();
+  const response = await ctx.delete(`/api/resource/Task/${taskID}`);
   return await response;
 };
-// ------------------------------------------------------------------------------------------
+
 /**
- * Delete a Task entry.
+ * Like a Task entry.
  */
 export const likeTask = async (taskID) => {
-  // Ensure the user is logged in before making API requests
-  if (!context) {
-    const loginResult = await login();
-    context = loginResult.context;
-  }
-  const response = await context.post(`/api/method/frappe.desk.like.toggle_like`, {
+  const ctx = await ensureAuth();
+  const response = await ctx.post(`/api/method/frappe.desk.like.toggle_like`, {
     data: {
       doctype: "Task",
       name: `${taskID}`,
@@ -52,16 +48,12 @@ export const likeTask = async (taskID) => {
   });
   return await response;
 };
-// ------------------------------------------------------------------------------------------
+
 /**
- * Delete a Task entry.
+ * Unlike a Task entry.
  */
 export const unlikeTask = async (taskID) => {
-  // Ensure the user is logged in before making API requests
-  if (!context) {
-    const loginResult = await login();
-    context = loginResult.context;
-  }
-  const response = await context.post(`/api/resource/Task/${taskID}`);
+  const ctx = await ensureAuth();
+  const response = await ctx.post(`/api/resource/Task/${taskID}`);
   return await response;
 };

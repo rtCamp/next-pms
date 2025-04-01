@@ -1,17 +1,21 @@
 import { login } from "./authRequests";
-//projectRequests.js
 let context; // Global variable for request context
-// ------------------------------------------------------------------------------------------
-/**
- * Create a new Project entry.
- */
-export const createProject = async ({ project_name, company, customer, billing_type, currency }) => {
-  // Ensure the user is logged in before making API requests
+
+// Helper function to ensure authentication
+const ensureAuth = async () => {
   if (!context) {
     const loginResult = await login();
     context = loginResult.context;
   }
-  const response = await context.post(`/api/resource/Project`, {
+  return context;
+};
+
+/**
+ * Create a new Project entry.
+ */
+export const createProject = async ({ project_name, company, customer, billing_type, currency }) => {
+  const ctx = await ensureAuth();
+  const response = await ctx.post(`/api/resource/Project`, {
     data: {
       project_name: project_name,
       company: company,
@@ -22,16 +26,12 @@ export const createProject = async ({ project_name, company, customer, billing_t
   });
   return await response;
 };
-// ------------------------------------------------------------------------------------------
+
 /**
  * Delete a Project entry.
  */
 export const deleteProject = async (projectId) => {
-  // Ensure the user is logged in before making API requests
-  if (!context) {
-    const loginResult = await login();
-    context = loginResult.context;
-  }
-  const response = await context.delete(`/api/resource/Project/${projectId}`);
+  const ctx = await ensureAuth();
+  const response = await ctx.delete(`/api/resource/Project/${projectId}`);
   return await response;
 };

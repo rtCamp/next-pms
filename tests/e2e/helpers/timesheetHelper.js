@@ -170,16 +170,20 @@ export const filterTimesheetEntry = async ({ subject, description, project_name,
 /**
  * Creates projects for all the test cases provided in the employeeTimesheetIDs array below
  */
-export const createProjects = async () => {
+export const createProjectForTestCases = async () => {
   //Include testcase ID's below that require project to be created
   const employeeTimesheetIDs = ["TC2", "TC4", "TC5"];
 
-  const createProjects = async (data, testCases) => {
+  const createProjectForTestCases = async (data, testCases) => {
     for (const testCaseID of testCases) {
       if (data[testCaseID].payloadCreateProject) {
         const createProjectPayload = data[testCaseID].payloadCreateProject;
         //Store the response of createProject API
         const response = await createProject(createProjectPayload);
+        if (!response.ok) {
+          console.error(`Failed to create task for ${testCaseID}: ${response.statusText}`);
+          continue; // Skip to the next test case if task creation fails
+        }
         const jsonResponse = await response.json();
         const projectId = jsonResponse.data.name;
         //Provide the project ID to be stored in payloadDeleteProject and payloadCreateTask
@@ -191,7 +195,7 @@ export const createProjects = async () => {
       }
     }
   };
-  await createProjects(employeeTimesheetData, employeeTimesheetIDs);
+  await createProjectForTestCases(employeeTimesheetData, employeeTimesheetIDs);
   // Write updated data to shared JSON files
   fs.writeFileSync(employeeTimesheetDataFilePath, JSON.stringify(employeeTimesheetData, null, 2));
 };
@@ -218,12 +222,12 @@ export const deleteProjects = async () => {
 /**
  * Creates tasks for all the test cases provided in the employeeTimesheetIDs array below
  */
-export const createTasks = async () => {
+export const createTaskForTestCases = async () => {
   //Include testcase ID's below that require project to be created
   const employeeTimesheetIDs = ["TC2", "TC4", "TC5"];
   let taskID;
 
-  const createTasks = async (data, testCases) => {
+  const createTaskForTestCases = async (data, testCases) => {
     for (const testCaseID of testCases) {
       if (data[testCaseID].payloadCreateTask) {
         const createTaskPayload = data[testCaseID].payloadCreateTask;
@@ -231,6 +235,10 @@ export const createTasks = async () => {
         //Store the response of createProject API
         const response = await createTask(createTaskPayload);
 
+        if (!response.ok) {
+          console.error(`Failed to create task for ${testCaseID}: ${response.statusText}`);
+          continue; // Skip to the next test case if task creation fails
+        }
         const jsonResponse = await response.json();
 
         taskID = jsonResponse.data.name;
@@ -245,7 +253,7 @@ export const createTasks = async () => {
       }
     }
   };
-  await createTasks(employeeTimesheetData, employeeTimesheetIDs);
+  await createTaskForTestCases(employeeTimesheetData, employeeTimesheetIDs);
   // Write updated data to shared JSON files
   fs.writeFileSync(employeeTimesheetDataFilePath, JSON.stringify(employeeTimesheetData, null, 2));
 };
