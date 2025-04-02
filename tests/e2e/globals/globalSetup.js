@@ -4,7 +4,7 @@ import {
   createProjectForTestCases,
   createTaskForTestCases,
 } from "../helpers/timesheetHelper";
-import { storeStorageState, storeStorageStateforAPI } from "../helpers/storageStateHelper";
+import { storeStorageState } from "../helpers/storageStateHelper";
 import { updateLeaveEntries } from "../helpers/leaveHelper";
 import { createJSONFile } from "../utils/fileUtils";
 
