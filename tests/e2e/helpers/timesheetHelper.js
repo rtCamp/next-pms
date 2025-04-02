@@ -240,11 +240,8 @@ export const createTaskForTestCases = async () => {
         //Store the response of createProject API
         const response = await createTask(createTaskPayload);
         //console.warn(`RESPONSE FOR CREATE TASK OF ${testCaseID} :`, response);
-        if (response && typeof response === "object") {
-          // The API call succeeded at least to the point of returning an object
-          //console.warn("API call for CREATE TASK completed with response:", response);
-        } else {
-          console.error(`Failed to CREATE task for ${testCaseID}: Unexpected response format`);
+        if (!response || typeof response !== "object") {
+          console.error(`Failed to Create task for ${testCaseID}: Unexpected response format`);
         }
         const jsonResponse = response;
 
