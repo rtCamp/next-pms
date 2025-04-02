@@ -256,8 +256,6 @@ export const createTaskForTestCases = async () => {
         //Provide the taskID to be stored if there is need for liking the Task
         data[testCaseID].payloadLikeTask.name = taskID;
         const response = await likeTask(taskID, data[testCaseID].payloadLikeTask.role);
-        //const jsonResponse = await response.json();
-        console.warn(`JSON RESPONSE FOR LIKE TASK`, response);
         if (response && typeof response === "object") {
           // The API call succeeded at least to the point of returning an object
           console.log("API call for LIKE TASK completed with response:", response);

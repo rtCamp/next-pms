@@ -17,7 +17,7 @@ const manPass = process.env.REP_MAN_PASS;
  * Stores the authentication state of a specified role for reuse in tests.
  * Uses API login instead of UI login.
  */
-export const storeStorageState = async (role) => {
+export const storeStorageState = async (role, isApi = false) => {
   const email = role === "employee" ? empEmail : manEmail;
   const password = role === "employee" ? empPass : manPass;
 
@@ -30,28 +30,13 @@ export const storeStorageState = async (role) => {
     throw new Error(`Login failed for ${role}: ${response.status()} ${response.statusText()}`);
   }
 
-  // Store the authentication storage state
-  await requestContext.storageState({ path: path.resolve(__dirname, `../auth/${role}.json`) });
-
-  // Close request context
-  await requestContext.dispose();
-};
-
-export const storeStorageStateforAPI = async (role) => {
-  const email = role === "employee" ? empEmail : manEmail;
-  const password = role === "employee" ? empPass : manPass;
-
-  const requestContext = await request.newContext({ baseURL });
-
-  // Perform login using API
-  const response = await loginIntoNextPMS(requestContext, email, password);
-
-  if (!response.ok()) {
-    throw new Error(`Login failed for ${role}-API: ${response.status()} ${response.statusText()}`);
+  if (!isApi) {
+    // Store the authentication storage state
+    await requestContext.storageState({ path: path.resolve(__dirname, `../auth/${role}.json`) });
+  } else {
+    // Store the authentication storage state for the API
+    await requestContext.storageState({ path: path.resolve(__dirname, `../auth/${role}-API.json`) });
   }
-
-  // Store the authentication storage state
-  await requestContext.storageState({ path: path.resolve(__dirname, `../auth/${role}-API.json`) });
 
   // Close request context
   await requestContext.dispose();
