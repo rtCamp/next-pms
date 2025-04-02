@@ -19,6 +19,9 @@ const globalSetup = async () => {
   await createJSONFile("../data/employee/shared-timesheet.json");
   await createJSONFile("../data/manager/shared-team.json");
 
+  await storeStorageState("employee", true);
+  await storeStorageState("manager", true);
+
   // Compute and update dynamic fields of time entries
   await updateTimeEntries();
 

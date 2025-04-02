@@ -199,6 +199,12 @@
       "project": "filled-automatically-from-createProjects",
       "description": "Task for TC06 created through automation"
     },
+    "payloadLikeTask": {
+      "doctype": "Task",
+      "name": "filled-automatically-from-createTasks",
+      "add": "Yes",
+      "role": "employee"
+    },
     "payloadDeleteTask": {
       "taskID": "filled-automatically-from-createTasks"
     },
@@ -206,7 +212,8 @@
       "duration": "1",
       "project": "TC06 Project",
       "task": "Task for TC06",
-      "desc": "TC6 - Task added via automation."
+      "desc": "TC6 - Task added via automation.",
+      "isLikeTask": true
     },
     "payloadCreateTimesheet": {
       "task": "TASK-2025-00617",
