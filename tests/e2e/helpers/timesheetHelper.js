@@ -155,7 +155,7 @@ export const filterTimesheetEntry = async ({ subject, description, project_name,
         (entry) =>
           entry.description === description &&
           entry.project_name === project_name &&
-          entry.from_time.includes(from_time),
+          entry.from_time.includes(from_time)
       );
 
       // Return the matching entry
