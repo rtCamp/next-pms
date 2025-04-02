@@ -15,5 +15,5 @@ export const loginIntoNextPMS = async (requestContext, email, password) => {
     throw new Error(`Login failed: ${response.status()} ${response.statusText()}`);
   }
 
-  return response; 
+  return response;
 };
