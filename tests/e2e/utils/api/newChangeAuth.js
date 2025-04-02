@@ -1,0 +1,67 @@
+import { request } from '@playwright/test';
+import path from 'path';
+import fs from 'fs';
+import config from "../../playwright.config";
+
+// Load config variables
+const baseURL = config.use?.baseURL;
+
+const loadAuthState = (role) => {
+  const filePath = path.resolve(__dirname, `../../auth/${role}-API.json`);
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`Auth state file for ${role} not found: ${filePath}`);
+  }
+  return filePath;
+};
+
+export const apiRequest = async (endpoint, options = {}, role = "manager") => {
+  const authFilePath = loadAuthState(role);
+  const requestContext = await request.newContext({ baseURL, storageState: authFilePath });
+  const response = await requestContext.fetch(endpoint, {
+    ...options,
+    postData: options.data ? JSON.stringify(options.data) : undefined, // Fix data issue
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    },
+  });
+
+  let responseData;
+  if (response.ok()) {
+    responseData = await response.json();
+  } else {
+    await requestContext.dispose();
+    throw new Error(`API request failed for ${role} and endpoint ${endpoint}: ${response.status()} ${response.statusText()}`);
+  }
+  
+  await requestContext.dispose();
+  return responseData;
+};
+
+export const createTaskTesting = async ({ subject, project, description }) => {
+  return await apiRequest('/api/resource/Task', {
+    method: 'POST',
+    data: {
+      subject: subject,
+      project: project,
+      description: description,
+    },
+  });
+};
+
+export const deleteTaskTesting = async (taskID) => {
+  return await apiRequest(`/api/resource/Task/${taskID}`, {
+    method: 'DELETE',
+  });
+};
+
+export const likeTask = async (taskID, role="manager") => {
+  return await apiRequest('/api/method/frappe.desk.like.toggle_like', {
+    method: 'POST',
+    data: {
+      doctype: 'Task',
+      name: taskID,
+      add: 'Yes',
+    },
+  }, role);
+};
