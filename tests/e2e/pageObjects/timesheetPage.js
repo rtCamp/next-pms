@@ -66,7 +66,7 @@ export class TimesheetPage {
 
     await searchButton.click();
     await searchInput.fill(value);
-    await this.page.waitForTimeout(1300);
+    await this.page.waitForTimeout(2000);
     await searchInput.press("ArrowDown+Enter");
   }
 
@@ -290,7 +290,6 @@ export class TimesheetPage {
     const row = await this.getRow(rowName);
     const colIndex = this.dayIndexObj[col.toLowerCase()];
     const cell = row.getByRole("cell").nth(colIndex);
-
     await cell.waitFor({ state: "visible" });
 
     return cell;

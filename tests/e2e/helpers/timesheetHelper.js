@@ -6,7 +6,7 @@ import employeeTimesheetData from "../data/employee/timesheet.json";
 import managerTeamData from "../data/manager/team.json";
 import { readJSONFile } from "../utils/fileUtils";
 import { createProject, deleteProject } from "../utils/api/projectRequests";
-import { createTaskTesting, deleteTaskTesting, likeTask } from "../utils/api/newChangeAuth";
+import { createTask, deleteTask, likeTask } from "../utils/api/taskRequests";
 
 // Load env variables
 const empID = process.env.EMP_ID;
@@ -238,7 +238,7 @@ export const createTaskForTestCases = async () => {
         const createTaskPayload = data[testCaseID].payloadCreateTask;
 
         //Store the response of createProject API
-        const response = await createTaskTesting(createTaskPayload);
+        const response = await createTask(createTaskPayload);
         //console.warn(`RESPONSE FOR CREATE TASK OF ${testCaseID} :`, response);
         if (response && typeof response === "object") {
           // The API call succeeded at least to the point of returning an object
@@ -291,6 +291,6 @@ export const deleteTasks = async () => {
   ];
   for (const entry of tasksToBeDeleted) {
     //Delete Project
-    await deleteTaskTesting(entry);
+    await deleteTask(entry);
   }
 };

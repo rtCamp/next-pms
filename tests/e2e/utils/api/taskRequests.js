@@ -1,59 +1,67 @@
-import { login } from "./authRequests";
-let context; // Global variable for request context
+import { request } from '@playwright/test';
+import path from 'path';
+import fs from 'fs';
+import config from "../../playwright.config";
 
-// Helper function to ensure authentication
-const ensureAuth = async () => {
-  if (!context) {
-    const loginResult = await login();
-    context = loginResult.context;
+// Load config variables
+const baseURL = config.use?.baseURL;
+
+const loadAuthState = (role) => {
+  const filePath = path.resolve(__dirname, `../../auth/${role}-API.json`);
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`Auth state file for ${role} not found: ${filePath}`);
   }
-  return context;
+  return filePath;
 };
 
-/**
- * Create a new task entry.
- */
+export const apiRequest = async (endpoint, options = {}, role = "manager") => {
+  const authFilePath = loadAuthState(role);
+  const requestContext = await request.newContext({ baseURL, storageState: authFilePath });
+  const response = await requestContext.fetch(endpoint, {
+    ...options,
+    postData: options.data ? JSON.stringify(options.data) : undefined, // Transform to json format
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    },
+  });
+
+  let responseData;
+  if (response.ok()) {
+    responseData = await response.json();
+  } else {
+    await requestContext.dispose();
+    throw new Error(`API request failed for ${role} and endpoint ${endpoint}: ${response.status()} ${response.statusText()}`);
+  }
+  
+  await requestContext.dispose();
+  return responseData;
+};
+
 export const createTask = async ({ subject, project, description }) => {
-  const ctx = await ensureAuth();
-  const response = await ctx.post(`/api/resource/Task`, {
+  return await apiRequest('/api/resource/Task', {
+    method: 'POST',
     data: {
       subject: subject,
       project: project,
       description: description,
     },
   });
-  return await response;
 };
 
-/**
- * Delete a Task entry.
- */
 export const deleteTask = async (taskID) => {
-  const ctx = await ensureAuth();
-  const response = await ctx.delete(`/api/resource/Task/${taskID}`);
-  return await response;
-};
-
-/**
- * Like a Task entry.
- */
-export const likeTask = async (taskID) => {
-  const ctx = await ensureAuth();
-  const response = await ctx.post(`/api/method/frappe.desk.like.toggle_like`, {
-    data: {
-      doctype: "Task",
-      name: `${taskID}`,
-      add: "Yes",
-    },
+  return await apiRequest(`/api/resource/Task/${taskID}`, {
+    method: 'DELETE',
   });
-  return await response;
 };
 
-/**
- * Unlike a Task entry.
- */
-export const unlikeTask = async (taskID) => {
-  const ctx = await ensureAuth();
-  const response = await ctx.post(`/api/resource/Task/${taskID}`);
-  return await response;
+export const likeTask = async (taskID, role="manager") => {
+  return await apiRequest('/api/method/frappe.desk.like.toggle_like', {
+    method: 'POST',
+    data: {
+      doctype: 'Task',
+      name: taskID,
+      add: 'Yes',
+    },
+  }, role);
 };

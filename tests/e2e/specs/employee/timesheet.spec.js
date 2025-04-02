@@ -100,7 +100,7 @@ test.only("TC5: Add a new row in the already added time.", async ({ page }) => {
   expect(cellTooltipText).toContain(TC5data.taskInfo.desc);
 });
 
-test("TC6: Delete the added time entry from the non-submitted timesheet.", async ({ page }) => {
+test.only("TC6: Delete the added time entry from the non-submitted timesheet.", async ({ page }) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
