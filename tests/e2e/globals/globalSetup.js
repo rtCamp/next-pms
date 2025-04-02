@@ -21,7 +21,7 @@ const globalSetup = async () => {
 
   await storeStorageStateforAPI("employee");
   await storeStorageStateforAPI("manager");
-  
+
   // Compute and update dynamic fields of time entries
   await updateTimeEntries();
 

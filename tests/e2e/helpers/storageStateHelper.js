@@ -13,7 +13,6 @@ const manEmail = process.env.REP_MAN_EMAIL;
 const manPass = process.env.REP_MAN_PASS;
 // ------------------------------------------------------------------------------------------
 
-
 /**
  * Stores the authentication state of a specified role for reuse in tests.
  * Uses API login instead of UI login.
