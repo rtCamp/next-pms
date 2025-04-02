@@ -66,6 +66,7 @@ export class TimesheetPage {
 
     await searchButton.click();
     await searchInput.fill(value);
+    await this.page.waitForTimeout(1300);
     await searchInput.press("ArrowDown+Enter");
   }
 
