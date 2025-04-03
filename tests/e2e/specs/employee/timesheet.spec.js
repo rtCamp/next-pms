@@ -29,7 +29,7 @@ test.beforeEach(async ({ page }) => {
 
 // ------------------------------------------------------------------------------------------
 
-test.only("TC2: Time should be added using the ‘Add’ button at the top.", async ({ page }) => {
+test("TC2: Time should be added using the ‘Add’ button at the top. @workingTests ", async ({ page }) => {
   // Add time entry using "Time" button
   await timesheetPage.addTimeViaTimeButton(TC2data.taskInfo);
 
@@ -59,7 +59,7 @@ test("TC3: Time should be added using the direct timesheet add buttons.", async 
   expect(cellText).toContain(TC3data.taskInfo.duration);
 });
 
-test.only("TC4: Added time and description should be editable.", async ({ page }) => {
+test("TC4: Added time and description should be editable. @workingTests", async ({ page }) => {
   // Update time entry
 
   await timesheetPage.updateTimeRow(TC4data.cell, {
@@ -79,7 +79,7 @@ test.only("TC4: Added time and description should be editable.", async ({ page }
   expect(cellTooltipText).toContain(TC4data.taskInfo.desc);
 });
 
-test.only("TC5: Add a new row in the already added time.", async ({ page }) => {
+test("TC5: Add a new row in the already added time. @workingTests ", async ({ page }) => {
   // Store cell text before new row addition
   const beforeCellText = await timesheetPage.getCellText(TC5data.cell);
 
@@ -100,7 +100,7 @@ test.only("TC5: Add a new row in the already added time.", async ({ page }) => {
   expect(cellTooltipText).toContain(TC5data.taskInfo.desc);
 });
 
-test.only("TC6: Delete the added time entry from the non-submitted timesheet.", async ({ page }) => {
+test("TC6: Delete the added time entry from the non-submitted timesheet. @workingTests ", async ({ page }) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -173,7 +173,7 @@ test("TC13: Verify an employee can apply for leave via Timesheet tab.", async ({
   expect(cellText).toContain("8");
 });
 
-test("TC14: Verify the billable status of a billable task.", async ({}) => {
+test("TC14: Verify the billable status of a billable task. @workingTests", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -182,7 +182,7 @@ test("TC14: Verify the billable status of a billable task.", async ({}) => {
   expect(isTimeEntryBillable).toBeTruthy();
 });
 
-test("TC15: Verify the billable status of a non-billable task.", async ({}) => {
+test("TC15: Verify the billable status of a non-billable task. @workingTests", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
