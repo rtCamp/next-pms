@@ -4,6 +4,7 @@ import { getWeekdayName, getFormattedDate, getDateForWeekday } from "../utils/da
 import { createTimesheet, getTimesheetDetails, deleteTimesheet } from "../utils/api/timesheetRequests";
 import employeeTimesheetData from "../data/employee/timesheet.json";
 import managerTeamData from "../data/manager/team.json";
+import managerTaskData from "../data/manager/task.json";
 import { readJSONFile } from "../utils/fileUtils";
 import { createProject, deleteProject } from "../utils/api/projectRequests";
 import { createTask, deleteTask, likeTask } from "../utils/api/taskRequests";
@@ -14,10 +15,12 @@ const empID = process.env.EMP_ID;
 // Define file paths for shared JSON data files
 const employeeTimesheetDataFilePath = path.resolve(__dirname, "../data/employee/shared-timesheet.json"); // File path of the employee timesheet data JSON file
 const managerTeamDataFilePath = path.resolve(__dirname, "../data/manager/shared-team.json"); // File path of the manager team data JSON file
+const managerTaskDataFilePath = path.resolve(__dirname, "../data/manager/shared-task.json"); // File path of the manager team data JSON file
 
 // Global variables to store shared data and reused across functions
 let sharedEmployeeTimesheetData;
 let sharedManagerTeamData;
+let sharedManagerTaskData;
 
 // ------------------------------------------------------------------------------------------
 
@@ -172,7 +175,8 @@ export const filterTimesheetEntry = async ({ subject, description, project_name,
  */
 export const createProjectForTestCases = async () => {
   //Include testcase ID's below that require project to be created
-  const employeeTimesheetIDs = ["TC2", "TC4", "TC5", "TC6"];
+  const employeeTimesheetIDs = ["TC2", "TC4", "TC5", "TC6", "TC14", "TC15"];
+  const managerTaskIDs = ["TC25", "TC26"];
 
   const createProjectForTestCases = async (data, testCases) => {
     for (const testCaseID of testCases) {
@@ -202,6 +206,10 @@ export const createProjectForTestCases = async () => {
   await createProjectForTestCases(employeeTimesheetData, employeeTimesheetIDs);
   // Write updated data to shared JSON files
   fs.writeFileSync(employeeTimesheetDataFilePath, JSON.stringify(employeeTimesheetData, null, 2));
+
+  await createProjectForTestCases(managerTaskData, managerTaskIDs);
+  // Write updated data to shared JSON files
+  fs.writeFileSync(managerTaskDataFilePath, JSON.stringify(managerTaskData, null, 2));
 };
 // ------------------------------------------------------------------------------------------
 
@@ -210,12 +218,16 @@ export const createProjectForTestCases = async () => {
  */
 export const deleteProjects = async () => {
   sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
+  sharedManagerTaskData = await readJSONFile("../data/manager/shared-task.json");
   //Provide the json structure in below array for the testcase that needs Project Deletion
   const projectsToBeDeleted = [
     sharedEmployeeTimesheetData.TC2.payloadDeleteProject.projectId,
     sharedEmployeeTimesheetData.TC4.payloadDeleteProject.projectId,
     sharedEmployeeTimesheetData.TC5.payloadDeleteProject.projectId,
     sharedEmployeeTimesheetData.TC6.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC14.payloadDeleteProject.projectId,
+    sharedManagerTaskData.TC25.payloadDeleteProject.projectId,
+    sharedManagerTaskData.TC26.payloadDeleteProject.projectId,
   ];
   for (const entry of projectsToBeDeleted) {
     //Delete Project
@@ -229,7 +241,8 @@ export const deleteProjects = async () => {
  */
 export const createTaskForTestCases = async () => {
   //Include testcase ID's below that require project to be created
-  const employeeTimesheetIDs = ["TC2", "TC4", "TC5", "TC6"];
+  const employeeTimesheetIDs = ["TC2", "TC4", "TC5", "TC6", "TC14", "TC15"];
+  const managerTaskIDs = ["TC25", "TC26"];
   let taskID;
 
   const createTaskForTestCases = async (data, testCases) => {
@@ -244,7 +257,6 @@ export const createTaskForTestCases = async () => {
           console.error(`Failed to Create task for ${testCaseID}: Unexpected response format`);
         }
         const jsonResponse = response;
-
         taskID = jsonResponse.data.name;
         //Provide the taskID to be stored in payloadDeleteProject and payloadCreateTask
         data[testCaseID].payloadDeleteTask.taskID = taskID;
@@ -269,6 +281,10 @@ export const createTaskForTestCases = async () => {
   await createTaskForTestCases(employeeTimesheetData, employeeTimesheetIDs);
   // Write updated data to shared JSON files
   fs.writeFileSync(employeeTimesheetDataFilePath, JSON.stringify(employeeTimesheetData, null, 2));
+
+  await createTaskForTestCases(managerTaskData, managerTaskIDs);
+  // Write updated data to shared JSON files
+  fs.writeFileSync(managerTaskDataFilePath, JSON.stringify(managerTaskData, null, 2));
 };
 // ------------------------------------------------------------------------------------------
 
@@ -277,12 +293,18 @@ export const createTaskForTestCases = async () => {
  */
 export const deleteTasks = async () => {
   sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
+  sharedManagerTaskData = await readJSONFile("../data/manager/shared-task.json");
+
   //Provide the json structure in below array for the testcase that needs Task Deletion
   const tasksToBeDeleted = [
     sharedEmployeeTimesheetData.TC2.payloadDeleteTask.taskID,
     sharedEmployeeTimesheetData.TC4.payloadDeleteTask.taskID,
     sharedEmployeeTimesheetData.TC5.payloadDeleteTask.taskID,
     sharedEmployeeTimesheetData.TC6.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC14.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC15.payloadDeleteTask.taskID,
+    sharedManagerTaskData.TC25.payloadDeleteTask.taskID,
+    sharedManagerTaskData.TC26.payloadDeleteTask.taskID,
   ];
   for (const entry of tasksToBeDeleted) {
     //Delete Project
