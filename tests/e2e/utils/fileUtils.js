@@ -30,3 +30,14 @@ export const readJSONFile = async (relativePath) => {
   // Parse JSON and return
   return JSON.parse(data);
 };
+
+/**
+ * Writes data into the specified file asynchronously.
+ */
+export const writeDataToFile = async (filePath, data) => {
+  try {
+    await fs.writeFile(filePath, JSON.stringify(data, null, 2), "utf-8");
+  } catch (error) {
+    console.error(`Failed to write data to file ${filePath}: ${error.message}`);
+  }
+};

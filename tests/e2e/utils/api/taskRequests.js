@@ -46,13 +46,14 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
 /**
  * Create a new Task.
  */
-export const createTask = async ({ subject, project, description }) => {
+export const createTask = async ({ subject, project, description, custom_is_billable }) => {
   return await apiRequest("/api/resource/Task", {
     method: "POST",
     data: {
-      subject: subject,
-      project: project,
-      description: description,
+      subject,
+      project,
+      description,
+      ...(custom_is_billable !== undefined && { custom_is_billable }),
     },
   });
 };

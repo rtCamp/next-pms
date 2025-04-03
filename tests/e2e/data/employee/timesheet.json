@@ -216,7 +216,7 @@
       "isLikeTask": true
     },
     "payloadCreateTimesheet": {
-      "task": "TASK-2025-00617",
+      "task": "filled-automatically-from-createTasks",
       "description": "TC6 - Task added via automation.",
       "hours": "1"
     },
@@ -271,35 +271,94 @@
   },
   "TC14": {
     "cell": {
-      "rowName": "Design dashboard",
+      "rowName": "TC14 Billable Task",
       "col": "Tue"
     },
+    "payloadCreateProject": {
+      "project_name": "TC14 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "customer": "Google",
+      "billing_type": "Fixed Cost",
+      "currency": "INR",
+      "project_type": "Fixed Cost",
+      "business_unit": "Jupitor",
+      "estimated_cost": 235000,
+      "custom_default_hourly_billing_rate": 300,
+      "custom_project_budget_hours": []
+    },
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    },
+    "payloadCreateTask": {
+      "subject": "TC14 Billable Task",
+      "project": "filled-automatically-from-createProjects",
+      "description": "Task for TC14 created through automation",
+      "custom_is_billable": 1
+    },
+    "payloadLikeTask": {
+      "doctype": "Task",
+      "name": "filled-automatically-from-createTasks",
+      "add": "Yes",
+      "role": "employee"
+    },
+    "payloadDeleteTask": {
+      "taskID": "filled-automatically-from-createTasks"
+    },
     "payloadCreateTimesheet": {
-      "task": "TASK-2025-00616",
+      "task": "filled-automatically-from-createTasks",
       "description": "TC14 - Task added via automation.",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
-      "subject": "Design dashboard",
+      "subject": "TC14 Billable Task",
       "description": "TC14 - Task added via automation.",
-      "project_name": "QE - Fixed Cost",
+      "project_name": "TC14 Project",
       "max_week": "1"
     }
   },
   "TC15": {
     "cell": {
-      "rowName": "Create UI Designs",
+      "rowName": "TC15 Non-Billable Task",
       "col": "Thu"
     },
+    "payloadCreateProject": {
+      "project_name": "TC15 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "customer": "Google",
+      "billing_type": "Fixed Cost",
+      "currency": "INR",
+      "project_type": "Fixed Cost",
+      "business_unit": "Jupitor",
+      "estimated_cost": 235000,
+      "custom_default_hourly_billing_rate": 300,
+      "custom_project_budget_hours": []
+    },
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    },
+    "payloadCreateTask": {
+      "subject": "TC15 Non-Billable Task",
+      "project": "filled-automatically-from-createProjects",
+      "description": "Task for TC15 created through automation"
+    },
+    "payloadLikeTask": {
+      "doctype": "Task",
+      "name": "filled-automatically-from-createTasks",
+      "add": "Yes",
+      "role": "employee"
+    },
+    "payloadDeleteTask": {
+      "taskID": "filled-automatically-from-createTasks"
+    },
     "payloadCreateTimesheet": {
-      "task": "TASK-2025-00613",
+      "task": "filled-automatically-from-createTasks",
       "description": "TC15 - Task added via automation.",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
-      "subject": "Create UI Designs",
+      "subject": "TC15 Non-Billable Task",
       "description": "TC15 - Task added via automation.",
-      "project_name": "QE - Non-Billable",
+      "project_name": "TC15 Project",
       "max_week": "1"
     }
   }
