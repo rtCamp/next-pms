@@ -182,7 +182,7 @@ export const createProjectForTestCases = async () => {
     for (const testCaseID of testCases) {
       if (data[testCaseID].payloadCreateProject) {
         const createProjectPayload = data[testCaseID].payloadCreateProject;
-        
+
         // Store the response of createProject API
         const response = await createProject(createProjectPayload);
         if (!response.ok) {
