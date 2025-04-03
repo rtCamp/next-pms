@@ -2,7 +2,8 @@ import path from "path";
 import { test, expect } from "@playwright/test";
 import { TaskPage } from "../../pageObjects/taskPage";
 import data from "../../data/manager/task.json";
-
+//Add type hints to help VS Code recognize TaskPage
+/** @type {TaskPage} */
 let taskPage;
 
 // Load test data
@@ -73,26 +74,26 @@ test("TC20: The information table columns should be customizable using the ‘Co
   expect(await isColumnPresent2).toBeFalsy();
 });
 
-test("TC25: Verify the billable status of a billable task.", async ({}) => {
+test("TC25: Verify the billable status of a billable task. @workingTests ", async ({}) => {
   // Add column to view
   await taskPage.addColumn("Is Billable");
 
   // Search task
-  await taskPage.searchTask(TC25data.task);
+  await taskPage.searchTask(TC25data.payloadCreateTask.subject);
 
   // Assertions
-  const isTaskBillable = await taskPage.isTaskBillable(TC25data.task);
+  const isTaskBillable = await taskPage.isTaskBillable(TC25data.payloadCreateTask.subject);
   expect(isTaskBillable).toBeTruthy();
 });
 
-test("TC26: Verify the billable status of a non-billable task.", async ({}) => {
+test("TC26: Verify the billable status of a non-billable task. @workingTests ", async ({}) => {
   // Add column to view
   await taskPage.addColumn("Is Billable");
 
   // Search task
-  await taskPage.searchTask(TC26data.task);
+  await taskPage.searchTask(TC26data.payloadCreateTask.subject);
 
   // Assertions
-  const isTaskBillable = await taskPage.isTaskBillable(TC26data.task);
+  const isTaskBillable = await taskPage.isTaskBillable(TC26data.payloadCreateTask.subject);
   expect(isTaskBillable).toBeFalsy();
 });
