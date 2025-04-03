@@ -18,6 +18,7 @@ const globalSetup = async () => {
   // Create shared JSON files
   await createJSONFile("../data/employee/shared-timesheet.json");
   await createJSONFile("../data/manager/shared-team.json");
+  await createJSONFile("../data/manager/shared-task.json");
 
   await storeStorageState("employee", true);
   await storeStorageState("manager", true);
