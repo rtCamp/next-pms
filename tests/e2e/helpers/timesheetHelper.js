@@ -5,7 +5,7 @@ import { createTimesheet, getTimesheetDetails, deleteTimesheet } from "../utils/
 import employeeTimesheetData from "../data/employee/timesheet.json";
 import managerTeamData from "../data/manager/team.json";
 import managerTaskData from "../data/manager/task.json";
-import { readJSONFile } from "../utils/fileUtils";
+import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
 import { createProject, deleteProject } from "../utils/api/projectRequests";
 import { createTask, deleteTask, likeTask } from "../utils/api/taskRequests";
 
@@ -174,27 +174,26 @@ export const filterTimesheetEntry = async ({ subject, description, project_name,
  * Creates projects for all the test cases provided in the employeeTimesheetIDs array below
  */
 export const createProjectForTestCases = async () => {
-  //Include testcase ID's below that require project to be created
+  // Include testcase ID's below that require a project to be created
   const employeeTimesheetIDs = ["TC2", "TC4", "TC5", "TC6", "TC14", "TC15"];
   const managerTaskIDs = ["TC25", "TC26"];
 
-  const createProjectForTestCases = async (data, testCases) => {
+  const processTestCases = async (data, testCases) => {
     for (const testCaseID of testCases) {
       if (data[testCaseID].payloadCreateProject) {
         const createProjectPayload = data[testCaseID].payloadCreateProject;
-        //Store the response of createProject API
+        
+        // Store the response of createProject API
         const response = await createProject(createProjectPayload);
         if (!response.ok) {
-          console.error(`Failed to create task for ${testCaseID}: ${response.statusText}`);
+          console.error(`Failed to create project for ${testCaseID}: ${response.statusText}`);
+          continue;
         }
 
         const jsonResponse = await response.json();
-        //console.warn(`Json response for CReate Project for test case ${testCaseID}: `, jsonResponse);
-
         const projectId = jsonResponse.data.name;
-        //console.warn(`PROJECT ID FOR test case ${testCaseID}: `, projectId);
 
-        //Provide the project ID to be stored in payloadDeleteProject and payloadCreateTask
+        // Store project ID in related payloads
         data[testCaseID].payloadDeleteProject.projectId = projectId;
 
         if (data[testCaseID].payloadCreateTask) {
@@ -203,14 +202,14 @@ export const createProjectForTestCases = async () => {
       }
     }
   };
-  await createProjectForTestCases(employeeTimesheetData, employeeTimesheetIDs);
-  // Write updated data to shared JSON files
-  fs.writeFileSync(employeeTimesheetDataFilePath, JSON.stringify(employeeTimesheetData, null, 2));
 
-  await createProjectForTestCases(managerTaskData, managerTaskIDs);
-  // Write updated data to shared JSON files
-  fs.writeFileSync(managerTaskDataFilePath, JSON.stringify(managerTaskData, null, 2));
+  await processTestCases(employeeTimesheetData, employeeTimesheetIDs);
+  writeDataToFile(employeeTimesheetDataFilePath, employeeTimesheetData);
+
+  await processTestCases(managerTaskData, managerTaskIDs);
+  writeDataToFile(managerTaskDataFilePath, managerTaskData);
 };
+
 // ------------------------------------------------------------------------------------------
 
 /**
@@ -240,52 +239,56 @@ export const deleteProjects = async () => {
  * Creates tasks for all the test cases provided in the employeeTimesheetIDs array below
  */
 export const createTaskForTestCases = async () => {
-  //Include testcase ID's below that require project to be created
+  // Include testcase IDs that require a task to be created
   const employeeTimesheetIDs = ["TC2", "TC4", "TC5", "TC6", "TC14", "TC15"];
   const managerTaskIDs = ["TC25", "TC26"];
   let taskID;
 
-  const createTaskForTestCases = async (data, testCases) => {
+  const processTestCasesForTasks = async (data, testCases) => {
     for (const testCaseID of testCases) {
       if (data[testCaseID].payloadCreateTask) {
         const createTaskPayload = data[testCaseID].payloadCreateTask;
 
-        //Store the response of createProject API
+        // Store the response of createTask API
         const response = await createTask(createTaskPayload);
-        //console.warn(`RESPONSE FOR CREATE TASK OF ${testCaseID} :`, response);
         if (!response || typeof response !== "object") {
-          console.error(`Failed to Create task for ${testCaseID}: Unexpected response format`);
+          console.error(`Failed to create task for ${testCaseID}: Unexpected response format`);
+          continue;
         }
+
         const jsonResponse = response;
         taskID = jsonResponse.data.name;
-        //Provide the taskID to be stored in payloadDeleteProject and payloadCreateTask
+
+        // Store task ID in related payloads
         data[testCaseID].payloadDeleteTask.taskID = taskID;
       }
+
       if (data[testCaseID].payloadLikeTask) {
-        //Provide the taskID to be stored if there is need for liking the Task
+        // Store the task ID for liking the task
         data[testCaseID].payloadLikeTask.name = taskID;
         const response = await likeTask(taskID, data[testCaseID].payloadLikeTask.role);
+
         if (response && typeof response === "object") {
-          // The API call succeeded at least to the point of returning an object
-          console.log("API call for LIKE TASK completed with response:", response);
+          console.log(`Successfully liked task for ${testCaseID}:`, response);
         } else {
           console.error(`Failed to like task for ${testCaseID}: Unexpected response format`);
         }
       }
+
       if (data[testCaseID].payloadCreateTimesheet) {
-        //Provide the taskID to be stored if there is need for creating a timesheet for the Task
+        // Store the task ID for creating a timesheet
         data[testCaseID].payloadCreateTimesheet.task = taskID;
       }
     }
   };
-  await createTaskForTestCases(employeeTimesheetData, employeeTimesheetIDs);
-  // Write updated data to shared JSON files
-  fs.writeFileSync(employeeTimesheetDataFilePath, JSON.stringify(employeeTimesheetData, null, 2));
 
-  await createTaskForTestCases(managerTaskData, managerTaskIDs);
-  // Write updated data to shared JSON files
-  fs.writeFileSync(managerTaskDataFilePath, JSON.stringify(managerTaskData, null, 2));
+  await processTestCasesForTasks(employeeTimesheetData, employeeTimesheetIDs);
+  writeDataToFile(employeeTimesheetDataFilePath, employeeTimesheetData);
+
+  await processTestCasesForTasks(managerTaskData, managerTaskIDs);
+  writeDataToFile(managerTaskDataFilePath, managerTaskData);
 };
+
 // ------------------------------------------------------------------------------------------
 
 /**
