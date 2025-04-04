@@ -175,8 +175,8 @@ export const filterTimesheetEntry = async ({ subject, description, project_name,
  */
 export const createProjectForTestCases = async () => {
   // Include testcase ID's below that require a project to be created
-  const employeeTimesheetIDs = ["TC2", "TC4", "TC5", "TC6", "TC14", "TC15"];
-  const managerTaskIDs = ["TC25", "TC26"];
+  const employeeTimesheetIDs = ["TC2", "TC3", "TC4", "TC5", "TC6", "TC7", "TC9", "TC14", "TC15"];
+  const managerTaskIDs = ["TC25", "TC26", "TC17", "TC19"];
 
   const processTestCases = async (data, testCases) => {
     for (const testCaseID of testCases) {
@@ -221,10 +221,16 @@ export const deleteProjects = async () => {
   //Provide the json structure in below array for the testcase that needs Project Deletion
   const projectsToBeDeleted = [
     sharedEmployeeTimesheetData.TC2.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC3.payloadDeleteProject.projectId,
     sharedEmployeeTimesheetData.TC4.payloadDeleteProject.projectId,
     sharedEmployeeTimesheetData.TC5.payloadDeleteProject.projectId,
     sharedEmployeeTimesheetData.TC6.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC7.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC9.payloadDeleteProject.projectId,
     sharedEmployeeTimesheetData.TC14.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC15.payloadDeleteProject.projectId,
+    sharedManagerTaskData.TC17.payloadDeleteProject.projectId,
+    sharedManagerTaskData.TC19.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC25.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC26.payloadDeleteProject.projectId,
   ];
@@ -240,12 +246,14 @@ export const deleteProjects = async () => {
  */
 export const createTaskForTestCases = async () => {
   // Include testcase IDs that require a task to be created
-  const employeeTimesheetIDs = ["TC2", "TC4", "TC5", "TC6", "TC14", "TC15"];
-  const managerTaskIDs = ["TC25", "TC26"];
-  let taskID;
+  const employeeTimesheetIDs = ["TC2", "TC3", "TC4", "TC5", "TC6", "TC7", "TC9", "TC14", "TC15"];
+
+  const managerTaskIDs = ["TC25", "TC26", "TC17", "TC19"];
 
   const processTestCasesForTasks = async (data, testCases) => {
     for (const testCaseID of testCases) {
+      let taskID;
+      let taskSubject;
       if (data[testCaseID].payloadCreateTask) {
         const createTaskPayload = data[testCaseID].payloadCreateTask;
 
@@ -258,6 +266,7 @@ export const createTaskForTestCases = async () => {
 
         const jsonResponse = response;
         taskID = jsonResponse.data.name;
+        taskSubject = data[testCaseID].payloadCreateTask.subject;
 
         // Store task ID in related payloads
         data[testCaseID].payloadDeleteTask.taskID = taskID;
@@ -272,6 +281,11 @@ export const createTaskForTestCases = async () => {
           console.log(`Successfully liked task for ${testCaseID}:`, response);
         } else {
           console.error(`Failed to like task for ${testCaseID}: Unexpected response format`);
+        }
+
+        // Add the subject to TC12 inside tasks array
+        if (data.TC12 && Array.isArray(data.TC12.tasks)) {
+          data.TC12.tasks.push(taskSubject);
         }
       }
 
@@ -301,13 +315,18 @@ export const deleteTasks = async () => {
   //Provide the json structure in below array for the testcase that needs Task Deletion
   const tasksToBeDeleted = [
     sharedEmployeeTimesheetData.TC2.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC3.payloadDeleteTask.taskID,
     sharedEmployeeTimesheetData.TC4.payloadDeleteTask.taskID,
     sharedEmployeeTimesheetData.TC5.payloadDeleteTask.taskID,
     sharedEmployeeTimesheetData.TC6.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC7.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC9.payloadDeleteTask.taskID,
     sharedEmployeeTimesheetData.TC14.payloadDeleteTask.taskID,
     sharedEmployeeTimesheetData.TC15.payloadDeleteTask.taskID,
     sharedManagerTaskData.TC25.payloadDeleteTask.taskID,
     sharedManagerTaskData.TC26.payloadDeleteTask.taskID,
+    sharedManagerTaskData.TC17.payloadDeleteTask.taskID,
+    sharedManagerTaskData.TC19.payloadDeleteTask.taskID,
   ];
   for (const entry of tasksToBeDeleted) {
     //Delete Project

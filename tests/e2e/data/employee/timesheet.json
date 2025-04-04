@@ -61,7 +61,8 @@
     "payloadLikeTask": {
       "doctype": "Task",
       "name": "filled-automatically-from-createTasks",
-      "add": "Yes"
+      "add": "Yes",
+      "role": "employee"
     },
     "payloadDeleteTask": {
       "taskID": "filled-automatically-from-createTasks"
@@ -229,32 +230,82 @@
   },
   "TC7": {
     "cell": {
-      "rowName": "Meetings",
+      "rowName": "Task for TC07",
       "col": "Mon"
     },
+    "payloadCreateProject": {
+      "project_name": "TC07 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "billing_type": "Non-Billable",
+      "currency": "INR",
+      "project_type": "Non Billable",
+      "business_unit": "NB",
+      "estimated_cost": 100000
+    },
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    },
+    "payloadCreateTask": {
+      "subject": "Task for TC07",
+      "project": "filled-automatically-from-createProjects",
+      "description": "Task for TC07 created through automation"
+    },
+    "payloadDeleteTask": {
+      "taskID": "filled-automatically-from-createTasks"
+    },
     "payloadCreateTimesheet": {
-      "task": "TASK-2025-00614",
+      "task": "filled-automatically-from-createTasks",
       "description": "TC7 - Task added via automation.",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
-      "subject": "Meetings",
+      "subject": "Task for TC07",
       "description": "TC7 - Task added via automation.",
-      "project_name": "QE - Non-Billable",
+      "project_name": "TC07 Project",
+      "max_week": "1"
+    }
+  },
+  "TC9": {
+    "payloadCreateProject": {
+      "project_name": "TC09 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "billing_type": "Non-Billable",
+      "currency": "INR",
+      "project_type": "Non Billable",
+      "business_unit": "NB",
+      "estimated_cost": 100000
+    },
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    },
+    "payloadCreateTask": {
+      "subject": "Task for TC09",
+      "project": "filled-automatically-from-createProjects",
+      "description": "Task for TC09 created through automation"
+    },
+    "payloadLikeTask": {
+      "doctype": "Task",
+      "name": "filled-automatically-from-createTasks",
+      "add": "Yes",
+      "role": "employee"
+    },
+    "payloadDeleteTask": {
+      "taskID": "filled-automatically-from-createTasks"
+    },
+    "payloadCreateTimesheet": {
+      "task": "filled-automatically-from-createTasks",
+      "description": "TC6 - Task added via automation.",
+      "hours": "1"
+    },
+    "payloadFilterTimeEntry": {
+      "subject": "Task for TC09",
+      "description": "TC6 - Task added via automation.",
+      "project_name": "TC09 Project",
       "max_week": "1"
     }
   },
   "TC12": {
-    "tasks": [
-      "Design dashboard",
-      "Documentation",
-      "Meetings",
-      "Create UI Designs",
-      "Bug fixes",
-      "App support",
-      "Unit Testing",
-      "Prod support calls"
-    ]
+    "tasks": []
   },
   "TC13": {
     "cell": {
