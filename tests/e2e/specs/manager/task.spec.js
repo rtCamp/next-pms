@@ -42,7 +42,7 @@ test("TC17: Validate the search functionality @workingTests", async ({}) => {
 });
 
 test("TC19: Open task details popup @workingTests", async ({}) => {
-  const taskName = TC19data.payloadCreateTask.subject
+  const taskName = TC19data.payloadCreateTask.subject;
   // Search task
   await taskPage.searchTask(taskName);
 
@@ -55,7 +55,6 @@ test("TC19: Open task details popup @workingTests", async ({}) => {
 });
 
 test("TC20: The information table columns should be customizable using the ‘Columns’ button at the top. @workingTests", async ({}) => {
-
   // Add column to view and save
   await taskPage.addColumn(TC20data.col);
   await taskPage.saveView();
