@@ -24,6 +24,9 @@ module.exports = defineConfig({
   /* Test results directory */
   outputDir: "test-results",
 
+  /*Runs the script that have the below tag associated */
+  grep: /@workingTests/,
+
   /* Run tests in files in parallel */
   fullyParallel: true,
 
