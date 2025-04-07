@@ -230,6 +230,7 @@ doc_events = {
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
         ],
         "on_trash": ["next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache"],
+        "before_save": "next_pms.timesheet.doc_events.leave_application.before_save",
     },
     "Employee Skill Map": {
         "on_update": [
@@ -245,6 +246,7 @@ doc_events = {
         "on_trash": ["next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache"],
     },
     "Customer": {"validate": "next_pms.resource_management.doc_events.customer.validate_abbr"},
+    "Employee": {"on_update": "next_pms.timesheet.doc_events.employee.on_update"},
 }
 #
 # each overriding function accepts a `data` argument;

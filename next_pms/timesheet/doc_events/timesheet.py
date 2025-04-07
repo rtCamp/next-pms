@@ -25,6 +25,7 @@ def before_insert(doc, method=None):
 def before_save(doc, method=None):
     from frappe.utils import get_datetime
 
+    flush_cache(doc)
     if not doc.get("time_logs"):
         return
     #  Update the from_time and to_time to have only date part and time part as 00:00:00
@@ -239,3 +240,17 @@ def validate_self_approval(doc):
 
     if doc.employee == employee:
         throw(_("You cannot approve your own timesheets."))
+
+
+def flush_cache(doc):
+    import frappe
+    from frappe.utils import get_date_str, get_first_day_of_week, get_last_day_of_week
+
+    from next_pms.timesheet.utils.constant import EMP_TIMESHEET
+
+    start_date = get_date_str(get_first_day_of_week(doc.start_date))
+    end_date = get_date_str(get_last_day_of_week(doc.start_date))
+    cache_key = f"{EMP_TIMESHEET}::{doc.employee}"
+    week_cache_key = f"{start_date}::{end_date}"
+
+    frappe.cache.hdel(cache_key, week_cache_key)
