@@ -26,7 +26,10 @@ export const ResourceAllocationSchema = z
       .trim()
       .min(1, { message: "Please select a end date." }),
     note: z.string().optional(),
-    employee: z.string(),
+    employee: z
+      .string()
+      .trim()
+      .min(1, { message: "Please select an employee." }),
   })
   .superRefine((v, ctx) => {
     if (Number(v.hours_allocated_per_day) == 0) {
