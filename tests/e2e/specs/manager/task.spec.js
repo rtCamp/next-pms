@@ -28,31 +28,33 @@ test.beforeEach(async ({ page }) => {
 
 // ------------------------------------------------------------------------------------------
 
-test("TC17: Validate the search functionality", async ({}) => {
+test("TC17: Validate the search functionality @workingTests", async ({}) => {
+  const taskName = TC17data.payloadCreateTask.subject;
   // Search task
-  await taskPage.searchTask(TC17data.task);
+  await taskPage.searchTask(taskName);
 
   // Assertions
   const filteredTasks = await taskPage.getTasks();
   expect(filteredTasks.length).toBeGreaterThanOrEqual(1);
   filteredTasks.forEach((task) => {
-    expect(task).toContain(TC17data.task);
+    expect(task).toContain(taskName);
   });
 });
 
-test("TC19: Open task details popup", async ({}) => {
+test("TC19: Open task details popup @workingTests", async ({}) => {
+  const taskName = TC19data.payloadCreateTask.subject;
   // Search task
-  await taskPage.searchTask(TC19data.task);
+  await taskPage.searchTask(taskName);
 
   // Open task details
-  await taskPage.openTaskDetails(TC19data.task);
+  await taskPage.openTaskDetails(taskName);
 
   // Assertions
-  const isTaskDetailsDialogVisible = await taskPage.isTaskDetailsDialogVisible(TC19data.task);
+  const isTaskDetailsDialogVisible = await taskPage.isTaskDetailsDialogVisible(taskName);
   expect(isTaskDetailsDialogVisible).toBeTruthy();
 });
 
-test("TC20: The information table columns should be customizable using the ‘Columns’ button at the top.", async ({}) => {
+test("TC20: The information table columns should be customizable using the ‘Columns’ button at the top. @workingTests", async ({}) => {
   // Add column to view and save
   await taskPage.addColumn(TC20data.col);
   await taskPage.saveView();

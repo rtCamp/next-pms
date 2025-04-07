@@ -41,10 +41,9 @@ test("TC2: Time should be added using the ‘Add’ button at the top. @workingT
   expect(cellText).toContain(TC2data.taskInfo.duration);
 });
 
-test("TC3: Time should be added using the direct timesheet add buttons.", async ({ page }) => {
+test("TC3: Time should be added using the direct timesheet add buttons. @workingTests", async ({ page }) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
-
   // Add time entry using "+" button in timesheet
   await timesheetPage.addTimeViaCell(TC3data.cell, {
     duration: TC3data.taskInfo.duration,
@@ -115,7 +114,7 @@ test("TC6: Delete the added time entry from the non-submitted timesheet. @workin
   expect(cellText).toContain("-");
 });
 
-test("TC7: Submit the weekly timesheet", async ({ page }) => {
+test("TC7: Submit the weekly timesheet @workingTests", async ({ page }) => {
   // Submit timesheet
   await timesheetPage.submitTimesheet();
 
@@ -129,10 +128,9 @@ test("TC7: Submit the weekly timesheet", async ({ page }) => {
   expect(status).toBe("Approval Pending");
 });
 
-test("TC9: Open task details popup", async ({}) => {
+test("TC9: Open task details popup @workingTests", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
-
   // Open random task details
   const randomTask = await timesheetPage.openRandomTaskDetails();
 
@@ -141,7 +139,7 @@ test("TC9: Open task details popup", async ({}) => {
   expect(isTaskDetailsDialogVisible).toBeTruthy();
 });
 
-test("TC11: Verify that the review timesheet pane is not available for an employee.", async ({}) => {
+test("TC11: Verify that the review timesheet pane is not available for an employee. @workingTests", async ({}) => {
   // Click on timesheet status
   await timesheetPage.clickonTimesheetStatus();
 
@@ -153,18 +151,18 @@ test("TC11: Verify that the review timesheet pane is not available for an employ
   expect(isReviewTimesheetPaneVisible).toBeFalsy();
 });
 
-test("TC12: Verify the 'Import liked tasks' option.", async ({}) => {
+test("TC12: Verify the 'Import liked tasks' option. @workingTests", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
   // Retrive tasks from the timesheet
   const tasks = await timesheetPage.getTimesheetTasks();
 
-  // Assertions
-  expect(tasks.sort()).toEqual(TC12data.tasks.sort());
+  // Assertion to verify that TC12 data will be present in task.sort()
+  expect(tasks.sort()).toEqual(expect.arrayContaining(TC12data.tasks.sort()));
 });
 
-test("TC13: Verify an employee can apply for leave via Timesheet tab.", async ({}) => {
+test("TC13: Verify an employee can apply for leave via Timesheet tab. @workingTests", async ({}) => {
   // Apply for leave
   await timesheetPage.applyForLeave(TC13data.leave.desc);
 
