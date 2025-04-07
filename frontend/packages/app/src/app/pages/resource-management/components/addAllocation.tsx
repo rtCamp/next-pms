@@ -740,7 +740,7 @@ const AddResourceAllocations = ({
             />
             <DialogFooter className="sm:justify-start w-full pt-3">
               <div className="flex gap-x-4 w-full">
-                <Button disabled={!form.formState.isValid || !form.formState.isDirty || loading}>
+                <Button disabled={!form.formState.isDirty || !form.formState.isValid || loading}>
                   {loading ? <LoaderCircle className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
                   {resourceDialogState.isNeedToEdit ? "Save" : "Create"}
                 </Button>
