@@ -13,6 +13,7 @@ ROLES = {
 def validate(doc, method=None):
     validate_time(doc)
     update_note(doc)
+    flush_cache(doc)
 
 
 def before_insert(doc, method=None):
@@ -25,7 +26,6 @@ def before_insert(doc, method=None):
 def before_save(doc, method=None):
     from frappe.utils import get_datetime
 
-    flush_cache(doc)
     if not doc.get("time_logs"):
         return
     #  Update the from_time and to_time to have only date part and time part as 00:00:00
@@ -43,6 +43,7 @@ def on_update(doc, method=None):
 
 def after_delete(doc, method=None):
     doc.update_task_and_project()
+    flush_cache(doc)
 
 
 def before_validate(doc, method=None):
@@ -50,6 +51,7 @@ def before_validate(doc, method=None):
 
 
 def before_submit(doc, method=None):
+    validate_self_approval(doc)
     doc.custom_approval_status = "Approved"
 
 
@@ -57,7 +59,14 @@ def on_submit(doc, method=None):
     from next_pms.timesheet.api.utils import update_weekly_status_of_timesheet
 
     update_weekly_status_of_timesheet(doc.employee, getdate(doc.start_date))
-    validate_self_approval(doc)
+
+
+def on_cancel(doc, method=None):
+    flush_cache(doc)
+
+
+def on_trash(doc, method=None):
+    flush_cache(doc)
 
 
 #  Custom Methods for Timesheet DocType events
