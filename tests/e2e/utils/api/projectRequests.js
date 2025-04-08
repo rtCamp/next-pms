@@ -35,3 +35,12 @@ export const deleteProject = async (projectId) => {
   const response = await ctx.delete(`/api/resource/Project/${projectId}`);
   return await response;
 };
+
+/**
+ * Get details of a project.
+ */
+export const getProjectDetails = async (projectId) => {
+  const ctx = await ensureAuth();
+  const response = await ctx.get(`/api/resource/Project/${projectId}`);
+  return await response;
+};
