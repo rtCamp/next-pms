@@ -3,6 +3,7 @@ import {
   updateTimeEntries,
   createProjectForTestCases,
   createTaskForTestCases,
+  calculateHourlyBilling
 } from "../helpers/timesheetHelper";
 import { storeStorageState } from "../helpers/storageStateHelper";
 import { updateLeaveEntries } from "../helpers/leaveHelper";
@@ -20,26 +21,27 @@ const globalSetup = async () => {
   await createJSONFile("../data/manager/shared-team.json");
   await createJSONFile("../data/manager/shared-task.json");
 
-  await storeStorageState("employee", true);
-  await storeStorageState("manager", true);
+  // 1. Create API auth states
+await Promise.all([
+  storeStorageState("employee", true),
+  storeStorageState("manager", true),
+  storeStorageState("admin", true)
+]);
 
-  // Compute and update dynamic fields of time entries
-  await updateTimeEntries();
+// 2. Use API roles to create data
+await updateTimeEntries();
+await createProjectForTestCases();
+await createTaskForTestCases();
+await createTimeEntries();
+await calculateHourlyBilling();
+await updateLeaveEntries();
 
-  // Create projects
-  await createProjectForTestCases();
+// 3. Create frontend UI storage states ONLY after all above is done
+await Promise.all([
+  storeStorageState("employee", false),
+  storeStorageState("manager", false)
+]);
 
-  // Create tasks
-  await createTaskForTestCases();
-  // Create initial time entries
-  await createTimeEntries();
-
-  // Compute and update dynamic fields of leave entries
-  await updateLeaveEntries();
-
-  // Perform login and store authentication state for later use
-  await storeStorageState("employee");
-  await storeStorageState("manager");
 };
 
 export default globalSetup;
