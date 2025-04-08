@@ -19,14 +19,14 @@ from .utils import (
     has_write_access,
 )
 
-now = nowdate()
-
 
 @frappe.whitelist()
-def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
+def get_timesheet_data(employee: str, start_date=None, max_week: int = 4):
     """Get timesheet data for the given employee for the given number of weeks."""
     if not employee:
         employee = get_employee_from_user()
+    if not start_date:
+        start_date = nowdate()
     apply_role_permission_for_doctype(["Timesheet User", "Timesheet Manager"], "Employee", "read", employee)
 
     def generate_week_data(start_date, max_week, employee=None, leaves=None, holidays=None):
