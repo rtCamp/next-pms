@@ -16,6 +16,7 @@ let TC12data = data.TC12;
 let TC13data = data.TC13;
 let TC14data = data.TC14;
 let TC15data = data.TC15;
+let TC84data = data.TC84;
 
 // ------------------------------------------------------------------------------------------
 
@@ -187,4 +188,17 @@ test("TC15: Verify the billable status of a non-billable task. @workingTests", a
   // Assertions
   const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC15data.cell);
   expect(isTimeEntryBillable).toBeFalsy();
+});
+
+test("TC84: Verify hourly consulting rate when no default billing rate is used for Fixed cost project @workingTests", async ({}) => {
+  // Import liked tasks
+  await timesheetPage.importLikedTasks();
+
+  //Assertions
+  const projectCostAmount = TC84data.payloadCalculateBillingRate.total_costing_amount;
+  const employeeHourlyBillingRate = TC84data.payloadCalculateBillingRate.hourly_billing_rate;
+  expect(
+    projectCostAmount,
+    "Verify the project cost amount and employee CTC amount per hour matches for Fixed Cost Project"
+  ).toBeCloseTo(employeeHourlyBillingRate, 3);
 });
