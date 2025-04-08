@@ -1,5 +1,6 @@
 import frappe
 from frappe import _dict, get_all, whitelist
+from frappe.utils.caching import redis_cache
 
 
 @whitelist()
@@ -22,6 +23,7 @@ def get_currencies():
 
 
 @whitelist()
+@redis_cache()
 def get_doc_meta(doctype: str):
     from frappe import get_meta
     from frappe.model import default_fields
