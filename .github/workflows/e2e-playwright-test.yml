@@ -104,18 +104,18 @@ jobs:
           path: tests/e2e/playwright-report/
 
       - name: Create ZIP file
-          if: ${{ success() || failure() }}
-          run: |
-            REPORT_DIR="${{ github.workspace }}/tests/e2e/playwright-report"
-            OUTPUT_ZIP="${{ github.workspace }}/report.zip"
+        if: ${{ success() || failure() }}
+        run: |
+          REPORT_DIR="${{ github.workspace }}/tests/e2e/playwright-report"
+          OUTPUT_ZIP="${{ github.workspace }}/report.zip"
 
-            if [ -f "$REPORT_DIR/index.html" ]; then
-              echo "Zipping only index.html from Playwright report folder..."
-              zip "$OUTPUT_ZIP" "$REPORT_DIR/index.html"
-            else
-              echo "Error - index.html not found in $REPORT_DIR"
-              exit 1
-            fi
+          if [ -f "$REPORT_DIR/index.html" ]; then
+            echo "Zipping only index.html from Playwright report folder..."
+            zip "$OUTPUT_ZIP" "$REPORT_DIR/index.html"
+          else
+            echo "Error - index.html not found in $REPORT_DIR"
+            exit 1
+          fi
 
       - name: Set the email body message for pull request merge or schedule message
         if: ${{ success() || failure() }}
