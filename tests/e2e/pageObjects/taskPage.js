@@ -43,6 +43,7 @@ export class TaskPage {
    */
   async searchTask(name) {
     await this.searchInput.fill(name);
+    await this.page.waitForTimeout(1000);
     await this.searchInput.press("ArrowDown+Enter");
   }
 

@@ -30,7 +30,7 @@ test.beforeEach(async ({ page }) => {
 
 // ------------------------------------------------------------------------------------------
 
-test("TC2: Time should be added using the ‘Add’ button at the top. @workingTests ", async ({ page }) => {
+test("TC2: Time should be added using the ‘Add’ button at the top.", async ({ page }) => {
   // Add time entry using "Time" button
   await timesheetPage.addTimeViaTimeButton(TC2data.taskInfo);
 
@@ -42,7 +42,7 @@ test("TC2: Time should be added using the ‘Add’ button at the top. @workingT
   expect(cellText).toContain(TC2data.taskInfo.duration);
 });
 
-test("TC3: Time should be added using the direct timesheet add buttons. @workingTests", async ({ page }) => {
+test("TC3: Time should be added using the direct timesheet add buttons.", async ({ page }) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
   // Add time entry using "+" button in timesheet
@@ -59,7 +59,7 @@ test("TC3: Time should be added using the direct timesheet add buttons. @working
   expect(cellText).toContain(TC3data.taskInfo.duration);
 });
 
-test("TC4: Added time and description should be editable. @workingTests", async ({ page }) => {
+test("TC4: Added time and description should be editable. ", async ({ page }) => {
   // Update time entry
 
   await timesheetPage.updateTimeRow(TC4data.cell, {
@@ -79,7 +79,7 @@ test("TC4: Added time and description should be editable. @workingTests", async 
   expect(cellTooltipText).toContain(TC4data.taskInfo.desc);
 });
 
-test("TC5: Add a new row in the already added time. @workingTests ", async ({ page }) => {
+test("TC5: Add a new row in the already added time.  ", async ({ page }) => {
   // Store cell text before new row addition
   const beforeCellText = await timesheetPage.getCellText(TC5data.cell);
 
@@ -100,7 +100,7 @@ test("TC5: Add a new row in the already added time. @workingTests ", async ({ pa
   expect(cellTooltipText).toContain(TC5data.taskInfo.desc);
 });
 
-test("TC6: Delete the added time entry from the non-submitted timesheet. @workingTests ", async ({ page }) => {
+test("TC6: Delete the added time entry from the non-submitted timesheet.  ", async ({ page }) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -115,7 +115,7 @@ test("TC6: Delete the added time entry from the non-submitted timesheet. @workin
   expect(cellText).toContain("-");
 });
 
-test("TC7: Submit the weekly timesheet @workingTests", async ({ page }) => {
+test("TC7: Submit the weekly timesheet ", async ({ page }) => {
   // Submit timesheet
   await timesheetPage.submitTimesheet();
 
@@ -129,7 +129,7 @@ test("TC7: Submit the weekly timesheet @workingTests", async ({ page }) => {
   expect(status).toBe("Approval Pending");
 });
 
-test("TC9: Open task details popup @workingTests", async ({}) => {
+test("TC9: Open task details popup   ", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
   // Open random task details
@@ -140,7 +140,7 @@ test("TC9: Open task details popup @workingTests", async ({}) => {
   expect(isTaskDetailsDialogVisible).toBeTruthy();
 });
 
-test("TC11: Verify that the review timesheet pane is not available for an employee. @workingTests", async ({}) => {
+test("TC11: Verify that the review timesheet pane is not available for an employee.   ", async ({}) => {
   // Click on timesheet status
   await timesheetPage.clickonTimesheetStatus();
 
@@ -152,7 +152,7 @@ test("TC11: Verify that the review timesheet pane is not available for an employ
   expect(isReviewTimesheetPaneVisible).toBeFalsy();
 });
 
-test("TC12: Verify the 'Import liked tasks' option. @workingTests", async ({}) => {
+test("TC12: Verify the 'Import liked tasks' option.   ", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -163,7 +163,7 @@ test("TC12: Verify the 'Import liked tasks' option. @workingTests", async ({}) =
   expect(tasks.sort()).toEqual(expect.arrayContaining(TC12data.tasks.sort()));
 });
 
-test("TC13: Verify an employee can apply for leave via Timesheet tab. @workingTests", async ({}) => {
+test("TC13: Verify an employee can apply for leave via Timesheet tab.   ", async ({}) => {
   // Apply for leave
   await timesheetPage.applyForLeave(TC13data.leave.desc);
 
@@ -172,7 +172,7 @@ test("TC13: Verify an employee can apply for leave via Timesheet tab. @workingTe
   expect(cellText).toContain("8");
 });
 
-test("TC14: Verify the billable status of a billable task. @workingTests", async ({}) => {
+test("TC14: Verify the billable status of a billable task.   ", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -181,7 +181,7 @@ test("TC14: Verify the billable status of a billable task. @workingTests", async
   expect(isTimeEntryBillable).toBeTruthy();
 });
 
-test("TC15: Verify the billable status of a non-billable task. @workingTests", async ({}) => {
+test("TC15: Verify the billable status of a non-billable task.   ", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -190,7 +190,7 @@ test("TC15: Verify the billable status of a non-billable task. @workingTests", a
   expect(isTimeEntryBillable).toBeFalsy();
 });
 
-test("TC84: Verify hourly consulting rate when no default billing rate is used for Fixed cost project @workingTests", async ({}) => {
+test("TC84: Verify hourly consulting rate when no default billing rate is used for Fixed cost project   ", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 

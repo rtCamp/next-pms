@@ -9,48 +9,135 @@
     "employee": "Abhishek Sharma"
   },
   "TC47": {
-    "cell": {
-      "rowName": "App support",
-      "col": "Wed"
-    },
     "taskInfo": {
       "duration": "1:45",
-      "project": "QE - Retainer",
-      "task": "App support",
+      "project": "TC47 Project",
+      "task": "TC47 Billable Task",
       "desc": "TC47 - Task added via automation."
     },
+
+    "cell": {
+      "rowName": "TC47 Billable Task",
+      "col": "Wed"
+    },
+    "payloadCreateProject": {
+      "project_name": "TC47 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "customer": "Google",
+      "custom_billing_type": "Fixed Cost",
+      "custom_currency": "INR",
+      "project_type": "Fixed Cost",
+      "business_unit": "Jupitor",
+      "estimated_cost": 360000,
+      "custom_default_hourly_billing_rate": 0,
+      "custom_project_budget_hours": []
+    },
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    },
+    "payloadCreateTask": {
+      "subject": "TC47 Billable Task",
+      "project": "filled-automatically-from-createProjects",
+      "description": "Task for TC47 created through automation",
+      "custom_is_billable": 1
+    },
+    "payloadDeleteTask": {
+      "taskID": "filled-automatically-from-createTasks"
+    },
     "payloadCreateTimesheet": {
-      "task": "TASK-2025-00619",
+      "task": "filled-automatically-from-createTasks",
       "description": "TC47 - Task added via automation.",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
-      "subject": "App support",
+      "subject": "TC47 Billable Task",
       "description": "TC47 - Task added via automation.",
-      "project_name": "QE - Retainer",
+      "project_name": "TC47 Project",
       "max_week": "1"
     }
   },
   "TC49": {
     "reason": "TC49 - Timesheet rejected via automation.",
     "cell": {
-      "rowName": "Bug fixes",
+      "rowName": "TC49 Billable Task",
       "col": "Fri"
     },
+    "payloadCreateProject": {
+      "project_name": "TC49 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "customer": "Google",
+      "custom_billing_type": "Fixed Cost",
+      "custom_currency": "INR",
+      "project_type": "Fixed Cost",
+      "business_unit": "Jupitor",
+      "estimated_cost": 360000,
+      "custom_default_hourly_billing_rate": 0,
+      "custom_project_budget_hours": []
+    },
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    },
+    "payloadCreateTask": {
+      "subject": "TC49 Billable Task",
+      "project": "filled-automatically-from-createProjects",
+      "description": "Task for TC49 created through automation",
+      "custom_is_billable": 1
+    },
+    "payloadDeleteTask": {
+      "taskID": "filled-automatically-from-createTasks"
+    },
     "payloadCreateTimesheet": {
-      "task": "TASK-2025-00620",
+      "task": "filled-automatically-from-createTasks",
       "description": "TC49 - Task added via automation.",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
-      "subject": "Bug fixes",
+      "subject": "TC49 Billable Task",
       "description": "TC49 - Task added via automation.",
-      "project_name": "QE - Time and Material",
+      "project_name": "TC49 Project",
       "max_week": "1"
     }
   },
   "TC50": {
-    "task": "Meetings"
+    "cell": {
+      "rowName": "TC50 Billable Task",
+      "col": "Fri"
+    },
+    "payloadCreateProject": {
+      "project_name": "TC50 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "customer": "Google",
+      "custom_billing_type": "Fixed Cost",
+      "custom_currency": "INR",
+      "project_type": "Fixed Cost",
+      "business_unit": "Jupitor",
+      "estimated_cost": 360000,
+      "custom_default_hourly_billing_rate": 0,
+      "custom_project_budget_hours": []
+    },
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    },
+    "payloadCreateTask": {
+      "subject": "TC50 Billable Task",
+      "project": "filled-automatically-from-createProjects",
+      "description": "Task for TC50 created through automation",
+      "custom_is_billable": 1
+    },
+    "payloadDeleteTask": {
+      "taskID": "filled-automatically-from-createTasks"
+    },
+    "payloadCreateTimesheet": {
+      "task": "filled-automatically-from-createTasks",
+      "description": "TC50 - Task added via automation.",
+      "hours": "1"
+    },
+    "payloadFilterTimeEntry": {
+      "subject": "TC50 Billable Task",
+      "description": "TC50 - Task added via automation.",
+      "project_name": "TC50 Project",
+      "max_week": "1"
+    }
   },
   "TC53": {
     "employees": ["Abhishek Kumar", "Abhishek Sharma", "Shraddha Gore"]

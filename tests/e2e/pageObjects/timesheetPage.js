@@ -125,6 +125,7 @@ export class TimesheetPage {
     await this.leaveButton.click();
     await this.searchAndSelectOption("Search Leave Type", "Unpaid Time Off");
     await this.addLeaveModal.getByPlaceholder("Reason for leave").fill(reason);
+    await this.page.waitForTimeout(2000);
     await this.addLeaveModal.getByRole("button", { name: "Add Leave" }).click();
   }
 
@@ -424,6 +425,7 @@ export class TimesheetPage {
     const taskSpan = this.latestTimesheetTable.locator(`//span[@class='truncate' and text()='${task}']`);
 
     await taskSpan.click();
+    await this.page.waitForTimeout(2000)
   }
 
   /**

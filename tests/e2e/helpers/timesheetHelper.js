@@ -33,16 +33,11 @@ let sharedManagerTaskData;
  * Updates 'payloadCreateTimesheet' and 'payloadFilterTimeEntry' fields with computed dates and employee ID.
  * Saves the updated data back to the shared JSON files.
  *
- * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49
+ * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49, TC50
  */
 export const updateTimeEntries = async () => {
-  const employeeTimesheetIDs = [
-    "TC2", "TC3", "TC4", "TC5", "TC6", "TC7", "TC14", "TC15","TC84"
-
-  ];
-  const managerTeamIDs = [
-     "TC47", "TC49"
-  ];
+  const employeeTimesheetIDs = ["TC2", "TC3", "TC4", "TC5", "TC6", "TC7", "TC14", "TC15", "TC84"];
+  const managerTeamIDs = ["TC47", "TC49", "TC50"];
 
   // Compute col value for TC2 before update
   employeeTimesheetData.TC2.cell.col = getWeekdayName(new Date());
@@ -86,13 +81,12 @@ export const updateTimeEntries = async () => {
  * This function iterates over predefined time entry payloads and submits them
  * to create timesheet records.
  *
- * Test Cases: TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49
+ * Test Cases: TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49, TC50
  */
 export const createTimeEntries = async () => {
   sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
   sharedManagerTeamData = await readJSONFile("../data/manager/shared-team.json");
   const timeEntries = [
-    
     sharedEmployeeTimesheetData.TC4.payloadCreateTimesheet,
     sharedEmployeeTimesheetData.TC5.payloadCreateTimesheet,
     sharedEmployeeTimesheetData.TC6.payloadCreateTimesheet,
@@ -102,8 +96,7 @@ export const createTimeEntries = async () => {
     sharedEmployeeTimesheetData.TC84.payloadCreateTimesheet,
     sharedManagerTeamData.TC47.payloadCreateTimesheet,
     sharedManagerTeamData.TC49.payloadCreateTimesheet,
-    
-    
+    sharedManagerTeamData.TC50.payloadCreateTimesheet,
   ];
 
   for (const entry of timeEntries) {
@@ -119,13 +112,12 @@ export const createTimeEntries = async () => {
  * This function reads timesheet data from JSON files and iterates through predefined
  * time entry objects, filtering each entry and deleting the corresponding timesheet record.
  *
- * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49
+ * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49, TC50
  */
 export const deleteTimeEntries = async () => {
   sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
   sharedManagerTeamData = await readJSONFile("../data/manager/shared-team.json");
   const timeEntries = [
-    
     sharedEmployeeTimesheetData.TC2.payloadFilterTimeEntry,
     sharedEmployeeTimesheetData.TC3.payloadFilterTimeEntry,
     sharedEmployeeTimesheetData.TC4.payloadFilterTimeEntry1,
@@ -139,8 +131,7 @@ export const deleteTimeEntries = async () => {
     sharedEmployeeTimesheetData.TC84.payloadFilterTimeEntry,
     sharedManagerTeamData.TC47.payloadFilterTimeEntry,
     sharedManagerTeamData.TC49.payloadFilterTimeEntry,
-    
-    
+    sharedManagerTeamData.TC50.payloadFilterTimeEntry,
   ];
 
   for (const entry of timeEntries) {
@@ -190,13 +181,10 @@ export const filterTimesheetEntry = async ({ subject, description, project_name,
  */
 export const createProjectForTestCases = async () => {
   // Include testcase ID's below that require a project to be created
-  const employeeTimesheetIDs = [
-    "TC2", "TC3", "TC4", "TC5", "TC6", "TC7", "TC9", "TC14", "TC15","TC84"
-  
-  ];
-  const managerTaskIDs = [
-    "TC25", "TC26", "TC17", "TC19"
-  ];
+  const employeeTimesheetIDs = ["TC2", "TC3", "TC4", "TC5", "TC6", "TC7", "TC9", "TC14", "TC15", "TC84"];
+  const managerTaskIDs = ["TC25", "TC26", "TC17", "TC19"];
+
+  const managerTeamIDs = ["TC47", "TC49", "TC50"];
 
   const processTestCases = async (data, testCases) => {
     for (const testCaseID of testCases) {
@@ -234,6 +222,9 @@ export const createProjectForTestCases = async () => {
 
   await processTestCases(managerTaskData, managerTaskIDs);
   writeDataToFile(managerTaskDataFilePath, managerTaskData);
+
+  await processTestCases(managerTeamData, managerTeamIDs);
+  writeDataToFile(managerTeamDataFilePath, managerTeamData);
 };
 
 // ------------------------------------------------------------------------------------------
@@ -244,9 +235,9 @@ export const createProjectForTestCases = async () => {
 export const deleteProjects = async () => {
   sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
   sharedManagerTaskData = await readJSONFile("../data/manager/shared-task.json");
+  sharedManagerTeamData = await readJSONFile("../data/manager/shared-team.json");
   //Provide the json structure in below array for the testcase that needs Project Deletion
   const projectsToBeDeleted = [
-    
     sharedEmployeeTimesheetData.TC2.payloadDeleteProject.projectId,
     sharedEmployeeTimesheetData.TC3.payloadDeleteProject.projectId,
     sharedEmployeeTimesheetData.TC4.payloadDeleteProject.projectId,
@@ -261,8 +252,9 @@ export const deleteProjects = async () => {
     sharedManagerTaskData.TC19.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC25.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC26.payloadDeleteProject.projectId,
-    
-    
+    sharedManagerTeamData.TC47.payloadDeleteProject.projectId,
+    sharedManagerTeamData.TC49.payloadDeleteProject.projectId,
+    sharedManagerTeamData.TC50.payloadDeleteProject.projectId,
   ];
   for (const entry of projectsToBeDeleted) {
     //Delete Project
@@ -276,14 +268,10 @@ export const deleteProjects = async () => {
  */
 export const createTaskForTestCases = async () => {
   // Include testcase IDs that require a task to be created
-  const employeeTimesheetIDs = [
-    "TC2", "TC3", "TC4", "TC5", "TC6", "TC7", "TC9", "TC14", "TC15","TC84"
-    
-  ];
+  const employeeTimesheetIDs = ["TC2", "TC3", "TC4", "TC5", "TC6", "TC7", "TC9", "TC14", "TC15", "TC84"];
 
-  const managerTaskIDs = [
-    //"TC25", "TC26", "TC17", "TC19"
-  ];
+  const managerTaskIDs = ["TC25", "TC26", "TC17", "TC19"];
+  const managerTeamIDs = ["TC47", "TC49", "TC50"];
 
   const processTestCasesForTasks = async (data, testCases) => {
     for (const testCaseID of testCases) {
@@ -336,6 +324,9 @@ export const createTaskForTestCases = async () => {
 
   await processTestCasesForTasks(managerTaskData, managerTaskIDs);
   writeDataToFile(managerTaskDataFilePath, managerTaskData);
+
+  await processTestCasesForTasks(managerTeamData, managerTeamIDs);
+  writeDataToFile(managerTeamDataFilePath, managerTeamData);
 };
 
 // ------------------------------------------------------------------------------------------
@@ -346,10 +337,10 @@ export const createTaskForTestCases = async () => {
 export const deleteTasks = async () => {
   sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
   sharedManagerTaskData = await readJSONFile("../data/manager/shared-task.json");
+  sharedManagerTeamData = await readJSONFile("../data/manager/shared-team.json");
 
   //Provide the json structure in below array for the testcase that needs Task Deletion
   const tasksToBeDeleted = [
-    
     sharedEmployeeTimesheetData.TC2.payloadDeleteTask.taskID,
     sharedEmployeeTimesheetData.TC3.payloadDeleteTask.taskID,
     sharedEmployeeTimesheetData.TC4.payloadDeleteTask.taskID,
@@ -364,8 +355,9 @@ export const deleteTasks = async () => {
     sharedManagerTaskData.TC26.payloadDeleteTask.taskID,
     sharedManagerTaskData.TC17.payloadDeleteTask.taskID,
     sharedManagerTaskData.TC19.payloadDeleteTask.taskID,
-    
-    
+    sharedManagerTeamData.TC47.payloadDeleteTask.taskID,
+    sharedManagerTeamData.TC49.payloadDeleteTask.taskID,
+    sharedManagerTeamData.TC50.payloadDeleteTask.taskID,
   ];
   for (const entry of tasksToBeDeleted) {
     //Delete Project
@@ -402,7 +394,6 @@ export const calculateHourlyBilling = async () => {
           monthly_billing_rate = convertedCTC / 12;
           hourly_billing_rate = monthly_billing_rate / 160;
         } else {
-
           monthly_billing_rate = employee_CTC / 12;
           hourly_billing_rate = monthly_billing_rate / 160;
         }
