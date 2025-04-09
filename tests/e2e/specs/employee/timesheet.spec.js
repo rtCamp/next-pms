@@ -38,14 +38,14 @@ test("TC2: Time should be added using the ‘Add’ button at the top. @workingT
 
   // Assertions
   const cellText = await timesheetPage.getCellText(TC2data.cell);
-  expect(cellText).toContain(TC2data);
+  expect(cellText).toContain(TC2data.taskInfo.duration);
 });
 
 test("TC3: Time should be added using the direct timesheet add buttons. @workingTests", async ({ page }) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
   // Add time entry using "+" button in timesheet
-  await timesheetPage.addTimeViaCell(TC4data.cell, {
+  await timesheetPage.addTimeViaCell(TC3data.cell, {
     duration: TC3data.taskInfo.duration,
     desc: TC3data.taskInfo.desc,
   });
@@ -63,7 +63,7 @@ test("TC4: Added time and description should be editable. @workingTests", async 
 
   await timesheetPage.updateTimeRow(TC4data.cell, {
     desc: TC4data.payloadCreateTimesheet.description,
-    newDesc: TC5data.taskInfo.desc,
+    newDesc: TC4data.taskInfo.desc,
     newDuration: TC4data.taskInfo.duration,
   });
 
@@ -159,7 +159,7 @@ test("TC12: Verify the 'Import liked tasks' option. @workingTests", async ({}) =
   const tasks = await timesheetPage.getTimesheetTasks();
 
   // Assertion to verify that TC12 data will be present in task.sort()
-  expect(tasks.sort()).toEqual(expect.arrayContaining(TC11data.tasks.sort()));
+  expect(tasks.sort()).toEqual(expect.arrayContaining(TC12data.tasks.sort()));
 });
 
 test("TC13: Verify an employee can apply for leave via Timesheet tab. @workingTests", async ({}) => {
