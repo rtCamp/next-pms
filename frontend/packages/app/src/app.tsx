@@ -14,7 +14,7 @@ import { UserProvider } from "@/lib/UserProvider";
 import { getSiteName } from "@/lib/utils";
 import ThemeProvider from "./providers/theme";
 import { Router } from "./route";
-import { store } from "./store";
+   import { store } from "./store";
 const App = () => {
   const router = createBrowserRouter(createRoutesFromElements(Router()), {
     basename: BASE_ROUTE,
