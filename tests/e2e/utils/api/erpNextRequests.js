@@ -47,6 +47,6 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
  * Get Exchange Rate
  */
 export const getExchangeRate = async (from_currency, to_currency) => {
-    const endpoint = `/api/method/erpnext.setup.utils.get_exchange_rate?from_currency=${from_currency}&to_currency=${to_currency}`;
-    return await apiRequest(endpoint, { method: "GET" });
-  };
+  const endpoint = `/api/method/erpnext.setup.utils.get_exchange_rate?from_currency=${from_currency}&to_currency=${to_currency}`;
+  return await apiRequest(endpoint, { method: "GET" });
+};

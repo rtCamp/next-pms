@@ -425,7 +425,7 @@ export class TimesheetPage {
     const taskSpan = this.latestTimesheetTable.locator(`//span[@class='truncate' and text()='${task}']`);
 
     await taskSpan.click();
-    await this.page.waitForTimeout(2000)
+    await this.page.waitForTimeout(2000);
   }
 
   /**

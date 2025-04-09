@@ -105,7 +105,9 @@ test("TC45: Change the employee selected from the top search and verify that the
   expect(selectedEmployee).toContain(TC45data.employee);
 });
 
-test("TC47: Validate the modification of the employee timesheet or the deletion of time entries.   ", async ({ page }) => {
+test("TC47: Validate the modification of the employee timesheet or the deletion of time entries.   ", async ({
+  page,
+}) => {
   // View next week
   await teamPage.viewNextWeek();
 

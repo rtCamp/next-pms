@@ -3,7 +3,7 @@ import {
   updateTimeEntries,
   createProjectForTestCases,
   createTaskForTestCases,
-  calculateHourlyBilling
+  calculateHourlyBilling,
 } from "../helpers/timesheetHelper";
 import { storeStorageState } from "../helpers/storageStateHelper";
 import { updateLeaveEntries } from "../helpers/leaveHelper";
@@ -25,7 +25,7 @@ const globalSetup = async () => {
 await Promise.all([
   storeStorageState("employee", true),
   storeStorageState("manager", true),
-  storeStorageState("admin", true)
+  storeStorageState("admin", true),
 ]);
 
 // 2. Use API roles to create data
@@ -37,10 +37,7 @@ await calculateHourlyBilling();
 await updateLeaveEntries();
 
 // 3. Create frontend UI storage states ONLY after all above is done
-await Promise.all([
-  storeStorageState("employee", false),
-  storeStorageState("manager", false)
-]);
+await Promise.all([storeStorageState("employee", false), storeStorageState("manager", false)]);
 
 };
 

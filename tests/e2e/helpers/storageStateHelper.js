@@ -23,7 +23,7 @@ export const storeStorageState = async (role, isApi = false) => {
   const credentialsMap = {
     employee: { email: empEmail, password: empPass },
     manager: { email: manEmail, password: manPass },
-    admin: { email: adminEmail, password: adminPass }
+    admin: { email: adminEmail, password: adminPass },
   };
 
   const { email, password } = credentialsMap[role];

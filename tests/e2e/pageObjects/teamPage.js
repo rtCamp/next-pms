@@ -78,7 +78,7 @@ export class TeamPage {
     await this.searchEmployee(name);
     await this.page.locator(`//p[text()='${name}']`).click();
     await this.page.waitForLoadState('networkidle');
-    await this.page.waitForTimeout(2000)
+    await this.page.waitForTimeout(2000);
   }
 
   // --------------------------------------
@@ -91,7 +91,7 @@ export class TeamPage {
   async applyReportsTo(name) {
     await this.reportsToDropdown.click();
     await this.searchAndSelectOption("Search Employee", name);
-    await this.page.waitForTimeout(2000)
+    await this.page.waitForTimeout(2000);
   }
 
   // --------------------------------------

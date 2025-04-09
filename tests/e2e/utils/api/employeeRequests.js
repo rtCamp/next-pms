@@ -46,7 +46,7 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
 /**
  * Get Employee Details
  */
-export const getEmployeeDetails = async (empId,role) => {
-    const endpoint = `/api/resource/Employee/${empId}`;
-    return await apiRequest(endpoint, { method: "GET" },role);
-  };
+export const getEmployeeDetails = async (empId, role) => {
+  const endpoint = `/api/resource/Employee/${empId}`;
+  return await apiRequest(endpoint, { method: "GET" }, role);
+};
