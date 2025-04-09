@@ -4,7 +4,6 @@ name: Playwright Tests
 on:
   pull_request:
     branches:
-      - main
       - develop
     types:
       - closed
@@ -111,7 +110,8 @@ jobs:
 
           if [ -f "$REPORT_DIR/index.html" ]; then
             echo "Zipping only index.html from Playwright report folder..."
-            zip "$OUTPUT_ZIP" "$REPORT_DIR/index.html"
+            cd "$(dirname "$REPORT_DIR")"
+            zip -r "$OUTPUT_ZIP" "$(basename "$REPORT_DIR")" -i "playwright-report/index.html"
           else
             echo "Error - index.html not found in $REPORT_DIR"
             exit 1
