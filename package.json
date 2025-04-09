@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "cd frontend && npm run dev",
     "build": "cd frontend && npm install && npm run build",
-    "e2e:tests": "npx playwright test --config=tests/e2e/playwright.config.js --workers=1",
+    "e2e:tests": "npx playwright test --config=tests/e2e/playwright.config.js  --workers=1",
     "lint:precommit": "eslint --fix --config .eslint.config.cjs"
   },
   "devDependencies": {
