@@ -22,23 +22,22 @@ const globalSetup = async () => {
   await createJSONFile("../data/manager/shared-task.json");
 
   // 1. Create API auth states
-await Promise.all([
-  storeStorageState("employee", true),
-  storeStorageState("manager", true),
-  storeStorageState("admin", true),
-]);
+  await Promise.all([
+    storeStorageState("employee", true),
+    storeStorageState("manager", true),
+    storeStorageState("admin", true),
+  ]);
 
-// 2. Use API roles to create data
-await updateTimeEntries();
-await createProjectForTestCases();
-await createTaskForTestCases();
-await createTimeEntries();
-await calculateHourlyBilling();
-await updateLeaveEntries();
+  // 2. Use API roles to create data
+  await updateTimeEntries();
+  await createProjectForTestCases();
+  await createTaskForTestCases();
+  await createTimeEntries();
+  await calculateHourlyBilling();
+  await updateLeaveEntries();
 
-// 3. Create frontend UI storage states ONLY after all above is done
-await Promise.all([storeStorageState("employee", false), storeStorageState("manager", false)]);
-
+  // 3. Create frontend UI storage states ONLY after all above is done
+  await Promise.all([storeStorageState("employee", false), storeStorageState("manager", false)]);
 };
 
 export default globalSetup;

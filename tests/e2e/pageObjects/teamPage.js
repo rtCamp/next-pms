@@ -77,7 +77,7 @@ export class TeamPage {
   async navigateToEmpTimesheet(name) {
     await this.searchEmployee(name);
     await this.page.locator(`//p[text()='${name}']`).click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState("networkidle");
     await this.page.waitForTimeout(2000);
   }
 
