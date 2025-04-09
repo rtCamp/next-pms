@@ -1,9 +1,9 @@
 import frappe
 from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
-from frappe.utils import add_days, get_first_day_of_week, get_last_day_of_week, nowdate
+from frappe.utils import add_days, get_first_day_of_week, get_last_day_of_week
+from frappe.utils.caching import redis_cache
 from frappe.utils.data import getdate
 
-now = nowdate()
 READ_ONLY_ROLE = ["Timesheet User", "Projects User"]
 READ_WRITE_ROLE = ["Timesheet Manager", "Projects Manager"]
 
@@ -13,7 +13,8 @@ def has_write_access():
     return set(roles).intersection(READ_WRITE_ROLE)
 
 
-def get_week_dates(date, current_week: bool = False, ignore_weekend=False):
+@redis_cache()
+def get_week_dates(date, ignore_weekend=False):
     """Returns the dates map with dates and other details.
     example:
         {
@@ -102,6 +103,7 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
         frappe.db.set_value("Timesheet", timesheet.name, "custom_weekly_approval_status", week_status)
 
 
+@redis_cache()
 def get_holidays(employee: str, start_date: str, end_date: str):
     holiday_name = get_holiday_list_for_employee(employee, raise_exception=False)
     if not holiday_name:

@@ -1,5 +1,6 @@
 import frappe
 from frappe.query_builder.functions import Sum
+from frappe.utils.caching import redis_cache
 
 
 def get_allocation_list_for_employee_for_given_range(
@@ -48,7 +49,7 @@ def get_allocation_list_for_employee_for_given_range(
     # nosemgrep
     return frappe.db.sql(
         f"""
-        SELECT { ', '.join(columns)} FROM `tabResource Allocation`
+        SELECT {", ".join(columns)} FROM `tabResource Allocation`
             WHERE {"employee" if value_key == "employee" else "project"} IN %(names)s
             {get_is_billable_condition(is_billable)}
             AND (
@@ -102,6 +103,7 @@ def get_allocation_worked_hours_for_given_projects(project: str, start_date: str
     return total_hours.get("time") or 0.0
 
 
+@redis_cache()
 def get_employee_leaves(employee: str, start_date: str, end_date: str):
     """Get the total leave days for given employee for given time range."""
 

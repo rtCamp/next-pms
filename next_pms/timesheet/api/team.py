@@ -1,21 +1,17 @@
 import json
 
-import frappe
-from frappe import _, throw
-from frappe.utils import nowdate
+from frappe import DoesNotExistError, _, get_all, get_doc, get_value, only_for, throw, whitelist
 from frappe.utils.data import add_days, getdate
 
 from next_pms.resource_management.api.utils.query import get_employee_leaves
 
 from . import filter_employees
-from .employee import get_employee_working_hours
+from .employee import get_employee_daily_working_norm, get_employee_working_hours
 from .timesheet import get_timesheet_state
-from .utils import employee_has_higher_access, get_holidays, get_week_dates, update_weekly_status_of_timesheet
-
-now = nowdate()
+from .utils import employee_has_higher_access, get_holidays, get_week_dates
 
 
-@frappe.whitelist()
+@whitelist()
 def get_compact_view_data(
     date: str,
     max_week: int = 2,
@@ -29,7 +25,7 @@ def get_compact_view_data(
     status=None,
     reports_to: str | None = None,
 ):
-    frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+    only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
     dates = []
     data = {}
@@ -60,7 +56,7 @@ def get_compact_view_data(
     employee_names = [employee.name for employee in employees]
 
     # Get all the timesheet between the date range for the employees
-    timesheet_data = frappe.get_all(
+    timesheet_data = get_all(
         "Timesheet",
         filters={
             "employee": ["in", employee_names],
@@ -86,11 +82,7 @@ def get_compact_view_data(
 
     for employee in employees:
         working_hours = get_employee_working_hours(employee.name)
-        daily_working_hours = (
-            working_hours.get("working_hour")
-            if working_hours.get("working_frequency") == "Per Day"
-            else working_hours.get("working_hour") / 5
-        )
+        daily_working_hours = get_employee_daily_working_norm(employee.name)
         local_data = {**employee, **working_hours}
         employee_timesheets = timesheet_map.get(employee.name, [])
 
@@ -155,12 +147,14 @@ def get_compact_view_data(
     return res
 
 
-@frappe.whitelist()
+@whitelist()
 def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | str | None = None, note: str = ""):
-    frappe.only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+    from frappe import enqueue
+
+    only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
     current_week = get_week_dates(dates[0])
-    timesheets = frappe.get_all(
+    timesheets = get_all(
         "Timesheet",
         {
             "employee": employee,
@@ -173,20 +167,28 @@ def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | s
     if not timesheets:
         return throw(
             _("No timesheet found for the given date range."),
-            exc=frappe.DoesNotExistError,
+            exc=DoesNotExistError,
         )
 
     for timesheet in timesheets:
         if str(timesheet.start_date) not in dates:
             continue
-        doc = frappe.get_doc("Timesheet", timesheet.name)
+        doc = get_doc("Timesheet", timesheet.name)
         doc.custom_approval_status = status
         doc.save(ignore_permissions=employee_has_higher_access(employee, ptype="write"))
         if status == "Approved":
             doc.submit()
 
-    update_weekly_status_of_timesheet(employee, current_week.get("start_date"))
-    trigger_notification_for_approved_or_rejected_timesheet(status, employee, dates, note)
+    enqueue(
+        trigger_notification_for_approved_or_rejected_timesheet,
+        enqueue_after_commit=True,
+        status=status,
+        employee=employee,
+        dates=dates,
+        note=note,
+        job_name="Timesheet Approval Notification",
+    )
+
     return _("Timesheet status updated successfully")
 
 
@@ -209,6 +211,7 @@ def filter_employee_by_timesheet_status(
     it will filter the employees based on the timesheet status. After filtering the employees,
     it will return the employees and the count of the employees using the `filter_employees` method.
     """
+    import frappe
 
     start = int(start)
     page_length = int(page_length)
@@ -267,6 +270,8 @@ def filter_employee_by_timesheet_status(
 def trigger_notification_for_approved_or_rejected_timesheet(
     status: str, employee: str, dates: list[str] | None = None, note: str = ""
 ):
+    import frappe
+
     if status not in ["Approved", "Rejected"]:
         return
     if status == "Approved":
@@ -276,8 +281,8 @@ def trigger_notification_for_approved_or_rejected_timesheet(
 
     if not template:
         return
-    template = frappe.get_doc("Email Template", template)
-    employee = frappe.get_doc("Employee", employee)
+    template = get_doc("Email Template", template)
+    employee = get_doc("Employee", employee)
     email_message = ""
     if template.use_html:
         email_message = template.response_html
@@ -289,7 +294,7 @@ def trigger_notification_for_approved_or_rejected_timesheet(
         "employee": employee,
         "note": note,
         "dates": dates,
-        "updated_by": frappe.get_value("User", frappe.session.user, "full_name"),
+        "updated_by": get_value("User", frappe.session.user, "full_name"),
     }
     message = frappe.render_template(email_message, args)
     subject = frappe.render_template(email_subject, args)
