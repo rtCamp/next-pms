@@ -4,6 +4,7 @@ name: Playwright Tests
 on:
   pull_request:
     branches:
+      - main
       - develop
     types:
       - closed
@@ -103,31 +104,18 @@ jobs:
           path: tests/e2e/playwright-report/
 
       - name: Create ZIP file
-        if: ${{ success() || failure() }}
-        run: |
-          REPORT_DIR="${{ github.workspace }}/tests/e2e/playwright-report"
+          if: ${{ success() || failure() }}
+          run: |
+            REPORT_DIR="${{ github.workspace }}/tests/e2e/playwright-report"
+            OUTPUT_ZIP="${{ github.workspace }}/report.zip"
 
-          if [ -d "$REPORT_DIR" ]; then
-            echo "Zipping 'data' folder inside playwright-report..."
-            cd "$REPORT_DIR"
-
-            # Zip the 'data' folder into data.zip
-            if [ -d "data" ]; then
-              zip -r data.zip data/
-              echo "Successfully zipped data folder into data.zip"
-              rm -rf data  # Optionally remove the original data folder
+            if [ -f "$REPORT_DIR/index.html" ]; then
+              echo "Zipping only index.html from Playwright report folder..."
+              zip "$OUTPUT_ZIP" "$REPORT_DIR/index.html"
             else
-              echo "Warning: 'data' folder not found inside playwright-report"
+              echo "Error - index.html not found in $REPORT_DIR"
+              exit 1
             fi
-
-            echo "Zipping the entire playwright-report folder..."
-            cd "${{ github.workspace }}/tests/e2e"
-            zip -r "$GITHUB_WORKSPACE/report.zip" playwright-report/
-          else
-            echo "Error: Report directory not found at $REPORT_DIR"
-            exit 1
-          fi
-
 
       - name: Set the email body message for pull request merge or schedule message
         if: ${{ success() || failure() }}
@@ -269,7 +257,8 @@ jobs:
                     </ul>
                   </div>
 
-              <p>For a comprehensive overview, please see the test report attached below.</p>
+              <p>The HTML test report is attached below for your reference.</p>
+              <p>To view videos and other report assets to track failure, visit the <a href="https://github.com/rtcamp/next-pms/actions/runs/${{ github.run_id }}#artifacts">GitHub Actions Artifacts</a>.</p>
               <p>To view the build details and see what changes have been merged, visit the build link:</p><a href="https://github.com/rtcamp/next-pms/actions/runs/${{ github.run_id }}">Build Details</a>
               <p>If you have any questions, please feel free to revert back.</p>
                   <div class="footer">
