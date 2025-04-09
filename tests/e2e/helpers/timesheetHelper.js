@@ -8,7 +8,7 @@ import managerTaskData from "../data/manager/task.json";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
 import { createProject, deleteProject, getProjectDetails } from "../utils/api/projectRequests";
 import { createTask, deleteTask, likeTask } from "../utils/api/taskRequests";
-import { getExchangeRate } from "../utils/api/erpNextHelpers";
+import { getExchangeRate } from "../utils/api/erpNextRequests";
 import { getEmployeeDetails } from "../utils/api/employeeRequests";
 
 // Load env variables
