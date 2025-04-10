@@ -36,7 +36,7 @@ let sharedManagerTaskData;
  * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49, TC50
  */
 export const updateTimeEntries = async () => {
-  const employeeTimesheetIDs = ["TC2", "TC3", "TC4", "TC5", "TC6", "TC7", "TC14", "TC15", "TC84"];
+  const employeeTimesheetIDs = ["TC2", "TC3", "TC4", "TC5", "TC6", "TC7", "TC14", "TC15", "TC82"];
   const managerTeamIDs = ["TC47", "TC49", "TC50"];
 
   // Compute col value for TC2 before update
@@ -93,7 +93,7 @@ export const createTimeEntries = async () => {
     sharedEmployeeTimesheetData.TC7.payloadCreateTimesheet,
     sharedEmployeeTimesheetData.TC14.payloadCreateTimesheet,
     sharedEmployeeTimesheetData.TC15.payloadCreateTimesheet,
-    sharedEmployeeTimesheetData.TC84.payloadCreateTimesheet,
+    sharedEmployeeTimesheetData.TC82.payloadCreateTimesheet,
     sharedManagerTeamData.TC47.payloadCreateTimesheet,
     sharedManagerTeamData.TC49.payloadCreateTimesheet,
     sharedManagerTeamData.TC50.payloadCreateTimesheet,
@@ -128,7 +128,7 @@ export const deleteTimeEntries = async () => {
     sharedEmployeeTimesheetData.TC7.payloadFilterTimeEntry,
     sharedEmployeeTimesheetData.TC14.payloadFilterTimeEntry,
     sharedEmployeeTimesheetData.TC15.payloadFilterTimeEntry,
-    sharedEmployeeTimesheetData.TC84.payloadFilterTimeEntry,
+    sharedEmployeeTimesheetData.TC82.payloadFilterTimeEntry,
     sharedManagerTeamData.TC47.payloadFilterTimeEntry,
     sharedManagerTeamData.TC49.payloadFilterTimeEntry,
     sharedManagerTeamData.TC50.payloadFilterTimeEntry,
@@ -181,7 +181,7 @@ export const filterTimesheetEntry = async ({ subject, description, project_name,
  */
 export const createProjectForTestCases = async () => {
   // Include testcase ID's below that require a project to be created
-  const employeeTimesheetIDs = ["TC2", "TC3", "TC4", "TC5", "TC6", "TC7", "TC9", "TC14", "TC15", "TC84"];
+  const employeeTimesheetIDs = ["TC2", "TC3", "TC4", "TC5", "TC6", "TC7", "TC9", "TC14", "TC15", "TC82"];
   const managerTaskIDs = ["TC25", "TC26", "TC17", "TC19"];
 
   const managerTeamIDs = ["TC47", "TC49", "TC50"];
@@ -247,7 +247,7 @@ export const deleteProjects = async () => {
     sharedEmployeeTimesheetData.TC9.payloadDeleteProject.projectId,
     sharedEmployeeTimesheetData.TC14.payloadDeleteProject.projectId,
     sharedEmployeeTimesheetData.TC15.payloadDeleteProject.projectId,
-    sharedEmployeeTimesheetData.TC84.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC82.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC17.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC19.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC25.payloadDeleteProject.projectId,
@@ -268,7 +268,7 @@ export const deleteProjects = async () => {
  */
 export const createTaskForTestCases = async () => {
   // Include testcase IDs that require a task to be created
-  const employeeTimesheetIDs = ["TC2", "TC3", "TC4", "TC5", "TC6", "TC7", "TC9", "TC14", "TC15", "TC84"];
+  const employeeTimesheetIDs = ["TC2", "TC3", "TC4", "TC5", "TC6", "TC7", "TC9", "TC14", "TC15", "TC82"];
 
   const managerTaskIDs = ["TC25", "TC26", "TC17", "TC19"];
   const managerTeamIDs = ["TC47", "TC49", "TC50"];
@@ -350,7 +350,7 @@ export const deleteTasks = async () => {
     sharedEmployeeTimesheetData.TC9.payloadDeleteTask.taskID,
     sharedEmployeeTimesheetData.TC14.payloadDeleteTask.taskID,
     sharedEmployeeTimesheetData.TC15.payloadDeleteTask.taskID,
-    sharedEmployeeTimesheetData.TC84.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC82.payloadDeleteTask.taskID,
     sharedManagerTaskData.TC25.payloadDeleteTask.taskID,
     sharedManagerTaskData.TC26.payloadDeleteTask.taskID,
     sharedManagerTaskData.TC17.payloadDeleteTask.taskID,
@@ -370,7 +370,7 @@ export const deleteTasks = async () => {
  * Calculates hourly billing rate of employee and billing rate of a project
  */
 export const calculateHourlyBilling = async () => {
-  const employeeTimesheetIDs = ["TC84"];
+  const employeeTimesheetIDs = ["TC82"];
   let monthly_billing_rate;
   let hourly_billing_rate;
   let employee_currency, project_currency, employee_CTC, convertedCTC;

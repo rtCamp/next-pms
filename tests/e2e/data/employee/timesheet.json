@@ -413,13 +413,13 @@
       "max_week": "1"
     }
   },
-  "TC84": {
+  "TC82": {
     "cell": {
-      "rowName": "TC84 Billable Task",
+      "rowName": "TC82 Billable Task",
       "col": "Thu"
     },
     "payloadCreateProject": {
-      "project_name": "TC84 Project",
+      "project_name": "TC82 Project",
       "company": "rtCamp Solutions Pvt. Ltd.",
       "customer": "Google",
       "custom_billing_type": "Fixed Cost",
@@ -434,9 +434,9 @@
       "projectId": "filled-automatically-from-createProjects"
     },
     "payloadCreateTask": {
-      "subject": "TC84 Billable Task",
+      "subject": "TC82 Billable Task",
       "project": "filled-automatically-from-createProjects",
-      "description": "Task for TC84 created through automation",
+      "description": "Task for TC82 created through automation",
       "custom_is_billable": 1
     },
     "payloadDeleteTask": {
@@ -444,13 +444,13 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC84 - Task added via automation.",
+      "description": "TC82 - Task added via automation.",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
-      "subject": "TC84 Billable Task",
-      "description": "TC84 - Task added via automation.",
-      "project_name": "TC84 Project",
+      "subject": "TC82 Billable Task",
+      "description": "TC82 - Task added via automation.",
+      "project_name": "TC82 Project",
       "max_week": "1"
     },
     "payloadCalculateBillingRate": {
