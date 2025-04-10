@@ -24,7 +24,7 @@ from .utils import (
 def get_timesheet_data(employee: str, start_date=None, max_week: int = 4):
     """Get timesheet data for the given employee for the given number of weeks."""
     if not employee:
-        employee = get_employee_from_user()
+        employee = get_employee_from_user(throw_exception=frappe.session.user != "Administrator")
     if not start_date:
         start_date = nowdate()
     apply_role_permission_for_doctype(["Timesheet User", "Timesheet Manager"], "Employee", "read", employee)
@@ -91,9 +91,6 @@ def get_timesheet_data(employee: str, start_date=None, max_week: int = 4):
         res["holidays"] = []
         res["leaves"] = []
         return res
-
-    if not frappe.db.exists("Employee", employee):
-        throw(_("No employee found for current user."), frappe.DoesNotExistError)
 
     holidays = get_holidays(
         employee,
