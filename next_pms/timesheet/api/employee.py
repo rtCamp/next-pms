@@ -9,11 +9,17 @@ from next_pms.timesheet.utils.constant import EMP_WOKING_DETAILS
 @frappe.whitelist()
 def get_data():
     employee = get_employee_from_user()
+    doc = frappe.get_cached_doc("Employee", employee)
+    working_hour = doc.custom_working_hours
+    working_frequency = doc.custom_work_schedule or "Per Day"
+
     return {
         "employee": employee,
-        "employee_name": frappe.db.get_value("Employee", employee, "employee_name"),
-        "employee_working_detail": get_employee_working_hours(employee),
-        "employee_report_to": frappe.db.get_value("Employee", employee, "reports_to"),
+        "employee_name": doc.employee_name,
+        "employee_working_detail": get_employee_working_hours(employee)
+        if not working_hour
+        else {"working_hour": working_hour or 8, "working_frequency": working_frequency},
+        "employee_report_to": doc.reports_to,
     }
 
 
@@ -157,8 +163,9 @@ def validate_current_employee(ptype: str = "read"):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            employee = kwargs.get("employee") or (args[0] if args else None)
-
+            employee = kwargs.get("employee", None)
+            if frappe.session.user == "Administrator":
+                return func(*args, **kwargs)
             if not employee_has_higher_access(employee, ptype):
                 frappe.throw(frappe._("You are not authorized to perform this action."), frappe.PermissionError)
             return func(*args, **kwargs)

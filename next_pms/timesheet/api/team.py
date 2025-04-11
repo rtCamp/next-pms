@@ -87,7 +87,7 @@ def get_compact_view_data(
         employee_timesheets = timesheet_map.get(employee.name, [])
 
         status = get_timesheet_state(
-            employee.name,
+            employee=employee.name,
             start_date=dates[0].get("start_date"),
             end_date=dates[-1].get("end_date"),
         )
