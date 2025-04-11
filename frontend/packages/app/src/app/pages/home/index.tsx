@@ -179,7 +179,7 @@ const Home = () => {
                                 expectedTime == 2 && "bg-warning/20",
                                 expectedTime == 1 && "bg-success/20",
                                 expectedTime == 0 && data.hour != 0 && "bg-destructive/20",
-                                data.is_leave && "bg-gray-200",
+                                data.is_leave && "bg-gray-200 dark:bg-secondary",
                                 getBgCsssForToday(data.date),
                                 data.hour == 0 && "text-center"
                               )}
