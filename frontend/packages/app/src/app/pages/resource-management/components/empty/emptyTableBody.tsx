@@ -12,7 +12,7 @@ const EmptyTableBody = () => {
   return (
     <TableBody>
       <TableRow>
-        <TableCell colSpan={15} className="h-24 text-center">
+        <TableCell colSpan={15} className="h-24 text-center sticky left-0">
           No results
         </TableCell>
       </TableRow>

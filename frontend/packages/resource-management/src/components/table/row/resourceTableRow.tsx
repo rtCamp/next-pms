@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { memo, useMemo } from "react";
 import {
   Accordion,
   AccordionContent,
@@ -20,6 +21,24 @@ import { TableInformationCellContent } from "../cell";
 import type { ResourceTeamTableRowProps } from "../types";
 
 /**
+ * Memoized Avatar cell to prevent image refetch on scroll
+ */
+const MemoizedAvatarCell = memo(function MemoizedAvatarCell({
+  avatar,
+  avatar_abbr,
+}: {
+  avatar: string;
+  avatar_abbr: string;
+}) {
+  return (
+    <Avatar className="w-6 h-6">
+      <AvatarImage src={decodeURIComponent(avatar)} />
+      <AvatarFallback>{avatar_abbr && avatar_abbr[0]}</AvatarFallback>
+    </Avatar>
+  );
+});
+
+/**
  * This component is responsible for loading the resource pages row.
  *
  * @param props.name The name/ID of the resource table row.
@@ -30,7 +49,7 @@ import type { ResourceTeamTableRowProps } from "../types";
  * @param props.RowExpandView The expand view of the row.
  * @returns React.FC
  */
-const ResourceTableRow = ({
+const ResourceTableRowComponent = ({
   name,
   avatar,
   avatar_abbr,
@@ -38,21 +57,18 @@ const ResourceTableRow = ({
   RowComponent,
   RowExpandView,
 }: ResourceTeamTableRowProps) => {
+  const cellComponent = useMemo(() => {
+    return () => <MemoizedAvatarCell avatar={avatar} avatar_abbr={avatar_abbr} />;
+  }, [avatar, avatar_abbr]);
+
   return (
-    <Accordion type="multiple" key={name} className="w-full">
+    <Accordion type="multiple" className="w-full">
       <AccordionItem value={name} className="border-b-0">
-        <TableRow key={name} className={mergeClassNames(getTableCellRow())}>
+        <TableRow className={mergeClassNames(getTableCellRow())}>
           <AccordionTrigger hideChevronDown={true} className="hover:no-underline py-0">
             <TableInformationCellContent
               cellClassName="overflow-hidden flex items-center font-normal hover:underline"
-              CellComponent={() => {
-                return (
-                  <Avatar className="w-6 h-6">
-                    {<AvatarImage src={decodeURIComponent(avatar)} />}
-                    <AvatarFallback>{avatar_abbr && avatar_abbr[0]}</AvatarFallback>
-                  </Avatar>
-                );
-              }}
+              CellComponent={cellComponent}
               value={avatar_name}
             />
           </AccordionTrigger>
@@ -63,5 +79,5 @@ const ResourceTableRow = ({
     </Accordion>
   );
 };
-
+const ResourceTableRow = memo(ResourceTableRowComponent);
 export { ResourceTableRow };
