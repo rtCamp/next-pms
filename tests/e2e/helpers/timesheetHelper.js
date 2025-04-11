@@ -33,7 +33,7 @@ let sharedManagerTaskData;
  * Updates 'payloadCreateTimesheet' and 'payloadFilterTimeEntry' fields with computed dates and employee ID.
  * Saves the updated data back to the shared JSON files.
  *
- * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49, TC50, TC82, TC83, TC84, TC86
+ * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49, TC50, TC82, TC83, TC84, TC85, TC86
  */
 export const updateTimeEntries = async () => {
   const employeeTimesheetIDs = [
@@ -45,10 +45,10 @@ export const updateTimeEntries = async () => {
     "TC7",
     "TC14",
     "TC15",
-
     "TC82",
     "TC83",
     "TC84",
+    "TC85",
     "TC86",
   ];
   const managerTeamIDs = ["TC47", "TC49", "TC50"];
@@ -95,7 +95,7 @@ export const updateTimeEntries = async () => {
  * This function iterates over predefined time entry payloads and submits them
  * to create timesheet records.
  *
- * Test Cases: TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49, TC50, TC82, TC83, TC86
+ * Test Cases: TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49, TC50, TC82, TC83, TC84, TC85, TC86
  */
 export const createTimeEntries = async () => {
   sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
@@ -110,6 +110,7 @@ export const createTimeEntries = async () => {
     sharedEmployeeTimesheetData.TC82.payloadCreateTimesheet,
     sharedEmployeeTimesheetData.TC83.payloadCreateTimesheet,
     sharedEmployeeTimesheetData.TC84.payloadCreateTimesheet,
+    sharedEmployeeTimesheetData.TC85.payloadCreateTimesheet,
     sharedEmployeeTimesheetData.TC86.payloadCreateTimesheet,
     sharedManagerTeamData.TC47.payloadCreateTimesheet,
     sharedManagerTeamData.TC49.payloadCreateTimesheet,
@@ -129,7 +130,7 @@ export const createTimeEntries = async () => {
  * This function reads timesheet data from JSON files and iterates through predefined
  * time entry objects, filtering each entry and deleting the corresponding timesheet record.
  *
- * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49, TC50, TC82, TC83, TC84, TC86
+ * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49, TC50, TC82, TC83, TC84, TC85, TC86
  */
 export const deleteTimeEntries = async () => {
   sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
@@ -148,6 +149,7 @@ export const deleteTimeEntries = async () => {
     sharedEmployeeTimesheetData.TC82.payloadFilterTimeEntry,
     sharedEmployeeTimesheetData.TC83.payloadFilterTimeEntry,
     sharedEmployeeTimesheetData.TC84.payloadFilterTimeEntry,
+    sharedEmployeeTimesheetData.TC85.payloadFilterTimeEntry,
     sharedEmployeeTimesheetData.TC86.payloadFilterTimeEntry,
     sharedManagerTeamData.TC47.payloadFilterTimeEntry,
     sharedManagerTeamData.TC49.payloadFilterTimeEntry,
@@ -215,6 +217,7 @@ export const createProjectForTestCases = async () => {
     "TC82",
     "TC83",
     "TC84",
+    "TC85",
     "TC86",
   ];
   const managerTaskIDs = ["TC25", "TC26", "TC17", "TC19"];
@@ -285,6 +288,7 @@ export const deleteProjects = async () => {
     sharedEmployeeTimesheetData.TC82.payloadDeleteProject.projectId,
     sharedEmployeeTimesheetData.TC83.payloadDeleteProject.projectId,
     sharedEmployeeTimesheetData.TC84.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC85.payloadDeleteProject.projectId,
     sharedEmployeeTimesheetData.TC86.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC17.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC19.payloadDeleteProject.projectId,
@@ -319,6 +323,7 @@ export const createTaskForTestCases = async () => {
     "TC82",
     "TC83",
     "TC84",
+    "TC85",
     "TC86",
   ];
 
@@ -405,6 +410,7 @@ export const deleteTasks = async () => {
     sharedEmployeeTimesheetData.TC82.payloadDeleteTask.taskID,
     sharedEmployeeTimesheetData.TC83.payloadDeleteTask.taskID,
     sharedEmployeeTimesheetData.TC84.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC85.payloadDeleteTask.taskID,
     sharedEmployeeTimesheetData.TC86.payloadDeleteTask.taskID,
     sharedManagerTaskData.TC25.payloadDeleteTask.taskID,
     sharedManagerTaskData.TC26.payloadDeleteTask.taskID,
@@ -425,7 +431,7 @@ export const deleteTasks = async () => {
  * Calculates hourly billing rate of employee and billing rate of a project
  */
 export const calculateHourlyBilling = async () => {
-  const employeeTimesheetIDs = ["TC82", "TC83", "TC84", "TC86"];
+  const employeeTimesheetIDs = ["TC82", "TC83", "TC84", "TC85", "TC86"];
   let monthly_billing_rate;
   let hourly_billing_rate;
   let employee_currency, project_currency, employee_CTC, convertedCTC;

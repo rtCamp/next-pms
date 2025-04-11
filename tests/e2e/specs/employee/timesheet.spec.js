@@ -224,6 +224,17 @@ test("TC84: Verify hourly consulting rate when no default billing rate is used f
   ).toBeCloseTo(employeeHourlyBillingRate, 3);
 });
 
+test("TC85: Verify hourly consulting rate when the currency for employee and project are different ", async ({}) => {
+  //Assertions
+  const projectCostAmount = TC84data.payloadCalculateBillingRate.total_costing_amount;
+  const employeeHourlyBillingRate = TC84data.payloadCalculateBillingRate.hourly_billing_rate;
+
+  expect(
+    projectCostAmount,
+    "Verify the project cost amount and employee CTC amount per hour matches when the currency for employee and project are different"
+  ).toBeCloseTo(employeeHourlyBillingRate, 3);
+});
+
 test("TC86: Billing rate in the timesheet should match the employee's rate from the project billing team child table for Time and Material Project", async ({}) => {
   //Assertions
   const total_billable_amount = TC86data.payloadCalculateBillingRate.total_billable_amount;
