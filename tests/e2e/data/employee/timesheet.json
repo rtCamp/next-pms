@@ -412,5 +412,249 @@
       "project_name": "TC15 Project",
       "max_week": "1"
     }
+  },
+  "TC82": {
+    "cell": {
+      "rowName": "TC82 Billable Task",
+      "col": "Thu"
+    },
+    "payloadCreateProject": {
+      "project_name": "TC82 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "customer": "Google",
+      "custom_billing_type": "Fixed Cost",
+      "custom_currency": "INR",
+      "project_type": "Fixed Cost",
+      "business_unit": "Jupitor",
+      "estimated_cost": 360000,
+      "custom_default_hourly_billing_rate": 0,
+      "custom_project_budget_hours": []
+    },
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    },
+    "payloadCreateTask": {
+      "subject": "TC82 Billable Task",
+      "project": "filled-automatically-from-createProjects",
+      "description": "Task for TC82 created through automation",
+      "custom_is_billable": 1
+    },
+    "payloadDeleteTask": {
+      "taskID": "filled-automatically-from-createTasks"
+    },
+    "payloadCreateTimesheet": {
+      "task": "filled-automatically-from-createTasks",
+      "description": "TC82 - Task added via automation.",
+      "hours": "1"
+    },
+    "payloadFilterTimeEntry": {
+      "subject": "TC82 Billable Task",
+      "description": "TC82 - Task added via automation.",
+      "project_name": "TC82 Project",
+      "max_week": "1"
+    },
+    "payloadCalculateBillingRate": {
+      "project": "filled-automatically-from-createProjects",
+      "custom_currency_for_project": "filled-automatically-from-createProjects",
+      "total_billable_amount": 0,
+      "total_costing_amount": 0,
+      "hourly_billing_rate": 0
+    }
+  },
+  "TC83": {
+    "cell": {
+      "rowName": "TC83 Billable Task",
+      "col": "Thu"
+    },
+    "payloadCreateProject": {
+      "project_name": "TC83 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "customer": "QA-INR",
+      "custom_currency": "INR",
+      "billing_type": "Retainer",
+      "project_type": "Retainer",
+      "business_unit": "Jupitor",
+      "estimated_costing": 245000,
+      "custom_billing_type": "Retainer",
+      "custom_default_hourly_billing_rate": 0,
+      "custom_project_budget_hours": []
+    },
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    },
+    "payloadCreateTask": {
+      "subject": "TC83 Billable Task",
+      "project": "filled-automatically-from-createProjects",
+      "description": "Task for TC83 created through automation",
+      "custom_is_billable": 1
+    },
+    "payloadDeleteTask": {
+      "taskID": "filled-automatically-from-createTasks"
+    },
+    "payloadCreateTimesheet": {
+      "task": "filled-automatically-from-createTasks",
+      "description": "TC83 - Task added via automation.",
+      "hours": "1"
+    },
+    "payloadFilterTimeEntry": {
+      "subject": "TC83 Billable Task",
+      "description": "TC83 - Task added via automation.",
+      "project_name": "TC83 Project",
+      "max_week": "1"
+    },
+    "payloadCalculateBillingRate": {
+      "project": "filled-automatically-from-createProjects",
+      "custom_currency_for_project": "filled-automatically-from-createProjects",
+      "total_billable_amount": 0,
+      "total_costing_amount": 0,
+      "hourly_billing_rate": 0
+    }
+  },
+  "TC84": {
+    "cell": {
+      "rowName": "TC84 Billable Task",
+      "col": "Thu"
+    },
+    "payloadCreateProject": {
+      "project_name": "TC84 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "customer": "Google",
+      "billing_type": "Time and Material",
+      "project_type": "TnM",
+      "business_unit": "Jupitor",
+      "estimated_costing": 245000,
+      "custom_billing_type": "Time and Material"
+    },
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    },
+    "payloadCreateTask": {
+      "subject": "TC84 Billable Task",
+      "project": "filled-automatically-from-createProjects",
+      "description": "Task for TC84 created through automation",
+      "custom_is_billable": 1
+    },
+    "payloadDeleteTask": {
+      "taskID": "filled-automatically-from-createTasks"
+    },
+    "payloadCreateTimesheet": {
+      "task": "filled-automatically-from-createTasks",
+      "description": "TC84 - Task added via automation.",
+      "hours": "1"
+    },
+    "payloadFilterTimeEntry": {
+      "subject": "TC84 Billable Task",
+      "description": "TC84 - Task added via automation.",
+      "project_name": "TC84 Project",
+      "max_week": "1"
+    },
+    "payloadCalculateBillingRate": {
+      "project": "filled-automatically-from-createProjects",
+      "custom_currency_for_project": "filled-automatically-from-createProjects",
+      "total_billable_amount": 0,
+      "total_costing_amount": 0,
+      "hourly_billing_rate": 0
+    }
+  },
+  "TC85": {
+    "cell": {
+      "rowName": "TC85 Billable Task",
+      "col": "Thu"
+    },
+    "payloadCreateProject": {
+      "project_name": "TC85 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "customer": "QA-INR",
+      "custom_currency": "INR",
+      "billing_type": "Retainer",
+      "project_type": "Retainer",
+      "business_unit": "Jupitor",
+      "estimated_costing": 245000,
+      "custom_billing_type": "Retainer",
+      "custom_default_hourly_billing_rate": 0,
+      "custom_project_budget_hours": []
+    },
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    },
+    "payloadCreateTask": {
+      "subject": "TC85 Billable Task",
+      "project": "filled-automatically-from-createProjects",
+      "description": "Task for TC85 created through automation",
+      "custom_is_billable": 1
+    },
+    "payloadDeleteTask": {
+      "taskID": "filled-automatically-from-createTasks"
+    },
+    "payloadCreateTimesheet": {
+      "task": "filled-automatically-from-createTasks",
+      "description": "TC85 - Task added via automation.",
+      "hours": "1"
+    },
+    "payloadFilterTimeEntry": {
+      "subject": "TC85 Billable Task",
+      "description": "TC85 - Task added via automation.",
+      "project_name": "TC85 Project",
+      "max_week": "1"
+    },
+    "payloadCalculateBillingRate": {
+      "project": "filled-automatically-from-createProjects",
+      "custom_currency_for_project": "filled-automatically-from-createProjects",
+      "total_billable_amount": 0,
+      "total_costing_amount": 0,
+      "hourly_billing_rate": 0
+    }
+  },
+  "TC86": {
+    "cell": {
+      "rowName": "TC86 Billable Task",
+      "col": "Thu"
+    },
+    "payloadCreateProject": {
+      "project_name": "TC86 Project",
+      "project_type": "TnM",
+      "custom_billing_type": "Time and Material",
+      "custom_currency": "INR",
+      "estimated_costing": 45000,
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "custom_project_billing_team": [
+        {
+          "user_name": "Abhishek Kumar",
+          "employee": "EMP-00089",
+          "hourly_billing_rate": 1500,
+          "valid_from": "2025-04-10"
+        }
+      ]
+    },
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    },
+    "payloadCreateTask": {
+      "subject": "TC86 Billable Task",
+      "project": "filled-automatically-from-createProjects",
+      "description": "Task for TC86 created through automation",
+      "custom_is_billable": 1
+    },
+    "payloadDeleteTask": {
+      "taskID": "filled-automatically-from-createTasks"
+    },
+    "payloadCreateTimesheet": {
+      "task": "filled-automatically-from-createTasks",
+      "description": "TC86 - Task added via automation.",
+      "hours": "1"
+    },
+    "payloadFilterTimeEntry": {
+      "subject": "TC86 Billable Task",
+      "description": "TC86 - Task added via automation.",
+      "project_name": "TC86 Project",
+      "max_week": "1"
+    },
+    "payloadCalculateBillingRate": {
+      "project": "filled-automatically-from-createProjects",
+      "custom_currency_for_project": "filled-automatically-from-createProjects",
+      "total_billable_amount": 0,
+      "total_costing_amount": 0,
+      "hourly_billing_rate": 0
+    }
   }
 }

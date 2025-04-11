@@ -16,7 +16,10 @@ let TC12data = data.TC12;
 let TC13data = data.TC13;
 let TC14data = data.TC14;
 let TC15data = data.TC15;
-
+let TC82data = data.TC82;
+let TC83data = data.TC83;
+let TC84data = data.TC84;
+let TC86data = data.TC86;
 // ------------------------------------------------------------------------------------------
 
 test.beforeEach(async ({ page }) => {
@@ -29,7 +32,7 @@ test.beforeEach(async ({ page }) => {
 
 // ------------------------------------------------------------------------------------------
 
-test("TC2: Time should be added using the ‘Add’ button at the top. @workingTests ", async ({ page }) => {
+test("TC2: Time should be added using the ‘Add’ button at the top.", async ({ page }) => {
   // Add time entry using "Time" button
   await timesheetPage.addTimeViaTimeButton(TC2data.taskInfo);
 
@@ -41,7 +44,7 @@ test("TC2: Time should be added using the ‘Add’ button at the top. @workingT
   expect(cellText).toContain(TC2data.taskInfo.duration);
 });
 
-test("TC3: Time should be added using the direct timesheet add buttons. @workingTests", async ({ page }) => {
+test("TC3: Time should be added using the direct timesheet add buttons.", async ({ page }) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
   // Add time entry using "+" button in timesheet
@@ -58,7 +61,7 @@ test("TC3: Time should be added using the direct timesheet add buttons. @working
   expect(cellText).toContain(TC3data.taskInfo.duration);
 });
 
-test("TC4: Added time and description should be editable. @workingTests", async ({ page }) => {
+test("TC4: Added time and description should be editable. ", async ({ page }) => {
   // Update time entry
 
   await timesheetPage.updateTimeRow(TC4data.cell, {
@@ -78,7 +81,7 @@ test("TC4: Added time and description should be editable. @workingTests", async 
   expect(cellTooltipText).toContain(TC4data.taskInfo.desc);
 });
 
-test("TC5: Add a new row in the already added time. @workingTests ", async ({ page }) => {
+test("TC5: Add a new row in the already added time.  ", async ({ page }) => {
   // Store cell text before new row addition
   const beforeCellText = await timesheetPage.getCellText(TC5data.cell);
 
@@ -99,7 +102,7 @@ test("TC5: Add a new row in the already added time. @workingTests ", async ({ pa
   expect(cellTooltipText).toContain(TC5data.taskInfo.desc);
 });
 
-test("TC6: Delete the added time entry from the non-submitted timesheet. @workingTests ", async ({ page }) => {
+test("TC6: Delete the added time entry from the non-submitted timesheet.  ", async ({ page }) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -114,7 +117,7 @@ test("TC6: Delete the added time entry from the non-submitted timesheet. @workin
   expect(cellText).toContain("-");
 });
 
-test("TC7: Submit the weekly timesheet @workingTests", async ({ page }) => {
+test("TC7: Submit the weekly timesheet ", async ({ page }) => {
   // Submit timesheet
   await timesheetPage.submitTimesheet();
 
@@ -128,7 +131,7 @@ test("TC7: Submit the weekly timesheet @workingTests", async ({ page }) => {
   expect(status).toBe("Approval Pending");
 });
 
-test("TC9: Open task details popup @workingTests", async ({}) => {
+test("TC9: Open task details popup   ", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
   // Open random task details
@@ -139,7 +142,7 @@ test("TC9: Open task details popup @workingTests", async ({}) => {
   expect(isTaskDetailsDialogVisible).toBeTruthy();
 });
 
-test("TC11: Verify that the review timesheet pane is not available for an employee. @workingTests", async ({}) => {
+test("TC11: Verify that the review timesheet pane is not available for an employee.   ", async ({}) => {
   // Click on timesheet status
   await timesheetPage.clickonTimesheetStatus();
 
@@ -151,7 +154,7 @@ test("TC11: Verify that the review timesheet pane is not available for an employ
   expect(isReviewTimesheetPaneVisible).toBeFalsy();
 });
 
-test("TC12: Verify the 'Import liked tasks' option. @workingTests", async ({}) => {
+test("TC12: Verify the 'Import liked tasks' option.   ", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -162,7 +165,7 @@ test("TC12: Verify the 'Import liked tasks' option. @workingTests", async ({}) =
   expect(tasks.sort()).toEqual(expect.arrayContaining(TC12data.tasks.sort()));
 });
 
-test("TC13: Verify an employee can apply for leave via Timesheet tab. @workingTests", async ({}) => {
+test("TC13: Verify an employee can apply for leave via Timesheet tab.   ", async ({}) => {
   // Apply for leave
   await timesheetPage.applyForLeave(TC13data.leave.desc);
 
@@ -171,7 +174,7 @@ test("TC13: Verify an employee can apply for leave via Timesheet tab. @workingTe
   expect(cellText).toContain("8");
 });
 
-test("TC14: Verify the billable status of a billable task. @workingTests", async ({}) => {
+test("TC14: Verify the billable status of a billable task.", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -180,11 +183,64 @@ test("TC14: Verify the billable status of a billable task. @workingTests", async
   expect(isTimeEntryBillable).toBeTruthy();
 });
 
-test("TC15: Verify the billable status of a non-billable task. @workingTests", async ({}) => {
+test("TC15: Verify the billable status of a non-billable task.   ", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
   // Assertions
   const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC15data.cell);
   expect(isTimeEntryBillable).toBeFalsy();
+});
+
+test("TC82: Verify hourly consulting rate when no default billing rate is used for Fixed cost project   ", async ({}) => {
+  //Assertions
+  const projectCostAmount = TC82data.payloadCalculateBillingRate.total_costing_amount;
+  const employeeHourlyBillingRate = TC82data.payloadCalculateBillingRate.hourly_billing_rate;
+  expect(
+    projectCostAmount,
+    "Verify the project cost amount and employee CTC amount per hour matches for Fixed Cost Project"
+  ).toBeCloseTo(employeeHourlyBillingRate, 3);
+});
+
+test("TC83: Verify hourly consulting rate when no default billing rate is used for Retainer project   ", async ({}) => {
+  //Assertions
+  const projectCostAmount = TC83data.payloadCalculateBillingRate.total_costing_amount;
+  const employeeHourlyBillingRate = TC83data.payloadCalculateBillingRate.hourly_billing_rate;
+
+  expect(
+    projectCostAmount,
+    "Verify the project cost amount and employee CTC amount per hour matches for Retainer Project"
+  ).toBeCloseTo(employeeHourlyBillingRate, 3);
+});
+
+test("TC84: Verify hourly consulting rate when no default billing rate is used for Time and Material project   ", async ({}) => {
+  //Assertions
+  const projectCostAmount = TC84data.payloadCalculateBillingRate.total_costing_amount;
+  const employeeHourlyBillingRate = TC84data.payloadCalculateBillingRate.hourly_billing_rate;
+
+  expect(
+    projectCostAmount,
+    "Verify the project cost amount and employee CTC amount per hour matches for Time and Material Project"
+  ).toBeCloseTo(employeeHourlyBillingRate, 3);
+});
+
+test("TC85: Verify hourly consulting rate when the currency for employee and project are different ", async ({}) => {
+  //Assertions
+  const projectCostAmount = TC84data.payloadCalculateBillingRate.total_costing_amount;
+  const employeeHourlyBillingRate = TC84data.payloadCalculateBillingRate.hourly_billing_rate;
+
+  expect(
+    projectCostAmount,
+    "Verify the project cost amount and employee CTC amount per hour matches when the currency for employee and project are different"
+  ).toBeCloseTo(employeeHourlyBillingRate, 3);
+});
+
+test("TC86: Billing rate in the timesheet should match the employee's rate from the project billing team child table for Time and Material Project", async ({}) => {
+  //Assertions
+  const total_billable_amount = TC86data.payloadCalculateBillingRate.total_billable_amount;
+  const hourly_billing_rate = TC86data.payloadCreateProject.custom_project_billing_team[0].hourly_billing_rate;
+  expect(
+    total_billable_amount,
+    "Verify the billing rate for the employee should match the value provided in project billing team child table"
+  ).toEqual(hourly_billing_rate);
 });

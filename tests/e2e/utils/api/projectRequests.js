@@ -13,7 +13,17 @@ const ensureAuth = async () => {
 /**
  * Create a new Project entry.
  */
-export const createProject = async ({ project_name, company, customer, billing_type, currency }) => {
+export const createProject = async ({
+  project_name,
+  company,
+  customer,
+  billing_type,
+  currency,
+  custom_billing_type,
+  estimated_costing,
+  custom_project_billing_team,
+  project_type,
+}) => {
   const ctx = await ensureAuth();
   const response = await ctx.post(`/api/resource/Project`, {
     data: {
@@ -22,6 +32,10 @@ export const createProject = async ({ project_name, company, customer, billing_t
       customer: customer,
       billing_type: billing_type,
       currency: currency,
+      ...(project_type !== undefined && { project_type }),
+      ...(custom_billing_type !== undefined && { custom_billing_type }),
+      ...(estimated_costing !== undefined && { estimated_costing }),
+      ...(custom_project_billing_team !== undefined && { custom_project_billing_team }),
     },
   });
   return await response;
@@ -33,5 +47,14 @@ export const createProject = async ({ project_name, company, customer, billing_t
 export const deleteProject = async (projectId) => {
   const ctx = await ensureAuth();
   const response = await ctx.delete(`/api/resource/Project/${projectId}`);
+  return await response;
+};
+
+/**
+ * Get details of a project.
+ */
+export const getProjectDetails = async (projectId) => {
+  const ctx = await ensureAuth();
+  const response = await ctx.get(`/api/resource/Project/${projectId}`);
   return await response;
 };
