@@ -17,7 +17,9 @@ let TC13data = data.TC13;
 let TC14data = data.TC14;
 let TC15data = data.TC15;
 let TC82data = data.TC82;
-
+let TC83data = data.TC83;
+let TC84data = data.TC84;
+let TC86data = data.TC86;
 // ------------------------------------------------------------------------------------------
 
 test.beforeEach(async ({ page }) => {
@@ -172,7 +174,7 @@ test("TC13: Verify an employee can apply for leave via Timesheet tab.   ", async
   expect(cellText).toContain("8");
 });
 
-test("TC14: Verify the billable status of a billable task.   ", async ({}) => {
+test("TC14: Verify the billable status of a billable task.", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -191,9 +193,6 @@ test("TC15: Verify the billable status of a non-billable task.   ", async ({}) =
 });
 
 test("TC82: Verify hourly consulting rate when no default billing rate is used for Fixed cost project   ", async ({}) => {
-  // Import liked tasks
-  await timesheetPage.importLikedTasks();
-
   //Assertions
   const projectCostAmount = TC82data.payloadCalculateBillingRate.total_costing_amount;
   const employeeHourlyBillingRate = TC82data.payloadCalculateBillingRate.hourly_billing_rate;
@@ -203,4 +202,34 @@ test("TC82: Verify hourly consulting rate when no default billing rate is used f
   ).toBeCloseTo(employeeHourlyBillingRate, 3);
 });
 
+test("TC83: Verify hourly consulting rate when no default billing rate is used for Retainer project   ", async ({}) => {
+  //Assertions
+  const projectCostAmount = TC83data.payloadCalculateBillingRate.total_costing_amount;
+  const employeeHourlyBillingRate = TC83data.payloadCalculateBillingRate.hourly_billing_rate;
 
+  expect(
+    projectCostAmount,
+    "Verify the project cost amount and employee CTC amount per hour matches for Retainer Project"
+  ).toBeCloseTo(employeeHourlyBillingRate, 3);
+});
+
+test("TC84: Verify hourly consulting rate when no default billing rate is used for Time and Material project   ", async ({}) => {
+  //Assertions
+  const projectCostAmount = TC84data.payloadCalculateBillingRate.total_costing_amount;
+  const employeeHourlyBillingRate = TC84data.payloadCalculateBillingRate.hourly_billing_rate;
+
+  expect(
+    projectCostAmount,
+    "Verify the project cost amount and employee CTC amount per hour matches for Time and Material Project"
+  ).toBeCloseTo(employeeHourlyBillingRate, 3);
+});
+
+test("TC86: Billing rate in the timesheet should match the employee's rate from the project billing team child table for Time and Material Project", async ({}) => {
+  //Assertions
+  const total_billable_amount = TC86data.payloadCalculateBillingRate.total_billable_amount;
+  const hourly_billing_rate = TC86data.payloadCreateProject.custom_project_billing_team[0].hourly_billing_rate;
+  expect(
+    total_billable_amount,
+    "Verify the billing rate for the employee should match the value provided in project billing team child table"
+  ).toEqual(hourly_billing_rate);
+});

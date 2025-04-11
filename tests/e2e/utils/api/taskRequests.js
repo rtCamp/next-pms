@@ -82,3 +82,11 @@ export const likeTask = async (taskID, role = "manager") => {
     role
   );
 };
+/**
+ * Get Task Details.
+ */
+export const getTaskDetails = async (taskID) => {
+  return await apiRequest(`/api/resource/Task/${taskID}`, {
+    method: "GET",
+  });
+};
