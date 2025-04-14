@@ -41,7 +41,7 @@ const RenderField = (
   const isReadOnly = readOnly || field.read_only === 1 || field.read_only === "1";
 
   return (
-    <div className="space-y-2" key={field.label}>
+    <div className="space-y-2 p-1" key={field.label}>
       {field.fieldtype !== "Check" ? (
         <>
           <label className="text-sm">

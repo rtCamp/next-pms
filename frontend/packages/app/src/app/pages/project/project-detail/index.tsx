@@ -108,6 +108,7 @@ const ProjectDetail = () => {
             }}
             formRef={formRef}
             readOnly={!data?.message?.permissions?.includes("write")}
+            hideFields={["naming_series", "department", "custom_project_documents_url", "3rd Partis"]}
           />
         )}
       </Main>
