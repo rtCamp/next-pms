@@ -77,11 +77,7 @@ const FormView = ({
 
         {Object.keys(tabs ?? {})?.map((tab) => {
           return (
-            <TabsContent
-              key={tab}
-              value={tab}
-              className={mergeClassNames("mt-6 space-y-4 focus-visible:ring-0", tabBodyClassName)}
-            >
+            <TabsContent key={tab} value={tab} className="space-y-4 focus-visible:ring-0">
               <FieldRenderer
                 fields={tabs[tab]}
                 readOnly={readOnly}
@@ -90,6 +86,7 @@ const FormView = ({
                 currencySymbol={currencySymbol}
                 hideFields={["naming_series"]}
                 ref={formRef}
+                className={tabBodyClassName}
               />
             </TabsContent>
           );

@@ -3,11 +3,12 @@
  */
 import { forwardRef, useEffect, useImperativeHandle } from "react";
 import { useForm, useWatch } from "react-hook-form";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.
  */
-import { evaluateDependsOn, mapFieldsToObject } from "@/lib/utils";
+import { evaluateDependsOn, mapFieldsToObject, mergeClassNames } from "@/lib/utils";
 import RenderField from "./renderField";
 import { Field, Section } from "./types";
 
@@ -18,6 +19,7 @@ type FieldRendererProps = {
   readOnly?: boolean;
   currencySymbol?: string;
   hideFields?: Array<string>;
+  className?: string;
 };
 
 /**
@@ -25,7 +27,7 @@ type FieldRendererProps = {
  * @description This component renders fields of the form-view section-wise, while respecting depends_on conditions.
  */
 const FieldRenderer = forwardRef(
-  ({ fields, onChange, onSubmit, readOnly, currencySymbol, hideFields }: FieldRendererProps, ref) => {
+  ({ fields, onChange, onSubmit, readOnly, currencySymbol, hideFields, className }: FieldRendererProps, ref) => {
     const { control, handleSubmit, reset } = useForm();
 
     useEffect(() => {
@@ -106,23 +108,53 @@ const FieldRenderer = forwardRef(
             onSubmit?.(data);
           }
         })}
-        className="space-y-6 divide-y"
+        className="divide-y"
       >
         {filteredSections.map((section, index) => (
-          <div key={index} className="px-4 pb-4">
-            <h2 className="text-lg font-semibold my-3">{section.title}</h2>
-            <div className="grid lg:grid-cols-2 gap-4">
-              {section.left.length > 0 && (
-                <div className="space-y-4">
-                  {section.left.map((field) => RenderField(field, control, onChange, readOnly, currencySymbol))}
+          <div key={index} className={mergeClassNames("px-4", !section.title && "pb-4")}>
+            {section.title ? (
+              <Accordion type="single" collapsible key={index} className={className} defaultValue={String(index)}>
+                <AccordionItem value={String(index)} className="border-0">
+                  <AccordionTrigger className="hover:no-underline justify-normal-overide !gap-2 focus-visible:ring-0 focus-visible:outline-none">
+                    {section.title}
+                  </AccordionTrigger>
+                  <AccordionContent className="!w-full">
+                    <div className="grid lg:grid-cols-2 gap-4">
+                      {section.left.length > 0 && (
+                        <div className="space-y-4">
+                          {section.left.map((field) => RenderField(field, control, onChange, readOnly, currencySymbol))}
+                        </div>
+                      )}
+                      {section.right.length > 0 && (
+                        <div className="space-y-4">
+                          {section.right.map((field) =>
+                            RenderField(field, control, onChange, readOnly, currencySymbol)
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            ) : (
+              <>
+                <div className={className}>
+                  <h2 className="text-lg font-semibold my-3"></h2>
+                  <div className="grid lg:grid-cols-2 gap-4">
+                    {section.left.length > 0 && (
+                      <div className="space-y-4">
+                        {section.left.map((field) => RenderField(field, control, onChange, readOnly, currencySymbol))}
+                      </div>
+                    )}
+                    {section.right.length > 0 && (
+                      <div className="space-y-4">
+                        {section.right.map((field) => RenderField(field, control, onChange, readOnly, currencySymbol))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
-              {section.right.length > 0 && (
-                <div className="space-y-4">
-                  {section.right.map((field) => RenderField(field, control, onChange, readOnly, currencySymbol))}
-                </div>
-              )}
-            </div>
+              </>
+            )}
           </div>
         ))}
       </form>
