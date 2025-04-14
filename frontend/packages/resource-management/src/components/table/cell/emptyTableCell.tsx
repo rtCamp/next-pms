@@ -38,7 +38,7 @@ const EmptyTableCell = ({ cellClassName, title, textClassName, onCellClick }: Em
     >
       <TableCellContent
         className={textClassName}
-        TextComponet={
+        TextComponent={
           isHovered
             ? () => <CirclePlus className={mergeClassNames("text-center cursor-pointer")} size={4} />
             : () => <>{"-"}</>

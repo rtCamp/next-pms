@@ -1,4 +1,9 @@
-import { createTimeEntries, updateTimeEntries } from "../helpers/timesheetHelper";
+import {
+  createTimeEntries,
+  updateTimeEntries,
+  createProjectForTestCases,
+  createTaskForTestCases,
+} from "../helpers/timesheetHelper";
 import { storeStorageState } from "../helpers/storageStateHelper";
 import { updateLeaveEntries } from "../helpers/leaveHelper";
 import { createJSONFile } from "../utils/fileUtils";
@@ -13,10 +18,19 @@ const globalSetup = async () => {
   // Create shared JSON files
   await createJSONFile("../data/employee/shared-timesheet.json");
   await createJSONFile("../data/manager/shared-team.json");
+  await createJSONFile("../data/manager/shared-task.json");
+
+  await storeStorageState("employee", true);
+  await storeStorageState("manager", true);
 
   // Compute and update dynamic fields of time entries
   await updateTimeEntries();
 
+  // Create projects
+  await createProjectForTestCases();
+
+  // Create tasks
+  await createTaskForTestCases();
   // Create initial time entries
   await createTimeEntries();
 

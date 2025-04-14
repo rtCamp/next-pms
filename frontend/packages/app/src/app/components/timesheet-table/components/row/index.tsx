@@ -17,7 +17,7 @@ import type { RowProps } from "./types";
 const Row = ({
   dates,
   tasks,
-  holidayList,
+  holidays,
   onCellClick,
   disabled,
   likedTaskData,
@@ -37,7 +37,7 @@ const Row = ({
         Object.entries(tasks).map(([task, taskData]: [string, TaskDataProps]) => {
           let totalHours = 0;
           return (
-            <TableRow key={task} className={mergeClassNames("border-b border-slate-200", rowClassName)}>
+            <TableRow key={task} className={mergeClassNames("border-b ", rowClassName)}>
               <TableCell className={mergeClassNames("cursor-pointer max-w-sm", taskCellClassName)}>
                 <TaskHoverCard
                   name={task}
@@ -72,14 +72,18 @@ const Row = ({
                     },
                   ];
                 }
-                const isHoliday = holidayList.includes(date);
+                const matchingHoliday = holidays.find((item) => item.holiday_date === date);
+
+                const result = matchingHoliday
+                  ? { isHoliday: true, weekly_off: matchingHoliday.weekly_off }
+                  : { isHoliday: false, weekly_off: false };
                 return (
                   <Cell
                     key={date}
                     className={cellClassName}
                     date={date}
                     data={data}
-                    isHoliday={isHoliday}
+                    isHoliday={result.isHoliday && !result.weekly_off}
                     onCellClick={onCellClick}
                     disabled={disabled}
                   />
@@ -89,11 +93,11 @@ const Row = ({
                 <Typography
                   variant="p"
                   className={mergeClassNames(
-                    "text-slate-800 font-medium text-right flex justify-between items-center",
+                    "font-medium text-right flex justify-between items-center",
                     !taskData.is_billable && "justify-end"
                   )}
                 >
-                  {taskData.is_billable == true && <CircleDollarSign className="stroke-success w-4 h-4" />}
+                  {taskData.is_billable == true && <CircleDollarSign className="stroke-success " />}
                   {floatToTime(totalHours)}
                 </Typography>
               </TableCell>

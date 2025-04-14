@@ -1,12 +1,14 @@
 /**
  * External dependencies.
  */
-import { useCallback, useContext, useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { getFormatedDate } from "@next-pms/design-system/date";
 import { useQueryParam } from "@next-pms/hooks";
 import { addDays } from "date-fns";
 import { useFrappePostCall } from "frappe-react-sdk";
 import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
+import { useContextSelector } from "use-context-selector";
+
 /**
  * Internal dependencies.
  */
@@ -29,14 +31,16 @@ const ResourceProjectHeaderSection = () => {
   const [billingType, setBillingTypeParam] = useQueryParam<string[]>("billing-type", []);
   const [viewParam, setViewParam] = useQueryParam<string>("view-type", "");
 
-  const { projectData, tableView, filters, updateFilter, updateTableView, setWeekDate, setCombineWeekHours } =
-    useContext(ProjectContext);
+  const { projectData, tableView, filters } = useContextSelector(ProjectContext, (value) => value.state);
 
-  const {
-    permission: resourceAllocationPermission,
-    updatePermission,
-    updateDialogState,
-  } = useContext(ResourceFormContext);
+  const { updateFilter, updateTableView, setWeekDate, setCombineWeekHours } = useContextSelector(
+    ProjectContext,
+    (value) => value.actions
+  );
+
+  const { permission: resourceAllocationPermission } = useContextSelector(ResourceFormContext, (value) => value.state);
+
+  const { updatePermission, updateDialogState } = useContextSelector(ResourceFormContext, (value) => value.actions);
 
   const { call, loading } = useFrappePostCall(
     "next_pms.resource_management.api.permission.get_user_resources_permissions"

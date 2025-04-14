@@ -1,10 +1,9 @@
 /**
  * External dependencies.
  */
-import { useContext } from "react";
 import { HoverCardContent, TableCell, HoverCard, HoverCardTrigger } from "@next-pms/design-system/components";
 import { TableContext } from "@next-pms/resource-management/store";
-
+import { useContextSelector } from "use-context-selector";
 /**
  * Internal dependencies.
  */
@@ -37,7 +36,8 @@ const ResourceTableCell = ({
   value,
   style,
 }: ResourceTableProps) => {
-  const { tableProperties, getCellWidthString } = useContext(TableContext);
+  const { tableProperties } = useContextSelector(TableContext, (value) => value.state);
+  const { getCellWidthString } = useContextSelector(TableContext, (value) => value.actions);
 
   const mergeCellClassName = mergeClassNames(
     "cursor-pointer text-xs flex px-2 py-2 w-16 justify-center items-center",
@@ -49,7 +49,7 @@ const ResourceTableCell = ({
   if (type == "hovercard") {
     return (
       <HoverCard openDelay={200}>
-        <HoverCardTrigger asChild className="w-full h-full cursor-pointer text-center hover:bg-gray-200">
+        <HoverCardTrigger asChild className="w-full h-full cursor-pointer text-center ">
           <TableCell ref={ref} className={mergeCellClassName} style={inlineStyle}>
             {CellContent && <CellContent />}
 

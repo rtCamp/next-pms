@@ -12,6 +12,10 @@ import {
   AccordionTrigger,
   Spinner,
   Typography,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
 } from "@next-pms/design-system/components";
 import { useToast } from "@next-pms/design-system/components";
 import { getUTCDateTime, getFormatedDate } from "@next-pms/design-system/date";
@@ -20,7 +24,7 @@ import { useQueryParam } from "@next-pms/hooks";
 import { addDays } from "date-fns";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { isEmpty } from "lodash";
-import { Calendar, Paperclip, Plus } from "lucide-react";
+import { Calendar, CalendarArrowDown, EllipsisVertical, Paperclip, Plus } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -154,6 +158,10 @@ function Timesheet() {
     dispatch({ type: "SET_APPROVAL_DIALOG_STATE", payload: true });
   };
 
+  const handleImportTaskFromGoogleCalendar = () => {
+    dispatch({ type: "SET_IMPORT_FROM_GOOGLE_CALENDAR_DIALOG_STATE", payload: true });
+  };
+
   return (
     <>
       <Header className="justify-end gap-x-3">
@@ -165,6 +173,19 @@ function Timesheet() {
           <Plus />
           Time
         </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline">
+              <EllipsisVertical />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="mr-2 [&_div]:cursor-pointer  [&_div]:gap-x-2">
+            <DropdownMenuItem onClick={handleImportTaskFromGoogleCalendar}>
+              <CalendarArrowDown />
+              <Typography variant="p">Import Events From Google Calendar</Typography>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </Header>
 
       {isLoading && Object.keys(timesheet.data?.data).length == 0 ? (
@@ -218,6 +239,9 @@ function Timesheet() {
                                 end_date={value.end_date}
                                 onApproval={handleApproval}
                                 status={value.status}
+                                expectedHours={timesheet.data.working_hour}
+                                totalHours={data.totalHours}
+                                workingFrequency={timesheet.data.working_frequency as WorkingFrequency}
                               />
                             </div>
                           </AccordionTrigger>

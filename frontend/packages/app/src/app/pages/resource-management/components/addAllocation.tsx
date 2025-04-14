@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -30,6 +30,7 @@ import { mergeClassNames } from "@next-pms/design-system/utils";
 import { endOfWeek, startOfWeek } from "date-fns";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { CircleDollarSign, Clock3, LoaderCircle, Save, Search, X } from "lucide-react";
+import { useContextSelector } from "use-context-selector";
 import { z } from "zod";
 
 /**
@@ -52,11 +53,12 @@ const AddResourceAllocations = ({
 }: {
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const {
-    allocationData: resourceAllocationForm,
-    dialogState: resourceDialogState,
-    resetState,
-  } = useContext(ResourceFormContext);
+  const { allocationData: resourceAllocationForm, dialogState: resourceDialogState } = useContextSelector(
+    ResourceFormContext,
+    (value) => value.state
+  );
+
+  const { resetState } = useContextSelector(ResourceFormContext, (value) => value.actions);
 
   const [projectSearch, setProjectSearch] = useState(resourceAllocationForm.project_name);
   const [customerSearch, setCustomerSearch] = useState(resourceAllocationForm.customer_name);
@@ -738,7 +740,7 @@ const AddResourceAllocations = ({
             />
             <DialogFooter className="sm:justify-start w-full pt-3">
               <div className="flex gap-x-4 w-full">
-                <Button disabled={!form.formState.isValid || !form.formState.isDirty || loading}>
+                <Button disabled={!form.formState.isDirty || !form.formState.isValid || loading}>
                   {loading ? <LoaderCircle className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
                   {resourceDialogState.isNeedToEdit ? "Save" : "Create"}
                 </Button>

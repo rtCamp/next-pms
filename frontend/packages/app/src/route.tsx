@@ -5,7 +5,7 @@ import { lazy, useContext, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Route, Outlet, Navigate } from "react-router-dom";
 import { FrappeConfig, FrappeContext } from "frappe-react-sdk";
-
+import { useContextSelector } from "use-context-selector";
 /**
  * Internal dependencies.
  */
@@ -60,7 +60,7 @@ export function Router() {
 }
 
 const AuthenticatedRoute = () => {
-  const { currentUser, isLoading } = useContext(UserContext);
+  const { currentUser, isLoading } = useContextSelector(UserContext, (value) => value.state);
   const { call } = useContext(FrappeContext) as FrappeConfig;
   const user = useSelector((state: RootState) => state.user);
   const views = useSelector((state: RootState) => state.view);

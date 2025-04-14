@@ -142,24 +142,22 @@ const Team = () => {
         <Table className="lg:[&_tr]:pr-3 relative">
           <TableHeader className="border-t-0 sticky top-0 z-10">
             <TableRow className="flex items-center w-full">
-              <TableHead className="w-full max-w-md flex items-center">Members</TableHead>
+              <TableHead className="w-full max-w-md flex items-center text-primary">Members</TableHead>
               {teamState.data?.dates.map((item: DateProps) => {
                 return item?.dates?.map((date) => {
                   const { date: dateStr, day } = prettyDate(date);
                   return (
                     <TableHead key={date} className="flex flex-col max-w-20 w-full items-center justify-center">
-                      <Typography variant="p" className="text-slate-600">
-                        {day}
-                      </Typography>
-                      <Typography variant="small" className="text-slate-500 max-lg:text-[0.65rem]">
+                      <Typography variant="p">{day}</Typography>
+                      <Typography variant="small" className="text-slate-500 dark:text-primary/60 max-lg:text-[0.65rem]">
                         {dateStr}
                       </Typography>
                     </TableHead>
                   );
                 });
               })}
-              <TableHead className="w-full max-w-24 flex items-center justify-end">Total</TableHead>
-              <TableHead className="w-full max-w-20 flex items-center justify-center">
+              <TableHead className="w-full max-w-24 flex items-center justify-end text-primary">Total</TableHead>
+              <TableHead className="w-full max-w-20 flex items-center justify-center text-primary">
                 <CircleCheck />
               </TableHead>
             </TableRow>

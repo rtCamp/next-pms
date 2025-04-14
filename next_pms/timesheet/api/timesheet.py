@@ -3,6 +3,7 @@ from frappe import _, throw
 from frappe.utils import add_days, get_first_day_of_week, get_last_day_of_week, getdate, nowdate
 
 from next_pms.resource_management.api.utils.query import get_employee_leaves
+from next_pms.timesheet.utils.constant import EMP_TIMESHEET
 
 from .employee import (
     get_employee_daily_working_norm,
@@ -18,22 +19,33 @@ from .utils import (
     has_write_access,
 )
 
-now = nowdate()
-
 
 @frappe.whitelist()
-def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
+def get_timesheet_data(employee: str, start_date=None, max_week: int = 4):
     """Get timesheet data for the given employee for the given number of weeks."""
     if not employee:
-        employee = get_employee_from_user()
+        employee = get_employee_from_user(throw_exception=frappe.session.user != "Administrator")
+    if not start_date:
+        start_date = nowdate()
     apply_role_permission_for_doctype(["Timesheet User", "Timesheet Manager"], "Employee", "read", employee)
 
     def generate_week_data(start_date, max_week, employee=None, leaves=None, holidays=None):
         data = {}
         daily_norm = get_employee_daily_working_norm(employee)
+
+        cache_key = f"{EMP_TIMESHEET}::{employee}"
         for i in range(max_week):
             week_dates = get_week_dates(start_date)
             week_key = week_dates["key"]
+
+            week_cache_key = f"{week_dates['start_date']}::{week_dates['end_date']}"
+            week_data = frappe.cache().hget(cache_key, week_cache_key)
+
+            if week_data:
+                start_date = add_days(getdate(week_dates["start_date"]), -1)
+                data[week_key] = week_data
+                continue
+
             tasks, total_hours, status = {}, 0, "Not Submitted"
             if employee:
                 holiday_dates = [holiday["holiday_date"] for holiday in holidays] if holidays else []
@@ -67,6 +79,7 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
                 "tasks": tasks,
                 "status": status,
             }
+            frappe.cache().hset(cache_key, week_cache_key, data[week_key])
             start_date = add_days(getdate(week_dates["start_date"]), -1)
         return data
 
@@ -78,9 +91,6 @@ def get_timesheet_data(employee: str, start_date=now, max_week: int = 4):
         res["holidays"] = []
         res["leaves"] = []
         return res
-
-    if not frappe.db.exists("Employee", employee):
-        throw(_("No employee found for current user."), frappe.DoesNotExistError)
 
     holidays = get_holidays(
         employee,
@@ -440,3 +450,32 @@ def bulk_update_timesheet_detail(data):
             entry = frappe.parse_json(entry)
         update_timesheet_detail(**entry)
     return _("Time entries updated successfully.")
+
+
+@frappe.whitelist()
+def bulk_save(timesheet_entries):
+    """
+    Create multiple time entries in Timesheet Detail child table.
+
+    :param timesheet_entries: List of dictionaries containing timesheet entry details
+    Each dictionary should have keys:
+    - date (str, mandatory)
+    - description (str, mandatory)
+    - task (str, mandatory)
+    - hours (float, optional, default=0)
+    - employee (str, optional)
+
+    """
+    if not isinstance(timesheet_entries, list):
+        throw(_("Input must be a list of timesheet entries."), frappe.ValidationError)
+
+    for entry in timesheet_entries:
+        date = entry.get("date")
+        description = entry.get("description")
+        task = entry.get("task")
+        hours = entry.get("hours", 0)
+        employee = entry.get("employee")
+
+        save(date=date, description=description, task=task, hours=hours, employee=employee)
+
+    return _("Event Timesheet created successfully.")

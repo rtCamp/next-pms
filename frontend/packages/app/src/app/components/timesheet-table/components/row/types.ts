@@ -32,7 +32,7 @@ export type emptyRowProps = {
 export interface RowProps {
   dates: string[];
   tasks: TaskProps;
-  holidayList: Array<string>;
+  holidays: HolidayProp[];
   workingHour: number;
   workingFrequency: WorkingFrequency;
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment

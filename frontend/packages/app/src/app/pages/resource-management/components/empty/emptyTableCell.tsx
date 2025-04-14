@@ -1,8 +1,8 @@
 /**
  * External dependencies.
  */
-import { useContext } from "react";
 import { ResourceTableCell, EmptyTableCell as ResourceEmptyTableCell } from "@next-pms/resource-management/components";
+import { useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
@@ -20,7 +20,7 @@ import { ResourceFormContext } from "../../store/resourceFormContext";
  * @returns React.FC
  */
 const EmptyTableCell = ({ cellClassName, title, textClassName, onCellClick }: EmptyTableCellProps) => {
-  const { permission: resourceAllocationPermission } = useContext(ResourceFormContext);
+  const resourceAllocationPermission = useContextSelector(ResourceFormContext, (value) => value.state.permission);
 
   if (!onCellClick || !resourceAllocationPermission.write) {
     return (

@@ -56,6 +56,7 @@ export interface TimesheetState {
 
   data: DataProp;
   isDialogOpen: boolean;
+  isImportFromGoogleCalendarDialogOpen: boolean;
   isEditDialogOpen: boolean;
   isAprrovalDialogOpen: boolean;
   isLeaveDialogOpen: boolean;
@@ -71,9 +72,26 @@ export type Action =
   | { type: "SET_TIMESHEET"; payload: TimesheetState["timesheet"] }
   | { type: "SET_WEEK_DATE"; payload: string }
   | { type: "SET_DIALOG_STATE"; payload: boolean }
+  | { type: "SET_IMPORT_FROM_GOOGLE_CALENDAR_DIALOG_STATE"; payload: boolean }
   | { type: "SET_APPROVAL_DIALOG_STATE"; payload: boolean }
   | { type: "SET_LEAVE_DIALOG_STATE"; payload: boolean }
   | { type: "SET_EDIT_DIALOG_STATE"; payload: boolean }
   | { type: "APPEND_DATA"; payload: DataProp }
   | { type: "RESET_STATE" }
   | { type: "SET_WEEK_DATE"; payload: string };
+
+export interface Event {
+  id: string;
+  subject: string;
+  starts_on: Date;
+  ends_on: Date;
+  selected: boolean;
+  description?: string;
+  color?: string;
+  owner?: string;
+  all_day?: number;
+  event_type?: string;
+  repeat_this_event?: number;
+  repeat_on?: string;
+  repeat_till?: Date;
+}

@@ -43,6 +43,19 @@ export interface DocMetaProps {
   fields: Array<fieldMetaProps>;
   title_field: string;
 }
+declare global {
+  interface Window {
+    frappe?: {
+      boot?: {
+        user?: {
+          roles?: string[];
+        };
+        currencies?: string[];
+        desk_theme?: string;
+      };
+    };
+  }
+}
 
 export type Project = {
   name: string;

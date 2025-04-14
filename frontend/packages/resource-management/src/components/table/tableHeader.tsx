@@ -1,10 +1,11 @@
 /**
  * External dependencies.
  */
-import { LegacyRef, useContext } from "react";
+import { LegacyRef } from "react";
 import { TableHead, TableHeader, TableRow, Typography } from "@next-pms/design-system/components";
 import { prettyDate, getUTCDateTime } from "@next-pms/design-system/date";
 import { isToday } from "date-fns";
+import { useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
@@ -29,7 +30,8 @@ const ResourceTableHeader = ({
   dateToAddHeaderRef,
   isLoading,
 }: ResourceTableHeaderProps) => {
-  const { tableProperties, getCellWidthString } = useContext(TableContext);
+  const { tableProperties } = useContextSelector(TableContext, (value) => value.state);
+  const { getCellWidthString } = useContextSelector(TableContext, (value) => value.actions);
 
   return (
     <TableHeader className="border-t-0 sticky top-0 z-30">
@@ -117,15 +119,18 @@ const TableHeaderCell = ({
     >
       <Typography
         variant="p"
-        className={mergeClassNames("text-slate-600 text-[11px]", isToday(getUTCDateTime(date)) && "font-semibold")}
+        className={mergeClassNames(
+          "text-slate-600 text-[11px] dark:text-primary/80",
+          isToday(getUTCDateTime(date)) && "font-semibold dark:text-primary"
+        )}
       >
         {day}
       </Typography>
       <Typography
         variant="small"
         className={mergeClassNames(
-          "text-slate-500 text-[11px] max-lg:text-[0.65rem]",
-          isToday(getUTCDateTime(date)) && "font-semibold"
+          "text-slate-500 text-[11px] max-lg:text-[0.65rem] dark:text-primary/60",
+          isToday(getUTCDateTime(date)) && "font-semibold dark:text-primary"
         )}
       >
         {dateStr}

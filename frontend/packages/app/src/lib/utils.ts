@@ -203,7 +203,7 @@ export const currencyFormat = (currency: string) => {
 };
 
 export const getBgCsssForToday = (date: string) => {
-  return isToday(getUTCDateTime(date)) ? "bg-slate-100" : "";
+  return isToday(getUTCDateTime(date)) ? "bg-slate-100 dark:bg-muted/50 " : "";
 };
 
 export const isDateInRange = (

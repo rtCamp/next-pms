@@ -1,12 +1,14 @@
 /**
  * External dependencies.
  */
-import { useCallback, useContext, useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { getFormatedDate } from "@next-pms/design-system/date";
 import { useQueryParam } from "@next-pms/hooks";
 import { addDays } from "date-fns";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
+import { useContextSelector } from "use-context-selector";
+
 /**
  * Internal dependencies.
  */
@@ -31,14 +33,16 @@ const ResourceTeamHeaderSection = () => {
   const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParam<boolean>("combine-week-hours", false);
   const [skillSearchParam, setSkillSearchParam] = useQueryParam<Skill[]>("skill-search", []);
 
-  const { teamData, filters, tableView, updateFilter, setWeekDate, setCombineWeekHours, updateTableView } =
-    useContext(TeamContext);
+  const { teamData, filters, tableView } = useContextSelector(TeamContext, (value) => value.state);
 
-  const {
-    permission: resourceAllocationPermission,
-    updatePermission,
-    updateDialogState,
-  } = useContext(ResourceFormContext);
+  const { updateFilter, setWeekDate, setCombineWeekHours, updateTableView } = useContextSelector(
+    TeamContext,
+    (value) => value.actions
+  );
+
+  const { permission: resourceAllocationPermission } = useContextSelector(ResourceFormContext, (value) => value.state);
+
+  const { updatePermission, updateDialogState } = useContextSelector(ResourceFormContext, (value) => value.actions);
 
   const { call, loading } = useFrappePostCall(
     "next_pms.resource_management.api.permission.get_user_resources_permissions"

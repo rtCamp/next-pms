@@ -4,7 +4,10 @@ import { getWeekdayName, getFormattedDate, getDateForWeekday } from "../utils/da
 import { createTimesheet, getTimesheetDetails, deleteTimesheet } from "../utils/api/timesheetRequests";
 import employeeTimesheetData from "../data/employee/timesheet.json";
 import managerTeamData from "../data/manager/team.json";
-import { readJSONFile } from "../utils/fileUtils";
+import managerTaskData from "../data/manager/task.json";
+import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
+import { createProject, deleteProject } from "../utils/api/projectRequests";
+import { createTask, deleteTask, likeTask } from "../utils/api/taskRequests";
 
 // Load env variables
 const empID = process.env.EMP_ID;
@@ -12,10 +15,12 @@ const empID = process.env.EMP_ID;
 // Define file paths for shared JSON data files
 const employeeTimesheetDataFilePath = path.resolve(__dirname, "../data/employee/shared-timesheet.json"); // File path of the employee timesheet data JSON file
 const managerTeamDataFilePath = path.resolve(__dirname, "../data/manager/shared-team.json"); // File path of the manager team data JSON file
+const managerTaskDataFilePath = path.resolve(__dirname, "../data/manager/shared-task.json"); // File path of the manager team data JSON file
 
 // Global variables to store shared data and reused across functions
 let sharedEmployeeTimesheetData;
 let sharedManagerTeamData;
+let sharedManagerTaskData;
 
 // ------------------------------------------------------------------------------------------
 
@@ -162,4 +167,169 @@ export const filterTimesheetEntry = async ({ subject, description, project_name,
   }
 
   return {}; // Return empty object if no match is found
+};
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Creates projects for all the test cases provided in the employeeTimesheetIDs array below
+ */
+export const createProjectForTestCases = async () => {
+  // Include testcase ID's below that require a project to be created
+  const employeeTimesheetIDs = ["TC2", "TC3", "TC4", "TC5", "TC6", "TC7", "TC9", "TC14", "TC15"];
+  const managerTaskIDs = ["TC25", "TC26", "TC17", "TC19"];
+
+  const processTestCases = async (data, testCases) => {
+    for (const testCaseID of testCases) {
+      if (data[testCaseID].payloadCreateProject) {
+        const createProjectPayload = data[testCaseID].payloadCreateProject;
+
+        // Store the response of createProject API
+        const response = await createProject(createProjectPayload);
+        if (!response.ok) {
+          console.error(`Failed to create project for ${testCaseID}: ${response.statusText}`);
+          continue;
+        }
+
+        const jsonResponse = await response.json();
+        const projectId = jsonResponse.data.name;
+
+        // Store project ID in related payloads
+        data[testCaseID].payloadDeleteProject.projectId = projectId;
+
+        if (data[testCaseID].payloadCreateTask) {
+          data[testCaseID].payloadCreateTask.project = projectId;
+        }
+      }
+    }
+  };
+
+  await processTestCases(employeeTimesheetData, employeeTimesheetIDs);
+  writeDataToFile(employeeTimesheetDataFilePath, employeeTimesheetData);
+
+  await processTestCases(managerTaskData, managerTaskIDs);
+  writeDataToFile(managerTaskDataFilePath, managerTaskData);
+};
+
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Deletes projects for all the test cases provided in the projectsToBeDeleted array below
+ */
+export const deleteProjects = async () => {
+  sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
+  sharedManagerTaskData = await readJSONFile("../data/manager/shared-task.json");
+  //Provide the json structure in below array for the testcase that needs Project Deletion
+  const projectsToBeDeleted = [
+    sharedEmployeeTimesheetData.TC2.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC3.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC4.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC5.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC6.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC7.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC9.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC14.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC15.payloadDeleteProject.projectId,
+    sharedManagerTaskData.TC17.payloadDeleteProject.projectId,
+    sharedManagerTaskData.TC19.payloadDeleteProject.projectId,
+    sharedManagerTaskData.TC25.payloadDeleteProject.projectId,
+    sharedManagerTaskData.TC26.payloadDeleteProject.projectId,
+  ];
+  for (const entry of projectsToBeDeleted) {
+    //Delete Project
+    await deleteProject(entry);
+  }
+};
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Creates tasks for all the test cases provided in the employeeTimesheetIDs array below
+ */
+export const createTaskForTestCases = async () => {
+  // Include testcase IDs that require a task to be created
+  const employeeTimesheetIDs = ["TC2", "TC3", "TC4", "TC5", "TC6", "TC7", "TC9", "TC14", "TC15"];
+
+  const managerTaskIDs = ["TC25", "TC26", "TC17", "TC19"];
+
+  const processTestCasesForTasks = async (data, testCases) => {
+    for (const testCaseID of testCases) {
+      let taskID;
+      let taskSubject;
+      if (data[testCaseID].payloadCreateTask) {
+        const createTaskPayload = data[testCaseID].payloadCreateTask;
+
+        // Store the response of createTask API
+        const response = await createTask(createTaskPayload);
+        if (!response || typeof response !== "object") {
+          console.error(`Failed to create task for ${testCaseID}: Unexpected response format`);
+          continue;
+        }
+
+        const jsonResponse = response;
+        taskID = jsonResponse.data.name;
+        taskSubject = data[testCaseID].payloadCreateTask.subject;
+
+        // Store task ID in related payloads
+        data[testCaseID].payloadDeleteTask.taskID = taskID;
+      }
+
+      if (data[testCaseID].payloadLikeTask) {
+        // Store the task ID for liking the task
+        data[testCaseID].payloadLikeTask.name = taskID;
+        const response = await likeTask(taskID, data[testCaseID].payloadLikeTask.role);
+
+        if (response && typeof response === "object") {
+          console.log(`Successfully liked task for ${testCaseID}:`, response);
+        } else {
+          console.error(`Failed to like task for ${testCaseID}: Unexpected response format`);
+        }
+
+        // Add the subject to TC12 inside tasks array
+        if (data.TC12 && Array.isArray(data.TC12.tasks)) {
+          data.TC12.tasks.push(taskSubject);
+        }
+      }
+
+      if (data[testCaseID].payloadCreateTimesheet) {
+        // Store the task ID for creating a timesheet
+        data[testCaseID].payloadCreateTimesheet.task = taskID;
+      }
+    }
+  };
+
+  await processTestCasesForTasks(employeeTimesheetData, employeeTimesheetIDs);
+  writeDataToFile(employeeTimesheetDataFilePath, employeeTimesheetData);
+
+  await processTestCasesForTasks(managerTaskData, managerTaskIDs);
+  writeDataToFile(managerTaskDataFilePath, managerTaskData);
+};
+
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Deletes tasks for all the test cases provided in the tasksToBeDeleted array below
+ */
+export const deleteTasks = async () => {
+  sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
+  sharedManagerTaskData = await readJSONFile("../data/manager/shared-task.json");
+
+  //Provide the json structure in below array for the testcase that needs Task Deletion
+  const tasksToBeDeleted = [
+    sharedEmployeeTimesheetData.TC2.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC3.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC4.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC5.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC6.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC7.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC9.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC14.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC15.payloadDeleteTask.taskID,
+    sharedManagerTaskData.TC25.payloadDeleteTask.taskID,
+    sharedManagerTaskData.TC26.payloadDeleteTask.taskID,
+    sharedManagerTaskData.TC17.payloadDeleteTask.taskID,
+    sharedManagerTaskData.TC19.payloadDeleteTask.taskID,
+  ];
+  for (const entry of tasksToBeDeleted) {
+    //Delete Project
+    await deleteTask(entry);
+  }
 };

@@ -13,6 +13,7 @@ ROLES = {
 def validate(doc, method=None):
     validate_time(doc)
     update_note(doc)
+    flush_cache(doc)
 
 
 def before_insert(doc, method=None):
@@ -42,6 +43,7 @@ def on_update(doc, method=None):
 
 def after_delete(doc, method=None):
     doc.update_task_and_project()
+    flush_cache(doc)
 
 
 def before_validate(doc, method=None):
@@ -49,6 +51,7 @@ def before_validate(doc, method=None):
 
 
 def before_submit(doc, method=None):
+    validate_self_approval(doc)
     doc.custom_approval_status = "Approved"
 
 
@@ -56,7 +59,14 @@ def on_submit(doc, method=None):
     from next_pms.timesheet.api.utils import update_weekly_status_of_timesheet
 
     update_weekly_status_of_timesheet(doc.employee, getdate(doc.start_date))
-    validate_self_approval(doc)
+
+
+def on_cancel(doc, method=None):
+    flush_cache(doc)
+
+
+def on_trash(doc, method=None):
+    flush_cache(doc)
 
 
 #  Custom Methods for Timesheet DocType events
@@ -239,3 +249,17 @@ def validate_self_approval(doc):
 
     if doc.employee == employee:
         throw(_("You cannot approve your own timesheets."))
+
+
+def flush_cache(doc):
+    import frappe
+    from frappe.utils import get_date_str, get_first_day_of_week, get_last_day_of_week
+
+    from next_pms.timesheet.utils.constant import EMP_TIMESHEET
+
+    start_date = get_date_str(get_first_day_of_week(doc.start_date))
+    end_date = get_date_str(get_last_day_of_week(doc.start_date))
+    cache_key = f"{EMP_TIMESHEET}::{doc.employee}"
+    week_cache_key = f"{start_date}::{end_date}"
+
+    frappe.cache.hdel(cache_key, week_cache_key)

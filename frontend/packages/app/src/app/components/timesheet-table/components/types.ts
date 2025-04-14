@@ -23,7 +23,7 @@ export type cellProps = {
 
 export type HeaderProps = {
   dates: string[];
-  holidayList: string[];
+  holidays: HolidayProp[];
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   onCellClick?: (data) => void;
@@ -39,6 +39,9 @@ export type submitButtonProps = {
   end_date: string;
   onApproval?: (start_date: string, end_date: string) => void;
   status: string;
+  expectedHours: number;
+  totalHours: number;
+  workingFrequency: WorkingFrequency;
 };
 
 export type TaskHoverCardProps = {

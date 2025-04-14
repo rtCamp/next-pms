@@ -106,4 +106,3 @@ module.exports = {
     },
     plugins: [require("tailwindcss-animate")], // eslint-disable-line no-use-before-define
 };
-

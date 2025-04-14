@@ -219,7 +219,11 @@ doc_events = {
         "before_submit": "next_pms.timesheet.doc_events.timesheet.before_submit",
         "on_submit": "next_pms.timesheet.doc_events.timesheet.on_submit",
         "after_delete": "next_pms.timesheet.doc_events.timesheet.after_delete",
-        "on_trash": ["next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache"],
+        "on_cancel": "next_pms.timesheet.doc_events.timesheet.on_cancel",
+        "on_trash": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+            "next_pms.timesheet.doc_events.timesheet.on_trash",
+        ],
     },
     "Task": {
         "after_insert": "next_pms.project_currency.doc_events.task.after_insert",
@@ -228,8 +232,16 @@ doc_events = {
     "Leave Application": {
         "on_update": [
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+            "next_pms.timesheet.doc_events.leave_application.on_update",
         ],
-        "on_trash": ["next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache"],
+        "on_trash": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+            "next_pms.timesheet.doc_events.leave_application.on_trash",
+        ],
+        "on_cancel": [
+            "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
+            "next_pms.timesheet.doc_events.leave_application.on_cancel",
+        ],
     },
     "Employee Skill Map": {
         "on_update": [
@@ -245,6 +257,7 @@ doc_events = {
         "on_trash": ["next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache"],
     },
     "Customer": {"validate": "next_pms.resource_management.doc_events.customer.validate_abbr"},
+    "Employee": {"on_update": "next_pms.timesheet.doc_events.employee.on_update"},
 }
 #
 # each overriding function accepts a `data` argument;

@@ -1,7 +1,8 @@
 /**
  * External dependencies.
  */
-import { useState, createContext, useCallback } from "react";
+import { useState, useCallback } from "react";
+import { createContext } from "use-context-selector";
 
 /**
  * Internal dependencies.
@@ -9,13 +10,21 @@ import { useState, createContext, useCallback } from "react";
 import type { TableContextProps, TableContextProviderProps } from "./types";
 
 const TableContext = createContext<{
-  tableProperties: TableContextProps;
-  updateTableCellWidth: (value: number) => void;
-  getCellWidthString: (value: number) => string;
+  state: {
+    tableProperties: TableContextProps;
+  };
+  actions: {
+    updateTableCellWidth: (value: number) => void;
+    getCellWidthString: (value: number) => string;
+  };
 }>({
-  tableProperties: { cellWidth: 4, firstCellWidth: 16 },
-  updateTableCellWidth: () => {},
-  getCellWidthString: () => "",
+  state: {
+    tableProperties: { cellWidth: 4, firstCellWidth: 16 },
+  },
+  actions: {
+    updateTableCellWidth: () => {},
+    getCellWidthString: () => "",
+  },
 });
 
 const TableContextProvider = ({ children }: TableContextProviderProps) => {
@@ -31,7 +40,9 @@ const TableContextProvider = ({ children }: TableContextProviderProps) => {
   const getCellWidthString = (value: number) => `${value}rem`;
 
   return (
-    <TableContext.Provider value={{ tableProperties, updateTableCellWidth, getCellWidthString }}>
+    <TableContext.Provider
+      value={{ state: { tableProperties }, actions: { updateTableCellWidth, getCellWidthString } }}
+    >
       {children}
     </TableContext.Provider>
   );

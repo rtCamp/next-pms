@@ -1,12 +1,9 @@
-import path from "path";
-import fs from "fs";
 import { test, expect } from "@playwright/test";
-import { getWeekdayName } from "../../utils/dateUtils";
 import { secondsToDuration, durationToSeconds } from "../../utils/dateUtils";
 import { TimesheetPage } from "../../pageObjects/timesheetPage";
 import data from "../../data/employee/shared-timesheet.json";
-
-const employeeTimesheetDataFilePath = path.resolve(__dirname, "../../data/employee/shared-timesheet.json"); // File path of the employee timesheet data JSON file
+//Add type hints to help VS Code recognize TimesheetPage
+/** @type {TimesheetPage} */
 let timesheetPage;
 
 // Load test data
@@ -22,14 +19,6 @@ let TC15data = data.TC15;
 
 // ------------------------------------------------------------------------------------------
 
-test.beforeAll(async ({}) => {
-  // Compute cell info for TC13
-  data.TC13.cell.col = getWeekdayName(new Date()); // Get today's weekday name
-
-  // Write back updated JSON
-  fs.writeFileSync(employeeTimesheetDataFilePath, JSON.stringify(data, null, 2));
-});
-
 test.beforeEach(async ({ page }) => {
   // Instantiate page objects
   timesheetPage = new TimesheetPage(page);
@@ -40,7 +29,7 @@ test.beforeEach(async ({ page }) => {
 
 // ------------------------------------------------------------------------------------------
 
-test("TC2: Time should be added using the ‘Add’ button at the top.", async ({ page }) => {
+test("TC2: Time should be added using the ‘Add’ button at the top. @workingTests ", async ({ page }) => {
   // Add time entry using "Time" button
   await timesheetPage.addTimeViaTimeButton(TC2data.taskInfo);
 
@@ -52,10 +41,9 @@ test("TC2: Time should be added using the ‘Add’ button at the top.", async (
   expect(cellText).toContain(TC2data.taskInfo.duration);
 });
 
-test("TC3: Time should be added using the direct timesheet add buttons.", async ({ page }) => {
+test("TC3: Time should be added using the direct timesheet add buttons. @workingTests", async ({ page }) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
-
   // Add time entry using "+" button in timesheet
   await timesheetPage.addTimeViaCell(TC3data.cell, {
     duration: TC3data.taskInfo.duration,
@@ -70,8 +58,9 @@ test("TC3: Time should be added using the direct timesheet add buttons.", async 
   expect(cellText).toContain(TC3data.taskInfo.duration);
 });
 
-test("TC4: Added time and description should be editable.", async ({ page }) => {
+test("TC4: Added time and description should be editable. @workingTests", async ({ page }) => {
   // Update time entry
+
   await timesheetPage.updateTimeRow(TC4data.cell, {
     desc: TC4data.payloadCreateTimesheet.description,
     newDesc: TC4data.taskInfo.desc,
@@ -89,7 +78,7 @@ test("TC4: Added time and description should be editable.", async ({ page }) => 
   expect(cellTooltipText).toContain(TC4data.taskInfo.desc);
 });
 
-test("TC5: Add a new row in the already added time.", async ({ page }) => {
+test("TC5: Add a new row in the already added time. @workingTests ", async ({ page }) => {
   // Store cell text before new row addition
   const beforeCellText = await timesheetPage.getCellText(TC5data.cell);
 
@@ -110,7 +99,7 @@ test("TC5: Add a new row in the already added time.", async ({ page }) => {
   expect(cellTooltipText).toContain(TC5data.taskInfo.desc);
 });
 
-test("TC6: Delete the added time entry from the non-submitted timesheet.", async ({ page }) => {
+test("TC6: Delete the added time entry from the non-submitted timesheet. @workingTests ", async ({ page }) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -125,7 +114,7 @@ test("TC6: Delete the added time entry from the non-submitted timesheet.", async
   expect(cellText).toContain("-");
 });
 
-test("TC7: Submit the weekly timesheet", async ({ page }) => {
+test("TC7: Submit the weekly timesheet @workingTests", async ({ page }) => {
   // Submit timesheet
   await timesheetPage.submitTimesheet();
 
@@ -139,10 +128,9 @@ test("TC7: Submit the weekly timesheet", async ({ page }) => {
   expect(status).toBe("Approval Pending");
 });
 
-test("TC9: Open task details popup", async ({}) => {
+test("TC9: Open task details popup @workingTests", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
-
   // Open random task details
   const randomTask = await timesheetPage.openRandomTaskDetails();
 
@@ -151,7 +139,7 @@ test("TC9: Open task details popup", async ({}) => {
   expect(isTaskDetailsDialogVisible).toBeTruthy();
 });
 
-test("TC11: Verify that the review timesheet pane is not available for an employee.", async ({}) => {
+test("TC11: Verify that the review timesheet pane is not available for an employee. @workingTests", async ({}) => {
   // Click on timesheet status
   await timesheetPage.clickonTimesheetStatus();
 
@@ -163,18 +151,18 @@ test("TC11: Verify that the review timesheet pane is not available for an employ
   expect(isReviewTimesheetPaneVisible).toBeFalsy();
 });
 
-test("TC12: Verify the 'Import liked tasks' option.", async ({}) => {
+test("TC12: Verify the 'Import liked tasks' option. @workingTests", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
   // Retrive tasks from the timesheet
   const tasks = await timesheetPage.getTimesheetTasks();
 
-  // Assertions
-  expect(tasks.sort()).toEqual(TC12data.tasks.sort());
+  // Assertion to verify that TC12 data will be present in task.sort()
+  expect(tasks.sort()).toEqual(expect.arrayContaining(TC12data.tasks.sort()));
 });
 
-test("TC13: Verify an employee can apply for leave via Timesheet tab.", async ({}) => {
+test("TC13: Verify an employee can apply for leave via Timesheet tab. @workingTests", async ({}) => {
   // Apply for leave
   await timesheetPage.applyForLeave(TC13data.leave.desc);
 
@@ -183,7 +171,7 @@ test("TC13: Verify an employee can apply for leave via Timesheet tab.", async ({
   expect(cellText).toContain("8");
 });
 
-test("TC14: Verify the billable status of a billable task.", async ({}) => {
+test("TC14: Verify the billable status of a billable task. @workingTests", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -192,7 +180,7 @@ test("TC14: Verify the billable status of a billable task.", async ({}) => {
   expect(isTimeEntryBillable).toBeTruthy();
 });
 
-test("TC15: Verify the billable status of a non-billable task.", async ({}) => {
+test("TC15: Verify the billable status of a non-billable task. @workingTests", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 

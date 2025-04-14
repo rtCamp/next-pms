@@ -31,7 +31,10 @@ const TableCellContent = ({
 }) => {
   return (
     <Typography
-      className={mergeClassNames("text-gray-800 text-[11px] h-6 flex items-center", className)}
+      className={mergeClassNames(
+        "dark:group-[.bg-customYellow]:text-background text-[11px] h-6 flex items-center",
+        className
+      )}
       variant="p"
       title={title}
     >
