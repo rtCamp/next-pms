@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { memo, useCallback, useMemo } from "react";
+import { memo, useCallback } from "react";
 import { TableBody } from "@next-pms/design-system/components";
 import { ResourceTableRow } from "@next-pms/resource-management/components";
 import { useContextSelector } from "use-context-selector";
@@ -28,8 +28,8 @@ const ResourceTeamTableBody = ({
 }) => {
   const teamData = useContextSelector(TeamContext, (value) => value.state.teamData);
 
-  const data = useMemo(() => teamData.data, [teamData.data]);
-  const dates = useMemo(() => teamData.dates, [teamData.dates]);
+  const data = teamData.data;
+  const dates = teamData.dates;
 
   if (data.length === 0) {
     return <EmptyTableBody />;
