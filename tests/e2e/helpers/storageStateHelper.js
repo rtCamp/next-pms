@@ -11,6 +11,8 @@ const empEmail = process.env.EMP_EMAIL;
 const empPass = process.env.EMP_PASS;
 const manEmail = process.env.REP_MAN_EMAIL;
 const manPass = process.env.REP_MAN_PASS;
+const adminEmail = process.env.ADMIN_EMAIL;
+const adminPass = process.env.ADMIN_PASS;
 // ------------------------------------------------------------------------------------------
 
 /**
@@ -18,8 +20,13 @@ const manPass = process.env.REP_MAN_PASS;
  * Uses API login instead of UI login.
  */
 export const storeStorageState = async (role, isApi = false) => {
-  const email = role === "employee" ? empEmail : manEmail;
-  const password = role === "employee" ? empPass : manPass;
+  const credentialsMap = {
+    employee: { email: empEmail, password: empPass },
+    manager: { email: manEmail, password: manPass },
+    admin: { email: adminEmail, password: adminPass },
+  };
+
+  const { email, password } = credentialsMap[role];
 
   const requestContext = await request.newContext({ baseURL });
 
