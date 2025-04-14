@@ -108,10 +108,10 @@ const ResourceTeamView = () => {
   const updateHorizontalData = useCallback(
     (horizontalPreProcessData: PreProcessDataProps, data: ResourceTeamDataProps | null, dates: DateProps[]) => {
       if (horizontalPreProcessData) {
-        let updatedTeamData = Object.assign({}, teamData);
+        let updatedTeamData = teamData;
 
         if (data) {
-          updatedTeamData = Object.assign({}, data);
+          updatedTeamData = data;
         }
 
         updatedTeamData.customer = { ...updatedTeamData.customer, ...horizontalPreProcessData.customer };
@@ -122,7 +122,7 @@ const ResourceTeamView = () => {
         for (let count = 0; count < horizontalPreProcessData.data.length; count++) {
           const dataIndex = start + count;
 
-          const updateEmployeeData = Object.assign({}, updateDate[dataIndex]);
+          const updateEmployeeData = updateDate[dataIndex];
 
           updateEmployeeData.all_dates_data = {
             ...updateEmployeeData.all_dates_data,
