@@ -4,7 +4,7 @@
 
 from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
 from frappe import _, get_all, get_doc
-from frappe.utils import add_days, flt, get_date_str, getdate, month_diff
+from frappe.utils import add_days, flt, getdate, month_diff
 
 from next_pms.resource_management.api.utils.helpers import is_on_leave
 from next_pms.resource_management.api.utils.query import get_employee_leaves
@@ -19,15 +19,21 @@ def execute(filters=None):
 
 def get_data(filters):
     employees = get_employees(designation=filters.get("designation"))
-    employee_names = [employee.get("employee") for employee in employees]
+    employee_names = [employee.employee for employee in employees]
     time_entries = get_employee_time(filters.get("from"), filters.get("to"), employee_names)
     for employee in employees:
-        employee_time_entry = time_entries.get(employee["employee"])
+        employee_time_entry = time_entries.get(employee.employee)
 
-        capacity_hours = get_employee_total_hours(employee["employee"], filters.get("from"), filters.get("to"))
+        capacity_hours = get_employee_total_hours(employee, filters.get("from"), filters.get("to"))
         billable_hours = employee_time_entry.get("billable_hours", 0)
         valuable_hours = employee_time_entry.get("valuable_hours", 0)
-        number_of_years = year_diff(getdate(), employee["date_of_joining"])
+
+        if employee.has_work_history:
+            work_history = employee.work_history[0]
+            number_of_years = year_diff(getdate(), work_history.get("from_date"))
+        else:
+            number_of_years = year_diff(getdate(), employee.date_of_joining)
+
         employee["number_of_years"] = number_of_years
         employee["capacity_hours"] = capacity_hours
         employee["billable_hours"] = billable_hours
@@ -55,12 +61,17 @@ def get_employees(designation=None):
     designation_filter = {}
     if designation:
         designation_filter = {"designation": ["in", designation]}
-    return get_all(
+    employees = get_all(
         "Employee",
         filters={"status": "Active", **designation_filter},
         fields=["name as employee", "employee_name", "date_of_joining"],
         order_by="employee_name ASC",
     )
+    for employee in employees:
+        work_hostory = get_employee_work_history(employee.employee)
+        employee["work_history"] = sorted(work_hostory, key=lambda x: x.get("from_date"), reverse=False)
+        employee["has_work_history"] = True if work_hostory else False
+    return employees
 
 
 def year_diff(string_ed_date, string_st_date):
@@ -68,20 +79,26 @@ def year_diff(string_ed_date, string_st_date):
     return month / 12
 
 
-def get_employee_total_hours(employee: str, start_date: str, end_date: str):
+def get_employee_total_hours(employee, start_date: str, end_date: str):
     total_hours = 0
 
     start_date = getdate(start_date)
     end_date = getdate(end_date)
+    employee_joining_date = employee.date_of_joining
+    if employee.has_work_history:
+        employee_joining_date = employee.work_history[0].get("from_date")
 
-    daily_hours = get_employee_daily_working_norm(employee)
+    daily_hours = get_employee_daily_working_norm(employee.employee)
 
-    holiday_list_name = get_holiday_list_for_employee(employee)
+    holiday_list_name = get_holiday_list_for_employee(employee.employee)
     holidays = get_doc("Holiday List", holiday_list_name).holidays
 
-    leaves = get_employee_leaves(employee, get_date_str(start_date), get_date_str(end_date))
+    leaves = get_employee_leaves(employee.employee, start_date, end_date)
 
     while start_date <= end_date:
+        if start_date < employee_joining_date:
+            start_date = add_days(start_date, 1)
+            continue
         data = is_on_leave(start_date, daily_hours, leaves, holidays)
         if not data.get("on_leave"):
             total_hours += daily_hours
@@ -123,3 +140,9 @@ def get_deficit(capacity_hours, billable_hours, years):
         threshold = 0.4
 
     return (capacity_hours * threshold) - billable_hours
+
+
+def get_employee_work_history(employee: str):
+    return get_all(
+        "Employee Internal Work History", filters={"parent": employee, "parenttype": "Employee"}, fields=["*"]
+    )
