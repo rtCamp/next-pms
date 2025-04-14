@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { RefObject } from "react";
+import { RefObject, useMemo } from "react";
 import { getTodayDate } from "@next-pms/design-system";
 import { Avatar, AvatarFallback, AvatarImage } from "@next-pms/design-system/components";
 import { TableInformationCellContent } from "@next-pms/resource-management/components";
@@ -46,18 +46,19 @@ const ResourceTimeLineGroup = ({ group }: ResourceTimeLineGroupProps) => {
       name: "",
     });
   };
+  const cellComponent = useMemo(() => {
+    return () => (
+      <Avatar className="w-6 h-6 hover:none">
+        {group.image && <AvatarImage src={decodeURIComponent(group.image)} />}
+        <AvatarFallback>{group.employee_name && group.employee_name[0]}</AvatarFallback>
+      </Avatar>
+    );
+  }, [group.image, group.employee_name]);
 
   return (
     <TableInformationCellContent
       cellClassName="overflow-hidden flex items-center font-normal bg-none"
-      CellComponet={() => {
-        return (
-          <Avatar className="w-6 h-6 hover:none">
-            {group.image && <AvatarImage src={decodeURIComponent(group.image)} />}
-            <AvatarFallback>{group.employee_name && group.employee_name[0]}</AvatarFallback>
-          </Avatar>
-        );
-      }}
+      CellComponent={cellComponent}
       value={group.employee_name}
       cellRef={lastEmployee ? (verticalLoderRef as unknown as RefObject<HTMLTableCellElement>) : undefined}
       onClick={setResourceAllocationData}

@@ -3,22 +3,33 @@ from functools import wraps
 
 import frappe
 
+from next_pms.timesheet.utils.constant import EMP_WOKING_DETAILS
+
 
 @frappe.whitelist()
 def get_data():
     employee = get_employee_from_user()
+    doc = frappe.get_cached_doc("Employee", employee)
+    working_hour = doc.custom_working_hours
+    working_frequency = doc.custom_work_schedule or "Per Day"
+
     return {
         "employee": employee,
-        "employee_name": frappe.db.get_value("Employee", employee, "employee_name"),
-        "employee_working_detail": get_employee_working_hours(employee),
-        "employee_report_to": frappe.db.get_value("Employee", employee, "reports_to"),
+        "employee_name": doc.employee_name,
+        "employee_working_detail": get_employee_working_hours(employee)
+        if not working_hour
+        else {"working_hour": working_hour or 8, "working_frequency": working_frequency},
+        "employee_report_to": doc.reports_to,
     }
 
 
 @frappe.whitelist()
-def get_employee_from_user(user=None):
+def get_employee_from_user(user=None, throw_exception=False):
     user = frappe.session.user
-    return frappe.db.get_value("Employee", {"user_id": user})
+    employee = frappe.db.get_value("Employee", {"user_id": user})
+    if not employee and throw_exception:
+        frappe.throw(frappe._("No employee found for {0}.").format(user), frappe.DoesNotExistError)
+    return employee
 
 
 def get_user_from_employee(employee: str):
@@ -31,6 +42,11 @@ def get_employee_working_hours(employee: str = None):
         employee = get_employee_from_user()
     if not employee:
         return {"working_hour": 0, "working_frequency": "Per Day"}
+
+    data = frappe.cache().hget(EMP_WOKING_DETAILS, employee)
+    if data:
+        return data
+
     working_hour, working_frequency = frappe.get_value(
         "Employee",
         employee,
@@ -40,7 +56,9 @@ def get_employee_working_hours(employee: str = None):
         working_hour = frappe.db.get_single_value("HR Settings", "standard_working_hours")
     if not working_frequency:
         working_frequency = "Per Day"
-    return {"working_hour": working_hour or 8, "working_frequency": working_frequency}
+    data = {"working_hour": working_hour or 8, "working_frequency": working_frequency}
+    frappe.cache().hset(EMP_WOKING_DETAILS, employee, data)
+    return data
 
 
 def get_employee_daily_working_norm(employee: str) -> int:
@@ -145,8 +163,9 @@ def validate_current_employee(ptype: str = "read"):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            employee = kwargs.get("employee") or (args[0] if args else None)
-
+            employee = kwargs.get("employee", None)
+            if frappe.session.user == "Administrator":
+                return func(*args, **kwargs)
             if not employee_has_higher_access(employee, ptype):
                 frappe.throw(frappe._("You are not authorized to perform this action."), frappe.PermissionError)
             return func(*args, **kwargs)
