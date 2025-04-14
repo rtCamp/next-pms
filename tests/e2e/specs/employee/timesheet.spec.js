@@ -283,7 +283,7 @@ test("TC90: Billing rate to be three times costing rate", async ({}) => {
   const total_billable_amount = TC90data.payloadCalculateBillingRate.total_billable_amount;
   const custom_default_hourly_billing_rate = TC90data.payloadCalculateBillingRate.total_costing_amount;
   expect(total_billable_amount, "Billing rate to be three times the costing rate").toBeCloseTo(
-    3 * custom_default_hourly_billing_rate, 1
+    3 * custom_default_hourly_billing_rate,
+    1
   );
-
 });
