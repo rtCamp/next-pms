@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs";
 import { getWeekdayName, getFormattedDate, getDateForWeekday } from "../utils/dateUtils";
-import { createTimesheet, getTimesheetDetails, deleteTimesheet } from "../utils/api/timesheetRequests";
+import { createTimesheet, getTimesheetDetails, deleteTimesheet, deleteTimesheetbyID } from "../utils/api/timesheetRequests";
 import employeeTimesheetData from "../data/employee/timesheet.json";
 import managerTeamData from "../data/manager/team.json";
 import managerTaskData from "../data/manager/task.json";
@@ -10,6 +10,7 @@ import { createProject, deleteProject, getProjectDetails } from "../utils/api/pr
 import { createTask, deleteTask, likeTask } from "../utils/api/taskRequests";
 import { getExchangeRate } from "../utils/api/erpNextRequests";
 import { getEmployeeDetails } from "../utils/api/employeeRequests";
+import { filterApi } from "../utils/api/frappeRequests";
 
 // Load env variables
 const empID = process.env.EMP_ID;
@@ -507,4 +508,101 @@ export const calculateHourlyBilling = async () => {
   await hourly_billing_rate_for_project(employeeTimesheetData, employeeTimesheetIDs);
 
   await writeDataToFile(employeeTimesheetDataFilePath, employeeTimesheetData);
+};
+
+export const cleanUpProjects = async (data) => {
+  const deletedData = [];
+
+  for (const key in data) {
+    const tc = data[key];
+
+    // Check if payloadCreateProject exists and project_name is valid
+    if (!tc.payloadCreateProject || !tc.payloadCreateProject.project_name) continue;
+
+    const projectName = tc.payloadCreateProject.project_name;
+
+    // Get Project ID
+    const projectRes = await filterApi('Project', 'Project', "project_name", projectName);
+    console.warn(`PROJECT RESPONSE for ${key} is ; `, projectRes);
+    const projectId = projectRes?.message?.values?.[0]?.[0];
+    console.warn(`Obtained ProjectId value for ${key} is       ; `, projectId);
+
+    if (!projectId) continue;
+
+    // Get Task IDs
+    const taskRes = await filterApi('Task', 'Task', 'project', projectId);
+    console.warn(`TASK RESPONSE for ${key} is ; `, taskRes);
+
+    const taskRaw = taskRes?.message?.values;
+    let taskIds = [];
+
+    if (Array.isArray(taskRaw)) {
+      taskIds = taskRaw.map(v => v[0]);
+    } else {
+      console.warn(`No tasks found for project ${key}. Skipping task deletion.`);
+    }
+
+    console.warn(`OBTAINED TASK for ${key} is: `, taskIds);
+
+    // Get Timesheet IDs
+    const timesheetRes = await filterApi('Timesheet', 'Timesheet', 'parent_project', projectId);
+    console.warn(`TMESHEET RESPONSE for ${key} is ; `, timesheetRes);
+
+    const valuesRaw = timesheetRes?.message?.values;
+    console.warn(`Actual values for ${key}:`, valuesRaw);
+    console.warn(`Type of values:`, typeof valuesRaw);
+    console.warn(`Is Array:`, Array.isArray(valuesRaw));
+
+    const timesheetValues = timesheetRes?.message?.values || [];
+    console.warn(`OBTAINED TIMESHEET ID FOR ${key} is ; `, timesheetValues);
+
+    let timesheetIds = [];
+
+    if (Array.isArray(valuesRaw)) {
+      timesheetIds = valuesRaw.map(v => v[0]);
+    } else {
+      console.warn(`No timesheets found for project ${key}. Skipping timesheet deletion.`);
+    }
+
+    console.warn(`OBTAINED TIMESHEET ID FOR ${key} is ; `, timesheetIds);
+
+    // Store collected info
+    deletedData.push({
+      projectId,
+      timesheetIds,
+      taskIds
+    });
+
+    // Delete Timesheets
+    for (const timesheetId of timesheetIds) {
+      await deleteTimesheetbyID(timesheetId);
+    }
+
+    // Delete Tasks
+    for (const taskId of taskIds) {
+      await deleteTask(taskId);
+    }
+
+    // Delete Project
+    if (projectId) {
+      await deleteProject(projectId);
+    }
+  }
+
+  console.log('Cleanup complete. Deleted data:', deletedData);
+  return deletedData;
+};
+
+export const readAndCleanAllOrphanData = async () => {
+  const employeeData = await readJSONFile("../data/employee/timesheet.json");
+  const managerTask = await readJSONFile("../data/manager/task.json");
+  const managerTeam = await readJSONFile("../data/manager/team.json");
+
+  const mergedData = {
+    ...employeeData,
+    ...managerTask,
+    ...managerTeam,
+  };
+
+  await cleanUpProjects(mergedData);
 };

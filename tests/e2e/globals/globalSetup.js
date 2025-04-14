@@ -4,6 +4,7 @@ import {
   createProjectForTestCases,
   createTaskForTestCases,
   calculateHourlyBilling,
+  readAndCleanAllOrphanData,
 } from "../helpers/timesheetHelper";
 import { storeStorageState } from "../helpers/storageStateHelper";
 import { updateLeaveEntries } from "../helpers/leaveHelper";
@@ -27,6 +28,8 @@ const globalSetup = async () => {
     storeStorageState("manager", true),
     storeStorageState("admin", true),
   ]);
+  // 1.1 Clean up Orphan Data
+  await readAndCleanAllOrphanData();
 
   // 2. Use API roles to create data
   await updateTimeEntries();
