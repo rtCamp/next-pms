@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useMemo } from "react";
+import { useMemo, useCallback, memo } from "react";
 import { prettyDate } from "@next-pms/design-system/date";
 import { ResourceTableCell } from "@next-pms/resource-management/components";
 import { getTableCellClass, getTodayDateCellClass, getCellBackGroundColor } from "@next-pms/resource-management/utils";
@@ -33,16 +33,7 @@ import { getIsBillableValue } from "../../../utils/helper";
  * @param props.onSubmit The on submit function used to handle soft update of allocation data.
  * @returns React.FC
  */
-const ResourceTeamTableCell = ({
-  employeeSingleDay,
-  weekData,
-  rowCount,
-  employee_name,
-  employee,
-  midIndex,
-  employeeAllocations,
-  onSubmit,
-}: {
+type ResourceTeamTableCellProps = {
   employeeSingleDay: EmployeeResourceProps;
   weekData: EmployeeAllWeekDataProps;
   rowCount: number;
@@ -51,7 +42,18 @@ const ResourceTeamTableCell = ({
   midIndex: number;
   employeeAllocations: ResourceAllocationObjectProps;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
-}) => {
+};
+
+const ResourceTeamTableCellComponent = ({
+  employeeSingleDay,
+  weekData,
+  rowCount,
+  employee_name,
+  employee,
+  midIndex,
+  employeeAllocations,
+  onSubmit,
+}: ResourceTeamTableCellProps) => {
   const { teamData, tableView, filters } = useContextSelector(TeamContext, (value) => value.state);
 
   const customer = teamData.customer;
@@ -64,16 +66,11 @@ const ResourceTeamTableCell = ({
 
   const allocationPercentage = useMemo(() => {
     if (tableView.combineWeekHours) {
-      if (weekData.total_working_hours == 0) {
-        return -1;
-      }
+      if (weekData.total_working_hours === 0) return -1;
       return 100 - (weekData.total_allocated_hours / weekData.total_working_hours) * 100;
     }
 
-    if (employeeSingleDay.total_working_hours == 0) {
-      return -1;
-    }
-
+    if (employeeSingleDay.total_working_hours === 0) return -1;
     return 100 - (employeeSingleDay.total_allocated_hours / employeeSingleDay.total_working_hours) * 100;
   }, [
     employeeSingleDay.total_allocated_hours,
@@ -84,7 +81,27 @@ const ResourceTeamTableCell = ({
 
   const cellBackGroundColor = useMemo(() => getCellBackGroundColor(allocationPercentage), [allocationPercentage]);
 
-  if (tableView.combineWeekHours) {
+  const onCellClick = useCallback(() => {
+    updateDialogState({ isShowDialog: true, isNeedToEdit: false });
+    updateAllocationData({
+      employee,
+      employee_name,
+      allocation_start_date: employeeSingleDay.date,
+      allocation_end_date: employeeSingleDay.date,
+      is_billable: getIsBillableValue(allocationType as string[]) !== "0",
+      total_allocated_hours: "0",
+      hours_allocated_per_day: "0",
+      note: "",
+      project: "",
+      project_name: "",
+      customer: "",
+      customer_name: "",
+      name: "",
+    });
+  }, [allocationType, employee, employeeSingleDay.date, employee_name, updateAllocationData, updateDialogState]);
+
+  const combinedWeekCell = useMemo(() => {
+    if (!tableView.combineWeekHours) return null;
     return (
       <ResourceTableCell
         type="default"
@@ -95,35 +112,27 @@ const ResourceTeamTableCell = ({
           getTodayDateCellClass(employeeSingleDay.date)
         )}
         value={
-          rowCount == 2 &&
-          (tableView.view == "planned-vs-capacity"
+          rowCount === 2 &&
+          (tableView.view === "planned-vs-capacity"
             ? `${weekData.total_allocated_hours} / ${weekData.total_working_hours}`
             : `${weekData.total_worked_hours} / ${weekData.total_allocated_hours}`)
         }
       />
     );
-  }
+  }, [
+    tableView.combineWeekHours,
+    title,
+    rowCount,
+    midIndex,
+    cellBackGroundColor,
+    employeeSingleDay.date,
+    tableView.view,
+    weekData,
+  ]);
 
-  const onCellClick = () => {
-    updateDialogState({ isShowDialog: true, isNeedToEdit: false });
-    updateAllocationData({
-      employee: employee,
-      employee_name: employee_name,
-      allocation_start_date: employeeSingleDay.date,
-      allocation_end_date: employeeSingleDay.date,
-      is_billable: getIsBillableValue(allocationType as string[]) != "0",
-      total_allocated_hours: "0",
-      hours_allocated_per_day: "0",
-      note: "",
-      project: "",
-      project_name: "",
-      customer: "",
-      customer_name: "",
-      name: "",
-    });
-  };
-
-  if (!tableView.combineWeekHours && !employeeSingleDay.is_on_leave && employeeSingleDay.total_allocated_hours == 0) {
+  const emptyDayCell = useMemo(() => {
+    if (tableView.combineWeekHours || employeeSingleDay.is_on_leave || employeeSingleDay.total_allocated_hours !== 0)
+      return null;
     return (
       <EmptyTableCell
         title={title}
@@ -133,12 +142,22 @@ const ResourceTeamTableCell = ({
           getTodayDateCellClass(employeeSingleDay.date)
         )}
         onCellClick={onCellClick}
-        value={""}
       />
     );
-  }
+  }, [
+    tableView.combineWeekHours,
+    employeeSingleDay.is_on_leave,
+    employeeSingleDay.total_allocated_hours,
+    title,
+    rowCount,
+    midIndex,
+    cellBackGroundColor,
+    employeeSingleDay.date,
+    onCellClick,
+  ]);
 
-  if (!tableView.combineWeekHours && employeeSingleDay.is_on_leave) {
+  const leaveDayCell = useMemo(() => {
+    if (tableView.combineWeekHours || !employeeSingleDay.is_on_leave) return null;
     return (
       <ResourceTableCell
         type="default"
@@ -151,24 +170,34 @@ const ResourceTeamTableCell = ({
         value={employeeSingleDay.total_leave_hours}
       />
     );
-  }
+  }, [
+    tableView.combineWeekHours,
+    employeeSingleDay.is_on_leave,
+    title,
+    rowCount,
+    cellBackGroundColor,
+    employeeSingleDay.date,
+    employeeSingleDay.total_leave_hours,
+  ]);
 
-  return (
-    <ResourceTableCell
-      type="hovercard"
-      title={title}
-      cellClassName={mergeClassNames(
-        getTableCellClass(rowCount, midIndex),
-        cellBackGroundColor,
-        getTodayDateCellClass(employeeSingleDay.date)
-      )}
-      value={
-        tableView.view == "planned-vs-capacity"
-          ? employeeSingleDay.total_allocated_hours
-          : `${employeeSingleDay.total_worked_hours} / ${employeeSingleDay.total_allocated_hours}`
-      }
-      CustomHoverCardContent={() => {
-        return (
+  const hoverCardCell = useMemo(() => {
+    if (tableView.combineWeekHours || employeeSingleDay.is_on_leave || employeeSingleDay.total_allocated_hours === 0)
+      return null;
+    return (
+      <ResourceTableCell
+        type="hovercard"
+        title={title}
+        cellClassName={mergeClassNames(
+          getTableCellClass(rowCount, midIndex),
+          cellBackGroundColor,
+          getTodayDateCellClass(employeeSingleDay.date)
+        )}
+        value={
+          tableView.view === "planned-vs-capacity"
+            ? employeeSingleDay.total_allocated_hours
+            : `${employeeSingleDay.total_worked_hours} / ${employeeSingleDay.total_allocated_hours}`
+        }
+        CustomHoverCardContent={() => (
           <ResourceAllocationList
             resourceAllocationList={
               employeeSingleDay.employee_resource_allocation_for_given_date as unknown as ResourceAllocationProps[]
@@ -178,10 +207,24 @@ const ResourceTeamTableCell = ({
             onButtonClick={onCellClick}
             onSubmit={onSubmit}
           />
-        );
-      }}
-    />
-  );
-};
+        )}
+      />
+    );
+  }, [
+    tableView.combineWeekHours,
+    tableView.view,
+    employeeSingleDay,
+    title,
+    rowCount,
+    midIndex,
+    cellBackGroundColor,
+    onCellClick,
+    employeeAllocations,
+    customer,
+    onSubmit,
+  ]);
 
+  return combinedWeekCell || emptyDayCell || leaveDayCell || hoverCardCell;
+};
+const ResourceTeamTableCell = memo(ResourceTeamTableCellComponent);
 export { ResourceTeamTableCell };

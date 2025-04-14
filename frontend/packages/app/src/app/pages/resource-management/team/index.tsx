@@ -305,7 +305,7 @@ const ResourceTeamView = () => {
     next: () => handleHorizontalLoadMore(),
   });
 
-  const handleHorizontalLoadMore = () => {
+  const handleHorizontalLoadMore = useCallback(() => {
     if (apiController.isLoading) return;
     setMaxWeek(filters.maxWeek + 5);
 
@@ -316,7 +316,15 @@ const ResourceTeamView = () => {
     } else {
       addHorizontalPreProcessData(true, null, teamData.dates);
     }
-  };
+  }, [
+    apiController.isLoading,
+    filters.maxWeek,
+    filters.weekDate,
+    setMaxWeek,
+    setDates,
+    addHorizontalPreProcessData,
+    teamData.dates,
+  ]);
 
   useEffect(() => {
     if (apiController.isNeedToFetchDataAfterUpdate) {
