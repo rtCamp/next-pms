@@ -4,7 +4,7 @@
 
 from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
 from frappe import _, get_all, get_doc
-from frappe.utils import add_days, flt, getdate, month_diff
+from frappe.utils import add_days, flt, get_date_str, getdate, month_diff
 
 from next_pms.resource_management.api.utils.helpers import is_on_leave
 from next_pms.resource_management.api.utils.query import get_employee_leaves
@@ -93,7 +93,7 @@ def get_employee_total_hours(employee, start_date: str, end_date: str):
     holiday_list_name = get_holiday_list_for_employee(employee.employee)
     holidays = get_doc("Holiday List", holiday_list_name).holidays
 
-    leaves = get_employee_leaves(employee.employee, start_date, end_date)
+    leaves = get_employee_leaves(employee.employee, get_date_str(start_date), get_date_str(end_date))
 
     while start_date <= end_date:
         if start_date < employee_joining_date:
