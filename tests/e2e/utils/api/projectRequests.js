@@ -23,6 +23,7 @@ export const createProject = async ({
   estimated_costing,
   custom_project_billing_team,
   project_type,
+  custom_default_hourly_billing_rate
 }) => {
   const ctx = await ensureAuth();
   const response = await ctx.post(`/api/resource/Project`, {
@@ -36,6 +37,7 @@ export const createProject = async ({
       ...(custom_billing_type !== undefined && { custom_billing_type }),
       ...(estimated_costing !== undefined && { estimated_costing }),
       ...(custom_project_billing_team !== undefined && { custom_project_billing_team }),
+      ...(custom_default_hourly_billing_rate !== undefined && { custom_default_hourly_billing_rate }),
     },
   });
   return await response;

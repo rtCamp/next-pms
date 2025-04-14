@@ -19,7 +19,12 @@ let TC15data = data.TC15;
 let TC82data = data.TC82;
 let TC83data = data.TC83;
 let TC84data = data.TC84;
+let TC85data = data.TC85;
 let TC86data = data.TC86;
+let TC87data = data.TC87;
+let TC88data = data.TC88;
+let TC89data = data.TC89;
+let TC90data = data.TC90;
 // ------------------------------------------------------------------------------------------
 
 test.beforeEach(async ({ page }) => {
@@ -226,8 +231,8 @@ test("TC84: Verify hourly consulting rate when no default billing rate is used f
 
 test("TC85: Verify hourly consulting rate when the currency for employee and project are different ", async ({}) => {
   //Assertions
-  const projectCostAmount = TC84data.payloadCalculateBillingRate.total_costing_amount;
-  const employeeHourlyBillingRate = TC84data.payloadCalculateBillingRate.hourly_billing_rate;
+  const projectCostAmount = TC85data.payloadCalculateBillingRate.total_costing_amount;
+  const employeeHourlyBillingRate = TC85data.payloadCalculateBillingRate.hourly_billing_rate;
 
   expect(
     projectCostAmount,
@@ -243,4 +248,42 @@ test("TC86: Billing rate in the timesheet should match the employee's rate from 
     total_billable_amount,
     "Verify the billing rate for the employee should match the value provided in project billing team child table"
   ).toEqual(hourly_billing_rate);
+});
+
+test("TC87: Verify Default Hourly Billing Rate for Fixed Cost project", async ({}) => {
+  //Assertions
+  const total_billable_amount = TC87data.payloadCalculateBillingRate.total_billable_amount;
+  const custom_default_hourly_billing_rate = TC87data.payloadCreateProject.custom_default_hourly_billing_rate;
+  expect(total_billable_amount, "Verify Default Hourly Billing Rate is considered for Fixed Cost project").toEqual(
+    custom_default_hourly_billing_rate
+  );
+});
+
+test("TC88: Verify Default Hourly Billing Rate for Retainer project", async ({}) => {
+  //Assertions
+  const total_billable_amount = TC88data.payloadCalculateBillingRate.total_billable_amount;
+  const custom_default_hourly_billing_rate = TC88data.payloadCreateProject.custom_default_hourly_billing_rate;
+  expect(total_billable_amount, "Verify Default Hourly Billing Rate is considered for Retainer project").toEqual(
+    custom_default_hourly_billing_rate
+  );
+});
+
+test("TC89: Verify Default Hourly Billing Rate for Time and Material project", async ({}) => {
+  //Assertions
+  const total_billable_amount = TC89data.payloadCalculateBillingRate.total_billable_amount;
+  const custom_default_hourly_billing_rate = TC89data.payloadCreateProject.custom_default_hourly_billing_rate;
+  expect(
+    total_billable_amount,
+    "Verify Default Hourly Billing Rate is considered for Time and Material project"
+  ).toEqual(custom_default_hourly_billing_rate);
+});
+
+test.only("TC90: Billing rate to be three times costing rate", async ({}) => {
+  //Assertions
+  const total_billable_amount = TC90data.payloadCalculateBillingRate.total_billable_amount;
+  const custom_default_hourly_billing_rate = TC90data.payloadCalculateBillingRate.total_costing_amount;
+  expect(total_billable_amount, "Billing rate to be three times the costing rate").toBeCloseTo(
+    3 * custom_default_hourly_billing_rate, 1
+  );
+
 });

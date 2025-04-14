@@ -50,6 +50,10 @@ export const updateTimeEntries = async () => {
     "TC84",
     "TC85",
     "TC86",
+    "TC87",
+    "TC88",
+    "TC89",
+    "TC90",
   ];
   const managerTeamIDs = ["TC47", "TC49", "TC50"];
 
@@ -112,6 +116,10 @@ export const createTimeEntries = async () => {
     sharedEmployeeTimesheetData.TC84.payloadCreateTimesheet,
     sharedEmployeeTimesheetData.TC85.payloadCreateTimesheet,
     sharedEmployeeTimesheetData.TC86.payloadCreateTimesheet,
+    sharedEmployeeTimesheetData.TC87.payloadCreateTimesheet,
+    sharedEmployeeTimesheetData.TC88.payloadCreateTimesheet,
+    sharedEmployeeTimesheetData.TC89.payloadCreateTimesheet,
+    sharedEmployeeTimesheetData.TC90.payloadCreateTimesheet,
     sharedManagerTeamData.TC47.payloadCreateTimesheet,
     sharedManagerTeamData.TC49.payloadCreateTimesheet,
     sharedManagerTeamData.TC50.payloadCreateTimesheet,
@@ -151,6 +159,10 @@ export const deleteTimeEntries = async () => {
     sharedEmployeeTimesheetData.TC84.payloadFilterTimeEntry,
     sharedEmployeeTimesheetData.TC85.payloadFilterTimeEntry,
     sharedEmployeeTimesheetData.TC86.payloadFilterTimeEntry,
+    sharedEmployeeTimesheetData.TC87.payloadFilterTimeEntry,
+    sharedEmployeeTimesheetData.TC88.payloadFilterTimeEntry,
+    sharedEmployeeTimesheetData.TC89.payloadFilterTimeEntry,
+    sharedEmployeeTimesheetData.TC90.payloadFilterTimeEntry,
     sharedManagerTeamData.TC47.payloadFilterTimeEntry,
     sharedManagerTeamData.TC49.payloadFilterTimeEntry,
     sharedManagerTeamData.TC50.payloadFilterTimeEntry,
@@ -219,6 +231,10 @@ export const createProjectForTestCases = async () => {
     "TC84",
     "TC85",
     "TC86",
+    "TC87",
+    "TC88",
+    "TC89",
+    "TC90",
   ];
   const managerTaskIDs = ["TC25", "TC26", "TC17", "TC19"];
 
@@ -290,6 +306,10 @@ export const deleteProjects = async () => {
     sharedEmployeeTimesheetData.TC84.payloadDeleteProject.projectId,
     sharedEmployeeTimesheetData.TC85.payloadDeleteProject.projectId,
     sharedEmployeeTimesheetData.TC86.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC87.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC88.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC89.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC90.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC17.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC19.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC25.payloadDeleteProject.projectId,
@@ -325,6 +345,10 @@ export const createTaskForTestCases = async () => {
     "TC84",
     "TC85",
     "TC86",
+    "TC87",
+    "TC88",
+    "TC89",
+    "TC90",
   ];
 
   const managerTaskIDs = ["TC25", "TC26", "TC17", "TC19"];
@@ -412,6 +436,10 @@ export const deleteTasks = async () => {
     sharedEmployeeTimesheetData.TC84.payloadDeleteTask.taskID,
     sharedEmployeeTimesheetData.TC85.payloadDeleteTask.taskID,
     sharedEmployeeTimesheetData.TC86.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC87.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC88.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC89.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC90.payloadDeleteTask.taskID,
     sharedManagerTaskData.TC25.payloadDeleteTask.taskID,
     sharedManagerTaskData.TC26.payloadDeleteTask.taskID,
     sharedManagerTaskData.TC17.payloadDeleteTask.taskID,
@@ -431,7 +459,7 @@ export const deleteTasks = async () => {
  * Calculates hourly billing rate of employee and billing rate of a project
  */
 export const calculateHourlyBilling = async () => {
-  const employeeTimesheetIDs = ["TC82", "TC83", "TC84", "TC85", "TC86"];
+  const employeeTimesheetIDs = ["TC82", "TC83", "TC84", "TC85", "TC86", "TC87", "TC88", "TC89", "TC90"];
   let monthly_billing_rate;
   let hourly_billing_rate;
   let employee_currency, project_currency, employee_CTC, convertedCTC;
