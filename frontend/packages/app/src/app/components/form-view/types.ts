@@ -8,6 +8,11 @@ export type Field = {
   description?: string | null;
   fieldname: string;
   depends_on: string;
+  link?: {
+    doctype: string;
+    name: string;
+    route: string;
+  };
 };
 
 export type Section = {
