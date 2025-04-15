@@ -203,7 +203,7 @@ const getFieldComponent = (
           value={value}
           onChange={(e) => handleChange(e.target.value)}
           disabled={isReadOnly}
-          className="text-sm"
+          className="text-sm focus-visible:!ring-0"
         />
       );
     case "Float":
@@ -215,7 +215,7 @@ const getFieldComponent = (
           value={Number(value)}
           onChange={(e) => handleChange(parseFloat(e.target.value) || 0)}
           disabled={isReadOnly}
-          className="text-sm"
+          className="text-sm focus-visible:!ring-0"
         />
       );
     case "Currency":
@@ -235,7 +235,7 @@ const getFieldComponent = (
             value={Number(value)}
             onChange={(e) => handleChange(parseFloat(e.target.value) || 0)}
             disabled={isReadOnly}
-            className="!border-none rounded-none focus-visible:outline-none h-auto focus-visible:ring-0 !px-0 !py-0 text-sm"
+            className="!border-none rounded-none focus-visible:outline-none h-auto focus-visible:ring-0 !px-0 text-sm !py-1"
           />
         </div>
       );

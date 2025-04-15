@@ -18,7 +18,7 @@ type FieldRendererProps = {
   onSubmit?: (values: Record<string, string | number | null>) => void;
   readOnly?: boolean;
   currencySymbol?: string;
-  hideFields?: Array<string>;
+  fieldConfig?: Record<string, Record<string, boolean>>;
   className?: string;
 };
 
@@ -27,7 +27,7 @@ type FieldRendererProps = {
  * @description This component renders fields of the form-view section-wise, while respecting depends_on conditions.
  */
 const FieldRenderer = forwardRef(
-  ({ fields, onChange, onSubmit, readOnly, currencySymbol, hideFields, className }: FieldRendererProps, ref) => {
+  ({ fields, onChange, onSubmit, readOnly, currencySymbol, fieldConfig, className }: FieldRendererProps, ref) => {
     const { control, handleSubmit, reset } = useForm();
 
     useEffect(() => {
@@ -55,7 +55,7 @@ const FieldRenderer = forwardRef(
     let currentSection: Section = { title: "", left: [], right: [], isRight: false };
 
     fields?.forEach((field) => {
-      if (hideFields?.includes(field.fieldname)) {
+      if (fieldConfig?.[field.fieldname]?.hidden) {
         return;
       }
 

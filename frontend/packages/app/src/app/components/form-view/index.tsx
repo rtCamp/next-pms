@@ -22,7 +22,7 @@ type FormViewProps = {
   formRef: RefObject<{
     submitForm: () => void;
   }>;
-  hideFields?: Array<string>;
+  fieldConfig?: Record<string, Record<string, boolean>>;
 };
 
 /**
@@ -46,7 +46,7 @@ const FormView = ({
   tabBodyClassName,
   readOnly = false,
   formRef,
-  hideFields = [],
+  fieldConfig = {},
 }: FormViewProps) => {
   const [activeTab, setActiveTab] = useState(Object.keys(tabs ?? {})[0]);
 
@@ -86,7 +86,7 @@ const FormView = ({
                 onChange={onChange}
                 onSubmit={onSubmit}
                 currencySymbol={currencySymbol}
-                hideFields={hideFields}
+                fieldConfig={fieldConfig}
                 ref={formRef}
                 className={tabBodyClassName}
               />

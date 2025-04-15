@@ -78,7 +78,7 @@ const ProjectDetail = () => {
       });
     }
   }, [loading, updateError, toast, isCompleted, mutate]);
-
+  // {["naming_series", "department", "custom_project_documents_url", "3rd Partis"]}
   return (
     <>
       <ProjectDetailHeader
@@ -108,7 +108,17 @@ const ProjectDetail = () => {
             }}
             formRef={formRef}
             readOnly={!data?.message?.permissions?.includes("write")}
-            hideFields={["naming_series", "department", "custom_project_documents_url", "3rd Partis"]}
+            fieldConfig={{
+              naming_series: { hidden: true },
+              department: { hidden: true },
+              custom_project_documents_url: { hidden: true },
+              custom_3rd_parties: { hidden: true },
+              custom_project_detail: { hidden: true },
+              custom_project_manager: { hidden: true },
+              custom_engineering_manager: { hidden: true },
+              is_active: { hidden: true },
+              sales_order: { hidden: true },
+            }}
           />
         )}
       </Main>
