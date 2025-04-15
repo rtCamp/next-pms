@@ -73,13 +73,7 @@ const FieldRenderer = forwardRef(
         currentSection = { title: field.label || "", left: [], right: [], isRight: false };
       } else if (field.fieldtype === "Column Break") {
         currentSection.isRight = true;
-      } else if (
-        field.depends_on ||
-        (field.value !== null &&
-          field.value !== undefined &&
-          field.value !== "" &&
-          (field.value !== 0 || field.fieldtype === "Check"))
-      ) {
+      } else {
         if (currentSection.isRight) {
           currentSection.right.push(field);
         } else {

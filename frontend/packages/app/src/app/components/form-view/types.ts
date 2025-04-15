@@ -17,7 +17,4 @@ export type Section = {
   isRight: boolean;
 };
 
-export type FieldConfigType = Record<
-  string,
-  Record<"readOnly" | "hidden", boolean>
->;
+export type FieldConfigType = Record<string, Record<string, boolean>>;
