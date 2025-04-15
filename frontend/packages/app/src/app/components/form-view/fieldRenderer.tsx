@@ -10,7 +10,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@n
  */
 import { evaluateDependsOn, mapFieldsToObject, mergeClassNames } from "@/lib/utils";
 import RenderField from "./renderField";
-import { Field, Section } from "./types";
+import { Field, FieldConfigType, Section } from "./types";
 
 type FieldRendererProps = {
   fields: Field[];
@@ -18,7 +18,7 @@ type FieldRendererProps = {
   onSubmit?: (values: Record<string, string | number | null>) => void;
   readOnly?: boolean;
   currencySymbol?: string;
-  fieldConfig?: Record<string, Record<string, boolean>>;
+  fieldConfig?: FieldConfigType;
   className?: string;
 };
 
@@ -122,13 +122,15 @@ const FieldRenderer = forwardRef(
                     <div className="grid lg:grid-cols-2 gap-4">
                       {section.left.length > 0 && (
                         <div className="space-y-4">
-                          {section.left.map((field) => RenderField(field, control, onChange, readOnly, currencySymbol))}
+                          {section.left.map((field) =>
+                            RenderField(field, control, onChange, readOnly, currencySymbol, fieldConfig)
+                          )}
                         </div>
                       )}
                       {section.right.length > 0 && (
                         <div className="space-y-4">
                           {section.right.map((field) =>
-                            RenderField(field, control, onChange, readOnly, currencySymbol)
+                            RenderField(field, control, onChange, readOnly, currencySymbol, fieldConfig)
                           )}
                         </div>
                       )}
@@ -143,12 +145,16 @@ const FieldRenderer = forwardRef(
                   <div className="grid lg:grid-cols-2 gap-4">
                     {section.left.length > 0 && (
                       <div className="space-y-4">
-                        {section.left.map((field) => RenderField(field, control, onChange, readOnly, currencySymbol))}
+                        {section.left.map((field) =>
+                          RenderField(field, control, onChange, readOnly, currencySymbol, fieldConfig)
+                        )}
                       </div>
                     )}
                     {section.right.length > 0 && (
                       <div className="space-y-4">
-                        {section.right.map((field) => RenderField(field, control, onChange, readOnly, currencySymbol))}
+                        {section.right.map((field) =>
+                          RenderField(field, control, onChange, readOnly, currencySymbol, fieldConfig)
+                        )}
                       </div>
                     )}
                   </div>

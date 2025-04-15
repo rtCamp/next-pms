@@ -17,7 +17,7 @@ import {
  * Internal dependencies.
  */
 import { mergeClassNames } from "@/lib/utils";
-import { Field } from "./types";
+import { Field, FieldConfigType } from "./types";
 
 /**
  * RenderField Component
@@ -34,11 +34,13 @@ const RenderField = (
   control: any,
   onChange?: (values: Record<string, any>) => void,
   readOnly?: boolean,
-  currencySymbol?: string
+  currencySymbol?: string,
+  fieldConfig?: FieldConfigType
 ) => {
   if (!field.label) return null;
   const isRequired = field.reqd === 1 || field.reqd === "1";
-  const isReadOnly = readOnly || field.read_only === 1 || field.read_only === "1";
+  const isReadOnly =
+    readOnly || fieldConfig?.[field.fieldname]?.readOnly || field.read_only === 1 || field.read_only === "1";
 
   return (
     <div className="space-y-2 p-1" key={field.label}>

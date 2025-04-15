@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@next-pms/design-syste
  */
 import { mergeClassNames } from "@/lib/utils";
 import FieldRenderer from "./fieldRenderer";
-import { Field } from "./types";
+import { Field, FieldConfigType } from "./types";
 
 type FormViewProps = {
   tabs: Record<string, Array<Field>>;
@@ -22,7 +22,7 @@ type FormViewProps = {
   formRef: RefObject<{
     submitForm: () => void;
   }>;
-  fieldConfig?: Record<string, Record<string, boolean>>;
+  fieldConfig?: FieldConfigType;
 };
 
 /**
