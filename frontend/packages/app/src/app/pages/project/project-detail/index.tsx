@@ -105,7 +105,8 @@ const ProjectDetail = () => {
               }
             }}
             onSubmit={async (data) => {
-              await updateDoc("Project", projectId as string, data);
+              const sanitizedFormData = Object.fromEntries(Object.entries(data).filter(([, value]) => value !== ""));
+              await updateDoc("Project", projectId as string, sanitizedFormData);
             }}
             formRef={formRef}
             readOnly={!data?.message?.permissions?.includes("write")}

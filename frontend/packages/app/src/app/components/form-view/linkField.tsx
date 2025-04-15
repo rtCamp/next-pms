@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Typography,
   Popover,
@@ -34,12 +34,29 @@ const LinkField = ({ field, value, isReadOnly, onSelect }: LinkFieldProps) => {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState(value);
 
-  const [filteredOptions, setFilteredOptions] = useState<Array<Record<"name", string>>>([]);
+  useEffect(() => {
+    setInput(value);
+  }, [value]);
+
+  const didSelectRef = useRef(false);
+
+  const [filteredOptions, setFilteredOptions] = useState<Array<Record<"name" | "full_name", string>>>([]);
 
   const handleSelect = (val: string) => {
+    didSelectRef.current = true;
     setInput(val);
     onSelect?.(val);
     setOpen(false);
+  };
+
+  const handlePopoverOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      if (!didSelectRef.current) {
+        setInput(value);
+      }
+      didSelectRef.current = false;
+    }
+    setOpen(nextOpen);
   };
 
   if (isReadOnly) {
@@ -64,7 +81,7 @@ const LinkField = ({ field, value, isReadOnly, onSelect }: LinkFieldProps) => {
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handlePopoverOpenChange}>
       <PopoverTrigger asChild>
         <div
           className="group flex items-center gap-1 h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm cursor-text justify-between"
@@ -112,8 +129,8 @@ export default LinkField;
 interface LinkFieldOptionsProps {
   field: Field;
   input: string;
-  setFilteredOptions: React.Dispatch<React.SetStateAction<Array<Record<"name", string>>>>;
-  filteredOptions: Array<Record<"name", string>>;
+  setFilteredOptions: React.Dispatch<React.SetStateAction<Array<Record<"name" | "full_name", string>>>>;
+  filteredOptions: Array<Record<"name" | "full_name", string>>;
   onSelect: (val: string) => void;
 }
 
@@ -122,7 +139,7 @@ const LinkFieldOptions = ({ field, input, setFilteredOptions, filteredOptions, o
 
   const { data, isLoading, error } = useFrappeGetCall("frappe.client.get_list", {
     doctype: field.options,
-    fields: ["name"],
+    fields: ["name", ...(field.options === "User" ? ["full_name"] : [])],
     filters: [["name", "like", `%${input}%`]],
     limit_page_length: 20,
   });
@@ -155,8 +172,15 @@ const LinkFieldOptions = ({ field, input, setFilteredOptions, filteredOptions, o
   return (
     <>
       {filteredOptions.map((option) => (
-        <CommandItem className="cursor-pointer" key={option.name} onSelect={() => onSelect(option.name)}>
-          {option.name}
+        <CommandItem
+          className="cursor-pointer flex flex-col items-start"
+          key={option.name}
+          onSelect={() => onSelect(option.name)}
+        >
+          <Typography variant="p" className={option.full_name && "font-semibold"}>
+            {option.name}
+          </Typography>
+          {option.full_name && <Typography variant="p">{option.full_name}</Typography>}
         </CommandItem>
       ))}
     </>

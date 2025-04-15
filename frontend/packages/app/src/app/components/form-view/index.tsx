@@ -51,9 +51,9 @@ const FormView = ({
   const [activeTab, setActiveTab] = useState(Object.keys(tabs ?? {})[0]);
 
   return (
-    <div className="w-full py-2">
+    <div className="w-full">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full relative">
-        <div className="border-b sticky top-0 bg-white z-10 overflow-x-auto no-scrollbar px-2">
+        <div className="border-b pt-1 sticky top-0 bg-background z-10 overflow-x-auto no-scrollbar px-2">
           <TabsList
             className={mergeClassNames(
               "flex h-10 w-full justify-start rounded-none bg-transparent p-0",
