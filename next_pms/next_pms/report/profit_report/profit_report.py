@@ -26,7 +26,7 @@ def get_data(filters=None):
     start_date = getdate(filters.get("from_date"))
     end_date = getdate(filters.get("to_date"))
     employees = get_employees(
-        designation=filters.get("designation"), status=filters.get("status"), start_date=start_date, end_date=end_date
+        department=filters.get("department"), status=filters.get("status"), start_date=start_date, end_date=end_date
     )
     emp_names = [employee.employee for employee in employees]
 
@@ -126,10 +126,10 @@ def calculate_emp_total_hours(employee, start_date, end_date, daily_hours, emp_l
     return total_hours
 
 
-def get_employees(start_date, end_date, designation=None, status="Active"):
+def get_employees(start_date, end_date, department=None, status="Active"):
     filter = {"status": status}
-    if designation:
-        filter.update({"designation": ["in", designation]})
+    if department:
+        filter.update({"department": ["in", department]})
 
     if status == "Left":
         filter.update({"relieving_date": ["between", [start_date, end_date]]})
