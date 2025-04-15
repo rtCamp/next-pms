@@ -111,7 +111,7 @@ const RenderField = (
                 );
               }}
             />
-            <label className="text-sm">
+            <label htmlFor={field.fieldname} className="text-sm">
               {field.label} {isRequired && <span className="text-red-500">*</span>}
             </label>
           </div>
@@ -169,6 +169,7 @@ const getFieldComponent = (
       return (
         <Checkbox
           checked={!!value}
+          id={field.fieldname}
           onCheckedChange={(checked) => handleChange(checked ? 1 : 0)}
           disabled={isReadOnly}
           className="w-4 h-4"
