@@ -89,7 +89,7 @@ def get_doc_with_meta(doctype, docname):
         if df.fieldtype not in ["Section Break", "Column Break"] and df.fieldname not in permitted_fields:
             continue
 
-        if df.fieldtype in ["Table", "HTML", "HTML Editor", "Text Editor", "Link"]:
+        if df.fieldtype in ["Table", "HTML", "HTML Editor", "Text Editor"]:
             continue
 
         field_value = doc.get(df.fieldname)
@@ -97,25 +97,32 @@ def get_doc_with_meta(doctype, docname):
         if current_tab not in tab_fields:
             tab_fields[current_tab] = []
 
-        tab_fields[current_tab].append(
-            {
-                "label": df.label,
-                "fieldname": df.fieldname,
-                "fieldtype": df.fieldtype,
-                "description": getattr(df, "description", ""),
-                "value": field_value,
-                "creation": doc.creation,
-                "modified": doc.modified,
-                "options": getattr(df, "options", None),
-                "reqd": getattr(df, "reqd", 0),
-                "default": getattr(df, "default", None),
-                "read_only": getattr(df, "read_only", 0),
-                "hidden": getattr(df, "hidden", 0),
-                "precision": getattr(df, "precision", None),
-                "in_list_view": getattr(df, "in_list_view", 0),
-                "depends_on": getattr(df, "depends_on", None),
+        field_info = {
+            "label": df.label,
+            "fieldname": df.fieldname,
+            "fieldtype": df.fieldtype,
+            "description": getattr(df, "description", ""),
+            "value": field_value,
+            "creation": doc.creation,
+            "modified": doc.modified,
+            "options": getattr(df, "options", None),
+            "reqd": getattr(df, "reqd", 0),
+            "default": getattr(df, "default", None),
+            "read_only": getattr(df, "read_only", 0),
+            "hidden": getattr(df, "hidden", 0),
+            "precision": getattr(df, "precision", None),
+            "in_list_view": getattr(df, "in_list_view", 0),
+            "depends_on": getattr(df, "depends_on", None),
+        }
+
+        if df.fieldtype == "Link" and field_value:
+            field_info["link"] = {
+                "doctype": df.options,
+                "name": field_value,
+                "route": f"/app/{df.options.lower().replace(' ', '-').replace('_', '-')}/{field_value}",
             }
-        )
+
+        tab_fields[current_tab].append(field_info)
 
     return {"tabs": tab_fields, "permissions": permissions}
 

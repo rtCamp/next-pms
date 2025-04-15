@@ -253,6 +253,17 @@ const getFieldComponent = (
           className="text-sm"
         />
       );
+    case "Link":
+      return (
+        <div
+          className={mergeClassNames(
+            "flex items-center gap-1 h-10 w-full rounded-md border border-input bg-background px-3 py-2 ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm text-sm",
+            isReadOnly && "border-gray-100"
+          )}
+        >
+          <Typography className={mergeClassNames("shrink-0 ", isReadOnly && "text-gray-400")}>{value}</Typography>
+        </div>
+      );
     default:
       return (
         <Input
