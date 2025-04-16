@@ -17,12 +17,15 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  toast,
 } from "@next-pms/design-system/components";
+import { useFrappePostCall } from "frappe-react-sdk";
 import { Pencil, Trash2, Plus, NotepadText } from "lucide-react";
 
 /**
  * Internal dependencies.
  */
+import { parseFrappeErrorMsg } from "@/lib/utils";
 import { ChildRow, Field } from "../types";
 
 interface ChildTableProps {
@@ -31,39 +34,50 @@ interface ChildTableProps {
 
 const ChildTable = ({ field }: ChildTableProps) => {
   const [rows, setRows] = useState<ChildRow[]>((field?.value as ChildRow[]) || []);
-  const [selected, setSelected] = useState<number[]>([]);
+  const [selected, setSelected] = useState<Array<Record<string, string | number>>>([]);
   const [lastSelectedIdx, setLastSelectedIdx] = useState<number | null>(null);
   const [editingRow, setEditingRow] = useState<ChildRow | null>(null);
   const [editedValues, setEditedValues] = useState<Partial<ChildRow>>({});
+  const { call: deleteChildTableRows } = useFrappePostCall("next_pms.api.child_table_bulk_delete");
 
   const toggleSelectAll = () => {
-    if (selected.length === rows.length) setSelected([]);
-    else setSelected(rows.map((r) => r.idx));
+    if (selected.length === rows.length) {
+      setSelected([]);
+    } else {
+      setSelected(rows);
+    }
   };
 
-  const toggleSelectRow = (idx: number, e?: MouseEvent) => {
-    const currentIndex = rows.findIndex((r) => r.idx === idx);
-
+  const toggleSelectRow = (row: ChildRow, e?: MouseEvent) => {
     if (e?.shiftKey && lastSelectedIdx !== null) {
+      const currentIndex = rows.findIndex((r) => r.idx === row.idx);
       const lastIndex = rows.findIndex((r) => r.idx === lastSelectedIdx);
       const [start, end] = [Math.min(currentIndex, lastIndex), Math.max(currentIndex, lastIndex)];
 
-      const rangeToToggle = rows.slice(start, end + 1).map((r) => r.idx);
+      const rangeToToggle = rows.slice(start, end + 1);
 
-      const allSelected = rangeToToggle.every((id) => selected.includes(id));
+      const allSelected = rangeToToggle.every((r) => selected.includes(r));
 
       if (allSelected) {
         // Deselect the entire range
-        setSelected((prev) => prev.filter((id) => !rangeToToggle.includes(id)));
+        setSelected((prev) => prev.filter((r) => !rangeToToggle.includes(r)));
       } else {
         // Select missing ones in the range
         setSelected((prev) => Array.from(new Set([...prev, ...rangeToToggle])));
       }
     } else {
-      setSelected((prev) => (prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]));
+      setSelected((prev) => {
+        if (prev.some((r) => r.idx === row.idx)) {
+          // If row is already selected, remove it
+          return prev.filter((r) => r.idx !== row.idx);
+        } else {
+          // If row is not selected, add it
+          return [...prev, row];
+        }
+      });
     }
 
-    setLastSelectedIdx(idx);
+    setLastSelectedIdx(row.idx);
   };
 
   const handleAddRow = () => {
@@ -74,9 +88,30 @@ const ChildTable = ({ field }: ChildTableProps) => {
     setRows([...rows, newRow]);
   };
 
-  const handleDeleteSelected = () => {
-    setRows(rows.filter((r) => !selected.includes(r.idx)));
-    setSelected([]);
+  const handleDeleteSelected = async () => {
+    const data = selected.filter((row) => row.name).map((row) => row.name);
+
+    await deleteChildTableRows({
+      doctype: selected[0].parenttype,
+      parent_name: selected[0].parent,
+      child_fieldname: selected[0].parentfield,
+      child_names: data,
+    })
+      .then((res) => {
+        setRows(rows.filter((r) => !selected.some((s) => s.idx === r.idx)));
+        setSelected([]);
+        toast({
+          variant: "success",
+          description: res.message,
+        });
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          description: error,
+        });
+      });
   };
 
   const handleEdit = (row: ChildRow) => {
@@ -123,6 +158,7 @@ const ChildTable = ({ field }: ChildTableProps) => {
                       className="border-r dark:border-slate-700 px-2 py-1 text-left text-sm truncate font-normal"
                     >
                       {meta.label}
+                      {meta.reqd === 1 && <span className="text-red-400 ml-1">*</span>}
                     </TableHead>
                   );
                 })}
@@ -158,10 +194,10 @@ const ChildTable = ({ field }: ChildTableProps) => {
                 "
                     >
                       <Checkbox
-                        checked={selected.includes(row.idx)}
+                        checked={selected.some((r) => r.idx === row.idx)}
                         onClick={(e) => {
                           e.stopPropagation();
-                          toggleSelectRow(row.idx, e.nativeEvent as MouseEvent);
+                          toggleSelectRow(row, e.nativeEvent as MouseEvent);
                         }}
                       />
                     </div>
