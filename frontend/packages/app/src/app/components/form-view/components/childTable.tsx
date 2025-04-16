@@ -32,6 +32,7 @@ interface ChildTableProps {
 const ChildTable = ({ field }: ChildTableProps) => {
   const [rows, setRows] = useState<ChildRow[]>((field?.value as ChildRow[]) || []);
   const [selected, setSelected] = useState<number[]>([]);
+  const [lastSelectedIdx, setLastSelectedIdx] = useState<number | null>(null);
   const [editingRow, setEditingRow] = useState<ChildRow | null>(null);
   const [editedValues, setEditedValues] = useState<Partial<ChildRow>>({});
 
@@ -40,8 +41,29 @@ const ChildTable = ({ field }: ChildTableProps) => {
     else setSelected(rows.map((r) => r.idx));
   };
 
-  const toggleSelectRow = (idx: number) => {
-    setSelected((prev) => (prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]));
+  const toggleSelectRow = (idx: number, e?: MouseEvent) => {
+    const currentIndex = rows.findIndex((r) => r.idx === idx);
+
+    if (e?.shiftKey && lastSelectedIdx !== null) {
+      const lastIndex = rows.findIndex((r) => r.idx === lastSelectedIdx);
+      const [start, end] = [Math.min(currentIndex, lastIndex), Math.max(currentIndex, lastIndex)];
+
+      const rangeToToggle = rows.slice(start, end + 1).map((r) => r.idx);
+
+      const allSelected = rangeToToggle.every((id) => selected.includes(id));
+
+      if (allSelected) {
+        // Deselect the entire range
+        setSelected((prev) => prev.filter((id) => !rangeToToggle.includes(id)));
+      } else {
+        // Select missing ones in the range
+        setSelected((prev) => Array.from(new Set([...prev, ...rangeToToggle])));
+      }
+    } else {
+      setSelected((prev) => (prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]));
+    }
+
+    setLastSelectedIdx(idx);
   };
 
   const handleAddRow = () => {
@@ -135,7 +157,13 @@ const ChildTable = ({ field }: ChildTableProps) => {
                       className="w-full flex justify-center items-center
                 "
                     >
-                      <Checkbox checked={selected.includes(row.idx)} onCheckedChange={() => toggleSelectRow(row.idx)} />
+                      <Checkbox
+                        checked={selected.includes(row.idx)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleSelectRow(row.idx, e.nativeEvent as MouseEvent);
+                        }}
+                      />
                     </div>
                   </TableCell>
                   <TableCell className="text-center font-mono border-r px-2">{row.idx}</TableCell>
