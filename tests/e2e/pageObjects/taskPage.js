@@ -1,3 +1,5 @@
+import { expect } from "@playwright/test";
+
 /**
  * TaskPage class handles interactions with the task page.
  */
@@ -27,6 +29,9 @@ export class TaskPage {
 
     //Task Modal
     this.addTaskModal = page.getByRole("dialog", { name: "Add Task" });
+
+    //Task Like option
+    this.LikeSymbol = (task) => page.locator(`svg[data-task="${task}"]`);
   }
 
   // --------------------------------------
@@ -239,5 +244,12 @@ export class TaskPage {
     await this.searchAndSelectOption("Search Project", project);
     await this.addTaskModal.getByPlaceholder("Explain the subject").fill(desc);
     await this.addTaskModal.getByRole("button", { name: "Add Task" }).click();
+  }
+
+  /**
+   * Asserts that the task's heart icon is in the liked state (red).
+   */
+  async assertTaskIsLiked(task) {
+    await expect(this.LikeSymbol(task)).toHaveCSS("fill", "rgb(239, 68, 68)");
   }
 }

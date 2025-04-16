@@ -242,7 +242,7 @@ export const createProjectForTestCases = async () => {
     "TC89",
     "TC90",
   ];
-  const managerTaskIDs = ["TC24","TC25", "TC26", "TC17", "TC19"];
+  const managerTaskIDs = ["TC22", "TC24", "TC25", "TC26", "TC17", "TC19"];
 
   const managerTeamIDs = ["TC47", "TC49", "TC50"];
 
@@ -318,6 +318,7 @@ export const deleteProjects = async () => {
     sharedEmployeeTimesheetData.TC90.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC17.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC19.payloadDeleteProject.projectId,
+    sharedManagerTaskData.TC22.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC24.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC25.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC26.payloadDeleteProject.projectId,
@@ -358,7 +359,7 @@ export const createTaskForTestCases = async () => {
     "TC90",
   ];
 
-  const managerTaskIDs = ["TC25", "TC26", "TC17", "TC19"];
+  const managerTaskIDs = ["TC22", "TC25", "TC26", "TC17", "TC19"];
   const managerTeamIDs = ["TC47", "TC49", "TC50"];
 
   const processTestCasesForTasks = async (data, testCases) => {
@@ -447,6 +448,7 @@ export const deleteTasks = async () => {
     sharedEmployeeTimesheetData.TC88.payloadDeleteTask.taskID,
     sharedEmployeeTimesheetData.TC89.payloadDeleteTask.taskID,
     sharedEmployeeTimesheetData.TC90.payloadDeleteTask.taskID,
+    sharedManagerTaskData.TC22.payloadDeleteTask.taskID,
     sharedManagerTaskData.TC25.payloadDeleteTask.taskID,
     sharedManagerTaskData.TC26.payloadDeleteTask.taskID,
     sharedManagerTaskData.TC17.payloadDeleteTask.taskID,

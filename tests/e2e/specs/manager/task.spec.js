@@ -2,6 +2,7 @@ import path from "path";
 import { test, expect } from "@playwright/test";
 import { TaskPage } from "../../pageObjects/taskPage";
 import data from "../../data/manager/task.json";
+import sharedData from "../../data/manager/shared-task.json";
 //Add type hints to help VS Code recognize TaskPage
 /** @type {TaskPage} */
 let taskPage;
@@ -10,6 +11,7 @@ let taskPage;
 let TC17data = data.TC17;
 let TC19data = data.TC19;
 let TC20data = data.TC20;
+let TC22data = sharedData.TC22;
 let TC24data = data.TC24;
 let TC25data = data.TC25;
 let TC26data = data.TC26;
@@ -83,6 +85,18 @@ test("TC20: The information table columns should be customizable using the ‘Co
   expect(await isColumnPresent1).toBeTruthy();
   expect(await isColumnPresent2).toBeFalsy();
 });
+
+test("TC22: A task like/favourite functionality.", async ({}) => {
+  const taskName = TC22data.payloadCreateTask.subject;
+  const taskID = TC22data.payloadLikeTask.name;
+
+  // Search task
+  await taskPage.searchTask(taskName);
+
+  //Assertion to verify if the task liked is showing red heart
+  await taskPage.assertTaskIsLiked(taskID);
+});
+
 test("TC24: Verify task addition", async ({}) => {
   // Add a task
   await taskPage.AddTask(TC24data.taskInfo);
