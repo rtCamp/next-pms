@@ -3,17 +3,19 @@
 
 import datetime
 
-from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
 from erpnext.setup.utils import get_exchange_rate
-from frappe import _, get_doc, get_list, get_meta, get_value
-from frappe.utils import add_days, flt, get_date_str, getdate
+from frappe import _, get_list, get_meta, get_value
+from frappe.utils import add_days, flt, getdate
 
 from next_pms.resource_management.api.utils.helpers import is_on_leave
 from next_pms.resource_management.api.utils.query import (
     get_allocation_list_for_employee_for_given_range,
-    get_employee_leaves,
 )
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm
+from next_pms.utils.employee import (
+    get_employee_hourly_salary,
+    get_employee_leaves_and_holidays,
+)
 
 CURRENCY = "USD"
 
@@ -220,7 +222,7 @@ def calculate_and_convert_revenue(
 
 
 def calculate_and_convert_free_hour_revenue(employee: str, free_hours: float):
-    hourly_salary = get_employee_hourly_salary(employee)
+    hourly_salary = get_employee_hourly_salary(employee, CURRENCY)
     return (hourly_salary * 3) * free_hours
 
 
@@ -302,23 +304,6 @@ def calculate_employee_free_hours(
         date = add_days(date, 1)
 
     return total_hours - total_hours_for_resource_allocation
-
-
-def get_employee_hourly_salary(employee: str):
-    ctc, salary_currency = get_value("Employee", employee, ["ctc", "salary_currency"])
-    monthly_salary = ctc / 12
-    hourly_salary = monthly_salary / 160
-    if salary_currency != CURRENCY:
-        exchange_rate = get_exchange_rate(salary_currency, CURRENCY)
-        hourly_salary = hourly_salary * (exchange_rate or 1)
-    return hourly_salary
-
-
-def get_employee_leaves_and_holidays(employee, start_date, end_date):
-    holiday_list_name = get_holiday_list_for_employee(employee)
-    holidays = get_doc("Holiday List", holiday_list_name).holidays
-    leaves = get_employee_leaves(employee, get_date_str(start_date), get_date_str(end_date))
-    return {"holidays": holidays, "leaves": leaves}
 
 
 def get_employee_allocations_for_date(employee_allocations: list, date: datetime.date):

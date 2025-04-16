@@ -9,6 +9,7 @@ from frappe.utils import add_days, flt, get_date_str, getdate, month_diff
 from next_pms.resource_management.api.utils.helpers import is_on_leave
 from next_pms.resource_management.api.utils.query import get_employee_leaves
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm
+from next_pms.utils.employee import get_employee_joining_date_based_on_work_history
 
 
 def execute(filters=None):
@@ -28,11 +29,7 @@ def get_data(filters):
         billable_hours = employee_time_entry.get("billable_hours", 0)
         valuable_hours = employee_time_entry.get("valuable_hours", 0)
 
-        if employee.has_work_history:
-            work_history = employee.work_history[0]
-            number_of_years = year_diff(getdate(), work_history.get("from_date"))
-        else:
-            number_of_years = year_diff(getdate(), employee.date_of_joining)
+        number_of_years = year_diff(getdate(), employee.date_of_joining)
 
         employee["number_of_years"] = number_of_years
         employee["capacity_hours"] = capacity_hours
@@ -68,9 +65,8 @@ def get_employees(designation=None):
         order_by="employee_name ASC",
     )
     for employee in employees:
-        work_hostory = get_employee_work_history(employee.employee)
-        employee["work_history"] = sorted(work_hostory, key=lambda x: x.get("from_date"), reverse=False)
-        employee["has_work_history"] = True if work_hostory else False
+        joining_date = get_employee_joining_date_based_on_work_history(employee)
+        employee["date_of_joining"] = joining_date
     return employees
 
 
@@ -84,9 +80,6 @@ def get_employee_total_hours(employee, start_date: str, end_date: str):
 
     start_date = getdate(start_date)
     end_date = getdate(end_date)
-    employee_joining_date = employee.date_of_joining
-    if employee.has_work_history:
-        employee_joining_date = employee.work_history[0].get("from_date")
 
     daily_hours = get_employee_daily_working_norm(employee.employee)
 
@@ -96,7 +89,7 @@ def get_employee_total_hours(employee, start_date: str, end_date: str):
     leaves = get_employee_leaves(employee.employee, get_date_str(start_date), get_date_str(end_date))
 
     while start_date <= end_date:
-        if start_date < employee_joining_date:
+        if start_date < employee.date_of_joining:
             start_date = add_days(start_date, 1)
             continue
         data = is_on_leave(start_date, daily_hours, leaves, holidays)
@@ -140,9 +133,3 @@ def get_deficit(capacity_hours, billable_hours, years):
         threshold = 0.4
 
     return (capacity_hours * threshold) - billable_hours
-
-
-def get_employee_work_history(employee: str):
-    return get_all(
-        "Employee Internal Work History", filters={"parent": employee, "parenttype": "Employee"}, fields=["*"]
-    )
