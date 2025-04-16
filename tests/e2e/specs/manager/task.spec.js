@@ -10,6 +10,7 @@ let taskPage;
 let TC17data = data.TC17;
 let TC19data = data.TC19;
 let TC20data = data.TC20;
+let TC24data = data.TC24;
 let TC25data = data.TC25;
 let TC26data = data.TC26;
 
@@ -81,6 +82,20 @@ test("TC20: The information table columns should be customizable using the ‘Co
   // Assertions
   expect(await isColumnPresent1).toBeTruthy();
   expect(await isColumnPresent2).toBeFalsy();
+});
+test("TC24: Verify task addition", async ({}) => {
+  // Add a task
+  await taskPage.AddTask(TC24data.taskInfo);
+
+  // Search task
+  await taskPage.searchTask(TC24data.taskInfo.task);
+
+  // Open task details
+  await taskPage.openTaskDetails(TC24data.taskInfo.task);
+
+  // Assertions to verify that created task is visible
+  const isTaskDetailsDialogVisible = await taskPage.isTaskDetailsDialogVisible(TC24data.taskInfo.task);
+  expect(isTaskDetailsDialogVisible).toBeTruthy();
 });
 
 test("TC25: Verify the billable status of a billable task.    ", async ({}) => {

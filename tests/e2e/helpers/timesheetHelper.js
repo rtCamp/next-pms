@@ -242,7 +242,7 @@ export const createProjectForTestCases = async () => {
     "TC89",
     "TC90",
   ];
-  const managerTaskIDs = ["TC25", "TC26", "TC17", "TC19"];
+  const managerTaskIDs = ["TC24","TC25", "TC26", "TC17", "TC19"];
 
   const managerTeamIDs = ["TC47", "TC49", "TC50"];
 
@@ -318,6 +318,7 @@ export const deleteProjects = async () => {
     sharedEmployeeTimesheetData.TC90.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC17.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC19.payloadDeleteProject.projectId,
+    sharedManagerTaskData.TC24.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC25.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC26.payloadDeleteProject.projectId,
     sharedManagerTeamData.TC47.payloadDeleteProject.projectId,

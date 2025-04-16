@@ -55,6 +55,12 @@
     "col": "Issue"
   },
   "TC24": {
+    "taskInfo": {
+      "duration": "1",
+      "project": "TC24 Project",
+      "task": "TC24 Billable Task",
+      "desc": "Task for TC24 created through automation"
+    },
     "payloadCreateProject": {
       "project_name": "TC24 Project",
       "company": "rtCamp Solutions Pvt. Ltd.",
@@ -69,15 +75,6 @@
     },
     "payloadDeleteProject": {
       "projectId": "filled-automatically-from-createProjects"
-    },
-    "payloadCreateTask": {
-      "subject": "TC24 Billable Task",
-      "project": "filled-automatically-from-createProjects",
-      "description": "Task for TC24 created through automation",
-      "custom_is_billable": 1
-    },
-    "payloadDeleteTask": {
-      "taskID": "filled-automatically-from-createTasks"
     }
   },
   "TC25": {
