@@ -90,28 +90,32 @@ const ChildTable = ({ field }: ChildTableProps) => {
 
   const handleDeleteSelected = async () => {
     const data = selected.filter((row) => row.name).map((row) => row.name);
-
-    await deleteChildTableRows({
-      doctype: selected[0].parenttype,
-      parent_name: selected[0].parent,
-      child_fieldname: selected[0].parentfield,
-      child_names: data,
-    })
-      .then((res) => {
-        setRows(rows.filter((r) => !selected.some((s) => s.idx === r.idx)));
-        setSelected([]);
-        toast({
-          variant: "success",
-          description: res.message,
-        });
+    if (data.length > 0) {
+      await deleteChildTableRows({
+        doctype: selected[0].parenttype,
+        parent_name: selected[0].parent,
+        child_fieldname: selected[0].parentfield,
+        child_names: data,
       })
-      .catch((err) => {
-        const error = parseFrappeErrorMsg(err);
-        toast({
-          variant: "destructive",
-          description: error,
+        .then((res) => {
+          setRows(rows.filter((r) => !selected.some((s) => s.idx === r.idx)));
+          setSelected([]);
+          toast({
+            variant: "success",
+            description: res.message,
+          });
+        })
+        .catch((err) => {
+          const error = parseFrappeErrorMsg(err);
+          toast({
+            variant: "destructive",
+            description: error,
+          });
         });
-      });
+    } else {
+      setRows(rows.filter((r) => !selected.some((s) => s.idx === r.idx)));
+      setSelected([]);
+    }
   };
 
   const handleEdit = (row: ChildRow) => {
