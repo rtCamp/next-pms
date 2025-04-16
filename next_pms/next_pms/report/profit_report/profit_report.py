@@ -31,18 +31,18 @@ def get_data(filters=None):
     emp_names = [employee.employee for employee in employees]
 
     timesheets = get_employees_timesheet_hours(emp_names, start_date, end_date)
-    billing_amount = get_empoyees_billable_amount(emp_names, start_date, end_date)
+    billing_amount = get_employees_billable_amount(emp_names, start_date, end_date)
     for employee in employees:
-        emp_leave_and_holidays = get_employee_leaves_and_holidays(employee.employee, start_date, end_date)
+        employee_leave_and_holidays = get_employee_leaves_and_holidays(employee.employee, start_date, end_date)
         daily_hours = get_employee_daily_working_norm(employee.employee)
-        num_of_holidays = len(emp_leave_and_holidays.get("holidays"))
-        num_unpaid_leaves = calculate_un_paid_leaves(emp_leave_and_holidays)
-        total_hours = calculate_emp_total_hours(
+        num_of_holidays = len(employee_leave_and_holidays.get("holidays"))
+        num_unpaid_leaves = calculate_un_paid_leaves(employee_leave_and_holidays)
+        total_hours = calculate_employee_total_hours(
             employee,
             start_date=start_date,
             end_date=end_date,
             daily_hours=daily_hours,
-            emp_leave_and_holidays=emp_leave_and_holidays,
+            employee_leave_and_holidays=employee_leave_and_holidays,
         )
         emp_timesheet = next((timesheet for timesheet in timesheets if timesheet.employee == employee.employee), None)
         if not emp_timesheet:
@@ -52,7 +52,7 @@ def get_data(filters=None):
         employee["capacity"] = total_hours
         employee["utilization"] = employee["billable_hours"] + employee["non_billable_hours"]
         employee["hourly_rate"] = get_employee_hourly_salary(employee.employee, "USD")
-        employee["cost"] = calculate_emp_cost(
+        employee["cost"] = calculate_employee_cost(
             employee,
             start_date=start_date,
             end_date=end_date,
@@ -67,7 +67,9 @@ def get_data(filters=None):
     return employees
 
 
-def calculate_emp_cost(employee, start_date, end_date, num_of_holidays, num_unpaid_leaves, daily_hours, hourly_rate):
+def calculate_employee_cost(
+    employee, start_date, end_date, num_of_holidays, num_unpaid_leaves, daily_hours, hourly_rate
+):
     days = 0
 
     has_employee_left = True if employee.status == "Left" and employee.relieving_date else False
@@ -88,8 +90,8 @@ def calculate_emp_cost(employee, start_date, end_date, num_of_holidays, num_unpa
     return (days * daily_hours) * hourly_rate
 
 
-def calculate_un_paid_leaves(emp_leave_and_holidays):
-    leaves = emp_leave_and_holidays.get("leaves")
+def calculate_un_paid_leaves(employee_leave_and_holidays):
+    leaves = employee_leave_and_holidays.get("leaves")
     leave_types = get_leave_types()
     leave_types_dict = {leave_type.name: leave_type for leave_type in leave_types}
     unpaid_leaves = 0
@@ -102,7 +104,7 @@ def calculate_un_paid_leaves(emp_leave_and_holidays):
     return unpaid_leaves
 
 
-def calculate_emp_total_hours(employee, start_date, end_date, daily_hours, emp_leave_and_holidays):
+def calculate_employee_total_hours(employee, start_date, end_date, daily_hours, employee_leave_and_holidays):
     total_hours = 0
 
     has_employee_left = True if employee.status == "Left" and employee.relieving_date else False
@@ -112,7 +114,10 @@ def calculate_emp_total_hours(employee, start_date, end_date, daily_hours, emp_l
             start_date = add_days(start_date, 1)
             continue
         data = is_on_leave(
-            start_date, daily_hours, emp_leave_and_holidays.get("leaves"), emp_leave_and_holidays.get("holidays")
+            start_date,
+            daily_hours,
+            employee_leave_and_holidays.get("leaves"),
+            employee_leave_and_holidays.get("holidays"),
         )
 
         if not data.get("on_leave"):
@@ -159,7 +164,7 @@ def get_employees(start_date, end_date, department=None, status="Active"):
     return employees
 
 
-def get_empoyees_billable_amount(employees, start_date, end_date):
+def get_employees_billable_amount(employees, start_date, end_date):
     data = {}
     Timesheet = qb.DocType("Timesheet")
     TimesheetDetail = qb.DocType("Timesheet Detail")
