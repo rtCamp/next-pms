@@ -52,7 +52,8 @@ const FieldRenderer = forwardRef(
     const formData = useWatch({ control });
 
     const sections: Section[] = [];
-    let currentSection: Section = { title: "", left: [], right: [], isRight: false };
+    let currentSection: Section = { title: "", columns: [[]] };
+    let currentColumnIndex = 0;
 
     fields?.forEach((field) => {
       if (fieldConfig?.[field.fieldname]?.hidden || field.hidden === 1) {
@@ -67,26 +68,29 @@ const FieldRenderer = forwardRef(
       }
 
       if (field.fieldtype === "Section Break") {
-        if (currentSection.left.length || currentSection.right.length) {
+        if (currentSection.columns.some((col) => col.length > 0)) {
           sections.push(currentSection);
         }
-        currentSection = { title: field.label || "", left: [], right: [], isRight: false };
+        currentSection = { title: field.label || "", columns: [[]] };
+        currentColumnIndex = 0;
       } else if (field.fieldtype === "Column Break") {
-        currentSection.isRight = true;
-      } else {
-        if (currentSection.isRight) {
-          currentSection.right.push(field);
-        } else {
-          currentSection.left.push(field);
+        currentColumnIndex++;
+        if (!currentSection.columns[currentColumnIndex]) {
+          currentSection.columns[currentColumnIndex] = [];
         }
+      } else {
+        if (!currentSection.columns[currentColumnIndex]) {
+          currentSection.columns[currentColumnIndex] = [];
+        }
+        currentSection.columns[currentColumnIndex].push(field);
       }
     });
 
-    if (currentSection.left.length || currentSection.right.length) {
+    if (currentSection.columns.some((col) => col.length > 0)) {
       sections.push(currentSection);
     }
 
-    const filteredSections = sections.filter((section) => section.left.length > 0 || section.right.length > 0);
+    const filteredSections = sections.filter((section) => section.columns.some((col) => col.length > 0));
 
     if (filteredSections.length === 0)
       return (
@@ -113,21 +117,17 @@ const FieldRenderer = forwardRef(
                     {section.title}
                   </AccordionTrigger>
                   <AccordionContent className="!w-full">
-                    <div className="grid lg:grid-cols-2 gap-4">
-                      {section.left.length > 0 && (
-                        <div className="space-y-4 overflow-hidden">
-                          {section.left.map((field) =>
+                    <div
+                      className="flex flex-col lg:grid gap-4"
+                      style={{ gridTemplateColumns: `repeat(${section.columns.length}, minmax(0, 1fr))` }}
+                    >
+                      {section.columns.map((column, colIndex) => (
+                        <div key={colIndex} className="space-y-4 overflow-hidden">
+                          {column.map((field) =>
                             RenderField(field, control, onChange, readOnly, currencySymbol, fieldConfig)
                           )}
                         </div>
-                      )}
-                      {section.right.length > 0 && (
-                        <div className="space-y-4 overflow-hidden">
-                          {section.right.map((field) =>
-                            RenderField(field, control, onChange, readOnly, currencySymbol, fieldConfig)
-                          )}
-                        </div>
-                      )}
+                      ))}
                     </div>
                   </AccordionContent>
                 </AccordionItem>
@@ -136,21 +136,17 @@ const FieldRenderer = forwardRef(
               <>
                 <div className={className}>
                   <h2 className="text-lg font-semibold my-3"></h2>
-                  <div className="grid lg:grid-cols-2 gap-4">
-                    {section.left.length > 0 && (
-                      <div className="space-y-4 overflow-hidden">
-                        {section.left.map((field) =>
+                  <div
+                    className="flex flex-col lg:grid gap-4"
+                    style={{ gridTemplateColumns: `repeat(${section.columns.length}, minmax(0, 1fr))` }}
+                  >
+                    {section.columns.map((column, colIndex) => (
+                      <div key={colIndex} className="space-y-4 overflow-hidden">
+                        {column.map((field) =>
                           RenderField(field, control, onChange, readOnly, currencySymbol, fieldConfig)
                         )}
                       </div>
-                    )}
-                    {section.right.length > 0 && (
-                      <div className="space-y-4 overflow-hidden">
-                        {section.right.map((field) =>
-                          RenderField(field, control, onChange, readOnly, currencySymbol, fieldConfig)
-                        )}
-                      </div>
-                    )}
+                    ))}
                   </div>
                 </div>
               </>

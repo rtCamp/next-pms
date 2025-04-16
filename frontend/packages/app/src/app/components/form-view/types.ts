@@ -19,9 +19,7 @@ export type Field = {
 
 export type Section = {
   title: string;
-  left: Field[];
-  right: Field[];
-  isRight: boolean;
+  columns: Field[][];
 };
 
 export type FieldConfigType = Record<string, Record<string, boolean>>;

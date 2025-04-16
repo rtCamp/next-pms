@@ -139,19 +139,27 @@ const ChildTable = ({ field }: ChildTableProps) => {
                     </div>
                   </TableCell>
                   <TableCell className="text-center font-mono border-r px-2">{row.idx}</TableCell>
-                  {field?.child_meta?.map((meta) => (
-                    <TableCell key={meta.fieldname} className="border-r px-2 max-w-xs truncate">
-                      <span title={String(row[meta.fieldname] ?? "")} className="block truncate">
-                        {String(row[meta.fieldname] ?? "")}
-                      </span>
-                    </TableCell>
-                  ))}
+                  {field
+                    ?.child_meta!.filter((obj) => obj.in_list_view === 1)
+                    .map((meta) => (
+                      <TableCell key={meta.fieldname} className="border-r px-2 max-w-xs truncate">
+                        <span title={String(row[meta.fieldname] ?? "")} className="block truncate">
+                          {String(row[meta.fieldname] ?? "")}
+                        </span>
+                      </TableCell>
+                    ))}
                   <TableCell className="text-right px-0">
                     <div
                       className="w-full flex justify-center items-center
                 "
                     >
-                      <button onClick={() => handleEdit(row)} className="hover:text-primary">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleEdit(row);
+                        }}
+                        className="hover:text-primary"
+                      >
                         <Pencil className="size-3" />
                       </button>
                     </div>
@@ -192,22 +200,24 @@ const ChildTable = ({ field }: ChildTableProps) => {
       <Dialog open={!!editingRow} onOpenChange={() => setEditingRow(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Row #{editingRow?.idx}</DialogTitle>
+            <DialogTitle>Editing Row #{editingRow?.idx}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            {field?.child_meta?.map((meta) => (
-              <Input
-                key={meta.fieldname}
-                value={editedValues[meta.fieldname]?.toString() || ""}
-                onChange={(e) =>
-                  setEditedValues({
-                    ...editedValues,
-                    [meta.fieldname]: e.target.value,
-                  })
-                }
-                placeholder={meta.label}
-              />
-            ))}
+            {field
+              ?.child_meta!.filter((obj) => obj.in_list_view === 1)
+              .map((meta) => (
+                <Input
+                  key={meta.fieldname}
+                  value={editedValues[meta.fieldname]?.toString() || ""}
+                  onChange={(e) =>
+                    setEditedValues({
+                      ...editedValues,
+                      [meta.fieldname]: e.target.value,
+                    })
+                  }
+                  placeholder={meta.label}
+                />
+              ))}
           </div>
           <DialogFooter>
             <Button onClick={handleSaveEdit}>Save</Button>
