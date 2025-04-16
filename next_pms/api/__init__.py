@@ -86,10 +86,11 @@ def get_doc_with_meta(doctype, docname):
             tab_fields[current_tab] = []
             continue
 
-        if df.fieldtype not in ["Section Break", "Column Break"] and df.fieldname not in permitted_fields:
-            continue
+        if df.fieldtype not in ["Section Break", "Column Break"]:
+            if df.fieldname not in permitted_fields and df.fieldtype != "Table":
+                continue
 
-        if df.fieldtype in ["Table", "HTML", "HTML Editor", "Text Editor"]:
+        if df.fieldtype in ["HTML", "HTML Editor", "Text Editor"]:
             continue
 
         field_value = doc.get(df.fieldname)
@@ -121,6 +122,35 @@ def get_doc_with_meta(doctype, docname):
                 "name": field_value,
                 "route": f"/app/{df.options.lower().replace(' ', '-').replace('_', '-')}/{field_value}",
             }
+
+        if df.fieldtype == "Table":
+            child_doctype = df.options
+            child_meta = frappe.get_meta(child_doctype)
+
+            field_info["child_meta"] = [
+                {
+                    "label": f.label,
+                    "fieldname": f.fieldname,
+                    "fieldtype": f.fieldtype,
+                    "options": getattr(f, "options", None),
+                    "reqd": getattr(f, "reqd", 0),
+                    "default": getattr(f, "default", None),
+                    "read_only": getattr(f, "read_only", 0),
+                    "hidden": getattr(f, "hidden", 0),
+                    "in_list_view": getattr(f, "in_list_view", None),
+                }
+                for f in child_meta.fields
+            ]
+            field_info["value"] = [
+                {
+                    **row.as_dict(),
+                    "parenttype": row.parenttype,
+                    "parent": row.parent,
+                    "parentfield": row.parentfield,
+                    "idx": row.idx,
+                }
+                for row in (field_value or [])
+            ]
 
         tab_fields[current_tab].append(field_info)
 

@@ -19,6 +19,7 @@ import {
 import { mergeClassNames } from "@/lib/utils";
 import LinkField from "./linkField";
 import { Field, FieldConfigType } from "../types";
+import ChildTable from "./childTable";
 
 /**
  * RenderField Component
@@ -265,6 +266,8 @@ const getFieldComponent = (
           }}
         />
       );
+    case "Table":
+      return <ChildTable field={field} />;
     default:
       return (
         <Input

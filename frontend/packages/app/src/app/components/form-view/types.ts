@@ -1,7 +1,7 @@
 export type Field = {
   fieldtype: string;
   label?: string;
-  value?: string | number | null;
+  value?: string | number | ChildRow[] | null;
   reqd?: string | number;
   read_only?: string | number;
   options?: string;
@@ -13,6 +13,8 @@ export type Field = {
     name: string;
     route: string;
   };
+  hidden: number;
+  child_meta?: ChildMetaField[];
 };
 
 export type Section = {
@@ -23,3 +25,15 @@ export type Section = {
 };
 
 export type FieldConfigType = Record<string, Record<string, boolean>>;
+
+export interface ChildMetaField {
+  label: string;
+  fieldname: string;
+  fieldtype: string;
+  in_list_view: number;
+}
+
+export interface ChildRow {
+  idx: number;
+  [key: string]: any;
+}

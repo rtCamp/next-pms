@@ -55,7 +55,7 @@ const FieldRenderer = forwardRef(
     let currentSection: Section = { title: "", left: [], right: [], isRight: false };
 
     fields?.forEach((field) => {
-      if (fieldConfig?.[field.fieldname]?.hidden) {
+      if (fieldConfig?.[field.fieldname]?.hidden || field.hidden === 1) {
         return;
       }
 
@@ -115,14 +115,14 @@ const FieldRenderer = forwardRef(
                   <AccordionContent className="!w-full">
                     <div className="grid lg:grid-cols-2 gap-4">
                       {section.left.length > 0 && (
-                        <div className="space-y-4">
+                        <div className="space-y-4 overflow-hidden">
                           {section.left.map((field) =>
                             RenderField(field, control, onChange, readOnly, currencySymbol, fieldConfig)
                           )}
                         </div>
                       )}
                       {section.right.length > 0 && (
-                        <div className="space-y-4">
+                        <div className="space-y-4 overflow-hidden">
                           {section.right.map((field) =>
                             RenderField(field, control, onChange, readOnly, currencySymbol, fieldConfig)
                           )}
@@ -138,14 +138,14 @@ const FieldRenderer = forwardRef(
                   <h2 className="text-lg font-semibold my-3"></h2>
                   <div className="grid lg:grid-cols-2 gap-4">
                     {section.left.length > 0 && (
-                      <div className="space-y-4">
+                      <div className="space-y-4 overflow-hidden">
                         {section.left.map((field) =>
                           RenderField(field, control, onChange, readOnly, currencySymbol, fieldConfig)
                         )}
                       </div>
                     )}
                     {section.right.length > 0 && (
-                      <div className="space-y-4">
+                      <div className="space-y-4 overflow-hidden">
                         {section.right.map((field) =>
                           RenderField(field, control, onChange, readOnly, currencySymbol, fieldConfig)
                         )}
