@@ -211,9 +211,21 @@ const ChildTable = ({ field }: ChildTableProps) => {
                     ?.child_meta!.filter((obj) => obj.in_list_view === 1)
                     .map((meta) => (
                       <TableCell key={meta.fieldname} className="border-r px-2 max-w-xs truncate">
-                        <span title={String(row[meta.fieldname] ?? "")} className="block truncate">
-                          {String(row[meta.fieldname] ?? "")}
-                        </span>
+                        {meta.fieldtype === "Link" ? (
+                          <a
+                            href={`/app/${meta.options.toLowerCase().replace(/[_\s]/g, "-")}/${encodeURIComponent(
+                              row[meta.fieldname]
+                            )}`}
+                            title={String(row[meta.fieldname] ?? "")}
+                            className="block truncate hover:underline"
+                          >
+                            {String(row[meta.fieldname] ?? "")}
+                          </a>
+                        ) : (
+                          <span title={String(row[meta.fieldname] ?? "")} className="block truncate">
+                            {String(row[meta.fieldname] ?? "")}
+                          </span>
+                        )}
                       </TableCell>
                     ))}
                   <TableCell className="text-right px-0">

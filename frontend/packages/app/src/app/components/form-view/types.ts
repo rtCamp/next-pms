@@ -30,6 +30,7 @@ export interface ChildMetaField {
   fieldtype: string;
   in_list_view: number;
   reqd: number;
+  options: string;
 }
 
 export interface ChildRow {
