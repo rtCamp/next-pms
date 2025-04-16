@@ -18,7 +18,7 @@ import {
  */
 import { mergeClassNames } from "@/lib/utils";
 import LinkField from "./linkField";
-import { Field, FieldConfigType } from "./types";
+import { Field, FieldConfigType } from "../types";
 
 /**
  * RenderField Component

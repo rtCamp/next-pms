@@ -10,7 +10,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@n
  */
 import { evaluateDependsOn, mapFieldsToObject, mergeClassNames } from "@/lib/utils";
 import RenderField from "./renderField";
-import { Field, FieldConfigType, Section } from "./types";
+import { Field, FieldConfigType, Section } from "../types";
 
 type FieldRendererProps = {
   fields: Field[];

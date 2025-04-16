@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@next-pms/design-syste
  * Internal dependencies.
  */
 import { mergeClassNames } from "@/lib/utils";
-import FieldRenderer from "./fieldRenderer";
+import FieldRenderer from "./components/fieldRenderer";
 import { Field, FieldConfigType } from "./types";
 
 type FormViewProps = {

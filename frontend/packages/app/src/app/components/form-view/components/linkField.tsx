@@ -21,7 +21,7 @@ import { ArrowRight } from "lucide-react";
  * Internal dependencies.
  */
 import { mergeClassNames, parseFrappeErrorMsg } from "@/lib/utils";
-import { Field } from "./types";
+import { Field } from "../types";
 
 interface LinkFieldProps {
   field: Field;
@@ -30,6 +30,16 @@ interface LinkFieldProps {
   onSelect?: (value: string) => void;
 }
 
+/**
+ * LinkField Component
+ * @description This component renders a linkField which behaves similar to frappe-link-field
+ * contains different set of fields.
+ * @param field Field
+ * @param value Value of the field
+ * @param isReadOnly Readonly flag
+ * @param onSelect Function triggered when a item is selected from the combo-box, returns a selected item string
+ * @returns A JSX Component
+ */
 const LinkField = ({ field, value, isReadOnly, onSelect }: LinkFieldProps) => {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState(value);
@@ -134,6 +144,11 @@ interface LinkFieldOptionsProps {
   onSelect: (val: string) => void;
 }
 
+/**
+ * LinkFieldOptions Component
+ * @description This component renders set of CommandItems
+ * @returns A JSX Component
+ */
 const LinkFieldOptions = ({ field, input, setFilteredOptions, filteredOptions, onSelect }: LinkFieldOptionsProps) => {
   const { toast } = useToast();
 
