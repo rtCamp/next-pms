@@ -46,16 +46,16 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
 /**
  * Filter the Results
  */
-export const filterApi = async (docType,filterType,filterBy,filterValue) => {
-    const endpoint = `api/method/frappe.desk.reportview.get`;
+export const filterApi = async (docType, filterType, filterBy, filterValue) => {
+  const endpoint = `api/method/frappe.desk.reportview.get`;
 
-    const payload = {
-      method: "POST",
-      data: {
-        doctype: docType,
-        filters: [[filterType, filterBy, "=", filterValue]],
-      },
-    };
-  
-    return await apiRequest(endpoint, payload);
+  const payload = {
+    method: "POST",
+    data: {
+      doctype: docType,
+      filters: [[filterType, filterBy, "=", filterValue]],
+    },
+  };
+
+  return await apiRequest(endpoint, payload);
 };

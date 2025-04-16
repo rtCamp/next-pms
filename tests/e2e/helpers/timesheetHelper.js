@@ -1,7 +1,12 @@
 import path from "path";
 import fs from "fs";
 import { getWeekdayName, getFormattedDate, getDateForWeekday } from "../utils/dateUtils";
-import { createTimesheet, getTimesheetDetails, deleteTimesheet, deleteTimesheetbyID } from "../utils/api/timesheetRequests";
+import {
+  createTimesheet,
+  getTimesheetDetails,
+  deleteTimesheet,
+  deleteTimesheetbyID,
+} from "../utils/api/timesheetRequests";
 import employeeTimesheetData from "../data/employee/timesheet.json";
 import managerTeamData from "../data/manager/team.json";
 import managerTaskData from "../data/manager/task.json";
@@ -522,7 +527,7 @@ export const cleanUpProjects = async (data) => {
     const projectName = tc.payloadCreateProject.project_name;
 
     // Get Project ID
-    const projectRes = await filterApi('Project', 'Project', "project_name", projectName);
+    const projectRes = await filterApi("Project", "Project", "project_name", projectName);
     console.warn(`PROJECT RESPONSE for ${key} is ; `, projectRes);
     const projectId = projectRes?.message?.values?.[0]?.[0];
     console.warn(`Obtained ProjectId value for ${key} is       ; `, projectId);
@@ -530,14 +535,14 @@ export const cleanUpProjects = async (data) => {
     if (!projectId) continue;
 
     // Get Task IDs
-    const taskRes = await filterApi('Task', 'Task', 'project', projectId);
+    const taskRes = await filterApi("Task", "Task", "project", projectId);
     console.warn(`TASK RESPONSE for ${key} is ; `, taskRes);
 
     const taskRaw = taskRes?.message?.values;
     let taskIds = [];
 
     if (Array.isArray(taskRaw)) {
-      taskIds = taskRaw.map(v => v[0]);
+      taskIds = taskRaw.map((v) => v[0]);
     } else {
       console.warn(`No tasks found for project ${key}. Skipping task deletion.`);
     }
@@ -545,7 +550,7 @@ export const cleanUpProjects = async (data) => {
     console.warn(`OBTAINED TASK for ${key} is: `, taskIds);
 
     // Get Timesheet IDs
-    const timesheetRes = await filterApi('Timesheet', 'Timesheet', 'parent_project', projectId);
+    const timesheetRes = await filterApi("Timesheet", "Timesheet", "parent_project", projectId);
     console.warn(`TMESHEET RESPONSE for ${key} is ; `, timesheetRes);
 
     const valuesRaw = timesheetRes?.message?.values;
@@ -559,7 +564,7 @@ export const cleanUpProjects = async (data) => {
     let timesheetIds = [];
 
     if (Array.isArray(valuesRaw)) {
-      timesheetIds = valuesRaw.map(v => v[0]);
+      timesheetIds = valuesRaw.map((v) => v[0]);
     } else {
       console.warn(`No timesheets found for project ${key}. Skipping timesheet deletion.`);
     }
@@ -570,7 +575,7 @@ export const cleanUpProjects = async (data) => {
     deletedData.push({
       projectId,
       timesheetIds,
-      taskIds
+      taskIds,
     });
 
     // Delete Timesheets
@@ -589,7 +594,7 @@ export const cleanUpProjects = async (data) => {
     }
   }
 
-  console.log('Cleanup complete. Deleted data:', deletedData);
+  console.log("Cleanup complete. Deleted data:", deletedData);
   return deletedData;
 };
 
