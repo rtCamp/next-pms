@@ -125,6 +125,7 @@ export class TeamPage {
     await this.actOnTimeEntry("Reject");
     await this.rejectTimesheetModal.getByPlaceholder("Add a note").fill(reason);
     await this.rejectTimesheetModal.getByRole("button", { name: "Reject" }).click();
+    await this.page.waitForTimeout(2000);
   }
 
   // --------------------------------------
