@@ -199,43 +199,43 @@ test("TC15: Verify the billable status of a non-billable task.   ", async ({}) =
 
 test("TC82: Verify hourly consulting rate when no default billing rate is used for Fixed cost project   ", async ({}) => {
   //Assertions
-  const projectCostAmount = TC82data.payloadCalculateBillingRate.total_costing_amount;
+  const total_costing_amount = TC82data.payloadCalculateBillingRate.total_costing_amount;
   const employeeHourlyBillingRate = TC82data.payloadCalculateBillingRate.hourly_billing_rate;
   expect(
-    projectCostAmount,
+    total_costing_amount,
     "Verify the project cost amount and employee CTC amount per hour matches for Fixed Cost Project"
   ).toBeCloseTo(employeeHourlyBillingRate, 3);
 });
 
 test("TC83: Verify hourly consulting rate when no default billing rate is used for Retainer project   ", async ({}) => {
   //Assertions
-  const projectCostAmount = TC83data.payloadCalculateBillingRate.total_costing_amount;
+  const total_costing_amount = TC83data.payloadCalculateBillingRate.total_costing_amount;
   const employeeHourlyBillingRate = TC83data.payloadCalculateBillingRate.hourly_billing_rate;
 
   expect(
-    projectCostAmount,
+    total_costing_amount,
     "Verify the project cost amount and employee CTC amount per hour matches for Retainer Project"
   ).toBeCloseTo(employeeHourlyBillingRate, 3);
 });
 
 test("TC84: Verify hourly consulting rate when no default billing rate is used for Time and Material project   ", async ({}) => {
   //Assertions
-  const projectCostAmount = TC84data.payloadCalculateBillingRate.total_costing_amount;
+  const total_costing_amount = TC84data.payloadCalculateBillingRate.total_costing_amount;
   const employeeHourlyBillingRate = TC84data.payloadCalculateBillingRate.hourly_billing_rate;
 
   expect(
-    projectCostAmount,
+    total_costing_amount,
     "Verify the project cost amount and employee CTC amount per hour matches for Time and Material Project"
   ).toBeCloseTo(employeeHourlyBillingRate, 3);
 });
 
 test("TC85: Verify hourly consulting rate when the currency for employee and project are different ", async ({}) => {
   //Assertions
-  const projectCostAmount = TC85data.payloadCalculateBillingRate.total_costing_amount;
+  const total_costing_amount = TC85data.payloadCalculateBillingRate.total_costing_amount;
   const employeeHourlyBillingRate = TC85data.payloadCalculateBillingRate.hourly_billing_rate;
 
   expect(
-    projectCostAmount,
+    total_costing_amount,
     "Verify the project cost amount and employee CTC amount per hour matches when the currency for employee and project are different"
   ).toBeCloseTo(employeeHourlyBillingRate, 3);
 });

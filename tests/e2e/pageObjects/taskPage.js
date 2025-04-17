@@ -13,6 +13,7 @@ export class TaskPage {
 
     // Header Filters
     this.searchInput = page.getByPlaceholder("Subject").first();
+    this.getSearchInputByValue = (taskName) => page.getByRole("textbox", { value: taskName });
     this.saveButton = page.getByRole("button", { name: "Save changes" });
     this.columnsButton = page.getByRole("button").filter({ has: page.locator("//p[text()='Columns']") });
 
@@ -54,7 +55,9 @@ export class TaskPage {
    */
   async searchTask(name) {
     await this.searchInput.fill(name);
-    await this.page.waitForTimeout(1000);
+    //Verify that search input is filled
+    await expect(this.getSearchInputByValue(name)).toBeVisible();
+    await this.page.waitForSelector("svg.animate-spin", { state: "hidden" });
     await this.searchInput.press("ArrowDown+Enter");
   }
 
