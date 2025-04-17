@@ -9,14 +9,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  Input,
   Checkbox,
   Button,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
   toast,
 } from "@next-pms/design-system/components";
 import { useFrappePostCall } from "frappe-react-sdk";
@@ -27,12 +21,14 @@ import { Pencil, Trash2, Plus, NotepadText } from "lucide-react";
  */
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { ChildRow, Field } from "../types";
+import DynamicFormDialog from "./dynamicFormDialog";
 
 interface ChildTableProps {
   field: Field;
+  currencySymbol: string;
 }
 
-const ChildTable = ({ field }: ChildTableProps) => {
+const ChildTable = ({ field, currencySymbol }: ChildTableProps) => {
   const [rows, setRows] = useState<ChildRow[]>((field?.value as ChildRow[]) || []);
   const [selected, setSelected] = useState<Array<Record<string, string | number>>>([]);
   const [lastSelectedIdx, setLastSelectedIdx] = useState<number | null>(null);
@@ -213,6 +209,7 @@ const ChildTable = ({ field }: ChildTableProps) => {
                       <TableCell key={meta.fieldname} className="border-r px-2 max-w-xs truncate">
                         {meta.fieldtype === "Link" ? (
                           <a
+                            target="_blank"
                             href={`/app/${meta.options.toLowerCase().replace(/[_\s]/g, "-")}/${encodeURIComponent(
                               row[meta.fieldname]
                             )}`}
@@ -277,33 +274,19 @@ const ChildTable = ({ field }: ChildTableProps) => {
       </div>
 
       {/* Dialog */}
-      <Dialog open={!!editingRow} onOpenChange={() => setEditingRow(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editing Row #{editingRow?.idx}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            {field
-              ?.child_meta!.filter((obj) => obj.in_list_view === 1)
-              .map((meta) => (
-                <Input
-                  key={meta.fieldname}
-                  value={editedValues[meta.fieldname]?.toString() || ""}
-                  onChange={(e) =>
-                    setEditedValues({
-                      ...editedValues,
-                      [meta.fieldname]: e.target.value,
-                    })
-                  }
-                  placeholder={meta.label}
-                />
-              ))}
-          </div>
-          <DialogFooter>
-            <Button onClick={handleSaveEdit}>Save</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DynamicFormDialog
+        open={!!editingRow}
+        onClose={() => setEditingRow(null)}
+        rowIndex={editingRow?.idx}
+        value={field.value as ChildRow[]}
+        fieldMeta={field.child_meta || []}
+        rowName={editingRow?.name}
+        currencySymbol={currencySymbol}
+        onSubmit={(values) => {
+          setEditedValues(values);
+          handleSaveEdit();
+        }}
+      />
     </div>
   );
 };

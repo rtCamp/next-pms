@@ -267,7 +267,7 @@ const getFieldComponent = (
         />
       );
     case "Table":
-      return <ChildTable field={field} />;
+      return <ChildTable field={field} currencySymbol={currencySymbol} />;
     default:
       return (
         <Input

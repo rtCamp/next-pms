@@ -25,10 +25,11 @@ export type Section = {
 export type FieldConfigType = Record<string, Record<string, boolean>>;
 
 export interface ChildMetaField {
-  label: string;
+  label: string | null;
   fieldname: string;
   fieldtype: string;
   in_list_view: number;
+  read_only: number;
   reqd: number;
   options: string;
 }

@@ -50,7 +50,9 @@ const LinkField = ({ field, value, isReadOnly, onSelect }: LinkFieldProps) => {
 
   const didSelectRef = useRef(false);
 
-  const [filteredOptions, setFilteredOptions] = useState<Array<Record<"name" | "full_name", string>>>([]);
+  const [filteredOptions, setFilteredOptions] = useState<Array<Record<"name" | "full_name" | "employee_name", string>>>(
+    []
+  );
 
   const handleSelect = (val: string) => {
     didSelectRef.current = true;
@@ -108,7 +110,10 @@ const LinkField = ({ field, value, isReadOnly, onSelect }: LinkFieldProps) => {
           )}
         </div>
       </PopoverTrigger>
-      <PopoverContent align="start" className="p-0 w-full max-md:min-w-[250px] max-lg:min-w-[450px] lg:min-w-[400px]">
+      <PopoverContent
+        align="start"
+        className="!z-[100000] p-0 w-full max-md:min-w-[250px] max-lg:min-w-[450px] lg:min-w-[400px]"
+      >
         <Command>
           <CommandInput
             placeholder={`Search ${field?.link?.doctype ? field.link.doctype : field.options}`}
@@ -139,8 +144,10 @@ export default LinkField;
 interface LinkFieldOptionsProps {
   field: Field;
   input: string;
-  setFilteredOptions: React.Dispatch<React.SetStateAction<Array<Record<"name" | "full_name", string>>>>;
-  filteredOptions: Array<Record<"name" | "full_name", string>>;
+  setFilteredOptions: React.Dispatch<
+    React.SetStateAction<Array<Record<"name" | "full_name" | "employee_name", string>>>
+  >;
+  filteredOptions: Array<Record<"name" | "full_name" | "employee_name", string>>;
   onSelect: (val: string) => void;
 }
 
@@ -154,7 +161,10 @@ const LinkFieldOptions = ({ field, input, setFilteredOptions, filteredOptions, o
 
   const { data, isLoading, error } = useFrappeGetCall("frappe.client.get_list", {
     doctype: field.options,
-    fields: ["name", ...(field.options === "User" ? ["full_name"] : [])],
+    fields: [
+      "name",
+      ...(field.options === "User" ? ["full_name"] : field.options === "Employee" ? ["employee_name"] : []),
+    ],
     filters: [["name", "like", `%${input}%`]],
     limit_page_length: 20,
   });
@@ -192,10 +202,11 @@ const LinkFieldOptions = ({ field, input, setFilteredOptions, filteredOptions, o
           key={option.name}
           onSelect={() => onSelect(option.name)}
         >
-          <Typography variant="p" className={option.full_name && "font-semibold"}>
+          <Typography variant="p" className={option.full_name || (option.employee_name && "font-semibold")}>
             {option.name}
           </Typography>
           {option.full_name && <Typography variant="p">{option.full_name}</Typography>}
+          {option.employee_name && <Typography variant="p">{option.employee_name}</Typography>}
         </CommandItem>
       ))}
     </>

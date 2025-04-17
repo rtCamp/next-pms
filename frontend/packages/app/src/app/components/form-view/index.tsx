@@ -1,17 +1,22 @@
 /**
  * External dependencies.
  */
-import { RefObject, useState } from "react";
+import { RefObject, useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@next-pms/design-system/components";
+import { KeyedMutator, mutate } from "swr";
 
 /**
  * Internal dependencies.
  */
 import { mergeClassNames } from "@/lib/utils";
 import FieldRenderer from "./components/fieldRenderer";
+import { FormContextProvider, useFormContext } from "./context";
 import { Field, FieldConfigType } from "./types";
 
 type FormViewProps = {
+  docname: string;
+  doctype: string;
+  mutateData: KeyedMutator<any>;
   tabs: Record<string, Array<Field>>;
   readOnly?: boolean;
   currencySymbol?: string;
@@ -29,6 +34,9 @@ type FormViewProps = {
  * FormView Component
  * @description This component renders a tabbed form interface where each tab
  * contains different set of fields.
+ * @param docname Docname of the fetched document
+ * @param doctype Doctype of the fetched document
+ * @param mutateData Function to refresh data
  * @param tabs Data containing Tabs and it's fields
  * @param readOnly Makes all fields readonly and form becomes un-submitabble
  * @param currencySymbol Currency symbol string to be used for displaying currencies
@@ -38,6 +46,45 @@ type FormViewProps = {
  */
 
 const FormView = ({
+  docname,
+  doctype,
+  mutateData,
+  tabs,
+  currencySymbol,
+  onChange,
+  onSubmit,
+  tabHeaderClassName,
+  tabBodyClassName,
+  readOnly,
+  formRef,
+  fieldConfig,
+}: FormViewProps) => {
+  return (
+    <>
+      <FormContextProvider>
+        <FormViewWrapper
+          docname={docname}
+          doctype={doctype}
+          mutateData={mutateData}
+          tabs={tabs}
+          currencySymbol={currencySymbol}
+          tabHeaderClassName={tabHeaderClassName}
+          tabBodyClassName={tabBodyClassName}
+          onChange={onChange}
+          onSubmit={onSubmit}
+          formRef={formRef}
+          readOnly={readOnly}
+          fieldConfig={fieldConfig}
+        />
+      </FormContextProvider>
+    </>
+  );
+};
+
+const FormViewWrapper = ({
+  docname,
+  doctype,
+  mutateData,
   tabs,
   currencySymbol,
   onChange,
@@ -49,6 +96,13 @@ const FormView = ({
   fieldConfig = {},
 }: FormViewProps) => {
   const [activeTab, setActiveTab] = useState(Object.keys(tabs ?? {})[0]);
+  const { setDoctype, setDocname, setMutateData } = useFormContext();
+
+  useEffect(() => {
+    setDocname(docname);
+    setDoctype(doctype);
+    setMutateData(() => mutateData);
+  }, [docname, doctype, mutateData]);
 
   return (
     <div className="w-full">

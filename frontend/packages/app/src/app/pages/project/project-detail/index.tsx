@@ -94,6 +94,8 @@ const ProjectDetail = () => {
           <Spinner isFull />
         ) : (
           <FormView
+            docname={projectId as string}
+            doctype={"Project"}
             tabs={data?.message?.tabs}
             currencySymbol={getCurrencySymbol(projectData?.custom_currency) || ""}
             tabHeaderClassName="w-full"
@@ -124,6 +126,7 @@ const ProjectDetail = () => {
                 custom_project_size: { readOnly: true },
               } as FieldConfigType
             }
+            mutateData={mutate}
           />
         )}
       </Main>
