@@ -187,7 +187,14 @@ const ChildTable = ({ field, currencySymbol }: ChildTableProps) => {
               </TableRow>
             ) : (
               rows.map((row) => (
-                <TableRow key={row.idx} className="border-b divide-y">
+                <TableRow
+                  key={row.idx}
+                  className="border-b divide-y"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleEdit(row);
+                  }}
+                >
                   <TableCell className="border-r border-b px-0">
                     <div
                       className="w-full flex justify-center items-center
@@ -213,11 +220,21 @@ const ChildTable = ({ field, currencySymbol }: ChildTableProps) => {
                             href={`/app/${meta.options.toLowerCase().replace(/[_\s]/g, "-")}/${encodeURIComponent(
                               row[meta.fieldname]
                             )}`}
+                            onClick={(e) => e.stopPropagation()}
                             title={String(row[meta.fieldname] ?? "")}
                             className="block truncate hover:underline"
                           >
                             {String(row[meta.fieldname] ?? "")}
                           </a>
+                        ) : meta.fieldtype == "Check" ? (
+                          <span className="w-full flex justify-center items-center">
+                            <Checkbox checked={row[meta.fieldname] === 1} aria-readonly />
+                          </span>
+                        ) : meta.fieldtype == "Currency" ? (
+                          <span className="block truncate">
+                            {currencySymbol}
+                            {String(row[meta.fieldname] ?? "")}
+                          </span>
                         ) : (
                           <span title={String(row[meta.fieldname] ?? "")} className="block truncate">
                             {String(row[meta.fieldname] ?? "")}

@@ -3,7 +3,7 @@
  */
 import { RefObject, useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@next-pms/design-system/components";
-import { KeyedMutator, mutate } from "swr";
+import { KeyedMutator } from "swr";
 
 /**
  * Internal dependencies.

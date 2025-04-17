@@ -45,7 +45,7 @@ const DynamicFormDialog = ({
   currencySymbol,
   rowIndex,
 }: DynamicFormDialogProps) => {
-  const filteredMeta: Field[] = enrichChildMeta(fieldMeta, value, rowName).filter(
+  const filteredMeta: Field[] = enrichChildMeta(fieldMeta, value, rowName)?.filter(
     (f) => f.label !== null && f.read_only !== 1 && f.fieldtype !== "Read Only"
   );
   const { doctype, docname, mutateData } = useFormContext();
@@ -82,7 +82,7 @@ const DynamicFormDialog = ({
                 onClick={(e) => {
                   handleSubmit(async (values) => {
                     await updateChildTableRow(doctype, docname, {
-                      [value[0].parentfield]: [
+                      [fieldMeta[0].parentfield]: [
                         {
                           ...value.find((obj) => obj.name === rowName),
                           ...Object.fromEntries([...Object.entries(values).filter(([, value]) => value !== "")]),
@@ -103,14 +103,8 @@ const DynamicFormDialog = ({
                 }}
                 disabled={!isDirty || !isValid || loading}
               >
-                {loading ? (
-                  <LoaderCircle className="animate-spin w-4 h-4" />
-                ) : (
-                  <>
-                    <Save className="size-4" />
-                    Save
-                  </>
-                )}
+                {loading ? <LoaderCircle className="animate-spin size-4" /> : <Save className="size-4" />}
+                Save
               </Button>
               <Button
                 onClick={(e) => {

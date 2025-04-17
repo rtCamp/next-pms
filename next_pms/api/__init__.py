@@ -138,6 +138,7 @@ def get_doc_with_meta(doctype, docname):
                     "read_only": getattr(f, "read_only", 0),
                     "hidden": getattr(f, "hidden", 0),
                     "in_list_view": getattr(f, "in_list_view", None),
+                    "parentfield": df.fieldname,
                 }
                 for f in child_meta.fields
             ]

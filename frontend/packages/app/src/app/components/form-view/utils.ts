@@ -1,3 +1,6 @@
+/**
+ * Internal dependencies.
+ */
 import { ChildMetaField, ChildRow } from "./types";
 
 // This transforms ChildMeta Type to Field type

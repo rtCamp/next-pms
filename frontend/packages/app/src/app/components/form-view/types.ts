@@ -32,6 +32,7 @@ export interface ChildMetaField {
   read_only: number;
   reqd: number;
   options: string;
+  parentfield: string;
 }
 
 export interface ChildRow {
