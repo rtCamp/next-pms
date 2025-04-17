@@ -1,109 +1,137 @@
 import path from "path";
-import { test as base, expect } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 import { TaskPage } from "../../pageObjects/taskPage";
 import data from "../../data/manager/task.json";
 import sharedData from "../../data/manager/shared-task.json";
-
-// Extend base test with storage states
-const testWithEmployee = base.extend({});
-const testWithManager = base.extend({});
-
-testWithEmployee.use({ storageState: path.resolve(__dirname, "../../auth/employee.json") });
-testWithManager.use({ storageState: path.resolve(__dirname, "../../auth/manager.json") });
-
-// Shared task page instance
+//Add type hints to help VS Code recognize TaskPage
 /** @type {TaskPage} */
 let taskPage;
 
-// Shared beforeEach
-const sharedBeforeEach = async ({ page }) => {
+// Load test data
+let TC17data = data.TC17;
+let TC19data = data.TC19;
+let TC20data = data.TC20;
+let TC22data = sharedData.TC22;
+let TC24data = data.TC24;
+let TC25data = data.TC25;
+let TC26data = data.TC26;
+
+// ------------------------------------------------------------------------------------------
+
+// Load authentication state from 'manager.json'
+test.use({ storageState: path.resolve(__dirname, "../../auth/manager.json") });
+
+test.beforeEach(async ({ page }) => {
+  // Instantiate page objects
   taskPage = new TaskPage(page);
+
+  // Switch to Task tab
   await taskPage.goto();
-};
+});
 
-// Attach shared beforeEach to both test suites
-testWithEmployee.beforeEach(sharedBeforeEach);
-testWithManager.beforeEach(sharedBeforeEach);
+// ------------------------------------------------------------------------------------------
 
-// Test data
-const TC17data = data.TC17;
-const TC19data = data.TC19;
-const TC20data = data.TC20;
-const TC22data = sharedData.TC22;
-const TC24data = data.TC24;
-const TC25data = data.TC25;
-const TC26data = data.TC26;
-
-// ─────────────────────────────
-// Tests for Employee
-// ─────────────────────────────
-
-testWithEmployee("TC17: Validate the search functionality", async () => {
+test("TC17: Validate the search functionality   ", async ({}) => {
   const taskName = TC17data.payloadCreateTask.subject;
+  // Search task
   await taskPage.searchTask(taskName);
+  // Assertions
   const filteredTasks = await taskPage.getTasks();
   expect(filteredTasks.length).toBeGreaterThanOrEqual(1);
-  filteredTasks.forEach((task) => expect(task).toContain(taskName));
+  filteredTasks.forEach((task) => {
+    expect(task).toContain(taskName);
+  });
 });
 
-testWithEmployee("TC19: Open task details popup", async () => {
+test("TC19: Open task details popup   ", async ({}) => {
   const taskName = TC19data.payloadCreateTask.subject;
+  // Search task
   await taskPage.searchTask(taskName);
+
+  // Open task details
   await taskPage.openTaskDetails(taskName);
-  const isVisible = await taskPage.isTaskDetailsDialogVisible(taskName);
-  expect(isVisible).toBeTruthy();
+
+  // Assertions
+  const isTaskDetailsDialogVisible = await taskPage.isTaskDetailsDialogVisible(taskName);
+  expect(isTaskDetailsDialogVisible).toBeTruthy();
 });
 
-testWithEmployee("TC22: A task like/favourite functionality", async () => {
-  const taskName = TC22data.payloadCreateTask.subject;
-  const taskID = TC22data.payloadLikeTask.name;
-  await taskPage.searchTask(taskName);
-  await taskPage.assertTaskIsLiked(taskID);
-});
-
-testWithEmployee("TC25: Verify the billable status of a billable task", async () => {
-  await taskPage.addColumn("Is Billable");
-  await taskPage.searchTask(TC25data.payloadCreateTask.subject);
-  const isBillable = await taskPage.isTaskBillable(TC25data.payloadCreateTask.subject);
-  expect(isBillable).toBeTruthy();
-});
-
-testWithEmployee("TC26: Verify the billable status of a non-billable task", async () => {
-  await taskPage.addColumn("Is Billable");
-  await taskPage.searchTask(TC26data.payloadCreateTask.subject);
-  const isBillable = await taskPage.isTaskBillable(TC26data.payloadCreateTask.subject);
-  expect(isBillable).toBeFalsy();
-});
-
-// ─────────────────────────────
-// Tests for Manager
-// ─────────────────────────────
-
-testWithManager("TC20: Table columns should be customizable", async () => {
+test("TC20: The information table columns should be customizable using the ‘Columns’ button at the top.   ", async ({}) => {
+  //Verify if the column if already present:
   if (await taskPage.isColumnPresent(TC20data.col)) {
+    // Remove column and save
     await taskPage.removeColumn(TC20data.col);
     await taskPage.saveView();
   }
+
+  // Add column to view and save
   await taskPage.addColumn(TC20data.col);
   await taskPage.saveView();
 
+  // Re-navigate to tab and store column status
   await taskPage.goto();
-  const isCol1 = await taskPage.isColumnPresent(TC20data.col);
+  const isColumnPresent1 = await taskPage.isColumnPresent(TC20data.col);
 
+  // Remove column and save
   await taskPage.removeColumn(TC20data.col);
   await taskPage.saveView();
 
+  // Re-navigate to tab and store column status
   await taskPage.goto();
-  const isCol2 = await taskPage.isColumnPresent(TC20data.col);
+  const isColumnPresent2 = await taskPage.isColumnPresent(TC20data.col);
 
-  expect(isCol1).toBeTruthy();
-  expect(isCol2).toBeFalsy();
+  // Assertions
+  expect(await isColumnPresent1).toBeTruthy();
+  expect(await isColumnPresent2).toBeFalsy();
 });
 
-testWithManager("TC24: Verify task addition", async () => {
+test("TC22: A task like/favourite functionality.", async ({}) => {
+  const taskName = TC22data.payloadCreateTask.subject;
+  const taskID = TC22data.payloadLikeTask.name;
+  await taskPage.page.pause();
+
+  // Search task
+  await taskPage.searchTask(taskName);
+
+  //Assertion to verify if the task liked is showing red heart
+  await taskPage.assertTaskIsLiked(taskID);
+});
+
+test("TC24: Verify task addition", async ({}) => {
+  // Add a task
   await taskPage.AddTask(TC24data.taskInfo);
+
+  // Search task
   await taskPage.searchTask(TC24data.taskInfo.task);
+
+  // Open task details
   await taskPage.openTaskDetails(TC24data.taskInfo.task);
-  const isVisible = await taskPage.isTaskDetailsDialogVisible(TC24data.taskInfo.task);
-  expect(isVisible).toBeTruthy();
+
+  // Assertions to verify that created task is visible
+  const isTaskDetailsDialogVisible = await taskPage.isTaskDetailsDialogVisible(TC24data.taskInfo.task);
+  expect(isTaskDetailsDialogVisible).toBeTruthy();
+});
+
+test("TC25: Verify the billable status of a billable task.    ", async ({}) => {
+  // Add column to view
+  await taskPage.addColumn("Is Billable");
+
+  // Search task
+  await taskPage.searchTask(TC25data.payloadCreateTask.subject);
+
+  // Assertions
+  const isTaskBillable = await taskPage.isTaskBillable(TC25data.payloadCreateTask.subject);
+  expect(isTaskBillable).toBeTruthy();
+});
+
+test("TC26: Verify the billable status of a non-billable task.    ", async ({}) => {
+  // Add column to view
+  await taskPage.addColumn("Is Billable");
+
+  // Search task
+  await taskPage.searchTask(TC26data.payloadCreateTask.subject);
+
+  // Assertions
+  const isTaskBillable = await taskPage.isTaskBillable(TC26data.payloadCreateTask.subject);
+  expect(isTaskBillable).toBeFalsy();
 });
