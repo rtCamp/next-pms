@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { useContext } from "react";
 import { Controller } from "react-hook-form";
 import {
   Select,
@@ -17,6 +18,7 @@ import {
  * Internal dependencies.
  */
 import { mergeClassNames } from "@/lib/utils";
+import { ThemeProviderContext } from "@/providers/theme/context";
 import LinkField from "./linkField";
 import { Field, FieldConfigType } from "../types";
 import ChildTable from "./childTable";
@@ -39,11 +41,11 @@ const RenderField = (
   currencySymbol?: string,
   fieldConfig?: FieldConfigType
 ) => {
+  const { theme } = useContext(ThemeProviderContext);
   if (!field.label) return null;
   const isRequired = field.reqd === 1 || field.reqd === "1";
   const isReadOnly =
     readOnly || fieldConfig?.[field.fieldname]?.readOnly || field.read_only === 1 || field.read_only === "1";
-
   return (
     <div className="space-y-2 p-1" key={field.label}>
       {field.fieldtype !== "Check" ? (
@@ -65,7 +67,14 @@ const RenderField = (
 
               return (
                 <>
-                  {getFieldComponent(field, handleFieldChange, value, isReadOnly as boolean, currencySymbol as string)}
+                  {getFieldComponent(
+                    field,
+                    handleFieldChange,
+                    value,
+                    isReadOnly as boolean,
+                    currencySymbol as string,
+                    theme
+                  )}
                   {error && (
                     <Typography variant="p" className="text-xs text-red-500">
                       {error.message}
@@ -102,7 +111,8 @@ const RenderField = (
                       handleFieldChange,
                       value,
                       isReadOnly as boolean,
-                      currencySymbol as string
+                      currencySymbol as string,
+                      theme
                     )}
                     {error && (
                       <Typography variant="p" className="text-xs text-red-500">
@@ -137,7 +147,8 @@ const getFieldComponent = (
   handleChange: (value: any) => void,
   value: any,
   isReadOnly: boolean,
-  currencySymbol: string
+  currencySymbol: string,
+  theme: string
 ) => {
   switch (field.fieldtype) {
     case "Select":
@@ -181,6 +192,13 @@ const getFieldComponent = (
       return (
         <input
           type="date"
+          style={
+            theme === "dark"
+              ? {
+                  colorScheme: "dark",
+                }
+              : {}
+          }
           value={value}
           onChange={(e) => handleChange(e.target.value)}
           disabled={isReadOnly}
