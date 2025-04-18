@@ -136,6 +136,7 @@ const FormViewWrapper = ({
             <TabsContent key={tab} value={tab} className="space-y-4 focus-visible:ring-0">
               <FieldRenderer
                 fields={tabs[tab]}
+                tabs={tabs}
                 readOnly={readOnly}
                 onChange={onChange}
                 onSubmit={onSubmit}

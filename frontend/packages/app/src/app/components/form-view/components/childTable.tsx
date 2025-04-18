@@ -3,7 +3,6 @@
  */
 import { useEffect, useState } from "react";
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,

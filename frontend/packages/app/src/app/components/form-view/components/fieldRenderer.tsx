@@ -14,6 +14,7 @@ import { Field, FieldConfigType, Section } from "../types";
 
 type FieldRendererProps = {
   fields: Field[];
+  tabs: Record<string, Field[]>;
   onChange?: (values: Record<string, string | number | null>) => void;
   onSubmit?: (values: Record<string, string | number | null>) => void;
   readOnly?: boolean;
@@ -27,7 +28,7 @@ type FieldRendererProps = {
  * @description This component renders fields of the form-view section-wise, while respecting depends_on conditions.
  */
 const FieldRenderer = forwardRef(
-  ({ fields, onChange, onSubmit, readOnly, currencySymbol, fieldConfig, className }: FieldRendererProps, ref) => {
+  ({ fields, onChange, onSubmit, readOnly, currencySymbol, fieldConfig, className, tabs }: FieldRendererProps, ref) => {
     const { control, handleSubmit, reset } = useForm();
 
     useEffect(() => {
@@ -59,10 +60,12 @@ const FieldRenderer = forwardRef(
       if (fieldConfig?.[field.fieldname]?.hidden || field.hidden === 1) {
         return;
       }
-
       if (
         field.depends_on &&
-        !evaluateDependsOn(field.depends_on, Object.keys(formData).length > 0 ? formData : mapFieldsToObject(fields))
+        !evaluateDependsOn(
+          field.depends_on,
+          Object.keys(formData).length > 0 ? formData : mapFieldsToObject(Object.values(tabs).flat())
+        )
       ) {
         return; // Skip rendering if dependency is not met
       }
