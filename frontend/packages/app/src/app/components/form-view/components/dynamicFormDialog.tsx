@@ -58,7 +58,6 @@ const DynamicFormDialog = ({
   const {
     control,
     handleSubmit,
-    reset,
     formState: { isDirty, isValid },
   } = useForm();
 

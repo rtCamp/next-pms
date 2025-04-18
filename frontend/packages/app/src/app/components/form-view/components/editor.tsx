@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useContext } from "react";
 import ReactQuill, { Quill, Value } from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import ImageResize from "quill-image-resize-module-react";
@@ -11,6 +11,7 @@ Quill.register("modules/imageResize", ImageResize);
 /**
  * Internal dependencies.
  */
+import { ThemeProviderContext } from "@/providers/theme/context";
 import { Field } from "../types";
 
 interface EditorProps {
@@ -20,6 +21,7 @@ interface EditorProps {
 
 const Editor = ({ field, onChange }: EditorProps) => {
   const [editorValue, setEditorValue] = useState(field.value);
+  const { theme } = useContext(ThemeProviderContext);
   const quillRef = useRef<ReactQuill | null>(null);
 
   useEffect(() => {
@@ -75,9 +77,20 @@ const Editor = ({ field, onChange }: EditorProps) => {
             .ql-formats button svg:hover path , .ql-formats button svg:hover line, .ql-formats button svg:hover polyline, .ql-formats > button svg:hover rect {
                 stroke: hsl(210, 100%, 50%) !important;
             }
-            .ql-picker-options{
-                background:hsl(var(--background)) !important;
-                color:hsl(var(--foreground)) !important;
+            
+            ${
+              theme === "dark" &&
+              `.ql-picker-options{
+                                        background:#403c3c !important;
+                                        color:hsl(var(--foreground)) !important;
+                                        border:none !important;
+                                    }
+                                    .ql-picker-item{
+                                        color:hsl(var(--foreground)) !important;
+                                    }
+                                    .ql-picker-item:hover{
+                                        color: #83838F !important;
+                                    }`
             }
 
             .ql-container {
