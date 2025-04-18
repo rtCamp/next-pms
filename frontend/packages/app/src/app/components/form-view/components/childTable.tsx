@@ -132,22 +132,21 @@ const ChildTable = ({ field, currencySymbol }: ChildTableProps) => {
 
   return (
     <div className="space-y-3">
-      <div className="overflow-auto border rounded-md">
-        <Table className="border-separate border-spacing-0">
-          <TableHeader>
+      <div className="overflow-auto border rounded-md max-h-64 relative">
+        <table className="caption-bottom text-sm w-full border-separate border-spacing-0 table-fixed">
+          <TableHeader className="sticky top-0">
             <TableRow className="border-b">
-              <TableHead className="w-10 min-w-10 h-12 px-0 border-r border-b dark:border-slate-700">
-                <div
-                  className="w-full flex justify-center items-center
-                "
-                >
+              <TableHead className="w-10 min-w-10 h-12 px-0 border-r border-b dark:border-slate-700 dark:bg-slate-950">
+                <div className="w-full flex justify-center items-center">
                   <Checkbox
                     checked={selected.length === rows.length && rows.length > 0}
                     onCheckedChange={toggleSelectAll}
                   />
                 </div>
               </TableHead>
-              <TableHead className="w-12 text-center border-r dark:border-slate-700 font-normal">#</TableHead>
+              <TableHead className="w-12 text-center border-r dark:border-slate-700 font-normal dark:bg-slate-950">
+                #
+              </TableHead>
               {field?.child_meta
                 ?.filter((obj) => obj.in_list_view === 1)
                 .map((meta) => {
@@ -155,21 +154,14 @@ const ChildTable = ({ field, currencySymbol }: ChildTableProps) => {
                   return (
                     <TableHead
                       key={meta.fieldname}
-                      className="border-r dark:border-slate-700 px-2 py-1 text-left text-sm truncate font-normal"
+                      className="border-r dark:border-slate-700 px-2 py-1 text-left text-sm truncate font-normal dark:bg-slate-950"
                     >
                       {meta.label}
                       {meta.reqd === 1 && <span className="text-red-400 ml-1">*</span>}
                     </TableHead>
                   );
                 })}
-              <TableHead className="w-8">
-                {/* <div
-                  className="w-full flex justify-center items-center
-                "
-                >
-                  <Settings className="size-4 text-muted-foreground" />
-                </div> */}
-              </TableHead>
+              <TableHead className="w-8 dark:bg-slate-950" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -262,7 +254,7 @@ const ChildTable = ({ field, currencySymbol }: ChildTableProps) => {
               ))
             )}
           </TableBody>
-        </Table>
+        </table>
       </div>
 
       {/* Actions below table */}
