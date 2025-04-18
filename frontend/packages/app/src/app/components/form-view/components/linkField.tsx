@@ -76,7 +76,7 @@ const LinkField = ({ field, value, isReadOnly, onSelect }: LinkFieldProps) => {
       <div
         className={mergeClassNames(
           "group flex items-center gap-1 h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm  justify-between",
-          isReadOnly && "border-gray-100 text-gray-400"
+          isReadOnly && "border-gray-100 text-gray-400 dark:border-input"
         )}
       >
         <Typography className="shrink-0">{input}</Typography>
