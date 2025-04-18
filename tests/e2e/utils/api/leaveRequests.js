@@ -22,8 +22,13 @@ export const createLeave = async ({ employee, from_date, to_date, description })
       description: description,
     },
   });
+  if (!response.ok()) {
+    throw new Error(
+      `Failed to get response for Create Leave with description: ${description}. Status: ${response.status()}`
+    );
+  }
 
-  return await response;
+  return response;
 };
 
 // ------------------------------------------------------------------------------------------
@@ -45,7 +50,13 @@ export const actOnLeave = async ({ action, leaveDetails }) => {
     },
   });
 
-  return await response;
+  if (!response.ok()) {
+    throw new Error(
+      `Failed to get response for Act on Leave for action: ${action} and leave detials ${leaveDetails}. Status: ${response.status()}`
+    );
+  }
+
+  return response;
 };
 
 // ------------------------------------------------------------------------------------------
@@ -67,7 +78,10 @@ export const getLeaves = async (filters) => {
   // Fetch leave applications
   const response = await context.get(endpoint);
 
-  return await response;
+  if (!response.ok()) {
+    throw new Error(`Failed to get leaves for filters: ${filters}. Status: ${response.status()}`);
+  }
+  return response;
 };
 
 // ------------------------------------------------------------------------------------------
@@ -84,5 +98,9 @@ export const getLeaveDetails = async (name) => {
 
   const response = await context.get(`/api/resource/Leave%20Application/${name}`);
 
-  return await response;
+  if (!response.ok()) {
+    throw new Error(`Failed to get leave details for: ${name}. Status: ${response.status()}`);
+  }
+
+  return response;
 };

@@ -40,7 +40,13 @@ export const createProject = async ({
       ...(custom_default_hourly_billing_rate !== undefined && { custom_default_hourly_billing_rate }),
     },
   });
-  return await response;
+
+  if (!response.ok()) {
+    throw new Error(
+      `Failed to get response for Create project for project name: ${project_name} . Status: ${response.status()}`
+    );
+  }
+  return response;
 };
 
 /**
@@ -49,7 +55,13 @@ export const createProject = async ({
 export const deleteProject = async (projectId) => {
   const ctx = await ensureAuth();
   const response = await ctx.delete(`/api/resource/Project/${projectId}`);
-  return await response;
+
+  if (!response.ok()) {
+    throw new Error(
+      `Failed to get response for Delete project for projectId: ${projectId} . Status: ${response.status()}`
+    );
+  }
+  return response;
 };
 
 /**
@@ -58,5 +70,10 @@ export const deleteProject = async (projectId) => {
 export const getProjectDetails = async (projectId) => {
   const ctx = await ensureAuth();
   const response = await ctx.get(`/api/resource/Project/${projectId}`);
-  return await response;
+  if (!response.ok()) {
+    throw new Error(
+      `Failed to get response for get project Detials for projectId: ${projectId} . Status: ${response.status()}`
+    );
+  }
+  return response;
 };

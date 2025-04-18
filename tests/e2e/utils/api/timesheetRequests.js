@@ -23,8 +23,11 @@ export const createTimesheet = async ({ task, description, hours, date, employee
       employee: employee,
     },
   });
+  if (!response.ok()) {
+    throw new Error(`Failed to create timesheet for task: ${task}. Status: ${response.status()}`);
+  }
 
-  return await response;
+  return response;
 };
 
 // ------------------------------------------------------------------------------------------
@@ -40,8 +43,11 @@ export const deleteTimesheetbyID = async ({ timesheetID }) => {
   }
 
   const response = await context.delete(`/api/resource/Timesheet/${timesheetID}`, {});
+  if (!response.ok()) {
+    throw new Error(`Failed to delete timesheet for ID: ${timesheetID}. Status: ${response.status()}`);
+  }
 
-  return await response;
+  return response;
 };
 
 export const deleteTimesheet = async ({ parent, name }) => {
@@ -57,8 +63,11 @@ export const deleteTimesheet = async ({ parent, name }) => {
       name: name,
     },
   });
+  if (!response.ok()) {
+    throw new Error(`Failed to delete timesheet for ${name}. Status: ${response.status()}`);
+  }
 
-  return await response;
+  return response;
 };
 
 // ------------------------------------------------------------------------------------------
@@ -85,5 +94,5 @@ export const getTimesheetDetails = async ({ employee, start_date, max_week }) =>
     `/api/method/next_pms.timesheet.api.timesheet.get_timesheet_data?${queryParams.toString()}`
   );
 
-  return await response;
+  return response;
 };
