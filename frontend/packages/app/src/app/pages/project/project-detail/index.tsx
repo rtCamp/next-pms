@@ -118,12 +118,19 @@ const ProjectDetail = () => {
                 department: { hidden: true },
                 custom_project_documents_url: { hidden: true },
                 custom_3rd_parties: { hidden: true },
-                custom_project_detail: { hidden: true },
                 custom_project_manager_name: { hidden: true },
                 custom_engineering_manager_name: { hidden: true },
                 is_active: { hidden: true },
                 sales_order: { hidden: true },
                 custom_project_size: { readOnly: true },
+                notes: { hidden: true },
+                customer: { readOnly: true },
+                custom_currency: { readOnly: true },
+                custom_sources: { readOnly: true },
+                custom_deal_type: { readOnly: true },
+                project_type: { readOnly: true },
+                custom_restricted_under_nda: { readOnly: true },
+                custom_billing_type: { readOnly: true },
               } as FieldConfigType
             }
             mutateData={mutate}

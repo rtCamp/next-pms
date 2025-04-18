@@ -226,7 +226,7 @@ const getFieldComponent = (
           value={value}
           onChange={(e) => handleChange(e.target.value)}
           disabled={isReadOnly}
-          className="text-sm focus-visible:!ring-0"
+          className="text-sm"
         />
       );
     case "Float":
