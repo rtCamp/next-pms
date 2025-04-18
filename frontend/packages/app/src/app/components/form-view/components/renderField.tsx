@@ -22,6 +22,7 @@ import { ThemeProviderContext } from "@/providers/theme/context";
 import LinkField from "./linkField";
 import { Field, FieldConfigType } from "../types";
 import ChildTable from "./childTable";
+import Editor from "./editor";
 
 /**
  * RenderField Component
@@ -286,6 +287,15 @@ const getFieldComponent = (
       );
     case "Table":
       return <ChildTable field={field} currencySymbol={currencySymbol} />;
+    case "Text Editor":
+      return (
+        <Editor
+          field={field}
+          onChange={(value) => {
+            handleChange(value);
+          }}
+        />
+      );
     default:
       return (
         <Input

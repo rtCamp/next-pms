@@ -90,7 +90,7 @@ def get_doc_with_meta(doctype, docname):
             if df.fieldname not in permitted_fields and df.fieldtype != "Table":
                 continue
 
-        if df.fieldtype in ["HTML", "HTML Editor", "Text Editor"]:
+        if df.fieldtype in ["HTML", "HTML Editor"]:
             continue
 
         field_value = doc.get(df.fieldname)
