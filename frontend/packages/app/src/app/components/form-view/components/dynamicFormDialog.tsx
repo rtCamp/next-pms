@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import {
   Dialog,
@@ -11,6 +11,7 @@ import {
   DialogFooter,
   Button,
   toast,
+  DialogDescription,
 } from "@next-pms/design-system/components";
 import { useFrappeUpdateDoc } from "frappe-react-sdk";
 import { LoaderCircle, Save, X } from "lucide-react";
@@ -45,9 +46,11 @@ const DynamicFormDialog = ({
   currencySymbol,
   rowIndex,
 }: DynamicFormDialogProps) => {
-  const filteredMeta: Field[] = enrichChildMeta(fieldMeta, value, rowName)?.filter(
-    (f) => f.label !== null && f.read_only !== 1 && f.fieldtype !== "Read Only"
-  );
+  const filteredMeta: Field[] = useMemo(() => {
+    return enrichChildMeta(fieldMeta, value, rowName)?.filter(
+      (f) => f.label !== null && f.read_only !== 1 && f.fieldtype !== "Read Only"
+    );
+  }, [fieldMeta, value, rowName]);
   const { doctype, docname, mutateData } = useFormContext();
 
   const { updateDoc: updateChildTableRow, loading, error } = useFrappeUpdateDoc();
@@ -55,6 +58,7 @@ const DynamicFormDialog = ({
   const {
     control,
     handleSubmit,
+    reset,
     formState: { isDirty, isValid },
   } = useForm();
 
@@ -70,9 +74,10 @@ const DynamicFormDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent aria-describedby="DynamicForm" aria-description="DynamicForm">
         <DialogHeader>
           <DialogTitle>Editing Row #{rowIndex}</DialogTitle>
+          <DialogDescription></DialogDescription> {/* To remove description warnings in console*/}
         </DialogHeader>
         <form className="space-y-4 py-4">
           {filteredMeta.map((meta) => RenderField(meta, control, () => {}, false, currencySymbol, {}))}

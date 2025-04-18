@@ -56,7 +56,7 @@ const ChildTable = ({ field, currencySymbol }: ChildTableProps) => {
 
       if (allSelected) {
         // Deselect the entire range
-        setSelected((prev) => prev.filter((r) => !rangeToToggle.includes(r)));
+        setSelected((prev) => prev.filter((r) => !rangeToToggle.includes(r as ChildRow)));
       } else {
         // Select missing ones in the range
         setSelected((prev) => Array.from(new Set([...prev, ...rangeToToggle])));
@@ -195,7 +195,7 @@ const ChildTable = ({ field, currencySymbol }: ChildTableProps) => {
                     handleEdit(row);
                   }}
                 >
-                  <TableCell className="border-r border-b px-0">
+                  <TableCell onClick={(e) => e.stopPropagation()} className="border-r border-b px-0">
                     <div
                       className="w-full flex justify-center items-center
                 "
@@ -228,7 +228,7 @@ const ChildTable = ({ field, currencySymbol }: ChildTableProps) => {
                           </a>
                         ) : meta.fieldtype == "Check" ? (
                           <span className="w-full flex justify-center items-center">
-                            <Checkbox checked={row[meta.fieldname] === 1} aria-readonly />
+                            <Checkbox className="pointer-events-none" checked={row[meta.fieldname] === 1} />
                           </span>
                         ) : meta.fieldtype == "Currency" ? (
                           <span className="block truncate">
@@ -291,19 +291,21 @@ const ChildTable = ({ field, currencySymbol }: ChildTableProps) => {
       </div>
 
       {/* Dialog */}
-      <DynamicFormDialog
-        open={!!editingRow}
-        onClose={() => setEditingRow(null)}
-        rowIndex={editingRow?.idx}
-        value={field.value as ChildRow[]}
-        fieldMeta={field.child_meta || []}
-        rowName={editingRow?.name}
-        currencySymbol={currencySymbol}
-        onSubmit={(values) => {
-          setEditedValues(values);
-          handleSaveEdit();
-        }}
-      />
+      {!!editingRow && (
+        <DynamicFormDialog
+          open={!!editingRow}
+          onClose={() => setEditingRow(null)}
+          rowIndex={editingRow?.idx}
+          value={field.value as ChildRow[]}
+          fieldMeta={field.child_meta || []}
+          rowName={editingRow?.name}
+          currencySymbol={currencySymbol}
+          onSubmit={(values) => {
+            setEditedValues(values);
+            handleSaveEdit();
+          }}
+        />
+      )}
     </div>
   );
 };

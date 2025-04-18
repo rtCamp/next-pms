@@ -84,8 +84,8 @@ const ProjectDetail = () => {
     <>
       <ProjectDetailHeader
         projectId={projectId!}
-        disabled={loading}
-        hideSaveChanges={hideSaveChanges}
+        disabled={loading || hideSaveChanges}
+        hideSaveChanges={false}
         projectName={projectName}
         formRef={formRef}
       />
