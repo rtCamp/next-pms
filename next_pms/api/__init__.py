@@ -164,22 +164,3 @@ def get_naming_rule(doctype):
     naming_series_options = options.split("\n") if options else []
 
     return {"doctype": doctype, "naming_series_field": naming_series_field, "options": naming_series_options}
-
-
-@frappe.whitelist(methods=["POST"])
-def child_table_bulk_delete(doctype: str, parent_name: str, child_fieldname: str, child_names: list[str]):
-    """Delete specific child table rows from the parent doctype."""
-
-    if not frappe.has_permission(doctype, ptype="delete"):
-        frappe.throw(_("You do not have permission to delete {0}").format(doctype))
-
-    parent_doc = frappe.get_doc(doctype, parent_name)
-
-    for child_name in child_names:
-        for log in parent_doc.get(child_fieldname):
-            if log.name == child_name:
-                parent_doc.remove(log)
-
-    parent_doc.save()
-
-    return _("Row deleted successfully.")

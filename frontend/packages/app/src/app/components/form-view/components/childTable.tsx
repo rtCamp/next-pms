@@ -12,7 +12,7 @@ import {
   Button,
   toast,
 } from "@next-pms/design-system/components";
-import { useFrappePostCall } from "frappe-react-sdk";
+import { useFrappeUpdateDoc } from "frappe-react-sdk";
 import { Pencil, Trash2, Plus, NotepadText } from "lucide-react";
 
 /**
@@ -34,7 +34,7 @@ const ChildTable = ({ field, currencySymbol, isReadOnly }: ChildTableProps) => {
   const [lastSelectedIdx, setLastSelectedIdx] = useState<number | null>(null);
   const [editingRow, setEditingRow] = useState<ChildRow | null>(null);
   const [editedValues, setEditedValues] = useState<Partial<ChildRow>>({});
-  const { call: deleteChildTableRows } = useFrappePostCall("next_pms.api.child_table_bulk_delete");
+  const { updateDoc } = useFrappeUpdateDoc();
 
   const toggleSelectAll = () => {
     if (selected.length === rows.length) {
@@ -78,7 +78,7 @@ const ChildTable = ({ field, currencySymbol, isReadOnly }: ChildTableProps) => {
 
   const handleAddRow = () => {
     const newRow: ChildRow = {
-      idx: rows.length + 1,
+      idx: rows[rows.length - 1].idx + 1,
       ...Object.fromEntries(field?.child_meta!.map((m) => [m.fieldname, ""])),
     };
     setRows([...rows, newRow]);
@@ -86,19 +86,17 @@ const ChildTable = ({ field, currencySymbol, isReadOnly }: ChildTableProps) => {
 
   const handleDeleteSelected = async () => {
     const data = selected.filter((row) => row.name).map((row) => row.name);
+    const filteredData = rows.filter((item) => !data.includes(item.name));
     if (data.length > 0) {
-      await deleteChildTableRows({
-        doctype: selected[0].parenttype,
-        parent_name: selected[0].parent,
-        child_fieldname: selected[0].parentfield,
-        child_names: data,
+      await updateDoc(selected[0].parenttype as string, selected[0].parent as string, {
+        [selected[0].parentfield]: [...filteredData],
       })
-        .then((res) => {
+        .then(() => {
           setRows(rows.filter((r) => !selected.some((s) => s.idx === r.idx)));
           setSelected([]);
           toast({
             variant: "success",
-            description: res.message,
+            description: `Row${data.length > 1 && "s"} deleted successfully`,
           });
         })
         .catch((err) => {
