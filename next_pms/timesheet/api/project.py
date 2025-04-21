@@ -1,7 +1,7 @@
 import json
 
 from erpnext.accounts.report.utils import get_rate_as_at
-from frappe import PermissionError, _, get_doc, get_list, get_meta, has_permission, throw, whitelist
+from frappe import get_list, get_meta, whitelist
 from frappe.utils import flt, getdate
 
 from . import get_count
@@ -75,20 +75,3 @@ def get_currency_fields(meta_fields):
 def convert(value, rate):
     converted_value = flt(value) * (rate or 1)
     return converted_value
-
-
-@whitelist()
-def add_project(naming_series: str, project_name: str, project_template: str, company: str):
-    if not has_permission("Project", "create"):
-        throw(_("You do not have permission to create a Project."), PermissionError)
-
-    get_doc(
-        {
-            "doctype": "Project",
-            "project_name": project_name,
-            "naming_series": naming_series,
-            "project_template": project_template,
-            "company": company,
-        }
-    ).insert()
-    return _("Project Created Successfully")

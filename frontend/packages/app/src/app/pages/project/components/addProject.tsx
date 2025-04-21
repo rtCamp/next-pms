@@ -23,7 +23,7 @@ import {
   useToast,
   Spinner,
 } from "@next-pms/design-system/components";
-import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappeCreateDoc } from "frappe-react-sdk";
 import { Search, LoaderCircle, Save, X } from "lucide-react";
 import type { KeyedMutator } from "swr";
 import { z } from "zod";
@@ -47,7 +47,7 @@ export const AddProject = ({ project, mutate, dispatch }: AddProjectProps) => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const { toast } = useToast();
 
-  const { call } = useFrappePostCall("next_pms.timesheet.api.project.add_project");
+  const { createDoc } = useFrappeCreateDoc();
   const form = useForm<z.infer<typeof ProjectSchema>>({
     resolver: zodResolver(ProjectSchema),
     defaultValues: {
@@ -106,11 +106,12 @@ export const AddProject = ({ project, mutate, dispatch }: AddProjectProps) => {
       project_template: data.project_template ?? null,
       company: data.company.trim(),
     };
-    call(sanitizedTaskData)
+    createDoc("Project", sanitizedTaskData)
       .then((res) => {
+        console.log(res);
         toast({
           variant: "success",
-          description: res.message,
+          description: "Project created successfully",
         });
 
         setIsSubmitting(false);
