@@ -308,7 +308,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
             </TableBody>
           </Table>
           {projectState.isAddProjectDialogOpen && (
-            <AddProject project={projectState} dispatch={dispatch} mutate={mutate} />
+            <AddProject meta={meta} project={projectState} dispatch={dispatch} mutate={mutate} />
           )}
         </>
       )}

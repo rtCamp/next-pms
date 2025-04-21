@@ -34,6 +34,7 @@ import { z } from "zod";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { ProjectSchema } from "@/schema/project";
 import { ProjectState, setIsAddProjectDialogOpen } from "@/store/project";
+import { DocMetaProps } from "@/types";
 import { AddProjectType } from "../types";
 
 type AddProjectProps = {
@@ -42,9 +43,14 @@ type AddProjectProps = {
   mutate: KeyedMutator<any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dispatch: React.Dispatch<any>;
+  meta: DocMetaProps;
 };
-export const AddProject = ({ project, mutate, dispatch }: AddProjectProps) => {
+export const AddProject = ({ project, mutate, dispatch, meta }: AddProjectProps) => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [namingSeries, setNamingSeries] = useState<Record<string, any>>(
+    meta?.fields?.filter((item) => item.fieldname === "naming_series")[0]
+  );
   const { toast } = useToast();
 
   const { createDoc } = useFrappeCreateDoc();
@@ -59,15 +65,17 @@ export const AddProject = ({ project, mutate, dispatch }: AddProjectProps) => {
     mode: "onSubmit",
   });
 
-  const { data: naming_series, isLoading: isNamingSeriesLoading } = useFrappeGetCall("next_pms.api.get_naming_rule", {
-    doctype: "Project",
-  });
+  useEffect(() => {
+    if (meta?.fields) {
+      setNamingSeries(meta?.fields?.filter((item) => item.fieldname === "naming_series")[0]);
+    }
+  }, [meta]);
 
   useEffect(() => {
-    if (naming_series?.message) {
-      form.setValue("naming_series", naming_series?.message?.options[0]);
+    if (namingSeries) {
+      form.setValue("naming_series", namingSeries.options?.split("\n")[0]);
     }
-  }, [naming_series, form]);
+  }, [namingSeries, form]);
 
   const { data: companies, isLoading: isCompanyLoading } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Company",
@@ -107,8 +115,7 @@ export const AddProject = ({ project, mutate, dispatch }: AddProjectProps) => {
       company: data.company.trim(),
     };
     createDoc("Project", sanitizedTaskData)
-      .then((res) => {
-        console.log(res);
+      .then(() => {
         toast({
           variant: "success",
           description: "Project created successfully",
@@ -160,7 +167,7 @@ export const AddProject = ({ project, mutate, dispatch }: AddProjectProps) => {
             <DialogTitle>Add Project</DialogTitle>
             <Separator />
           </DialogHeader>
-          {isNamingSeriesLoading || isCompanyLoading || isFromTemplateLoading ? (
+          {isCompanyLoading || isFromTemplateLoading ? (
             <Spinner className="h-32" isFull={true} />
           ) : (
             <Form {...form}>
@@ -178,7 +185,7 @@ export const AddProject = ({ project, mutate, dispatch }: AddProjectProps) => {
                             showSelected
                             shouldFilter
                             value={form.getValues("naming_series") ? [form.getValues("naming_series")] : []}
-                            data={naming_series?.message?.options?.map((item: string) => ({
+                            data={namingSeries?.options?.split("\n")?.map((item: string) => ({
                               label: item,
                               value: item,
                             }))}
