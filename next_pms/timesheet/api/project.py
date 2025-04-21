@@ -78,38 +78,6 @@ def convert(value, rate):
 
 
 @whitelist()
-def get_project_list(project_name=None, page_length=10, start=0, status=None, ignore_permissions=False):
-    fields = ["name", "project_name"]
-    filters = {}
-    or_filters = {}
-
-    if isinstance(status, str):
-        status = json.loads(status)
-        if len(status) > 0:
-            filters["status"] = ["in", status]
-
-    if isinstance(status, list):
-        if len(status) > 0:
-            filters["status"] = ["in", status]
-
-    if project_name:
-        or_filters["project_name"] = ["like", f"%{project_name}%"]
-
-    projects = get_list(
-        "Project",
-        fields=fields,
-        filters=filters,
-        or_filters=or_filters,
-        page_length=page_length,
-        start=start,
-        ignore_permissions=ignore_permissions,
-        order_by="project_name asc",
-    )
-
-    return projects
-
-
-@whitelist()
 def add_project(naming_series: str, project_name: str, project_template: str, company: str):
     if not has_permission("Project", "create"):
         throw(_("You do not have permission to create a Project."), PermissionError)

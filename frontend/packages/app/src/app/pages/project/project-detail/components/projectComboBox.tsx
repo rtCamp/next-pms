@@ -15,7 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@next-pms/design-system/components";
-import { useFrappeGetCall } from "frappe-react-sdk";
+import { useFrappeGetDocList } from "frappe-react-sdk";
 import { ChevronDown, Check, FolderDot } from "lucide-react";
 /**
  * Internal dependencies.
@@ -63,12 +63,17 @@ const ProjectComboBox = ({
   const [selectedValues, setSelectedValues] = useState<string>(value);
   const [project, setProject] = useState<Project | undefined>();
   const [open, setOpen] = useState(false);
-  const { data: projects } = useFrappeGetCall(
-    "next_pms.timesheet.api.project.get_project_list",
+  const filters = [
+    ...(debouncedSearch ? [["project_name", "like", `%${debouncedSearch}%`]] : []),
+    ...(status ? [["status", "=", status]] : []),
+  ];
+  const { data: projects } = useFrappeGetDocList(
+    "Project",
     {
-      page_length: length,
-      status: status,
-      project_name: debouncedSearch,
+      fields: ["name", "project_name"],
+      filters,
+      limit: length,
+      orderBy: { field: "creation", order: "desc" },
     },
     "projectComboBox.get_project_list" + new Date() + projectName,
     {
@@ -87,7 +92,7 @@ const ProjectComboBox = ({
   };
   useEffect(() => {
     if (!projects) return;
-    const res = projects?.message.find((item: Project) => item.name === selectedValues);
+    const res = projects?.find((item: Project) => item.name === selectedValues);
     setProject(res);
   }, [projects, selectedValues]);
 
@@ -146,7 +151,7 @@ const ProjectComboBox = ({
           <CommandEmpty>No data.</CommandEmpty>
           <CommandGroup>
             <CommandList>
-              {projects?.message.map((item: Project, index: number) => {
+              {projects?.map((item: Project, index: number) => {
                 const isActive = selectedValues == item.name;
                 return (
                   <CommandItem
