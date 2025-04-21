@@ -92,7 +92,7 @@
   "mandatory_depends_on": null,
   "modified": "2025-04-15 17:15:11.079235",
   "module": "Next PMS",
-  "name": "Project-custom_project_size_",
+  "name": "Project-custom_project_size",
   "no_copy": 0,
   "non_negative": 0,
   "options": "Small (< $50K)\nMedium ($50K - $100K)\nLarge ($100K+)\n",
