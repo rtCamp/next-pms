@@ -110,7 +110,7 @@ def get_employee_leaves(employee: str, start_date: str, end_date: str):
     # nosemgrep
     return frappe.db.sql(
         """
-        SELECT from_date, to_date, half_day, half_day_date,total_leave_days,name FROM `tabLeave Application`
+        SELECT from_date, to_date, half_day, half_day_date,total_leave_days,name,leave_type FROM `tabLeave Application`
             WHERE employee = %(employee)s
             AND (
                 (from_date <= %(start_date)s AND to_date >= %(start_date)s)

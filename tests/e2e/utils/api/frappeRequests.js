@@ -44,49 +44,18 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   return responseData;
 };
 /**
- * Create a new Task.
+ * Filter the Results
  */
-export const createTask = async ({ subject, project, description, custom_is_billable }) => {
-  return await apiRequest("/api/resource/Task", {
+export const filterApi = async (docType, filterType, filterBy, filterValue) => {
+  const endpoint = `api/method/frappe.desk.reportview.get`;
+
+  const payload = {
     method: "POST",
     data: {
-      subject,
-      project,
-      description,
-      ...(custom_is_billable !== undefined && { custom_is_billable }),
+      doctype: docType,
+      filters: [[filterType, filterBy, "=", filterValue]],
     },
-  });
-};
-/**
- * Delete a Task.
- */
-export const deleteTask = async (taskID) => {
-  return await apiRequest(`/api/resource/Task/${taskID}`, {
-    method: "DELETE",
-  });
-};
-/**
- * Like a Task.
- */
-export const likeTask = async (taskID, role = "manager") => {
-  return await apiRequest(
-    "/api/method/frappe.desk.like.toggle_like",
-    {
-      method: "POST",
-      data: {
-        doctype: "Task",
-        name: taskID,
-        add: "Yes",
-      },
-    },
-    role
-  );
-};
-/**
- * Get Task Details.
- */
-export const getTaskDetails = async (taskID) => {
-  return await apiRequest(`/api/resource/Task/${taskID}`, {
-    method: "GET",
-  });
+  };
+
+  return await apiRequest(endpoint, payload);
 };

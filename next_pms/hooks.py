@@ -9,7 +9,15 @@ app_license = "GNU AFFERO GENERAL PUBLIC LICENSE (v3)"
 
 # Includes in <head>
 # ------------------
-
+add_to_apps_screen = [
+    {
+        "name": "next_pms",
+        "logo": "/assets/next_pms/next-pms-logo.png",
+        "title": "Next PMS",
+        "route": "/next-pms",
+        "has_permission": "next_pms.api.check_app_permission",
+    }
+]
 website_route_rules = [
     {
         "from_route": "/next-pms/<path:app_path>",

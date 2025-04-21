@@ -18,7 +18,7 @@ test.beforeEach(async ({ page }) => {
 
 // ------------------------------------------------------------------------------------------
 
-test("TC52: Verify the 'Team' tab isn't displayed for an employee. @workingTests", async ({}) => {
+test("TC52: Verify the 'Team' tab isn't displayed for an employee.", async ({}) => {
   // Assertions
   const isTeamTabAvailable = await sidebar.isTabAvailable("Team");
   expect(isTeamTabAvailable).toBeFalsy();

@@ -12,4 +12,4 @@ def flush_cache(doc):
         frappe.cache().hdel(EMP_WOKING_DETAILS, doc.name)
 
     if doc.has_value_changed("holiday_list"):
-        get_holidays.cache_clear()
+        get_holidays.clear_cache()

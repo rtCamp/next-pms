@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { useState } from "react";
 import {
   ErrorFallback,
   Typography,
@@ -12,10 +13,14 @@ import {
   PopoverContent,
   PopoverTrigger,
   Separator,
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+  Spinner,
 } from "@next-pms/design-system/components";
-import { ArrowRightLeft, LogOut, Sun, Moon } from "lucide-react";
+import { useFrappeGetCall } from "frappe-react-sdk";
+import { ArrowRightLeft, LogOut, Sun, Moon, LayoutGrid, ArrowRightToLine } from "lucide-react";
 import { useContextSelector } from "use-context-selector";
-
 /**
  * Internal dependencies.
  */
@@ -28,7 +33,7 @@ import type { UserNavigationProps } from "./types";
 const UserNavigation = ({ user }: UserNavigationProps) => {
   const logout = useContextSelector(UserContext, (value) => value.actions.logout);
   const { theme, isDarkThemeOnSystem, setTheme } = useTheme();
-
+  const [showSwitcher, setShowSwitcher] = useState(false);
   const changeTheme = () => {
     if (theme === "system") {
       setTheme(isDarkThemeOnSystem ? "light" : "dark");
@@ -36,9 +41,10 @@ const UserNavigation = ({ user }: UserNavigationProps) => {
       setTheme(theme === "light" ? "dark" : "light");
     }
   };
+
   return (
     <ErrorFallback>
-      <Popover>
+      <Popover onOpenChange={() => setShowSwitcher(false)}>
         <PopoverTrigger title={user.userName} className={mergeClassNames("flex items-center gap-x-2 truncate")}>
           <Avatar className="w-8 h-8 justify-self-end transition-all duration-600">
             <AvatarImage src={decodeURIComponent(user.image)} />
@@ -55,8 +61,26 @@ const UserNavigation = ({ user }: UserNavigationProps) => {
           </Typography>
         </PopoverTrigger>
         <PopoverContent className="flex flex-col p-1 w-52 z-[1000]">
+          <HoverCard open={showSwitcher}>
+            <HoverCardTrigger asChild>
+              <Button
+                variant="link"
+                className="flex justify-between hover:no-underline font-normal hover:bg-accent p-2 gap-x-2 items-center focus-visible:ring-0 focus-visible:ring-offset-0"
+                onClick={() => setShowSwitcher((prev) => !prev)}
+              >
+                <span className="flex gap-x-2 items-center">
+                  <LayoutGrid /> Apps
+                </span>
+                <ArrowRightToLine />
+              </Button>
+            </HoverCardTrigger>
+            <HoverCardContent className="w-64 p-1" side="right">
+              <AppSwitcher />
+            </HoverCardContent>
+          </HoverCard>
+          <Separator className="my-1" />
           <a
-            className="flex justify-start text-sm hover:no-underline hover:bg-accent p-2 gap-x-2 items-center"
+            className="flex justify-start rounded text-sm hover:no-underline hover:bg-accent p-2 gap-x-2 items-center"
             href={DESK}
           >
             <ArrowRightLeft />
@@ -90,4 +114,33 @@ const UserNavigation = ({ user }: UserNavigationProps) => {
   );
 };
 
+const AppSwitcher = () => {
+  const { data, isLoading } = useFrappeGetCall("frappe.apps.get_apps", {}, undefined, {
+    revalidateIfStale: false,
+  });
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center w-full h-full">
+        <Spinner />
+      </div>
+    );
+  }
+  return (
+    <div className="grid grid-cols-3 gap-1">
+      {data?.message?.map((app: { name: string; logo: string; route: string; title: string }) => {
+        if (app.name === "next_pms") return;
+        return (
+          <a
+            key={app.name}
+            href={app.route}
+            className="flex flex-col items-center justify-start gap-y-1 hover:no-underline hover:bg-accent p-1  rounded"
+          >
+            <img src={app.logo} alt={app.title} className="w-8 h-8" />
+            <Typography variant="small">{app.title}</Typography>
+          </a>
+        );
+      })}
+    </div>
+  );
+};
 export default UserNavigation;

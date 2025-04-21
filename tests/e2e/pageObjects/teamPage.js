@@ -54,6 +54,7 @@ export class TeamPage {
     const searchInput = this.page.getByRole("dialog").getByPlaceholder(`${placeholder}`);
 
     await searchInput.fill(value);
+    await this.page.waitForTimeout(1000);
     await this.page.getByRole("option", { name: value }).click();
   }
 
@@ -66,6 +67,7 @@ export class TeamPage {
    */
   async searchEmployee(name) {
     await this.searchInput.fill(name);
+    await this.page.waitForTimeout(1000);
     await this.searchInput.press("ArrowDown+Enter");
   }
 
@@ -75,7 +77,8 @@ export class TeamPage {
   async navigateToEmpTimesheet(name) {
     await this.searchEmployee(name);
     await this.page.locator(`//p[text()='${name}']`).click();
-    await this.page.waitForLoadState();
+    await this.page.waitForLoadState("networkidle");
+    await this.page.waitForTimeout(2000);
   }
 
   // --------------------------------------
@@ -88,6 +91,7 @@ export class TeamPage {
   async applyReportsTo(name) {
     await this.reportsToDropdown.click();
     await this.searchAndSelectOption("Search Employee", name);
+    await this.page.waitForTimeout(2000);
   }
 
   // --------------------------------------
@@ -106,6 +110,7 @@ export class TeamPage {
    */
   async viewNextWeek() {
     await this.nextButton.click();
+    await this.page.waitForTimeout(500);
   }
 
   // --------------------------------------
@@ -120,6 +125,7 @@ export class TeamPage {
     await this.actOnTimeEntry("Reject");
     await this.rejectTimesheetModal.getByPlaceholder("Add a note").fill(reason);
     await this.rejectTimesheetModal.getByRole("button", { name: "Reject" }).click();
+    await this.page.waitForTimeout(2000);
   }
 
   // --------------------------------------

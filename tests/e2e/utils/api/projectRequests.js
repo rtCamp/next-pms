@@ -13,7 +13,18 @@ const ensureAuth = async () => {
 /**
  * Create a new Project entry.
  */
-export const createProject = async ({ project_name, company, customer, billing_type, currency }) => {
+export const createProject = async ({
+  project_name,
+  company,
+  customer,
+  billing_type,
+  currency,
+  custom_billing_type,
+  estimated_costing,
+  custom_project_billing_team,
+  project_type,
+  custom_default_hourly_billing_rate,
+}) => {
   const ctx = await ensureAuth();
   const response = await ctx.post(`/api/resource/Project`, {
     data: {
@@ -22,9 +33,20 @@ export const createProject = async ({ project_name, company, customer, billing_t
       customer: customer,
       billing_type: billing_type,
       currency: currency,
+      ...(project_type !== undefined && { project_type }),
+      ...(custom_billing_type !== undefined && { custom_billing_type }),
+      ...(estimated_costing !== undefined && { estimated_costing }),
+      ...(custom_project_billing_team !== undefined && { custom_project_billing_team }),
+      ...(custom_default_hourly_billing_rate !== undefined && { custom_default_hourly_billing_rate }),
     },
   });
-  return await response;
+
+  if (!response.ok()) {
+    throw new Error(
+      `Failed to get response for Create project for project name: ${project_name} . Status: ${response.status()}`
+    );
+  }
+  return response;
 };
 
 /**
@@ -33,5 +55,25 @@ export const createProject = async ({ project_name, company, customer, billing_t
 export const deleteProject = async (projectId) => {
   const ctx = await ensureAuth();
   const response = await ctx.delete(`/api/resource/Project/${projectId}`);
-  return await response;
+
+  if (!response.ok()) {
+    throw new Error(
+      `Failed to get response for Delete project for projectId: ${projectId} . Status: ${response.status()}`
+    );
+  }
+  return response;
+};
+
+/**
+ * Get details of a project.
+ */
+export const getProjectDetails = async (projectId) => {
+  const ctx = await ensureAuth();
+  const response = await ctx.get(`/api/resource/Project/${projectId}`);
+  if (!response.ok()) {
+    throw new Error(
+      `Failed to get response for get project Detials for projectId: ${projectId} . Status: ${response.status()}`
+    );
+  }
+  return response;
 };
