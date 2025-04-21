@@ -36,7 +36,7 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   } else {
     await requestContext.dispose();
     throw new Error(
-      `API request failed for ${role} and endpoint ${endpoint}: ${response.status()} ${response.statusText()}`
+      `API request failed for ${role} with endpoint type ${options.method} and endpoint ${endpoint}: ${response.status()} ${response.statusText()}`
     );
   }
 
@@ -50,3 +50,19 @@ export const getEmployeeDetails = async (empId, role) => {
   const endpoint = `/api/resource/Employee/${empId}`;
   return await apiRequest(endpoint, { method: "GET" }, role);
 };
+
+export const addEmployee = async({first_name, last_name,status ,gender,date_of_joining,date_of_birth},role)=>{
+  const endpoint = `/api/resource/Employee`;
+
+return await apiRequest(endpoint, {
+  method: "POST",
+  data: {
+    first_name,
+    last_name,
+    status,
+    gender,
+    date_of_joining,
+    date_of_birth
+  },
+},role);
+}
