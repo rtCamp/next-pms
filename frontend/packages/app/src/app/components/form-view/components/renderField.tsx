@@ -286,11 +286,12 @@ const getFieldComponent = (
         />
       );
     case "Table":
-      return <ChildTable field={field} currencySymbol={currencySymbol} />;
+      return <ChildTable isReadOnly={isReadOnly} field={field} currencySymbol={currencySymbol} />;
     case "Text Editor":
       return (
         <Editor
           field={field}
+          isReadOnly={isReadOnly}
           onChange={(value) => {
             handleChange(value);
           }}

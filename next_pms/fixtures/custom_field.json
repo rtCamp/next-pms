@@ -86,7 +86,7 @@
   "insert_after": "project_type",
   "is_system_generated": 0,
   "is_virtual": 0,
-  "label": "Project Size ",
+  "label": "Project Size",
   "length": 0,
   "link_filters": null,
   "mandatory_depends_on": null,

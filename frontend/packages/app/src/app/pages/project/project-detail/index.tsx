@@ -101,7 +101,7 @@ const ProjectDetail = () => {
             tabHeaderClassName="w-full"
             tabBodyClassName="xl:w-4/5"
             onChange={(form_data) => {
-              if (data?.message?.permissions?.includes("write") && form_data) {
+              if ((window?.frappe?.boot?.user?.can_write?.includes("Project") ?? true) && form_data) {
                 setHideSaveChanges(false);
                 setFormData(form_data);
               } else {
@@ -113,7 +113,7 @@ const ProjectDetail = () => {
               await updateDoc("Project", projectId as string, sanitizedFormData);
             }}
             formRef={formRef}
-            readOnly={!data?.message?.permissions?.includes("write")}
+            readOnly={!(window?.frappe?.boot?.user?.can_write?.includes("Project") ?? true)}
             fieldConfig={
               {
                 naming_series: { hidden: true },

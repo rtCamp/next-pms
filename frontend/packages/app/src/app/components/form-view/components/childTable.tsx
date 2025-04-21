@@ -25,9 +25,10 @@ import DynamicFormDialog from "./dynamicFormDialog";
 interface ChildTableProps {
   field: Field;
   currencySymbol: string;
+  isReadOnly: boolean;
 }
 
-const ChildTable = ({ field, currencySymbol }: ChildTableProps) => {
+const ChildTable = ({ field, currencySymbol, isReadOnly }: ChildTableProps) => {
   const [rows, setRows] = useState<ChildRow[]>((field?.value as ChildRow[]) || []);
   const [selected, setSelected] = useState<Array<Record<string, string | number>>>([]);
   const [lastSelectedIdx, setLastSelectedIdx] = useState<number | null>(null);
@@ -160,7 +161,7 @@ const ChildTable = ({ field, currencySymbol }: ChildTableProps) => {
                     </TableHead>
                   );
                 })}
-              <TableHead className="w-8 dark:bg-slate-950" />
+              {!(isReadOnly || field.read_only === 1) && <TableHead className="w-8 dark:bg-slate-950" />}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -233,22 +234,21 @@ const ChildTable = ({ field, currencySymbol }: ChildTableProps) => {
                         )}
                       </TableCell>
                     ))}
-                  <TableCell className="text-right px-0">
-                    <div
-                      className="w-full flex justify-center items-center
-                "
-                    >
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleEdit(row);
-                        }}
-                        className="hover:text-primary"
-                      >
-                        <Pencil className="size-3" />
-                      </button>
-                    </div>
-                  </TableCell>
+                  {!(isReadOnly || field.read_only === 1) && (
+                    <TableCell className="text-right px-0">
+                      <div className="w-full flex justify-center items-center">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleEdit(row);
+                          }}
+                          className="hover:text-primary"
+                        >
+                          <Pencil className="size-3" />
+                        </button>
+                      </div>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             )}

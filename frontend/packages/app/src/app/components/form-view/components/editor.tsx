@@ -17,9 +17,10 @@ import { Field } from "../types";
 interface EditorProps {
   field: Field;
   onChange: (value: string) => void;
+  isReadOnly: boolean;
 }
 
-const Editor = ({ field, onChange }: EditorProps) => {
+const Editor = ({ field, onChange, isReadOnly }: EditorProps) => {
   const [editorValue, setEditorValue] = useState(field.value);
   const { theme } = useContext(ThemeProviderContext);
   const quillRef = useRef<ReactQuill | null>(null);
@@ -116,6 +117,7 @@ const Editor = ({ field, onChange }: EditorProps) => {
         className="border rounded-md border-input [&>div:first-child]:border-t-0 [&>div:first-child]:border-r-0 [&>div:first-child]:border-l-0 [&>div:first-child]:border-input [&>div:first-child]:border-bottom [&>div:last-child]:border-none text-foreground bg-background"
         theme="snow"
         modules={modules}
+        readOnly={isReadOnly || field.read_only === 1}
         value={editorValue as Value}
         onChange={handleChange}
       />
