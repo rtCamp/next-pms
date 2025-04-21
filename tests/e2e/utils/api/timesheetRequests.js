@@ -63,9 +63,6 @@ export const deleteTimesheet = async ({ parent, name }) => {
       name: name,
     },
   });
-  if (!response.ok()) {
-    throw new Error(`Failed to delete timesheet for ${name}. Status: ${response.status()}`);
-  }
 
   return response;
 };
