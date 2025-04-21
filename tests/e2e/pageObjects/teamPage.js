@@ -15,6 +15,11 @@ export class TeamPage {
     // Header Filters
     this.searchInput = page.getByPlaceholder("Employee Name");
     this.reportsToDropdown = page.getByRole("button", { name: "Reports To" });
+    this.employeeStatus = page.getByRole('button', { name: 'Employee Status' });
+
+    //employeeStatus Filter Suggestions
+    this.employeeStatusSuggestions =page.getByLabel('Suggestions');
+    //.getByText(empStatus, { exact: true })
 
     // Prev & Next Buttons
     this.prevButton = page.getByRole("button", { name: "prev-week" });
@@ -357,4 +362,12 @@ export class TeamPage {
   async isTaskDetailsDialogVisible(name) {
     return this.page.getByRole("dialog", { name: name }).isVisible();
   }
+  /**
+   * Select suggestion for Employee Status
+   */
+  async selectEmployeeStatus (empStatus){
+    await this.employeeStatus.click();
+    await this.employeeStatusSuggestions.selectOption(empStatus);
+  }
+
 }
