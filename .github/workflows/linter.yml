@@ -13,7 +13,7 @@ concurrency:
 jobs:
   pre-commit:
     name: "Frappe Linter"
-    runs-on: ["self-hosted", "python"]
+    runs-on: self-hosted
     container:
       image: node:18-bookworm
 
