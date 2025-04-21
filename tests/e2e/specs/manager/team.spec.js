@@ -184,3 +184,9 @@ test("TC53: Verify the manager view.   ", async ({}) => {
   // Assertions
   expect(employees.sort()).toEqual(TC53data.employees.sort());
 });
+
+test("TC91: Verify Employee Status filter to show the results appropriately", async ({}) => {
+// Apply filter for all types of Employee Status
+const employeeStatus = ["Active", "Inactive", "Suspended", "Left"];
+await teamPage.getCell()
+});
