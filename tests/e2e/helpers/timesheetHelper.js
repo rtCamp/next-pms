@@ -567,12 +567,11 @@ export const cleanUpProjects = async (data) => {
     let timesheetIds = [];
 
     if (Array.isArray(valuesRaw)) {
-      timesheetIds = valuesRaw.map((v) => v[0]);
-    } else {
-      console.warn(`No timesheets found for project ${key}. Skipping timesheet deletion.`);
+      // Flatten and filter valid strings only
+      timesheetIds = valuesRaw.flat().filter((v) => typeof v === "string");
     }
-
-    console.warn(`OBTAINED TIMESHEET ID FOR ${key} is ; `, timesheetIds);
+    
+    console.warn(`TIMESHEET IDs to delete:`, timesheetIds);
 
     // Store collected info
     deletedData.push({
@@ -583,7 +582,17 @@ export const cleanUpProjects = async (data) => {
 
     // Delete Timesheets
     for (const timesheetId of timesheetIds) {
-      await deleteTimesheetbyID(timesheetId);
+      if (!timesheetId || typeof timesheetId !== "string") {
+        console.error(`⚠️ Invalid timesheetId encountered:`, timesheetId);
+        continue;
+      }
+
+      try {
+        console.log(`Deleting Timesheet: ${timesheetId}`);
+        await deleteTimesheetbyID(timesheetId);
+      } catch (err) {
+        console.error(` Failed to delete timesheet ${timesheetId}:`, err.message);
+      }
     }
 
     // Delete Tasks

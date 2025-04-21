@@ -35,7 +35,7 @@ export const createTimesheet = async ({ task, description, hours, date, employee
 /**
  * Delete a timesheet entry.
  */
-export const deleteTimesheetbyID = async ({ timesheetID }) => {
+export const deleteTimesheetbyID = async ( timesheetID ) => {
   // Ensure the user is logged in before making API requests
   if (!context) {
     const loginResult = await login();
