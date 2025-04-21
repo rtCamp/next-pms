@@ -14,7 +14,7 @@
  "module": "Next PMS",
  "name": "Profit Report",
  "owner": "Administrator",
- "prepared_report": 0,
+ "prepared_report": 1,
  "ref_doctype": "Timesheet",
  "report_name": "Profit Report",
  "report_type": "Script Report",
