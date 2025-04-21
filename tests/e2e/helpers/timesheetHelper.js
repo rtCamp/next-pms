@@ -583,7 +583,7 @@ export const cleanUpProjects = async (data) => {
     // Delete Timesheets
     for (const timesheetId of timesheetIds) {
       if (!timesheetId || typeof timesheetId !== "string") {
-        console.error(`⚠️ Invalid timesheetId encountered:`, timesheetId);
+        console.error(`Invalid timesheetId encountered:`, timesheetId);
         continue;
       }
 
