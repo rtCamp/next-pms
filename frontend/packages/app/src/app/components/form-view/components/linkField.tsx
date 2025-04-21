@@ -112,7 +112,7 @@ const LinkField = ({ field, value, isReadOnly, onSelect }: LinkFieldProps) => {
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="!z-[100000] p-0 w-full max-md:min-w-[250px] max-lg:min-w-[450px] lg:min-w-[400px]"
+        className="!z-[1000000] p-0 w-full max-md:min-w-[250px] max-lg:min-w-[450px] lg:min-w-[400px]"
       >
         <Command>
           <CommandInput

@@ -22,7 +22,7 @@ type FormViewProps = {
   currencySymbol?: string;
   tabHeaderClassName?: string;
   tabBodyClassName?: string;
-  onChange?: (values: Record<string, string | number | null>) => void;
+  onChange?: (values: Record<string, string | number | null> | null) => void;
   onSubmit?: (values: Record<string, string | number | null>) => void;
   formRef: RefObject<{
     submitForm: () => void;

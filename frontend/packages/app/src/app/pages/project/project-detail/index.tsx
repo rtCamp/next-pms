@@ -101,9 +101,11 @@ const ProjectDetail = () => {
             tabHeaderClassName="w-full"
             tabBodyClassName="xl:w-4/5"
             onChange={(form_data) => {
-              if (data?.message?.permissions?.includes("write")) {
+              if (data?.message?.permissions?.includes("write") && form_data) {
                 setHideSaveChanges(false);
                 setFormData(form_data);
+              } else {
+                setHideSaveChanges(true);
               }
             }}
             onSubmit={async (data) => {

@@ -4,6 +4,7 @@
 import { forwardRef, useEffect, useImperativeHandle } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@next-pms/design-system/components";
+import _ from "lodash";
 
 /**
  * Internal dependencies.
@@ -15,7 +16,7 @@ import { Field, FieldConfigType, Section } from "../types";
 type FieldRendererProps = {
   fields: Field[];
   tabs: Record<string, Field[]>;
-  onChange?: (values: Record<string, string | number | null>) => void;
+  onChange?: (values: Record<string, string | number | null> | null) => void;
   onSubmit?: (values: Record<string, string | number | null>) => void;
   readOnly?: boolean;
   currencySymbol?: string;
@@ -30,6 +31,18 @@ type FieldRendererProps = {
 const FieldRenderer = forwardRef(
   ({ fields, onChange, onSubmit, readOnly, currencySymbol, fieldConfig, className, tabs }: FieldRendererProps, ref) => {
     const { control, handleSubmit, reset } = useForm();
+
+    const handleChange = (values: Record<string, string | number | null>) => {
+      const defaultValues = fields.reduce((acc, field) => {
+        acc[field.fieldname] = field.value || "";
+        return acc;
+      }, {} as Record<string, string | number | null>);
+      if (!_.isEqual(defaultValues, values)) {
+        onChange?.(values);
+      } else {
+        onChange?.(null);
+      }
+    };
 
     useEffect(() => {
       const defaultValues = fields.reduce((acc, field) => {
@@ -127,7 +140,7 @@ const FieldRenderer = forwardRef(
                       {section.columns.map((column, colIndex) => (
                         <div key={colIndex} className="space-y-4 overflow-hidden">
                           {column.map((field) =>
-                            RenderField(field, control, onChange, readOnly, currencySymbol, fieldConfig)
+                            RenderField(field, control, handleChange, readOnly, currencySymbol, fieldConfig)
                           )}
                         </div>
                       ))}
@@ -146,7 +159,7 @@ const FieldRenderer = forwardRef(
                     {section.columns.map((column, colIndex) => (
                       <div key={colIndex} className="space-y-4 overflow-hidden">
                         {column.map((field) =>
-                          RenderField(field, control, onChange, readOnly, currencySymbol, fieldConfig)
+                          RenderField(field, control, handleChange, readOnly, currencySymbol, fieldConfig)
                         )}
                       </div>
                     ))}
