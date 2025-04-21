@@ -39,7 +39,7 @@ test.beforeEach(async ({ page }) => {
 
 // ------------------------------------------------------------------------------------------
 
-test("TC38: Validate the search functionality @workingTests", async ({}) => {
+test("TC38: Validate the search functionality   ", async ({}) => {
   // Search employee
   await teamPage.searchEmployee(empName);
 
@@ -49,7 +49,7 @@ test("TC38: Validate the search functionality @workingTests", async ({}) => {
   expect(filteredEmployees[0]).toBe(empName);
 });
 
-test("TC39: The reporting manager filter @workingTests", async ({}) => {
+test("TC39: The reporting manager filter   ", async ({}) => {
   // Apply 'Reports To' filter
   await teamPage.applyReportsTo(manName);
 
@@ -60,7 +60,7 @@ test("TC39: The reporting manager filter @workingTests", async ({}) => {
   expect(employees.sort()).toEqual(TC39data.employees.sort());
 });
 
-test("TC42: Validate the functionality of the ‘Next’ and ‘Previous’ week change buttons. @workingTests", async ({}) => {
+test("TC42: Validate the functionality of the ‘Next’ and ‘Previous’ week change buttons.   ", async ({}) => {
   // Navigate to the next week and fetch the column date
   await teamPage.viewNextWeek();
   const nextColDate = await teamPage.getColDate(TC42data.col);
@@ -76,7 +76,7 @@ test("TC42: Validate the functionality of the ‘Next’ and ‘Previous’ week
   expect(nextColDate).toBe(expectedColDate);
 });
 
-test("TC43: Validate that the timesheet dropdown section is working. @workingTests", async ({}) => {
+test("TC43: Validate that the timesheet dropdown section is working.   ", async ({}) => {
   // Toggle employee timesheet
   await teamPage.toggleEmployeeTimesheet(empName);
 
@@ -85,7 +85,7 @@ test("TC43: Validate that the timesheet dropdown section is working. @workingTes
   expect(isEmployeeTimesheetVisible).toBeTruthy();
 });
 
-test("TC44: Validate the timesheets for individual employees for all weeks. @workingTests", async ({}) => {
+test("TC44: Validate the timesheets for individual employees for all weeks.   ", async ({}) => {
   // Navigate to employee's timesheet
   await teamPage.navigateToEmpTimesheet(empName);
 
@@ -94,7 +94,7 @@ test("TC44: Validate the timesheets for individual employees for all weeks. @wor
   expect(selectedEmployee).toContain(empName);
 });
 
-test("TC45: Change the employee selected from the top search and verify that the timesheets below are updated accordingly. @workingTests", async ({}) => {
+test("TC45: Change the employee selected from the top search and verify that the timesheets below are updated accordingly.   ", async ({}) => {
   // Navigate to employee's timesheet
   await teamPage.navigateToEmpTimesheet(empName);
 
@@ -105,7 +105,9 @@ test("TC45: Change the employee selected from the top search and verify that the
   expect(selectedEmployee).toContain(TC45data.employee);
 });
 
-test("TC47: Validate the modification of the employee timesheet or the deletion of time entries.", async ({ page }) => {
+test("TC47: Validate the modification of the employee timesheet or the deletion of time entries.   ", async ({
+  page,
+}) => {
   // View next week
   await teamPage.viewNextWeek();
 
@@ -140,7 +142,7 @@ test("TC47: Validate the modification of the employee timesheet or the deletion 
   expect(cellText).toContain(TC47data.taskInfo.duration);
 });
 
-test("TC49: Rejecting timesheet for the employee", async ({ page }) => {
+test("TC49: Rejecting timesheet for the employee   ", async ({ page }) => {
   // View next week
   await teamPage.viewNextWeek();
 
@@ -160,7 +162,7 @@ test("TC49: Rejecting timesheet for the employee", async ({ page }) => {
   expect(status).toBe("Rejected");
 });
 
-test("TC50: Open task details popup", async ({}) => {
+test("TC50: Open task details popup   ", async ({}) => {
   // View next week
   await teamPage.viewNextWeek();
 
@@ -168,14 +170,14 @@ test("TC50: Open task details popup", async ({}) => {
   await teamPage.toggleEmployeeTimesheet(empName);
 
   // Open task details
-  await teamPage.openTaskDetails({ employee: empName, task: TC50data.task });
+  await teamPage.openTaskDetails({ employee: empName, task: TC50data.payloadCreateTask.subject });
 
   // Assertions
   const isTaskDetailsDialogVisible = await teamPage.isTaskDetailsDialogVisible(TC50data.task);
   expect(isTaskDetailsDialogVisible).toBeTruthy();
 });
 
-test("TC53: Verify the manager view.", async ({}) => {
+test("TC53: Verify the manager view.   ", async ({}) => {
   // Retrive employees from the parent table
   const employees = await teamPage.getEmployees();
 

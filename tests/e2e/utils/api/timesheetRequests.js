@@ -23,8 +23,11 @@ export const createTimesheet = async ({ task, description, hours, date, employee
       employee: employee,
     },
   });
+  if (!response.ok()) {
+    throw new Error(`Failed to create timesheet for task: ${task}. Status: ${response.status()}`);
+  }
 
-  return await response;
+  return response;
 };
 
 // ------------------------------------------------------------------------------------------
@@ -32,6 +35,21 @@ export const createTimesheet = async ({ task, description, hours, date, employee
 /**
  * Delete a timesheet entry.
  */
+export const deleteTimesheetbyID = async ( timesheetID ) => {
+  // Ensure the user is logged in before making API requests
+  if (!context) {
+    const loginResult = await login();
+    context = loginResult.context;
+  }
+
+  const response = await context.delete(`/api/resource/Timesheet/${timesheetID}`, {});
+  if (!response.ok()) {
+    throw new Error(`Failed to delete timesheet for ID: ${timesheetID}. Status: ${response.status()}`);
+  }
+
+  return response;
+};
+
 export const deleteTimesheet = async ({ parent, name }) => {
   // Ensure the user is logged in before making API requests
   if (!context) {
@@ -46,7 +64,7 @@ export const deleteTimesheet = async ({ parent, name }) => {
     },
   });
 
-  return await response;
+  return response;
 };
 
 // ------------------------------------------------------------------------------------------
@@ -73,5 +91,5 @@ export const getTimesheetDetails = async ({ employee, start_date, max_week }) =>
     `/api/method/next_pms.timesheet.api.timesheet.get_timesheet_data?${queryParams.toString()}`
   );
 
-  return await response;
+  return response;
 };

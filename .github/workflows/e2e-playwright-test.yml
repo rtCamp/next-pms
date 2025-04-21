@@ -17,7 +17,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     environment: Stage # Retrive secrets from 'Stage' environment
     env:
       BASE_URL: ${{ secrets.BASE_URL }}
@@ -37,6 +37,12 @@ jobs:
       EMP_PASS: ${{ secrets.EMP_PASS }}
       EMP_NAME: ${{ secrets.EMP_NAME }}
     steps:
+      - name: Own the dir if not owned
+        shell: bash
+        run: |
+          echo "Current working dir: '$(pwd)'"
+          echo 'Going to own a dir above the working dir.'
+          bash -c "sudo chown -R $(whoami):$(whoami) \"$(dirname '${{ github.workspace }}')\""
       - name: Checkout code
         uses: actions/checkout@v4
 

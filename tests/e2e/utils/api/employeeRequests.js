@@ -44,49 +44,9 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   return responseData;
 };
 /**
- * Create a new Task.
+ * Get Employee Details
  */
-export const createTask = async ({ subject, project, description, custom_is_billable }) => {
-  return await apiRequest("/api/resource/Task", {
-    method: "POST",
-    data: {
-      subject,
-      project,
-      description,
-      ...(custom_is_billable !== undefined && { custom_is_billable }),
-    },
-  });
-};
-/**
- * Delete a Task.
- */
-export const deleteTask = async (taskID) => {
-  return await apiRequest(`/api/resource/Task/${taskID}`, {
-    method: "DELETE",
-  });
-};
-/**
- * Like a Task.
- */
-export const likeTask = async (taskID, role = "manager") => {
-  return await apiRequest(
-    "/api/method/frappe.desk.like.toggle_like",
-    {
-      method: "POST",
-      data: {
-        doctype: "Task",
-        name: taskID,
-        add: "Yes",
-      },
-    },
-    role
-  );
-};
-/**
- * Get Task Details.
- */
-export const getTaskDetails = async (taskID) => {
-  return await apiRequest(`/api/resource/Task/${taskID}`, {
-    method: "GET",
-  });
+export const getEmployeeDetails = async (empId, role) => {
+  const endpoint = `/api/resource/Employee/${empId}`;
+  return await apiRequest(endpoint, { method: "GET" }, role);
 };
