@@ -106,7 +106,12 @@ const FieldRenderer = forwardRef(
       sections.push(currentSection);
     }
 
-    const filteredSections = sections.filter((section) => section.columns.some((col) => col.length > 0));
+    const filteredSections = sections
+      .filter((section) => section.columns.some((col) => col.length > 0))
+      .map((section) => ({
+        ...section,
+        columns: section.columns.filter((col) => col.length > 0),
+      }));
 
     if (filteredSections.length === 0)
       return (
