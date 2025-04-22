@@ -457,23 +457,6 @@ export const deleteTasks = async () => {
     sharedManagerTeamData.TC49.payloadDeleteTask.taskID,
     sharedManagerTeamData.TC50.payloadDeleteTask.taskID,
   ];
-  //Generate Task ID to be deleted for tasks created through UI mode.
-  const managerTaskIDs = ["TC24"];
-  const deleteTaskByName = async (data, testCases) => {
-    for (const testCaseID of testCases) {
-      if (data[testCaseID].payloadDeleteTaskBySubject) {
-        const taskSubject = data[testCaseID].payloadDeleteTaskBySubject.task;
-        const filterResponse = await filterApi("Task", [["Task", "subject", "=", taskSubject]]);
-        console.warn("Response for getting TASK BY NAME:", filterResponse);
-        if (filterResponse.message?.values?.length) {
-          const taskIDToPush = filterResponse.message.values[0];
-          tasksToBeDeleted.push(taskIDToPush);
-        }
-      }
-    }
-  };
-  await deleteTaskByName(managerTaskData, managerTaskIDs);
-
   for (const entry of tasksToBeDeleted) {
     //Delete Project
     await deleteTask(entry);
@@ -534,7 +517,11 @@ export const calculateHourlyBilling = async () => {
 
   await writeDataToFile(employeeTimesheetDataFilePath, employeeTimesheetData);
 };
+// ------------------------------------------------------------------------------------------
 
+/**
+ * Delete all the tasks and time entries associated with the project and delete the project itself
+ */
 export const cleanUpProjects = async (data) => {
   const deletedData = [];
 
@@ -626,7 +613,11 @@ export const cleanUpProjects = async (data) => {
   console.log("Cleanup complete. Deleted data:", deletedData);
   return deletedData;
 };
+// ------------------------------------------------------------------------------------------
 
+/**
+ * Combined json files to pass for deleting the orphan test data
+ */
 export const readAndCleanAllOrphanData = async () => {
   const employeeData = await readJSONFile("../data/employee/timesheet.json");
   const managerTask = await readJSONFile("../data/manager/task.json");
@@ -639,4 +630,23 @@ export const readAndCleanAllOrphanData = async () => {
   };
 
   await cleanUpProjects(mergedData);
+};
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Deletion of tasks by their name that were created though UI
+ */
+export const deleteByTaskName = async () => {
+  testCaseArray = ["TC24"];
+  for (TC in testCaseArray) {
+    if (data[testCaseID].payloadDeleteTaskBySubject) {
+      const taskSubject = data[testCaseID].payloadDeleteTaskBySubject.task;
+      const filterResponse = await filterApi("Task", [["Task", "subject", "=", taskSubject]]);
+      console.warn("Response for getting TASK BY NAME:", filterResponse);
+      if (filterResponse.message?.values?.length) {
+        const taskIDToPush = filterResponse.message.values[0];
+        tasksToBeDeleted.push(taskIDToPush);
+      }
+    }
+  }
 };
