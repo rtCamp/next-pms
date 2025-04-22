@@ -139,7 +139,7 @@ fixtures = [
             [
                 "module",
                 "in",
-                ["Project Currency", "Timesheet", "Resource Management"],
+                ["Next PMS", "Project Currency", "Timesheet", "Resource Management"],
             ]
         ],
     },
@@ -159,7 +159,7 @@ fixtures = [
             [
                 "role",
                 "in",
-                ["Timesheet Manager", "Timesheet User", "Resource Management"],
+                ["Next PMS", "Timesheet Manager", "Timesheet User", "Resource Management"],
             ]
         ],
     },
