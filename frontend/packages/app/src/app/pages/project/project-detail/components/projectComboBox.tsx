@@ -63,23 +63,19 @@ const ProjectComboBox = ({
   const [selectedValues, setSelectedValues] = useState<string>(value);
   const [project, setProject] = useState<Project | undefined>();
   const [open, setOpen] = useState(false);
-  const filters = [
-    ...(debouncedSearch ? [["project_name", "like", `%${debouncedSearch}%`]] : []),
-    ...(status ? [["status", "=", status]] : []),
-  ];
-  const { data: projects } = useFrappeGetDocList(
-    "Project",
-    {
-      fields: ["name", "project_name"],
-      filters,
-      limit: length,
-      orderBy: { field: "creation", order: "desc" },
-    },
-    "projectComboBox.get_project_list" + new Date() + projectName,
-    {
-      revalidateIfStale: false,
-    }
-  );
+  console.log(projectName);
+
+  const { data: projects } = useFrappeGetDocList("Project", {
+    fields: ["name", "project_name"],
+    filters: [
+      ...(debouncedSearch ? [["project_name", "like", `%${debouncedSearch}%`]] : []),
+      ...(status ? [["status", "=", status]] : []),
+      ...(value && !debouncedSearch ? [["name", "=", value]] : []),
+    ],
+    limit: length,
+    orderBy: { field: "creation", order: "desc" },
+  });
+
   const onProjectChange = (name: string) => {
     setSelectedValues(name);
     onSelect(name);
