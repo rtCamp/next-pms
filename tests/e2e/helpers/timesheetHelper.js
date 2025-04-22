@@ -457,6 +457,23 @@ export const deleteTasks = async () => {
     sharedManagerTeamData.TC49.payloadDeleteTask.taskID,
     sharedManagerTeamData.TC50.payloadDeleteTask.taskID,
   ];
+  //Generate Task ID to be deleted for tasks created through UI mode.
+  const managerTaskIDs = ["TC24"];
+  const deleteTaskByName = async (data, testCases) => {
+    for (const testCaseID of testCases) {
+      if (data[testCaseID].payloadDeleteTaskBySubject) {
+        const taskSubject = data[testCaseID].payloadDeleteTaskBySubject.task;
+        const filterResponse = await filterApi("Task", [["Task", "subject", "=", taskSubject]]);
+        console.warn("Response for getting TASK BY NAME:", filterResponse);
+        if (filterResponse.message?.values?.length) {
+          const taskIDToPush = filterResponse.message.values[0];
+          tasksToBeDeleted.push(taskIDToPush);
+        }
+      }
+    }
+  };
+  await deleteTaskByName(managerTaskData, managerTaskIDs);
+
   for (const entry of tasksToBeDeleted) {
     //Delete Project
     await deleteTask(entry);
@@ -530,7 +547,7 @@ export const cleanUpProjects = async (data) => {
     const projectName = tc.payloadCreateProject.project_name;
 
     // Get Project ID
-    const projectRes = await filterApi("Project", "Project", "project_name", projectName);
+    const projectRes = await filterApi("Project", [["Project", "project_name", "=", projectName]]);
     console.warn(`PROJECT RESPONSE for ${key} is ; `, projectRes);
     const projectId = projectRes?.message?.values?.[0]?.[0];
     console.warn(`Obtained ProjectId value for ${key} is       ; `, projectId);
@@ -538,7 +555,7 @@ export const cleanUpProjects = async (data) => {
     if (!projectId) continue;
 
     // Get Task IDs
-    const taskRes = await filterApi("Task", "Task", "project", projectId);
+    const taskRes = await filterApi("Task", [["Task", "project", "=", projectId]]);
     console.warn(`TASK RESPONSE for ${key} is ; `, taskRes);
 
     const taskRaw = taskRes?.message?.values;
@@ -553,7 +570,7 @@ export const cleanUpProjects = async (data) => {
     console.warn(`OBTAINED TASK for ${key} is: `, taskIds);
 
     // Get Timesheet IDs
-    const timesheetRes = await filterApi("Timesheet", "Timesheet", "parent_project", projectId);
+    const timesheetRes = await filterApi("Timesheet", [["Timesheet", "parent_project", "=", projectId]]);
     console.warn(`TMESHEET RESPONSE for ${key} is ; `, timesheetRes);
 
     const valuesRaw = timesheetRes?.message?.values;
@@ -570,7 +587,7 @@ export const cleanUpProjects = async (data) => {
       // Flatten and filter valid strings only
       timesheetIds = valuesRaw.flat().filter((v) => typeof v === "string");
     }
-    
+
     console.warn(`TIMESHEET IDs to delete:`, timesheetIds);
 
     // Store collected info
