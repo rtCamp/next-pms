@@ -1,15 +1,13 @@
 /**
  * External dependencies.
  */
-import { Avatar, AvatarFallback, AvatarImage } from "@next-pms/design-system/components";
-import { formatDistanceToNow } from "date-fns";
-import { Clock } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage, Typography } from "@next-pms/design-system/components";
+import { format, isYesterday, isToday } from "date-fns";
 
 interface LastUpdatedProps {
   userName: string;
   timestamp: Date;
   avatar?: string;
-  showFullDetails?: boolean;
 }
 
 /**
@@ -18,51 +16,38 @@ interface LastUpdatedProps {
  * @param userName The name of the user.
  * @param timestamp Last updated timestamp string
  * @param avatar User image string .
- * @param showFullDetails Flag to control details.
  * @returns React.FC
  */
-const LastUpdatedInfo = ({ userName, timestamp, avatar, showFullDetails = true }: LastUpdatedProps) => {
+const LastUpdatedInfo = ({ userName, timestamp, avatar }: LastUpdatedProps) => {
   const initials = userName
     .split(" ")
     .filter(Boolean)
     .map((part) => part[0].toUpperCase())
     .join("");
 
-  const formattedDate = timestamp.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
+  let formattedTime: string;
 
-  const formattedTime = timestamp.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-
-  const timeAgo = formatDistanceToNow(timestamp, { addSuffix: true });
+  if (isToday(timestamp)) {
+    formattedTime = `Today at ${format(timestamp, "h:mm a")}`;
+  } else if (isYesterday(timestamp)) {
+    formattedTime = `Yesterday at ${format(timestamp, "h:mm a")}`;
+  } else {
+    formattedTime = format(timestamp, "MMMM d 'at' h:mm a"); // e.g., April 21 at 10:30 AM
+  }
 
   return (
-    <div className="flex items-center gap-3 text-xs text-muted-foreground border rounded-md p-2.5 bg-muted/30">
+    <div className="flex items-center w-full border-t gap-2 text-xs text-muted-foreground px-2.5 py-1 bg-muted/30 truncate">
       <Avatar className="h-7 w-7 border">
-        <AvatarImage src={avatar ? avatar : ""} alt={userName} />
+        <AvatarImage src={avatar || ""} alt={userName} />
         <AvatarFallback>{initials}</AvatarFallback>
       </Avatar>
-
-      <div className="flex-1 min-w-0">
-        {showFullDetails ? (
-          <>
-            <p className="font-medium text-xs text-muted-foreground">Updated by {userName}</p>
-            <div className="flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5" />
-              <span className="text-xs">
-                {formattedDate} at {formattedTime}
-              </span>
-            </div>
-          </>
-        ) : (
-          <p className="font-medium">Updated {timeAgo}</p>
-        )}
+      <div className="flex flex-col mt-1 items-start w-full">
+        <Typography title={userName} variant="p" className="cursor-pointer font-medium text-xs truncate w-4/5 ">
+          {userName}
+        </Typography>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs">Last edit {formattedTime}</span>
+        </div>
       </div>
     </div>
   );

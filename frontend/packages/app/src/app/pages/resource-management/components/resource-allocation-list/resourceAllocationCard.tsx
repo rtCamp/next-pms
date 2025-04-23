@@ -1,11 +1,11 @@
 /**
  * External dependencies.
  */
-import { Avatar, AvatarFallback, AvatarImage, Typography } from "@next-pms/design-system/components";
+import { Avatar, AvatarFallback, AvatarImage, Typography, Button, Badge } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
 import { mergeClassNames } from "@next-pms/design-system/utils";
 import { getFilterValue, getFormatedStringValue } from "@next-pms/resource-management/utils";
-import { Clipboard, Pencil } from "lucide-react";
+import { Clipboard, Pencil, Plus } from "lucide-react";
 import { useContextSelector } from "use-context-selector";
 
 /**
@@ -37,12 +37,14 @@ export const ResourceAllocationCard = ({
   viewType,
   isLastItem,
   onSubmit,
+  onAddButtonClick,
 }: {
   resourceAllocation: ResourceAllocationProps;
   customer: ResourceCustomerObjectProps;
   viewType?: string;
   isLastItem: boolean;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
+  onAddButtonClick?: () => void;
 }) => {
   const customerData: ResourceCustomerProps = customer[resourceAllocation.customer];
 
@@ -99,81 +101,84 @@ export const ResourceAllocationCard = ({
   };
 
   return (
-    <div
-      className={mergeClassNames("flex flex-col items-center gap-2 relative mt-2 mb-4 w-full", isLastItem && "mb-3")}
-    >
-      <div className="flex gap-1 items-center w-11/12">
-        <Avatar className="w-6 h-6">
-          <AvatarImage src={decodeURIComponent(customerData?.image)} />
-          <AvatarFallback>{getInitials(customerData.name[0])}</AvatarFallback>
-        </Avatar>
-        <Typography variant="small" className="font-semibold" title={customerData?.name}>
-          {getFilterValue(customerData?.name, 15)}
-        </Typography>
-      </div>
-      <div className="space-y-1 flex flex-col w-11/12 pl-1">
-        {viewType && viewType == "project" ? (
-          <div className="flex gap-1 items-center">
-            <Typography variant="small" className=" text-muted-foreground">
-              {resourceAllocation.employee}
-            </Typography>
-            <Typography variant="small" className=" text-muted-foreground" title={resourceAllocation.employee_name}>
-              {"("}
-              {getFilterValue(resourceAllocation.employee_name, 15)}
-              {")"}
-            </Typography>
-          </div>
-        ) : (
-          resourceAllocation.project && (
+    <div className={mergeClassNames("flex flex-col gap-2 relative mt-2 w-full", isLastItem && "mb-2")}>
+      <div className="w-full flex flex-col items-center gap-2 px-4 py-2">
+        <div className="flex gap-1 items-center w-full">
+          <Avatar className="w-6 h-6">
+            <AvatarImage src={decodeURIComponent(customerData?.image)} />
+            <AvatarFallback>{getInitials(customerData.name[0])}</AvatarFallback>
+          </Avatar>
+          <Typography variant="small" className="font-semibold" title={customerData?.name}>
+            {getFilterValue(customerData?.name, 15)}
+          </Typography>
+        </div>
+        <div className="space-y-1 flex flex-col w-full pl-1">
+          {viewType && viewType == "project" ? (
             <div className="flex gap-1 items-center">
               <Typography variant="small" className=" text-muted-foreground">
-                {resourceAllocation.project}
+                {resourceAllocation.employee}
               </Typography>
-              <Typography variant="small" className=" text-muted-foreground" title={resourceAllocation.project_name}>
+              <Typography variant="small" className=" text-muted-foreground" title={resourceAllocation.employee_name}>
                 {"("}
-                {getFilterValue(resourceAllocation.project_name, 15)}
+                {getFilterValue(resourceAllocation.employee_name, 15)}
                 {")"}
               </Typography>
             </div>
-          )
-        )}
-        <div className="flex gap-1 items-center">
-          <Typography variant="small" className=" text-muted-foreground">
-            {startDate} - {endDate}
-          </Typography>
-          <Typography variant="small" className=" text-muted-foreground">
-            {"("}
-            {resourceAllocation.hours_allocated_per_day} {"hours / day)"}
-          </Typography>
-        </div>
-        <Typography
-          className={mergeClassNames(
-            "text-xs font-semibold",
-            resourceAllocation.is_billable
-              ? "bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent"
-              : "text-yellow-500"
+          ) : (
+            resourceAllocation.project && (
+              <div className="flex gap-1 items-center">
+                <Typography variant="small" className=" text-muted-foreground">
+                  {resourceAllocation.project}
+                </Typography>
+                <Typography variant="small" className=" text-muted-foreground" title={resourceAllocation.project_name}>
+                  {"("}
+                  {getFilterValue(resourceAllocation.project_name, 15)}
+                  {")"}
+                </Typography>
+              </div>
+            )
           )}
-        >
-          {resourceAllocation.is_billable ? "Billable ($)" : "Non-billable"}
-        </Typography>
-
-        {resourceAllocation.modified_by && (
-          <LastUpdatedInfo
-            userName={resourceAllocation.modified_by}
-            avatar={resourceAllocation?.modified_by_avatar}
-            timestamp={new Date(resourceAllocation.modified)}
-          />
-        )}
-
-        {resourceAllocation.note && (
-          <div className="note-section mt-2 flex items-center gap-1 w-11/12" title={"Note"}>
-            <Typography variant="small" className=" text-gray-600 dark:text-primary italic">
-              Note : {getFilterValue(resourceAllocation.note, 150)}
+          <div className="flex gap-1 items-center">
+            <Typography variant="small" className=" text-muted-foreground">
+              {startDate} - {endDate}
+            </Typography>
+            <Typography variant="small" className=" text-muted-foreground">
+              {"("}
+              {resourceAllocation.hours_allocated_per_day} {"hours / day)"}
             </Typography>
           </div>
-        )}
+          <Badge
+            variant="outline"
+            className={mergeClassNames(
+              "text-xs font-semibold w-fit",
+              resourceAllocation.is_billable
+                ? "bg-green-50 text-green-600 hover:bg-green-50 border-green-200"
+                : "text-yellow-600 bg-yellow-50  hover:bg-yellow-50 border-yellow-200"
+            )}
+          >
+            {resourceAllocation.is_billable ? "Billable ($)" : "Non-billable"}
+          </Badge>
 
-        <div className=" absolute right-4 top-0 flex gap-1 cursor-pointer">
+          {resourceAllocation.note && (
+            <div className="note-section mt-2 flex items-center gap-1 w-11/12" title={"Note"}>
+              <Typography variant="small" className=" text-gray-600 dark:text-primary italic">
+                Note : {getFilterValue(resourceAllocation.note, 150)}
+              </Typography>
+            </div>
+          )}
+        </div>
+        {resourceAllocationPermission.write && onAddButtonClick && (
+          <Button
+            title={"Add Resource Allocation"}
+            className={mergeClassNames("py-1 h-fit text-xs w-full")}
+            variant={"default"}
+            onClick={onAddButtonClick}
+          >
+            <Plus className="w-4 max-md:w-3 h-4 max-md:h-3" />
+            Add
+          </Button>
+        )}
+        <div className=" absolute right-4 top-3 flex gap-1 cursor-pointer">
           {resourceAllocationPermission.write && (
             <>
               <Pencil
@@ -201,6 +206,13 @@ export const ResourceAllocationCard = ({
           )}
         </div>
       </div>
+      {resourceAllocation.modified_by && (
+        <LastUpdatedInfo
+          userName={resourceAllocation.modified_by}
+          avatar={resourceAllocation?.modified_by_avatar}
+          timestamp={new Date(resourceAllocation.modified)}
+        />
+      )}
     </div>
   );
 };
