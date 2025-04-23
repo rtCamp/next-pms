@@ -65,7 +65,10 @@ const ResourceTableRowComponent = ({
     <Accordion type="multiple" className="w-full">
       <AccordionItem value={name} className="border-b-0">
         <TableRow
-          className={mergeClassNames("[&>h3]:sticky [&>h3]:left-0 [&>h3]:bg-background [&>h3]:z-20", getTableCellRow())}
+          className={mergeClassNames(
+            "[&>h3]:sticky [&>h3]:border-r [&>h3]:border-gray-300 [&>h3]:left-0 [&>h3]:bg-background [&>h3]:z-20",
+            getTableCellRow()
+          )}
         >
           <AccordionTrigger hideChevronDown={true} className="hover:no-underline py-0">
             <TableInformationCellContent

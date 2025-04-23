@@ -38,7 +38,7 @@ const ResourceTableHeader = ({
       <TableRow className="flex items-center flex-shrink-0">
         <TableHead
           className={mergeClassNames(
-            "flex items-center sticky left-0 bg-slate-50 dark:bg-muted h-[81px] w-full z-30 border border-r border-l-0 border-t-0 border-b-0"
+            "flex items-center sticky left-0 bg-slate-50 dark:bg-muted h-[81px] w-full z-30 border-r border-gray-300"
           )}
           style={{ width: getCellWidthString(tableProperties.firstCellWidth) }}
         >
