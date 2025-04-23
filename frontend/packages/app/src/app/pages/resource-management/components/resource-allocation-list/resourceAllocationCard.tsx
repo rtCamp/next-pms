@@ -103,11 +103,11 @@ export const ResourceAllocationCard = ({
     >
       <div className="flex gap-1 items-center w-11/12">
         <Avatar className="w-6 h-6">
-          <AvatarImage src={decodeURIComponent(customerData.image)} />
+          <AvatarImage src={decodeURIComponent(customerData?.image)} />
           <AvatarFallback>{getInitials(customerData.name[0])}</AvatarFallback>
         </Avatar>
-        <Typography variant="small" className="font-semibold" title={customerData.name}>
-          {getFilterValue(customerData.name, 15)}
+        <Typography variant="small" className="font-semibold" title={customerData?.name}>
+          {getFilterValue(customerData?.name, 15)}
         </Typography>
       </div>
       <div className="space-y-1 flex flex-col w-11/12 pl-1">

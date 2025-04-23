@@ -49,8 +49,8 @@ const ResourceTimeLineGroup = ({ group }: ResourceTimeLineGroupProps) => {
   const cellComponent = useMemo(() => {
     return () => (
       <Avatar className="w-6 h-6 hover:none">
-        {group.image && <AvatarImage src={decodeURIComponent(group.image)} />}
-        <AvatarFallback>{group.employee_name && group.employee_name[0]}</AvatarFallback>
+        {group?.image && <AvatarImage src={decodeURIComponent(group?.image)} />}
+        <AvatarFallback>{group?.employee_name && group?.employee_name[0]}</AvatarFallback>
       </Avatar>
     );
   }, [group.image, group.employee_name]);
