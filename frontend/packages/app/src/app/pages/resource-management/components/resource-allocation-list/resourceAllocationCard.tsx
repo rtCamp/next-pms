@@ -17,6 +17,7 @@ import type {
   ResourceCustomerProps,
 } from "@/types/resource_management";
 import { DeleteIcon } from "./deleteIcon";
+import LastUpdatedInfo from "./lastUpdatedInfo";
 import { ResourceFormContext } from "../../store/resourceFormContext";
 import type { AllocationDataProps } from "../../store/types";
 import { getInitials } from "../../utils/helper";
@@ -155,6 +156,14 @@ export const ResourceAllocationCard = ({
         >
           {resourceAllocation.is_billable ? "Billable ($)" : "Non-billable"}
         </Typography>
+
+        {resourceAllocation.modified_by && (
+          <LastUpdatedInfo
+            userName={resourceAllocation.modified_by}
+            avatar={resourceAllocation?.modified_by_avatar}
+            timestamp={new Date(resourceAllocation.modified)}
+          />
+        )}
 
         {resourceAllocation.note && (
           <div className="note-section mt-2 flex items-center gap-1 w-11/12" title={"Note"}>

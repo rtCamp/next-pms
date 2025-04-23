@@ -17,6 +17,9 @@ export type ResourceAllocationProps = {
     abbr: string;
     image: string;
   };
+  modified_by: string;
+  modified_by_avatar: string;
+  modified: string;
 };
 
 export interface ResourceCustomerObjectProps {
