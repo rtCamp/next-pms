@@ -23,3 +23,10 @@ export type ProjectProps = {
   viewData: ViewData;
   meta: DocMetaProps;
 };
+
+export type AddProjectType = {
+  naming_series: string;
+  project_name: string;
+  project_template: string | null;
+  company: string;
+};

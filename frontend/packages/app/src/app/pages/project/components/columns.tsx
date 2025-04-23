@@ -2,6 +2,7 @@
 /**
  * External dependencies.
  */
+import { NavigateFunction } from "react-router-dom";
 import { Typography, Badge, Progress } from "@next-pms/design-system/components";
 import { floatToTime } from "@next-pms/design-system/utils";
 /**
@@ -9,8 +10,8 @@ import { floatToTime } from "@next-pms/design-system/utils";
  */
 import { DataCell } from "@/app/components/list-view/dataCell";
 import { mergeClassNames } from "@/lib/utils";
-import type { FieldMeta } from "./types";
-import { getValidUserTagsValues } from "./utils";
+import type { FieldMeta } from "../types";
+import { getValidUserTagsValues } from "../utils";
 
 const HOUR_FIELD = ["actual_time", "custom_total_hours_purchased", "custom_total_hours_remaining"];
 
@@ -20,7 +21,8 @@ export const getColumnInfo = (
   columnInfo: any,
   title_field: string,
   docType: string,
-  currency: string
+  currency: string,
+  navigate: NavigateFunction
 ) => {
   const columns = [];
 
@@ -96,11 +98,17 @@ export const getColumnInfo = (
           );
         } else if (meta.fieldname === "project_name") {
           return (
-            <a href={`/app/project/${row.original.name}`} className="hover:underline">
-              <Typography variant="p" className="truncate" title={value}>
-                {value}
-              </Typography>
-            </a>
+            <Typography
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(row.original.name);
+              }}
+              variant="p"
+              className="truncate hover:underline cursor-pointer"
+              title={value}
+            >
+              {value}
+            </Typography>
           );
         } else {
           return (
