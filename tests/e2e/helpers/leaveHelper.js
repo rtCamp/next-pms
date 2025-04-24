@@ -55,18 +55,3 @@ export const rejectLeaveEntries = async () => {
     }
   }
 };
-
-// ------------------------------------------------------------------------------------------
-
-/**
- * Delete leave with help of Leave ID
- */
-export const deleteLeave = (leaveID, role = "admin") => {
-  return apiRequest(
-    `/api/resource/Leave Application/${leaveID}`,
-    {
-      method: "DELETE",
-    },
-    role
-  );
-};
