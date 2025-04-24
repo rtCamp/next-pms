@@ -16,6 +16,7 @@ import { createTask, deleteTask, likeTask } from "../utils/api/taskRequests";
 import { getExchangeRate } from "../utils/api/erpNextRequests";
 import { getEmployeeDetails } from "../utils/api/employeeRequests";
 import { filterApi } from "../utils/api/frappeRequests";
+import { deleteLeave } from "../utils/api/leaveRequests";
 
 // Load env variables
 const empID = process.env.EMP_ID;
@@ -417,6 +418,28 @@ export const createTaskForTestCases = async () => {
   await processTestCasesForTasks(managerTeamData, managerTeamIDs);
   writeDataToFile(managerTeamDataFilePath, managerTeamData);
 };
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Deletion of tasks by their name that were created though UI
+ */
+export const deleteByTaskName = async () => {
+  const tasksToBeDeleted = [managerTaskData.TC24.payloadDeleteTaskBySubject.task];
+
+  for (const taskName of tasksToBeDeleted) {
+    console.warn("Checking for task:", taskName);
+
+    const filterResponse = await filterApi("Task", [["Task", "subject", "=", taskName]]);
+    console.warn("Response for getting TASK BY NAME IN DELETION OF TASK IS:", filterResponse);
+
+    if (filterResponse.message?.values?.length) {
+      const taskID = filterResponse.message.values[0];
+      // Assuming you want to delete this ID later, consider storing in a separate array
+      console.log("Task found and ID to delete:", taskID);
+      await deleteTask(taskID);
+    }
+  }
+};
 
 // ------------------------------------------------------------------------------------------
 
@@ -520,7 +543,7 @@ export const calculateHourlyBilling = async () => {
 // ------------------------------------------------------------------------------------------
 
 /**
- * Delete all the tasks and time entries associated with the project and delete the project itself
+ * Delete all the leaves,tasks and time entries associated with the project and delete the project itself
  */
 export const cleanUpProjects = async (data) => {
   const deletedData = [];
@@ -616,6 +639,25 @@ export const cleanUpProjects = async (data) => {
 // ------------------------------------------------------------------------------------------
 
 /**
+ * Delete Leaves associated to an employee
+ */
+export const deleteLeaveOfEmployee = async () => {
+  //Fetch Leave ID for employee if any exists
+  const filterResponse = await filterApi("Leave Application", [
+    ["Leave Application", "employee", "=", `${empID}`],
+    ["Leave Application", "status", "=", "Open"],
+  ]);
+  //Delete leave if leave ID is found in the filter request
+  if (filterResponse?.message?.values[0]) {
+    const leaveID = filterResponse.message.values[0];
+    await deleteLeave(leaveID);
+    console.warn("A leave request for employee was found and deleted");
+  }
+};
+
+// ------------------------------------------------------------------------------------------
+
+/**
  * Combined json files to pass for deleting the orphan test data
  */
 export const readAndCleanAllOrphanData = async () => {
@@ -628,25 +670,6 @@ export const readAndCleanAllOrphanData = async () => {
     ...managerTask,
     ...managerTeam,
   };
-
+  await deleteLeaveOfEmployee();
   await cleanUpProjects(mergedData);
-};
-// ------------------------------------------------------------------------------------------
-
-/**
- * Deletion of tasks by their name that were created though UI
- */
-export const deleteByTaskName = async () => {
-  testCaseArray = ["TC24"];
-  for (TC in testCaseArray) {
-    if (data[testCaseID].payloadDeleteTaskBySubject) {
-      const taskSubject = data[testCaseID].payloadDeleteTaskBySubject.task;
-      const filterResponse = await filterApi("Task", [["Task", "subject", "=", taskSubject]]);
-      console.warn("Response for getting TASK BY NAME:", filterResponse);
-      if (filterResponse.message?.values?.length) {
-        const taskIDToPush = filterResponse.message.values[0];
-        tasksToBeDeleted.push(taskIDToPush);
-      }
-    }
-  }
 };

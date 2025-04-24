@@ -47,13 +47,26 @@ export const rejectLeaveEntries = async () => {
 
   for (const entry of leaveEntries) {
     const filteredLeaveEntry = await getLeaves(entry);
-    const filteredLeaveEntryJSON = await filteredLeaveEntry.json();
-    const firstEntry = filteredLeaveEntryJSON?.data?.[0] || {};
+    const firstEntry = filteredLeaveEntry?.data?.[0] || {};
 
     if (firstEntry.name) {
-      const leaveDetails = await getLeaveDetails(firstEntry.name);
-      const leaveDetailsJSON = await leaveDetails.json();
+      const leaveDetailsJSON = await getLeaveDetails(firstEntry.name);
       await actOnLeave({ action: "Reject", leaveDetails: leaveDetailsJSON.data });
     }
   }
+};
+
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Delete leave with help of Leave ID
+ */
+export const deleteLeave = (leaveID, role = "admin") => {
+  return apiRequest(
+    `/api/resource/Leave Application/${leaveID}`,
+    {
+      method: "DELETE",
+    },
+    role
+  );
 };
