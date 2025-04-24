@@ -280,6 +280,8 @@ def update_timesheet_detail(
 
 
 def get_timesheet(dates: list, employee: str):
+    from next_pms.timesheet.utils.constant import ALLOWED_TIMESHET_DETAIL_FIELDS
+
     """Return the time entry from Timesheet Detail child table based on the list of dates and for the given employee.
     example:
         {
@@ -354,7 +356,8 @@ def get_timesheet(dates: list, employee: str):
                 "status": task["status"],
                 "_liked_by": task["_liked_by"],
             }
-        data[task_name]["data"].append(log.as_dict())
+            log_data = {field: log.get(field) for field in ALLOWED_TIMESHET_DETAIL_FIELDS}
+        data[task_name]["data"].append(log_data)
 
     return [data, total_hours]
 
