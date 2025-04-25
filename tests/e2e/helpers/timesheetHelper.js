@@ -434,7 +434,6 @@ export const deleteByTaskName = async () => {
 
     if (filterResponse.message?.values?.length) {
       const taskID = filterResponse.message.values[0];
-      // Assuming you want to delete this ID later, consider storing in a separate array
       console.log("Task found and ID to delete:", taskID);
       await deleteTask(taskID);
     }
