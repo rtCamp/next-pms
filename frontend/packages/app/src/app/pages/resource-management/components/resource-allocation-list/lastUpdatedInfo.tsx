@@ -36,17 +36,17 @@ const LastUpdatedInfo = ({ userName, timestamp, avatar }: LastUpdatedProps) => {
   }
 
   return (
-    <div className="flex items-center w-full border-t gap-2 text-xs text-muted-foreground px-2.5 py-1 bg-muted/30 truncate">
-      <Avatar className="h-7 w-7 border">
+    <div className="flex items-center w-full border-b gap-2 text-xs text-muted-foreground px-4 py-1 truncate">
+      <Avatar className="h-6 w-6 border">
         <AvatarImage src={avatar || ""} alt={userName} />
         <AvatarFallback>{initials}</AvatarFallback>
       </Avatar>
       <div className="flex flex-col mt-1 items-start w-full">
-        <Typography title={userName} variant="p" className="cursor-pointer font-medium text-xs truncate w-4/5 ">
+        <Typography title={userName} variant="p" className="cursor-pointer font-medium text-[11.5px] truncate w-4/5 ">
           {userName}
         </Typography>
         <div className="flex items-center gap-1.5">
-          <span className="text-xs">Last edit {formattedTime}</span>
+          <span className="text-[11.5px]">Last edit {formattedTime}</span>
         </div>
       </div>
     </div>

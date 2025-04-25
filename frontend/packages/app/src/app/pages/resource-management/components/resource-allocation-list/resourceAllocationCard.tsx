@@ -1,11 +1,11 @@
 /**
  * External dependencies.
  */
-import { Avatar, AvatarFallback, AvatarImage, Typography, Button, Badge } from "@next-pms/design-system/components";
+import { Avatar, AvatarFallback, AvatarImage, Typography, Badge } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
 import { mergeClassNames } from "@next-pms/design-system/utils";
 import { getFilterValue, getFormatedStringValue } from "@next-pms/resource-management/utils";
-import { Clipboard, Pencil, Plus } from "lucide-react";
+import { Clipboard, Pencil } from "lucide-react";
 import { useContextSelector } from "use-context-selector";
 
 /**
@@ -37,7 +37,6 @@ export const ResourceAllocationCard = ({
   viewType,
   isLastItem,
   onSubmit,
-  onAddButtonClick,
 }: {
   resourceAllocation: ResourceAllocationProps;
   customer: ResourceCustomerObjectProps;
@@ -167,17 +166,6 @@ export const ResourceAllocationCard = ({
             </div>
           )}
         </div>
-        {resourceAllocationPermission.write && onAddButtonClick && (
-          <Button
-            title={"Add Resource Allocation"}
-            className={mergeClassNames("py-1 h-fit text-xs w-full")}
-            variant={"default"}
-            onClick={onAddButtonClick}
-          >
-            <Plus className="w-4 max-md:w-3 h-4 max-md:h-3" />
-            Add
-          </Button>
-        )}
         <div className=" absolute right-4 top-3 flex gap-1 cursor-pointer">
           {resourceAllocationPermission.write && (
             <>

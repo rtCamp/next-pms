@@ -1,7 +1,10 @@
 /**
  * External dependencies.
  */
+import { Button } from "@next-pms/design-system/components";
 import { mergeClassNames } from "@next-pms/design-system/utils";
+import { Plus } from "lucide-react";
+import { useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
@@ -12,6 +15,7 @@ import type {
   ResourceCustomerObjectProps,
 } from "@/types/resource_management";
 import { ResourceAllocationCard } from "./resourceAllocationCard";
+import { ResourceFormContext } from "../../store/resourceFormContext";
 import type { AllocationDataProps } from "../../store/types";
 
 /**
@@ -39,6 +43,8 @@ export const ResourceAllocationList = ({
   onButtonClick?: () => void;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
+  const resourceAllocationPermission = useContextSelector(ResourceFormContext, (value) => value.state.permission);
+
   return (
     <div className={mergeClassNames("flex flex-col items-center overflow-y-auto max-h-60")}>
       {resourceAllocationList.map((resourceAllocation: ResourceAllocationProps, index: number) => (
@@ -53,9 +59,19 @@ export const ResourceAllocationList = ({
           viewType={viewType}
           isLastItem={index == resourceAllocationList.length - 1}
           onSubmit={onSubmit}
-          onAddButtonClick={onButtonClick}
         />
       ))}
+      {resourceAllocationPermission.write && onButtonClick && (
+        <Button
+          title={"Add Resource Allocation"}
+          className={mergeClassNames("p-1 h-fit text-xs w-11/12 my-2")}
+          variant={"default"}
+          onClick={onButtonClick}
+        >
+          <Plus className="w-4 max-md:w-3 h-4 max-md:h-3" />
+          Add
+        </Button>
+      )}
     </div>
   );
 };
