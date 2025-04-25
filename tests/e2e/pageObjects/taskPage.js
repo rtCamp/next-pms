@@ -33,6 +33,9 @@ export class TaskPage {
 
     //Task Like option
     this.LikeSymbol = (task) => page.locator(`svg[data-task="${task}"]`);
+
+    //Success Banner
+    this.successBanner = page.locator('//div[text()="Task Created Successfully"]');
   }
 
   // --------------------------------------
@@ -247,6 +250,7 @@ export class TaskPage {
     await this.searchAndSelectOption("Search Project", project);
     await this.addTaskModal.getByPlaceholder("Explain the subject").fill(desc);
     await this.addTaskModal.getByRole("button", { name: "Add Task" }).click();
+    await expect(this.successBanner).toBeVisible();
   }
 
   /**

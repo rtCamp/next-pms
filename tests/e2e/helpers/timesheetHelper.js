@@ -16,6 +16,7 @@ import { createTask, deleteTask, likeTask } from "../utils/api/taskRequests";
 import { getExchangeRate } from "../utils/api/erpNextRequests";
 import { getEmployeeDetails } from "../utils/api/employeeRequests";
 import { filterApi } from "../utils/api/frappeRequests";
+import { deleteLeave } from "../utils/api/leaveRequests";
 
 // Load env variables
 const empID = process.env.EMP_ID;
@@ -417,6 +418,27 @@ export const createTaskForTestCases = async () => {
   await processTestCasesForTasks(managerTeamData, managerTeamIDs);
   writeDataToFile(managerTeamDataFilePath, managerTeamData);
 };
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Deletion of tasks by their name that were created though UI
+ */
+export const deleteByTaskName = async () => {
+  const tasksToBeDeleted = [managerTaskData.TC24.payloadDeleteTaskBySubject.task];
+
+  for (const taskName of tasksToBeDeleted) {
+    console.warn("Checking for task:", taskName);
+
+    const filterResponse = await filterApi("Task", [["Task", "subject", "=", taskName]]);
+    console.warn("Response for getting TASK BY NAME IN DELETION OF TASK IS:", filterResponse);
+
+    if (filterResponse.message?.values?.length) {
+      const taskID = filterResponse.message.values[0];
+      console.log("Task found and ID to delete:", taskID);
+      await deleteTask(taskID);
+    }
+  }
+};
 
 // ------------------------------------------------------------------------------------------
 
@@ -517,7 +539,11 @@ export const calculateHourlyBilling = async () => {
 
   await writeDataToFile(employeeTimesheetDataFilePath, employeeTimesheetData);
 };
+// ------------------------------------------------------------------------------------------
 
+/**
+ * Delete all the leaves,tasks and time entries associated with the project and delete the project itself
+ */
 export const cleanUpProjects = async (data) => {
   const deletedData = [];
 
@@ -530,7 +556,7 @@ export const cleanUpProjects = async (data) => {
     const projectName = tc.payloadCreateProject.project_name;
 
     // Get Project ID
-    const projectRes = await filterApi("Project", "Project", "project_name", projectName);
+    const projectRes = await filterApi("Project", [["Project", "project_name", "=", projectName]]);
     console.warn(`PROJECT RESPONSE for ${key} is ; `, projectRes);
     const projectId = projectRes?.message?.values?.[0]?.[0];
     console.warn(`Obtained ProjectId value for ${key} is       ; `, projectId);
@@ -538,7 +564,7 @@ export const cleanUpProjects = async (data) => {
     if (!projectId) continue;
 
     // Get Task IDs
-    const taskRes = await filterApi("Task", "Task", "project", projectId);
+    const taskRes = await filterApi("Task", [["Task", "project", "=", projectId]]);
     console.warn(`TASK RESPONSE for ${key} is ; `, taskRes);
 
     const taskRaw = taskRes?.message?.values;
@@ -553,7 +579,7 @@ export const cleanUpProjects = async (data) => {
     console.warn(`OBTAINED TASK for ${key} is: `, taskIds);
 
     // Get Timesheet IDs
-    const timesheetRes = await filterApi("Timesheet", "Timesheet", "parent_project", projectId);
+    const timesheetRes = await filterApi("Timesheet", [["Timesheet", "parent_project", "=", projectId]]);
     console.warn(`TMESHEET RESPONSE for ${key} is ; `, timesheetRes);
 
     const valuesRaw = timesheetRes?.message?.values;
@@ -570,7 +596,7 @@ export const cleanUpProjects = async (data) => {
       // Flatten and filter valid strings only
       timesheetIds = valuesRaw.flat().filter((v) => typeof v === "string");
     }
-    
+
     console.warn(`TIMESHEET IDs to delete:`, timesheetIds);
 
     // Store collected info
@@ -609,7 +635,30 @@ export const cleanUpProjects = async (data) => {
   console.log("Cleanup complete. Deleted data:", deletedData);
   return deletedData;
 };
+// ------------------------------------------------------------------------------------------
 
+/**
+ * Delete Leaves associated to an employee
+ */
+export const deleteLeaveOfEmployee = async () => {
+  //Fetch Leave ID for employee if any exists
+  const filterResponse = await filterApi("Leave Application", [
+    ["Leave Application", "employee", "=", `${empID}`],
+    ["Leave Application", "status", "=", "Open"],
+  ]);
+  //Delete leave if leave ID is found in the filter request
+  if (filterResponse?.message?.values[0]) {
+    const leaveID = filterResponse.message.values[0];
+    await deleteLeave(leaveID);
+    console.warn("A leave request for employee was found and deleted");
+  }
+};
+
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Combined json files to pass for deleting the orphan test data
+ */
 export const readAndCleanAllOrphanData = async () => {
   const employeeData = await readJSONFile("../data/employee/timesheet.json");
   const managerTask = await readJSONFile("../data/manager/task.json");
@@ -620,6 +669,6 @@ export const readAndCleanAllOrphanData = async () => {
     ...managerTask,
     ...managerTeam,
   };
-
+  await deleteLeaveOfEmployee();
   await cleanUpProjects(mergedData);
 };
