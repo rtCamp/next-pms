@@ -847,5 +847,144 @@
       "total_costing_amount": 0,
       "hourly_billing_rate": 0
     }
+  },
+  "TC96": {
+    "cell": {
+      "rowName": "TC96 Billable Task",
+      "col": "Tue"
+    },
+    "payloadCreateProject": {
+      "project_name": "TC96 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "customer": "Google",
+      "billing_type": "Retainer",
+      "currency": "INR",
+      "project_type": "Retainer",
+      "business_unit": "Jupitor",
+      "estimated_cost": 350000,
+      "custom_default_hourly_billing_rate": 300,
+      "custom_project_budget_hours": []
+    },
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    },
+    "payloadCreateTask": {
+      "subject": "TC96 Billable Task",
+      "project": "filled-automatically-from-createProjects",
+      "description": "Task for TC96 created through automation"
+    },
+    "payloadLikeTask": {
+      "doctype": "Task",
+      "name": "filled-automatically-from-createTasks",
+      "add": "Yes",
+      "role": "employee"
+    },
+    "payloadDeleteTask": {
+      "taskID": "filled-automatically-from-createTasks"
+    },
+    "payloadCreateTimesheet": {
+      "task": "filled-automatically-from-createTasks",
+      "description": "TC14 - Task added via automation.",
+      "hours": "1"
+    },
+    "payloadFilterTimeEntry": {
+      "subject": "TC96 Billable Task",
+      "description": "TC96 - Task added via automation.",
+      "project_name": "TC96 Project",
+      "max_week": "1"
+    }
+  },
+  "TC97": {
+    "cell": {
+      "rowName": "TC97 Billable Task",
+      "col": "Tue"
+    },
+    "payloadCreateProject": {
+      "project_name": "TC97 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "customer": "Google",
+      "billing_type": "Time and Material",
+      "currency": "INR",
+      "project_type": "TnM",
+      "business_unit": "Jupitor",
+      "estimated_cost": 235000,
+      "custom_default_hourly_billing_rate": 300,
+      "custom_project_budget_hours": []
+    },
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    },
+    "payloadCreateTask": {
+      "subject": "TC97 Billable Task",
+      "project": "filled-automatically-from-createProjects",
+      "description": "Task for TC97 created through automation"
+    },
+    "payloadLikeTask": {
+      "doctype": "Task",
+      "name": "filled-automatically-from-createTasks",
+      "add": "Yes",
+      "role": "employee"
+    },
+    "payloadDeleteTask": {
+      "taskID": "filled-automatically-from-createTasks"
+    },
+    "payloadCreateTimesheet": {
+      "task": "filled-automatically-from-createTasks",
+      "description": "TC97 - Task added via automation.",
+      "hours": "1"
+    },
+    "payloadFilterTimeEntry": {
+      "subject": "TC97 Billable Task",
+      "description": "TC97 - Task added via automation.",
+      "project_name": "TC97 Project",
+      "max_week": "1"
+    }
+  },
+  "TC98": {
+    "cell": {
+      "rowName": "TC98 Billable Task",
+      "col": "Wed"
+    },
+    "payloadCreateProject": {
+      "project_name": "TC98 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "customer": "Google",
+      "billing_type": "Non-Billable",
+      "currency": "INR",
+      "project_type": "Non Billable",
+      "business_unit": "Jupitor",
+      "estimated_cost": 235000,
+      "custom_default_hourly_billing_rate": 300,
+      "custom_project_budget_hours": []
+    },
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    },
+    "payloadCreateTask": {
+      "subject": "TC98 Billable Task",
+      "project": "filled-automatically-from-createProjects",
+      "description": "Task for TC98 created through automation"
+    },
+    "payloadLikeTask": {
+      "doctype": "Task",
+      "name": "filled-automatically-from-createTasks",
+      "add": "Yes",
+      "role": "employee"
+    },
+    "payloadDeleteTask": {
+      "taskID": "filled-automatically-from-createTasks"
+    },
+    "payloadCreateTimesheet": {
+      "task": "filled-automatically-from-createTasks",
+      "description": "TC98 - Task added via automation.",
+      "hours": "1"
+    },
+    "payloadFilterTimeEntry": {
+      "subject": "TC98 Billable Task",
+      "description": "TC98 - Task added via automation.",
+      "project_name": "TC98 Project",
+      "max_week": "1"
+    }
   }
 }
+
