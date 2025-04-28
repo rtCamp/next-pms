@@ -25,6 +25,9 @@ let TC87data = data.TC87;
 let TC88data = data.TC88;
 let TC89data = data.TC89;
 let TC90data = data.TC90;
+let TC96data = data.TC96;
+let TC97data = data.TC97;
+let TC98data = data.TC98;
 // ------------------------------------------------------------------------------------------
 
 test.beforeEach(async ({ page }) => {
@@ -289,4 +292,38 @@ test("TC90: Billing rate to be three times costing rate", async ({}) => {
     3 * custom_default_hourly_billing_rate,
     1
   );
+});
+
+
+
+test.only("TC96: Verify the billable status of a billable task.", async ({}) => {
+  // Import liked tasks
+  await timesheetPage.importLikedTasks();
+
+
+  // Assertions
+  const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC96data.cell);
+  expect(isTimeEntryBillable).toBeTruthy();
+});
+
+
+test.only("TC97: Verify the billable status of a billable task.", async ({}) => {
+  // Import liked tasks
+  await timesheetPage.importLikedTasks();
+
+
+  // Assertions
+  const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC97data.cell);
+  expect(isTimeEntryBillable).toBeTruthy();
+});
+
+
+test.only("TC98: Verify the billable status of a billable task.", async ({}) => {
+  // Import liked tasks
+  await timesheetPage.importLikedTasks();
+
+
+  // Assertions
+  const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC98data.cell);
+  expect(isTimeEntryBillable).toBeTruthy();
 });
