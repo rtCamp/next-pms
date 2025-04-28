@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { Avatar, AvatarFallback, AvatarImage, Typography, Badge } from "@next-pms/design-system/components";
+import { Avatar, AvatarFallback, AvatarImage, Typography } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
 import { mergeClassNames } from "@next-pms/design-system/utils";
 import { getFilterValue, getFormatedStringValue } from "@next-pms/resource-management/utils";
@@ -146,17 +146,16 @@ export const ResourceAllocationCard = ({
               {resourceAllocation.hours_allocated_per_day} {"hours / day)"}
             </Typography>
           </div>
-          <Badge
-            variant="outline"
+          <Typography
             className={mergeClassNames(
-              "text-xs font-semibold w-fit",
+              "text-xs font-semibold",
               resourceAllocation.is_billable
-                ? "bg-green-50 text-green-600 hover:bg-green-50 border-green-200"
-                : "text-yellow-600 bg-yellow-50  hover:bg-yellow-50 border-yellow-200"
+                ? "bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent"
+                : "text-yellow-500"
             )}
           >
             {resourceAllocation.is_billable ? "Billable ($)" : "Non-billable"}
-          </Badge>
+          </Typography>
 
           {resourceAllocation.note && (
             <div className="note-section mt-2 flex items-center gap-1 w-11/12" title={"Note"}>
@@ -199,6 +198,7 @@ export const ResourceAllocationCard = ({
           userName={resourceAllocation.modified_by}
           avatar={resourceAllocation?.modified_by_avatar}
           timestamp={new Date(resourceAllocation.modified)}
+          newDoc={new Date(resourceAllocation.modified).getTime() === new Date(resourceAllocation.creation).getTime()}
         />
       )}
     </div>

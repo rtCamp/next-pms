@@ -112,6 +112,7 @@ def get_resource_management_team_view_data(
             "note",
             "modified_by",
             "modified",
+            "creation",
         ],
         "employee",
         [employee.name for employee in employees],

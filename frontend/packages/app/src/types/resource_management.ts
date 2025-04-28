@@ -20,6 +20,7 @@ export type ResourceAllocationProps = {
   modified_by: string;
   modified_by_avatar: string;
   modified: string;
+  creation: string;
 };
 
 export interface ResourceCustomerObjectProps {

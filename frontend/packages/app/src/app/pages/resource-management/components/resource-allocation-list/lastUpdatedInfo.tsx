@@ -8,6 +8,7 @@ interface LastUpdatedProps {
   userName: string;
   timestamp: Date;
   avatar?: string;
+  newDoc?: boolean;
 }
 
 /**
@@ -18,7 +19,7 @@ interface LastUpdatedProps {
  * @param avatar User image string .
  * @returns React.FC
  */
-const LastUpdatedInfo = ({ userName, timestamp, avatar }: LastUpdatedProps) => {
+const LastUpdatedInfo = ({ userName, timestamp, avatar, newDoc = false }: LastUpdatedProps) => {
   const initials = userName
     .split(" ")
     .filter(Boolean)
@@ -46,7 +47,9 @@ const LastUpdatedInfo = ({ userName, timestamp, avatar }: LastUpdatedProps) => {
           {userName}
         </Typography>
         <div className="flex items-center gap-1.5">
-          <span className="text-[11.5px]">Last edit {formattedTime}</span>
+          <span className="text-[11.5px]">
+            {newDoc ? "Created" : "Last edit"} {formattedTime}
+          </span>
         </div>
       </div>
     </div>
