@@ -40,7 +40,7 @@ let sharedManagerTaskData;
  * Updates 'payloadCreateTimesheet' and 'payloadFilterTimeEntry' fields with computed dates and employee ID.
  * Saves the updated data back to the shared JSON files.
  *
- * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49, TC50, TC82, TC83, TC84, TC85, TC86
+ * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49, TC50, TC82, TC83, TC84, TC85, TC86, TC96, TC97, TC98
  */
 export const updateTimeEntries = async () => {
   const employeeTimesheetIDs = [
@@ -61,6 +61,9 @@ export const updateTimeEntries = async () => {
     "TC88",
     "TC89",
     "TC90",
+    "TC96",
+    "TC97",
+    "TC98"
   ];
   const managerTeamIDs = ["TC47", "TC49", "TC50"];
 
@@ -106,7 +109,7 @@ export const updateTimeEntries = async () => {
  * This function iterates over predefined time entry payloads and submits them
  * to create timesheet records.
  *
- * Test Cases: TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49, TC50, TC82, TC83, TC84, TC85, TC86
+ * Test Cases: TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49, TC50, TC82, TC83, TC84, TC85, TC86, TC96, TC97, TC98
  */
 export const createTimeEntries = async () => {
   sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
@@ -127,6 +130,9 @@ export const createTimeEntries = async () => {
     sharedEmployeeTimesheetData.TC88.payloadCreateTimesheet,
     sharedEmployeeTimesheetData.TC89.payloadCreateTimesheet,
     sharedEmployeeTimesheetData.TC90.payloadCreateTimesheet,
+    sharedEmployeeTimesheetData.TC96.payloadCreateTimesheet,
+    sharedEmployeeTimesheetData.TC97.payloadCreateTimesheet,
+    sharedEmployeeTimesheetData.TC98.payloadCreateTimesheet,
     sharedManagerTeamData.TC47.payloadCreateTimesheet,
     sharedManagerTeamData.TC49.payloadCreateTimesheet,
     sharedManagerTeamData.TC50.payloadCreateTimesheet,
@@ -145,7 +151,7 @@ export const createTimeEntries = async () => {
  * This function reads timesheet data from JSON files and iterates through predefined
  * time entry objects, filtering each entry and deleting the corresponding timesheet record.
  *
- * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49, TC50, TC82, TC83, TC84, TC85, TC86
+ * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49, TC50, TC82, TC83, TC84, TC85, TC86, TC96, TC97, TC98
  */
 export const deleteTimeEntries = async () => {
   sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
@@ -170,6 +176,9 @@ export const deleteTimeEntries = async () => {
     sharedEmployeeTimesheetData.TC88.payloadFilterTimeEntry,
     sharedEmployeeTimesheetData.TC89.payloadFilterTimeEntry,
     sharedEmployeeTimesheetData.TC90.payloadFilterTimeEntry,
+    sharedEmployeeTimesheetData.TC96.payloadFilterTimeEntry,
+    sharedEmployeeTimesheetData.TC97.payloadFilterTimeEntry,
+    sharedEmployeeTimesheetData.TC98.payloadFilterTimeEntry,
     sharedManagerTeamData.TC47.payloadFilterTimeEntry,
     sharedManagerTeamData.TC49.payloadFilterTimeEntry,
     sharedManagerTeamData.TC50.payloadFilterTimeEntry,
@@ -242,6 +251,9 @@ export const createProjectForTestCases = async () => {
     "TC88",
     "TC89",
     "TC90",
+    "TC96",
+    "TC97",
+    "TC98"
   ];
   const managerTaskIDs = ["TC22", "TC24", "TC25", "TC26", "TC17", "TC19"];
 
@@ -317,6 +329,9 @@ export const deleteProjects = async () => {
     sharedEmployeeTimesheetData.TC88.payloadDeleteProject.projectId,
     sharedEmployeeTimesheetData.TC89.payloadDeleteProject.projectId,
     sharedEmployeeTimesheetData.TC90.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC96.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC97.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC98.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC17.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC19.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC22.payloadDeleteProject.projectId,
@@ -358,6 +373,9 @@ export const createTaskForTestCases = async () => {
     "TC88",
     "TC89",
     "TC90",
+    "TC96",
+    "TC97",
+    "TC98",
   ];
 
   const managerTaskIDs = ["TC22", "TC25", "TC26", "TC17", "TC19"];
@@ -470,6 +488,9 @@ export const deleteTasks = async () => {
     sharedEmployeeTimesheetData.TC88.payloadDeleteTask.taskID,
     sharedEmployeeTimesheetData.TC89.payloadDeleteTask.taskID,
     sharedEmployeeTimesheetData.TC90.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC96.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC97.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC98.payloadDeleteTask.taskID,
     sharedManagerTaskData.TC22.payloadDeleteTask.taskID,
     sharedManagerTaskData.TC25.payloadDeleteTask.taskID,
     sharedManagerTaskData.TC26.payloadDeleteTask.taskID,
