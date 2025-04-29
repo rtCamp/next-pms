@@ -63,7 +63,6 @@ const ProjectComboBox = ({
   const [selectedValues, setSelectedValues] = useState<string>(value);
   const [project, setProject] = useState<Project | undefined>();
   const [open, setOpen] = useState(false);
-  console.log(projectName);
 
   const { data: projects } = useFrappeGetDocList("Project", {
     fields: ["name", "project_name"],

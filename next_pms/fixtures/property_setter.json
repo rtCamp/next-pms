@@ -862,5 +862,37 @@
   "property_type": "Data",
   "row_name": null,
   "value": "[\"naming_series\", \"project_name\", \"project_type\", \"custom_project_size\", \"custom_type_of_work\", \"expected_start_date\", \"expected_end_date\", \"priority\", \"custom_host\", \"is_active\", \"column_break_5\", \"status\", \"custom_key_account\", \"custom_duration\", \"custom_previous_cms\", \"actual_start_date\", \"actual_end_date\", \"custom_complexity\", \"custom_project_repository_connections\", \"project_template\", \"department\", \"customer_details\", \"customer\", \"custom_region\", \"custom_client_poc_information\", \"custom_column_break_wwyxg\", \"custom_client_point_of_contact\", \"custom_industry\", \"custom_timezone\", \"custom_sales__marketing_details\", \"custom_column_break_6eovd\", \"custom_deal_type\", \"sales_order\", \"custom_restricted_under_nda\", \"column_break_14\", \"custom_source\", \"custom_permission_for_testimonial\", \"custom_permission_for_case_study\", \"custom_project_health_and_progress\", \"custom_project_rag_status\", \"custom_column_break_vhhhb\", \"custom_next_milestone\", \"custom_next_milestone_details\", \"custom_project_information\", \"custom_project_documents_url\", \"custom_3rd_parties\", \"custom_project_detail\", \"custom_section_break_iwbj2\", \"custom_business_unit\", \"custom_project_manager\", \"custom_project_manager_name\", \"custom_account_manager_\", \"custom_column_break_q1p3v\", \"custom_engineering_manager\", \"custom_engineering_manager_name\", \"users_section\", \"users\", \"copied_from\", \"section_break0\", \"notes\", \"monitor_progress\", \"collect_progress\", \"holiday_list\", \"frequency\", \"from_time\", \"to_time\", \"first_email\", \"second_email\", \"daily_time_to_send\", \"day_to_send\", \"weekly_time_to_send\", \"column_break_45\", \"message\", \"custom_costing__billing\", \"project_details\", \"custom_billing_type\", \"company\", \"column_break_28\", \"custom_currency\", \"total_consumed_material_cost\", \"custom_section_break_ngas7\", \"custom_percentage_estimated_cost\", \"custom_percentage_estimated_profit\", \"total_purchase_cost\", \"total_costing_amount\", \"total_expense_claim\", \"gross_margin\", \"column_break_37\", \"estimated_costing\", \"custom_estimated_profit\", \"custom_default_hourly_billing_rate\", \"total_sales_amount\", \"total_billable_amount\", \"total_billed_amount\", \"per_gross_margin\", \"custom_section_break_ca8jh\", \"custom_project_billing_team\", \"custom_project_budget_hours\", \"custom_send_reminder_when_approaching_project_threshold_limit\", \"custom_reminder_threshold_percentage\", \"custom_email_template\", \"cost_center\", \"custom_project_details\", \"actual_time\", \"custom_total_hours_remaining\", \"custom_total_hours_purchased\", \"column_break_20\", \"percent_complete\", \"percent_complete_method\"]"
+ },
+ {
+  "default_value": null,
+  "doc_type": "Project",
+  "docstatus": 0,
+  "doctype": "Property Setter",
+  "doctype_or_field": "DocField",
+  "field_name": "users_section",
+  "is_system_generated": 0,
+  "modified": "2025-04-28 17:34:34.454383",
+  "module": "Next PMS",
+  "name": "Project-users_section-hidden",
+  "property": "hidden",
+  "property_type": "Check",
+  "row_name": null,
+  "value": "1"
+ },
+ {
+  "default_value": null,
+  "doc_type": "Project",
+  "docstatus": 0,
+  "doctype": "Property Setter",
+  "doctype_or_field": "DocField",
+  "field_name": "monitor_progress",
+  "is_system_generated": 0,
+  "modified": "2025-04-28 17:34:27.759151",
+  "module": "Next PMS",
+  "name": "Project-monitor_progress-hidden",
+  "property": "hidden",
+  "property_type": "Check",
+  "row_name": null,
+  "value": "1"
  }
 ]

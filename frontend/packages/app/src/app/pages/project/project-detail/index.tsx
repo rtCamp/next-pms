@@ -133,6 +133,9 @@ const ProjectDetail = () => {
                 project_type: { readOnly: true },
                 custom_restricted_under_nda: { readOnly: true },
                 custom_billing_type: { readOnly: true },
+                users: { hidden: true },
+                monitor_progress: { hidden: true },
+                collect_progress: { hidden: true },
               } as FieldConfigType
             }
             mutateData={mutate}
