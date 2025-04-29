@@ -72,15 +72,15 @@ const MemoizedRow = memo(function MemoizedRow({
           return week.dates.map((date: string, index: number) => {
             return (
               <RowCellComponet
-                key={`${week_index}-${employeeData.name}-${index}-${date}`}
+                key={`${week_index}-${employeeData?.name}-${index}-${date}`}
                 date={date}
-                employee={employeeData.name}
-                employee_name={employeeData.employee_name}
-                employeeAllocations={employeeData.employee_allocations}
+                employee={employeeData?.name}
+                employee_name={employeeData?.employee_name}
+                employeeAllocations={employeeData?.employee_allocations}
                 midIndex={week_index}
                 rowCount={index}
-                dateData={employeeData.all_dates_data[date]}
-                weekData={employeeData.all_week_data[week.key]}
+                dateData={employeeData?.all_dates_data[date]}
+                weekData={employeeData?.all_week_data[week.key]}
                 onSubmit={onSubmit}
               />
             );
