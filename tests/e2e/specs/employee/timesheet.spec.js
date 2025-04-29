@@ -174,6 +174,9 @@ test("TC13: Verify an employee can apply for leave via Timesheet tab.   ", async
   // Apply for leave
   await timesheetPage.applyForLeave(TC13data.leave.desc);
 
+  // Reload page to ensure changes are reflected
+  await timesheetPage.page.reload();
+
   // Assertions
   const cellText = await timesheetPage.getCellText(TC13data.cell);
   expect(cellText).toContain("8");

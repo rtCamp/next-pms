@@ -43,7 +43,6 @@ export interface DocMetaProps {
   fields: Array<fieldMetaProps>;
   title_field: string;
 }
-
 declare global {
   interface Window {
     frappe?: {
@@ -57,3 +56,8 @@ declare global {
     };
   }
 }
+
+export type Project = {
+  name: string;
+  project_name: string;
+};

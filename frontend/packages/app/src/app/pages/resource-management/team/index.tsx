@@ -125,20 +125,20 @@ const ResourceTeamView = () => {
           const updateEmployeeData = updateDate[dataIndex];
 
           updateEmployeeData.all_dates_data = {
-            ...updateEmployeeData.all_dates_data,
-            ...horizontalPreProcessData.data[count].all_dates_data,
+            ...updateEmployeeData?.all_dates_data,
+            ...horizontalPreProcessData.data[count]?.all_dates_data,
           };
           updateEmployeeData.all_leave_data = {
-            ...updateEmployeeData.all_leave_data,
-            ...horizontalPreProcessData.data[count].all_leave_data,
+            ...updateEmployeeData?.all_leave_data,
+            ...horizontalPreProcessData.data[count]?.all_leave_data,
           };
           updateEmployeeData.all_week_data = {
-            ...updateEmployeeData.all_week_data,
-            ...horizontalPreProcessData.data[count].all_week_data,
+            ...updateEmployeeData?.all_week_data,
+            ...horizontalPreProcessData.data[count]?.all_week_data,
           };
           updateEmployeeData.employee_allocations = {
-            ...updateEmployeeData.employee_allocations,
-            ...horizontalPreProcessData.data[count].employee_allocations,
+            ...updateEmployeeData?.employee_allocations,
+            ...horizontalPreProcessData.data[count]?.employee_allocations,
           };
 
           updateDate[dataIndex] = updateEmployeeData;

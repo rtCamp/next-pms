@@ -9,12 +9,14 @@ import { useFrappeGetDocList, useFrappePostCall } from "frappe-react-sdk";
 /**
  * Internal dependencies
  */
+import { Plus } from "lucide-react";
 import { Header as ListViewHeader } from "@/app/components/list-view/header";
 import { ButtonProps, FilterPops } from "@/app/components/list-view/types";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import type { RootState } from "@/store";
 import {
   setCurrency,
+  setIsAddProjectDialogOpen,
   setOrderBy,
   setSearch,
   setSelectedBilingType,
@@ -26,8 +28,8 @@ import {
 } from "@/store/project";
 import { updateView } from "@/store/view";
 import type { sortOrder } from "@/types";
-import type { HeaderProps } from "./types";
-import { createFilter, getFilter } from "./utils";
+import type { HeaderProps } from "../types";
+import { createFilter, getFilter } from "../utils";
 
 export const Header = ({
   meta,
@@ -321,6 +323,16 @@ export const Header = ({
       hide: !stateUpdated,
       label: "Save changes",
       variant: "ghost" as ButtonProps["variant"],
+      className: "h-10 px-2 py-2",
+    },
+    {
+      title: "Project",
+      handleClick: () => {
+        dispatch(setIsAddProjectDialogOpen(true));
+      },
+      label: "Project",
+      icon: Plus,
+      variant: "default" as ButtonProps["variant"],
       className: "h-10 px-2 py-2",
     },
   ];

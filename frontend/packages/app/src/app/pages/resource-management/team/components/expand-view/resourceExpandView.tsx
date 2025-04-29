@@ -41,8 +41,8 @@ export const ResourceExpandView = memo(
     const dates = teamData.dates;
 
     const employeeResourceData: { combinedResourceData: CombinedResourceObjectProps; allDates: string[] } = useMemo(
-      () => findCombineData(employeeData.all_dates_data, employeeData.employee_allocations, dates),
-      [dates, employeeData.all_dates_data, employeeData.employee_allocations]
+      () => findCombineData(employeeData?.all_dates_data, employeeData.employee_allocations, dates),
+      [dates, employeeData?.all_dates_data, employeeData.employee_allocations]
     );
 
     const onProjectClick = useCallback((projectId: string) => {

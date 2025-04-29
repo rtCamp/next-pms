@@ -56,7 +56,7 @@ const ResourceTableCell = ({
             <TableCellContent title={title} className={cellTypographyClassName} value={value} />
           </TableCell>
         </HoverCardTrigger>
-        <HoverCardContent className="min-w-64 max-w-96 w-fit">
+        <HoverCardContent className="min-w-72 max-w-96 p-0">
           {CustomHoverCardContent && <CustomHoverCardContent />}
         </HoverCardContent>
       </HoverCard>
