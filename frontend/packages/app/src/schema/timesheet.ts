@@ -199,13 +199,22 @@ export const LeaveSchema = z.object({
     .trim()
     .min(1, { message: "Please select a employee." }),
   description: leaveReasonSchema,
-  from_date: z.string({
-    required_error: "Please enter date.",
-  }).trim().min(1, { message: "Please enter a date." }),
-  to_date: z.string({
-    required_error: "Please enter date.",
-  }).trim().min(1, { message: "Please enter a date." }),
-  leave_type: z.string({}).trim().min(1, { message: "Please enter a Leave Type." }),
+  from_date: z
+    .string({
+      required_error: "Please enter date.",
+    })
+    .trim()
+    .min(1, { message: "Please enter a date." }),
+  to_date: z
+    .string({
+      required_error: "Please enter date.",
+    })
+    .trim()
+    .min(1, { message: "Please enter a date." }),
+  leave_type: z
+    .string({})
+    .trim()
+    .min(1, { message: "Please enter a Leave Type." }),
   half_day: z.boolean().optional(),
-  custom_first_halfsecond_half:z.string().optional(),
+  custom_first_halfsecond_half: z.string().optional(),
 });

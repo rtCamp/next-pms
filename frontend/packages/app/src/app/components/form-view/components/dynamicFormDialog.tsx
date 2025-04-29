@@ -28,6 +28,7 @@ import { enrichChildMeta } from "../utils";
 interface DynamicFormDialogProps {
   open: boolean;
   onClose: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onSubmit: (values: any) => void;
   fieldMeta: FieldMeta[];
   value: ChildRow[];

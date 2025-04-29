@@ -1,41 +1,40 @@
-
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const setLocalStorage = (key: string, value: any) => {
-    try {
-        if (typeof value === "object") {
-            localStorage.setItem(key, JSON.stringify(value));
-        } else {
-            localStorage.setItem(key, value);
-        }
-        return true;
-    } catch (error) {
-        return false;
+  try {
+    if (typeof value === "object") {
+      localStorage.setItem(key, JSON.stringify(value));
+    } else {
+      localStorage.setItem(key, value);
     }
-}
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+};
 
-export const removeLocalStorage = (key: string) => { 
-    localStorage.removeItem(key);
-}
+export const removeLocalStorage = (key: string) => {
+  localStorage.removeItem(key);
+};
 export const getLocalStorage = (key: string) => {
-    const value = localStorage.getItem(key);
-    if (!value) return false
-    try {
-        return JSON.parse(value);
-    } catch {
-        return value;
-    }
-}
+  const value = localStorage.getItem(key);
+  if (!value) return false;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
+  }
+};
 
-export const hasKeyInLocalStorage = (key: string) => { 
-    return Object.prototype.hasOwnProperty.call(localStorage, key);    
-}
+export const hasKeyInLocalStorage = (key: string) => {
+  return Object.prototype.hasOwnProperty.call(localStorage, key);
+};
 
 export const setLikedTask = (
   likedTaskKey: string,
   dateKey: string,
   task: Array<object>
 ): void => {
-    
   const likedTasksJSON = getLocalStorage(likedTaskKey);
   const likedTasks = likedTasksJSON ? likedTasksJSON : {};
   if (!Array.isArray(likedTasks[dateKey])) {
@@ -64,7 +63,7 @@ export const removeFromLikedTask = (
   }
 };
 
-export type addAction = "Yes"|"No";
+export type addAction = "Yes" | "No";
 
 export const toggleLikedByForTask = (
   likedTaskKey: string,
@@ -112,4 +111,4 @@ export const toggleLikedByForTask = (
   });
 
   localStorage.setItem(likedTaskKey, JSON.stringify(storedDataJSON));
-};  
+};

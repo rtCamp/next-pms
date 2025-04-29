@@ -2,7 +2,7 @@
  * External dependencies.
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { getTodayDate } from "@next-pms/design-system/date"
+import { getTodayDate } from "@next-pms/design-system/date";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
 /**
@@ -91,10 +91,10 @@ const timesheetSlice = createSlice({
         ...action.payload.holidays,
       ];
       const existingLeaveIds = new Set(
-        state.data.leaves.map((leave) => leave.name),
+        state.data.leaves.map((leave) => leave.name)
       );
       const newLeaves = action.payload.leaves.filter(
-        (leave) => !existingLeaveIds.has(leave.name),
+        (leave) => !existingLeaveIds.has(leave.name)
       );
 
       state.data.leaves = [...state.data.leaves, ...newLeaves];
@@ -107,7 +107,6 @@ const timesheetSlice = createSlice({
       state.isEditDialogOpen = action.payload;
       if (!action.payload) {
         state.timesheet = initialState.timesheet;
-
       }
     },
   },

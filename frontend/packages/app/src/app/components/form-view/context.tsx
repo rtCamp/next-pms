@@ -3,6 +3,7 @@
  */
 import { createContext, ReactNode, useContext, useState } from "react";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MutateFn = (...args: any[]) => void;
 
 interface FormContextType {

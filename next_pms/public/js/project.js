@@ -22,7 +22,6 @@ frappe.ui.form.on("Project", {
         <p><span class="text-muted">Phone</span> : <span class="text-muted">${phone}</span> </p>
 
 </div>`);
-
   },
   refresh: function (frm) {
     if (!frm.is_new()) {

@@ -16,6 +16,7 @@ import { Field, FieldConfigType } from "./types";
 type FormViewProps = {
   docname: string;
   doctype: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mutateData: KeyedMutator<any>;
   tabs: Record<string, Array<Field>>;
   readOnly?: boolean;

@@ -31,7 +31,7 @@ export const expectedTimeSchema = z.preprocess(
     z.number({
       invalid_type_error: "Please enter a valid number for hours.",
     }),
-  ]),
+  ])
 );
 
 export const TaskSchema = z.object({
