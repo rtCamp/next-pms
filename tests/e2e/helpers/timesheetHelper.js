@@ -63,7 +63,7 @@ export const updateTimeEntries = async () => {
     "TC90",
     "TC96",
     "TC97",
-    "TC98"
+    "TC98",
   ];
   const managerTeamIDs = ["TC47", "TC49", "TC50"];
 
@@ -253,7 +253,7 @@ export const createProjectForTestCases = async () => {
     "TC90",
     "TC96",
     "TC97",
-    "TC98"
+    "TC98",
   ];
   const managerTaskIDs = ["TC22", "TC24", "TC25", "TC26", "TC17", "TC19"];
 

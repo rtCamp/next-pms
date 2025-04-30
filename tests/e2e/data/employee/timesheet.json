@@ -863,7 +863,7 @@
       "business_unit": "Jupitor",
       "estimated_cost": 350000,
       "custom_default_hourly_billing_rate": 300,
-      "custom_billing_type" : "Retainer",
+      "custom_billing_type": "Retainer",
       "custom_project_budget_hours": []
     },
     "payloadDeleteProject": {
@@ -910,7 +910,7 @@
       "business_unit": "Jupitor",
       "estimated_cost": 235000,
       "custom_default_hourly_billing_rate": 300,
-      "custom_billing_type" :"Time and Material",
+      "custom_billing_type": "Time and Material",
       "custom_project_budget_hours": []
     },
     "payloadDeleteProject": {
@@ -956,7 +956,7 @@
       "project_type": "Non Billable",
       "business_unit": "Jupitor",
       "estimated_cost": 235000,
-      "custom_billing_type":"Non-Billable",
+      "custom_billing_type": "Non-Billable",
       "custom_project_budget_hours": []
     },
     "payloadDeleteProject": {
@@ -966,7 +966,7 @@
       "subject": "TC98 Billable Task",
       "project": "filled-automatically-from-createProjects",
       "description": "Task for TC98 created through automation",
-      "custom_is_billable":1
+      "custom_is_billable": 1
     },
     "payloadLikeTask": {
       "doctype": "Task",
@@ -990,4 +990,3 @@
     }
   }
 }
-

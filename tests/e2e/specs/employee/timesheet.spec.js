@@ -294,34 +294,28 @@ test("TC90: Billing rate to be three times costing rate", async ({}) => {
   );
 });
 
-
-
 test("TC96: Verify Time entry for a Billable task under a Retainer project", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
-await timesheetPage.page.pause();
+  await timesheetPage.page.pause();
 
   // Assertions
   const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC96data.cell);
   expect(isTimeEntryBillable).toBeTruthy();
 });
 
-
 test("TC97: Verify Time entry for a Billable task under a Time and Material project", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
-
 
   // Assertions
   const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC97data.cell);
   expect(isTimeEntryBillable).toBeTruthy();
 });
 
-
 test("TC98: Verify Time entry for a Billable task under a Non-Billable project", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
-
 
   // Assertions
   const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC98data.cell);
