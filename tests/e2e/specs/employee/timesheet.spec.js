@@ -296,10 +296,10 @@ test("TC90: Billing rate to be three times costing rate", async ({}) => {
 
 
 
-test.only("TC96: Verify the billable status of a billable task.", async ({}) => {
+test("TC96: Verify Time entry for a Billable task under a Retainer project", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
-
+await timesheetPage.page.pause();
 
   // Assertions
   const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC96data.cell);
@@ -307,7 +307,7 @@ test.only("TC96: Verify the billable status of a billable task.", async ({}) => 
 });
 
 
-test.only("TC97: Verify the billable status of a billable task.", async ({}) => {
+test("TC97: Verify Time entry for a Billable task under a Time and Material project", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -318,7 +318,7 @@ test.only("TC97: Verify the billable status of a billable task.", async ({}) => 
 });
 
 
-test.only("TC98: Verify the billable status of a billable task.", async ({}) => {
+test("TC98: Verify Time entry for a Billable task under a Non-Billable project", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
