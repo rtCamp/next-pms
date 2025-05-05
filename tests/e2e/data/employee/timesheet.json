@@ -1013,7 +1013,9 @@
     "payloadCreateTask": {
       "subject": "TC99 Billable Task",
       "project": "filled-automatically-from-createProjects",
-      "description": "Task for TC99 created through automation",
+      "description": "Task for TC99 created through automation"
+    },
+    "payloadUpdateTask": {
       "custom_is_billable": 0
     },
     "payloadLikeTask": {
@@ -1061,7 +1063,9 @@
     "payloadCreateTask": {
       "subject": "TC100 Billable Task",
       "project": "filled-automatically-from-createProjects",
-      "description": "Task for TC100 created through automation",
+      "description": "Task for TC100 created through automation"
+    },
+    "payloadUpdateTask": {
       "custom_is_billable": 0
     },
     "payloadLikeTask": {
@@ -1109,7 +1113,9 @@
     "payloadCreateTask": {
       "subject": "TC101 Billable Task",
       "project": "filled-automatically-from-createProjects",
-      "description": "Task for TC101 created through automation",
+      "description": "Task for TC101 created through automation"
+    },
+    "payloadUpdateTask": {
       "custom_is_billable": 0
     },
     "payloadLikeTask": {

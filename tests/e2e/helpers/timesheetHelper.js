@@ -12,7 +12,7 @@ import managerTeamData from "../data/manager/team.json";
 import managerTaskData from "../data/manager/task.json";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
 import { createProject, deleteProject, getProjectDetails } from "../utils/api/projectRequests";
-import { createTask, deleteTask, likeTask } from "../utils/api/taskRequests";
+import { createTask, deleteTask, likeTask, updateTask } from "../utils/api/taskRequests";
 import { getExchangeRate } from "../utils/api/erpNextRequests";
 import { getEmployeeDetails } from "../utils/api/employeeRequests";
 import { filterApi } from "../utils/api/frappeRequests";
@@ -420,6 +420,15 @@ export const createTaskForTestCases = async () => {
 
         // Store task ID in related payloads
         data[testCaseID].payloadDeleteTask.taskID = taskID;
+
+        if (data[testCaseID].payloadUpdateTask) {
+          const updateTaskPayload = data[testCaseID].payloadUpdateTask;
+
+          const updateTaskResponse = await updateTask(taskID, updateTaskPayload);
+          console.log(
+            `UPDATE TASK RESPOSNE FOR ${testCaseID} is : \n ${updateTaskResponse} and custom billable status is ${updateTaskResponse.data.custom_is_billable}`
+          );
+        }
       }
 
       if (data[testCaseID].payloadLikeTask) {

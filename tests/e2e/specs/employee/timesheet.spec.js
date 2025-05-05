@@ -325,7 +325,7 @@ test("TC98: Verify Time entry for a Billable task under a Non-Billable project",
   expect(isTimeEntryBillable).toBeTruthy();
 });
 
-test("TC99: Verify Time entry for a Non-Billable task under a Fixed Cost project", async ({}) => {
+test.only("TC99: Verify Time entry for a Non-Billable task under a Fixed Cost project", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
   await timesheetPage.page.pause();
@@ -335,7 +335,7 @@ test("TC99: Verify Time entry for a Non-Billable task under a Fixed Cost project
   expect(isTimeEntryBillable).toBeFalsy();
 });
 
-test("TC100: Verify Time entry for a Non-Billable task under a Retainer project", async ({}) => {
+test.only("TC100: Verify Time entry for a Non-Billable task under a Retainer project", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -344,7 +344,7 @@ test("TC100: Verify Time entry for a Non-Billable task under a Retainer project"
   expect(isTimeEntryBillable).toBeFalsy();
 });
 
-test("TC101: Verify Time entry for a Non-Billable task under a Time and Material project", async ({}) => {
+test.only("TC101: Verify Time entry for a Non-Billable task under a Time and Material project", async ({}) => {
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 

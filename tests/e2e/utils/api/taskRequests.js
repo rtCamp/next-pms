@@ -90,3 +90,14 @@ export const getTaskDetails = async (taskID) => {
     method: "GET",
   });
 };
+/**
+ * Get Task Details.
+ */
+export const updateTask = async (taskID, {custom_is_billable}) => {
+  return await apiRequest(`/api/resource/Task/${taskID}`, {
+    method: "PUT",
+    data : {
+      custom_is_billable : custom_is_billable
+    }
+  });
+};
