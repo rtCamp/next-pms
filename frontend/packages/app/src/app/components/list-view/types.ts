@@ -1,3 +1,6 @@
+/**
+ * Internal dependencies
+ */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ViewData } from "@/store/view";
 import { fieldMetaProps, sortOrder, DocMetaProps } from "@/types";
@@ -16,7 +19,8 @@ export interface FilterPops {
     | "checkbox"
     | "search-employee"
     | "select-list"
-    | "custom-filter";
+    | "custom-filter"
+    | "search-project";
   value?: string | number | boolean | string[] | undefined;
   defaultValue?: string | boolean | number;
   label?: string;
@@ -29,6 +33,8 @@ export interface FilterPops {
   employeeName?: string;
   customFilterComponent?: React.ReactNode;
   onSearch?: (searchTerm: string) => void;
+  hideQueryParam?: boolean;
+  projectName?: string;
 }
 
 export type ViewWrapperProps = {

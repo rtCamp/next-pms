@@ -16,6 +16,7 @@ import { createTask, deleteTask, likeTask } from "../utils/api/taskRequests";
 import { getExchangeRate } from "../utils/api/erpNextRequests";
 import { getEmployeeDetails, addEmployee } from "../utils/api/employeeRequests";
 import { filterApi } from "../utils/api/frappeRequests";
+import { deleteLeave } from "../utils/api/leaveRequests";
 
 // Load env variables
 const empID = process.env.EMP_ID;
@@ -39,7 +40,7 @@ let sharedManagerTaskData;
  * Updates 'payloadCreateTimesheet' and 'payloadFilterTimeEntry' fields with computed dates and employee ID.
  * Saves the updated data back to the shared JSON files.
  *
- * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49, TC50, TC82, TC83, TC84, TC85, TC86
+ * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49, TC50, TC82, TC83, TC84, TC85, TC86, TC96, TC97, TC98
  */
 export const updateTimeEntries = async () => {
   const employeeTimesheetIDs = [
@@ -60,6 +61,9 @@ export const updateTimeEntries = async () => {
     "TC88",
     "TC89",
     "TC90",
+    "TC96",
+    "TC97",
+    "TC98",
   ];
   const managerTeamIDs = ["TC47", "TC49", "TC50"];
 
@@ -105,7 +109,7 @@ export const updateTimeEntries = async () => {
  * This function iterates over predefined time entry payloads and submits them
  * to create timesheet records.
  *
- * Test Cases: TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49, TC50, TC82, TC83, TC84, TC85, TC86
+ * Test Cases: TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49, TC50, TC82, TC83, TC84, TC85, TC86, TC96, TC97, TC98
  */
 export const createTimeEntries = async () => {
   sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
@@ -126,6 +130,9 @@ export const createTimeEntries = async () => {
     sharedEmployeeTimesheetData.TC88.payloadCreateTimesheet,
     sharedEmployeeTimesheetData.TC89.payloadCreateTimesheet,
     sharedEmployeeTimesheetData.TC90.payloadCreateTimesheet,
+    sharedEmployeeTimesheetData.TC96.payloadCreateTimesheet,
+    sharedEmployeeTimesheetData.TC97.payloadCreateTimesheet,
+    sharedEmployeeTimesheetData.TC98.payloadCreateTimesheet,
     sharedManagerTeamData.TC47.payloadCreateTimesheet,
     sharedManagerTeamData.TC49.payloadCreateTimesheet,
     sharedManagerTeamData.TC50.payloadCreateTimesheet,
@@ -144,7 +151,7 @@ export const createTimeEntries = async () => {
  * This function reads timesheet data from JSON files and iterates through predefined
  * time entry objects, filtering each entry and deleting the corresponding timesheet record.
  *
- * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49, TC50, TC82, TC83, TC84, TC85, TC86
+ * Test Cases: TC2, TC3, TC4, TC5, TC6, TC7, TC14, TC15, TC47, TC49, TC50, TC82, TC83, TC84, TC85, TC86, TC96, TC97, TC98
  */
 export const deleteTimeEntries = async () => {
   sharedEmployeeTimesheetData = await readJSONFile("../data/employee/shared-timesheet.json");
@@ -169,6 +176,9 @@ export const deleteTimeEntries = async () => {
     sharedEmployeeTimesheetData.TC88.payloadFilterTimeEntry,
     sharedEmployeeTimesheetData.TC89.payloadFilterTimeEntry,
     sharedEmployeeTimesheetData.TC90.payloadFilterTimeEntry,
+    sharedEmployeeTimesheetData.TC96.payloadFilterTimeEntry,
+    sharedEmployeeTimesheetData.TC97.payloadFilterTimeEntry,
+    sharedEmployeeTimesheetData.TC98.payloadFilterTimeEntry,
     sharedManagerTeamData.TC47.payloadFilterTimeEntry,
     sharedManagerTeamData.TC49.payloadFilterTimeEntry,
     sharedManagerTeamData.TC50.payloadFilterTimeEntry,
@@ -241,6 +251,9 @@ export const createProjectForTestCases = async () => {
     "TC88",
     "TC89",
     "TC90",
+    "TC96",
+    "TC97",
+    "TC98",
   ];
   const managerTaskIDs = ["TC22", "TC24", "TC25", "TC26", "TC17", "TC19"];
 
@@ -316,6 +329,9 @@ export const deleteProjects = async () => {
     sharedEmployeeTimesheetData.TC88.payloadDeleteProject.projectId,
     sharedEmployeeTimesheetData.TC89.payloadDeleteProject.projectId,
     sharedEmployeeTimesheetData.TC90.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC96.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC97.payloadDeleteProject.projectId,
+    sharedEmployeeTimesheetData.TC98.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC17.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC19.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC22.payloadDeleteProject.projectId,
@@ -357,6 +373,9 @@ export const createTaskForTestCases = async () => {
     "TC88",
     "TC89",
     "TC90",
+    "TC96",
+    "TC97",
+    "TC98",
   ];
 
   const managerTaskIDs = ["TC22", "TC25", "TC26", "TC17", "TC19"];
@@ -390,7 +409,7 @@ export const createTaskForTestCases = async () => {
         const response = await likeTask(taskID, data[testCaseID].payloadLikeTask.role);
 
         if (response && typeof response === "object") {
-          console.log(`Successfully liked task for ${testCaseID}:`, response);
+          console.log(`Successfully liked task for ${testCaseID}`);
         } else {
           console.error(`Failed to like task for ${testCaseID}: Unexpected response format`);
         }
@@ -416,6 +435,27 @@ export const createTaskForTestCases = async () => {
 
   await processTestCasesForTasks(managerTeamData, managerTeamIDs);
   writeDataToFile(managerTeamDataFilePath, managerTeamData);
+};
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Deletion of tasks by their name that were created though UI
+ */
+export const deleteByTaskName = async () => {
+  const tasksToBeDeleted = [managerTaskData.TC24.payloadDeleteTaskBySubject.task];
+
+  for (const taskName of tasksToBeDeleted) {
+    console.warn("Checking for task:", taskName);
+
+    const filterResponse = await filterApi("Task", [["Task", "subject", "=", taskName]]);
+    console.warn("Response for getting TASK BY NAME IN DELETION OF TASK IS:", filterResponse);
+
+    if (filterResponse.message?.values?.length) {
+      const taskID = filterResponse.message.values[0];
+      console.log("Task found and ID to delete:", taskID);
+      await deleteTask(taskID);
+    }
+  }
 };
 
 // ------------------------------------------------------------------------------------------
@@ -448,6 +488,9 @@ export const deleteTasks = async () => {
     sharedEmployeeTimesheetData.TC88.payloadDeleteTask.taskID,
     sharedEmployeeTimesheetData.TC89.payloadDeleteTask.taskID,
     sharedEmployeeTimesheetData.TC90.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC96.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC97.payloadDeleteTask.taskID,
+    sharedEmployeeTimesheetData.TC98.payloadDeleteTask.taskID,
     sharedManagerTaskData.TC22.payloadDeleteTask.taskID,
     sharedManagerTaskData.TC25.payloadDeleteTask.taskID,
     sharedManagerTaskData.TC26.payloadDeleteTask.taskID,
@@ -517,7 +560,11 @@ export const calculateHourlyBilling = async () => {
 
   await writeDataToFile(employeeTimesheetDataFilePath, employeeTimesheetData);
 };
+// ------------------------------------------------------------------------------------------
 
+/**
+ * Delete all the leaves,tasks and time entries associated with the project and delete the project itself
+ */
 export const cleanUpProjects = async (data) => {
   const deletedData = [];
 
@@ -530,39 +577,41 @@ export const cleanUpProjects = async (data) => {
     const projectName = tc.payloadCreateProject.project_name;
 
     // Get Project ID
-    const projectRes = await filterApi("Project", "Project", "project_name", projectName);
-    console.warn(`PROJECT RESPONSE for ${key} is ; `, projectRes);
+    const projectRes = await filterApi("Project", [["Project", "project_name", "=", projectName]]);
     const projectId = projectRes?.message?.values?.[0]?.[0];
-    console.warn(`Obtained ProjectId value for ${key} is       ; `, projectId);
 
-    if (!projectId) continue;
+    if (!projectId) {
+      continue;
+    } else if (projectId && projectId !== undefined) {
+      console.warn(`\n Obtained ProjectId value for ${key} is       ; `, projectId);
+    }
 
     // Get Task IDs
-    const taskRes = await filterApi("Task", "Task", "project", projectId);
-    console.warn(`TASK RESPONSE for ${key} is ; `, taskRes);
+    const taskRes = await filterApi("Task", [["Task", "project", "=", projectId]]);
 
     const taskRaw = taskRes?.message?.values;
     let taskIds = [];
 
     if (Array.isArray(taskRaw)) {
       taskIds = taskRaw.map((v) => v[0]);
+      console.warn(`OBTAINED TASK for ${key} is: `, taskIds);
     } else {
       console.warn(`No tasks found for project ${key}. Skipping task deletion.`);
     }
 
-    console.warn(`OBTAINED TASK for ${key} is: `, taskIds);
-
     // Get Timesheet IDs
-    const timesheetRes = await filterApi("Timesheet", "Timesheet", "parent_project", projectId);
-    console.warn(`TMESHEET RESPONSE for ${key} is ; `, timesheetRes);
+    const timesheetRes = await filterApi("Timesheet", [["Timesheet", "parent_project", "=", projectId]]);
+    //console.warn(`TMESHEET RESPONSE for ${key} is ; `, timesheetRes);
 
     const valuesRaw = timesheetRes?.message?.values;
-    console.warn(`Actual values for ${key}:`, valuesRaw);
-    console.warn(`Type of values:`, typeof valuesRaw);
-    console.warn(`Is Array:`, Array.isArray(valuesRaw));
+    //console.warn(`Actual values for ${key}:`, valuesRaw);
+    //console.warn(`Type of values:`, typeof valuesRaw);
+    //console.warn(`Is Array:`, Array.isArray(valuesRaw));
 
     const timesheetValues = timesheetRes?.message?.values || [];
-    console.warn(`OBTAINED TIMESHEET ID FOR ${key} is ; `, timesheetValues);
+    if (Array.isArray(timesheetValues) && timesheetValues.length > 0) {
+      console.warn(`OBTAINED TIMESHEET ID FOR ${key} is ; `, timesheetValues);
+    }
 
     let timesheetIds = [];
 
@@ -571,7 +620,7 @@ export const cleanUpProjects = async (data) => {
       timesheetIds = valuesRaw.flat().filter((v) => typeof v === "string");
     }
 
-    console.warn(`TIMESHEET IDs to delete:`, timesheetIds);
+    //console.warn(`TIMESHEET IDs to delete:`, timesheetIds);
 
     // Store collected info
     deletedData.push({
@@ -609,7 +658,30 @@ export const cleanUpProjects = async (data) => {
   console.log("Cleanup complete. Deleted data:", deletedData);
   return deletedData;
 };
+// ------------------------------------------------------------------------------------------
 
+/**
+ * Delete Leaves associated to an employee
+ */
+export const deleteLeaveOfEmployee = async () => {
+  //Fetch Leave ID for employee if any exists
+  const filterResponse = await filterApi("Leave Application", [
+    ["Leave Application", "employee", "=", `${empID}`],
+    ["Leave Application", "status", "=", "Open"],
+  ]);
+  //Delete leave if leave ID is found in the filter request
+  if (filterResponse?.message?.values[0]) {
+    const leaveID = filterResponse.message.values[0];
+    await deleteLeave(leaveID);
+    console.warn("A leave request for employee was found and deleted");
+  }
+};
+
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Combined json files to pass for deleting the orphan test data
+ */
 export const readAndCleanAllOrphanData = async () => {
   const employeeData = await readJSONFile("../data/employee/timesheet.json");
   const managerTask = await readJSONFile("../data/manager/task.json");
@@ -620,7 +692,7 @@ export const readAndCleanAllOrphanData = async () => {
     ...managerTask,
     ...managerTeam,
   };
-
+  await deleteLeaveOfEmployee();
   await cleanUpProjects(mergedData);
 };
 

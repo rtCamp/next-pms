@@ -25,6 +25,7 @@ import { Filter as Funnel } from "lucide-react";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import ComboBoxWrapper from "@/app/components/list-view/header/comboBoxWrapper";
 import type { FilterPops } from "@/app/components/list-view/types";
+import ProjectComboBox from "@/app/pages/project/project-detail/components/projectComboBox";
 import { mergeClassNames } from "@/lib/utils";
 
 /**
@@ -40,11 +41,11 @@ import { mergeClassNames } from "@/lib/utils";
  * @returns React.FC
  */
 export const Filter = ({ filter }: { filter: FilterPops }) => {
-  const [, setQueryParam] = useQueryParam(filter.queryParameterName ?? "", filter.queryParameterDefault);
+  const [, setQueryParam] = useQueryParam(filter.queryParameterName ?? "", filter.queryParameterDefault ?? "");
 
   const handleChangeWrapper = (value: string | CheckedState | string[]) => {
     /* Make sure to update query parameters based on changes. */
-    if (filter.type != "custom-filter") {
+    if (filter.type != "custom-filter" && !filter.hideQueryParam) {
       setQueryParam(value);
     }
     filter?.handleChange(value);
@@ -52,7 +53,7 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
 
   useEffect(() => {
     /** This will make sure to update the query parameter state if some filter is removed from the URL. */
-    if (filter.type != "custom-filter") {
+    if (filter.type != "custom-filter" && !filter.hideQueryParam) {
       setQueryParam(filter.value as string | CheckedState | string[]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -78,6 +79,17 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
         onSelect={handleChangeWrapper}
         employeeName={filter?.employeeName}
         className={mergeClassNames("border-dashed min-w-48 w-full max-w-48", filter.className)}
+      />
+    );
+  }
+  if (filter.type === "search-project") {
+    return (
+      <ProjectComboBox
+        pageLength={20}
+        value={filter.value as string}
+        onSelect={handleChangeWrapper}
+        className={mergeClassNames("w-full lg:w-fit", filter.className)}
+        projectName={filter?.projectName}
       />
     );
   }

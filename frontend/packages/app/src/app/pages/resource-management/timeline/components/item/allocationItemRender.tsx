@@ -96,11 +96,11 @@ const AllocationItemRender = ({
 
           {(!itemContext.selected || !resourceAllocation.canDelete) && (
             <Avatar className="w-5 h-5 mr-1">
-              {resourceAllocation.customerData.image && (
-                <AvatarImage src={decodeURIComponent(resourceAllocation.customerData.image)} />
+              {resourceAllocation?.customerData?.image && (
+                <AvatarImage src={decodeURIComponent(resourceAllocation?.customerData?.image)} />
               )}
               <AvatarFallback className="bg-gray-300 text-black">
-                {getInitials(resourceAllocation.customerData.name[0])}
+                {getInitials(resourceAllocation?.customerData?.name[0])}
               </AvatarFallback>
             </Avatar>
           )}

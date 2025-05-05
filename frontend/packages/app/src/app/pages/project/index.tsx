@@ -3,6 +3,7 @@
  */
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import {
   Spinner,
   Separator,
@@ -35,8 +36,9 @@ import { RootState } from "@/store";
 import { setProjectData, setStart, setFilters, setReFetchData, updateProjectData } from "@/store/project";
 import { ViewData } from "@/store/view";
 import type { sortOrder } from "@/types";
-import { getColumnInfo } from "./columns";
-import { Header as ProjectHeader } from "./header";
+import { AddProject } from "./components/addProject";
+import { getColumnInfo } from "./components/columns";
+import { Header as ProjectHeader } from "./components/header";
 import { ProjectProps } from "./types";
 import { getFilter, createFilter } from "./utils";
 
@@ -52,6 +54,7 @@ const Project = () => {
 const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   const [viewInfo, setViewInfo] = useState<ViewData>(viewData);
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [hasViewUpdated, setHasViewUpdated] = useState(false);
   const [colSizing, setColSizing] = useState<ColumnSizingState>(viewData.columns ?? {});
   const [columnOrder, setColumnOrder] = useState<string[]>(viewData.rows ?? []);
@@ -80,7 +83,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   const { data, isLoading, error, mutate } = useFrappeGetCall(
     "next_pms.timesheet.api.project.get_projects",
     {
-      fields: [...viewInfo.rows, "_user_tags"],
+      fields: [...viewInfo.rows, "_user_tags", "name"],
       filters: getFilter(projectState),
       start: projectState.start,
       page_length: projectState.pageLength,
@@ -162,7 +165,8 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     viewInfo.columns,
     meta.title_field,
     meta.doctype,
-    projectState.currency
+    projectState.currency,
+    navigate
   );
 
   const table = useReactTable({
@@ -303,6 +307,9 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
               )}
             </TableBody>
           </Table>
+          {projectState.isAddProjectDialogOpen && (
+            <AddProject meta={meta} project={projectState} dispatch={dispatch} mutate={mutate} />
+          )}
         </>
       )}
     </>

@@ -25,6 +25,9 @@ let TC87data = data.TC87;
 let TC88data = data.TC88;
 let TC89data = data.TC89;
 let TC90data = data.TC90;
+let TC96data = data.TC96;
+let TC97data = data.TC97;
+let TC98data = data.TC98;
 // ------------------------------------------------------------------------------------------
 
 test.beforeEach(async ({ page }) => {
@@ -174,6 +177,9 @@ test("TC13: Verify an employee can apply for leave via Timesheet tab.   ", async
   // Apply for leave
   await timesheetPage.applyForLeave(TC13data.leave.desc);
 
+  // Reload page to ensure changes are reflected
+  await timesheetPage.page.reload();
+
   // Assertions
   const cellText = await timesheetPage.getCellText(TC13data.cell);
   expect(cellText).toContain("8");
@@ -286,4 +292,32 @@ test("TC90: Billing rate to be three times costing rate", async ({}) => {
     3 * custom_default_hourly_billing_rate,
     1
   );
+});
+
+test("TC96: Verify Time entry for a Billable task under a Retainer project", async ({}) => {
+  // Import liked tasks
+  await timesheetPage.importLikedTasks();
+  await timesheetPage.page.pause();
+
+  // Assertions
+  const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC96data.cell);
+  expect(isTimeEntryBillable).toBeTruthy();
+});
+
+test("TC97: Verify Time entry for a Billable task under a Time and Material project", async ({}) => {
+  // Import liked tasks
+  await timesheetPage.importLikedTasks();
+
+  // Assertions
+  const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC97data.cell);
+  expect(isTimeEntryBillable).toBeTruthy();
+});
+
+test("TC98: Verify Time entry for a Billable task under a Non-Billable project", async ({}) => {
+  // Import liked tasks
+  await timesheetPage.importLikedTasks();
+
+  // Assertions
+  const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC98data.cell);
+  expect(isTimeEntryBillable).toBeTruthy();
 });

@@ -2,7 +2,7 @@ import json
 
 import frappe
 from frappe.core.doctype.recorder.recorder import redis_cache
-from frappe.utils import DATE_FORMAT
+from frappe.utils import DATE_FORMAT, get_gravatar
 
 from next_pms.resource_management.api.utils.helpers import (
     add_customer_data_if_not_exists,
@@ -110,6 +110,9 @@ def get_resource_management_team_view_data(
             "customer",
             "is_billable",
             "note",
+            "modified_by",
+            "modified",
+            "creation",
         ],
         "employee",
         [employee.name for employee in employees],
@@ -121,7 +124,17 @@ def get_resource_management_team_view_data(
 
     # Make the map of resource allocation data for given employee
     resource_allocation_map = {}
+    user_info_cache = {}
     for resource_allocation in resource_allocation_data:
+        modified_by = resource_allocation.get("modified_by") or resource_allocation.get("created_by")
+        if modified_by:
+            if modified_by not in user_info_cache:
+                user_info_cache[modified_by] = {
+                    "avatar": get_gravatar(modified_by),
+                    "full_name": frappe.db.get_value("User", modified_by, "full_name"),
+                }
+            resource_allocation["modified_by_avatar"] = user_info_cache[modified_by]["avatar"]
+            resource_allocation["modified_by"] = user_info_cache[modified_by]["full_name"]
         if resource_allocation.employee not in resource_allocation_map:
             resource_allocation_map[resource_allocation.employee] = []
         customer = add_customer_data_if_not_exists(customer, resource_allocation.customer)

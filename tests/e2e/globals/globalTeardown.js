@@ -1,4 +1,4 @@
-import { deleteTimeEntries, deleteProjects, deleteTasks } from "../helpers/timesheetHelper";
+import { deleteTimeEntries, deleteProjects, deleteTasks, deleteByTaskName } from "../helpers/timesheetHelper";
 import { rejectLeaveEntries } from "../helpers/leaveHelper";
 
 // ------------------------------------------------------------------------------------------
@@ -10,8 +10,11 @@ const globalTeardown = async () => {
   // Delete stale time entries
   await deleteTimeEntries();
 
-  // Delete Stale Projects
+  // Delete Stale Tasks
   await deleteTasks();
+
+  //Delete Stale Tasks created through UI
+  await deleteByTaskName();
 
   // Delete Stale Projects
   await deleteProjects();

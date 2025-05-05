@@ -39,6 +39,9 @@ export class TeamPage {
 
     // Parent Table
     this.parentTable = page.getByRole("table").first();
+
+    //Spinner
+    this.spinner = page.locator("svg.animate-spin");
   }
 
   // --------------------------------------
@@ -217,6 +220,10 @@ export class TeamPage {
    */
   async getEmployees() {
     const employees = [];
+    // Wait for spinner to disappear, only if it's visible
+    if (await this.spinner.isVisible().catch(() => false)) {
+      await this.spinner.waitFor({ state: "hidden" });
+    }
     const rows = await this.getEmployeeRows();
 
     for (const row of await rows.all()) {

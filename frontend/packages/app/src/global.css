@@ -85,3 +85,7 @@ html,
   -webkit-cursor: cell !important;
   -moz-cursor: cell !important;
 }
+
+.justify-normal-overide{
+  justify-content: normal !important
+}

@@ -105,6 +105,9 @@
       "custom_default_hourly_billing_rate": 300,
       "custom_project_budget_hours": []
     },
+    "payloadDeleteTaskBySubject": {
+      "task": "TC24 Billable Task"
+    },
     "payloadDeleteProject": {
       "projectId": "filled-automatically-from-createProjects"
     }
