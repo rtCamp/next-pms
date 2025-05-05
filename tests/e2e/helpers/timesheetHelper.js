@@ -512,7 +512,7 @@ export const deleteByTaskName = async () => {
       }
     }
 
-    // ✅ Optionally clear the file after deletion
+    //Optionally clear the file after deletion
     fs.writeFileSync(TASK_TRACKER_PATH, JSON.stringify([], null, 2), "utf-8");
     console.log("Deleted all listed tasks and cleared tracking file.");
   } catch (error) {
