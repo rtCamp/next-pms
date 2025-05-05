@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 import path from "path";
-import { readJSONFile , writeDataToFile} from "../utils/fileUtils";
+import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
 
 const TASK_TRACKER_PATH = path.resolve(__dirname, "../data/manager/tasks-to-delete.json");
 
@@ -256,13 +256,13 @@ export class TaskPage {
     await this.addTaskModal.getByRole("button", { name: "Add Task" }).click();
     await expect(this.successBanner).toBeVisible();
 
-     //  Write to task-tracking file
-     const existingTasks = await readJSONFile(TASK_TRACKER_PATH);
-     const taskList = Array.isArray(existingTasks) ? existingTasks : [];
-     if (!taskList.includes(task)) {
-       taskList.push(task);
-       await writeDataToFile(TASK_TRACKER_PATH, taskList);
-     }
+    //  Write to task-tracking file
+    const existingTasks = await readJSONFile(TASK_TRACKER_PATH);
+    const taskList = Array.isArray(existingTasks) ? existingTasks : [];
+    if (!taskList.includes(task)) {
+      taskList.push(task);
+      await writeDataToFile(TASK_TRACKER_PATH, taskList);
+    }
   }
 
   /**

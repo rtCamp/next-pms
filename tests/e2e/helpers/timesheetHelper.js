@@ -468,25 +468,7 @@ export const createTaskForTestCases = async () => {
 
 /**
  * Deletion of tasks by their name that were created though UI
- */
-/*
-export const deleteByTaskName = async () => {
-  const tasksToBeDeleted = [managerTaskData.TC24.payloadDeleteTaskBySubject.task];
-
-  for (const taskName of tasksToBeDeleted) {
-    console.warn("Checking for task:", taskName);
-
-    const filterResponse = await filterApi("Task", [["Task", "subject", "=", taskName]]);
-    console.warn("Response for getting TASK BY NAME IN DELETION OF TASK IS:", filterResponse);
-
-    if (filterResponse.message?.values?.length) {
-      const taskID = filterResponse.message.values[0];
-      console.log("Task found and ID to delete:", taskID);
-      await deleteTask(taskID);
-    }
-  }
-};
-*/
+ **/
 
 export const deleteByTaskName = async () => {
   try {
@@ -513,8 +495,8 @@ export const deleteByTaskName = async () => {
     }
 
     //Optionally clear the file after deletion
-    fs.writeFileSync(TASK_TRACKER_PATH, JSON.stringify([], null, 2), "utf-8");
-    console.log("Deleted all listed tasks and cleared tracking file.");
+    //fs.writeFileSync(TASK_TRACKER_PATH, JSON.stringify([], null, 2), "utf-8");
+    //console.log("Deleted all listed tasks and cleared tracking file.");
   } catch (error) {
     console.error("Error while deleting tasks by name:", error.message);
   }
