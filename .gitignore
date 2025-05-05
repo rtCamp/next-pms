@@ -20,6 +20,7 @@ tests/e2e/auth/**
 
 # Dynamically generated temp files
 tests/e2e/data/**/shared*
+tests/e2e/data/manager/tasks-to-delete.json
 
 # Env file
 .env
