@@ -437,7 +437,7 @@ export const createTaskForTestCases = async () => {
         const response = await likeTask(taskID, data[testCaseID].payloadLikeTask.role);
 
         if (response && typeof response === "object") {
-          console.log(`Successfully liked task for ${testCaseID}:`, response);
+          console.log(`Successfully liked task for ${testCaseID}`);
         } else {
           console.error(`Failed to like task for ${testCaseID}: Unexpected response format`);
         }
@@ -625,38 +625,40 @@ export const cleanUpProjects = async (data) => {
 
     // Get Project ID
     const projectRes = await filterApi("Project", [["Project", "project_name", "=", projectName]]);
-    console.warn(`PROJECT RESPONSE for ${key} is ; `, projectRes);
     const projectId = projectRes?.message?.values?.[0]?.[0];
-    console.warn(`Obtained ProjectId value for ${key} is       ; `, projectId);
 
-    if (!projectId) continue;
+    if (!projectId) {
+      continue;
+    } else if (projectId && projectId !== undefined) {
+      console.warn(`\n Obtained ProjectId value for ${key} is       ; `, projectId);
+    }
 
     // Get Task IDs
     const taskRes = await filterApi("Task", [["Task", "project", "=", projectId]]);
-    console.warn(`TASK RESPONSE for ${key} is ; `, taskRes);
 
     const taskRaw = taskRes?.message?.values;
     let taskIds = [];
 
     if (Array.isArray(taskRaw)) {
       taskIds = taskRaw.map((v) => v[0]);
+      console.warn(`OBTAINED TASK for ${key} is: `, taskIds);
     } else {
       console.warn(`No tasks found for project ${key}. Skipping task deletion.`);
     }
 
-    console.warn(`OBTAINED TASK for ${key} is: `, taskIds);
-
     // Get Timesheet IDs
     const timesheetRes = await filterApi("Timesheet", [["Timesheet", "parent_project", "=", projectId]]);
-    console.warn(`TMESHEET RESPONSE for ${key} is ; `, timesheetRes);
+    //console.warn(`TMESHEET RESPONSE for ${key} is ; `, timesheetRes);
 
     const valuesRaw = timesheetRes?.message?.values;
-    console.warn(`Actual values for ${key}:`, valuesRaw);
-    console.warn(`Type of values:`, typeof valuesRaw);
-    console.warn(`Is Array:`, Array.isArray(valuesRaw));
+    //console.warn(`Actual values for ${key}:`, valuesRaw);
+    //console.warn(`Type of values:`, typeof valuesRaw);
+    //console.warn(`Is Array:`, Array.isArray(valuesRaw));
 
     const timesheetValues = timesheetRes?.message?.values || [];
-    console.warn(`OBTAINED TIMESHEET ID FOR ${key} is ; `, timesheetValues);
+    if (Array.isArray(timesheetValues) && timesheetValues.length > 0) {
+      console.warn(`OBTAINED TIMESHEET ID FOR ${key} is ; `, timesheetValues);
+    }
 
     let timesheetIds = [];
 
@@ -665,7 +667,7 @@ export const cleanUpProjects = async (data) => {
       timesheetIds = valuesRaw.flat().filter((v) => typeof v === "string");
     }
 
-    console.warn(`TIMESHEET IDs to delete:`, timesheetIds);
+    //console.warn(`TIMESHEET IDs to delete:`, timesheetIds);
 
     // Store collected info
     deletedData.push({

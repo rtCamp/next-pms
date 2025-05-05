@@ -64,7 +64,7 @@ export const ResourceAllocationList = ({
       {resourceAllocationPermission.write && onButtonClick && (
         <Button
           title={"Add Resource Allocation"}
-          className={mergeClassNames("p-1 h-fit text-xs w-11/12")}
+          className={mergeClassNames("p-1 h-fit text-xs w-11/12 my-2")}
           variant={"default"}
           onClick={onButtonClick}
         >

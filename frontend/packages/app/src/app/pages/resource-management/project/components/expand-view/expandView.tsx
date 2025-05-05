@@ -61,12 +61,12 @@ export const ResourceExpandView = ({
                   CellComponet={() => {
                     return (
                       <Avatar className="w-6 h-6">
-                        <AvatarImage src={decodeURIComponent(employeeData.image)} />
-                        <AvatarFallback>{employeeData.employee_name}</AvatarFallback>
+                        <AvatarImage src={decodeURIComponent(employeeData?.image)} />
+                        <AvatarFallback>{employeeData?.employee_name}</AvatarFallback>
                       </Avatar>
                     );
                   }}
-                  value={employeeData.employee_name}
+                  value={employeeData?.employee_name}
                 />
 
                 {dates.map((item: DateProps, weekIndex: number) => {

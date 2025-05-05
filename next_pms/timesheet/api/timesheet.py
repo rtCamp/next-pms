@@ -356,8 +356,8 @@ def get_timesheet(dates: list, employee: str):
                 "status": task["status"],
                 "_liked_by": task["_liked_by"],
             }
-            log_data = {field: log.get(field) for field in ALLOWED_TIMESHET_DETAIL_FIELDS}
-        data[task_name]["data"].append(log_data)
+
+        data[task_name]["data"].append({field: log.get(field) for field in ALLOWED_TIMESHET_DETAIL_FIELDS})
 
     return [data, total_hours]
 
