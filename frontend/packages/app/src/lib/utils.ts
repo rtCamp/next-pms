@@ -230,10 +230,8 @@ export const getTimesheetHours = (
   let timeOffHours = 0;
 
   dates.map((date) => {
-    let isHoliday = false;
     const holiday = holidays.find((holiday) => holiday.holiday_date === date);
     if (holiday) {
-      isHoliday = true;
       if (!holiday.weekly_off) {
         totalHours += dailyWorkingHours;
       }
@@ -241,17 +239,19 @@ export const getTimesheetHours = (
     const leaveData = leaves.filter((data) => {
       return date >= data.from_date && date <= data.to_date;
     });
-    if (leaveData.length > 0 && !isHoliday) {
-      leaveData.forEach((data: LeaveProps) => {
+    if (leaveData.length > 0) {
+      for (const data of leaveData) {
         const isHalfDayLeave = data.half_day && data.half_day_date == date;
         if (isHalfDayLeave) {
           totalHours += dailyWorkingHours / 2;
           timeOffHours += dailyWorkingHours / 2;
+        } else if (holiday?.weekly_off && !data.is_lwp) {
+          continue;
         } else {
           totalHours += dailyWorkingHours;
           timeOffHours += dailyWorkingHours;
         }
-      });
+      }
     }
   });
   return { totalHours, timeOffHours };
