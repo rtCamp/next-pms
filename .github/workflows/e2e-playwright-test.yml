@@ -14,12 +14,6 @@ on:
 
 jobs:
   deploy:
-    name: Trigger Stage Deployment
-    runs-on: self-hosted
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
       uses: rtCamp/erp-rtcamp/.github/workflows/deploy-erp.stage.rt.gw.yml@main
       secrets: inherit
 
