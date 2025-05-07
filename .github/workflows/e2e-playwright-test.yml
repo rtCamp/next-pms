@@ -11,7 +11,7 @@ on:
 
 jobs:
   deploy:
-      uses: rtCamp/erp-rtcamp/.github/workflows/deploy-erp.stage.rt.gw.yml@main
+      uses: rtCamp/erp-rtcamp/.github/workflows/deploy-erp.stage.rt.gw.yml@iamimmanuelraj-patch-1
       secrets: inherit
 
   test:
