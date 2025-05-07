@@ -3,6 +3,7 @@ name: Playwright Tests
 # Controls when the workflow will run
 on:
   pull_request:
+  workflow_dispatch:
 
   #Triggers at 5 AM IST every day
   schedule:
