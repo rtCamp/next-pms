@@ -13,9 +13,8 @@ jobs:
   deploy:
     uses: rtCamp/erp-rtcamp/.github/workflows/deploy-erp.stage.rt.gw.yml@iamimmanuelraj-patch-1
     with:
-      environment: 'erp-stage.rt.gw'
-      use_maintenance_mode: ${{ inputs.use_maintenance_mode || true }}
-      use_bench_migrate: ${{ inputs.use_bench_migrate || true }}
+      use_maintenance_mode: true
+      use_bench_migrate: true
     secrets:
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       SSH_SERVER: erp-stage.rt.gw
