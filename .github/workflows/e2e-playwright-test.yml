@@ -16,7 +16,11 @@ jobs:
       environment: 'erp-stage.rt.gw'
       use_maintenance_mode: true
       use_bench_migrate: true
-    secrets: inherit
+    secrets:
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      SSH_SERVER: erp-stage.rt.gw
+      SSH_USER: frappe
+      RTBOT_TOKEN: ${{ secrets.RTBOT_TOKEN }}
 
   test:
     needs: deploy
