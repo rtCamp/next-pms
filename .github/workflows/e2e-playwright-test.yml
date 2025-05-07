@@ -16,7 +16,18 @@ on:
   workflow_dispatch:
 
 jobs:
+  deploy:
+    name: Trigger Stage Deployment
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      uses: rtCamp/erp-rtcamp/.github/workflows/deploy-erp.stage.rt.gw.yml@main
+      secrets: inherit
+
   test:
+    needs: deploy
     runs-on: self-hosted
     environment: Stage # Retrive secrets from 'Stage' environment
     env:
