@@ -22,6 +22,7 @@ let TC47data = data.TC47;
 let TC49data = data.TC49;
 let TC50data = data.TC50;
 let TC53data = data.TC53;
+let TC91data = data.TC91;
 
 // ------------------------------------------------------------------------------------------
 
@@ -185,8 +186,27 @@ test("TC53: Verify the manager view.   ", async ({}) => {
   expect(employees.sort()).toEqual(TC53data.employees.sort());
 });
 
-test("TC91: Verify Employee Status filter to show the results appropriately", async ({}) => {
-// Apply filter for all types of Employee Status
-const employeeStatus = ["Active", "Inactive", "Suspended", "Left"];
-await teamPage.getCell()
+test("TC91: Verify Employee Status filter to show the results appropriately", async () => {
+  const employeeStatuses = ["Active", "Inactive", "Suspended", "Left"];
+  for (const empStatus of employeeStatuses) {
+    console.log(`Verifying results for Employee Status: ${empStatus}`);
+
+    // Apply the filter
+    await teamPage.checkEmployeeStatus(empStatus);
+
+    // Filter employees based on the current status
+    const employeesWithStatus = TC91data.createdEmployees.filter((emp) => emp.status === empStatus);
+
+    if (employeesWithStatus.length > 0) {
+      for (const employee of employeesWithStatus) {
+        const employeeFullName = `${employee.first_name} ${employee.last_name}`;
+        console.log(`Verifying visibility of employee: ${employeeFullName}`);
+
+        // Assertion : Verify employee name is visible
+        await expect(teamPage.employeeNameInTable(employeeFullName)).toBeVisible();
+      }
+    } else {
+      console.warn(`No employees found with status: ${empStatus}`);
+    }
+  }
 });

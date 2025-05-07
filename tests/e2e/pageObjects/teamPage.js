@@ -1,3 +1,5 @@
+import { expect } from "@playwright/test";
+
 /**
  * TeamPage class handles interactions with the team page.
  */
@@ -15,11 +17,11 @@ export class TeamPage {
     // Header Filters
     this.searchInput = page.getByPlaceholder("Employee Name");
     this.reportsToDropdown = page.getByRole("button", { name: "Reports To" });
-    this.employeeStatus = page.getByRole('button', { name: 'Employee Status' });
+    this.employeeStatus = page.getByRole("button", { name: "Employee Status" });
 
-    //employeeStatus Filter Suggestions
-    this.employeeStatusSuggestions =page.getByLabel('Suggestions');
-    //.getByText(empStatus, { exact: true })
+    //employeeStatus Filter Dialog
+    this.selectEmpStatus = (empStatus) => page.locator(`//div[@data-value="${empStatus}"]`);
+    this.clearSelection = page.getByRole("button", { name: "Clear Selection" });
 
     // Prev & Next Buttons
     this.prevButton = page.getByRole("button", { name: "prev-week" });
@@ -42,6 +44,9 @@ export class TeamPage {
 
     //Spinner
     this.spinner = page.locator("svg.animate-spin");
+
+    // Employee Name in the table
+    this.employeeNameInTable = (employeeName) => page.locator(`//p[text()="${employeeName}"]`);
   }
 
   // --------------------------------------
@@ -370,11 +375,40 @@ export class TeamPage {
     return this.page.getByRole("dialog", { name: name }).isVisible();
   }
   /**
-   * Select suggestion for Employee Status
+   * Wait for Spinner to disappear
    */
-  async selectEmployeeStatus (empStatus){
-    await this.employeeStatus.click();
-    await this.employeeStatusSuggestions.selectOption(empStatus);
+  async waitForSpinnerTodisappear() {
+    // Wait for spinner to disappear
+    if (await this.spinner.isVisible().catch(() => false)) {
+      await this.spinner.waitFor({ state: "hidden" });
+    }
   }
 
+  /**
+   * Select suggestion for Employee Status
+   */
+  async selectEmployeeStatus(empStatus) {
+    await this.employeeStatus.click();
+    await this.selectEmpStatus(empStatus).click();
+    await this.waitForSpinnerTodisappear();
+  }
+
+  /**
+   * Check and apply Employee Status filter
+   */
+  async checkEmployeeStatus(empStatus) {
+    const numberLocator = this.employeeStatus.locator("div.w-5.h-5");
+    const numberText = await numberLocator.textContent();
+
+    // If any selection is made, clear it
+    if (/^\d+$/.test(numberText?.trim())) {
+      console.warn("Number is displayed for the employee status:", numberText.trim());
+      await this.employeeStatus.click();
+      await this.clearSelection.click();
+      await expect(numberLocator).toHaveCount(0);
+    }
+
+    // Apply the selected status
+    await this.selectEmployeeStatus(empStatus);
+  }
 }

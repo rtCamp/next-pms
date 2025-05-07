@@ -14,7 +14,7 @@ import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
 import { createProject, deleteProject, getProjectDetails } from "../utils/api/projectRequests";
 import { createTask, deleteTask, likeTask } from "../utils/api/taskRequests";
 import { getExchangeRate } from "../utils/api/erpNextRequests";
-import { getEmployeeDetails, addEmployee } from "../utils/api/employeeRequests";
+import { getEmployeeDetails } from "../utils/api/employeeRequests";
 import { filterApi } from "../utils/api/frappeRequests";
 import { deleteLeave } from "../utils/api/leaveRequests";
 
@@ -694,21 +694,4 @@ export const readAndCleanAllOrphanData = async () => {
   };
   await deleteLeaveOfEmployee();
   await cleanUpProjects(mergedData);
-};
-
-export const createEmployees = async () => {
-  const managerTeamIDs = ["TC91"];
-  const employeeStatus = ["Active", "Inactive", "Suspended", "Left"];
-  const processTestCasesForEmployee = async (data, empStatus, testCases) => {
-    for (const testCaseID of testCases) {
-      if (data[testCaseID].payloadCreateEmployee) {
-        const createEmployeePayload = data[testCaseID].payloadCreateEmployee;
-        const response = await addEmployee(createEmployeePayload, "admin");
-        console.log(`Employee ID for added employee of test case ${testCaseID} is : `, response.data.name);
-      }
-    }
-
-    await processTestCasesForEmployee(managerTeamData, employeeStatus, managerTeamIDs);
-    writeDataToFile(managerTeamDataFilePath, managerTeamData);
-  };
 };

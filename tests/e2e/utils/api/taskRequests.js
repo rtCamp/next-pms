@@ -33,7 +33,7 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   let responseData;
   if (response.ok()) {
     responseData = await response.json();
-    console.warn(`Endpoint type: ${options.data} successfully done for enpoint: ${endpoint}`)
+    //console.warn(`Endpoint type: ${options.data} successfully done for enpoint: ${endpoint}`)
   } else {
     await requestContext.dispose();
     throw new Error(
