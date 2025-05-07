@@ -41,6 +41,8 @@ export interface LeaveProps {
   status: string;
   half_day: boolean;
   half_day_date: string;
+  leave_type: string;
+  is_lwp: boolean;
 }
 
 export interface DynamicKey {

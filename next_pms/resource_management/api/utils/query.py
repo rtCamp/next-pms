@@ -110,17 +110,18 @@ def get_employee_leaves(employee: str, start_date: str, end_date: str):
     # nosemgrep
     return frappe.db.sql(
         """
-        SELECT from_date, to_date, half_day, half_day_date,total_leave_days,name,leave_type FROM `tabLeave Application`
+        SELECT la.from_date, la.to_date, la.half_day, la.half_day_date,la.total_leave_days,la.name,la.leave_type, lt.is_lwp FROM `tabLeave Application` la
+        JOIN `tabLeave Type` lt ON la.leave_type = lt.name
             WHERE employee = %(employee)s
             AND (
-                (from_date <= %(start_date)s AND to_date >= %(start_date)s)
-                OR (from_date >= %(start_date)s AND to_date <= %(end_date)s)
-                OR (from_date <= %(end_date)s AND to_date >= %(end_date)s)
-                OR (from_date <= %(start_date)s AND to_date >= %(end_date)s)
+                (la.from_date <= %(start_date)s AND la.to_date >= %(start_date)s)
+                OR (la.from_date >= %(start_date)s AND la.to_date <= %(end_date)s)
+                OR (la.from_date <= %(end_date)s AND la.to_date >= %(end_date)s)
+                OR (la.from_date <= %(start_date)s AND la.to_date >= %(end_date)s)
             )
-            AND (docstatus=1 OR docstatus=0)
-            AND (status = 'Approved' OR status = 'Open')
-            ORDER BY from_date, to_date;
+            AND (la.docstatus=1 OR la.docstatus=0)
+            AND (la.status = 'Approved' OR la.status = 'Open')
+            ORDER BY la.from_date, la.to_date;
         """,
         {"employee": employee, "start_date": start_date, "end_date": end_date},
         as_dict=True,
