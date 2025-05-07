@@ -5,8 +5,6 @@ on:
   pull_request:
     branches:
       - develop
-    types:
-      - closed
 
   #Triggers at 5 AM IST every day
   schedule:
