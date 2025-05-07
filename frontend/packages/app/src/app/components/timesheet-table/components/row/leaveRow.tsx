@@ -44,12 +44,19 @@ export const LeaveRow = ({
   // filter the leaves for that day and calculate the total hours
   const leaveData = dates.map((date: string) => {
     let hour = 0;
-    if (holidayList.includes(date)) {
-      return { date, isHoliday: true };
-    }
     const data = leaves.filter((data: LeaveProps) => {
       return date >= data.from_date && date <= data.to_date;
     });
+
+    if (holidayList.includes(date)) {
+      const is_lwp = data.some((item: LeaveProps) => item.is_lwp);
+      if (is_lwp) {
+        hour = expectedHours;
+        totalHours += hour;
+        return { date, data, hour, isHoliday: true };
+      }
+      return { date, isHoliday: true };
+    }
 
     data.map((item) => {
       if (item.half_day && item.half_day_date && item.half_day_date === date) {

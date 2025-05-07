@@ -25,6 +25,12 @@ let TC87data = data.TC87;
 let TC88data = data.TC88;
 let TC89data = data.TC89;
 let TC90data = data.TC90;
+let TC96data = data.TC96;
+let TC97data = data.TC97;
+let TC98data = data.TC98;
+let TC99data = data.TC99;
+let TC100data = data.TC100;
+let TC101data = data.TC101;
 // ------------------------------------------------------------------------------------------
 
 test.beforeEach(async ({ page }) => {
@@ -289,4 +295,60 @@ test("TC90: Billing rate to be three times costing rate", async ({}) => {
     3 * custom_default_hourly_billing_rate,
     1
   );
+});
+
+test("TC96: Verify Time entry for a Billable task under a Retainer project", async ({}) => {
+  // Import liked tasks
+  await timesheetPage.importLikedTasks();
+  await timesheetPage.page.pause();
+
+  // Assertions
+  const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC96data.cell);
+  expect(isTimeEntryBillable).toBeTruthy();
+});
+
+test("TC97: Verify Time entry for a Billable task under a Time and Material project", async ({}) => {
+  // Import liked tasks
+  await timesheetPage.importLikedTasks();
+
+  // Assertions
+  const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC97data.cell);
+  expect(isTimeEntryBillable).toBeTruthy();
+});
+
+test("TC98: Verify Time entry for a Billable task under a Non-Billable project", async ({}) => {
+  // Import liked tasks
+  await timesheetPage.importLikedTasks();
+
+  // Assertions
+  const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC98data.cell);
+  expect(isTimeEntryBillable).toBeTruthy();
+});
+
+test("TC99: Verify Time entry for a Non-Billable task under a Fixed Cost project", async ({}) => {
+  // Import liked tasks
+  await timesheetPage.importLikedTasks();
+  await timesheetPage.page.pause();
+
+  // Assertions
+  const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC99data.cell);
+  expect(isTimeEntryBillable).toBeFalsy();
+});
+
+test("TC100: Verify Time entry for a Non-Billable task under a Retainer project", async ({}) => {
+  // Import liked tasks
+  await timesheetPage.importLikedTasks();
+
+  // Assertions
+  const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC100data.cell);
+  expect(isTimeEntryBillable).toBeFalsy();
+});
+
+test("TC101: Verify Time entry for a Non-Billable task under a Time and Material project", async ({}) => {
+  // Import liked tasks
+  await timesheetPage.importLikedTasks();
+
+  // Assertions
+  const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC101data.cell);
+  expect(isTimeEntryBillable).toBeFalsy();
 });
