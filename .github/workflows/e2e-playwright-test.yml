@@ -8,7 +8,6 @@ on:
     types:
       - closed
 
-
   #Triggers at 5 AM IST every day
   schedule:
     - cron: "30 23 * * *"
@@ -17,7 +16,66 @@ on:
   workflow_dispatch:
 
 jobs:
+  update-config:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Update next-pms ref in deploy config
+        run: |
+          # Check if this is a PR event and if it's from a fork
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            CURRENT_REF="${{ github.event.pull_request.head.ref }}"
+            
+            # Check if this is a fork (repo full names will differ)
+            if [[ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]]; then
+              # It's a fork - update both repo and ref
+              FORK_REPO="${{ github.event.pull_request.head.repo.full_name }}"
+              echo "PR from fork detected. Updating repo to: $FORK_REPO and ref to: $CURRENT_REF"
+              
+              # Update both repo and ref in the TOML file
+              sed -i '/repo = "rtcamp\/next-pms"/ s/rtcamp\/next-pms/'$FORK_REPO'/' .github/deploy_configs/erp-stage.rt.gw.toml
+              sed -i '/repo = "'$FORK_REPO'"/,/ref = / s/ref = "develop"/ref = "'$CURRENT_REF'"/' .github/deploy_configs/erp-stage.rt.gw.toml
+            else
+              # Same repo, just update the ref
+              echo "Updating next-pms ref to: $CURRENT_REF"
+              sed -i '/repo = "rtcamp\/next-pms"/,/ref = / s/ref = "develop"/ref = "'$CURRENT_REF'"/' .github/deploy_configs/erp-stage.rt.gw.toml
+            fi
+          else
+            # For non-PR events (schedule, manual)
+            CURRENT_REF="${{ github.ref_name }}"
+            echo "Updating next-pms ref to: $CURRENT_REF"
+            sed -i '/repo = "rtcamp\/next-pms"/,/ref = / s/ref = "develop"/ref = "'$CURRENT_REF'"/' .github/deploy_configs/erp-stage.rt.gw.toml
+          fi
+          
+          # Show the changes for verification
+          echo "Updated config:"
+          cat .github/deploy_configs/erp-stage.rt.gw.toml | grep -A 3 "next-pms"
+          
+      - name: Upload modified config
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-configs
+          path: .github/deploy_configs/erp-stage.rt.gw.toml
+          retention-days: 1
+
+  pre-deploy:
+    needs: update-config
+    uses: rtCamp/erp-rtcamp/.github/workflows/deploy-erp.stage.rt.gw.yml@iamimmanuelraj-patch-1
+    with:
+      environment: 'erp-stage.rt.gw'
+      use_maintenance_mode: true
+      use_bench_migrate: true
+      additional_commands: ${{ format('-a rtCamp/easydash:{0}', github.ref_name)}}
+    secrets:
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      SSH_SERVER: erp-stage.rt.gw
+      SSH_USER: frappe
+      RTBOT_TOKEN: ${{ secrets.RTBOT_TOKEN }}
+
   deploy:
+    needs: pre-deploy
     uses: rtCamp/erp-rtcamp/.github/workflows/deploy-erp.stage.rt.gw.yml@iamimmanuelraj-patch-1
     with:
       environment: 'erp-stage.rt.gw'
