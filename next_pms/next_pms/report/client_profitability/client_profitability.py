@@ -82,8 +82,7 @@ def get_total_revenue(start_date: date | str, end_date: date | str, projects: li
             ),
             sales_invoices.currency,
         )
-        .where(sales_invoices.posting_date >= start_date)
-        .where(sales_invoices.posting_date <= end_date)
+        .where(sales_invoices.posting_date[start_date:end_date])
         .where(sales_invoices.customer == customer)
         .where(sales_invoices.project.isin(projects))
         .where(sales_invoices.docstatus == 1)
