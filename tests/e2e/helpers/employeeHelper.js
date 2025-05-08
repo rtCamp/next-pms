@@ -55,6 +55,20 @@ export const createEmployees = async () => {
           try {
             const response = await addEmployee(employeePayload, "admin");
 
+            /*
+            When an Active employee is created, the employee name is
+            stored into the TC39 and TC53 to handle test contamination
+            */
+            if (status === "Active") {
+              const fullName = employeePayload.first_name + " " + employeePayload.last_name;
+              if (!data["TC39"].employees.includes(fullName)) {
+                data["TC39"].employees.push(fullName);
+              }
+
+              if (!data["TC53"].employees.includes(fullName)) {
+                data["TC53"].employees.push(fullName);
+              }
+            }
             // Store the full created employee info along with response `name`
             testCase.createdEmployees.push({
               ...employeePayload,

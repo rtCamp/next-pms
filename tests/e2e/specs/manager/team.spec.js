@@ -187,6 +187,7 @@ test("TC53: Verify the manager view.   ", async ({}) => {
 });
 
 test("TC91: Verify Employee Status filter to show the results appropriately", async () => {
+  //Apply the filter based on Emp Status
   const employeeStatuses = ["Active", "Inactive", "Suspended", "Left"];
   for (const empStatus of employeeStatuses) {
     console.log(`Verifying results for Employee Status: ${empStatus}`);
