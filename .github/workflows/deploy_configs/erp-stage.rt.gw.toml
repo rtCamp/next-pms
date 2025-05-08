@@ -1,0 +1,91 @@
+mode = "fm"
+uv = true
+verbose = true
+releases_retain_limit = 1
+python_version = "3.11"
+backups = true
+
+[[apps]]
+repo = "frappe/frappe"
+ref = "v15.60.0"
+
+[[apps]]
+repo = "frappe/erpnext"
+ref = "v15.54.4"
+
+[[apps]]
+repo = "frappe/hrms"
+ref = "v15.41.0"
+
+[[apps]]
+repo = "frappe/helpdesk"
+ref = "v1.5.0"
+
+
+[[apps]]
+repo = "frappe/insights"
+ref = "v3.1.1"
+
+[[apps]]
+repo = "frappe/wiki"
+ref = "0fe81a1c12239c4cafd0fbe64201221300e3abd5"
+
+[[apps]]
+repo = "iptelephony/persona"
+ref = "main"
+
+[[apps]]
+repo = "rtcamp/resilient-edit-after-submit"
+ref = "main"
+
+[[apps]]
+repo = "resilient-tech/india-compliance"
+ref = "v15.16.5"
+
+[[apps]]
+repo = "rtcamp/frappe-careers"
+ref = "develop"
+
+[[apps]]
+repo = "rtcamp/frappe-appointment"
+ref = "develop"
+
+[[apps]]
+repo = "rtcamp/next-pms"
+ref = "develop"
+
+[[apps]]
+repo = "rtcamp/frappe-slack-connector"
+ref = "develop"
+
+[[apps]]
+repo = "rtcamp/frappe-github-connector"
+ref = "develop"
+
+[[apps]]
+repo = "rtcamp/frappe-email-send-override"
+ref = "develop"
+
+[[apps]]
+repo = "rtcamp/frappe-hrms-xt"
+ref = "develop"
+
+[[apps]]
+repo = "rtcamp/frappe-chitragupta"
+ref = "develop"
+
+[[apps]]
+repo = "rtcamp/frappe-comment-xt"
+ref = "develop"
+
+[[apps]]
+repo = "rtcamp/erp-rtcamp"
+ref = "develop"
+
+[[apps]]
+repo = "rtcamp/next-crm"
+ref = "develop"
+
+[[apps]]
+repo = "rtCamp/frappe-gmail-thread"
+ref = "develop"
