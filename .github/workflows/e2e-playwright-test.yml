@@ -67,7 +67,8 @@ jobs:
       environment: 'erp-stage.rt.gw'
       use_maintenance_mode: true
       use_bench_migrate: true
-      additional_commands: ${{ format('-a rtCamp/easydash:{0}', github.ref_name)}}
+      additional_commands: >-
+        ${{ format('-a rtCamp/easydash:{0}', github.ref_name) }}
     secrets:
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       SSH_SERVER: erp-stage.rt.gw
