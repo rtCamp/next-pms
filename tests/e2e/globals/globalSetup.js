@@ -22,6 +22,7 @@ const globalSetup = async () => {
   await createJSONFile("../data/employee/shared-timesheet.json");
   await createJSONFile("../data/manager/shared-team.json");
   await createJSONFile("../data/manager/shared-task.json");
+  await createJSONFile("../data/manager/tasks-to-delete.json");
 
   // 1. Create API auth states
   await Promise.all([
