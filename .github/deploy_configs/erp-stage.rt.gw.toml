@@ -23,8 +23,8 @@ ref = "v1.5.0"
 
 
 [[apps]]
-repo = "frappe/insights"
-ref = "develop"
+repo = "rtcamp/frappe-insights"
+ref = "main"
 
 [[apps]]
 repo = "frappe/wiki"
