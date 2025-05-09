@@ -1,3 +1,5 @@
+import { expect } from "@playwright/test";
+
 /**
  * TimesheetPage class handles interactions with the timesheet page.
  */
@@ -37,6 +39,9 @@ export class TimesheetPage {
     this.latestTimesheetDiv = page.locator("//div[@data-orientation='vertical']").first();
     this.latestTimesheetTitleDiv = this.latestTimesheetDiv.locator("//button[@data-orientation='vertical']");
     this.latestTimesheetTable = this.latestTimesheetDiv.getByRole("table");
+
+    //Success Banner : Deleted Time Entry
+    this.successBanner = page.locator(`//div[text()="Time entry deleted successfully."]`);
   }
 
   // --------------------------------------
@@ -397,6 +402,8 @@ export class TimesheetPage {
 
     await this.openCell(cell);
     await row.locator("//button[contains(@class,'bg-destructive')]").first().click();
+    //Assert : Banner to be displayed when a time entry is deleted
+    await expect(this.successBanner).toBeVisible();
     await this.editTimeModal.getByRole("button", { name: "Close" }).click();
   }
 
