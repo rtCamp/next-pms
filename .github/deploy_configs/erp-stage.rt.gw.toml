@@ -24,7 +24,7 @@ ref = "v1.5.0"
 
 [[apps]]
 repo = "frappe/insights"
-ref = "v3.1.1"
+ref = "develop"
 
 [[apps]]
 repo = "frappe/wiki"
