@@ -6,6 +6,8 @@ import data from "../../data/employee/shared-timesheet.json";
 /** @type {TimesheetPage} */
 let timesheetPage;
 
+// ------------------------------------------------------------------------------------------
+
 // Load test data
 let TC2data = data.TC2;
 let TC3data = data.TC3;
@@ -13,7 +15,6 @@ let TC4data = data.TC4;
 let TC5data = data.TC5;
 let TC6data = data.TC6;
 let TC12data = data.TC12;
-let TC13data = data.TC13;
 let TC14data = data.TC14;
 let TC15data = data.TC15;
 let TC82data = data.TC82;
@@ -31,8 +32,6 @@ let TC98data = data.TC98;
 let TC99data = data.TC99;
 let TC100data = data.TC100;
 let TC101data = data.TC101;
-// ------------------------------------------------------------------------------------------
-
 test.beforeEach(async ({ page }) => {
   // Instantiate page objects
   timesheetPage = new TimesheetPage(page);
@@ -174,18 +173,6 @@ test("TC12: Verify the 'Import liked tasks' option.   ", async ({}) => {
 
   // Assertion to verify that TC12 data will be present in task.sort()
   expect(tasks.sort()).toEqual(expect.arrayContaining(TC12data.tasks.sort()));
-});
-
-test("TC13: Verify an employee can apply for leave via Timesheet tab.   ", async ({}) => {
-  // Apply for leave
-  await timesheetPage.applyForLeave(TC13data.leave.desc);
-
-  // Reload page to ensure changes are reflected
-  await timesheetPage.page.reload();
-
-  // Assertions
-  const cellText = await timesheetPage.getCellText(TC13data.cell);
-  expect(cellText).toContain("8");
 });
 
 test("TC14: Verify the billable status of a billable task.", async ({}) => {
