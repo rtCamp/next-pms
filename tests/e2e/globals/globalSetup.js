@@ -9,6 +9,7 @@ import {
 import { storeStorageState } from "../helpers/storageStateHelper";
 import { updateLeaveEntries } from "../helpers/leaveHelper";
 import { createJSONFile } from "../utils/fileUtils";
+import { createEmployees } from "../helpers/employeeHelper";
 
 // ------------------------------------------------------------------------------------------
 
@@ -33,6 +34,7 @@ const globalSetup = async () => {
   await readAndCleanAllOrphanData();
 
   // 2. Use API roles to create data
+  await createEmployees();
   await updateTimeEntries();
   await createProjectForTestCases();
   await createTaskForTestCases();
@@ -41,7 +43,7 @@ const globalSetup = async () => {
   await updateLeaveEntries();
 
   // 3. Create frontend UI storage states ONLY after all above is done
-  await Promise.all([storeStorageState("employee", false), storeStorageState("manager", false)]);
+  await Promise.all([storeStorageState("employee2", false),storeStorageState("employee", false), storeStorageState("manager", false)]);
 };
 
 export default globalSetup;
