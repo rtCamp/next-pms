@@ -20,6 +20,7 @@ import { deleteLeave } from "../utils/api/leaveRequests";
 
 // Load env variables
 const empID = process.env.EMP_ID;
+const emp2ID = process.env.EMP2_ID;
 
 // Define file paths for shared JSON data files
 const employeeTimesheetDataFilePath = path.resolve(__dirname, "../data/employee/shared-timesheet.json"); // File path of the employee timesheet data JSON file
@@ -713,7 +714,7 @@ export const cleanUpProjects = async (data) => {
 export const deleteLeaveOfEmployee = async () => {
   //Fetch Leave ID for employee if any exists
   const filterResponse = await filterApi("Leave Application", [
-    ["Leave Application", "employee", "=", `${empID}`],
+    ["Leave Application", "employee", "=", `${emp2ID}`],
     ["Leave Application", "status", "=", "Open"],
   ]);
   //Delete leave if leave ID is found in the filter request

@@ -37,10 +37,10 @@ jobs:
       EMP_PASS: ${{ secrets.EMP_PASS }}
       EMP_NAME: ${{ secrets.EMP_NAME }}
 
-      EMP2_ID: ${{ secrets.EMP_ID }}
-      EMP2_EMAIL: ${{ secrets.EMP_EMAIL }}
-      EMP2_PASS: ${{ secrets.EMP_PASS }}
-      EMP2_NAME: ${{ secrets.EMP_NAME }}
+      EMP2_ID: ${{ secrets.EMP2_ID }}
+      EMP2_EMAIL: ${{ secrets.EMP2_EMAIL }}
+      EMP2_PASS: ${{ secrets.EMP2_PASS }}
+      EMP2_NAME: ${{ secrets.EMP2_NAME }}
 
 
 
@@ -96,7 +96,7 @@ jobs:
       if: ${{ success() || failure() }}
       run: |
         # Path to the Allure summary file
-        SUMMARY_FILE="tests/e2e/allure-report/widgets/summary.json"
+        SUMMARY_FILE="tests/e2e/allure-report-for-count-extraction/widgets/summary.json"
 
         # Check if the summary file exists
         if [[ ! -f "$SUMMARY_FILE" ]]; then
@@ -159,6 +159,7 @@ jobs:
     - name: Zip Allure Report
       if: ${{ success() || failure() }}
       run: |
+        sudo apt-get update && sudo apt-get install -y zip
         REPORT_DIR="${{ github.workspace }}/tests/e2e/allure-report"
         OUTPUT_ZIP="${{ github.workspace }}/report.zip"
 
