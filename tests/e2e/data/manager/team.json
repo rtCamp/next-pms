@@ -141,5 +141,18 @@
   },
   "TC53": {
     "employees": ["Abhishek Kumar", "Abhishek Sharma", "Shraddha Gore"]
+  },
+  "TC91": {
+    "payloadCreateEmployee": {
+      "first_name": "Employee-",
+      "last_name": "",
+      "status": "",
+      "gender": "Male",
+      "date_of_joining": "",
+      "date_of_birth": "2000-02-01",
+      "custom_reporting_manager": "",
+      "reports_to": "",
+      "leave_approver": ""
+    }
   }
 }
