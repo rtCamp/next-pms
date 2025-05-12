@@ -17,7 +17,7 @@ on:
 
 jobs:
   deploy:
-    uses: rtCamp/erp-rtcamp/.github/workflows/deploy-erp.qe.rt.gw.yml@nextpmsqe
+    uses: rtCamp/erp-rtcamp/.github/workflows/deploy-erp-qe.rt.gw.yml@nextpmsqe
     with:
       environment: 'erp-qe.rt.gw'
       use_maintenance_mode: true
