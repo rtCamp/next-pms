@@ -40,6 +40,13 @@ module.exports = defineConfig({
   reporter: [
     ["html", { open: "never", outputFolder: "playwright-report" }],
     ["json", { outputFile: "results.json" }],
+    ["list"],
+    [
+      "allure-playwright",
+      {
+        resultsDir: 'tests/e2e/allure-results', detail: true 
+      },
+    ],
   ],
 
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */

@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import { secondsToDuration, durationToSeconds } from "../../utils/dateUtils";
 import { TimesheetPage } from "../../pageObjects/timesheetPage";
 import data from "../../data/employee/shared-timesheet.json";
+import * as allure from "allure-js-commons";
 //Add type hints to help VS Code recognize TimesheetPage
 /** @type {TimesheetPage} */
 let timesheetPage;
@@ -32,6 +33,7 @@ let TC98data = data.TC98;
 let TC99data = data.TC99;
 let TC100data = data.TC100;
 let TC101data = data.TC101;
+
 test.beforeEach(async ({ page }) => {
   // Instantiate page objects
   timesheetPage = new TimesheetPage(page);
@@ -43,6 +45,7 @@ test.beforeEach(async ({ page }) => {
 // ------------------------------------------------------------------------------------------
 
 test("TC2: Time should be added using the ‘Add’ button at the top.", async ({ page }) => {
+  allure.story("Timesheet");
   // Add time entry using "Time" button
   await timesheetPage.addTimeViaTimeButton(TC2data.taskInfo);
 
@@ -55,6 +58,7 @@ test("TC2: Time should be added using the ‘Add’ button at the top.", async (
 });
 
 test("TC3: Time should be added using the direct timesheet add buttons.", async ({ page }) => {
+  allure.story("Timesheet");
   // Import liked tasks
   await timesheetPage.importLikedTasks();
   // Add time entry using "+" button in timesheet
@@ -72,6 +76,7 @@ test("TC3: Time should be added using the direct timesheet add buttons.", async 
 });
 
 test("TC4: Added time and description should be editable. ", async ({ page }) => {
+  allure.story("Timesheet");
   // Update time entry
 
   await timesheetPage.updateTimeRow(TC4data.cell, {
@@ -92,6 +97,7 @@ test("TC4: Added time and description should be editable. ", async ({ page }) =>
 });
 
 test("TC5: Add a new row in the already added time.  ", async ({ page }) => {
+  allure.story("Timesheet");
   // Store cell text before new row addition
   const beforeCellText = await timesheetPage.getCellText(TC5data.cell);
 
@@ -113,6 +119,7 @@ test("TC5: Add a new row in the already added time.  ", async ({ page }) => {
 });
 
 test("TC6: Delete the added time entry from the non-submitted timesheet.  ", async ({ page }) => {
+  allure.story("Timesheet");
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -128,6 +135,7 @@ test("TC6: Delete the added time entry from the non-submitted timesheet.  ", asy
 });
 
 test("TC7: Submit the weekly timesheet ", async ({ page }) => {
+  allure.story("Timesheet");
   // Submit timesheet
   await timesheetPage.submitTimesheet();
 
@@ -142,6 +150,7 @@ test("TC7: Submit the weekly timesheet ", async ({ page }) => {
 });
 
 test("TC9: Open task details popup   ", async ({}) => {
+  allure.story("Timesheet");
   // Import liked tasks
   await timesheetPage.importLikedTasks();
   // Open random task details
@@ -153,6 +162,7 @@ test("TC9: Open task details popup   ", async ({}) => {
 });
 
 test("TC11: Verify that the review timesheet pane is not available for an employee.   ", async ({}) => {
+  allure.story("Timesheet");
   // Click on timesheet status
   await timesheetPage.clickonTimesheetStatus();
 
@@ -165,6 +175,7 @@ test("TC11: Verify that the review timesheet pane is not available for an employ
 });
 
 test("TC12: Verify the 'Import liked tasks' option.   ", async ({}) => {
+  allure.story("Timesheet");
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -176,6 +187,7 @@ test("TC12: Verify the 'Import liked tasks' option.   ", async ({}) => {
 });
 
 test("TC14: Verify the billable status of a billable task.", async ({}) => {
+  allure.story("Timesheet");
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -185,6 +197,7 @@ test("TC14: Verify the billable status of a billable task.", async ({}) => {
 });
 
 test("TC15: Verify the billable status of a non-billable task.   ", async ({}) => {
+  allure.story("Timesheet");
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -194,6 +207,7 @@ test("TC15: Verify the billable status of a non-billable task.   ", async ({}) =
 });
 
 test("TC82: Verify hourly consulting rate when no default billing rate is used for Fixed cost project   ", async ({}) => {
+  allure.story("Timesheet");
   //Assertions
   const total_costing_amount = TC82data.payloadCalculateBillingRate.total_costing_amount;
   const employeeHourlyBillingRate = TC82data.payloadCalculateBillingRate.hourly_billing_rate;
@@ -204,6 +218,7 @@ test("TC82: Verify hourly consulting rate when no default billing rate is used f
 });
 
 test("TC83: Verify hourly consulting rate when no default billing rate is used for Retainer project   ", async ({}) => {
+  allure.story("Timesheet");
   //Assertions
   const total_costing_amount = TC83data.payloadCalculateBillingRate.total_costing_amount;
   const employeeHourlyBillingRate = TC83data.payloadCalculateBillingRate.hourly_billing_rate;
@@ -215,6 +230,7 @@ test("TC83: Verify hourly consulting rate when no default billing rate is used f
 });
 
 test("TC84: Verify hourly consulting rate when no default billing rate is used for Time and Material project   ", async ({}) => {
+  allure.story("Timesheet");
   //Assertions
   const total_costing_amount = TC84data.payloadCalculateBillingRate.total_costing_amount;
   const employeeHourlyBillingRate = TC84data.payloadCalculateBillingRate.hourly_billing_rate;
@@ -226,6 +242,7 @@ test("TC84: Verify hourly consulting rate when no default billing rate is used f
 });
 
 test("TC85: Verify hourly consulting rate when the currency for employee and project are different ", async ({}) => {
+  allure.story("Timesheet");
   //Assertions
   const total_costing_amount = TC85data.payloadCalculateBillingRate.total_costing_amount;
   const employeeHourlyBillingRate = TC85data.payloadCalculateBillingRate.hourly_billing_rate;
@@ -237,6 +254,7 @@ test("TC85: Verify hourly consulting rate when the currency for employee and pro
 });
 
 test("TC86: Billing rate in the timesheet should match the employee's rate from the project billing team child table for Time and Material Project", async ({}) => {
+  allure.story("Timesheet");
   //Assertions
   const total_billable_amount = TC86data.payloadCalculateBillingRate.total_billable_amount;
   const hourly_billing_rate = TC86data.payloadCreateProject.custom_project_billing_team[0].hourly_billing_rate;
@@ -247,6 +265,7 @@ test("TC86: Billing rate in the timesheet should match the employee's rate from 
 });
 
 test("TC87: Verify Default Hourly Billing Rate for Fixed Cost project", async ({}) => {
+  allure.story("Timesheet");
   //Assertions
   const total_billable_amount = TC87data.payloadCalculateBillingRate.total_billable_amount;
   const custom_default_hourly_billing_rate = TC87data.payloadCreateProject.custom_default_hourly_billing_rate;
@@ -256,6 +275,7 @@ test("TC87: Verify Default Hourly Billing Rate for Fixed Cost project", async ({
 });
 
 test("TC88: Verify Default Hourly Billing Rate for Retainer project", async ({}) => {
+  allure.story("Timesheet");
   //Assertions
   const total_billable_amount = TC88data.payloadCalculateBillingRate.total_billable_amount;
   const custom_default_hourly_billing_rate = TC88data.payloadCreateProject.custom_default_hourly_billing_rate;
@@ -265,6 +285,7 @@ test("TC88: Verify Default Hourly Billing Rate for Retainer project", async ({})
 });
 
 test("TC89: Verify Default Hourly Billing Rate for Time and Material project", async ({}) => {
+  allure.story("Timesheet");
   //Assertions
   const total_billable_amount = TC89data.payloadCalculateBillingRate.total_billable_amount;
   const custom_default_hourly_billing_rate = TC89data.payloadCreateProject.custom_default_hourly_billing_rate;
@@ -275,6 +296,7 @@ test("TC89: Verify Default Hourly Billing Rate for Time and Material project", a
 });
 
 test("TC90: Billing rate to be three times costing rate", async ({}) => {
+  allure.story("Timesheet");
   //Assertions
   const total_billable_amount = TC90data.payloadCalculateBillingRate.total_billable_amount;
   const custom_default_hourly_billing_rate = TC90data.payloadCalculateBillingRate.total_costing_amount;
@@ -285,6 +307,7 @@ test("TC90: Billing rate to be three times costing rate", async ({}) => {
 });
 
 test("TC96: Verify Time entry for a Billable task under a Retainer project", async ({}) => {
+  allure.story("Timesheet");
   // Import liked tasks
   await timesheetPage.importLikedTasks();
   await timesheetPage.page.pause();
@@ -295,6 +318,7 @@ test("TC96: Verify Time entry for a Billable task under a Retainer project", asy
 });
 
 test("TC97: Verify Time entry for a Billable task under a Time and Material project", async ({}) => {
+  allure.story("Timesheet");
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -304,6 +328,7 @@ test("TC97: Verify Time entry for a Billable task under a Time and Material proj
 });
 
 test("TC98: Verify Time entry for a Billable task under a Non-Billable project", async ({}) => {
+  allure.story("Timesheet");
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -313,6 +338,7 @@ test("TC98: Verify Time entry for a Billable task under a Non-Billable project",
 });
 
 test("TC99: Verify Time entry for a Non-Billable task under a Fixed Cost project", async ({}) => {
+  allure.story("Timesheet");
   // Import liked tasks
   await timesheetPage.importLikedTasks();
   await timesheetPage.page.pause();
@@ -323,6 +349,7 @@ test("TC99: Verify Time entry for a Non-Billable task under a Fixed Cost project
 });
 
 test("TC100: Verify Time entry for a Non-Billable task under a Retainer project", async ({}) => {
+  allure.story("Timesheet");
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -332,6 +359,7 @@ test("TC100: Verify Time entry for a Non-Billable task under a Retainer project"
 });
 
 test("TC101: Verify Time entry for a Non-Billable task under a Time and Material project", async ({}) => {
+  allure.story("Timesheet");
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 

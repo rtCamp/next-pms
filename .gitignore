@@ -15,6 +15,10 @@ tests/e2e/playwright-report/
 tests/e2e/test-results/
 tests/e2e/results.json
 
+#Allure reports
+tests/e2e/allure-report/
+tests/e2e/allure-results/
+
 # Authentication files
 tests/e2e/auth/**
 

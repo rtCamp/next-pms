@@ -4,16 +4,16 @@ name: Playwright Tests
 on:
   pull_request:
     branches:
-      - develop
+    - develop
     types:
-      - closed
+    - closed
 
   #Triggers at 5 AM IST every day
   schedule:
-    - cron: "30 23 * * *"
-
+  - cron: "30 23 * * *"
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+
 
 jobs:
   test:
@@ -36,254 +36,297 @@ jobs:
       EMP_EMAIL: ${{ secrets.EMP_EMAIL }}
       EMP_PASS: ${{ secrets.EMP_PASS }}
       EMP_NAME: ${{ secrets.EMP_NAME }}
+
     steps:
-      - name: Own the dir if not owned
-        shell: bash
-        run: |
-          echo "Current working dir: '$(pwd)'"
-          echo 'Going to own a dir above the working dir.'
-          bash -c "sudo chown -R $(whoami):$(whoami) \"$(dirname '${{ github.workspace }}')\""
-      - name: Checkout code
-        uses: actions/checkout@v4
 
-      # Setup Node.js
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version-file: "frontend/.nvmrc"
-          cache: "npm"
+    - name: Own the dir if not owned
+      shell: bash
+      run: |
+        echo "Current working dir: '$(pwd)'"
+        echo 'Going to own a dir above the working dir.'
+        bash -c "sudo chown -R $(whoami):$(whoami) \"$(dirname '${{ github.workspace }}')\""
 
-      # Install dependancies
-      - name: Install dependancies
-        run: |
-          npm ci
-          cd tests/e2e/
-          npx playwright install
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Run e2e Tests.
-        run: |
-          cd tests/e2e/
-          npm run e2e:tests --
+    # Setup Node.js
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version-file: "frontend/.nvmrc"
+        cache: "npm"
 
-      - name: Extract test results
-        if: ${{ success() || failure() }}
-        run: |
-          # Define the path to your report file
-          REPORT_FILE="tests/e2e/results.json"
+    # Install dependencies
+    - name: Install dependencies
+      run: |
+        npm ci
+        cd tests/e2e/
+        npx playwright install
 
-          # Check if the report file exists
-          if [[ ! -f "$REPORT_FILE" ]]; then
-            echo "Error: Report file not found at $REPORT_FILE"
-            exit 1
-          fi
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: "temurin"
+        java-version: "17"
 
-          # Get the counts of passed and failed tests
-          PASSED_COUNT=$(jq '[.. | select(.status? == "passed")] | length' "$REPORT_FILE" || echo 0)
-          FAILED_COUNT=$(jq '[.. | select(.status? == "failed")] | length' "$REPORT_FILE" || echo 0)
+    - name: Check Java
+      run: |
+        echo "JAVA_HOME: $JAVA_HOME"
+        java -version
 
-          # Output the results
-          echo "Passed Tests: $PASSED_COUNT"
-          echo "Failed Tests: $FAILED_COUNT"
+    - name: Run e2e Tests.
+      run: |
+        cd tests/e2e/
+        npm run e2e:tests --
 
-          # Optionally set them as output variables
-          echo "passed_count=$PASSED_COUNT" >> $GITHUB_ENV
-          echo "failed_count=$FAILED_COUNT" >> $GITHUB_ENV
+    - name: Generate Allure Report 
+      if: ${{ success() || failure() }}
+      run: |
+        cd tests/e2e/
+        npm run allure:report
 
-          PASSED=${{ env.PASSED }}
-          FAILED=${{ env.FAILED }}
-          TOTAL=$((PASSED + FAILED))
-          # Set environment variables
-          echo "TOTAL=$TOTAL" >> $GITHUB_ENV
+    - name: Extract test results
+      if: ${{ success() || failure() }}
+      run: |
+        # Path to the Allure summary file
+        SUMMARY_FILE="tests/e2e/allure-report/widgets/summary.json"
 
-      - name: Display counts
-        if: ${{ success() || failure() }}
-        run: |
-          echo "Passed Tests: ${{ env.passed_count }}"
-          echo "Failed Tests: ${{ env.failed_count }}"
+        # Check if the summary file exists
+        if [[ ! -f "$SUMMARY_FILE" ]]; then
+          echo "Error: Allure summary file not found at $SUMMARY_FILE"
+          exit 1
+        fi
 
-      - name: Upload Playwright reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: report
-          path: tests/e2e/playwright-report/
+        # Extract passed and failed test counts using jq
+        PASSED_COUNT=$(jq '.statistic.passed' "$SUMMARY_FILE" || echo 0)
+        FAILED_COUNT=$(jq '.statistic.failed' "$SUMMARY_FILE" || echo 0)
 
-      - name: Create ZIP file
-        if: ${{ success() || failure() }}
-        run: |
-          REPORT_DIR="${{ github.workspace }}/tests/e2e/playwright-report"
-          OUTPUT_ZIP="${{ github.workspace }}/report.zip"
+        # Output and export them as GitHub environment variables
+        echo "Passed Tests: $PASSED_COUNT"
+        echo "Failed Tests: $FAILED_COUNT"
 
-          if [ -f "$REPORT_DIR/index.html" ]; then
-            echo "Zipping only index.html from Playwright report folder..."
-            cd "$(dirname "$REPORT_DIR")"
-            zip -r "$OUTPUT_ZIP" "$(basename "$REPORT_DIR")" -i "playwright-report/index.html"
-          else
-            echo "Error - index.html not found in $REPORT_DIR"
-            exit 1
-          fi
+        echo "passed_count=$PASSED_COUNT" >> $GITHUB_ENV
+        echo "failed_count=$FAILED_COUNT" >> $GITHUB_ENV
 
-      - name: Set the email body message for pull request merge or schedule message
-        if: ${{ success() || failure() }}
-        run: |
-          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
-            echo "message=<p>For the latest pull request merge titled <b><a href='${{ github.event.pull_request.html_url }}'> ${{ github.event.pull_request.title }}</a></b>, the E2E automation tests have been executed on the staging environment. Below is the summary:</p>" >> $GITHUB_ENV
-          else
-            echo "message=<p>This is to inform you that the scheduled E2E automation tests have been executed on the staging environment. Below is the summary::</p>" >> $GITHUB_ENV
-          fi
+        TOTAL=$((PASSED_COUNT + FAILED_COUNT))
+        echo "TOTAL=$TOTAL" >> $GITHUB_ENV
 
-      - name: Send Report via Email
-        if: ${{ success() || failure() }}
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          username: ${{ secrets.QA_WORKFLOW_EMAIL }}
-          password: ${{ secrets.QA_WORKFLOW_EMAIL_PASSWORD }}
-          subject: Test Automation Report - Next PMS
-          html_body: |
-            <html>
-              <head>
-                <style>
-                  body {
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    color: #333;
-                    margin: 0;
-                    padding: 0;
-                    background-color: #f9f9f9;
-                  }
-                  .container {
-                    width: 80%;
-                    max-width: 600px;
-                    margin: 20px auto;
-                    background: #fff;
-                    border: 1px solid #ddd;
-                    border-radius: 8px;
-                    padding: 20px;
-                  }
-                  .header {
-                    text-align: center;
-                    padding-bottom: 20px;
-                    border-bottom: 1px solid #ddd;
-                  }
-                  .header h1 {
-                    margin: 0;
-                    color: #333;
-                  }
-                  .content {
-                    margin-top: 20px;
-                  }
-                  .content p {
-                    margin: 0 0 10px;
-                  }
-                  .content ul {
-                    list-style: none;
-                    padding: 0;
-                  }
-                  .content li {
-                    padding: 8px 0;
-                    border-bottom: 1px solid #eee;
-                  }
-                  .content li:last-child {
-                    border-bottom: none;
-                  }
-                  .chart-container {
-                    margin: 20px 0;
-                    text-align: center;
-                  }
-                  .chart-title {
-                    margin-bottom: 10px;
-                    font-weight: bold;
-                  }
-                  .chart-container img {
-                    max-width: 100%;
-                    height: 240px;
-                  }
-                  .footer {
-                    margin-top: 20px;
-                    text-align: left;
-                    font-size: 0.9em;
-                    color: #777;
-                  }
-                  .footer p {
-                    margin: 5px 0;
-                  }
-                  .footer a {
-                    color: #007bff;
-                    text-decoration: none;
-                  }
-                  .footer a:hover {
-                    text-decoration: underline;
-                  }
-                  .content a {
+        # Output the results
+        echo "Passed Tests: $PASSED_COUNT"
+        echo "Failed Tests: $FAILED_COUNT"
 
-                    text-decoration: none;
-                  }
-                  .content a:hover {
-                    text-decoration: underline; /* Underline on hover */
-                  }
-                   table {
-                  width: 100%;
-                  border-collapse: collapse;
+        # Optionally set them as output variables
+        echo "passed_count=$PASSED_COUNT" >> $GITHUB_ENV
+        echo "failed_count=$FAILED_COUNT" >> $GITHUB_ENV
+
+        TOTAL=$((PASSED_COUNT + FAILED_COUNT))
+        # Set environment variables
+        echo "TOTAL=$TOTAL" >> $GITHUB_ENV
+
+    - name: Display counts
+      if: ${{ success() || failure() }}
+      run: |
+        echo "Passed Tests: ${{ env.passed_count }}"
+        echo "Failed Tests: ${{ env.failed_count }}"
+
+    - name: Generate Allure Report with single HTML file
+      if: ${{ success() || failure() }}
+      run: |
+        cd tests/e2e/
+        npm run allure:htmlReport
+
+    - name: Upload Allure Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: allure-report
+        path: tests/e2e/allure-report
+
+    - name: Upload Playwright Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report
+        path: tests/e2e/playwright-report
+
+    - name: Zip Allure Report
+      if: ${{ success() || failure() }}
+      run: |
+        REPORT_DIR="${{ github.workspace }}/tests/e2e/allure-report"
+        OUTPUT_ZIP="${{ github.workspace }}/report.zip"
+
+        if [ -d "$REPORT_DIR" ]; then
+          echo "Zipping Allure report..."
+          cd "$(dirname "$REPORT_DIR")"
+          zip -r "$OUTPUT_ZIP" "$(basename "$REPORT_DIR")"
+        else
+          echo "Error - Allure Report not found in $REPORT_DIR"
+          exit 1
+        fi
+
+    - name: Set the email body message for pull request merge or schedule message
+      if: ${{ success() || failure() }}
+      run: |
+        if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
+          echo "message=<p>For the latest pull request merge titled <b><a href='${{ github.event.pull_request.html_url }}'> ${{ github.event.pull_request.title }}</a></b>, the E2E automation tests have been executed on the staging environment. Below is the summary:</p>" >> $GITHUB_ENV
+        else
+          echo "message=<p>This is to inform you that the scheduled E2E automation tests have been executed on the staging environment. Below is the summary::</p>" >> $GITHUB_ENV
+        fi
+
+    - name: Send Report via Email
+      if: ${{ success() || failure() }}
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 587
+        username: ${{ secrets.QA_WORKFLOW_EMAIL }}
+        password: ${{ secrets.QA_WORKFLOW_EMAIL_PASSWORD }}
+        subject: Test Automation Report - Next PMS
+        html_body: |
+          <html>
+            <head>
+              <style>
+                body {
+                  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                  color: #333;
+                  margin: 0;
+                  padding: 0;
+                  background-color: #f9f9f9;
+                }
+                .container {
+                  width: 80%;
+                  max-width: 600px;
+                  margin: 20px auto;
+                  background: #fff;
+                  border: 1px solid #ddd;
+                  border-radius: 8px;
+                  padding: 20px;
+                }
+                .header {
+                  text-align: center;
+                  padding-bottom: 20px;
+                  border-bottom: 1px solid #ddd;
+                }
+                .header h1 {
+                  margin: 0;
+                  color: #333;
+                }
+                .content {
+                  margin-top: 20px;
+                }
+                .content p {
+                  margin: 0 0 10px;
+                }
+                .content ul {
+                  list-style: none;
+                  padding: 0;
+                }
+                .content li {
+                  padding: 8px 0;
+                  border-bottom: 1px solid #eee;
+                }
+                .content li:last-child {
+                  border-bottom: none;
+                }
+                .chart-container {
                   margin: 20px 0;
-                  background-color: #ffffff;
-                  border-radius: 5px;
-                  overflow: hidden;
-                  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                  text-align: center;
                 }
-                th, td {
-                  border: 1px solid #dddddd;
-                  padding: 12px;
+                .chart-title {
+                  margin-bottom: 10px;
+                  font-weight: bold;
+                }
+                .chart-container img {
+                  max-width: 100%;
+                  height: 240px;
+                }
+                .footer {
+                  margin-top: 20px;
                   text-align: left;
+                  font-size: 0.9em;
+                  color: #777;
                 }
-                th {
-                  background-color: #4CAF50;
-                  color: white;
+                .footer p {
+                  margin: 5px 0;
                 }
-                tr:nth-child(even) {
-                  background-color: #f2f2f2;
+                .footer a {
+                  color: #007bff;
+                  text-decoration: none;
                 }
-                tr:hover {
-                  background-color: #ddd;
+                .footer a:hover {
+                  text-decoration: underline;
                 }
-                </style>
-              </head>
-              <body>
-                <div class="container">
-                  <div class="header">
-                    <h1>Test Automation Report</h1>
-                  </div>
-                  <div class="content">
-                    <p>Hi Team,</p>
-                    ${{ env.message }}
-                    <p><b>Automation Test Summary:</b></p>
-                    <ul>
-                      <li><b>Tests Passed:</b> ${{ env.passed_count }}</li>
-                      <li><b>Tests Failed:</b> ${{ env.failed_count }}</li>
-                    </ul>
-                  </div>
+                .content a {
 
-              <p>The HTML test report is attached below for your reference.</p>
-              <p>To view videos and other report assets to track failure, visit the <a href="https://github.com/rtcamp/next-pms/actions/runs/${{ github.run_id }}#artifacts">GitHub Actions Artifacts</a>.</p>
-              <p>To view the build details and see what changes have been merged, visit the build link:</p><a href="https://github.com/rtcamp/next-pms/actions/runs/${{ github.run_id }}">Build Details</a>
-              <p>If you have any questions, please feel free to revert back.</p>
-                  <div class="footer">
-                    <p>Best regards,</p>
-                    <p>QA Team</p>
-                  </div>
+                  text-decoration: none;
+                }
+                .content a:hover {
+                  text-decoration: underline; /* Underline on hover */
+                }
+                 table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+                background-color: #ffffff;
+                border-radius: 5px;
+                overflow: hidden;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+              }
+              th, td {
+                border: 1px solid #dddddd;
+                padding: 12px;
+                text-align: left;
+              }
+              th {
+                background-color: #4CAF50;
+                color: white;
+              }
+              tr:nth-child(even) {
+                background-color: #f2f2f2;
+              }
+              tr:hover {
+                background-color: #ddd;
+              }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>Test Automation Report</h1>
                 </div>
-              </body>
-            </html>
-          to: bots-erp-rtcamp-com-aaaajmbbbavnlkxccfuvoqjqsy@rtcamp.slack.com
-          from: no-reply@gmail.com
-          attachments: |
-            report.zip
+                <div class="content">
+                  <p>Hi Team,</p>
+                  ${{ env.message }}
+                  <p><b>Automation Test Summary:</b></p>
+                  <ul>
+                    <li><b>Total Tests:</b> ${{ env.TOTAL }}</li>
+                    <li><b>Tests Passed:</b> ${{ env.passed_count }}</li>
+                    <li><b>Tests Failed:</b> ${{ env.failed_count }}</li>
+                  </ul>
+                </div>
 
-      - name: Remove host entries
-        if: always()
-        run: |
-          sudo sed -i "/Added by GitHub Actions.*$/d" /etc/hosts
+            <p>The HTML test report is attached below for your reference.</p>
+            <p>To view videos and other report assets to track failure, visit the <a href="https://github.com/rtcamp/next-pms/actions/runs/${{ github.run_id }}#artifacts">GitHub Actions Artifacts</a>.</p>
+            <p>To view the build details and see what changes have been merged, visit the build link:</p><a href="https://github.com/rtcamp/next-pms/actions/runs/${{ github.run_id }}">Build Details</a>
+            <p>If you have any questions, please feel free to revert back.</p>
+                <div class="footer">
+                  <p>Best regards,</p>
+                  <p>QA Team</p>
+                </div>
+              </div>
+            </body>
+          </html>
+        to: bots-erp-rtcamp-com-aaaajmbbbavnlkxccfuvoqjqsy@rtcamp.slack.com
+        from: no-reply@gmail.com
+        attachments: |
+          #report.zip
+          tests/e2e/chart.png
 
-      - name: Cleanup
-        if: ${{ always() }}
-        uses: rtCamp/action-cleanup@master
+    - name: Remove host entries
+      if: always()
+      run: |
+        sudo sed -i "/Added by GitHub Actions.*$/d" /etc/hosts
+
+    - name: Cleanup
+      if: ${{ always() }}
+      uses: rtCamp/action-cleanup@master

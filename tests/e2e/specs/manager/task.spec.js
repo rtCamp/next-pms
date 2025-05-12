@@ -3,6 +3,7 @@ import { test, expect } from "@playwright/test";
 import { TaskPage } from "../../pageObjects/taskPage";
 import data from "../../data/manager/task.json";
 import sharedData from "../../data/manager/shared-task.json";
+import * as allure from "allure-js-commons";
 //Add type hints to help VS Code recognize TaskPage
 /** @type {TaskPage} */
 let taskPage;
@@ -32,6 +33,7 @@ test.beforeEach(async ({ page }) => {
 // ------------------------------------------------------------------------------------------
 
 test("TC17: Validate the search functionality   ", async ({}) => {
+  allure.story("Task");
   const taskName = TC17data.payloadCreateTask.subject;
   // Search task
   await taskPage.searchTask(taskName);
@@ -44,6 +46,8 @@ test("TC17: Validate the search functionality   ", async ({}) => {
 });
 
 test("TC19: Open task details popup   ", async ({}) => {
+  allure.story("Task");
+
   const taskName = TC19data.payloadCreateTask.subject;
   // Search task
   await taskPage.searchTask(taskName);
@@ -57,6 +61,8 @@ test("TC19: Open task details popup   ", async ({}) => {
 });
 
 test("TC20: The information table columns should be customizable using the ‘Columns’ button at the top.   ", async ({}) => {
+  allure.story("Task");
+
   //Verify if the column if already present:
   if (await taskPage.isColumnPresent(TC20data.col)) {
     // Remove column and save
@@ -86,6 +92,8 @@ test("TC20: The information table columns should be customizable using the ‘Co
 });
 
 test("TC22: A task like/favourite functionality.", async ({}) => {
+  allure.story("Task");
+
   const taskName = TC22data.payloadCreateTask.subject;
   const taskID = TC22data.payloadLikeTask.name;
   await taskPage.page.pause();
@@ -98,6 +106,8 @@ test("TC22: A task like/favourite functionality.", async ({}) => {
 });
 
 test("TC24: Verify task addition", async ({}) => {
+  allure.story("Task");
+
   // Add a task
   await taskPage.AddTask(TC24data.taskInfo);
 
@@ -113,6 +123,8 @@ test("TC24: Verify task addition", async ({}) => {
 });
 
 test("TC25: Verify the billable status of a billable task.    ", async ({}) => {
+  allure.story("Task");
+
   // Add column to view
   await taskPage.addColumn("Is Billable");
 
@@ -125,6 +137,8 @@ test("TC25: Verify the billable status of a billable task.    ", async ({}) => {
 });
 
 test("TC26: Verify the billable status of a non-billable task.    ", async ({}) => {
+  allure.story("Task");
+
   // Add column to view
   await taskPage.addColumn("Is Billable");
 

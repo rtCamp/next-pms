@@ -2,6 +2,8 @@ import path from "path";
 import { test, expect } from "@playwright/test";
 import { TimesheetPage } from "../../pageObjects/timesheetPage";
 import data from "../../data/employee/shared-timesheet.json";
+import * as allure from "allure-js-commons";
+
 //Add type hints to help VS Code recognize TimesheetPage
 /** @type {TimesheetPage} */
 let timesheetPage;
@@ -19,6 +21,7 @@ test.describe("Employee 2 : Timesheet", () => {
     await timesheetPage.goto();
   });
   test("TC13: Verify an employee can apply for leave via Timesheet tab.   ", async ({}) => {
+    allure.story("Timesheet");
     // Apply for leave
     await timesheetPage.applyForLeave(TC13data.leave.desc);
 
