@@ -26,6 +26,10 @@ repo = "frappe/wiki"
 ref = "0fe81a1c12239c4cafd0fbe64201221300e3abd5"
 
 [[apps]]
+repo = "frappe/lending"
+ref = "2eae82c3febdfeb4e0293ee0bc74a5b72eb10efc"
+
+[[apps]]
 repo = "rtcamp/frappe-insights"
 ref = "main"
 
