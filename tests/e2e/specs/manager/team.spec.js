@@ -42,7 +42,8 @@ test.beforeEach(async ({ page }) => {
 
 test("TC38: Validate the search functionality   ", async ({}) => {
   // Search employee
-  await teamPage.searchEmployee(empName);
+  //Verify test failure
+  await teamPage.searchEmployee();
 
   // Assertions
   const filteredEmployees = await teamPage.getEmployees();

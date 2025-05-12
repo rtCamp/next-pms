@@ -11,7 +11,6 @@ on:
   #Triggers at 5 AM IST every day
   schedule:
   - cron: "30 23 * * *"
-
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -19,6 +18,8 @@ on:
 jobs:
   test:
     runs-on: self-hosted
+    container:
+      image: ubuntu
     environment: Stage # Retrive secrets from 'Stage' environment
     env:
       BASE_URL: ${{ secrets.BASE_URL }}
