@@ -37,6 +37,13 @@ jobs:
       EMP_PASS: ${{ secrets.EMP_PASS }}
       EMP_NAME: ${{ secrets.EMP_NAME }}
 
+      EMP2_ID: ${{ secrets.EMP_ID }}
+      EMP2_EMAIL: ${{ secrets.EMP_EMAIL }}
+      EMP2_PASS: ${{ secrets.EMP_PASS }}
+      EMP2_NAME: ${{ secrets.EMP_NAME }}
+
+
+
     steps:
 
     - name: Own the dir if not owned
