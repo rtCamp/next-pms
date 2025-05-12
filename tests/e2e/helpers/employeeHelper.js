@@ -88,7 +88,7 @@ export const createEmployees = async () => {
   };
 
   await processTestCasesForEmployee(managerTeamData, employeeStatuses, managerTeamIDs);
-  writeDataToFile(managerTeamDataFilePath, managerTeamData);
+  await writeDataToFile(managerTeamDataFilePath, managerTeamData);
 };
 // ------------------------------------------------------------------------------------------
 
