@@ -47,14 +47,6 @@ jobs:
 
 
     steps:
-
-    - name: Own the dir if not owned
-      shell: bash
-      run: |
-        echo "Current working dir: '$(pwd)'"
-        echo 'Going to own a dir above the working dir.'
-        bash -c "sudo chown -R $(whoami):$(whoami) \"$(dirname '${{ github.workspace }}')\""
-
     - name: Checkout code
       uses: actions/checkout@v4
 
@@ -161,7 +153,7 @@ jobs:
     - name: Zip Allure Report
       if: ${{ success() || failure() }}
       run: |
-        sudo apt-get update && sudo apt-get install -y zip
+        apt-get update && apt-get install -y zip
         REPORT_DIR="${{ github.workspace }}/tests/e2e/allure-report"
         OUTPUT_ZIP="${{ github.workspace }}/report.zip"
 
@@ -331,11 +323,6 @@ jobs:
         attachments: |
           #report.zip
           tests/e2e/chart.png
-
-    - name: Remove host entries
-      if: always()
-      run: |
-        sudo sed -i "/Added by GitHub Actions.*$/d" /etc/hosts
 
     - name: Cleanup
       if: ${{ always() }}
