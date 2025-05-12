@@ -18,6 +18,8 @@ on:
 jobs:
   test:
     runs-on: self-hosted
+    container:
+      image: ubuntu
     environment: Stage # Retrive secrets from 'Stage' environment
     env:
       BASE_URL: ${{ secrets.BASE_URL }}
