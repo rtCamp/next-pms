@@ -60,7 +60,7 @@ jobs:
       run: |
         npm ci
         cd tests/e2e/
-        npx playwright install
+        npx playwright install-deps
         npm install --save-dev @playwright/test allure-playwright
 
     - name: Setup Java
