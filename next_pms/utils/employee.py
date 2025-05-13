@@ -1,4 +1,4 @@
-from frappe import get_cached_doc, get_cached_value
+from frappe import get_cached_doc, get_cached_value, get_value
 from frappe.utils import get_date_str
 from hrms.hr.utils import get_holidays_for_employee
 
@@ -11,7 +11,9 @@ def get_employee_leaves_and_holidays(employee, start_date, end_date):
     return {"holidays": holidays, "leaves": leaves}
 
 
-def get_employee_joining_date_based_on_work_history(employee: dict):
+def get_employee_joining_date_based_on_work_history(employee: dict | str):
+    if isinstance(employee, str):
+        employee = get_value("Employee", employee, ["name as employee", "date_of_joining"], as_dict=True)
     joining_date = employee.get("date_of_joining")
     name = employee.get("employee")
     if not joining_date:
@@ -22,7 +24,10 @@ def get_employee_joining_date_based_on_work_history(employee: dict):
         return joining_date
 
     work_history.sort(key=lambda x: x.get("from_date"))
-    return work_history[0].get("from_date")
+    date = work_history[0].get("from_date")
+    if not date:
+        return joining_date
+    return date
 
 
 def get_employee_hourly_salary(employee: str, to_currency: str):

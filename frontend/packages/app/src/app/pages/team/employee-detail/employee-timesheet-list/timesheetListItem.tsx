@@ -8,7 +8,7 @@ import { CircleDollarSign } from "lucide-react";
 /**
  * Internal dependencies
  */
-import { mergeClassNames } from "@/lib/utils";
+import { extractTextFromHTML, mergeClassNames } from "@/lib/utils";
 import type { TaskDataItemProps } from "@/types/timesheet";
 import { HourInput } from "../hourInput";
 import type { EmployeeTimesheetListItemProps } from "./types";
@@ -63,7 +63,7 @@ export const EmployeeTimesheetListItem = ({
         </Typography>
         {isHoliday && (
           <Typography variant="p" className="max-md:text-wrap text-primary/60">
-            {holidayDescription}
+            {extractTextFromHTML(holidayDescription ?? "")}
           </Typography>
         )}
         {hasLeave && !isHoliday && (

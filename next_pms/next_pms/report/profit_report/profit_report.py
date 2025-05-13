@@ -213,6 +213,7 @@ def get_employees_timesheet_hours(employees, start_date, end_date):
         .where(Timesheet.start_date[start_date:end_date])
         .where(Timesheet.employee.isin(employees))
         .where(Timesheet.docstatus.isin([0, 1]))
+        .groupby(Timesheet.employee)
     )
     return query.run(as_dict=True)
 

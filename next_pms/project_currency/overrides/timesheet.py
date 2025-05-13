@@ -94,10 +94,10 @@ class TimesheetOverwrite(Timesheet):
                     billing_rate = 3 * costing_rate
                     base_billing_rate = 3 * base_costing_rate
 
-                if billing_rate:
+                if billing_rate or custom_billing_type == "Time and Material":
                     data.billing_rate = billing_rate
                     data.billing_amount = data.billing_rate * hours
-                if base_billing_rate:
+                if base_billing_rate or custom_billing_type == "Time and Material":
                     data.base_billing_rate = base_billing_rate
                     data.base_billing_amount = data.base_billing_rate * hours
 
@@ -189,6 +189,7 @@ class TimesheetOverwrite(Timesheet):
             frappe.db.get_value("Project", self.parent_project, "custom_currency"),
             currency,
             self.start_date,
+            check_validation=len(employee_project_billing) == 0,
         )
 
 
@@ -197,11 +198,12 @@ def get_employee_billing_rate(
     project_currency: str,
     timesheet_currency: str,
     start_date: str = None,
+    check_validation: bool = True,
 ):
     billing_rate = project_hourly_billing_rate
     currency = project_currency
 
-    if not billing_rate:
+    if not billing_rate and check_validation:
         return frappe.throw(
             frappe._("Project billing rates are not set. Please contact the Project Manager for assistance.")
         )

@@ -36,7 +36,9 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   } else {
     await requestContext.dispose();
     throw new Error(
-      `API request failed for ${role} and endpoint ${endpoint}: ${response.status()} ${response.statusText()}`
+      `API request failed for ${role} with endpoint type ${
+        options.method
+      } and endpoint ${endpoint}: ${response.status()} ${response.statusText()}`
     );
   }
 
@@ -49,4 +51,31 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
 export const getEmployeeDetails = async (empId, role) => {
   const endpoint = `/api/resource/Employee/${empId}`;
   return await apiRequest(endpoint, { method: "GET" }, role);
+};
+/**
+ * Create an Employee
+ */
+export const addEmployee = async (employeePayload, role) => {
+  const endpoint = `/api/resource/Employee`;
+  const { first_name, last_name, status, gender, date_of_joining, date_of_birth } = employeePayload;
+
+  console.warn(`\n Data present in the ADD EMPLOYEE IS : \n
+    FIRST NAME : ${first_name} LAST NAME : ${last_name} \n STATUS : ${status} \n GENDER : ${gender} \n DATE OF JOINING : ${date_of_joining} \n DATE OF BIRTH : ${date_of_birth} \n ROLE : ${role} \n`);
+
+  return await apiRequest(
+    endpoint,
+    {
+      method: "POST",
+      data: employeePayload,
+    },
+    role
+  );
+};
+
+/**
+ * Delete an Employee
+ */
+export const deleteEmployee = async (empId, role) => {
+  const endpoint = `/api/resource/Employee/${empId}`;
+  return await apiRequest(endpoint, { method: "DELETE" }, role);
 };
