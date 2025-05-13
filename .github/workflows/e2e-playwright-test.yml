@@ -44,8 +44,6 @@ jobs:
       EMP2_PASS: ${{ secrets.EMP2_PASS }}
       EMP2_NAME: ${{ secrets.EMP2_NAME }}
 
-
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -63,6 +61,7 @@ jobs:
         npm ci
         cd tests/e2e/
         npx playwright install
+        npm install --save-dev @playwright/test allure-playwright
 
     - name: Setup Java
       uses: actions/setup-java@v3
@@ -80,7 +79,7 @@ jobs:
         cd tests/e2e/
         npm run e2e:tests --
 
-    - name: Generate Allure Report 
+    - name: Generate Allure Report
       if: ${{ success() || failure() }}
       run: |
         cd tests/e2e/
