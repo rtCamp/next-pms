@@ -58,9 +58,9 @@ jobs:
     # Install dependencies
     - name: Install dependencies
       run: |
-        npm ci
-        npx playwright install-deps
-        npm install --save-dev @playwright/test allure-playwright
+          npm ci
+          cd tests/e2e/
+          npx playwright install-deps
 
     - name: Setup Java
       uses: actions/setup-java@v3
