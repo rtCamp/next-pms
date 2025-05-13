@@ -95,7 +95,7 @@ jobs:
         SUMMARY_FILE="tests/e2e/allure-report-for-count-extraction/widgets/summary.json"
 
         # Check if the summary file exists
-        if [[ ! -f "$SUMMARY_FILE" ]]; then
+        if [ ! -f "$SUMMARY_FILE" ]; then
           echo "Error: Allure summary file not found at $SUMMARY_FILE"
           exit 1
         fi
@@ -171,7 +171,7 @@ jobs:
     - name: Set the email body message for pull request merge or schedule message
       if: ${{ success() || failure() }}
       run: |
-        if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
+        if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
           echo "message=<p>For the latest pull request merge titled <b><a href='${{ github.event.pull_request.html_url }}'> ${{ github.event.pull_request.title }}</a></b>, the E2E automation tests have been executed on the staging environment. Below is the summary:</p>" >> $GITHUB_ENV
         else
           echo "message=<p>This is to inform you that the scheduled E2E automation tests have been executed on the staging environment. Below is the summary::</p>" >> $GITHUB_ENV
