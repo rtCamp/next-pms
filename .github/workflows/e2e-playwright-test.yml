@@ -60,6 +60,7 @@ jobs:
       run: |
           npm ci
           cd tests/e2e/
+          npx playwright install
           npx playwright install-deps
 
     - name: Setup Java
