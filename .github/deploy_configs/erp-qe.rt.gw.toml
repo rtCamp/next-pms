@@ -21,17 +21,14 @@ ref = "v15.41.0"
 repo = "frappe/helpdesk"
 ref = "v1.5.0"
 
-[[apps]]
-repo = "frappe/wiki"
-ref = "0fe81a1c12239c4cafd0fbe64201221300e3abd5"
-
-[[apps]]
-repo = "frappe/lending"
-ref = "2eae82c3febdfeb4e0293ee0bc74a5b72eb10efc"
 
 [[apps]]
 repo = "rtcamp/frappe-insights"
 ref = "main"
+
+[[apps]]
+repo = "frappe/wiki"
+ref = "0fe81a1c12239c4cafd0fbe64201221300e3abd5"
 
 [[apps]]
 repo = "iptelephony/persona"
@@ -47,48 +44,48 @@ ref = "v15.16.5"
 
 [[apps]]
 repo = "rtcamp/frappe-careers"
-ref = "main"
+ref = "develop"
 
 [[apps]]
 repo = "rtcamp/frappe-appointment"
-ref = "main"
+ref = "develop"
 
 [[apps]]
 repo = "rtcamp/next-pms"
-ref = "main"
+ref = "develop"
 
 [[apps]]
 repo = "rtcamp/frappe-slack-connector"
-ref = "rt-main"
+ref = "develop"
 
 [[apps]]
 repo = "rtcamp/frappe-github-connector"
-ref = "main"
+ref = "develop"
 
 [[apps]]
 repo = "rtcamp/frappe-email-send-override"
-ref = "main"
+ref = "develop"
 
 [[apps]]
 repo = "rtcamp/frappe-hrms-xt"
-ref = "main"
+ref = "develop"
 
 [[apps]]
 repo = "rtcamp/frappe-chitragupta"
-ref = "main"
+ref = "develop"
 
 [[apps]]
 repo = "rtcamp/frappe-comment-xt"
-ref = "rt-main"
+ref = "develop"
 
 [[apps]]
 repo = "rtcamp/erp-rtcamp"
-ref = "main"
+ref = "develop"
 
 [[apps]]
 repo = "rtcamp/next-crm"
-ref = "main"
+ref = "develop"
 
 [[apps]]
 repo = "rtCamp/frappe-gmail-thread"
-ref = "main"
+ref = "develop"
