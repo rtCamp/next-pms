@@ -153,8 +153,8 @@ jobs:
       if: ${{ success() || failure() }}
       run: |
         apt-get update && apt-get install -y zip
-        REPORT_DIR="${{ github.workspace }}/tests/e2e/allure-report"
-        OUTPUT_ZIP="${{ github.workspace }}/report.zip"
+        REPORT_DIR="tests/e2e/allure-report"
+        OUTPUT_ZIP="report.zip"
 
         if [ -d "$REPORT_DIR" ]; then
           echo "Zipping Allure report..."
