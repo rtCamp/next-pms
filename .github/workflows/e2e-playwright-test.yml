@@ -88,6 +88,9 @@ jobs:
     - name: Extract test results
       if: ${{ success() || failure() }}
       run: |
+        # Install jq
+        apt-get update && apt-get install -y jq
+        
         # Path to the Allure summary file
         SUMMARY_FILE="tests/e2e/allure-report-for-count-extraction/widgets/summary.json"
 
