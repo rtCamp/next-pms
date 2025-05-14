@@ -119,8 +119,9 @@ export const EmployeeTimesheetListItem = ({
               </div>
               <Separator className="my-2  max-w-full lg:hidden" />
               <p
-                className="text-sm font-normal max-md:text-wrap  col-span-2 max-md:px-4 my-1"
+                className="text-sm font-normal max-md:text-wrap  col-span-2  my-1 ql-editor p-0 hover-content"
                 dangerouslySetInnerHTML={{ __html: description }}
+                onClick={(e) => e.stopPropagation()}
               ></p>
             </div>
           </div>
