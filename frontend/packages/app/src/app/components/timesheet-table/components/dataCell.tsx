@@ -65,7 +65,7 @@ export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }
   }, [isDisabled, date, hours, data, onCellClick]);
 
   return (
-    <HoverCard openDelay={1000} closeDelay={0}>
+    <HoverCard openDelay={500} closeDelay={500}>
       <TableCell
         key={date}
         onClick={handleClick}
@@ -104,8 +104,11 @@ export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }
           </span>
         </HoverCardTrigger>
         {description && (
-          <HoverCardContent className="text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto">
-            <p dangerouslySetInnerHTML={{ __html: preProcessLink(description) }}></p>
+          <HoverCardContent
+            className="text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto ql-editor min-h-0"
+            dangerouslySetInnerHTML={{ __html: preProcessLink(description) }}
+          >
+            {/* <span dangerouslySetInnerHTML={{ __html: preProcessLink(description) }}></span> */}
           </HoverCardContent>
         )}
       </TableCell>

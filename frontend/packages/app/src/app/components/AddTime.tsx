@@ -20,10 +20,10 @@ import {
   FormMessage,
   Input,
   Separator,
-  TextArea,
   ComboBox,
   DatePicker,
   Typography,
+  TextEditor,
 } from "@next-pms/design-system/components";
 import { getFormatedDate } from "@next-pms/design-system/date";
 import { floatToTime } from "@next-pms/design-system/utils";
@@ -374,11 +374,13 @@ const AddTime = ({
                   <FormItem className="space-y-1">
                     <FormLabel>Comment</FormLabel>
                     <FormControl>
-                      <TextArea
+                      <TextEditor
                         placeholder="Explain your progress"
-                        rows={4}
-                        className="w-full placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
-                        {...field}
+                        defaultValue={field.value}
+                        onChange={(value) => {
+                          field.onChange(value);
+                        }}
+                        className=""
                       />
                     </FormControl>
                     <FormMessage />
