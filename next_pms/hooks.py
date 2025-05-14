@@ -225,7 +225,6 @@ doc_events = {
         ],
         "before_validate": "next_pms.timesheet.doc_events.timesheet.before_validate",
         "before_submit": "next_pms.timesheet.doc_events.timesheet.before_submit",
-        "on_submit": "next_pms.timesheet.doc_events.timesheet.on_submit",
         "after_delete": "next_pms.timesheet.doc_events.timesheet.after_delete",
         "on_cancel": "next_pms.timesheet.doc_events.timesheet.on_cancel",
         "on_trash": [
