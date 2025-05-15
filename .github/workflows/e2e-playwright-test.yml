@@ -103,34 +103,35 @@ jobs:
         # Extract passed and failed test counts using jq
         PASSED_COUNT=$(jq '.statistic.passed' "$SUMMARY_FILE" || echo 0)
         FAILED_COUNT=$(jq '.statistic.failed' "$SUMMARY_FILE" || echo 0)
+        BROKEN_COUNT=$(jq '.statistic.broken' "$SUMMARY_FILE" || echo 0)
+        SKIPPED_COUNT=$(jq '.statistic.skipped' "$SUMMARY_FILE" || echo 0)
+        UNKNOWN_COUNT=$(jq '.statistic.unknown' "$SUMMARY_FILE" || echo 0)
+        TOTAL_COUNT=$(jq '.statistic.total' "$SUMMARY_FILE" || echo 0)
 
         # Output and export them as GitHub environment variables
-        echo "Passed Tests: $PASSED_COUNT"
-        echo "Failed Tests: $FAILED_COUNT"
-
-        echo "passed_count=$PASSED_COUNT" >> $GITHUB_ENV
-        echo "failed_count=$FAILED_COUNT" >> $GITHUB_ENV
-
-        TOTAL=$((PASSED_COUNT + FAILED_COUNT))
-        echo "TOTAL=$TOTAL" >> $GITHUB_ENV
-
-        # Output the results
-        echo "Passed Tests: $PASSED_COUNT"
-        echo "Failed Tests: $FAILED_COUNT"
+        echo "Actual Count of Total Tests: $TOTAL_COUNT"
 
         # Optionally set them as output variables
         echo "passed_count=$PASSED_COUNT" >> $GITHUB_ENV
         echo "failed_count=$FAILED_COUNT" >> $GITHUB_ENV
+        echo "broken_count=$BROKEN_COUNT" >> $GITHUB_ENV
+        echo "skipped_count=$SKIPPED_COUNT" >> $GITHUB_ENV
+        echo "unknown_count=$UNKNOWN_COUNT" >> $GITHUB_ENV
+        echo "total_count=$TOTAL_COUNT" >> $GITHUB_ENV
 
-        TOTAL=$((PASSED_COUNT + FAILED_COUNT))
+        TOTAL=$((PASSED_COUNT + FAILED_COUNT + BROKEN_COUNT + SKIPPED_COUNT + UNKNOWN_COUNT))
         # Set environment variables
-        echo "TOTAL=$TOTAL" >> $GITHUB_ENV
+        echo "EXPECTED TOTAL=$TOTAL" >> $GITHUB_ENV
 
     - name: Display counts
       if: ${{ success() || failure() }}
       run: |
+        echo "Actual Total Tests: ${{ env.total_count }}"
         echo "Passed Tests: ${{ env.passed_count }}"
         echo "Failed Tests: ${{ env.failed_count }}"
+        echo "Broken Tests: ${{ env.broken_count }}"
+        echo "Skipped Tests: ${{ env.skipped_count }}"
+        echo "Unknown Tests: ${{ env.unknown_count }}"
 
     - name: Generate Allure Report with single HTML file
       if: ${{ success() || failure() }}
@@ -306,6 +307,7 @@ jobs:
                     <li><b>Total Tests:</b> ${{ env.TOTAL }}</li>
                     <li><b>Tests Passed:</b> ${{ env.passed_count }}</li>
                     <li><b>Tests Failed:</b> ${{ env.failed_count }}</li>
+                    <li><b>Test Broken:</b> ${{env.broken_count }}</li>
                   </ul>
                 </div>
 
