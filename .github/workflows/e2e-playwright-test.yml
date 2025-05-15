@@ -48,6 +48,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Cache Allure history
+      id: cache-history
+      uses: actions/cache@v3
+      with:
+        path: allure-history
+        key: ${{ runner.os }}-allure-history
+        restore-keys: ${{ runner.os }}-allure-history
+
     # Setup Node.js
     - name: Setup Node.js
       uses: actions/setup-node@v3
@@ -69,15 +77,16 @@ jobs:
         distribution: "temurin"
         java-version: "17"
 
-    - name: Check Java
-      run: |
-        echo "JAVA_HOME: $JAVA_HOME"
-        java -version
-
     - name: Run e2e Tests.
       run: |
         cd tests/e2e/
         npm run e2e:tests --
+
+    - name: Inject previous Allure history
+      run: |
+        cd tests/e2e/
+        mkdir -p allure-results/history
+        cp -R allure-history/* allure-results/history/ || echo " No history yet"
 
     - name: Generate Allure Report
       if: ${{ success() || failure() }}
@@ -138,6 +147,18 @@ jobs:
       run: |
         cd tests/e2e/
         npm run allure:htmlReport
+
+    - name: Save new history for next run
+      run: |
+        rm -rf allure-history
+        mkdir -p allure-history
+        cp -R allure-report/history/* allure-history/
+
+    - name: Update Allure history cache
+      uses: actions/cache@v3
+      with:
+        path: allure-history
+        key: ${{ runner.os }}-allure-history
 
     - name: Upload Allure Report
       if: always()
