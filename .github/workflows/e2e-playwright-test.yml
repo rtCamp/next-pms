@@ -96,6 +96,13 @@ jobs:
         # clean & generate for count-extraction
         npm run allure:report
 
+    - name: Seed Allure-history cache
+      run: |
+        mkdir -p allure-history
+        cp -R allure-report-for-count-extraction/history/* allure-history/ \
+          && echo "✅ Cached new history" \
+          || echo "ℹ️ No history to cache (first run)"
+
     - name: Inject previous history
       run: |
         mkdir -p allure-results/history
@@ -166,8 +173,8 @@ jobs:
         echo "PWD: $(pwd)"
         echo "Root contents:"
         ls -1
-        echo "Contents of ./allure-history/:"
-        ls -R ./allure-history || echo "(not found or empty)"
+        echo "Contents of allure-history/:"
+        ls -R allure-history || echo "(not found or empty)"
 
     - name: Update Allure history cache
       uses: actions/cache@v3
