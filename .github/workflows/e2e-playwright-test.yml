@@ -57,12 +57,12 @@ jobs:
 
     - name: Cache Allure history
       id: cache-history
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: allure-history
         key: ${{ runner.os }}-allure-history-${{ env.SANITIZED_REF }}
         restore-keys: |
-          ${{ runner.os }}-allure-history-
+          ${{ runner.os }}-allure-history-  
 
     # Setup Node.js
     - name: Setup Node.js
@@ -177,14 +177,10 @@ jobs:
         ls -R allure-history || echo "(not found or empty)"
 
     - name: Update Allure history cache
-      run: |
-        echo "Caching allure-history directory..."
-        ls -R allure-history || echo "Allure history directory not found"
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: allure-history
         key: ${{ runner.os }}-allure-history-${{ env.SANITIZED_REF }}
-
 
     - name: Upload Allure Report
       if: always()
