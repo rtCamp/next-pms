@@ -230,10 +230,20 @@ def get_columns():
             "options": "Employee",
         },
         {
+            "fieldname": "employee_name",
+            "label": _("Employee Name"),
+            "fieldtype": "Data",
+        },
+        {
             "fieldname": "designation",
             "label": _("Designation"),
             "fieldtype": "Link",
             "options": "Designation",
+        },
+        {
+            "fieldname": "status",
+            "label": _("Status"),
+            "fieldtype": "Data",
         },
         {
             "fieldname": "department",
