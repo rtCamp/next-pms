@@ -121,7 +121,7 @@ jobs:
 
         TOTAL=$((PASSED_COUNT + FAILED_COUNT + BROKEN_COUNT + SKIPPED_COUNT + UNKNOWN_COUNT))
         # Set environment variables
-        echo "EXPECTED TOTAL=$TOTAL" >> $GITHUB_ENV
+        echo "TOTAL=$TOTAL" >> $GITHUB_ENV
 
     - name: Display counts
       if: ${{ success() || failure() }}
