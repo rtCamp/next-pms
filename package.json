@@ -13,7 +13,12 @@
     "lint:precommit": "eslint --fix --config .eslint.config.cjs",
     "allure:report": "allure generate allure-results --clean -o allure-report-for-count-extraction",
     "allure:serve": "allure serve allure-results",
-    "allure:htmlReport": "allure generate allure-results --single-file --clean -o allure-report"
+    "allure:htmlReport": "allure generate allure-results --single-file --clean -o allure-report",
+    "allure:prepareCI" : "cp -r allure-report-for-count-extraction/history allure-results/history || echo 'No history to copy' ",
+    
+    "allure:extract": "allure generate ../allure-results --clean -o ../allure-report-for-count-extraction",
+    "allure:prepare": "cp -r ../allure-report-for-count-extraction/history ../allure-results/history || echo 'No history to copy'",
+    "allure:singleHtml": "allure generate ../allure-results --single-file --clean -o ../allure-report"
   },
   "devDependencies": {
     "@eslint/js": "^8.57.0",
