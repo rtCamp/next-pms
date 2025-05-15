@@ -86,19 +86,18 @@ jobs:
       run: |
         cd tests/e2e
         # clean & generate for count-extraction
-        allure generate ../../allure-results --clean -o ../../allure-report-for-count-extraction
+        npm run allure:report
 
     - name: Inject previous history
       run: |
         cd tests/e2e
         mkdir -p allure-results/history
-        cp -R ../../allure-report-for-count-extraction/history ./allure-results/history || echo "No history to copy"
+        cp -R allure-report-for-count-extraction/history ./allure-results/history || echo "No history to copy"
 
     - name: Generate single-file Allure HTML
       run: |
         cd tests/e2e
-        allure generate ../../allure-results --single-file --clean -o ../../allure-report
-
+        npm run allure:htmlReport
 
     - name: Extract test results
       if: ${{ success() || failure() }}
@@ -147,7 +146,6 @@ jobs:
         echo "Broken Tests: ${{ env.broken_count }}"
         echo "Skipped Tests: ${{ env.skipped_count }}"
         echo "Unknown Tests: ${{ env.unknown_count }}"
-
 
     - name: Save new history for next run
       run: |
