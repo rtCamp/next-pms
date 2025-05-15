@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import ReactQuill, { Quill, type ReactQuillProps } from "react-quill";
 import "react-quill/dist/quill.snow.css";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -68,10 +68,6 @@ const TextEditor = ({
     setEditorValue(formattedValue);
     onChange(formattedValue);
   };
-
-  useEffect(() => {
-    setEditorValue(Props.value || "");
-  }, [Props.value]);
 
   return (
     <>
