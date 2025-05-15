@@ -13,7 +13,6 @@ frappe.query_reports["Profit Report"] = {
         { value: "Left", description: "" },
         { value: "Suspended", description: "" },
       ],
-      default: "Active",
     },
     {
       fieldname: "from_date",

@@ -40,7 +40,7 @@ def get_data(meta, filters=None):
     employees = get_list(
         "Employee",
         fields=fields,
-        filters={"status": employee_status},
+        filters={"status": employee_status} if employee_status else {},
         order_by="employee_name ASC",
     )
     employee_names = [employee.employee for employee in employees]
