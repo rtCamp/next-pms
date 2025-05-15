@@ -44,7 +44,8 @@ module.exports = defineConfig({
     [
       "allure-playwright",
       {
-        resultsDir: 'tests/e2e/allure-results', detail: true 
+        resultsDir: "allure-results",
+        detail: true,
       },
     ],
   ],
@@ -53,9 +54,6 @@ module.exports = defineConfig({
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: process.env.BASE_URL,
-
-    /* Storage state file */
-    storageState: path.resolve(__dirname, "./auth/employee.json"),
 
     /* Collect trace */
     trace: "retain-on-failure",

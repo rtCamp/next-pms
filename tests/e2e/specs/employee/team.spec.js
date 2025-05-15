@@ -1,9 +1,11 @@
+import path from "path";
 import { test, expect } from "@playwright/test";
 import { TimesheetPage } from "../../pageObjects/timesheetPage";
 import { Sidebar } from "../../pageObjects/sidebar";
 import * as allure from "allure-js-commons";
 let timesheetPage;
 let sidebar;
+test.use({ storageState: path.resolve(__dirname, "../../auth/employee.json") });
 
 // ------------------------------------------------------------------------------------------
 

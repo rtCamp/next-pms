@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "cd frontend && npm run dev",
     "build": "cd frontend && npm install && npm run build",
-    "e2e:tests": "npx playwright test --config=tests/e2e/playwright.config.js  --workers=1",
+    "e2e:tests": "npx playwright test --config=tests/e2e/playwright.config.js",
     "lint:precommit": "eslint --fix --config .eslint.config.cjs",
     "allure:report": "allure generate tests/e2e/allure-results --clean -o tests/e2e/allure-report-for-count-extraction",
     "allure:serve": "allure serve tests/e2e/allure-results",

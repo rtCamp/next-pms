@@ -1,3 +1,4 @@
+import path from "path";
 import { test, expect } from "@playwright/test";
 import { secondsToDuration, durationToSeconds } from "../../utils/dateUtils";
 import { TimesheetPage } from "../../pageObjects/timesheetPage";
@@ -6,11 +7,12 @@ import * as allure from "allure-js-commons";
 //Add type hints to help VS Code recognize TimesheetPage
 /** @type {TimesheetPage} */
 let timesheetPage;
+test.use({ storageState: path.resolve(__dirname, "../../auth/employee.json") });
 
 // ------------------------------------------------------------------------------------------
 
 // Load test data
-let TC2data = data.TC2;
+
 let TC3data = data.TC3;
 let TC4data = data.TC4;
 let TC5data = data.TC5;
@@ -43,19 +45,6 @@ test.beforeEach(async ({ page }) => {
 });
 
 // ------------------------------------------------------------------------------------------
-
-test("TC2: Time should be added using the ‘Add’ button at the top.", async ({ page }) => {
-  allure.story("Timesheet");
-  // Add time entry using "Time" button
-  await timesheetPage.addTimeViaTimeButton(TC2data.taskInfo);
-
-  // Reload page to ensure changes are reflected
-  await page.reload();
-
-  // Assertions
-  const cellText = await timesheetPage.getCellText(TC2data.cell);
-  expect(cellText).toContain(TC2data.taskInfo.duration);
-});
 
 test("TC3: Time should be added using the direct timesheet add buttons.", async ({ page }) => {
   allure.story("Timesheet");

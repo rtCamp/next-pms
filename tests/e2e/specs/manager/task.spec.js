@@ -35,13 +35,13 @@ test.beforeEach(async ({ page }) => {
 test("TC17: Validate the search functionality   ", async ({}) => {
   allure.story("Task");
   const taskName = TC17data.payloadCreateTask.subject;
+
   // Search task
-  // Fail the test to test failure in alure reports
-  //await taskPage.searchTask(taskName);
+  await taskPage.searchTask(taskName);
+
   // Assertions
   const filteredTasks = await taskPage.getTasks();
-  // 1 -> 100
-  expect(filteredTasks.length).toBeGreaterThanOrEqual(100);
+  expect(filteredTasks.length).toBeGreaterThanOrEqual(1);
   filteredTasks.forEach((task) => {
     expect(task).toContain(taskName);
   });
