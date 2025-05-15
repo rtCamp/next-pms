@@ -53,8 +53,9 @@ jobs:
       uses: actions/cache@v3
       with:
         path: allure-history
-        key: ${{ runner.os }}-allure-history
-        restore-keys: ${{ runner.os }}-allure-history
+        key: ${{ runner.os }}-allure-history-${{ github.ref_name//\//- }}
+        restore-keys: |
+          ${{ runner.os }}-allure-history-
 
     # Setup Node.js
     - name: Setup Node.js
@@ -153,17 +154,26 @@ jobs:
         echo "Skipped Tests: ${{ env.skipped_count }}"
         echo "Unknown Tests: ${{ env.unknown_count }}"
 
-    - name: Save new history for next run
+    - name: Debug – show saved history
       run: |
-        rm -rf allure-history
-        mkdir -p allure-history
-        cp -R allure-report-for-count-extraction/history/* allure-history/
+        echo "PWD: $(pwd)"
+        echo "Root contents:"
+        ls -1
+        echo "Contents of ./allure-history/:"
+        ls -R ./allure-history || echo "(not found or empty)"
 
     - name: Update Allure history cache
       uses: actions/cache@v3
       with:
         path: allure-history
-        key: ${{ runner.os }}-allure-history
+        key: ${{ runner.os }}-allure-history-${{ github.ref_name//\//- }}
+
+    - name: Update Allure history cache
+      uses: actions/cache@v3
+      with:
+        path: allure-history
+        key: |
+          ${{ runner.os }}-allure-history-${{ github.ref_name }}
 
     - name: Upload Allure Report
       if: always()
