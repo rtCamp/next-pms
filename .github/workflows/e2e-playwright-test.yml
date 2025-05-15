@@ -92,7 +92,13 @@ jobs:
       run: |
         cd tests/e2e
         mkdir -p allure-results/history
-        cp -R allure-report-for-count-extraction/history ./allure-results/history || echo "No history to copy"
+
+        if [ -d "allure-report-for-count-extraction/history" ]; then
+          cp -R allure-report-for-count-extraction/history ./allure-results/history
+          echo "✅ Restored previous history"
+        else
+          echo "ℹ️  No previous history directory—skipping copy"
+        fi
 
     - name: Generate single-file Allure HTML
       run: |
