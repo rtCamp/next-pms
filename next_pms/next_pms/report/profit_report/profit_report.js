@@ -8,6 +8,7 @@ frappe.query_reports["Profit Report"] = {
       label: __("Employee Status"),
       fieldtype: "Select",
       options: [
+        { value: "", description: "" },
         { value: "Active", description: "" },
         { value: "Inactive", description: "" },
         { value: "Left", description: "" },
