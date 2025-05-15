@@ -58,10 +58,10 @@ jobs:
     # Install dependencies
     - name: Install dependencies
       run: |
-          npm ci
-          cd tests/e2e/
-          npx playwright install
-          npx playwright install-deps
+        npm ci
+        cd tests/e2e/
+        npx playwright install
+        npx playwright install-deps
 
     - name: Setup Java
       uses: actions/setup-java@v3
@@ -90,9 +90,9 @@ jobs:
       run: |
         # Install jq
         apt-get update && apt-get install -y jq
-        
+
         # Path to the Allure summary file
-        SUMMARY_FILE="tests/e2e/allure-report-for-count-extraction/widgets/summary.json"
+        SUMMARY_FILE="allure-report-for-count-extraction/widgets/summary.json"
 
         # Check if the summary file exists
         if [ ! -f "$SUMMARY_FILE" ]; then
@@ -143,7 +143,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: allure-report
-        path: tests/e2e/allure-report
+        path: allure-report
 
     - name: Upload Playwright Report
       if: always()
@@ -156,7 +156,7 @@ jobs:
       if: ${{ success() || failure() }}
       run: |
         apt-get update && apt-get install -y zip
-        REPORT_DIR="tests/e2e/allure-report"
+        REPORT_DIR="allure-report"
         OUTPUT_ZIP="report.zip"
 
         if [ -d "$REPORT_DIR" ]; then
@@ -323,8 +323,7 @@ jobs:
         to: bots-erp-rtcamp-com-aaaajmbbbavnlkxccfuvoqjqsy@rtcamp.slack.com
         from: no-reply@gmail.com
         attachments: |
-          #report.zip
-          tests/e2e/chart.png
+          report.zip
 
     - name: Cleanup
       if: ${{ always() }}

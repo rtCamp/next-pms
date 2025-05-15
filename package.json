@@ -11,9 +11,9 @@
     "build": "cd frontend && npm install && npm run build",
     "e2e:tests": "npx playwright test --config=tests/e2e/playwright.config.js",
     "lint:precommit": "eslint --fix --config .eslint.config.cjs",
-    "allure:report": "allure generate tests/e2e/allure-results --clean -o tests/e2e/allure-report-for-count-extraction",
-    "allure:serve": "allure serve tests/e2e/allure-results",
-    "allure:htmlReport": "allure generate tests/e2e/allure-results --single-file --clean -o tests/e2e/allure-report"
+    "allure:report": "allure generate allure-results --clean -o allure-report-for-count-extraction",
+    "allure:serve": "allure serve allure-results",
+    "allure:htmlReport": "allure generate allure-results --single-file --clean -o allure-report"
   },
   "devDependencies": {
     "@eslint/js": "^8.57.0",
