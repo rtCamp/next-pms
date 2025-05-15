@@ -48,12 +48,19 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Sanitize branch name for cache key
+      shell: bash
+      run: |
+        BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+        SAFE_BRANCH="${BRANCH_NAME//\//-}"
+        echo "SANITIZED_REF=${SAFE_BRANCH}" >> $GITHUB_ENV
+
     - name: Cache Allure history
       id: cache-history
       uses: actions/cache@v3
       with:
         path: allure-history
-        key: ${{ runner.os }}-allure-history-${{ replace(github.ref_name, '/', '-') }}
+        key: ${{ runner.os }}-allure-history-${{ env.SANITIZED_REF }}
         restore-keys: |
           ${{ runner.os }}-allure-history-
 
@@ -166,7 +173,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: allure-history
-        key: ${{ runner.os }}-allure-history-${{ replace(github.ref_name, '/', '-') }}
+        key: ${{ runner.os }}-allure-history-${{ env.SANITIZED_REF }}
 
     - name: Upload Allure Report
       if: always()
