@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReactQuill, { Quill, type ReactQuillProps } from "react-quill";
 import "react-quill/dist/quill.snow.css";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -29,7 +29,7 @@ const TextEditor = ({
   ...Props
 }: TextEditorProps) => {
   const quillRef = useRef<ReactQuill | null>(null);
-  const [editorValue, setEditorValue] = useState(quillRef.current?.value || "");
+  const [editorValue, setEditorValue] = useState(Props.value || "");
   const toolbarOptions = [
     [{ header: [1, 2, 3, false] }, { font: [] }],
     ["bold", "italic", "underline", "strike", "blockquote", "code-block"],
@@ -68,6 +68,11 @@ const TextEditor = ({
     setEditorValue(formattedValue);
     onChange(formattedValue);
   };
+
+  useEffect(() => {
+    setEditorValue(Props.value || "");
+  }, [Props.value]);
+
   return (
     <>
       <ReactQuill

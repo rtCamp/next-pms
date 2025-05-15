@@ -261,8 +261,8 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
                             </FormLabel>
                             <FormControl>
                               <TextEditor
-                                placeholder="Explain your progress"
-                                defaultValue={field.value}
+                                placeholder="Update your progress"
+                                value={field.value}
                                 onChange={field.onChange}
                               />
                             </FormControl>
