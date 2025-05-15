@@ -264,7 +264,6 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
                                 placeholder="Explain your progress"
                                 defaultValue={field.value}
                                 onChange={field.onChange}
-                                className="h-40"
                               />
                             </FormControl>
                             <FormMessage className="text-xs" />

@@ -380,7 +380,6 @@ const AddTime = ({
                         onChange={(value) => {
                           field.onChange(value);
                         }}
-                        className=""
                       />
                     </FormControl>
                     <FormMessage />

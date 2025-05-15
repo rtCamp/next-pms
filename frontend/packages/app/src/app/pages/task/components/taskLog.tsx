@@ -228,13 +228,11 @@ export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
                                     <Typography variant="p">{floatToTime(log.hours)}h</Typography>
                                   </div>
                                   {log.description.map((description: string) => (
-                                    <Typography
+                                    <div
                                       key={description}
-                                      variant="p"
-                                      className="pl-8 py-1 rounded pb-0 w-full overflow-x-auto"
-                                    >
-                                      {description}
-                                    </Typography>
+                                      className="pl-8 py-1 rounded pb-0 w-full overflow-x-auto ql-editor min-h-0"
+                                      dangerouslySetInnerHTML={{ __html: description }}
+                                    ></div>
                                   ))}
                                 </div>
                               );
