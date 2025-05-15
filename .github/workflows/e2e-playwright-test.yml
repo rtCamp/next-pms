@@ -53,7 +53,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: allure-history
-        key: ${{ runner.os }}-allure-history-${{ github.ref_name//\//- }}
+        key: ${{ runner.os }}-allure-history-${{ replace(github.ref_name, '/', '-') }}
         restore-keys: |
           ${{ runner.os }}-allure-history-
 
@@ -166,7 +166,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: allure-history
-        key: ${{ runner.os }}-allure-history-${{ github.ref_name//\//- }}
+        key: ${{ runner.os }}-allure-history-${{ replace(github.ref_name, '/', '-') }}
 
     - name: Update Allure history cache
       uses: actions/cache@v3
