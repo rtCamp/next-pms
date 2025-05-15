@@ -90,14 +90,14 @@ jobs:
 
     - name: Inject previous history
       run: |
-        cd tests/e2e
         mkdir -p allure-results/history
 
-        if [ -d "allure-report-for-count-extraction/history" ]; then
-          cp -R allure-report-for-count-extraction/history ./allure-results/history
-          echo "✅ Restored previous history"
+        # the cache restore step has populated `allure-history/` if there was history
+        if [ -d "allure-history" ]; then
+          cp -R allure-history/* allure-results/history/
+          echo "✅ Restored previous history from cache"
         else
-          echo "ℹ️  No previous history directory—skipping copy"
+          echo "ℹ️  No cached history—starting fresh"
         fi
 
     - name: Generate single-file Allure HTML
@@ -157,7 +157,7 @@ jobs:
       run: |
         rm -rf allure-history
         mkdir -p allure-history
-        cp -R allure-report/history/* allure-history/
+        cp -R allure-report-for-count-extraction/history/* allure-history/
 
     - name: Update Allure history cache
       uses: actions/cache@v3
