@@ -92,6 +92,7 @@ jobs:
         npm run e2e:tests --
 
     - name: Restore previous Allure history
+      if: always()
       run: |
         
         if [ -d "${{ github.workspace }}/allure-history" ]; then
@@ -104,17 +105,20 @@ jobs:
         fi
 
     - name: Generate Allure (for count extraction)
+      if: always()
       run: |
         cd tests/e2e
         # clean & generate for count-extraction
         npm run allure:report
 
     - name: Merge history into results
+      if: always()
       run: |
         
         cp -R allure-report-for-count-extraction/history/* allure-results/history/
 
     - name: Generate single-file Allure HTML
+      if: always()
       run: |
         cd tests/e2e
         npm run allure:htmlReport
