@@ -44,6 +44,12 @@ jobs:
       EMP2_PASS: ${{ secrets.EMP2_PASS }}
       EMP2_NAME: ${{ secrets.EMP2_NAME }}
 
+      # Hetzner Space (S3) credentials
+      HETZNER_S3_BUCKET:       ${{ secrets.HETZNER_S3_BUCKET }}
+      AWS_ACCESS_KEY_ID:       ${{ secrets.HETZNER_S3_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY:   ${{ secrets.HETZNER_S3_SECRET_ACCESS_KEY }}
+      AWS_ENDPOINT_URL:        ${{ secrets.HETZNER_S3_ENDPOINT_URL }}
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -55,14 +61,18 @@ jobs:
         SAFE_BRANCH="${BRANCH_NAME//\//-}"
         echo "SANITIZED_REF=${SAFE_BRANCH}" >> $GITHUB_ENV
 
-    - name: Cache Allure history
-      id: cache-history
-      uses: actions/cache@v4
+    - name: Restore Allure history for this branch
+      uses: jakejarvis/s3-sync-action@v0.5.1
       with:
-        path: allure-history
-        key: ${{ runner.os }}-allure-history-${{ env.SANITIZED_REF }}
-        restore-keys: |
-          ${{ runner.os }}-allure-history-  
+        args: >
+          --endpoint-url ${{ env.AWS_ENDPOINT_URL }}
+          --delete
+          s3://${{ env.HETZNER_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/
+          ./allure-history/history/
+      env:
+        AWS_S3_BUCKET:         ${{ env.HETZNER_S3_BUCKET }}
+        AWS_ACCESS_KEY_ID:     ${{ env.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
 
     # Setup Node.js
     - name: Setup Node.js
@@ -91,18 +101,12 @@ jobs:
         cd tests/e2e/
         npm run e2e:tests --
 
-    - name: Restore previous Allure history
+    - name: Restore previous Allure history into results
       if: always()
       run: |
-        
-        if [ -d "${{ github.workspace }}/allure-history" ]; then
           mkdir -p allure-results/history
-          cp -R "${{ github.workspace }}/allure-history/history"/* allure-results/history/
-          echo "✅ Restored previous history"
-        else
-          mkdir -p allure-results/history
-          echo "ℹ️ No cached history, starting fresh"
-        fi
+          cp -R allure-history/history/* allure-results/history/ || echo "No previous history to restore"
+
 
     - name: Generate Allure (for count extraction)
       if: always()
@@ -123,13 +127,19 @@ jobs:
         cd tests/e2e
         npm run allure:htmlReport
 
-    - name: Cache updated Allure history
+    - name: Upload updated Allure history for this branch
       if: always()
-      run: |
-        rm -rf allure-history
-        mkdir -p allure-history/history
-        cp -R allure-results/history/* allure-history/history/
-        echo "✅ Cached new history"
+      uses: jakejarvis/s3-sync-action@v0.5.1
+      with:
+        args: >
+          --endpoint-url ${{ env.AWS_ENDPOINT_URL }}
+          --delete
+          tests/e2e/allure-results/history/
+          s3://${{ env.HETZNER_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/
+      env:
+        AWS_S3_BUCKET:         ${{ env.HETZNER_S3_BUCKET }}
+        AWS_ACCESS_KEY_ID:     ${{ env.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
 
     - name: Extract test results
       if: ${{ success() || failure() }}
@@ -188,12 +198,6 @@ jobs:
         echo "Contents of allure-history/:"
         ls -R allure-history || echo "(not found or empty)"
 
-    - name: Update Allure history cache
-      if: always()
-      uses: actions/cache@v4
-      with:
-        path: allure-history
-        key: ${{ runner.os }}-allure-history-${{ env.SANITIZED_REF }}
 
     - name: Upload Allure Report
       if: always()
