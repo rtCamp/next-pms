@@ -180,6 +180,7 @@ jobs:
         echo "Unknown Tests: ${{ env.unknown_count }}"
 
     - name: Debug – show saved history
+      if: always()
       run: |
         echo "PWD: $(pwd)"
         echo "Root contents:"
@@ -188,6 +189,7 @@ jobs:
         ls -R allure-history || echo "(not found or empty)"
 
     - name: Update Allure history cache
+      if: always()
       uses: actions/cache@v4
       with:
         path: allure-history

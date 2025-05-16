@@ -31,7 +31,7 @@ module.exports = defineConfig({
   forbidOnly: !!process.env.CI,
 
   /* Retry logic for failed tests */
-  retries: process.env.CI ? 2 : 0, // Retry twice on CI, no retries locally
+  //retries: process.env.CI ? 2 : 0, // Retry twice on CI, no retries locally
 
   /* Configure the number of workers for parallel execution */
   workers: process.env.CI ? 2 : undefined, // Use 2 workers on CI, defaults to the number of CPU cores otherwise
