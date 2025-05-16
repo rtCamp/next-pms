@@ -64,13 +64,9 @@ jobs:
     - name: Restore Allure history for this branch
       uses: jakejarvis/s3-sync-action@v0.5.1
       with:
-        args: >
-          --endpoint-url=${{ env.AWS_ENDPOINT_URL }} --delete .allure-history/history/ s3://${{ env.HETZNER_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/
-      env:
-        AWS_ENDPOINT_URL: ${{ env.HETZNER_S3_ENDPOINT_URL}}
-        AWS_S3_BUCKET: ${{ env.HETZNER_S3_BUCKET }}
-        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+        endpoint-url: ${{ env.HETZNER_S3_ENDPOINT_URL }}
+        args: --delete .allure-history/history/ s3://${{ env.HETZNER_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/
+
 
     # Setup Node.js
     - name: Setup Node.js
@@ -128,13 +124,8 @@ jobs:
       if: always()
       uses: jakejarvis/s3-sync-action@v0.5.1
       with:
-        args: >
-          --endpoint-url=${{ env.AWS_ENDPOINT_URL }} --delete allure-results/history/ s3://${{ env.HETZNER_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/
-      env:
-        AWS_ENDPOINT_URL: ${{ env.HETZNER_S3_ENDPOINT_URL}}
-        AWS_S3_BUCKET: ${{ env.HETZNER_S3_BUCKET }}
-        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+        endpoint-url: ${{ env.HETZNER_S3_ENDPOINT_URL }}
+        args: --delete allure-results/history/ s3://${{ env.HETZNER_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/
 
     - name: Extract test results
       if: ${{ success() || failure() }}
