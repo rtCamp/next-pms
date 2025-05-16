@@ -45,10 +45,10 @@ jobs:
       EMP2_NAME: ${{ secrets.EMP2_NAME }}
 
       # Hetzner Space (S3) credentials
-      HETZNER_S3_BUCKET:       ${{ secrets.HETZNER_S3_BUCKET }}
-      AWS_ACCESS_KEY_ID:       ${{ secrets.HETZNER_S3_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY:   ${{ secrets.HETZNER_S3_SECRET_ACCESS_KEY }}
-      AWS_ENDPOINT_URL:        ${{ secrets.HETZNER_S3_ENDPOINT_URL }}
+      HETZNER_S3_BUCKET: ${{ secrets.HETZNER_S3_BUCKET }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.HETZNER_S3_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.HETZNER_S3_SECRET_ACCESS_KEY }}
+      AWS_ENDPOINT_URL: ${{ secrets.HETZNER_S3_ENDPOINT_URL }}
 
     steps:
     - name: Checkout code
@@ -65,13 +65,10 @@ jobs:
       uses: jakejarvis/s3-sync-action@v0.5.1
       with:
         args: >
-          --endpoint-url ${{ env.AWS_ENDPOINT_URL }}
-          --delete
-          s3://${{ env.HETZNER_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/
-          ./allure-history/history/
+          --endpoint-url ${{ env.AWS_ENDPOINT_URL }} --delete s3://${{ env.HETZNER_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/ ./allure-history/history/
       env:
-        AWS_S3_BUCKET:         ${{ env.HETZNER_S3_BUCKET }}
-        AWS_ACCESS_KEY_ID:     ${{ env.AWS_ACCESS_KEY_ID }}
+        AWS_S3_BUCKET: ${{ env.HETZNER_S3_BUCKET }}
+        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
 
     # Setup Node.js
@@ -104,9 +101,8 @@ jobs:
     - name: Restore previous Allure history into results
       if: always()
       run: |
-          mkdir -p allure-results/history
-          cp -R allure-history/history/* allure-results/history/ || echo "No previous history to restore"
-
+        mkdir -p allure-results/history
+        cp -R allure-history/history/* allure-results/history/ || echo "No previous history to restore"
 
     - name: Generate Allure (for count extraction)
       if: always()
@@ -132,13 +128,10 @@ jobs:
       uses: jakejarvis/s3-sync-action@v0.5.1
       with:
         args: >
-          --endpoint-url ${{ env.AWS_ENDPOINT_URL }}
-          --delete
-          tests/e2e/allure-results/history/
-          s3://${{ env.HETZNER_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/
+          --endpoint-url ${{ env.AWS_ENDPOINT_URL }} --delete tests/e2e/allure-results/history/ s3://${{ env.HETZNER_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/
       env:
-        AWS_S3_BUCKET:         ${{ env.HETZNER_S3_BUCKET }}
-        AWS_ACCESS_KEY_ID:     ${{ env.AWS_ACCESS_KEY_ID }}
+        AWS_S3_BUCKET: ${{ env.HETZNER_S3_BUCKET }}
+        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
 
     - name: Extract test results
@@ -197,7 +190,6 @@ jobs:
         ls -1
         echo "Contents of allure-history/:"
         ls -R allure-history || echo "(not found or empty)"
-
 
     - name: Upload Allure Report
       if: always()
