@@ -91,35 +91,41 @@ jobs:
         cd tests/e2e/
         npm run e2e:tests --
 
+    - name: Restore previous Allure history
+      run: |
+        
+        if [ -d "${{ github.workspace }}/allure-history" ]; then
+          mkdir -p allure-results/history
+          cp -R "${{ github.workspace }}/allure-history/history"/* allure-results/history/
+          echo "✅ Restored previous history"
+        else
+          mkdir -p allure-results/history
+          echo "ℹ️ No cached history, starting fresh"
+        fi
+
     - name: Generate Allure (for count extraction)
       run: |
         cd tests/e2e
         # clean & generate for count-extraction
         npm run allure:report
 
-    - name: Seed Allure-history cache
+    - name: Merge history into results
       run: |
-        mkdir -p allure-history
-        cp -R allure-report-for-count-extraction/history/* allure-history/ \
-          && echo "✅ Cached new history" \
-          || echo "ℹ️ No history to cache (first run)"
-
-    - name: Inject previous history
-      run: |
-        mkdir -p allure-results/history
-
-        # the cache restore step has populated `allure-history/` if there was history
-        if [ -d "allure-history" ]; then
-          cp -R allure-history/* allure-results/history/
-          echo "✅ Restored previous history from cache"
-        else
-          echo "ℹ️  No cached history—starting fresh"
-        fi
+        
+        cp -R allure-report-for-count-extraction/history/* allure-results/history/
 
     - name: Generate single-file Allure HTML
       run: |
         cd tests/e2e
         npm run allure:htmlReport
+
+    - name: Cache updated Allure history
+      if: always()
+      run: |
+        rm -rf allure-history
+        mkdir -p allure-history/history
+        cp -R allure-results/history/* allure-history/history/
+        echo "✅ Cached new history"
 
     - name: Extract test results
       if: ${{ success() || failure() }}

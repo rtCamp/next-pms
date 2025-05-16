@@ -19,6 +19,7 @@ tests/e2e/results.json
 allure-report
 allure-report-for-count-extraction
 allure-results
+allure-history
 
 # Authentication files
 tests/e2e/auth/**
