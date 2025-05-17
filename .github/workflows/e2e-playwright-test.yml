@@ -69,7 +69,6 @@ jobs:
         echo "SANITIZED_REF=${SAFE_BRANCH}" >> $GITHUB_ENV
         echo "→ Restoring/uploading history under key: ${SAFE_BRANCH}"
 
-
     - name: Debug—print refs
       run: |
         echo "EVENT_NAME = ${{ github.event_name }}"
