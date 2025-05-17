@@ -62,7 +62,8 @@ jobs:
         echo "SANITIZED_REF=${SAFE_BRANCH}" >> $GITHUB_ENV
 
     - name: Install prerequisites
-      run: sudo apt-get update && sudo apt-get install -y unzip curl
+      run: |
+        apt-get update && apt-get install -y unzip curl
 
     - name: Install AWS CLI v2
       run: |
