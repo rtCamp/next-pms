@@ -65,7 +65,8 @@ jobs:
       uses: jakejarvis/s3-sync-action@v0.5.1
       with:
         args: >
-          --endpoint-url=${{ env.AWS_ENDPOINT_URL }} --delete .allure-history/history/ s3://${{ env.AWS_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/
+          --endpoint-url=${{ env.AWS_ENDPOINT_URL }} --delete "allure-history/history/" "s3://${{ env.AWS_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/"
+
       env:
         AWS_ENDPOINT_URL: ${{ env.AWS_ENDPOINT_URL }}
         AWS_S3_BUCKET: ${{ env.AWS_S3_BUCKET }}
@@ -129,7 +130,7 @@ jobs:
       uses: jakejarvis/s3-sync-action@v0.5.1
       with:
         args: >
-          --endpoint-url=${{ env.AWS_ENDPOINT_URL }} --delete allure-results/history/ s3://${{ env.AWS_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/
+          --endpoint-url=${{ env.AWS_ENDPOINT_URL }} --delete "allure-results/history/" "s3://${{ env.AWS_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/"
       env:
         AWS_S3_BUCKET: ${{ env.AWS_S3_BUCKET }}
         AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
