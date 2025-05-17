@@ -61,12 +61,17 @@ jobs:
         SAFE_BRANCH="${BRANCH_NAME//\//-}"
         echo "SANITIZED_REF=${SAFE_BRANCH}" >> $GITHUB_ENV
 
-    - name: Restore Allure history for this branch
-      uses: jakejarvis/s3-sync-action@v0.5.1
-      with:
-        endpoint-url: ${{ env.HETZNER_S3_ENDPOINT_URL }}
-        args: --delete .allure-history/history/ s3://${{ env.HETZNER_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/
+    - name: Configure AWS CLI
+      run: |
+        apt-get update && apt-get install -y awscli
+        aws configure set aws_access_key_id ${{ env.AWS_ACCESS_KEY_ID }}
+        aws configure set aws_secret_access_key ${{ env.AWS_SECRET_ACCESS_KEY }}
+        aws configure set region us-east-1
 
+    - name: Restore Allure history for this branch
+      run: |
+        mkdir -p allure-history/history/
+        aws s3 sync s3://${{ env.HETZNER_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/ allure-history/history/ --endpoint-url ${{ env.AWS_ENDPOINT_URL }} --delete
 
     # Setup Node.js
     - name: Setup Node.js
@@ -122,10 +127,8 @@ jobs:
 
     - name: Upload updated Allure history for this branch
       if: always()
-      uses: jakejarvis/s3-sync-action@v0.5.1
-      with:
-        endpoint-url: ${{ env.HETZNER_S3_ENDPOINT_URL }}
-        args: --delete allure-results/history/ s3://${{ env.HETZNER_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/
+      run: |
+        aws s3 sync allure-results/history/ s3://${{ env.HETZNER_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/ --endpoint-url ${{ env.AWS_ENDPOINT_URL }} --delete
 
     - name: Extract test results
       if: ${{ success() || failure() }}
