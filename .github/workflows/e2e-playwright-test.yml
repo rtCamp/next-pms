@@ -61,17 +61,29 @@ jobs:
         SAFE_BRANCH="${BRANCH_NAME//\//-}"
         echo "SANITIZED_REF=${SAFE_BRANCH}" >> $GITHUB_ENV
 
-    - name: Restore Allure history for this branch
-      uses: jakejarvis/s3-sync-action@v0.5.1
-      with:
-        args: >
-          --endpoint-url=${{ env.AWS_ENDPOINT_URL }} --delete "allure-history/history/" "s3://${{ env.AWS_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/"
+    - name: Create local allure-history/history folder
+      run: mkdir -p allure-history/history
 
+    - name: Download previous Allure history (if any)
+      shell: bash
       env:
-        AWS_ENDPOINT_URL: ${{ env.AWS_ENDPOINT_URL }}
         AWS_S3_BUCKET: ${{ env.AWS_S3_BUCKET }}
         AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+        AWS_ENDPOINT_URL: ${{ env.AWS_ENDPOINT_URL }}
+      run: |
+        set -e
+        echo "Checking for previous history at s3://${AWS_S3_BUCKET}/${SANITIZED_REF}/history/ ..."
+        aws s3 sync \
+          s3://${AWS_S3_BUCKET}/${SANITIZED_REF}/history/ \
+          allure-history/history/ \
+          --endpoint-url $AWS_ENDPOINT_URL || true
+
+        if [ "$(ls -A allure-history/history/ 2>/dev/null)" ]; then
+          echo "✅ Previous history downloaded."
+        else
+          echo "⚠️ No previous history found in S3."
+        fi
 
     # Setup Node.js
     - name: Setup Node.js
@@ -130,7 +142,7 @@ jobs:
       uses: jakejarvis/s3-sync-action@v0.5.1
       with:
         args: >
-          --endpoint-url=${{ env.AWS_ENDPOINT_URL }} --delete "allure-results/history/" "s3://${{ env.AWS_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/"
+          allure-results/history/ s3://${{ env.AWS_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/ --delete --endpoint-url=${{ env.AWS_ENDPOINT_URL }}
       env:
         AWS_S3_BUCKET: ${{ env.AWS_S3_BUCKET }}
         AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
