@@ -11,7 +11,7 @@ import { FrappeProvider } from "frappe-react-sdk";
  */
 import { BASE_ROUTE } from "@/lib/constant";
 import { UserProvider } from "@/lib/UserProvider";
-import { getSiteName } from "@/lib/utils";
+import { getSiteName, enableSocket } from "@/lib/utils";
 import ThemeProvider from "./providers/theme";
 import { Router } from "./route";
 import { store } from "./store";
@@ -25,7 +25,7 @@ const App = () => {
       <FrappeProvider
         url={import.meta.env.VITE_BASE_URL ?? ""}
         socketPort={import.meta.env.VITE_SOCKET_PORT}
-        enableSocket={import.meta.env.VITE_ENABLE_SOCKET === "true" ? true : false}
+        enableSocket={enableSocket()}
         siteName={getSiteName()}
       >
         <ThemeProvider>
