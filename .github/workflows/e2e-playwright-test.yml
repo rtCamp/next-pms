@@ -54,6 +54,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Install prerequisites
+      run: |
+        apt-get update
+        apt-get install -y curl
+
     - name: Sanitize branch name
       shell: bash
       run: |
