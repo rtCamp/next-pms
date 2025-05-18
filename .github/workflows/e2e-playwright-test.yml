@@ -45,10 +45,10 @@ jobs:
       EMP2_NAME: ${{ secrets.EMP2_NAME }}
 
       # Hetzner Space (S3) credentials
-      AWS_S3_BUCKET: ${{ secrets.HETZNER_S3_BUCKET }}
+      HETZNER_S3_BUCKET: ${{ secrets.HETZNER_S3_BUCKET }}
       AWS_ACCESS_KEY_ID: ${{ secrets.HETZNER_S3_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.HETZNER_S3_SECRET_ACCESS_KEY }}
-      AWS_S3_ENDPOINT: ${{ secrets.HETZNER_S3_ENDPOINT_URL }}
+      AWS_ENDPOINT_URL: ${{ secrets.HETZNER_S3_ENDPOINT_URL }}
 
     steps:
     - name: Checkout code
@@ -81,27 +81,28 @@ jobs:
     - name: Check Local History Directory Before Restore
       run: ls -la allure-history/history
 
-    - name: Restore Allure history for this branch (if any)
-      uses: jakejarvis/s3-sync-action@v0.5.1
-      continue-on-error: true
-      env:
-        AWS_S3_BUCKET: ${{ secrets.HETZNER_S3_BUCKET }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.HETZNER_S3_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.HETZNER_S3_SECRET_ACCESS_KEY }}
-        AWS_S3_ENDPOINT: ${{ secrets.HETZNER_S3_ENDPOINT_URL }}
-        SOURCE_DIR: "s3://${{ env.AWS_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/"
-        DEST_DIR: "allure-history/history"
+    - name: Set up Python
+      uses: actions/setup-python@v4
       with:
-        # only flags here
-        args: --no-progress
+        python-version: '3.13'
 
-    - name: Check if previous history exists
+    - name: Install AWS CLI using pip
       run: |
-        if [ -d "allure-history/history" ] && [ "$(ls -A allure-history/history)" ]; then
-          echo "✅ Previous history restored from S3."
-        else
-          echo "⚠️ No previous history found in S3."
-        fi
+        python -m pip install --upgrade pip
+        pip install awscli
+
+    - name: Verify AWS CLI installation
+      run: aws --version
+
+    - name: Configure AWS CLI
+      run: |
+        aws configure set aws_access_key_id ${{ env.AWS_ACCESS_KEY_ID }}
+        aws configure set aws_secret_access_key ${{ env.AWS_SECRET_ACCESS_KEY }}
+
+    - name: Restore Allure history for this branch
+      run: |
+        
+        aws s3 sync s3://${{ env.HETZNER_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/ allure-history/history/ --endpoint-url ${{ env.AWS_ENDPOINT_URL }} --delete
 
     # Setup Node.js
     - name: Setup Node.js
@@ -157,16 +158,8 @@ jobs:
 
     - name: Upload updated Allure history for this branch
       if: always()
-      uses: jakejarvis/s3-sync-action@v0.5.1
-      env:
-        AWS_S3_BUCKET: ${{ secrets.HETZNER_S3_BUCKET }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.HETZNER_S3_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.HETZNER_S3_SECRET_ACCESS_KEY }}
-        AWS_S3_ENDPOINT: ${{ secrets.HETZNER_S3_ENDPOINT_URL }}
-        SOURCE_DIR: "allure-results/history/"
-        DEST_DIR: "s3://${{ env.AWS_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/"
-      with:
-        args: --delete --debug
+      run: |
+        aws s3 sync allure-results/history/ s3://${{ env.HETZNER_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/ --endpoint-url ${{ env.AWS_ENDPOINT_URL }} --delete
 
     - name: Extract test results
       if: ${{ success() || failure() }}
