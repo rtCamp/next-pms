@@ -225,13 +225,6 @@ jobs:
         echo "Contents of allure-history/:"
         ls -R allure-history || echo "(not found or empty)"
 
-    - name: Upload Allure Report
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: allure-report
-        path: allure-report
-
     - name: Upload Playwright Report
       if: always()
       uses: actions/upload-artifact@v4
