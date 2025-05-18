@@ -44,11 +44,11 @@ jobs:
       EMP2_PASS: ${{ secrets.EMP2_PASS }}
       EMP2_NAME: ${{ secrets.EMP2_NAME }}
 
-      # Hetzner Space (S3) credentials
+      # Hetzner Space (S3) credentials & endpoint
       HETZNER_S3_BUCKET: ${{ secrets.HETZNER_S3_BUCKET }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.HETZNER_S3_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.HETZNER_S3_SECRET_ACCESS_KEY }}
-      AWS_ENDPOINT_URL: ${{ secrets.HETZNER_S3_ENDPOINT_URL }}
+      HETZNER_S3_ACCESS_KEY_ID: ${{ secrets.HETZNER_S3_ACCESS_KEY_ID }}
+      HETZNER_S3_SECRET_ACCESS_KEY: ${{ secrets.HETZNER_S3_SECRET_ACCESS_KEY }}
+      HETZNER_S3_ENDPOINT_URL: ${{ secrets.HETZNER_S3_ENDPOINT_URL }}
 
     steps:
     - name: Checkout code
@@ -78,31 +78,31 @@ jobs:
     - name: Create local allure-history/history folder
       run: mkdir -p allure-history/history
 
-    - name: Check Local History Directory Before Restore
+    - name: Install MinIO Client (mc)
+      run: |
+        curl -fsSL https://dl.min.io/client/mc/release/linux-amd64/mc \
+          -o mc && chmod +x mc && sudo mv mc /usr/local/bin/
+
+    - name: Configure mc alias for Hetzner S3
+      run: |
+        mc alias set hetzner \
+          ${{ env.HETZNER_S3_ENDPOINT_URL }} \
+          ${{ env.HETZNER_S3_ACCESS_KEY_ID }} \
+          ${{ env.HETZNER_S3_SECRET_ACCESS_KEY }}
+
+    - name: Restore Allure history for this branch (mc)
+      run: |
+        if mc ls hetzner/${{ env.HETZNER_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/ | grep -q .; then
+          echo "Restoring previous Allure history..."
+          mc cp --recursive \
+            hetzner/${{ env.HETZNER_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/ \
+            allure-history/history/
+        else
+          echo "No Allure history to restore for branch '${{ env.SANITIZED_REF }}'."
+        fi
+
+    - name: Check Local History Directory After History Download
       run: ls -la allure-history/history
-
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.13'
-
-    - name: Install AWS CLI using pip
-      run: |
-        python -m pip install --upgrade pip
-        pip install awscli
-
-    - name: Verify AWS CLI installation
-      run: aws --version
-
-    - name: Configure AWS CLI
-      run: |
-        aws configure set aws_access_key_id ${{ env.AWS_ACCESS_KEY_ID }}
-        aws configure set aws_secret_access_key ${{ env.AWS_SECRET_ACCESS_KEY }}
-
-    - name: Restore Allure history for this branch
-      run: |
-        
-        aws s3 sync s3://${{ env.HETZNER_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/ allure-history/history/ --endpoint-url ${{ env.AWS_ENDPOINT_URL }} --delete
 
     # Setup Node.js
     - name: Setup Node.js
@@ -156,10 +156,12 @@ jobs:
         cd tests/e2e
         npm run allure:htmlReport
 
-    - name: Upload updated Allure history for this branch
+    - name: Upload updated Allure history for this branch (mc)
       if: always()
       run: |
-        aws s3 sync allure-results/history/ s3://${{ env.HETZNER_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/ --endpoint-url ${{ env.AWS_ENDPOINT_URL }} --delete
+        mc cp --recursive \
+          allure-results/history/ \
+          hetzner/${{ env.HETZNER_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/
 
     - name: Extract test results
       if: ${{ success() || failure() }}
