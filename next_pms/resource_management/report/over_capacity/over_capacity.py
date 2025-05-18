@@ -32,7 +32,11 @@ def get_data(filters, meta):
     if meta.has_field("custom_reporting_manager"):
         fields.append("custom_reporting_manager")
 
-    employees = get_all("Employee", fields=fields, filters={"status": "Active"}, order_by="employee_name ASC")
+    if filters.get("status"):
+        emp_filters = {"status": filters.get("status")}
+    else:
+        emp_filters = {}
+    employees = get_all("Employee", fields=fields, filters=emp_filters, order_by="employee_name ASC")
     logged_hours = get_logged_hours(employees, start_date, end_date)
 
     for employee in employees:
