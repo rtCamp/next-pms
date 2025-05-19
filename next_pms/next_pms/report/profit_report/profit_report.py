@@ -15,6 +15,8 @@ from next_pms.utils.employee import (
     get_employee_leaves_and_holidays,
 )
 
+FILTERABLE_STATUS = ["Left", "Inactive", "Suspended"]
+
 
 def execute(filters=None):
     columns = get_columns()
@@ -23,6 +25,7 @@ def execute(filters=None):
 
 
 def get_data(filters=None):
+    res = []
     start_date = getdate(filters.get("from_date"))
     end_date = getdate(filters.get("to_date"))
     employees = get_employees(
@@ -33,6 +36,9 @@ def get_data(filters=None):
     timesheets = get_employees_timesheet_hours(emp_names, start_date, end_date)
     billing_amount = get_employees_billable_amount(emp_names, start_date, end_date)
     for employee in employees:
+        emp_timesheet = next((timesheet for timesheet in timesheets if timesheet.employee == employee.employee), None)
+        if employee.status in FILTERABLE_STATUS and not emp_timesheet:
+            continue
         employee_leave_and_holidays = get_employee_leaves_and_holidays(employee.employee, start_date, end_date)
         daily_hours = get_employee_daily_working_norm(employee.employee)
         num_of_holidays = len(employee_leave_and_holidays.get("holidays"))
@@ -44,7 +50,7 @@ def get_data(filters=None):
             daily_hours=daily_hours,
             employee_leave_and_holidays=employee_leave_and_holidays,
         )
-        emp_timesheet = next((timesheet for timesheet in timesheets if timesheet.employee == employee.employee), None)
+
         if not emp_timesheet:
             emp_timesheet = {"billable_hours": 0, "non_billable_hours": 0}
         employee["billable_hours"] = emp_timesheet.get("billable_hours", 0)
@@ -65,7 +71,8 @@ def get_data(filters=None):
         employee["profit"] = employee["revenue"] - employee["cost"]
         employee["profit_percentage"] = (employee["profit"] / employee["revenue"]) * 100 if employee["revenue"] else 0
         employee["employee_name"] = employee.get("employee_name")
-    return employees
+        res.append(employee)
+    return res
 
 
 def calculate_employee_cost(

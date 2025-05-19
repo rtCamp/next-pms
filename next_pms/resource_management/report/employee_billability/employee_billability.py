@@ -11,6 +11,8 @@ from next_pms.resource_management.api.utils.query import get_employee_leaves
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm
 from next_pms.utils.employee import get_employee_joining_date_based_on_work_history
 
+FILTERABLE_STATUS = ["Left", "Inactive", "Suspended"]
+
 
 def execute(filters=None):
     columns = get_columns()
@@ -19,12 +21,18 @@ def execute(filters=None):
 
 
 def get_data(filters):
+    res = []
     employees = get_employees(designation=filters.get("designation"), status=filters.get("status"))
     employee_names = [employee.employee for employee in employees]
     time_entries = get_employee_time(filters.get("from"), filters.get("to"), employee_names)
     for employee in employees:
         employee_time_entry = time_entries.get(employee.employee)
-
+        if (
+            not employee_time_entry.get("billable_hours", 0)
+            and not employee_time_entry.get("valuable_hours", 0)
+            and employee.status in FILTERABLE_STATUS
+        ):
+            continue
         capacity_hours = get_employee_total_hours(employee, filters.get("from"), filters.get("to"))
         billable_hours = employee_time_entry.get("billable_hours", 0)
         valuable_hours = employee_time_entry.get("valuable_hours", 0)
@@ -38,12 +46,15 @@ def get_data(filters):
         employee["untracked_hours"] = capacity_hours - (billable_hours + valuable_hours)
         employee["billing_percentage"] = (billable_hours / capacity_hours) * 100
         employee["deficit"] = get_deficit(capacity_hours, billable_hours, number_of_years)
-    return employees
+        res.append(employee)
+    return res
 
 
 def get_columns():
     return [
         {"fieldname": "employee", "label": _("Employee"), "fieldtype": "Link", "options": "Employee", "width": 200},
+        {"fieldname": "employee_name", "label": _("Employee Name"), "fieldtype": "Data"},
+        {"fieldname": "status", "label": _("Status"), "fieldtype": "Data"},
         {"fieldname": "number_of_years", "label": _("Number of Years"), "fieldtype": "Int"},
         {"fieldname": "capacity_hours", "label": _("Capacity Hours"), "fieldtype": "Float"},
         {"fieldname": "billable_hours", "label": _("Billable Hours"), "fieldtype": "Float"},
@@ -64,7 +75,7 @@ def get_employees(designation=None, status=None):
     employees = get_all(
         "Employee",
         filters=filters,
-        fields=["name as employee", "employee_name", "date_of_joining"],
+        fields=["name as employee", "employee_name", "date_of_joining", "status"],
         order_by="employee_name ASC",
     )
     for employee in employees:
@@ -119,6 +130,7 @@ def get_employee_time(start_date, end_date, employee_names):
 
     for employee in employee_names:
         timesheet = [ts for ts in timesheets if ts.employee == employee]
+
         billable_hours = sum([flt(ts.hours) for ts in timesheet if ts.is_billable])
         valuable_hours = sum([flt(ts.hours) for ts in timesheet if not ts.is_billable])
         data[employee] = {"billable_hours": billable_hours, "valuable_hours": valuable_hours}
