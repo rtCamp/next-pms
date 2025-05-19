@@ -18,7 +18,6 @@ from next_pms.utils.employee import (
 )
 
 CURRENCY = "USD"
-FILTERABLE_STATUS = ["Left", "Inactive", "Suspended"]
 
 
 def execute(filters=None):
@@ -150,7 +149,7 @@ def calculate_hours_and_revenue(employees, resource_allocations, start_date, end
 
     for employee in employees:
         employee_allocations = resource_allocation_map.get(employee.employee, [])
-        if not employee_allocations and employee.status in FILTERABLE_STATUS:
+        if not employee_allocations and employee.status != "Active":
             continue
         daily_hours = get_employee_daily_working_norm(employee.employee)
         employee_leave_and_holiday = get_employee_leaves_and_holidays(employee.employee, start_date, end_date)

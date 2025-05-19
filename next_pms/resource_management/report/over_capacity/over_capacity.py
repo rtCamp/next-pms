@@ -12,8 +12,6 @@ from next_pms.resource_management.api.utils.helpers import is_on_leave
 from next_pms.resource_management.api.utils.query import get_employee_leaves
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm
 
-FILTERABLE_STATUS = ["Left", "Inactive", "Suspended"]
-
 
 def execute(filters=None):
     employee_meta = get_meta("Employee")
@@ -43,7 +41,7 @@ def get_data(filters, meta):
     logged_hours = get_logged_hours(employees, start_date, end_date)
 
     for employee in employees:
-        if not logged_hours.get(employee["employee"], 0) and employee.status in FILTERABLE_STATUS:
+        if not logged_hours.get(employee["employee"], 0) and employee.status != "Active":
             continue
         capcity_hours = get_employee_total_hours(employee["employee"], start_date, end_date)
         employee_logged_hours = logged_hours.get(employee["employee"], 0) or 0

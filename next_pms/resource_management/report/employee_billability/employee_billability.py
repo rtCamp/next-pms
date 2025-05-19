@@ -11,8 +11,6 @@ from next_pms.resource_management.api.utils.query import get_employee_leaves
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm
 from next_pms.utils.employee import get_employee_joining_date_based_on_work_history
 
-FILTERABLE_STATUS = ["Left", "Inactive", "Suspended"]
-
 
 def execute(filters=None):
     columns = get_columns()
@@ -30,7 +28,7 @@ def get_data(filters):
         if (
             not employee_time_entry.get("billable_hours", 0)
             and not employee_time_entry.get("valuable_hours", 0)
-            and employee.status in FILTERABLE_STATUS
+            and employee.status != "Active"
         ):
             continue
         capacity_hours = get_employee_total_hours(employee, filters.get("from"), filters.get("to"))

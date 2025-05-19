@@ -15,8 +15,6 @@ from next_pms.utils.employee import (
     get_employee_leaves_and_holidays,
 )
 
-FILTERABLE_STATUS = ["Left", "Inactive", "Suspended"]
-
 
 def execute(filters=None):
     columns = get_columns()
@@ -37,7 +35,7 @@ def get_data(filters=None):
     billing_amount = get_employees_billable_amount(emp_names, start_date, end_date)
     for employee in employees:
         emp_timesheet = next((timesheet for timesheet in timesheets if timesheet.employee == employee.employee), None)
-        if employee.status in FILTERABLE_STATUS and not emp_timesheet:
+        if employee.status != "Active" and not emp_timesheet:
             continue
         employee_leave_and_holidays = get_employee_leaves_and_holidays(employee.employee, start_date, end_date)
         daily_hours = get_employee_daily_working_norm(employee.employee)
