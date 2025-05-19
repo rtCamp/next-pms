@@ -23,8 +23,8 @@ import {
   FormMessage,
   Input,
   Separator,
-  TextArea,
   useToast,
+  TextEditor,
 } from "@next-pms/design-system/components";
 import { getFormatedDate } from "@next-pms/design-system/date";
 import { floatToTime, mergeClassNames } from "@next-pms/design-system/utils";
@@ -150,7 +150,7 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Edit Time</DialogTitle>
           <Separator />
@@ -260,13 +260,10 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
                               </p>
                             </FormLabel>
                             <FormControl>
-                              <TextArea
-                                rows={3}
-                                {...field}
+                              <TextEditor
+                                placeholder="Update your progress"
+                                value={field.value}
                                 onChange={field.onChange}
-                                className={mergeClassNames(
-                                  " focus-visible:ring-0 focus-visible:ring-offset-0 min-h-10"
-                                )}
                               />
                             </FormControl>
                             <FormMessage className="text-xs" />

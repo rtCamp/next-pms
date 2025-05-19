@@ -8,7 +8,7 @@ import { CircleDollarSign } from "lucide-react";
 /**
  * Internal dependencies
  */
-import { mergeClassNames } from "@/lib/utils";
+import { extractTextFromHTML, mergeClassNames } from "@/lib/utils";
 import type { TaskDataItemProps } from "@/types/timesheet";
 import { HourInput } from "../hourInput";
 import type { EmployeeTimesheetListItemProps } from "./types";
@@ -63,7 +63,7 @@ export const EmployeeTimesheetListItem = ({
         </Typography>
         {isHoliday && (
           <Typography variant="p" className="max-md:text-wrap text-primary/60">
-            {holidayDescription}
+            {extractTextFromHTML(holidayDescription ?? "")}
           </Typography>
         )}
         {hasLeave && !isHoliday && (
@@ -119,8 +119,9 @@ export const EmployeeTimesheetListItem = ({
               </div>
               <Separator className="my-2  max-w-full lg:hidden" />
               <p
-                className="text-sm font-normal max-md:text-wrap  col-span-2 max-md:px-4 my-1"
+                className="text-sm font-normal max-md:text-wrap  col-span-2  my-1 ql-editor p-0 hover-content"
                 dangerouslySetInnerHTML={{ __html: description }}
+                onClick={(e) => e.stopPropagation()}
               ></p>
             </div>
           </div>

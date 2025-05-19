@@ -308,3 +308,9 @@ export const mapFieldsToObject = (
     return acc;
   }, {} as Record<string, string | number | null>);
 };
+
+export const extractTextFromHTML = (htmlContent: string) => {
+  const tempElement = document.createElement("div");
+  tempElement.innerHTML = htmlContent;
+  return tempElement?.textContent?.trim();
+};

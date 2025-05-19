@@ -1,5 +1,6 @@
 import { readAndCleanAllOrphanData } from "../helpers/timesheetHelper";
 import { rejectLeaveEntries } from "../helpers/leaveHelper";
+import { deleteEmployees } from "../helpers/employeeHelper";
 
 // ------------------------------------------------------------------------------------------
 

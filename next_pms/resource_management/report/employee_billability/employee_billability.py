@@ -19,7 +19,7 @@ def execute(filters=None):
 
 
 def get_data(filters):
-    employees = get_employees(designation=filters.get("designation"))
+    employees = get_employees(designation=filters.get("designation"), status=filters.get("status"))
     employee_names = [employee.employee for employee in employees]
     time_entries = get_employee_time(filters.get("from"), filters.get("to"), employee_names)
     for employee in employees:
@@ -54,13 +54,16 @@ def get_columns():
     ]
 
 
-def get_employees(designation=None):
-    designation_filter = {}
+def get_employees(designation=None, status=None):
+    filters = {}
     if designation:
-        designation_filter = {"designation": ["in", designation]}
+        filters.update({"designation": ["in", designation]})
+
+    if status:
+        filters.update({"status": status})
     employees = get_all(
         "Employee",
-        filters={"status": "Active", **designation_filter},
+        filters=filters,
         fields=["name as employee", "employee_name", "date_of_joining"],
         order_by="employee_name ASC",
     )

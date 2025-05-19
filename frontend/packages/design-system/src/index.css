@@ -1,7 +1,7 @@
+@import "react-quill/dist/quill.snow.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -71,4 +71,62 @@
   stroke-width: 1.5;
   width: 1rem;
   height: 1rem;
+}
+.ql-formats > span {
+  color: hsl(var(--foreground)) !important;
+}
+
+.ql-formats > span svg polyline,
+.ql-formats > span svg line {
+  stroke: hsl(var(--foreground)) !important;
+}
+
+.ql-formats > span svg:hover polyline,
+.ql-formats > span svg:hover line,
+.ql-formats > span svg:hover rect {
+  stroke: hsl(210, 100%, 50%) !important;
+}
+
+.ql-formats button svg path,
+.ql-formats button svg line,
+.ql-formats button svg polyline,
+.ql-formats > button svg rect {
+  stroke: hsl(var(--foreground)) !important;
+}
+.ql-formats button svg:hover path,
+.ql-formats button svg:hover line,
+.ql-formats button svg:hover polyline,
+.ql-formats > button svg:hover rect {
+  stroke: hsl(210, 100%, 50%) !important;
+}
+
+.ql-picker-options {
+  background: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+  border: none !important;
+}
+.ql-picker-item {
+  color: hsl(var(--foreground)) !important;
+}
+.ql-picker-item:hover {
+  color: #83838f !important;
+}
+
+.ql-container {
+  height: 300px; /* Set fixed height for editor content */
+  overflow-y: auto;
+}
+
+.ql-editor {
+  min-height: 200px; /* Set minimum height for editor */
+}
+
+.ql-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: hsl(var(--background));
+}
+.ql-editor.ql-blank::before {
+  color: hsl(var(--foreground)) !important;
 }

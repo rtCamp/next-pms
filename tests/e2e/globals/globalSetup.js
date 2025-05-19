@@ -9,6 +9,8 @@ import {
 import { storeStorageState } from "../helpers/storageStateHelper";
 import { updateLeaveEntries } from "../helpers/leaveHelper";
 import { createJSONFile } from "../utils/fileUtils";
+import { createEmployees } from "../helpers/employeeHelper";
+
 // ------------------------------------------------------------------------------------------
 
 /**
@@ -32,6 +34,7 @@ const globalSetup = async () => {
   await readAndCleanAllOrphanData();
 
   // 2. Use API roles to create data
+  await createEmployees();
   await updateTimeEntries();
   await createProjectForTestCases();
   await createTaskForTestCases();

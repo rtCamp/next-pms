@@ -64,6 +64,7 @@ def get_data(filters=None):
         employee["revenue"] = billing_amount.get(employee.employee, 0)
         employee["profit"] = employee["revenue"] - employee["cost"]
         employee["profit_percentage"] = (employee["profit"] / employee["revenue"]) * 100 if employee["revenue"] else 0
+        employee["employee_name"] = employee.get("employee_name")
     return employees
 
 
@@ -131,8 +132,11 @@ def calculate_employee_total_hours(employee, start_date, end_date, daily_hours, 
     return total_hours
 
 
-def get_employees(start_date, end_date, department=None, status="Active"):
-    filter = {"status": status}
+def get_employees(start_date, end_date, department=None, status=None):
+    if status:
+        filter = {"status": status}
+    else:
+        filter = {}
     if department:
         filter.update({"department": ["in", department]})
 
@@ -226,11 +230,22 @@ def get_columns():
             "fieldtype": "Link",
             "options": "Employee",
         },
+        {"fieldname": "employee_name", "label": _("Employee Name"), "fieldtype": "Data"},
+        {
+            "fieldname": "employee_name",
+            "label": _("Employee Name"),
+            "fieldtype": "Data",
+        },
         {
             "fieldname": "designation",
             "label": _("Designation"),
             "fieldtype": "Link",
             "options": "Designation",
+        },
+        {
+            "fieldname": "status",
+            "label": _("Status"),
+            "fieldtype": "Data",
         },
         {
             "fieldname": "department",

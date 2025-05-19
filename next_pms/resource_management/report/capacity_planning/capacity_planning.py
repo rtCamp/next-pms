@@ -32,7 +32,7 @@ def get_data(meta, filters=None):
     end_date = filters.get("to")
     employee_status = filters.get("status")
 
-    fields = ["name as employee", "employee_name", "designation"]
+    fields = ["name as employee", "employee_name", "designation", "status"]
 
     if meta.has_field("custom_business_unit"):
         fields.append("custom_business_unit")
@@ -40,7 +40,7 @@ def get_data(meta, filters=None):
     employees = get_list(
         "Employee",
         fields=fields,
-        filters={"status": employee_status},
+        filters={"status": employee_status} if employee_status else {},
         order_by="employee_name ASC",
     )
     employee_names = [employee.employee for employee in employees]
@@ -69,6 +69,11 @@ def get_columns(meta):
         {
             "fieldname": "employee_name",
             "label": _("Employee Name"),
+            "fieldtype": "Data",
+        },
+        {
+            "fieldname": "status",
+            "label": _("Status"),
             "fieldtype": "Data",
         },
         {

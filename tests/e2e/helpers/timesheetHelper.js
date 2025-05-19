@@ -324,13 +324,13 @@ export const createProjectForTestCases = async () => {
   };
 
   await processTestCases(employeeTimesheetData, employeeTimesheetIDs);
-  writeDataToFile(employeeTimesheetDataFilePath, employeeTimesheetData);
+  await writeDataToFile(employeeTimesheetDataFilePath, employeeTimesheetData);
 
   await processTestCases(managerTaskData, managerTaskIDs);
-  writeDataToFile(managerTaskDataFilePath, managerTaskData);
+  await writeDataToFile(managerTaskDataFilePath, managerTaskData);
 
   await processTestCases(managerTeamData, managerTeamIDs);
-  writeDataToFile(managerTeamDataFilePath, managerTeamData);
+  await writeDataToFile(managerTeamDataFilePath, managerTeamData);
 };
 
 // ------------------------------------------------------------------------------------------
@@ -476,13 +476,13 @@ export const createTaskForTestCases = async () => {
   };
 
   await processTestCasesForTasks(employeeTimesheetData, employeeTimesheetIDs);
-  writeDataToFile(employeeTimesheetDataFilePath, employeeTimesheetData);
+  await writeDataToFile(employeeTimesheetDataFilePath, employeeTimesheetData);
 
   await processTestCasesForTasks(managerTaskData, managerTaskIDs);
-  writeDataToFile(managerTaskDataFilePath, managerTaskData);
+  await writeDataToFile(managerTaskDataFilePath, managerTaskData);
 
   await processTestCasesForTasks(managerTeamData, managerTeamIDs);
-  writeDataToFile(managerTeamDataFilePath, managerTeamData);
+  await writeDataToFile(managerTeamDataFilePath, managerTeamData);
 };
 // ------------------------------------------------------------------------------------------
 
