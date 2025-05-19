@@ -301,10 +301,10 @@ export const createProjectForTestCases = async () => {
           let shareProjectWithUserPayload = data[testCaseID].payloadShareProject;
           shareProjectWithUserPayload.name = projectId;
           shareProjectWithUserPayload.user = emp2Mail;
-          console.warn("Payload for sharing project:", shareProjectWithUserPayload);
+          //console.warn("Payload for sharing project:", shareProjectWithUserPayload);
 
-          const response = await shareProjectWithUser({ ...shareProjectWithUserPayload });
-          console.warn("Response of share project is :                          ", response);
+          await shareProjectWithUser({ ...shareProjectWithUserPayload });
+          //console.warn("Response of share project is :                          ", response);
         }
 
         // Store project ID in related payloads
@@ -442,10 +442,8 @@ export const createTaskForTestCases = async () => {
         if (data[testCaseID].payloadUpdateTask) {
           const updateTaskPayload = data[testCaseID].payloadUpdateTask;
 
-          const updateTaskResponse = await updateTask(taskID, updateTaskPayload);
-          console.log(
-            `UPDATE TASK RESPOSNE FOR ${testCaseID} is : \n ${updateTaskResponse} and custom billable status is ${updateTaskResponse.data.custom_is_billable}`
-          );
+          await updateTask(taskID, updateTaskPayload);
+          //console.log(`UPDATE TASK RESPOSNE FOR ${testCaseID} is : \n ${updateTaskResponse} and custom billable status is ${updateTaskResponse.data.custom_is_billable}`);
         }
       }
 

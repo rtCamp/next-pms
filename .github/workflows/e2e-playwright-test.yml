@@ -232,6 +232,13 @@ jobs:
         name: playwright-report
         path: tests/e2e/playwright-report
 
+    - name: Upload Allure Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: Allure-report
+        path: allure-report
+
     - name: Zip Allure Report
       if: ${{ success() || failure() }}
       run: |
@@ -390,7 +397,6 @@ jobs:
                   </ul>
                 </div>
 
-            <p>The HTML test report is attached below for your reference.</p>
             <p>To view videos and other report assets to track failure, visit the <a href="https://github.com/rtcamp/next-pms/actions/runs/${{ github.run_id }}#artifacts">GitHub Actions Artifacts</a>.</p>
             <p>To view the build details and see what changes have been merged, visit the build link:</p><a href="https://github.com/rtcamp/next-pms/actions/runs/${{ github.run_id }}">Build Details</a>
             <p>If you have any questions, please feel free to revert back.</p>
@@ -403,8 +409,6 @@ jobs:
           </html>
         to: bots-erp-rtcamp-com-aaaajmbbbavnlkxccfuvoqjqsy@rtcamp.slack.com
         from: no-reply@gmail.com
-        attachments: |
-          report.zip
 
     - name: Cleanup
       if: ${{ always() }}
