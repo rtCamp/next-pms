@@ -21,7 +21,7 @@ import { deleteLeave } from "../utils/api/leaveRequests";
 // Load env variables
 const empID = process.env.EMP_ID;
 const emp2ID = process.env.EMP2_ID;
-const EMP2_EMAIL = process.env.EMP2_EMAIL;
+const emp2Mail = process.env.EMP2_EMAIL;
 
 // Define file paths for shared JSON data files
 const employeeTimesheetDataFilePath = path.resolve(__dirname, "../data/employee/shared-timesheet.json"); // File path of the employee timesheet data JSON file
@@ -302,7 +302,7 @@ export const createProjectForTestCases = async () => {
         if (data[testCaseID].payloadShareProject) {
           let shareProjectWithUserPayload = data[testCaseID].payloadShareProject;
           shareProjectWithUserPayload.name = projectId;
-          shareProjectWithUserPayload.user = EMP2_EMAIL;
+          shareProjectWithUserPayload.user = emp2Mail;
           console.warn("Payload for sharing project:", shareProjectWithUserPayload);
 
           const response = await shareProjectWithUser({ ...shareProjectWithUserPayload });
