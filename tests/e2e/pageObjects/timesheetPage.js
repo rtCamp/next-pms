@@ -42,6 +42,9 @@ export class TimesheetPage {
 
     //Success Banner : Deleted Time Entry
     this.successBanner = page.locator(`//div[text()="Time entry deleted successfully."]`);
+
+    //Timesheet Description
+    this.descriptionNewEntry = page.locator(`//div[@data-placeholder = "Explain your progress"]`);
   }
 
   // --------------------------------------
@@ -87,7 +90,7 @@ export class TimesheetPage {
     if (task) {
       await this.searchAndSelectOption("Search Task", task);
     }
-    await this.addTimeModal.getByPlaceholder("Explain your progress").fill(desc);
+    await this.descriptionNewEntry.fill(desc);
     await this.addTimeModal.getByRole("button", { name: "Add Time" }).click();
   }
 
