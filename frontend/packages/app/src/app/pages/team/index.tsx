@@ -23,6 +23,7 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
+  TextEditor,
 } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
 import { useToast } from "@next-pms/design-system/hooks";
@@ -217,9 +218,15 @@ const Team = () => {
                                   {data.note && (
                                     <HoverCardContent
                                       className="text-sm font-normal text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto hover-content"
-                                      dangerouslySetInnerHTML={{ __html: data.note }}
                                       onClick={(e) => e.stopPropagation()}
-                                    ></HoverCardContent>
+                                    >
+                                      <TextEditor
+                                        onChange={() => {}}
+                                        hideToolbar={true}
+                                        readOnly={true}
+                                        value={data.note}
+                                      />
+                                    </HoverCardContent>
                                   )}
                                 </TableCell>
                               </HoverCard>
