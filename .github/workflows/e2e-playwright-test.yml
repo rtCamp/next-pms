@@ -14,10 +14,9 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-  concurrency:
-    group: ${{ github.workflow }}
-    cancel-in-progress: false
-
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
 jobs:
   deploy:
