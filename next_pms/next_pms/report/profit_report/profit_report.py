@@ -23,6 +23,7 @@ def execute(filters=None):
 
 
 def get_data(filters=None):
+    res = []
     start_date = getdate(filters.get("from_date"))
     end_date = getdate(filters.get("to_date"))
     employees = get_employees(
@@ -33,6 +34,9 @@ def get_data(filters=None):
     timesheets = get_employees_timesheet_hours(emp_names, start_date, end_date)
     billing_amount = get_employees_billable_amount(emp_names, start_date, end_date)
     for employee in employees:
+        emp_timesheet = next((timesheet for timesheet in timesheets if timesheet.employee == employee.employee), None)
+        if employee.status != "Active" and not emp_timesheet:
+            continue
         employee_leave_and_holidays = get_employee_leaves_and_holidays(employee.employee, start_date, end_date)
         daily_hours = get_employee_daily_working_norm(employee.employee)
         num_of_holidays = len(employee_leave_and_holidays.get("holidays"))
@@ -44,7 +48,7 @@ def get_data(filters=None):
             daily_hours=daily_hours,
             employee_leave_and_holidays=employee_leave_and_holidays,
         )
-        emp_timesheet = next((timesheet for timesheet in timesheets if timesheet.employee == employee.employee), None)
+
         if not emp_timesheet:
             emp_timesheet = {"billable_hours": 0, "non_billable_hours": 0}
         employee["billable_hours"] = emp_timesheet.get("billable_hours", 0)
@@ -64,7 +68,9 @@ def get_data(filters=None):
         employee["revenue"] = billing_amount.get(employee.employee, 0)
         employee["profit"] = employee["revenue"] - employee["cost"]
         employee["profit_percentage"] = (employee["profit"] / employee["revenue"]) * 100 if employee["revenue"] else 0
-    return employees
+        employee["employee_name"] = employee.get("employee_name")
+        res.append(employee)
+    return res
 
 
 def calculate_employee_cost(
@@ -131,8 +137,11 @@ def calculate_employee_total_hours(employee, start_date, end_date, daily_hours, 
     return total_hours
 
 
-def get_employees(start_date, end_date, department=None, status="Active"):
-    filter = {"status": status}
+def get_employees(start_date, end_date, department=None, status=None):
+    if status:
+        filter = {"status": status}
+    else:
+        filter = {}
     if department:
         filter.update({"department": ["in", department]})
 
@@ -226,11 +235,22 @@ def get_columns():
             "fieldtype": "Link",
             "options": "Employee",
         },
+        {"fieldname": "employee_name", "label": _("Employee Name"), "fieldtype": "Data"},
+        {
+            "fieldname": "employee_name",
+            "label": _("Employee Name"),
+            "fieldtype": "Data",
+        },
         {
             "fieldname": "designation",
             "label": _("Designation"),
             "fieldtype": "Link",
             "options": "Designation",
+        },
+        {
+            "fieldname": "status",
+            "label": _("Status"),
+            "fieldtype": "Data",
         },
         {
             "fieldname": "department",

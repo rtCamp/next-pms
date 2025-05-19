@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { Checkbox, Separator, Typography } from "@next-pms/design-system/components";
+import { Checkbox, Separator, TextEditor, Typography } from "@next-pms/design-system/components";
 import { getDateFromDateAndTimeString, prettyDate } from "@next-pms/design-system/date";
 import { floatToTime, preProcessLink } from "@next-pms/design-system/utils";
 import { CircleDollarSign } from "lucide-react";
@@ -119,9 +119,11 @@ export const EmployeeTimesheetListItem = ({
               </div>
               <Separator className="my-2  max-w-full lg:hidden" />
               <p
-                className="text-sm font-normal max-md:text-wrap  col-span-2 max-md:px-4 my-1"
-                dangerouslySetInnerHTML={{ __html: description }}
-              ></p>
+                className="text-sm font-normal max-md:text-wrap  col-span-2  my-1 ql-editor p-0 hover-content"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <TextEditor onChange={() => {}} hideToolbar={true} readOnly={true} value={description} />
+              </p>
             </div>
           </div>
         );

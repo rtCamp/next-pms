@@ -15,11 +15,13 @@ import { createProject, deleteProject, getProjectDetails } from "../utils/api/pr
 import { createTask, deleteTask, likeTask, updateTask } from "../utils/api/taskRequests";
 import { getExchangeRate } from "../utils/api/erpNextRequests";
 import { getEmployeeDetails } from "../utils/api/employeeRequests";
-import { filterApi } from "../utils/api/frappeRequests";
+import { filterApi, shareProjectWithUser } from "../utils/api/frappeRequests";
 import { deleteLeave } from "../utils/api/leaveRequests";
 
 // Load env variables
 const empID = process.env.EMP_ID;
+const emp2ID = process.env.EMP2_ID;
+const emp2Mail = process.env.EMP2_EMAIL;
 
 // Define file paths for shared JSON data files
 const employeeTimesheetDataFilePath = path.resolve(__dirname, "../data/employee/shared-timesheet.json"); // File path of the employee timesheet data JSON file
@@ -79,11 +81,12 @@ export const updateTimeEntries = async () => {
       if (!data[testCaseID]?.cell?.col) continue; // Skip if missing required structure
 
       const formattedDate = getFormattedDate(getDateForWeekday(data[testCaseID].cell.col));
+      const employeeID = testCaseID === "TC2" ? emp2ID : empID;
 
       // Update 'payloadCreateTimesheet' if it exists
       if (data[testCaseID].payloadCreateTimesheet) {
         data[testCaseID].payloadCreateTimesheet.date = formattedDate;
-        data[testCaseID].payloadCreateTimesheet.employee = empID;
+        data[testCaseID].payloadCreateTimesheet.employee = employeeID;
       }
 
       // Update all 'payloadFilterTimeEntry' fields dynamically
@@ -91,7 +94,7 @@ export const updateTimeEntries = async () => {
         .filter((entryKey) => entryKey.startsWith("payloadFilterTimeEntry"))
         .forEach((entryKey) => {
           data[testCaseID][entryKey].from_time = formattedDate;
-          data[testCaseID][entryKey].employee = empID;
+          data[testCaseID][entryKey].employee = employeeID;
         });
     }
   };
@@ -198,6 +201,10 @@ export const deleteTimeEntries = async () => {
     const filteredTimeEntry = await filterTimesheetEntry(entry);
 
     await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name }, "employee");
+
+    if (entry.project_name === "TC02 Project") {
+      console.warn(`RESPONSE OF DELETE TIMESHEET FOR TC02 : ${entry.project_name}`);
+    }
   }
 };
 
@@ -288,6 +295,17 @@ export const createProjectForTestCases = async () => {
 
         const projectId = jsonResponse.data.name;
         const custom_currency = jsonResponse.data.custom_currency;
+
+        //Share project with users
+        if (data[testCaseID].payloadShareProject) {
+          let shareProjectWithUserPayload = data[testCaseID].payloadShareProject;
+          shareProjectWithUserPayload.name = projectId;
+          shareProjectWithUserPayload.user = emp2Mail;
+          //console.warn("Payload for sharing project:", shareProjectWithUserPayload);
+
+          await shareProjectWithUser({ ...shareProjectWithUserPayload });
+          //console.warn("Response of share project is :                          ", response);
+        }
 
         // Store project ID in related payloads
         data[testCaseID].payloadDeleteProject.projectId = projectId;
@@ -424,10 +442,8 @@ export const createTaskForTestCases = async () => {
         if (data[testCaseID].payloadUpdateTask) {
           const updateTaskPayload = data[testCaseID].payloadUpdateTask;
 
-          const updateTaskResponse = await updateTask(taskID, updateTaskPayload);
-          console.log(
-            `UPDATE TASK RESPOSNE FOR ${testCaseID} is : \n ${updateTaskResponse} and custom billable status is ${updateTaskResponse.data.custom_is_billable}`
-          );
+          await updateTask(taskID, updateTaskPayload);
+          //console.log(`UPDATE TASK RESPOSNE FOR ${testCaseID} is : \n ${updateTaskResponse} and custom billable status is ${updateTaskResponse.data.custom_is_billable}`);
         }
       }
 
@@ -512,46 +528,54 @@ export const deleteTasks = async () => {
   sharedManagerTaskData = await readJSONFile("../data/manager/shared-task.json");
   sharedManagerTeamData = await readJSONFile("../data/manager/shared-team.json");
 
-  //Provide the json structure in below array for the testcase that needs Task Deletion
+  // List of test case entries with test case IDs
   const tasksToBeDeleted = [
-    sharedEmployeeTimesheetData.TC2.payloadDeleteTask.taskID,
-    sharedEmployeeTimesheetData.TC3.payloadDeleteTask.taskID,
-    sharedEmployeeTimesheetData.TC4.payloadDeleteTask.taskID,
-    sharedEmployeeTimesheetData.TC5.payloadDeleteTask.taskID,
-    sharedEmployeeTimesheetData.TC6.payloadDeleteTask.taskID,
-    sharedEmployeeTimesheetData.TC7.payloadDeleteTask.taskID,
-    sharedEmployeeTimesheetData.TC9.payloadDeleteTask.taskID,
-    sharedEmployeeTimesheetData.TC14.payloadDeleteTask.taskID,
-    sharedEmployeeTimesheetData.TC15.payloadDeleteTask.taskID,
-    sharedEmployeeTimesheetData.TC82.payloadDeleteTask.taskID,
-    sharedEmployeeTimesheetData.TC83.payloadDeleteTask.taskID,
-    sharedEmployeeTimesheetData.TC84.payloadDeleteTask.taskID,
-    sharedEmployeeTimesheetData.TC85.payloadDeleteTask.taskID,
-    sharedEmployeeTimesheetData.TC86.payloadDeleteTask.taskID,
-    sharedEmployeeTimesheetData.TC87.payloadDeleteTask.taskID,
-    sharedEmployeeTimesheetData.TC88.payloadDeleteTask.taskID,
-    sharedEmployeeTimesheetData.TC89.payloadDeleteTask.taskID,
-    sharedEmployeeTimesheetData.TC90.payloadDeleteTask.taskID,
-    sharedEmployeeTimesheetData.TC96.payloadDeleteTask.taskID,
-    sharedEmployeeTimesheetData.TC97.payloadDeleteTask.taskID,
-    sharedEmployeeTimesheetData.TC98.payloadDeleteTask.taskID,
-    sharedEmployeeTimesheetData.TC99.payloadDeleteTask.taskID,
-    sharedEmployeeTimesheetData.TC100.payloadDeleteTask.taskID,
-    sharedEmployeeTimesheetData.TC101.payloadDeleteTask.taskID,
-    sharedManagerTaskData.TC22.payloadDeleteTask.taskID,
-    sharedManagerTaskData.TC25.payloadDeleteTask.taskID,
-    sharedManagerTaskData.TC26.payloadDeleteTask.taskID,
-    sharedManagerTaskData.TC17.payloadDeleteTask.taskID,
-    sharedManagerTaskData.TC19.payloadDeleteTask.taskID,
-    sharedManagerTeamData.TC47.payloadDeleteTask.taskID,
-    sharedManagerTeamData.TC49.payloadDeleteTask.taskID,
-    sharedManagerTeamData.TC50.payloadDeleteTask.taskID,
+    { id: "TC2", data: sharedEmployeeTimesheetData.TC2 },
+    { id: "TC3", data: sharedEmployeeTimesheetData.TC3 },
+    { id: "TC4", data: sharedEmployeeTimesheetData.TC4 },
+    { id: "TC5", data: sharedEmployeeTimesheetData.TC5 },
+    { id: "TC6", data: sharedEmployeeTimesheetData.TC6 },
+    { id: "TC7", data: sharedEmployeeTimesheetData.TC7 },
+    { id: "TC9", data: sharedEmployeeTimesheetData.TC9 },
+    { id: "TC14", data: sharedEmployeeTimesheetData.TC14 },
+    { id: "TC15", data: sharedEmployeeTimesheetData.TC15 },
+    { id: "TC82", data: sharedEmployeeTimesheetData.TC82 },
+    { id: "TC83", data: sharedEmployeeTimesheetData.TC83 },
+    { id: "TC84", data: sharedEmployeeTimesheetData.TC84 },
+    { id: "TC85", data: sharedEmployeeTimesheetData.TC85 },
+    { id: "TC86", data: sharedEmployeeTimesheetData.TC86 },
+    { id: "TC87", data: sharedEmployeeTimesheetData.TC87 },
+    { id: "TC88", data: sharedEmployeeTimesheetData.TC88 },
+    { id: "TC89", data: sharedEmployeeTimesheetData.TC89 },
+    { id: "TC90", data: sharedEmployeeTimesheetData.TC90 },
+    { id: "TC96", data: sharedEmployeeTimesheetData.TC96 },
+    { id: "TC97", data: sharedEmployeeTimesheetData.TC97 },
+    { id: "TC98", data: sharedEmployeeTimesheetData.TC98 },
+    { id: "TC99", data: sharedEmployeeTimesheetData.TC99 },
+    { id: "TC100", data: sharedEmployeeTimesheetData.TC100 },
+    { id: "TC101", data: sharedEmployeeTimesheetData.TC101 },
+    { id: "TC22", data: sharedManagerTaskData.TC22 },
+    { id: "TC25", data: sharedManagerTaskData.TC25 },
+    { id: "TC26", data: sharedManagerTaskData.TC26 },
+    { id: "TC17", data: sharedManagerTaskData.TC17 },
+    { id: "TC19", data: sharedManagerTaskData.TC19 },
+    { id: "TC47", data: sharedManagerTeamData.TC47 },
+    { id: "TC49", data: sharedManagerTeamData.TC49 },
+    { id: "TC50", data: sharedManagerTeamData.TC50 },
   ];
-  for (const entry of tasksToBeDeleted) {
-    //Delete Project
-    await deleteTask(entry);
+
+  // For admin to delete a TC task
+  const adminCases = new Set(["TC2"]);
+
+  for (const { id, data } of tasksToBeDeleted) {
+    if (adminCases.has(id)) {
+      await deleteTask(data.payloadDeleteTask.taskID, "admin");
+    } else {
+      await deleteTask(data.payloadDeleteTask.taskID);
+    }
   }
 };
+
 // ------------------------------------------------------------------------------------------
 
 /**
@@ -647,7 +671,7 @@ export const cleanUpProjects = async (data) => {
     }
 
     // Get Timesheet IDs
-    const timesheetRes = await filterApi("Timesheet", [["Timesheet", "parent_project", "=", projectId]]);
+    const timesheetRes = await filterApi("Timesheet", [["Timesheet", "parent_project", "=", projectId]], "admin");
     //console.warn(`TMESHEET RESPONSE for ${key} is ; `, timesheetRes);
 
     const valuesRaw = timesheetRes?.message?.values;
@@ -713,7 +737,7 @@ export const cleanUpProjects = async (data) => {
 export const deleteLeaveOfEmployee = async () => {
   //Fetch Leave ID for employee if any exists
   const filterResponse = await filterApi("Leave Application", [
-    ["Leave Application", "employee", "=", `${empID}`],
+    ["Leave Application", "employee", "=", `${emp2ID}`],
     ["Leave Application", "status", "=", "Open"],
   ]);
   //Delete leave if leave ID is found in the filter request

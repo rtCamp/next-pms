@@ -22,7 +22,7 @@ import {
 } from "@next-pms/design-system/components";
 import { useToast } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
-import { preProcessLink, floatToTime } from "@next-pms/design-system/utils";
+import { floatToTime } from "@next-pms/design-system/utils";
 import { useInfiniteScroll } from "@next-pms/hooks";
 import { useFrappeGetCall } from "frappe-react-sdk";
 
@@ -172,7 +172,7 @@ const Home = () => {
                         );
 
                         return (
-                          <HoverCard key={`${data.hour}-id-${Math.random()}`} openDelay={1000}>
+                          <HoverCard key={`${data.hour}-id-${Math.random()}`} openDelay={500} closeDelay={500}>
                             <TableCell
                               className={mergeClassNames(
                                 "text-xs text-center hover:cursor-pointer bg-transparent",
@@ -187,9 +187,11 @@ const Home = () => {
                             >
                               <HoverCardTrigger>{data.hour > 0 ? floatToTime(data.hour) : "-"}</HoverCardTrigger>
                               {data.note && (
-                                <HoverCardContent className="text-sm text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto">
-                                  <p dangerouslySetInnerHTML={{ __html: preProcessLink(data.note) }}></p>
-                                </HoverCardContent>
+                                <HoverCardContent
+                                  className="text-sm text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto ql-editor min-h-0 h-fit hover-content p-2"
+                                  dangerouslySetInnerHTML={{ __html: data.note }}
+                                  onClick={(e) => e.stopPropagation()}
+                                ></HoverCardContent>
                               )}
                             </TableCell>
                           </HoverCard>

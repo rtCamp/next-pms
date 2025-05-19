@@ -38,7 +38,10 @@ def before_save(doc, method=None):
 
 
 def on_update(doc, method=None):
+    from next_pms.timesheet.api.utils import update_weekly_status_of_timesheet
+
     doc.update_task_and_project()
+    update_weekly_status_of_timesheet(doc.employee, getdate(doc.start_date))
 
 
 def after_delete(doc, method=None):
@@ -53,12 +56,6 @@ def before_validate(doc, method=None):
 def before_submit(doc, method=None):
     validate_self_approval(doc)
     doc.custom_approval_status = "Approved"
-
-
-def on_submit(doc, method=None):
-    from next_pms.timesheet.api.utils import update_weekly_status_of_timesheet
-
-    update_weekly_status_of_timesheet(doc.employee, getdate(doc.start_date))
 
 
 def on_cancel(doc, method=None):

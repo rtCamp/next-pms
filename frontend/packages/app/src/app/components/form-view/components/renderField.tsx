@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * External dependencies.
  */
@@ -13,6 +14,7 @@ import {
   TextArea,
   Input,
   Typography,
+  TextEditor,
 } from "@next-pms/design-system/components";
 /**
  * Internal dependencies.
@@ -22,7 +24,6 @@ import { ThemeProviderContext } from "@/providers/theme/context";
 import LinkField from "./linkField";
 import { Field, FieldConfigType } from "../types";
 import ChildTable from "./childTable";
-import Editor from "./editor";
 
 /**
  * RenderField Component
@@ -289,9 +290,9 @@ const getFieldComponent = (
       return <ChildTable isReadOnly={isReadOnly} field={field} currencySymbol={currencySymbol} />;
     case "Text Editor":
       return (
-        <Editor
-          field={field}
-          isReadOnly={isReadOnly}
+        <TextEditor
+          defaultValue={field.value as string}
+          readOnly={isReadOnly || field.read_only === 1}
           onChange={(value) => {
             handleChange(value);
           }}

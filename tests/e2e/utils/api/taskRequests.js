@@ -61,11 +61,16 @@ export const createTask = async ({ subject, project, description, custom_is_bill
 /**
  * Delete a Task.
  */
-export const deleteTask = async (taskID) => {
-  return await apiRequest(`/api/resource/Task/${taskID}`, {
-    method: "DELETE",
-  });
+export const deleteTask = async (taskID, role) => {
+  return await apiRequest(
+    `/api/resource/Task/${taskID}`,
+    {
+      method: "DELETE",
+    },
+    role
+  );
 };
+
 /**
  * Like a Task.
  */

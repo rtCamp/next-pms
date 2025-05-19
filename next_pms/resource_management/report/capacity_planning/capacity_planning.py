@@ -32,7 +32,7 @@ def get_data(meta, filters=None):
     end_date = filters.get("to")
     employee_status = filters.get("status")
 
-    fields = ["name as employee", "employee_name", "designation"]
+    fields = ["name as employee", "employee_name", "designation", "status"]
 
     if meta.has_field("custom_business_unit"):
         fields.append("custom_business_unit")
@@ -40,7 +40,7 @@ def get_data(meta, filters=None):
     employees = get_list(
         "Employee",
         fields=fields,
-        filters={"status": employee_status},
+        filters={"status": employee_status} if employee_status else {},
         order_by="employee_name ASC",
     )
     employee_names = [employee.employee for employee in employees]
@@ -69,6 +69,11 @@ def get_columns(meta):
         {
             "fieldname": "employee_name",
             "label": _("Employee Name"),
+            "fieldtype": "Data",
+        },
+        {
+            "fieldname": "status",
+            "label": _("Status"),
             "fieldtype": "Data",
         },
         {
@@ -132,6 +137,7 @@ def get_resource_allocation_fields():
 
 
 def calculate_hours_and_revenue(employees, resource_allocations, start_date, end_date):
+    res = []
     start_date = getdate(start_date)
     end_date = getdate(end_date)
 
@@ -143,7 +149,8 @@ def calculate_hours_and_revenue(employees, resource_allocations, start_date, end
 
     for employee in employees:
         employee_allocations = resource_allocation_map.get(employee.employee, [])
-
+        if not employee_allocations and employee.status != "Active":
+            continue
         daily_hours = get_employee_daily_working_norm(employee.employee)
         employee_leave_and_holiday = get_employee_leaves_and_holidays(employee.employee, start_date, end_date)
         holidays = employee_leave_and_holiday.get("holidays")
@@ -186,7 +193,8 @@ def calculate_hours_and_revenue(employees, resource_allocations, start_date, end
             + free_hours_revenue
         )
         employee["total_hours"] = employee_billable_hours + employee_free_hours + employee_non_billable_hours
-    return employees
+        res.append(employee)
+    return res
 
 
 def calculate_and_convert_revenue(
