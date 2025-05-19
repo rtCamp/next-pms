@@ -132,8 +132,11 @@ def calculate_employee_total_hours(employee, start_date, end_date, daily_hours, 
     return total_hours
 
 
-def get_employees(start_date, end_date, department=None, status="Active"):
-    filter = {"status": status}
+def get_employees(start_date, end_date, department=None, status=None):
+    if status:
+        filter = {"status": status}
+    else:
+        filter = {}
     if department:
         filter.update({"department": ["in", department]})
 
@@ -229,10 +232,20 @@ def get_columns():
         },
         {"fieldname": "employee_name", "label": _("Employee Name"), "fieldtype": "Data"},
         {
+            "fieldname": "employee_name",
+            "label": _("Employee Name"),
+            "fieldtype": "Data",
+        },
+        {
             "fieldname": "designation",
             "label": _("Designation"),
             "fieldtype": "Link",
             "options": "Designation",
+        },
+        {
+            "fieldname": "status",
+            "label": _("Status"),
+            "fieldtype": "Data",
         },
         {
             "fieldname": "department",
