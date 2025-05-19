@@ -314,3 +314,17 @@ export const extractTextFromHTML = (htmlContent: string) => {
   tempElement.innerHTML = htmlContent;
   return tempElement?.textContent?.trim();
 };
+
+export const enableSocket = () => {
+  const enableSocket = import.meta.env.VITE_ENABLE_SOCKET;
+  if (typeof enableSocket !== "string") {
+    return enableSocket;
+  }
+  if (enableSocket === "true") {
+    return true;
+  } else if (enableSocket === "false") {
+    return false;
+  } else {
+    return undefined;
+  }
+};
