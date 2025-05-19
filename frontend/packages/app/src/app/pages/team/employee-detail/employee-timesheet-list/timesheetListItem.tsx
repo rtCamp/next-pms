@@ -118,12 +118,12 @@ export const EmployeeTimesheetListItem = ({
                 </div>
               </div>
               <Separator className="my-2  max-w-full lg:hidden" />
-              <div
+              <p
                 className="text-sm font-normal max-md:text-wrap  col-span-2  my-1 ql-editor p-0 hover-content"
                 onClick={(e) => e.stopPropagation()}
               >
                 <TextEditor onChange={() => {}} hideToolbar={true} readOnly={true} value={description} />
-              </div>
+              </p>
             </div>
           </div>
         );

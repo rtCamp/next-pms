@@ -90,6 +90,7 @@ const TextEditor = ({
         style={{ resize: "vertical", overflow: "auto" }}
         className={mergeClassNames(
           "border rounded-md border-input [&>div:first-child]:border-t-0 [&>div:first-child]:border-r-0 [&>div:first-child]:border-l-0 [&>div:first-child]:border-input [&>div:first-child]:border-bottom [&>div:last-child]:border-none text-foreground bg-background ",
+          hideToolbar && "border-none !resize-none",
           className
         )}
         theme="snow"
