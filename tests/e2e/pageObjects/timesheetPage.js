@@ -28,6 +28,14 @@ export class TimesheetPage {
       has: page.getByRole("button", { name: "Submit For Approval" }),
     });
 
+    this.addHours = (timeEntryCount) => page.locator(`//input[@name="${timeEntryCount}"]`);
+
+    this.updateDescription = (timeSheetDescription) =>
+      page.locator(
+        `//p[contains(text(),"${timeSheetDescription}")]//parent::div[@data-placeholder="Update your progress"]`
+      );
+    this.insertDescription = page.locator('div.ql-editor.ql-blank[data-placeholder="Update your progress"]');
+
     // Review Timesheet Pane (Not a part of this page)
     this.reviewTimesheetPane = page.getByRole("dialog").filter({
       has: page.locator("h2", { hasText: /^Week of/ }),
@@ -369,12 +377,13 @@ export class TimesheetPage {
    */
   async addTimeRow(cellInfo, { duration, desc }) {
     const cell = await this.getCell(cellInfo);
-    const newRow = this.editTimeModal.locator("//div[contains(@class, 'items-start')]").last();
 
     await this.openCell(cell);
     await this.editTimeModal.getByRole("button", { name: "Add Row" }).click();
-    await newRow.getByPlaceholder("00:00").fill(duration);
-    await newRow.locator("textarea").fill(desc);
+    // data.0.hours = first time entry for a task, data.1.hours = second time entry for a task in the modal.
+    await this.addHours("data.1.hours").fill(duration);
+
+    await this.insertDescription.fill(desc);
     await this.editTimeModal.getByRole("button", { name: "Save" }).click();
   }
 
@@ -383,13 +392,10 @@ export class TimesheetPage {
    */
   async updateTimeRow(cellInfo, { desc, newDesc, newDuration }) {
     const cell = await this.getCell(cellInfo);
-    const row = this.editTimeModal.locator(
-      `//textarea[contains(text(), '${desc}')]/ancestor::div[contains(@class, 'items-start')]`
-    );
 
     await this.openCell(cell);
-    await row.getByPlaceholder("00:00").fill(newDuration);
-    await row.locator("textarea").fill(newDesc);
+    await this.addHours("data.0.hours").fill(newDuration);
+    await this.updateDescription(desc).fill(newDesc);
     await this.editTimeModal.getByRole("button", { name: "Save" }).click();
     await this.editTimeModal.getByRole("button", { name: "Close" }).click();
   }
@@ -400,7 +406,7 @@ export class TimesheetPage {
   async deleteTimeRow(cellInfo, { desc }) {
     const cell = await this.getCell(cellInfo);
     const row = this.editTimeModal.locator(
-      `//textarea[contains(text(), '${desc}')]/ancestor::div[contains(@class, 'items-start')]`
+      `//p[contains(text(), '${desc}')]/ancestor::div[contains(@class, 'items-start')]`
     );
 
     await this.openCell(cell);
