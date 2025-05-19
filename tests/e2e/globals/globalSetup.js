@@ -43,7 +43,11 @@ const globalSetup = async () => {
   await updateLeaveEntries();
 
   // 3. Create frontend UI storage states ONLY after all above is done
-  await Promise.all([storeStorageState("employee2", false),storeStorageState("employee", false), storeStorageState("manager", false)]);
+  await Promise.all([
+    storeStorageState("employee2", false),
+    storeStorageState("employee", false),
+    storeStorageState("manager", false),
+  ]);
 };
 
 export default globalSetup;
