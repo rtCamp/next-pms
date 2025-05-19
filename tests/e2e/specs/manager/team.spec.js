@@ -201,7 +201,7 @@ test("TC91: Verify Employee Status filter to show the results appropriately", as
   //Apply the filter based on Emp Status
   const employeeStatuses = ["Active", "Inactive", "Suspended", "Left"];
   for (const empStatus of employeeStatuses) {
-    console.log(`Verifying results for Employee Status: ${empStatus}`);
+    console.warn(`Verifying results for Employee Status: ${empStatus}`);
 
     // Apply the filter
     await teamPage.checkEmployeeStatus(empStatus);
@@ -212,7 +212,7 @@ test("TC91: Verify Employee Status filter to show the results appropriately", as
     if (employeesWithStatus.length > 0) {
       for (const employee of employeesWithStatus) {
         const employeeFullName = `${employee.first_name} ${employee.last_name}`;
-        console.log(`Verifying visibility of employee: ${employeeFullName}`);
+        console.warn(`Verifying visibility of employee: ${employeeFullName}`);
 
         // Assertion : Verify employee name is visible
         await expect(teamPage.employeeNameInTable(employeeFullName)).toBeVisible();

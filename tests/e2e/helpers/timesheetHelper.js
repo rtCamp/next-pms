@@ -200,10 +200,8 @@ export const deleteTimeEntries = async () => {
   for (const entry of timeEntries) {
     const filteredTimeEntry = await filterTimesheetEntry(entry);
 
-    const response = await deleteTimesheet(
-      { parent: filteredTimeEntry.parent, name: filteredTimeEntry.name },
-      "employee"
-    );
+    await deleteTimesheet({ parent: filteredTimeEntry.parent, name: filteredTimeEntry.name }, "employee");
+
     if (entry.project_name === "TC02 Project") {
       console.warn(`RESPONSE OF DELETE TIMESHEET FOR TC02 : ${entry.project_name}`);
     }
