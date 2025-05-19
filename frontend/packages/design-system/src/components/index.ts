@@ -153,3 +153,4 @@ export {
 export { Tabs, TabsList, TabsTrigger, TabsContent } from "./tabs";
 
 export { DeleteConfirmationDialog } from "./confirmation-dialog";
+export { default as TextEditor, type TextEditorProps } from "./text-editor";

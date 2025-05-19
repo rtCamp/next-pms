@@ -21,10 +21,11 @@ def execute(filters=None):
 
 
 def get_data(filters, meta):
+    res = []
     start_date = filters.get("from")
     end_date = filters.get("to")
 
-    fields = ["name as employee", "employee_name", "reports_to"]
+    fields = ["name as employee", "employee_name", "reports_to", "status"]
 
     if meta.has_field("custom_business_unit"):
         fields.append("custom_business_unit")
@@ -32,15 +33,22 @@ def get_data(filters, meta):
     if meta.has_field("custom_reporting_manager"):
         fields.append("custom_reporting_manager")
 
-    employees = get_all("Employee", fields=fields, filters={"status": "Active"}, order_by="employee_name ASC")
+    if filters.get("status"):
+        emp_filters = {"status": filters.get("status")}
+    else:
+        emp_filters = {}
+    employees = get_all("Employee", fields=fields, filters=emp_filters, order_by="employee_name ASC")
     logged_hours = get_logged_hours(employees, start_date, end_date)
 
     for employee in employees:
+        if not logged_hours.get(employee["employee"], 0) and employee.status != "Active":
+            continue
         capcity_hours = get_employee_total_hours(employee["employee"], start_date, end_date)
         employee_logged_hours = logged_hours.get(employee["employee"], 0) or 0
         employee["capacity_hours"] = capcity_hours
         employee["logged_hours"] = employee_logged_hours
-    return employees
+        res.append(employee)
+    return res
 
 
 def get_logged_hours(employees, start_date, end_date):
@@ -88,40 +96,19 @@ def get_employee_total_hours(employee: str, start_date: str, end_date: str):
 
 def get_columns(meta):
     columns = [
-        {
-            "fieldname": "employee",
-            "label": _("Employee"),
-            "fieldtype": "Link",
-            "options": "Employee",
-            "width": 200,
-        },
+        {"fieldname": "employee", "label": _("Employee"), "fieldtype": "Link", "options": "Employee", "width": 200},
+        {"fieldname": "employee_name", "label": _("Employee Name"), "fieldtype": "Data"},
+        {"fieldname": "status", "label": _("Status"), "fieldtype": "Data"},
         {
             "fieldname": "custom_business_unit",
             "label": _("Business Unit"),
             "fieldtype": "Link",
             "options": "Business Unit",
         },
-        {
-            "fieldname": "reports_to",
-            "label": _("Reporting Manager"),
-            "fieldtype": "Link",
-            "options": "Employee",
-        },
-        {
-            "fieldname": "custom_reporting_manager",
-            "label": _("Reporting Manager"),
-            "fieldtype": "Data",
-        },
-        {
-            "fieldname": "capacity_hours",
-            "label": _("Capacity Hours"),
-            "fieldtype": "Float",
-        },
-        {
-            "fieldname": "logged_hours",
-            "label": _("Logged Hours"),
-            "fieldtype": "Float",
-        },
+        {"fieldname": "reports_to", "label": _("Reporting Manager"), "fieldtype": "Link", "options": "Employee"},
+        {"fieldname": "custom_reporting_manager", "label": _("Reporting Manager"), "fieldtype": "Data"},
+        {"fieldname": "capacity_hours", "label": _("Capacity Hours"), "fieldtype": "Float"},
+        {"fieldname": "logged_hours", "label": _("Logged Hours"), "fieldtype": "Float"},
     ]
     if not meta.has_field("custom_business_unit"):
         columns.pop(1)

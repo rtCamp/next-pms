@@ -44,7 +44,9 @@
         "@tanstack/react-table": "^8.20.5",
         "cmdk": "^1.0.0",
         "lucide-react": "^0.408.0",
-        "react-day-picker": "^8.10.1"
+        "react-day-picker": "^8.10.1",
+        "react-quill": "^2.0.0",
+        "quill-image-resize-module-react": "^3.0.0"
     },
     "devDependencies": {
     }

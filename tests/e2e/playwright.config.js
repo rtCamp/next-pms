@@ -40,15 +40,20 @@ module.exports = defineConfig({
   reporter: [
     ["html", { open: "never", outputFolder: "playwright-report" }],
     ["json", { outputFile: "results.json" }],
+    ["list"],
+    [
+      "allure-playwright",
+      {
+        resultsDir: "allure-results",
+        detail: true,
+      },
+    ],
   ],
 
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: process.env.BASE_URL,
-
-    /* Storage state file */
-    storageState: path.resolve(__dirname, "./auth/employee.json"),
 
     /* Collect trace */
     trace: "retain-on-failure",

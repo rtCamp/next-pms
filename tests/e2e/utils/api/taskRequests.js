@@ -33,6 +33,7 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   let responseData;
   if (response.ok()) {
     responseData = await response.json();
+    //console.warn(`Endpoint type: ${options.data} successfully done for enpoint: ${endpoint}`)
   } else {
     await requestContext.dispose();
     throw new Error(
@@ -60,11 +61,16 @@ export const createTask = async ({ subject, project, description, custom_is_bill
 /**
  * Delete a Task.
  */
-export const deleteTask = async (taskID) => {
-  return await apiRequest(`/api/resource/Task/${taskID}`, {
-    method: "DELETE",
-  });
+export const deleteTask = async (taskID, role) => {
+  return await apiRequest(
+    `/api/resource/Task/${taskID}`,
+    {
+      method: "DELETE",
+    },
+    role
+  );
 };
+
 /**
  * Like a Task.
  */
@@ -88,5 +94,16 @@ export const likeTask = async (taskID, role = "manager") => {
 export const getTaskDetails = async (taskID) => {
   return await apiRequest(`/api/resource/Task/${taskID}`, {
     method: "GET",
+  });
+};
+/**
+ * Update a task detail
+ */
+export const updateTask = async (taskID, { custom_is_billable }) => {
+  return await apiRequest(`/api/resource/Task/${taskID}`, {
+    method: "PUT",
+    data: {
+      custom_is_billable: custom_is_billable,
+    },
   });
 };

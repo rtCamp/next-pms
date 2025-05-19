@@ -9,6 +9,7 @@ from frappe import _, get_all
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Sum
 from frappe.utils import getdate
+from pypika import Case
 
 CURRENCY = "USD"
 
@@ -70,30 +71,37 @@ def get_total_revenue(start_date: date | str, end_date: date | str, projects: li
     paid_revenue = 0.0
     sales_invoices = DocType("Sales Invoice")
 
-    result = (
+    query = (
         frappe.qb.from_(sales_invoices)
-        .select(Sum(sales_invoices.grand_total).as_("revenue"), sales_invoices.currency, sales_invoices.status)
-        .where(sales_invoices.posting_date >= start_date)
-        .where(sales_invoices.posting_date <= end_date)
+        .select(
+            Sum(Case().when(sales_invoices.outstanding_amount == 0, sales_invoices.grand_total).else_(0)).as_(
+                "paid_revenue"
+            ),
+            Sum(Case().when(sales_invoices.outstanding_amount > 0, sales_invoices.grand_total).else_(0)).as_(
+                "unpaid_revenue"
+            ),
+            sales_invoices.currency,
+        )
+        .where(sales_invoices.posting_date[start_date:end_date])
         .where(sales_invoices.customer == customer)
         .where(sales_invoices.project.isin(projects))
         .where(sales_invoices.docstatus == 1)
         .groupby(sales_invoices.currency)
-    ).run(as_dict=True)
+    )
+
+    result = query.run(as_dict=True)
     if not result:
         return revenue, unpaid_revenue, paid_revenue
 
     for row in result:
-        data = 0.0
         if row.currency == CURRENCY:
-            data = row.revenue
+            revenue += row.unpaid_revenue + row.paid_revenue
+            unpaid_revenue += row.unpaid_revenue
+            paid_revenue += row.paid_revenue
         else:
-            data = (get_exchange_rate(row.currency, CURRENCY) or 1) * row.revenue
-        if row.status == "Paid":
-            paid_revenue += data
-        else:
-            unpaid_revenue += data
-        revenue += data
+            unpaid_revenue += (get_exchange_rate(row.currency, CURRENCY) or 1) * row.unpaid_revenue
+            paid_revenue += (get_exchange_rate(row.currency, CURRENCY) or 1) * row.paid_revenue
+            revenue += unpaid_revenue + paid_revenue
 
     return revenue, unpaid_revenue, paid_revenue
 

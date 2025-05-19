@@ -23,10 +23,11 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
+  TextEditor,
 } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
 import { useToast } from "@next-pms/design-system/hooks";
-import { floatToTime, preProcessLink } from "@next-pms/design-system/utils";
+import { floatToTime } from "@next-pms/design-system/utils";
 import { useInfiniteScroll } from "@next-pms/hooks";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { CircleCheck } from "lucide-react";
@@ -215,8 +216,16 @@ const Team = () => {
                                     </Typography>
                                   </HoverCardTrigger>
                                   {data.note && (
-                                    <HoverCardContent className="text-sm font-normal text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto">
-                                      <p dangerouslySetInnerHTML={{ __html: preProcessLink(data.note) }}></p>
+                                    <HoverCardContent
+                                      className="text-sm font-normal text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto hover-content"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <TextEditor
+                                        onChange={() => {}}
+                                        hideToolbar={true}
+                                        readOnly={true}
+                                        value={data.note}
+                                      />
                                     </HoverCardContent>
                                   )}
                                 </TableCell>

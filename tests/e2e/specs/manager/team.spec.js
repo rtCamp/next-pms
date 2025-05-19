@@ -4,6 +4,7 @@ import { TeamPage } from "../../pageObjects/teamPage";
 import { TimesheetPage } from "../../pageObjects/timesheetPage";
 import data from "../../data/manager/shared-team.json";
 import { getDateForWeekday, getShortFormattedDate } from "../../utils/dateUtils";
+import * as allure from "allure-js-commons";
 //Add type hints to help VS Code recognize TaskPage
 /** @type {TeamPage} */
 
@@ -22,6 +23,7 @@ let TC47data = data.TC47;
 let TC49data = data.TC49;
 let TC50data = data.TC50;
 let TC53data = data.TC53;
+let TC91data = data.TC91;
 
 // ------------------------------------------------------------------------------------------
 
@@ -40,6 +42,7 @@ test.beforeEach(async ({ page }) => {
 // ------------------------------------------------------------------------------------------
 
 test("TC38: Validate the search functionality   ", async ({}) => {
+  allure.story("Team");
   // Search employee
   await teamPage.searchEmployee(empName);
 
@@ -50,6 +53,7 @@ test("TC38: Validate the search functionality   ", async ({}) => {
 });
 
 test("TC39: The reporting manager filter   ", async ({}) => {
+  allure.story("Team");
   // Apply 'Reports To' filter
   await teamPage.applyReportsTo(manName);
 
@@ -61,6 +65,7 @@ test("TC39: The reporting manager filter   ", async ({}) => {
 });
 
 test("TC42: Validate the functionality of the ‘Next’ and ‘Previous’ week change buttons.   ", async ({}) => {
+  allure.story("Team");
   // Navigate to the next week and fetch the column date
   await teamPage.viewNextWeek();
   const nextColDate = await teamPage.getColDate(TC42data.col);
@@ -77,6 +82,7 @@ test("TC42: Validate the functionality of the ‘Next’ and ‘Previous’ week
 });
 
 test("TC43: Validate that the timesheet dropdown section is working.   ", async ({}) => {
+  allure.story("Team");
   // Toggle employee timesheet
   await teamPage.toggleEmployeeTimesheet(empName);
 
@@ -86,6 +92,7 @@ test("TC43: Validate that the timesheet dropdown section is working.   ", async 
 });
 
 test("TC44: Validate the timesheets for individual employees for all weeks.   ", async ({}) => {
+  allure.story("Team");
   // Navigate to employee's timesheet
   await teamPage.navigateToEmpTimesheet(empName);
 
@@ -95,6 +102,7 @@ test("TC44: Validate the timesheets for individual employees for all weeks.   ",
 });
 
 test("TC45: Change the employee selected from the top search and verify that the timesheets below are updated accordingly.   ", async ({}) => {
+  allure.story("Team");
   // Navigate to employee's timesheet
   await teamPage.navigateToEmpTimesheet(empName);
 
@@ -108,6 +116,7 @@ test("TC45: Change the employee selected from the top search and verify that the
 test("TC47: Validate the modification of the employee timesheet or the deletion of time entries.   ", async ({
   page,
 }) => {
+  allure.story("Team");
   // View next week
   await teamPage.viewNextWeek();
 
@@ -143,6 +152,7 @@ test("TC47: Validate the modification of the employee timesheet or the deletion 
 });
 
 test("TC49: Rejecting timesheet for the employee   ", async ({ page }) => {
+  allure.story("Team");
   // View next week
   await teamPage.viewNextWeek();
 
@@ -163,6 +173,7 @@ test("TC49: Rejecting timesheet for the employee   ", async ({ page }) => {
 });
 
 test("TC50: Open task details popup   ", async ({}) => {
+  allure.story("Team");
   // View next week
   await teamPage.viewNextWeek();
 
@@ -178,9 +189,36 @@ test("TC50: Open task details popup   ", async ({}) => {
 });
 
 test("TC53: Verify the manager view.   ", async ({}) => {
+  allure.story("Team");
   // Retrive employees from the parent table
   const employees = await teamPage.getEmployees();
 
   // Assertions
   expect(employees.sort()).toEqual(TC53data.employees.sort());
+});
+
+test("TC91: Verify Employee Status filter to show the results appropriately", async () => {
+  //Apply the filter based on Emp Status
+  const employeeStatuses = ["Active", "Inactive", "Suspended", "Left"];
+  for (const empStatus of employeeStatuses) {
+    console.warn(`Verifying results for Employee Status: ${empStatus}`);
+
+    // Apply the filter
+    await teamPage.checkEmployeeStatus(empStatus);
+
+    // Filter employees based on the current status
+    const employeesWithStatus = TC91data.createdEmployees.filter((emp) => emp.status === empStatus);
+
+    if (employeesWithStatus.length > 0) {
+      for (const employee of employeesWithStatus) {
+        const employeeFullName = `${employee.first_name} ${employee.last_name}`;
+        console.warn(`Verifying visibility of employee: ${employeeFullName}`);
+
+        // Assertion : Verify employee name is visible
+        await expect(teamPage.employeeNameInTable(employeeFullName)).toBeVisible();
+      }
+    } else {
+      console.warn(`No employees found with status: ${empStatus}`);
+    }
+  }
 });

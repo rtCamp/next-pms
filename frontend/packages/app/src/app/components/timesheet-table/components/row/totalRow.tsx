@@ -9,7 +9,7 @@ import { floatToTime } from "@next-pms/design-system/utils";
  * Internal dependencies
  */
 import { expectatedHours, mergeClassNames, getBgCsssForToday } from "@/lib/utils";
-import type { LeaveProps, TaskProps } from "@/types/timesheet";
+import type { HolidayProp, LeaveProps, TaskProps } from "@/types/timesheet";
 import { WeekTotal } from "../weekTotal";
 import type { TotalHourRowProps } from "./types";
 
@@ -35,7 +35,9 @@ export const TotalHourRow = ({ leaves, dates, tasks, holidays, workingHour, work
       <TableCell></TableCell>
       {dates.map((date) => {
         const holiday = holidays.find((holiday) => holiday.holiday_date === date);
-        const totalHours = calculateTotalHours(tasks, date) + calculateLeaveHours(leaves, date, dailyWorkingHours);
+        const totalHours =
+          calculateTotalHours(tasks, date) + calculateLeaveHours(leaves, date, dailyWorkingHours, holiday);
+
         total += totalHours;
 
         if (holiday) {
@@ -74,13 +76,21 @@ const calculateTotalHours = (tasks: TaskProps, date: string) => {
   }, 0);
 };
 
-const calculateLeaveHours = (leaves: LeaveProps[], date: string, daily_working_hours: number) => {
+const calculateLeaveHours = (
+  leaves: LeaveProps[],
+  date: string,
+  daily_working_hours: number,
+  holiday: HolidayProp | undefined
+) => {
   return leaves.reduce((total, leave) => {
     if (date >= leave.from_date && date <= leave.to_date) {
-      if (leave.half_day && leave.half_day_date === date) {
+      if (!leave.is_lwp && holiday?.weekly_off) {
+        return 0;
+      } else if (leave.half_day && leave.half_day_date === date) {
         return total + daily_working_hours / 2;
+      } else {
+        return total + daily_working_hours;
       }
-      return total + daily_working_hours;
     }
     return total;
   }, 0);

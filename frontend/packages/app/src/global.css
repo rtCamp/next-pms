@@ -23,7 +23,7 @@
   }
   @media (pointer: fine) { /* Only works for precise pointer devices such as laptops and desktops */
     .dark ::-webkit-scrollbar {
-      @apply w-3 bg-background;
+      @apply w-1 bg-background;
     }
     .dark ::-webkit-scrollbar-thumb {
       @apply rounded bg-secondary /*color trackbar*/;
@@ -52,6 +52,11 @@ html,
   height: 100vh;
   width: 100vw;
   overflow: auto;
+}
+
+.hover-content a {
+  text-decoration: underline;
+  color: hsl(var(--foreground));
 }
 
 /** TimeLine CSS overwrite*/

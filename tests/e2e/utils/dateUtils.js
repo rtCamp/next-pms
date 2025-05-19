@@ -78,3 +78,13 @@ export const secondsToDuration = (seconds) => {
 
   return `${hours}:${mins}`;
 };
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Get Yesterday's date in yyyy-mm-dd format
+ */
+export const getYesterdayDate = () => {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  return getFormattedDate(yesterday);
+};
