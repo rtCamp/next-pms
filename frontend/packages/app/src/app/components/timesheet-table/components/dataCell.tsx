@@ -8,6 +8,7 @@ import {
   HoverCardTrigger,
   Typography,
   HoverCardContent,
+  TextEditor,
 } from "@next-pms/design-system/components";
 import { floatToTime } from "@next-pms/design-system/utils";
 import { CircleDollarSign, CirclePlus, PencilLine } from "lucide-react";
@@ -105,10 +106,11 @@ export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }
         </HoverCardTrigger>
         {description && (
           <HoverCardContent
-            className="text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto ql-editor min-h-0 hover-content"
-            dangerouslySetInnerHTML={{ __html: description }}
+            className="text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto ql-editor min-h-0 hover-content p-0"
             onClick={(e) => e.stopPropagation()}
-          ></HoverCardContent>
+          >
+            <TextEditor onChange={() => {}} hideToolbar={true} readOnly={true} value={description} />
+          </HoverCardContent>
         )}
       </TableCell>
     </HoverCard>

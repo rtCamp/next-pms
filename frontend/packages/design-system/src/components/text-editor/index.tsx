@@ -17,6 +17,7 @@ export interface TextEditorProps extends ReactQuillProps {
   allowImageUpload?: boolean;
   allowVideoUpload?: boolean;
   className?: string;
+  hideToolbar?: boolean;
   onChange: (value: string) => void;
 }
 
@@ -26,6 +27,7 @@ const TextEditor = ({
   allowVideoUpload = false,
   className,
   onChange,
+  hideToolbar = false,
   ...Props
 }: TextEditorProps) => {
   const quillRef = useRef<ReactQuill | null>(null);
@@ -50,7 +52,7 @@ const TextEditor = ({
     toolbarOptions[6].push("video");
   }
   const modules = {
-    toolbar: toolbarOptions,
+    toolbar: hideToolbar ? [] : toolbarOptions,
 
     clipboard: { matchVisual: false },
   };
@@ -71,12 +73,24 @@ const TextEditor = ({
 
   return (
     <>
+      {hideToolbar && (
+        <style>{`
+          .ql-toolbar{
+            display:none !important;
+            border:none !important;
+          }
+          .ql-editor{
+            min-height:0px !important;
+          }
+      `}</style>
+      )}
       <ReactQuill
         {...Props}
         ref={quillRef}
         style={{ resize: "vertical", overflow: "auto" }}
         className={mergeClassNames(
           "border rounded-md border-input [&>div:first-child]:border-t-0 [&>div:first-child]:border-r-0 [&>div:first-child]:border-l-0 [&>div:first-child]:border-input [&>div:first-child]:border-bottom [&>div:last-child]:border-none text-foreground bg-background ",
+          hideToolbar && "border-none !resize-none",
           className
         )}
         theme="snow"
