@@ -12,6 +12,7 @@ import ImageResize from "quill-image-resize-module-react";
  * Internal dependencies.
  */
 
+import PlainClipboard from "./clipboard";
 import { mergeClassNames, preProcessLink } from "../../utils";
 export interface TextEditorProps extends ReactQuillProps {
   allowImageUpload?: boolean;
@@ -22,6 +23,7 @@ export interface TextEditorProps extends ReactQuillProps {
 }
 
 Quill.register("modules/imageResize", ImageResize);
+Quill.register("modules/clipboard", PlainClipboard, true);
 const TextEditor = ({
   allowImageUpload = false,
   allowVideoUpload = false,
@@ -81,6 +83,7 @@ const TextEditor = ({
           }
           .ql-editor{
             min-height:0px !important;
+            padding: 8px !important;
           }
       `}</style>
       )}
