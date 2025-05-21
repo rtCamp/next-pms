@@ -54,6 +54,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    # Setup Node.js
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: "frontend/.nvmrc"
+        cache: "npm"
+        cache-dependency-path: 'package-lock.json'
+
     - name: Install prerequisites
       run: |
         apt-get update
@@ -109,12 +117,6 @@ jobs:
     - name: Check Local History Directory After History Download
       run: ls -la allure-history/history
 
-    # Setup Node.js
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version-file: "frontend/.nvmrc"
-        cache: "npm"
 
     # Install dependencies
     - name: Install dependencies
