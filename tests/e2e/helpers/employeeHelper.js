@@ -4,6 +4,8 @@ import managerTeamData from "../data/manager/team.json";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
 import { addEmployee, deleteEmployee } from "../utils/api/employeeRequests";
 import { getRandomString } from "../utils/stringUtils";
+import { filterApi } from "../utils/api/frappeRequests";
+
 // Load env variables
 const managerId = process.env.REP_MAN_ID;
 const managerName = process.env.REP_MAN_NAME;
@@ -108,11 +110,44 @@ export const deleteEmployees = async () => {
         try {
           //Delete employee
           await deleteEmployee(emp.name, "admin");
-          console.log(`Deleted employee: ${emp.name}`);
+          console.warn(`Deleted employee: ${emp.name}`);
         } catch (err) {
-          console.error(`Error deleting ${emp.name}: ${err.message}`);
+          console.warn(`Error deleting ${emp.name}: ${err.message}`);
         }
       }
     }
+  }
+};
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Filter the employees by their first name: "Playwright-" and delete them
+ */
+export const deleteEmployeeByName = async () => {
+  // Fetch Employees
+  const employeeRes = await filterApi("Employee", [["Employee", "employee_name", "like", "Playwright-%"]], "admin");
+
+  const employeeValues = employeeRes?.message?.values || [];
+
+  let employeeIds = [];
+
+  // Extract Employee IDs
+  if (Array.isArray(employeeValues)) {
+    employeeIds = employeeValues.flat().filter((v) => typeof v === "string");
+  }
+
+  if (employeeIds.length > 0) {
+    console.warn(`Employees to delete: `, employeeIds);
+
+    for (const empId of employeeIds) {
+      try {
+        const deleteRes = await deleteEmployee(empId, "admin");
+        console.warn(`Deleted Employee: ${empId}`, deleteRes);
+      } catch (error) {
+        console.error(`Error deleting Employee: ${empId}`, error);
+      }
+    }
+  } else {
+    console.warn("No employees found with the given name to delete.");
   }
 };
