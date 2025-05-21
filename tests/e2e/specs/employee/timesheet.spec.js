@@ -67,7 +67,6 @@ test("TC3: Time should be added using the direct timesheet add buttons.", async 
 test("TC4: Added time and description should be editable. ", async ({ page }) => {
   allure.story("Timesheet");
   // Update time entry
-
   await timesheetPage.updateTimeRow(TC4data.cell, {
     desc: TC4data.payloadCreateTimesheet.description,
     newDesc: TC4data.taskInfo.desc,
@@ -299,7 +298,6 @@ test("TC96: Verify Time entry for a Billable task under a Retainer project", asy
   allure.story("Timesheet");
   // Import liked tasks
   await timesheetPage.importLikedTasks();
-  await timesheetPage.page.pause();
 
   // Assertions
   const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC96data.cell);
@@ -330,7 +328,6 @@ test("TC99: Verify Time entry for a Non-Billable task under a Fixed Cost project
   allure.story("Timesheet");
   // Import liked tasks
   await timesheetPage.importLikedTasks();
-  await timesheetPage.page.pause();
 
   // Assertions
   const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC99data.cell);

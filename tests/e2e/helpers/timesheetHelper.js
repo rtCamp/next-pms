@@ -17,6 +17,7 @@ import { getExchangeRate } from "../utils/api/erpNextRequests";
 import { getEmployeeDetails } from "../utils/api/employeeRequests";
 import { filterApi, shareProjectWithUser } from "../utils/api/frappeRequests";
 import { deleteLeave } from "../utils/api/leaveRequests";
+import { deleteEmployeeByName } from "./employeeHelper";
 
 // Load env variables
 const empID = process.env.EMP_ID;
@@ -764,5 +765,6 @@ export const readAndCleanAllOrphanData = async () => {
     ...managerTeam,
   };
   await deleteLeaveOfEmployee();
+  await deleteEmployeeByName();
   await cleanUpProjects(mergedData);
 };

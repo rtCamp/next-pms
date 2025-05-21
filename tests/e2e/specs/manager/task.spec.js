@@ -98,7 +98,6 @@ test("TC22: A task like/favourite functionality.", async ({}) => {
 
   const taskName = TC22data.payloadCreateTask.subject;
   const taskID = TC22data.payloadLikeTask.name;
-  await taskPage.page.pause();
 
   // Search task
   await taskPage.searchTask(taskName);
