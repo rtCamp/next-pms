@@ -63,7 +63,7 @@ jobs:
     - name: Cache npm modules
       uses: actions/cache@v4
       with:
-        path: ~/.npm
+        path: /github/home/.npm
         key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-node-
