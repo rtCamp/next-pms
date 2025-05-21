@@ -111,11 +111,10 @@ jobs:
 
     # Setup Node.js
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v3
       with:
         node-version-file: "frontend/.nvmrc"
         cache: "npm"
-        cache-dependency-path: "frontend/package-lock.json"
 
     # Install dependencies
     - name: Install dependencies
