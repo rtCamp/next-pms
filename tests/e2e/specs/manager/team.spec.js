@@ -14,6 +14,7 @@ let timesheetPage;
 // Load env variables
 const empName = process.env.EMP_NAME;
 const manName = process.env.REP_MAN_NAME;
+const emp3Name = process.env.EMP3_NAME;
 
 // Load test data
 let TC39data = data.TC39;
@@ -24,6 +25,7 @@ let TC49data = data.TC49;
 let TC50data = data.TC50;
 let TC53data = data.TC53;
 let TC91data = data.TC91;
+let TC92data = data.TC92;
 
 // ------------------------------------------------------------------------------------------
 
@@ -198,6 +200,7 @@ test("TC53: Verify the manager view.   ", async ({}) => {
 });
 
 test("TC91: Verify Employee Status filter to show the results appropriately", async () => {
+  allure.story("Team");
   //Apply the filter based on Emp Status
   const employeeStatuses = ["Active", "Inactive", "Suspended", "Left"];
   for (const empStatus of employeeStatuses) {
@@ -221,4 +224,19 @@ test("TC91: Verify Employee Status filter to show the results appropriately", as
       console.warn(`No employees found with status: ${empStatus}`);
     }
   }
+});
+test.only("TC92: Verify Approval Status filter to show the results appropriately", async ({}) => {
+  allure.story("Team");
+  await teamPage.page.pause();
+  // View next week
+  await teamPage.viewNextWeek();
+
+  // Toggle employee timesheet
+  await teamPage.toggleEmployeeTimesheet(emp3Name);
+
+  //Check the random Approval Status
+  await teamPage.checkApprovalStatus(
+    TC92data.payloadApprovalStatus.empId,
+    TC92data.payloadApprovalStatus.approvalStatus
+  );
 });
