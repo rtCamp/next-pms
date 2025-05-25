@@ -10,7 +10,8 @@ import { storeStorageState } from "../helpers/storageStateHelper";
 import { updateLeaveEntries } from "../helpers/leaveHelper";
 import { createJSONFile } from "../utils/fileUtils";
 import { createEmployees } from "../helpers/employeeHelper";
-
+import { randomApprovalStatus } from "../helpers/teamTabHelper";
+import { getRandomValue } from "../utils/stringUtils";
 // ------------------------------------------------------------------------------------------
 
 /**
@@ -27,6 +28,8 @@ const globalSetup = async () => {
   // 1. Create API auth states
   await Promise.all([
     storeStorageState("employee", true),
+    storeStorageState("employee2", true),
+    storeStorageState("employee3", true),
     storeStorageState("manager", true),
     storeStorageState("admin", true),
   ]);
@@ -41,9 +44,11 @@ const globalSetup = async () => {
   await createTimeEntries();
   await calculateHourlyBilling();
   await updateLeaveEntries();
+    await randomApprovalStatus();
 
   // 3. Create frontend UI storage states ONLY after all above is done
   await Promise.all([
+        storeStorageState("employee3", false),
     storeStorageState("employee2", false),
     storeStorageState("employee", false),
     storeStorageState("manager", false),
