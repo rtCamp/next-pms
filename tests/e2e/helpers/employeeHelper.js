@@ -30,7 +30,7 @@ export const createEmployees = async () => {
     for (const testCaseID of testCases) {
       const testCase = data[testCaseID];
 
-      if (testCase.payloadCreateEmployee) {
+      if (testCase?.payloadCreateEmployee) {
         const basePayload = testCase.payloadCreateEmployee;
         testCase.createdEmployees = [];
 
@@ -63,11 +63,11 @@ export const createEmployees = async () => {
             */
             if (status === "Active") {
               const fullName = employeePayload.first_name + " " + employeePayload.last_name;
-              if (!data["TC39"].employees.includes(fullName)) {
+              if (!data["TC39"]?.employees.includes(fullName)) {
                 data["TC39"].employees.push(fullName);
               }
 
-              if (!data["TC53"].employees.includes(fullName)) {
+              if (!data["TC53"]?.employees.includes(fullName)) {
                 data["TC53"].employees.push(fullName);
               }
             }
