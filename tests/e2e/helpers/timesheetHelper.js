@@ -6,6 +6,7 @@ import {
   getTimesheetDetails,
   deleteTimesheet,
   deleteTimesheetbyID,
+  submitTimesheet,
 } from "../utils/api/timesheetRequests";
 import employeeTimesheetData from "../data/employee/timesheet.json";
 import managerTeamData from "../data/manager/team.json";
@@ -17,11 +18,13 @@ import { getExchangeRate } from "../utils/api/erpNextRequests";
 import { getEmployeeDetails } from "../utils/api/employeeRequests";
 import { filterApi, shareProjectWithUser } from "../utils/api/frappeRequests";
 import { deleteLeave } from "../utils/api/leaveRequests";
+import { getWeekRange } from "../utils/dateUtils";
 import { deleteEmployeeByName } from "./employeeHelper";
 
 // Load env variables
 const empID = process.env.EMP_ID;
 const emp2ID = process.env.EMP2_ID;
+const emp3ID = process.env.EMP3_ID;
 const emp2Mail = process.env.EMP2_EMAIL;
 
 // Define file paths for shared JSON data files
@@ -72,7 +75,7 @@ export const updateTimeEntries = async () => {
     "TC100",
     "TC101",
   ];
-  const managerTeamIDs = ["TC47", "TC49", "TC50"];
+  const managerTeamIDs = ["TC47", "TC49", "TC50", "TC92"];
 
   // Compute col value for TC2 before update
   employeeTimesheetData.TC2.cell.col = getWeekdayName(new Date());
@@ -82,7 +85,10 @@ export const updateTimeEntries = async () => {
       if (!data[testCaseID]?.cell?.col) continue; // Skip if missing required structure
 
       const formattedDate = getFormattedDate(getDateForWeekday(data[testCaseID].cell.col));
-      const employeeID = testCaseID === "TC2" ? emp2ID : empID;
+            const tcEmp3 = new Set(["TC92"]);
+      const tcEmp2 = new Set(["TC2"]);
+
+      const employeeID = tcEmp3.has(testCaseID) ? emp3ID : tcEmp2.has(testCaseID) ? emp2ID : empID;
 
       // Update 'payloadCreateTimesheet' if it exists
       if (data[testCaseID].payloadCreateTimesheet) {
@@ -147,6 +153,7 @@ export const createTimeEntries = async () => {
     sharedManagerTeamData.TC47.payloadCreateTimesheet,
     sharedManagerTeamData.TC49.payloadCreateTimesheet,
     sharedManagerTeamData.TC50.payloadCreateTimesheet,
+    sharedManagerTeamData.TC92.payloadCreateTimesheet,
   ];
 
   for (const entry of timeEntries) {
@@ -196,6 +203,7 @@ export const deleteTimeEntries = async () => {
     sharedManagerTeamData.TC47.payloadFilterTimeEntry,
     sharedManagerTeamData.TC49.payloadFilterTimeEntry,
     sharedManagerTeamData.TC50.payloadFilterTimeEntry,
+    sharedManagerTeamData.TC92.payloadFilterTimeEntry,
   ];
 
   for (const entry of timeEntries) {
@@ -278,7 +286,7 @@ export const createProjectForTestCases = async () => {
   ];
   const managerTaskIDs = ["TC22", "TC24", "TC25", "TC26", "TC17", "TC19"];
 
-  const managerTeamIDs = ["TC47", "TC49", "TC50"];
+  const managerTeamIDs = ["TC47", "TC49", "TC50","TC92"];
 
   const processTestCases = async (data, testCases) => {
     for (const testCaseID of testCases) {
@@ -376,6 +384,7 @@ export const deleteProjects = async () => {
     sharedManagerTeamData.TC47.payloadDeleteProject.projectId,
     sharedManagerTeamData.TC49.payloadDeleteProject.projectId,
     sharedManagerTeamData.TC50.payloadDeleteProject.projectId,
+    sharedManagerTeamData.TC92.payloadDeleteProject.projectId,
   ];
   for (const entry of projectsToBeDeleted) {
     //Delete Project
@@ -417,7 +426,7 @@ export const createTaskForTestCases = async () => {
   ];
 
   const managerTaskIDs = ["TC22", "TC25", "TC26", "TC17", "TC19"];
-  const managerTeamIDs = ["TC47", "TC49", "TC50"];
+  const managerTeamIDs = ["TC47", "TC49", "TC50","TC92"];
 
   const processTestCasesForTasks = async (data, testCases) => {
     for (const testCaseID of testCases) {
@@ -563,11 +572,11 @@ export const deleteTasks = async () => {
     { id: "TC47", data: sharedManagerTeamData.TC47 },
     { id: "TC49", data: sharedManagerTeamData.TC49 },
     { id: "TC50", data: sharedManagerTeamData.TC50 },
+        { id: "TC92", data: sharedManagerTeamData.TC92 },
   ];
 
   // For admin to delete a TC task
-  const adminCases = new Set(["TC2"]);
-
+  const adminCases = new Set(["TC2","TC92"]);
   for (const { id, data } of tasksToBeDeleted) {
     if (adminCases.has(id)) {
       await deleteTask(data.payloadDeleteTask.taskID, "admin");
@@ -768,3 +777,26 @@ export const readAndCleanAllOrphanData = async () => {
   await deleteEmployeeByName();
   await cleanUpProjects(mergedData);
 };
+/**
+ * Submits timesheet for Approval for an employee
+ */
+export const submitTimesheetForApproval = async (empId, managerID,role) => {
+
+  //Get timesheetId for current week for the empID
+  const { monday, friday } = getWeekRange();
+
+  await submitTimesheet({
+    start_date: monday,
+    end_date: friday,
+    notes: "submit for approval through emp API",
+    approver: managerID,
+    employee: empId,
+  },role=role);
+
+
+    const filterResponse = await filterApi("Timesheet", [
+    ["Timesheet", "start_date", "Between", [monday, friday]],
+    ["Timesheet", "employee", "=", empId],
+  ]);
+
+}
