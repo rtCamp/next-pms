@@ -411,4 +411,7 @@ export class TeamPage {
     // Apply the selected status
     await this.selectEmployeeStatus(empStatus);
   }
+    async checkApprovalStatus(empId, approvalStatus){
+
+  }
 }
