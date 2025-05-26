@@ -19,6 +19,7 @@ import {
   TableRow,
   TableBody,
   TableCell,
+  TextEditor,
 } from "@next-pms/design-system/components";
 import { useToast } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
@@ -188,10 +189,16 @@ const Home = () => {
                               <HoverCardTrigger>{data.hour > 0 ? floatToTime(data.hour) : "-"}</HoverCardTrigger>
                               {data.note && (
                                 <HoverCardContent
-                                  className="text-sm text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto ql-editor min-h-0 h-fit hover-content p-2"
-                                  dangerouslySetInnerHTML={{ __html: data.note }}
+                                  className="text-sm text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto h-fit hover-content p-0"
                                   onClick={(e) => e.stopPropagation()}
-                                ></HoverCardContent>
+                                >
+                                  <TextEditor
+                                    onChange={() => {}}
+                                    hideToolbar={true}
+                                    readOnly={true}
+                                    value={data.note}
+                                  />
+                                </HoverCardContent>
                               )}
                             </TableCell>
                           </HoverCard>

@@ -106,7 +106,7 @@ export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }
         </HoverCardTrigger>
         {description && (
           <HoverCardContent
-            className="text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto ql-editor min-h-0 hover-content p-0"
+            className="text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto hover-content p-0"
             onClick={(e) => e.stopPropagation()}
           >
             <TextEditor onChange={() => {}} hideToolbar={true} readOnly={true} value={description} />
