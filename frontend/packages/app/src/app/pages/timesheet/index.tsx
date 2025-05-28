@@ -212,7 +212,7 @@ function Timesheet() {
                         <AccordionItem value={key}>
                           <AccordionTrigger className="hover:no-underline w-full py-2 max-md:[&>svg]:hidden">
                             <div className="flex justify-between items-center w-full group gap-2 ">
-                              <div className="font-normal text-xs sm:text-base flex items-center gap-x-2 max-md:gap-x-3 sm:flex-row overflow-x-auto no-scrollbar max-md:w-4/5">
+                              <div className="font-normal text-xs sm:text-base flex items-center gap-x-2 max-md:gap-x-3 sm:flex-row overflow-x-auto  max-md:w-4/5">
                                 <span className="flex items-center gap-2 shrink-0">
                                   <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
                                   <h2 className="font-medium">{key}</h2>
