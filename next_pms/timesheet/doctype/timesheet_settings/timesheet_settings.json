@@ -5,6 +5,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "timesheet_tab",
   "allow_backdated_entries",
   "allow_backdated_entries_till_employee",
   "allow_backdated_entries_till_manager",
@@ -21,7 +22,12 @@
   "send_weekly_approval_reminder",
   "day_to_send_reminder",
   "weekly_approval_reminder_template",
-  "allowed_departments"
+  "allowed_departments",
+  "tab_break_34k6",
+  "notifications_section",
+  "send_missing_allocation_reminder",
+  "remind_on",
+  "designation"
  ],
  "fields": [
   {
@@ -140,12 +146,52 @@
    "fieldtype": "Link",
    "label": "Timesheet Rejection Template",
    "options": "Email Template"
+  },
+  {
+   "fieldname": "tab_break_34k6",
+   "fieldtype": "Tab Break",
+   "label": "Resource Management"
+  },
+  {
+   "fieldname": "timesheet_tab",
+   "fieldtype": "Tab Break",
+   "label": "Timesheet"
+  },
+  {
+   "fieldname": "notifications_section",
+   "fieldtype": "Section Break",
+   "label": "Notifications"
+  },
+  {
+   "default": "0",
+   "description": "If enabled, reminders will be sent to the Reporting Manager when no allocations are found for employees  for the upcoming week.\n",
+   "fieldname": "send_missing_allocation_reminder",
+   "fieldtype": "Check",
+   "label": "Send Missing Allocation Reminder"
+  },
+  {
+   "depends_on": "eval:doc.send_missing_allocation_reminder",
+   "description": "Employees with the following designations will be considered for checking  allocations.\n",
+   "fieldname": "designation",
+   "fieldtype": "Table MultiSelect",
+   "label": "Designation",
+   "mandatory_depends_on": "eval:doc.send_missing_allocation_reminder",
+   "options": "Employee Department"
+  },
+  {
+   "default": "Monday",
+   "depends_on": "eval:doc.send_missing_allocation_reminder",
+   "fieldname": "remind_on",
+   "fieldtype": "Select",
+   "label": "Remind On",
+   "mandatory_depends_on": "eval:doc.send_missing_allocation_reminder",
+   "options": "\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday\nSunday"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-11-14 10:22:51.868235",
+ "modified": "2025-05-28 15:53:51.210843",
  "modified_by": "Administrator",
  "module": "Timesheet",
  "name": "Timesheet Settings",
