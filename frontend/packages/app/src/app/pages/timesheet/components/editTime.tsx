@@ -34,6 +34,7 @@ import { z } from "zod";
 /**
  * Internal dependencies
  */
+import TimeSelector from "@/app/components/add-time/time-selector";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetUpdateSchema } from "@/schema/timesheet";
 import type { EditTimeProps, TimesheetDetail } from "./types";
@@ -227,21 +228,32 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
                       name={`data.${index}.hours`}
                       render={({ field }) => {
                         return (
-                          <FormItem className="w-full md:max-w-16 max-md:w-full md:px-2">
+                          <FormItem className="w-full md:max-w-24 max-md:w-full md:px-2">
                             <FormLabel className="flex gap-2 items-center md:hidden">
                               <p title="subject" className="text-sm truncate">
                                 Hours
                               </p>
                             </FormLabel>
                             <FormControl>
-                              <Input
-                                placeholder="00:00"
-                                type="text"
-                                {...field}
-                                className={mergeClassNames(
-                                  "p-1 md:max-w-12 focus-visible:ring-0 focus-visible:ring-offset-0"
-                                )}
-                              />
+                              <div className=" flex w-full border rounded-md ">
+                                <Input
+                                  placeholder="00:00"
+                                  type="text"
+                                  {...field}
+                                  className={mergeClassNames(
+                                    "p-1 border-0 border-r rounded-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                  )}
+                                />
+                                <TimeSelector
+                                  onClick={(time: string) => {
+                                    form.setValue(`data.${index}.hours`, time, {
+                                      shouldValidate: true,
+                                      shouldDirty: true,
+                                      shouldTouch: true,
+                                    });
+                                  }}
+                                />
+                              </div>
                             </FormControl>
                             <FormMessage className="text-xs" />
                           </FormItem>
