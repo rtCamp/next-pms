@@ -28,7 +28,7 @@
   "remind_on",
   "column_break_gyue",
   "allocation_email_template",
-  "designation"
+  "designations"
  ],
  "fields": [
   {
@@ -171,15 +171,6 @@
    "label": "Send Missing Allocation Reminder"
   },
   {
-   "depends_on": "eval:doc.send_missing_allocation_reminder",
-   "description": "Employees with the following designations will be considered for checking  allocations.\n",
-   "fieldname": "designation",
-   "fieldtype": "Table MultiSelect",
-   "label": "Designation",
-   "mandatory_depends_on": "eval:doc.send_missing_allocation_reminder",
-   "options": "Employee Department"
-  },
-  {
    "default": "Monday",
    "depends_on": "eval:doc.send_missing_allocation_reminder",
    "fieldname": "remind_on",
@@ -199,12 +190,21 @@
    "label": "Email Template",
    "mandatory_depends_on": "eval:doc.send_missing_allocation_reminder",
    "options": "Email Template"
+  },
+  {
+   "depends_on": "eval:doc.send_missing_allocation_reminder",
+   "description": "Employees with the following designations will be considered for checking  allocations.\n",
+   "fieldname": "designations",
+   "fieldtype": "Table MultiSelect",
+   "label": "Designations",
+   "mandatory_depends_on": "eval:doc.send_missing_allocation_reminder",
+   "options": "Employee Department"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-05-28 15:58:14.766485",
+ "modified": "2025-05-28 17:38:14.745342",
  "modified_by": "Administrator",
  "module": "Timesheet",
  "name": "Timesheet Settings",
