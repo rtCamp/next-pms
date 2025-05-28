@@ -81,7 +81,7 @@ const AddCustomTime = ({
     if (event.key != "Enter") return;
     let time = event.currentTarget.value.trim();
     if (!time.includes(":")) {
-      time = floatToTime(Number(time));
+      time = floatToTime(Number(time), 2, 2);
     }
     if (time && !customTime.includes(time) && !CustomTime.includes(time)) {
       const updatedCustomTime = [...customTime, time];
