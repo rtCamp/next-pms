@@ -1,6 +1,5 @@
 {
  "actions": [],
- "allow_rename": 1,
  "creation": "2024-08-25 14:07:59.256892",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -27,6 +26,8 @@
   "notifications_section",
   "send_missing_allocation_reminder",
   "remind_on",
+  "column_break_gyue",
+  "allocation_email_template",
   "designation"
  ],
  "fields": [
@@ -160,7 +161,7 @@
   {
    "fieldname": "notifications_section",
    "fieldtype": "Section Break",
-   "label": "Notifications"
+   "label": "Allocation Notifications"
   },
   {
    "default": "0",
@@ -186,12 +187,24 @@
    "label": "Remind On",
    "mandatory_depends_on": "eval:doc.send_missing_allocation_reminder",
    "options": "\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday\nSunday"
+  },
+  {
+   "fieldname": "column_break_gyue",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.send_missing_allocation_reminder",
+   "fieldname": "allocation_email_template",
+   "fieldtype": "Link",
+   "label": "Email Template",
+   "mandatory_depends_on": "eval:doc.send_missing_allocation_reminder",
+   "options": "Email Template"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-05-28 15:53:51.210843",
+ "modified": "2025-05-28 15:58:14.766485",
  "modified_by": "Administrator",
  "module": "Timesheet",
  "name": "Timesheet Settings",
@@ -210,5 +223,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }
