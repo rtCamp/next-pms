@@ -87,7 +87,7 @@ export const EditTime = ({ employee, date, task, open, onClose, user }: EditTime
   const addEmptyFormRow = () => {
     const parent = fields[0]?.parent || "";
     const newRow = {
-      hours: "00:00",
+      hours: "0:00",
       description: "",
       name: "",
       parent: parent,

@@ -2,6 +2,7 @@
  * External Dependencies
  */
 import { useState } from "react";
+import { floatToTime } from "@next-pms/design-system";
 import {
   Button,
   DropdownMenu,
@@ -16,7 +17,6 @@ import {
   Typography,
 } from "@next-pms/design-system/components";
 import { Clock3, PlusCircle } from "lucide-react";
-
 /**
  * Internal Dependencies
  */
@@ -28,7 +28,11 @@ interface TimeSelectorProps {
 }
 const TimeSelector = ({ onClick }: TimeSelectorProps) => {
   const [shouldOpen, setShouldOpen] = useState(false);
-  const time = [...(getLocalStorage("customTime") || []), ...CustomTime];
+  const time = [...(getLocalStorage("customTime") || []), ...CustomTime].sort((a, b) => {
+    const timeA = a.split(":").map(Number);
+    const timeB = b.split(":").map(Number);
+    return timeA[0] * 60 + timeA[1] - (timeB[0] * 60 + timeB[1]);
+  });
   return (
     <>
       <AddCustomTime setOpen={setShouldOpen} isOpen={shouldOpen} />
@@ -72,16 +76,18 @@ const AddCustomTime = ({
   isOpen: boolean;
   setOpen: (value: React.SetStateAction<boolean>) => void;
 }) => {
-  const [customTime, setCustomTime] = useState(getLocalStorage("customTime") || []);
+  const customTime = getLocalStorage("customTime") || [];
   const handleAddCustomTime = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key != "Enter") return;
-    const time = event.currentTarget.value.trim();
+    let time = event.currentTarget.value.trim();
+    if (!time.includes(":")) {
+      time = floatToTime(Number(time));
+    }
     if (time && !customTime.includes(time) && !CustomTime.includes(time)) {
       const updatedCustomTime = [...customTime, time];
-      setCustomTime(updatedCustomTime);
       setLocalStorage("customTime", updatedCustomTime);
-      setOpen(false);
     }
+    setOpen(false);
   };
   return (
     <Dialog open={isOpen} onOpenChange={setOpen}>
