@@ -22,7 +22,7 @@ import { Clock3, PlusCircle } from "lucide-react";
  */
 import { CustomTime } from "@/lib/constant";
 import { getLocalStorage, setLocalStorage } from "@/lib/storage";
-
+import { formatTime } from "@/lib/utils";
 interface TimeSelectorProps {
   onClick?: (time: string) => void;
 }
@@ -83,6 +83,7 @@ const AddCustomTime = ({
     if (!time.includes(":")) {
       time = floatToTime(Number(time), 2, 2);
     }
+    time = formatTime(time);
     if (time && !customTime.includes(time) && !CustomTime.includes(time)) {
       const updatedCustomTime = [...customTime, time];
       setLocalStorage("customTime", updatedCustomTime);
