@@ -12,7 +12,7 @@ import _ from "lodash";
 /**
  * Internal dependencies.
  */
-import AddTime from "@/app/components/AddTime";
+import AddTime from "@/app/components/add-time";
 import ViewWrapper from "@/app/components/list-view/viewWrapper";
 import { LIKED_TASK_KEY } from "@/lib/constant";
 import { addAction, toggleLikedByForTask } from "@/lib/storage";

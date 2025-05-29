@@ -7,7 +7,7 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies
  */
-import AddTime from "@/app/components/AddTime";
+import AddTime from "@/app/components/add-time";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import { Header } from "@/app/layout/root";
 import { RootState } from "@/store";

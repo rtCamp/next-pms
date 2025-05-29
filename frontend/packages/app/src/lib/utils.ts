@@ -328,3 +328,25 @@ export const enableSocket = () => {
     return undefined;
   }
 };
+
+export const formatTime = (timeStr: string): string => {
+  if (timeStr.startsWith(":")) {
+    timeStr = "0" + timeStr;
+  }
+
+  const parts = timeStr.split(":");
+  if (parts.length !== 2) {
+    throw new Error(`Invalid time format: ${timeStr}`);
+  }
+
+  const hours = parseInt(parts[0], 10);
+  const minutes = parseInt(parts[1], 10);
+
+  if (isNaN(hours) || isNaN(minutes)) {
+    throw new Error(`Invalid numeric values in time: ${timeStr}`);
+  }
+
+  return `${hours.toString().padStart(2, "0")}:${minutes
+    .toString()
+    .padStart(2, "0")}`;
+};
