@@ -17,7 +17,7 @@ def execute():
         "use_html": 1,
         "enabled": 1,
     }
-    get_doc(doc).insert()
+    doc = get_doc(doc).insert()
 
     setting = get_doc("Timesheet Settings")
     setting.allocation_email_template = doc.name
