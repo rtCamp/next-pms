@@ -4,7 +4,7 @@ from frappe import _, db, get_app_path, get_doc, read_file
 
 
 def execute():
-    if db.exists("Email Template", "Resource Reminder Template"):
+    if db.exists("Email Template", _("Resource Reminder Template")):
         return
     base_path = get_app_path("next_pms", "templates", "resource_management")
     response = read_file(os.path.join(base_path, "no_resource_allocation.html"))
@@ -23,4 +23,4 @@ def execute():
     setting.allocation_email_template = doc.name
     setting.save()
 
-    print("Resource Reminder Template Added Successfully")
+    print(_("Resource Reminder Template Added Successfully"))
