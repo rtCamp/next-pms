@@ -136,7 +136,7 @@ jobs:
         npm ci
         cd tests/e2e/
         npx playwright install
-        npx playwright install-deps ubuntu-jammy
+        npx playwright install-deps
 
     - name: Setup Java
       uses: actions/setup-java@v3
