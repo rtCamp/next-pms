@@ -9,7 +9,7 @@
         <ul>
 
             {% for date in item.dates %}
-                <li>{{frappe.utils.date(date).strftime('%b %d, %Y') }}</li>
+                <li>{{frappe.utils.getdate(date).strftime('%b %d, %Y') }}</li>
             {% endfor %}
         </ul>
     </details>
