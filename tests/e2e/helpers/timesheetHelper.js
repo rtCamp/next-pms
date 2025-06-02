@@ -85,7 +85,7 @@ export const updateTimeEntries = async () => {
       if (!data[testCaseID]?.cell?.col) continue; // Skip if missing required structure
 
       const formattedDate = getFormattedDate(getDateForWeekday(data[testCaseID].cell.col));
-            const tcEmp3 = new Set(["TC92"]);
+      const tcEmp3 = new Set(["TC92"]);
       const tcEmp2 = new Set(["TC2"]);
 
       const employeeID = tcEmp3.has(testCaseID) ? emp3ID : tcEmp2.has(testCaseID) ? emp2ID : empID;
@@ -286,7 +286,7 @@ export const createProjectForTestCases = async () => {
   ];
   const managerTaskIDs = ["TC22", "TC24", "TC25", "TC26", "TC17", "TC19"];
 
-  const managerTeamIDs = ["TC47", "TC49", "TC50","TC92"];
+  const managerTeamIDs = ["TC47", "TC49", "TC50", "TC92"];
 
   const processTestCases = async (data, testCases) => {
     for (const testCaseID of testCases) {
@@ -426,7 +426,7 @@ export const createTaskForTestCases = async () => {
   ];
 
   const managerTaskIDs = ["TC22", "TC25", "TC26", "TC17", "TC19"];
-  const managerTeamIDs = ["TC47", "TC49", "TC50","TC92"];
+  const managerTeamIDs = ["TC47", "TC49", "TC50", "TC92"];
 
   const processTestCasesForTasks = async (data, testCases) => {
     for (const testCaseID of testCases) {
@@ -572,11 +572,11 @@ export const deleteTasks = async () => {
     { id: "TC47", data: sharedManagerTeamData.TC47 },
     { id: "TC49", data: sharedManagerTeamData.TC49 },
     { id: "TC50", data: sharedManagerTeamData.TC50 },
-        { id: "TC92", data: sharedManagerTeamData.TC92 },
+    { id: "TC92", data: sharedManagerTeamData.TC92 },
   ];
 
   // For admin to delete a TC task
-  const adminCases = new Set(["TC2","TC92"]);
+  const adminCases = new Set(["TC2", "TC92"]);
   for (const { id, data } of tasksToBeDeleted) {
     if (adminCases.has(id)) {
       await deleteTask(data.payloadDeleteTask.taskID, "admin");
@@ -719,7 +719,7 @@ export const cleanUpProjects = async (data) => {
 
       try {
         console.log(`Deleting Timesheet: ${timesheetId}`);
-        await deleteTimesheetbyID(timesheetId);
+        await deleteTimesheetbyID(timesheetId, "admin");
       } catch (err) {
         console.error(` Failed to delete timesheet ${timesheetId}:`, err.message);
       }
@@ -780,23 +780,24 @@ export const readAndCleanAllOrphanData = async () => {
 /**
  * Submits timesheet for Approval for an employee
  */
-export const submitTimesheetForApproval = async (empId, managerID,role) => {
-
+export const submitTimesheetForApproval = async (empId, managerID, role) => {
   //Get timesheetId for current week for the empID
   const { monday, friday } = getWeekRange();
 
-  await submitTimesheet({
-    start_date: monday,
-    end_date: friday,
-    notes: "submit for approval through emp API",
-    approver: managerID,
-    employee: empId,
-  },role=role);
-
-
-    const filterResponse = await filterApi("Timesheet", [
+  await submitTimesheet(
+    {
+      start_date: monday,
+      end_date: friday,
+      notes: "submit for approval through emp API",
+      approver: managerID,
+      employee: empId,
+    },
+    (role = role)
+  );
+  /*
+  const filterResponse = await filterApi("Timesheet", [
     ["Timesheet", "start_date", "Between", [monday, friday]],
     ["Timesheet", "employee", "=", empId],
   ]);
-
-}
+  */
+};

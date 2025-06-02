@@ -44,11 +44,11 @@ const globalSetup = async () => {
   await createTimeEntries();
   await calculateHourlyBilling();
   await updateLeaveEntries();
-    await randomApprovalStatus();
+  await randomApprovalStatus();
 
   // 3. Create frontend UI storage states ONLY after all above is done
   await Promise.all([
-        storeStorageState("employee3", false),
+    storeStorageState("employee3", false),
     storeStorageState("employee2", false),
     storeStorageState("employee", false),
     storeStorageState("manager", false),

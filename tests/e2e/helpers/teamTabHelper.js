@@ -54,7 +54,7 @@ export const randomApprovalStatus = async (
         case "Rejected":
           console.warn("CASE: Rejected");
           //Convert the timesheet entry day to a proper date
-          var formattedDate = getFormattedDate(getDateForWeekday(testCase.cell.col));
+          const formattedDate = getFormattedDate(getDateForWeekday(testCase.cell.col));
 
           await actOnTimesheet({
             dates: [formattedDate], // or multiple dates if needed
@@ -66,7 +66,7 @@ export const randomApprovalStatus = async (
       }
     }
   };
-  await processTestCasesForApprovalStatus(managerTeamData, randomApprovalStatus, testCases);
+  await processTestCasesForApprovalStatus(data, randomApprovalStatus, testCases);
   await writeDataToFile(managerTeamDataFilePath, managerTeamData);
 };
 // ------------------------------------------------------------------------------------------

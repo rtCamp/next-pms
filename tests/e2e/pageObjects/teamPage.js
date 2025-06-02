@@ -411,7 +411,8 @@ export class TeamPage {
     // Apply the selected status
     await this.selectEmployeeStatus(empStatus);
   }
-    async checkApprovalStatus(empId, approvalStatus){
-
+  async checkApprovalStatus(approvalStatus) {
+    await this.page.getByRole("button", { name: "Approval Status" }).click();
+    await this.page.getByText(approvalStatus, { exact: true }).click();
   }
 }

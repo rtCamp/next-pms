@@ -231,12 +231,17 @@ test.only("TC92: Verify Approval Status filter to show the results appropriately
   // View next week
   await teamPage.viewNextWeek();
 
-  // Toggle employee timesheet
-  await teamPage.toggleEmployeeTimesheet(emp3Name);
+  /*
+    // Toggle employee timesheet
+    await teamPage.toggleEmployeeTimesheet(emp3Name);
+    */
 
   //Check the random Approval Status
-  await teamPage.checkApprovalStatus(
-    TC92data.payloadApprovalStatus.empId,
-    TC92data.payloadApprovalStatus.approvalStatus
-  );
+  await teamPage.checkApprovalStatus(TC92data.payloadApprovalStatus.approvalStatus);
+
+  // Get timesheet status
+  const status = await teamPage.getTimesheetStatus(emp3Name);
+
+  // Assertions
+  expect(status).toBe(TC92data.payloadApprovalStatus.approvalStatus);
 });
