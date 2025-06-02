@@ -19,7 +19,7 @@ jobs:
   test:
     runs-on: self-hosted
     container:
-      image: ubuntu
+      image: ubuntu:25.04
     environment: Stage # Retrive secrets from 'Stage' environment
     env:
       BASE_URL: ${{ secrets.BASE_URL }}
@@ -136,7 +136,7 @@ jobs:
         npm ci
         cd tests/e2e/
         npx playwright install
-        npx playwright install-deps
+        npx playwright install-deps ubuntu-jammy
 
     - name: Setup Java
       uses: actions/setup-java@v3
