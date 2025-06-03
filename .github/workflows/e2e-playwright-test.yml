@@ -14,27 +14,14 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+
 concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: false
 
 jobs:
-  deploy:
-    uses: rtCamp/erp-rtcamp/.github/workflows/deploy-erp-qe.rt.gw.yml@nextpmsqe
-    with:
-      environment: 'erp-qe.rt.gw'
-      use_maintenance_mode: true
-      use_bench_migrate: true
-      additional_commands: >-
-        ${{ github.event_name == 'pull_request' && format('-a {0}:{1}', github.event.pull_request.head.repo.full_name, github.event.pull_request.head.ref) || format('-a {0}:{1}', github.repository, github.ref_name) }}
-    secrets:
-      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      SSH_SERVER: erp-qe.rt.gw
-      SSH_USER: frappe
-      RTBOT_TOKEN: ${{ secrets.RTBOT_TOKEN }}
 
   test:
-    needs: deploy
     runs-on: self-hosted
     container:
       image: ubuntu:24.04
