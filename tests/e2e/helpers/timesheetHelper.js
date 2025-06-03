@@ -794,5 +794,4 @@ export const submitTimesheetForApproval = async (empId, managerID, role) => {
     },
     (role = role)
   );
-
 };
