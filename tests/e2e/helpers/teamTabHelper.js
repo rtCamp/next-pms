@@ -26,8 +26,7 @@ let sharedManagerTeamData;
  */
 export const randomApprovalStatus = async (
   data = managerTeamData,
-  //employeeStatus = ["Active"],
-  approvalStatus = ["Approval Pending", "Rejected"],
+  approvalStatus = ["Approval Pending", "Partially Rejected"],
   testCases = ["TC92"]
 ) => {
   //Get a random Approval Status
@@ -37,6 +36,10 @@ export const randomApprovalStatus = async (
   const processTestCasesForApprovalStatus = async (data, randomApprovalStatus, testCases) => {
     for (const testCaseID of testCases) {
       const testCase = data[testCaseID];
+      if (!testCase || !testCase.payloadApprovalStatus) {
+        console.warn(`Invalid or missing data for test case: ${testCaseID} in randomApprovalStatus function`);
+        continue;
+      }
       //Store the random approval status in the json file
       testCase.payloadApprovalStatus.approvalStatus = randomApprovalStatus;
 
@@ -44,25 +47,28 @@ export const randomApprovalStatus = async (
       await submitTimesheetForApproval(
         testCase.payloadApprovalStatus.empId,
         testCase.payloadApprovalStatus.managerID,
-        testCase.payloadApprovalStatus.employeeAPI,
+        testCase.payloadApprovalStatus.employeeAPI
       );
       switch (randomApprovalStatus) {
         case "Approval Pending":
           console.warn("CASE: Approval Pending");
           break;
 
-        case "Rejected":
-          console.warn("CASE: Rejected");
+        case "Partially Rejected":
+          console.warn("CASE: Partially Rejected");
           //Convert the timesheet entry day to a proper date
           const formattedDate = getFormattedDate(getDateForWeekday(testCase.cell.col));
 
           await actOnTimesheet({
             dates: [formattedDate], // or multiple dates if needed
             employee: testCase.payloadApprovalStatus.empId,
-            note: "rejecting timesheet via API",
-            status: randomApprovalStatus,
+            note: "Partial rejecting timesheet via API",
+            status: "Rejected",
           });
           break;
+
+        default:
+          console.warn(`Unhandled approval status: ${randomApprovalStatus}`);
       }
     }
   };

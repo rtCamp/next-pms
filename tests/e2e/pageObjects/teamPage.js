@@ -414,5 +414,6 @@ export class TeamPage {
   async checkApprovalStatus(approvalStatus) {
     await this.page.getByRole("button", { name: "Approval Status" }).click();
     await this.page.getByText(approvalStatus, { exact: true }).click();
+    await this.page.getByPlaceholder('Approval Status').press('Escape');
   }
 }

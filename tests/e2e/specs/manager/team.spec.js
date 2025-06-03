@@ -225,23 +225,20 @@ test("TC91: Verify Employee Status filter to show the results appropriately", as
     }
   }
 });
-test.only("TC92: Verify Approval Status filter to show the results appropriately", async ({}) => {
+test("TC92: Verify Approval Status filter to show the results appropriately", async ({}) => {
   allure.story("Team");
-  await teamPage.page.pause();
   // View next week
   await teamPage.viewNextWeek();
-
-  /*
-    // Toggle employee timesheet
-    await teamPage.toggleEmployeeTimesheet(emp3Name);
-    */
 
   //Check the random Approval Status
   await teamPage.checkApprovalStatus(TC92data.payloadApprovalStatus.approvalStatus);
 
   // Get timesheet status
   const status = await teamPage.getTimesheetStatus(emp3Name);
-
   // Assertions
-  expect(status).toBe(TC92data.payloadApprovalStatus.approvalStatus);
+  if (TC92data.payloadApprovalStatus.approvalStatus === "Partially Rejected") {
+    expect(status).toContain("Rejected");
+  } else {
+    expect(status).toBe(TC92data.payloadApprovalStatus.approvalStatus);
+  }
 });
