@@ -153,8 +153,7 @@ jobs:
       run: |
         npm ci
         cd tests/e2e/
-        npx playwright install
-        npx playwright install-deps
+        npx playwright install --with-deps
 
     - name: Setup Java
       uses: actions/setup-java@v3

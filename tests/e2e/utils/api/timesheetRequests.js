@@ -133,6 +133,6 @@ export const actOnTimesheet = async ({ dates, employee, note, status }, role = "
       status,
     },
   };
-  
+
   return await apiRequest(endpoint, options, role);
 };
