@@ -16,5 +16,5 @@ next_pms.timesheet.patches.remove_project_name_from_task_rows
 next_pms.resource_management.patches.add_abbr_customer
 next_pms.resource_management.patches.update_resource_allocation_permissions
 # next_pms.timesheet.patches.update_task_and_project_costing
-
+next_pms.resource_management.patches.add_resource_reminder_template
 next_pms.timesheet.patches.add_index

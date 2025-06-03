@@ -28,7 +28,7 @@ import {
 import { getFormatedDate } from "@next-pms/design-system/date";
 import { floatToTime } from "@next-pms/design-system/utils";
 import { FrappeConfig, FrappeContext, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
-import { Clock3, LoaderCircle, Save, Search, X } from "lucide-react";
+import { LoaderCircle, Save, Search, X } from "lucide-react";
 import { z } from "zod";
 
 /**
@@ -38,7 +38,8 @@ import EmployeeCombo from "@/app/components/employeeComboBox";
 import { mergeClassNames, expectatedHours, parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetSchema } from "@/schema/timesheet";
 import type { TaskData } from "@/types";
-import type { AddTimeProps } from "./types";
+import TimeSelector from "./time-selector";
+import type { AddTimeProps } from "./type";
 
 /**
  * Add Time Component
@@ -105,6 +106,13 @@ const AddTime = ({
   };
   const handleTaskSearch = (searchTerm: string) => {
     setSearchTask(searchTerm);
+  };
+  const UpdateTime = (time: string) => {
+    form.setValue("hours", time, {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
   };
   const handleTaskChange = (value: string | string[]) => {
     if (value instanceof Array) {
@@ -286,14 +294,14 @@ const AddTime = ({
                         </FormLabel>
                         <FormControl>
                           <>
-                            <div className="relative flex items-center">
+                            <div className=" flex w-full border rounded-md ">
                               <Input
                                 placeholder="00:00"
-                                className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                className="placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0 border-0 border-r rounded-none px-2"
                                 type="text"
                                 {...field}
                               />
-                              <Clock3 className="h-4 w-4 absolute right-0 m-3 top-0 stroke-slate-400" />
+                              <TimeSelector onClick={UpdateTime} />
                             </div>
                           </>
                         </FormControl>

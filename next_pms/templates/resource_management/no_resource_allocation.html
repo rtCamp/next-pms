@@ -1,0 +1,20 @@
+<p>Dear {{ employee_name }},</p><br>
+
+<p>The following team members under your reporting have missing allocations for the upcoming week:</p>
+
+{% for item in missing_allocations %}
+    <details>
+        <summary><strong>{{ item.employee_name }}</strong> ({{ item.designation }})</summary>
+        <br>Missing allocations on:
+        <ul>
+
+            {% for date in item.dates %}
+                <li>{{frappe.utils.getdate(date).strftime('%b %d, %Y') }}</li>
+            {% endfor %}
+        </ul>
+    </details>
+    <hr>
+{% endfor %}
+<br>
+
+<p>Please update their allocations in the system at your earliest convenience.</p>

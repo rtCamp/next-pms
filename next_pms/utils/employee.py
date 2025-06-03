@@ -55,3 +55,43 @@ def convert_currency(
 
     exchange_rate = get_exchange_rate(from_currency, to_currency, date)
     return amount * (exchange_rate or 1)
+
+
+def generate_flat_tree(doctype: str, nsm_field: str, filters: dict, fields: list[str] | None = None):
+    from collections import deque
+
+    from frappe import get_all
+
+    flat_tree = []
+
+    if not fields:
+        fields = ["name"]
+    if nsm_field not in fields:
+        fields.append(nsm_field)
+    if "name" not in fields:
+        fields.append("name")
+
+    data = get_all(doctype, fields=fields, filters=filters)
+
+    lookup_dict = {d["name"]: d for d in data}
+    root_nodes = {d["name"] for d in data if not d.get(nsm_field)}
+    children_dict = {d["name"]: {**d, "childrens": []} for d in data}
+
+    for d in data:
+        if d.get(nsm_field) and d.get(nsm_field) in children_dict:
+            children_dict[d.get(nsm_field)]["childrens"].append(d)
+
+    queue = deque([(lookup_dict[root], 0) for root in root_nodes])
+
+    while queue:
+        current, level = queue.popleft()
+
+        current["level"] = level
+        flat_tree.append(current)
+
+        children = children_dict[current["name"]]
+
+        for child in children.get("childrens", []):
+            queue.append((child, level + 1))
+
+    return {"level": flat_tree, "with_children": children_dict}

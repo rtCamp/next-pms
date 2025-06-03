@@ -193,6 +193,7 @@ scheduler_events = {
     "daily_long": [
         "next_pms.timesheet.tasks.daily_reminder_for_time_entry.send_reminder",
         "next_pms.timesheet.tasks.send_weekly_reminder.send_reminder",
+        "next_pms.resource_management.tasks.no_allocation_reminder.send_reminder",
     ],
     "weekly": [
         "next_pms.project_currency.tasks.reminde_project_threshold.send_reminder_mail",
