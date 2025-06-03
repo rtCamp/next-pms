@@ -21,7 +21,8 @@ concurrency:
 
 jobs:
   deploy:
-    uses: rtCamp/erp-rtcamp/.github/workflows/deploy-erp-qe.rt.gw.yml@nextpmsqe
+    if: github.event_name != 'workflow_dispatch'
+    uses: rtCamp/erp-rtcamp/.github/workflows/deploy-erp-qe.rt.gw.yml@main
     with:
       environment: 'erp-qe.rt.gw'
       use_maintenance_mode: true

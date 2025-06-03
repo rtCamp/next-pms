@@ -794,10 +794,5 @@ export const submitTimesheetForApproval = async (empId, managerID, role) => {
     },
     (role = role)
   );
-  /*
-  const filterResponse = await filterApi("Timesheet", [
-    ["Timesheet", "start_date", "Between", [monday, friday]],
-    ["Timesheet", "employee", "=", empId],
-  ]);
-  */
+
 };
