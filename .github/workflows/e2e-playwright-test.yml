@@ -49,10 +49,10 @@ jobs:
       EMP2_PASS: ${{ secrets.EMP2_PASS }}
       EMP2_NAME: ${{ secrets.EMP2_NAME }}
 
-      EMP3_ID: ${{ secrets.EMP2_ID }}
-      EMP3_EMAIL: ${{ secrets.EMP2_EMAIL }}
-      EMP3_PASS: ${{ secrets.EMP2_PASS }}
-      EMP3_NAME: ${{ secrets.EMP2_NAME }}
+      EMP3_ID: ${{ secrets.EMP3_ID }}
+      EMP3_EMAIL: ${{ secrets.EMP3_EMAIL }}
+      EMP3_PASS: ${{ secrets.EMP3_PASS }}
+      EMP3_NAME: ${{ secrets.EMP3_NAME }}
 
       # Hetzner Space (S3) credentials & endpoint
       HETZNER_S3_BUCKET: ${{ secrets.HETZNER_S3_BUCKET }}
