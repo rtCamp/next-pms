@@ -11,7 +11,6 @@ import { updateLeaveEntries } from "../helpers/leaveHelper";
 import { createJSONFile } from "../utils/fileUtils";
 import { createEmployees } from "../helpers/employeeHelper";
 import { randomApprovalStatus } from "../helpers/teamTabHelper";
-import { getRandomValue } from "../utils/stringUtils";
 // ------------------------------------------------------------------------------------------
 
 /**

@@ -7,11 +7,6 @@ import { getRandomValue } from "../utils/stringUtils";
 import { submitTimesheetForApproval } from "./timesheetHelper";
 import { actOnTimesheet } from "../utils/api/timesheetRequests";
 import { writeDataToFile } from "../utils/fileUtils";
-// Load env variables
-const managerId = process.env.REP_MAN_ID;
-const managerName = process.env.REP_MAN_NAME;
-const managerMail = process.env.REP_MAN_EMAIL;
-const emp3ID = process.env.EMP3_ID;
 
 // Define file paths for shared JSON data files
 const managerTeamDataFilePath = path.resolve(__dirname, "../data/manager/shared-team.json"); // File path of the manager team data JSON file
@@ -22,7 +17,7 @@ let sharedManagerTeamData;
 // ------------------------------------------------------------------------------------------
 
 /**
- * Create a random Approval Status timesheet for an Active employee
+ * Create a random Approval Status timesheet
  */
 export const randomApprovalStatus = async (
   data = managerTeamData,
