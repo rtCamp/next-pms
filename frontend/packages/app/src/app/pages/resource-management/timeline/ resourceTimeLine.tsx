@@ -32,7 +32,7 @@ import { getIsBillableValue } from "../utils/helper";
 
 const ResourceTimeLineView = () => {
   return (
-    <CustomViewWrapper label="Timeline" createFilter={createFilter({} as TimeLineContextState)}>
+    <CustomViewWrapper label="ResourceTimelineView" createFilter={createFilter({} as TimeLineContextState)}>
       {({ viewData }) => <ResourceTimeLineViewComponent viewData={viewData} />}
     </CustomViewWrapper>
   );

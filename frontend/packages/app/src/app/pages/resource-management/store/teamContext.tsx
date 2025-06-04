@@ -66,6 +66,7 @@ const defaulTeamState: TeamContextProps = {
     filters: defaultFilters,
     tableView: defaultTableView,
     apiController: defaultApiController,
+    hasViewUpdated: false,
   },
   actions: {
     setStart: () => {},
@@ -79,6 +80,7 @@ const defaulTeamState: TeamContextProps = {
     setDates: () => {},
     setCombineWeekHours: () => {},
     setWeekDate: () => {},
+    setHasViewUpdated: () => false,
   },
 };
 
@@ -169,6 +171,8 @@ const TeamContextProvider = ({ children }: ContextProviderProps) => {
     return teamData.has_more;
   };
 
+  const [hasViewUpdated, setHasViewUpdated] = useState<boolean>(false);
+
   return (
     <TeamContext.Provider
       value={{
@@ -177,6 +181,7 @@ const TeamContextProvider = ({ children }: ContextProviderProps) => {
           filters: filters,
           apiController: apiController,
           tableView: tableView,
+          hasViewUpdated,
         },
         actions: {
           setStart: setStart,
@@ -190,6 +195,7 @@ const TeamContextProvider = ({ children }: ContextProviderProps) => {
           setDates: setDates,
           setCombineWeekHours: setCombineWeekHours,
           setWeekDate: setWeekDate,
+          setHasViewUpdated,
         },
       }}
     >

@@ -280,13 +280,15 @@ export interface OptionalResourceTeamFilters {
   skillSearch?: Skill[];
 }
 
+export interface ResourceTeam {
+  teamData: ResourceTeamDataProps;
+  filters: ResourceTeamFilters;
+  tableView: TableViewProps;
+  apiController: APIController;
+  hasViewUpdated: boolean;
+}
 export interface ResourceTeamState {
-  state: {
-    teamData: ResourceTeamDataProps;
-    filters: ResourceTeamFilters;
-    tableView: TableViewProps;
-    apiController: APIController;
-  };
+  state: ResourceTeam;
 }
 
 export interface TeamContextProps extends ResourceTeamState {
@@ -305,6 +307,7 @@ export interface TeamContextProps extends ResourceTeamState {
     setDates: (dates: DateProps[]) => void;
     setCombineWeekHours: (value: boolean) => void;
     setWeekDate: (value: string) => void;
+    setHasViewUpdated: (value: boolean) => void;
   };
 }
 export interface TimeLineContextState {
