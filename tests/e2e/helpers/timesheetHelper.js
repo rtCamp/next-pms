@@ -25,7 +25,6 @@ import { deleteEmployeeByName } from "./employeeHelper";
 const empID = process.env.EMP_ID;
 const emp2ID = process.env.EMP2_ID;
 const emp3ID = process.env.EMP3_ID;
-const emp2Mail = process.env.EMP2_EMAIL;
 
 // Define file paths for shared JSON data files
 const employeeTimesheetDataFilePath = path.resolve(__dirname, "../data/employee/shared-timesheet.json"); // File path of the employee timesheet data JSON file
