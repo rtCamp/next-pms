@@ -35,7 +35,8 @@ jobs:
       SSH_USER: frappe
       RTBOT_TOKEN: ${{ secrets.RTBOT_TOKEN }}
   test:
-    needs: ${{ github.event_name == 'workflow_dispatch' && 'deploy' || '' }}
+    needs: [deploy]
+    if: ${{ always() }}
     runs-on: self-hosted
     container:
       image: ubuntu:24.04
