@@ -25,10 +25,10 @@ export const randomApprovalStatus = async (
   testCases = ["TC92"]
 ) => {
   //Get a random Approval Status
-  const randomApprovalStatus = getRandomValue(approvalStatus);
-  console.warn(`Selected RANDOM Approval Status: ${randomApprovalStatus}`);
+  const randomApprStatus = getRandomValue(approvalStatus);
+  console.warn(`Selected RANDOM Approval Status: ${randomApprStatus}`);
 
-  const processTestCasesForApprovalStatus = async (data, randomApprovalStatus, testCases) => {
+  const processTestCasesForApprovalStatus = async (data, randomApprStatus, testCases) => {
     for (const testCaseID of testCases) {
       const testCase = data[testCaseID];
       if (!testCase || !testCase.payloadApprovalStatus) {
@@ -36,7 +36,7 @@ export const randomApprovalStatus = async (
         continue;
       }
       //Store the random approval status in the json file
-      testCase.payloadApprovalStatus.approvalStatus = randomApprovalStatus;
+      testCase.payloadApprovalStatus.approvalStatus = randomApprStatus;
 
       //Submit timesheet for Approval
       await submitTimesheetForApproval(
@@ -44,7 +44,7 @@ export const randomApprovalStatus = async (
         testCase.payloadApprovalStatus.managerID,
         testCase.payloadApprovalStatus.employeeAPI
       );
-      switch (randomApprovalStatus) {
+      switch (randomApprStatus) {
         case "Approval Pending":
           console.warn("CASE: Approval Pending");
           break;
@@ -63,11 +63,11 @@ export const randomApprovalStatus = async (
           break;
 
         default:
-          console.warn(`Unhandled approval status: ${randomApprovalStatus}`);
+          console.warn(`Unhandled approval status: ${randomApprStatus}`);
       }
     }
   };
-  await processTestCasesForApprovalStatus(data, randomApprovalStatus, testCases);
+  await processTestCasesForApprovalStatus(data, randomApprStatus, testCases);
   await writeDataToFile(managerTeamDataFilePath, managerTeamData);
 };
 // ------------------------------------------------------------------------------------------
