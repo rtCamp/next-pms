@@ -12,16 +12,18 @@
       "business_unit": "NB",
       "estimated_cost": 100000
     },
-    "payloadShareProject": {
-      "doctype": "Project",
-      "name": "filled-automatically-from-createProjects",
-      "user": "mailID-filled-automatically-from-createProjects",
-      "readValue": 1,
-      "writeValue": 1,
-      "submitValue": 0,
-      "shareValue": 0,
-      "notifyValue": 1
-    },
+    "payloadShareProject": [
+      {
+        "doctype": "Project",
+        "name": "filled-automatically-from-createProjects",
+        "user": "manoj.maharrshi@rtcamp.com",
+        "readValue": 1,
+        "writeValue": 1,
+        "submitValue": 0,
+        "shareValue": 0,
+        "notifyValue": 1
+      }
+    ],
     "payloadDeleteProject": {
       "projectId": "filled-automatically-from-createProjects"
     },

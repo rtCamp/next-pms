@@ -203,5 +203,42 @@
       "employeeAPI": "employee3",
       "approvalStatus": "automatically-filled-from-randomApprovalStatus"
     }
+  },
+  "TC93": {
+    "projectSharedWithEmps": ["Abhishek Sharma", "Abhishek Kumar"],
+    "payloadCreateProject": {
+      "project_name": "TC93 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "billing_type": "Non-Billable",
+      "currency": "INR",
+      "project_type": "Non Billable",
+      "business_unit": "NB",
+      "estimated_cost": 100000
+    },
+    "payloadShareProject": [
+      {
+        "doctype": "Project",
+        "name": "filled-automatically-from-createProjects",
+        "user": "abhishek.sharma@rtcamp.com",
+        "readValue": 1,
+        "writeValue": 1,
+        "submitValue": 0,
+        "shareValue": 0,
+        "notifyValue": 1
+      },
+      {
+        "doctype": "Project",
+        "name": "filled-automatically-from-createProjects",
+        "user": "abhishek.kumar@rtcamp.com",
+        "readValue": 1,
+        "writeValue": 1,
+        "submitValue": 0,
+        "shareValue": 0,
+        "notifyValue": 1
+      }
+    ],
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    }
   }
 }

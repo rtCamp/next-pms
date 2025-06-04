@@ -411,9 +411,22 @@ export class TeamPage {
     // Apply the selected status
     await this.selectEmployeeStatus(empStatus);
   }
+  /**
+   * Check and apply Approval Status filter
+   */
   async checkApprovalStatus(approvalStatus) {
     await this.page.getByRole("button", { name: "Approval Status" }).click();
     await this.page.getByText(approvalStatus, { exact: true }).click();
     await this.page.getByPlaceholder("Approval Status").press("Escape");
+  }
+
+  /**
+   * Check and apply Project  filter
+   */
+  async checkProjectStatus(projectName) {
+    await this.page.getByRole("button", { name: "Project" }).click();
+    await this.page.getByPlaceholder("Project").fill(projectName);
+    await this.page.getByText(`${projectName}`).click();
+    await this.page.getByPlaceholder("Project").press("Escape");
   }
 }
