@@ -11,6 +11,7 @@ import { useContextSelector } from "use-context-selector";
 /**
  * Internal dependencies.
  */
+import CustomViewWrapper from "@/app/components/customViewWrapper";
 import { parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { ResourceTimLineHeaderSection } from "./components/header";
@@ -20,14 +21,24 @@ import type {
   ResourceAllocationTimeLineProps,
   ResourceTeamAPIBodyProps,
   ResourceTimeLineDataProps,
+  ResourceTimeLineViewComponentProps,
 } from "./types";
+import { createFilter } from "./utils";
 import AddResourceAllocations from "../components/addAllocation";
 import { ResourceFormContext } from "../store/resourceFormContext";
 import { TimeLineContext } from "../store/timeLineContext";
-import type { AllocationDataProps } from "../store/types";
+import type { AllocationDataProps, TimeLineContextState } from "../store/types";
 import { getIsBillableValue } from "../utils/helper";
 
 const ResourceTimeLineView = () => {
+  return (
+    <CustomViewWrapper label="Timeline" createFilter={createFilter({} as TimeLineContextState)}>
+      {({ viewData }) => <ResourceTimeLineViewComponent viewData={viewData} />}
+    </CustomViewWrapper>
+  );
+};
+
+const ResourceTimeLineViewComponent = ({ viewData }: ResourceTimeLineViewComponentProps) => {
   const { toast } = useToast();
   const { apiControler, employees, customer, allocations, filters, allocationData } = useContextSelector(
     TimeLineContext,
@@ -248,7 +259,7 @@ const ResourceTimeLineView = () => {
 
   return (
     <>
-      <ResourceTimLineHeaderSection />
+      <ResourceTimLineHeaderSection viewData={viewData} />
       {apiControler.isLoading && employees.length == 0 ? (
         <Spinner isFull />
       ) : (

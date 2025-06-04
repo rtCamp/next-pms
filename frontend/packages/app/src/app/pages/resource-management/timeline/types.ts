@@ -7,7 +7,8 @@ import { Moment } from "moment";
 /**
  * Internal dependencies.
  */
-import { ResourceAllocationProps } from "@/types/resource-management";
+import type { ViewData } from "@/store/view";
+import { ResourceAllocationProps } from "@/types/resource_management";
 import { AllocationDataProps, Skill } from "../store/types";
 
 interface ResourceAllocationItemProps {
@@ -122,6 +123,10 @@ interface ResourceTimeLineProps {
   ) => void;
 }
 
+interface ResourceTimeLineViewComponentProps {
+  viewData: ViewData;
+}
+
 export type {
   ResourceAllocationCustomerProps,
   ResourceAllocationEmployeeProps,
@@ -134,4 +139,5 @@ export type {
   TimeLineHeaderFunctionProps,
   ResourceTimeLineItemProps,
   ResourceTimeLineProps,
+  ResourceTimeLineViewComponentProps,
 };

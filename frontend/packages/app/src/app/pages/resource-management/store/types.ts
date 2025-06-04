@@ -9,7 +9,7 @@ import type { ReactNode } from "react";
 import type {
   ResourceAllocationObjectProps,
   ResourceCustomerObjectProps,
-} from "@/types/resource-management";
+} from "@/types/resource_management";
 import type {
   ResourceAllocationCustomerProps,
   ResourceAllocationEmployeeProps,
@@ -307,21 +307,22 @@ export interface TeamContextProps extends ResourceTeamState {
     setWeekDate: (value: string) => void;
   };
 }
-
-export interface TimeLineContextProps {
-  state: {
-    employees: ResourceAllocationEmployeeProps[];
-    allocations: ResourceAllocationTimeLineProps[];
-    customer: ResourceAllocationCustomerProps;
-    filters: ResourceAllocationTimeLineFilterProps;
-    apiControler: APIControlerProps;
-    allocationData: {
-      isNeedToDelete: boolean;
-      old?: ResourceAllocationTimeLineProps;
-      new?: ResourceAllocationTimeLineProps;
-    };
-    isShowMonth?: boolean;
+export interface TimeLineContextState {
+  employees: ResourceAllocationEmployeeProps[];
+  allocations: ResourceAllocationTimeLineProps[];
+  customer: ResourceAllocationCustomerProps;
+  filters: ResourceAllocationTimeLineFilterProps;
+  apiControler: APIControlerProps;
+  hasViewUpdated: boolean;
+  allocationData: {
+    isNeedToDelete: boolean;
+    old?: ResourceAllocationTimeLineProps;
+    new?: ResourceAllocationTimeLineProps;
   };
+  isShowMonth?: boolean;
+}
+export interface TimeLineContextProps {
+  state: TimeLineContextState;
   actions: {
     setEmployeesData: (
       value: ResourceAllocationEmployeeProps[],
@@ -353,6 +354,7 @@ export interface TimeLineContextProps {
       old?: ResourceAllocationTimeLineProps;
       new?: ResourceAllocationTimeLineProps;
     }) => void;
+    setHasViewUpdated: (value: boolean) => void;
   };
 }
 
