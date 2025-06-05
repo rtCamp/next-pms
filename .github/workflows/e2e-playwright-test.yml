@@ -25,7 +25,7 @@ jobs:
       use_maintenance_mode: true
       use_bench_migrate: true
       additional_commands: >-
-        ${{ format('-a {0}:{1}', github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository, github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.ref_name) }}
+        ${{ github.event_name == 'pull_request' && format('{0}:{1}', github.event.pull_request.head.repo.full_name, github.event.pull_request.head.ref) || format('{0}:{1}', github.repository, github.ref_name) }}
     secrets:
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       SSH_SERVER: erp-qe.rt.gw
