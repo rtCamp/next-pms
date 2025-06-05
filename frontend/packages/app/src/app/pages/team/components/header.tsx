@@ -26,7 +26,7 @@ export const Header = ({ teamState, dispatch, viewData }: HeaderProps) => {
   const [reportsToParam] = useQueryParam<string>("reports-to", "");
   const [employeeStatusParam] = useQueryParam<Array<string>>("emp-status", viewData.filters.status);
   const { data: employee } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee", {
-    filters: { name: reportsToParam },
+    filters: { name: reportsToParam || viewData.filters.reportsTo },
   });
   const { toast } = useToast();
   useEffect(() => {
