@@ -57,7 +57,7 @@ const ResourceTeamHeaderSection = ({ viewData }: { viewData: ViewData }) => {
   );
 
   const { data: employee } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee", {
-    filters: { name: reportingNameParam },
+    filters: { name: reportingNameParam || viewData.filters.reportingManager },
   });
 
   useEffect(() => {
