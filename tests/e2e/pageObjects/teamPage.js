@@ -429,7 +429,7 @@ export class TeamPage {
    */
   async checkProjectStatus(projectName) {
     await this.projectFilter.click();
-    await this.projectFilterSearchBar.fill(projectName)
+    await this.projectFilterSearchBar.fill(projectName);
     await this.page.getByText(`${projectName}`).click();
     await this.projectFilterSearchBar.press("Escape");
   }
