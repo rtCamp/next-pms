@@ -4,8 +4,6 @@ name: Playwright Tests
 on:
   pull_request:
 
-
-
   #Triggers at 5 AM IST every day
   schedule:
   - cron: "30 23 * * *"
@@ -33,7 +31,7 @@ jobs:
       SSH_USER: frappe
       RTBOT_TOKEN: ${{ secrets.RTBOT_TOKEN }}
   test:
-    needs: [deploy]
+    needs: [ deploy ]
     if: ${{ always() }}
     runs-on: self-hosted
     container:
