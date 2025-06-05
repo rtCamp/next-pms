@@ -2,10 +2,12 @@
  * External dependencies.
  */
 import { useCallback, useEffect } from "react";
+import { ButtonProps, useToast } from "@next-pms/design-system/components";
 import { getFormatedDate } from "@next-pms/design-system/date";
 import { useQueryParam } from "@next-pms/hooks";
 import { addDays } from "date-fns";
 import { useFrappePostCall } from "frappe-react-sdk";
+import _ from "lodash";
 import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
 import { useContextSelector } from "use-context-selector";
 
@@ -13,6 +15,8 @@ import { useContextSelector } from "use-context-selector";
  * Internal dependencies.
  */
 import { Header } from "@/app/components/list-view/header";
+import { parseFrappeErrorMsg } from "@/lib/utils";
+import { ViewData } from "@/store/view";
 import { ProjectContext } from "../../store/projectContext";
 import { ResourceFormContext } from "../../store/resourceFormContext";
 import type { PermissionProps } from "../../store/types";
@@ -22,18 +26,25 @@ import type { PermissionProps } from "../../store/types";
  *
  * @returns React.FC
  */
-const ResourceProjectHeaderSection = () => {
+const ResourceProjectHeaderSection = ({ viewData }: { viewData: ViewData }) => {
   const [projectNameParam] = useQueryParam<string>("project-name", "");
-  const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParam<boolean>("combine-week-hours", false);
+  const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParam<boolean>(
+    "combine-week-hours",
+    viewData.filters.combineWeekHours || false
+  );
   const [reportingNameParam] = useQueryParam<string>("reports-to", "");
   const [customerNameParam] = useQueryParam<string[]>("customer", []);
   const [allocationTypeParam] = useQueryParam<string[]>("allocation-type", []);
   const [billingType, setBillingTypeParam] = useQueryParam<string[]>("billing-type", []);
-  const [viewParam, setViewParam] = useQueryParam<string>("view-type", "");
+  const [viewParam, setViewParam] = useQueryParam<string>("view-type", viewData.filters.view || "");
+  const { toast } = useToast();
 
-  const { projectData, tableView, filters } = useContextSelector(ProjectContext, (value) => value.state);
+  const { projectData, tableView, filters, hasViewUpdated } = useContextSelector(
+    ProjectContext,
+    (value) => value.state
+  );
 
-  const { updateFilter, updateTableView, setWeekDate, setCombineWeekHours } = useContextSelector(
+  const { updateFilter, updateTableView, setWeekDate, setCombineWeekHours, setHasViewUpdated } = useContextSelector(
     ProjectContext,
     (value) => value.actions
   );
@@ -73,15 +84,18 @@ const ResourceProjectHeaderSection = () => {
     let currentBillingType = billingType;
     if (resResourceAllocationPermission.write) {
       if (!billingType || billingType.length == 0) {
-        currentBillingType = ["Retainer", "Fixed Cost", "Time and Material"];
+        currentBillingType = viewData.filters.billingType
+          ? viewData.filters.billingType
+          : ["Retainer", "Fixed Cost", "Time and Material"];
         setBillingTypeParam(currentBillingType);
       }
     }
     updateFilter({
-      projectName: projectNameParam,
-      customer: customerNameParam,
-      reportingManager: reportingNameParam,
-      allocationType: allocationTypeParam,
+      projectName: projectNameParam || viewData.filters.projectName,
+      customer: customerNameParam && customerNameParam.length > 0 ? customerNameParam : viewData.filters.customer,
+      reportingManager: reportingNameParam || viewData.filters.reportingManager,
+      allocationType:
+        allocationTypeParam && allocationTypeParam.length > 0 ? allocationTypeParam : viewData.filters.allocationType,
       billingType: currentBillingType,
     });
     updateTableView({ ...tableView, combineWeekHours: combineWeekHoursParam, view: currentViewParam });
@@ -101,6 +115,55 @@ const ResourceProjectHeaderSection = () => {
     setCombineWeekHoursParam(!tableView.combineWeekHours);
     setCombineWeekHours(!tableView.combineWeekHours);
   }, [setCombineWeekHours, setCombineWeekHoursParam, tableView.combineWeekHours]);
+
+  // frappe-call for updating view
+  const { call: updateView } = useFrappePostCall(
+    "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view"
+  );
+
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { start, weekDate, employeeWeekDate, maxWeek, pageLength, ...viewFilters } = filters;
+
+    if (
+      !_.isEqual(viewData.filters, {
+        ...viewFilters,
+        view: tableView.view,
+        combineWeekHours: tableView.combineWeekHours,
+      })
+    ) {
+      setHasViewUpdated(true);
+    } else {
+      setHasViewUpdated(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, viewData, tableView.view, tableView.combineWeekHours]);
+
+  // Handle save changes
+  const handleSaveChanges = () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { start, weekDate, employeeWeekDate, maxWeek, pageLength, ...viewFilters } = filters;
+    updateView({
+      view: {
+        ...viewData,
+        filters: { ...viewFilters, view: tableView.view, combineWeekHours: tableView.combineWeekHours },
+      },
+    })
+      .then(() => {
+        toast({
+          variant: "success",
+          description: "View Updated",
+        });
+        setHasViewUpdated(false);
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          description: error,
+        });
+      });
+  };
 
   return (
     <Header
@@ -228,6 +291,16 @@ const ResourceProjectHeaderSection = () => {
         },
       ]}
       buttons={[
+        {
+          title: "Save changes",
+          handleClick: () => {
+            handleSaveChanges();
+          },
+          hide: !hasViewUpdated,
+          label: "Save changes",
+          variant: "ghost" as ButtonProps["variant"],
+          className: "h-10 px-2 py-2",
+        },
         {
           title: "add-allocation",
           handleClick: () => {

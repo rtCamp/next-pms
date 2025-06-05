@@ -143,14 +143,15 @@ export interface OptionalResourceProjectFilters {
   employeeWeekDate?: string;
   billingType?: string[];
 }
-
+export interface ResourceProject {
+  projectData: ResourceProjectDataProps;
+  filters: ResourceProjectFilter;
+  tableView: TableViewProps;
+  apiController: APIController;
+  hasViewUpdated: boolean;
+}
 export interface ResourceProjectState {
-  state: {
-    projectData: ResourceProjectDataProps;
-    filters: ResourceProjectFilter;
-    tableView: TableViewProps;
-    apiController: APIController;
-  };
+  state: ResourceProject;
 }
 
 export interface ProjectContextProps extends ResourceProjectState {
@@ -169,6 +170,7 @@ export interface ProjectContextProps extends ResourceProjectState {
     setDates: (dates: DateProps[]) => void;
     setCombineWeekHours: (value: boolean) => void;
     setWeekDate: (value: string) => void;
+    setHasViewUpdated: (value: boolean) => void;
   };
 }
 
