@@ -168,7 +168,7 @@ const TimeLineContextProvider = ({ children }: TimeLineContextProviderProps) => 
   };
 
   const updateFilters = (updatedFilters: ResourceAllocationTimeLineFilterProps) => {
-    setFilters({ ...filters, ...updatedFilters, start: 0 });
+    setFilters((prev) => ({ ...prev, ...updatedFilters, start: 0 }));
     setEmployees([]);
     setAllocations([]);
     setCustomer({});
@@ -195,7 +195,7 @@ const TimeLineContextProvider = ({ children }: TimeLineContextProviderProps) => 
   };
 
   const verticalLodMore = () => {
-    setFilters({ ...filters, start: (filters.start ? filters.start : 0) + 20 });
+    setFilters((prev) => ({ ...prev, start: (filters.start ? filters.start : 0) + 20 }));
     updateApiControler({ isNeedToFetchDataAfterUpdate: true, isLoading: true });
   };
 

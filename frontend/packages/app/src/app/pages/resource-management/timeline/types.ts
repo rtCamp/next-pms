@@ -32,8 +32,8 @@ interface ResourceAllocationTimeLineFilterProps {
   designation?: string[];
   allocationType?: string[];
   skillSearch?: Skill[];
-  start?: 0;
-  page_length?: 20;
+  start?: number;
+  page_length?: number;
   weekDate?: string;
   isShowMonth?: boolean;
 }
