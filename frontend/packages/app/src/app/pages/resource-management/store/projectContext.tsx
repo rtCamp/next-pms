@@ -115,7 +115,7 @@ const ProjectContextProvider = ({ children }: ContextProviderProps) => {
   };
 
   const updateFilter = (updatedFilters: OptionalResourceProjectFilters) => {
-    setFilters({ ...filters, ...updatedFilters, start: 0, maxWeek: defaultFilters.maxWeek });
+    setFilters((prev) => ({ ...prev, ...updatedFilters, start: 0, maxWeek: defaultFilters.maxWeek }));
     updateProjectData(defaultData);
     setApiController({ ...apiController, isLoading: true, isNeedToFetchDataAfterUpdate: true, action: "SET" });
   };

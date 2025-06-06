@@ -122,7 +122,7 @@ const TeamContextProvider = ({ children }: ContextProviderProps) => {
   };
 
   const updateFilter = (updatedFilters: OptionalResourceTeamFilters) => {
-    setFilters({ ...filters, ...updatedFilters, start: 0, maxWeek: defaultFilters.maxWeek });
+    setFilters((prev) => ({ ...prev, ...updatedFilters, start: 0, maxWeek: defaultFilters.maxWeek }));
     setTeanData(defaultData);
     setApiController({ ...apiController, isLoading: true, isNeedToFetchDataAfterUpdate: true });
   };
