@@ -7,13 +7,11 @@ export class TimelinePage {
     this.searchEmployeeFilter = page.locator('#filters input');
 
     //add allocation modal elements
-    this.selectEmployeeDropdown = page.locator('.gap-y-4 button[data-state="closed"]').first();
+    this.selectEmployeeDropdown = page.getByRole('button', { name: 'Select Employee' });
     this.selectEmployeeTextField = page.getByPlaceholder("Search Employee");
-    this.employeeSelector = page.getByLabel("Suggestions").getByText("Abhishek Sharma");
+    this.employeeSelector = page.getByLabel("Suggestions");
     this.customerDropdown = page.getByRole("button", { name: "Search Customer" });
-    //this.googleCustomer = page.getByText("Google");
     this.projectDropdown = page.getByRole("button", { name: "Search Google Projects" });
-    //this.nextiviaProject = page.getByText("Nextivia");
     this.startDateSelector = page
       .locator("div")
       .filter({ hasText: /^Start Date\*Pick any date$/ })
