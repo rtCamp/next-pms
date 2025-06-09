@@ -90,3 +90,14 @@ export const getTimesheetHourForDate = (
     hasLeave: leave.length > 0,
   };
 };
+
+export const createFilter = (teamState: TeamState) => {
+  return {
+    employeeName: teamState?.employeeName ?? "",
+    reportsTo: teamState?.reportsTo ?? "",
+    status: teamState?.status ?? ["Active"],
+    statusFilter: teamState?.statusFilter ?? [],
+    project: teamState?.project ?? [],
+    userGroup: teamState?.userGroup ?? [],
+  };
+};

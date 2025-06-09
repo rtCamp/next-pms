@@ -34,6 +34,7 @@ import { CircleCheck } from "lucide-react";
 /**
  * Internal dependencies.
  */
+import CustomViewWrapper from "@/app/components/customViewWrapper";
 import { WeekTotal } from "@/app/components/timesheet-table/components/weekTotal";
 import { TEAM, EMPLOYEE } from "@/lib/constant";
 import { parseFrappeErrorMsg, mergeClassNames } from "@/lib/utils";
@@ -42,9 +43,19 @@ import { Approval } from "./components/approval";
 import { EmployeeTimesheetTable } from "./components/employeeTimesheetTable";
 import { Header } from "./components/header";
 import { StatusIndicator } from "./components/statusIndicator";
+import { TeamComponentProps, TeamState } from "./employee-detail/types";
 import { initialState, reducer } from "./reducer";
+import { createFilter } from "./utils";
 
 const Team = () => {
+  return (
+    <CustomViewWrapper label="Team" createFilter={createFilter({} as TeamState)}>
+      {({ viewData }) => <TeamComponent viewData={viewData} />}
+    </CustomViewWrapper>
+  );
+};
+
+const TeamComponent = ({ viewData }: TeamComponentProps) => {
   const { toast } = useToast();
   const [teamState, dispatch] = useReducer(reducer, initialState);
   const navigate = useNavigate();
@@ -135,7 +146,7 @@ const Team = () => {
           }}
         />
       )}
-      <Header teamState={teamState} dispatch={dispatch} />
+      <Header teamState={teamState} dispatch={dispatch} viewData={viewData} />
 
       {isLoading && Object.keys(teamState.data.data).length == 0 ? (
         <Spinner isFull />

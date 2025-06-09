@@ -2,12 +2,14 @@
 /**
  * Internal dependencies
  */
+import { ViewData } from "@/store/view";
 import type { WorkingFrequency } from "@/types";
 import type { dataItem } from "@/types/team";
 
 export type HeaderProps = {
   homeState: HomeState;
   dispatch: React.Dispatch<Action>;
+  viewData: ViewData;
 };
 
 export type DataItem = {
@@ -61,6 +63,7 @@ export type HomeState = {
   start: number;
   isLoading: boolean;
   isNeedToFetchDataAfterUpdate: boolean;
+  hasViewUpdated: boolean;
 };
 
 export type Action =
@@ -91,4 +94,9 @@ export type Action =
         total_count: number;
         has_more: boolean;
       };
-    };
+    }
+  | { type: "SET_HAS_VIEW_UPDATED"; payload: boolean };
+
+export interface HomeComponentProps {
+  viewData: ViewData;
+}
