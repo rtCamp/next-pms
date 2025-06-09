@@ -112,7 +112,6 @@ const ResourceTeamHeaderSection = ({ viewData }: { viewData: ViewData }) => {
     setWeekDate(date);
   }, [setWeekDate, teamData.dates]);
 
-  // frappe-call for updating view
   const { call: updateView } = useFrappePostCall(
     "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view"
   );
@@ -134,7 +133,6 @@ const ResourceTeamHeaderSection = ({ viewData }: { viewData: ViewData }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, viewData, tableView.view, tableView.combineWeekHours]);
 
-  // Handle save changes
   const handleSaveChanges = () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { start, weekDate, employeeWeekDate, maxWeek, pageLength, ...viewFilters } = filters;

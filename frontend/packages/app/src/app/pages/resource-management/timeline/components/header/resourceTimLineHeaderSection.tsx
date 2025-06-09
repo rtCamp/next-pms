@@ -49,7 +49,6 @@ const ResourceTimLineHeaderSection = ({ viewData }: { viewData: ViewData }) => {
     "next_pms.resource_management.api.permission.get_user_resources_permissions"
   );
 
-  // frappe-call for updating view
   const { call: updateView } = useFrappePostCall(
     "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view"
   );
@@ -64,7 +63,6 @@ const ResourceTimLineHeaderSection = ({ viewData }: { viewData: ViewData }) => {
     }
   }, [filters, viewData]);
 
-  // Handle save changes
   const handleSaveChanges = () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { page_length, start, weekDate, ...viewFilters } = filters;

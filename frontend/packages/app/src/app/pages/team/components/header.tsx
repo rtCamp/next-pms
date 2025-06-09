@@ -99,7 +99,6 @@ export const Header = ({ teamState, dispatch, viewData }: HeaderProps) => {
     dispatch({ type: "SET_WEEK_DATE", payload: date });
   }, [dispatch, teamState.weekDate]);
 
-  // frappe-call for updating view
   const { call: updateView } = useFrappePostCall(
     "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view"
   );
@@ -130,7 +129,6 @@ export const Header = ({ teamState, dispatch, viewData }: HeaderProps) => {
     dispatch,
   ]);
 
-  // Handle save changes
   const handleSaveChanges = () => {
     const viewFilters = {
       status: teamState.status,

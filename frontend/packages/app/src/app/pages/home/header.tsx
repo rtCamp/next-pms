@@ -54,7 +54,7 @@ export const Header = ({ homeState, dispatch, viewData }: HeaderProps) => {
     const date = getFormatedDate(addDays(homeState.weekDate, 14));
     dispatch({ type: "SET_WEEK_DATE", payload: date });
   }, [dispatch, homeState.weekDate]);
-  // frappe-call for updating view
+
   const { call: updateView } = useFrappePostCall(
     "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view"
   );
@@ -68,7 +68,6 @@ export const Header = ({ homeState, dispatch, viewData }: HeaderProps) => {
     }
   }, [homeState.employeeName, homeState.status, viewData, dispatch]);
 
-  // Handle save changes
   const handleSaveChanges = () => {
     const viewFilters = { status: homeState.status, employeeName: homeState.employeeName };
     updateView({
