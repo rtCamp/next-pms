@@ -11,6 +11,8 @@ const empEmail = process.env.EMP_EMAIL;
 const empPass = process.env.EMP_PASS;
 const emp2Email = process.env.EMP2_EMAIL;
 const emp2Pass = process.env.EMP2_PASS;
+const emp3Email = process.env.EMP3_EMAIL;
+const emp3Pass = process.env.EMP3_PASS;
 const manEmail = process.env.REP_MAN_EMAIL;
 const manPass = process.env.REP_MAN_PASS;
 const adminEmail = process.env.ADMIN_EMAIL;
@@ -25,6 +27,7 @@ export const storeStorageState = async (role, isApi = false) => {
   const credentialsMap = {
     employee: { email: empEmail, password: empPass },
     employee2: { email: emp2Email, password: emp2Pass },
+    employee3: { email: emp3Email, password: emp3Pass },
     manager: { email: manEmail, password: manPass },
     admin: { email: adminEmail, password: adminPass },
   };

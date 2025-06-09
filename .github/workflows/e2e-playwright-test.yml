@@ -14,13 +14,15 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+
 concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: false
 
 jobs:
   deploy:
-    uses: rtCamp/erp-rtcamp/.github/workflows/deploy-erp-qe.rt.gw.yml@nextpmsqe
+    if: github.event_name != 'workflow_dispatch'
+    uses: rtCamp/erp-rtcamp/.github/workflows/deploy-erp-qe.rt.gw.yml@main
     with:
       environment: 'erp-qe.rt.gw'
       use_maintenance_mode: true
@@ -32,9 +34,9 @@ jobs:
       SSH_SERVER: erp-qe.rt.gw
       SSH_USER: frappe
       RTBOT_TOKEN: ${{ secrets.RTBOT_TOKEN }}
-
   test:
-    needs: deploy
+    needs: [deploy]
+    if: ${{ always() }}
     runs-on: self-hosted
     container:
       image: ubuntu:24.04
@@ -61,6 +63,11 @@ jobs:
       EMP2_EMAIL: ${{ secrets.EMP2_EMAIL }}
       EMP2_PASS: ${{ secrets.EMP2_PASS }}
       EMP2_NAME: ${{ secrets.EMP2_NAME }}
+
+      EMP3_ID: ${{ secrets.EMP3_ID }}
+      EMP3_EMAIL: ${{ secrets.EMP3_EMAIL }}
+      EMP3_PASS: ${{ secrets.EMP3_PASS }}
+      EMP3_NAME: ${{ secrets.EMP3_NAME }}
 
       # Hetzner Space (S3) credentials & endpoint
       HETZNER_S3_BUCKET: ${{ secrets.HETZNER_S3_BUCKET }}
@@ -153,8 +160,7 @@ jobs:
       run: |
         npm ci
         cd tests/e2e/
-        npx playwright install
-        npx playwright install-deps
+        npx playwright install --with-deps
 
     - name: Setup Java
       uses: actions/setup-java@v3

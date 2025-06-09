@@ -68,6 +68,13 @@ const TextEditor = ({
     return preProcessLink(html);
   };
   const handleChange = (value: string) => {
+    const text = quillRef?.current?.getEditor().getText()?.trim();
+    if (!text || text === "") {
+      console.warn("Editor is empty, setting value to empty string.");
+      setEditorValue("");
+      onChange("");
+      return;
+    }
     const formattedValue = formatHtml(value);
     setEditorValue(formattedValue);
     onChange(formattedValue);

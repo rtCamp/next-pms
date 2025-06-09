@@ -350,3 +350,31 @@ export const formatTime = (timeStr: string): string => {
     .toString()
     .padStart(2, "0")}`;
 };
+
+/**
+ * Creates Default View.
+ *
+ * @param label Label string of the default view.
+ * @param user user email string.
+ * @param route Specify route for the view.
+ * @param filters Filters object for the view (optional).
+ * @param additionalProps Additional properties to include in the view (optional).
+ * @returns Default View object
+ */
+export const getDefaultView = (
+  label: string,
+  user: string,
+  route: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  filters: any = {}
+) => {
+  return {
+    label,
+    user,
+    type: "Custom",
+    route,
+    filters,
+    public: false,
+    default: true,
+  };
+};

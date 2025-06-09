@@ -44,7 +44,7 @@ Before running the tests, ensure the following prerequisites are met:
 
 ## Environment & Variables
 
-- The tests run on the **staging** environment.
+- The tests run on the **QE** environment.
 - For local execution, environment variables are read from the `.env` file. Ensure you do **not** commit `.env` file to the repository.
 - For GitHub workflow, GitHub Secrets are used. We have created a `Stage` environment in GitHub repo for managing environment variables.
 
@@ -87,10 +87,9 @@ project-root/
 │   │   ├── pageObjects/                        # Page Object Model implementation
 │   │   ├── playwright-report/                  # Auto-generated test execution reports
 │   │   ├── specs/                              # Test case specifications
-│   │   │   ├── employee/
-│   │   │   │   ├── <tab-name>.json
+│   │   │   ├── employee/                       # Test cases related to employee
+│   │   │   ├── employee2/                      #Test cases related to employee where data is being manipulated through scripts in UI
 │   │   │   ├── manager/
-│   │   │   │   ├── <tab-name>.json
 │   │   ├── test-results/                       # Auto-generated test results folder
 │   │   ├── utils/                              # Utilities used in the test framework
 │   │   ├── .env                                # Environment file with sensitive credentials
@@ -121,8 +120,12 @@ project-root/
 
 ## Reporting
 
-- We are using both HTML and JSON reporters, with HTML as the primary reporter and JSON for CI integration.
-- To view reports:
+- We are using playwright and allure reports.
+- To view playwright report:
   ```bash
   npx playwright show-report playwright-report/
+  ```
+- To view Allure report:
+  ```bash
+  npx run allure:serve
   ```
