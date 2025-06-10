@@ -278,7 +278,7 @@ export const createProjectForTestCases = async () => {
   ];
   const managerTaskIDs = ["TC22", "TC24", "TC25", "TC26", "TC17", "TC19"];
 
-  const managerTeamIDs = ["TC47", "TC49", "TC50", "TC102"];
+  const managerTeamIDs = ["TC47", "TC49", "TC50", "TC92", "TC102"];
 
   const processTestCases = async (data, testCases) => {
     for (const testCaseID of testCases) {
