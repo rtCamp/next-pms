@@ -2,10 +2,12 @@
  * External dependencies.
  */
 import { useCallback, useEffect } from "react";
+import { ButtonProps, useToast } from "@next-pms/design-system/components";
 import { getFormatedDate } from "@next-pms/design-system/date";
 import { useQueryParam } from "@next-pms/hooks";
 import { addDays } from "date-fns";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import _ from "lodash";
 import { ChevronLeftIcon, ChevronRight, Plus } from "lucide-react";
 import { useContextSelector } from "use-context-selector";
 
@@ -13,6 +15,8 @@ import { useContextSelector } from "use-context-selector";
  * Internal dependencies.
  */
 import { Header } from "@/app/components/list-view/header";
+import { parseFrappeErrorMsg } from "@/lib/utils";
+import { ViewData } from "@/store/view";
 import SkillSearch from "./skillSearch";
 import { ResourceFormContext } from "../../store/resourceFormContext";
 import { TeamContext } from "../../store/teamContext";
@@ -23,19 +27,23 @@ import type { PermissionProps, Skill } from "../../store/types";
  *
  * @returns React.FC
  */
-const ResourceTeamHeaderSection = () => {
+const ResourceTeamHeaderSection = ({ viewData }: { viewData: ViewData }) => {
   const [businessUnitParam] = useQueryParam<string[]>("business-unit", []);
   const [employeeNameParam] = useQueryParam<string>("employee-name", "");
   const [reportingNameParam] = useQueryParam<string>("reports-to", "");
   const [allocationTypeParam] = useQueryParam<string[]>("allocation-type", []);
   const [designationParam] = useQueryParam<string[]>("designation", []);
-  const [viewParam, setViewParam] = useQueryParam<string>("view-type", "");
-  const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParam<boolean>("combine-week-hours", false);
+  const [viewParam, setViewParam] = useQueryParam<string>("view-type", viewData.filters.view || "");
+  const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParam<boolean>(
+    "combine-week-hours",
+    viewData.filters.combineWeekHours || false
+  );
   const [skillSearchParam, setSkillSearchParam] = useQueryParam<Skill[]>("skill-search", []);
+  const { toast } = useToast();
 
-  const { teamData, filters, tableView } = useContextSelector(TeamContext, (value) => value.state);
+  const { teamData, filters, tableView, hasViewUpdated } = useContextSelector(TeamContext, (value) => value.state);
 
-  const { updateFilter, setWeekDate, setCombineWeekHours, updateTableView } = useContextSelector(
+  const { updateFilter, setWeekDate, setCombineWeekHours, updateTableView, setHasViewUpdated } = useContextSelector(
     TeamContext,
     (value) => value.actions
   );
@@ -49,7 +57,7 @@ const ResourceTeamHeaderSection = () => {
   );
 
   const { data: employee } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee", {
-    filters: { name: reportingNameParam },
+    filters: { name: reportingNameParam || viewData.filters.reportingManager },
   });
 
   useEffect(() => {
@@ -75,15 +83,17 @@ const ResourceTeamHeaderSection = () => {
         setViewParam(CurrentViewParam);
       }
     }
-
     updateFilter({
-      businessUnit: businessUnitParam,
-      employeeName: employeeNameParam,
-      reportingManager: reportingNameParam,
-      designation: designationParam,
-      allocationType: allocationTypeParam,
-      skillSearch: skillSearchParam,
+      businessUnit:
+        businessUnitParam && businessUnitParam.length > 0 ? businessUnitParam : viewData.filters.businessUnit,
+      employeeName: employeeNameParam || viewData.filters.employeeName,
+      reportingManager: reportingNameParam || viewData.filters.reportingManager,
+      designation: designationParam && designationParam.length > 0 ? designationParam : viewData.filters.designation,
+      allocationType:
+        allocationTypeParam && allocationTypeParam.length > 0 ? allocationTypeParam : viewData.filters.allocationType,
+      skillSearch: skillSearchParam && skillSearchParam.length > 0 ? skillSearchParam : viewData.filters.skillSearch,
     });
+
     updateTableView({ ...tableView, view: CurrentViewParam, combineWeekHours: combineWeekHoursParam });
   };
 
@@ -101,6 +111,52 @@ const ResourceTeamHeaderSection = () => {
     const date = getFormatedDate(addDays(teamData.dates[0].end_date, +7));
     setWeekDate(date);
   }, [setWeekDate, teamData.dates]);
+
+  const { call: updateView } = useFrappePostCall(
+    "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view"
+  );
+
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { start, weekDate, employeeWeekDate, maxWeek, pageLength, ...viewFilters } = filters;
+    if (
+      !_.isEqual(viewData.filters, {
+        ...viewFilters,
+        view: tableView.view,
+        combineWeekHours: tableView.combineWeekHours,
+      })
+    ) {
+      setHasViewUpdated(true);
+    } else {
+      setHasViewUpdated(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, viewData, tableView.view, tableView.combineWeekHours]);
+
+  const handleSaveChanges = () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { start, weekDate, employeeWeekDate, maxWeek, pageLength, ...viewFilters } = filters;
+    updateView({
+      view: {
+        ...viewData,
+        filters: { ...viewFilters, view: tableView.view, combineWeekHours: tableView.combineWeekHours },
+      },
+    })
+      .then(() => {
+        toast({
+          variant: "success",
+          description: "View Updated",
+        });
+        setHasViewUpdated(false);
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          description: error,
+        });
+      });
+  };
 
   return (
     <Header
@@ -283,6 +339,16 @@ const ResourceTeamHeaderSection = () => {
         },
       ]}
       buttons={[
+        {
+          title: "Save changes",
+          handleClick: () => {
+            handleSaveChanges();
+          },
+          hide: !hasViewUpdated,
+          label: "Save changes",
+          variant: "ghost" as ButtonProps["variant"],
+          className: "h-10 px-2 py-2",
+        },
         {
           title: "add-allocation",
           handleClick: () => {

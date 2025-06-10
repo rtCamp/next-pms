@@ -61,6 +61,7 @@ const defaulProjectState: ProjectContextProps = {
     filters: defaultFilters,
     tableView: defaultTableView,
     apiController: defaultApiController,
+    hasViewUpdated: false,
   },
   actions: {
     setStart: () => {},
@@ -74,6 +75,7 @@ const defaulProjectState: ProjectContextProps = {
     setDates: () => {},
     setCombineWeekHours: () => {},
     setWeekDate: () => {},
+    setHasViewUpdated: () => false,
   },
 };
 
@@ -113,7 +115,7 @@ const ProjectContextProvider = ({ children }: ContextProviderProps) => {
   };
 
   const updateFilter = (updatedFilters: OptionalResourceProjectFilters) => {
-    setFilters({ ...filters, ...updatedFilters, start: 0, maxWeek: defaultFilters.maxWeek });
+    setFilters((prev) => ({ ...prev, ...updatedFilters, start: 0, maxWeek: defaultFilters.maxWeek }));
     updateProjectData(defaultData);
     setApiController({ ...apiController, isLoading: true, isNeedToFetchDataAfterUpdate: true, action: "SET" });
   };
@@ -162,6 +164,8 @@ const ProjectContextProvider = ({ children }: ContextProviderProps) => {
     return projectData.has_more;
   };
 
+  const [hasViewUpdated, setHasViewUpdated] = useState<boolean>(false);
+
   return (
     <ProjectContext.Provider
       value={{
@@ -170,6 +174,7 @@ const ProjectContextProvider = ({ children }: ContextProviderProps) => {
           filters: filters,
           apiController: apiController,
           tableView: tableView,
+          hasViewUpdated,
         },
         actions: {
           setStart: setStart,
@@ -183,6 +188,7 @@ const ProjectContextProvider = ({ children }: ContextProviderProps) => {
           setDates: setDates,
           setCombineWeekHours: setCombineWeekHours,
           setWeekDate: setWeekDate,
+          setHasViewUpdated,
         },
       }}
     >

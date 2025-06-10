@@ -57,6 +57,7 @@ export const initialState: TeamState = {
   },
   isLoading: true,
   isNeedToFetchDataAfterUpdate: false,
+  hasViewUpdated: false,
 };
 
 const actionHandlers = {
@@ -249,6 +250,10 @@ const actionHandlers = {
     start: 0,
     action: "SET",
     isNeedToFetchDataAfterUpdate: true,
+  }),
+  SET_HAS_VIEW_UPDATED: (state: TeamState, payload: boolean) => ({
+    ...state,
+    hasViewUpdated: payload,
   }),
 };
 

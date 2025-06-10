@@ -64,6 +64,7 @@ const TimeLineContext = createContext<TimeLineContextProps>({
       old: undefined,
       new: undefined,
     },
+    hasViewUpdated: false,
   },
   actions: {
     setAllocationsData: () => {},
@@ -79,6 +80,7 @@ const TimeLineContext = createContext<TimeLineContextProps>({
     getEmployeeWithIndex: () => -1,
     isEmployeeExits: () => false,
     setAllocationData: () => {},
+    setHasViewUpdated: () => false,
   },
 });
 
@@ -86,6 +88,7 @@ const TimeLineContextProvider = ({ children }: TimeLineContextProviderProps) => 
   const [employees, setEmployees] = useState<ResourceAllocationEmployeeProps[]>([]);
   const [allocations, setAllocations] = useState<ResourceAllocationTimeLineProps[]>([]);
   const [customer, setCustomer] = useState<ResourceAllocationCustomerProps>({});
+  const [hasViewUpdated, setHasViewUpdated] = useState<boolean>(false);
 
   const [filters, setFilters] = useState<ResourceAllocationTimeLineFilterProps>({
     employeeName: "",
@@ -165,7 +168,7 @@ const TimeLineContextProvider = ({ children }: TimeLineContextProviderProps) => 
   };
 
   const updateFilters = (updatedFilters: ResourceAllocationTimeLineFilterProps) => {
-    setFilters({ ...filters, ...updatedFilters, start: 0 });
+    setFilters((prev) => ({ ...prev, ...updatedFilters, start: 0 }));
     setEmployees([]);
     setAllocations([]);
     setCustomer({});
@@ -192,7 +195,7 @@ const TimeLineContextProvider = ({ children }: TimeLineContextProviderProps) => 
   };
 
   const verticalLodMore = () => {
-    setFilters({ ...filters, start: (filters.start ? filters.start : 0) + 20 });
+    setFilters((prev) => ({ ...prev, start: (filters.start ? filters.start : 0) + 20 }));
     updateApiControler({ isNeedToFetchDataAfterUpdate: true, isLoading: true });
   };
 
@@ -206,6 +209,7 @@ const TimeLineContextProvider = ({ children }: TimeLineContextProviderProps) => 
           filters,
           apiControler,
           allocationData,
+          hasViewUpdated,
         },
         actions: {
           setEmployeesData,
@@ -221,6 +225,7 @@ const TimeLineContextProvider = ({ children }: TimeLineContextProviderProps) => 
           getEmployeeWithIndex,
           updateAllocation,
           isEmployeeExits,
+          setHasViewUpdated,
         },
       }}
     >

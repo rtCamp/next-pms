@@ -862,5 +862,21 @@
   "property_type": "Int",
   "row_name": null,
   "value": "1"
+ },
+ {
+  "default_value": null,
+  "doc_type": "Timesheet Detail",
+  "docstatus": 0,
+  "doctype": "Property Setter",
+  "doctype_or_field": "DocField",
+  "field_name": "description",
+  "is_system_generated": 0,
+  "modified": "2025-06-09 15:38:38.622169",
+  "module": "Next PMS",
+  "name": "Timesheet Detail-description-reqd",
+  "property": "reqd",
+  "property_type": "Check",
+  "row_name": null,
+  "value": "1"
  }
 ]

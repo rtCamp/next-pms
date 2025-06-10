@@ -2,8 +2,10 @@
  * External dependencies.
  */
 import { useEffect } from "react";
+import { ButtonProps, useToast } from "@next-pms/design-system/components";
 import { useQueryParam } from "@next-pms/hooks";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import _ from "lodash";
 import { Plus, ZoomIn, ZoomOut } from "lucide-react";
 import { useContextSelector } from "use-context-selector";
 
@@ -11,6 +13,8 @@ import { useContextSelector } from "use-context-selector";
  * Internal dependencies.
  */
 import { Header } from "@/app/components/list-view/header";
+import { parseFrappeErrorMsg } from "@/lib/utils";
+import { ViewData } from "@/store/view";
 import { ResourceFormContext } from "../../../store/resourceFormContext";
 import { TimeLineContext } from "../../../store/timeLineContext";
 import type { PermissionProps, Skill } from "../../../store/types";
@@ -21,28 +25,65 @@ import SkillSearch from "../../../team/components/skillSearch";
  *
  * @returns React.FC
  */
-const ResourceTimLineHeaderSection = () => {
+const ResourceTimLineHeaderSection = ({ viewData }: { viewData: ViewData }) => {
   const [businessUnitParam] = useQueryParam<string[]>("business-unit", []);
   const [employeeNameParam] = useQueryParam<string>("employee-name", "");
   const [reportingNameParam] = useQueryParam<string>("reports-to", "");
   const [allocationTypeParam] = useQueryParam<string[]>("allocation-type", []);
   const [designationParam] = useQueryParam<string[]>("designation", []);
   const [skillSearchParam, setSkillSearchParam] = useQueryParam<Skill[]>("skill-search", []);
+  const { toast } = useToast();
 
   const { permission: resourceAllocationPermission } = useContextSelector(ResourceFormContext, (value) => value.state);
 
   const { updatePermission, updateDialogState } = useContextSelector(ResourceFormContext, (value) => value.actions);
 
   const { data: employee } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee", {
-    filters: { name: reportingNameParam },
+    filters: { name: reportingNameParam || viewData.filters.reportingManager },
   });
 
-  const { filters } = useContextSelector(TimeLineContext, (value) => value.state);
-  const { updateFilters } = useContextSelector(TimeLineContext, (value) => value.actions);
+  const { filters, hasViewUpdated } = useContextSelector(TimeLineContext, (value) => value.state);
+  const { updateFilters, setHasViewUpdated } = useContextSelector(TimeLineContext, (value) => value.actions);
 
   const { call, loading } = useFrappePostCall(
     "next_pms.resource_management.api.permission.get_user_resources_permissions"
   );
+
+  const { call: updateView } = useFrappePostCall(
+    "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view"
+  );
+
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { page_length, start, weekDate, ...viewFilters } = filters;
+    if (!_.isEqual(viewData.filters, viewFilters)) {
+      setHasViewUpdated(true);
+    } else {
+      setHasViewUpdated(false);
+    }
+  }, [filters, viewData]);
+
+  const handleSaveChanges = () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { page_length, start, weekDate, ...viewFilters } = filters;
+    updateView({
+      view: { ...viewData, filters: viewFilters },
+    })
+      .then(() => {
+        toast({
+          variant: "success",
+          description: "View Updated",
+        });
+        setHasViewUpdated(false);
+      })
+      .catch((err) => {
+        const error = parseFrappeErrorMsg(err);
+        toast({
+          variant: "destructive",
+          description: error,
+        });
+      });
+  };
 
   useEffect(() => {
     if (!resourceAllocationPermission.isNeedToSetPermission) {
@@ -61,12 +102,15 @@ const ResourceTimLineHeaderSection = () => {
 
   const updateData = () => {
     updateFilters({
-      businessUnit: businessUnitParam,
-      employeeName: employeeNameParam,
-      reportingManager: reportingNameParam,
-      designation: designationParam,
-      allocationType: allocationTypeParam,
-      skillSearch: skillSearchParam,
+      businessUnit:
+        businessUnitParam && businessUnitParam.length > 0 ? businessUnitParam : viewData.filters.businessUnit,
+      employeeName: employeeNameParam || viewData.filters.employeeName,
+      reportingManager: reportingNameParam || viewData.filters.reportingManager,
+      designation: designationParam && designationParam.length > 0 ? designationParam : viewData.filters.designation,
+      allocationType:
+        allocationTypeParam && allocationTypeParam.length > 0 ? allocationTypeParam : viewData.filters.allocationType,
+      skillSearch: skillSearchParam && skillSearchParam.length > 0 ? skillSearchParam : viewData.filters.skillSearch,
+      isShowMonth: viewData.filters.isShowMonth,
     });
   };
 
@@ -218,6 +262,16 @@ const ResourceTimLineHeaderSection = () => {
         },
       ]}
       buttons={[
+        {
+          title: "Save changes",
+          handleClick: () => {
+            handleSaveChanges();
+          },
+          hide: !hasViewUpdated,
+          label: "Save changes",
+          variant: "ghost" as ButtonProps["variant"],
+          className: "h-10 px-2 py-2",
+        },
         {
           title: "add-allocation",
           handleClick: () => {
