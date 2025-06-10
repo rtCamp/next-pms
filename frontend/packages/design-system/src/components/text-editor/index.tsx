@@ -3,6 +3,7 @@
  */
 import { useRef, useState } from "react";
 import ReactQuill, { Quill, type ReactQuillProps } from "react-quill";
+import { DeltaStatic, Sources } from "quill";
 import "react-quill/dist/quill.snow.css";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -35,15 +36,11 @@ const TextEditor = ({
   const quillRef = useRef<ReactQuill | null>(null);
   const [editorValue, setEditorValue] = useState(Props.value || "");
   const toolbarOptions = [
-    [{ header: [1, 2, 3, false] }, { font: [] }],
-    ["bold", "italic", "underline", "strike", "blockquote", "code-block"],
-    [{ color: [] }, { background: [] }],
-    [{ script: "sub" }, { script: "super" }],
+    ["bold", "italic"],
+    [{ color: [] }],
     [{ list: "ordered" }, { list: "bullet" }, { indent: "-1" }, { indent: "+1" }],
     [{ align: [] }],
     ["link"],
-    ["clean"],
-    ["table"],
   ];
   if (allowImageUpload) {
     // @ts-expect-error expected
@@ -67,10 +64,9 @@ const TextEditor = ({
   const formatHtml = (html: string) => {
     return preProcessLink(html);
   };
-  const handleChange = (value: string) => {
-    const text = quillRef?.current?.getEditor().getText()?.trim();
+  const handleChange = (value: string, delta: DeltaStatic, source: Sources, editor: ReactQuill.UnprivilegedEditor) => {
+    const text = editor.getText()?.trim();
     if (!text || text === "") {
-      console.warn("Editor is empty, setting value to empty string.");
       setEditorValue("");
       onChange("");
       return;
@@ -79,7 +75,6 @@ const TextEditor = ({
     setEditorValue(formattedValue);
     onChange(formattedValue);
   };
-
   return (
     <>
       {hideToolbar && (
