@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useRef, useState } from "react";
+import { useState } from "react";
 import ReactQuill, { Quill, type ReactQuillProps } from "react-quill";
 import { DeltaStatic, Sources } from "quill";
 import "react-quill/dist/quill.snow.css";
@@ -33,7 +33,6 @@ const TextEditor = ({
   hideToolbar = false,
   ...Props
 }: TextEditorProps) => {
-  const quillRef = useRef<ReactQuill | null>(null);
   const [editorValue, setEditorValue] = useState(Props.value || "");
   const toolbarOptions = [
     ["bold", "italic"],
@@ -91,7 +90,6 @@ const TextEditor = ({
       )}
       <ReactQuill
         {...Props}
-        ref={quillRef}
         style={{ resize: "vertical", overflow: "auto" }}
         className={mergeClassNames(
           "border rounded-md border-input [&>div:first-child]:border-t-0 [&>div:first-child]:border-r-0 [&>div:first-child]:border-l-0 [&>div:first-child]:border-input [&>div:first-child]:border-bottom [&>div:last-child]:border-none text-foreground bg-background ",
