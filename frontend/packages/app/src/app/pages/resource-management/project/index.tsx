@@ -10,31 +10,46 @@ import { useContextSelector } from "use-context-selector";
 /**
  * Internal dependencies.
  */
+import CustomViewWrapper from "@/app/components/customViewWrapper";
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import { ViewData } from "@/store/view";
 import AddResourceAllocations from "../components/addAllocation";
 import { ResourceProjectHeaderSection } from "./components/header";
 import { getIsBillableValue } from "../utils/helper";
 import { ResourceProjectTable } from "./components/table";
+import { createFilter } from "./utils";
 import { ProjectContext, ProjectContextProvider } from "../store/projectContext";
 import { ResourceContextProvider, ResourceFormContext } from "../store/resourceFormContext";
-import type { AllocationDataProps, ProjectDataProps } from "../store/types";
+import type { AllocationDataProps, ProjectDataProps, ResourceProject } from "../store/types";
 
-const ResourceTeamViewWrapper = () => {
+const ResourceProjectViewWrapper = () => {
   return (
     <ResourceContextProvider>
       <ProjectContextProvider>
-        <ResourceTeamView />
+        <ResourceProjectView />
       </ProjectContextProvider>
     </ResourceContextProvider>
   );
 };
+
+interface ResourceProjectViewComponentProps {
+  viewData: ViewData;
+}
 
 /**
  * This is main component which is responsible for rendering the project view of resource management.
  *
  * @returns React.FC
  */
-const ResourceTeamView = () => {
+const ResourceProjectView = () => {
+  return (
+    <CustomViewWrapper label="ResourceProjectView" createFilter={createFilter({} as ResourceProject)}>
+      {({ viewData }) => <ResourceProjectViewComponent viewData={viewData} />}
+    </CustomViewWrapper>
+  );
+};
+
+const ResourceProjectViewComponent = ({ viewData }: ResourceProjectViewComponentProps) => {
   const { toast } = useToast();
   const { permission: resourceAllocationPermission, dialogState: resourceAllocationDialogState } = useContextSelector(
     ResourceFormContext,
@@ -124,7 +139,7 @@ const ResourceTeamView = () => {
 
   return (
     <>
-      <ResourceProjectHeaderSection />
+      <ResourceProjectHeaderSection viewData={viewData} />
 
       {(isLoading || isValidating) && projectData.data.length == 0 ? (
         <Spinner isFull />
@@ -140,4 +155,4 @@ const ResourceTeamView = () => {
   );
 };
 
-export default ResourceTeamViewWrapper;
+export default ResourceProjectViewWrapper;

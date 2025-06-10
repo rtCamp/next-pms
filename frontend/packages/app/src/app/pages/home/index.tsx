@@ -30,14 +30,24 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import CustomViewWrapper from "@/app/components/customViewWrapper";
 import { TEAM, EMPLOYEE } from "@/lib/constant";
 import { mergeClassNames, parseFrappeErrorMsg, calculateExtendedWorkingHour, getBgCsssForToday } from "@/lib/utils";
 import { dataItem } from "@/types/team";
 import { Header } from "./header";
 import { initialState, homeReducer } from "./reducer";
-import type { DataItem, DateProps } from "./types";
+import type { DataItem, DateProps, HomeComponentProps, HomeState } from "./types";
+import { createFilter } from "./utils";
 
 const Home = () => {
+  return (
+    <CustomViewWrapper label="Home" createFilter={createFilter({} as HomeState)}>
+      {({ viewData }) => <HomeComponent viewData={viewData} />}
+    </CustomViewWrapper>
+  );
+};
+
+const HomeComponent = ({ viewData }: HomeComponentProps) => {
   const { toast } = useToast();
   const [homeState, dispatch] = useReducer(homeReducer, initialState);
   const navigate = useNavigate();
@@ -99,7 +109,7 @@ const Home = () => {
 
   return (
     <>
-      <Header homeState={homeState} dispatch={dispatch} />
+      <Header homeState={homeState} dispatch={dispatch} viewData={viewData} />
       {isLoading ? (
         <Spinner isFull />
       ) : (

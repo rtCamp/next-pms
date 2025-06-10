@@ -1,6 +1,7 @@
 /**
  * Internal dependencies.
  */
+import { ViewData } from "@/store/view";
 import type { Action, TeamState } from "../employee-detail/types";
 
 export interface ApprovalProp {
@@ -29,4 +30,5 @@ export type TimesheetRejectionProps = {
 export interface HeaderProps {
   teamState: TeamState;
   dispatch: React.Dispatch<Action>;
+  viewData: ViewData;
 }

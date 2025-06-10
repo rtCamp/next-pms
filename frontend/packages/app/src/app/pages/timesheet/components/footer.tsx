@@ -2,7 +2,7 @@
  * Internal dependencies
  */
 import AddLeave from "@/app/components/add-leave";
-import AddTime from "@/app/components/AddTime";
+import AddTime from "@/app/components/add-time";
 import { Approval } from "./approval";
 import { EditTime } from "./editTime";
 import ImportFromGoogleCalendarDialog from "./importFromGoogleCalendarDialog";
