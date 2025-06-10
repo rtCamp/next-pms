@@ -2,11 +2,12 @@ import { test, expect } from '@playwright/test';
 import path from "path";
 import { TimelinePage } from "../../pageObjects/resourceManagement/timeline";
 import * as allure from "allure-js-commons";
+import data from "../../data/manager/team.json";
 
 let timelinePage;
-const projectName = 'Nextivia';
-const employeeName = 'abhishek sharma';
-const customerName = 'google';
+const projectName = data.TC102.payloadCreateProject.project_name;
+const employeeName = data.TC102.employee;
+const customerName = data.TC102.payloadCreateProject.customer;
 
 // Load authentication state from 'manager.json'
 test.use({ storageState: path.resolve(__dirname, "../../auth/manager.json") });
@@ -24,7 +25,7 @@ test("TC-102: Verify add Allocation workflow by the Plus button", async ({ page 
     await timelinePage.clickAddAllocationButton();
     await timelinePage.selectEmployee(employeeName);
     await timelinePage.selectCustomer(customerName);
-    await timelinePage.selectProject(projectName);
+    await timelinePage.selectProject(customerName, projectName);
     await timelinePage.addDateRange();
     await timelinePage.setHoursPerDay("8");
     await timelinePage.clickCreateButton();

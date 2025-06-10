@@ -68,8 +68,9 @@ export class TimelinePage {
   /**
    * Selects a project from the dropdown.
    */ 
-  async selectProject(projectName) {
+  async selectProject(customerName, projectName) {
     await this.projectDropdown.click();
+    await this.page.getByPlaceholder(`Search ${customerName} Projects`).fill(projectName);
     await this.page.getByText(projectName).click();
   }
 
