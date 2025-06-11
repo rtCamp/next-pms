@@ -203,5 +203,19 @@
       "employeeAPI": "employee3",
       "approvalStatus": "automatically-filled-from-randomApprovalStatus"
     }
+  },
+  "TC94": {
+    "employeeName": "Abhishek Sharma",
+    "payloadCreateUserGroup": {
+      "user_group_members": [
+        {
+          "user": "filled-automatically-from-createUserGroupForEmployee"
+        }
+      ],
+      "__newname": "filled-automatically-from-createUserGroupForEmployee"
+    },
+    "payloadDeleteUserGroup": {
+      "name": "filled-automatically-from-createUserGroupForEmployee"
+    }
   }
 }

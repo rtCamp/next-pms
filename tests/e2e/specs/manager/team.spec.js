@@ -26,6 +26,7 @@ let TC50data = data.TC50;
 let TC53data = data.TC53;
 let TC91data = data.TC91;
 let TC92data = data.TC92;
+let TC94data = data.TC94;
 
 // ------------------------------------------------------------------------------------------
 
@@ -241,4 +242,13 @@ test("TC92: Verify Approval Status filter to show the results appropriately", as
   } else {
     expect(status).toBe(TC92data.payloadApprovalStatus.approvalStatus);
   }
+});
+
+test("TC94: Verify the user group Filter to show the correct results", async ({}) => {
+  allure.story("Team");
+  // Apply filter for user group
+  await teamPage.checkUserGroup(TC94data.payloadCreateUserGroup.__newname);
+
+  //Assertion:
+  await expect(teamPage.employeeNameInTable(TC94data.employeeName)).toBeVisible();
 });
