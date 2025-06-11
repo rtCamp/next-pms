@@ -285,7 +285,7 @@ export const createProjectForTestCases = async () => {
   ];
   const managerTaskIDs = ["TC22", "TC24", "TC25", "TC26", "TC17", "TC19"];
 
-  const managerTeamIDs = ["TC47", "TC49", "TC50", "TC92", "TC93"];
+  const managerTeamIDs = ["TC47", "TC49", "TC50", "TC92", "TC93", "TC102"];
 
   const processTestCases = async (data, testCases) => {
     for (const testCaseID of testCases) {
@@ -387,6 +387,7 @@ export const deleteProjects = async () => {
     sharedManagerTaskData.TC24.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC25.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC26.payloadDeleteProject.projectId,
+    sharedManagerTaskData.TC102.payloadDeleteProject.projectId,
     sharedManagerTeamData.TC47.payloadDeleteProject.projectId,
     sharedManagerTeamData.TC49.payloadDeleteProject.projectId,
     sharedManagerTeamData.TC50.payloadDeleteProject.projectId,
