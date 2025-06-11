@@ -29,7 +29,7 @@ import {
   isDateInRange,
   parseFrappeErrorMsg,
 } from "@/lib/utils";
-import type { NewTimesheetProps, timesheet } from "@/types/timesheet";
+import type { NewTimesheetProps, TaskDataItemProps, timesheet } from "@/types/timesheet";
 import { EmployeeTimesheetListItem } from "./timesheetListItem";
 import { EmployeeTimesheetListProps } from "./types";
 import { StatusIndicator } from "../../components/statusIndicator";
@@ -55,12 +55,14 @@ const EmployeeTimesheetList = ({
   setStartDateParam,
   teamState,
   dispatch,
+  setIsAddTimeOpen,
 }: EmployeeTimesheetListProps): JSX.Element => {
   const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState<boolean>(false);
   const [selectedTask, setSelectedTask] = useState<string>("");
   const targetRef = useRef<HTMLDivElement>(null);
   const { call } = useFrappePostCall("next_pms.timesheet.api.timesheet.update_timesheet_detail");
   const { toast } = useToast();
+  const [, setTask] = useState<TaskDataItemProps>({} as TaskDataItemProps);
   const handleTimeChange = (value: NewTimesheetProps) => {
     call(value)
       .then((res) => {
@@ -201,6 +203,8 @@ const EmployeeTimesheetList = ({
                         }}
                         hourInputClassName="ml-0 w-12"
                         taskClassName="lg:max-w-xs"
+                        setIsAddTimeOpen={setIsAddTimeOpen}
+                        setTask={setTask}
                       />
                     );
                   })}

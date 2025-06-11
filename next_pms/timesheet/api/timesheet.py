@@ -251,6 +251,7 @@ def update_timesheet_detail(
             continue
         log.hours = hours
         log.description = description
+        log.task = task
         # Only update value of billable if user has write access
         if has_write_access() and is_billable is not None:
             log.is_billable = is_billable
