@@ -4,10 +4,10 @@ export class TimelinePage {
 
     // header elements
     this.addAllocatioButtton = page.getByRole("button", { name: "add-allocation" });
-    this.searchEmployeeFilter = page.locator('#filters input');
+    this.searchEmployeeFilter = page.locator("#filters input");
 
     //add allocation modal elements
-    this.selectEmployeeDropdown = page.getByRole('button', { name: 'Select Employee' });
+    this.selectEmployeeDropdown = page.getByRole("button", { name: "Select Employee" });
     this.selectEmployeeTextField = page.getByPlaceholder("Search Employee");
     this.employeeSelector = page.getByLabel("Suggestions");
     this.customerDropdown = page.getByRole("button", { name: "Search Customer" });
@@ -24,8 +24,9 @@ export class TimelinePage {
     this.noteField = page.getByRole("textbox", { name: "Note" });
     this.createButton = page.getByRole("button", { name: "Create" });
 
-    this.deleteAllocationIcon  = page.locator('.rct-item ').first();
+    this.deleteAllocationIcon = page.locator(".rct-item ").first();
     this.confirmDeleteButton = page.getByRole("button", { name: "Delete" });
+    this.timeAllocationRow = page.locator(".rct-hl-even");
   }
 
   /**
@@ -50,16 +51,16 @@ export class TimelinePage {
 
   /**
    * Selects an employee from the dropdown.
-   */ 
+   */
   async selectEmployee(employeeName) {
     await this.selectEmployeeDropdown.click();
-    await this.selectEmployeeTextField.fill(employeeName)
+    await this.selectEmployeeTextField.fill(employeeName);
     await this.employeeSelector.click();
   }
 
   /**
    * Selects a customer from the dropdown.
-   */ 
+   */
   async selectCustomer(customerName) {
     await this.customerDropdown.click();
     await this.page.getByText(customerName).click();
@@ -67,7 +68,7 @@ export class TimelinePage {
 
   /**
    * Selects a project from the dropdown.
-   */ 
+   */
   async selectProject(customerName, projectName) {
     await this.projectDropdown.click();
     await this.page.getByPlaceholder(`Search ${customerName} Projects`).fill(projectName);
@@ -76,16 +77,16 @@ export class TimelinePage {
 
   /**
    * Selects a date range for the allocation.
-   */ 
+   */
   async addDateRange() {
     const today = new Date();
-    const options = { month: 'short', day: 'numeric' };
-    const formattedDate = today.toLocaleDateString('en-US', options);
-    const dayNumber = formattedDate.split(' ')[1];
+    const options = { month: "short", day: "numeric" };
+    const formattedDate = today.toLocaleDateString("en-US", options);
+    const dayNumber = formattedDate.split(" ")[1];
     await this.startDateSelector.click();
-    await this.page.getByRole('gridcell', { name: dayNumber }).first().click();
+    await this.page.getByRole("gridcell", { name: dayNumber }).first().click();
     await this.endDateSelector.click();
-    await this.page.getByRole('gridcell', { name: dayNumber }).click();
+    await this.page.getByRole("gridcell", { name: dayNumber }).click();
     return formattedDate;
   }
 
@@ -98,7 +99,7 @@ export class TimelinePage {
 
   /**
    * Sets a note for the allocation.
-   */ 
+   */
   async setNote(note) {
     await this.noteField.fill(note);
   }
@@ -109,11 +110,11 @@ export class TimelinePage {
   async clickCreateButton() {
     await this.createButton.click();
   }
-  
+
   /**
    * Filters the employee list by the given name.
-   */ 
-  async filterEmployee(employeeName) {
+   */
+  async filterEmployeeByName(employeeName) {
     await this.searchEmployeeFilter.fill(employeeName);
   }
 
@@ -126,4 +127,16 @@ export class TimelinePage {
     await this.confirmDeleteButton.click();
   }
 
+  /**
+   * Adds a new allocation.
+   */
+  async addAllocation(projectName, customerName, employeeName) {
+    await this.clickAddAllocationButton();
+    const todayDate = await timelinePage.addDateRange();
+    await this.selectEmployee(employeeName);
+    await this.selectCustomer(customerName);
+    await this.selectProject(customerName, projectName);
+    await this.setHoursPerDay("8");
+    await this.clickCreateButton();
+  }
 }
