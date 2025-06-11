@@ -64,15 +64,13 @@ const TextEditor = ({
     return preProcessLink(html);
   };
   const handleChange = (value: string, delta: DeltaStatic, source: Sources, editor: ReactQuill.UnprivilegedEditor) => {
-    const text = editor.getText()?.trim();
-    if (!text || text === "") {
-      setEditorValue("");
-      onChange("");
-      return;
-    }
     const formattedValue = formatHtml(value);
     setEditorValue(formattedValue);
-    onChange(formattedValue);
+    if (editor.getText()?.trim()) {
+      onChange(formattedValue);
+    } else {
+      onChange("");
+    }
   };
   return (
     <>

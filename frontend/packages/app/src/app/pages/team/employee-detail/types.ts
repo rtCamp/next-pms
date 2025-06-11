@@ -2,6 +2,7 @@
 /**
  * Internal dependencies
  */
+import { ViewData } from "@/store/view";
 import type { DateProps, DateRange, teamStateActionType } from "@/types/team";
 
 import type {
@@ -55,6 +56,7 @@ export interface TeamState {
     hours: number;
     project?: string;
   };
+  hasViewUpdated: boolean;
   timesheetData: timesheetDataProps;
   start: number;
   dateRange: DateRange;
@@ -110,4 +112,9 @@ export type Action =
         reportsTo: string;
         status: Array<string>;
       };
-    };
+    }
+  | { type: "SET_HAS_VIEW_UPDATED"; payload: boolean };
+
+export interface TeamComponentProps {
+  viewData: ViewData;
+}
