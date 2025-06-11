@@ -37,6 +37,7 @@ export const EmployeeTimesheetListItem = ({
   taskClassName,
   setIsAddTimeOpen,
   setTask,
+  hideEdit = true,
 }: EmployeeTimesheetListItemProps) => {
   return (
     <div key={index} className="flex flex-col">
@@ -131,12 +132,12 @@ export const EmployeeTimesheetListItem = ({
                 {/* actions */}
                 <Button
                   onClick={() => {
-                    setIsAddTimeOpen(true);
+                    setIsAddTimeOpen?.(true);
                     setTask(task);
                   }}
                   title="Edit Timesheet"
                   variant="ghost"
-                  className="size-7 group"
+                  className={mergeClassNames("size-7 group", hideEdit && "hidden")}
                 >
                   <PencilIcon className="size-3 text-slate-500 group-hover:text-black" />
                 </Button>

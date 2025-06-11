@@ -56,6 +56,7 @@ const EmployeeTimesheetList = ({
   teamState,
   dispatch,
   setIsAddTimeOpen,
+  hideEdit = true,
 }: EmployeeTimesheetListProps): JSX.Element => {
   const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState<boolean>(false);
   const [selectedTask, setSelectedTask] = useState<string>("");
@@ -203,8 +204,9 @@ const EmployeeTimesheetList = ({
                         }}
                         hourInputClassName="ml-0 w-12"
                         taskClassName="lg:max-w-xs"
-                        setIsAddTimeOpen={setIsAddTimeOpen}
+                        setIsAddTimeOpen={setIsAddTimeOpen!}
                         setTask={setTask}
+                        hideEdit={hideEdit}
                       />
                     );
                   })}

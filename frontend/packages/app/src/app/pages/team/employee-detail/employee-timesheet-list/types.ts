@@ -10,7 +10,8 @@ export type EmployeeTimesheetListProps = {
   setStartDateParam: React.Dispatch<React.SetStateAction<string>>;
   teamState: TeamState;
   dispatch: React.Dispatch<Action>;
-  setIsAddTimeOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsAddTimeOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+  hideEdit: boolean;
 };
 
 export interface EmployeeTimesheetListItemProps {
@@ -37,4 +38,5 @@ export interface EmployeeTimesheetListItemProps {
   taskClassName?: string;
   setIsAddTimeOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setTask: React.Dispatch<React.SetStateAction<TaskDataItemProps>>;
+  hideEdit: boolean;
 }

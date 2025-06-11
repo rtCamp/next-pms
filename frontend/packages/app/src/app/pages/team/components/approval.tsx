@@ -195,6 +195,7 @@ export const Approval = ({ onClose, employee, startDate, endDate, isAprrovalDial
                           hourInputClassName="max-sm:ml-0 "
                           setIsAddTimeOpen={setIsAddTimeOpen}
                           setTask={setTask}
+                          hideEdit={false}
                         />
                       );
                     })}
