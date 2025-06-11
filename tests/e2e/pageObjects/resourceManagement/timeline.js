@@ -1,3 +1,5 @@
+import { getFormattedCurrentDate } from "../../utils/dateUtils";
+
 export class TimelinePage {
   constructor(page) {
     this.page = page;
@@ -27,6 +29,7 @@ export class TimelinePage {
     this.deleteAllocationIcon = page.locator(".rct-item ").first();
     this.confirmDeleteButton = page.getByRole("button", { name: "Delete" });
     this.timeAllocationRow = page.locator(".rct-hl-even");
+    this.formattedDate = getFormattedCurrentDate();
   }
 
   /**
@@ -79,15 +82,11 @@ export class TimelinePage {
    * Selects a date range for the allocation.
    */
   async addDateRange() {
-    const today = new Date();
-    const options = { month: "short", day: "numeric" };
-    const formattedDate = today.toLocaleDateString("en-US", options);
-    const dayNumber = formattedDate.split(" ")[1];
+    const dayNumber = this.formattedDate.split(" ")[1];
     await this.startDateSelector.click();
     await this.page.getByRole("gridcell", { name: dayNumber }).first().click();
     await this.endDateSelector.click();
     await this.page.getByRole("gridcell", { name: dayNumber }).click();
-    return formattedDate;
   }
 
   /**
@@ -121,9 +120,9 @@ export class TimelinePage {
   /**
    * Delete the allocation added.
    */
-  async deleteAllocation(projectName, date) {
-    await this.page.getByTitle(`${projectName} ${date} (8 hours/day)`).click();
-    await this.page.getByTitle(`${projectName} ${date} (8 hours/day)`).click();
+  async deleteAllocation(projectName) {
+    await this.page.getByTitle(`${projectName} ${this.formattedDate} (8 hours/day)`).click();
+    await this.page.getByTitle(`${projectName} ${this.formattedDate} (8 hours/day)`).click();
     await this.confirmDeleteButton.click();
   }
 
@@ -132,10 +131,10 @@ export class TimelinePage {
    */
   async addAllocation(projectName, customerName, employeeName) {
     await this.clickAddAllocationButton();
-    const todayDate = await timelinePage.addDateRange();
     await this.selectEmployee(employeeName);
     await this.selectCustomer(customerName);
     await this.selectProject(customerName, projectName);
+    await this.addDateRange();
     await this.setHoursPerDay("8");
     await this.clickCreateButton();
   }

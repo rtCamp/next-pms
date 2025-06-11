@@ -18,13 +18,13 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("TC-102: Verify add Allocation workflow by the Plus button", async ({ page }) => {
-  allure.story("Resource Managemen");
+  allure.story("Resource Management");
   const projectName = data.TC102.payloadCreateProject.project_name;
   const employeeName = data.TC102.employee;
   const customerName = data.TC102.payloadCreateProject.customer;
-  await timelinePage.addAllocationForCurrentDay(projectName, customerName, employeeName);
+  await timelinePage.addAllocation(projectName, customerName, employeeName);
   await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
   await timelinePage.filterEmployeeByName(employeeName);
-  await timelinePage.deleteAllocation(projectName, todayDate);
+  await timelinePage.deleteAllocation(projectName);
   await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
 });
