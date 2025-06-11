@@ -110,3 +110,13 @@ export const getWeekRange = () => {
     friday: getFormattedDate(friday),
   };
 };
+
+/**
+ * Get the current date in 'Jun 6' or 'Jun 11' format.
+ */
+export const getFormattedCurrentDate = () => {
+  const today = new Date();
+  const options = { month: "short", day: "numeric" };
+  const formattedDate = today.toLocaleDateString("en-US", options);
+  return formattedDate;
+};
