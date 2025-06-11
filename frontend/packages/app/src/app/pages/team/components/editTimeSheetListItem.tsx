@@ -161,7 +161,6 @@ const EditTimeSheetListItem = ({
           variant: "success",
           description: res.message,
         });
-        setSubmitting(false);
         handleOpen();
       })
       .catch((err) => {
@@ -170,11 +169,14 @@ const EditTimeSheetListItem = ({
           variant: "destructive",
           description: error,
         });
+      })
+      .finally(() => {
+        setSubmitting(false);
       });
   };
 
   const handleSubmit = (data: z.infer<typeof EditTimesheetSchema>) => {
-    // setSubmitting(true);
+    setSubmitting(true);
     const foundTask = tasks.find((task) => task?.subject === form.getValues("task"));
     const { name, parent } = task;
     const { is_billable, hours, employee, description, date } = data;
