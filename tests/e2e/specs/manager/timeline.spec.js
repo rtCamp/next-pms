@@ -26,12 +26,12 @@ test("TC-102: Verify add Allocation workflow by the Plus button", async ({ page 
     await timelinePage.selectEmployee(employeeName);
     await timelinePage.selectCustomer(customerName);
     await timelinePage.selectProject(customerName, projectName);
-    await timelinePage.addDateRange();
+    const todayDate = await timelinePage.addDateRange();
     await timelinePage.setHoursPerDay("8");
     await timelinePage.clickCreateButton();
     await expect(page.getByText('Resouce allocation created successfully', { exact: true })).toBeVisible();
     await timelinePage.filterEmployee(employeeName);
     await page.waitForTimeout(1000);
-    await timelinePage.deleteAllocation();
+    await timelinePage.deleteAllocation(projectName, todayDate);
     await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
 });

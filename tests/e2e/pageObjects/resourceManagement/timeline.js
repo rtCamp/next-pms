@@ -78,11 +78,15 @@ export class TimelinePage {
    * Selects a date range for the allocation.
    */ 
   async addDateRange() {
-    const todayDateNumber = new Date([0,6].includes(new Date().getDay()) ? new Date().setDate(new Date().getDate() + (8 - new Date().getDay())) : new Date()).getDate();
+    const today = new Date();
+    const options = { month: 'short', day: 'numeric' };
+    const formattedDate = today.toLocaleDateString('en-US', options);
+    const dayNumber = formattedDate.split(' ')[1];
     await this.startDateSelector.click();
-    await this.page.getByRole('gridcell', { name: todayDateNumber }).first().click();
+    await this.page.getByRole('gridcell', { name: dayNumber }).first().click();
     await this.endDateSelector.click();
-    await this.page.getByRole('gridcell', { name: todayDateNumber }).click();
+    await this.page.getByRole('gridcell', { name: dayNumber }).click();
+    return formattedDate;
   }
 
   /**
@@ -116,9 +120,9 @@ export class TimelinePage {
   /**
    * Delete the allocation added.
    */
-  async deleteAllocation() {
-    await this.deleteAllocationIcon.click();
-    await this.deleteAllocationIcon.click();
+  async deleteAllocation(projectName, date) {
+    await this.page.getByTitle(`${projectName} ${date} (8 hours/day)`).click();
+    await this.page.getByTitle(`${projectName} ${date} (8 hours/day)`).click();
     await this.confirmDeleteButton.click();
   }
 
