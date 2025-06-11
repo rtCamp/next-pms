@@ -11,7 +11,7 @@ export type EmployeeTimesheetListProps = {
   teamState: TeamState;
   dispatch: React.Dispatch<Action>;
   setIsAddTimeOpen?: React.Dispatch<React.SetStateAction<boolean>>;
-  hideEdit: boolean;
+  hideEdit?: boolean;
 };
 
 export interface EmployeeTimesheetListItemProps {
