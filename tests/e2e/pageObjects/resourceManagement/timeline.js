@@ -3,6 +3,9 @@ import { getFormattedCurrentDate } from "../../utils/dateUtils";
 export class TimelinePage {
   constructor(page) {
     this.page = page;
+    this.currentDate = new Date();
+    this.dayOfWeek = this.currentDate.toLocaleDateString("en-US", { weekday: "short" });
+    this.formattedDate = getFormattedCurrentDate();
 
     // header elements
     this.addAllocatioButtton = page.getByRole("button", { name: "add-allocation" });
@@ -43,7 +46,7 @@ export class TimelinePage {
    * Checks if the timesheet page is visible.
    */
   async isPageVisible() {
-    return await this.addAllocatioButtton.isVisible();
+    await this.addAllocatioButtton.isVisible();
   }
   /**
    * Clicks the "Add Allocation" button.
@@ -75,7 +78,7 @@ export class TimelinePage {
   async selectProject(customerName, projectName) {
     await this.projectDropdown.click();
     await this.page.getByPlaceholder(`Search ${customerName} Projects`).fill(projectName);
-    await this.page.getByText(projectName).click();
+    await this.page.getByRole("option", { name: projectName }).click();
   }
 
   /**
@@ -92,7 +95,7 @@ export class TimelinePage {
   /**
    * Sets the number of hours per day for the allocation.
    */
-  async setHoursPerDay(hours) {
+  async setHoursPerDay(hours = "8") {
     await this.hoursPerDayTextField.fill(hours);
   }
 
