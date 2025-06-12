@@ -261,12 +261,12 @@ const EditTimeSheetListItem = ({
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)}>
               <div className="flex flex-col gap-y-4">
-                <div className="grid max-sm:gap-y-4 gap-x-4 grid-cols-4">
+                <div className="grid max-sm:gap-y-4 gap-x-4 grid-cols-5">
                   <FormField
                     control={form.control}
                     name="employee"
                     render={() => (
-                      <FormItem className="w-full space-y-1 col-span-3">
+                      <FormItem className="w-full space-y-1 col-span-4">
                         <FormLabel className="flex gap-2 items-center text-sm">Employee</FormLabel>
                         <FormControl>
                           <EmployeeCombo
@@ -285,7 +285,7 @@ const EditTimeSheetListItem = ({
                     name="is_billable"
                     render={({ field }) => (
                       <FormItem className="w-full space-y-1 col-span-1">
-                        <FormLabel className="flex gap-2 items-center text-sm">Billing Status</FormLabel>
+                        <FormLabel className="flex gap-2 items-center text-sm">Billing</FormLabel>
                         <FormControl>
                           <div
                             className={mergeClassNames(
