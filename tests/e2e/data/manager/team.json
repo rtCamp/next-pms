@@ -46,7 +46,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC47 - Task added via automation.",
+      "description": "<p>TC47 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
