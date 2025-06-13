@@ -160,7 +160,6 @@
       "rowName": "TC92 Billable Task",
       "col": "Fri"
     },
-
     "payloadCreateProject": {
       "project_name": "TC92 Project",
       "company": "rtCamp Solutions Pvt. Ltd.",
@@ -185,7 +184,6 @@
     "payloadDeleteTask": {
       "taskID": "filled-automatically-from-createTasks"
     },
-
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
       "description": "TC92 - Task added via automation.",
@@ -202,6 +200,24 @@
       "managerID": "EMP-00526",
       "employeeAPI": "employee3",
       "approvalStatus": "automatically-filled-from-randomApprovalStatus"
+    }
+  },
+  "TC102": {
+    "payloadCreateProject": {
+      "project_name": "TC102 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "customer": "Google",
+      "custom_billing_type": "Fixed Cost",
+      "custom_currency": "INR",
+      "project_type": "Fixed Cost",
+      "business_unit": "Jupitor",
+      "estimated_cost": 360000,
+      "custom_default_hourly_billing_rate": 0,
+      "custom_project_budget_hours": []
+    },
+    "employee": "Abhishek Sharma",
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
     }
   }
 }
