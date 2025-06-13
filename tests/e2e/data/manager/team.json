@@ -236,7 +236,8 @@
         "shareValue": 0,
         "notifyValue": 1
       }
-    ],
+    ]
+  },
   "TC94": {
     "employeeName": "Abhishek Sharma",
     "payloadCreateUserGroup": {
