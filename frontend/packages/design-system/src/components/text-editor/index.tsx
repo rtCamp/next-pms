@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ReactQuill, { Quill, type ReactQuillProps } from "react-quill";
 import { DeltaStatic, Sources } from "quill";
 import "react-quill/dist/quill.snow.css";
@@ -34,6 +34,13 @@ const TextEditor = ({
   ...Props
 }: TextEditorProps) => {
   const [editorValue, setEditorValue] = useState(Props.value || "");
+
+  useEffect(() => {
+    if (Props?.value) {
+      setEditorValue(Props.value);
+    }
+  }, [Props?.value]);
+
   const toolbarOptions = [
     ["bold", "italic"],
     [{ color: [] }],

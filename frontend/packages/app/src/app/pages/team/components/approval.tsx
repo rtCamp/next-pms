@@ -168,6 +168,7 @@ export const Approval = ({ onClose, employee, startDate, endDate, isAprrovalDial
                       const isExtended = calculateExtendedWorkingHour(data.totalHours, workingHour, WorkingFrequency);
                       return (
                         <EmployeeTimesheetListItem
+                          key={index}
                           employee={employee}
                           hasLeave={data.hasLeave}
                           showCheckbox

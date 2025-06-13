@@ -86,7 +86,6 @@ export const EmployeeTimesheetListItem = ({
           hours: task.hours,
           is_billable: task.is_billable,
         };
-        const description = preProcessLink(task.description ?? "");
         return (
           <div
             className="flex flex-col gap-x-2 p-1 mb-2 last:mb-0 border-b w-full max-w-full last:border-b-0"
@@ -147,7 +146,12 @@ export const EmployeeTimesheetListItem = ({
               className="text-sm font-normal max-md:text-wrap  col-span-2  my-1 p-0 hover-content"
               onClick={(e) => e.stopPropagation()}
             >
-              <TextEditor onChange={() => {}} hideToolbar={true} readOnly={true} value={description} />
+              <TextEditor
+                onChange={() => {}}
+                hideToolbar={true}
+                readOnly={true}
+                value={preProcessLink(task.description ?? "")}
+              />
             </p>
           </div>
         );
