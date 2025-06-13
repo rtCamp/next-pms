@@ -20,7 +20,7 @@ import { filterApi, shareProjectWithUser } from "../utils/api/frappeRequests";
 import { deleteLeave } from "../utils/api/leaveRequests";
 import { getWeekRange } from "../utils/dateUtils";
 import { deleteEmployeeByName } from "./employeeHelper";
-
+import { deleteUserGroupForEmployee } from "./teamTabHelper";
 // Load env variables
 const empID = process.env.EMP_ID;
 const emp2ID = process.env.EMP2_ID;
@@ -779,6 +779,7 @@ export const readAndCleanAllOrphanData = async () => {
   await deleteLeaveOfEmployee();
   await deleteEmployeeByName();
   await cleanUpProjects(mergedData);
+  await deleteUserGroupForEmployee();
 };
 /**
  * Submits timesheet for Approval for an employee

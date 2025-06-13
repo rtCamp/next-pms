@@ -226,6 +226,7 @@ export class TeamPage {
   async getEmployees() {
     const employees = [];
     // Wait for spinner to disappear, only if it's visible
+    await this.spinner.waitFor({ state: "hidden" });
     if (await this.spinner.isVisible().catch(() => false)) {
       await this.spinner.waitFor({ state: "hidden" });
     }
@@ -411,9 +412,20 @@ export class TeamPage {
     // Apply the selected status
     await this.selectEmployeeStatus(empStatus);
   }
+  /**
+   * Check and apply Approval Status filter
+   */
   async checkApprovalStatus(approvalStatus) {
     await this.page.getByRole("button", { name: "Approval Status" }).click();
     await this.page.getByText(approvalStatus, { exact: true }).click();
     await this.page.getByPlaceholder("Approval Status").press("Escape");
+  }
+  /**
+   * Check and apply User Group filter
+   */
+  async checkUserGroup(userGroupName) {
+    await this.page.getByRole("button", { name: "User Group" }).click();
+    await this.page.getByRole("option", { name: userGroupName }).getByRole("checkbox").check();
+    await this.page.getByPlaceholder("User Group").press("Escape");
   }
 }
