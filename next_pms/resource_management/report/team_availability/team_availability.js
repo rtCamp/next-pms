@@ -10,7 +10,7 @@ frappe.query_reports["Team Availability"] = {
   formatter: function (value, row, column, data, default_formatter) {
     value = default_formatter(value, row, column, data);
 
-    if (data.has_value && ["name", "designation", "available_capacity"].includes(column.id)) {
+    if (data.has_value && ["name", "designation", "available_capacity", "monthly_salary"].includes(column.id)) {
       var $value = $(value).css("font-weight", "bold");
       value = $value.wrap("<p></p>").parent().html();
     }

@@ -39,6 +39,18 @@ def get_employee_filters(filters=None, has_bu_field=False):
 
 
 def sort_by_reports_to(employees):
+    """
+    Sorts employees based on their reporting hierarchy.
+    i.e. All employees will be grouped under their respective managers
+
+    :example:
+    employees = [
+        {"name": "manager", "reports_to": None},
+        {"name": "Bob", "reports_to": "Alice"},
+        {"name": "Charlie", "reports_to": "Alice"},
+        {"name": "Manager-1", "reports_to": "None"},
+    ]
+    """
     result = []
     reporting_map = defaultdict(list)
 

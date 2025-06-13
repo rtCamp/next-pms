@@ -37,7 +37,7 @@ def execute(filters=None):
 
 def get_data(filters=None, has_bu_field=False):
     """
-    Fetches the team availability data based on the provided filters.
+    Main function to fetch employee data for the team availability report.
     """
     start_date = filters.get("from")
     end_date = filters.get("to")
@@ -45,6 +45,7 @@ def get_data(filters=None, has_bu_field=False):
     currency = filters.get("currency") or "USD"
     fields = get_employee_fields(has_bu_field)
 
+    #  Fetch employee based on their reports_to hierarchy
     data = generate_flat_tree(
         doctype="Employee",
         fields=fields,
@@ -55,6 +56,10 @@ def get_data(filters=None, has_bu_field=False):
     employees = data.get("level", [])
     parent_child_map = data.get("with_children", {})
 
+    #  We need to update the indent value for each employee.
+    #  If employee has a level, we set indent to that level,
+    #  otherwise we set it to 0.
+    #  We need to set has_value to True if the employee has any children based on the parent_child_map.
     for emp in employees:
         emp.indent = emp.level or 0
         emp.has_value = len(parent_child_map.get(emp.name, {}).get("childrens", [])) > 0
@@ -101,7 +106,7 @@ def get_data(filters=None, has_bu_field=False):
             root_emp.available_capacity += hours
 
             # Calculate monthly salary for root nodes (group)
-            root_emp.monthly_salary = sum(employee_map[c].monthly_salary for c in child_names)
+            root_emp.monthly_salary += sum(employee_map[c].monthly_salary for c in child_names)
     return employees
 
 
@@ -155,7 +160,7 @@ def get_columns(filters=None):
             "fieldname": "monthly_salary",
             "fieldtype": "Currency",
             "options": "currency",
-            "width": 130,
+            "width": 200,
         },
     ]
 
