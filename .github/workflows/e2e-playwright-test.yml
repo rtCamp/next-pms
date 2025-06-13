@@ -2,8 +2,11 @@ name: Playwright Tests
 
 # Controls when the workflow will run
 on:
-  pull_request_review:
-    types: [submitted]  # Trigger when a PR review is submitted
+  pull_request:
+    branches:
+    - develop
+    types:
+    - closed
 
   #Triggers at 5 AM IST every day
   schedule:
@@ -18,7 +21,7 @@ concurrency:
 
 jobs:
   deploy:
-    if: github.event_name == 'pull_request_review' && github.event.review.state == 'approved'
+    if: github.event_name != 'workflow_dispatch'
     uses: rtCamp/erp-rtcamp/.github/workflows/deploy-erp-qe.rt.gw.yml@main
     with:
       environment: 'erp-qe.rt.gw'
