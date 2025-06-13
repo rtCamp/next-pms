@@ -226,6 +226,7 @@ export class TeamPage {
   async getEmployees() {
     const employees = [];
     // Wait for spinner to disappear, only if it's visible
+    await this.spinner.waitFor({ state: "hidden" });
     if (await this.spinner.isVisible().catch(() => false)) {
       await this.spinner.waitFor({ state: "hidden" });
     }
