@@ -27,6 +27,7 @@ let TC53data = data.TC53;
 let TC91data = data.TC91;
 let TC92data = data.TC92;
 let TC93data = data.TC93;
+let TC94data = data.TC94;
 
 // ------------------------------------------------------------------------------------------
 
@@ -254,4 +255,13 @@ test("TC93: Verify Project Filter to show the employee under a specfic project "
   for (const employee of shareProjectArray) {
     await expect(teamPage.employeeNameInTable(employee)).toBeVisible();
   }
+});
+
+test("TC94: Verify the user group Filter to show the correct results", async ({}) => {
+  allure.story("Team");
+  // Apply filter for user group
+  await teamPage.checkUserGroup(TC94data.payloadCreateUserGroup.__newname);
+
+  //Assertion:
+  await expect(teamPage.employeeNameInTable(TC94data.employeeName)).toBeVisible();
 });

@@ -20,7 +20,7 @@ import { filterApi, shareProjectWithUser } from "../utils/api/frappeRequests";
 import { deleteLeave } from "../utils/api/leaveRequests";
 import { getWeekRange } from "../utils/dateUtils";
 import { deleteEmployeeByName } from "./employeeHelper";
-
+import { deleteUserGroupForEmployee } from "./teamTabHelper";
 // Load env variables
 const empID = process.env.EMP_ID;
 const emp2ID = process.env.EMP2_ID;
@@ -285,7 +285,7 @@ export const createProjectForTestCases = async () => {
   ];
   const managerTaskIDs = ["TC22", "TC24", "TC25", "TC26", "TC17", "TC19"];
 
-  const managerTeamIDs = ["TC47", "TC49", "TC50", "TC92", "TC93", "TC102"];
+  const managerTeamIDs = ["TC47", "TC49", "TC50", "TC92", "TC93", "TC102", "TC103", "TC104"];
 
   const processTestCases = async (data, testCases) => {
     for (const testCaseID of testCases) {
@@ -388,6 +388,8 @@ export const deleteProjects = async () => {
     sharedManagerTaskData.TC25.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC26.payloadDeleteProject.projectId,
     sharedManagerTaskData.TC102.payloadDeleteProject.projectId,
+    sharedManagerTaskData.TC103.payloadDeleteProject.projectId,
+    sharedManagerTaskData.TC104.payloadDeleteProject.projectId,
     sharedManagerTeamData.TC47.payloadDeleteProject.projectId,
     sharedManagerTeamData.TC49.payloadDeleteProject.projectId,
     sharedManagerTeamData.TC50.payloadDeleteProject.projectId,
@@ -784,6 +786,7 @@ export const readAndCleanAllOrphanData = async () => {
   await deleteLeaveOfEmployee();
   await deleteEmployeeByName();
   await cleanUpProjects(mergedData);
+  await deleteUserGroupForEmployee();
 };
 /**
  * Submits timesheet for Approval for an employee
