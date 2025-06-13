@@ -235,5 +235,41 @@
     "payloadDeleteProject": {
       "projectId": "filled-automatically-from-createProjects"
     }
+  },
+  "TC103": {
+    "payloadCreateProject": {
+      "project_name": "TC103 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "customer": "Google",
+      "custom_billing_type": "Fixed Cost",
+      "custom_currency": "INR",
+      "project_type": "Fixed Cost",
+      "business_unit": "Jupitor",
+      "estimated_cost": 360000,
+      "custom_default_hourly_billing_rate": 0,
+      "custom_project_budget_hours": []
+    },
+    "employee": "Abhishek Sharma",
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    }
+  },
+  "TC104": {
+    "payloadCreateProject": {
+      "project_name": "TC104 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "customer": "Google",
+      "custom_billing_type": "Fixed Cost",
+      "custom_currency": "INR",
+      "project_type": "Fixed Cost",
+      "business_unit": "Jupitor",
+      "estimated_cost": 360000,
+      "custom_default_hourly_billing_rate": 0,
+      "custom_project_budget_hours": []
+    },
+    "employee": "Abhishek Sharma",
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    }
   }
 }
