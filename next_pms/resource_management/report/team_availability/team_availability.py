@@ -7,23 +7,12 @@
 from frappe import _, get_meta
 from frappe.utils import getdate
 
-from next_pms.resource_management.api.utils.query import (
-    get_allocation_list_for_employee_for_given_range,
-)
-from next_pms.resource_management.report.utils import (
-    calculate_employee_available_hours,
-    calculate_employee_hours,
-)
+from next_pms.resource_management.api.utils.query import get_allocation_list_for_employee_for_given_range
+from next_pms.resource_management.report.utils import calculate_employee_available_hours, calculate_employee_hours
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm
 from next_pms.utils.employee import generate_flat_tree, get_employee_leaves_and_holidays
 
-from .utils import (
-    BU_FIELD_NAME,
-    convert_currency,
-    get_employee_fields,
-    get_employee_filters,
-    sort_by_reports_to,
-)
+from .utils import BU_FIELD_NAME, convert_currency, get_employee_fields, get_employee_filters, sort_by_reports_to
 
 
 def execute(filters=None):
@@ -32,7 +21,8 @@ def execute(filters=None):
 
     columns = get_columns(filters)
     data = get_data(filters, has_bu_field)
-    return columns, data
+    chart = get_chart(filters, data)
+    return columns, data, None, chart
 
 
 def get_data(filters=None, has_bu_field=False):
@@ -72,6 +62,7 @@ def get_data(filters=None, has_bu_field=False):
         daily_hours = get_employee_daily_working_norm(emp.name)
         employee_allocations = resource_allocation_map.get(emp.name, [])
         non_billable_allocations = [resource for resource in employee_allocations if not resource.is_billable]
+        billable_allocations = [resource for resource in employee_allocations if resource.is_billable]
         employee_leave_and_holiday = get_employee_leaves_and_holidays(emp.name, getdate(start_date), getdate(end_date))
         holidays = employee_leave_and_holiday.get("holidays")
         leaves = employee_leave_and_holiday.get("leaves")
@@ -81,6 +72,14 @@ def get_data(filters=None, has_bu_field=False):
             start_date,
             end_date,
             non_billable_allocations,
+            holidays,
+            leaves,
+        )
+        employee_billable_hours = calculate_employee_hours(
+            daily_hours,
+            start_date,
+            end_date,
+            billable_allocations,
             holidays,
             leaves,
         )
@@ -94,6 +93,17 @@ def get_data(filters=None, has_bu_field=False):
         if emp.currency != currency:
             emp.monthly_salary = convert_currency(emp.monthly_salary, emp.currency, currency)
             emp.currency = currency
+        emp._monthly_salary = emp.monthly_salary  # Store original monthly salary
+        emp.hourly_salary = emp.monthly_salary / 160  # Assuming 160 working hours in a month
+        emp.actual_unbilled_cost = emp.hourly_salary * emp.available_capacity
+        emp._actual_unbilled_cost = emp.actual_unbilled_cost  # Store original unbilled cost
+        # Calculate % Capacity
+        if emp.available_capacity > 0:
+            emp.percentage_capacity_available = (
+                emp.available_capacity / (emp.available_capacity + employee_billable_hours)
+            ) * 100
+        else:
+            emp.percentage_capacity_available = 0
 
     if is_group:
         employee_map = {emp.name: emp for emp in employees}
@@ -107,7 +117,38 @@ def get_data(filters=None, has_bu_field=False):
 
             # Calculate monthly salary for root nodes (group)
             root_emp.monthly_salary += sum(employee_map[c].monthly_salary for c in child_names)
+            # Calculate hourly salary for root nodes (group)
+            root_emp.hourly_salary += sum(employee_map[c].hourly_salary for c in child_names)
+            # Calculate actual unbilled cost for root nodes (group)
+            root_emp.actual_unbilled_cost += sum(employee_map[c].actual_unbilled_cost for c in child_names)
+
+            # Calculate % Capacity for root nodes (group)
+            root_emp.percentage_capacity_available += sum(
+                employee_map[c].percentage_capacity_available for c in child_names
+            )
     return employees
+
+
+def get_chart(filters=None, data=list):
+    currency = filters.get("currency") or "USD"
+
+    mothly_salary = sum(emp._monthly_salary for emp in data)
+    actual_unbilled_cost = sum(emp._actual_unbilled_cost for emp in data)
+
+    chart = {
+        "data": {
+            "labels": [_("Monthly Salary vs Actual Unbilled Cost")],
+            "datasets": [
+                {"name": _("Monthly Salary ({0})").format(currency), "values": [mothly_salary]},
+                {"name": _("Actual unbilled cost ({0})").format(currency), "values": [actual_unbilled_cost]},
+            ],
+        },
+        "type": "bar",
+        "fieldtype": "Currency",
+        "options": "currency",
+        "currency": currency,
+    }
+    return chart
 
 
 def get_allocations(start_date, end_date, employee_names):
@@ -134,30 +175,44 @@ def get_columns(filters=None):
             "label": _("ID"),
             "fieldtype": "Link",
             "options": "Employee",
-            "width": 200,
+            "width": 150,
         },
         {
             "fieldname": "employee_name",
             "label": _("Employee Name"),
             "fieldtype": "Data",
-            "width": 200,
+            "width": 180,
         },
         {
             "fieldname": "designation",
             "label": _("Designation"),
             "fieldtype": "Link",
             "options": "Designation",
-            "width": 200,
+            "width": 180,
         },
         {
             "label": _("Available Capacity (hrs)"),
             "fieldname": "available_capacity",
             "fieldtype": "Float",
-            "width": 150,
+            "width": 160,
+        },
+        {
+            "label": _("% Capacity Available"),
+            "fieldname": "percentage_capacity_available",
+            "fieldtype": "Percent",
+            "width": 120,
+            "precision": 2,
         },
         {
             "label": _("Monthly Salary ({0})").format(currency),
             "fieldname": "monthly_salary",
+            "fieldtype": "Currency",
+            "options": "currency",
+            "width": 200,
+        },
+        {
+            "label": _("Actual unbilled cost ({0})").format(currency),
+            "fieldname": "actual_unbilled_cost",
             "fieldtype": "Currency",
             "options": "currency",
             "width": 200,

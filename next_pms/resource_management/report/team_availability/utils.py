@@ -1,9 +1,9 @@
 from collections import defaultdict
 
-BU_FIELD_NAME = "custom_business_unit"
-
 from erpnext.setup.utils import get_exchange_rate
 from frappe.utils import getdate
+
+BU_FIELD_NAME = "custom_business_unit"
 
 
 def convert_currency(value, from_currency, to_currency, date=None):
@@ -14,7 +14,15 @@ def convert_currency(value, from_currency, to_currency, date=None):
 
 
 def get_employee_fields(has_bu_field=False):
-    fields = ["name", "reports_to", "status", "designation", "employee_name", "ctc", "salary_currency as currency"]
+    fields = [
+        "name",
+        "reports_to",
+        "status",
+        "designation",
+        "employee_name",
+        "ctc",
+        "salary_currency as currency",
+    ]
     if has_bu_field:
         fields.append(BU_FIELD_NAME)
     return fields
