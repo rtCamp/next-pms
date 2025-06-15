@@ -21,8 +21,8 @@ def execute(filters=None):
 
     columns = get_columns(filters)
     data = get_data(filters, has_bu_field)
-    chart = get_chart(filters, data)
-    return columns, data, None, chart
+    summary = get_report_summary(filters=filters, data=data)
+    return columns, data, None, None, summary
 
 
 def get_data(filters=None, has_bu_field=False):
@@ -61,9 +61,12 @@ def get_data(filters=None, has_bu_field=False):
     for emp in employees:
         daily_hours = get_employee_daily_working_norm(emp.name)
         employee_allocations = resource_allocation_map.get(emp.name, [])
+
         non_billable_allocations = [resource for resource in employee_allocations if not resource.is_billable]
         billable_allocations = [resource for resource in employee_allocations if resource.is_billable]
+
         employee_leave_and_holiday = get_employee_leaves_and_holidays(emp.name, getdate(start_date), getdate(end_date))
+
         holidays = employee_leave_and_holiday.get("holidays")
         leaves = employee_leave_and_holiday.get("leaves")
 
@@ -86,7 +89,9 @@ def get_data(filters=None, has_bu_field=False):
         employee_free_hours = calculate_employee_available_hours(
             daily_hours, start_date, end_date, employee_allocations, holidays, leaves
         )
+
         emp.available_capacity = employee_free_hours + employee_non_billable_hours
+        emp._available_capacity = emp.available_capacity  # Store original available capacity
 
         # Calculate monthly salary
         emp.monthly_salary = emp.ctc / 12
@@ -94,16 +99,20 @@ def get_data(filters=None, has_bu_field=False):
             emp.monthly_salary = convert_currency(emp.monthly_salary, emp.currency, currency)
             emp.currency = currency
         emp._monthly_salary = emp.monthly_salary  # Store original monthly salary
+
         emp.hourly_salary = emp.monthly_salary / 160  # Assuming 160 working hours in a month
+
         emp.actual_unbilled_cost = emp.hourly_salary * emp.available_capacity
         emp._actual_unbilled_cost = emp.actual_unbilled_cost  # Store original unbilled cost
         # Calculate % Capacity
+
         if emp.available_capacity > 0:
             emp.percentage_capacity_available = (
                 emp.available_capacity / (emp.available_capacity + employee_billable_hours)
             ) * 100
         else:
             emp.percentage_capacity_available = 0
+        emp._percentage_capacity_available = emp.percentage_capacity_available  # Store original percentage capacity
 
     if is_group:
         employee_map = {emp.name: emp for emp in employees}
@@ -129,26 +138,32 @@ def get_data(filters=None, has_bu_field=False):
     return employees
 
 
-def get_chart(filters=None, data=list):
+def get_report_summary(data, filters=None):
     currency = filters.get("currency") or "USD"
-
-    mothly_salary = sum(emp._monthly_salary for emp in data)
-    actual_unbilled_cost = sum(emp._actual_unbilled_cost for emp in data)
-
-    chart = {
-        "data": {
-            "labels": [_("Monthly Salary vs Actual Unbilled Cost")],
-            "datasets": [
-                {"name": _("Monthly Salary ({0})").format(currency), "values": [mothly_salary]},
-                {"name": _("Actual unbilled cost ({0})").format(currency), "values": [actual_unbilled_cost]},
-            ],
+    total_available_capacity = sum(emp._available_capacity for emp in data)
+    total_actual_unbilled_cost = sum(emp._actual_unbilled_cost for emp in data)
+    avg_unbilled_cost = total_actual_unbilled_cost / len(data) if data else 0
+    return [
+        {
+            "label": _("Total Available Capacity (hrs)"),
+            "value": total_available_capacity,
+            "indicator": "Blue",
         },
-        "type": "bar",
-        "fieldtype": "Currency",
-        "options": "currency",
-        "currency": currency,
-    }
-    return chart
+        {
+            "label": _("Total Actual Unbilled Cost ({0})").format(filters.get("currency") or "USD"),
+            "value": total_actual_unbilled_cost,
+            "indicator": "Green",
+            "datatype": "Currency",
+            "currency": currency,
+        },
+        {
+            "label": _("Average Unbilled Cost ({0})").format(filters.get("currency") or "USD"),
+            "value": avg_unbilled_cost,
+            "indicator": "Green",
+            "datatype": "Currency",
+            "currency": currency,
+        },
+    ]
 
 
 def get_allocations(start_date, end_date, employee_names):
