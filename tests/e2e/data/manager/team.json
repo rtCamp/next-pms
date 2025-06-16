@@ -88,7 +88,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC49 - Task added via automation.",
+      "description": "<p>TC49 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
@@ -129,7 +129,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC50 - Task added via automation.",
+      "description": "<p>TC50 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
@@ -188,7 +188,7 @@
 
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC92 - Task added via automation.",
+      "description": "<p>TC92 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
@@ -203,6 +203,43 @@
       "employeeAPI": "employee3",
       "approvalStatus": "automatically-filled-from-randomApprovalStatus"
     }
+  },
+  "TC93": {
+    "projectSharedWithEmps": ["Abhishek Sharma", "Abhishek Kumar"],
+    "payloadCreateProject": {
+      "project_name": "TC93 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "billing_type": "Non-Billable",
+      "currency": "INR",
+      "project_type": "Non Billable",
+      "business_unit": "NB",
+      "estimated_cost": 100000
+    },
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    },
+    "payloadShareProject": [
+      {
+        "doctype": "Project",
+        "name": "filled-automatically-from-createProjects",
+        "user": "abhishek.sharma@rtcamp.com",
+        "readValue": 1,
+        "writeValue": 1,
+        "submitValue": 0,
+        "shareValue": 0,
+        "notifyValue": 1
+      },
+      {
+        "doctype": "Project",
+        "name": "filled-automatically-from-createProjects",
+        "user": "abhishek.kumar@rtcamp.com",
+        "readValue": 1,
+        "writeValue": 1,
+        "submitValue": 0,
+        "shareValue": 0,
+        "notifyValue": 1
+      }
+    ]
   },
   "TC94": {
     "employeeName": "Abhishek Sharma",
