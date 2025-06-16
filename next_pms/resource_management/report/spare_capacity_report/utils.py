@@ -75,7 +75,9 @@ def sort_by_reports_to(employees):
         for subordinate in sorted(reporting_map.get(emp_id, [])):
             dfs(subordinate)
 
-    top_level_emps = [emp for emp in employees if emp["reports_to"] not in employee_map]
+    top_level_emps = [
+        emp for emp in employees if not emp.get("reports_to") or emp.get("reports_to") not in employee_map
+    ]
 
     for top_emp in sorted(top_level_emps, key=lambda x: x["name"]):
         dfs(top_emp["name"])

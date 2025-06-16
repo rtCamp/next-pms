@@ -14,7 +14,10 @@ from next_pms.resource_management.report.utils import (
     calculate_employee_available_hours,
     calculate_employee_hours,
 )
-from next_pms.timesheet.api.employee import get_employee_daily_working_norm
+from next_pms.timesheet.api.employee import (
+    get_employee_daily_working_norm,
+    get_workable_days_for_employee,
+)
 from next_pms.utils.employee import generate_flat_tree, get_employee_leaves_and_holidays
 
 from .utils import (
@@ -64,7 +67,7 @@ def get_data(filters=None, has_bu_field=False):
     for emp in employees:
         emp.indent = emp.level or 0
         emp.has_value = len(parent_child_map.get(emp.name, {}).get("childrens", [])) > 0
-
+        emp.working_hours = get_workable_days_for_employee(emp.name, start_date, end_date).get("total_working_days")
     employees = sort_by_reports_to(employees)
 
     employee_names = [emp.name for emp in employees]
@@ -111,8 +114,7 @@ def get_data(filters=None, has_bu_field=False):
             emp.currency = currency
         emp._monthly_salary = emp.monthly_salary  # Store original monthly salary
 
-        emp.hourly_salary = emp.monthly_salary / 160  # Assuming 160 working hours in a month
-
+        emp.hourly_salary = emp.monthly_salary / emp.working_hours
         emp.actual_unbilled_cost = emp.hourly_salary * emp.available_capacity
         emp._actual_unbilled_cost = emp.actual_unbilled_cost  # Store original unbilled cost
         # Calculate % Capacity
@@ -154,7 +156,7 @@ def get_report_summary(data, filters=None):
     currency = filters.get("currency") or "USD"
     total_available_capacity = sum(emp._available_capacity for emp in data)
     total_actual_unbilled_cost = sum(emp._actual_unbilled_cost for emp in data)
-    avg_unbilled_cost = total_actual_unbilled_cost / len(data) if data else 0
+
     return [
         {
             "label": _("Total Available Capacity (hrs)"),
@@ -164,13 +166,6 @@ def get_report_summary(data, filters=None):
         {
             "label": _("Total Actual Unbilled Cost ({0})").format(filters.get("currency") or "USD"),
             "value": total_actual_unbilled_cost,
-            "indicator": "Green",
-            "datatype": "Currency",
-            "currency": currency,
-        },
-        {
-            "label": _("Average Unbilled Cost ({0})").format(filters.get("currency") or "USD"),
-            "value": avg_unbilled_cost,
             "indicator": "Green",
             "datatype": "Currency",
             "currency": currency,
