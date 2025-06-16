@@ -53,7 +53,7 @@ def get_data(filters=None, has_bu_field=False):
     data = generate_flat_tree(
         doctype="Employee",
         fields=fields,
-        filters=get_employee_filters(filters, has_bu_field),
+        filters={**get_employee_filters(filters, has_bu_field), "name": "EMP-00375"},
         nsm_field="reports_to",
     )
 
@@ -67,7 +67,7 @@ def get_data(filters=None, has_bu_field=False):
     for emp in employees:
         emp.indent = emp.level or 0
         emp.has_value = len(parent_child_map.get(emp.name, {}).get("childrens", [])) > 0
-        emp.day_month = get_workable_days_for_employee(emp.name, start_date, end_date).get("total_working_days", 160)
+        emp.working_day = get_workable_days_for_employee(emp.name, start_date, end_date).get("total_working_days", 160)
     employees = sort_by_reports_to(employees)
 
     employee_names = [emp.name for emp in employees]
@@ -114,7 +114,8 @@ def get_data(filters=None, has_bu_field=False):
         emp.monthly_salary = emp.ctc / 12
         emp._monthly_salary = emp.monthly_salary  # Store original monthly salary
 
-        emp.hourly_salary = emp.monthly_salary / (emp.day_month * daily_hours)
+        emp.hourly_salary = emp.monthly_salary / 160
+
         emp.actual_unbilled_cost = emp.hourly_salary * emp.available_capacity
         emp._actual_unbilled_cost = emp.actual_unbilled_cost  # Store original unbilled cost
         # Calculate % Capacity
