@@ -20,8 +20,7 @@ jobs:
   get-branch:
     runs-on: self-hosted
     container:
-      image: ubuntu:24.04
-    if: github.event_name != 'workflow_dispatch' && github.event_name == 'pull_request'
+      image: ubuntu
     outputs:
       branch_name: ${{ steps.get_branch.outputs.branch_name }}
     steps:
