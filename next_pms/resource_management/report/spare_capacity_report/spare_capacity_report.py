@@ -53,7 +53,7 @@ def get_data(filters=None, has_bu_field=False):
     data = generate_flat_tree(
         doctype="Employee",
         fields=fields,
-        filters={**get_employee_filters(filters, has_bu_field)},
+        filters=get_employee_filters(filters, has_bu_field),
         nsm_field="reports_to",
     )
 
