@@ -16,7 +16,6 @@ from next_pms.resource_management.report.utils import (
 )
 from next_pms.timesheet.api.employee import (
     get_employee_daily_working_norm,
-    get_workable_days_for_employee,
 )
 from next_pms.utils.employee import generate_flat_tree, get_employee_leaves_and_holidays
 
@@ -53,7 +52,7 @@ def get_data(filters=None, has_bu_field=False):
     data = generate_flat_tree(
         doctype="Employee",
         fields=fields,
-        filters={**get_employee_filters(filters, has_bu_field), "name": "EMP-00375"},
+        filters=get_employee_filters(filters, has_bu_field),
         nsm_field="reports_to",
     )
 
@@ -67,7 +66,7 @@ def get_data(filters=None, has_bu_field=False):
     for emp in employees:
         emp.indent = emp.level or 0
         emp.has_value = len(parent_child_map.get(emp.name, {}).get("childrens", [])) > 0
-        emp.working_day = get_workable_days_for_employee(emp.name, start_date, end_date).get("total_working_days", 160)
+
     employees = sort_by_reports_to(employees)
 
     employee_names = [emp.name for emp in employees]
