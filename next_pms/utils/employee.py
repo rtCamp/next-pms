@@ -74,23 +74,35 @@ def generate_flat_tree(doctype: str, nsm_field: str, filters: dict, fields: list
     data = get_all(doctype, fields=fields, filters=filters)
 
     lookup_dict = {d["name"]: d for d in data}
-    root_nodes = {d["name"] for d in data if not d.get(nsm_field)}
     children_dict = {d["name"]: {**d, "childrens": []} for d in data}
 
     for d in data:
-        if d.get(nsm_field) and d.get(nsm_field) in children_dict:
-            children_dict[d.get(nsm_field)]["childrens"].append(d)
+        parent = d.get(nsm_field)
+        if parent and parent in children_dict:
+            children_dict[parent]["childrens"].append(d)
+
+    # Find root nodes — those with no parent, or parent not in filtered data
+    root_nodes = {d["name"] for d in data if not d.get(nsm_field) or d.get(nsm_field) not in lookup_dict}
+
+    # fallback: if no roots detected, treat all as roots (flat list)
+    if not root_nodes:
+        root_nodes = set(lookup_dict.keys())
 
     queue = deque([(lookup_dict[root], 0) for root in root_nodes])
+
+    visited = set()
 
     while queue:
         current, level = queue.popleft()
 
+        if current["name"] in visited:
+            continue
+        visited.add(current["name"])
+
         current["level"] = level
         flat_tree.append(current)
 
-        children = children_dict[current["name"]]
-
+        children = children_dict.get(current["name"], {})
         for child in children.get("childrens", []):
             queue.append((child, level + 1))
 

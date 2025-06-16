@@ -26,6 +26,7 @@ let TC50data = data.TC50;
 let TC53data = data.TC53;
 let TC91data = data.TC91;
 let TC92data = data.TC92;
+let TC93data = data.TC93;
 let TC94data = data.TC94;
 
 // ------------------------------------------------------------------------------------------
@@ -241,6 +242,18 @@ test("TC92: Verify Approval Status filter to show the results appropriately", as
     expect(status).toContain("Rejected");
   } else {
     expect(status).toBe(TC92data.payloadApprovalStatus.approvalStatus);
+  }
+});
+
+test("TC93: Verify Project Filter to show the employee under a specfic project ", async ({}) => {
+  allure.story("Team");
+  // Select the project filter and set the project present in TC93
+  await teamPage.checkProjectStatus(TC93data.payloadCreateProject.project_name);
+  const shareProjectArray = TC93data.projectSharedWithEmps;
+
+  //Assertion : Verify if the employees are shown for the resp Project
+  for (const employee of shareProjectArray) {
+    await expect(teamPage.employeeNameInTable(employee)).toBeVisible();
   }
 });
 

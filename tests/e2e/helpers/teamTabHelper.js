@@ -166,9 +166,16 @@ export const deleteUserGroupForEmployee = async () => {
 
     try {
       await deleteUserGroup(groupName);
-      console.log(` Successfully deleted user group: ${groupName}`);
+      console.log(`✅ Successfully deleted user group: ${groupName}`);
     } catch (err) {
-      console.error(` Failed to delete user group '${groupName}': ${err.message}`);
+      if (
+        (err && err.response && err.response.status === 404) ||
+        (err && typeof err.message === "string" && err.message.includes("404"))
+      ) {
+        console.warn(`⚠️ No data found for deletion of user group: '${groupName}'`);
+      } else {
+        console.error(`❌ Failed to delete user group '${groupName}': ${err.message}`);
+      }
     }
   }
 };
