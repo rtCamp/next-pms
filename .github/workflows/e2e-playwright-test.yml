@@ -3,7 +3,7 @@ name: Playwright Tests
 # Controls when the workflow will run
 on:
   pull_request_review:
-    types: [submitted]  # Trigger when a PR review is submitted
+    types: [ submitted ] # Trigger when a PR review is submitted
 
   #Triggers at 5 AM IST every day
   schedule:
@@ -24,29 +24,29 @@ jobs:
     outputs:
       branch_name: ${{ steps.get_branch.outputs.branch_name }}
     steps:
-      - name: Install dependencies
-        run: |
-          apt-get update
-          apt-get install -y curl jq
-      
-      - name: Get branch name
-        id: get_branch
-        run: |
-          pr_number="${GITHUB_REF#refs/pull/}"
-          pr_number="${pr_number%/merge}"
-          
-          echo "PR Number: $pr_number"
-          # Use GitHub API with curl instead of gh CLI
-          branch_name=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/$GITHUB_REPOSITORY/pulls/$pr_number" | jq -r .head.ref)
-          
-          echo "Branch name: $branch_name"
-          echo "branch_name=$branch_name" >> $GITHUB_OUTPUT
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  
+    - name: Install dependencies
+      run: |
+        apt-get update
+        apt-get install -y curl jq
+
+    - name: Get branch name
+      id: get_branch
+      run: |
+        pr_number="${GITHUB_REF#refs/pull/}"
+        pr_number="${pr_number%/merge}"
+
+        echo "PR Number: $pr_number"
+        # Use GitHub API with curl instead of gh CLI
+        branch_name=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+          "https://api.github.com/repos/$GITHUB_REPOSITORY/pulls/$pr_number" | jq -r .head.ref)
+
+        echo "Branch name: $branch_name"
+        echo "branch_name=$branch_name" >> $GITHUB_OUTPUT
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   deploy:
-    needs: [get-branch]
+    needs: [ get-branch ]
     if: github.event_name != 'workflow_dispatch'
     uses: rtCamp/erp-rtcamp/.github/workflows/deploy-erp-qe.rt.gw.yml@main
     with:
@@ -62,7 +62,7 @@ jobs:
       RTBOT_TOKEN: ${{ secrets.RTBOT_TOKEN }}
   test:
     needs: [ deploy ]
-    if: ${{ always() }}
+    if: ${{ success() }}
     runs-on: self-hosted
     container:
       image: ubuntu:24.04
