@@ -199,13 +199,55 @@ export const LeaveSchema = z.object({
     .trim()
     .min(1, { message: "Please select a employee." }),
   description: leaveReasonSchema,
-  from_date: z.string({
-    required_error: "Please enter date.",
-  }).trim().min(1, { message: "Please enter a date." }),
-  to_date: z.string({
-    required_error: "Please enter date.",
-  }).trim().min(1, { message: "Please enter a date." }),
-  leave_type: z.string({}).trim().min(1, { message: "Please enter a Leave Type." }),
+  from_date: z
+    .string({
+      required_error: "Please enter date.",
+    })
+    .trim()
+    .min(1, { message: "Please enter a date." }),
+  to_date: z
+    .string({
+      required_error: "Please enter date.",
+    })
+    .trim()
+    .min(1, { message: "Please enter a date." }),
+  leave_type: z
+    .string({})
+    .trim()
+    .min(1, { message: "Please enter a Leave Type." }),
   half_day: z.boolean().optional(),
-  custom_first_halfsecond_half:z.string().optional(),
+  custom_first_halfsecond_half: z.string().optional(),
 });
+
+export const EditTimesheetSchema = z
+  .object({
+    task: z
+      .string({
+        required_error: "Please select a task.",
+      })
+      .trim()
+      .min(1, { message: "Please select a task." }),
+    description: descriptionSchema,
+    hours: hourSchema,
+    date: z.string({
+      required_error: "Please enter date.",
+    }),
+    employee: z.string({}),
+    is_billable: z.boolean().default(false),
+  })
+  .superRefine((v, ctx) => {
+    if (v.hours == 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["hours"],
+        message: "Hour should be greater than 0",
+      });
+    }
+    if (Number(v.hours) > 24) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["hours"],
+        message: "Hour should be less than 24",
+      });
+    }
+  });
