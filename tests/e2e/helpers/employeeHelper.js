@@ -2,7 +2,7 @@ import path from "path";
 import { getFormattedDate, getYesterdayDate } from "../utils/dateUtils";
 import managerTeamData from "../data/manager/team.json";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
-import { addEmployee, deleteEmployee } from "../utils/api/employeeRequests";
+import { addEmployee, deleteEmployee, deleteAllocation } from "../utils/api/employeeRequests";
 import { getRandomString } from "../utils/stringUtils";
 import { filterApi } from "../utils/api/frappeRequests";
 
@@ -151,3 +151,21 @@ export const deleteEmployeeByName = async () => {
     console.warn("No employees found with the given name to delete.");
   }
 };
+
+export const deleteAllocationsByEmployee = async (projectID, employeeID = '00319') => {
+  const filterResponse = await filterApi("Resource Allocation", [["Resource Allocation","employee","=",employeeID],["Resource Allocation","project","=",projectID]], "admin");
+  console.log(filterResponse.message?.values?.length);
+  if (filterResponse.message?.values?.length > 0) {
+    const allocations = responseBody.message.values;
+    for (const row of allocations) {
+      const allocationName = row[0]; 
+      console.log(`Deleting allocation: ${allocationName}`);
+      try {
+        await deleteAllocation(allocationID); 
+        console.log(`Deleted ${allocationID}`);
+      } catch (error) {
+          console.error(`Failed to delete ${allocationName}:`, error);
+      }
+    }
+  }
+}

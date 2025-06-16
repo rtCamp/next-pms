@@ -5,10 +5,12 @@ import { TeamPage } from "../../pageObjects/resourceManagement/team";
 import { ProjectPage } from "../../pageObjects/resourceManagement/project";
 import * as allure from "allure-js-commons";
 import data from "../../data/manager/team.json";
+import { deleteAllocation } from "../../utils/api/projectRequests";
 
 let timelinePage;
 let teamPage;
 let projectPage;
+let createdAllocations = [];
 
 // Load authentication state from 'manager.json'
 test.use({ storageState: path.resolve(__dirname, "../../auth/manager.json") });
@@ -19,6 +21,22 @@ test.beforeEach(async ({ page }) => {
   projectPage = new ProjectPage(page);
 });
 
+// delete allocations after all tests if not deleted through UI
+test.afterAll(async () => {
+  for (const allocationName of createdAllocations) {
+    try {
+      await deleteAllocation(allocationName);
+    } catch (error) {
+      if (error.message.includes('404')) {
+        console.info(`Allocation ${allocationName} deleted through UI.`);
+      } else {
+        console.warn(`Unexpected error while deleting allocation ${allocationName}:`, error);
+      }
+    }
+  }
+});
+
+
 test("TC-102: Verify add Allocation workflow by the Plus button", async ({ page }) => {
   allure.story("Resource Management");
   const projectName = data.TC102.payloadCreateProject.project_name;
@@ -26,7 +44,8 @@ test("TC-102: Verify add Allocation workflow by the Plus button", async ({ page 
   const customerName = data.TC102.payloadCreateProject.customer;
   await timelinePage.goto();
   await timelinePage.isPageVisible();
-  await timelinePage.addAllocation(projectName, customerName, employeeName);
+  const allocationName = await timelinePage.addAllocation(projectName, customerName, employeeName);
+  createdAllocations.push(allocationName);
   await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
   await timelinePage.filterEmployeeByName(employeeName);
   await timelinePage.deleteAllocation(projectName);
@@ -39,7 +58,8 @@ test("TC-103: Verify add Allocation workflow by clicking on a specfic cell wrt E
   const employeeName = data.TC103.employee;
   const customerName = data.TC103.payloadCreateProject.customer;
   await teamPage.goto();
-  await teamPage.addAllocationFromTeam(projectName, customerName, employeeName);
+  const allocationName = await teamPage.addAllocationFromTeam(projectName, customerName, employeeName);
+  createdAllocations.push(allocationName);
   await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
   await timelinePage.filterEmployeeByName(employeeName);
   await teamPage.deleteAllocation(projectName);
@@ -52,7 +72,8 @@ test("TC-104: Verify add Allocation workflow by clicking on a specfic cell wrt P
   const employeeName = data.TC104.employee;
   const customerName = data.TC104.payloadCreateProject.customer;
   await projectPage.goto();
-  await projectPage.addAllocationFromProject(projectName, customerName, employeeName);
+  const allocationName = await projectPage.addAllocationFromProject(projectName, customerName, employeeName);
+  createdAllocations.push(allocationName);
   await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
   await projectPage.goto();
   await projectPage.filterByProject(projectName);

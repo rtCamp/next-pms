@@ -27,17 +27,23 @@ export class TeamPage extends TimelinePage {
   async addAllocationFromTeam(projectName, customerName, employeeName) {
     await this.filterEmployeeByName(employeeName);
     await this.page.getByTitle(`${employeeName} (${this.formattedDate} - ${this.dayOfWeek})`).click();
-    await this.addAllocationForPrefilledValues(projectName, customerName);
-  }
-
-  /**
-   * Adds a new allocation on modal with preselected values
-   */
-  async addAllocationForPrefilledValues(projectName, customerName) {
     await this.selectCustomer(customerName);
     await this.selectProject(customerName, projectName);
     await this.setHoursPerDay();
-    await this.clickCreateButton();
+     
+    // Wait for the allocation API response and click the create button in parallel
+    const [response] = await Promise.all([
+        this.page.waitForResponse(
+          response =>
+            response.url().includes('/api/method/next_pms.resource_management.api.allocation.handle_allocation') &&
+            response.status() === 200
+        ),
+        this.clickCreateButton()
+      ]);
+      
+      const responseBody = await response.json();
+      const allocationName = responseBody.message.name; 
+      return allocationName;
   }
 
   /**
