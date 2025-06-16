@@ -323,7 +323,11 @@ export const createProjectForTestCases = async () => {
         }
 
         // Store project ID in related payloads
-        data[testCaseID].payloadDeleteProject.projectId = projectId;
+        if (!data[testCaseID].payloadDeleteProject) {
+          console.error(`❌ Missing payloadDeleteProject for testCaseID: ${testCaseID}`);
+        } else {
+          data[testCaseID].payloadDeleteProject.projectId = projectId;
+        }
 
         if (data[testCaseID].payloadCreateTask) {
           data[testCaseID].payloadCreateTask.project = projectId;

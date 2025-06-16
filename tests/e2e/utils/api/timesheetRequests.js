@@ -21,10 +21,18 @@ const loadAuthState = (role) => {
  */
 export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   const authFilePath = loadAuthState(role);
-  const requestContext = await request.newContext({ baseURL, storageState: authFilePath });
+  const requestContext = await request.newContext({
+    baseURL,
+    storageState: authFilePath,
+  });
+
+  const method = options.method || "GET";
+  const postData = options.data ? JSON.stringify(options.data) : undefined;
+
   const response = await requestContext.fetch(endpoint, {
     ...options,
-    postData: options.data ? JSON.stringify(options.data) : undefined, // Transform to json format
+    method,
+    postData,
     headers: {
       "Content-Type": "application/json",
       ...(options.headers || {}),
@@ -34,16 +42,36 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   let responseData;
   if (response.ok()) {
     responseData = await response.json();
-  } else {
     await requestContext.dispose();
+    return responseData;
+  } else {
+    const responseBody = await response.text(); // Try reading as text for error details
+    await requestContext.dispose();
+
+    const debugInfo = {
+      role,
+      endpoint,
+      method,
+      status: `${response.status()} ${response.statusText()}`,
+      payload: options.data || null,
+      responseBody,
+    };
+
+    console.error("❌ API Request Debug Info:", JSON.stringify(debugInfo, null, 2));
+
     throw new Error(
-      `API request failed for ${role} and endpoint ${endpoint}: ${response.status()} ${response.statusText()}`
+      `API request failed:\n` +
+        `  Role      : ${role}\n` +
+        `  Endpoint  : ${endpoint}\n` +
+        `  Method    : ${method}\n` +
+        `  Status    : ${response.status()} ${response.statusText()}\n` +
+        `  Payload   : ${postData || "N/A"}\n` +
+        `  Response  : ${responseBody || "No response body"}\n\n` +
+        `💡 Suggestion: Check if the endpoint is correct and accessible for the given role.\n`
     );
   }
-
-  await requestContext.dispose();
-  return responseData;
 };
+
 /**
  * Create a new timesheet entry.
  */
