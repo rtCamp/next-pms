@@ -1,95 +1,138 @@
-import { login } from "./authRequests";
+import { request } from "@playwright/test";
+import path from "path";
+import fs from "fs";
+import config from "../../playwright.config";
 
-let context; // Global variable for request context
+// Load config variables
+const baseURL = config.use?.baseURL;
+/**
+ * Helper function to ensure storage state is loaded for respective roles.
+ */
 
-// ------------------------------------------------------------------------------------------
+const loadAuthState = (role) => {
+  const filePath = path.resolve(__dirname, `../../auth/${role}-API.json`);
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`Auth state file for ${role} not found: ${filePath}`);
+  }
+  return filePath;
+};
+/**
+ * Helper function to load build the API request
+ */
+export const apiRequest = async (endpoint, options = {}, role = "manager") => {
+  const authFilePath = loadAuthState(role);
+  const requestContext = await request.newContext({ baseURL, storageState: authFilePath });
+  const response = await requestContext.fetch(endpoint, {
+    ...options,
+    postData: options.data ? JSON.stringify(options.data) : undefined, // Transform to json format
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+  });
 
+  let responseData;
+  if (response.ok()) {
+    responseData = await response.json();
+  } else {
+    await requestContext.dispose();
+    throw new Error(
+      `API request failed for ${role} and endpoint ${endpoint}: ${response.status()} ${response.statusText()}`
+    );
+  }
+
+  await requestContext.dispose();
+  return responseData;
+};
 /**
  * Create a new timesheet entry.
  */
-export const createTimesheet = async ({ task, description, hours, date, employee }) => {
-  // Ensure the user is logged in before making API requests
-  if (!context) {
-    const loginResult = await login();
-    context = loginResult.context;
-  }
-
-  const response = await context.post(`/api/method/next_pms.timesheet.api.timesheet.save`, {
+export const createTimesheet = async ({ task, description, hours, date, employee }, role = "manager") => {
+  const endpoint = `/api/method/next_pms.timesheet.api.timesheet.save`;
+  const options = {
+    method: "POST",
     data: {
-      task: task,
-      description: description,
-      hours: hours,
-      date: date,
-      employee: employee,
+      task,
+      description,
+      hours,
+      date,
+      employee,
     },
-  });
-  if (!response.ok()) {
-    throw new Error(`Failed to create timesheet for task: ${task}. Status: ${response.status()}`);
-  }
-
-  return response;
+  };
+  return await apiRequest(endpoint, options, role);
 };
-
-// ------------------------------------------------------------------------------------------
 
 /**
- * Delete a timesheet entry.
+ * Delete a timesheet entry by Timesheet ID (resource API).
  */
-export const deleteTimesheetbyID = async ( timesheetID ) => {
-  // Ensure the user is logged in before making API requests
-  if (!context) {
-    const loginResult = await login();
-    context = loginResult.context;
-  }
-
-  const response = await context.delete(`/api/resource/Timesheet/${timesheetID}`, {});
-  if (!response.ok()) {
-    throw new Error(`Failed to delete timesheet for ID: ${timesheetID}. Status: ${response.status()}`);
-  }
-
-  return response;
+export const deleteTimesheetbyID = async (timesheetID, role = "manager") => {
+  const endpoint = `/api/resource/Timesheet/${timesheetID}`;
+  const options = {
+    method: "DELETE",
+  };
+  return await apiRequest(endpoint, options, role);
 };
 
-export const deleteTimesheet = async ({ parent, name }) => {
-  // Ensure the user is logged in before making API requests
-  if (!context) {
-    const loginResult = await login();
-    context = loginResult.context;
-  }
-
-  const response = await context.post(`/api/method/next_pms.timesheet.api.timesheet.delete`, {
+/**
+ * Delete a timesheet entry using the custom delete method.
+ */
+export const deleteTimesheet = async ({ parent, name }, role = "manager") => {
+  const endpoint = `/api/method/next_pms.timesheet.api.timesheet.delete`;
+  const options = {
+    method: "POST",
     data: {
-      parent: parent,
-      name: name,
+      parent,
+      name,
     },
-  });
-
-  return response;
+  };
+  return await apiRequest(endpoint, options, role);
 };
-
-// ------------------------------------------------------------------------------------------
 
 /**
  * Get timesheet details for the specified employee.
  * Optional params: start_date, max_week.
  */
-export const getTimesheetDetails = async ({ employee, start_date, max_week }) => {
-  // Ensure the user is logged in before making API requests
-  if (!context) {
-    const loginResult = await login();
-    context = loginResult.context;
-  }
-
-  // Build query string dynamically based on provided parameters
+export const getTimesheetDetails = async ({ employee, start_date, max_week }, role = "manager") => {
   const queryParams = new URLSearchParams({ employee });
 
   if (start_date) queryParams.append("start_date", start_date);
   if (max_week) queryParams.append("max_week", max_week);
 
-  // Fetch timesheet details
-  const response = await context.get(
-    `/api/method/next_pms.timesheet.api.timesheet.get_timesheet_data?${queryParams.toString()}`
-  );
+  const endpoint = `/api/method/next_pms.timesheet.api.timesheet.get_timesheet_data?${queryParams.toString()}`;
+  const options = {
+    method: "GET",
+  };
 
-  return response;
+  return await apiRequest(endpoint, options, role);
+};
+/**
+ * Submit Timesheet for the specified employee.
+ */
+export const submitTimesheet = async ({ start_date, end_date, notes, approver, employee }, role) => {
+  const endpoint = `/api/method/next_pms.timesheet.api.timesheet.submit_for_approval`;
+  const options = {
+    method: "POST",
+    data: {
+      start_date,
+      end_date,
+      notes,
+      approver,
+      employee,
+    },
+  };
+  return await apiRequest(endpoint, options, role);
+};
+export const actOnTimesheet = async ({ dates, employee, note, status }, role = "manager") => {
+  const endpoint = `/api/method/next_pms.timesheet.api.team.approve_or_reject_timesheet`;
+  const options = {
+    method: "POST",
+    data: {
+      dates,
+      employee,
+      note,
+      status,
+    },
+  };
+
+  return await apiRequest(endpoint, options, role);
 };

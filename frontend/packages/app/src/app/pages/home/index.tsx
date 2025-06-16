@@ -19,6 +19,7 @@ import {
   TableRow,
   TableBody,
   TableCell,
+  TextEditor,
 } from "@next-pms/design-system/components";
 import { useToast } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
@@ -29,14 +30,24 @@ import { useFrappeGetCall } from "frappe-react-sdk";
 /**
  * Internal dependencies.
  */
+import CustomViewWrapper from "@/app/components/customViewWrapper";
 import { TEAM, EMPLOYEE } from "@/lib/constant";
 import { mergeClassNames, parseFrappeErrorMsg, calculateExtendedWorkingHour, getBgCsssForToday } from "@/lib/utils";
 import { dataItem } from "@/types/team";
 import { Header } from "./header";
 import { initialState, homeReducer } from "./reducer";
-import type { DataItem, DateProps } from "./types";
+import type { DataItem, DateProps, HomeComponentProps, HomeState } from "./types";
+import { createFilter } from "./utils";
 
 const Home = () => {
+  return (
+    <CustomViewWrapper label="Home" createFilter={createFilter({} as HomeState)}>
+      {({ viewData }) => <HomeComponent viewData={viewData} />}
+    </CustomViewWrapper>
+  );
+};
+
+const HomeComponent = ({ viewData }: HomeComponentProps) => {
   const { toast } = useToast();
   const [homeState, dispatch] = useReducer(homeReducer, initialState);
   const navigate = useNavigate();
@@ -98,7 +109,7 @@ const Home = () => {
 
   return (
     <>
-      <Header homeState={homeState} dispatch={dispatch} />
+      <Header homeState={homeState} dispatch={dispatch} viewData={viewData} />
       {isLoading ? (
         <Spinner isFull />
       ) : (
@@ -188,10 +199,16 @@ const Home = () => {
                               <HoverCardTrigger>{data.hour > 0 ? floatToTime(data.hour) : "-"}</HoverCardTrigger>
                               {data.note && (
                                 <HoverCardContent
-                                  className="text-sm text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto ql-editor min-h-0 h-fit hover-content p-2"
-                                  dangerouslySetInnerHTML={{ __html: data.note }}
+                                  className="text-sm text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto h-fit hover-content p-0"
                                   onClick={(e) => e.stopPropagation()}
-                                ></HoverCardContent>
+                                >
+                                  <TextEditor
+                                    onChange={() => {}}
+                                    hideToolbar={true}
+                                    readOnly={true}
+                                    value={data.note}
+                                  />
+                                </HoverCardContent>
                               )}
                             </TableCell>
                           </HoverCard>

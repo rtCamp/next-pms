@@ -32,6 +32,7 @@ export const initialState: HomeState = {
   employeeName: "",
   weekDate: getTodayDate(),
   start: 0,
+  hasViewUpdated: false,
 };
 
 const actionHandlers: {
@@ -122,6 +123,10 @@ const actionHandlers: {
       totalCount: action.payload.total_count,
     },
     isLoading: false,
+  }),
+  SET_HAS_VIEW_UPDATED: (state, action) => ({
+    ...state,
+    hasViewUpdated: action.payload,
   }),
 };
 

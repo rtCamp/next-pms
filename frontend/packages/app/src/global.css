@@ -22,10 +22,10 @@
     @apply bg-background text-foreground;
   }
   @media (pointer: fine) { /* Only works for precise pointer devices such as laptops and desktops */
-    .dark ::-webkit-scrollbar {
+    ::-webkit-scrollbar {
       @apply w-1 bg-background;
     }
-    .dark ::-webkit-scrollbar-thumb {
+    ::-webkit-scrollbar-thumb {
       @apply rounded bg-secondary /*color trackbar*/;
     }
   }

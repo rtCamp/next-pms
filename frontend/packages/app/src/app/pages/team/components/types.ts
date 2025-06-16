@@ -1,6 +1,8 @@
 /**
  * Internal dependencies.
  */
+import { ViewData } from "@/store/view";
+import { TaskDataItemProps } from "@/types/timesheet";
 import type { Action, TeamState } from "../employee-detail/types";
 
 export interface ApprovalProp {
@@ -29,4 +31,25 @@ export type TimesheetRejectionProps = {
 export interface HeaderProps {
   teamState: TeamState;
   dispatch: React.Dispatch<Action>;
+  viewData: ViewData;
+}
+
+export interface EditTimeSheetListItemProps {
+  employee: string;
+  open: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onOpenChange: (data: any) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onSuccess?: (data: any) => void;
+  task: TaskDataItemProps;
+}
+
+export interface EditTimeSheetListItemProps {
+  employee: string;
+  open: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onOpenChange: (data: any) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onSuccess?: (data: any) => void;
+  task: TaskDataItemProps;
 }

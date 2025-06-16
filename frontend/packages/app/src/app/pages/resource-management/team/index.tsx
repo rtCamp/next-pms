@@ -11,17 +11,26 @@ import { useContextSelector } from "use-context-selector";
 /**
  * Internal dependencies.
  */
+import CustomViewWrapper from "@/app/components/customViewWrapper";
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import { ViewData } from "@/store/view";
 import AddResourceAllocations from "../components/addAllocation";
 import { ResourceTeamHeaderSection } from "./components/header";
 import { ResourceTeamTable } from "./components/table";
 import { ResourceContextProvider, ResourceFormContext } from "../store/resourceFormContext";
 import { TeamContext, TeamContextProvider } from "../store/teamContext";
-import type { AllocationDataProps, DateProps, EmployeeDataProps, ResourceTeamDataProps } from "../store/types";
+import type {
+  AllocationDataProps,
+  DateProps,
+  EmployeeDataProps,
+  ResourceTeam,
+  ResourceTeamDataProps,
+} from "../store/types";
 import type { ResourceTeamAPIBodyProps } from "../timeline/types";
 import { getDatesArrays } from "../utils/dates";
 import { getIsBillableValue } from "../utils/helper";
 import type { PreProcessDataProps } from "./components/types";
+import { createFilter } from "./utils";
 
 const ResourceTeamViewWrapper = () => {
   return (
@@ -33,12 +42,24 @@ const ResourceTeamViewWrapper = () => {
   );
 };
 
+interface ResourceTeamViewComponentProps {
+  viewData: ViewData;
+}
+
 /**
  * This is main component which is responsible for rendering the team view of resource management.
  *
  * @returns React.FC
  */
 const ResourceTeamView = () => {
+  return (
+    <CustomViewWrapper label="ResourceTeamView" createFilter={createFilter({} as ResourceTeam)}>
+      {({ viewData }) => <ResourceTeamViewComponent viewData={viewData} />}
+    </CustomViewWrapper>
+  );
+};
+
+const ResourceTeamViewComponent = ({ viewData }: ResourceTeamViewComponentProps) => {
   const { toast } = useToast();
   const { teamData, filters, apiController } = useContextSelector(TeamContext, (value) => value.state);
 
@@ -335,7 +356,7 @@ const ResourceTeamView = () => {
 
   return (
     <>
-      <ResourceTeamHeaderSection />
+      <ResourceTeamHeaderSection viewData={viewData} />
       {apiController.isLoading && teamData.data.length == 0 ? (
         <Spinner isFull />
       ) : (

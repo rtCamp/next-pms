@@ -46,7 +46,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC47 - Task added via automation.",
+      "description": "<p>TC47 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
@@ -153,6 +153,123 @@
       "custom_reporting_manager": "",
       "reports_to": "",
       "leave_approver": ""
+    }
+  },
+  "TC92": {
+    "cell": {
+      "rowName": "TC92 Billable Task",
+      "col": "Fri"
+    },
+
+    "payloadCreateProject": {
+      "project_name": "TC92 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "customer": "Google",
+      "custom_billing_type": "Fixed Cost",
+      "custom_currency": "INR",
+      "project_type": "Fixed Cost",
+      "business_unit": "Jupitor",
+      "estimated_cost": 360000,
+      "custom_default_hourly_billing_rate": 0,
+      "custom_project_budget_hours": []
+    },
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    },
+    "payloadCreateTask": {
+      "subject": "TC92 Billable Task 01",
+      "project": "filled-automatically-from-createProjects",
+      "description": "Task 01 for TC92 created through automation",
+      "custom_is_billable": 1
+    },
+    "payloadDeleteTask": {
+      "taskID": "filled-automatically-from-createTasks"
+    },
+
+    "payloadCreateTimesheet": {
+      "task": "filled-automatically-from-createTasks",
+      "description": "TC92 - Task added via automation.",
+      "hours": "1"
+    },
+    "payloadFilterTimeEntry": {
+      "subject": "TC92 Billable Task",
+      "description": "TC92 - Task added via automation.",
+      "project_name": "TC92 Project",
+      "max_week": "1"
+    },
+    "payloadApprovalStatus": {
+      "empId": "EMP-00319",
+      "managerID": "EMP-00526",
+      "employeeAPI": "employee3",
+      "approvalStatus": "automatically-filled-from-randomApprovalStatus"
+    }
+  },
+  "TC94": {
+    "employeeName": "Abhishek Sharma",
+    "payloadCreateUserGroup": {
+      "user_group_members": [
+        {
+          "user": "filled-automatically-from-createUserGroupForEmployee"
+        }
+      ],
+      "__newname": "filled-automatically-from-createUserGroupForEmployee"
+    },
+    "payloadDeleteUserGroup": {
+      "name": "filled-automatically-from-createUserGroupForEmployee"
+    }
+  },
+  "TC102": {
+    "payloadCreateProject": {
+      "project_name": "TC102 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "customer": "Google",
+      "custom_billing_type": "Fixed Cost",
+      "custom_currency": "INR",
+      "project_type": "Fixed Cost",
+      "business_unit": "Jupitor",
+      "estimated_cost": 360000,
+      "custom_default_hourly_billing_rate": 0,
+      "custom_project_budget_hours": []
+    },
+    "employee": "Abhishek Sharma",
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    }
+  },
+  "TC103": {
+    "payloadCreateProject": {
+      "project_name": "TC103 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "customer": "Google",
+      "custom_billing_type": "Fixed Cost",
+      "custom_currency": "INR",
+      "project_type": "Fixed Cost",
+      "business_unit": "Jupitor",
+      "estimated_cost": 360000,
+      "custom_default_hourly_billing_rate": 0,
+      "custom_project_budget_hours": []
+    },
+    "employee": "Abhishek Sharma",
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    }
+  },
+  "TC104": {
+    "payloadCreateProject": {
+      "project_name": "TC104 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "customer": "Google",
+      "custom_billing_type": "Fixed Cost",
+      "custom_currency": "INR",
+      "project_type": "Fixed Cost",
+      "business_unit": "Jupitor",
+      "estimated_cost": 360000,
+      "custom_default_hourly_billing_rate": 0,
+      "custom_project_budget_hours": []
+    },
+    "employee": "Abhishek Sharma",
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
     }
   }
 }

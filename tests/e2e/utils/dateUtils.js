@@ -88,3 +88,35 @@ export const getYesterdayDate = () => {
   yesterday.setDate(yesterday.getDate() - 1);
   return getFormattedDate(yesterday);
 };
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Get the Monday and Friday of the current week in 'YYYY-MM-DD' format.
+ */
+export const getWeekRange = () => {
+  const today = new Date();
+  const currentDay = today.getDay(); // Sunday: 0, Monday: 1, ..., Saturday: 6
+
+  // Calculate how many days to subtract to get Monday
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - (currentDay === 0 ? 6 : currentDay - 1));
+
+  // Calculate how many days to add to get Friday
+  const friday = new Date(monday);
+  friday.setDate(monday.getDate() + 4);
+
+  return {
+    monday: getFormattedDate(monday),
+    friday: getFormattedDate(friday),
+  };
+};
+
+/**
+ * Get the current date in 'Jun 6' or 'Jun 11' format.
+ */
+export const getFormattedCurrentDate = () => {
+  const today = new Date();
+  const options = { month: "short", day: "numeric" };
+  const formattedDate = today.toLocaleDateString("en-US", options);
+  return formattedDate;
+};

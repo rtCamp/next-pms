@@ -1,6 +1,12 @@
 import frappe
 from frappe import _, throw
-from frappe.utils import add_days, get_first_day_of_week, get_last_day_of_week, getdate, nowdate
+from frappe.utils import (
+    add_days,
+    get_first_day_of_week,
+    get_last_day_of_week,
+    getdate,
+    nowdate,
+)
 
 from next_pms.resource_management.api.utils.query import get_employee_leaves
 from next_pms.timesheet.utils.constant import EMP_TIMESHEET
@@ -174,7 +180,9 @@ def delete(parent: str, name: str):
 @frappe.whitelist()
 def submit_for_approval(start_date: str, notes: str = None, employee: str = None, approver: str = None):
     from next_pms.timesheet.doc_events.timesheet import flush_cache
-    from next_pms.timesheet.tasks.reminder_on_approval_request import send_approval_reminder
+    from next_pms.timesheet.tasks.reminder_on_approval_request import (
+        send_approval_reminder,
+    )
 
     if not employee:
         employee = get_employee_from_user()
@@ -235,19 +243,44 @@ def update_timesheet_detail(
 ):
     parent_doc = frappe.get_doc("Timesheet", parent)
     ignore_permissions = employee_has_higher_access(parent_doc.employee, ptype="write")
-    logs_to_remove = []  # List to store logs that need to be removed
+    logs_to_remove = []
+    new_logs = []
+    task_project = frappe.get_value("Task", task, "project")
 
     for log in parent_doc.time_logs:
         if not name or log.name != name:
             continue
+
+        if task_project and task_project != parent_doc.parent_project:
+            logs_to_remove.append(log)
+            new_logs.append(
+                {
+                    "task": task,
+                    "hours": hours,
+                    "description": description,
+                    "date": date,
+                    "employee": parent_doc.employee,
+                }
+            )
+            continue
+
         log.hours = hours
         log.description = description
+        log.task = task
         # Only update value of billable if user has write access
         if has_write_access() and is_billable is not None:
             log.is_billable = is_billable
         if getdate(log.from_time) != getdate(date):
             logs_to_remove.append(log)
-            save(date, description, task, hours, parent_doc.employee)
+            new_logs.append(
+                {
+                    "task": task,
+                    "hours": hours,
+                    "description": description,
+                    "date": date,
+                    "employee": parent_doc.employee,
+                }
+            )
 
     for log in logs_to_remove:
         parent_doc.time_logs.remove(log)
@@ -260,7 +293,7 @@ def update_timesheet_detail(
                 "description": description,
                 "from_time": getdate(date),
                 "to_time": getdate(date),
-                "project": frappe.get_value("Task", task, "project"),
+                "project": task_project,
             }
             if has_write_access() and is_billable is not None:
                 log["is_billable"] = is_billable
@@ -269,13 +302,24 @@ def update_timesheet_detail(
 
             parent_doc.append("time_logs", log)
         else:
-            save(date, description, task, hours, parent_doc.employee)
+            new_logs.append(
+                {
+                    "task": task,
+                    "hours": hours,
+                    "description": description,
+                    "date": date,
+                    "employee": parent_doc.employee,
+                }
+            )
 
     if not parent_doc.time_logs:
         parent_doc.delete(ignore_permissions=ignore_permissions)
     else:
         parent_doc.save(ignore_permissions=ignore_permissions)
 
+    if new_logs:
+        for log in new_logs:
+            save(**log)
     return _("Time entry updated successfully.")
 
 
@@ -481,6 +525,12 @@ def bulk_save(timesheet_entries):
         hours = entry.get("hours", 0)
         employee = entry.get("employee")
 
-        save(date=date, description=description, task=task, hours=hours, employee=employee)
+        save(
+            date=date,
+            description=description,
+            task=task,
+            hours=hours,
+            employee=employee,
+        )
 
     return _("Event Timesheet created successfully.")

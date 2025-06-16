@@ -55,3 +55,55 @@ def convert_currency(
 
     exchange_rate = get_exchange_rate(from_currency, to_currency, date)
     return amount * (exchange_rate or 1)
+
+
+def generate_flat_tree(doctype: str, nsm_field: str, filters: dict, fields: list[str] | None = None):
+    from collections import deque
+
+    from frappe import get_all
+
+    flat_tree = []
+
+    if not fields:
+        fields = ["name"]
+    if nsm_field not in fields:
+        fields.append(nsm_field)
+    if "name" not in fields:
+        fields.append("name")
+
+    data = get_all(doctype, fields=fields, filters=filters)
+
+    lookup_dict = {d["name"]: d for d in data}
+    children_dict = {d["name"]: {**d, "childrens": []} for d in data}
+
+    for d in data:
+        parent = d.get(nsm_field)
+        if parent and parent in children_dict:
+            children_dict[parent]["childrens"].append(d)
+
+    # Find root nodes — those with no parent, or parent not in filtered data
+    root_nodes = {d["name"] for d in data if not d.get(nsm_field) or d.get(nsm_field) not in lookup_dict}
+
+    # fallback: if no roots detected, treat all as roots (flat list)
+    if not root_nodes:
+        root_nodes = set(lookup_dict.keys())
+
+    queue = deque([(lookup_dict[root], 0) for root in root_nodes])
+
+    visited = set()
+
+    while queue:
+        current, level = queue.popleft()
+
+        if current["name"] in visited:
+            continue
+        visited.add(current["name"])
+
+        current["level"] = level
+        flat_tree.append(current)
+
+        children = children_dict.get(current["name"], {})
+        for child in children.get("childrens", []):
+            queue.append((child, level + 1))
+
+    return {"level": flat_tree, "with_children": children_dict}
