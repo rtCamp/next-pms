@@ -67,7 +67,9 @@ def get_data(filters=None, has_bu_field=False):
     for emp in employees:
         emp.indent = emp.level or 0
         emp.has_value = len(parent_child_map.get(emp.name, {}).get("childrens", [])) > 0
-        emp.working_hours = get_workable_days_for_employee(emp.name, start_date, end_date).get("total_working_days")
+        emp.working_hours = get_workable_days_for_employee(emp.name, start_date, end_date).get(
+            "total_working_days", 160
+        )
     employees = sort_by_reports_to(employees)
 
     employee_names = [emp.name for emp in employees]
