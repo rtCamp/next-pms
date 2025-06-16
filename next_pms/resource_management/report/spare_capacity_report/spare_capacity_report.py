@@ -7,12 +7,23 @@
 from frappe import _, get_meta
 from frappe.utils import getdate
 
-from next_pms.resource_management.api.utils.query import get_allocation_list_for_employee_for_given_range
-from next_pms.resource_management.report.utils import calculate_employee_available_hours, calculate_employee_hours
+from next_pms.resource_management.api.utils.query import (
+    get_allocation_list_for_employee_for_given_range,
+)
+from next_pms.resource_management.report.utils import (
+    calculate_employee_available_hours,
+    calculate_employee_hours,
+)
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm
 from next_pms.utils.employee import generate_flat_tree, get_employee_leaves_and_holidays
 
-from .utils import BU_FIELD_NAME, convert_currency, get_employee_fields, get_employee_filters, sort_by_reports_to
+from .utils import (
+    BU_FIELD_NAME,
+    convert_currency,
+    get_employee_fields,
+    get_employee_filters,
+    sort_by_reports_to,
+)
 
 
 def execute(filters=None):
@@ -132,9 +143,10 @@ def get_data(filters=None, has_bu_field=False):
             root_emp.actual_unbilled_cost += sum(employee_map[c].actual_unbilled_cost for c in child_names)
 
             # Calculate % Capacity for root nodes (group)
-            root_emp.percentage_capacity_available += sum(
-                employee_map[c].percentage_capacity_available for c in child_names
-            )
+            # root_emp.percentage_capacity_available += sum(
+            #     employee_map[c].percentage_capacity_available for c in child_names
+            # )
+            root_emp.percentage_capacity_available = ""
     return employees
 
 

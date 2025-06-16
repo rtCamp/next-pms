@@ -1,7 +1,7 @@
 // Copyright (c) 2025, rtCamp and contributors
 // For license information, please see license.txt
 
-frappe.query_reports["Team Availability"] = {
+frappe.query_reports["Spare Capacity Report"] = {
   filters: [],
   tree: true,
   name_field: "name",
@@ -32,14 +32,14 @@ frappe.query_reports["Team Availability"] = {
 };
 
 const setup_filters = () => {
-  frappe.query_reports["Team Availability"].filters.push({
+  frappe.query_reports["Spare Capacity Report"].filters.push({
     fieldname: "from",
     label: __("From Date"),
     fieldtype: "Date",
     default: frappe.datetime.add_months(frappe.datetime.get_today(), -1),
     reqd: 1,
   });
-  frappe.query_reports["Team Availability"].filters.push({
+  frappe.query_reports["Spare Capacity Report"].filters.push({
     fieldname: "to",
     label: __("To Date"),
     fieldtype: "Date",
@@ -56,7 +56,7 @@ const setup_filters = () => {
 
     const statusField = fields.find((field) => field.fieldtype === "Select" && field.fieldname === "status");
     if (statusField) {
-      frappe.query_reports["Team Availability"].filters.push({
+      frappe.query_reports["Spare Capacity Report"].filters.push({
         fieldname: "status",
         label: __("Status"),
         fieldtype: "Select",
@@ -68,7 +68,7 @@ const setup_filters = () => {
 
     const buField = fields.find((field) => field.fieldtype === "Link" && field.options === buDoctype);
     if (buField) {
-      frappe.query_reports["Team Availability"].filters.push({
+      frappe.query_reports["Spare Capacity Report"].filters.push({
         fieldname: "business_unit",
         label: __("Business Unit"),
         fieldtype: "MultiSelectList",
@@ -79,7 +79,7 @@ const setup_filters = () => {
         },
       });
     }
-    frappe.query_reports["Team Availability"].filters.push({
+    frappe.query_reports["Spare Capacity Report"].filters.push({
       fieldname: "designation",
       label: __("Designation"),
       fieldtype: "MultiSelectList",
@@ -89,7 +89,7 @@ const setup_filters = () => {
         return frappe.db.get_link_options("Designation", txt);
       },
     });
-    frappe.query_reports["Team Availability"].filters.push({
+    frappe.query_reports["Spare Capacity Report"].filters.push({
       fieldname: "currency",
       label: __("Currency"),
       fieldtype: "Select",
@@ -97,7 +97,7 @@ const setup_filters = () => {
       reqd: 0,
       default: "USD",
     });
-    frappe.query_reports["Team Availability"].filters.push({
+    frappe.query_reports["Spare Capacity Report"].filters.push({
       fieldname: "is_group",
       label: __("Aggregate by Manager"),
       fieldtype: "Check",
@@ -106,5 +106,5 @@ const setup_filters = () => {
   });
 };
 
-// This function sets up the filters for the Team Availability report based on the Employee and Business Unit doctypes dynamically.
+// This function sets up the filters for the Spare Capacity Report report based on the Employee and Business Unit doctypes dynamically.
 setup_filters();
