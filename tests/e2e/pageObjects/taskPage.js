@@ -41,15 +41,15 @@ export class TaskPage {
     //Success Banner
     this.successBanner = page.locator('//div[text()="Task Created Successfully"]');
 
-    this.firstClockIcon = page.getByTitle('Add Timesheet').getByRole('img');
+    this.firstClockIcon = page.getByTitle("Add Timesheet").getByRole("img");
 
     //Add Time Modal
-    this.timeSpent = page.getByRole('textbox', { name: ':00' });
-    this.datePicker = page.getByRole('button', { name: 'Today' });
-    this.projectSelector = page.getByRole('button', { name: 'Cox' });
-    this.tasksSelector = page.getByRole('button', { name: 'Test the application' });
-    this.commentTextbox = page.locator('.ql-editor');
-    this.addTimeButton = page.getByRole('button', { name: 'Add Time' });
+    this.timeSpent = page.getByRole("textbox", { name: ":00" });
+    this.datePicker = page.getByRole("button", { name: "Today" });
+    this.projectSelector = page.getByRole("button", { name: "Cox" });
+    this.tasksSelector = page.getByRole("button", { name: "Test the application" });
+    this.commentTextbox = page.locator(".ql-editor");
+    this.addTimeButton = page.getByRole("button", { name: "Add Time" });
   }
 
   // --------------------------------------
