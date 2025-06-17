@@ -86,7 +86,7 @@ def sort_by_reports_to(employees):
     return result
 
 
-def sort_by_business_unit(employees, has_bu_field=False):
+def sort_by_business_unit(employees, has_bu_field=False, currency="USD"):
     """
     Sorts employees based on their business unit.
     If has_bu_field is True, it will sort by the business unit field.
@@ -102,7 +102,7 @@ def sort_by_business_unit(employees, has_bu_field=False):
     empty_copy = {key: 0 for key in default}
 
     for unit in units:
-        empty_copy.update({"name": unit, "indent": 0, "has_value": False, "is_employee": False})
+        empty_copy.update({"name": unit, "indent": 0, "has_value": False, "is_employee": False, "currency": currency})
         bu_employees = [emp for emp in employees if emp.get(BU_FIELD_NAME) == unit]
         if bu_employees:
             empty_copy["has_value"] = True

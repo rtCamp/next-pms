@@ -134,7 +134,7 @@ def get_data(filters=None, has_bu_field=False):
     if group_by == "employee":
         employees = sort_by_reports_to(employees)
     else:
-        employees = sort_by_business_unit(employees, has_bu_field)
+        employees = sort_by_business_unit(employees, has_bu_field, currency)
 
     if aggregate:
         employee_map = {emp.name: emp for emp in employees}
