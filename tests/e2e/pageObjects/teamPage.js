@@ -53,7 +53,7 @@ export class TeamPage {
     this.employeeNameInTable = (employeeName) => page.locator(`//p[text()="${employeeName}"]`);
 
     //Toast Notification
-    this.toastNotification = page.locator(`//div[text()="Timesheet status updated successfully"]`)
+    this.toastNotification = page.locator(`//div[text()="Timesheet status updated successfully"]`);
   }
 
   // --------------------------------------

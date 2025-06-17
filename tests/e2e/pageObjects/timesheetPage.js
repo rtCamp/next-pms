@@ -307,7 +307,7 @@ export class TimesheetPage {
     const row = await this.getRow(rowName);
     const colIndex = this.dayIndexObj[col.toLowerCase()];
     const cell = row.getByRole("cell").nth(colIndex);
-    await cell.waitFor({ state: "visible", timeout:15000 });
+    await cell.waitFor({ state: "visible", timeout: 15000 });
 
     return cell;
   }

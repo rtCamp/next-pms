@@ -52,6 +52,7 @@ export const createProject = async ({
       const errorData = await response.json();
       errorMessage += `\nError Response: ${JSON.stringify(errorData, null, 2)}`;
     } catch (jsonErr) {
+      //console.log("Error in creating project is:",jsonErr)
       const rawBody = await response.text();
       errorMessage += `\nFailed to parse error response as JSON. Raw body: ${rawBody}`;
     }
@@ -63,7 +64,6 @@ export const createProject = async ({
 
   return response;
 };
-
 
 /**
  * Delete a Project entry.
