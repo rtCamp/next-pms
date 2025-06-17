@@ -27,31 +27,41 @@ frappe.query_reports["Spare Capacity Report"] = {
     if (column.id === "employee_name" && data.has_value) {
       value = `<span style="font-weight: bold;">${value}</span>`;
     }
+
     const group_by = frappe.query_report.get_filter_value("group_by");
     const aggregate = frappe.query_report.get_filter_value("aggregate");
-    if (group_by == "business_unit") {
-      if (data.is_employee) return value;
-      if (["name"].includes(column.id)) {
-        var $a = $(value);
-        var $span = $("<span>");
-        Array.from($a[0].attributes).forEach((attr) => {
-          $span.attr(attr.name, attr.value);
-        });
+    if (["business_unit", "designation"].includes(group_by)) {
+      if (data.is_employee) {
+        if ("designation" == column.id) {
+          var $value = $(value).css("display", "flex");
+          value = $value.wrap("<p></p>").parent().html();
+        }
+        if ("employee_name" === column.id) {
+          value = `<span style="display:flex;">${value}</span>`;
+        }
+      } else {
+        if (["name"].includes(column.id)) {
+          var $a = $(value);
+          var $span = $("<span>");
+          Array.from($a[0].attributes).forEach((attr) => {
+            $span.attr(attr.name, attr.value);
+          });
 
-        $span.html($a.html());
-        $a.replaceWith($span);
-        value = $span.wrap("<p></p>").parent().html();
-      }
-      if (["designation", "employee_name"].includes(column.id)) {
-        value = `<span style="font-weight: bold;"></span>`;
-      }
-      if (
-        ["available_capacity", "monthly_salary", "actual_unbilled_cost", "percentage_capacity_available"].includes(
-          column.id
-        ) &&
-        !aggregate
-      ) {
-        value = `<span style="font-weight: bold;"></span>`;
+          $span.html($a.html());
+          $a.replaceWith($span);
+          value = $span.wrap("<p></p>").parent().html();
+        }
+        if (["designation", "employee_name"].includes(column.id)) {
+          value = `<span style="font-weight: bold;"></span>`;
+        }
+        if (
+          ["available_capacity", "monthly_salary", "actual_unbilled_cost", "percentage_capacity_available"].includes(
+            column.id
+          ) &&
+          !aggregate
+        ) {
+          value = `<span style="font-weight: bold;"></span>`;
+        }
       }
     }
     return value;
@@ -124,6 +134,7 @@ const setup_filters = () => {
         options: [
           { value: "employee", label: __("Employee") },
           { value: "business_unit", label: __("Business Unit") },
+          { value: "designation", label: __("Designation") },
         ],
         default: "business_unit",
       });
@@ -150,14 +161,14 @@ const setup_filters = () => {
       fieldname: "aggregate",
       label: __("Aggregate"),
       fieldtype: "Check",
-      default: 0,
+      default: 1,
     });
 
     frappe.query_reports["Spare Capacity Report"].filters.push({
       fieldname: "show_no_capacity",
       label: __("Show employe with no capacity"),
       fieldtype: "Check",
-      default: 1,
+      default: 0,
     });
   });
 };
