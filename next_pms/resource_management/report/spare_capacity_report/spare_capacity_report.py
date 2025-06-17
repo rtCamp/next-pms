@@ -140,17 +140,29 @@ def get_data(filters=None, has_bu_field=False):
         employee_map = {emp.name: emp for emp in employees}
         root_nodes = [emp.name for emp in employees if emp.has_value]
         for emp in root_nodes:
+            root_emp = employee_map[emp]
             if group_by == "employee":
                 childrens = parent_child_map.get(emp, {}).get("childrens", [])
                 child_names = [child.name for child in childrens if child.name in employee_map]
+
+                # Calculate % Capacity for root nodes (group)
+                actual_per = (
+                    sum(employee_map[c].percentage_capacity_available for c in child_names)
+                    + root_emp.percentage_capacity_available
+                ) / (len(child_names) + 1)
             else:
                 child_names = [
                     child.name
                     for child in employees
                     if child.get(BU_FIELD_NAME) == emp and child.name in employee_map and child.is_employee
                 ]
+                # Calculate % Capacity for root nodes (group)
+                actual_per = (sum(employee_map[c].percentage_capacity_available for c in child_names)) / len(
+                    child_names
+                )
+
             hours = sum(employee_map[c].available_capacity for c in child_names)
-            root_emp = employee_map[emp]
+
             root_emp.available_capacity += hours
 
             # Calculate monthly salary for root nodes (group)
@@ -160,11 +172,7 @@ def get_data(filters=None, has_bu_field=False):
             # Calculate actual unbilled cost for root nodes (group)
             root_emp.actual_unbilled_cost += sum(employee_map[c].actual_unbilled_cost for c in child_names)
 
-            # Calculate % Capacity for root nodes (group)
-            # root_emp.percentage_capacity_available += sum(
-            #     employee_map[c].percentage_capacity_available for c in child_names
-            # )
-            root_emp.percentage_capacity_available = ""
+            root_emp.percentage_capacity_available = actual_per
 
     return employees
 
