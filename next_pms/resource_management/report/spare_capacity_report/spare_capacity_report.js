@@ -48,14 +48,14 @@ const setup_filters = () => {
     fieldname: "from",
     label: __("From Date"),
     fieldtype: "Date",
-    default: frappe.datetime.add_months(frappe.datetime.get_today(), -1),
+    default: frappe.datetime.get_today(),
     reqd: 1,
   });
   frappe.query_reports["Spare Capacity Report"].filters.push({
     fieldname: "to",
     label: __("To Date"),
     fieldtype: "Date",
-    default: frappe.datetime.get_today(),
+    default: frappe.datetime.add_months(frappe.datetime.get_today(), 1),
     reqd: 1,
   });
 

@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 from erpnext.setup.utils import get_exchange_rate
+from frappe import _, throw
 from frappe.utils import getdate
 
 BU_FIELD_NAME = "custom_business_unit"
@@ -82,3 +83,22 @@ def sort_by_reports_to(employees):
     for top_emp in sorted(top_level_emps, key=lambda x: x["name"]):
         dfs(top_emp["name"])
     return result
+
+
+def validate_filters(filters):
+    """
+    Validates the filters provided for the report.
+    Ensures that mandatory fields are present and valid.
+    """
+
+    if not filters.get("from") or not filters.get("to"):
+        throw(_("Both 'From' and 'To' dates must be provided."))
+
+    start_date = getdate(filters.get("from"))
+    end_date = getdate(filters.get("to"))
+
+    if start_date > end_date:
+        throw(_("The 'From' date should be than the 'To' date."))
+
+    if start_date < getdate():
+        throw(_("The 'From' date cannot be in the past."))

@@ -14,9 +14,7 @@ from next_pms.resource_management.report.utils import (
     calculate_employee_available_hours,
     calculate_employee_hours,
 )
-from next_pms.timesheet.api.employee import (
-    get_employee_daily_working_norm,
-)
+from next_pms.timesheet.api.employee import get_employee_daily_working_norm
 from next_pms.utils.employee import generate_flat_tree, get_employee_leaves_and_holidays
 
 from .utils import (
@@ -25,10 +23,12 @@ from .utils import (
     get_employee_fields,
     get_employee_filters,
     sort_by_reports_to,
+    validate_filters,
 )
 
 
 def execute(filters=None):
+    validate_filters(filters)
     employee_meta = get_meta("Employee")
     has_bu_field = employee_meta.has_field(BU_FIELD_NAME)
 
