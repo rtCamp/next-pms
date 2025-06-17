@@ -33,6 +33,7 @@ export class TimelinePage {
     this.confirmDeleteButton = page.getByRole("button", { name: "Delete" });
     this.timeAllocationRow = page.locator(".rct-hl-even");
     this.formattedDate = getFormattedCurrentDate();
+    this.clearFilterIcon = page.getByRole('button', { name: 'Clear search' });
   }
 
   /**
@@ -118,6 +119,7 @@ export class TimelinePage {
    */
   async filterEmployeeByName(employeeName) {
     await this.searchEmployeeFilter.fill(employeeName);
+    await this.page.keyboard.press('Enter');
   }
 
   /**
@@ -154,4 +156,9 @@ export class TimelinePage {
       const allocationName = responseBody.message.name; 
       return allocationName;
   }
+
+  async clearFilter() {
+    await this.clearFilterIcon.click();
+  }
+
 }
