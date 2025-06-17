@@ -30,7 +30,7 @@ frappe.query_reports["Spare Capacity Report"] = {
 
     const group_by = frappe.query_report.get_filter_value("group_by");
     const aggregate = frappe.query_report.get_filter_value("aggregate");
-    if (group_by == "business_unit") {
+    if (["business_unit", "designation"].includes(group_by)) {
       if (data.is_employee) {
         if ("designation" == column.id) {
           var $value = $(value).css("display", "flex");
@@ -134,6 +134,7 @@ const setup_filters = () => {
         options: [
           { value: "employee", label: __("Employee") },
           { value: "business_unit", label: __("Business Unit") },
+          { value: "designation", label: __("Designation") },
         ],
         default: "business_unit",
       });
@@ -160,7 +161,7 @@ const setup_filters = () => {
       fieldname: "aggregate",
       label: __("Aggregate"),
       fieldtype: "Check",
-      default: 0,
+      default: 1,
     });
 
     frappe.query_reports["Spare Capacity Report"].filters.push({

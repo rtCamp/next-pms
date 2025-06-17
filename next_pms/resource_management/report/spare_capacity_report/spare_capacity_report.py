@@ -19,6 +19,7 @@ from .utils import (
     get_employee_fields,
     get_employee_filters,
     sort_by_business_unit,
+    sort_by_designation,
     sort_by_reports_to,
     validate_filters,
 )
@@ -133,8 +134,10 @@ def get_data(filters=None, has_bu_field=False):
 
     if group_by == "employee":
         employees = sort_by_reports_to(employees)
-    else:
+    elif group_by == "business_unit":
         employees = sort_by_business_unit(employees, has_bu_field, currency)
+    elif group_by == "designation":
+        employees = sort_by_designation(employees, currency)
 
     if aggregate:
         employee_map = {emp.name: emp for emp in employees}
@@ -150,7 +153,7 @@ def get_data(filters=None, has_bu_field=False):
                     sum(employee_map[c].percentage_capacity_available for c in child_names)
                     + root_emp.percentage_capacity_available
                 ) / (len(child_names) + 1)
-            else:
+            elif group_by == "business_unit":
                 child_names = [
                     child.name
                     for child in employees
@@ -160,7 +163,16 @@ def get_data(filters=None, has_bu_field=False):
                 actual_per = (sum(employee_map[c].percentage_capacity_available for c in child_names)) / len(
                     child_names
                 )
-
+            else:
+                child_names = [
+                    child.name
+                    for child in employees
+                    if child.designation == emp and child.name in employee_map and child.is_employee
+                ]
+                # Calculate % Capacity for root nodes (group)
+                actual_per = (sum(employee_map[c].percentage_capacity_available for c in child_names)) / len(
+                    child_names
+                )
             hours = sum(employee_map[c].available_capacity for c in child_names)
 
             root_emp.available_capacity += hours
