@@ -82,7 +82,13 @@ def calculate_employee_available_hours(
             for allocation in allocation_for_date:
                 total_hours_for_resource_allocation += allocation.hours_allocated_per_day
         else:
-            total_hours += flt(data.get("leave_work_hours"))
+            leave_work_hour = flt(data.get("leave_work_hours"))
+            total_hours += leave_work_hour
+            total_allocated_hours_for_day = 0
+            allocation_for_date = get_employee_allocations_for_date(resource_allocations, date)
+            for allocation in allocation_for_date:
+                total_allocated_hours_for_day += allocation.hours_allocated_per_day
+            total_hours_for_resource_allocation += min(leave_work_hour, total_allocated_hours_for_day)
 
         date = add_days(date, 1)
 

@@ -27,7 +27,46 @@ frappe.query_reports["Spare Capacity Report"] = {
     if (column.id === "employee_name" && data.has_value) {
       value = `<span style="font-weight: bold;">${value}</span>`;
     }
+    const group_by = frappe.query_report.get_filter_value("group_by");
+    const aggregate = frappe.query_report.get_filter_value("aggregate");
+    if (group_by == "business_unit") {
+      if (data.is_employee) return value;
+      if (["name"].includes(column.id)) {
+        var $a = $(value);
+        var $span = $("<span>");
+        Array.from($a[0].attributes).forEach((attr) => {
+          $span.attr(attr.name, attr.value);
+        });
+
+        $span.html($a.html());
+        $a.replaceWith($span);
+        value = $span.wrap("<p></p>").parent().html();
+      }
+      if (["designation", "employee_name"].includes(column.id)) {
+        value = `<span style="font-weight: bold;"></span>`;
+      }
+      if (
+        ["available_capacity", "monthly_salary", "actual_unbilled_cost", "percentage_capacity_available"].includes(
+          column.id
+        ) &&
+        !aggregate
+      ) {
+        value = `<span style="font-weight: bold;"></span>`;
+      }
+    }
     return value;
+  },
+  onload: function (report) {
+    let status_filter = report.get_filter("business_unit");
+    if (!status_filter) return;
+    if (!status_filter.get_value() || status_filter.get_value().length === 0) {
+      frappe.db.get_list("Business Unit", { limit: 0 }).then((res) => {
+        if (!res || res.length === 0) return;
+        const values = res.map((item) => item.name);
+        status_filter.set_value(values);
+        status_filter.refresh();
+      });
+    }
   },
 };
 
@@ -36,14 +75,14 @@ const setup_filters = () => {
     fieldname: "from",
     label: __("From Date"),
     fieldtype: "Date",
-    default: frappe.datetime.add_months(frappe.datetime.get_today(), -1),
+    default: frappe.datetime.get_today(),
     reqd: 1,
   });
   frappe.query_reports["Spare Capacity Report"].filters.push({
     fieldname: "to",
     label: __("To Date"),
     fieldtype: "Date",
-    default: frappe.datetime.get_today(),
+    default: frappe.datetime.add_months(frappe.datetime.get_today(), 1),
     reqd: 1,
   });
 
@@ -78,6 +117,16 @@ const setup_filters = () => {
           return frappe.db.get_link_options(buDoctype, txt);
         },
       });
+      frappe.query_reports["Spare Capacity Report"].filters.push({
+        fieldname: "group_by",
+        label: __("Group By"),
+        fieldtype: "Select",
+        options: [
+          { value: "employee", label: __("Employee") },
+          { value: "business_unit", label: __("Business Unit") },
+        ],
+        default: "business_unit",
+      });
     }
     frappe.query_reports["Spare Capacity Report"].filters.push({
       fieldname: "designation",
@@ -98,10 +147,17 @@ const setup_filters = () => {
       default: "USD",
     });
     frappe.query_reports["Spare Capacity Report"].filters.push({
-      fieldname: "is_group",
-      label: __("Aggregate by Manager"),
+      fieldname: "aggregate",
+      label: __("Aggregate"),
       fieldtype: "Check",
       default: 0,
+    });
+
+    frappe.query_reports["Spare Capacity Report"].filters.push({
+      fieldname: "show_no_capacity",
+      label: __("Show employe with no capacity"),
+      fieldtype: "Check",
+      default: 1,
     });
   });
 };
