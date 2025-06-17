@@ -25,7 +25,6 @@ import { deleteUserGroupForEmployee } from "./teamTabHelper";
 const empID = process.env.EMP_ID;
 const emp2ID = process.env.EMP2_ID;
 const emp3ID = process.env.EMP3_ID;
-const emp2Mail = process.env.EMP2_EMAIL;
 
 // Define file paths for shared JSON data files
 const employeeTimesheetDataFilePath = path.resolve(__dirname, "../data/employee/shared-timesheet.json"); // File path of the employee timesheet data JSON file
@@ -286,7 +285,7 @@ export const createProjectForTestCases = async () => {
   ];
   const managerTaskIDs = ["TC22", "TC24", "TC25", "TC26", "TC17", "TC19"];
 
-  const managerTeamIDs = ["TC47", "TC49", "TC50", "TC92", "TC102", "TC103", "TC104"];
+  const managerTeamIDs = ["TC47", "TC49", "TC50", "TC92", "TC93", "TC102", "TC103", "TC104"];
 
   const processTestCases = async (data, testCases) => {
     for (const testCaseID of testCases) {
@@ -307,17 +306,28 @@ export const createProjectForTestCases = async () => {
 
         //Share project with users
         if (data[testCaseID].payloadShareProject) {
-          let shareProjectWithUserPayload = data[testCaseID].payloadShareProject;
-          shareProjectWithUserPayload.name = projectId;
-          shareProjectWithUserPayload.user = emp2Mail;
-          //console.warn("Payload for sharing project:", shareProjectWithUserPayload);
+          const shareProjectArray = data[testCaseID].payloadShareProject;
 
-          await shareProjectWithUser({ ...shareProjectWithUserPayload });
-          //console.warn("Response of share project is :                          ", response);
+          for (const shareProjectWithUserPayload of shareProjectArray) {
+            shareProjectWithUserPayload.name = projectId;
+
+            // shareProjectWithUserPayload.user = emp2Mail;
+
+            // console.warn("Payload for sharing project:", shareProjectWithUserPayload);
+
+            await shareProjectWithUser({ ...shareProjectWithUserPayload });
+
+            // Optional: log the response
+            // console.warn("Response of share project is:", response);
+          }
         }
 
         // Store project ID in related payloads
-        data[testCaseID].payloadDeleteProject.projectId = projectId;
+        if (!data[testCaseID].payloadDeleteProject) {
+          console.error(`❌ Missing payloadDeleteProject for testCaseID: ${testCaseID}`);
+        } else {
+          data[testCaseID].payloadDeleteProject.projectId = projectId;
+        }
 
         if (data[testCaseID].payloadCreateTask) {
           data[testCaseID].payloadCreateTask.project = projectId;
@@ -388,6 +398,7 @@ export const deleteProjects = async () => {
     sharedManagerTeamData.TC49.payloadDeleteProject.projectId,
     sharedManagerTeamData.TC50.payloadDeleteProject.projectId,
     sharedManagerTeamData.TC92.payloadDeleteProject.projectId,
+    sharedManagerTeamData.TC93.payloadDeleteProject.projectId,
   ];
   for (const entry of projectsToBeDeleted) {
     //Delete Project
