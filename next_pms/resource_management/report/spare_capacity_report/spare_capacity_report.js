@@ -29,6 +29,18 @@ frappe.query_reports["Spare Capacity Report"] = {
     }
     return value;
   },
+  onload: function (report) {
+    let status_filter = report.get_filter("business_unit");
+    if (!status_filter) return;
+    if (!status_filter.get_value() || status_filter.get_value().length === 0) {
+      frappe.db.get_list("Business Unit", { limit: 0 }).then((res) => {
+        if (!res || res.length === 0) return;
+        const values = res.map((item) => item.name);
+        status_filter.set_value(values);
+        status_filter.refresh();
+      });
+    }
+  },
 };
 
 const setup_filters = () => {
@@ -78,6 +90,16 @@ const setup_filters = () => {
           return frappe.db.get_link_options(buDoctype, txt);
         },
       });
+      frappe.query_reports["Spare Capacity Report"].filters.push({
+        fieldname: "group_by",
+        label: __("Group By"),
+        fieldtype: "Select",
+        options: [
+          { value: "employee", label: __("Employee") },
+          { value: "business_unit", label: __("Business Unit") },
+        ],
+        default: "business_unit",
+      });
     }
     frappe.query_reports["Spare Capacity Report"].filters.push({
       fieldname: "designation",
@@ -102,6 +124,13 @@ const setup_filters = () => {
       label: __("Aggregate by Manager"),
       fieldtype: "Check",
       default: 0,
+    });
+
+    frappe.query_reports["Spare Capacity Report"].filters.push({
+      fieldname: "show_no_capacity",
+      label: __("Show employe with no capacity"),
+      fieldtype: "Check",
+      default: 1,
     });
   });
 };
