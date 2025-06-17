@@ -28,7 +28,7 @@ frappe.query_reports["Spare Capacity Report"] = {
       value = `<span style="font-weight: bold;">${value}</span>`;
     }
     const group_by = frappe.query_report.get_filter_value("group_by");
-
+    const aggregate = frappe.query_report.get_filter_value("aggregate");
     if (group_by == "business_unit") {
       if (data.is_employee) return value;
       if (["name"].includes(column.id)) {
@@ -43,6 +43,14 @@ frappe.query_reports["Spare Capacity Report"] = {
         value = $span.wrap("<p></p>").parent().html();
       }
       if (["designation", "employee_name"].includes(column.id)) {
+        value = `<span style="font-weight: bold;"></span>`;
+      }
+      if (
+        ["available_capacity", "monthly_salary", "actual_unbilled_cost", "percentage_capacity_available"].includes(
+          column.id
+        ) &&
+        !aggregate
+      ) {
         value = `<span style="font-weight: bold;"></span>`;
       }
     }
