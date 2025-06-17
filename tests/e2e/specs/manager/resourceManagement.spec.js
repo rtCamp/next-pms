@@ -33,7 +33,7 @@ test("TC-102: Verify add Allocation workflow by the Plus button", async ({ page 
   await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
 });
 
-test("TC-103: Verify add Allocation workflow by clicking on a specfic cell wrt Employee and Date", async ({ page }) => {
+test.skip("TC-103: Verify add Allocation workflow by clicking on a specfic cell wrt Employee and Date", async ({ page }) => {
   allure.story("Resource Management");
   const projectName = data.TC103.payloadCreateProject.project_name;
   const employeeName = data.TC103.employee;

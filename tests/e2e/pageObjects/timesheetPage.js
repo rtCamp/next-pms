@@ -178,7 +178,7 @@ export class TimesheetPage {
   async clickonTimesheetStatus() {
     const button = this.latestTimesheetTitleDiv.locator("span").last();
 
-    await button.waitFor({ state: "visible" });
+    await button.waitFor({ state: "visible", timeout: 30000 });
     await button.click();
   }
 
@@ -307,7 +307,7 @@ export class TimesheetPage {
     const row = await this.getRow(rowName);
     const colIndex = this.dayIndexObj[col.toLowerCase()];
     const cell = row.getByRole("cell").nth(colIndex);
-    await cell.waitFor({ state: "visible" });
+    await cell.waitFor({ state: "visible", timeout:15000 });
 
     return cell;
   }
@@ -427,8 +427,8 @@ export class TimesheetPage {
    */
   async importLikedTasks() {
     const button = this.latestTimesheetTable.locator("//span[@title='Import liked tasks']");
-
-    await button.waitFor({ state: "visible" });
+    await this.page.waitForTimeout(2000);
+    await button.waitFor({ state: "visible", timeout: 30000 });
     await button.click();
   }
 

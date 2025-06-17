@@ -128,7 +128,7 @@ test("TC7: Submit the weekly timesheet ", async ({ page }) => {
   await timesheetPage.submitTimesheet();
 
   // Reload page to ensure changes are reflected
-  await page.reload();
+  await page.reload({ waitUntil: "networkidle" });
 
   // Get timesheet status
   const status = await timesheetPage.getTimesheetStatus();
