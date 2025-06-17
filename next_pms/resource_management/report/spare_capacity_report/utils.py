@@ -1,7 +1,8 @@
 from collections import defaultdict
+from copy import deepcopy
 
 from erpnext.setup.utils import get_exchange_rate
-from frappe import _, throw
+from frappe import _, _dict, get_all, throw
 from frappe.utils import getdate
 
 BU_FIELD_NAME = "custom_business_unit"
@@ -85,12 +86,48 @@ def sort_by_reports_to(employees):
     return result
 
 
-def validate_filters(filters):
+def sort_by_business_unit(employees, has_bu_field=False):
     """
-    Validates the filters provided for the report.
-    Ensures that mandatory fields are present and valid.
+    Sorts employees based on their business unit.
+    If has_bu_field is True, it will sort by the business unit field.
     """
+    if not has_bu_field:
+        return employees
 
+    units = get_all("Business Unit", pluck="name")
+    if not units:
+        return employees
+    result = []
+    default = deepcopy(employees[0])
+    empty_copy = {key: 0 for key in default}
+
+    for unit in units:
+        empty_copy.update({"name": unit, "indent": 0, "has_value": False, "is_employee": False})
+        bu_employees = [emp for emp in employees if emp.get(BU_FIELD_NAME) == unit]
+        if bu_employees:
+            empty_copy["has_value"] = True
+            result.append(_dict(empty_copy.copy()))
+            for e in bu_employees:
+                e["indent"] = 1
+                e["has_value"] = False
+
+            sorted_bu_employees = sorted(bu_employees, key=lambda x: x.get("name", ""))
+            result.extend(sorted_bu_employees)
+    return result
+
+
+def filter_by_capacity(data, show_no_capacity):
+    """
+    Filters the data to include only employees with no capacity or those with capacity.
+    If show_no_capacity is True, it will include employees with no capacity.
+    """
+    if show_no_capacity:
+        return [emp for emp in data if emp.get("available_capacity", 0) == 0 and emp.get("is_employee", True)]
+    else:
+        return [emp for emp in data if emp.get("available_capacity", 0) > 0 and emp.get("is_employee", True)]
+
+
+def validate_filters(filters):
     if not filters.get("from") or not filters.get("to"):
         throw(_("Both 'From' and 'To' dates must be provided."))
 
