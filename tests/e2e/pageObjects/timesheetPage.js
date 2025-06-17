@@ -392,10 +392,12 @@ export class TimesheetPage {
    */
   async updateTimeRow(cellInfo, { desc, newDesc, newDuration }) {
     const cell = await this.getCell(cellInfo);
+    // Strip HTML tags from newDesc.
+    const plainTextDesc = desc.replace(/<[^>]*>?/gm, "");
 
     await this.openCell(cell);
     await this.addHours("data.0.hours").fill(newDuration);
-    await this.updateDescription(desc).fill(newDesc);
+    await this.updateDescription(plainTextDesc).fill(newDesc);
     await this.editTimeModal.getByRole("button", { name: "Save" }).click();
     await this.editTimeModal.getByRole("button", { name: "Close" }).click();
   }

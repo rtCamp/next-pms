@@ -12,16 +12,18 @@
       "business_unit": "NB",
       "estimated_cost": 100000
     },
-    "payloadShareProject": {
-      "doctype": "Project",
-      "name": "filled-automatically-from-createProjects",
-      "user": "mailID-filled-automatically-from-createProjects",
-      "readValue": 1,
-      "writeValue": 1,
-      "submitValue": 0,
-      "shareValue": 0,
-      "notifyValue": 1
-    },
+    "payloadShareProject": [
+      {
+        "doctype": "Project",
+        "name": "filled-automatically-from-createProjects",
+        "user": "manoj.maharrshi@rtcamp.com",
+        "readValue": 1,
+        "writeValue": 1,
+        "submitValue": 0,
+        "shareValue": 0,
+        "notifyValue": 1
+      }
+    ],
     "payloadDeleteProject": {
       "projectId": "filled-automatically-from-createProjects"
     },
@@ -123,7 +125,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC4 - Task added via automation.",
+      "description": "<p>TC4 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry1": {
@@ -172,7 +174,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC5 - Task added via automation.",
+      "description": "<p>TC5 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry1": {
@@ -228,7 +230,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC6 - Task added via automation.",
+      "description": "<p>TC6 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
@@ -265,7 +267,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC7 - Task added via automation.",
+      "description": "<p>TC7 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
@@ -304,7 +306,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC6 - Task added via automation.",
+      "description": "<p>TC6 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
@@ -367,7 +369,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC14 - Task added via automation.",
+      "description": "<p>TC14 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
@@ -413,7 +415,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC15 - Task added via automation.",
+      "description": "<p>TC15 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
@@ -454,7 +456,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC82 - Task added via automation.",
+      "description": "<p>TC82 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
@@ -503,7 +505,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC83 - Task added via automation.",
+      "description": "<p>TC83 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
@@ -549,7 +551,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC84 - Task added via automation.",
+      "description": "<p>TC84 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
@@ -598,7 +600,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC85 - Task added via automation.",
+      "description": "<p>TC85 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
@@ -650,7 +652,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC86 - Task added via automation.",
+      "description": "<p>TC86 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
@@ -698,7 +700,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC87 - Task added via automation.",
+      "description": "<p>TC87 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
@@ -746,7 +748,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC88 - Task added via automation.",
+      "description": "<p>TC88 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
@@ -794,7 +796,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC89 - Task added via automation.",
+      "description": "<p>TC89 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
@@ -841,7 +843,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC90 - Task added via automation.",
+      "description": "<p>TC90 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
@@ -895,7 +897,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC96 - Task added via automation.",
+      "description": "<p>TC96 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
@@ -942,7 +944,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC97 - Task added via automation.",
+      "description": "<p>TC97 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
@@ -989,7 +991,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC98 - Task added via automation.",
+      "description": "<p>TC98 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
@@ -1039,7 +1041,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC99 - Task added via automation.",
+      "description": "<p>TC99 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
@@ -1089,7 +1091,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC100 - Task added via automation.",
+      "description": "<p>TC100 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {
@@ -1139,7 +1141,7 @@
     },
     "payloadCreateTimesheet": {
       "task": "filled-automatically-from-createTasks",
-      "description": "TC101 - Task added via automation.",
+      "description": "<p>TC101 - Task added via automation.</p>",
       "hours": "1"
     },
     "payloadFilterTimeEntry": {

@@ -126,6 +126,7 @@
   top: 0;
   z-index: 10;
   background: hsl(var(--background));
+  padding: 2px !important;  
 }
 .ql-editor.ql-blank::before {
   color: hsl(var(--foreground)) !important;
