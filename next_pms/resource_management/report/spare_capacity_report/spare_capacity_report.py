@@ -7,21 +7,18 @@
 from frappe import _, get_meta
 from frappe.utils import getdate
 
-from next_pms.resource_management.api.utils.query import (
-    get_allocation_list_for_employee_for_given_range,
-)
-from next_pms.resource_management.report.utils import (
-    calculate_employee_available_hours,
-    calculate_employee_hours,
-)
+from next_pms.resource_management.api.utils.query import get_allocation_list_for_employee_for_given_range
+from next_pms.resource_management.report.utils import calculate_employee_available_hours, calculate_employee_hours
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm
 from next_pms.utils.employee import generate_flat_tree, get_employee_leaves_and_holidays
 
 from .utils import (
     BU_FIELD_NAME,
     convert_currency,
+    filter_by_capacity,
     get_employee_fields,
     get_employee_filters,
+    sort_by_business_unit,
     sort_by_reports_to,
     validate_filters,
 )
@@ -35,6 +32,7 @@ def execute(filters=None):
     columns = get_columns(filters)
     data = get_data(filters, has_bu_field)
     summary = get_report_summary(filters=filters, data=data)
+
     return columns, data, None, None, summary
 
 
@@ -44,7 +42,8 @@ def get_data(filters=None, has_bu_field=False):
     """
     start_date = filters.get("from")
     end_date = filters.get("to")
-    is_group = filters.get("is_group", False)
+    aggregate = filters.get("aggregate", False)
+    group_by = filters.get("group_by", "business_unit")
     currency = filters.get("currency") or "USD"
     fields = get_employee_fields(has_bu_field)
 
@@ -66,12 +65,13 @@ def get_data(filters=None, has_bu_field=False):
     for emp in employees:
         emp.indent = emp.level or 0
         emp.has_value = len(parent_child_map.get(emp.name, {}).get("childrens", [])) > 0
+        emp.is_employee = True
 
-    employees = sort_by_reports_to(employees)
-
-    employee_names = [emp.name for emp in employees]
+    employee_names = [emp.name for emp in employees if emp.get("is_employee", False)]
     resource_allocation_map = get_allocations(start_date, end_date, employee_names)
     for emp in employees:
+        if not emp.get("is_employee", False):
+            continue  # Skip if not an employee
         daily_hours = get_employee_daily_working_norm(emp.name)
         employee_allocations = resource_allocation_map.get(emp.name, [])
 
@@ -127,12 +127,28 @@ def get_data(filters=None, has_bu_field=False):
             emp.percentage_capacity_available = 0
         emp._percentage_capacity_available = emp.percentage_capacity_available  # Store original percentage capacity
 
-    if is_group:
+    #  Filter out employees based on the capacity filter
+    show_no_capacity = filters.get("show_no_capacity", False)
+    employees = filter_by_capacity(employees, show_no_capacity)
+
+    if group_by == "employee":
+        employees = sort_by_reports_to(employees)
+    else:
+        employees = sort_by_business_unit(employees, has_bu_field)
+
+    if aggregate:
         employee_map = {emp.name: emp for emp in employees}
         root_nodes = [emp.name for emp in employees if emp.has_value]
         for emp in root_nodes:
-            childrens = parent_child_map.get(emp, {}).get("childrens", [])
-            child_names = [child.name for child in childrens if child.name in employee_names]
+            if group_by == "employee":
+                childrens = parent_child_map.get(emp, {}).get("childrens", [])
+                child_names = [child.name for child in childrens if child.name in employee_map]
+            else:
+                child_names = [
+                    child.name
+                    for child in employees
+                    if child.get(BU_FIELD_NAME) == emp and child.name in employee_map and child.is_employee
+                ]
             hours = sum(employee_map[c].available_capacity for c in child_names)
             root_emp = employee_map[emp]
             root_emp.available_capacity += hours
@@ -149,13 +165,15 @@ def get_data(filters=None, has_bu_field=False):
             #     employee_map[c].percentage_capacity_available for c in child_names
             # )
             root_emp.percentage_capacity_available = ""
+
     return employees
 
 
 def get_report_summary(data, filters=None):
     currency = filters.get("currency") or "USD"
-    total_available_capacity = sum(emp._available_capacity for emp in data)
-    total_actual_unbilled_cost = sum(emp._actual_unbilled_cost for emp in data)
+    employees = [emp for emp in data if emp.get("is_employee", False)]
+    total_available_capacity = sum(emp._available_capacity for emp in employees)
+    total_actual_unbilled_cost = sum(emp._actual_unbilled_cost for emp in employees)
 
     return [
         {
