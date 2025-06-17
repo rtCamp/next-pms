@@ -27,6 +27,25 @@ frappe.query_reports["Spare Capacity Report"] = {
     if (column.id === "employee_name" && data.has_value) {
       value = `<span style="font-weight: bold;">${value}</span>`;
     }
+    const group_by = frappe.query_report.get_filter_value("group_by");
+
+    if (group_by == "business_unit") {
+      if (data.is_employee) return value;
+      if (["name"].includes(column.id)) {
+        var $a = $(value);
+        var $span = $("<span>");
+        Array.from($a[0].attributes).forEach((attr) => {
+          $span.attr(attr.name, attr.value);
+        });
+
+        $span.html($a.html());
+        $a.replaceWith($span);
+        value = $span.wrap("<p></p>").parent().html();
+      }
+      if (["designation", "employee_name"].includes(column.id)) {
+        value = `<span style="font-weight: bold;"></span>`;
+      }
+    }
     return value;
   },
   onload: function (report) {
@@ -120,8 +139,8 @@ const setup_filters = () => {
       default: "USD",
     });
     frappe.query_reports["Spare Capacity Report"].filters.push({
-      fieldname: "is_group",
-      label: __("Aggregate by Manager"),
+      fieldname: "aggregate",
+      label: __("Aggregate"),
       fieldtype: "Check",
       default: 0,
     });
