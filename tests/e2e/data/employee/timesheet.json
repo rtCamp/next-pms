@@ -425,6 +425,42 @@
       "max_week": "1"
     }
   },
+  "TC23": {
+    "projectSharedWithEmps": ["Abhishek Kumar"],
+    "payloadCreateProject": {
+      "project_name": "TC23 Project",
+      "company": "rtCamp Solutions Pvt. Ltd.",
+      "billing_type": "Non-Billable",
+      "currency": "INR",
+      "project_type": "Non Billable",
+      "business_unit": "NB",
+      "estimated_cost": 100000
+    },
+    "payloadDeleteProject": {
+      "projectId": "filled-automatically-from-createProjects"
+    },
+    "payloadCreateTask": {
+      "subject": "TC23 Task 01",
+      "project": "filled-automatically-from-createProjects",
+      "description": "Task 01 for TC23 created through automation",
+      "custom_is_billable": 1
+    },
+    "payloadDeleteTask": {
+      "taskID": "filled-automatically-from-createTasks"
+    },
+    "payloadShareProject": [
+      {
+        "doctype": "Project",
+        "name": "filled-automatically-from-createProjects",
+        "user": "abhishek.kumar@rtcamp.com",
+        "readValue": 1,
+        "writeValue": 1,
+        "submitValue": 0,
+        "shareValue": 0,
+        "notifyValue": 1
+      }
+    ]
+  },
   "TC82": {
     "cell": {
       "rowName": "TC82 Billable Task",
