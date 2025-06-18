@@ -1,0 +1,36 @@
+{
+ "add_total_row": 0,
+ "add_translate_data": 0,
+ "columns": [],
+ "creation": "2025-06-18 16:43:01.437617",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "json": "{}",
+ "letter_head": "rtCamp",
+ "letterhead": null,
+ "modified": "2025-06-18 20:17:16.737638",
+ "modified_by": "Administrator",
+ "module": "Resource Management",
+ "name": "Appraisal Capacity Report",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Resource Allocation",
+ "report_name": "Appraisal Capacity Report",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Projects Manager"
+  },
+  {
+   "role": "Delivery Manager"
+  }
+ ],
+ "timeout": 0
+}
