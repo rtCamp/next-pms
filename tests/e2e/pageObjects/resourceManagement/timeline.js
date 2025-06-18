@@ -33,7 +33,7 @@ export class TimelinePage {
     this.confirmDeleteButton = page.getByRole("button", { name: "Delete" });
     this.timeAllocationRow = page.locator(".rct-hl-even");
     this.formattedDate = getFormattedCurrentDate();
-    this.clearFilterIcon = page.getByRole('button', { name: 'Clear search' });
+    this.clearFilterIcon = page.getByRole("button", { name: "Clear search" });
   }
 
   /**
@@ -119,7 +119,7 @@ export class TimelinePage {
    */
   async filterEmployeeByName(employeeName) {
     await this.searchEmployeeFilter.fill(employeeName);
-    await this.page.keyboard.press('Enter');
+    await this.page.keyboard.press("Enter");
   }
 
   /**
@@ -141,24 +141,23 @@ export class TimelinePage {
     await this.selectProject(customerName, projectName);
     await this.addDateRange();
     await this.setHoursPerDay("8");
-     
+
     // Wait for the allocation API response and click the create button in parallel
     const [response] = await Promise.all([
-        this.page.waitForResponse(
-          response =>
-            response.url().includes('/api/method/next_pms.resource_management.api.allocation.handle_allocation') &&
-            response.status() === 200
-        ),
-        this.clickCreateButton()
-      ]);
-      
-      const responseBody = await response.json();
-      const allocationName = responseBody.message.name; 
-      return allocationName;
+      this.page.waitForResponse(
+        (response) =>
+          response.url().includes("/api/method/next_pms.resource_management.api.allocation.handle_allocation") &&
+          response.status() === 200
+      ),
+      this.clickCreateButton(),
+    ]);
+
+    const responseBody = await response.json();
+    const allocationName = responseBody.message.name;
+    return allocationName;
   }
 
   async clearFilter() {
     await this.clearFilterIcon.click();
   }
-
 }

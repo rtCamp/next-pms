@@ -61,9 +61,9 @@ export const deleteProject = async (projectId) => {
     try {
       await deleteAllocationsByEmployee(projectId);
     } catch (error) {
-        console.warn(`Unexpected error while deleting allocation:`, error);
-      }
-    } else if (!response.ok()) {
+      console.warn(`Unexpected error while deleting allocation:`, error);
+    }
+  } else if (!response.ok()) {
     throw new Error(
       `Failed to get response for Delete project for projectId: ${projectId} . Status: ${response.status()}`
     );

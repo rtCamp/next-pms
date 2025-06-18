@@ -30,20 +30,20 @@ export class TeamPage extends TimelinePage {
     await this.selectCustomer(customerName);
     await this.selectProject(customerName, projectName);
     await this.setHoursPerDay();
-     
+
     // Wait for the allocation API response and click the create button in parallel
     const [response] = await Promise.all([
-        this.page.waitForResponse(
-          response =>
-            response.url().includes('/api/method/next_pms.resource_management.api.allocation.handle_allocation') &&
-            response.status() === 200
-        ),
-        this.clickCreateButton()
-      ]);
-      
-      const responseBody = await response.json();
-      const allocationName = responseBody.message.name; 
-      return allocationName;
+      this.page.waitForResponse(
+        (response) =>
+          response.url().includes("/api/method/next_pms.resource_management.api.allocation.handle_allocation") &&
+          response.status() === 200
+      ),
+      this.clickCreateButton(),
+    ]);
+
+    const responseBody = await response.json();
+    const allocationName = responseBody.message.name;
+    return allocationName;
   }
 
   /**
