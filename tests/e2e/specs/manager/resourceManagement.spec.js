@@ -80,7 +80,7 @@ test.describe("Resource Management tests", () => {
     const employeeName = data.TC104.employee;
     const customerName = data.TC104.payloadCreateProject.customer;
     await projectPage.goto();
-    const allocationName = await projectPage.addAllocationFromProject(projectName, customerName, employeeName);
+    const allocationName = await projectPage.addAllocationFromProjectTab(projectName, customerName, employeeName);
     createdAllocations.push(allocationName);
     await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
     await projectPage.goto();
