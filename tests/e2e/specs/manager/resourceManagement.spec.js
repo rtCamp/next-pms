@@ -28,7 +28,7 @@ test.afterAll(async () => {
       await deleteAllocation(allocationName);
       console.info(`Allocation ${allocationName} deleted through API.`);
     } catch (error) {
-      if (error.message.includes('404')) {
+      if (error.message.includes("404")) {
         console.info(`Allocation ${allocationName} deleted through UI.`);
       } else {
         console.warn(`Unexpected error while deleting allocation ${allocationName}:`, error);
@@ -37,8 +37,8 @@ test.afterAll(async () => {
   }
 });
 
-test.describe('Resource Manaement tests', () => {
-  test.describe.configure({ mode: 'serial' });
+test.describe("Resource Management tests", () => {
+  test.describe.configure({ mode: "serial" });
 
   test("TC-102: Verify add Allocation workflow by the Plus button", async ({ page }) => {
     allure.story("Resource Management");
@@ -55,7 +55,9 @@ test.describe('Resource Manaement tests', () => {
     await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
   });
 
-  test("TC-103: Verify add Allocation workflow by clicking on a specfic cell wrt Employee and Date", async ({ page }) => {
+  test("TC-103: Verify add Allocation workflow by clicking on a specfic cell wrt Employee and Date", async ({
+    page,
+  }) => {
     allure.story("Resource Management");
     const projectName = data.TC103.payloadCreateProject.project_name;
     const employeeName = data.TC103.employee;
@@ -70,7 +72,9 @@ test.describe('Resource Manaement tests', () => {
     await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
   });
 
-  test("TC-104: Verify add Allocation workflow by clicking on a specfic cell wrt Project and Date", async ({ page }) => {
+  test("TC-104: Verify add Allocation workflow by clicking on a specfic cell wrt Project and Date", async ({
+    page,
+  }) => {
     allure.story("Resource Management");
     const projectName = data.TC104.payloadCreateProject.project_name;
     const employeeName = data.TC104.employee;
@@ -84,6 +88,4 @@ test.describe('Resource Manaement tests', () => {
     await teamPage.deleteAllocation(projectName);
     await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
   });
-
-})
-
+});
