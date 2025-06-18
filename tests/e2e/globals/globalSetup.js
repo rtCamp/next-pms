@@ -11,6 +11,7 @@ import { updateLeaveEntries } from "../helpers/leaveHelper";
 import { createJSONFile } from "../utils/fileUtils";
 import { createEmployees } from "../helpers/employeeHelper";
 import { randomApprovalStatus } from "../helpers/teamTabHelper";
+import { createUserGroupForEmployee } from "../helpers/teamTabHelper";
 // ------------------------------------------------------------------------------------------
 
 /**
@@ -44,6 +45,7 @@ const globalSetup = async () => {
   await calculateHourlyBilling();
   await updateLeaveEntries();
   await randomApprovalStatus();
+  await createUserGroupForEmployee();
 
   // 3. Create frontend UI storage states ONLY after all above is done
   await Promise.all([

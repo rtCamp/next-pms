@@ -18,6 +18,10 @@ export class TeamPage {
     this.searchInput = page.getByPlaceholder("Employee Name");
     this.reportsToDropdown = page.getByRole("button", { name: "Reports To" });
     this.employeeStatus = page.getByRole("button", { name: "Employee Status" });
+    this.approvalStatus = page.getByRole("button", { name: "Approval Status" });
+    this.approvalStatusSearchBar = page.getByPlaceholder("Approval Status");
+    this.projectFilter = page.getByRole("button", { name: "Project" });
+    this.projectFilterSearchBar = page.getByPlaceholder("Project");
 
     //employeeStatus Filter Dialog
     this.selectEmpStatus = (empStatus) => page.locator(`//div[@data-value="${empStatus}"]`);
@@ -226,6 +230,7 @@ export class TeamPage {
   async getEmployees() {
     const employees = [];
     // Wait for spinner to disappear, only if it's visible
+    await this.spinner.waitFor({ state: "hidden" });
     if (await this.spinner.isVisible().catch(() => false)) {
       await this.spinner.waitFor({ state: "hidden" });
     }
@@ -411,9 +416,30 @@ export class TeamPage {
     // Apply the selected status
     await this.selectEmployeeStatus(empStatus);
   }
+  /**
+   * Check and apply Approval Status filter
+   */
   async checkApprovalStatus(approvalStatus) {
-    await this.page.getByRole("button", { name: "Approval Status" }).click();
+    await this.approvalStatus.click();
     await this.page.getByText(approvalStatus, { exact: true }).click();
-    await this.page.getByPlaceholder("Approval Status").press("Escape");
+    await this.approvalStatusSearchBar.press("Escape");
+  }
+
+  /**
+   * Check and apply Project  filter
+   */
+  async checkProjectStatus(projectName) {
+    await this.projectFilter.click();
+    await this.projectFilterSearchBar.fill(projectName);
+    await this.page.getByText(`${projectName}`).click();
+    await this.projectFilterSearchBar.press("Escape");
+  }
+  /**
+   * Check and apply User Group filter
+   */
+  async checkUserGroup(userGroupName) {
+    await this.page.getByRole("button", { name: "User Group" }).click();
+    await this.page.getByRole("option", { name: userGroupName }).getByRole("checkbox").check();
+    await this.page.getByPlaceholder("User Group").press("Escape");
   }
 }

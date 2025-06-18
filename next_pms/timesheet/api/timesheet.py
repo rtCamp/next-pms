@@ -245,12 +245,28 @@ def update_timesheet_detail(
     ignore_permissions = employee_has_higher_access(parent_doc.employee, ptype="write")
     logs_to_remove = []
     new_logs = []
+    task_project = frappe.get_value("Task", task, "project")
 
     for log in parent_doc.time_logs:
         if not name or log.name != name:
             continue
+
+        if task_project and task_project != parent_doc.parent_project:
+            logs_to_remove.append(log)
+            new_logs.append(
+                {
+                    "task": task,
+                    "hours": hours,
+                    "description": description,
+                    "date": date,
+                    "employee": parent_doc.employee,
+                }
+            )
+            continue
+
         log.hours = hours
         log.description = description
+        log.task = task
         # Only update value of billable if user has write access
         if has_write_access() and is_billable is not None:
             log.is_billable = is_billable
@@ -277,7 +293,7 @@ def update_timesheet_detail(
                 "description": description,
                 "from_time": getdate(date),
                 "to_time": getdate(date),
-                "project": frappe.get_value("Task", task, "project"),
+                "project": task_project,
             }
             if has_write_access() and is_billable is not None:
                 log["is_billable"] = is_billable

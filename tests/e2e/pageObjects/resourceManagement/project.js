@@ -59,5 +59,6 @@ export class ProjectPage extends TimelinePage {
     const responseBody = await response.json();
     const allocationName = responseBody.message.name; 
     return allocationName;
+
   }
 }

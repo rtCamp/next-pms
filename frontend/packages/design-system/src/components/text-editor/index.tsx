@@ -1,8 +1,9 @@
 /**
  * External dependencies.
  */
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import ReactQuill, { Quill, type ReactQuillProps } from "react-quill";
+import { DeltaStatic, Sources } from "quill";
 import "react-quill/dist/quill.snow.css";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -32,18 +33,20 @@ const TextEditor = ({
   hideToolbar = false,
   ...Props
 }: TextEditorProps) => {
-  const quillRef = useRef<ReactQuill | null>(null);
   const [editorValue, setEditorValue] = useState(Props.value || "");
+
+  useEffect(() => {
+    if (Props?.value) {
+      setEditorValue(Props.value);
+    }
+  }, [Props?.value]);
+
   const toolbarOptions = [
-    [{ header: [1, 2, 3, false] }, { font: [] }],
-    ["bold", "italic", "underline", "strike", "blockquote", "code-block"],
-    [{ color: [] }, { background: [] }],
-    [{ script: "sub" }, { script: "super" }],
+    ["bold", "italic"],
+    [{ color: [] }],
     [{ list: "ordered" }, { list: "bullet" }, { indent: "-1" }, { indent: "+1" }],
     [{ align: [] }],
     ["link"],
-    ["clean"],
-    ["table"],
   ];
   if (allowImageUpload) {
     // @ts-expect-error expected
@@ -54,7 +57,7 @@ const TextEditor = ({
     toolbarOptions[6].push("video");
   }
   const modules = {
-    toolbar: hideToolbar ? [] : toolbarOptions,
+    toolbar: hideToolbar ? false : toolbarOptions,
 
     clipboard: { matchVisual: false },
   };
@@ -67,40 +70,23 @@ const TextEditor = ({
   const formatHtml = (html: string) => {
     return preProcessLink(html);
   };
-  const handleChange = (value: string) => {
-    const text = quillRef?.current?.getEditor().getText()?.trim();
-    if (!text || text === "") {
-      console.warn("Editor is empty, setting value to empty string.");
-      setEditorValue("");
-      onChange("");
-      return;
-    }
+  const handleChange = (value: string, delta: DeltaStatic, source: Sources, editor: ReactQuill.UnprivilegedEditor) => {
     const formattedValue = formatHtml(value);
     setEditorValue(formattedValue);
-    onChange(formattedValue);
+    if (editor.getText()?.trim()) {
+      onChange(formattedValue);
+    } else {
+      onChange("");
+    }
   };
-
   return (
     <>
-      {hideToolbar && (
-        <style>{`
-          .ql-toolbar{
-            display:none !important;
-            border:none !important;
-          }
-          .ql-editor{
-            min-height:0px !important;
-            padding: 8px !important;
-          }
-      `}</style>
-      )}
       <ReactQuill
         {...Props}
-        ref={quillRef}
         style={{ resize: "vertical", overflow: "auto" }}
         className={mergeClassNames(
-          "border rounded-md border-input [&>div:first-child]:border-t-0 [&>div:first-child]:border-r-0 [&>div:first-child]:border-l-0 [&>div:first-child]:border-input [&>div:first-child]:border-bottom [&>div:last-child]:border-none text-foreground bg-background ",
-          hideToolbar && "border-none !resize-none",
+          "border rounded-md border-input [&>div:first-child]:border-t-0 [&>div:first-child]:border-r-0 [&>div:first-child]:border-l-0 [&>div:first-child]:border-input [&>div:first-child]:border-bottom [&>div:last-child]:border-none text-foreground bg-background break-all whitespace-normal",
+          hideToolbar && "border-none !resize-none [&_.ql-editor]:min-h-0 [&_.ql-editor]:p-2",
           className
         )}
         theme="snow"
