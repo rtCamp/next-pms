@@ -201,7 +201,7 @@ test("TC15: Verify the billable status of a non-billable task.   ", async ({}) =
 test("TC23: Verify adding time to the task directly from the task tab by using the clock icon button in the row.", async ({
   page,
 }) => {
-  allure.story("Timesheet");
+  allure.story("Task");
   let TC23data = data.TC23;
   await taskPage.goto();
   await taskPage.searchTask(TC23data.payloadCreateTask.subject);
