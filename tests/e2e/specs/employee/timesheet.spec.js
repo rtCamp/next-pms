@@ -50,7 +50,7 @@ test.beforeEach(async ({ page }) => {
 
 // ------------------------------------------------------------------------------------------
 
-test.only("TC3: Time should be added using the direct timesheet add buttons.", async ({ page }) => {
+test("TC3: Time should be added using the direct timesheet add buttons.", async ({ page }) => {
   allure.story("Timesheet");
   // Import liked tasks
   await timesheetPage.importLikedTasks();
