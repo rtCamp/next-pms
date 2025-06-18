@@ -2,11 +2,14 @@ import path from "path";
 import { test, expect } from "@playwright/test";
 import { secondsToDuration, durationToSeconds } from "../../utils/dateUtils";
 import { TimesheetPage } from "../../pageObjects/timesheetPage";
+import { TaskPage } from "../../pageObjects/taskPage";
 import data from "../../data/employee/shared-timesheet.json";
 import * as allure from "allure-js-commons";
 //Add type hints to help VS Code recognize TimesheetPage
 /** @type {TimesheetPage} */
 let timesheetPage;
+let taskPage;
+
 test.use({ storageState: path.resolve(__dirname, "../../auth/employee.json") });
 
 // ------------------------------------------------------------------------------------------
@@ -39,6 +42,7 @@ let TC101data = data.TC101;
 test.beforeEach(async ({ page }) => {
   // Instantiate page objects
   timesheetPage = new TimesheetPage(page);
+  taskPage = new TaskPage(page);
 
   // Switch to Timesheet tab
   await timesheetPage.goto();
@@ -192,6 +196,18 @@ test("TC15: Verify the billable status of a non-billable task.   ", async ({}) =
   // Assertions
   const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC15data.cell);
   expect(isTimeEntryBillable).toBeFalsy();
+});
+
+test("TC23: Verify adding time to the task directly from the task tab by using the clock icon button in the row.", async ({
+  page,
+}) => {
+  allure.story("Task");
+  let TC23data = data.TC23;
+  await taskPage.goto();
+  await taskPage.searchTask(TC23data.payloadCreateTask.subject);
+  await taskPage.clickClockIcon();
+  await taskPage.addTime("8", TC23data.payloadCreateTask.description);
+  await expect(page.getByText("New Timesheet created successfully.", { exact: true })).toBeVisible();
 });
 
 test("TC82: Verify hourly consulting rate when no default billing rate is used for Fixed cost project   ", async ({}) => {
