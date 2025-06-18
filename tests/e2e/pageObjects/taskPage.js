@@ -46,9 +46,9 @@ export class TaskPage {
     //Add Time Modal
     this.timeSpent = page.getByRole("textbox", { name: ":00" });
     this.datePicker = page.getByRole("button", { name: "Today" });
-    this.projectSelector = page.getByRole('button', { name: 'Search Projects' });
-    this.tasksSelector = page.getByRole('button', { name: 'Search Task' });
-    this.commentTextbox = page.getByRole('paragraph').filter({ hasText: /^$/ });
+    this.projectSelector = page.getByRole("button", { name: "Search Projects" });
+    this.tasksSelector = page.getByRole("button", { name: "Search Task" });
+    this.commentTextbox = page.getByRole("paragraph").filter({ hasText: /^$/ });
     this.addTimeButton = page.getByRole("button", { name: "Add Time" });
   }
 
