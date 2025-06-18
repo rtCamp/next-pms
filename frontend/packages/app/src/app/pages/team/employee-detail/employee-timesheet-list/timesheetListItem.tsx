@@ -75,7 +75,7 @@ export const EmployeeTimesheetListItem = ({
           </Typography>
         )}
       </div>
-      {tasks?.map((task: TaskDataItemProps, index: number) => {
+      {tasks?.map((task: TaskDataItemProps) => {
         const data = {
           name: task.name,
           parent: task.parent,
@@ -89,7 +89,7 @@ export const EmployeeTimesheetListItem = ({
         return (
           <div
             className="flex flex-col gap-x-2 p-1 mb-2 last:mb-0 border-b w-full max-w-full last:border-b-0"
-            key={index}
+            key={task.name}
           >
             <div className="flex gap-x-3">
               <HourInput
