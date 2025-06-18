@@ -1,4 +1,5 @@
 import { login } from "./authRequests";
+import { deleteAllocationsByEmployee } from "../../helpers/employeeHelper";
 let context; // Global variable for request context
 
 // Helper function to ensure authentication
@@ -71,7 +72,13 @@ export const deleteProject = async (projectId) => {
   const ctx = await ensureAuth();
   const response = await ctx.delete(`/api/resource/Project/${projectId}`);
 
-  if (!response.ok()) {
+  if (response.status() === 417) {
+    try {
+      await deleteAllocationsByEmployee(projectId);
+    } catch (error) {
+      console.warn(`Unexpected error while deleting allocation:`, error);
+    }
+  } else if (!response.ok()) {
     throw new Error(
       `Failed to get response for Delete project for projectId: ${projectId} . Status: ${response.status()}`
     );
@@ -88,6 +95,21 @@ export const getProjectDetails = async (projectId) => {
   if (!response.ok()) {
     throw new Error(
       `Failed to get response for get project Detials for projectId: ${projectId} . Status: ${response.status()}`
+    );
+  }
+  return response;
+};
+
+/**
+ * Delete an allocation using the allocation ID.
+ */
+export const deleteAllocation = async (allocationId) => {
+  const ctx = await ensureAuth();
+  const response = await ctx.delete(`/api/resource/Resource%20Allocation/${allocationId}`);
+
+  if (!response.ok()) {
+    throw new Error(
+      `Failed to get response for Delete project for projectId: ${allocationId} . Status: ${response.status()}`
     );
   }
   return response;
