@@ -165,6 +165,10 @@ def get_data(filters=None, has_bu_field=False):
     )
 
     employees = data.get("level", [])
+
+    if len(employees) == 0:
+        return []
+
     parent_child_map = data.get("with_children", {})
 
     for emp in employees:
