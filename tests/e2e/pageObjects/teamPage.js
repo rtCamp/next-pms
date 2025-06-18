@@ -232,11 +232,15 @@ export class TeamPage {
    */
   async getEmployees() {
     const employees = [];
-    // Wait for spinner to disappear, only if it's visible
-    await this.spinner.waitFor({ state: "hidden" });
-    if (await this.spinner.isVisible().catch(() => false)) {
-      await this.spinner.waitFor({ state: "hidden" });
+    // Wait up to 10s for spinner to appear and disappear (if it appears at all)
+    try {
+      if (await this.spinner.isVisible({ timeout: 1000 })) {
+        await this.spinner.waitFor({ state: "hidden", timeout: 10000 });
+      }
+    } catch {
+      // Spinner never appeared – ignore
     }
+
     const rows = await this.getEmployeeRows();
 
     for (const row of await rows.all()) {
