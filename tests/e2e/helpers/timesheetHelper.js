@@ -287,7 +287,6 @@ export const createProjectForTestCases = async () => {
 
   const managerTeamIDs = ["TC47", "TC49", "TC50", "TC92", "TC93", "TC102", "TC103", "TC104"];
 
-
   const processTestCases = async (data, testCases) => {
     for (const testCaseID of testCases) {
       if (data[testCaseID].payloadCreateProject) {
