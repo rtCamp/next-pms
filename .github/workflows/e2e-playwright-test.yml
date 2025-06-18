@@ -18,6 +18,7 @@ concurrency:
 
 jobs:
   get-branch:
+    if: ${{ github.event.review.state == 'approved' }}
     runs-on: self-hosted
     container:
       image: ubuntu
@@ -62,7 +63,7 @@ jobs:
       RTBOT_TOKEN: ${{ secrets.RTBOT_TOKEN }}
   test:
     needs: [ deploy ]
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && success()) }}
+    if: success()
     runs-on: self-hosted
     container:
       image: ubuntu:24.04
