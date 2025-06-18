@@ -49,9 +49,10 @@
     }
   },
   "TC3": {
+    "notification": "New Timesheet created successfully.",
     "cell": {
       "rowName": "Task for TC03",
-      "col": "Mon"
+      "col": "Thu"
     },
     "payloadCreateProject": {
       "project_name": "TC03 Project",
@@ -80,7 +81,7 @@
       "taskID": "filled-automatically-from-createTasks"
     },
     "taskInfo": {
-      "duration": "1:30",
+      "duration": "1:00",
       "project": "TC03 Project",
       "task": "Task for TC03",
       "desc": "Task for TC03 created through automation"

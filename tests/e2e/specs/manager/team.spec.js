@@ -161,7 +161,7 @@ test("TC49: Rejecting timesheet for the employee   ", async ({ page }) => {
   await teamPage.viewNextWeek();
 
   // Reject timesheet
-  await teamPage.rejectTimesheet({ employee: empName, reason: TC49data.reason });
+  await teamPage.rejectTimesheet({ employee: empName, reason: TC49data.reason, notification: TC49data.notification });
 
   // Reload page to ensure changes are reflected
   await page.reload();

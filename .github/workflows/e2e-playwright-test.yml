@@ -2,11 +2,8 @@ name: Playwright Tests
 
 # Controls when the workflow will run
 on:
-  pull_request:
-    branches:
-    - develop
-    types:
-    - closed
+  pull_request_review:
+    types: [ submitted ] # Trigger when a PR review is submitted
 
   #Triggers at 5 AM IST every day
   schedule:
@@ -21,36 +18,36 @@ concurrency:
 
 jobs:
   get-branch:
+    if: ${{ github.event.review.state == 'approved' }}
     runs-on: self-hosted
     container:
-      image: ubuntu:24.04
-    if: github.event_name != 'workflow_dispatch' && github.event_name == 'pull_request'
+      image: ubuntu
     outputs:
       branch_name: ${{ steps.get_branch.outputs.branch_name }}
     steps:
-      - name: Install dependencies
-        run: |
-          apt-get update
-          apt-get install -y curl jq
-      
-      - name: Get branch name
-        id: get_branch
-        run: |
-          pr_number="${GITHUB_REF#refs/pull/}"
-          pr_number="${pr_number%/merge}"
-          
-          echo "PR Number: $pr_number"
-          # Use GitHub API with curl instead of gh CLI
-          branch_name=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/$GITHUB_REPOSITORY/pulls/$pr_number" | jq -r .head.ref)
-          
-          echo "Branch name: $branch_name"
-          echo "branch_name=$branch_name" >> $GITHUB_OUTPUT
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  
+    - name: Install dependencies
+      run: |
+        apt-get update
+        apt-get install -y curl jq
+
+    - name: Get branch name
+      id: get_branch
+      run: |
+        pr_number="${GITHUB_REF#refs/pull/}"
+        pr_number="${pr_number%/merge}"
+
+        echo "PR Number: $pr_number"
+        # Use GitHub API with curl instead of gh CLI
+        branch_name=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+          "https://api.github.com/repos/$GITHUB_REPOSITORY/pulls/$pr_number" | jq -r .head.ref)
+
+        echo "Branch name: $branch_name"
+        echo "branch_name=$branch_name" >> $GITHUB_OUTPUT
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   deploy:
-    needs: [get-branch]
+    needs: [ get-branch ]
     if: github.event_name != 'workflow_dispatch'
     uses: rtCamp/erp-rtcamp/.github/workflows/deploy-erp-qe.rt.gw.yml@main
     with:
@@ -58,7 +55,7 @@ jobs:
       use_maintenance_mode: true
       use_bench_migrate: true
       additional_commands: >-
-        ${{ github.event_name == 'pull_request' && format('-a {0}:{1}', github.event.pull_request.head.repo.full_name, needs.get-branch.outputs.branch_name) || format('-a {0}:{1}', github.repository, github.ref_name) }}
+        ${{ format('-a {0}:{1}', github.event.pull_request.head.repo.full_name, needs.get-branch.outputs.branch_name) || format('-a {0}:{1}', github.repository, github.ref_name) }}
     secrets:
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       SSH_SERVER: erp-qe.rt.gw
@@ -66,7 +63,8 @@ jobs:
       RTBOT_TOKEN: ${{ secrets.RTBOT_TOKEN }}
   test:
     needs: [ deploy ]
-    if: ${{ always() }}
+    if: |
+      (github.event_name == 'workflow_dispatch') || success()
     runs-on: self-hosted
     container:
       image: ubuntu:24.04
