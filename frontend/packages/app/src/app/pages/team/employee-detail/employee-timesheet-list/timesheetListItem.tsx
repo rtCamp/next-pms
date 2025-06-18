@@ -138,7 +138,7 @@ export const EmployeeTimesheetListItem = ({
                   variant="ghost"
                   className={mergeClassNames("size-7 group", hideEdit && "hidden")}
                 >
-                  <PencilIcon className="size-3 text-slate-500 group-hover:text-black" />
+                  <PencilIcon className="size-3 text-slate-500 group-hover:text-foreground" />
                 </Button>
               </div>
             </div>
