@@ -53,7 +53,7 @@ export class TeamPage {
     this.employeeNameInTable = (employeeName) => page.locator(`//p[text()="${employeeName}"]`);
 
     //Toast Notification
-    this.toastNotification = page.locator(`//div[text()="Timesheet status updated successfully"]`);
+    this.toastNotification = (notificationMessage) => page.locator(`//div[text()="${notificationMessage}"]`);
   }
 
   // --------------------------------------
@@ -140,12 +140,12 @@ export class TeamPage {
   /**
    * Rejects the timesheet of a specified employee.
    */
-  async rejectTimesheet({ employee, reason }) {
+  async rejectTimesheet({ employee, reason, notification }) {
     await this.openReviewTimesheetPane(employee);
     await this.actOnTimeEntry("Reject");
     await this.rejectTimesheetModal.getByPlaceholder("Add a note").fill(reason);
     await this.rejectTimesheetModal.getByRole("button", { name: "Reject" }).click();
-    await this.toastNotification.waitFor({ state: "visible" });
+    await this.toastNotification(notification).waitFor({ state: "visible" });
   }
 
   // --------------------------------------

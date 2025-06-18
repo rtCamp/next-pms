@@ -50,7 +50,7 @@ test.beforeEach(async ({ page }) => {
 
 // ------------------------------------------------------------------------------------------
 
-test("TC3: Time should be added using the direct timesheet add buttons.", async ({ page }) => {
+test.only("TC3: Time should be added using the direct timesheet add buttons.", async ({ page }) => {
   allure.story("Timesheet");
   // Import liked tasks
   await timesheetPage.importLikedTasks();
@@ -59,7 +59,7 @@ test("TC3: Time should be added using the direct timesheet add buttons.", async 
     duration: TC3data.taskInfo.duration,
     desc: TC3data.taskInfo.desc,
   });
-
+  await timesheetPage.toastNotification(TC3data.notification).waitFor({ state: "visible" });
   // Reload page to ensure changes are reflected
   await page.reload();
 

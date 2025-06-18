@@ -51,6 +51,9 @@ export class TimesheetPage {
     //Success Banner : Deleted Time Entry
     this.successBanner = page.locator(`//div[text()="Time entry deleted successfully."]`);
 
+    //Toast Notification
+    this.toastNotification = (notificationMessage) => page.locator(`//div[text()="${notificationMessage}"]`);
+
     //Timesheet Description
     this.descriptionNewEntry = page.locator(`//div[@data-placeholder = "Explain your progress"]`);
   }
