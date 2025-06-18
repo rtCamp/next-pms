@@ -70,14 +70,14 @@ const setup_filters = () => {
     fieldname: "from",
     label: __("From Date"),
     fieldtype: "Date",
-    default: frappe.datetime.get_today(),
+    default: frappe.datetime.add_months(frappe.datetime.month_start(), -1),
     reqd: 1,
   });
   frappe.query_reports["Appraisal Capacity Report"].filters.push({
     fieldname: "to",
     label: __("To Date"),
     fieldtype: "Date",
-    default: frappe.datetime.add_months(frappe.datetime.get_today(), 1),
+    default: frappe.datetime.add_days(frappe.datetime.month_start(), -1),
     reqd: 1,
   });
 

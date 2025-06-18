@@ -3,17 +3,18 @@
 
 import frappe
 from frappe import _, get_meta
-from frappe.utils import flt, getdate
+from frappe.utils import flt, getdate, month_diff
 
 from next_pms.next_pms.report.profit_report.profit_report import (
+    calculate_employee_cost,
+    calculate_employee_total_hours,
+    calculate_un_paid_leaves,
     get_employees_billable_amount,
     get_employees_timesheet_hours,
 )
-from next_pms.resource_management.report.employee_billability.employee_billability import year_diff
 from next_pms.resource_management.report.spare_capacity_report.spare_capacity_report import (
     convert_currency,
     filter_by_capacity,
-    get_allocations,
     sort_by_business_unit,
     sort_by_designation,
     sort_by_reports_to,
@@ -23,7 +24,6 @@ from next_pms.resource_management.report.spare_capacity_report.utils import (
     get_employee_fields,
     get_employee_filters,
 )
-from next_pms.resource_management.report.utils import calculate_employee_available_hours, calculate_employee_hours
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm
 from next_pms.utils.employee import generate_flat_tree, get_employee_leaves_and_holidays
 
@@ -34,7 +34,10 @@ def execute(filters=None):
     has_bu_field = employee_meta.has_field(BU_FIELD_NAME)
 
     columns = get_columns(filters)
+    data = []
     data = get_data(filters, has_bu_field)
+    # except Exception as e:
+    #     return
 
     return columns, data, None, None
 
@@ -65,7 +68,7 @@ def get_columns(filters=None):
         {
             "fieldname": "age",
             "label": _("Age in Company (yrs)"),
-            "fieldtype": "Float",
+            "fieldtype": "Data",
             "width": 180,
         },
         {
@@ -178,8 +181,6 @@ def get_data(filters=None, has_bu_field=False):
 
     employee_names = [emp.name for emp in employees if emp.get("is_employee", False)]
 
-    resource_allocation_map = get_allocations(start_date, end_date, employee_names)
-
     timesheets = get_employees_timesheet_hours(employee_names, start_date, end_date)
     billing_amount = get_employees_billable_amount(employee_names, start_date, end_date)  # This will be in USD
 
@@ -187,38 +188,27 @@ def get_data(filters=None, has_bu_field=False):
         if not emp.get("is_employee", False):
             continue
         daily_hours = get_employee_daily_working_norm(emp.name)
-        employee_allocations = resource_allocation_map.get(emp.name, [])
-
-        non_billable_allocations = [resource for resource in employee_allocations if not resource.is_billable]
-
         employee_leave_and_holiday = get_employee_leaves_and_holidays(emp.name, getdate(start_date), getdate(end_date))
 
-        holidays = employee_leave_and_holiday.get("holidays")
-        leaves = employee_leave_and_holiday.get("leaves")
-
-        employee_non_billable_hours = calculate_employee_hours(
-            daily_hours,
-            start_date,
-            end_date,
-            non_billable_allocations,
-            holidays,
-            leaves,
-        )
-        employee_free_hours = calculate_employee_available_hours(
-            daily_hours, start_date, end_date, employee_allocations, holidays, leaves
+        total_hours = calculate_employee_total_hours(
+            emp,
+            start_date=getdate(start_date),
+            end_date=getdate(end_date),
+            daily_hours=daily_hours,
+            employee_leave_and_holidays=employee_leave_and_holiday,
         )
 
         if emp.currency != currency:
             emp.ctc = convert_currency(emp.ctc, emp.currency, currency)
             emp.currency = currency
 
-        emp.age = year_diff(getdate(), emp.date_of_joining)
+        emp.age = employee_age_in_company(emp)
         emp.monthly_salary = emp.ctc / 12
         emp._monthly_salary = emp.monthly_salary
 
         emp.hourly_salary = emp.monthly_salary / 160
 
-        emp.available_capacity = flt(employee_free_hours + employee_non_billable_hours)
+        emp.available_capacity = total_hours
 
         emp_timesheet = next((timesheet for timesheet in timesheets if timesheet.employee == emp.employee), None)
 
@@ -240,7 +230,7 @@ def get_data(filters=None, has_bu_field=False):
             },
         )
 
-        if len(salary_slips) != 0:
+        if len(salary_slips) != 0 and salary_slips[0].get("currency"):
             salary_slip = salary_slips[0]
 
             emp.salary_paid = convert_currency(
@@ -249,7 +239,19 @@ def get_data(filters=None, has_bu_field=False):
                 currency,
             )
         else:
-            emp.salary_paid = 0.0
+            emp.salary_paid = convert_currency(
+                calculate_employee_cost(
+                    emp,
+                    start_date=getdate(start_date),
+                    end_date=getdate(end_date),
+                    num_of_holidays=len(employee_leave_and_holiday.get("holidays")),
+                    num_unpaid_leaves=calculate_un_paid_leaves(employee_leave_and_holiday),
+                    daily_hours=daily_hours,
+                    hourly_rate=emp.hourly_salary,
+                ),
+                emp.currency,
+                currency,
+            )
 
         emp.profit_absolute = flt(emp.revenue) - flt(emp.salary_paid)
 
@@ -275,13 +277,13 @@ def get_data(filters=None, has_bu_field=False):
                 childrens = parent_child_map.get(emp, {}).get("childrens", [])
                 child_names = [child.name for child in childrens if child.name in employee_map]
 
-                percent_billable_hours = (
-                    sum(employee_map[c].percent_billable_hours for c in child_names) + root_emp.percent_billable_hours
-                ) / (len(child_names) + 1)
+                # percent_billable_hours = (
+                #     sum(employee_map[c].percent_billable_hours for c in child_names) + root_emp.percent_billable_hours
+                # ) / (len(child_names) + 1)
 
-                percent_profit = (
-                    sum(employee_map[c].percent_profit for c in child_names) + root_emp.percent_profit
-                ) / (len(child_names) + 1)
+                # percent_profit = (
+                #     sum(employee_map[c].percent_profit for c in child_names) + root_emp.percent_profit
+                # ) / (len(child_names) + 1)
 
             elif group_by == "business_unit":
                 child_names = [
@@ -290,11 +292,11 @@ def get_data(filters=None, has_bu_field=False):
                     if child.get(BU_FIELD_NAME) == emp and child.name in employee_map and child.is_employee
                 ]
 
-                # Calculate % Capacity for root nodes (group)
-                percent_billable_hours = (sum(employee_map[c].percent_billable_hours for c in child_names)) / len(
-                    child_names
-                )
-                percent_profit = (sum(employee_map[c].percent_profit for c in child_names)) / len(child_names)
+                # # Calculate % Capacity for root nodes (group)
+                # percent_billable_hours = (sum(employee_map[c].percent_billable_hours for c in child_names)) / len(
+                #     child_names
+                # )
+                # percent_profit = (sum(employee_map[c].percent_profit for c in child_names)) / len(child_names)
 
             else:
                 child_names = [
@@ -303,10 +305,10 @@ def get_data(filters=None, has_bu_field=False):
                     if child.designation == emp and child.name in employee_map and child.is_employee
                 ]
 
-                percent_billable_hours = (sum(employee_map[c].percent_billable_hours for c in child_names)) / len(
-                    child_names
-                )
-                percent_profit = (sum(employee_map[c].percent_profit for c in child_names)) / len(child_names)
+                # percent_billable_hours = (sum(employee_map[c].percent_billable_hours for c in child_names)) / len(
+                #     child_names
+                # )
+                # percent_profit = (sum(employee_map[c].percent_profit for c in child_names)) / len(child_names)
 
             root_emp.available_capacity += sum(employee_map[c].available_capacity for c in child_names)
 
@@ -326,8 +328,10 @@ def get_data(filters=None, has_bu_field=False):
 
             root_emp.profit_absolute += sum(employee_map[c].profit_absolute for c in child_names)
 
-            root_emp.percent_billable_hours = percent_billable_hours
-            root_emp.percent_profit = percent_profit
+            root_emp.percent_billable_hours = (
+                (root_emp.billable_hours / root_emp.available_capacity) * 100 if root_emp.available_capacity else 0
+            )
+            root_emp.percent_profit = (root_emp.profit_absolute / root_emp.revenue) * 100 if root_emp.revenue else 0
 
     return employees
 
@@ -353,3 +357,25 @@ def get_employee_id_appraisal_cycle(appraisal_cycle):
     employee_ids = [emp.employee for emp in all_employee if emp.employee]
 
     return employee_ids
+
+
+def employee_age_in_company(employee):
+    all_comapines = frappe.get_all("Company")
+    all_company_name = [company.name for company in all_comapines]
+
+    all_work_history = frappe.get_all(
+        "Employee Internal Work History",
+        filters={"parent": employee.employee, "custom_company": ["in", all_company_name]},
+        fields=["custom_company", "from_date", "to_date"],
+    )
+
+    total_age = month_diff(getdate(), employee.date_of_joining)
+
+    for work_history in all_work_history:
+        if work_history.from_date and work_history.to_date:
+            total_age += month_diff(work_history.to_date, work_history.from_date)
+
+    years = int(total_age / 12)
+    remaining_months = int(total_age % 12)
+
+    return f"{years} years {remaining_months} months" if years > 0 else f"{remaining_months} months"
