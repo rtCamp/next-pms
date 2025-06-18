@@ -35,9 +35,10 @@ def execute(filters=None):
 
     columns = get_columns(filters)
     data = []
-    data = get_data(filters, has_bu_field)
-    # except Exception as e:
-    #     return
+    try:
+        data = get_data(filters, has_bu_field)
+    except Exception:
+        return
 
     return columns, data, None, None
 
