@@ -103,23 +103,23 @@ const setup_filters = () => {
 
     const buField = fields.find((field) => field.fieldtype === "Link" && field.options === buDoctype);
     if (buField) {
-      frappe.query_reports["Appraisal Evaluation Report"].filters.push({
-        fieldname: "business_unit",
-        label: __("Business Unit"),
-        fieldtype: "MultiSelectList",
-        options: buDoctype,
-        reqd: 0,
-        get_data: function (txt) {
-          return frappe.db.get_link_options(buDoctype, txt);
-        },
-      });
+      // frappe.query_reports["Appraisal Evaluation Report"].filters.push({
+      //   fieldname: "business_unit",
+      //   label: __("Business Unit"),
+      //   fieldtype: "MultiSelectList",
+      //   options: buDoctype,
+      //   reqd: 0,
+      //   get_data: function (txt) {
+      //     return frappe.db.get_link_options(buDoctype, txt);
+      //   },
+      // });
       frappe.query_reports["Appraisal Evaluation Report"].filters.push({
         fieldname: "group_by",
         label: __("Group By"),
         fieldtype: "Select",
         options: [
           { value: "", label: "" },
-          { value: "employee", label: __("Employee") },
+          { value: "reporting_manager", label: __("Reporting Manager") },
           { value: "business_unit", label: __("Business Unit") },
           { value: "designation", label: __("Designation") },
         ],
