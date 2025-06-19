@@ -234,7 +234,7 @@ def get_data(filters=None, has_bu_field=False):
 
         salary_slips = frappe.get_list(
             "Salary Slip",
-            fields=["sum(net_pay) as net_sum", "currency"],
+            fields=["sum(gross_pay) as gross_pay", "currency"],
             filters={
                 "employee": emp.name,
                 "start_date": [">=", start_date],
@@ -246,7 +246,7 @@ def get_data(filters=None, has_bu_field=False):
             salary_slip = salary_slips[0]
 
             emp.salary_paid = convert_currency(
-                flt(salary_slip.net_sum),
+                flt(salary_slip.gross_pay),
                 salary_slip.currency,
                 currency,
             )
