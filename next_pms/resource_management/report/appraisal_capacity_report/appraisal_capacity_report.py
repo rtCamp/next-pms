@@ -87,7 +87,7 @@ def get_columns(filters=None):
             "width": 200,
         },
         {
-            "label": _("Available Capacity (hrs)"),
+            "label": _("Capacity Hours"),
             "fieldname": "available_capacity",
             "fieldtype": "Float",
             "width": 160,
@@ -122,7 +122,7 @@ def get_columns(filters=None):
             "precision": 2,
         },
         {
-            "label": _("Profit absoulte ({0})").format(currency),
+            "label": _("Profit ({0})").format(currency),
             "fieldname": "profit_absolute",
             "fieldtype": "Currency",
             "options": "currency",
@@ -130,7 +130,7 @@ def get_columns(filters=None):
             "precision": 2,
         },
         {
-            "label": _("% Profitge"),
+            "label": _("% Profit"),
             "fieldname": "percent_profit",
             "fieldtype": "Percent",
             "width": 120,

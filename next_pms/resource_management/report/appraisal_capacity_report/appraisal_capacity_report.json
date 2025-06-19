@@ -12,7 +12,7 @@
  "json": "{}",
  "letter_head": "rtCamp",
  "letterhead": null,
- "modified": "2025-06-18 20:17:16.737638",
+ "modified": "2025-06-19 10:10:17.274376",
  "modified_by": "Administrator",
  "module": "Resource Management",
  "name": "Appraisal Capacity Report",
@@ -24,9 +24,6 @@
  "roles": [
   {
    "role": "System Manager"
-  },
-  {
-   "role": "Projects Manager"
   },
   {
    "role": "Delivery Manager"
