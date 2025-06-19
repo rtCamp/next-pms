@@ -1,7 +1,7 @@
 // Copyright (c) 2025, rtCamp and contributors
 // For license information, please see license.txt
 
-frappe.query_reports["Appraisal Capacity Report"] = {
+frappe.query_reports["Appraisal Evaluation Report"] = {
   filters: [],
   tree: true,
   name_field: "name",
@@ -10,7 +10,13 @@ frappe.query_reports["Appraisal Capacity Report"] = {
   formatter: function (value, row, column, data, default_formatter) {
     value = default_formatter(value, row, column, data);
 
-    if (data.has_value && ["name", "designation", "available_capacity", "monthly_salary"].includes(column.id)) {
+    const group_by = frappe.query_report.get_filter_value("group_by");
+
+    if (!group_by) {
+      return value;
+    }
+
+    if (data.has_value && ["name", "designation"].includes(column.id)) {
       var $value = $(value).css("font-weight", "bold");
       value = $value.wrap("<p></p>").parent().html();
     }
@@ -18,8 +24,6 @@ frappe.query_reports["Appraisal Capacity Report"] = {
       value = `<span style="font-weight: bold;">${value}</span>`;
     }
 
-    const group_by = frappe.query_report.get_filter_value("group_by");
-    const aggregate = frappe.query_report.get_filter_value("aggregate");
     if (["business_unit", "designation"].includes(group_by)) {
       if (data.is_employee) {
         if ("designation" == column.id) {
@@ -41,10 +45,7 @@ frappe.query_reports["Appraisal Capacity Report"] = {
           $a.replaceWith($span);
           value = $span.wrap("<p></p>").parent().html();
         }
-        if (["designation", "employee_name"].includes(column.id)) {
-          value = `<span style="font-weight: bold;"></span>`;
-        }
-        if (["available_capacity", "monthly_salary"].includes(column.id) && !aggregate) {
+        if (["designation", "employee_name", "age"].includes(column.id)) {
           value = `<span style="font-weight: bold;"></span>`;
         }
       }
@@ -66,14 +67,14 @@ frappe.query_reports["Appraisal Capacity Report"] = {
 };
 
 const setup_filters = () => {
-  frappe.query_reports["Appraisal Capacity Report"].filters.push({
+  frappe.query_reports["Appraisal Evaluation Report"].filters.push({
     fieldname: "from",
     label: __("From Date"),
     fieldtype: "Date",
     default: frappe.datetime.add_months(frappe.datetime.month_start(), -1),
     reqd: 1,
   });
-  frappe.query_reports["Appraisal Capacity Report"].filters.push({
+  frappe.query_reports["Appraisal Evaluation Report"].filters.push({
     fieldname: "to",
     label: __("To Date"),
     fieldtype: "Date",
@@ -90,7 +91,7 @@ const setup_filters = () => {
 
     const statusField = fields.find((field) => field.fieldtype === "Select" && field.fieldname === "status");
     if (statusField) {
-      frappe.query_reports["Appraisal Capacity Report"].filters.push({
+      frappe.query_reports["Appraisal Evaluation Report"].filters.push({
         fieldname: "status",
         label: __("Status"),
         fieldtype: "Select",
@@ -102,7 +103,7 @@ const setup_filters = () => {
 
     const buField = fields.find((field) => field.fieldtype === "Link" && field.options === buDoctype);
     if (buField) {
-      frappe.query_reports["Appraisal Capacity Report"].filters.push({
+      frappe.query_reports["Appraisal Evaluation Report"].filters.push({
         fieldname: "business_unit",
         label: __("Business Unit"),
         fieldtype: "MultiSelectList",
@@ -112,19 +113,20 @@ const setup_filters = () => {
           return frappe.db.get_link_options(buDoctype, txt);
         },
       });
-      frappe.query_reports["Appraisal Capacity Report"].filters.push({
+      frappe.query_reports["Appraisal Evaluation Report"].filters.push({
         fieldname: "group_by",
         label: __("Group By"),
         fieldtype: "Select",
         options: [
+          { value: "", label: "" },
           { value: "employee", label: __("Employee") },
           { value: "business_unit", label: __("Business Unit") },
           { value: "designation", label: __("Designation") },
         ],
-        default: "business_unit",
+        default: "",
       });
     }
-    frappe.query_reports["Appraisal Capacity Report"].filters.push({
+    frappe.query_reports["Appraisal Evaluation Report"].filters.push({
       fieldname: "designation",
       label: __("Designation"),
       fieldtype: "MultiSelectList",
@@ -134,13 +136,13 @@ const setup_filters = () => {
         return frappe.db.get_link_options("Designation", txt);
       },
     });
-    frappe.query_reports["Appraisal Capacity Report"].filters.push({
+    frappe.query_reports["Appraisal Evaluation Report"].filters.push({
       fieldname: "appraisal_cycle",
       label: __("Appraisal Cycle"),
       fieldtype: "Link",
       options: "Appraisal Cycle",
     });
-    frappe.query_reports["Appraisal Capacity Report"].filters.push({
+    frappe.query_reports["Appraisal Evaluation Report"].filters.push({
       fieldname: "currency",
       label: __("Currency"),
       fieldtype: "Select",
@@ -148,7 +150,7 @@ const setup_filters = () => {
       reqd: 0,
       default: "USD",
     });
-    frappe.query_reports["Appraisal Capacity Report"].filters.push({
+    frappe.query_reports["Appraisal Evaluation Report"].filters.push({
       fieldname: "aggregate",
       label: __("Aggregate"),
       fieldtype: "Check",

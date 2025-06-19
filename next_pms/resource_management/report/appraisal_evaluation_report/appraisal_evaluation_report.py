@@ -147,7 +147,7 @@ def get_data(filters=None, has_bu_field=False):
     start_date = filters.get("from")
     end_date = filters.get("to")
     aggregate = filters.get("aggregate", False)
-    group_by = filters.get("group_by", "business_unit")
+    group_by = filters.get("group_by", "")
     currency = filters.get("currency") or "USD"
     appraisal_cycle = filters.get("appraisal_cycle", None)
     fields = get_employee_fields(has_bu_field)
@@ -180,7 +180,7 @@ def get_data(filters=None, has_bu_field=False):
     parent_child_map = data.get("with_children", {})
 
     for emp in employees:
-        emp.indent = emp.level or 0
+        emp.indent = emp.level or 0 if group_by else 0
         emp.has_value = len(parent_child_map.get(emp.name, {}).get("childrens", [])) > 0
         emp.is_employee = True
 
@@ -188,6 +188,8 @@ def get_data(filters=None, has_bu_field=False):
 
     timesheets = get_employees_timesheet_hours(employee_names, start_date, end_date)
     billing_amount = get_employees_billable_amount(employee_names, start_date, end_date)  # This will be in USD
+
+    without_group_by_employees = []
 
     for emp in employees:
         if not emp.get("is_employee", False):
@@ -265,10 +267,12 @@ def get_data(filters=None, has_bu_field=False):
 
         emp.profit_absolute = flt(emp.revenue) - flt(emp.salary_paid)
 
-        if emp.profit_absolute < 0:
-            emp.percent_profit = 0
-        else:
-            emp.percent_profit = (emp.profit_absolute / emp.revenue) * 100 if emp.revenue else 0
+        emp.percent_profit = (emp.profit_absolute / emp.salary_paid) * 100 if emp.salary_paid else 0
+
+        without_group_by_employees.append(emp)
+
+    if not group_by:
+        return without_group_by_employees
 
     #  Filter out employees based on the capacity filter
     show_no_capacity = filters.get("show_no_capacity", False)
@@ -344,7 +348,9 @@ def get_data(filters=None, has_bu_field=False):
             root_emp.percent_billable_hours = (
                 (root_emp.billable_hours / root_emp.available_capacity) * 100 if root_emp.available_capacity else 0
             )
-            root_emp.percent_profit = (root_emp.profit_absolute / root_emp.revenue) * 100 if root_emp.revenue else 0
+            root_emp.percent_profit = (
+                (root_emp.profit_absolute / root_emp.salary_paid) * 100 if root_emp.salary_paid else 0
+            )
 
     return employees
 
