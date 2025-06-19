@@ -25,7 +25,11 @@ from next_pms.resource_management.report.spare_capacity_report.utils import (
     get_employee_filters,
 )
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm
-from next_pms.utils.employee import generate_flat_tree, get_employee_leaves_and_holidays
+from next_pms.utils.employee import (
+    generate_flat_tree,
+    get_employee_joining_date_based_on_work_history,
+    get_employee_leaves_and_holidays,
+)
 
 
 def execute(filters=None):
@@ -191,6 +195,9 @@ def get_data(filters=None, has_bu_field=False):
         daily_hours = get_employee_daily_working_norm(emp.name)
         employee_leave_and_holiday = get_employee_leaves_and_holidays(emp.name, getdate(start_date), getdate(end_date))
 
+        actual_date_oj_joining = emp.date_of_joining
+        emp.date_of_joining = get_employee_joining_date_based_on_work_history(emp)
+
         total_hours = calculate_employee_total_hours(
             emp,
             start_date=getdate(start_date),
@@ -198,6 +205,8 @@ def get_data(filters=None, has_bu_field=False):
             daily_hours=daily_hours,
             employee_leave_and_holidays=employee_leave_and_holiday,
         )
+
+        emp.date_of_joining = actual_date_oj_joining
 
         if emp.currency != currency:
             emp.ctc = convert_currency(emp.ctc, emp.currency, currency)
@@ -256,7 +265,10 @@ def get_data(filters=None, has_bu_field=False):
 
         emp.profit_absolute = flt(emp.revenue) - flt(emp.salary_paid)
 
-        emp.percent_profit = (emp.profit_absolute / emp.revenue) * 100 if emp.revenue else 0
+        if emp.profit_absolute < 0:
+            emp.percent_profit = 0
+        else:
+            emp.percent_profit = (emp.profit_absolute / emp.revenue) * 100 if emp.revenue else 0
 
     #  Filter out employees based on the capacity filter
     show_no_capacity = filters.get("show_no_capacity", False)
