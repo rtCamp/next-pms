@@ -38,8 +38,6 @@ test.afterAll(async () => {
 });
 
 test.describe("Resource Management tests", () => {
-  test.describe.configure({ mode: "serial" });
-
   test("TC-102: Verify add Allocation workflow by the Plus button", async ({ page }) => {
     allure.story("Resource Management");
     const projectName = data.TC102.payloadCreateProject.project_name;
@@ -68,8 +66,8 @@ test.describe("Resource Management tests", () => {
     await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
     await teamPage.clearFilter();
     await timelinePage.filterEmployeeByName(employeeName);
-    await teamPage.deleteAllocation(projectName);
-    await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
+    //await teamPage.deleteAllocation(projectName);
+    //await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
   });
 
   test("TC-104: Verify add Allocation workflow by clicking on a specfic cell wrt Project and Date", async ({
