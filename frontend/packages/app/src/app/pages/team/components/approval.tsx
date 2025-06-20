@@ -120,7 +120,7 @@ export const Approval = ({ onClose, employee, startDate, endDate, isAprrovalDial
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, error]);
+  }, [data, error, isLoading]);
   useEffect(() => {
     if (timesheetData) {
       const filteredDates = timesheetData.dates
