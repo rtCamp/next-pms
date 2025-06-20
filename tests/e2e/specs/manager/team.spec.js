@@ -34,234 +34,170 @@ let TC94data = data.TC94;
 // Load authentication state from 'manager.json'
 test.use({ storageState: path.resolve(__dirname, "../../auth/manager.json") });
 
-test.beforeEach(async ({ page }) => {
-  // Instantiate page objects
-  teamPage = new TeamPage(page);
-  timesheetPage = new TimesheetPage(page);
-
-  // Switch to Team tab
-  await teamPage.goto();
-});
-
-// ------------------------------------------------------------------------------------------
-
-test("TC38: Validate the search functionality   ", async ({}) => {
-  allure.story("Team");
-  // Search employee
-  await teamPage.searchEmployee(empName);
-
-  // Assertions
-  const filteredEmployees = await teamPage.getEmployees();
-  expect(filteredEmployees.length).toBe(1);
-  expect(filteredEmployees[0]).toBe(empName);
-});
-
-test("TC39: The reporting manager filter   ", async ({}) => {
-  allure.story("Team");
-  // Apply 'Reports To' filter
-  await teamPage.applyReportsTo(manName);
-
-  // Retrive employees from the parent table
-  const employees = await teamPage.getEmployees();
-
-  // Assertions
-  expect(employees.sort()).toEqual(TC39data.employees.sort());
-});
-
-test("TC42: Validate the functionality of the ‘Next’ and ‘Previous’ week change buttons.   ", async ({}) => {
-  allure.story("Team");
-  // Navigate to the next week and fetch the column date
-  await teamPage.viewNextWeek();
-  const nextColDate = await teamPage.getColDate(TC42data.col);
-
-  // Navigate to the next week again, then go back to the previous week and fetch the column date
-  await teamPage.viewNextWeek();
-  await teamPage.viewPreviousWeek();
-  const prevColDate = await teamPage.getColDate(TC42data.col);
-
-  // Assertions
-  const expectedColDate = getShortFormattedDate(getDateForWeekday(TC42data.col)); // Compute expected column date
-  expect(prevColDate).toBe(expectedColDate);
-  expect(nextColDate).toBe(expectedColDate);
-});
-
-test("TC43: Validate that the timesheet dropdown section is working.   ", async ({}) => {
-  allure.story("Team");
-  // Toggle employee timesheet
-  await teamPage.toggleEmployeeTimesheet(empName);
-
-  // Assertions
-  const isEmployeeTimesheetVisible = await teamPage.isEmployeeTimesheetVisible(empName);
-  expect(isEmployeeTimesheetVisible).toBeTruthy();
-});
-
-test("TC44: Validate the timesheets for individual employees for all weeks.   ", async ({}) => {
-  allure.story("Team");
-  // Navigate to employee's timesheet
-  await teamPage.navigateToEmpTimesheet(empName);
-
-  // Assertions
-  const selectedEmployee = await timesheetPage.getSelectedEmployee();
-  expect(selectedEmployee).toContain(empName);
-});
-
-test("TC45: Change the employee selected from the top search and verify that the timesheets below are updated accordingly.   ", async ({}) => {
-  allure.story("Team");
-  // Navigate to employee's timesheet
-  await teamPage.navigateToEmpTimesheet(empName);
-
-  // Select a different employee
-  await timesheetPage.selectEmployee(TC45data.employee);
-  // Assertions
-  const selectedEmployee = await timesheetPage.getSelectedEmployee();
-  expect(selectedEmployee).toContain(TC45data.employee);
-});
-
-test("TC47: Validate the modification of the employee timesheet or the deletion of time entries.   ", async ({
-  page,
-}) => {
-  allure.story("Team");
-  // View next week
-  await teamPage.viewNextWeek();
-
-  // Open employee timesheet pane
-  await teamPage.openReviewTimesheetPane(empName);
-
-  // Update time entry's duration
-  const date = getShortFormattedDate(getDateForWeekday(TC47data.cell.col));
-  await teamPage.updateDurationOfTimeEntry({
-    date: date,
-    project: TC47data.taskInfo.project,
-    task: TC47data.taskInfo.task,
-    desc: TC47data.taskInfo.desc,
-    newDuration: TC47data.taskInfo.duration,
+test.describe("Manager: Team Tab", () => {
+  test.beforeEach(async ({ page }) => {
+    teamPage = new TeamPage(page);
+    timesheetPage = new TimesheetPage(page);
+    await teamPage.goto();
   });
 
-  // Reload page to ensure changes are reflected
-  await page.reload();
-
-  // View next week
-  await teamPage.viewNextWeek();
-
-  // Toggle employee timesheet
-  await teamPage.toggleEmployeeTimesheet(empName);
-
-  // Assertions
-  const cellText = await timesheetPage.getCellText({
-    employee: empName,
-    rowName: TC47data.cell.rowName,
-    col: TC47data.cell.col,
+  test("TC38: Validate the search functionality", async ({}) => {
+    allure.story("Team");
+    await teamPage.searchEmployee(empName);
+    const filteredEmployees = await teamPage.getEmployees();
+    expect(filteredEmployees.length).toBe(1);
+    expect(filteredEmployees[0]).toBe(empName);
   });
-  expect(cellText).toContain(TC47data.taskInfo.duration);
-});
 
-test("TC49: Rejecting timesheet for the employee   ", async ({ page }) => {
-  allure.story("Team");
-  // View next week
-  await teamPage.viewNextWeek();
+  test("TC39: The reporting manager filter", async ({}) => {
+    allure.story("Team");
+    await teamPage.applyReportsTo(manName);
+    const employees = await teamPage.getEmployees();
+    expect(employees.sort()).toEqual(TC39data.employees.sort());
+  });
 
-  // Reject timesheet
-  await teamPage.rejectTimesheet({ employee: empName, reason: TC49data.reason, notification: TC49data.notification });
+  test("TC42: Validate Next/Previous week change buttons", async ({}) => {
+    allure.story("Team");
+    await teamPage.viewNextWeek();
+    const nextColDate = await teamPage.getColDate(TC42data.col);
+    await teamPage.viewNextWeek();
+    await teamPage.viewPreviousWeek();
+    const prevColDate = await teamPage.getColDate(TC42data.col);
+    const expectedColDate = getShortFormattedDate(getDateForWeekday(TC42data.col));
+    expect(prevColDate).toBe(expectedColDate);
+    expect(nextColDate).toBe(expectedColDate);
+  });
 
-  // Reload page to ensure changes are reflected
-  await page.reload();
+  test("TC43: Timesheet dropdown section is working", async ({}) => {
+    allure.story("Team");
+    await teamPage.toggleEmployeeTimesheet(empName);
+    const isVisible = await teamPage.isEmployeeTimesheetVisible(empName);
+    expect(isVisible).toBeTruthy();
+  });
 
-  // View next week
-  await teamPage.viewNextWeek();
+  test("TC44: Timesheets for employees for all weeks", async ({}) => {
+    allure.story("Team");
+    await teamPage.navigateToEmpTimesheet(empName);
+    const selectedEmployee = await timesheetPage.getSelectedEmployee();
+    expect(selectedEmployee).toContain(empName);
+  });
 
-  // Get timesheet status
-  const status = await teamPage.getTimesheetStatus(empName);
+  test("TC45: Change selected employee and verify timesheets update", async ({}) => {
+    allure.story("Team");
+    await teamPage.navigateToEmpTimesheet(empName);
+    await timesheetPage.selectEmployee(TC45data.employee);
+    const selectedEmployee = await timesheetPage.getSelectedEmployee();
+    expect(selectedEmployee).toContain(TC45data.employee);
+  });
 
-  // Assertions
-  expect(status).toBe("Rejected");
-});
+  test("TC47: Modify or delete employee time entries", async ({ page }) => {
+    allure.story("Team");
+    await teamPage.viewNextWeek();
+    await teamPage.openReviewTimesheetPane(empName);
+    const date = getShortFormattedDate(getDateForWeekday(TC47data.cell.col));
+    await teamPage.updateDurationOfTimeEntry({
+      date,
+      project: TC47data.taskInfo.project,
+      task: TC47data.taskInfo.task,
+      desc: TC47data.taskInfo.desc,
+      newDuration: TC47data.taskInfo.duration,
+    });
+    await page.reload();
+    await teamPage.viewNextWeek();
+    await teamPage.searchEmployee(empName);
+    await teamPage.toggleEmployeeTimesheet(empName);
+    const cellText = await timesheetPage.getCellText({
+      employee: empName,
+      rowName: TC47data.cell.rowName,
+      col: TC47data.cell.col,
+    });
+    expect(cellText).toContain(TC47data.taskInfo.duration);
+  });
 
-test("TC50: Open task details popup   ", async ({}) => {
-  allure.story("Team");
-  // View next week
-  await teamPage.viewNextWeek();
+  test("TC49: Reject timesheet for employee", async ({ page }) => {
+    allure.story("Team");
+    await teamPage.viewNextWeek();
+    await teamPage.rejectTimesheet({
+      employee: empName,
+      reason: TC49data.reason,
+      notification: TC49data.notification,
+    });
+    await page.reload();
+    await teamPage.viewNextWeek();
+    const status = await teamPage.getTimesheetStatus(empName);
+    expect(status).toBe("Rejected");
+  });
 
-  // Toggle employee timesheet
-  await teamPage.toggleEmployeeTimesheet(empName);
+  test("TC50: Open task details popup", async ({}) => {
+    allure.story("Team");
+    await teamPage.viewNextWeek();
+    await teamPage.toggleEmployeeTimesheet(empName);
+    await teamPage.openTaskDetails({
+      employee: empName,
+      task: TC50data.payloadCreateTask.subject,
+    });
+    const isDialogVisible = await teamPage.isTaskDetailsDialogVisible(TC50data.task);
+    expect(isDialogVisible).toBeTruthy();
+  });
 
-  // Open task details
-  await teamPage.openTaskDetails({ employee: empName, task: TC50data.payloadCreateTask.subject });
+  test("TC53: Verify the manager view", async ({}) => {
+    allure.story("Team");
 
-  // Assertions
-  const isTaskDetailsDialogVisible = await teamPage.isTaskDetailsDialogVisible(TC50data.task);
-  expect(isTaskDetailsDialogVisible).toBeTruthy();
-});
+    const employees = await teamPage.getEmployees();
 
-test("TC53: Verify the manager view.   ", async ({}) => {
-  allure.story("Team");
-  // Retrive employees from the parent table
-  const employees = await teamPage.getEmployees();
+    const expectedEmployees =
+      process.env.REP_MAN_ID !== "EMP-00519" ? TC53data.employeesInQE : TC53data.employeesInStaging;
 
-  // Assertions
-  expect(employees.sort()).toEqual(TC53data.employees.sort());
-});
+    // Normalize function to trim and collapse multiple spaces
+    const normalize = (name) => name.replace(/\s+/g, " ").trim();
 
-test("TC91: Verify Employee Status filter to show the results appropriately", async () => {
-  allure.story("Team");
-  //Apply the filter based on Emp Status
-  const employeeStatuses = ["Active", "Inactive", "Suspended", "Left"];
-  for (const empStatus of employeeStatuses) {
-    console.warn(`Verifying results for Employee Status: ${empStatus}`);
+    const normalizedActual = employees.map(normalize).sort();
+    const normalizedExpected = expectedEmployees.map(normalize).sort();
 
-    // Apply the filter
-    await teamPage.checkEmployeeStatus(empStatus);
+    expect(normalizedActual).toEqual(normalizedExpected);
+  });
 
-    // Filter employees based on the current status
-    const employeesWithStatus = TC91data.createdEmployees.filter((emp) => emp.status === empStatus);
-
-    if (employeesWithStatus.length > 0) {
-      for (const employee of employeesWithStatus) {
-        const employeeFullName = `${employee.first_name} ${employee.last_name}`;
-        console.warn(`Verifying visibility of employee: ${employeeFullName}`);
-
-        // Assertion : Verify employee name is visible
-        await expect(teamPage.employeeNameInTable(employeeFullName)).toBeVisible();
+  test("TC91: Employee Status filter shows correct results", async () => {
+    allure.story("Team");
+    const employeeStatuses = ["Active", "Inactive", "Suspended", "Left"];
+    for (const empStatus of employeeStatuses) {
+      console.warn(`Verifying results for Employee Status: ${empStatus}`);
+      await teamPage.checkEmployeeStatus(empStatus);
+      const employeesWithStatus = TC91data.createdEmployees.filter((emp) => emp.status === empStatus);
+      if (employeesWithStatus.length > 0) {
+        for (const employee of employeesWithStatus) {
+          const fullName = `${employee.first_name} ${employee.last_name}`;
+          await expect(teamPage.employeeNameInTable(fullName)).toBeVisible();
+        }
+      } else {
+        console.warn(`No employees found with status: ${empStatus}`);
       }
-    } else {
-      console.warn(`No employees found with status: ${empStatus}`);
     }
-  }
-});
-test("TC92: Verify Approval Status filter to show the results appropriately", async ({}) => {
-  allure.story("Team");
-  // View next week
-  await teamPage.viewNextWeek();
+  });
 
-  //Check the random Approval Status
-  await teamPage.checkApprovalStatus(TC92data.payloadApprovalStatus.approvalStatus);
+  test("TC92: Approval Status filter shows correct results", async ({}) => {
+    allure.story("Team");
+    await teamPage.viewNextWeek();
+    await teamPage.checkApprovalStatus(TC92data.payloadApprovalStatus.approvalStatus);
+    const status = await teamPage.getTimesheetStatus(emp3Name);
+    if (TC92data.payloadApprovalStatus.approvalStatus === "Partially Rejected") {
+      expect(status).toContain("Rejected");
+    } else {
+      expect(status).toBe(TC92data.payloadApprovalStatus.approvalStatus);
+    }
+  });
 
-  // Get timesheet status
-  const status = await teamPage.getTimesheetStatus(emp3Name);
-  // Assertions
-  if (TC92data.payloadApprovalStatus.approvalStatus === "Partially Rejected") {
-    expect(status).toContain("Rejected");
-  } else {
-    expect(status).toBe(TC92data.payloadApprovalStatus.approvalStatus);
-  }
-});
+  test("TC93: Project Filter shows employee under project", async ({}) => {
+    allure.story("Team");
+    await teamPage.checkProjectStatus(TC93data.payloadCreateProject.project_name);
+    for (const employee of TC93data.projectSharedWithEmps) {
+      await expect(teamPage.employeeNameInTable(employee)).toBeVisible();
+    }
+  });
 
-test("TC93: Verify Project Filter to show the employee under a specfic project ", async ({}) => {
-  allure.story("Team");
-  // Select the project filter and set the project present in TC93
-  await teamPage.checkProjectStatus(TC93data.payloadCreateProject.project_name);
-  const shareProjectArray = TC93data.projectSharedWithEmps;
-
-  //Assertion : Verify if the employees are shown for the resp Project
-  for (const employee of shareProjectArray) {
-    await expect(teamPage.employeeNameInTable(employee)).toBeVisible();
-  }
-});
-
-test("TC94: Verify the user group Filter to show the correct results", async ({}) => {
-  allure.story("Team");
-  // Apply filter for user group
-  await teamPage.checkUserGroup(TC94data.payloadCreateUserGroup.__newname);
-
-  //Assertion:
-  await expect(teamPage.employeeNameInTable(TC94data.employeeName)).toBeVisible();
+  test("TC94: User group Filter shows correct results", async ({}) => {
+    allure.story("Team");
+    await teamPage.checkUserGroup(TC94data.payloadCreateUserGroup.__newname);
+    await expect(teamPage.employeeNameInTable(TC94data.employeeName)).toBeVisible();
+  });
 });
