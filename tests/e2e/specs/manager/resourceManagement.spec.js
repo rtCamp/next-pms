@@ -6,6 +6,7 @@ import { ProjectPage } from "../../pageObjects/resourceManagement/project";
 import * as allure from "allure-js-commons";
 import data from "../../data/manager/team.json";
 import { deleteAllocation } from "../../utils/api/projectRequests";
+import { getFormattedDateNDaysFromToday } from "../../utils/dateUtils";
 
 let timelinePage;
 let teamPage;
@@ -60,13 +61,14 @@ test.describe("Resource Management tests", () => {
     const projectName = data.TC103.payloadCreateProject.project_name;
     const employeeName = data.TC103.employee;
     const customerName = data.TC103.payloadCreateProject.customer;
+    const { date, day } = getFormattedDateNDaysFromToday(1);
     await teamPage.goto();
-    const allocationName = await teamPage.addAllocationFromTeam(projectName, customerName, employeeName);
+    const allocationName = await teamPage.addAllocationFromTeamTab(projectName, customerName, employeeName, date, day);
     createdAllocations.push(allocationName);
     await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
-    await teamPage.clearFilter();
-    await timelinePage.filterEmployeeByName(employeeName);
-    //await teamPage.deleteAllocation(projectName);
+    //await teamPage.clearFilter();
+    //await timelinePage.filterEmployeeByName(employeeName);
+    //await teamPage.deleteAllocationFromTeamTab();
     //await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
   });
 

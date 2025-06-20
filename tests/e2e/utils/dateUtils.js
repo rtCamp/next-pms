@@ -120,3 +120,24 @@ export const getFormattedCurrentDate = () => {
   const formattedDate = today.toLocaleDateString("en-US", options);
   return formattedDate;
 };
+
+/**
+ * Get the date n days from today in 'Jun 6' or 'Jun 11' format along with day of the week as 'Wed'
+ */
+export const getFormattedDateNDaysFromToday = (n) => {
+  const date = new Date();
+  date.setDate(date.getDate() + n);
+
+  const formattedDate = date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+
+  const dayOfWeek = date.toLocaleDateString("en-US", {
+    weekday: "short",
+  });
+  return {
+    date: formattedDate,
+    day: dayOfWeek,
+  };
+};

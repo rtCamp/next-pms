@@ -1,4 +1,5 @@
 import { TimelinePage } from "./timeline";
+import { getFormattedDateNDaysFromToday } from "../../utils/dateUtils";
 
 export class TeamPage extends TimelinePage {
   constructor(page) {
@@ -24,13 +25,18 @@ export class TeamPage extends TimelinePage {
    * @param {string} customerName - The name of the customer associated with the project
    * @param {string} employeeName - The name of the employee to allocate
    */
-  async addAllocationFromTeam(projectName, customerName, employeeName) {
+  async addAllocationFromTeamTab(projectName, customerName, employeeName, date, day) {
     await this.filterEmployeeByName(employeeName);
-    await this.page.getByTitle(`${employeeName} (${this.formattedDate} - ${this.dayOfWeek})`).click();
+    if (day == "Sat" || day == "Sun") {
+      let { date, day } = getFormattedDateNDaysFromToday(3);
+      console.log(date, day);
+      await this.page.getByTitle(`${employeeName} (${date} - ${day})`).click();
+    } else {
+      await this.page.getByTitle(`${employeeName} (${date} - ${day})`).click();
+    }
     await this.selectCustomer(customerName);
     await this.selectProject(customerName, projectName);
     await this.setHoursPerDay();
-
     // Wait for the allocation API response and click the create button in parallel
     const [response] = await Promise.all([
       this.page.waitForResponse(
@@ -49,7 +55,7 @@ export class TeamPage extends TimelinePage {
   /**
    * Delete an allocation from team page
    */
-  async deleteAllocation() {
+  async deleteAllocationFromTeamTab() {
     await this.page.waitForTimeout(1000);
     await this.deleteCell.hover();
     await this.deleteButton.click();
