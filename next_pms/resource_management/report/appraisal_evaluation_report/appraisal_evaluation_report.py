@@ -195,7 +195,7 @@ def get_data(filters=None, has_bu_field=False):
     parent_child_map = data.get("with_children", {})
 
     for emp in employees:
-        emp.indent = emp.level or 0 if group_by else 0
+        emp.indent = (emp.level or 0) if group_by else 0
         emp.has_value = len(parent_child_map.get(emp.name, {}).get("childrens", [])) > 0
         emp.is_employee = True
 
@@ -294,7 +294,7 @@ def get_data(filters=None, has_bu_field=False):
         root_nodes = [emp.name for emp in employees if emp.has_value]
         for emp in root_nodes:
             root_emp = employee_map[emp]
-            if group_by == "employee":
+            if group_by == "reporting_manager":
                 childrens = parent_child_map.get(emp, {}).get("childrens", [])
                 child_names = [child.name for child in childrens if child.name in employee_map]
 
