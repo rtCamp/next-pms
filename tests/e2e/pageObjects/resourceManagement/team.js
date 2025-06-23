@@ -1,5 +1,4 @@
 import { TimelinePage } from "./timeline";
-import { getFormattedDateNDaysFromToday } from "../../utils/dateUtils";
 
 export class TeamPage extends TimelinePage {
   constructor(page) {
