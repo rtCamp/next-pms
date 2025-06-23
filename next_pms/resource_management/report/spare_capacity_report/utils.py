@@ -162,6 +162,3 @@ def validate_filters(filters):
 
     if start_date > end_date:
         throw(_("The 'From' date should be than the 'To' date."))
-
-    if start_date < getdate():
-        throw(_("The 'From' date cannot be in the past."))
