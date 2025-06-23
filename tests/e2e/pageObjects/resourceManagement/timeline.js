@@ -166,7 +166,7 @@ export class TimelinePage {
   async clearFilter() {
     try {
       await this.clearFilterIcon.click();
-    } catch (error) {
+    } catch {
       console.log("Filter already cleared");
     }
   }
