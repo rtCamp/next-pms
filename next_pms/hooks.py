@@ -163,11 +163,11 @@ fixtures = [
     },
     {
         "dt": "Custom DocPerm",
-        "filters": [
+        "or_filters": [
             [
-                "role",
+                "parent",
                 "in",
-                ["Next PMS", "Timesheet Manager", "Timesheet User", "Resource Management"],
+                ["Task", "Project", "Timesheet"],
             ]
         ],
     },
