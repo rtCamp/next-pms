@@ -403,8 +403,13 @@ def employee_age_in_company(employee):
     total_age = month_diff(getdate(), employee.date_of_joining)
 
     for work_history in all_work_history:
-        if work_history.from_date and work_history.to_date:
-            total_age += month_diff(work_history.to_date, work_history.from_date)
+        if not work_history.from_date or not work_history.to_date:
+            continue
+
+        if work_history.from_date <= employee.date_of_joining <= work_history.to_date:
+            continue
+
+        total_age += month_diff(work_history.to_date, work_history.from_date)
 
     years = int(total_age / 12)
     remaining_months = int(total_age % 12)
