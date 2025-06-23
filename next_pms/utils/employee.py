@@ -107,3 +107,35 @@ def generate_flat_tree(doctype: str, nsm_field: str, filters: dict, fields: list
             queue.append((child, level + 1))
 
     return {"level": flat_tree, "with_children": children_dict}
+
+
+def employee_age_in_company(employee, end_date):
+    from frappe import get_all
+    from frappe.utils import month_diff
+
+    all_comapines = get_all("Company", pluck="name")
+
+    all_work_history = get_all(
+        "Employee Internal Work History",
+        filters={
+            "parent": employee.employee,
+            "custom_company": ["in", all_comapines],
+        },
+        fields=["custom_company", "from_date", "to_date"],
+    )
+
+    total_age = month_diff(end_date, employee.date_of_joining)
+
+    for work_history in all_work_history:
+        if not work_history.from_date or not work_history.to_date:
+            continue
+
+        if work_history.from_date <= employee.date_of_joining <= work_history.to_date:
+            continue
+
+        total_age += month_diff(work_history.to_date, work_history.from_date)
+
+    years = int(total_age / 12)
+    remaining_months = int(total_age % 12)
+
+    return f"{years} years {remaining_months} months" if years > 0 else f"{remaining_months} months"

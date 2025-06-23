@@ -6,7 +6,7 @@ from copy import deepcopy
 import frappe
 from frappe import _, get_meta
 from frappe.types.frappedict import _dict
-from frappe.utils import flt, getdate, month_diff
+from frappe.utils import flt, getdate
 
 from next_pms.next_pms.report.profit_report.profit_report import (
     calculate_employee_total_hours,
@@ -25,6 +25,7 @@ from next_pms.resource_management.report.spare_capacity_report.utils import (
 )
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm
 from next_pms.utils.employee import (
+    employee_age_in_company,
     generate_flat_tree,
     get_employee_joining_date_based_on_work_history,
     get_employee_leaves_and_holidays,
@@ -238,7 +239,10 @@ def get_data(filters=None, has_bu_field=False):
 
         emp.capacity_hours = total_hours
 
-        emp_timesheet = next((timesheet for timesheet in timesheets if timesheet.employee == emp.employee), None)
+        emp_timesheet = next(
+            (timesheet for timesheet in timesheets if timesheet.employee == emp.employee),
+            None,
+        )
 
         emp.billable_hours = flt(emp_timesheet.get("billable_hours", 0) if emp_timesheet else 0)
         emp.non_billable_hours = flt(emp_timesheet.get("non_billable_hours", 0) if emp_timesheet else 0)
@@ -353,7 +357,15 @@ def sort_by_business_unit(employees, has_bu_field=False, currency="USD"):
     empty_copy = {key: 0 for key in default}
 
     for unit in units:
-        empty_copy.update({"name": unit, "indent": 0, "has_value": False, "is_employee": False, "currency": currency})
+        empty_copy.update(
+            {
+                "name": unit,
+                "indent": 0,
+                "has_value": False,
+                "is_employee": False,
+                "currency": currency,
+            }
+        )
         bu_employees = [emp for emp in employees if emp.get(BU_FIELD_NAME) == unit]
         if bu_employees:
             empty_copy["has_value"] = True
@@ -388,30 +400,3 @@ def get_employee_id_appraisal_cycle(appraisal_cycle):
     employee_ids = [emp.employee for emp in all_employee if emp.employee]
 
     return employee_ids
-
-
-def employee_age_in_company(employee, end_date):
-    all_comapines = frappe.get_all("Company")
-    all_company_name = [company.name for company in all_comapines]
-
-    all_work_history = frappe.get_all(
-        "Employee Internal Work History",
-        filters={"parent": employee.employee, "custom_company": ["in", all_company_name]},
-        fields=["custom_company", "from_date", "to_date"],
-    )
-
-    total_age = month_diff(end_date, employee.date_of_joining)
-
-    for work_history in all_work_history:
-        if not work_history.from_date or not work_history.to_date:
-            continue
-
-        if work_history.from_date <= employee.date_of_joining <= work_history.to_date:
-            continue
-
-        total_age += month_diff(work_history.to_date, work_history.from_date)
-
-    years = int(total_age / 12)
-    remaining_months = int(total_age % 12)
-
-    return f"{years} years {remaining_months} months" if years > 0 else f"{remaining_months} months"
