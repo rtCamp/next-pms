@@ -63,13 +63,19 @@ test.describe("Resource Management tests", () => {
     const customerName = data.TC103.payloadCreateProject.customer;
     const { date, day } = getFormattedDateNDaysFromToday(1);
     await teamPage.goto();
-    const allocationName = await teamPage.addAllocationFromTeamTab(projectName, customerName, employeeName, date, day);
+    const { allocationName, dateUsed, DayUsed } = await teamPage.addAllocationFromTeamTab(
+      projectName,
+      customerName,
+      employeeName,
+      date,
+      day
+    );
     createdAllocations.push(allocationName);
     await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
-    //await teamPage.clearFilter();
-    //await timelinePage.filterEmployeeByName(employeeName);
-    //await teamPage.deleteAllocationFromTeamTab();
-    //await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
+    await teamPage.clearFilter();
+    await timelinePage.filterEmployeeByName(employeeName);
+    await teamPage.deleteAllocationFromTeamTab(employeeName, dateUsed, DayUsed);
+    await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
   });
 
   test("TC-104: Verify add Allocation workflow by clicking on a specfic cell wrt Project and Date", async ({
@@ -79,13 +85,20 @@ test.describe("Resource Management tests", () => {
     const projectName = data.TC104.payloadCreateProject.project_name;
     const employeeName = data.TC104.employee;
     const customerName = data.TC104.payloadCreateProject.customer;
+    const { date, day } = getFormattedDateNDaysFromToday(2);
     await projectPage.goto();
-    const allocationName = await projectPage.addAllocationFromProjectTab(projectName, customerName, employeeName);
+    const { allocationName, dateUsed, DayUsed } = await projectPage.addAllocationFromProjectTab(
+      projectName,
+      customerName,
+      employeeName,
+      date,
+      day
+    );
     createdAllocations.push(allocationName);
     await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
     await projectPage.goto();
     await projectPage.filterByProject(projectName);
-    await teamPage.deleteAllocation(projectName);
+    await projectPage.deleteAllocationFromProjectTab(projectName, dateUsed, DayUsed);
     await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
   });
 });

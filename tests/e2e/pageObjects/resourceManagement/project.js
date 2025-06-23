@@ -11,6 +11,7 @@ export class ProjectPage extends TimelinePage {
 
     //table elements
     this.projectTableTitle = page.getByRole("cell", { name: "Projects" });
+    this.deleteButton = page.getByRole("img", { name: "Delete" });
   }
 
   /**
@@ -38,9 +39,22 @@ export class ProjectPage extends TimelinePage {
   /**
    * Adds an allocation for a specific employee by clicking on their cell and filling the allocation form.
    */
-  async addAllocationFromProjectTab(projectName, customerName, employeeName) {
+  async addAllocationFromProjectTab(projectName, customerName, employeeName, date, day) {
     await this.filterByProject(projectName);
-    await this.page.getByTitle(`${projectName} (${this.formattedDate} - ${this.dayOfWeek})`).click();
+
+    let allotmentDate = date;
+    let allotmentDay = day;
+
+    // If it's a weekend, pick a fallback weekday and overwrite date & day
+    if (allotmentDay === "Sat" || allotmentDay === "Sun") {
+      const { date: fallbackDate, day: fallbackDay } = getFormattedDateNDaysFromToday(3);
+      allotmentDate = fallbackDate;
+      allotmentDay = fallbackDay;
+
+      console.log(`Fallback date used: ${allotmentDate} (${allotmentDay})`);
+    }
+
+    await this.page.getByTitle(`${projectName} (${allotmentDate} - ${allotmentDay})`).click();
     await this.selectEmployee(employeeName);
     await this.selectCustomer(customerName);
     await this.selectProject(customerName, projectName);
@@ -58,6 +72,16 @@ export class ProjectPage extends TimelinePage {
 
     const responseBody = await response.json();
     const allocationName = responseBody.message.name;
-    return allocationName;
+    return { allocationName, dateUsed: allotmentDate, DayUsed: allotmentDay };
+  }
+
+  /**
+   * Delete the allocation added.
+   */
+  async deleteAllocationFromProjectTab(projectName, date, day) {
+    await this.page.waitForTimeout(1000);
+    await this.page.getByTitle(`${projectName} (${date} - ${day})`).hover();
+    await this.deleteButton.click();
+    await this.confirmDeleteButton.click();
   }
 }

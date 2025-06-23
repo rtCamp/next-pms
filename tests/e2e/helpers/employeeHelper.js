@@ -2,7 +2,8 @@ import path from "path";
 import { getFormattedDate, getYesterdayDate } from "../utils/dateUtils";
 import managerTeamData from "../data/manager/team.json";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
-import { addEmployee, deleteEmployee, deleteAllocation } from "../utils/api/employeeRequests";
+import { addEmployee, deleteEmployee } from "../utils/api/employeeRequests";
+import { deleteAllocation } from "../utils/api/projectRequests";
 import { getRandomString } from "../utils/stringUtils";
 import { filterApi } from "../utils/api/frappeRequests";
 
@@ -164,13 +165,13 @@ export const deleteAllocationsByEmployee = async (projectID, employeeID = employ
   );
   console.log(filterResponse.message?.values?.length);
   if (filterResponse.message?.values?.length > 0) {
-    const allocations = responseBody.message.values;
+    const allocations = filterResponse.message.values;
     for (const row of allocations) {
       const allocationName = row[0];
       console.log(`Deleting allocation: ${allocationName}`);
       try {
-        await deleteAllocation(allocationID);
-        console.log(`Deleted ${allocationID}`);
+        await deleteAllocation(allocationName);
+        console.log(`Deleted ${allocationName}`);
       } catch (error) {
         console.error(`Failed to delete ${allocationName}:`, error);
       }

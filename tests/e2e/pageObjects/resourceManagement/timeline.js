@@ -164,6 +164,10 @@ export class TimelinePage {
   }
 
   async clearFilter() {
-    await this.clearFilterIcon.click();
+    try {
+      await this.clearFilterIcon.click();
+    } catch (error) {
+      console.warn("Error clearing filter:", error);
+    }
   }
 }
