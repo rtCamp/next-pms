@@ -1,0 +1,38 @@
+{
+ "allow_roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Projects Manager"
+  },
+  {
+   "role": "Delivery Manager"
+  }
+ ],
+ "creation": "2025-06-23 14:50:45.800765",
+ "docstatus": 0,
+ "doctype": "Module Onboarding",
+ "documentation_url": "/next-pms",
+ "idx": 0,
+ "is_complete": 0,
+ "modified": "2025-06-23 15:04:31.795995",
+ "modified_by": "Administrator",
+ "module": "Next PMS",
+ "name": "Next PMS",
+ "owner": "Administrator",
+ "steps": [
+  {
+   "step": "PMS- Projects Settings"
+  },
+  {
+   "step": "PMS- Working Hours"
+  },
+  {
+   "step": "PMS- Resource Allocation"
+  }
+ ],
+ "subtitle": "Timesheet settings, resource allocations and more.",
+ "success_message": "Next PMS is all set up!",
+ "title": "Let's Set Up Next PMS"
+}

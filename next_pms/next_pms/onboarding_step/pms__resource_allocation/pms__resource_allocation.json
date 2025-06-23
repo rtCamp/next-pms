@@ -1,0 +1,21 @@
+{
+ "action": "Go to Page",
+ "action_label": "New Allocation",
+ "creation": "2025-06-23 15:03:12.093543",
+ "description": "Since most reports and timelines are focused on allocations, please proceed to create allocations for the employees.\n",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2025-06-23 15:04:20.901768",
+ "modified_by": "Administrator",
+ "name": "PMS- Resource Allocation",
+ "owner": "Administrator",
+ "path": "/next-pms/resource-management/timeline",
+ "show_form_tour": 0,
+ "show_full_form": 0,
+ "title": "Create Resource Allocation",
+ "validate_action": 1
+}
