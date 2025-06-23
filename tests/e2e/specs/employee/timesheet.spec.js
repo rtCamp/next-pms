@@ -59,7 +59,7 @@ test("TC3: Time should be added using the direct timesheet add buttons.", async 
     duration: TC3data.taskInfo.duration,
     desc: TC3data.taskInfo.desc,
   });
-
+  await timesheetPage.toastNotification(TC3data.notification).waitFor({ state: "visible" });
   // Reload page to ensure changes are reflected
   await page.reload();
 
@@ -132,7 +132,7 @@ test("TC7: Submit the weekly timesheet ", async ({ page }) => {
   await timesheetPage.submitTimesheet();
 
   // Reload page to ensure changes are reflected
-  await page.reload();
+  await page.reload({ waitUntil: "networkidle" });
 
   // Get timesheet status
   const status = await timesheetPage.getTimesheetStatus();

@@ -51,6 +51,9 @@ export class TeamPage {
 
     // Employee Name in the table
     this.employeeNameInTable = (employeeName) => page.locator(`//p[text()="${employeeName}"]`);
+
+    //Toast Notification
+    this.toastNotification = (notificationMessage) => page.locator(`//div[text()="${notificationMessage}"]`);
   }
 
   // --------------------------------------
@@ -137,12 +140,12 @@ export class TeamPage {
   /**
    * Rejects the timesheet of a specified employee.
    */
-  async rejectTimesheet({ employee, reason }) {
+  async rejectTimesheet({ employee, reason, notification }) {
     await this.openReviewTimesheetPane(employee);
     await this.actOnTimeEntry("Reject");
     await this.rejectTimesheetModal.getByPlaceholder("Add a note").fill(reason);
     await this.rejectTimesheetModal.getByRole("button", { name: "Reject" }).click();
-    await this.page.waitForTimeout(2000);
+    await this.toastNotification(notification).waitFor({ state: "visible" });
   }
 
   // --------------------------------------
@@ -229,11 +232,15 @@ export class TeamPage {
    */
   async getEmployees() {
     const employees = [];
-    // Wait for spinner to disappear, only if it's visible
-    await this.spinner.waitFor({ state: "hidden" });
-    if (await this.spinner.isVisible().catch(() => false)) {
-      await this.spinner.waitFor({ state: "hidden" });
+    // Wait up to 10s for spinner to appear and disappear (if it appears at all)
+    try {
+      if (await this.spinner.isVisible({ timeout: 1000 })) {
+        await this.spinner.waitFor({ state: "hidden", timeout: 10000 });
+      }
+    } catch {
+      // Spinner never appeared – ignore
     }
+
     const rows = await this.getEmployeeRows();
 
     for (const row of await rows.all()) {
