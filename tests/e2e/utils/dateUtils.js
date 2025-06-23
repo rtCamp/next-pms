@@ -122,22 +122,25 @@ export const getFormattedCurrentDate = () => {
 };
 
 /**
- * Get the date n days from today in 'Jun 6' or 'Jun 11' format along with day of the week as 'Wed'
+ * Get the date n days from today in 'Jun 6' format along with day of the week as 'Wed'.
+ * If the resulting day is Sat or Sun, move it to the next Monday.
  */
 export const getFormattedDateNDaysFromToday = (n) => {
   const date = new Date();
   date.setDate(date.getDate() + n);
 
-  const formattedDate = date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
+  // Adjust weekend days to Monday
+  const dayOfWeek = date.getDay();
+  if (dayOfWeek === 6) {
+    // Saturday
+    date.setDate(date.getDate() + 2);
+  } else if (dayOfWeek === 0) {
+    // Sunday
+    date.setDate(date.getDate() + 1);
+  }
 
-  const dayOfWeek = date.toLocaleDateString("en-US", {
-    weekday: "short",
-  });
   return {
-    date: formattedDate,
-    day: dayOfWeek,
+    date: getShortFormattedDate(date),
+    day: getWeekdayName(date),
   };
 };

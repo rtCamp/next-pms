@@ -27,15 +27,6 @@ export class TeamPage extends TimelinePage {
     let allotmentDate = date;
     let allotmentDay = day;
 
-    // If it's a weekend, pick a fallback weekday and overwrite date & day
-    if (allotmentDay === "Sat" || allotmentDay === "Sun") {
-      const { date: fallbackDate, day: fallbackDay } = getFormattedDateNDaysFromToday(3);
-      allotmentDate = fallbackDate;
-      allotmentDay = fallbackDay;
-
-      console.log(`Fallback date used: ${allotmentDate} (${allotmentDay})`);
-    }
-
     // Always uses final date & day for title
     await this.page.getByTitle(`${employeeName} (${allotmentDate} - ${allotmentDay})`).click();
 
@@ -56,8 +47,8 @@ export class TeamPage extends TimelinePage {
     const responseBody = await response.json();
     const allocationName = responseBody.message.name;
 
-    // ✅ Return both: allocation name and final date used
-    return { allocationName, dateUsed: allotmentDate, DayUsed: allotmentDay };
+    // Return both: allocation name and final date used
+    return { allocationName };
   }
 
   /**

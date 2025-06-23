@@ -49,6 +49,7 @@ test.describe("Resource Management tests", () => {
     const allocationName = await timelinePage.addAllocation(projectName, customerName, employeeName);
     createdAllocations.push(allocationName);
     await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
+    await timelinePage.goto();
     await timelinePage.filterEmployeeByName(employeeName);
     await timelinePage.deleteAllocation(projectName);
     await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
@@ -63,7 +64,7 @@ test.describe("Resource Management tests", () => {
     const customerName = data.TC103.payloadCreateProject.customer;
     const { date, day } = getFormattedDateNDaysFromToday(1);
     await teamPage.goto();
-    const { allocationName, dateUsed, DayUsed } = await teamPage.addAllocationFromTeamTab(
+    const { allocationName } = await teamPage.addAllocationFromTeamTab(
       projectName,
       customerName,
       employeeName,
@@ -72,9 +73,9 @@ test.describe("Resource Management tests", () => {
     );
     createdAllocations.push(allocationName);
     await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
-    await teamPage.clearFilter();
+    await teamPage.goto();
     await timelinePage.filterEmployeeByName(employeeName);
-    await teamPage.deleteAllocationFromTeamTab(employeeName, dateUsed, DayUsed);
+    await teamPage.deleteAllocationFromTeamTab(employeeName, date, day);
     await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
   });
 
@@ -87,7 +88,7 @@ test.describe("Resource Management tests", () => {
     const customerName = data.TC104.payloadCreateProject.customer;
     const { date, day } = getFormattedDateNDaysFromToday(2);
     await projectPage.goto();
-    const { allocationName, dateUsed, DayUsed } = await projectPage.addAllocationFromProjectTab(
+    const { allocationName } = await projectPage.addAllocationFromProjectTab(
       projectName,
       customerName,
       employeeName,
@@ -98,7 +99,7 @@ test.describe("Resource Management tests", () => {
     await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
     await projectPage.goto();
     await projectPage.filterByProject(projectName);
-    await projectPage.deleteAllocationFromProjectTab(projectName, dateUsed, DayUsed);
+    await projectPage.deleteAllocationFromProjectTab(projectName, date, day);
     await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
   });
 });

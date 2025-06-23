@@ -45,15 +45,6 @@ export class ProjectPage extends TimelinePage {
     let allotmentDate = date;
     let allotmentDay = day;
 
-    // If it's a weekend, pick a fallback weekday and overwrite date & day
-    if (allotmentDay === "Sat" || allotmentDay === "Sun") {
-      const { date: fallbackDate, day: fallbackDay } = getFormattedDateNDaysFromToday(3);
-      allotmentDate = fallbackDate;
-      allotmentDay = fallbackDay;
-
-      console.log(`Fallback date used: ${allotmentDate} (${allotmentDay})`);
-    }
-
     await this.page.getByTitle(`${projectName} (${allotmentDate} - ${allotmentDay})`).click();
     await this.selectEmployee(employeeName);
     await this.selectCustomer(customerName);
@@ -72,7 +63,7 @@ export class ProjectPage extends TimelinePage {
 
     const responseBody = await response.json();
     const allocationName = responseBody.message.name;
-    return { allocationName, dateUsed: allotmentDate, DayUsed: allotmentDay };
+    return { allocationName };
   }
 
   /**
