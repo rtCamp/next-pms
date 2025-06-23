@@ -230,7 +230,7 @@ def get_data(filters=None, has_bu_field=False):
             emp.ctc = convert_currency(emp.ctc, emp.currency, currency)
             emp.currency = currency
 
-        emp.age = employee_age_in_company(emp)
+        emp.age = employee_age_in_company(emp, end_date=getdate(end_date))
 
         emp.monthly_salary = emp.ctc / 12
         emp._monthly_salary = emp.monthly_salary
@@ -247,7 +247,7 @@ def get_data(filters=None, has_bu_field=False):
         emp.percent_billable_hours = (emp.billable_hours / emp.capacity_hours) * 100 if emp.capacity_hours else 0
         emp.revenue = convert_currency(billing_amount.get(emp.employee, 0), "USD", currency)
 
-        salary_slips = frappe.get_list(
+        salary_slips = frappe.get_all(
             "Salary Slip",
             fields=["sum(gross_pay) as gross_pay", "currency"],
             filters={
@@ -390,7 +390,7 @@ def get_employee_id_appraisal_cycle(appraisal_cycle):
     return employee_ids
 
 
-def employee_age_in_company(employee):
+def employee_age_in_company(employee, end_date):
     all_comapines = frappe.get_all("Company")
     all_company_name = [company.name for company in all_comapines]
 
@@ -400,7 +400,7 @@ def employee_age_in_company(employee):
         fields=["custom_company", "from_date", "to_date"],
     )
 
-    total_age = month_diff(getdate(), employee.date_of_joining)
+    total_age = month_diff(end_date, employee.date_of_joining)
 
     for work_history in all_work_history:
         if not work_history.from_date or not work_history.to_date:
