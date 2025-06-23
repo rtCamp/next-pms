@@ -1,0 +1,106 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"ycmS_9bzah\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"PMS Portal Page\",\"col\":3}},{\"id\":\"wUN_SUwXaV\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h5\\\"><b>Settings</b></span>\",\"col\":12}},{\"id\":\"leezd06MI7\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Timesheet Settings\",\"col\":3}},{\"id\":\"szDnyfgYBC\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"BSc_t_3AZm\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h5\\\"><b>Shortcuts</b></span>\",\"col\":12}},{\"id\":\"20duHLPii-\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Resource Timeline\",\"col\":3}},{\"id\":\"ENS2zKKSma\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Resource Team\",\"col\":3}},{\"id\":\"BzDXUaf2OO\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"uZJmNJA9kk\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h5\\\"><b>Reports</b></span>\",\"col\":12}},{\"id\":\"4KqBJYhr-c\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Appraisal Evaluation\",\"col\":3}},{\"id\":\"kKjADbVsP8\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Employee Capacity\",\"col\":3}},{\"id\":\"iw_o5DinJ3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Spare Capacity\",\"col\":3}},{\"id\":\"6VPBq2tuPp\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Employee logged Hour\",\"col\":3}},{\"id\":\"RyOa8aNGHG\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Timesheet Payroll\",\"col\":3}},{\"id\":\"Zf4Xoq0l7H\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Profit Report\",\"col\":3}}]",
+ "creation": "2025-06-23 14:12:54.231123",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "projects",
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "Next PMS",
+ "links": [],
+ "modified": "2025-06-23 14:34:54.110800",
+ "modified_by": "Administrator",
+ "module": "Next PMS",
+ "name": "Next PMS",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 39.0,
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "PMS Portal Page",
+   "type": "URL",
+   "url": "/next-pms"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Timesheet Payroll",
+   "link_to": "Timesheet Payroll",
+   "report_ref_doctype": "Timesheet",
+   "type": "Report"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Employee Capacity",
+   "link_to": "Capacity Planning",
+   "report_ref_doctype": "Resource Allocation",
+   "type": "Report"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Employee logged Hour",
+   "link_to": "Over Capacity",
+   "report_ref_doctype": "Timesheet",
+   "type": "Report"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Spare Capacity",
+   "link_to": "Spare Capacity Report",
+   "report_ref_doctype": "Resource Allocation",
+   "type": "Report"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Appraisal Evaluation",
+   "link_to": "Appraisal Evaluation Report",
+   "report_ref_doctype": "Resource Allocation",
+   "type": "Report"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Timesheet Settings",
+   "link_to": "Timesheet Settings",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Resource Timeline",
+   "type": "URL",
+   "url": "/next-pms/resource-management/timeline"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Resource Team",
+   "type": "URL",
+   "url": "/next-pms/resource-management/team"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Profit Report",
+   "link_to": "Profit Report",
+   "report_ref_doctype": "Timesheet",
+   "type": "Report"
+  }
+ ],
+ "title": "Next PMS"
+}
