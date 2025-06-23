@@ -3,9 +3,22 @@ from frappe import _dict, get_all, whitelist
 from frappe.utils.caching import redis_cache
 
 
+@frappe.whitelist()
+def has_bu_field():
+    return (
+        frappe.db.exists("DocType", "Business Unit")
+        and frappe.get_meta("Employee").has_field("custom_business_unit")
+        and frappe.get_meta("Project").has_field("custom_business_unit")
+    )
+
+
 @whitelist()
 def get_data(user: str = None):
-    return {"roles": get_current_user_roles(user), "currencies": get_currencies()}
+    return {
+        "roles": get_current_user_roles(user),
+        "currencies": get_currencies(),
+        "has_business_unit": has_bu_field(),
+    }
 
 
 @whitelist()
