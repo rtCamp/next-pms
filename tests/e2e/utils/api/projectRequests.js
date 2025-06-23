@@ -1,4 +1,5 @@
 import { login } from "./authRequests";
+import { deleteAllocationsByEmployee } from "../../helpers/employeeHelper";
 let context; // Global variable for request context
 
 // Helper function to ensure authentication
@@ -26,26 +27,41 @@ export const createProject = async ({
   custom_default_hourly_billing_rate,
 }) => {
   const ctx = await ensureAuth();
+
+  // Define requestData at the top so it's accessible in the whole function
+  const requestData = {
+    project_name,
+    company,
+    customer,
+    billing_type,
+    currency,
+    ...(project_type !== undefined && { project_type }),
+    ...(custom_billing_type !== undefined && { custom_billing_type }),
+    ...(estimated_costing !== undefined && { estimated_costing }),
+    ...(custom_project_billing_team !== undefined && { custom_project_billing_team }),
+    ...(custom_default_hourly_billing_rate !== undefined && { custom_default_hourly_billing_rate }),
+  };
+
   const response = await ctx.post(`/api/resource/Project`, {
-    data: {
-      project_name: project_name,
-      company: company,
-      customer: customer,
-      billing_type: billing_type,
-      currency: currency,
-      ...(project_type !== undefined && { project_type }),
-      ...(custom_billing_type !== undefined && { custom_billing_type }),
-      ...(estimated_costing !== undefined && { estimated_costing }),
-      ...(custom_project_billing_team !== undefined && { custom_project_billing_team }),
-      ...(custom_default_hourly_billing_rate !== undefined && { custom_default_hourly_billing_rate }),
-    },
+    data: requestData,
   });
 
   if (!response.ok()) {
-    throw new Error(
-      `Failed to get response for Create project for project name: ${project_name} . Status: ${response.status()}`
-    );
+    let errorMessage = `Failed to create project '${project_name}'. Status: ${response.status()}`;
+
+    try {
+      const errorData = await response.json();
+      errorMessage += `\nError Response: ${JSON.stringify(errorData, null, 2)}`;
+    } catch {
+      const rawBody = await response.text();
+      errorMessage += `\nFailed to parse error response as JSON. Raw body: ${rawBody}`;
+    }
+
+    errorMessage += `\nRequest Payload: ${JSON.stringify(requestData, null, 2)}`;
+
+    throw new Error(errorMessage);
   }
+
   return response;
 };
 
@@ -56,7 +72,13 @@ export const deleteProject = async (projectId) => {
   const ctx = await ensureAuth();
   const response = await ctx.delete(`/api/resource/Project/${projectId}`);
 
-  if (!response.ok()) {
+  if (response.status() === 417) {
+    try {
+      await deleteAllocationsByEmployee(projectId);
+    } catch (error) {
+      console.warn(`Unexpected error while deleting allocation:`, error);
+    }
+  } else if (!response.ok()) {
     throw new Error(
       `Failed to get response for Delete project for projectId: ${projectId} . Status: ${response.status()}`
     );
@@ -73,6 +95,21 @@ export const getProjectDetails = async (projectId) => {
   if (!response.ok()) {
     throw new Error(
       `Failed to get response for get project Detials for projectId: ${projectId} . Status: ${response.status()}`
+    );
+  }
+  return response;
+};
+
+/**
+ * Delete an allocation using the allocation ID.
+ */
+export const deleteAllocation = async (allocationId) => {
+  const ctx = await ensureAuth();
+  const response = await ctx.delete(`/api/resource/Resource%20Allocation/${allocationId}`);
+
+  if (!response.ok()) {
+    throw new Error(
+      `Failed to get response for Delete project for projectId: ${allocationId} . Status: ${response.status()}`
     );
   }
   return response;
