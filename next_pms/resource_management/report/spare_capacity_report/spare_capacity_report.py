@@ -112,7 +112,7 @@ def get_data(filters=None, has_bu_field=False):
             emp.ctc = convert_currency(emp.ctc, emp.currency, currency)
             emp.currency = currency
 
-        salary_info = get_employee_salary(emp.name, currency)
+        salary_info = get_employee_salary(emp.name, currency, throw=False)
         emp.monthly_salary = salary_info.get("monthly_salary", 0)
         emp._monthly_salary = emp.monthly_salary  # Store original monthly salary
 

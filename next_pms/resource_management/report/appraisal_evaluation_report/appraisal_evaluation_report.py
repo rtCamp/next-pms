@@ -234,7 +234,7 @@ def get_data(filters=None, has_bu_field=False):
 
         emp.age = employee_age_in_company(emp, end_date=getdate(end_date))
 
-        salary_info = get_employee_salary(emp.name, currency)
+        salary_info = get_employee_salary(emp.name, currency, throw=False)
         emp.monthly_salary = salary_info.get("monthly_salary", 0)
         emp._monthly_salary = emp.monthly_salary
         emp.hourly_salary = salary_info.get("hourly_salary", 0)
