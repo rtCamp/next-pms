@@ -3,7 +3,6 @@ import { TimelinePage } from "./timeline";
 export class TeamPage extends TimelinePage {
   constructor(page) {
     super(page);
-    this.deleteCell = page.getByRole("cell", { name: "8", exact: true });
     this.deleteButton = page.getByRole("img", { name: "Delete" });
   }
 
@@ -20,18 +19,21 @@ export class TeamPage extends TimelinePage {
 
   /**
    * Adds an allocation for a specific employee by clicking on their cell and filling the allocation form.
-   * @param {string} projectName - The name of the project to allocate to
-   * @param {string} customerName - The name of the customer associated with the project
-   * @param {string} employeeName - The name of the employee to allocate
    */
-  async addAllocationFromTeam(projectName, customerName, employeeName) {
+  async addAllocationFromTeamTab(projectName, customerName, employeeName, date, day) {
     await this.filterEmployeeByName(employeeName);
-    await this.page.getByTitle(`${employeeName} (${this.formattedDate} - ${this.dayOfWeek})`).click();
+
+    let allotmentDate = date;
+    let allotmentDay = day;
+
+    // Always uses final date & day for title
+    await this.page.getByTitle(`${employeeName} (${allotmentDate} - ${allotmentDay})`).click();
+
     await this.selectCustomer(customerName);
     await this.selectProject(customerName, projectName);
     await this.setHoursPerDay();
 
-    // Wait for the allocation API response and click the create button in parallel
+    // Wait for API + click create
     const [response] = await Promise.all([
       this.page.waitForResponse(
         (response) =>
@@ -43,15 +45,17 @@ export class TeamPage extends TimelinePage {
 
     const responseBody = await response.json();
     const allocationName = responseBody.message.name;
-    return allocationName;
+
+    // Return both: allocation name and final date used
+    return { allocationName };
   }
 
   /**
    * Delete an allocation from team page
    */
-  async deleteAllocation() {
+  async deleteAllocationFromTeamTab(employeeName, date, day) {
     await this.page.waitForTimeout(1000);
-    await this.deleteCell.hover();
+    await this.page.getByTitle(`${employeeName} (${date} - ${day})`).hover();
     await this.deleteButton.click();
     await this.confirmDeleteButton.click();
   }
