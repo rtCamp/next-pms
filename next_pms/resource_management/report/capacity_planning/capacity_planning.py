@@ -18,8 +18,8 @@ from next_pms.resource_management.report.utils import (
 )
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm
 from next_pms.utils.employee import (
-    get_employee_hourly_salary,
     get_employee_leaves_and_holidays,
+    get_employee_salary,
 )
 
 CURRENCY = "USD"
@@ -240,7 +240,7 @@ def calculate_and_convert_revenue(
 
 
 def calculate_and_convert_free_hour_revenue(employee: str, free_hours: float):
-    hourly_salary = get_employee_hourly_salary(employee, CURRENCY)
+    hourly_salary = get_employee_salary(employee, CURRENCY).get("hourly_salary", 0)
     return (hourly_salary * 3) * free_hours
 
 

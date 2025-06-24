@@ -10,9 +10,9 @@ from next_pms.resource_management.api.utils.helpers import is_on_leave
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm
 from next_pms.utils.employee import (
     convert_currency,
-    get_employee_hourly_salary,
     get_employee_joining_date_based_on_work_history,
     get_employee_leaves_and_holidays,
+    get_employee_salary,
 )
 
 
@@ -55,7 +55,7 @@ def get_data(filters=None):
         employee["non_billable_hours"] = emp_timesheet.get("non_billable_hours", 0)
         employee["capacity"] = total_hours
         employee["utilization"] = employee["billable_hours"] + employee["non_billable_hours"]
-        employee["hourly_rate"] = get_employee_hourly_salary(employee.employee, "USD")
+        employee["hourly_rate"] = get_employee_salary(employee.employee, "USD").get("hourly_salary", 0)
         employee["cost"] = calculate_employee_cost(
             employee,
             start_date=start_date,
