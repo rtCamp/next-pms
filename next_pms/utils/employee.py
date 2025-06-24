@@ -1,4 +1,5 @@
-from frappe import get_cached_doc, get_cached_value, get_value
+from frappe import _, get_cached_doc, get_cached_value, get_value
+from frappe import throw as error
 from frappe.utils import get_date_str
 from hrms.hr.utils import get_holidays_for_employee
 
@@ -30,16 +31,34 @@ def get_employee_joining_date_based_on_work_history(employee: dict | str):
     return date
 
 
-def get_employee_hourly_salary(employee: str, to_currency: str):
+def get_employee_salary(employee: str, to_currency: str, date: any = None, throw: bool = True):
     from erpnext.setup.utils import get_exchange_rate
 
     ctc, salary_currency = get_cached_value("Employee", employee, ["ctc", "salary_currency"])
-    monthly_salary = ctc / 12
-    hourly_salary = monthly_salary / 160
+    if (not ctc or not salary_currency) and throw:
+        error(_("Salary Currency or CTC not set for employee {0}").format(employee))
+
     if salary_currency != to_currency:
-        exchange_rate = get_exchange_rate(salary_currency, to_currency)
-        hourly_salary = hourly_salary * (exchange_rate or 1)
-    return hourly_salary
+        exchange_rate = get_exchange_rate(salary_currency, to_currency, date)
+        ctc = ctc * (exchange_rate or 1)
+
+    monthly_working_hours = get_employee_monthly_working_hours(employee)
+    monthly_salary = ctc / 12
+    hourly_salary = monthly_salary / monthly_working_hours
+
+    return {"monthly_salary": monthly_salary, "hourly_salary": hourly_salary}
+
+
+def get_employee_monthly_working_hours(employee: str):
+    from next_pms.timesheet.api.employee import get_employee_working_hours
+
+    work_info = get_employee_working_hours(employee)
+    if work_info.get("working_frequency") != "Per Day":
+        working_hours = work_info.get("working_hours", 8)
+        monthly_working_hours = working_hours * 4
+    else:
+        monthly_working_hours = 160
+    return monthly_working_hours
 
 
 def convert_currency(
