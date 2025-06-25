@@ -5,16 +5,21 @@ import datetime
 
 from erpnext.setup.utils import get_exchange_rate
 from frappe import _, get_list, get_meta, get_value
-from frappe.utils import add_days, flt, getdate
+from frappe.utils import add_days, getdate
 
 from next_pms.resource_management.api.utils.helpers import is_on_leave
 from next_pms.resource_management.api.utils.query import (
     get_allocation_list_for_employee_for_given_range,
 )
+from next_pms.resource_management.report.utils import (
+    calculate_employee_available_hours,
+    calculate_employee_hours,
+    get_employee_allocations_for_date,
+)
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm
 from next_pms.utils.employee import (
-    get_employee_hourly_salary,
     get_employee_leaves_and_holidays,
+    get_employee_salary,
 )
 
 CURRENCY = "USD"
@@ -43,6 +48,9 @@ def get_data(meta, filters=None):
         filters={"status": employee_status} if employee_status else {},
         order_by="employee_name ASC",
     )
+    for employee in employees:
+        employee["currency"] = CURRENCY
+
     employee_names = [employee.employee for employee in employees]
 
     resource_allocations = get_allocation_list_for_employee_for_given_range(
@@ -106,12 +114,14 @@ def get_columns(meta):
         {
             "fieldname": "potential_revenue",
             "label": _("Potential Revenue"),
-            "fieldtype": "Float",
+            "fieldtype": "Currency",
+            "options": "currency",
         },
         {
             "fieldname": "booked_revenue",
             "label": _("Booked Revenue"),
-            "fieldtype": "Float",
+            "fieldtype": "Currency",
+            "options": "currency",
         },
     ]
     if not has_bu_field:
@@ -157,16 +167,21 @@ def calculate_hours_and_revenue(employees, resource_allocations, start_date, end
         leaves = employee_leave_and_holiday.get("leaves")
         billable_allocations = [resource for resource in employee_allocations if resource.is_billable]
         non_billable_allocations = [resource for resource in employee_allocations if not resource.is_billable]
-        employee_free_hours = calculate_employee_free_hours(
+        employee_free_hours = calculate_employee_available_hours(
             daily_hours, start_date, end_date, employee_allocations, holidays, leaves
         )
         free_hours_revenue = calculate_and_convert_free_hour_revenue(employee.employee, employee_free_hours)
-        employee_billable_hours = calculate_emplyee_hours(
+        employee_billable_hours = calculate_employee_hours(
             daily_hours, start_date, end_date, billable_allocations, holidays, leaves
         )
 
-        employee_non_billable_hours = calculate_emplyee_hours(
-            daily_hours, start_date, end_date, non_billable_allocations, holidays, leaves
+        employee_non_billable_hours = calculate_employee_hours(
+            daily_hours,
+            start_date,
+            end_date,
+            non_billable_allocations,
+            holidays,
+            leaves,
         )
 
         employee["booked_hous"] = employee_billable_hours
@@ -230,7 +245,7 @@ def calculate_and_convert_revenue(
 
 
 def calculate_and_convert_free_hour_revenue(employee: str, free_hours: float):
-    hourly_salary = get_employee_hourly_salary(employee, CURRENCY)
+    hourly_salary = get_employee_salary(employee, CURRENCY, throw=False).get("hourly_salary", 0)
     return (hourly_salary * 3) * free_hours
 
 
@@ -255,68 +270,3 @@ def get_employee_hourly_billing_rate(employee: str, project: str | None = None):
             "hourly_billing_rate",
         )
         return rate or 0
-
-
-def calculate_emplyee_hours(
-    daily_hours: float,
-    start_date: datetime.date,
-    end_date: datetime.date,
-    resource_allocations: list,
-    holidays: list,
-    leaves: list,
-):
-    total_hours = 0
-    date = start_date
-
-    while date <= end_date:
-        data = is_on_leave(date, daily_hours, leaves, holidays)
-        if data.get("on_leave"):
-            date = add_days(date, 1)
-            continue
-        allocation_for_date = get_employee_allocations_for_date(resource_allocations, date)
-        if not allocation_for_date:
-            date = add_days(date, 1)
-            continue
-        for allocation in allocation_for_date:
-            total_hours += allocation.hours_allocated_per_day
-        date = add_days(date, 1)
-    return total_hours
-
-
-def calculate_employee_free_hours(
-    daily_hours: float,
-    start_date: datetime.date,
-    end_date: datetime.date,
-    resource_allocations: list,
-    holidays: list,
-    leaves: list,
-):
-    """
-    Calculate the free hours for the employee,which is based on total working days within the date range excluding
-    the leaves and holidays substracted by the allocations hours.
-    """
-    total_hours = 0
-    total_hours_for_resource_allocation = 0
-    date = start_date
-
-    while date <= end_date:
-        data = is_on_leave(date, daily_hours, leaves, holidays)
-        if not data.get("on_leave"):
-            total_hours += daily_hours
-            allocation_for_date = get_employee_allocations_for_date(resource_allocations, date)
-            for allocation in allocation_for_date:
-                total_hours_for_resource_allocation += allocation.hours_allocated_per_day
-        else:
-            total_hours += flt(data.get("leave_work_hours"))
-
-        date = add_days(date, 1)
-
-    return total_hours - total_hours_for_resource_allocation
-
-
-def get_employee_allocations_for_date(employee_allocations: list, date: datetime.date):
-    return [
-        allocation
-        for allocation in employee_allocations
-        if getdate(allocation.allocation_start_date) <= date <= getdate(allocation.allocation_end_date)
-    ]

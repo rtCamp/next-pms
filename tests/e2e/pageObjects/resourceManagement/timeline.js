@@ -4,8 +4,8 @@ export class TimelinePage {
   constructor(page) {
     this.page = page;
     this.currentDate = new Date();
-    this.dayOfWeek = this.currentDate.toLocaleDateString("en-US", { weekday: "short" });
-    this.formattedDate = getFormattedCurrentDate();
+    this.dayOfWeek = this.currentDate.toLocaleDateString("en-US", { weekday: "short" }); // Thu
+    this.formattedDate = getFormattedCurrentDate(); // June 12
 
     // header elements
     this.addAllocatioButtton = page.getByRole("button", { name: "add-allocation" });
@@ -17,13 +17,19 @@ export class TimelinePage {
     this.employeeSelector = page.getByLabel("Suggestions");
     this.customerDropdown = page.getByRole("button", { name: "Search Customer" });
     this.projectDropdown = page.getByRole("button", { name: "Search Google Projects" });
-    this.startDateSelector = page
+    this.startDateSelector = page.locator(
+      'div[data-state="open"] form > div:nth-child(3) div:nth-child(1) > div:nth-child(2) button'
+    );
+    this.endDateSelector = page.locator(
+      'div[data-state="open"] form > div:nth-child(3) div:nth-child(2) > div:nth-child(2) button'
+    );
+    this.startDateWithToday = page
       .locator("div")
-      .filter({ hasText: /^Start Date\*Pick any date$/ })
+      .filter({ hasText: /^Start Date\*Today$/ })
       .getByRole("button");
-    this.endDateSelector = page
+    this.endDateWithToday = page
       .locator("div")
-      .filter({ hasText: /^End Date\*Pick any date$/ })
+      .filter({ hasText: /^End Date\*Today$/ })
       .getByRole("button");
     this.hoursPerDayTextField = page.locator('input[name="hours_allocated_per_day"]');
     this.noteField = page.getByRole("textbox", { name: "Note" });
@@ -85,8 +91,8 @@ export class TimelinePage {
   /**
    * Selects a date range for the allocation.
    */
-  async addDateRange() {
-    const dayNumber = this.formattedDate.split(" ")[1];
+  async addDateRange(formattedDate = this.formattedDate) {
+    const dayNumber = formattedDate.split(" ")[1];
     await this.startDateSelector.click();
     await this.page.getByRole("gridcell", { name: dayNumber }).first().click();
     await this.endDateSelector.click();
@@ -134,12 +140,12 @@ export class TimelinePage {
   /**
    * Adds a new allocation.
    */
-  async addAllocation(projectName, customerName, employeeName) {
+  async addAllocation(projectName, customerName, employeeName, date) {
     await this.clickAddAllocationButton();
     await this.selectEmployee(employeeName);
     await this.selectCustomer(customerName);
     await this.selectProject(customerName, projectName);
-    await this.addDateRange();
+    await this.addDateRange(date);
     await this.setHoursPerDay("8");
 
     // Wait for the allocation API response and click the create button in parallel
@@ -158,6 +164,10 @@ export class TimelinePage {
   }
 
   async clearFilter() {
-    await this.clearFilterIcon.click();
+    try {
+      await this.clearFilterIcon.click();
+    } catch {
+      console.log("Filter already cleared");
+    }
   }
 }

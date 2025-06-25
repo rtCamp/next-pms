@@ -60,8 +60,10 @@ def get_data(filters=None):
                 "avg_cost_rate": labor_cost / total_hours if total_hours else 0,
                 "profit": profit,
                 "profit_percentage": profit_percentage if profit_percentage > 0 else 0,
+                "currency": CURRENCY,
             }
             res.append(data)
+    res.sort(key=lambda x: x["revenue"], reverse=True)
     return res
 
 
@@ -167,22 +169,26 @@ def get_columns():
         {
             "fieldname": "revenue",
             "label": _("Revenue $"),
-            "fieldtype": "Float",
+            "fieldtype": "Currency",
+            "options": "currency",
         },
         {
             "fieldname": "unpaid_revenue",
             "label": _("UnPaid Invoices $"),
-            "fieldtype": "Float",
+            "fieldtype": "Currency",
+            "options": "currency",
         },
         {
             "fieldname": "paid_revenue",
             "label": _("Paid Invoices $"),
-            "fieldtype": "Float",
+            "fieldtype": "Currency",
+            "options": "currency",
         },
         {
             "fieldname": "labour_cost",
             "label": _("Labour Cost $"),
-            "fieldtype": "Float",
+            "fieldtype": "Currency",
+            "options": "currency",
         },
         {
             "fieldname": "total_hours",
@@ -192,16 +198,18 @@ def get_columns():
         {
             "fieldname": "avg_cost_rate",
             "label": _("Average Cost Rate $"),
-            "fieldtype": "Float",
+            "fieldtype": "Currency",
+            "options": "currency",
         },
         {
             "fieldname": "profit",
             "label": _("Profit $"),
-            "fieldtype": "Float",
+            "fieldtype": "Currency",
+            "options": "currency",
         },
         {
             "fieldname": "profit_percentage",
             "label": _("Profit %"),
-            "fieldtype": "Float",
+            "fieldtype": "Percent",
         },
     ]

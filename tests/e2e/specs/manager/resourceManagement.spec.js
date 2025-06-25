@@ -6,6 +6,7 @@ import { ProjectPage } from "../../pageObjects/resourceManagement/project";
 import * as allure from "allure-js-commons";
 import data from "../../data/manager/team";
 import { deleteAllocation } from "../../utils/api/projectRequests";
+import { getFormattedDateNDaysFromToday } from "../../utils/dateUtils";
 
 let timelinePage;
 let teamPage;
@@ -48,6 +49,7 @@ test.describe("Manager : Resource Management Tab", () => {
     const allocationName = await timelinePage.addAllocation(projectName, customerName, employeeName);
     createdAllocations.push(allocationName);
     await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
+    await timelinePage.goto();
     await timelinePage.filterEmployeeByName(employeeName);
     await timelinePage.deleteAllocation(projectName);
     await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
@@ -60,13 +62,20 @@ test.describe("Manager : Resource Management Tab", () => {
     const projectName = data.TC103.payloadCreateProject.project_name;
     const employeeName = data.TC103.employee;
     const customerName = data.TC103.payloadCreateProject.customer;
+    const { date, day } = getFormattedDateNDaysFromToday(1);
     await teamPage.goto();
-    const allocationName = await teamPage.addAllocationFromTeam(projectName, customerName, employeeName);
+    const { allocationName } = await teamPage.addAllocationFromTeamTab(
+      projectName,
+      customerName,
+      employeeName,
+      date,
+      day
+    );
     createdAllocations.push(allocationName);
     await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
-    await teamPage.clearFilter();
+    await teamPage.goto();
     await timelinePage.filterEmployeeByName(employeeName);
-    await teamPage.deleteAllocation(projectName);
+    await teamPage.deleteAllocationFromTeamTab(employeeName, date, day);
     await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
   });
 
@@ -77,13 +86,20 @@ test.describe("Manager : Resource Management Tab", () => {
     const projectName = data.TC104.payloadCreateProject.project_name;
     const employeeName = data.TC104.employee;
     const customerName = data.TC104.payloadCreateProject.customer;
+    const { date, day } = getFormattedDateNDaysFromToday(2);
     await projectPage.goto();
-    const allocationName = await projectPage.addAllocationFromProjectTab(projectName, customerName, employeeName);
+    const { allocationName } = await projectPage.addAllocationFromProjectTab(
+      projectName,
+      customerName,
+      employeeName,
+      date,
+      day
+    );
     createdAllocations.push(allocationName);
     await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
     await projectPage.goto();
     await projectPage.filterByProject(projectName);
-    await teamPage.deleteAllocation(projectName);
+    await projectPage.deleteAllocationFromProjectTab(projectName, date, day);
     await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
   });
 });

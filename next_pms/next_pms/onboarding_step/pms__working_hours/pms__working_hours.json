@@ -1,0 +1,21 @@
+{
+ "action": "Update Settings",
+ "creation": "2025-06-23 15:01:11.905719",
+ "description": "### Setup Working Hours\n\nIn the **Employee** DocType, there are two fields used to define an individual employee\u2019s working hours:\n\n1. **Work Schedule** \u2013 Specifies whether the working hours are calculated per day or per week.\n2. **Working Hours** \u2013 Indicates the number of hours based on the selected schedule.\n\nHowever, for now, `Standard Working Hours` for all employees can be configured globally in **HR Settings**.\n",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "field": "emp_created_by",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 1,
+ "is_skipped": 0,
+ "modified": "2025-06-23 15:01:11.905719",
+ "modified_by": "Administrator",
+ "name": "PMS- Working Hours",
+ "owner": "Administrator",
+ "reference_document": "HR Settings",
+ "show_form_tour": 0,
+ "show_full_form": 0,
+ "title": "Update Default Working Hours",
+ "validate_action": 0
+}

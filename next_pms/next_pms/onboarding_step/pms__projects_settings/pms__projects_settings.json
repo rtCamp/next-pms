@@ -1,0 +1,22 @@
+{
+ "action": "Update Settings",
+ "creation": "2025-06-23 14:50:38.719949",
+ "description": "# Update Project Settings\n\nSince we track time entries only by date (not by datetime), we need to allow overlapping entries for both the `user` and the `employee`. To support this, please refer to the following two fields:\n\n1. Ignore User Time Overlap\n2. Ignore Employee Time Overlap\n",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "field": "ignore_user_time_overlap",
+ "idx": 1,
+ "is_complete": 0,
+ "is_single": 1,
+ "is_skipped": 0,
+ "modified": "2025-06-23 14:50:38.719949",
+ "modified_by": "Administrator",
+ "name": "PMS- Projects Settings",
+ "owner": "Administrator",
+ "reference_document": "Projects Settings",
+ "show_form_tour": 0,
+ "show_full_form": 0,
+ "title": "Update Projects Settings",
+ "validate_action": 1,
+ "value_to_validate": "1"
+}
