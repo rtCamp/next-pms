@@ -51,7 +51,9 @@ def get_task_list(
         projects = frappe.get_list("Project", pluck="name")
 
     filter = {"project": ["in", projects]}
-
+    if not projects:
+        # If no projects are available, we return an empty list.
+        return {"task": [], "total_count": 0, "has_more": False}
     doctype = DocType("Task")
     doctype_project = DocType("Project")
     tasks = (
