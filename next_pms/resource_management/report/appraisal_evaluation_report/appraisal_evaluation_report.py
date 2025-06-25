@@ -6,7 +6,7 @@ from copy import deepcopy
 import frappe
 from frappe import _, get_meta
 from frappe.types.frappedict import _dict
-from frappe.utils import flt, getdate
+from frappe.utils import add_days, flt, getdate
 
 from next_pms.next_pms.report.profit_report.profit_report import (
     calculate_employee_total_hours,
@@ -253,22 +253,40 @@ def get_data(filters=None, has_bu_field=False):
 
         salary_slips = frappe.get_all(
             "Salary Slip",
-            fields=["sum(gross_pay) as gross_pay", "currency"],
+            fields=["gross_pay", "currency", "start_date", "end_date"],
             filters={
                 "employee": emp.name,
                 "start_date": [">=", start_date],
                 "end_date": ["<=", end_date],
             },
+            order_by="end_date asc",
         )
 
         if len(salary_slips) != 0 and salary_slips[0].get("currency"):
-            salary_slip = salary_slips[0]
+            last_end_date = None
+            emp_salary_paid = 0
 
-            emp.salary_paid = convert_currency(
-                flt(salary_slip.gross_pay),
-                salary_slip.currency,
-                currency,
-            )
+            for salary_slip in salary_slips:
+                emp_salary_paid += convert_currency(
+                    flt(salary_slip.gross_pay),
+                    salary_slip.currency,
+                    currency,
+                )
+                last_end_date = salary_slip.end_date
+
+            if last_end_date != getdate(end_date):
+                new_start_date = add_days(last_end_date, 1)
+
+                total_hours_after_company_change = calculate_employee_total_hours(
+                    emp,
+                    start_date=new_start_date,
+                    end_date=getdate(end_date),
+                    daily_hours=daily_hours,
+                    employee_leave_and_holidays=employee_leave_and_holiday,
+                )
+                emp_salary_paid += total_hours_after_company_change * emp.hourly_salary
+
+            emp.salary_paid = emp_salary_paid
         else:
             emp.salary_paid = emp.hourly_salary * emp.capacity_hours
 
