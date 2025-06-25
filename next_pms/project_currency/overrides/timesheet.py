@@ -4,6 +4,8 @@ from erpnext.projects.doctype.timesheet.timesheet import Timesheet
 from erpnext.setup.utils import get_exchange_rate
 from frappe.utils.data import flt, nowdate
 
+from next_pms.utils.employee import get_employee_salary
+
 
 class TimesheetOverwrite(Timesheet):
     def calculate_hours(self):
@@ -106,7 +108,9 @@ class TimesheetOverwrite(Timesheet):
             return frappe.throw(frappe._("Project is not defined in Timesheet."))
 
         employee_salary, employee_currency = 0, ""
-
+        #  DO NOT REMOVE
+        #  Below code is used to fetch the employee's salary based on the timesheet's date,
+        #  this is to ensure that costing is calculated based on the employee's salary at the time of the timesheet creation important for historical accuracy.
         employee_promotion = frappe.db.get_all(
             "Employee Promotion",
             {
@@ -132,7 +136,7 @@ class TimesheetOverwrite(Timesheet):
             employee_salary = employee_promotion.revised_ctc
             employee_currency = employee_promotion.salary_currency
 
-        return get_employee_costing_rate(employee_currency, employee_salary, currency, self.start_date)
+        return get_employee_costing_rate(self.employee, employee_currency, employee_salary, currency, self.start_date)
 
     def get_activity_billing_rate(self, currency=None, valid_from_date=None, custom_billing_type=None):
         if not self.parent_project:
@@ -215,11 +219,15 @@ def get_employee_billing_rate(
     return billing_rate
 
 
-def get_employee_costing_rate(salary_currency: float, ctc: float, currency: float, start_date: any):
+def get_employee_costing_rate(employee: str, salary_currency: float, ctc: float, currency: str, start_date: any):
     if not salary_currency:
         return frappe.throw(frappe._("Please set salary currency for the employee."))
-
-    salary = calculate_monthly_and_hourly_salary(salary=ctc)
+    salary = get_employee_salary(
+        employee=employee,
+        to_currency=currency,
+        salary_currency=salary_currency,
+        ctc=ctc,
+    )
     costing_rate = salary.get("hourly_salary")
 
     if not costing_rate:
@@ -231,9 +239,3 @@ def get_employee_costing_rate(salary_currency: float, ctc: float, currency: floa
         rate = get_exchange_rate(salary_currency, currency, start_date)
         costing_rate = costing_rate * (rate or 1)
     return costing_rate
-
-
-def calculate_monthly_and_hourly_salary(salary: str = None):
-    monthly_salary = salary / 12
-    hourly_salary = monthly_salary / 160
-    return {"monthly_salary": monthly_salary, "hourly_salary": hourly_salary}

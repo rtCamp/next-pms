@@ -29,6 +29,7 @@ from next_pms.utils.employee import (
     generate_flat_tree,
     get_employee_joining_date_based_on_work_history,
     get_employee_leaves_and_holidays,
+    get_employee_salary,
 )
 
 
@@ -233,9 +234,10 @@ def get_data(filters=None, has_bu_field=False):
 
         emp.age = employee_age_in_company(emp, end_date=getdate(end_date))
 
-        emp.monthly_salary = emp.ctc / 12
+        salary_info = get_employee_salary(emp.name, currency, throw=False)
+        emp.monthly_salary = salary_info.get("monthly_salary", 0)
         emp._monthly_salary = emp.monthly_salary
-        emp.hourly_salary = emp.monthly_salary / 160
+        emp.hourly_salary = salary_info.get("hourly_salary", 0)
 
         emp.capacity_hours = total_hours
 
