@@ -2,10 +2,10 @@ app_name = "next_pms"
 app_title = "Next PMS"
 app_publisher = "rtCamp"
 app_description = "Simplified Project Management System"
-app_email = "erp@rtcamp.com"
+app_email = "frappe@rtcamp.com"
 app_license = "GNU AFFERO GENERAL PUBLIC LICENSE (v3)"
+required_apps = ["frappe/erpnext", "frappe/hrms"]
 
-# required_apps = []
 
 # Includes in <head>
 # ------------------
