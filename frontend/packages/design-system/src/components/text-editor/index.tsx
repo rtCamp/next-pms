@@ -85,8 +85,9 @@ const TextEditor = ({
         {...Props}
         style={{ resize: "vertical", overflow: "auto" }}
         className={mergeClassNames(
-          "border rounded-md border-input [&>div:first-child]:border-t-0 [&>div:first-child]:border-r-0 [&>div:first-child]:border-l-0 [&>div:first-child]:border-input [&>div:first-child]:border-bottom [&>div:last-child]:border-none text-foreground bg-background break-all whitespace-normal",
+          "border rounded-md border-input [&>div:first-child]:border-t-0 [&>div:first-child]:border-r-0 [&>div:first-child]:border-l-0 [&>div:first-child]:border-input [&>div:first-child]:border-bottom [&>div:last-child]:border-none text-foreground bg-background whitespace-normal",
           hideToolbar && "border-none !resize-none [&_.ql-editor]:min-h-0 [&_.ql-editor]:p-2",
+          !hideToolbar && "break-all",
           className
         )}
         theme="snow"
