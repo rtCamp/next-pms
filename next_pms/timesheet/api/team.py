@@ -186,6 +186,8 @@ def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | N
         employee=employee,
         dates=dates,
         timesheets=timesheets,
+        enqueue_after_commit=True,
+        queue="long",
         note=note,
         job_name=f"Timesheet Approval for {employee} - {status}",
         at_front=True,

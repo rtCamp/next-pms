@@ -63,7 +63,7 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
 
     start_date = get_first_day_of_week(date)
     end_date = get_last_day_of_week(date)
-    working_days = get_workable_days_for_employee(employee, start_date, end_date).get("total_working_days")
+    working_days = get_workable_days_for_employee(employee, start_date, end_date)
 
     current_week_timesheet = frappe.get_all(
         "Timesheet",
@@ -71,6 +71,7 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
             "employee": employee,
             "start_date": [">=", start_date],
             "end_date": ["<=", end_date],
+            "docstatus": ["<", 2],
         },
         ["name", "custom_approval_status", "start_date"],
     )
@@ -90,20 +91,14 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
     for timesheet in current_week_timesheet:
         status_count[timesheet.custom_approval_status] += 1
 
-    approved = status_count.get("Approved", 0)
-    rejected = status_count.get("Rejected", 0)
-    pending = status_count.get("Approval Pending", 0)
-
-    if approved >= working_days:
-        week_status = "Approved"
-    elif rejected >= working_days:
+    if status_count["Rejected"] >= working_days.get("total_working_days"):
         week_status = "Rejected"
-    elif rejected > 0:
+    elif status_count["Approved"] >= working_days.get("total_working_days"):
+        week_status = "Approved"
+    elif status_count["Rejected"] > 0:
         week_status = "Partially Rejected"
-    elif approved > 0:
+    elif status_count["Approved"] > 0:
         week_status = "Partially Approved"
-    elif pending > 0 and approved == 0 and rejected == 0:
-        week_status = "Approval Pending"
 
     for timesheet in current_week_timesheet:
         frappe.db.set_value("Timesheet", timesheet.name, "custom_weekly_approval_status", week_status)
