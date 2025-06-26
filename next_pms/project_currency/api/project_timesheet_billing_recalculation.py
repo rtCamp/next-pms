@@ -28,6 +28,7 @@ def recalculate_timesheet_billing(project_id: str, valid_from_date: str, start: 
             fields=["name"],
             start=start,
             limit_page_length=300,
+            order_by="start_date asc",
         )
 
         if not timsheets or len(timsheets) < 1:
