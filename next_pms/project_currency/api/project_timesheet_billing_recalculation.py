@@ -57,6 +57,7 @@ def recalculate_timesheet_billing(project_id: str, valid_from_date: str, start: 
             recalculate_timesheet_billing,
             job_name=f"recalculate_timesheet_billing_{project_id}",
             queue="long",
+            timeout=3600,
             project_id=project_id,
             valid_from_date=valid_from_date,
             start=start + 300,
