@@ -1,6 +1,6 @@
 import path from "path";
 import { getFormattedDate, getDateForWeekday } from "../utils/dateUtils";
-import managerTeamData from "../data/manager/team.json";
+import managerTeamData from "../data/manager/team";
 import { readJSONFile } from "../utils/fileUtils";
 import { deleteEmployee } from "../utils/api/employeeRequests";
 import { getRandomValue } from "../utils/stringUtils";

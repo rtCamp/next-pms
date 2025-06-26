@@ -1,7 +1,7 @@
 import path from "path";
 import { test, expect } from "@playwright/test";
 import { TaskPage } from "../../pageObjects/taskPage";
-import data from "../../data/manager/task.json";
+import data from "../../data/manager/task";
 import sharedData from "../../data/manager/shared-task.json";
 import * as allure from "allure-js-commons";
 //Add type hints to help VS Code recognize TaskPage

@@ -1,0 +1,324 @@
+module.exports = {
+  TC39: {
+    employees: [process.env.EMP_NAME, process.env.EMP3_NAME],
+  },
+  TC42: {
+    col: "Mon",
+  },
+  TC45: {
+    employee: process.env.EMP3_NAME,
+  },
+  TC47: {
+    taskInfo: {
+      duration: "1:45",
+      project: "TC47 Project",
+      task: "TC47 Billable Task",
+      desc: "TC47 - Task added via automation.",
+    },
+
+    cell: {
+      rowName: "TC47 Billable Task",
+      col: "Wed",
+    },
+    payloadCreateProject: {
+      project_name: "TC47 Project",
+      company: "rtCamp Solutions Pvt. Ltd.",
+      customer: "Google",
+      custom_billing_type: "Fixed Cost",
+      custom_currency: "INR",
+      project_type: "Fixed Cost",
+      business_unit: "Jupitor",
+      estimated_cost: 360000,
+      custom_default_hourly_billing_rate: 0,
+      custom_project_budget_hours: [],
+    },
+    payloadDeleteProject: {
+      projectId: "filled-automatically-from-createProjects",
+    },
+    payloadCreateTask: {
+      subject: "TC47 Billable Task",
+      project: "filled-automatically-from-createProjects",
+      description: "Task for TC47 created through automation",
+      custom_is_billable: 1,
+    },
+    payloadDeleteTask: {
+      taskID: "filled-automatically-from-createTasks",
+    },
+    payloadCreateTimesheet: {
+      task: "filled-automatically-from-createTasks",
+      description: "<p>TC47 - Task added via automation.</p>",
+      hours: "1",
+    },
+    payloadFilterTimeEntry: {
+      subject: "TC47 Billable Task",
+      description: "TC47 - Task added via automation.",
+      project_name: "TC47 Project",
+      max_week: "1",
+    },
+  },
+  TC49: {
+    reason: "TC49 - Timesheet rejected via automation.",
+    notification: "Timesheet status updated successfully",
+    cell: {
+      rowName: "TC49 Billable Task",
+      col: "Fri",
+    },
+    payloadCreateProject: {
+      project_name: "TC49 Project",
+      company: "rtCamp Solutions Pvt. Ltd.",
+      customer: "Google",
+      custom_billing_type: "Fixed Cost",
+      custom_currency: "INR",
+      project_type: "Fixed Cost",
+      business_unit: "Jupitor",
+      estimated_cost: 360000,
+      custom_default_hourly_billing_rate: 0,
+      custom_project_budget_hours: [],
+    },
+    payloadDeleteProject: {
+      projectId: "filled-automatically-from-createProjects",
+    },
+    payloadCreateTask: {
+      subject: "TC49 Billable Task",
+      project: "filled-automatically-from-createProjects",
+      description: "Task for TC49 created through automation",
+      custom_is_billable: 1,
+    },
+    payloadDeleteTask: {
+      taskID: "filled-automatically-from-createTasks",
+    },
+    payloadCreateTimesheet: {
+      task: "filled-automatically-from-createTasks",
+      description: "<p>TC49 - Task added via automation.</p>",
+      hours: "1",
+    },
+    payloadFilterTimeEntry: {
+      subject: "TC49 Billable Task",
+      description: "TC49 - Task added via automation.",
+      project_name: "TC49 Project",
+      max_week: "1",
+    },
+  },
+  TC50: {
+    cell: {
+      rowName: "TC50 Billable Task",
+      col: "Fri",
+    },
+    payloadCreateProject: {
+      project_name: "TC50 Project",
+      company: "rtCamp Solutions Pvt. Ltd.",
+      customer: "Google",
+      custom_billing_type: "Fixed Cost",
+      custom_currency: "INR",
+      project_type: "Fixed Cost",
+      business_unit: "Jupitor",
+      estimated_cost: 360000,
+      custom_default_hourly_billing_rate: 0,
+      custom_project_budget_hours: [],
+    },
+    payloadDeleteProject: {
+      projectId: "filled-automatically-from-createProjects",
+    },
+    payloadCreateTask: {
+      subject: "TC50 Billable Task",
+      project: "filled-automatically-from-createProjects",
+      description: "Task for TC50 created through automation",
+      custom_is_billable: 1,
+    },
+    payloadDeleteTask: {
+      taskID: "filled-automatically-from-createTasks",
+    },
+    payloadCreateTimesheet: {
+      task: "filled-automatically-from-createTasks",
+      description: "<p>TC50 - Task added via automation.</p>",
+      hours: "1",
+    },
+    payloadFilterTimeEntry: {
+      subject: "TC50 Billable Task",
+      description: "TC50 - Task added via automation.",
+      project_name: "TC50 Project",
+      max_week: "1",
+    },
+  },
+  TC53: {
+    employeesInQE: [process.env.EMP_NAME, process.env.EMP3_NAME, process.env.REP_MAN_NAME],
+    employeesInStaging: [
+      process.env.EMP_NAME,
+      process.env.EMP3_NAME,
+      process.env.REP_MAN_NAME,
+      "Aishwarrya Pande",
+      "Juhi Saxena",
+      process.env.EMP2_NAME,
+      "Pavan Patil",
+      "Renish Vimalbhai Surani",
+      "Shraddha Gore",
+    ],
+  },
+  TC91: {
+    payloadCreateEmployee: {
+      first_name: "Playwright-",
+      last_name: "",
+      status: "",
+      gender: "Male",
+      date_of_joining: "",
+      date_of_birth: "2000-02-01",
+      custom_reporting_manager: "",
+      reports_to: "",
+      leave_approver: "",
+    },
+  },
+  TC92: {
+    cell: {
+      rowName: "TC92 Billable Task",
+      col: "Fri",
+    },
+
+    payloadCreateProject: {
+      project_name: "TC92 Project",
+      company: "rtCamp Solutions Pvt. Ltd.",
+      customer: "Google",
+      custom_billing_type: "Fixed Cost",
+      custom_currency: "INR",
+      project_type: "Fixed Cost",
+      business_unit: "Jupitor",
+      estimated_cost: 360000,
+      custom_default_hourly_billing_rate: 0,
+      custom_project_budget_hours: [],
+    },
+    payloadDeleteProject: {
+      projectId: "filled-automatically-from-createProjects",
+    },
+    payloadCreateTask: {
+      subject: "TC92 Billable Task 01",
+      project: "filled-automatically-from-createProjects",
+      description: "Task 01 for TC92 created through automation",
+      custom_is_billable: 1,
+    },
+    payloadDeleteTask: {
+      taskID: "filled-automatically-from-createTasks",
+    },
+
+    payloadCreateTimesheet: {
+      task: "filled-automatically-from-createTasks",
+      description: "<p>TC92 - Task added via automation.</p>",
+      hours: "1",
+    },
+    payloadFilterTimeEntry: {
+      subject: "TC92 Billable Task",
+      description: "TC92 - Task added via automation.",
+      project_name: "TC92 Project",
+      max_week: "1",
+    },
+    payloadApprovalStatus: {
+      empId: process.env.EMP3_ID,
+      managerID: process.env.REP_MAN_ID,
+      employeeAPI: "employee3",
+      approvalStatus: "automatically-filled-from-randomApprovalStatus",
+    },
+  },
+  TC93: {
+    projectSharedWithEmps: [process.env.EMP3_NAME, process.env.EMP_NAME],
+    payloadCreateProject: {
+      project_name: "TC93 Project",
+      company: "rtCamp Solutions Pvt. Ltd.",
+      billing_type: "Non-Billable",
+      currency: "INR",
+      project_type: "Non Billable",
+      business_unit: "NB",
+      estimated_cost: 100000,
+    },
+    payloadDeleteProject: {
+      projectId: "filled-automatically-from-createProjects",
+    },
+    payloadShareProject: [
+      {
+        doctype: "Project",
+        name: "filled-automatically-from-createProjects",
+        user: process.env.EMP3_EMAIL,
+        readValue: 1,
+        writeValue: 1,
+        submitValue: 0,
+        shareValue: 0,
+        notifyValue: 1,
+      },
+      {
+        doctype: "Project",
+        name: "filled-automatically-from-createProjects",
+        user: process.env.EMP_EMAIL,
+        readValue: 1,
+        writeValue: 1,
+        submitValue: 0,
+        shareValue: 0,
+        notifyValue: 1,
+      },
+    ],
+  },
+  TC94: {
+    employeeName: process.env.EMP3_NAME,
+    payloadCreateUserGroup: {
+      user_group_members: [
+        {
+          user: "filled-automatically-from-createUserGroupForEmployee",
+        },
+      ],
+      __newname: "filled-automatically-from-createUserGroupForEmployee",
+    },
+    payloadDeleteUserGroup: {
+      name: "filled-automatically-from-createUserGroupForEmployee",
+    },
+  },
+  TC102: {
+    payloadCreateProject: {
+      project_name: "TC102 Project",
+      company: "rtCamp Solutions Pvt. Ltd.",
+      customer: "Google",
+      custom_billing_type: "Fixed Cost",
+      custom_currency: "INR",
+      project_type: "Fixed Cost",
+      business_unit: "Jupitor",
+      estimated_cost: 360000,
+      custom_default_hourly_billing_rate: 0,
+      custom_project_budget_hours: [],
+    },
+    employee: process.env.EMP3_NAME,
+    payloadDeleteProject: {
+      projectId: "filled-automatically-from-createProjects",
+    },
+  },
+  TC103: {
+    payloadCreateProject: {
+      project_name: "TC103 Project",
+      company: "rtCamp Solutions Pvt. Ltd.",
+      customer: "Google",
+      custom_billing_type: "Fixed Cost",
+      custom_currency: "INR",
+      project_type: "Fixed Cost",
+      business_unit: "Jupitor",
+      estimated_cost: 360000,
+      custom_default_hourly_billing_rate: 0,
+      custom_project_budget_hours: [],
+    },
+    employee: process.env.EMP3_NAME,
+    payloadDeleteProject: {
+      projectId: "filled-automatically-from-createProjects",
+    },
+  },
+  TC104: {
+    payloadCreateProject: {
+      project_name: "TC104 Project",
+      company: "rtCamp Solutions Pvt. Ltd.",
+      customer: "Google",
+      custom_billing_type: "Fixed Cost",
+      custom_currency: "INR",
+      project_type: "Fixed Cost",
+      business_unit: "Jupitor",
+      estimated_cost: 360000,
+      custom_default_hourly_billing_rate: 0,
+      custom_project_budget_hours: [],
+    },
+    employee: process.env.EMP3_NAME,
+    payloadDeleteProject: {
+      projectId: "filled-automatically-from-createProjects",
+    },
+  },
+};

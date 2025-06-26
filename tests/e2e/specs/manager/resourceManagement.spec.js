@@ -4,7 +4,7 @@ import { TimelinePage } from "../../pageObjects/resourceManagement/timeline";
 import { TeamPage } from "../../pageObjects/resourceManagement/team";
 import { ProjectPage } from "../../pageObjects/resourceManagement/project";
 import * as allure from "allure-js-commons";
-import data from "../../data/manager/team.json";
+import data from "../../data/manager/team";
 import { deleteAllocation } from "../../utils/api/projectRequests";
 import { getFormattedDateNDaysFromToday } from "../../utils/dateUtils";
 
@@ -38,7 +38,7 @@ test.afterAll(async () => {
   }
 });
 
-test.describe("Resource Management tests", () => {
+test.describe("Manager : Resource Management Tab", () => {
   test("TC-102: Verify add Allocation workflow by the Plus button", async ({ page }) => {
     allure.story("Resource Management");
     const projectName = data.TC102.payloadCreateProject.project_name;
