@@ -27,7 +27,7 @@ def recalculate_timesheet_billing(project_id: str, valid_from_date: str, start: 
             filters={"project": project_id, "start_date": [">=", valid_from_date]},
             fields=["name"],
             start=start,
-            limit_page_length=500,
+            limit_page_length=300,
         )
 
         if not timsheets or len(timsheets) < 1:
@@ -59,7 +59,7 @@ def recalculate_timesheet_billing(project_id: str, valid_from_date: str, start: 
             queue="long",
             project_id=project_id,
             valid_from_date=valid_from_date,
-            start=start + 500,
+            start=start + 300,
         )
     except Exception:
         generate_the_error_log(
