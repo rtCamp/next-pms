@@ -8,9 +8,9 @@ import {
   deleteTimesheetbyID,
   submitTimesheet,
 } from "../utils/api/timesheetRequests";
-import employeeTimesheetData from "../data/employee/timesheet.json";
-import managerTeamData from "../data/manager/team.json";
-import managerTaskData from "../data/manager/task.json";
+import employeeTimesheetData from "../data/employee/timesheet";
+import managerTeamData from "../data/manager/team";
+import managerTaskData from "../data/manager/task";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
 import { createProject, deleteProject, getProjectDetails } from "../utils/api/projectRequests";
 import { createTask, deleteTask, likeTask, updateTask } from "../utils/api/taskRequests";
@@ -783,15 +783,12 @@ export const deleteLeaveOfEmployee = async () => {
  * Combined json files to pass for deleting the orphan test data
  */
 export const readAndCleanAllOrphanData = async () => {
-  const employeeData = await readJSONFile("../data/employee/timesheet.json");
-  const managerTask = await readJSONFile("../data/manager/task.json");
-  const managerTeam = await readJSONFile("../data/manager/team.json");
-
   const mergedData = {
-    ...employeeData,
-    ...managerTask,
-    ...managerTeam,
+    ...employeeTimesheetData,
+    ...managerTaskData,
+    ...managerTeamData,
   };
+
   await deleteLeaveOfEmployee();
   await deleteEmployeeByName();
   await cleanUpProjects(mergedData);

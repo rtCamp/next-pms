@@ -2,7 +2,7 @@ import path from "path";
 import fs from "fs";
 import { getWeekdayName, getDateForWeekday, getFormattedDate } from "../utils/dateUtils";
 import { getLeaves, getLeaveDetails, actOnLeave } from "../utils/api/leaveRequests";
-import employeeTimesheetData from "../data/employee/timesheet.json";
+import employeeTimesheetData from "../data/employee/timesheet";
 import { readJSONFile } from "../utils/fileUtils";
 
 // Load env variables
