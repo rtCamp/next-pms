@@ -83,8 +83,6 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
         "Not Submitted": 0,
         "Approved": 0,
         "Rejected": 0,
-        "Partially Approved": 0,
-        "Partially Rejected": 0,
         "Approval Pending": 0,
     }
 
@@ -100,8 +98,13 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
     elif status_count["Approved"] > 0:
         week_status = "Partially Approved"
 
+    if status_count["Approval Pending"] > 0:
+        week_status = "Approval Pending"
+
     for timesheet in current_week_timesheet:
-        frappe.db.set_value("Timesheet", timesheet.name, "custom_weekly_approval_status", week_status)
+        frappe.db.set_value(
+            "Timesheet", timesheet.name, "custom_weekly_approval_status", week_status, update_modified=False
+        )
 
 
 @redis_cache()
