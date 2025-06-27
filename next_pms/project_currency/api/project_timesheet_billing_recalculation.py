@@ -24,7 +24,7 @@ def recalculate_timesheet_billing(project_id: str, valid_from_date: str, start: 
     try:
         timsheets = frappe.get_all(
             "Timesheet",
-            filters={"project": project_id, "start_date": [">=", valid_from_date]},
+            filters={"parent_project": project_id, "start_date": [">=", valid_from_date]},
             fields=["name"],
             limit_start=start,
             limit_page_length=300,
