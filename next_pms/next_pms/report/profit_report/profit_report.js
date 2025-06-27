@@ -41,13 +41,9 @@ frappe.query_reports["Profit Report"] = {
   ],
   formatter: function (value, row, column, data, default_formatter) {
     value = default_formatter(value, row, column, data);
-    if (["revenue", "cost", "hourly_rate", "profit"].includes(column.id)) {
-      value = `<div style="display:flex;justify-content: flex-end;${
-        data && column.id && data[column.id] < 0 ? "color:red" : ""
-      }">$${value}</div>`;
-    }
-    if (column.id === "profit_percentage") {
-      value = `<div style="display:flex;justify-content: flex-end;">${value}%</div>`;
+    if (["revenue", "cost", "hourly_rate", "profit"].includes(column.id) && data && column.id && data[column.id] < 0) {
+      var $value = $(value).css("color", "red");
+      value = $value.wrap("<p></p>").parent().html();
     }
     return value;
   },

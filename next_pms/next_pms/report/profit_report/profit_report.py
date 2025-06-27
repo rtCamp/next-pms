@@ -10,9 +10,9 @@ from next_pms.resource_management.api.utils.helpers import is_on_leave
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm
 from next_pms.utils.employee import (
     convert_currency,
-    get_employee_hourly_salary,
     get_employee_joining_date_based_on_work_history,
     get_employee_leaves_and_holidays,
+    get_employee_salary,
 )
 
 
@@ -27,14 +27,20 @@ def get_data(filters=None):
     start_date = getdate(filters.get("from_date"))
     end_date = getdate(filters.get("to_date"))
     employees = get_employees(
-        department=filters.get("department"), status=filters.get("status"), start_date=start_date, end_date=end_date
+        department=filters.get("department"),
+        status=filters.get("status"),
+        start_date=start_date,
+        end_date=end_date,
     )
     emp_names = [employee.employee for employee in employees]
 
     timesheets = get_employees_timesheet_hours(emp_names, start_date, end_date)
     billing_amount = get_employees_billable_amount(emp_names, start_date, end_date)
     for employee in employees:
-        emp_timesheet = next((timesheet for timesheet in timesheets if timesheet.employee == employee.employee), None)
+        emp_timesheet = next(
+            (timesheet for timesheet in timesheets if timesheet.employee == employee.employee),
+            None,
+        )
         if employee.status != "Active" and not emp_timesheet:
             continue
         employee_leave_and_holidays = get_employee_leaves_and_holidays(employee.employee, start_date, end_date)
@@ -55,7 +61,7 @@ def get_data(filters=None):
         employee["non_billable_hours"] = emp_timesheet.get("non_billable_hours", 0)
         employee["capacity"] = total_hours
         employee["utilization"] = employee["billable_hours"] + employee["non_billable_hours"]
-        employee["hourly_rate"] = get_employee_hourly_salary(employee.employee, "USD")
+        employee["hourly_rate"] = get_employee_salary(employee.employee, "USD", throw=False).get("hourly_salary", 0)
         employee["cost"] = calculate_employee_cost(
             employee,
             start_date=start_date,
@@ -74,7 +80,13 @@ def get_data(filters=None):
 
 
 def calculate_employee_cost(
-    employee, start_date, end_date, num_of_holidays, num_unpaid_leaves, daily_hours, hourly_rate
+    employee,
+    start_date,
+    end_date,
+    num_of_holidays,
+    num_unpaid_leaves,
+    daily_hours,
+    hourly_rate,
 ):
     days = 0
 
@@ -169,6 +181,7 @@ def get_employees(start_date, end_date, department=None, status=None):
     for employee in employees:
         joining_date = get_employee_joining_date_based_on_work_history(employee)
         employee["date_of_joining"] = joining_date
+        employee["currency"] = "USD"
 
     return employees
 
@@ -235,7 +248,11 @@ def get_columns():
             "fieldtype": "Link",
             "options": "Employee",
         },
-        {"fieldname": "employee_name", "label": _("Employee Name"), "fieldtype": "Data"},
+        {
+            "fieldname": "employee_name",
+            "label": _("Employee Name"),
+            "fieldtype": "Data",
+        },
         {
             "fieldname": "employee_name",
             "label": _("Employee Name"),
@@ -287,27 +304,31 @@ def get_columns():
         {
             "fieldname": "hourly_rate",
             "label": _("Hourly $"),
-            "fieldtype": "Float",
+            "fieldtype": "Currency",
+            "options": "currency",
         },
         {
             "fieldname": "cost",
             "label": _("Cost $"),
-            "fieldtype": "Float",
+            "fieldtype": "Currency",
+            "options": "currency",
         },
         {
             "fieldname": "revenue",
             "label": _("Revenue $"),
-            "fieldtype": "Float",
+            "fieldtype": "Currency",
+            "options": "currency",
         },
         {
             "fieldname": "profit",
             "label": _("Profit $"),
-            "fieldtype": "Float",
+            "fieldtype": "Currency",
+            "options": "currency",
         },
         {
             "fieldname": "profit_percentage",
             "label": _("Profit %"),
-            "fieldtype": "Float",
+            "fieldtype": "Percent",
         },
     ]
 

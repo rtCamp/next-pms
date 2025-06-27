@@ -1,0 +1,166 @@
+module.exports = {
+  TC17: {
+    payloadCreateProject: {
+      project_name: "TC17 Project",
+      company: "rtCamp Solutions Pvt. Ltd.",
+      customer: "Google",
+      billing_type: "Fixed Cost",
+      currency: "INR",
+      project_type: "Fixed Cost",
+      business_unit: "Jupitor",
+      estimated_cost: 20000,
+      custom_default_hourly_billing_rate: 300,
+      custom_project_budget_hours: [],
+    },
+    payloadDeleteProject: {
+      projectId: "filled-automatically-from-createProjects",
+    },
+    payloadCreateTask: {
+      subject: "TC17 Billable Task",
+      project: "filled-automatically-from-createProjects",
+      description: "Task for TC17 created through automation",
+      custom_is_billable: 1,
+    },
+    payloadDeleteTask: {
+      taskID: "filled-automatically-from-createTasks",
+    },
+  },
+  TC19: {
+    payloadCreateProject: {
+      project_name: "TC19 Project",
+      company: "rtCamp Solutions Pvt. Ltd.",
+      customer: "Google",
+      billing_type: "Fixed Cost",
+      currency: "INR",
+      project_type: "Fixed Cost",
+      business_unit: "Jupitor",
+      estimated_cost: 20000,
+      custom_default_hourly_billing_rate: 300,
+      custom_project_budget_hours: [],
+    },
+    payloadDeleteProject: {
+      projectId: "filled-automatically-from-createProjects",
+    },
+    payloadCreateTask: {
+      subject: "TC19 Billable Task",
+      project: "filled-automatically-from-createProjects",
+      description: "Task for TC19 created through automation",
+      custom_is_billable: 1,
+    },
+    payloadDeleteTask: {
+      taskID: "filled-automatically-from-createTasks",
+    },
+  },
+  TC20: {
+    col: "Issue",
+  },
+  TC22: {
+    payloadCreateProject: {
+      project_name: "TC22 Project",
+      company: "rtCamp Solutions Pvt. Ltd.",
+      customer: "Google",
+      billing_type: "Fixed Cost",
+      currency: "INR",
+      project_type: "Fixed Cost",
+      business_unit: "Jupitor",
+      estimated_cost: 20000,
+      custom_default_hourly_billing_rate: 300,
+      custom_project_budget_hours: [],
+    },
+    payloadDeleteProject: {
+      projectId: "filled-automatically-from-createProjects",
+    },
+    payloadCreateTask: {
+      subject: "TC22 Billable Task",
+      project: "filled-automatically-from-createProjects",
+      description: "Task for TC22 created through automation",
+      custom_is_billable: 1,
+    },
+    payloadDeleteTask: {
+      taskID: "filled-automatically-from-createTasks",
+    },
+    payloadLikeTask: {
+      doctype: "Task",
+      name: "filled-automatically-from-createTasks",
+      add: "Yes",
+      role: "manager",
+    },
+  },
+  TC24: {
+    taskInfo: {
+      duration: "1",
+      project: "TC24 Project",
+      task: "TC24 Billable Task",
+      desc: "Task for TC24 created through automation",
+    },
+    payloadCreateProject: {
+      project_name: "TC24 Project",
+      company: "rtCamp Solutions Pvt. Ltd.",
+      customer: "Google",
+      billing_type: "Fixed Cost",
+      currency: "INR",
+      project_type: "Fixed Cost",
+      business_unit: "Jupitor",
+      estimated_cost: 20000,
+      custom_default_hourly_billing_rate: 300,
+      custom_project_budget_hours: [],
+    },
+    payloadDeleteTaskBySubject: {
+      task: "TC24 Billable Task",
+    },
+    payloadDeleteProject: {
+      projectId: "filled-automatically-from-createProjects",
+    },
+  },
+  TC25: {
+    payloadCreateProject: {
+      project_name: "TC25 Project",
+      company: "rtCamp Solutions Pvt. Ltd.",
+      customer: "Google",
+      billing_type: "Fixed Cost",
+      currency: "INR",
+      project_type: "Fixed Cost",
+      business_unit: "Jupitor",
+      estimated_cost: 20000,
+      custom_default_hourly_billing_rate: 300,
+      custom_project_budget_hours: [],
+    },
+    payloadDeleteProject: {
+      projectId: "filled-automatically-from-createProjects",
+    },
+    payloadCreateTask: {
+      subject: "TC25 Billable Task",
+      project: "filled-automatically-from-createProjects",
+      description: "Task for TC25 created through automation",
+      custom_is_billable: 1,
+    },
+    payloadDeleteTask: {
+      taskID: "filled-automatically-from-createTasks",
+    },
+  },
+  TC26: {
+    payloadCreateProject: {
+      project_name: "TC26 Project",
+      company: "rtCamp Solutions Pvt. Ltd.",
+      customer: "Google",
+      billing_type: "Fixed Cost",
+      currency: "INR",
+      project_type: "Fixed Cost",
+      business_unit: "Jupitor",
+      estimated_cost: 20000,
+      custom_default_hourly_billing_rate: 300,
+      custom_project_budget_hours: [],
+    },
+    payloadDeleteProject: {
+      projectId: "filled-automatically-from-createProjects",
+    },
+    payloadCreateTask: {
+      subject: "TC26 Non-Billable Task",
+      project: "filled-automatically-from-createProjects",
+      description: "Task for TC26 created through automation",
+    },
+    payloadDeleteTask: {
+      taskID: "filled-automatically-from-createTasks",
+    },
+  },
+};

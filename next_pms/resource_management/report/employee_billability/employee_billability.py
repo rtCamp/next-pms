@@ -58,7 +58,7 @@ def get_columns():
         {"fieldname": "billable_hours", "label": _("Billable Hours"), "fieldtype": "Float"},
         {"fieldname": "valuable_hours", "label": _("Valuable Hours"), "fieldtype": "Float"},
         {"fieldname": "untracked_hours", "label": _("Untracked Hours"), "fieldtype": "Float"},
-        {"fieldname": "billing_percentage", "label": _("Billing %"), "fieldtype": "Float"},
+        {"fieldname": "billing_percentage", "label": _("Billing %"), "fieldtype": "Percent"},
         {"fieldname": "deficit", "label": _("Deficit"), "fieldtype": "Float"},
     ]
 

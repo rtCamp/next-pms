@@ -1,6 +1,6 @@
 import path from "path";
 import { getFormattedDate, getYesterdayDate } from "../utils/dateUtils";
-import managerTeamData from "../data/manager/team.json";
+import managerTeamData from "../data/manager/team";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
 import { addEmployee, deleteEmployee } from "../utils/api/employeeRequests";
 import { deleteAllocation } from "../utils/api/projectRequests";
@@ -69,8 +69,14 @@ export const createEmployees = async () => {
                 data["TC39"].employees.push(fullName);
               }
 
-              if (!data["TC53"]?.employees.includes(fullName)) {
-                data["TC53"].employees.push(fullName);
+              // Push to both TC53.employeesInQE and TC53.employeesInStaging
+              if (data["TC53"]) {
+                if (!data["TC53"].employeesInQE.includes(fullName)) {
+                  data["TC53"].employeesInQE.push(fullName);
+                }
+                if (!data["TC53"].employeesInStaging.includes(fullName)) {
+                  data["TC53"].employeesInStaging.push(fullName);
+                }
               }
             }
             // Store the full created employee info along with response `name`
