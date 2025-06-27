@@ -13,6 +13,9 @@ def execute():
 
     total = len(custom_fields)
 
+    if not total:
+        return
+
     for i, custom_field_name in enumerate(custom_fields):
         update_progress_bar("Removing Custom Fields", i, total)
         frappe.delete_doc("Custom Field", custom_field_name, force=True)
