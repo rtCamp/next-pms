@@ -286,7 +286,6 @@ def _approve_or_reject_timesheet(
             doc.custom_approval_status = status
             doc.save(ignore_permissions=employee_has_higher_access(employee, ptype="write"))
             if status == "Approved":
-                doc.reload()
                 doc.submit()
 
         enqueue(
