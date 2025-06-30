@@ -266,6 +266,9 @@ doc_events = {
     },
     "Customer": {"validate": "next_pms.resource_management.doc_events.customer.validate_abbr"},
     "Employee": {"on_update": "next_pms.timesheet.doc_events.employee.on_update"},
+    "Holiday List": {
+        "validate": "next_pms.timesheet.doc_events.holiday_list.validate",
+    },
 }
 #
 # each overriding function accepts a `data` argument;

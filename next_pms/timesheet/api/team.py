@@ -1,6 +1,18 @@
 import json
 
-from frappe import DoesNotExistError, _, get_all, get_doc, get_value, only_for, throw, whitelist
+from frappe import (
+    DoesNotExistError,
+    _,
+    enqueue,
+    get_all,
+    get_doc,
+    get_value,
+    only_for,
+    sendmail,
+    session,
+    throw,
+    whitelist,
+)
 from frappe.utils.data import add_days, getdate
 
 from next_pms.resource_management.api.utils.query import get_employee_leaves
@@ -148,9 +160,7 @@ def get_compact_view_data(
 
 
 @whitelist()
-def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | str | None = None, note: str = ""):
-    from frappe import enqueue
-
+def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | None = None, note: str = ""):
     only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
     current_week = get_week_dates(dates[0])
@@ -170,27 +180,20 @@ def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | s
             exc=DoesNotExistError,
         )
 
-    for timesheet in timesheets:
-        if str(timesheet.start_date) not in dates:
-            continue
-        doc = get_doc("Timesheet", timesheet.name)
-        doc.custom_approval_status = status
-        doc.save(ignore_permissions=employee_has_higher_access(employee, ptype="write"))
-        if status == "Approved":
-            doc.reload()
-            doc.submit()
-
     enqueue(
-        trigger_notification_for_approved_or_rejected_timesheet,
-        enqueue_after_commit=True,
+        _approve_or_reject_timesheet,
         status=status,
         employee=employee,
         dates=dates,
+        timesheets=timesheets,
+        enqueue_after_commit=True,
+        queue="long",
         note=note,
-        job_name="Timesheet Approval Notification",
+        job_name=f"Timesheet Approval for {employee} - {status}",
+        at_front=True,
     )
 
-    return _("Timesheet status updated successfully")
+    return _("Timesheet approval/rejection has been queued for processing. Please refrain from making further changes.")
 
 
 def filter_employee_by_timesheet_status(
@@ -266,6 +269,43 @@ def filter_employee_by_timesheet_status(
         page_length = count - start
 
     return employees, count
+
+
+def _approve_or_reject_timesheet(
+    timesheets: list,
+    status: str,
+    employee: str,
+    dates: list[str] | None = None,
+    note: str = "",
+):
+    try:
+        for timesheet in timesheets:
+            if str(timesheet.start_date) not in dates:
+                continue
+            doc = get_doc("Timesheet", timesheet.name)
+            doc.custom_approval_status = status
+            doc.save(ignore_permissions=employee_has_higher_access(employee, ptype="write"))
+            if status == "Approved":
+                doc.submit()
+
+        enqueue(
+            trigger_notification_for_approved_or_rejected_timesheet,
+            enqueue_after_commit=True,
+            status=status,
+            employee=employee,
+            dates=dates,
+            note=note,
+            job_name="Timesheet Approval Notification",
+        )
+    except:  # noqa: E722
+        subject = _("Error in Timesheet Approval")
+        message = _(
+            "An error occurred while processing the timesheet approval for {employee}. Please follow <a href='{link}'>link</a> to check the time-entries."
+        ).format(
+            employee=employee,
+            link=f"/next-pms/team/employee/{employee}?date='{dates[0]}'",
+        )
+        sendmail(recipients=[session.user], subject=subject, message=message)
 
 
 def trigger_notification_for_approved_or_rejected_timesheet(
