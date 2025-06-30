@@ -480,6 +480,7 @@ def get_timesheet_details(date: str, task: str, employee: str):
         filters={
             "start_date": ["=", getdate(date)],
             "employee": employee,
+            "docstatus": ["=", 0],
         },
         ignore_permissions=employee_has_higher_access(employee, ptype="read"),
     )
