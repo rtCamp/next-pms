@@ -414,6 +414,7 @@ def get_timesheet_state(employee: str, start_date: str, end_date: str):
             "employee": employee,
             "start_date": [">=", getdate(start_date)],
             "end_date": ["<=", getdate(end_date)],
+            "docstatus": ["<", 2],
         },
         "custom_weekly_approval_status",
     )
@@ -479,6 +480,7 @@ def get_timesheet_details(date: str, task: str, employee: str):
         filters={
             "start_date": ["=", getdate(date)],
             "employee": employee,
+            "docstatus": ["=", 0],
         },
         ignore_permissions=employee_has_higher_access(employee, ptype="read"),
     )

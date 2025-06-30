@@ -10,7 +10,7 @@ from frappe.utils import getdate
 from next_pms.resource_management.api.utils.query import get_allocation_list_for_employee_for_given_range
 from next_pms.resource_management.report.utils import calculate_employee_available_hours, calculate_employee_hours
 from next_pms.timesheet.api.employee import get_employee_daily_working_norm
-from next_pms.utils.employee import generate_flat_tree, get_employee_leaves_and_holidays
+from next_pms.utils.employee import generate_flat_tree, get_employee_leaves_and_holidays, get_employee_salary
 
 from .utils import (
     BU_FIELD_NAME,
@@ -111,11 +111,12 @@ def get_data(filters=None, has_bu_field=False):
         if emp.currency != currency:
             emp.ctc = convert_currency(emp.ctc, emp.currency, currency)
             emp.currency = currency
-        emp.monthly_salary = emp.ctc / 12
+
+        salary_info = get_employee_salary(emp.name, currency, throw=False)
+        emp.monthly_salary = salary_info.get("monthly_salary", 0)
         emp._monthly_salary = emp.monthly_salary  # Store original monthly salary
 
-        emp.hourly_salary = emp.monthly_salary / 160
-
+        emp.hourly_salary = salary_info.get("hourly_salary", 0)
         emp.actual_unbilled_cost = emp.hourly_salary * emp.available_capacity
         emp._actual_unbilled_cost = emp.actual_unbilled_cost  # Store original unbilled cost
         # Calculate % Capacity
