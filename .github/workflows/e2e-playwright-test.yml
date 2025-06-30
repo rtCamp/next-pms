@@ -64,7 +64,7 @@ jobs:
   test:
     needs: [ deploy ]
     if: |
-      (github.event_name == 'workflow_dispatch') || success()
+      (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule') || success()
     runs-on: self-hosted
     container:
       image: ubuntu:24.04
