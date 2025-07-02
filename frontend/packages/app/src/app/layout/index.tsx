@@ -22,6 +22,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const { data, error } = useFrappeGetCall("next_pms.timesheet.api.employee.get_data", {}, undefined, {
     revalidateOnFocus: false,
     revalidateIfStale: false,
+    errorRetryCount: 1,
   });
 
   useEffect(() => {

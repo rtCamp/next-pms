@@ -28,7 +28,6 @@ export type HourInputprops = {
 export type EmployeeDetailHeaderProps = {
   state: TeamState;
   employeeId: string;
-  callback: () => void;
   dispatch: React.Dispatch<Action>;
 };
 

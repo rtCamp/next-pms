@@ -5,7 +5,6 @@ import type { NewTimesheetProps, TaskDataItemProps } from "@/types/timesheet";
 import type { Action, TeamState } from "../types";
 
 export type EmployeeTimesheetListProps = {
-  callback?: () => void;
   startDateParam: string;
   setStartDateParam: React.Dispatch<React.SetStateAction<string>>;
   teamState: TeamState;
