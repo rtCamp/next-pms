@@ -22,6 +22,7 @@ export class TeamPage extends TimelinePage {
    */
   async addAllocationFromTeamTab(projectName, customerName, employeeName, date, day) {
     await this.filterEmployeeByName(employeeName);
+    await this.page.waitForTimeout(1000); // added to avoid flaky test
 
     let allotmentDate = date;
     let allotmentDay = day;
