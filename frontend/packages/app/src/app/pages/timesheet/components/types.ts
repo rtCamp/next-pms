@@ -7,7 +7,7 @@ import type { DataProp, TaskDataItemProps } from "@/types/timesheet";
 
 export interface ApprovalProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onClose: (data: any) => void;
+  onClose?: (data: any) => void;
   user: UserState;
   timesheetState: TimesheetState;
   dispatch: (value: Action) => void;

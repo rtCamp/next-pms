@@ -179,7 +179,7 @@ def delete(parent: str, name: str):
 
 @frappe.whitelist()
 def submit_for_approval(start_date: str, notes: str = None, employee: str = None, approver: str = None):
-    from next_pms.timesheet.doc_events.timesheet import flush_cache
+    from next_pms.timesheet.doc_events.timesheet import flush_cache, publish_timesheet_update
     from next_pms.timesheet.tasks.reminder_on_approval_request import (
         send_approval_reminder,
     )
@@ -227,6 +227,7 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
         )
     doc = frappe._dict({"employee": employee, "start_date": start_date, "end_date": end_date})
     flush_cache(doc)
+    publish_timesheet_update(employee=employee, start_date=start_date)
     send_approval_reminder(employee, reporting_manager, start_date, end_date, notes)
     return _("Timesheet has been sent for Approval to {0}.").format(reporting_manager_name)
 
