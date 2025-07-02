@@ -1,6 +1,7 @@
 /**
  * External dependencies
  */
+import { useCallback } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useFrappeGetCall } from "frappe-react-sdk";
@@ -34,7 +35,16 @@ export const EmployeeDetailHeader = ({ state, dispatch, employeeId }: EmployeeDe
   const onEmployeeChange = (name: string) => {
     navigate(`/team/employee/${name}`);
   };
+  const onOpenChange = useCallback(() => {
+    dispatch({ type: "SET_DIALOG", payload: false });
+  }, [dispatch]);
 
+  const onClose = useCallback(() => {
+    dispatch({
+      type: "SET_DATE_RANGE",
+      payload: { dateRange: { startDate: "", endDate: "" }, isAprrovalDialogOpen: false },
+    });
+  }, [dispatch]);
   return (
     <>
       <Header>
@@ -53,21 +63,13 @@ export const EmployeeDetailHeader = ({ state, dispatch, employeeId }: EmployeeDe
           isAprrovalDialogOpen={state.isAprrovalDialogOpen}
           endDate={state.dateRange.endDate}
           startDate={state.dateRange.startDate}
-          onClose={(data: string) => {
-            dispatch({
-              type: "SET_DATE_RANGE",
-              payload: { dateRange: { startDate: "", endDate: "" }, isAprrovalDialogOpen: false },
-            });
-          }}
+          onClose={onClose}
         />
       )}
       {state.isDialogOpen && (
         <AddTime
           open={state.isDialogOpen}
-          onOpenChange={(data) => {
-            dispatch({ type: "SET_DIALOG", payload: false });
-          }}
-          onSuccess={(data) => {}}
+          onOpenChange={onOpenChange}
           task={state.timesheet.task}
           initialDate={state.timesheet.date}
           employee={state.employee}
