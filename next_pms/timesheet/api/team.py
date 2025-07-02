@@ -76,6 +76,7 @@ def get_compact_view_data(
             "employee": ["in", employee_names],
             "start_date": [">=", dates[0].get("start_date")],
             "end_date": ["<=", dates[-1].get("end_date")],
+            "docstatus": ["!=", 2],
         },
         fields=[
             "employee",
