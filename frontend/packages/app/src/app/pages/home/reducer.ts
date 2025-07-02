@@ -124,6 +124,14 @@ const actionHandlers: {
     },
     isLoading: false,
   }),
+  UPDATE_EMP_DATA: (state: HomeState, action) => ({
+    ...state,
+    data: {
+      ...state.data,
+      data: { ...state.data.data, ...action.payload.data },
+    },
+    isLoading: false,
+  }),
   SET_HAS_VIEW_UPDATED: (state, action) => ({
     ...state,
     hasViewUpdated: action.payload,
