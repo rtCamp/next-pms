@@ -36,8 +36,10 @@ def get_compact_view_data(
     status_filter=None,
     status=None,
     reports_to: str | None = None,
+    by_pass_access_check=False,
 ):
-    only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+    if not by_pass_access_check:
+        only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
     dates = []
     data = {}

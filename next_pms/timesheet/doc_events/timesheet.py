@@ -263,10 +263,24 @@ def flush_cache(doc):
 
 
 def publish_timesheet_update(employee, start_date):
-    from frappe import publish_realtime
+    from frappe import get_cached_value, publish_realtime
     from frappe.realtime import get_site_room
+    from frappe.utils import get_date_str
 
+    from next_pms.timesheet.api.team import get_compact_view_data
     from next_pms.timesheet.api.timesheet import get_timesheet_data
 
+    res = get_compact_view_data(
+        date=get_date_str(start_date),
+        max_week=2,
+        by_pass_access_check=True,
+        employee_name=get_cached_value("Employee", employee, fieldname="employee_name"),
+    )
     data = get_timesheet_data(employee, start_date, 1)
     publish_realtime(f"timesheet_update::{employee}", {"message": data}, after_commit=True, room=get_site_room())
+    publish_realtime(
+        "timesheet_info",
+        {"message": res, "employee": employee, "date": get_date_str(start_date)},
+        after_commit=True,
+        room=get_site_room(),
+    )
