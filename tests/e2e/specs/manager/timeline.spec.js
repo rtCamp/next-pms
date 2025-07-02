@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import path from "path";
 import { TimelinePage } from "../../pageObjects/resourceManagement/timeline";
 import * as allure from "allure-js-commons";
-import data from "../../data/manager/team.json";
+import data from "../../data/manager/team";
 
 let timelinePage;
 
