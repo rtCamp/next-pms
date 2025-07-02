@@ -10,6 +10,13 @@ jobs:
     name: Run Visual Tests
     runs-on: ubuntu-latest
 
+    env:
+      BASE_URL: ${{ secrets.BASE_URL }}
+      HETZNER_S3_BUCKET: ${{ secrets.HETZNER_S3_BUCKET }}
+      HETZNER_S3_ACCESS_KEY_ID: ${{ secrets.HETZNER_S3_ACCESS_KEY_ID }}
+      HETZNER_S3_SECRET_ACCESS_KEY: ${{ secrets.HETZNER_S3_SECRET_ACCESS_KEY }}
+      HETZNER_S3_ENDPOINT_URL: ${{ secrets.HETZNER_S3_ENDPOINT_URL }}
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -26,6 +33,13 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
+
+      - name: Configure mc alias for Hetzner S3
+        run: |
+          mc alias set hetzner \
+            ${{ env.HETZNER_S3_ENDPOINT_URL }} \
+            ${{ env.HETZNER_S3_ACCESS_KEY_ID }} \
+            ${{ env.HETZNER_S3_SECRET_ACCESS_KEY }}
 
       - name: Install dependencies
         run: npm ci
