@@ -43,10 +43,13 @@ def on_update(doc, method=None):
     doc.update_task_and_project()
     update_weekly_status_of_timesheet(doc.employee, getdate(doc.start_date))
 
+    publish_timesheet_update(doc.employee, doc.start_date)
+
 
 def after_delete(doc, method=None):
     doc.update_task_and_project()
     flush_cache(doc)
+    publish_timesheet_update(doc.employee, doc.start_date)
 
 
 def before_validate(doc, method=None):
@@ -60,10 +63,7 @@ def before_submit(doc, method=None):
 
 def on_cancel(doc, method=None):
     flush_cache(doc)
-
-
-def on_trash(doc, method=None):
-    flush_cache(doc)
+    publish_timesheet_update(doc.employee, doc.start_date)
 
 
 #  Custom Methods for Timesheet DocType events
@@ -260,3 +260,12 @@ def flush_cache(doc):
     week_cache_key = f"{start_date}::{end_date}"
 
     frappe.cache.hdel(cache_key, week_cache_key)
+
+
+def publish_timesheet_update(employee, start_date):
+    from frappe import publish_realtime
+
+    from next_pms.timesheet.api.timesheet import get_timesheet_data
+
+    data = get_timesheet_data(employee, start_date, 1)
+    publish_realtime(f"timesheet_update::{employee}", {"message": data}, after_commit=True)
