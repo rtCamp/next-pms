@@ -264,8 +264,9 @@ def flush_cache(doc):
 
 def publish_timesheet_update(employee, start_date):
     from frappe import publish_realtime
+    from frappe.realtime import get_site_room
 
     from next_pms.timesheet.api.timesheet import get_timesheet_data
 
     data = get_timesheet_data(employee, start_date, 1)
-    publish_realtime(f"timesheet_update::{employee}", {"message": data}, after_commit=True)
+    publish_realtime(f"timesheet_update::{employee}", {"message": data}, after_commit=True, room=get_site_room())
