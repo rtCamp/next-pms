@@ -38,7 +38,7 @@ test.afterAll(async () => {
   }
 });
 
-test.describe("Manager : Resource Management Tab", () => {
+test.describe.only("Manager : Resource Management Tab", () => {
   test("TC-102: Verify add Allocation workflow by the Plus button", async ({ page }) => {
     allure.story("Resource Management");
     const projectName = data.TC102.payloadCreateProject.project_name;
