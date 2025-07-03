@@ -154,6 +154,10 @@ const actionHandlers = {
     ...state,
     hasMore: payload,
   }),
+  SET_LOADING: (state: TeamState, payload: boolean) => ({
+    ...state,
+    isLoading: payload,
+  }),
   SET_DATE_RANGE: (
     state: TeamState,
     payload: {
