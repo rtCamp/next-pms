@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { useCallback, useEffect } from "react";
+import { useSelector } from "react-redux";
 import { ButtonProps, useToast } from "@next-pms/design-system/components";
 import { getFormatedDate } from "@next-pms/design-system/date";
 import { useQueryParam } from "@next-pms/hooks";
@@ -16,6 +17,7 @@ import { useContextSelector } from "use-context-selector";
  */
 import { Header } from "@/app/components/list-view/header";
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import { RootState } from "@/store";
 import { ViewData } from "@/store/view";
 import { ProjectContext } from "../../store/projectContext";
 import { ResourceFormContext } from "../../store/resourceFormContext";
@@ -48,7 +50,7 @@ const ResourceProjectHeaderSection = ({ viewData }: { viewData: ViewData }) => {
     ProjectContext,
     (value) => value.actions
   );
-
+  const user = useSelector((state: RootState) => state.user);
   const { permission: resourceAllocationPermission } = useContextSelector(ResourceFormContext, (value) => value.state);
 
   const { updatePermission, updateDialogState } = useContextSelector(ResourceFormContext, (value) => value.actions);
@@ -162,132 +164,135 @@ const ResourceProjectHeaderSection = ({ viewData }: { viewData: ViewData }) => {
         });
       });
   };
-
+  let sectionFilters = [
+    {
+      queryParameterName: "project-name",
+      handleChange: (value: string) => {
+        updateFilter({ projectName: value });
+      },
+      handleDelete: () => {
+        updateFilter({ projectName: "" });
+      },
+      type: "search",
+      value: filters.projectName,
+      defaultValue: "",
+      label: "Project Name",
+      queryParameterDefault: "",
+    },
+    {
+      queryParameterName: "customer",
+      handleChange: (value: string | string[]) => {
+        updateFilter({ customer: value as string[] });
+      },
+      handleDelete: (value: string[]) => {
+        updateFilter({ customer: value });
+      },
+      type: "select-search",
+      value: filters.customer,
+      label: "Customer",
+      shouldFilterComboBox: true,
+      isMultiComboBox: true,
+      hide: !resourceAllocationPermission.write,
+      apiCall: {
+        url: "frappe.client.get_list",
+        filters: {
+          doctype: "Customer",
+          fields: ["name"],
+          limit_page_length: 0,
+        },
+        options: {
+          revalidateOnFocus: false,
+          revalidateIfStale: false,
+        },
+      },
+      queryParameterDefault: filters.customer,
+    },
+    {
+      type: "select-list",
+      queryParameterName: "billing-type",
+      label: "Billing Type",
+      value: filters.billingType,
+      data: [
+        { label: "Non-Billable", value: "Non-Billable" },
+        { label: "Retainer", value: "Retainer" },
+        { label: "Fixed Cost", value: "Fixed Cost" },
+        { label: "Time and Material", value: "Time and Material" },
+      ],
+      queryParameterDefault: filters.billingType,
+      handleChange: (value: string | string[]) => {
+        updateFilter({ billingType: value as string[] });
+      },
+      handleDelete: (value: string[]) => {
+        updateFilter({ billingType: value });
+      },
+      shouldFilterComboBox: true,
+      isMultiComboBox: true,
+      hide: !resourceAllocationPermission.write,
+    },
+    {
+      queryParameterName: "allocation-type",
+      handleChange: (value: string | string[]) => {
+        updateFilter({ allocationType: value as string[] });
+      },
+      handleDelete: (value: string[]) => {
+        updateFilter({ allocationType: value });
+      },
+      type: "select-list",
+      value: filters.allocationType,
+      shouldFilterComboBox: true,
+      isMultiComboBox: true,
+      label: "Allocation Type",
+      data: [
+        {
+          label: "Billable",
+          value: "Billable",
+        },
+        {
+          label: "Non-Billable",
+          value: "Non-Billable",
+        },
+      ],
+      queryParameterDefault: filters.allocationType,
+      hide: !resourceAllocationPermission.write,
+    },
+    {
+      queryParameterName: "view-type",
+      handleChange: (value: string) => {
+        updateTableView({ ...tableView, view: value });
+      },
+      type: "select",
+      value: tableView.view,
+      defaultValue: "planned",
+      label: "Views",
+      data: [
+        {
+          label: "Planned",
+          value: "planned",
+        },
+        {
+          label: "Actual vs Planned",
+          value: "actual-vs-planned",
+        },
+      ],
+      hide: !resourceAllocationPermission.write,
+      queryParameterDefault: "planned",
+    },
+    {
+      queryParameterName: "combine-week-hours",
+      handleChange: handleWeekViewChange,
+      type: "checkbox",
+      value: tableView.combineWeekHours,
+      defaultValue: false,
+      label: "Combine Week Hours",
+      queryParameterDefault: false,
+    },
+  ];
+  if (!user.hasBuField) {
+    sectionFilters = sectionFilters.filter((filter) => filter.queryParameterName !== "business-unit");
+  }
   return (
     <Header
-      filters={[
-        {
-          queryParameterName: "project-name",
-          handleChange: (value: string) => {
-            updateFilter({ projectName: value });
-          },
-          handleDelete: () => {
-            updateFilter({ projectName: "" });
-          },
-          type: "search",
-          value: filters.projectName,
-          defaultValue: "",
-          label: "Project Name",
-          queryParameterDefault: "",
-        },
-        {
-          queryParameterName: "customer",
-          handleChange: (value: string | string[]) => {
-            updateFilter({ customer: value as string[] });
-          },
-          handleDelete: (value: string[]) => {
-            updateFilter({ customer: value });
-          },
-          type: "select-search",
-          value: filters.customer,
-          label: "Customer",
-          shouldFilterComboBox: true,
-          isMultiComboBox: true,
-          hide: !resourceAllocationPermission.write,
-          apiCall: {
-            url: "frappe.client.get_list",
-            filters: {
-              doctype: "Customer",
-              fields: ["name"],
-              limit_page_length: 0,
-            },
-            options: {
-              revalidateOnFocus: false,
-              revalidateIfStale: false,
-            },
-          },
-          queryParameterDefault: filters.customer,
-        },
-        {
-          type: "select-list",
-          queryParameterName: "billing-type",
-          label: "Billing Type",
-          value: filters.billingType,
-          data: [
-            { label: "Non-Billable", value: "Non-Billable" },
-            { label: "Retainer", value: "Retainer" },
-            { label: "Fixed Cost", value: "Fixed Cost" },
-            { label: "Time and Material", value: "Time and Material" },
-          ],
-          queryParameterDefault: filters.billingType,
-          handleChange: (value: string | string[]) => {
-            updateFilter({ billingType: value as string[] });
-          },
-          handleDelete: (value: string[]) => {
-            updateFilter({ billingType: value });
-          },
-          shouldFilterComboBox: true,
-          isMultiComboBox: true,
-          hide: !resourceAllocationPermission.write,
-        },
-        {
-          queryParameterName: "allocation-type",
-          handleChange: (value: string | string[]) => {
-            updateFilter({ allocationType: value as string[] });
-          },
-          handleDelete: (value: string[]) => {
-            updateFilter({ allocationType: value });
-          },
-          type: "select-list",
-          value: filters.allocationType,
-          shouldFilterComboBox: true,
-          isMultiComboBox: true,
-          label: "Allocation Type",
-          data: [
-            {
-              label: "Billable",
-              value: "Billable",
-            },
-            {
-              label: "Non-Billable",
-              value: "Non-Billable",
-            },
-          ],
-          queryParameterDefault: filters.allocationType,
-          hide: !resourceAllocationPermission.write,
-        },
-        {
-          queryParameterName: "view-type",
-          handleChange: (value: string) => {
-            updateTableView({ ...tableView, view: value });
-          },
-          type: "select",
-          value: tableView.view,
-          defaultValue: "planned",
-          label: "Views",
-          data: [
-            {
-              label: "Planned",
-              value: "planned",
-            },
-            {
-              label: "Actual vs Planned",
-              value: "actual-vs-planned",
-            },
-          ],
-          hide: !resourceAllocationPermission.write,
-          queryParameterDefault: "planned",
-        },
-        {
-          queryParameterName: "combine-week-hours",
-          handleChange: handleWeekViewChange,
-          type: "checkbox",
-          value: tableView.combineWeekHours,
-          defaultValue: false,
-          label: "Combine Week Hours",
-          queryParameterDefault: false,
-        },
-      ]}
+      filters={sectionFilters}
       buttons={[
         {
           title: "Save changes",

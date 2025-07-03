@@ -103,9 +103,10 @@
    "label": "Icon"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-11-13 18:49:11.634186",
+ "modified": "2025-06-23 18:06:33.594739",
  "modified_by": "Administrator",
  "module": "Timesheet",
  "name": "PMS View Setting",
@@ -132,9 +133,17 @@
    "role": "Projects Manager",
    "select": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "if_owner": 1,
+   "read": 1,
+   "role": "Employee",
+   "write": 1
   }
  ],
  "read_only": 1,
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

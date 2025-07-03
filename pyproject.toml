@@ -1,7 +1,7 @@
 [project]
 name = "next_pms"
 authors = [
-    { name = "rtCamp", email = "erp@rtcamp.com"}
+    { name = "rtCamp", email = "frappe@rtcamp.com"}
 ]
 description = "Simplified Project Management System"
 requires-python = ">=3.10"
@@ -65,3 +65,7 @@ fixable = ["ALL"]
 quote-style = "double"
 indent-style = "space"
 docstring-code-format = true
+
+[tool.bench.frappe-dependencies]
+frappe = ">=15.0.0,<16.0.0"
+erpnext = ">=15.0.0,<16.0.0"
