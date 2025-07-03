@@ -325,7 +325,7 @@ export const enableSocket = () => {
   } else if (enableSocket === "false") {
     return false;
   } else {
-    return undefined;
+    return true;
   }
 };
 

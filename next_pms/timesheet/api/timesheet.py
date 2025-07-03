@@ -421,7 +421,7 @@ def get_timesheet_state(employee: str, start_date: str, end_date: str):
             "end_date": ["<=", getdate(end_date)],
             "docstatus": ["!=", 2],
         },
-        "custom_approval_status",
+        "custom_weekly_approval_status",
     )
     if status:
         return status
