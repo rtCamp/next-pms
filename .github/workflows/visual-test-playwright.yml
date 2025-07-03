@@ -33,6 +33,11 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
+    
+      - name: Install MinIO Client (mc)
+        run: |
+          curl -fsSL https://dl.min.io/client/mc/release/linux-amd64/mc \
+          -o mc && chmod +x mc && sudo mv mc /usr/local/bin/
 
       - name: Configure mc alias for Hetzner S3
         run: |
@@ -47,11 +52,26 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
+      - name: Sync snapshots FROM Hetzner S3 to local
+        run: |
+          aws --endpoint-url=${{ env.HETZNER_S3_ENDPOINT_URL }} s3 sync \
+          s3://${{ env.HETZNER_S3_BUCKET }}/visual-snapshots/ \
+          tests/visualAutomation/specs/visualAutomation.spec.js-snapshots/ \
+          --delete
+
       - name: Run Visual Tests
         run: npm run visual:test
 
       - name: Update Snapshots
         run: npm run visual:test:update
+
+      - name: Upload updated snapshots to Hetzner S3
+        if: success()
+        run: |
+            aws --endpoint-url=${{ env.HETZNER_S3_ENDPOINT_URL }} s3 sync \
+            tests/visualAutomation/specs/visualAutomation.spec.js-snapshots/ \
+            s3://${{ env.HETZNER_S3_BUCKET }}/visual-snapshots/ \
+            --delete
 
       - name: Upload visual diff artifacts (optional)
         if: always()
