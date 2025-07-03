@@ -336,8 +336,7 @@ export const Header = ({
       className: "h-10 px-2 py-2",
     },
   ];
-  const hasBuField = meta.fields.some((field) => field.fieldname === "custom_business_unit");
-  if (!hasBuField) {
+  if (!user.hasBuField) {
     filters = filters.filter((filter) => filter.queryParameterName !== "business-unit");
   }
 
