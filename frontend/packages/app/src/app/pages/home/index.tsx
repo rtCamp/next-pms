@@ -64,6 +64,7 @@ const HomeComponent = ({ viewData }: HomeComponentProps) => {
     "next_pms.timesheet.api.team.get_compact_view_data_home_page",
     {
       revalidateOnFocus: false,
+      errorRetryCount: 1,
       revalidateOnReconnect: false,
       revalidateIfStale: false,
       revalidateOnMount: false,
