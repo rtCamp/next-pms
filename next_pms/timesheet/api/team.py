@@ -28,6 +28,7 @@ def get_compact_view_data(
     date: str,
     max_week: int = 2,
     employee_name=None,
+    employee_ids: list[str] | str | None = None,
     department=None,
     project=None,
     user_group=None,
@@ -55,15 +56,16 @@ def get_compact_view_data(
     res = {"dates": dates}
 
     employees, total_count = filter_employee_by_timesheet_status(
-        employee_name,
-        department,
-        project,
+        employee_name=employee_name,
+        department=department,
+        project=project,
         user_group=user_group,
         page_length=page_length,
         start=start,
         reports_to=reports_to,
         status=status,
         timesheet_status=status_filter,
+        employee_ids=employee_ids,
         start_date=dates[0].get("start_date"),
         end_date=dates[-1].get("end_date"),
     )
@@ -201,6 +203,7 @@ def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | N
 
 def filter_employee_by_timesheet_status(
     employee_name=None,
+    employee_ids: list[str] | str | None = None,
     department=None,
     project=None,
     page_length=10,
@@ -223,6 +226,9 @@ def filter_employee_by_timesheet_status(
     start = int(start)
     page_length = int(page_length)
 
+    if employee_ids and isinstance(employee_ids, str):
+        employee_ids = json.loads(employee_ids)
+
     if not timesheet_status:
         employees, count = filter_employees(
             employee_name,
@@ -233,6 +239,7 @@ def filter_employee_by_timesheet_status(
             start=start,
             user_group=user_group,
             reports_to=reports_to,
+            ids=employee_ids,
         )
 
         return employees, count

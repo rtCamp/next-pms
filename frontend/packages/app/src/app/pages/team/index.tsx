@@ -76,10 +76,10 @@ const TeamComponent = ({ viewData }: TeamComponentProps) => {
     },
     undefined,
     {
-      revalidateOnFocus: false,
       revalidateOnReconnect: false,
       revalidateIfStale: false,
       revalidateOnMount: false,
+      errorRetryCount: 1,
     }
   );
 
@@ -99,6 +99,8 @@ const TeamComponent = ({ viewData }: TeamComponentProps) => {
       }
     }
     if (error) {
+      dispatch({ type: "SET_HAS_MORE", payload: false });
+      dispatch({ type: "SET_LOADING", payload: false });
       const err = parseFrappeErrorMsg(error);
       toast({
         variant: "destructive",
