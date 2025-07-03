@@ -1,4 +1,8 @@
 /**
+ * External dependencies
+ */
+import { useCallback } from "react";
+/**
  * Internal dependencies
  */
 import AddLeave from "@/app/components/add-leave";
@@ -9,20 +13,20 @@ import ImportFromGoogleCalendarDialog from "./importFromGoogleCalendarDialog";
 import type { FooterProps } from "./types";
 
 export const Footer = ({ timesheet, user, dispatch, callback }: FooterProps) => {
+  const onOpenChange = useCallback(() => {
+    dispatch({ type: "SET_DIALOG_STATE", payload: false });
+  }, [dispatch]);
+
+  const onCloseEditDialog = useCallback(() => {
+    dispatch({ type: "SET_EDIT_DIALOG_STATE", payload: false });
+  }, [dispatch]);
+
   return (
     <>
       {timesheet.isDialogOpen && (
         <AddTime
           open={timesheet.isDialogOpen}
-          onOpenChange={(data) => {
-            dispatch({ type: "SET_DIALOG_STATE", payload: false });
-            dispatch({ type: "SET_WEEK_DATE", payload: data?.date });
-            callback();
-          }}
-          onSuccess={(data) => {
-            dispatch({ type: "SET_WEEK_DATE", payload: data?.date });
-            callback();
-          }}
+          onOpenChange={onOpenChange}
           initialDate={timesheet.timesheet.date}
           employee={user.employee}
           workingFrequency={user.workingFrequency}
@@ -38,25 +42,11 @@ export const Footer = ({ timesheet, user, dispatch, callback }: FooterProps) => 
           date={timesheet.timesheet.date}
           task={timesheet.timesheet.task}
           open={timesheet.isEditDialogOpen}
-          onClose={() => {
-            dispatch({ type: "SET_EDIT_DIALOG_STATE", payload: false });
-            dispatch({ type: "SET_WEEK_DATE", payload: timesheet.timesheet.date });
-            callback();
-          }}
+          onClose={onCloseEditDialog}
           user={user}
         />
       )}
-      {timesheet.isAprrovalDialogOpen && (
-        <Approval
-          user={user}
-          dispatch={dispatch}
-          timesheetState={timesheet}
-          onClose={(data) => {
-            dispatch({ type: "SET_WEEK_DATE", payload: data.start_date });
-            callback();
-          }}
-        />
-      )}
+      {timesheet.isAprrovalDialogOpen && <Approval user={user} dispatch={dispatch} timesheetState={timesheet} />}
       {timesheet.isLeaveDialogOpen && (
         <AddLeave
           employee={user.employee}

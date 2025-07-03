@@ -25,7 +25,7 @@ import { useToast } from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
 import { floatToTime } from "@next-pms/design-system/utils";
 import { useInfiniteScroll } from "@next-pms/hooks";
-import { useFrappeGetCall } from "frappe-react-sdk";
+import { useFrappeEventListener, useFrappeGetCall } from "frappe-react-sdk";
 
 /**
  * Internal dependencies.
@@ -94,7 +94,19 @@ const HomeComponent = ({ viewData }: HomeComponentProps) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, error]);
+  useFrappeEventListener(`timesheet_info`, (payload) => {
+    const employee = payload.employee;
+    const data = payload.message;
+    if (!Object.prototype.hasOwnProperty.call(homeState.data.data, employee)) {
+      return;
+    }
+    const dateExists = homeState.data.dates.some((item) => item?.dates?.includes(payload.date));
+    if (!dateExists) {
+      return;
+    }
 
+    dispatch({ type: "UPDATE_EMP_DATA", payload: data });
+  });
   const handleLoadMore = () => {
     if (homeState.isLoading) return;
     if (!homeState.data.hasMore) return;

@@ -41,7 +41,6 @@ import { getTaskDataForDate, getTimesheetHourForDate } from "../../utils";
  * and display task logs in a dialog box.
  *
  * @param {Object} props - The component props.
- * @param {Function} [props.callback] - Optional callback function to be called after updating timesheet details.
  * @param {string} props.startDateParam - The start date parameter for filtering timesheets.
  * @param {React.Dispatch<React.SetStateAction<string>>} props.setStartDateParam - Function to set the start date parameter.
  * @param {TeamState} props.teamState - The state of the team, including timesheet data, holidays, and leaves.
@@ -50,7 +49,6 @@ import { getTaskDataForDate, getTimesheetHourForDate } from "../../utils";
  * @returns {JSX.Element} The rendered EmployeeTimesheetList component.
  */
 const EmployeeTimesheetList = ({
-  callback,
   startDateParam,
   setStartDateParam,
   teamState,
@@ -71,8 +69,6 @@ const EmployeeTimesheetList = ({
           variant: "success",
           description: res.message,
         });
-        dispatch({ type: "SET_EMPLOYEE_WEEK_DATE", payload: value.date });
-        callback?.();
       })
       .catch((err) => {
         const error = parseFrappeErrorMsg(err);

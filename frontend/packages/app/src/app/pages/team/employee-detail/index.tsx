@@ -16,7 +16,7 @@ import { getFormatedDate, getTodayDate, getUTCDateTime } from "@next-pms/design-
 import { useToast } from "@next-pms/design-system/hooks";
 import { useQueryParam } from "@next-pms/hooks";
 import { addDays } from "date-fns";
-import { useFrappeGetCall } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappeEventListener } from "frappe-react-sdk";
 import { Plus } from "lucide-react";
 /**
  * Internal dependencies
@@ -73,7 +73,7 @@ const EmployeeDetail = (): JSX.Element => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startDateParam, teamState.timesheetData.data]);
 
-  const { data, isLoading, error, mutate } = useFrappeGetCall(
+  const { data, isLoading, error } = useFrappeGetCall(
     "next_pms.timesheet.api.timesheet.get_timesheet_data",
     {
       employee: id,
@@ -84,6 +84,7 @@ const EmployeeDetail = (): JSX.Element => {
     {
       errorRetryCount: 1,
       revalidateOnFocus: false,
+      revalidateIfStale: false,
     }
   );
 
@@ -128,9 +129,17 @@ const EmployeeDetail = (): JSX.Element => {
     dispatch({ type: "SET_EMPLOYEE_WEEK_DATE", payload: date });
   };
 
+  useFrappeEventListener(`timesheet_update::${id}`, (payload) => {
+    const res = payload.message;
+    const key = Object.keys(res.data)[0];
+    if (!Object.prototype.hasOwnProperty.call(teamState.timesheetData.data, key)) {
+      return;
+    }
+    dispatch({ type: "UPDATE_TIMESHEET_DATA", payload: res });
+  });
   return (
     <>
-      <EmployeeDetailHeader state={teamState} dispatch={dispatch} callback={mutate} employeeId={id as string} />
+      <EmployeeDetailHeader state={teamState} dispatch={dispatch} employeeId={id as string} />
       <Main className="w-full h-full overflow-y-auto">
         <Tabs defaultValue="timesheet" className="relative">
           <div className="flex gap-x-4 pt-3 px-0 sticky top-0 z-10 transition-shadow duration-300 backdrop-blur-sm bg-background">
@@ -168,7 +177,6 @@ const EmployeeDetail = (): JSX.Element => {
                     <EmployeeTimesheetList
                       teamState={teamState}
                       dispatch={dispatch}
-                      callback={mutate}
                       startDateParam={startDateParam}
                       setStartDateParam={setstartDateParam}
                     />

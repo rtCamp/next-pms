@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
 
   if (env.VITE_SITE_NAME && env.VITE_SITE_PORT) {
     proxyConfig = {
-      "^/(app|api|assets|files|private)": {
+      "^/(app|api|assets|files|private|socket.io)": {
         target: `http://${env.VITE_SITE_NAME}:${env.VITE_SITE_PORT}`,
         ws: true,
         changeOrigin: true,

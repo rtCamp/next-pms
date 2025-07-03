@@ -230,7 +230,6 @@ doc_events = {
         "on_cancel": "next_pms.timesheet.doc_events.timesheet.on_cancel",
         "on_trash": [
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
-            "next_pms.timesheet.doc_events.timesheet.on_trash",
         ],
     },
     "Task": {

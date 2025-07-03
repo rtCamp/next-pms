@@ -36,8 +36,10 @@ def get_compact_view_data(
     status_filter=None,
     status=None,
     reports_to: str | None = None,
+    by_pass_access_check=False,
 ):
-    only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+    if not by_pass_access_check:
+        only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
     dates = []
     data = {}
@@ -74,6 +76,7 @@ def get_compact_view_data(
             "employee": ["in", employee_names],
             "start_date": [">=", dates[0].get("start_date")],
             "end_date": ["<=", dates[-1].get("end_date")],
+            "docstatus": ["!=", 2],
         },
         fields=[
             "employee",
