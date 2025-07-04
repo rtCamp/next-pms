@@ -8,7 +8,9 @@ on:
 jobs:
   run-visual-tests:
     name: Run Visual Tests
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
+    container:
+      image: ubuntu
 
     env:
       BASE_URL: ${{ secrets.BASE_URL }}
