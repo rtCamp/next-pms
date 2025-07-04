@@ -2,7 +2,7 @@
 <img src="next_pms/public/next-pms-logo.png" height="128" alt="Next PMS Logo">
 <h2>Next PMS</h2>
 <br>
-**Next PMS** is a Frappe app with a modern React frontend, built to enhance timesheet, project, and resource management in ERPNext.
+<b>Next PMS</b> is a Frappe app with a modern React frontend, built to enhance timesheet, project, and resource management in ERPNext.
 </div>
 
 <div align="center">
