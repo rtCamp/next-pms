@@ -1,11 +1,14 @@
 <div align="center">
 <img src="next_pms/public/next-pms-logo.png" height="128" alt="Next PMS Logo">
 <h2>Next PMS</h2>
+<br>
+**Next PMS** is a Frappe app with a modern React frontend, built to enhance timesheet, project, and resource management in ERPNext.
 </div>
 
-## Introduction
+<div align="center">
+<img src="featured-image.png" width="1050" alt="Frappe Appointment">
+</div>
 
-**Next PMS** is a Frappe app with a modern React frontend, built to enhance timesheet, project, and resource management in ERPNext.
 
 ## Key Features
 
@@ -47,16 +50,6 @@ Please refer to our [Wiki](https://github.com/rtCamp/next-pms/wiki) for details.
 
 ## Local development setup
 Visit the [guide](https://github.com/rtCamp/next-pms/wiki/Local-Development) on wiki.
-
-
-## Screeenshots
-
-<figure>
-    <img width="1402" src="screenshots/timesheet-view.png" alt="Timesheet" />
-        <figcaption  align="center">
-        <b>Time entry view</b>
-    </figcaption>
-</figure>
 
 
 ## Contribution Guide
