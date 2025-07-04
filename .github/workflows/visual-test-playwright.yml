@@ -37,6 +37,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
     
+      - name: Install prerequisites
+        run: |
+          apt-get update
+          apt-get install -y curl sudo
+    
       - name: Install MinIO Client (mc)
         run: |
           curl -fsSL https://dl.min.io/client/mc/release/linux-amd64/mc \
@@ -75,11 +80,3 @@ jobs:
             tests/visualAutomation/specs/visualAutomation.spec.js-snapshots/ \
             s3://${{ env.HETZNER_S3_BUCKET }}/visual-snapshots/ \
             --delete
-
-      - name: Upload visual diff artifacts (optional)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: visual-diffs
-          path: |
-            test-results/
