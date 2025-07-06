@@ -62,10 +62,16 @@ jobs:
 
       - name: Sync snapshots FROM Hetzner S3 to local
         run: |
-          aws --endpoint-url=${{ env.HETZNER_S3_ENDPOINT_URL }} s3 sync \
-          s3://${{ env.HETZNER_S3_BUCKET }}/visual-snapshots/ \
-          tests/visualAutomation/specs/visualAutomation.spec.js-snapshots/ \
-          --delete
+          if aws --endpoint-url=${{ env.HETZNER_S3_ENDPOINT_URL }} s3 ls \
+            s3://${{ env.HETZNER_S3_BUCKET }}/visual-snapshots/ | grep -q .; then
+            echo "Remote snapshot folder found. Downloading..."
+            aws --endpoint-url=${{ env.HETZNER_S3_ENDPOINT_URL }} s3 sync \
+            s3://${{ env.HETZNER_S3_BUCKET }}/visual-snapshots/ \
+            tests/visualAutomation/specs/visualAutomation.spec.js-snapshots/ \
+            --delete
+          else
+            echo "No snapshot folder found in S3 — skipping download."
+          fi
 
       - name: Run Visual Tests
         run: npm run visual:test
