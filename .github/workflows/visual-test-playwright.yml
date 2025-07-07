@@ -70,13 +70,11 @@ jobs:
 
       - name: Sync snapshots FROM Hetzner S3 to local
         run: |
-          if aws --endpoint-url=${{ env.HETZNER_S3_ENDPOINT_URL }} s3 ls \
-            s3://${{ env.HETZNER_S3_BUCKET }}/visual-snapshots/ | grep -q .; then
+          if mc ls hetzner/${{env.HETZNER_S3_BUCKET}}/visual-snapshots/ | grep -q .; then
             echo "Remote snapshot folder found. Downloading..."
-            aws --endpoint-url=${{ env.HETZNER_S3_ENDPOINT_URL }} s3 sync \
-            s3://${{ env.HETZNER_S3_BUCKET }}/visual-snapshots/ \
-            tests/visualAutomation/specs/visualAutomation.spec.js-snapshots/ \
-            --delete
+            mc cp --recursive --delete \
+              hetzner/${{env.HETZNER_S3_BUCKET}}/visual-snapshots/ \
+              tests/visualAutomation/specs/visualAutomation.spec.js-snapshots
           else
             echo "No snapshot folder found in S3 — skipping download."
           fi
@@ -84,13 +82,20 @@ jobs:
       - name: Run Visual Tests
         run: npm run visual:test
 
+      - name: Upload visual test results as artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-test-results
+          path: tests/visualAutomation/test-results
+
       - name: Update Snapshots
         run: npm run visual:test:update
 
       - name: Upload updated snapshots to Hetzner S3
         if: always()
         run: |
-            aws --endpoint-url=${{ env.HETZNER_S3_ENDPOINT_URL }} s3 sync \
-            tests/visualAutomation/specs/visualAutomation.spec.js-snapshots/ \
-            s3://${{ env.HETZNER_S3_BUCKET }}/visual-snapshots/ \
-            --delete
+            echo "Uploading updated snapshots to Hetzner S3..."
+            mc cp --recursive --overwrite \
+              tests/visualAutomation/specs/visualAutomation.spec.js-snapshots/ \
+              hetzner/${{ env.HETZNER_S3_BUCKET }}/visual-snapshots/
