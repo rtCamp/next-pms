@@ -26,6 +26,8 @@ jobs:
       HETZNER_S3_SECRET_ACCESS_KEY: ${{ secrets.HETZNER_S3_SECRET_ACCESS_KEY }}
       HETZNER_S3_ENDPOINT_URL: ${{ secrets.HETZNER_S3_ENDPOINT_URL }}
 
+      HOME: /root
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3

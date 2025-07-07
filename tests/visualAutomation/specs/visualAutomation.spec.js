@@ -58,8 +58,8 @@ test.describe("Visual Automation", () => {
     });
 
     test("Verify visual tests for Team page as manager", async ({ page }) => {
+      await page.goto(URLS.TEAM);
       await visualCheck(page, "manager-team-page.png");
-      await page.goto(URLS.PROJECT);
     });
 
     test("Verify visual tests for Project page as manager", async ({ page }) => {
