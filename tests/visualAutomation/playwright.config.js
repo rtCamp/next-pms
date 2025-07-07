@@ -34,7 +34,7 @@ module.exports = defineConfig({
   retries: process.env.CI ? 2 : 0, // Retry twice on CI, no retries locally
 
   /* Configure the number of workers for parallel execution */
-  workers: process.env.CI ? 4 : undefined, // Use 4 workers on CI, defaults to the number of CPU cores otherwise
+  workers: process.env.CI ? 1 : undefined, // Use 4 workers on CI, defaults to the number of CPU cores otherwise
 
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
