@@ -4,9 +4,9 @@
 <br>
 <b>Next PMS</b> is a Frappe app with a modern React frontend, built to enhance timesheet, project, and resource management in ERPNext.
 </div>
-
+<br>
 <div align="center">
-<img src="featured-image.png" width="1050" alt="Frappe Appointment">
+<img src="featured-image.png" width="1050" alt="Next PMS">
 </div>
 
 
