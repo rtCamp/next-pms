@@ -70,10 +70,10 @@ jobs:
 
       - name: Sync snapshots FROM Hetzner S3 to local
         run: |
-          if mc ls hetzner/${{env.HETZNER_S3_BUCKET}}/visual-snapshots/ | grep -q .; then
+          if mc ls hetzner/${{ env.HETZNER_S3_BUCKET }}/visual-snapshots/${{ github.ref_name }}/ | grep -q .; then
             echo "Remote snapshot folder found. Downloading..."
             mc cp --recursive --delete \
-              hetzner/${{env.HETZNER_S3_BUCKET}}/visual-snapshots/ \
+              hetzner/${{ env.HETZNER_S3_BUCKET }}/visual-snapshots/${{ github.ref_name }}/ \
               tests/visualAutomation/specs/visualAutomation.spec.js-snapshots
           else
             echo "No snapshot folder found in S3 — skipping download."
@@ -96,6 +96,7 @@ jobs:
         if: always()
         run: |
             echo "Uploading updated snapshots to Hetzner S3..."
-            mc cp --recursive --overwrite \
+            mc cp --recursive \
               tests/visualAutomation/specs/visualAutomation.spec.js-snapshots/ \
-              hetzner/${{ env.HETZNER_S3_BUCKET }}/visual-snapshots/
+              hetzner/${{ env.HETZNER_S3_BUCKET }}/visual-snapshots/${{ github.ref_name }}/
+
