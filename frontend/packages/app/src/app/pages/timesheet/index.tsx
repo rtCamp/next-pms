@@ -22,7 +22,7 @@ import { getUTCDateTime, getFormatedDate } from "@next-pms/design-system/date";
 import { floatToTime } from "@next-pms/design-system/utils";
 import { useQueryParam } from "@next-pms/hooks";
 import { addDays } from "date-fns";
-import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
+import { useFrappeEventListener, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { isEmpty } from "lodash";
 import { Calendar, CalendarArrowDown, EllipsisVertical, Paperclip, Plus } from "lucide-react";
 
@@ -97,6 +97,14 @@ function Timesheet() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, startDateParam, timesheet.data.data, validateDate]);
 
+  useFrappeEventListener(`timesheet_update::${user.employee}`, (payload) => {
+    const res = payload.message;
+    const key = Object.keys(res.data)[0];
+    if (!Object.prototype.hasOwnProperty.call(timesheet.data.data, key)) {
+      return;
+    }
+    dispatch({ type: "APPEND_DATA", payload: res });
+  });
   const { call: fetchLikedTask, loading: loadingLikedTasks } = useFrappePostCall(
     "next_pms.timesheet.api.task.get_liked_tasks"
   );

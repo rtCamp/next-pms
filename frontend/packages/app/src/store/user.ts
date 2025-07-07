@@ -34,6 +34,7 @@ export interface UserState {
   reportsTo: string;
   employeeName: string;
   currencies: Array<string>;
+  hasBuField: boolean;
 }
 
 const initialState: UserState = {
@@ -48,6 +49,7 @@ const initialState: UserState = {
   workingFrequency: "Per Day",
   reportsTo: "",
   currencies: window.frappe?.boot?.currencies ?? [],
+  hasBuField: window.frappe?.boot?.has_business_unit ?? false,
 };
 
 const userSlice = createSlice({
@@ -65,6 +67,9 @@ const userSlice = createSlice({
     },
     setReportsTo: (state, action: PayloadAction<string>) => {
       state.reportsTo = action.payload;
+    },
+    setHasBuField: (state, action: PayloadAction<boolean>) => {
+      state.hasBuField = action.payload;
     },
     setSidebarCollapsed: (state, action: PayloadAction<boolean>) => {
       state.isSidebarCollapsed = action.payload;
@@ -104,6 +109,7 @@ export const {
   setWorkingDetail,
   setInitialData,
   setCurrency,
+  setHasBuField,
 } = userSlice.actions;
 
 export default userSlice.reducer;

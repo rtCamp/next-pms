@@ -1,6 +1,7 @@
 /**
  * External dependencies
  */
+import { useCallback } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useFrappeGetCall } from "frappe-react-sdk";
@@ -15,7 +16,7 @@ import type { EmployeeDetailHeaderProps } from "./types";
 import { EditTime } from "../../timesheet/components/editTime";
 import { Approval } from "../components/approval";
 
-export const EmployeeDetailHeader = ({ state, dispatch, callback, employeeId }: EmployeeDetailHeaderProps) => {
+export const EmployeeDetailHeader = ({ state, dispatch, employeeId }: EmployeeDetailHeaderProps) => {
   const navigate = useNavigate();
   const user = useSelector((state: RootState) => state.user);
   const { data: employee } = useFrappeGetCall(
@@ -34,7 +35,16 @@ export const EmployeeDetailHeader = ({ state, dispatch, callback, employeeId }: 
   const onEmployeeChange = (name: string) => {
     navigate(`/team/employee/${name}`);
   };
+  const onOpenChange = useCallback(() => {
+    dispatch({ type: "SET_DIALOG", payload: false });
+  }, [dispatch]);
 
+  const onClose = useCallback(() => {
+    dispatch({
+      type: "SET_DATE_RANGE",
+      payload: { dateRange: { startDate: "", endDate: "" }, isAprrovalDialogOpen: false },
+    });
+  }, [dispatch]);
   return (
     <>
       <Header>
@@ -53,28 +63,13 @@ export const EmployeeDetailHeader = ({ state, dispatch, callback, employeeId }: 
           isAprrovalDialogOpen={state.isAprrovalDialogOpen}
           endDate={state.dateRange.endDate}
           startDate={state.dateRange.startDate}
-          onClose={(data: string) => {
-            dispatch({ type: "SET_EMPLOYEE_WEEK_DATE", payload: data });
-            dispatch({
-              type: "SET_DATE_RANGE",
-              payload: { dateRange: { startDate: "", endDate: "" }, isAprrovalDialogOpen: false },
-            });
-            callback();
-          }}
+          onClose={onClose}
         />
       )}
       {state.isDialogOpen && (
         <AddTime
           open={state.isDialogOpen}
-          onOpenChange={(data) => {
-            dispatch({ type: "SET_EMPLOYEE_WEEK_DATE", payload: data.date });
-            callback();
-            dispatch({ type: "SET_DIALOG", payload: false });
-          }}
-          onSuccess={(data) => {
-            dispatch({ type: "SET_EMPLOYEE_WEEK_DATE", payload: data.date });
-            callback();
-          }}
+          onOpenChange={onOpenChange}
           task={state.timesheet.task}
           initialDate={state.timesheet.date}
           employee={state.employee}
@@ -92,9 +87,7 @@ export const EmployeeDetailHeader = ({ state, dispatch, callback, employeeId }: 
           task={state.timesheet.task}
           user={user}
           onClose={() => {
-            dispatch({ type: "SET_EMPLOYEE_WEEK_DATE", payload: state.timesheet.date });
             dispatch({ type: "SET_EDIT_DIALOG", payload: false });
-            callback();
           }}
         />
       )}

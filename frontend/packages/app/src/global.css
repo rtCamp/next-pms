@@ -23,7 +23,7 @@
   }
   @media (pointer: fine) { /* Only works for precise pointer devices such as laptops and desktops */
     ::-webkit-scrollbar {
-      @apply w-1 bg-background;
+      @apply w-1 h-1 bg-background;
     }
     ::-webkit-scrollbar-thumb {
       @apply rounded bg-secondary /*color trackbar*/;

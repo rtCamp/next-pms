@@ -95,6 +95,12 @@ export type Action =
         has_more: boolean;
       };
     }
+  | {
+      type: "UPDATE_EMP_DATA";
+      payload: {
+        data: any;
+      };
+    }
   | { type: "SET_HAS_VIEW_UPDATED"; payload: boolean };
 
 export interface HomeComponentProps {

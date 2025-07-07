@@ -2,10 +2,10 @@ app_name = "next_pms"
 app_title = "Next PMS"
 app_publisher = "rtCamp"
 app_description = "Simplified Project Management System"
-app_email = "erp@rtcamp.com"
+app_email = "frappe@rtcamp.com"
 app_license = "GNU AFFERO GENERAL PUBLIC LICENSE (v3)"
+required_apps = ["frappe/erpnext", "frappe/hrms"]
 
-# required_apps = []
 
 # Includes in <head>
 # ------------------
@@ -163,11 +163,11 @@ fixtures = [
     },
     {
         "dt": "Custom DocPerm",
-        "filters": [
+        "or_filters": [
             [
-                "role",
+                "parent",
                 "in",
-                ["Next PMS", "Timesheet Manager", "Timesheet User", "Resource Management"],
+                ["Task", "Project", "Timesheet"],
             ]
         ],
     },
@@ -230,7 +230,6 @@ doc_events = {
         "on_cancel": "next_pms.timesheet.doc_events.timesheet.on_cancel",
         "on_trash": [
             "next_pms.resource_management.doctype.resource_allocation.resource_allocation.clear_cache",
-            "next_pms.timesheet.doc_events.timesheet.on_trash",
         ],
     },
     "Task": {

@@ -141,7 +141,7 @@ export const Header = ({
     }
   };
 
-  const filters = [
+  let filters = [
     {
       type: "search" as FilterPops["type"],
       queryParameterName: "search",
@@ -336,6 +336,10 @@ export const Header = ({
       className: "h-10 px-2 py-2",
     },
   ];
+  if (!user.hasBuField) {
+    filters = filters.filter((filter) => filter.queryParameterName !== "business-unit");
+  }
+
   return (
     <ListViewHeader
       filters={filters}
