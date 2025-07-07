@@ -72,7 +72,7 @@ jobs:
         run: |
           if mc ls hetzner/${{ env.HETZNER_S3_BUCKET }}/visual-snapshots/${{ github.ref_name }}/ | grep -q .; then
             echo "Remote snapshot folder found. Downloading..."
-            mc cp --recursive --delete \
+            mc cp --recursive \
               hetzner/${{ env.HETZNER_S3_BUCKET }}/visual-snapshots/${{ github.ref_name }}/ \
               tests/visualAutomation/specs/visualAutomation.spec.js-snapshots
           else
