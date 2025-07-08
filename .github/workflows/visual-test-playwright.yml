@@ -5,6 +5,13 @@ on:
     - cron: "30 2 * * *" # Runs daily at 8:00 AM UTC
   workflow_dispatch: # Allows manual trigger
   pull_request:
+    branches:
+      - develop
+      - main
+  push:
+    branches:
+      - main
+      - develop
 
 jobs:
   run-visual-tests:

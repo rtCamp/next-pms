@@ -39,12 +39,12 @@ test.describe("Visual Automation", () => {
     await visualCheck(page, "login-page.png");
   });
 
-  test("Verify visual test for login with email page", async({ page })=> {
+  test("Verify visual test for login with email page", async ({ page }) => {
     await page.goto(URLS.LOGIN_EMAIL);
     await visualCheck(page, "login-page-with-email-link.png");
   });
 
-  test("Verify visual test for forgot password page", async({ page })=> {
+  test("Verify visual test for forgot password page", async ({ page }) => {
     await page.goto(URLS.FORGOT_PASSWORD);
     await visualCheck(page, "forgot-password-page.png");
   });
@@ -86,7 +86,6 @@ test.describe("Visual Automation", () => {
       await page.goto(URLS.RESOURCE_MANAGEMENT_PROJECT);
       await visualCheck(page, "manager-resource-management-project-page.png");
     });
-
 
     test("Verify visual check for Add Leave Popup", async ({ page }) => {
       const addLeaveButton = page.getByRole("button", { name: "Leave" });
