@@ -8,10 +8,6 @@ on:
     branches:
       - develop
       - main
-  push:
-    branches:
-      - main
-      - develop
 
 jobs:
   run-visual-tests:
