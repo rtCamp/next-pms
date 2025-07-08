@@ -1,6 +1,7 @@
-import { test, expect } from "@playwright/test";
+import { test } from "@playwright/test";
 import { storeStorageState } from "../../e2e/helpers/storageStateHelper";
 import path from "path";
+import { visualCheck } from "../helpers/visualHelper";
 
 const URLS = {
   LOGIN: "/login?redirect-to=/next-pms/timesheet#login",
@@ -14,20 +15,6 @@ const URLS = {
   RESOURCE_MANAGEMENT_TEAM: "/next-pms/resource-management/team",
   RESOURCE_MANAGEMENT_PROJECT: "/next-pms/resource-management/project",
 };
-
-async function visualCheck(page, expectedName, options = {}) {
-  try {
-    // Wait for network idle and any animations to complete
-    await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(500); // Small buffer for animations
-    await expect(page).toHaveScreenshot(expectedName, options);
-  } catch (error) {
-    console.error(`Visual check failed for ${expectedName}:`, error.message);
-    if (process.env.FAIL_ON_VISUAL_DIFF === "true") {
-      throw error;
-    }
-  }
-}
 
 test.beforeAll(async () => {
   await Promise.all([storeStorageState("manager", false)]);
