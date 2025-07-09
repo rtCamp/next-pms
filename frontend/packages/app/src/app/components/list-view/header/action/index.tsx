@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@next-pms/design-system/components";
-import { Download, Ellipsis, Plus } from "lucide-react";
+import { Download, EllipsisVertical, Plus } from "lucide-react";
 /**
  * Internal dependencies
  */
@@ -42,7 +42,7 @@ const Action = ({ docType, exportProps, viewProps }: ActionProps) => {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline">
-            <Ellipsis />
+            <EllipsisVertical />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="mr-2 [&_div]:cursor-pointer  [&_div]:gap-x-1">
