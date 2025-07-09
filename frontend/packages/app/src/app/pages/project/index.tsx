@@ -29,7 +29,7 @@ import {
 } from "@tanstack/react-table";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import _ from "lodash";
-import { Lock, LockOpen } from "lucide-react";
+import { LockKeyhole, LockOpen } from "lucide-react";
 
 /**
  * Internal dependencies
@@ -253,7 +253,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
                         key={header.id}
                         className={mergeClassNames(
                           "group relative hover:cursor-col-resize",
-                          isPinned && "sticky z-10 bg-slate-200 dark:bg-gray-900/70"
+                          isPinned && "sticky z-10 bg-slate-200 dark:bg-gray-900"
                         )}
                         style={{
                           userSelect: "none",
@@ -281,7 +281,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
                               }
                             }}
                           >
-                            {isPinned ? <Lock size={16} /> : <LockOpen size={16} />}
+                            {isPinned ? <LockKeyhole className="h-4 w-4" /> : <LockOpen className="h-4 w-4" />}
                           </Button>
                           <span className="w-full truncate">
                             {flexRender(header.column.columnDef.header, header.getContext())}
@@ -313,7 +313,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
                           key={cell.id}
                           className={mergeClassNames(
                             "overflow-hidden",
-                            isPinned && "sticky z-1 bg-slate-100/40 dark:bg-gray-900/60"
+                            isPinned && "sticky z-1 bg-slate-100 dark:bg-gray-900"
                           )}
                           style={{
                             width: cell.column.getSize(),

@@ -6,7 +6,14 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getUTCDateTime, getFormatedDate } from "@next-pms/design-system/date";
 import { useToast } from "@next-pms/design-system/hooks";
-import { getCoreRowModel, getSortedRowModel, useReactTable, ColumnSizingState } from "@tanstack/react-table";
+import {
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+  ColumnSizingState,
+  OnChangeFn,
+  ColumnPinningState,
+} from "@tanstack/react-table";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import _ from "lodash";
 /**
@@ -50,6 +57,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
   const columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType = ["liked", "timesheetAction"];
 
   const dispatch = useDispatch();
+  const [pinnedColumns, setPinnedColumns] = useState<{ left: string[]; right: string[] }>({ left: [], right: [] });
   const { toast } = useToast();
 
   const [hasViewUpdated, setHasViewUpdated] = useState(false);
@@ -251,7 +259,9 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     state: {
       columnOrder,
       columnSizing: colSizing,
+      columnPinning: pinnedColumns,
     },
+    onColumnPinningChange: setPinnedColumns as OnChangeFn<ColumnPinningState>,
   });
 
   const handleLoadMore = () => {
