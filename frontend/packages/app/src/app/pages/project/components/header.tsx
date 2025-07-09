@@ -312,6 +312,7 @@ export const Header = ({
         field: projectState.orderColumn,
       },
       filters: createFilter(projectState),
+      pinnedColumns: view.pinnedColumns || [],
     },
   };
   const buttons = [

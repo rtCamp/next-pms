@@ -64,7 +64,10 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   const [columnOrder, setColumnOrder] = useState<string[]>(viewData.rows ?? []);
   const projectState = useSelector((state: RootState) => state.project);
   const dispatch = useDispatch();
-  const [pinnedColumns, setPinnedColumns] = useState<{ left: string[]; right: string[] }>({ left: [], right: [] });
+  const [pinnedColumns, setPinnedColumns] = useState<{ left: string[]; right: string[] }>({
+    left: viewData.pinnedColumns || [],
+    right: [],
+  });
 
   useEffect(() => {
     dispatch(
@@ -82,6 +85,10 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     setViewInfo(viewData);
     setColSizing(viewData.columns);
     setColumnOrder(viewData.rows);
+    setPinnedColumns({
+      left: viewData.pinnedColumns || [],
+      right: [],
+    });
     setHasViewUpdated(false);
   }, [dispatch, viewData]);
 
@@ -141,6 +148,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
       order_by: { field: projectState.orderColumn, order: projectState.order },
       filters: createFilter(projectState),
       rows: columnOrder,
+      pinnedColumns: pinnedColumns.left,
     };
     if (!_.isEqual(updateViewData, viewData)) {
       setHasViewUpdated(true);
@@ -152,6 +160,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   }, [
     colSizing,
     columnOrder,
+    pinnedColumns,
     projectState.order,
     projectState.orderColumn,
     projectState.search,
@@ -306,7 +315,10 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
                   <TableRow className="px-3" key={row.id} data-state={row.getIsSelected() && "selected"}>
                     {row.getVisibleCells().map((cell, cellIndex) => {
                       const isPinned = cell.column.getIsPinned() === "left";
-                      const needToAddRef = projectState.hasMore && cellIndex === 0 && !isPinned;
+                      // Attach ref to the first unpinned cell for infinite scroll
+                      const visibleCells = row.getVisibleCells();
+                      const firstUnpinnedIndex = visibleCells.findIndex((c) => c.column.getIsPinned() !== "left");
+                      const needToAddRef = projectState.hasMore && cellIndex === firstUnpinnedIndex && !isPinned;
 
                       return (
                         <TableCell

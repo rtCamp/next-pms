@@ -53,6 +53,7 @@ export const CreateView = ({
       type: "Custom",
       icon: selectedEmoji,
       order_by: orderBy,
+      pinnedColumns: [],
     };
     call({
       view: view,
