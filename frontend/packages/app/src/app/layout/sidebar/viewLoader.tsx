@@ -72,7 +72,7 @@ const ViewLoader = ({
                     isActive && "bg-primary shadow-md hover:bg-slate-700 dark:hover:bg-secondary dark:bg-foreground"
                   )}
                 >
-                  <span>{view.icon}</span>
+                  <span className="shrink-0">{view.icon || "⚪️"}</span>
                   <Typography
                     variant="p"
                     className={mergeClassNames(
