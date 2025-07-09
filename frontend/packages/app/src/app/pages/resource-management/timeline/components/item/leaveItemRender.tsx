@@ -20,7 +20,8 @@ const LeaveItemRender = ({ item: leave, itemContext, getItemProps }: ResourceTim
   let itemProps = getItemProps(leave.itemProps);
 
   const getTitle = (isNeedFullTitle = false) => {
-    const title = `${startDate} - ${endDate} (${leave.total_leave_days} days)`;
+    const dayLabel = leave.total_leave_days && leave?.total_leave_days <= 1 ? "day" : "days";
+    const title = `${startDate} - ${endDate} (${leave.total_leave_days} ${dayLabel})`;
 
     if (isNeedFullTitle) {
       return title;
@@ -43,7 +44,6 @@ const LeaveItemRender = ({ item: leave, itemContext, getItemProps }: ResourceTim
     ...itemProps,
     style: {
       ...itemProps.style,
-      padding: !title ? "0" : "1px 6px",
       background: "rgba(211, 211, 211, 0.58)",
       borderRadius: "4px",
       border: "1px solid #d1d5db",
@@ -56,7 +56,9 @@ const LeaveItemRender = ({ item: leave, itemContext, getItemProps }: ResourceTim
   return (
     <div style={itemProps.style} title={getTitle(true)}>
       <div
-        className={mergeClassNames("rct-item-content")}
+        className={mergeClassNames(
+          "rct-item-content bg-[rgba(211,211,211,0.58)] dark:bg-[rgba(55,65,81,0.58)] rounded border border-solid border-[#d1d5db] dark:border-[#374151]"
+        )}
         style={
           title
             ? { maxHeight: itemContext.dimensions.height }
@@ -68,14 +70,17 @@ const LeaveItemRender = ({ item: leave, itemContext, getItemProps }: ResourceTim
         }
       >
         <div
-          className={mergeClassNames("flex justify-start gap-[2px] h-full w-full", !title && "justify-center")}
+          className={mergeClassNames("flex justify-start gap-[2px] h-full w-full justify-center", title && "px-2")}
           style={{
             alignItems: "center",
             maxHeight: itemContext.dimensions.height,
           }}
         >
           <CalendarX
-            className={mergeClassNames("z-[1000] text-gray-500 cusror-pointer w-4 h-4", title && "mr-1")}
+            className={mergeClassNames(
+              "z-[1000] text-gray-500 shrink-0 dark:text-gray-300 cusror-pointer w-4 h-4",
+              title && "mr-1"
+            )}
             size={16}
             strokeWidth={2}
           />
@@ -83,7 +88,7 @@ const LeaveItemRender = ({ item: leave, itemContext, getItemProps }: ResourceTim
           {title && (
             <Typography
               variant="small"
-              className={mergeClassNames("text-[12px] truncate overflow-hidden block text-gray-500")}
+              className={mergeClassNames("text-[12px] truncate overflow-hidden block text-gray-600 dark:text-gray-300")}
             >
               {title}
             </Typography>
