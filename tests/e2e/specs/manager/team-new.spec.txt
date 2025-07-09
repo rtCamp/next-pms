@@ -33,15 +33,15 @@ let TC94data = data.TC94;
 
 // Load authentication state from 'manager.json'
 test.use({ storageState: path.resolve(__dirname, "../../auth/manager.json") });
-test.use({ testCaseIDs: ["TC91"] });
-test.describe.only("Manager: Team Tab", () => {
+//test.use({ testCaseIDs: ["TC91"] });
+test.describe("Manager: Team Tab", () => {
   test.beforeEach(async ({ page }) => {
     teamPage = new TeamPage(page);
     timesheetPage = new TimesheetPage(page);
     await teamPage.goto();
   });
 
-  test.only("TC91: Employee Status filter shows correct results", async ({ teamData }) => {
+  test("TC91: Employee Status filter shows correct results", async ({ teamData }) => {
     allure.story("Team");
 
     const TC91data = teamData.TC91; // ✅ Pull fresh data from the fixture

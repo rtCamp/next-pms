@@ -1,6 +1,10 @@
 const fs = require("fs").promises;
 const path = require("path");
 
+const timesheetPayloads = require("../data/employee/timesheet");
+const teamPayloads = require("../data/manager/team");
+const taskPayloads = require("../data/manager/task");
+
 // ------------------------------------------------------------------------------------------
 
 /**
@@ -39,5 +43,34 @@ export const writeDataToFile = async (filePath, data) => {
     await fs.writeFile(filePath, JSON.stringify(data, null, 2), "utf-8");
   } catch (error) {
     console.error(`Failed to write data to file ${filePath}: ${error.message}`);
+  }
+};
+/**
+ * Ensures a JSON file exists (you already have createJSONFile for this)
+ * and then populates it with the merged payload object.
+ *
+ * @param {string} jsonDir        Absolute path to your json-files directory
+ * @param {string[]} testCaseIDs  Array of TC IDs (e.g. ["TC2"])
+ */
+export const populateJsonStubs = async (jsonDir, testCaseIDs) => {
+  for (const tc of testCaseIDs) {
+    const filePath = path.join(jsonDir, `${tc}.json`);
+
+    // 1) ensure file exists
+    await createJSONFile(filePath);
+
+    // 2) build the merged payload
+    const payloadObj = {
+      ...(timesheetPayloads[tc] || {}),
+      ...(teamPayloads[tc]      || {}),
+      ...(taskPayloads[tc]      || {}),
+    };
+
+    // 3) wrap it under the test‑case key
+    const wrapped = { [tc]: payloadObj };
+
+    // 4) overwrite the file with *only* that wrapped object
+    await fs.writeFile(filePath, JSON.stringify(wrapped, null, 2), "utf-8");
+    console.log(`• Wrote ${filePath} with root key "${tc}"`);
   }
 };

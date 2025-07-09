@@ -129,7 +129,7 @@ export class TimesheetPage {
     await this.employeeButton.click();
     await searchInput.fill(name);
     await this.page.getByRole("option", { name: name }).click();
-    await this.page.waitForLoadState();
+    await this.page.waitForLoadState("networkidle");
   }
 
   // --------------------------------------

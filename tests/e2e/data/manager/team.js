@@ -169,7 +169,7 @@ module.exports = {
   },
   TC92: {
     cell: {
-      rowName: "TC92 Billable Task",
+      rowName: "TC92 Billable Task 01",
       col: "Fri",
     },
 
@@ -204,7 +204,7 @@ module.exports = {
       hours: "1",
     },
     payloadFilterTimeEntry: {
-      subject: "TC92 Billable Task",
+      subject: "TC92 Billable Task 01",
       description: "TC92 - Task added via automation.",
       project_name: "TC92 Project",
       max_week: "1",

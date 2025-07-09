@@ -1,13 +1,13 @@
 import path from "path";
-import { test, expect } from "@playwright/test";
+const { test, expect } = require("../../playwright.fixture.cjs");
 import { TaskPage } from "../../pageObjects/taskPage";
-import data from "../../data/manager/task";
-import sharedData from "../../data/manager/shared-task.json";
+//import data from "../../data/manager/task";
+//import sharedData from "../../data/manager/shared-task.json";
 import * as allure from "allure-js-commons";
 //Add type hints to help VS Code recognize TaskPage
 /** @type {TaskPage} */
 let taskPage;
-
+/*
 // Load test data
 let TC17data = data.TC17;
 let TC19data = data.TC19;
@@ -16,12 +16,13 @@ let TC22data = sharedData.TC22;
 let TC24data = data.TC24;
 let TC25data = data.TC25;
 let TC26data = data.TC26;
-
+*/
 // ------------------------------------------------------------------------------------------
 
 // Load authentication state from 'manager.json'
 test.use({ storageState: path.resolve(__dirname, "../../auth/manager.json") });
-
+// switch to employee2 session
+//test.use({ role: 'manager' });
 test.beforeEach(async ({ page }) => {
   // Instantiate page objects
   taskPage = new TaskPage(page);
@@ -34,6 +35,8 @@ test.beforeEach(async ({ page }) => {
 
 test("TC17: Validate the search functionality   ", async ({}) => {
   allure.story("Task");
+  const data = await readJSONFile("../data/json-files/TC17.json");
+  const TC17data = data.TC17;
   const taskName = TC17data.payloadCreateTask.subject;
 
   // Search task
@@ -49,7 +52,8 @@ test("TC17: Validate the search functionality   ", async ({}) => {
 
 test("TC19: Open task details popup   ", async ({}) => {
   allure.story("Task");
-
+  const data = await readJSONFile("../data/json-files/TC19.json");
+  const TC19data = data.TC19;
   const taskName = TC19data.payloadCreateTask.subject;
   // Search task
   await taskPage.searchTask(taskName);
@@ -64,7 +68,8 @@ test("TC19: Open task details popup   ", async ({}) => {
 
 test("TC20: The information table columns should be customizable using the ‘Columns’ button at the top.   ", async ({}) => {
   allure.story("Task");
-
+  const data = await readJSONFile("../data/json-files/TC20.json");
+  const TC20data = data.TC20;
   //Verify if the column if already present:
   if (await taskPage.isColumnPresent(TC20data.col)) {
     // Remove column and save
@@ -95,7 +100,8 @@ test("TC20: The information table columns should be customizable using the ‘Co
 
 test("TC22: A task like/favourite functionality.", async ({}) => {
   allure.story("Task");
-
+  const data = await readJSONFile("../data/json-files/TC22.json");
+  const TC22data = data.TC22;
   const taskName = TC22data.payloadCreateTask.subject;
   const taskID = TC22data.payloadLikeTask.name;
 
@@ -108,7 +114,8 @@ test("TC22: A task like/favourite functionality.", async ({}) => {
 
 test("TC24: Verify task addition", async ({}) => {
   allure.story("Task");
-
+  const data = await readJSONFile("../data/json-files/TC24.json");
+  const TC24data = data.TC24;
   // Add a task
   await taskPage.AddTask(TC24data.taskInfo);
 
@@ -125,7 +132,8 @@ test("TC24: Verify task addition", async ({}) => {
 
 test("TC25: Verify the billable status of a billable task.    ", async ({}) => {
   allure.story("Task");
-
+  const data = await readJSONFile("../data/json-files/TC25.json");
+  const TC25data = data.TC25;
   // Add column to view
   await taskPage.addColumn("Is Billable");
 
@@ -139,7 +147,8 @@ test("TC25: Verify the billable status of a billable task.    ", async ({}) => {
 
 test("TC26: Verify the billable status of a non-billable task.    ", async ({}) => {
   allure.story("Task");
-
+  const data = await readJSONFile("../data/json-files/TC26.json");
+  const TC26data = data.TC26;
   // Add column to view
   await taskPage.addColumn("Is Billable");
 

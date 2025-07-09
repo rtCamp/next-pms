@@ -129,12 +129,6 @@ module.exports = {
       description: "<p>TC4 - Task added via automation.</p>",
       hours: "1",
     },
-    payloadFilterTimeEntry1: {
-      subject: "Task for TC04",
-      description: "TC4 - Task added via automation.",
-      project_name: "TC04 Project",
-      max_week: "1",
-    },
     payloadFilterTimeEntry2: {
       subject: "Task for TC04",
       description: "TC4 - Updated task via automation.",
@@ -178,12 +172,14 @@ module.exports = {
       description: "<p>TC5 - Task added via automation.</p>",
       hours: "1",
     },
+
     payloadFilterTimeEntry1: {
       subject: "Task for TC05",
       description: "TC5 - Task added via automation.",
       project_name: "TC05 Project",
       max_week: "1",
     },
+
     payloadFilterTimeEntry2: {
       subject: "Task for TC05",
       description: "TC5 - New row added to task via automation.",
@@ -234,12 +230,14 @@ module.exports = {
       description: "<p>TC6 - Task added via automation.</p>",
       hours: "1",
     },
+    /*
     payloadFilterTimeEntry: {
       subject: "Task for TC06",
       description: "TC6 - Task added via automation.",
       project_name: "TC06 Project",
       max_week: "1",
     },
+    */
   },
   TC7: {
     cell: {
@@ -279,6 +277,10 @@ module.exports = {
     },
   },
   TC9: {
+    cell: {
+      rowName: "Task for TC09",
+      col: "Wed",
+    },
     payloadCreateProject: {
       project_name: "TC09 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
@@ -307,7 +309,7 @@ module.exports = {
     },
     payloadCreateTimesheet: {
       task: "filled-automatically-from-createTasks",
-      description: "<p>TC6 - Task added via automation.</p>",
+      description: "<p>TC9 - Task added via automation.</p>",
       hours: "1",
     },
     payloadFilterTimeEntry: {

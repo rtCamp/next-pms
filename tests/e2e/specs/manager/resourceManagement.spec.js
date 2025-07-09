@@ -1,10 +1,10 @@
-import { test, expect } from "@playwright/test";
+const { test, expect } = require("../../playwright.fixture.cjs");
 import path from "path";
 import { TimelinePage } from "../../pageObjects/resourceManagement/timeline";
 import { TeamPage } from "../../pageObjects/resourceManagement/team";
 import { ProjectPage } from "../../pageObjects/resourceManagement/project";
 import * as allure from "allure-js-commons";
-import data from "../../data/manager/team";
+//import data from "../../data/manager/team";
 import { deleteAllocation } from "../../utils/api/projectRequests";
 import { getFormattedDateNDaysFromToday } from "../../utils/dateUtils";
 
@@ -15,6 +15,8 @@ let createdAllocations = [];
 
 // Load authentication state from 'manager.json'
 test.use({ storageState: path.resolve(__dirname, "../../auth/manager.json") });
+// switch to employee2 session
+//test.use({ role: 'manager' });
 
 test.beforeEach(async ({ page }) => {
   timelinePage = new TimelinePage(page);
@@ -41,9 +43,11 @@ test.afterAll(async () => {
 test.describe("Manager : Resource Management Tab", () => {
   test("TC-102: Verify add Allocation workflow by the Plus button", async ({ page }) => {
     allure.story("Resource Management");
-    const projectName = data.TC102.payloadCreateProject.project_name;
-    const employeeName = data.TC102.employee;
-    const customerName = data.TC102.payloadCreateProject.customer;
+    const data = await readJSONFile("../data/json-files/TC102.json");
+    const TC102data = data.TC102;
+    const projectName = TC102data.payloadCreateProject.project_name;
+    const employeeName = TC102data.employee;
+    const customerName = TC102data.payloadCreateProject.customer;
     await timelinePage.goto();
     await timelinePage.isPageVisible();
     const allocationName = await timelinePage.addAllocation(projectName, customerName, employeeName);
@@ -59,9 +63,12 @@ test.describe("Manager : Resource Management Tab", () => {
     page,
   }) => {
     allure.story("Resource Management");
-    const projectName = data.TC103.payloadCreateProject.project_name;
-    const employeeName = data.TC103.employee;
-    const customerName = data.TC103.payloadCreateProject.customer;
+    const data = await readJSONFile("../data/json-files/TC103.json");
+    const TC103data = data.TC103;
+
+    const projectName = TC103data.payloadCreateProject.project_name;
+    const employeeName = TC103data.employee;
+    const customerName = TC103data.payloadCreateProject.customer;
     const { date, day } = getFormattedDateNDaysFromToday(1);
     await teamPage.goto();
     const { allocationName } = await teamPage.addAllocationFromTeamTab(
@@ -83,9 +90,12 @@ test.describe("Manager : Resource Management Tab", () => {
     page,
   }) => {
     allure.story("Resource Management");
-    const projectName = data.TC104.payloadCreateProject.project_name;
-    const employeeName = data.TC104.employee;
-    const customerName = data.TC104.payloadCreateProject.customer;
+    const data = await readJSONFile("../data/json-files/TC104.json");
+    const TC104data = data.TC104;
+
+    const projectName = TC104data.payloadCreateProject.project_name;
+    const employeeName = TC104data.employee;
+    const customerName = TC104data.payloadCreateProject.customer;
     const { date, day } = getFormattedDateNDaysFromToday(2);
     await projectPage.goto();
     const { allocationName } = await projectPage.addAllocationFromProjectTab(

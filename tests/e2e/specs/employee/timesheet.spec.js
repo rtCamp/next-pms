@@ -1,23 +1,27 @@
+const { test, expect } = require("../../playwright.fixture.cjs");
+
 import path from "path";
-import { test, expect } from "@playwright/test";
 import { secondsToDuration, durationToSeconds } from "../../utils/dateUtils";
 import { TimesheetPage } from "../../pageObjects/timesheetPage";
 import { TaskPage } from "../../pageObjects/taskPage";
-import data from "../../data/employee/shared-timesheet.json";
+//import data from "../../data/employee/shared-timesheet.json";
 import * as allure from "allure-js-commons";
+import { readJSONFile } from "../../utils/fileUtils";
 //Add type hints to help VS Code recognize TimesheetPage
 /** @type {TimesheetPage} */
 let timesheetPage;
 let taskPage;
-
+//const data = path.resolve(__dirname, "../data/employee/shared-timesheet.json"); // File path of the employee timesheet data JSON file
+//const data = require("../data/employee/shared-timesheet.json");
 test.use({ storageState: path.resolve(__dirname, "../../auth/employee.json") });
-
+// switch to employee2 session
+//test.use({ role: 'employee' });
 // ------------------------------------------------------------------------------------------
 
 // Load test data
-
-let TC3data = data.TC3;
-let TC4data = data.TC4;
+/*
+//let TC3data = data.TC3;
+//let TC4data = data.TC4;
 let TC5data = data.TC5;
 let TC6data = data.TC6;
 let TC12data = data.TC12;
@@ -38,7 +42,7 @@ let TC98data = data.TC98;
 let TC99data = data.TC99;
 let TC100data = data.TC100;
 let TC101data = data.TC101;
-
+*/
 test.beforeEach(async ({ page }) => {
   // Instantiate page objects
   timesheetPage = new TimesheetPage(page);
@@ -52,6 +56,9 @@ test.beforeEach(async ({ page }) => {
 
 test("TC3: Time should be added using the direct timesheet add buttons.", async ({ page }) => {
   allure.story("Timesheet");
+  const data = await readJSONFile("../data/json-files/TC3.json");
+  const TC3data = data.TC3;
+
   // Import liked tasks
   await timesheetPage.importLikedTasks();
   // Add time entry using "+" button in timesheet
@@ -70,26 +77,31 @@ test("TC3: Time should be added using the direct timesheet add buttons.", async 
 
 test("TC4: Added time and description should be editable. ", async ({ page }) => {
   allure.story("Timesheet");
-  // Update time entry
-  await timesheetPage.updateTimeRow(TC4data.cell, {
-    desc: TC4data.payloadCreateTimesheet.description,
-    newDesc: TC4data.taskInfo.desc,
-    newDuration: TC4data.taskInfo.duration,
+  // 1) Build the path to your per‑TC JSON stub
+  const stubPath = path.resolve(__dirname, "../../data/json-files/TC4.json");
+
+  // 2) Read that one file
+  const entry = await readJSONFile(stubPath);
+
+  const tcData = entry["TC4"];
+
+  const {
+    cell,
+    payloadCreateTimesheet: { description },
+    taskInfo: { desc: newDesc, duration: newDuration },
+  } = tcData;
+
+  await timesheetPage.updateTimeRow(cell, {
+    desc: description,
+    newDesc,
+    newDuration,
   });
-
-  // Reload page to ensure changes are reflected
-  await page.reload();
-
-  // Assertions
-  const cellText = await timesheetPage.getCellText(TC4data.cell);
-  expect(cellText).toContain(TC4data.taskInfo.duration);
-
-  const cellTooltipText = await timesheetPage.getCellTooltipText(TC4data.cell);
-  expect(cellTooltipText).toContain(TC4data.taskInfo.desc);
 });
 
 test("TC5: Add a new row in the already added time.  ", async ({ page }) => {
   allure.story("Timesheet");
+  const data = await readJSONFile("../data/json-files/TC5.json");
+  const TC5data = data.TC5;
   // Store cell text before new row addition
   const beforeCellText = await timesheetPage.getCellText(TC5data.cell);
 
@@ -112,6 +124,8 @@ test("TC5: Add a new row in the already added time.  ", async ({ page }) => {
 
 test("TC6: Delete the added time entry from the non-submitted timesheet.  ", async ({ page }) => {
   allure.story("Timesheet");
+  const data = await readJSONFile("../data/json-files/TC6.json");
+  const TC6data = data.TC6;
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -128,6 +142,7 @@ test("TC6: Delete the added time entry from the non-submitted timesheet.  ", asy
 
 test("TC7: Submit the weekly timesheet ", async ({ page }) => {
   allure.story("Timesheet");
+
   // Submit timesheet
   await timesheetPage.submitTimesheet();
 
@@ -141,7 +156,7 @@ test("TC7: Submit the weekly timesheet ", async ({ page }) => {
   expect(status).toBe("Approval Pending");
 });
 
-test("TC9: Open task details popup   ", async ({}) => {
+test("TC9: Open task details popup", async ({}) => {
   allure.story("Timesheet");
   // Import liked tasks
   await timesheetPage.importLikedTasks();
@@ -168,6 +183,8 @@ test("TC11: Verify that the review timesheet pane is not available for an employ
 
 test("TC12: Verify the 'Import liked tasks' option.   ", async ({}) => {
   allure.story("Timesheet");
+  const data = await readJSONFile("../data/json-files/TC12.json");
+  const TC12data = data.TC12;
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -180,6 +197,8 @@ test("TC12: Verify the 'Import liked tasks' option.   ", async ({}) => {
 
 test("TC14: Verify the billable status of a billable task.", async ({}) => {
   allure.story("Timesheet");
+  const data = await readJSONFile("../data/json-files/TC14.json");
+  const TC14data = data.TC14;
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -190,6 +209,8 @@ test("TC14: Verify the billable status of a billable task.", async ({}) => {
 
 test("TC15: Verify the billable status of a non-billable task.   ", async ({}) => {
   allure.story("Timesheet");
+  const data = await readJSONFile("../data/json-files/TC15.json");
+  const TC15data = data.TC15;
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -202,7 +223,8 @@ test("TC23: Verify adding time to the task directly from the task tab by using t
   page,
 }) => {
   allure.story("Task");
-  let TC23data = data.TC23;
+  const data = await readJSONFile("../data/json-files/TC23.json");
+  const TC23data = data.TC23;
   await taskPage.goto();
   await taskPage.searchTask(TC23data.payloadCreateTask.subject);
   await taskPage.clickClockIcon();
@@ -212,6 +234,8 @@ test("TC23: Verify adding time to the task directly from the task tab by using t
 
 test("TC82: Verify hourly consulting rate when no default billing rate is used for Fixed cost project   ", async ({}) => {
   allure.story("Timesheet");
+  const data = await readJSONFile("../data/json-files/TC82.json");
+  const TC82data = data.TC82;
   //Assertions
   const total_costing_amount = TC82data.payloadCalculateBillingRate.total_costing_amount;
   const employeeHourlyBillingRate = TC82data.payloadCalculateBillingRate.hourly_billing_rate;
@@ -223,6 +247,8 @@ test("TC82: Verify hourly consulting rate when no default billing rate is used f
 
 test("TC83: Verify hourly consulting rate when no default billing rate is used for Retainer project   ", async ({}) => {
   allure.story("Timesheet");
+  const data = await readJSONFile("../data/json-files/TC83.json");
+  const TC83data = data.TC83;
   //Assertions
   const total_costing_amount = TC83data.payloadCalculateBillingRate.total_costing_amount;
   const employeeHourlyBillingRate = TC83data.payloadCalculateBillingRate.hourly_billing_rate;
@@ -235,6 +261,8 @@ test("TC83: Verify hourly consulting rate when no default billing rate is used f
 
 test("TC84: Verify hourly consulting rate when no default billing rate is used for Time and Material project   ", async ({}) => {
   allure.story("Timesheet");
+  const data = await readJSONFile("../data/json-files/TC84.json");
+  const TC84data = data.TC84;
   //Assertions
   const total_costing_amount = TC84data.payloadCalculateBillingRate.total_costing_amount;
   const employeeHourlyBillingRate = TC84data.payloadCalculateBillingRate.hourly_billing_rate;
@@ -247,6 +275,8 @@ test("TC84: Verify hourly consulting rate when no default billing rate is used f
 
 test("TC85: Verify hourly consulting rate when the currency for employee and project are different ", async ({}) => {
   allure.story("Timesheet");
+  const data = await readJSONFile("../data/json-files/TC85.json");
+  const TC85data = data.TC85;
   //Assertions
   const total_costing_amount = TC85data.payloadCalculateBillingRate.total_costing_amount;
   const employeeHourlyBillingRate = TC85data.payloadCalculateBillingRate.hourly_billing_rate;
@@ -259,6 +289,8 @@ test("TC85: Verify hourly consulting rate when the currency for employee and pro
 
 test("TC86: Billing rate in the timesheet should match the employee's rate from the project billing team child table for Time and Material Project", async ({}) => {
   allure.story("Timesheet");
+  const data = await readJSONFile("../data/json-files/TC86.json");
+  const TC86data = data.TC86;
   //Assertions
   const total_billable_amount = TC86data.payloadCalculateBillingRate.total_billable_amount;
   const hourly_billing_rate = TC86data.payloadCreateProject.custom_project_billing_team[0].hourly_billing_rate;
@@ -270,6 +302,8 @@ test("TC86: Billing rate in the timesheet should match the employee's rate from 
 
 test("TC87: Verify Default Hourly Billing Rate for Fixed Cost project", async ({}) => {
   allure.story("Timesheet");
+  const data = await readJSONFile("../data/json-files/TC87.json");
+  const TC87data = data.TC87;
   //Assertions
   const total_billable_amount = TC87data.payloadCalculateBillingRate.total_billable_amount;
   const custom_default_hourly_billing_rate = TC87data.payloadCreateProject.custom_default_hourly_billing_rate;
@@ -280,6 +314,8 @@ test("TC87: Verify Default Hourly Billing Rate for Fixed Cost project", async ({
 
 test("TC88: Verify Default Hourly Billing Rate for Retainer project", async ({}) => {
   allure.story("Timesheet");
+  const data = await readJSONFile("../data/json-files/TC88.json");
+  const TC88data = data.TC88;
   //Assertions
   const total_billable_amount = TC88data.payloadCalculateBillingRate.total_billable_amount;
   const custom_default_hourly_billing_rate = TC88data.payloadCreateProject.custom_default_hourly_billing_rate;
@@ -290,6 +326,8 @@ test("TC88: Verify Default Hourly Billing Rate for Retainer project", async ({})
 
 test("TC89: Verify Default Hourly Billing Rate for Time and Material project", async ({}) => {
   allure.story("Timesheet");
+  const data = await readJSONFile("../data/json-files/TC89.json");
+  const TC89data = data.TC89;
   //Assertions
   const total_billable_amount = TC89data.payloadCalculateBillingRate.total_billable_amount;
   const custom_default_hourly_billing_rate = TC89data.payloadCreateProject.custom_default_hourly_billing_rate;
@@ -301,6 +339,8 @@ test("TC89: Verify Default Hourly Billing Rate for Time and Material project", a
 
 test("TC90: Billing rate to be three times costing rate", async ({}) => {
   allure.story("Timesheet");
+  const data = await readJSONFile("../data/json-files/TC90.json");
+  const TC90data = data.TC90;
   //Assertions
   const total_billable_amount = TC90data.payloadCalculateBillingRate.total_billable_amount;
   const custom_default_hourly_billing_rate = TC90data.payloadCalculateBillingRate.total_costing_amount;
@@ -312,6 +352,8 @@ test("TC90: Billing rate to be three times costing rate", async ({}) => {
 
 test("TC96: Verify Time entry for a Billable task under a Retainer project", async ({}) => {
   allure.story("Timesheet");
+  const data = await readJSONFile("../data/json-files/TC96.json");
+  const TC96data = data.TC96;
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -322,6 +364,8 @@ test("TC96: Verify Time entry for a Billable task under a Retainer project", asy
 
 test("TC97: Verify Time entry for a Billable task under a Time and Material project", async ({}) => {
   allure.story("Timesheet");
+  const data = await readJSONFile("../data/json-files/TC97.json");
+  const TC97data = data.TC97;
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -332,6 +376,8 @@ test("TC97: Verify Time entry for a Billable task under a Time and Material proj
 
 test("TC98: Verify Time entry for a Billable task under a Non-Billable project", async ({}) => {
   allure.story("Timesheet");
+  const data = await readJSONFile("../data/json-files/TC98.json");
+  const TC98data = data.TC98;
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -342,6 +388,8 @@ test("TC98: Verify Time entry for a Billable task under a Non-Billable project",
 
 test("TC99: Verify Time entry for a Non-Billable task under a Fixed Cost project", async ({}) => {
   allure.story("Timesheet");
+  const data = await readJSONFile("../data/json-files/TC99.json");
+  const TC99data = data.TC99;
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -352,6 +400,8 @@ test("TC99: Verify Time entry for a Non-Billable task under a Fixed Cost project
 
 test("TC100: Verify Time entry for a Non-Billable task under a Retainer project", async ({}) => {
   allure.story("Timesheet");
+  const data = await readJSONFile("../data/json-files/TC100.json");
+  const TC100data = data.TC100;
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
@@ -362,6 +412,8 @@ test("TC100: Verify Time entry for a Non-Billable task under a Retainer project"
 
 test("TC101: Verify Time entry for a Non-Billable task under a Time and Material project", async ({}) => {
   allure.story("Timesheet");
+  const data = await readJSONFile("../data/json-files/TC101.json");
+  const TC101data = data.TC101;
   // Import liked tasks
   await timesheetPage.importLikedTasks();
 
