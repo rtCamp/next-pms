@@ -129,7 +129,10 @@ export const Table = ({
                   <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                     {row.getVisibleCells().map((cell, cellIndex) => {
                       const isPinned = cell.column.getIsPinned() === "left";
-                      const needToAddRef = task.hasMore && cellIndex == 0;
+                      const isFirstUnpinnedCell =
+                        !isPinned &&
+                        cellIndex === row.getVisibleCells().findIndex((c) => c.column.getIsPinned() !== "left");
+                      const needToAddRef = task.hasMore && isFirstUnpinnedCell;
                       return (
                         <TableCell
                           ref={needToAddRef ? cellRef : null}

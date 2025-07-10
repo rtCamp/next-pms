@@ -166,6 +166,7 @@ export const Header = ({
         field: taskState.orderColumn,
       },
       filters: createFilter(taskState),
+      pinnedColumns: view.pinnedColumns || [],
     },
   };
   const buttons = [
