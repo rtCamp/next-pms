@@ -18,7 +18,8 @@
   "columns",
   "rows",
   "filters",
-  "order_by"
+  "order_by",
+  "pinned_columns"
  ],
  "fields": [
   {
@@ -101,12 +102,17 @@
    "fieldname": "icon",
    "fieldtype": "Data",
    "label": "Icon"
+  },
+  {
+   "fieldname": "pinned_columns",
+   "fieldtype": "Code",
+   "label": "Pinned Columns"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-23 18:06:33.594739",
+ "modified": "2025-07-10 18:03:05.100798",
  "modified_by": "Administrator",
  "module": "Timesheet",
  "name": "PMS View Setting",
