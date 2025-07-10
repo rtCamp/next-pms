@@ -1,6 +1,7 @@
 import path from "path";
 import { test, expect } from "@playwright/test";
 import { TimesheetPage } from "../../pageObjects/timesheetPage";
+import { readJSONFile } from "../../utils/fileUtils";
 //import data from "../../data/employee/shared-timesheet.json";
 import * as allure from "allure-js-commons";
 
@@ -43,6 +44,8 @@ test.describe("Employee 2 : Timesheet", () => {
 
   test("TC13: Verify an employee can apply for leave via Timesheet tab.   ", async ({}) => {
     allure.story("Timesheet");
+    const data = await readJSONFile("../data/json-files/TC13.json");
+    const TC13data = data.TC13;
     // Apply for leave
     await timesheetPage.applyForLeave(TC13data.leave.desc);
 

@@ -1,5 +1,6 @@
 import path from "path";
 import fs from "fs";
+
 import { getWeekdayName, getFormattedDate, getDateForWeekday } from "../utils/dateUtils";
 import {
   createTimesheet,
@@ -362,7 +363,7 @@ export const filterTimesheetEntry = async (opts) => {
       // look for an entry whose no‑HTML description _exactly_ matches your searchText
       const match = (task.data || []).find((e) => {
         const noHtml = (e.description || "").replace(/<[^>]+>/g, "");
-        console.log("NO HTML TEXT IS:", noHtml);
+        //console.log("NO HTML TEXT IS:", noHtml);
         return (
           noHtml === searchText && // exact match on full string
           e.project_name === project_name && // same project
@@ -371,7 +372,7 @@ export const filterTimesheetEntry = async (opts) => {
       });
 
       if (match) {
-        console.warn("✅ MATCH FOUND FOR FILTER TIMESHEET ENTRY   :", match);
+        //console.warn("✅ MATCH FOUND FOR FILTER TIMESHEET ENTRY   :", match);
         return match;
       }
     }
@@ -457,16 +458,17 @@ export const createProjectForTestCases = async (testCaseIDs) => {
     console.warn(`⚠️ No payloadCreateProject for ${tcId}`);
     return;
   }
-
+  //console.log("PAYLOAD CREATE PROJECT: ", entry.payloadCreateProject);
   // Create project
   const res = await createProject(entry.payloadCreateProject);
-  if (!res.ok) {
-    console.error(`Failed to create project for ${tcId}: ${res.statusText}`);
+  //console.log("-------------CREATE PROJECT RES IS--------: ", res);
+  if (!res?.data?.name) {
+    console.error(`Failed to create project for ${tcId} as there is no data.name`);
     return;
   }
-  const json = await res.json();
-  const projectId = json.data.name;
-  const customCurrency = json.data.custom_currency;
+  //const json = await res.json();
+  const projectId = res.data.name;
+  const customCurrency = res.data.custom_currency;
 
   // Share, if needed
   if (Array.isArray(entry.payloadShareProject)) {
@@ -850,6 +852,11 @@ export const createTaskForTestCases = async (testCaseIDs) => {
 
 export const deleteByTaskName = async () => {
   try {
+    if (!fs.existsSync(TASK_TRACKER_PATH)) {
+      // Silently skip if file not found
+      return;
+    }
+
     const tasksToBeDeleted = await readJSONFile(TASK_TRACKER_PATH);
 
     if (!Array.isArray(tasksToBeDeleted) || tasksToBeDeleted.length === 0) {
@@ -872,9 +879,9 @@ export const deleteByTaskName = async () => {
       }
     }
 
-    //Optionally clear the file after deletion
-    //fs.writeFileSync(TASK_TRACKER_PATH, JSON.stringify([], null, 2), "utf-8");
-    //console.log("Deleted all listed tasks and cleared tracking file.");
+    // Optionally clear the file after deletion
+    // await fs.writeFile(TASK_TRACKER_PATH, JSON.stringify([], null, 2), "utf-8");
+    // console.log("Deleted all listed tasks and cleared tracking file.");
   } catch (error) {
     console.error("Error while deleting tasks by name:", error.message);
   }
@@ -990,10 +997,10 @@ export const calculateHourlyBilling = async (testCaseIDs = []) => {
 
     // 6) Fetch project financials
     const projRes = await getProjectDetails(ratePayload.project);
-    const projJson = await projRes.json();
+    //const projJson = await projRes.json();
 
-    ratePayload.total_billable_amount = projJson.data.total_billable_amount;
-    ratePayload.total_costing_amount = projJson.data.total_costing_amount;
+    ratePayload.total_billable_amount = projRes.data.total_billable_amount;
+    ratePayload.total_costing_amount = projRes.data.total_costing_amount;
     ratePayload.hourly_billing_rate = hourly_billing_rate;
 
     // 7) Write it back wrapped under the TC key
