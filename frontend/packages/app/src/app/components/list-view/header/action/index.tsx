@@ -102,7 +102,7 @@ const Action = ({ docType, exportProps, viewProps }: ActionProps) => {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="h-9 px-3" aria-label="More actions">
+          <Button variant="outline" size="sm" className="h-10 px-2 " aria-label="More actions">
             <EllipsisVertical className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
