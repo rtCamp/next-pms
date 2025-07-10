@@ -169,6 +169,7 @@ export const Header = ({
       pinnedColumns: view.pinnedColumns || [],
       isDefault: Boolean(view.default),
       isPublic: Boolean(view.public),
+      name: view.name ?? "",
     },
   };
   const buttons = [

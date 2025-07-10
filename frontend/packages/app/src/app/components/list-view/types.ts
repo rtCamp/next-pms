@@ -125,6 +125,7 @@ export type ViewProps = {
   pinnedColumns?: Array<string>;
   isDefault: boolean;
   isPublic: boolean;
+  name: string;
 };
 
 export interface CreateViewProps {
