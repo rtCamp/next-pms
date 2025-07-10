@@ -123,6 +123,8 @@ export type ViewProps = {
   orderBy: { field: string; order: string };
   columns: Record<string, number | string>;
   pinnedColumns?: Array<string>;
+  isDefault: boolean;
+  isPublic: boolean;
 };
 
 export interface CreateViewProps {

@@ -167,6 +167,8 @@ export const Header = ({
       },
       filters: createFilter(taskState),
       pinnedColumns: view.pinnedColumns || [],
+      isDefault: Boolean(view.default),
+      isPublic: Boolean(view.public),
     },
   };
   const buttons = [

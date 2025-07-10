@@ -313,6 +313,8 @@ export const Header = ({
       },
       filters: createFilter(projectState),
       pinnedColumns: view.pinnedColumns || [],
+      isDefault: Boolean(view.default),
+      isPublic: Boolean(view.public),
     },
   };
   const buttons = [
