@@ -284,6 +284,7 @@ const getFieldComponent = (
           onSelect={(value) => {
             handleChange(value);
           }}
+          popoverClassName="!z-[1000000000]"
         />
       );
     case "Table":

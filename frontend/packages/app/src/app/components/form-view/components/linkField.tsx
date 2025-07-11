@@ -28,6 +28,7 @@ interface LinkFieldProps {
   value: string;
   isReadOnly?: boolean;
   onSelect?: (value: string) => void;
+  popoverClassName?: string;
 }
 
 /**
@@ -40,7 +41,7 @@ interface LinkFieldProps {
  * @param onSelect Function triggered when a item is selected from the combo-box, returns a selected item string
  * @returns A JSX Component
  */
-const LinkField = ({ field, value, isReadOnly, onSelect }: LinkFieldProps) => {
+const LinkField = ({ field, value, isReadOnly, onSelect, popoverClassName }: LinkFieldProps) => {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState(value);
 
@@ -112,7 +113,10 @@ const LinkField = ({ field, value, isReadOnly, onSelect }: LinkFieldProps) => {
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="!z-[1000000000] p-0 w-full max-md:min-w-[250px] max-lg:min-w-[450px] lg:min-w-[400px]"
+        className={mergeClassNames(
+          "z-[1000000] p-0 w-full max-md:min-w-[250px] max-lg:min-w-[450px] lg:min-w-[400px]",
+          popoverClassName
+        )}
       >
         <Command>
           <CommandInput
