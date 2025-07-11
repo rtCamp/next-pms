@@ -1,4 +1,3 @@
-// playwright.fixture.cjs
 const { test: base, expect, devices } = require("@playwright/test");
 const path = require("path");
 const fs = require("fs").promises;
@@ -26,20 +25,10 @@ const {
   createUserGroupForEmployee,
   deleteUserGroupForEmployee,
 } = require("./helpers/teamTabHelper");
-const { createJSONFile, populateJsonStubs } = require("./utils/fileUtils");
+const { createJSONFilePerTC, populateJsonStubs } = require("./utils/fileUtils");
+const { storeStorageState } = require("./helpers/storageStateHelper");
 
-// add a quick verify‐load log
-console.log("🔥 loaded playwright.fixture.cjs");
-
-
-const test = base.extend({
-  
-  testCaseIDs: async ({}, use, testInfo) => {
-    const m = testInfo.title.match(/\bTC\d+\b/);
-    // wrap the match in an array (or empty array if none):
-    await use(m ? [m[0]] : []);
-  },
-});
+// add a quick verify‐load log\console.log("🔥 loaded playwright.fixture.cjs");
 
 // Directory where per-TC JSON stubs live
 const jsonDir = path.resolve(__dirname, "data", "json-files");
@@ -47,29 +36,67 @@ const jsonDir = path.resolve(__dirname, "data", "json-files");
 // Helper to ensure stub file exists
 async function ensureJsonStub(tc) {
   const filePath = path.join(jsonDir, `${tc}.json`);
-  await createJSONFile(filePath);
+  console.log(`🔍 Attempting to create: ${filePath}`);
+  await createJSONFilePerTC(filePath);
   try {
     await fs.access(filePath);
     console.log(`✅ Verified JSON stub for ${tc} at ${filePath}`);
   } catch (err) {
-    throw new Error(`❌ Cannot access JSON stub for ${tc}: ${err.message}`);
+    console.error(`❌ File still doesn't exist: ${filePath}`);
+    console.error(`❌ Error: ${err.message}`);
+    throw new Error(`Cannot access JSON stub for ${tc}: ${err.message}`);
   }
 }
+
+const test = base.extend({
+  // Worker-scoped fixture: generate a unique storageState per role per worker
+  authState: [
+    async ({}, use, testInfo) => {
+      const role = testInfo.project.metadata.TEST_ROLE;
+      if (!role)
+        throw new Error("`metadata.TEST_ROLE` must be set on the project");
+
+      const workerIndex = testInfo.workerIndex;
+      const fileName = `${role}-w${workerIndex}.json`;
+      const outPath = path.resolve(__dirname, "./auth", fileName);
+      try {
+        await fs.access(outPath);
+      } catch {
+        // Generate storage state with CSRF (isApi=false)
+        await storeStorageState(role, false, outPath);
+      }
+      await use(outPath);
+    },
+    { scope: "worker" },
+  ],
+
+  // Override built-in storageState to use our worker-scoped authState
+  storageState: async ({ authState }, use) => {
+    await use(authState);
+  },
+
+  // Test-case ID extraction for beforeEach/afterEach data setup/teardown
+  testCaseIDs: async ({}, use, testInfo) => {
+    console.log("🔍 raw title:", JSON.stringify(testInfo.title));
+    const m = testInfo.title.match(/\bTC(\d+):/);
+    console.log("   → regex match:", m);
+    await use(m ? [`TC${m[1]}`] : []);
+  },
+});
+
+// Per-test setup: JSON stubs and test data
 test.beforeEach(async ({ testCaseIDs }) => {
+  console.warn("💡 beforeEach IDs:", testCaseIDs);
   if (!testCaseIDs || testCaseIDs.length === 0) return;
   console.warn("STARTED FIXTURE: BEFORE EACH");
 
-  // Ensure output directory exists
   await fs.mkdir(jsonDir, { recursive: true });
-
-  // STEP 0: create + verify JSON stubs per TC
   for (const tc of testCaseIDs) {
     await ensureJsonStub(tc);
   }
-  // Populate each stub with data from your JS payload modules
   await populateJsonStubs(jsonDir, testCaseIDs);
 
-  // ── STEP 1: now that per‑TC files exist, run your normal setup helpers ─────────
+  // ── STEP 1: run setup helpers ─────────
   await createEmployees(testCaseIDs);
   await updateTimeEntries(testCaseIDs);
   await createProjectForTestCases(testCaseIDs);
@@ -79,11 +106,12 @@ test.beforeEach(async ({ testCaseIDs }) => {
   await updateLeaveEntries(testCaseIDs);
   await randomApprovalStatus(testCaseIDs);
   await createUserGroupForEmployee(testCaseIDs);
-  // ── END STEP 1 ───────────────────────────────────────────────────────────────
+  // ── END STEP 1 ────────────────────────
 
   console.warn("ENDED FIXTURE: BEFORE EACH");
 });
 
+// Per-test teardown
 test.afterEach(async ({ testCaseIDs }) => {
   if (!testCaseIDs) return;
   console.warn("STARTED FIXTURE: AFTER EACH");
@@ -96,7 +124,6 @@ test.afterEach(async ({ testCaseIDs }) => {
   await deleteUserGroupForEmployee(testCaseIDs);
 
   console.warn("ENDED FIXTURE: AFTER EACH");
-  // optionally: await readAndCleanAllOrphanData();
 });
 
 module.exports = { test, expect, devices };

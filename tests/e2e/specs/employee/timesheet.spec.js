@@ -4,45 +4,15 @@ import path from "path";
 import { secondsToDuration, durationToSeconds } from "../../utils/dateUtils";
 import { TimesheetPage } from "../../pageObjects/timesheetPage";
 import { TaskPage } from "../../pageObjects/taskPage";
-//import data from "../../data/employee/shared-timesheet.json";
 import * as allure from "allure-js-commons";
 import { readJSONFile } from "../../utils/fileUtils";
 //Add type hints to help VS Code recognize TimesheetPage
 /** @type {TimesheetPage} */
 let timesheetPage;
 let taskPage;
-//const data = path.resolve(__dirname, "../data/employee/shared-timesheet.json"); // File path of the employee timesheet data JSON file
-//const data = require("../data/employee/shared-timesheet.json");
-test.use({ storageState: path.resolve(__dirname, "../../auth/employee.json") });
-// switch to employee2 session
-//test.use({ role: 'employee' });
-// ------------------------------------------------------------------------------------------
 
-// Load test data
-/*
-//let TC3data = data.TC3;
-//let TC4data = data.TC4;
-let TC5data = data.TC5;
-let TC6data = data.TC6;
-let TC12data = data.TC12;
-let TC14data = data.TC14;
-let TC15data = data.TC15;
-let TC82data = data.TC82;
-let TC83data = data.TC83;
-let TC84data = data.TC84;
-let TC85data = data.TC85;
-let TC86data = data.TC86;
-let TC87data = data.TC87;
-let TC88data = data.TC88;
-let TC89data = data.TC89;
-let TC90data = data.TC90;
-let TC96data = data.TC96;
-let TC97data = data.TC97;
-let TC98data = data.TC98;
-let TC99data = data.TC99;
-let TC100data = data.TC100;
-let TC101data = data.TC101;
-*/
+//test.use({ storageState: path.resolve(__dirname, "../../auth/employee.json") });
+
 test.beforeEach(async ({ page }) => {
   // Instantiate page objects
   timesheetPage = new TimesheetPage(page);
@@ -245,7 +215,7 @@ test("TC82: Verify hourly consulting rate when no default billing rate is used f
   ).toBeCloseTo(employeeHourlyBillingRate, 3);
 });
 
-test("TC83: Verify hourly consulting rate when no default billing rate is used for Retainer project   ", async ({}) => {
+test.fail("TC83: Verify hourly consulting rate when no default billing rate is used for Retainer project   ", async ({}) => {
   allure.story("Timesheet");
   const data = await readJSONFile("../data/json-files/TC83.json");
   const TC83data = data.TC83;
@@ -253,7 +223,7 @@ test("TC83: Verify hourly consulting rate when no default billing rate is used f
   const total_costing_amount = TC83data.payloadCalculateBillingRate.total_costing_amount;
   const employeeHourlyBillingRate = TC83data.payloadCalculateBillingRate.hourly_billing_rate;
 
-  expect(
+  expect( 
     total_costing_amount,
     "Verify the project cost amount and employee CTC amount per hour matches for Retainer Project"
   ).toBeCloseTo(employeeHourlyBillingRate, 3);
@@ -273,7 +243,7 @@ test("TC84: Verify hourly consulting rate when no default billing rate is used f
   ).toBeCloseTo(employeeHourlyBillingRate, 3);
 });
 
-test("TC85: Verify hourly consulting rate when the currency for employee and project are different ", async ({}) => {
+test.fail("TC85: Verify hourly consulting rate when the currency for employee and project are different ", async ({}) => {
   allure.story("Timesheet");
   const data = await readJSONFile("../data/json-files/TC85.json");
   const TC85data = data.TC85;

@@ -14,7 +14,7 @@ let projectPage;
 let createdAllocations = [];
 
 // Load authentication state from 'manager.json'
-test.use({ storageState: path.resolve(__dirname, "../../auth/manager.json") });
+//test.use({ storageState: path.resolve(__dirname, "../../auth/manager.json") });
 // switch to employee2 session
 //test.use({ role: 'manager' });
 
@@ -41,7 +41,7 @@ test.afterAll(async () => {
 });
 
 test.describe("Manager : Resource Management Tab", () => {
-  test("TC-102: Verify add Allocation workflow by the Plus button", async ({ page }) => {
+  test("TC102: Verify add Allocation workflow by the Plus button", async ({ page }) => {
     allure.story("Resource Management");
     const data = await readJSONFile("../data/json-files/TC102.json");
     const TC102data = data.TC102;
@@ -59,7 +59,7 @@ test.describe("Manager : Resource Management Tab", () => {
     await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
   });
 
-  test("TC-103: Verify add Allocation workflow by clicking on a specfic cell wrt Employee and Date", async ({
+  test("TC103: Verify add Allocation workflow by clicking on a specfic cell wrt Employee and Date", async ({
     page,
   }) => {
     allure.story("Resource Management");
@@ -86,7 +86,7 @@ test.describe("Manager : Resource Management Tab", () => {
     await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
   });
 
-  test("TC-104: Verify add Allocation workflow by clicking on a specfic cell wrt Project and Date", async ({
+  test("TC104: Verify add Allocation workflow by clicking on a specfic cell wrt Project and Date", async ({
     page,
   }) => {
     allure.story("Resource Management");

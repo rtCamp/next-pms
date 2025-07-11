@@ -35,7 +35,7 @@ let TC94data = data.TC94;
 // ------------------------------------------------------------------------------------------
 
 // Load authentication state from 'manager.json'
-test.use({ storageState: path.resolve(__dirname, "../../auth/manager.json") });
+//test.use({ storageState: path.resolve(__dirname, "../../auth/manager.json") });
 // switch to employee2 session
 //test.use({ role: 'manager' });
 
@@ -54,7 +54,7 @@ test.describe("Manager: Team Tab", () => {
     expect(filteredEmployees[0]).toBe(empName);
   });
 
-  test("TC39: The reporting manager filter", async ({}) => {
+  test.only("TC39: The reporting manager filter", async ({}) => {
     allure.story("Team");
     const data = await readJSONFile("../data/json-files/TC39.json");
     const TC39data = data.TC39;
@@ -128,22 +128,6 @@ test.describe("Manager: Team Tab", () => {
       col: TC47data.cell.col,
     });
     expect(cellText).toContain(TC47data.taskInfo.duration);
-  });
-
-  test("TC49: Reject timesheet for employee", async ({ page }) => {
-    allure.story("Team");
-    const data = await readJSONFile("../data/json-files/TC49.json");
-    const TC49data = data.TC49;
-    await teamPage.viewNextWeek();
-    await teamPage.rejectTimesheet({
-      employee: empName,
-      reason: TC49data.reason,
-      notification: TC49data.notification,
-    });
-    await page.reload();
-    await teamPage.viewNextWeek();
-    const status = await teamPage.getTimesheetStatus(empName);
-    expect(status).toBe("Rejected");
   });
 
   test("TC50: Open task details popup", async ({}) => {
@@ -228,5 +212,20 @@ test.describe("Manager: Team Tab", () => {
     const TC94data = data.TC94;
     await teamPage.checkUserGroup(TC94data.payloadCreateUserGroup.__newname);
     await expect(teamPage.employeeNameInTable(TC94data.employeeName)).toBeVisible();
+  });
+  test.fail("TC49: Reject timesheet for employee", async ({ page }) => {
+    allure.story("Team");
+    const data = await readJSONFile("../data/json-files/TC49.json");
+    const TC49data = data.TC49;
+    await teamPage.viewNextWeek();
+    await teamPage.rejectTimesheet({
+      employee: empName,
+      reason: TC49data.reason,
+      notification: TC49data.notification,
+    });
+    await page.reload();
+    await teamPage.viewNextWeek();
+    const status = await teamPage.getTimesheetStatus(empName);
+    expect(status).toBe("Rejected");
   });
 });

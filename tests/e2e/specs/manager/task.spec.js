@@ -1,7 +1,7 @@
 import path from "path";
 const { test, expect } = require("../../playwright.fixture.cjs");
 import { TaskPage } from "../../pageObjects/taskPage";
-import { readJSONFile } from "../../utils/fileUtils";
+import { readJSONFile, createJSONFile } from "../../utils/fileUtils";
 //import data from "../../data/manager/task";
 //import sharedData from "../../data/manager/shared-task.json";
 import * as allure from "allure-js-commons";
@@ -21,7 +21,7 @@ let TC26data = data.TC26;
 // ------------------------------------------------------------------------------------------
 
 // Load authentication state from 'manager.json'
-test.use({ storageState: path.resolve(__dirname, "../../auth/manager.json") });
+//test.use({ storageState: path.resolve(__dirname, "../../auth/manager.json") });
 // switch to employee2 session
 //test.use({ role: 'manager' });
 test.beforeEach(async ({ page }) => {
@@ -115,6 +115,8 @@ test("TC22: A task like/favourite functionality.", async ({}) => {
 
 test("TC24: Verify task addition", async ({}) => {
   allure.story("Task");
+  await createJSONFile("../data/manager/tasks-to-delete.json");
+
   const data = await readJSONFile("../data/json-files/TC24.json");
   const TC24data = data.TC24;
   // Add a task

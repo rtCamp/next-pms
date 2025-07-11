@@ -7,27 +7,19 @@ import { createJSONFile } from "../utils/fileUtils";
  * It initializes test data and stores authentication details for reuse in tests.
  */
 const globalSetup = async () => {
+  // 1) Pre‑generate API auth states for all roles
+  const roles = ["employee", "employee2", "employee3", "manager", "admin"];
+  await Promise.all(
+    roles.map(role =>
+      // `true` ⇒ API‑only state, saved to `auth/<role>-API.json`
+      storeStorageState(role, true)
+    )
+  );
 
-
-  // 1. Create API auth states
-  await Promise.all([
-    storeStorageState("employee", true),
-    storeStorageState("employee2", true),
-    storeStorageState("employee3", true),
-    storeStorageState("manager", true),
-    storeStorageState("admin", true),
-  ]);
-
-  // 1.1 Clean up Orphan Data
+  // 2) Now that API auth is in place, clean up any orphan data
   await readAndCleanAllOrphanData();
 
-  // 3. Create frontend UI storage states ONLY after all above is done
-  await Promise.all([
-    storeStorageState("employee3", false),
-    storeStorageState("employee2", false),
-    storeStorageState("employee", false),
-    storeStorageState("manager", false),
-  ]);
+
 };
 
 export default globalSetup;

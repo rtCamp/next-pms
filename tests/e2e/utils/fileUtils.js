@@ -74,3 +74,16 @@ export const populateJsonStubs = async (jsonDir, testCaseIDs) => {
     console.log(`• Wrote ${filePath} with root key "${tc}"`);
   }
 };
+
+export const createJSONFilePerTC = async (filePath) => {
+  try {
+    // Check if file exists
+    await fs.access(filePath);
+  } catch {
+    // If file does not exist, create directory and file
+    const dir = path.dirname(filePath);
+    await fs.mkdir(dir, { recursive: true });
+    await fs.writeFile(filePath, JSON.stringify({}, null, 2), "utf-8");
+    console.log(`✅ Created JSON file: ${filePath}`);
+  }
+};

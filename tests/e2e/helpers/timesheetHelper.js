@@ -277,7 +277,13 @@ export const deleteTimeEntries = async (testCaseIDs = []) => {
     return;
   }
   // choose actor based on TC
-  const actor = tcId === "TC92" ? "employee3" : "employee";
+  const roleMap = {
+    TC2: "employee2",
+    TC92: "employee3",
+  };
+
+  //  pick your actor:
+  const actor = roleMap[tcId] || "employee";
 
   for (const entry of entries) {
     // derive parent & name identifiers
@@ -965,7 +971,9 @@ export const calculateHourlyBilling = async (testCaseIDs = []) => {
   // 1) Fetch employee info once
   const empRes = await getEmployeeDetails(empID, "admin");
   const employee_CTC = empRes.data.ctc;
+  console.log("EMPLOYEE SALARY: ", employee_CTC);
   const employee_currency = empRes.data.salary_currency;
+  console.log("EMPLOYEE CURRENCY: ", employee_currency);
 
   // 2) Loop through each TC
   for (const tcId of testCaseIDs) {
@@ -989,8 +997,11 @@ export const calculateHourlyBilling = async (testCaseIDs = []) => {
     let hourly_billing_rate;
     if (employee_currency !== ratePayload.custom_currency_for_project) {
       const convertRes = await getExchangeRate(employee_currency, ratePayload.custom_currency_for_project);
+
       const convertedCTC = convertRes.message * employee_CTC;
+      console.log("CONVERTED EMPLOYEE CTC ", convertedCTC);
       hourly_billing_rate = convertedCTC / 12 / 160;
+      console.log("HOURLY BILLING RATE: ", hourly_billing_rate);
     } else {
       hourly_billing_rate = employee_CTC / 12 / 160;
     }

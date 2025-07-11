@@ -7,7 +7,7 @@ import * as allure from "allure-js-commons";
 let timesheetPage;
 let sidebar;
 
-test.use({ storageState: path.resolve(__dirname, "../../auth/employee.json") });
+//test.use({ storageState: path.resolve(__dirname, "../../auth/employee.json") });
 // switch to employee2 session
 //test.use({ role: 'employee' });
 

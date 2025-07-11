@@ -314,7 +314,7 @@ module.exports = {
     },
     payloadFilterTimeEntry: {
       subject: "Task for TC09",
-      description: "TC6 - Task added via automation.",
+      description: "TC9 - Task added via automation.",
       project_name: "TC09 Project",
       max_week: "1",
     },

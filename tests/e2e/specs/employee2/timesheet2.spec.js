@@ -1,5 +1,6 @@
 import path from "path";
-import { test, expect } from "@playwright/test";
+const { test, expect } = require("../../playwright.fixture.cjs");
+//import { test, expect } from "@playwright/test";
 import { TimesheetPage } from "../../pageObjects/timesheetPage";
 import { readJSONFile } from "../../utils/fileUtils";
 //import data from "../../data/employee/shared-timesheet.json";
@@ -10,7 +11,7 @@ import * as allure from "allure-js-commons";
 let timesheetPage;
 
 // Apply storageState only for this describe block
-test.use({ storageState: path.resolve(__dirname, "../../auth/employee2.json") });
+//test.use({ storageState: path.resolve(__dirname, "../../auth/employee2.json") });
 // switch to employee2 session
 //test.use({ role: 'employee2' });
 /*
