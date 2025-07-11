@@ -227,6 +227,7 @@ def get_employee_costing_rate(employee: str, salary_currency: float, ctc: float,
         to_currency=currency,
         salary_currency=salary_currency,
         ctc=ctc,
+        date=start_date,
     )
     costing_rate = salary.get("hourly_salary")
 
@@ -235,7 +236,4 @@ def get_employee_costing_rate(employee: str, salary_currency: float, ctc: float,
             frappe._("Project costing rates are not set. Please contact the Project Manager for assistance.")
         )
 
-    if salary_currency != currency:
-        rate = get_exchange_rate(salary_currency, currency, start_date)
-        costing_rate = costing_rate * (rate or 1)
     return costing_rate
