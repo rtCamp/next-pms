@@ -114,9 +114,9 @@ const Action = ({ docType, exportProps, viewProps }: ActionProps) => {
           {canCreate("PMS View Setting") && (
             <DropdownMenuItem
               onClick={openCreateView}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-md cursor-pointer transition-colors duration-150 hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-900/20 dark:hover:text-blue-300 focus:bg-blue-50 focus:text-blue-700 group"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-md cursor-pointer transition-colors duration-150 hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/10 dark:hover:text-primary focus:bg-primary/10 focus:text-primary group"
             >
-              <Plus className="h-4 w-4 text-blue-700 group-hover:text-blue-800 dark:text-blue-300 dark:group-hover:text-blue-400" />
+              <Plus className="h-4 w-4 text-primary group-hover:text-primary dark:text-primary dark:group-hover:text-primary" />
               <Typography variant="p" className="text-sm font-medium">
                 Create View
               </Typography>
@@ -131,9 +131,9 @@ const Action = ({ docType, exportProps, viewProps }: ActionProps) => {
                   <DropdownMenuItem
                     onClick={makeViewPublic}
                     disabled={updateLoading}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-md cursor-pointer transition-colors duration-150 hover:bg-green-50 hover:text-green-700 dark:hover:bg-green-900/20 dark:hover:text-green-300 focus:bg-green-50 focus:text-green-700 group disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-md cursor-pointer transition-colors duration-150 hover:bg-success/10 hover:text-success dark:hover:bg-success/10 dark:hover:text-success focus:bg-success/10 focus:text-success group disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Globe className="h-4 w-4 text-green-600 group-hover:text-green-500 dark:text-green-400" />
+                    <Globe className="h-4 w-4 text-success group-hover:text-success dark:text-success" />
                     <Typography variant="p" className="text-sm font-medium">
                       {updateLoading ? "Making Public..." : "Make Public"}
                     </Typography>
@@ -141,9 +141,9 @@ const Action = ({ docType, exportProps, viewProps }: ActionProps) => {
                   <DropdownMenuItem
                     onClick={handleDeleteView}
                     disabled={deleteLoading}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-md cursor-pointer transition-colors duration-150 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-900/20 dark:hover:text-red-300 focus:bg-red-50 focus:text-red-700 group disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-md cursor-pointer transition-colors duration-150 hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/10 dark:hover:text-destructive focus:bg-destructive/10 focus:text-destructive group disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Trash2 className="h-4 w-4 text-red-500 group-hover:text-red-600 dark:text-red-400" />
+                    <Trash2 className="h-4 w-4 text-destructive group-hover:text-destructive dark:text-destructive" />
                     <Typography variant="p" className="text-sm font-medium">
                       {deleteLoading ? "Deleting..." : "Delete View"}
                     </Typography>
@@ -156,9 +156,9 @@ const Action = ({ docType, exportProps, viewProps }: ActionProps) => {
           {canExport(docType) && (
             <DropdownMenuItem
               onClick={openExportDialog}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-md cursor-pointer transition-colors duration-150 hover:bg-gray-50 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-300 focus:bg-gray-50 focus:text-gray-700 group"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-md cursor-pointer transition-colors duration-150 hover:bg-secondary hover:text-secondary-foreground dark:hover:bg-secondary dark:hover:text-secondary-foreground focus:bg-secondary focus:text-secondary-foreground group"
             >
-              <Download className="h-4 w-4 text-gray-600 group-hover:text-gray-700 dark:text-gray-300 dark:group-hover:text-gray-200" />
+              <Download className="h-4 w-4 text-muted-foreground group-hover:text-secondary-foreground dark:text-muted-foreground dark:group-hover:text-secondary-foreground" />
               <Typography variant="p" className="text-sm font-medium">
                 Export
               </Typography>
