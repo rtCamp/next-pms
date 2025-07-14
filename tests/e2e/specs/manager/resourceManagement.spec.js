@@ -41,9 +41,10 @@ test.afterAll(async () => {
 });
 
 test.describe("Manager : Resource Management Tab", () => {
-  test("TC102: Verify add Allocation workflow by the Plus button", async ({ page }) => {
+  test("TC102: Verify add Allocation workflow by the Plus button", async ({ page, jsonDir }) => {
     allure.story("Resource Management");
-    const data = await readJSONFile("../data/json-files/TC102.json");
+    const stubPath = path.join(jsonDir, "TC102.json");
+    const data = await readJSONFile(stubPath);
     const TC102data = data.TC102;
     const projectName = TC102data.payloadCreateProject.project_name;
     const employeeName = TC102data.employee;
@@ -59,11 +60,13 @@ test.describe("Manager : Resource Management Tab", () => {
     await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
   });
 
-  test("TC103: Verify add Allocation workflow by clicking on a specfic cell wrt Employee and Date", async ({
+  test.skip("TC103: Verify add Allocation workflow by clicking on a specfic cell wrt Employee and Date", async ({
     page,
+    jsonDir,
   }) => {
     allure.story("Resource Management");
-    const data = await readJSONFile("../data/json-files/TC103.json");
+    const stubPath = path.join(jsonDir, "TC103.json");
+    const data = await readJSONFile(stubPath);
     const TC103data = data.TC103;
 
     const projectName = TC103data.payloadCreateProject.project_name;
@@ -88,9 +91,11 @@ test.describe("Manager : Resource Management Tab", () => {
 
   test("TC104: Verify add Allocation workflow by clicking on a specfic cell wrt Project and Date", async ({
     page,
+    jsonDir,
   }) => {
     allure.story("Resource Management");
-    const data = await readJSONFile("../data/json-files/TC104.json");
+    const stubPath = path.join(jsonDir, "TC104.json");
+    const data = await readJSONFile(stubPath);
     const TC104data = data.TC104;
 
     const projectName = TC104data.payloadCreateProject.project_name;

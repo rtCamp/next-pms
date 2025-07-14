@@ -18,11 +18,13 @@ const JSON_DIR = path.resolve(__dirname, "../data/json-files");
  * Updates leave-entry filters for provided testCaseIDs (e.g. TC13).
  * Sets from/to dates to today and employee to empID.
  */
-export const updateLeaveEntries = async (testCaseIDs = []) => {
+export const updateLeaveEntries = async (testCaseIDs = [],jsonDir) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
 
   for (const tcId of testCaseIDs) {
-    const stubPath = path.join(JSON_DIR, `${tcId}.json`);
+    //const stubPath = path.join(JSON_DIR, `${tcId}.json`);
+    const stubPath = path.join(jsonDir, `${tcId}.json`);
+
     // 1) Read the wrapped stub { "TCn": entry }
     const fullStub = await readJSONFile(stubPath);
     const entry    = fullStub[tcId];
@@ -45,7 +47,7 @@ export const updateLeaveEntries = async (testCaseIDs = []) => {
 
     // 4) Write back wrapped under the same TC key
     await writeDataToFile(stubPath, { [tcId]: entry });
-    console.log(`✅ Updated leave filter for ${tcId} in ${stubPath}`);
+    //console.log(`✅ Updated leave filter for ${tcId} in ${stubPath}`);
   }
 };
 /*
@@ -77,11 +79,12 @@ export const updateLeaveEntries = async (testCaseIDs) => {
  * Rejects leave entries for provided testCaseIDs.
  * Reads the shared JSON, fetches matching leaves, and rejects them.
  */
-export const rejectLeaveEntries = async (testCaseIDs = []) => {
+export const rejectLeaveEntries = async (testCaseIDs = [], jsonDir) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
 
   for (const tcId of testCaseIDs) {
-    const stubPath = path.join(JSON_DIR, `${tcId}.json`);
+    //const stubPath = path.join(JSON_DIR, `${tcId}.json`);
+    const stubPath = path.join(jsonDir, `${tcId}.json`);
 
     // 1) Read the wrapped stub { "TCn": entry }
     let fullStub;
@@ -118,7 +121,7 @@ export const rejectLeaveEntries = async (testCaseIDs = []) => {
       const detailsRes = await getLeaveDetails(firstLeave.name);
       await actOnLeave({ action: "Reject", leaveDetails: detailsRes.data });
 
-      console.log(`✅ Rejected leave for ${tcId} (leave name: ${firstLeave.name})`);
+      //console.log(`✅ Rejected leave for ${tcId} (leave name: ${firstLeave.name})`);
     } catch (err) {
       console.error(`❌ Failed to reject leave for ${tcId}: ${err.message}`);
     }

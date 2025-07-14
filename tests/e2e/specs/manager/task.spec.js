@@ -24,6 +24,8 @@ let TC26data = data.TC26;
 //test.use({ storageState: path.resolve(__dirname, "../../auth/manager.json") });
 // switch to employee2 session
 //test.use({ role: 'manager' });
+test.describe("Manager : Task", () => {
+
 test.beforeEach(async ({ page }) => {
   // Instantiate page objects
   taskPage = new TaskPage(page);
@@ -34,10 +36,11 @@ test.beforeEach(async ({ page }) => {
 
 // ------------------------------------------------------------------------------------------
 
-test("TC17: Validate the search functionality   ", async ({}) => {
+test("TC17: Validate the search functionality   ", async ({ jsonDir }) => {
   allure.story("Task");
-  const data = await readJSONFile("../data/json-files/TC17.json");
-  const TC17data = data.TC17;
+  const stubPath = path.join(jsonDir, "TC17.json");
+  const data = await readJSONFile(stubPath);
+    const TC17data = data.TC17;
   const taskName = TC17data.payloadCreateTask.subject;
 
   // Search task
@@ -51,10 +54,11 @@ test("TC17: Validate the search functionality   ", async ({}) => {
   });
 });
 
-test("TC19: Open task details popup   ", async ({}) => {
+test("TC19: Open task details popup   ", async ({ jsonDir }) => {
   allure.story("Task");
-  const data = await readJSONFile("../data/json-files/TC19.json");
-  const TC19data = data.TC19;
+  const stubPath = path.join(jsonDir, "TC19.json");
+  const data = await readJSONFile(stubPath);
+    const TC19data = data.TC19;
   const taskName = TC19data.payloadCreateTask.subject;
   // Search task
   await taskPage.searchTask(taskName);
@@ -67,10 +71,13 @@ test("TC19: Open task details popup   ", async ({}) => {
   expect(isTaskDetailsDialogVisible).toBeTruthy();
 });
 
-test("TC20: The information table columns should be customizable using the ‘Columns’ button at the top.   ", async ({}) => {
+test("TC20: The information table columns should be customizable using the ‘Columns’ button at the top.   ", async ({
+  jsonDir,
+}) => {
   allure.story("Task");
-  const data = await readJSONFile("../data/json-files/TC20.json");
-  const TC20data = data.TC20;
+  const stubPath = path.join(jsonDir, "TC20.json");
+  const data = await readJSONFile(stubPath);
+    const TC20data = data.TC20;
   //Verify if the column if already present:
   if (await taskPage.isColumnPresent(TC20data.col)) {
     // Remove column and save
@@ -99,10 +106,11 @@ test("TC20: The information table columns should be customizable using the ‘Co
   expect(await isColumnPresent2).toBeFalsy();
 });
 
-test("TC22: A task like/favourite functionality.", async ({}) => {
+test("TC22: A task like/favourite functionality.", async ({ jsonDir }) => {
   allure.story("Task");
-  const data = await readJSONFile("../data/json-files/TC22.json");
-  const TC22data = data.TC22;
+  const stubPath = path.join(jsonDir, "TC22.json");
+  const data = await readJSONFile(stubPath);
+    const TC22data = data.TC22;
   const taskName = TC22data.payloadCreateTask.subject;
   const taskID = TC22data.payloadLikeTask.name;
 
@@ -113,11 +121,10 @@ test("TC22: A task like/favourite functionality.", async ({}) => {
   await taskPage.assertTaskIsLiked(taskID);
 });
 
-test("TC24: Verify task addition", async ({}) => {
+test("TC24: Verify task addition", async ({ jsonDir }) => {
   allure.story("Task");
-  await createJSONFile("../data/manager/tasks-to-delete.json");
-
-  const data = await readJSONFile("../data/json-files/TC24.json");
+  const stubPath = path.join(jsonDir, "TC24.json");
+  const data = await readJSONFile(stubPath);
   const TC24data = data.TC24;
   // Add a task
   await taskPage.AddTask(TC24data.taskInfo);
@@ -133,10 +140,11 @@ test("TC24: Verify task addition", async ({}) => {
   expect(isTaskDetailsDialogVisible).toBeTruthy();
 });
 
-test("TC25: Verify the billable status of a billable task.    ", async ({}) => {
+test("TC25: Verify the billable status of a billable task.    ", async ({ jsonDir }) => {
   allure.story("Task");
-  const data = await readJSONFile("../data/json-files/TC25.json");
-  const TC25data = data.TC25;
+  const stubPath = path.join(jsonDir, "TC25.json");
+  const data = await readJSONFile(stubPath);
+    const TC25data = data.TC25;
   // Add column to view
   await taskPage.addColumn("Is Billable");
 
@@ -148,10 +156,11 @@ test("TC25: Verify the billable status of a billable task.    ", async ({}) => {
   expect(isTaskBillable).toBeTruthy();
 });
 
-test("TC26: Verify the billable status of a non-billable task.    ", async ({}) => {
+test("TC26: Verify the billable status of a non-billable task.    ", async ({ jsonDir }) => {
   allure.story("Task");
-  const data = await readJSONFile("../data/json-files/TC26.json");
-  const TC26data = data.TC26;
+  const stubPath = path.join(jsonDir, "TC26.json");
+  const data = await readJSONFile(stubPath);
+    const TC26data = data.TC26;
   // Add column to view
   await taskPage.addColumn("Is Billable");
 
@@ -162,3 +171,4 @@ test("TC26: Verify the billable status of a non-billable task.    ", async ({}) 
   const isTaskBillable = await taskPage.isTaskBillable(TC26data.payloadCreateTask.subject);
   expect(isTaskBillable).toBeFalsy();
 });
+})

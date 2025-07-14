@@ -46,7 +46,7 @@ const TASK_TRACKER_PATH = path.resolve(__dirname, "../data/manager/tasks-to-dele
  *
  * @param {string[]} testCaseIDs  The list of test case IDs to process
  */
-export async function updateTimeEntries(testCaseIDs = []) {
+export async function updateTimeEntries(testCaseIDs = [],jsonDir) {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
 
   // split IDs
@@ -81,19 +81,19 @@ export async function updateTimeEntries(testCaseIDs = []) {
   updateEntries(managerTeamData, mgrTCs);
 
   // ensure output directory exists
-  const outDir = path.resolve(__dirname, "../data/json-files");
-
-  await fs.promises.mkdir(outDir, { recursive: true });
+  //const outDir = path.resolve(__dirname, "../data/json-files");
+  //const stubPath = path.join(jsonDir, `${tcId}.json`);
+  //await fs.promises.mkdir(outDir, { recursive: true });
 
   // write per-TC files
   for (const tc of empTCs) {
     const payload = employeeTimesheetData[tc];
     if (!payload) continue;
-    //const filePath = path.join(outDir, `${tc}.json`);
-    const filePath = path.resolve(__dirname, "../data/json-files", `${tc}.json`);
+    //const filePath = path.resolve(__dirname, "../data/json-files", `${tc}.json`);
+    const filePath = path.join(jsonDir, `${tc}.json`);
 
     await writeDataToFile(filePath, { [tc]: payload });
-    console.log(`✅ Wrote updated timesheet for ${tc} to ${filePath}`);
+    //console.log(`✅ Wrote updated timesheet for ${tc} to ${filePath}`);
   }
   /*
   for (const tc of mgrTCs) {
@@ -103,14 +103,15 @@ export async function updateTimeEntries(testCaseIDs = []) {
     const filePath = path.resolve(__dirname, "../data/json-files", `${tc}.json`);
 
     await writeDataToFile(filePath, { [tc]: payload });
-    console.log(`✅ Wrote updated manager data for ${tc} to ${filePath}`);
+    //console.log(`✅ Wrote updated manager data for ${tc} to ${filePath}`);
   }
     */
   for (const tc of mgrTCs) {
     const newPayload = managerTeamData[tc];
     if (!newPayload) continue;
 
-    const filePath = path.resolve(__dirname, "../data/json-files", `${tc}.json`);
+    //const filePath = path.resolve(__dirname, "../data/json-files", `${tc}.json`);
+    const filePath = path.join(jsonDir, `${tc}.json`);
 
     // 🧩 Merge with existing JSON file
     let existingData = {};
@@ -128,7 +129,7 @@ export async function updateTimeEntries(testCaseIDs = []) {
     };
 
     await writeDataToFile(filePath, { [tc]: mergedEntry });
-    console.log(`✅ Wrote merged manager data for ${tc} to ${filePath}`);
+    //console.log(`✅ Wrote merged manager data for ${tc} to ${filePath}`);
   }
 }
 /*
@@ -187,18 +188,19 @@ export async function updateTimeEntries(testCaseIDs = []) {
  *
  * @param {string[]} testCaseIDs  The list of test case IDs to process
  */
-export async function createTimeEntries(testCaseIDs = []) {
+export async function createTimeEntries(testCaseIDs = [],jsonDir) {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
 
   // 1) Extract the single test‐case ID
   const [tcId] = testCaseIDs;
 
   // 2) Build path to its JSON stub
-  const filePath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
+  //const filePath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
+  const filePath = path.join(jsonDir, `${tcId}.json`);
 
   // 3) Read & parse the stub
   const testCaseData = await readJSONFile(filePath);
-  //console.log("JSON FILE PRESENT AT CREATE TIME ENTRIES IS:   \n", JSON.stringify(testCaseData, null, 2));
+  ////console.log("JSON FILE PRESENT AT CREATE TIME ENTRIES IS:   \n", JSON.stringify(testCaseData, null, 2));
 
   const entry = testCaseData[tcId];
   if (!entry) {
@@ -215,7 +217,7 @@ export async function createTimeEntries(testCaseIDs = []) {
 
   // 5) Create the timesheet
   await createTimesheet(payload);
-  console.log(`✅ Timesheet created for TC ${tcId}:`);
+  //console.log(`✅ Timesheet created for TC ${tcId}:`);
 }
 /*
 export async function createTimeEntries(testCaseIDs) {
@@ -237,7 +239,7 @@ export async function createTimeEntries(testCaseIDs) {
   // Create each timesheet
   for (const payload of entries) {
     await createTimesheet(payload);
-    console.log(`✅ Timesheet created for payload:`, payload);
+    //console.log(`✅ Timesheet created for payload:`, payload);
   }
 }
 */
@@ -250,7 +252,7 @@ export async function createTimeEntries(testCaseIDs) {
  * @param {string[]} testCaseIDs  The list of test case IDs to process
  */
 
-export const deleteTimeEntries = async (testCaseIDs = []) => {
+export const deleteTimeEntries = async (testCaseIDs = [],jsonDir) => {
   // bail out if nothing to do
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) {
     return;
@@ -260,7 +262,8 @@ export const deleteTimeEntries = async (testCaseIDs = []) => {
   const [tcId] = testCaseIDs;
 
   // build path to the per‑TC JSON stub
-  const filePath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
+  //const filePath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
+  const filePath = path.join(jsonDir, `${tcId}.json`);
 
   // read & parse it
   const fullStub = await readJSONFile(filePath);
@@ -289,7 +292,7 @@ export const deleteTimeEntries = async (testCaseIDs = []) => {
     // derive parent & name identifiers
     const { parent, name } = await filterTimesheetEntry(entry);
 
-    console.log(`Deleting timesheet for TC ${tcId}: parent=${parent}, name=${name}`);
+    //console.log(`Deleting timesheet for TC ${tcId}: parent=${parent}, name=${name}`);
 
     await deleteTimesheet({ parent, name }, actor);
 
@@ -330,7 +333,7 @@ export const deleteTimeEntries = async (testCaseIDs = []) => {
     const { parent, name } = await filterTimesheetEntry(entry);
 
     // log with test case context
-    console.log(`Got parent and name from test case ${tcId} as: parent=${parent}, name=${name}`);
+    //console.log(`Got parent and name from test case ${tcId} as: parent=${parent}, name=${name}`);
 
     await deleteTimesheet({ parent, name }, "employee");
 
@@ -356,7 +359,7 @@ export const filterTimesheetEntry = async (opts) => {
   const json = res && typeof res.json === "function" ? await res.json() : res;
   const data = json.message.data;
   //console.dir(json.message, { depth: null, colors: true });
-  //console.log("\nGAP BETWEEN DATA\n");
+  ////console.log("\nGAP BETWEEN DATA\n");
   //console.dir(data, { depth: null, colors: true });
 
   // strip HTML from your input `description`
@@ -369,7 +372,7 @@ export const filterTimesheetEntry = async (opts) => {
       // look for an entry whose no‑HTML description _exactly_ matches your searchText
       const match = (task.data || []).find((e) => {
         const noHtml = (e.description || "").replace(/<[^>]+>/g, "");
-        //console.log("NO HTML TEXT IS:", noHtml);
+        ////console.log("NO HTML TEXT IS:", noHtml);
         return (
           noHtml === searchText && // exact match on full string
           e.project_name === project_name && // same project
@@ -411,7 +414,7 @@ console.warn(``)
         const rawDescription = e.description || "";
         const plainDescription = rawDescription.replace(/<[^>]+>/g, "");
 
-        console.log(`🔍 Checking timesheet entry:`, {
+        //console.log(`🔍 Checking timesheet entry:`, {
           description: plainDescription,
           from_time: e.from_time,
           project_name: e.project_name,
@@ -445,12 +448,13 @@ console.warn(``)
  * Uses the in‑JS-module data, then writes out to JSON.
  */
 
-export const createProjectForTestCases = async (testCaseIDs) => {
+export const createProjectForTestCases = async (testCaseIDs,jsonDir) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
   const [tcId] = testCaseIDs;
 
   // per‑TC JSON stub path
-  const stubPath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
+  //const stubPath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
+  const stubPath = path.join(jsonDir, `${tcId}.json`);
 
   // Read the whole stub object: { "TC4": { … } }
   const fullStub = await readJSONFile(stubPath);
@@ -464,10 +468,10 @@ export const createProjectForTestCases = async (testCaseIDs) => {
     console.warn(`⚠️ No payloadCreateProject for ${tcId}`);
     return;
   }
-  //console.log("PAYLOAD CREATE PROJECT: ", entry.payloadCreateProject);
+  ////console.log("PAYLOAD CREATE PROJECT: ", entry.payloadCreateProject);
   // Create project
   const res = await createProject(entry.payloadCreateProject);
-  //console.log("-------------CREATE PROJECT RES IS--------: ", res);
+  ////console.log("-------------CREATE PROJECT RES IS--------: ", res);
   if (!res?.data?.name) {
     console.error(`Failed to create project for ${tcId} as there is no data.name`);
     return;
@@ -499,7 +503,7 @@ export const createProjectForTestCases = async (testCaseIDs) => {
 
   // **Write back** only the wrapped object { "TC4": entry }
   await writeDataToFile(stubPath, { [tcId]: entry });
-  console.log(`✅ Updated stub for ${tcId}  in CREATE PROJECT (projectId=${projectId})`);
+  //console.log(`✅ Updated stub for ${tcId}  in CREATE PROJECT (projectId=${projectId})`);
 };
 
 /*
@@ -612,7 +616,7 @@ export const createProjectForTestCases = async (testCaseIDs) => {
  * Deletes projects for all testCaseIDs passed in.
  * Reads back the shared JSON, then deletes.
  */
-export const deleteProjects = async (testCaseIDs = []) => {
+export const deleteProjects = async (testCaseIDs = [],jsonDir) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) {
     return;
   }
@@ -621,7 +625,8 @@ export const deleteProjects = async (testCaseIDs = []) => {
   const [tcId] = testCaseIDs;
 
   // 2) build path to its per‑TC stub
-  const filePath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
+  //const filePath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
+  const filePath = path.join(jsonDir, `${tcId}.json`);
 
   // 3) read that stub
   const stub = await readJSONFile(filePath);
@@ -640,7 +645,7 @@ export const deleteProjects = async (testCaseIDs = []) => {
 
   // 5) delete it
   await deleteProject(projId);
-  console.log(`🗑️  Deleted project ${projId} for TC ${tcId}`);
+  //console.log(`🗑️  Deleted project ${projId} for TC ${tcId}`);
 };
 
 /*
@@ -668,7 +673,7 @@ export const deleteProjects = async (testCaseIDs) => {
  */
 // helpers/taskHelper.js
 
-export const createTaskForTestCases = async (testCaseIDs) => {
+export const createTaskForTestCases = async (testCaseIDs,jsonDir) => {
   // nothing to do if no ID provided
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
 
@@ -676,7 +681,8 @@ export const createTaskForTestCases = async (testCaseIDs) => {
   const [tcId] = testCaseIDs;
 
   // resolve its stub file
-  const stubPath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
+  //const stubPath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
+  const stubPath = path.join(jsonDir, `${tcId}.json`);
 
   // read the entire stub (wrapped under the TC key)
   const fullStub = await readJSONFile(stubPath);
@@ -711,7 +717,7 @@ export const createTaskForTestCases = async (testCaseIDs) => {
     if (!likeRes || typeof likeRes !== "object") {
       console.error(`❌ [${tcId}] likeTask failed`);
     } else {
-      console.log(`✅ [${tcId}] liked task ${taskID}`);
+      //console.log(`✅ [${tcId}] liked task ${taskID}`);
     }
   }
 
@@ -722,7 +728,7 @@ export const createTaskForTestCases = async (testCaseIDs) => {
 
   // persist the mutated stub, wrapped under the TC key
   await writeDataToFile(stubPath, { [tcId]: entry });
-  console.log(`✏️  [${tcId}] stub updated at ${stubPath}`);
+  //console.log(`✏️  [${tcId}] stub updated at ${stubPath}`);
 };
 /*
 export const createTaskForTestCases = async (testCaseIDs) => {
@@ -767,7 +773,7 @@ export const createTaskForTestCases = async (testCaseIDs) => {
     if (!likeRes || typeof likeRes !== "object") {
       console.error(`❌ [${tcId}] likeTask failed`);
     } else {
-      console.log(`✅ [${tcId}] liked task ${taskID}`);
+      //console.log(`✅ [${tcId}] liked task ${taskID}`);
     }
   }
 
@@ -778,7 +784,7 @@ export const createTaskForTestCases = async (testCaseIDs) => {
 
   // persist the mutated stub
   await writeDataToFile(stubPath, entry);
-  console.log(`✏️  [${tcId}] stub updated at ${stubPath}`);
+  //console.log(`✏️  [${tcId}] stub updated at ${stubPath}`);
 };
 */
 /*
@@ -817,7 +823,7 @@ export const createTaskForTestCases = async (testCaseIDs) => {
         entry.payloadLikeTask.name = taskID;
         const response = await likeTask(taskID, entry.payloadLikeTask.role);
         if (response && typeof response === "object") {
-          console.log(`Successfully liked task for ${testCaseIDs}`);
+          //console.log(`Successfully liked task for ${testCaseIDs}`);
         } else {
           console.error(`Failed to like task for ${testCaseIDs}: Unexpected response format`);
         }
@@ -878,16 +884,16 @@ export const deleteByTaskName = async () => {
 
       if (filterResponse.message?.values?.length) {
         const taskID = filterResponse.message.values[0];
-        console.log("Task found and ID to delete:", taskID);
+        //console.log("Task found and ID to delete:", taskID);
         await deleteTask(taskID);
       } else {
-        console.log(`Task "${taskName}" not found in system. Skipping...`);
+        //console.log(`Task "${taskName}" not found in system. Skipping...`);
       }
     }
 
     // Optionally clear the file after deletion
     // await fs.writeFile(TASK_TRACKER_PATH, JSON.stringify([], null, 2), "utf-8");
-    // console.log("Deleted all listed tasks and cleared tracking file.");
+    // //console.log("Deleted all listed tasks and cleared tracking file.");
   } catch (error) {
     console.error("Error while deleting tasks by name:", error.message);
   }
@@ -902,13 +908,15 @@ export const deleteByTaskName = async () => {
  */
 // helpers/taskHelper.js
 
-export const deleteTasks = async (testCaseIDs) => {
+export const deleteTasks = async (testCaseIDs,jsonDir) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
 
   const adminCases = new Set(["TC2", "TC92"]);
 
   for (const tcId of testCaseIDs) {
-    const stubPath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
+    //const stubPath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
+    const stubPath = path.join(jsonDir, `${tcId}.json`);
+
     const fullStub = await readJSONFile(stubPath);
     const entry = fullStub[tcId];
 
@@ -921,10 +929,10 @@ export const deleteTasks = async (testCaseIDs) => {
     try {
       if (adminCases.has(tcId)) {
         await deleteTask(taskID, "admin");
-        console.log(`🗑️  [${tcId}] deleted task ${taskID} as admin`);
+        //console.log(`🗑️  [${tcId}] deleted task ${taskID} as admin`);
       } else {
         await deleteTask(taskID);
-        console.log(`🗑️  [${tcId}] deleted task ${taskID}`);
+        //console.log(`🗑️  [${tcId}] deleted task ${taskID}`);
       }
     } catch (err) {
       console.error(`❌ [${tcId}] Failed to delete task ${taskID}: ${err.message}`);
@@ -965,19 +973,20 @@ export const deleteTasks = async (testCaseIDs) => {
  * Calculates hourly billing rate of employee and billing rate of a project
  * for the provided testCaseIDs array.
  */
-export const calculateHourlyBilling = async (testCaseIDs = []) => {
+export const calculateHourlyBilling = async (testCaseIDs = [],jsonDir) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
 
   // 1) Fetch employee info once
   const empRes = await getEmployeeDetails(empID, "admin");
   const employee_CTC = empRes.data.ctc;
-  console.log("EMPLOYEE SALARY: ", employee_CTC);
+  //console.log("EMPLOYEE SALARY: ", employee_CTC);
   const employee_currency = empRes.data.salary_currency;
-  console.log("EMPLOYEE CURRENCY: ", employee_currency);
+  //console.log("EMPLOYEE CURRENCY: ", employee_currency);
 
   // 2) Loop through each TC
   for (const tcId of testCaseIDs) {
-    const stubPath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
+    //const stubPath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
+    const stubPath = path.join(jsonDir, `${tcId}.json`);
 
     // 3) Read the wrapped stub { "TCn": { … } }
     const fullStub = await readJSONFile(stubPath);
@@ -999,9 +1008,9 @@ export const calculateHourlyBilling = async (testCaseIDs = []) => {
       const convertRes = await getExchangeRate(employee_currency, ratePayload.custom_currency_for_project);
 
       const convertedCTC = convertRes.message * employee_CTC;
-      console.log("CONVERTED EMPLOYEE CTC ", convertedCTC);
+      //console.log("CONVERTED EMPLOYEE CTC ", convertedCTC);
       hourly_billing_rate = convertedCTC / 12 / 160;
-      console.log("HOURLY BILLING RATE: ", hourly_billing_rate);
+      //console.log("HOURLY BILLING RATE: ", hourly_billing_rate);
     } else {
       hourly_billing_rate = employee_CTC / 12 / 160;
     }
@@ -1016,7 +1025,7 @@ export const calculateHourlyBilling = async (testCaseIDs = []) => {
 
     // 7) Write it back wrapped under the TC key
     await writeDataToFile(stubPath, { [tcId]: entry });
-    console.log(`✅ Updated billing for ${tcId} in ${stubPath}`);
+    //console.log(`✅ Updated billing for ${tcId} in ${stubPath}`);
   }
 };
 /*
@@ -1148,7 +1157,7 @@ export const cleanUpProjects = async (data) => {
       }
 
       try {
-        console.log(`Deleting Timesheet: ${timesheetId}`);
+        //console.log(`Deleting Timesheet: ${timesheetId}`);
         await deleteTimesheetbyID(timesheetId, "admin");
       } catch (err) {
         console.error(` Failed to delete timesheet ${timesheetId}:`, err.message);
@@ -1166,7 +1175,7 @@ export const cleanUpProjects = async (data) => {
     }
   }
 
-  console.log("Cleanup complete. Deleted data:", deletedData);
+  //console.log("Cleanup complete. Deleted data:", deletedData);
   return deletedData;
 };
 // ------------------------------------------------------------------------------------------

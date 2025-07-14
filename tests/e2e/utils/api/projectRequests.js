@@ -39,7 +39,7 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   const status = response.status();
 
   const statusText = response.statusText();
-  //console.log("---------RESPONSE status text---------", statusText);
+  ////console.log("---------RESPONSE status text---------", statusText);
 
   if (!response.ok()) {
     await ctx.dispose();
@@ -47,7 +47,7 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   }
 
   const json = await response.json();
-  //console.log(`✅ API request SUCCESS for ${role} @ ${endpoint}:`, json);
+  ////console.log(`✅ API request SUCCESS for ${role} @ ${endpoint}:`, json);
   await ctx.dispose();
   return json;
 };
@@ -56,7 +56,7 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
  * Create a new Project entry.
  */
 export const createProject = async (payload) => {
-  //console.log("Payload received in create project is:", payload);
+  ////console.log("Payload received in create project is:", payload);
   const result = await apiRequest(
     "/api/resource/Project",
     {
@@ -65,7 +65,7 @@ export const createProject = async (payload) => {
     },
     "admin"
   );
-  //console.log("Result of create project is: ", result);
+  ////console.log("Result of create project is: ", result);
   return result;
 };
 

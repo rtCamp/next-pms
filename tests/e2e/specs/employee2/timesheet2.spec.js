@@ -28,10 +28,11 @@ test.describe("Employee 2 : Timesheet", () => {
     await timesheetPage.goto();
   });
 
-  test("TC2: Time should be added using the ‘Add’ button at the top.", async ({ page }) => {
+  test("TC2: Time should be added using the ‘Add’ button at the top.", async ({ page, jsonDir }) => {
     allure.story("Timesheet");
-    const data = await readJSONFile("../data/json-files/TC2.json");
-    const TC2data = data.TC2;
+    const stubPath = path.join(jsonDir, "TC2.json");
+    const data = await readJSONFile(stubPath);
+        const TC2data = data.TC2;
     // Add time entry using "Time" button
     await timesheetPage.addTimeViaTimeButton(TC2data.taskInfo);
 
@@ -43,10 +44,11 @@ test.describe("Employee 2 : Timesheet", () => {
     expect(cellText).toContain(TC2data.taskInfo.duration);
   });
 
-  test("TC13: Verify an employee can apply for leave via Timesheet tab.   ", async ({}) => {
+  test("TC13: Verify an employee can apply for leave via Timesheet tab.   ", async ({ jsonDir }) => {
     allure.story("Timesheet");
-    const data = await readJSONFile("../data/json-files/TC13.json");
-    const TC13data = data.TC13;
+    const stubPath = path.join(jsonDir, "TC13.json");
+    const data = await readJSONFile(stubPath);
+        const TC13data = data.TC13;
     // Apply for leave
     await timesheetPage.applyForLeave(TC13data.leave.desc);
 

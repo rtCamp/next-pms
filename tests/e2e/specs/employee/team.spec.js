@@ -20,7 +20,7 @@ test.describe("Employee : Team Tab", () => {
     await timesheetPage.goto();
   });
 
-  test("TC52: Verify the 'Team' tab isn't displayed for an employee.", async ({}) => {
+  test("TC52: Verify the 'Team' tab isn't displayed for an employee.", async () => {
     allure.story("Team");
     const isTeamTabAvailable = await sidebar.isTabAvailable("Team");
     expect(isTeamTabAvailable).toBeFalsy();

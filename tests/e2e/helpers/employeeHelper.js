@@ -35,13 +35,14 @@ let sharedManagerTeamData;
  */
 // Define your statuses
 
-export const createEmployees = async (testCaseIDs) => {
+export const createEmployees = async (testCaseIDs,jsonDir) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
   const employeeStatuses = ["Active", "Inactive", "Suspended", "Left"];
 
   const [tcId] = testCaseIDs;
 
-  const stubPath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
+  //const stubPath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
+  const stubPath = path.join(jsonDir, `${tcId}.json`);
   const fullStub = await readJSONFile(stubPath);
   const entry = fullStub[tcId];
 
@@ -69,19 +70,19 @@ export const createEmployees = async (testCaseIDs) => {
     try {
       const res = await addEmployee(payload, "admin");
       entry.createdEmployees.push({ ...payload, name: res.data.name });
-      console.log(`✅ Created [${status}] ${res.data.name} for ${tcId}`);
+      //console.log(`✅ Created [${status}] ${res.data.name} for ${tcId}`);
     } catch (err) {
       console.error(`❌ Error creating ${status} for ${tcId}:`, err);
     }
   }
 
   // 🔍 Debug print before writing
-  console.log(`📝 Writing updated entry for ${tcId}:`);
+  //console.log(`📝 Writing updated entry for ${tcId}:`);
   console.dir({ [tcId]: entry }, { depth: null, colors: true });
 
   await writeDataToFile(stubPath, { [tcId]: entry });
   const verify = await readJSONFile(stubPath);
-  console.log("✅ Verified from disk:");
+  //console.log("✅ Verified from disk:");
   console.dir(verify, { depth: null, colors: true });
 };
 
@@ -137,7 +138,7 @@ export async function createEmployees(testCaseIDs = []) {
         const res = await addEmployee(payload, "admin");
         const empName = res.data.name;
         entry.createdEmployees.push({ ...payload, name: empName });
-        console.log(`✅ Created [${status}] ${empName} for ${tcId}`);
+        //console.log(`✅ Created [${status}] ${empName} for ${tcId}`);
       } catch (err) {
         console.error(`❌ Error creating ${status} for ${tcId}: ${err.message}`);
       }
@@ -153,7 +154,7 @@ export async function createEmployees(testCaseIDs = []) {
     try {
       await writeDataToFile(absPath, fullStub);
       const tc = Object.keys(fullStub)[0];
-      console.log(`✏️  Persisted ${fullStub[tc].createdEmployees.length} employees in ${absPath}`);
+      //console.log(`✏️  Persisted ${fullStub[tc].createdEmployees.length} employees in ${absPath}`);
     } catch (err) {
       console.warn(`⚠️ Failed to write ${absPath}: ${err.message}`);
     }
@@ -208,7 +209,7 @@ export async function createEmployees(testCaseIDs = []) {
         const res = await addEmployee(payload, "admin");
         const empName = res.data.name;
         entry.createdEmployees.push({ ...payload, name: empName });
-        console.log(`✅ Created [${status}] ${empName} for ${tcId}`);
+        //console.log(`✅ Created [${status}] ${empName} for ${tcId}`);
       } catch (err) {
         console.error(`❌ Error creating ${status} for ${tcId}: ${err.message}`);
       }
@@ -216,16 +217,16 @@ export async function createEmployees(testCaseIDs = []) {
 
     // 4) Merge back and write once
     fullStub[tcId] = entry;
-    console.log(`FULL STUB OF TC 91 IS :`, fullStub[tcId]);
-    console.log("\n---------------GAP-------------\n");
-    console.log(`FULL STUB OF TC 91 IS :`, fullStub);
+    //console.log(`FULL STUB OF TC 91 IS :`, fullStub[tcId]);
+    //console.log("\n---------------GAP-------------\n");
+    //console.log(`FULL STUB OF TC 91 IS :`, fullStub);
   }
   // Build the absolute path so writeDataToFile can actually find it
   const absPath = path.resolve(__dirname, "../data/json-files", `${testCaseIDs}.json`);
 
   try {
     await writeDataToFile(absPath, fullStub);
-    console.log(`✏️  Persisted ${entry.createdEmployees.length} employees in ${testCaseIDs}.json`);
+    //console.log(`✏️  Persisted ${entry.createdEmployees.length} employees in ${testCaseIDs}.json`);
   } catch (err) {
     console.warn(`⚠️ Failed to write ${absPath}: ${err.message}`);
   }
@@ -272,7 +273,7 @@ export async function createEmployees(testCaseIDs = []) {
         const res = await addEmployee(payload, "admin");
         const empName = res.data.name;
         entry.createdEmployees.push({ ...payload, name: empName });
-        console.log(`✅ Created [${status}] ${empName} for ${tcId}`);
+        //console.log(`✅ Created [${status}] ${empName} for ${tcId}`);
       } catch (err) {
         console.error(`❌ Error creating ${status} for ${tcId}: ${err.message}`);
       }
@@ -281,8 +282,8 @@ export async function createEmployees(testCaseIDs = []) {
     // Persist the mutated stub, wrapped under its TC key
     await writeDataToFile(stubPath, { [tcId]: entry });
 
-    //console.log("CREATED EMPLOYEES ARRAY IS : ", entry.createEmployees)
-    console.log(`✏️  Updated createdEmployees for ${tcId} in ${stubPath}`);
+    ////console.log("CREATED EMPLOYEES ARRAY IS : ", entry.createEmployees)
+    //console.log(`✏️  Updated createdEmployees for ${tcId} in ${stubPath}`);
   }
 }
 */
@@ -317,7 +318,7 @@ export async function createEmployees(testCaseIDs) {
       try {
         const response = await addEmployee(payload, "admin");
         testCase.createdEmployees.push({ ...payload, name: response.data.name });
-        console.log(`✅ Created [${status}] ${response.data.name} for ${testCaseID}`);
+        //console.log(`✅ Created [${status}] ${response.data.name} for ${testCaseID}`);
       } catch (err) {
         console.error(`❌ Error creating ${status} for ${testCaseID}:`, err);
       }
@@ -329,7 +330,7 @@ export async function createEmployees(testCaseIDs) {
     await fs.promises.mkdir(outDir, { recursive: true });
     const outFile = path.join(outDir, `${testCaseID}.json`);
     await writeDataToFile(outFile, testCase);
-    console.log(`• Wrote employee data for ${testCaseID} to ${outFile}`);
+    //console.log(`• Wrote employee data for ${testCaseID} to ${outFile}`);
   }
 }
 */
@@ -380,7 +381,7 @@ export async function createEmployees(testCaseIDs) {
         }
 
         testCase.createdEmployees.push({ ...payload, name: response.data.name });
-        console.log(`✅ Created [${status}] ${response.data.name} for ${testCaseID}`);
+        //console.log(`✅ Created [${status}] ${response.data.name} for ${testCaseID}`);
       } catch (err) {
         console.error(`❌ Error creating ${status} for ${testCaseID}:`, err);
       }
@@ -396,15 +397,17 @@ export async function createEmployees(testCaseIDs) {
  * Delete Employees created for each test case ID
  * @param {string[]} testCaseIDs
  */
-export async function deleteEmployees(testCaseID) {
+export async function deleteEmployees(testCaseID,jsonDir) {
   // Path to this test's JSON file
-  const filePath = path.resolve(__dirname, "../data/json-files", `${testCaseID}.json`);
+  const filePath = path.join(jsonDir, `${testCaseID}.json`);
+
+  //const filePath = path.resolve(__dirname, "../data/json-files", `${testCaseID}.json`);
   let testCase;
 
   try {
     testCase = await readJSONFile(filePath);
   } catch (err) {
-    console.warn(`⚠️ Could not read JSON for ${testCaseID}: ${err.message}`);
+    console.warn(`⚠️ Could not read JSON for ${testCaseID} in createEmployees function: ${err.message}`);
     return;
   }
 
@@ -417,7 +420,7 @@ export async function deleteEmployees(testCaseID) {
     if (!emp.name) continue;
     try {
       await deleteEmployee(emp.name, "admin");
-      console.log(`🗑 Deleted ${emp.name} for ${testCaseID}`);
+      //console.log(`🗑 Deleted ${emp.name} for ${testCaseID}`);
     } catch (err) {
       console.warn(`⚠️ Failed to delete ${emp.name} for ${testCaseID}: ${err.message}`);
     }
@@ -428,7 +431,7 @@ export async function deleteEmployees(testCaseID) {
   /*
   try {
     await writeDataToFile(filePath, testCase);
-    console.log(`• Cleared createdEmployees in ${filePath}`);
+    //console.log(`• Cleared createdEmployees in ${filePath}`);
   } catch (err) {
     console.warn(`⚠️ Failed to update ${filePath}: ${err.message}`);
   }
@@ -447,7 +450,7 @@ export async function deleteEmployees(testCaseIDs) {
       if (!emp.name) continue;
       try {
         await deleteEmployee(emp.name, "admin");
-        console.log(`🗑 Deleted ${emp.name} for ${testCaseID}`);
+        //console.log(`🗑 Deleted ${emp.name} for ${testCaseID}`);
       } catch (err) {
         console.warn(`⚠️ Failed to delete ${emp.name}: ${err.message}`);
       }
@@ -503,15 +506,15 @@ export const deleteAllocationsByEmployee = async (projectID, employeeID = employ
     ],
     "admin"
   );
-  console.log(filterResponse.message?.values?.length);
+  //console.log(filterResponse.message?.values?.length);
   if (filterResponse.message?.values?.length > 0) {
     const allocations = filterResponse.message.values;
     for (const row of allocations) {
       const allocationName = row[0];
-      console.log(`Deleting allocation: ${allocationName}`);
+      //console.log(`Deleting allocation: ${allocationName}`);
       try {
         await deleteAllocation(allocationName);
-        console.log(`Deleted ${allocationName}`);
+        //console.log(`Deleted ${allocationName}`);
       } catch (error) {
         console.error(`Failed to delete ${allocationName}:`, error);
       }

@@ -14,7 +14,7 @@ const managerTeamDataFilePath = path.resolve(__dirname, "../data/manager/shared-
 // Load env vars
 const empID3 = process.env.EMP3_EMAIL;
 // Directory where per‑TC JSON stubs live
-const jsonDir = path.resolve(__dirname, "../data/json-files");
+//const jsonDir = path.resolve(__dirname, "../data/json-files");
 
 /**
  * Randomly assigns and acts on approval status for provided testCaseIDs.
@@ -23,11 +23,13 @@ const jsonDir = path.resolve(__dirname, "../data/json-files");
  */
 export const randomApprovalStatus = async (
   testCaseIDs,
+  jsonDir,
   approvalOptions = ["Approval Pending", "Partially Rejected"]
 ) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
 
   for (const tcId of testCaseIDs) {
+    //const stubPath = path.join(jsonDir, `${tcId}.json`);
     const stubPath = path.join(jsonDir, `${tcId}.json`);
 
     // Read the entire stub { "TCn": entry }
@@ -83,7 +85,7 @@ export const randomApprovalStatus = async (
 
     // Persist mutated stub, wrapped under its own TC key
     await writeDataToFile(stubPath, { [tcId]: entry });
-    console.log(`✅ Updated approval status for ${tcId} in ${stubPath}`);
+    //console.log(`✅ Updated approval status for ${tcId} in ${stubPath}`);
   }
 };
 /*
@@ -143,11 +145,13 @@ export const randomApprovalStatus = async (
  * Deletes created employees for provided testCaseIDs.
  * @param {string[]} testCaseIDs  IDs with createdEmployees array
  */
-export const deleteEmployees = async (testCaseIDs = []) => {
+export const deleteEmployees = async (testCaseIDs = [],jsonDir) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
 
   for (const tcId of testCaseIDs) {
     const stubPath = path.join(jsonDir, `${tcId}.json`);
+    //const stubPath = path.join(jsonDir, `${tcId}.json`);
+
     const fullStub = await readJSONFile(stubPath);
     const entry = fullStub[tcId];
     if (!entry?.createdEmployees) continue;
@@ -156,7 +160,7 @@ export const deleteEmployees = async (testCaseIDs = []) => {
       if (!emp.name) continue;
       try {
         await deleteEmployee(emp.name, "admin");
-        console.log(`✅ Deleted employee ${emp.name} for ${tcId}`);
+        //console.log(`✅ Deleted employee ${emp.name} for ${tcId}`);
       } catch (err) {
         console.error(`❌ Error deleting ${emp.name} for ${tcId}: ${err.message}`);
       }
@@ -178,7 +182,7 @@ export const deleteEmployees = async (testCaseIDs) => {
       if (emp.name) {
         try {
           await deleteEmployee(emp.name, "admin");
-          console.log(`Deleted employee: ${emp.name}`);
+          //console.log(`Deleted employee: ${emp.name}`);
         } catch (err) {
           console.error(`Error deleting ${emp.name}: ${err.message}`);
         }
@@ -191,7 +195,7 @@ export const deleteEmployees = async (testCaseIDs) => {
  * Creates a user group for provided testCaseID.
  * @param {string[]} testCaseIDs  IDs to process
  */
-export const createUserGroupForEmployee = async (testCaseIDs) => {
+export const createUserGroupForEmployee = async (testCaseIDs,jsonDir) => {
   const emp3 = process.env.EMP3_EMAIL;
   if (!emp3) {
     console.error("EMP3_EMAIL environment variable is not defined.");
@@ -215,7 +219,7 @@ export const createUserGroupForEmployee = async (testCaseIDs) => {
 
     try {
       await createUserGroup({ user: emp3, name });
-      console.log(`✅ Created group '${name}' for '${emp3}' on ${tcId}`);
+      //console.log(`✅ Created group '${name}' for '${emp3}' on ${tcId}`);
 
       // update stub payloads
       entry.payloadCreateUserGroup.user_group_members[0].user = emp3;
@@ -224,7 +228,7 @@ export const createUserGroupForEmployee = async (testCaseIDs) => {
 
       // write back updated stub
       await writeDataToFile(stubPath, { [tcId]: entry });
-      console.log(`✏️  Updated user-group stub for ${tcId} in ${stubPath}`);
+      //console.log(`✏️  Updated user-group stub for ${tcId} in ${stubPath}`);
     } catch (err) {
       console.error(`Failed to create user group for ${tcId}: ${err.message}`);
     }
@@ -249,7 +253,7 @@ export const createUserGroupForEmployee = async (testCaseIDs) => {
 
     try {
       await createUserGroup({ user: empID3, name });
-      console.log(`Created group '${name}' for '${empID3}'`);
+      //console.log(`Created group '${name}' for '${empID3}'`);
 
       // update data
       entry.payloadCreateUserGroup.user_group_members[0].user = empID3;
@@ -267,7 +271,7 @@ export const createUserGroupForEmployee = async (testCaseIDs) => {
  * Deletes user groups for provided testCaseIDs.
  * @param {string[]} testCaseIDs  IDs to process
  */
-export const deleteUserGroupForEmployee = async (testCaseIDs) => {
+export const deleteUserGroupForEmployee = async (testCaseIDs,jsonDir) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
 
   for (const tcId of testCaseIDs) {
@@ -282,7 +286,7 @@ export const deleteUserGroupForEmployee = async (testCaseIDs) => {
     const groupName = entry.payloadDeleteUserGroup.name;
     try {
       await deleteUserGroup(groupName);
-      console.log(`✅ Deleted user group '${groupName}' for ${tcId}`);
+      //console.log(`✅ Deleted user group '${groupName}' for ${tcId}`);
     } catch (err) {
       const isNotFound = err?.response?.status === 404 || err?.message?.includes("404");
       if (isNotFound) {
@@ -307,7 +311,7 @@ export const deleteUserGroupForEmployee = async (testCaseIDs) => {
 
     try {
       await deleteUserGroup(groupName);
-      console.log(`✅ Successfully deleted user group: ${groupName}`);
+      //console.log(`✅ Successfully deleted user group: ${groupName}`);
     } catch (err) {
       const isNotFound = err?.response?.status === 404 || err?.message?.includes("404");
       if (isNotFound) {
