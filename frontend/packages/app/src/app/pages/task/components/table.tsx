@@ -1,6 +1,7 @@
 /**
  * External dependencies.
  */
+import { mergeClassNames } from "@next-pms/design-system";
 import {
   Spinner,
   Separator,
@@ -11,9 +12,11 @@ import {
   TableBody,
   TableCell,
   Table as RootTable,
+  Button,
 } from "@next-pms/design-system/components";
 import { useInfiniteScroll } from "@next-pms/hooks";
 import { flexRender } from "@tanstack/react-table";
+import { LockKeyhole, LockOpen } from "lucide-react";
 
 /**
  * Internal dependencies.
@@ -54,32 +57,54 @@ export const Table = ({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
+                  const column = header.column;
+                  const columnId = column.id;
+                  const isPinned = column.getIsPinned() === "left";
+                  const leftPosition = isPinned ? column.getStart("left") : undefined;
                   return (
                     <TableHead
-                      className="group"
+                      className={mergeClassNames("group", isPinned && "sticky z-10 bg-slate-200 dark:bg-gray-900")}
                       key={header.id}
+                      style={{
+                        userSelect: "none",
+                        touchAction: "none",
+                        width: header.getSize(),
+                        left: leftPosition,
+                        position: isPinned ? "sticky" : "relative",
+                        zIndex: isPinned ? 10 : undefined,
+                      }}
                       {...{
                         onMouseDown: header.getResizeHandler(),
                         onTouchStart: header.getResizeHandler(),
-                        style: {
-                          userSelect: "none",
-                          touchAction: "none",
-                          width: header.getSize(),
-                        },
-                      }}
-                      style={{
-                        width: header.getSize(),
-                        position: "relative",
                       }}
                     >
-                      <div className="w-full h-full flex items-center justify-between group">
-                        <div className="w-full dark:group-hover:!text-white">
+                      <div className="w-full h-full flex items-center justify-between group gap-2">
+                        {!columnsToExcludeActionsInTables.includes(header.id) && (
+                          <Button
+                            variant="ghost"
+                            title={isPinned ? "Unpin Column" : "Pin Column"}
+                            className="cursor-pointer outline-none p-1 py-2 h-5 hover:bg-transparent shrink-0"
+                            onClick={() => {
+                              if (isPinned) {
+                                table.getColumn(columnId)?.pin(false);
+                              } else {
+                                table.getColumn(columnId)?.pin("left");
+                              }
+                            }}
+                          >
+                            {isPinned ? <LockKeyhole className="h-4 w-4" /> : <LockOpen className="h-4 w-4" />}
+                          </Button>
+                        )}
+                        <div className="w-full dark:group-hover:!text-white truncate">
                           {flexRender(header.column.columnDef.header, header.getContext())}
                         </div>
                         {!columnsToExcludeActionsInTables.includes(header.id) && (
                           <Separator
                             orientation="vertical"
-                            className="group-hover:w-[3px] dark:bg-primary cursor-col-resize"
+                            className={mergeClassNames(
+                              "group-hover:w-[3px] dark:bg-primary cursor-col-resize shrink-0",
+                              isPinned && "bg-slate-300"
+                            )}
                             {...{
                               onMouseDown: header.getResizeHandler(),
                               onTouchStart: header.getResizeHandler(),
@@ -103,9 +128,26 @@ export const Table = ({
                 return (
                   <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                     {row.getVisibleCells().map((cell, cellIndex) => {
-                      const needToAddRef = task.hasMore && cellIndex == 0;
+                      const isPinned = cell.column.getIsPinned() === "left";
+                      const isFirstUnpinnedCell =
+                        !isPinned &&
+                        cellIndex === row.getVisibleCells().findIndex((c) => c.column.getIsPinned() !== "left");
+                      const needToAddRef = task.hasMore && isFirstUnpinnedCell;
                       return (
-                        <TableCell ref={needToAddRef ? cellRef : null} className="overflow-hidden" key={cell.id}>
+                        <TableCell
+                          ref={needToAddRef ? cellRef : null}
+                          className={mergeClassNames(
+                            "overflow-hidden",
+                            isPinned && "sticky z-1 bg-slate-100 dark:bg-gray-900"
+                          )}
+                          style={{
+                            width: cell.column.getSize(),
+                            minWidth: cell.column.columnDef.minSize,
+                            left: isPinned ? cell.column.getStart("left") : undefined,
+                            zIndex: isPinned ? 1 : undefined,
+                          }}
+                          key={cell.id}
+                        >
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </TableCell>
                       );

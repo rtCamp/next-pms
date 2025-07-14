@@ -6,7 +6,14 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getUTCDateTime, getFormatedDate } from "@next-pms/design-system/date";
 import { useToast } from "@next-pms/design-system/hooks";
-import { getCoreRowModel, getSortedRowModel, useReactTable, ColumnSizingState } from "@tanstack/react-table";
+import {
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+  ColumnSizingState,
+  OnChangeFn,
+  ColumnPinningState,
+} from "@tanstack/react-table";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import _ from "lodash";
 /**
@@ -50,6 +57,11 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
   const columnsToExcludeActionsInTables: columnsToExcludeActionsInTablesType = ["liked", "timesheetAction"];
 
   const dispatch = useDispatch();
+  const [pinnedColumns, setPinnedColumns] = useState<{ left: string[]; right: string[] }>({
+    left: viewData.pinnedColumns || [],
+    right: [],
+  });
+
   const { toast } = useToast();
 
   const [hasViewUpdated, setHasViewUpdated] = useState(false);
@@ -70,6 +82,10 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     setViewInfo(viewData);
     setColSizing(viewData.columns);
     setColumnOrder(viewData.rows);
+    setPinnedColumns({
+      left: viewData.pinnedColumns || [],
+      right: [],
+    });
     setHasViewUpdated(false);
   }, [dispatch, viewData, taskDispatch]);
 
@@ -205,6 +221,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
       order_by: { field: task.orderColumn, order: task.order },
       filters: createFilter(task),
       rows: columnOrder,
+      pinnedColumns: pinnedColumns.left,
     };
     if (!_.isEqual(viewData, updateViewData)) {
       setHasViewUpdated(true);
@@ -222,6 +239,7 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     task.selectedProject,
     task.selectedStatus,
     viewData,
+    pinnedColumns,
   ]);
 
   const columns: ColumnsType = getColumn(
@@ -251,7 +269,9 @@ const TaskTable = ({ viewData, meta }: TaskTableProps) => {
     state: {
       columnOrder,
       columnSizing: colSizing,
+      columnPinning: pinnedColumns,
     },
+    onColumnPinningChange: setPinnedColumns as OnChangeFn<ColumnPinningState>,
   });
 
   const handleLoadMore = () => {

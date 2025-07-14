@@ -166,6 +166,10 @@ export const Header = ({
         field: taskState.orderColumn,
       },
       filters: createFilter(taskState),
+      pinnedColumns: view.pinnedColumns || [],
+      isDefault: Boolean(view.default),
+      isPublic: Boolean(view.public),
+      name: view.name ?? "",
     },
   };
   const buttons = [

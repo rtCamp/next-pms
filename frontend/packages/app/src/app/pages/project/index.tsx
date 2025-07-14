@@ -14,6 +14,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  Button,
 } from "@next-pms/design-system/components";
 import { useToast } from "@next-pms/design-system/hooks";
 import { useInfiniteScroll } from "@next-pms/hooks";
@@ -23,15 +24,18 @@ import {
   getSortedRowModel,
   useReactTable,
   ColumnSizingState,
+  OnChangeFn,
+  ColumnPinningState,
 } from "@tanstack/react-table";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import _ from "lodash";
+import { LockKeyhole, LockOpen } from "lucide-react";
 
 /**
  * Internal dependencies
  */
 import ViewWrapper from "@/app/components/list-view/viewWrapper";
-import { parseFrappeErrorMsg } from "@/lib/utils";
+import { mergeClassNames, parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
 import { setProjectData, setStart, setFilters, setReFetchData, updateProjectData } from "@/store/project";
 import { ViewData } from "@/store/view";
@@ -60,6 +64,10 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   const [columnOrder, setColumnOrder] = useState<string[]>(viewData.rows ?? []);
   const projectState = useSelector((state: RootState) => state.project);
   const dispatch = useDispatch();
+  const [pinnedColumns, setPinnedColumns] = useState<{ left: string[]; right: string[] }>({
+    left: viewData.pinnedColumns || [],
+    right: [],
+  });
 
   useEffect(() => {
     dispatch(
@@ -77,6 +85,10 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     setViewInfo(viewData);
     setColSizing(viewData.columns);
     setColumnOrder(viewData.rows);
+    setPinnedColumns({
+      left: viewData.pinnedColumns || [],
+      right: [],
+    });
     setHasViewUpdated(false);
   }, [dispatch, viewData]);
 
@@ -136,6 +148,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
       order_by: { field: projectState.orderColumn, order: projectState.order },
       filters: createFilter(projectState),
       rows: columnOrder,
+      pinnedColumns: pinnedColumns.left,
     };
     if (!_.isEqual(updateViewData, viewData)) {
       setHasViewUpdated(true);
@@ -147,6 +160,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   }, [
     colSizing,
     columnOrder,
+    pinnedColumns,
     projectState.order,
     projectState.orderColumn,
     projectState.search,
@@ -181,7 +195,9 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     state: {
       columnOrder,
       columnSizing: colSizing,
+      columnPinning: pinnedColumns,
     },
+    onColumnPinningChange: setPinnedColumns as OnChangeFn<ColumnPinningState>,
   });
 
   const handleColumnHide = (id: string) => {
@@ -231,32 +247,60 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
         <Spinner isFull />
       ) : (
         <>
-          <Table className=" [&_td]:px-4 [&_th]:px-4 [&_th]:py-2 table-fixed" style={{ width: table.getTotalSize() }}>
-            <TableHeader className=" border-t-0 sticky top-0 z-10 ">
+          <Table className="[&_td]:px-4 [&_th]:px-4 [&_th]:py-2 table-fixed" style={{ width: table.getTotalSize() }}>
+            <TableHeader className="border-t-0 sticky top-0 z-10">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
+                    const column = header.column;
+                    const columnId = column.id;
+                    const isPinned = column.getIsPinned() === "left";
+                    const leftPosition = isPinned ? column.getStart("left") : undefined;
+
                     return (
                       <TableHead
                         key={header.id}
-                        className="group relative hover:cursor-col-resize"
+                        className={mergeClassNames(
+                          "group relative hover:cursor-col-resize",
+                          isPinned && "sticky z-10 bg-slate-200 dark:bg-gray-900"
+                        )}
+                        style={{
+                          userSelect: "none",
+                          touchAction: "none",
+                          width: header.getSize(),
+                          left: leftPosition,
+                          position: isPinned ? "sticky" : undefined,
+                          zIndex: isPinned ? 10 : undefined,
+                        }}
                         {...{
                           onMouseDown: header.getResizeHandler(),
                           onTouchStart: header.getResizeHandler(),
-                          style: {
-                            userSelect: "none",
-                            touchAction: "none",
-                            width: header.getSize(),
-                          },
                         }}
                       >
-                        <div className="flex items-center h-full gap-1 group">
-                          <span className="w-full">
+                        <div className="flex items-center h-full gap-2 group">
+                          <Button
+                            variant="ghost"
+                            title={isPinned ? "Unpin Column" : "Pin Column"}
+                            className="cursor-pointer outline-none p-1 py-2 h-5 hover:bg-transparent shrink-0"
+                            onClick={() => {
+                              if (isPinned) {
+                                table.getColumn(columnId)?.pin(false);
+                              } else {
+                                table.getColumn(columnId)?.pin("left");
+                              }
+                            }}
+                          >
+                            {isPinned ? <LockKeyhole className="h-4 w-4" /> : <LockOpen className="h-4 w-4" />}
+                          </Button>
+                          <span className="w-full truncate">
                             {flexRender(header.column.columnDef.header, header.getContext())}
                           </span>
                           <Separator
                             orientation="vertical"
-                            className="group-hover:w-[3px] dark:bg-primary cursor-col-resize"
+                            className={mergeClassNames(
+                              "group-hover:w-[3px] dark:bg-primary cursor-col-resize shrink-0",
+                              isPinned && "bg-slate-300"
+                            )}
                           />
                         </div>
                       </TableHead>
@@ -267,31 +311,38 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => {
-                  return (
-                    <TableRow className="px-3" key={row.id} data-state={row.getIsSelected() && "selected"}>
-                      {row.getVisibleCells().map((cell, cellIndex: number) => {
-                        const needToAddRef = projectState.hasMore && cellIndex == 0;
-                        return (
-                          <TableCell
-                            className="overflow-hidden"
-                            key={cell.id}
-                            style={{
-                              width: cell.column.getSize(),
-                              minWidth: cell.column.columnDef.minSize,
-                            }}
-                            ref={needToAddRef ? cellRef : null}
-                          >
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  );
-                })
+                table.getRowModel().rows.map((row) => (
+                  <TableRow className="px-3" key={row.id} data-state={row.getIsSelected() && "selected"}>
+                    {row.getVisibleCells().map((cell, cellIndex) => {
+                      const isPinned = cell.column.getIsPinned() === "left";
+                      // Attach ref to the first unpinned cell for infinite scroll
+                      const visibleCells = row.getVisibleCells();
+                      const firstUnpinnedIndex = visibleCells.findIndex((c) => c.column.getIsPinned() !== "left");
+                      const needToAddRef = projectState.hasMore && cellIndex === firstUnpinnedIndex && !isPinned;
+
+                      return (
+                        <TableCell
+                          key={cell.id}
+                          className={mergeClassNames(
+                            "overflow-hidden",
+                            isPinned && "sticky z-1 bg-slate-100 dark:bg-gray-900"
+                          )}
+                          style={{
+                            width: cell.column.getSize(),
+                            minWidth: cell.column.columnDef.minSize,
+                            left: isPinned ? cell.column.getStart("left") : undefined,
+                            zIndex: isPinned ? 1 : undefined,
+                          }}
+                          ref={needToAddRef ? cellRef : null}
+                        >
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                ))
               ) : (
                 <TableRow className="w-full">
-                  {/* Adding plus (+1) one to make no results span complete width */}
                   <TableCell colSpan={viewData.rows.length + 1} className="h-24 text-center">
                     No results
                   </TableCell>

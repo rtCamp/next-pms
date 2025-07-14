@@ -140,9 +140,13 @@ export const getColumnInfo = (
       const tags = getValidUserTagsValues(getValue());
 
       return (
-        <div className="truncate w-full flex gap-1">
+        <div title={tags?.join(", ")} className="no-scrollbar w-full flex gap-1 overflow-x-auto">
           {tags.map((tag) => (
-            <Badge key={tag} variant="secondary">
+            <Badge
+              key={tag}
+              className="cursor-pointer hover:bg-slate-300/80 bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700"
+              variant="secondary"
+            >
               {tag}
             </Badge>
           ))}

@@ -11,16 +11,16 @@ ROLES = {
 
 #  Doc Events for Timesheet DocType
 def validate(doc, method=None):
+    set_date(doc)
     validate_time(doc)
+    validate_dates(doc)
     update_note(doc)
     flush_cache(doc)
 
 
 def before_insert(doc, method=None):
-    set_date(doc)
     validate_existing_timesheet(doc)
     validate_approved_timesheet(doc)
-    validate_dates(doc)
 
 
 def before_save(doc, method=None):
@@ -35,6 +35,7 @@ def before_save(doc, method=None):
         doc.time_logs[key].from_time = from_time
         doc.time_logs[key].to_time = to_time
         doc.time_logs[key].project = get_value("Task", {"name": doc.time_logs[key].task}, "project")
+    validate_start_date(doc)
 
 
 def on_update(doc, method=None):
@@ -290,3 +291,10 @@ def publish_timesheet_update(employee, start_date):
         after_commit=True,
         room=get_site_room(),
     )
+
+
+def validate_start_date(doc):
+    if doc.is_new():
+        return
+    if doc.has_value_changed("start_date") or doc.has_value_changed("end_date"):
+        throw(_("You cannot change the start date or end date of the timesheet after it has been created."))
