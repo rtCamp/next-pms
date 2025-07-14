@@ -198,7 +198,9 @@ def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | N
         at_front=True,
     )
 
-    return _("Timesheet approval/rejection has been queued for processing. Please refrain from making further changes.")
+    return _(
+        "Timesheet approval or rejection has been queued for processing. Please do not make any changes to it. You may continue with other tasks."
+    )
 
 
 def filter_employee_by_timesheet_status(

@@ -32,6 +32,7 @@ export const CreateView = ({
   isPublic,
   columns,
   setIsOpen,
+  pinnedColumns,
 }: CreateViewProps) => {
   const { call } = useFrappePostCall("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.create_view");
   const user = useSelector((state: RootState) => state.user);
@@ -53,6 +54,7 @@ export const CreateView = ({
       type: "Custom",
       icon: selectedEmoji,
       order_by: orderBy,
+      pinnedColumns: pinnedColumns || [],
     };
     call({
       view: view,

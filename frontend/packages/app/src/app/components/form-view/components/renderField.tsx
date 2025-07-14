@@ -237,7 +237,7 @@ const getFieldComponent = (
         <Input
           type="text"
           step="any"
-          value={Number(value)}
+          value={Number(value).toFixed(2)}
           onChange={(e) => handleChange(parseFloat(e.target.value) || 0)}
           disabled={isReadOnly}
           className="text-sm focus-visible:!ring-0"
@@ -257,7 +257,7 @@ const getFieldComponent = (
           <Input
             type="text"
             step="any"
-            value={Number(value)}
+            value={Number(value).toFixed(2)}
             onChange={(e) => handleChange(parseFloat(e.target.value) || 0)}
             disabled={isReadOnly}
             className="!border-none rounded-none focus-visible:outline-none h-auto focus-visible:ring-0 !px-0 text-sm !py-1"
@@ -284,6 +284,7 @@ const getFieldComponent = (
           onSelect={(value) => {
             handleChange(value);
           }}
+          popoverClassName="!z-[1000000000]"
         />
       );
     case "Table":

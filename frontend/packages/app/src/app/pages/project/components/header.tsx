@@ -312,6 +312,10 @@ export const Header = ({
         field: projectState.orderColumn,
       },
       filters: createFilter(projectState),
+      pinnedColumns: view.pinnedColumns || [],
+      isDefault: Boolean(view.default),
+      isPublic: Boolean(view.public),
+      name: view.name ?? "",
     },
   };
   const buttons = [

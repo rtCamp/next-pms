@@ -114,24 +114,28 @@ export const DataCell = ({ meta, title_field, docType, row, value, currency }: D
     );
   } else if (meta.fieldtype === "Select") {
     if (SUCCESS_SELECT_VALUES.includes(value)) {
+      if (!value) return null;
       return (
         <Badge className="truncate" variant="success">
           {value}
         </Badge>
       );
     } else if (FAIL_SELECT_VALUES.includes(value)) {
+      if (!value) return null;
       return (
         <Badge className="truncate" variant="destructive">
           {value}
         </Badge>
       );
     } else if (OPEN_SELECT_VALUES.includes(value)) {
+      if (!value) return null;
       return (
         <Badge className="truncate" variant="warning">
           {value}
         </Badge>
       );
     } else {
+      if (!value) return null;
       return (
         <Badge className={mergeClassNames("truncate", selectBadgeColor(value, meta.options?.split("\n") ?? []))}>
           {value}

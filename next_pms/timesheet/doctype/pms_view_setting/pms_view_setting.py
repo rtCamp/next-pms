@@ -20,6 +20,7 @@ def get_view(dt: str):
         view.order_by = frappe.parse_json(view.order_by)
         view.rows = frappe.parse_json(view.rows)
         view.columns = frappe.parse_json(view.columns)
+        view.pinnedColumns = frappe.parse_json(view.pinned_columns)
     return views
 
 
@@ -35,6 +36,7 @@ def get_views():
         view.order_by = frappe.parse_json(view.order_by)
         view.rows = frappe.parse_json(view.rows)
         view.columns = frappe.parse_json(view.columns)
+        view.pinnedColumns = frappe.parse_json(view.pinned_columns)
     return views
 
 
@@ -62,6 +64,7 @@ def create_view(view):
     doc.default = view.default or 0
     doc.public = view.public or 0
     doc.icon = view.icon
+    doc.pinned_columns = json.dumps(view.pinnedColumns)
     doc.insert(ignore_permissions=True)
     return get_views()
 
@@ -80,6 +83,7 @@ def update_view(view):
     view.order_by = parse_json(view.order_by or "[]")
     view.rows = parse_json(view.rows or "[]")
     view.columns = parse_json(view.columns or "{}")
+    view.pinnedColumns = parse_json(view.pinnedColumns or "[]")
 
     doc = frappe.get_doc("PMS View Setting", view.name)
     user = view.user or frappe.session.user
@@ -94,5 +98,13 @@ def update_view(view):
     doc.route = view.route
     doc.default = view.default or 0
     doc.public = view.public or 0
+    doc.pinned_columns = json.dumps(view.pinnedColumns)
     doc.save()
-    return doc
+    updated_view = doc.as_dict()
+    updated_view.filters = frappe.parse_json(updated_view.filters)
+    updated_view.order_by = frappe.parse_json(updated_view.order_by)
+    updated_view.rows = frappe.parse_json(updated_view.rows)
+    updated_view.columns = frappe.parse_json(updated_view.columns)
+    updated_view.pinnedColumns = frappe.parse_json(updated_view.pinned_columns)
+
+    return updated_view
