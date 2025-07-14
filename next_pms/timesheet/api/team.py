@@ -7,6 +7,7 @@ from frappe import (
     get_all,
     get_doc,
     get_value,
+    log_error,
     only_for,
     sendmail,
     session,
@@ -310,6 +311,7 @@ def _approve_or_reject_timesheet(
             job_name="Timesheet Approval Notification",
         )
     except:  # noqa: E722
+        log_error(title=_("Error in Timesheet Approval"))
         subject = _("Error in Timesheet Approval")
         message = _(
             "An error occurred while processing the timesheet approval for {employee}. Please follow <a href='{link}'>link</a> to check the time-entries."
