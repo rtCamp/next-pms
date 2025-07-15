@@ -1,5 +1,8 @@
 from datetime import datetime, timedelta
+from functools import wraps
 from typing import Any
+
+from frappe import log_error
 
 
 def transform_google_events(events: dict[str, Any]) -> list[dict[str, Any]]:
@@ -41,8 +44,7 @@ def transform_google_events(events: dict[str, Any]) -> list[dict[str, Any]]:
                 isinstance(starts_on, datetime)
                 and isinstance(ends_on, datetime)
                 and (ends_on - starts_on == timedelta(days=1))
-                or (end_date - start_date == timedelta(days=1))
-            ):
+            ) or (end_date - start_date == timedelta(days=1)):
                 all_day = 1
 
         transformed_event = {
@@ -64,3 +66,15 @@ def transform_google_events(events: dict[str, Any]) -> list[dict[str, Any]]:
         transformed_events.append(transformed_event)
 
     return transformed_events
+
+
+def error_logger(func):
+    @wraps(func)
+    def innerfn(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception:
+            log_error(title=f"Error[Next PMS] in {func.__name__}")
+            raise
+
+    return innerfn
