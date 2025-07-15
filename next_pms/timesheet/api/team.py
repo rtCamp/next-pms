@@ -3,6 +3,7 @@ import json
 from frappe import (
     DoesNotExistError,
     _,
+    db,
     enqueue,
     get_all,
     get_doc,
@@ -16,6 +17,7 @@ from frappe import (
 )
 from frappe.utils.data import add_days, getdate
 
+from next_pms.api.utils import error_logger
 from next_pms.resource_management.api.utils.query import get_employee_leaves
 
 from . import filter_employees
@@ -25,6 +27,7 @@ from .utils import employee_has_higher_access, get_holidays, get_week_dates
 
 
 @whitelist()
+@error_logger
 def get_compact_view_data(
     date: str,
     max_week: int = 2,
@@ -165,10 +168,12 @@ def get_compact_view_data(
     return res
 
 
-@whitelist()
+@whitelist(methods=["POST"])
+@error_logger
 def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | None = None, note: str = ""):
     only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
-
+    if not dates:
+        return throw(_("Please select the dates to approve or reject the timesheet."))
     current_week = get_week_dates(dates[0])
     timesheets = get_all(
         "Timesheet",
@@ -284,6 +289,7 @@ def filter_employee_by_timesheet_status(
     return employees, count
 
 
+@error_logger
 def _approve_or_reject_timesheet(
     timesheets: list,
     status: str,
@@ -291,6 +297,7 @@ def _approve_or_reject_timesheet(
     dates: list[str] | None = None,
     note: str = "",
 ):
+    db.begin()
     try:
         for timesheet in timesheets:
             if str(timesheet.start_date) not in dates:
@@ -310,7 +317,9 @@ def _approve_or_reject_timesheet(
             note=note,
             job_name="Timesheet Approval Notification",
         )
+        db.commit()
     except:  # noqa: E722
+        db.rollback()
         log_error(title=_("Error in Timesheet Approval"))
         subject = _("Error in Timesheet Approval")
         message = _(

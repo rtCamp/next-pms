@@ -8,6 +8,7 @@ from frappe.utils import (
     nowdate,
 )
 
+from next_pms.api.utils import error_logger
 from next_pms.resource_management.api.utils.query import get_employee_leaves
 from next_pms.timesheet.utils.constant import EMP_TIMESHEET
 
@@ -27,6 +28,7 @@ from .utils import (
 
 
 @frappe.whitelist()
+@error_logger
 def get_timesheet_data(employee: str, start_date=None, max_week: int = 4):
     """Get timesheet data for the given employee for the given number of weeks."""
     if not employee:
@@ -116,6 +118,7 @@ def get_timesheet_data(employee: str, start_date=None, max_week: int = 4):
 
 
 @frappe.whitelist()
+@error_logger
 def save(date: str, description: str, task: str, hours: float = 0, employee: str = None):
     """create time entry in Timesheet Detail child table."""
     if not employee:
@@ -162,6 +165,7 @@ def save(date: str, description: str, task: str, hours: float = 0, employee: str
 
 
 @frappe.whitelist()
+@error_logger
 def delete(parent: str, name: str):
     """Delete single time entry from timesheet doctype."""
     employee = get_employee_from_user()
@@ -178,6 +182,7 @@ def delete(parent: str, name: str):
 
 
 @frappe.whitelist()
+@error_logger
 def submit_for_approval(start_date: str, notes: str = None, employee: str = None, approver: str = None):
     from next_pms.timesheet.doc_events.timesheet import flush_cache, publish_timesheet_update
     from next_pms.timesheet.tasks.reminder_on_approval_request import (
@@ -499,6 +504,7 @@ def get_timesheet_details(date: str, task: str, employee: str):
 
 
 @frappe.whitelist()
+@error_logger
 def bulk_update_timesheet_detail(data):
     for entry in data:
         if isinstance(entry, str):
