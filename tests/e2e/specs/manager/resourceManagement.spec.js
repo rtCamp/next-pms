@@ -200,9 +200,7 @@ test.describe("Manager : Resource Management Tab", () => {
     expect(allocationTime).toEqual(updatedHours);
   });
 
-  test("TC-111: Allocation for more than 8 hours per day / allocation of more than 24 hours per day.", async ({
-    page,
-  }) => {
+  test("TC-111: Allocation for more than 8 hours per day / allocation of more than 24 hours per day.", async ({}) => {
     allure.story("Resource Management");
     const projectName = data.TC104.payloadCreateProject.project_name;
     const employeeName = data.TC104.employee;
