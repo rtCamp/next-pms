@@ -20,6 +20,8 @@
     "allure:singleHtml": "allure generate ../allure-results --single-file --clean -o ../allure-report"
   },
   "devDependencies": {
+    "@babel/parser": "^7.28.0",
+    "@babel/traverse": "^7.28.0",
     "@eslint/js": "^8.57.0",
     "@playwright/test": "^1.52.0",
     "allure-commandline": "^2.34.0",

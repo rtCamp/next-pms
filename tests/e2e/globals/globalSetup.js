@@ -1,90 +1,109 @@
-import { readAndCleanAllOrphanData } from "../helpers/timesheetHelper";
 import { storeStorageState } from "../helpers/storageStateHelper";
 import { createJSONFile, populateJsonStubs } from "../utils/fileUtils";
 import path from "path";
 import fs from "fs";
+import { execSync } from "child_process";
+import {
+  createTimeEntries,
+  updateTimeEntries,
+  createProjectForTestCases,
+  createTaskForTestCases,
+  calculateHourlyBilling,
+  readAndCleanAllOrphanData,
+} from "../helpers/timesheetHelper";
+import { updateLeaveEntries } from "../helpers/leaveHelper";
+import { createEmployees } from "../helpers/employeeHelper";
+import { randomApprovalStatus } from "../helpers/teamTabHelper";
+import { createUserGroupForEmployee } from "../helpers/teamTabHelper";
 
-// Import data modules to get all test case IDs
-import employeeTimesheetData from "../data/employee/timesheet";
-import managerTeamData from "../data/manager/team";
-import managerTaskData from "../data/manager/task";
-
-/**
- * Global setup function that runs before test execution.
- * It initializes test data and stores authentication details for reuse in tests.
- */
 const globalSetup = async () => {
   console.log("🚀 Starting global setup...");
-  
+
+  // 0) Discover active tests and extract TC IDs
+  console.log("🔍 Discovering active tests via list-tests.js...");
+  const projectRoot = path.resolve(__dirname, "..");
+  let rawList = "[]";
+  try {
+    rawList = execSync("node scripts/list-tests.js", {
+      cwd: projectRoot,
+      stdio: ["ignore", "pipe", "inherit"],
+    }).toString();
+  } catch (err) {
+    console.warn("⚠️ list-tests.js did not return any tests:", err.message);
+  }
+
+  let tests = [];
+  try {
+    tests = JSON.parse(rawList);
+  } catch {
+    tests = [];
+  }
+
+  const tcPattern = /TC(\d+):/g;
+  const tcSet = new Set();
+  tests.forEach(({ title }) => {
+    let match;
+    while ((match = tcPattern.exec(title)) !== null) {
+      tcSet.add(`TC${match[1]}`);
+    }
+  });
+  const allTCIds = Array.from(tcSet);
+  console.log(`📑 Extracted TC IDs: ${allTCIds.join(", ")}`);
+
+  // Persist TC IDs
+  const tcJsonPath = path.join(projectRoot, "test-tc-ids.json");
+  fs.writeFileSync(tcJsonPath, JSON.stringify(allTCIds, null, 2));
+  console.log(`✅ TC ID list written to: ${tcJsonPath}`);
+
   // 1) Pre‑generate API auth states for all roles
   const roles = ["employee", "employee2", "employee3", "manager", "admin"];
   await Promise.all(
-    roles.map(role =>
-      // `true` ⇒ API‑only state, saved to `auth/<role>-API.json`
-      storeStorageState(role, true)
-    )
+    roles.map(role => storeStorageState(role, true))
   );
 
-  // 2) Create JSON files for all test cases
-  console.log("📁 Creating JSON files for all test cases...");
-  
-  // Define the single JSON directory
+  // 2) Create and populate JSON stubs for each TC ID
+  console.log("📁 Creating JSON stubs for each TC ID...");
   const jsonDir = path.resolve(__dirname, "../data/json-files");
-  
-  // Ensure directory exists
   await fs.promises.mkdir(jsonDir, { recursive: true });
-  
-  // Collect all unique test case IDs from all data sources
-  const allTestCaseIDs = new Set();
-  
-  // Add all test case IDs from each data source
-  Object.keys(employeeTimesheetData).forEach(id => allTestCaseIDs.add(id));
-  Object.keys(managerTeamData).forEach(id => allTestCaseIDs.add(id));
-  Object.keys(managerTaskData).forEach(id => allTestCaseIDs.add(id));
-  
-  console.log(`📋 Found ${allTestCaseIDs.size} unique test cases:`, Array.from(allTestCaseIDs).sort());
-  
-  // Create JSON file for each test case
-  for (const tcId of allTestCaseIDs) {
+
+  // Create empty stub and populate
+  for (const tcId of allTCIds) {
     const filePath = path.join(jsonDir, `${tcId}.json`);
-    
-    try {
-      // Create the JSON file with empty object
-      await createJSONFile(filePath, { [tcId]: {} });
-      console.log(`✅ Created JSON file: ${filePath}`);
-    } catch (err) {
-      console.error(`❌ Failed to create JSON file for ${tcId}:`, err.message);
-      throw err;
+    await createJSONFile(filePath, { [tcId]: {} });
+    await populateJsonStubs(jsonDir, [tcId]);
+  }
+
+  // Verify JSON files
+  console.log("🔍 Verifying JSON stubs...");
+  for (const tcId of allTCIds) {
+    const filePath = path.join(jsonDir, `${tcId}.json`);
+    const content = await fs.promises.readFile(filePath, "utf-8");
+    const data = JSON.parse(content);
+    if (!data[tcId]) {
+      throw new Error(`Missing data for ${tcId}`);
     }
   }
-  
-  // 3) Populate all JSON stubs with data
-  console.log("📝 Populating JSON stubs with test data...");
-  await populateJsonStubs(jsonDir, Array.from(allTestCaseIDs));
-  
-  // 4) Verify all files are created and readable
-  console.log("🔍 Verifying all JSON files...");
-  for (const tcId of allTestCaseIDs) {
-    const filePath = path.join(jsonDir, `${tcId}.json`);
-    try {
-      const content = await fs.promises.readFile(filePath, 'utf-8');
-      const data = JSON.parse(content);
-      if (!data[tcId]) {
-        throw new Error(`JSON file missing data for key "${tcId}"`);
-      }
-      console.log(`✅ Verified: ${tcId}.json`);
-    } catch (err) {
-      console.error(`❌ Verification failed for ${tcId}.json:`, err.message);
-      throw err;
-    }
-  }
-  
-  console.log("✅ All JSON files created and populated successfully!");
-  
-  // 5) Clean up any orphan data
+  console.log("✅ JSON stubs created and verified!");
+
+  // 3) Clean up orphan data
   await readAndCleanAllOrphanData();
-  
-  console.log("✅ Global setup completed successfully!");
+
+  // 4) Generate data for each TC in sequence
+  console.log("🛠 Generating test data per TC ID...");
+  for (const tcId of allTCIds) {
+    console.log(`➡️ Processing ${tcId}`);
+    await createEmployees([tcId],jsonDir);
+    await updateTimeEntries([tcId],jsonDir);
+    await createProjectForTestCases([tcId],jsonDir);
+    await createTaskForTestCases([tcId],jsonDir);
+    await createTimeEntries([tcId],jsonDir);
+    await calculateHourlyBilling([tcId],jsonDir);
+    await updateLeaveEntries([tcId],jsonDir);
+    //await randomApprovalStatus([tcId],jsonDir);
+    await createUserGroupForEmployee([tcId],jsonDir);
+  }
+
+  console.log("✅ Data generation completed for all TC IDs! Global setup done.");
 };
 
 export default globalSetup;

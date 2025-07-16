@@ -213,7 +213,7 @@ module.exports = {
       doctype: "Task",
       name: "filled-automatically-from-createTasks",
       add: "Yes",
-      role: "employee",
+      role: "employee3",
     },
     payloadDeleteTask: {
       taskID: "filled-automatically-from-createTasks",

@@ -145,7 +145,7 @@ export const randomApprovalStatus = async (
  * Deletes created employees for provided testCaseIDs.
  * @param {string[]} testCaseIDs  IDs with createdEmployees array
  */
-export const deleteEmployees = async (testCaseIDs = [],jsonDir) => {
+export const deleteEmployees = async (testCaseIDs = [], jsonDir) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
 
   for (const tcId of testCaseIDs) {
@@ -195,7 +195,7 @@ export const deleteEmployees = async (testCaseIDs) => {
  * Creates a user group for provided testCaseID.
  * @param {string[]} testCaseIDs  IDs to process
  */
-export const createUserGroupForEmployee = async (testCaseIDs,jsonDir) => {
+export const createUserGroupForEmployee = async (testCaseIDs, jsonDir) => {
   const emp3 = process.env.EMP3_EMAIL;
   if (!emp3) {
     console.error("EMP3_EMAIL environment variable is not defined.");
@@ -268,32 +268,27 @@ export const createUserGroupForEmployee = async (testCaseIDs) => {
 };
 */
 /**
- * Deletes user groups for provided testCaseIDs.
- * @param {string[]} testCaseIDs  IDs to process
+ * Always attempts to delete today's user group, named "UserGroup-<day><month>",
+ * e.g. if today is June 11, name = "UserGroup-11Jun".
  */
-export const deleteUserGroupForEmployee = async (testCaseIDs,jsonDir) => {
-  if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
+export const deleteUserGroupForEmployee = async () => {
+  // 1) Generate the group name based on today's date
+  const shortDate = getShortFormattedDate(new Date()); // e.g. "Jun 11"
+  const [month, day] = shortDate.split(" ");
+  const groupName = `UserGroup-${day}${month}`;
 
-  for (const tcId of testCaseIDs) {
-    const stubPath = path.join(jsonDir, `${tcId}.json`);
-    const fullStub = await readJSONFile(stubPath);
-    const entry = fullStub[tcId];
-    if (!entry || !entry.payloadDeleteUserGroup) {
-      console.warn(`Skipping ${tcId}: no payloadDeleteUserGroup`);
-      continue;
-    }
+  // 2) Attempt deletion
+  try {
+    await deleteUserGroup(groupName);
+    console.log(`✅ Deleted user group '${groupName}'`);
+  } catch (err) {
+    const isNotFound =
+      err?.response?.status === 404 || (typeof err.message === "string" && err.message.includes("404"));
 
-    const groupName = entry.payloadDeleteUserGroup.name;
-    try {
-      await deleteUserGroup(groupName);
-      //console.log(`✅ Deleted user group '${groupName}' for ${tcId}`);
-    } catch (err) {
-      const isNotFound = err?.response?.status === 404 || err?.message?.includes("404");
-      if (isNotFound) {
-        console.warn(`⚠️ No group to delete for '${groupName}' in ${tcId}`);
-      } else {
-        console.error(`❌ Failed to delete user group '${groupName}' for ${tcId}: ${err.message}`);
-      }
+    if (isNotFound) {
+      console.warn(`⚠️ No user group found to delete for '${groupName}' (404)`);
+    } else {
+      console.error(`❌ Failed to delete user group '${groupName}': ${err.message}`);
     }
   }
 };

@@ -1,5 +1,5 @@
+import { readdir } from "fs/promises";
 import path from "path";
-import fs from "fs";
 import { getFormattedDate, getYesterdayDate } from "../utils/dateUtils";
 //import teamTemplate from "../data/manager/team";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
@@ -14,384 +14,91 @@ const managerName = process.env.REP_MAN_NAME;
 const managerMail = process.env.REP_MAN_EMAIL;
 const employeeId = process.env.EMP3_ID;
 
-// Define file paths for shared JSON data files
-const managerTeamDataFilePath = path.resolve(__dirname, "../data/manager/shared-team.json"); // File path of the manager team data JSON file
-
-// Global variables to store shared data and reused across functions
-let sharedManagerTeamData;
-
 // ------------------------------------------------------------------------------------------
-
-/**
- * Create Employees for each test case ID
- * param {string[]} testCaseIDs
- */
-// helpers/employeeHelper.js
 
 /**
  * Create Employees for each test case ID
  * Writes each test-case's data into its corresponding TC.json under data/json-files
  * @param {string[]} testCaseIDs
  */
-// Define your statuses
-
-export const createEmployees = async (testCaseIDs,jsonDir) => {
+export const createEmployees = async (testCaseIDs, jsonDir) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
   const employeeStatuses = ["Active", "Inactive", "Suspended", "Left"];
-
   const [tcId] = testCaseIDs;
 
-  //const stubPath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
+  // Load primary test‑case stub
   const stubPath = path.join(jsonDir, `${tcId}.json`);
   const fullStub = await readJSONFile(stubPath);
   const entry = fullStub[tcId];
-
   if (!entry || !entry.payloadCreateEmployee) {
     console.warn(`⚠️ No payloadCreateEmployee for ${tcId}`);
     return;
   }
-
   entry.createdEmployees = [];
 
+  // Discover side files in the folder
+  const allFiles = await readdir(jsonDir);
+  const sideFiles = allFiles.filter(f => f === "TC39.json" || f === "TC53.json");
+
+  // Load side files into memory
+  const sideData = {};
+  for (const fileName of sideFiles) {
+    const fullPath = path.join(jsonDir, fileName);
+    sideData[fileName] = await readJSONFile(fullPath);
+  }
+
+  // Process each employee status
   for (const status of employeeStatuses) {
     const payload = {
-      ...JSON.parse(JSON.stringify(entry.payloadCreateEmployee)), // deep clone
+      ...JSON.parse(JSON.stringify(entry.payloadCreateEmployee)),
       last_name: `${status}${getRandomString(5)}`,
       status,
       date_of_joining: getYesterdayDate(),
       custom_reporting_manager: managerName,
       reports_to: managerId,
       leave_approver: managerMail,
-      ...(status === "Left" && {
-        relieving_date: getFormattedDate(new Date()),
-      }),
+      ...(status === "Left" && { relieving_date: getFormattedDate(new Date()) }),
     };
 
     try {
       const res = await addEmployee(payload, "admin");
+      const fullName = `${payload.first_name} ${payload.last_name}`;
+
+      // If Active, update TC39/TC53 in‑memory
+      if (status === "Active") {
+        if (sideData["TC39.json"]) {
+          const arr = (sideData["TC39.json"].TC39.employees ||= []);
+          if (!arr.includes(fullName)) arr.push(fullName);
+        }
+        if (sideData["TC53.json"]) {
+          const data53 = sideData["TC53.json"].TC53;
+          const inQE = (data53.employeesInQE ||= []);
+          const inStg = (data53.employeesInStaging ||= []);
+          if (!inQE.includes(fullName)) inQE.push(fullName);
+          if (!inStg.includes(fullName)) inStg.push(fullName);
+        }
+      }
+
       entry.createdEmployees.push({ ...payload, name: res.data.name });
-      //console.log(`✅ Created [${status}] ${res.data.name} for ${tcId}`);
     } catch (err) {
       console.error(`❌ Error creating ${status} for ${tcId}:`, err);
     }
   }
 
-  // 🔍 Debug print before writing
-  //console.log(`📝 Writing updated entry for ${tcId}:`);
-  console.dir({ [tcId]: entry }, { depth: null, colors: true });
-
+  // Write back primary stub
   await writeDataToFile(stubPath, { [tcId]: entry });
   const verify = await readJSONFile(stubPath);
   //console.log("✅ Verified from disk:");
+
   console.dir(verify, { depth: null, colors: true });
+  // Write back any side files that were loaded
+  for (const fileName of sideFiles) {
+    const fullPath = path.join(jsonDir, fileName);
+    await writeDataToFile(fullPath, sideData[fileName]);
+  }
+    console.log("✅ Completed create Employee for ", testCaseIDs);
+
 };
-
-/*
-export async function createEmployees(testCaseIDs = []) {
-  if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
-
-  const statuses = ["Active", "Inactive", "Suspended", "Left"];
-  const relDir = "../data/json-files";
-
-  // We'll collect all (absPath, fullStub) pairs here,
-  // then flush them to disk after the loop.
-  const writes = [];
-
-  for (const tcId of testCaseIDs) {
-    // 1) Build paths
-    const stubRelPath = path.join(relDir, `${tcId}.json`);
-    const absPath = path.resolve(__dirname, stubRelPath);
-
-    // 2) Read the existing JSON stub
-    let fullStub;
-    try {
-      fullStub = await readJSONFile(stubRelPath);
-    } catch (err) {
-      console.warn(`⚠️ Could not read stub for ${tcId}: ${err.message}`);
-      continue;
-    }
-
-    const entry = fullStub[tcId];
-    if (!entry || !entry.payloadCreateEmployee) {
-      console.warn(`⚠️ No payloadCreateEmployee in ${tcId}.json — skipping`);
-      continue;
-    }
-
-    // 3) Prepare or preserve createdEmployees
-    entry.createdEmployees = entry.createdEmployees || [];
-
-    // 4) Create your employees
-    for (const status of statuses) {
-      const randomStr = getRandomString(5);
-      const payload = {
-        ...entry.payloadCreateEmployee,
-        last_name: status + randomStr,
-        status,
-        date_of_joining: getYesterdayDate(),
-        custom_reporting_manager: managerName,
-        reports_to: managerId,
-        leave_approver: managerMail,
-        ...(status === "Left" && { relieving_date: getFormattedDate(new Date()) }),
-      };
-
-      try {
-        const res = await addEmployee(payload, "admin");
-        const empName = res.data.name;
-        entry.createdEmployees.push({ ...payload, name: empName });
-        //console.log(`✅ Created [${status}] ${empName} for ${tcId}`);
-      } catch (err) {
-        console.error(`❌ Error creating ${status} for ${tcId}: ${err.message}`);
-      }
-    }
-
-    // 5) Stage this updated stub for writing later
-    fullStub[tcId] = entry;
-    writes.push({ absPath, fullStub });
-  }
-
-  // --- now that the loop is done, flush all writes ---
-  for (const { absPath, fullStub } of writes) {
-    try {
-      await writeDataToFile(absPath, fullStub);
-      const tc = Object.keys(fullStub)[0];
-      //console.log(`✏️  Persisted ${fullStub[tc].createdEmployees.length} employees in ${absPath}`);
-    } catch (err) {
-      console.warn(`⚠️ Failed to write ${absPath}: ${err.message}`);
-    }
-  }
-}
-*/
-/*
-export async function createEmployees(testCaseIDs = []) {
-  if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
-
-  const statuses = ["Active", "Inactive", "Suspended", "Left"];
-  const relDir = "../data/json-files";
-
-  for (const tcId of testCaseIDs) {
-    // Build the relative path for readJSONFile/writeDataToFile
-    const stubRelPath = path.join(relDir, `${tcId}.json`);
-
-    // 1) Read existing stub
-    let fullStub;
-    try {
-      fullStub = await readJSONFile(stubRelPath);
-    } catch (err) {
-      console.warn(`⚠️ Could not read stub for ${tcId}: ${err.message}`);
-      continue;
-    }
-
-    const entry = fullStub[tcId];
-    if (!entry || !entry.payloadCreateEmployee) {
-      console.warn(`⚠️ No payloadCreateEmployee in ${tcId}.json — skipping`);
-      continue;
-    }
-
-    // 2) Prepare createdEmployees array (preserve existing if any)
-    entry.createdEmployees = entry.createdEmployees || [];
-
-    // 3) Create employees for each status
-    const base = entry.payloadCreateEmployee;
-    for (const status of statuses) {
-      const randomStr = getRandomString(5);
-      const payload = {
-        ...base,
-        last_name: status + randomStr,
-        status,
-        date_of_joining: getYesterdayDate(),
-        custom_reporting_manager: managerName,
-        reports_to: managerId,
-        leave_approver: managerMail,
-        ...(status === "Left" && { relieving_date: getFormattedDate(new Date()) }),
-      };
-
-      try {
-        const res = await addEmployee(payload, "admin");
-        const empName = res.data.name;
-        entry.createdEmployees.push({ ...payload, name: empName });
-        //console.log(`✅ Created [${status}] ${empName} for ${tcId}`);
-      } catch (err) {
-        console.error(`❌ Error creating ${status} for ${tcId}: ${err.message}`);
-      }
-    }
-
-    // 4) Merge back and write once
-    fullStub[tcId] = entry;
-    //console.log(`FULL STUB OF TC 91 IS :`, fullStub[tcId]);
-    //console.log("\n---------------GAP-------------\n");
-    //console.log(`FULL STUB OF TC 91 IS :`, fullStub);
-  }
-  // Build the absolute path so writeDataToFile can actually find it
-  const absPath = path.resolve(__dirname, "../data/json-files", `${testCaseIDs}.json`);
-
-  try {
-    await writeDataToFile(absPath, fullStub);
-    //console.log(`✏️  Persisted ${entry.createdEmployees.length} employees in ${testCaseIDs}.json`);
-  } catch (err) {
-    console.warn(`⚠️ Failed to write ${absPath}: ${err.message}`);
-  }
-}
-*/
-/*
-export async function createEmployees(testCaseIDs = []) {
-  if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
-
-  // Directory where per-TC JSON stubs live
-  const jsonDir = path.resolve(__dirname, "../data/json-files");
-  // Ensure output directory exists
-  //await fs.promises.mkdir(jsonDir, { recursive: true });
-
-  const statuses = ["Active", "Inactive", "Suspended", "Left"];
-
-  for (const tcId of testCaseIDs) {
-    const stubPath = path.join(jsonDir, `${tcId}.json`);
-    // Read the wrapped stub { "TCn": entry }
-    const fullStub = await readJSONFile(stubPath);
-    const entry = fullStub[tcId];
-    if (!entry || !entry.payloadCreateEmployee) continue;
-
-    // Initialize createdEmployees array
-    entry.createdEmployees = [];
-    const basePayload = entry.payloadCreateEmployee;
-
-    for (const status of statuses) {
-      const randomStr = getRandomString(5);
-      const payload = {
-        ...basePayload,
-        last_name: status + randomStr,
-        status,
-        date_of_joining: getYesterdayDate(),
-        custom_reporting_manager: managerName,
-        reports_to: managerId,
-        leave_approver: managerMail,
-      };
-      if (status === "Left") {
-        payload.relieving_date = getFormattedDate(new Date());
-      }
-
-      try {
-        const res = await addEmployee(payload, "admin");
-        const empName = res.data.name;
-        entry.createdEmployees.push({ ...payload, name: empName });
-        //console.log(`✅ Created [${status}] ${empName} for ${tcId}`);
-      } catch (err) {
-        console.error(`❌ Error creating ${status} for ${tcId}: ${err.message}`);
-      }
-    }
-    console.dir({ beforeWrite: { [tcId]: entry } }, { depth: null });
-    // Persist the mutated stub, wrapped under its TC key
-    await writeDataToFile(stubPath, { [tcId]: entry });
-
-    ////console.log("CREATED EMPLOYEES ARRAY IS : ", entry.createEmployees)
-    //console.log(`✏️  Updated createdEmployees for ${tcId} in ${stubPath}`);
-  }
-}
-*/
-/*
-export async function createEmployees(testCaseIDs) {
-  // Load the team JS into memory
-  const managerTeamData = JSON.parse(JSON.stringify(teamTemplate));
-  const employeeStatuses = ["Active", "Inactive", "Suspended", "Left"];
-
-  for (const testCaseID of testCaseIDs) {
-    const testCase = managerTeamData[testCaseID];
-    if (!testCase || !testCase.payloadCreateEmployee) continue;
-
-    testCase.createdEmployees = [];
-    const basePayload = testCase.payloadCreateEmployee;
-
-    for (const status of employeeStatuses) {
-      const randomString = getRandomString(5);
-      const payload = {
-        ...basePayload,
-        last_name: status + randomString,
-        status,
-        date_of_joining: getYesterdayDate(),
-        custom_reporting_manager: managerName,
-        reports_to: managerId,
-        leave_approver: managerMail,
-      };
-      if (status === "Left") {
-        payload.relieving_date = getFormattedDate(new Date());
-      }
-
-      try {
-        const response = await addEmployee(payload, "admin");
-        testCase.createdEmployees.push({ ...payload, name: response.data.name });
-        //console.log(`✅ Created [${status}] ${response.data.name} for ${testCaseID}`);
-      } catch (err) {
-        console.error(`❌ Error creating ${status} for ${testCaseID}:`, err);
-      }
-    }
-
-    // Write this test case's data to its JSON file
-    const outDir = path.resolve(__dirname, "../data/json-files");
-    // ensure directory exists
-    await fs.promises.mkdir(outDir, { recursive: true });
-    const outFile = path.join(outDir, `${testCaseID}.json`);
-    await writeDataToFile(outFile, testCase);
-    //console.log(`• Wrote employee data for ${testCaseID} to ${outFile}`);
-  }
-}
-*/
-/*
-export async function createEmployees(testCaseIDs) {
-  // Load the team JS into memory
-  const managerTeamData = JSON.parse(JSON.stringify(teamTemplate));
-
-  const employeeStatuses = ["Active", "Inactive", "Suspended", "Left"];
-
-  for (const testCaseID of testCaseIDs) {
-    const testCase = managerTeamData[testCaseID];
-    if (!testCase || !testCase.payloadCreateEmployee) continue;
-
-    testCase.createdEmployees = [];
-    const basePayload = testCase.payloadCreateEmployee;
-
-    for (const status of employeeStatuses) {
-      const randomString = getRandomString(5);
-      const payload = {
-        ...basePayload,
-        last_name: status + randomString,
-        status,
-        date_of_joining: getYesterdayDate(),
-        custom_reporting_manager: managerName,
-        reports_to: managerId,
-        leave_approver: managerMail,
-      };
-      if (status === "Left") {
-        payload.relieving_date = getFormattedDate(new Date());
-      }
-
-      try {
-        const response = await addEmployee(payload, "admin");
-
-        // handle cross-test contamination
-        if (status === "Active") {
-          const fullName = `${payload.first_name} ${payload.last_name}`;
-          if (managerTeamData["TC39"] &&
-              !managerTeamData["TC39"].employees.includes(fullName)) {
-                managerTeamData["TC39"].employees.push(fullName);
-          }
-          if (managerTeamData["TC53"]) {
-            const tc53 = managerTeamData["TC53"];
-            if (!tc53.employeesInQE.includes(fullName)) tc53.employeesInQE.push(fullName);
-            if (!tc53.employeesInStaging.includes(fullName)) tc53.employeesInStaging.push(fullName);
-          }
-        }
-
-        testCase.createdEmployees.push({ ...payload, name: response.data.name });
-        //console.log(`✅ Created [${status}] ${response.data.name} for ${testCaseID}`);
-      } catch (err) {
-        console.error(`❌ Error creating ${status} for ${testCaseID}:`, err);
-      }
-    }
-  }
-
-  // Write back the updated shared data
-  await writeDataToFile(managerTeamDataFilePath, managerTeamData);
-}
-*/
 
 /**
  * Delete Employees created for each test case ID
@@ -426,44 +133,7 @@ export async function deleteEmployees(testCaseID,jsonDir) {
     }
   }
 
-  // Optionally clear out the createdEmployees array in its file
-  //testCase.createdEmployees = [];
-  /*
-  try {
-    await writeDataToFile(filePath, testCase);
-    //console.log(`• Cleared createdEmployees in ${filePath}`);
-  } catch (err) {
-    console.warn(`⚠️ Failed to update ${filePath}: ${err.message}`);
-  }
-    */
 }
-/*
-export async function deleteEmployees(testCaseIDs) {
-  // Read from Json file
-  let managerTeamData = await readJSONFile(managerTeamDataFilePath);
-
-  for (const testCaseID of testCaseIDs) {
-    const testCase = managerTeamData[testCaseID];
-    if (!testCase || !Array.isArray(testCase.createdEmployees)) continue;
-
-    for (const emp of testCase.createdEmployees) {
-      if (!emp.name) continue;
-      try {
-        await deleteEmployee(emp.name, "admin");
-        //console.log(`🗑 Deleted ${emp.name} for ${testCaseID}`);
-      } catch (err) {
-        console.warn(`⚠️ Failed to delete ${emp.name}: ${err.message}`);
-      }
-    }
-    // clear out after deletion
-    //testCase.createdEmployees = [];
-  }
-
-  // Persist the cleaned-up data
-  await writeDataToFile(managerTeamDataFilePath, managerTeamData);
-}
-  */
-// ------------------------------------------------------------------------------------------
 
 /**
  * Filter the employees by their first name: "Playwright-" and delete them

@@ -21,7 +21,7 @@ import { filterApi, shareProjectWithUser } from "../utils/api/frappeRequests";
 import { deleteLeave } from "../utils/api/leaveRequests";
 import { getWeekRange } from "../utils/dateUtils";
 import { deleteEmployeeByName } from "./employeeHelper";
-//import { deleteUserGroupForEmployee } from "./teamTabHelper";
+import { deleteUserGroupForEmployee } from "./teamTabHelper";
 // Load env variables
 const empID = process.env.EMP_ID;
 const emp2ID = process.env.EMP2_ID;
@@ -38,7 +38,7 @@ const TASK_TRACKER_PATH = path.resolve(__dirname, "../data/manager/tasks-to-dele
  *
  * @param {string[]} testCaseIDs  The list of test case IDs to process
  */
-export async function updateTimeEntries(testCaseIDs = [],jsonDir) {
+export async function updateTimeEntries(testCaseIDs = [], jsonDir) {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
 
   // split IDs
@@ -53,8 +53,17 @@ export async function updateTimeEntries(testCaseIDs = [],jsonDir) {
     for (const testCaseID of tcs) {
       const entry = data[testCaseID];
       if (!entry?.cell?.col) continue;
+      // determine employee ID based on test case
+      let employeeID;
+      if (testCaseID === "TC2") {
+        employeeID = emp2ID;
+      } else if (["TC6", "TC7", "TC92"].includes(testCaseID)) {
+        employeeID = emp3ID;
+      } else {
+        employeeID = empID;
+      }
+
       const formattedDate = getFormattedDate(getDateForWeekday(entry.cell.col));
-      const employeeID = testCaseID === "TC92" ? emp3ID : testCaseID === "TC2" ? emp2ID : empID;
       if (entry.payloadCreateTimesheet) {
         entry.payloadCreateTimesheet.date = formattedDate;
         entry.payloadCreateTimesheet.employee = employeeID;
@@ -72,23 +81,20 @@ export async function updateTimeEntries(testCaseIDs = [],jsonDir) {
   updateEntries(employeeTimesheetData, empTCs);
   updateEntries(managerTeamData, mgrTCs);
 
-
   // write per-TC files
   for (const tc of empTCs) {
     const payload = employeeTimesheetData[tc];
     if (!payload) continue;
-    //const filePath = path.resolve(__dirname, "../data/json-files", `${tc}.json`);
     const filePath = path.join(jsonDir, `${tc}.json`);
 
     await writeDataToFile(filePath, { [tc]: payload });
-    //console.log(`✅ Wrote updated timesheet for ${tc} to ${filePath}`);
+    console.log(`✅ Updated Time Entry  for ${tc} to ${filePath}`);
   }
 
   for (const tc of mgrTCs) {
     const newPayload = managerTeamData[tc];
     if (!newPayload) continue;
 
-    //const filePath = path.resolve(__dirname, "../data/json-files", `${tc}.json`);
     const filePath = path.join(jsonDir, `${tc}.json`);
 
     // 🧩 Merge with existing JSON file
@@ -107,7 +113,7 @@ export async function updateTimeEntries(testCaseIDs = [],jsonDir) {
     };
 
     await writeDataToFile(filePath, { [tc]: mergedEntry });
-    //console.log(`✅ Wrote merged manager data for ${tc} to ${filePath}`);
+    console.log(`✅ Updated Time Entry for ${tc} to ${filePath}`);
   }
 }
 
@@ -117,7 +123,7 @@ export async function updateTimeEntries(testCaseIDs = [],jsonDir) {
  *
  * @param {string[]} testCaseIDs  The list of test case IDs to process
  */
-export async function createTimeEntries(testCaseIDs = [],jsonDir) {
+export async function createTimeEntries(testCaseIDs = [], jsonDir) {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
 
   // 1) Extract the single test‐case ID
@@ -156,7 +162,7 @@ export async function createTimeEntries(testCaseIDs = [],jsonDir) {
  * @param {string[]} testCaseIDs  The list of test case IDs to process
  */
 
-export const deleteTimeEntries = async (testCaseIDs = [],jsonDir) => {
+export const deleteTimeEntries = async (testCaseIDs = [], jsonDir) => {
   // bail out if nothing to do
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) {
     return;
@@ -256,7 +262,7 @@ export const filterTimesheetEntry = async (opts) => {
  * Uses the in‑JS-module data, then writes out to JSON.
  */
 
-export const createProjectForTestCases = async (testCaseIDs,jsonDir) => {
+export const createProjectForTestCases = async (testCaseIDs, jsonDir) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
   const [tcId] = testCaseIDs;
 
@@ -311,14 +317,14 @@ export const createProjectForTestCases = async (testCaseIDs,jsonDir) => {
 
   // **Write back** only the wrapped object { "TC4": entry }
   await writeDataToFile(stubPath, { [tcId]: entry });
-  //console.log(`✅ Updated stub for ${tcId}  in CREATE PROJECT (projectId=${projectId})`);
+  console.log(`✅ CREATE PROJECT SUCCESS for ${tcId}  in  (projectId=${projectId})`);
 };
 
 /**
  * Deletes projects for all testCaseIDs passed in.
  * Reads back the shared JSON, then deletes.
  */
-export const deleteProjects = async (testCaseIDs = [],jsonDir) => {
+export const deleteProjects = async (testCaseIDs = [], jsonDir) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) {
     return;
   }
@@ -354,7 +360,7 @@ export const deleteProjects = async (testCaseIDs = [],jsonDir) => {
  * Creates tasks for all testCaseIDs passed in.
  */
 
-export const createTaskForTestCases = async (testCaseIDs,jsonDir) => {
+export const createTaskForTestCases = async (testCaseIDs, jsonDir) => {
   // nothing to do if no ID provided
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
 
@@ -409,7 +415,7 @@ export const createTaskForTestCases = async (testCaseIDs,jsonDir) => {
 
   // persist the mutated stub, wrapped under the TC key
   await writeDataToFile(stubPath, { [tcId]: entry });
-  //console.log(`✏️  [${tcId}] stub updated at ${stubPath}`);
+  console.log(`✅ CREATE TASK SUCCESS FOR: ${testCaseIDs}`);
 };
 
 /**
@@ -461,8 +467,7 @@ export const deleteByTaskName = async () => {
  * deletes each, using admin rights for specific cases.
  */
 
-
-export const deleteTasks = async (testCaseIDs,jsonDir) => {
+export const deleteTasks = async (testCaseIDs, jsonDir) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
 
   const adminCases = new Set(["TC2", "TC92"]);
@@ -527,7 +532,7 @@ export const deleteTasks = async (testCaseIDs) => {
  * Calculates hourly billing rate of employee and billing rate of a project
  * for the provided testCaseIDs array.
  */
-export const calculateHourlyBilling = async (testCaseIDs = [],jsonDir) => {
+export const calculateHourlyBilling = async (testCaseIDs = [], jsonDir) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
 
   // 1) Fetch employee info once
@@ -712,7 +717,7 @@ export const readAndCleanAllOrphanData = async () => {
   await deleteLeaveOfEmployee();
   await deleteEmployeeByName();
   await cleanUpProjects(mergedData);
-  //await deleteUserGroupForEmployee();
+  await deleteUserGroupForEmployee();
 };
 /**
  * Submits timesheet for Approval for an employee

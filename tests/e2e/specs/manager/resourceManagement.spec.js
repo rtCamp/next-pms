@@ -60,7 +60,7 @@ test.describe("Manager : Resource Management Tab", () => {
     await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
   });
 
-  test.skip("TC103: Verify add Allocation workflow by clicking on a specfic cell wrt Employee and Date", async ({
+  test("TC103: Verify add Allocation workflow by clicking on a specfic cell wrt Employee and Date", async ({
     page,
     jsonDir,
   }) => {

@@ -5,7 +5,7 @@ import { TimesheetPage } from "../../pageObjects/timesheetPage";
 import { getDateForWeekday, getShortFormattedDate } from "../../utils/dateUtils";
 import * as allure from "allure-js-commons";
 import { readJSONFile } from "../../utils/fileUtils";
-
+import { randomApprovalStatus } from "../../helpers/teamTabHelper";
 /** @type {TeamPage} */ let teamPage;
 /** @type {TimesheetPage} */ let timesheetPage;
 
@@ -83,7 +83,7 @@ test.describe("Manager: Team Tab", () => {
     expect(selectedEmployee).toContain(TC45data.employee);
   });
 
-  test("TC47: Modify or delete employee time entries", async ({ page ,jsonDir}) => {
+  test("TC47: Modify or delete employee time entries", async ({ page, jsonDir }) => {
     allure.story("Team");
     const stubPath = path.join(jsonDir, "TC47.json");
 
@@ -116,7 +116,7 @@ test.describe("Manager: Team Tab", () => {
     allure.story("Team");
     const stubPath = path.join(jsonDir, "TC50.json");
     const data = await readJSONFile(stubPath);
-        const TC50data = data.TC50;
+    const TC50data = data.TC50;
     await teamPage.viewNextWeek();
     await teamPage.toggleEmployeeTimesheet(empName);
     await teamPage.openTaskDetails({
@@ -131,7 +131,7 @@ test.describe("Manager: Team Tab", () => {
     allure.story("Team");
     const stubPath = path.join(jsonDir, "TC53.json");
     const data = await readJSONFile(stubPath);
-        const TC53data = data.TC53;
+    const TC53data = data.TC53;
     const employees = await teamPage.getEmployees();
 
     const expectedEmployees =
@@ -146,11 +146,11 @@ test.describe("Manager: Team Tab", () => {
     expect(normalizedActual).toEqual(normalizedExpected);
   });
 
-  test("TC91: Employee Status filter shows correct results", async ({jsonDir}) => {
+  test("TC91: Employee Status filter shows correct results", async ({ jsonDir }) => {
     allure.story("Team");
     const stubPath = path.join(jsonDir, "TC91.json");
     const data = await readJSONFile(stubPath);
-        const TC91data = data.TC91;
+    const TC91data = data.TC91;
     const employeeStatuses = ["Active", "Inactive", "Suspended", "Left"];
     for (const empStatus of employeeStatuses) {
       console.warn(`Verifying results for Employee Status: ${empStatus}`);
@@ -167,26 +167,11 @@ test.describe("Manager: Team Tab", () => {
     }
   });
 
-  test("TC92: Approval Status filter shows correct results", async ({ jsonDir }) => {
-    allure.story("Team");
-    const stubPath = path.join(jsonDir, "TC92.json");
-    const data = await readJSONFile(stubPath);
-        const TC92data = data.TC92;
-    await teamPage.viewNextWeek();
-    await teamPage.checkApprovalStatus(TC92data.payloadApprovalStatus.approvalStatus);
-    const status = await teamPage.getTimesheetStatus(emp3Name);
-    if (TC92data.payloadApprovalStatus.approvalStatus === "Partially Rejected") {
-      expect(status).toContain("Rejected");
-    } else {
-      expect(status).toBe(TC92data.payloadApprovalStatus.approvalStatus);
-    }
-  });
-
   test("TC93: Project Filter shows employee under project", async ({ jsonDir }) => {
     allure.story("Team");
     const stubPath = path.join(jsonDir, "TC93.json");
     const data = await readJSONFile(stubPath);
-        const TC93data = data.TC93;
+    const TC93data = data.TC93;
     await teamPage.checkProjectStatus(TC93data.payloadCreateProject.project_name);
     for (const employee of TC93data.projectSharedWithEmps) {
       await expect(teamPage.employeeNameInTable(employee)).toBeVisible();
@@ -197,15 +182,15 @@ test.describe("Manager: Team Tab", () => {
     allure.story("Team");
     const stubPath = path.join(jsonDir, "TC94.json");
     const data = await readJSONFile(stubPath);
-        const TC94data = data.TC94;
+    const TC94data = data.TC94;
     await teamPage.checkUserGroup(TC94data.payloadCreateUserGroup.__newname);
     await expect(teamPage.employeeNameInTable(TC94data.employeeName)).toBeVisible();
   });
-  test.fail("TC49: Reject timesheet for employee", async ({ page }) => {
+  test.fixme("TC49: Reject timesheet for employee", async ({ page, jsonDir }) => {
     allure.story("Team");
     const stubPath = path.join(jsonDir, "TC49.json");
     const data = await readJSONFile(stubPath);
-        const TC49data = data.TC49;
+    const TC49data = data.TC49;
     await teamPage.viewNextWeek();
     await teamPage.rejectTimesheet({
       employee: empName,
@@ -216,5 +201,30 @@ test.describe("Manager: Team Tab", () => {
     await teamPage.viewNextWeek();
     const status = await teamPage.getTimesheetStatus(empName);
     expect(status).toBe("Rejected");
+  });
+});
+test.describe("Manager: Team Tab2", () => {
+  test.beforeAll(async ({jsonDir}) => {
+    await randomApprovalStatus(["TC92"], jsonDir);
+  });
+  test.beforeEach(async ({ page }) => {
+    teamPage = new TeamPage(page);
+    timesheetPage = new TimesheetPage(page);
+    await teamPage.goto();
+  });
+
+  test("TC92: Approval Status filter shows correct results", async ({ jsonDir }) => {
+    allure.story("Team");
+    const stubPath = path.join(jsonDir, "TC92.json");
+    const data = await readJSONFile(stubPath);
+    const TC92data = data.TC92;
+    await teamPage.viewNextWeek();
+    await teamPage.checkApprovalStatus(TC92data.payloadApprovalStatus.approvalStatus);
+    const status = await teamPage.getTimesheetStatus(emp3Name);
+    if (TC92data.payloadApprovalStatus.approvalStatus === "Partially Rejected") {
+      expect(status).toContain("Rejected");
+    } else {
+      expect(status).toBe(TC92data.payloadApprovalStatus.approvalStatus);
+    }
   });
 });

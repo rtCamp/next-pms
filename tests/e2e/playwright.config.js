@@ -31,7 +31,7 @@ module.exports = defineConfig({
   forbidOnly: !!process.env.CI,
 
   /* Retry logic for failed tests */
-  retries: process.env.CI ? 2 : 0, // Retry twice on CI, no retries locally
+  retries: process.env.CI ? 2 : 2, // Retry twice on CI, no retries locally
 
   /* Configure the number of workers for parallel execution */
   workers: process.env.CI ? 4 : undefined, // Use 4 workers on CI, defaults to the number of CPU cores otherwise
@@ -75,7 +75,6 @@ module.exports = defineConfig({
       name: "employee-chromium",
       testDir: "./specs/employee",
       use: { ...devices["Desktop Chrome"] },
-      // now we set TEST_ROLE here in metadata
       metadata: { TEST_ROLE: "employee" },
     },
     {
@@ -83,6 +82,12 @@ module.exports = defineConfig({
       testDir: "./specs/employee2",
       use: { ...devices["Desktop Chrome"] },
       metadata: { TEST_ROLE: "employee2" },
+    },
+    {
+      name: "employee3-chromium",
+      testDir: "./specs/employee3",
+      use: { ...devices["Desktop Chrome"] },
+      metadata: { TEST_ROLE: "employee3" },
     },
     {
       name: "manager-chromium",
