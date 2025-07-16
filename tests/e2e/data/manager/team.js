@@ -1,10 +1,12 @@
 module.exports = {
+  TC38: {},
   TC39: {
     employees: [process.env.EMP_NAME, process.env.EMP3_NAME],
   },
   TC42: {
     col: "Mon",
   },
+  TC43: {},
   TC45: {
     employee: process.env.EMP3_NAME,
   },
