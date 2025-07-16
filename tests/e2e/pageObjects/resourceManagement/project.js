@@ -36,6 +36,7 @@ export class ProjectPage extends TimelinePage {
   async filterByProject(projectName) {
     await this.filterByProjectInput.click();
     await this.filterByProjectInput.fill(projectName);
+    await this.page.waitForTimeout(1000); // added to avoid flaky test
   }
 
   /**
