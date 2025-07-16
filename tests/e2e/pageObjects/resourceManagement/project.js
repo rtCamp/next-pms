@@ -11,7 +11,9 @@ export class ProjectPage extends TimelinePage {
 
     //table elements
     this.projectTableTitle = page.getByRole("cell", { name: "Projects" });
-    this.deleteButton = page.getByRole("img", { name: "Delete" });
+    this.deleteButton = page.getByRole("img", { name: "Delete" }).first();
+    this.editIcon = page.getByRole("img", { name: "Edit" }).first();
+    this.clipboardIcon = page.getByRole("img", { name: "Copy" }).first();
   }
 
   /**
@@ -39,9 +41,10 @@ export class ProjectPage extends TimelinePage {
   /**
    * Adds an allocation for a specific employee by clicking on their cell and filling the allocation form.
    */
-  async addAllocationFromProjectTab(projectName, customerName, employeeName, date, day) {
-    await this.filterByProject(projectName);
-
+  async addAllocationFromProjectTab(projectName, customerName, employeeName, date, day, allocation = "8") {
+    if (!(await this.filterByProjectInput.isVisible())) {
+      await this.filterByProject(projectName);
+    }
     let allotmentDate = date;
     let allotmentDay = day;
 
@@ -49,7 +52,7 @@ export class ProjectPage extends TimelinePage {
     await this.selectEmployee(employeeName);
     await this.selectCustomer(customerName);
     await this.selectProject(customerName, projectName);
-    await this.setHoursPerDay("8");
+    await this.setHoursPerDay(allocation);
 
     // Wait for the allocation API response and click the create button in parallel
     const [response] = await Promise.all([
@@ -74,5 +77,51 @@ export class ProjectPage extends TimelinePage {
     await this.page.getByTitle(`${projectName} (${date} - ${day})`).hover();
     await this.deleteButton.click();
     await this.confirmDeleteButton.click();
+  }
+
+  /**
+   * Click on the clipboard icon on hover
+   */
+  async clickClipboardIcon(projectName, date, day) {
+    await this.page.waitForTimeout(1000);
+    await this.page.getByTitle(`${projectName} (${date} - ${day})`).hover();
+    await this.clipboardIcon.click();
+  }
+
+  /**
+   * Click on the edit icon on hover
+   */
+  async clickEditIcon(projectName, date, day) {
+    await this.page.waitForTimeout(1000);
+    await this.page.getByTitle(`${projectName} (${date} - ${day})`).hover();
+    await this.editIcon.click();
+  }
+
+  /**
+   * Add a allocated time on a add allocation modal
+   */
+  async addAllocationFromProjectTabFromClipboard(hoursPerDay, totalAllocatedHours = "100") {
+    this.totalHoursTextField.fill("");
+    this.totalHoursTextField.fill(totalAllocatedHours);
+    await this.setHoursPerDay(hoursPerDay);
+    await this.clickCreateButton();
+  }
+
+  /**
+   * Edit a allocated time on a add allocation modal
+   */
+  async editAllocationFromProjectTab(hoursPerDay, totalAllocatedHours = "100") {
+    this.totalHoursTextField.fill("");
+    this.totalHoursTextField.fill(totalAllocatedHours);
+    await this.setHoursPerDay(hoursPerDay);
+  }
+
+  /**
+   * Get an allocation time from Project page using project name and allocation date
+   */
+  async getAllocationFromProjectTab(projectName, date, day) {
+    await this.page.waitForTimeout(1000);
+    const allocationTime = await this.page.getByTitle(`${projectName} (${date} - ${day})`).textContent();
+    return allocationTime;
   }
 }

@@ -144,3 +144,31 @@ export const getFormattedDateNDaysFromToday = (n) => {
     day: getWeekdayName(date),
   };
 };
+
+/**
+ * Get the date of the past workday based on the given offset.
+ * If the resulting day is Sat or Sun, move it to the previous Friday.
+ */
+export const getFormattedPastWorkday = (offset) => {
+  let date = new Date();
+  date.setDate(date.getDate() + offset);
+
+  // Move back to Friday if it's Saturday or Sunday
+  while (date.getDay() === 6 || date.getDay() === 0) {
+    date.setDate(date.getDate() - 1);
+  }
+
+  const formattedDate = date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+
+  const dayOfWeek = date.toLocaleDateString("en-US", {
+    weekday: "short",
+  });
+
+  return {
+    date: formattedDate, // e.g., "Jul 08"
+    day: dayOfWeek, // e.g., "Mon"
+  };
+};
