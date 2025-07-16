@@ -464,6 +464,7 @@ module.exports = {
       },
     ],
   },
+  TC52: {},
   TC82: {
     cell: {
       rowName: "TC82 Billable Task",

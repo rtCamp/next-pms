@@ -28,15 +28,7 @@ const emp2ID = process.env.EMP2_ID;
 const emp3ID = process.env.EMP3_ID;
 
 // Define file paths for shared JSON data files
-const employeeTimesheetDataFilePath = path.resolve(__dirname, "../data/employee/shared-timesheet.json"); // File path of the employee timesheet data JSON file
-//const managerTeamDataFilePath = path.resolve(__dirname, "../data/manager/shared-team.json"); // File path of the manager team data JSON file
-//const managerTaskDataFilePath = path.resolve(__dirname, "../data/manager/shared-task.json"); // File path of the manager team data JSON file
 const TASK_TRACKER_PATH = path.resolve(__dirname, "../data/manager/tasks-to-delete.json");
-
-// Global variables to store shared data and reused across functions
-//let sharedEmployeeTimesheetData;
-//let sharedManagerTeamData;
-//let sharedManagerTaskData;
 
 // ------------------------------------------------------------------------------------------
 
@@ -80,10 +72,6 @@ export async function updateTimeEntries(testCaseIDs = [],jsonDir) {
   updateEntries(employeeTimesheetData, empTCs);
   updateEntries(managerTeamData, mgrTCs);
 
-  // ensure output directory exists
-  //const outDir = path.resolve(__dirname, "../data/json-files");
-  //const stubPath = path.join(jsonDir, `${tcId}.json`);
-  //await fs.promises.mkdir(outDir, { recursive: true });
 
   // write per-TC files
   for (const tc of empTCs) {
@@ -95,17 +83,7 @@ export async function updateTimeEntries(testCaseIDs = [],jsonDir) {
     await writeDataToFile(filePath, { [tc]: payload });
     //console.log(`✅ Wrote updated timesheet for ${tc} to ${filePath}`);
   }
-  /*
-  for (const tc of mgrTCs) {
-    const payload = managerTeamData[tc];
-    if (!payload) continue;
-    //const filePath = path.join(outDir, `${tc}.json`);
-    const filePath = path.resolve(__dirname, "../data/json-files", `${tc}.json`);
 
-    await writeDataToFile(filePath, { [tc]: payload });
-    //console.log(`✅ Wrote updated manager data for ${tc} to ${filePath}`);
-  }
-    */
   for (const tc of mgrTCs) {
     const newPayload = managerTeamData[tc];
     if (!newPayload) continue;
@@ -132,55 +110,6 @@ export async function updateTimeEntries(testCaseIDs = [],jsonDir) {
     //console.log(`✅ Wrote merged manager data for ${tc} to ${filePath}`);
   }
 }
-/*
-export async function updateTimeEntries(testCaseIDs = []) {
-  if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
-
-  // split incoming IDs by where they live
-  const empTCs = testCaseIDs.filter((tc) => tc in employeeTimesheetData);
-  const mgrTCs = testCaseIDs.filter((tc) => tc in managerTeamData);
-
-  // the core update logic (your original updateEntries)
-  const updateEntries = (data, tcs) => {
-    // special case: set your dynamic weekday‑col before anything else
-    if (tcs.includes("TC2")) {
-      data.TC2.cell.col = getWeekdayName(new Date());
-    }
-
-    for (const testCaseID of tcs) {
-      const entry = data[testCaseID];
-      if (!entry?.cell?.col) continue;
-
-      const formattedDate = getFormattedDate(getDateForWeekday(entry.cell.col));
-
-      // pick the right employee ID
-      const employeeID = testCaseID === "TC92" ? emp3ID : testCaseID === "TC2" ? emp2ID : empID;
-
-      // update create‑timesheet payload
-      if (entry.payloadCreateTimesheet) {
-        entry.payloadCreateTimesheet.date = formattedDate;
-        entry.payloadCreateTimesheet.employee = employeeID;
-      }
-      console.warn("UPDATING ENTRY FOR", entry);
-      // update all filter‑time entries
-      Object.keys(entry)
-        .filter((k) => k.startsWith("payloadFilterTimeEntry"))
-        .forEach((k) => {
-          entry[k].from_time = formattedDate;
-          entry[k].employee = employeeID;
-        });
-    }
-  };
-
-  // 1) update in‑memory modules
-  updateEntries(employeeTimesheetData, empTCs);
-  updateEntries(managerTeamData, mgrTCs);
-  // Write updated data to shared JSON files
-  fs.writeFileSync(employeeTimesheetDataFilePath, JSON.stringify(employeeTimesheetData, null, 2));
-  fs.writeFileSync(managerTeamDataFilePath, JSON.stringify(managerTeamData, null, 2));
-}
-*/
-// ------------------------------------------------------------------------------------------
 
 /**
  * Creates timesheet entries for the given testCaseIDs.
@@ -219,31 +148,6 @@ export async function createTimeEntries(testCaseIDs = [],jsonDir) {
   await createTimesheet(payload);
   //console.log(`✅ Timesheet created for TC ${tcId}:`);
 }
-/*
-export async function createTimeEntries(testCaseIDs) {
-  // Load data
-  const employeeData = await readJSONFile(employeeTimesheetDataFilePath);
-  const managerData = await readJSONFile(managerTeamDataFilePath);
-  const testCaseJsonFile = path.resolve(__dirname, "../data/json-files", `${testCaseIDs}.json`);
-
-  // Collect all payloadCreateTimesheet objects for requested IDs
-  const entries = [];
-  for (const id of testCaseIDs) {
-    const empEntry = employeeData[id]?.payloadCreateTimesheet;
-    if (empEntry) entries.push(empEntry);
-
-    const mgrEntry = managerData[id]?.payloadCreateTimesheet;
-    if (mgrEntry) entries.push(mgrEntry);
-  }
-
-  // Create each timesheet
-  for (const payload of entries) {
-    await createTimesheet(payload);
-    //console.log(`✅ Timesheet created for payload:`, payload);
-  }
-}
-*/
-// ------------------------------------------------------------------------------------------
 
 /**
  * Deletes timesheet entries for the given testCaseIDs.
@@ -302,49 +206,6 @@ export const deleteTimeEntries = async (testCaseIDs = [],jsonDir) => {
     }
   }
 };
-/*
-export const deleteTimeEntries = async (testCaseIDs = []) => {
-  if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) {
-    return;
-  }
-
-  const sharedEmployeeData = await readJSONFile("../data/employee/shared-timesheet.json");
-  const sharedManagerData = await readJSONFile(managerTeamDataFilePath);
-
-  const extractEntries = (dataNode) =>
-    Object.entries(dataNode || {})
-      .filter(([key]) => key.startsWith("payloadFilterTimeEntry"))
-      .map(([, value]) => value)
-      .filter(Boolean);
-
-  // Build an array of { tcId, entry } objects instead of just entries
-  const entriesWithTC = testCaseIDs.flatMap((tcId) => {
-    const empNode = sharedEmployeeData[tcId];
-    const mgrNode = sharedManagerData[tcId];
-
-    return [
-      ...extractEntries(empNode).map((entry) => ({ tcId, entry })),
-      ...extractEntries(mgrNode).map((entry) => ({ tcId, entry })),
-    ];
-  });
-
-  for (const { tcId, entry } of entriesWithTC) {
-    // filter to get the real parent/name
-    const { parent, name } = await filterTimesheetEntry(entry);
-
-    // log with test case context
-    //console.log(`Got parent and name from test case ${tcId} as: parent=${parent}, name=${name}`);
-
-    await deleteTimesheet({ parent, name }, "employee");
-
-    // optional special warning
-    if (entry.project_name === "TC02 Project") {
-      console.warn(`RESPONSE OF DELETE TIMESHEET FOR TC02: ${entry.project_name}`);
-    }
-  }
-};
-*/
-// ------------------------------------------------------------------------------------------
 
 /**
  * Filters timesheet entries and returns the metadata of the matching time entry.
@@ -389,59 +250,6 @@ export const filterTimesheetEntry = async (opts) => {
 
   return {}; // nothing matched
 };
-/*
-export const filterTimesheetEntry = async ({ subject, description, project_name, from_time, employee, max_week }) => {
-
-  console.warn(
-    `FILTER TIME SHEET ENTRY GOT DETAILS FOR: \n SUBJECT : ${subject} \n description: ${description}\n project_name: ${project_name} \n from_time: ${from_time} \n employee: ${employee}\n \n max_week: ${max_week}\n `
-  );
-  const payload = { employee, start_date: from_time, max_week };
-  const res = await getTimesheetDetails(payload);
-
-  console.warn(`Response for FILTER TIMESHEET ENTRY FOR SUBJECT:${subject} is :     `);
-  const jsonResponse = res && typeof res.json === "function" ? await res.json() : res;
-  console.dir(jsonResponse, { depth: 10 });
-  const data = jsonResponse.message.data;
-console.warn(``)
-  // Iterate over all weeks
-  for (const weekData of Object.values(data)) {
-    // Extract and iterate over all tasks
-    for (const taskMetaData of Object.values(weekData.tasks)) {
-      if (taskMetaData.subject !== subject) continue;
-
-      // Debug all entries
-      for (const e of taskMetaData.data || []) {
-        const rawDescription = e.description || "";
-        const plainDescription = rawDescription.replace(/<[^>]+>/g, "");
-
-        //console.log(`🔍 Checking timesheet entry:`, {
-          description: plainDescription,
-          from_time: e.from_time,
-          project_name: e.project_name,
-        });
-      }
-
-      // Try to find matching entry based on stripped description and other criteria
-      const matchingEntry = (taskMetaData.data || []).find((e) => {
-        const rawDescription = e.description || "";
-        const plainDescription = rawDescription.replace(/<[^>]+>/g, "");
-
-        return (
-          plainDescription.toLowerCase().includes("TC") &&
-          e.project_name === project_name &&
-          e.from_time.startsWith(from_time)
-        );
-      });
-
-      console.warn("✅ MATCHING ENTRY:", matchingEntry);
-      if (matchingEntry) return matchingEntry;
-    }
-  }
-
-  return {};
-};
-*/
-// ------------------------------------------------------------------------------------------
 
 /**
  * Creates projects for all testCaseIDs passed in.
@@ -506,112 +314,6 @@ export const createProjectForTestCases = async (testCaseIDs,jsonDir) => {
   //console.log(`✅ Updated stub for ${tcId}  in CREATE PROJECT (projectId=${projectId})`);
 };
 
-/*
-export const createProjectForTestCases = async (testCaseIDs) => {
-  if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) {
-    return;
-  }
-  const [tcId] = testCaseIDs;
-
-  // per‑TC JSON stub path
-  const stubPath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
-
-  // read only that one stub
-  const entry = await readJSONFile(stubPath);
-  if (!entry.payloadCreateProject) {
-    console.warn(`⚠️ No payloadCreateProject for TC ${tcId}`);
-    return;
-  }
-
-  // create project
-  const res = await createProject(entry.payloadCreateProject);
-  if (!res.ok) {
-    console.error(`Failed to create project for ${tcId}: ${res.statusText}`);
-    return;
-  }
-  const json = await res.json();
-  const projectId = json.data.name;
-  const customCurrency = json.data.custom_currency;
-
-  // share
-  if (Array.isArray(entry.payloadShareProject)) {
-    for (const sharePayload of entry.payloadShareProject) {
-      await shareProjectWithUser({ ...sharePayload, name: projectId });
-    }
-  }
-
-  // wire up delete/calc payloads
-  if (entry.payloadDeleteProject) {
-    entry.payloadDeleteProject.projectId = projectId;
-  }
-  if (entry.payloadCreateTask) {
-    entry.payloadCreateTask.project = projectId;
-  }
-  if (entry.payloadCalculateBillingRate) {
-    Object.assign(entry.payloadCalculateBillingRate, {
-      project: projectId,
-      custom_currency_for_project: customCurrency,
-    });
-  }
-
-  // now write back *only* the mutated stub
-  await writeDataToFile(stubPath, entry);
-};
-*/
-/*
-export const createProjectForTestCases = async (testCaseIDs) => {
-  const processTestCases = async (data, ids) => {
-    for (const id of ids) {
-      const entry = data[id];
-      if (!entry || !entry.payloadCreateProject) continue;
-
-      const res = await createProject(entry.payloadCreateProject);
-      if (!res.ok) {
-        console.error(`Failed to create project for ${id}: ${res.statusText}`);
-        continue;
-      }
-      const json = await res.json();
-      const projectId = json.data.name;
-      const customCurrency = json.data.custom_currency;
-
-      // share
-      if (Array.isArray(entry.payloadShareProject)) {
-        for (const sharePayload of entry.payloadShareProject) {
-          await shareProjectWithUser({ ...sharePayload, name: projectId });
-        }
-      }
-
-      // wire up delete/calc payloads
-      if (entry.payloadDeleteProject) {
-        entry.payloadDeleteProject.projectId = projectId;
-      }
-      if (entry.payloadCreateTask) {
-        entry.payloadCreateTask.project = projectId;
-      }
-      if (entry.payloadCalculateBillingRate) {
-        Object.assign(entry.payloadCalculateBillingRate, {
-          project: projectId,
-          custom_currency_for_project: customCurrency,
-        });
-      }
-    }
-  };
-
-  // filter IDs against each dataset
-  const empIDs = testCaseIDs.filter((id) => employeeTimesheetData[id]);
-  const mgrTIDs = testCaseIDs.filter((id) => managerTaskData[id]);
-  const mgrIDs = testCaseIDs.filter((id) => managerTeamData[id]);
-
-  await processTestCases(employeeTimesheetData, empIDs);
-  await writeDataToFile(employeeTimesheetDataFilePath, employeeTimesheetData);
-
-  await processTestCases(managerTaskData, mgrTIDs);
-  await writeDataToFile(managerTaskDataFilePath, managerTaskData);
-
-  await processTestCases(managerTeamData, mgrIDs);
-  await writeDataToFile(managerTeamDataFilePath, managerTeamData);
-};
-*/
 /**
  * Deletes projects for all testCaseIDs passed in.
  * Reads back the shared JSON, then deletes.
@@ -648,30 +350,9 @@ export const deleteProjects = async (testCaseIDs = [],jsonDir) => {
   //console.log(`🗑️  Deleted project ${projId} for TC ${tcId}`);
 };
 
-/*
-export const deleteProjects = async (testCaseIDs) => {
-  const employeeData = await readJSONFile(employeeTimesheetDataFilePath);
-  const managerTeam = await readJSONFile(managerTeamDataFilePath);
-  const managerTask = await readJSONFile(managerTaskDataFilePath);
-
-  const allDataSets = [employeeData, managerTask, managerTeam];
-
-  for (const data of allDataSets) {
-    for (const id of testCaseIDs) {
-      const projId = data[id]?.payloadDeleteProject?.projectId;
-      if (projId) {
-        await deleteProject(projId);
-      }
-    }
-  }
-};
-*/
-// ------------------------------------------------------------------------------------------
-
 /**
  * Creates tasks for all testCaseIDs passed in.
  */
-// helpers/taskHelper.js
 
 export const createTaskForTestCases = async (testCaseIDs,jsonDir) => {
   // nothing to do if no ID provided
@@ -730,133 +411,6 @@ export const createTaskForTestCases = async (testCaseIDs,jsonDir) => {
   await writeDataToFile(stubPath, { [tcId]: entry });
   //console.log(`✏️  [${tcId}] stub updated at ${stubPath}`);
 };
-/*
-export const createTaskForTestCases = async (testCaseIDs) => {
-  // nothing to do if no ID provided
-  if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
-
-  // we only expect one ID per run
-  const [tcId] = testCaseIDs;
-
-  // resolve its stub file
-  const stubPath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
-
-  // read the JSON stub
-  const entry = await readJSONFile(stubPath);
-  if (!entry || !entry.payloadCreateTask) {
-    console.warn(`⚠️ [${tcId}] no payloadCreateTask, skipping`);
-    return;
-  }
-
-  // CREATE
-  const createRes = await createTask(entry.payloadCreateTask);
-  if (!createRes?.data?.name) {
-    console.error(`❌ [${tcId}] createTask failed`);
-    return;
-  }
-  const taskID = createRes.data.name;
-
-  // wire up delete
-  if (entry.payloadDeleteTask) {
-    entry.payloadDeleteTask.taskID = taskID;
-  }
-
-  // optional UPDATE
-  if (entry.payloadUpdateTask) {
-    await updateTask(taskID, entry.payloadUpdateTask);
-  }
-
-  // LIKE
-  if (entry.payloadLikeTask) {
-    entry.payloadLikeTask.name = taskID;
-    const likeRes = await likeTask(taskID, entry.payloadLikeTask.role);
-    if (!likeRes || typeof likeRes !== "object") {
-      console.error(`❌ [${tcId}] likeTask failed`);
-    } else {
-      //console.log(`✅ [${tcId}] liked task ${taskID}`);
-    }
-  }
-
-  // TIMESHEET WIRING
-  if (entry.payloadCreateTimesheet) {
-    entry.payloadCreateTimesheet.task = taskID;
-  }
-
-  // persist the mutated stub
-  await writeDataToFile(stubPath, entry);
-  //console.log(`✏️  [${tcId}] stub updated at ${stubPath}`);
-};
-*/
-/*
-export const createTaskForTestCases = async (testCaseIDs) => {
-  const processTestCasesForTasks = async (data, ids) => {
-    for (const id of ids) {
-      const entry = data[id];
-      if (!entry || !entry.payloadCreateTask) continue;
-
-      let taskID;
-      let taskSubject;
-
-      // 1. create & update
-      if (entry.payloadCreateTask) {
-        const res = await createTask(entry.payloadCreateTask);
-        if (!res || typeof res !== "object") {
-          console.error(`Failed to create task for ${id}: Unexpected response format`);
-        } else {
-          taskID = res.data.name;
-          taskSubject = entry.payloadCreateTask.subject;
-
-          // store for deletion
-          if (entry.payloadDeleteTask) {
-            entry.payloadDeleteTask.taskID = taskID;
-          }
-
-          // optional update
-          if (entry.payloadUpdateTask) {
-            await updateTask(taskID, entry.payloadUpdateTask);
-          }
-        }
-      }
-
-      // 2. like
-      if (entry.payloadLikeTask && taskID) {
-        entry.payloadLikeTask.name = taskID;
-        const response = await likeTask(taskID, entry.payloadLikeTask.role);
-        if (response && typeof response === "object") {
-          //console.log(`Successfully liked task for ${testCaseIDs}`);
-        } else {
-          console.error(`Failed to like task for ${testCaseIDs}: Unexpected response format`);
-        }
-        // also push subject into TC12 if present
-        if (data.TC12 && Array.isArray(data.TC12.tasks)) {
-          data.TC12.tasks.push(taskSubject);
-        }
-      }
-
-      // 3. wire up timesheet creation
-      if (entry.payloadCreateTimesheet && taskID) {
-        entry.payloadCreateTimesheet.task = taskID;
-      }
-    }
-  };
-
-  // filter incoming IDs against each dataset
-  const empIDs = testCaseIDs.filter((id) => employeeTimesheetData[id]);
-  const mgrTIDs = testCaseIDs.filter((id) => managerTaskData[id]);
-  const mgrIDs = testCaseIDs.filter((id) => managerTeamData[id]);
-
-  // run & persist
-  await processTestCasesForTasks(employeeTimesheetData, empIDs);
-  await writeDataToFile(employeeTimesheetDataFilePath, employeeTimesheetData);
-
-  await processTestCasesForTasks(managerTaskData, mgrTIDs);
-  await writeDataToFile(managerTaskDataFilePath, managerTaskData);
-
-  await processTestCasesForTasks(managerTeamData, mgrIDs);
-  await writeDataToFile(managerTeamDataFilePath, managerTeamData);
-};
-*/
-// ------------------------------------------------------------------------------------------
 
 /**
  * Deletion of tasks by their name that were created though UI
@@ -906,7 +460,7 @@ export const deleteByTaskName = async () => {
  * Reads the shared JSON files to lookup taskIDs, and
  * deletes each, using admin rights for specific cases.
  */
-// helpers/taskHelper.js
+
 
 export const deleteTasks = async (testCaseIDs,jsonDir) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
@@ -985,7 +539,6 @@ export const calculateHourlyBilling = async (testCaseIDs = [],jsonDir) => {
 
   // 2) Loop through each TC
   for (const tcId of testCaseIDs) {
-    //const stubPath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
     const stubPath = path.join(jsonDir, `${tcId}.json`);
 
     // 3) Read the wrapped stub { "TCn": { … } }
@@ -1028,59 +581,6 @@ export const calculateHourlyBilling = async (testCaseIDs = [],jsonDir) => {
     //console.log(`✅ Updated billing for ${tcId} in ${stubPath}`);
   }
 };
-/*
-export const calculateHourlyBilling = async (testCaseIDs) => {
-  // constants for split calculations
-  let monthly_billing_rate;
-  let hourly_billing_rate;
-  let employee_currency;
-  let project_currency;
-  let employee_CTC;
-  let convertedCTC;
-
-  // Fetch employee details once
-  const empRes = await getEmployeeDetails(empID, "admin");
-  employee_CTC = empRes.data.ctc;
-  employee_currency = empRes.data.salary_currency;
-
-  // Filter only test cases with billing payload
-  const idsToProcess = testCaseIDs.filter(
-    (id) => employeeTimesheetData[id] && employeeTimesheetData[id].payloadCalculateBillingRate
-  );
-
-  for (const testCaseID of idsToProcess) {
-    const ratePayload = employeeTimesheetData[testCaseID].payloadCalculateBillingRate;
-    project_currency = ratePayload.custom_currency_for_project;
-
-    //If the employee currency and project currency differs
-    if (employee_currency !== project_currency) {
-      // convert the employee CTC to project currency
-      const convertRes = await getExchangeRate(employee_currency, project_currency);
-      convertedCTC = convertRes.message * employee_CTC;
-      monthly_billing_rate = convertedCTC / 12;
-      hourly_billing_rate = monthly_billing_rate / 160;
-    } else {
-      monthly_billing_rate = employee_CTC / 12;
-      hourly_billing_rate = monthly_billing_rate / 160;
-    }
-
-    // fetch project details for financials
-    const projRes = await getProjectDetails(ratePayload.project);
-    const projJson = await projRes.json();
-    const total_billable_amount = projJson.data.total_billable_amount;
-    const total_costing_amount = projJson.data.total_costing_amount;
-
-    // write values back into payload
-    ratePayload.total_billable_amount = total_billable_amount;
-    ratePayload.total_costing_amount = total_costing_amount;
-    ratePayload.hourly_billing_rate = hourly_billing_rate;
-  }
-
-  // Persist updated shared data
-  await writeDataToFile(employeeTimesheetDataFilePath, employeeTimesheetData);
-};
-*/
-// ------------------------------------------------------------------------------------------
 
 /**
  * Delete all the leaves,tasks and time entries associated with the project and delete the project itself

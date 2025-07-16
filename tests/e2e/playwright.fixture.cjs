@@ -7,7 +7,6 @@ const {
   createProjectForTestCases,
   createTaskForTestCases,
   calculateHourlyBilling,
-  readAndCleanAllOrphanData,
   deleteTimeEntries,
   deleteTasks,
   deleteProjects,
@@ -25,48 +24,13 @@ const {
   createUserGroupForEmployee,
   deleteUserGroupForEmployee,
 } = require("./helpers/teamTabHelper");
-const { createJSONFilePerTC, populateJsonStubs } = require("./utils/fileUtils");
 const { storeStorageState } = require("./helpers/storageStateHelper");
 
 // add a quick verify‑load log
 console.log("🔥 loaded playwright.fixture.cjs");
 
-// Helper to ensure a stub file exists at the given path with retries
-async function ensureJsonStub(tc, filePath, maxRetries = 10) {
-  console.log(`🔍 Attempting to create: ${filePath}`);
-  
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      // First create the directory if it doesn't exist
-      const dir = path.dirname(filePath);
-      await fs.mkdir(dir, { recursive: true });
-      
-      // Then create the JSON file
-      await createJSONFilePerTC(filePath);
-      
-      // Verify the file was created and is readable
-      await fs.access(filePath, fs.constants.F_OK | fs.constants.R_OK);
-      
-      // Double check by trying to read it
-      const content = await fs.readFile(filePath, 'utf-8');
-      JSON.parse(content); // Verify it's valid JSON
-      
-      console.log(`✅ Verified JSON stub for ${tc} at ${filePath} (attempt ${attempt})`);
-      return;
-    } catch (err) {
-      console.warn(`⚠️ Attempt ${attempt}/${maxRetries} failed for ${filePath}: ${err.message}`);
-      
-      if (attempt === maxRetries) {
-        console.error(`❌ File creation failed after ${maxRetries} attempts: ${filePath}`);
-        console.error(`❌ Error: ${err.message}`);
-        throw new Error(`Cannot create JSON stub for ${tc} after ${maxRetries} attempts: ${err.message}`);
-      }
-      
-      // Wait before retrying
-      await new Promise(resolve => setTimeout(resolve, 100 * attempt));
-    }
-  }
-}
+// Define the single shared JSON directory
+const SHARED_JSON_DIR = path.resolve(__dirname, "data", "json-files");
 
 // Helper to extract test case IDs from test title
 function extractTestCaseIDs(testTitle) {
@@ -91,48 +55,39 @@ function extractTestCaseIDs(testTitle) {
   return ids;
 }
 
-// Helper to wait for file to be created and readable with retries
-async function waitForFile(filePath, maxRetries = 15, delayMs = 200) {
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      // Check if file exists and is readable
-      await fs.access(filePath, fs.constants.F_OK | fs.constants.R_OK);
-      
-      // Try to read the file to ensure it's not corrupted
-      const content = await fs.readFile(filePath, 'utf-8');
-      JSON.parse(content); // Verify it's valid JSON
-      
-      console.log(`✅ File confirmed exists and readable: ${filePath}`);
-      return true;
-    } catch (err) {
-      if (i === maxRetries - 1) {
-        console.error(`❌ File still doesn't exist or isn't readable after ${maxRetries} retries: ${filePath}`);
-        console.error(`❌ Final error: ${err.message}`);
-        throw new Error(`File not accessible after ${maxRetries} retries: ${filePath} - ${err.message}`);
-      }
-      console.log(`⏳ Waiting for file (attempt ${i + 1}/${maxRetries}): ${filePath}`);
-      await new Promise(resolve => setTimeout(resolve, delayMs));
+// Helper to verify JSON file exists and is readable
+async function verifyJsonFile(filePath, tcId) {
+  try {
+    const content = await fs.readFile(filePath, 'utf-8');
+    const data = JSON.parse(content);
+    
+    if (!data[tcId]) {
+      throw new Error(`JSON file missing data for key "${tcId}"`);
     }
+    
+    console.log(`✅ Verified JSON file exists: ${filePath}`);
+    return true;
+  } catch (err) {
+    console.error(`❌ JSON file verification failed: ${filePath}`, err.message);
+    throw new Error(`JSON file not ready: ${filePath} - ${err.message}`);
   }
-  return false;
 }
 
 // Helper to run test data setup
-async function runTestDataSetup(testCaseIDs, jsonDir) {
+async function runTestDataSetup(testCaseIDs) {
   console.log("🔧 Running test data setup for:", testCaseIDs);
   
   try {
-    // ── STEP 1: run setup helpers ─────────
-    await createEmployees(testCaseIDs, jsonDir);
-    await updateTimeEntries(testCaseIDs, jsonDir);
-    await createProjectForTestCases(testCaseIDs, jsonDir);
-    await createTaskForTestCases(testCaseIDs, jsonDir);
-    await createTimeEntries(testCaseIDs, jsonDir);
-    await calculateHourlyBilling(testCaseIDs, jsonDir);
-    await updateLeaveEntries(testCaseIDs, jsonDir);
-    await randomApprovalStatus(testCaseIDs, jsonDir);
-    await createUserGroupForEmployee(testCaseIDs, jsonDir);
-    // ── END STEP 1 ────────────────────────
+    // All functions now use the shared JSON directory
+    await createEmployees(testCaseIDs, SHARED_JSON_DIR);
+    await updateTimeEntries(testCaseIDs, SHARED_JSON_DIR);
+    await createProjectForTestCases(testCaseIDs, SHARED_JSON_DIR);
+    await createTaskForTestCases(testCaseIDs, SHARED_JSON_DIR);
+    await createTimeEntries(testCaseIDs, SHARED_JSON_DIR);
+    await calculateHourlyBilling(testCaseIDs, SHARED_JSON_DIR);
+    await updateLeaveEntries(testCaseIDs, SHARED_JSON_DIR);
+    await randomApprovalStatus(testCaseIDs, SHARED_JSON_DIR);
+    await createUserGroupForEmployee(testCaseIDs, SHARED_JSON_DIR);
     
     console.log("✅ Test data setup completed successfully");
   } catch (error) {
@@ -142,16 +97,16 @@ async function runTestDataSetup(testCaseIDs, jsonDir) {
 }
 
 // Helper to run test data teardown
-async function runTestDataTeardown(testCaseIDs, jsonDir) {
+async function runTestDataTeardown(testCaseIDs) {
   console.log("🧹 Running test data teardown for:", testCaseIDs);
   
   try {
-    await deleteEmployees(testCaseIDs, jsonDir);
-    await deleteTimeEntries(testCaseIDs, jsonDir);
-    await deleteTasks(testCaseIDs, jsonDir);
-    await deleteProjects(testCaseIDs, jsonDir);
-    await rejectLeaveEntries(testCaseIDs, jsonDir);
-    await deleteUserGroupForEmployee(testCaseIDs, jsonDir);
+    await deleteEmployees(testCaseIDs, SHARED_JSON_DIR);
+    await deleteTimeEntries(testCaseIDs, SHARED_JSON_DIR);
+    await deleteTasks(testCaseIDs, SHARED_JSON_DIR);
+    await deleteProjects(testCaseIDs, SHARED_JSON_DIR);
+    await rejectLeaveEntries(testCaseIDs, SHARED_JSON_DIR);
+    await deleteUserGroupForEmployee(testCaseIDs, SHARED_JSON_DIR);
     
     console.log("✅ Test data teardown completed successfully");
   } catch (error) {
@@ -189,19 +144,21 @@ const test = base.extend({
     { scope: "worker" },
   ],
 
-  // Worker-scoped fixture: unique JSON‑stub directory per worker
+  // Fixed JSON directory - same for all workers
   jsonDir: [
-    async ({}, use, testInfo) => {
-      const dir = path.resolve(
-        __dirname,
-        "data",
-        `json-files-w${testInfo.workerIndex}`
-      );
+    async ({}, use) => {
+      console.log(`📁 Using shared JSON directory: ${SHARED_JSON_DIR}`);
       
-      console.log(`📁 Creating JSON directory for worker ${testInfo.workerIndex}: ${dir}`);
-      await fs.mkdir(dir, { recursive: true });
+      // Verify directory exists (should be created in global setup)
+      try {
+        await fs.access(SHARED_JSON_DIR);
+        console.log("✅ JSON directory exists");
+      } catch {
+        console.error("❌ JSON directory missing - was global setup run?");
+        throw new Error("JSON directory not found. Ensure global setup has run.");
+      }
       
-      await use(dir);
+      await use(SHARED_JSON_DIR);
     },
     { scope: "worker" },
   ],
@@ -211,7 +168,7 @@ const test = base.extend({
     await use(authState);
   },
 
-  // Enhanced test-case ID extraction that also handles setup
+  // Test-case ID extraction
   testCaseIDs: [
     async ({ jsonDir }, use, testInfo) => {
       const testCaseIDs = extractTestCaseIDs(testInfo.title);
@@ -221,29 +178,16 @@ const test = base.extend({
       console.log(`🎯 Test Case IDs: ${JSON.stringify(testCaseIDs)}`);
       console.log(`🎯 JSON Directory: ${jsonDir}`);
       
-      // If we have test case IDs, ensure the files exist immediately
+      // Verify all test case JSON files exist (should be created in global setup)
       if (testCaseIDs && testCaseIDs.length > 0) {
-        console.log("🔧 Pre-creating JSON files for test case IDs...");
+        console.log("🔍 Verifying JSON files exist...");
         
-        // Create files sequentially to avoid race conditions
         for (const tc of testCaseIDs) {
           const filePath = path.join(jsonDir, `${tc}.json`);
-          await ensureJsonStub(tc, filePath);
-          // Wait for file to be confirmed as created and readable
-          await waitForFile(filePath);
+          await verifyJsonFile(filePath, tc);
         }
         
-        // Populate the JSON stubs with test data
-        console.log("🔧 Populating JSON stubs...");
-        await populateJsonStubs(jsonDir, testCaseIDs);
-        
-        // Final verification that files exist and are readable after population
-        for (const tc of testCaseIDs) {
-          const filePath = path.join(jsonDir, `${tc}.json`);
-          await waitForFile(filePath);
-        }
-        
-        console.log("✅ All JSON files created and populated successfully");
+        console.log("✅ All JSON files verified");
       }
       
       await use(testCaseIDs);
@@ -252,12 +196,12 @@ const test = base.extend({
   ],
 });
 
-// Per-test setup: JSON stubs and test data
-test.beforeEach(async ({ testCaseIDs, jsonDir }, testInfo) => {
+// Per-test setup: test data
+test.beforeEach(async ({ testCaseIDs }, testInfo) => {
   console.warn("💡 beforeEach - Test title:", testInfo.title);
   console.warn("💡 beforeEach - Worker:", testInfo.workerIndex);
   console.warn("💡 beforeEach - Test Case IDs:", testCaseIDs);
-  console.warn("💡 beforeEach - JsonDir:", jsonDir);
+  console.warn("💡 beforeEach - Using shared JSON dir:", SHARED_JSON_DIR);
   
   if (!testCaseIDs || testCaseIDs.length === 0) {
     console.error("❌ No test case IDs found for:", testInfo.title);
@@ -268,25 +212,8 @@ test.beforeEach(async ({ testCaseIDs, jsonDir }, testInfo) => {
   console.warn("STARTED FIXTURE: BEFORE EACH");
   
   try {
-    // Files should already exist from testCaseIDs fixture, but verify they're accessible
-    for (const tc of testCaseIDs) {
-      const filePath = path.join(jsonDir, `${tc}.json`);
-      try {
-        await waitForFile(filePath, 5); // Quick check with fewer retries
-        console.log(`✅ Confirmed file exists: ${filePath}`);
-      } catch (err) {
-        console.error(`❌ File missing in beforeEach: ${filePath}`);
-        console.error(`❌ Error: ${err.message}`);
-        // Try to recreate it
-        await ensureJsonStub(tc, filePath);
-        await populateJsonStubs(jsonDir, [tc]);
-        await waitForFile(filePath);
-        console.log(`✅ Recreated file: ${filePath}`);
-      }
-    }
-    
     // Run all test data setup
-    await runTestDataSetup(testCaseIDs, jsonDir);
+    await runTestDataSetup(testCaseIDs);
     
     console.warn("ENDED FIXTURE: BEFORE EACH");
   } catch (error) {
@@ -297,7 +224,7 @@ test.beforeEach(async ({ testCaseIDs, jsonDir }, testInfo) => {
 });
 
 // Per-test teardown
-test.afterEach(async ({ testCaseIDs, jsonDir }, testInfo) => {
+test.afterEach(async ({ testCaseIDs }, testInfo) => {
   console.warn("💡 afterEach - Test title:", testInfo.title);
   console.warn("💡 afterEach - Worker:", testInfo.workerIndex);
   console.warn("💡 afterEach - Test Case IDs:", testCaseIDs);
@@ -311,7 +238,7 @@ test.afterEach(async ({ testCaseIDs, jsonDir }, testInfo) => {
   console.warn("STARTED FIXTURE: AFTER EACH");
   
   try {
-    await runTestDataTeardown(testCaseIDs, jsonDir);
+    await runTestDataTeardown(testCaseIDs);
     console.warn("ENDED FIXTURE: AFTER EACH");
   } catch (error) {
     console.error("❌ afterEach teardown failed:", error.message);
