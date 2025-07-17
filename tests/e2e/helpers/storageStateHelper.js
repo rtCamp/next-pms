@@ -33,9 +33,7 @@ export const storeStorageState = async (role, isApi = false, outFilePath) => {
 
   // Determine output path
   const defaultName = isApi ? `${role}-API.json` : `${role}.json`;
-  const storagePath = outFilePath
-    ? outFilePath
-    : path.resolve(__dirname, `../auth/${defaultName}`);
+  const storagePath = outFilePath ? outFilePath : path.resolve(__dirname, `../auth/${defaultName}`);
 
   // Ensure output directory exists
   const dir = path.dirname(storagePath);

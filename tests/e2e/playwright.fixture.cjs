@@ -5,6 +5,7 @@ const { storeStorageState } = require("./helpers/storageStateHelper");
 
 // Define the single shared JSON directory
 const SHARED_JSON_DIR = path.resolve(__dirname, "data", "json-files");
+// ------------------------------------------------------------------------------------------
 
 const test = base.extend({
   // Worker-scoped fixture: generate a unique storageState per role per worker

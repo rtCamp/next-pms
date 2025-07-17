@@ -13,7 +13,6 @@ import {
 } from "../helpers/timesheetHelper";
 import { updateLeaveEntries } from "../helpers/leaveHelper";
 import { createEmployees } from "../helpers/employeeHelper";
-import { randomApprovalStatus } from "../helpers/teamTabHelper";
 import { createUserGroupForEmployee } from "../helpers/teamTabHelper";
 
 const globalSetup = async () => {
@@ -57,9 +56,7 @@ const globalSetup = async () => {
 
   // 1) Pre‑generate API auth states for all roles
   const roles = ["employee", "employee2", "employee3", "manager", "admin"];
-  await Promise.all(
-    roles.map(role => storeStorageState(role, true))
-  );
+  await Promise.all(roles.map((role) => storeStorageState(role, true)));
 
   // 2) Create and populate JSON stubs for each TC ID
   console.log("📁 Creating JSON stubs for each TC ID...");
@@ -74,7 +71,7 @@ const globalSetup = async () => {
   }
 
   // Verify JSON files
-  console.log("🔍 Verifying JSON stubs...");
+  //console.log("🔍 Verifying JSON stubs...");
   for (const tcId of allTCIds) {
     const filePath = path.join(jsonDir, `${tcId}.json`);
     const content = await fs.promises.readFile(filePath, "utf-8");
@@ -83,7 +80,7 @@ const globalSetup = async () => {
       throw new Error(`Missing data for ${tcId}`);
     }
   }
-  console.log("✅ JSON stubs created and verified!");
+  //console.log("✅ JSON stubs created and verified!");
 
   // 3) Clean up orphan data
   await readAndCleanAllOrphanData();
@@ -92,15 +89,14 @@ const globalSetup = async () => {
   console.log("🛠 Generating test data per TC ID...");
   for (const tcId of allTCIds) {
     console.log(`➡️ Processing ${tcId}`);
-    await createEmployees([tcId],jsonDir);
-    await updateTimeEntries([tcId],jsonDir);
-    await createProjectForTestCases([tcId],jsonDir);
-    await createTaskForTestCases([tcId],jsonDir);
-    await createTimeEntries([tcId],jsonDir);
-    await calculateHourlyBilling([tcId],jsonDir);
-    await updateLeaveEntries([tcId],jsonDir);
-    //await randomApprovalStatus([tcId],jsonDir);
-    await createUserGroupForEmployee([tcId],jsonDir);
+    await createEmployees([tcId], jsonDir);
+    await updateTimeEntries([tcId], jsonDir);
+    await createProjectForTestCases([tcId], jsonDir);
+    await createTaskForTestCases([tcId], jsonDir);
+    await createTimeEntries([tcId], jsonDir);
+    await calculateHourlyBilling([tcId], jsonDir);
+    await updateLeaveEntries([tcId], jsonDir);
+    await createUserGroupForEmployee([tcId], jsonDir);
   }
 
   console.log("✅ Data generation completed for all TC IDs! Global setup done.");

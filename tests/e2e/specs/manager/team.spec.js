@@ -6,6 +6,7 @@ import { getDateForWeekday, getShortFormattedDate } from "../../utils/dateUtils"
 import * as allure from "allure-js-commons";
 import { readJSONFile } from "../../utils/fileUtils";
 import { randomApprovalStatus } from "../../helpers/teamTabHelper";
+
 /** @type {TeamPage} */ let teamPage;
 /** @type {TimesheetPage} */ let timesheetPage;
 
@@ -203,10 +204,13 @@ test.describe("Manager: Team Tab", () => {
     expect(status).toBe("Rejected");
   });
 });
+
 test.describe("Manager: Team Tab2", () => {
-  test.beforeAll(async ({jsonDir}) => {
+  //API call in beforeALL to make sure the emp has correct approval status
+  test.beforeAll(async ({ jsonDir }) => {
     await randomApprovalStatus(["TC92"], jsonDir);
   });
+
   test.beforeEach(async ({ page }) => {
     teamPage = new TeamPage(page);
     timesheetPage = new TimesheetPage(page);

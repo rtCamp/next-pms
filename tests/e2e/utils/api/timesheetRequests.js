@@ -5,6 +5,8 @@ import config from "../../playwright.config";
 
 // Load config variables
 const baseURL = config.use?.baseURL;
+// ------------------------------------------------------------------------------------------
+
 /**
  * Helper function to ensure storage state is loaded for respective roles.
  */
@@ -16,6 +18,8 @@ const loadAuthState = (role) => {
   }
   return filePath;
 };
+// ------------------------------------------------------------------------------------------
+
 /**
  * Helper function to load build the API request
  */
@@ -71,6 +75,7 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
     );
   }
 };
+// ------------------------------------------------------------------------------------------
 
 /**
  * Create a new timesheet entry.
@@ -89,6 +94,7 @@ export const createTimesheet = async ({ task, description, hours, date, employee
   };
   return await apiRequest(endpoint, options, role);
 };
+// ------------------------------------------------------------------------------------------
 
 /**
  * Delete a timesheet entry by Timesheet ID (resource API).
@@ -100,6 +106,7 @@ export const deleteTimesheetbyID = async (timesheetID, role = "manager") => {
   };
   return await apiRequest(endpoint, options, role);
 };
+// ------------------------------------------------------------------------------------------
 
 /**
  * Delete a timesheet entry using the custom delete method.
@@ -115,6 +122,7 @@ export const deleteTimesheet = async ({ parent, name }, role = "manager") => {
   };
   return await apiRequest(endpoint, options, role);
 };
+// ------------------------------------------------------------------------------------------
 
 /**
  * Get timesheet details for the specified employee.
@@ -133,6 +141,8 @@ export const getTimesheetDetails = async ({ employee, start_date, max_week }, ro
 
   return await apiRequest(endpoint, options, role);
 };
+// ------------------------------------------------------------------------------------------
+
 /**
  * Submit Timesheet for the specified employee.
  */
@@ -150,6 +160,8 @@ export const submitTimesheet = async ({ start_date, end_date, notes, approver, e
   };
   return await apiRequest(endpoint, options, role);
 };
+// ------------------------------------------------------------------------------------------
+
 export const actOnTimesheet = async ({ dates, employee, note, status }, role = "manager") => {
   const endpoint = `/api/method/next_pms.timesheet.api.team.approve_or_reject_timesheet`;
   const options = {

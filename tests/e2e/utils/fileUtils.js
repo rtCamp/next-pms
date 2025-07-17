@@ -17,7 +17,7 @@ export const createJSONFile = async (filePath, initialData = {}) => {
     // Ensure directory exists
     const dir = path.dirname(filePath);
     await fs.promises.mkdir(dir, { recursive: true });
-    
+
     // Write initial data
     await fs.promises.writeFile(filePath, JSON.stringify(initialData, null, 2), "utf-8");
     console.log(`✅ Created JSON file: ${filePath}`);
@@ -35,19 +35,19 @@ export const createJSONFile = async (filePath, initialData = {}) => {
  */
 export const readJSONFile = async (filePath, maxRetries = 5) => {
   const absolutePath = path.isAbsolute(filePath) ? filePath : path.resolve(__dirname, filePath);
-  
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     let release = null;
-    
+
     try {
       // Wait a bit if this is a retry
       if (attempt > 1) {
-        await new Promise(resolve => setTimeout(resolve, 100 * attempt));
+        await new Promise((resolve) => setTimeout(resolve, 100 * attempt));
       }
-      
+
       // Check if file exists
       await fs.promises.access(absolutePath, fs.constants.F_OK | fs.constants.R_OK);
-      
+
       // Try to acquire a lock with retries
       try {
         release = await lockfile.lock(absolutePath, {
@@ -62,18 +62,17 @@ export const readJSONFile = async (filePath, maxRetries = 5) => {
         console.warn(`⚠️ Could not acquire lock for reading (attempt ${attempt}/${maxRetries}): ${absolutePath}`);
         // Continue without lock if we can't acquire it
       }
-      
+
       // Read the file
       const fileContent = await fs.promises.readFile(absolutePath, "utf-8");
       const data = JSON.parse(fileContent);
-      
+
       // Release lock if we have one
       if (release) {
         await release();
       }
-      
+
       return data;
-      
     } catch (error) {
       // Always try to release lock on error
       if (release) {
@@ -83,9 +82,9 @@ export const readJSONFile = async (filePath, maxRetries = 5) => {
           console.warn("⚠️ Error releasing lock:", releaseErr.message);
         }
       }
-      
+
       console.warn(`⚠️ Attempt ${attempt}/${maxRetries} failed to read ${absolutePath}: ${error.message}`);
-      
+
       if (attempt === maxRetries) {
         console.error(`❌ Failed to read JSON file after ${maxRetries} attempts: ${absolutePath}`);
         throw new Error(`Cannot read JSON file ${absolutePath} after ${maxRetries} attempts: ${error.message}`);
@@ -102,20 +101,20 @@ export const readJSONFile = async (filePath, maxRetries = 5) => {
  */
 export const writeDataToFile = async (filePath, data, maxRetries = 5) => {
   const absolutePath = path.isAbsolute(filePath) ? filePath : path.resolve(__dirname, filePath);
-  
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     let release = null;
-    
+
     try {
       // Wait a bit if this is a retry
       if (attempt > 1) {
-        await new Promise(resolve => setTimeout(resolve, 100 * attempt));
+        await new Promise((resolve) => setTimeout(resolve, 100 * attempt));
       }
-      
+
       // Ensure directory exists
       const dir = path.dirname(absolutePath);
       await fs.promises.mkdir(dir, { recursive: true });
-      
+
       // Try to acquire an exclusive lock
       try {
         release = await lockfile.lock(absolutePath, {
@@ -128,21 +127,21 @@ export const writeDataToFile = async (filePath, data, maxRetries = 5) => {
         });
       } catch (lockErr) {
         console.warn(`⚠️ Could not acquire lock for writing (attempt ${attempt}/${maxRetries}): ${absolutePath}`);
-        
+
         // If file doesn't exist yet, create it without lock
-        if (lockErr.code === 'ENOENT') {
+        if (lockErr.code === "ENOENT") {
           await fs.promises.writeFile(absolutePath, JSON.stringify(data, null, 2), "utf-8");
           console.log(`✅ Created new file: ${absolutePath}`);
           return;
         }
-        
+
         // For other lock errors, retry
         if (attempt === maxRetries) {
           throw new Error(`Failed to acquire write lock after ${maxRetries} attempts: ${lockErr.message}`);
         }
         continue;
       }
-      
+
       // Read existing data (if file exists) to merge
       let existingData = {};
       try {
@@ -151,21 +150,20 @@ export const writeDataToFile = async (filePath, data, maxRetries = 5) => {
       } catch (readErr) {
         // File doesn't exist or is empty, that's okay
       }
-      
+
       // Merge data (deep merge for nested objects)
       const mergedData = deepMerge(existingData, data);
-      
+
       // Write the merged data
       await fs.promises.writeFile(absolutePath, JSON.stringify(mergedData, null, 2), "utf-8");
-      
+
       // Release lock
       if (release) {
         await release();
       }
-      
-      console.log(`✅ Successfully wrote to ${absolutePath} (attempt ${attempt})`);
+
+      //console.log(`✅ Successfully wrote to ${absolutePath} (attempt ${attempt})`);
       return;
-      
     } catch (error) {
       // Always try to release lock on error
       if (release) {
@@ -175,9 +173,9 @@ export const writeDataToFile = async (filePath, data, maxRetries = 5) => {
           console.warn("⚠️ Error releasing lock:", releaseErr.message);
         }
       }
-      
+
       console.warn(`⚠️ Attempt ${attempt}/${maxRetries} failed to write ${absolutePath}: ${error.message}`);
-      
+
       if (attempt === maxRetries) {
         console.error(`❌ Failed to write JSON file after ${maxRetries} attempts: ${absolutePath}`);
         throw new Error(`Cannot write JSON file ${absolutePath} after ${maxRetries} attempts: ${error.message}`);
@@ -191,7 +189,7 @@ export const writeDataToFile = async (filePath, data, maxRetries = 5) => {
  */
 function deepMerge(target, source) {
   const output = { ...target };
-  
+
   for (const key in source) {
     if (source.hasOwnProperty(key)) {
       if (isObject(source[key]) && isObject(target[key])) {
@@ -201,12 +199,12 @@ function deepMerge(target, source) {
       }
     }
   }
-  
+
   return output;
 }
 
 function isObject(item) {
-  return item && typeof item === 'object' && !Array.isArray(item);
+  return item && typeof item === "object" && !Array.isArray(item);
 }
 
 /**
@@ -214,7 +212,7 @@ function isObject(item) {
  * @param {string} tcJsonPath - Path to the test case JSON file
  */
 export const createJSONFilePerTC = async (tcJsonPath) => {
-  const tcId = path.basename(tcJsonPath, '.json');
+  const tcId = path.basename(tcJsonPath, ".json");
   await createJSONFile(tcJsonPath, { [tcId]: {} });
 };
 
@@ -246,7 +244,7 @@ export const populateJsonStubs = async (jsonDir, testCaseIDs) => {
     if (Object.keys(dataToWrite).length > 0) {
       try {
         await writeDataToFile(filePath, dataToWrite);
-        console.log(`✅ Populated ${tcId}.json with data from source modules`);
+        //console.log(`✅ Populated ${tcId}.json with data from source modules`);
       } catch (err) {
         console.error(`❌ Failed to populate ${tcId}.json:`, err.message);
         throw err;

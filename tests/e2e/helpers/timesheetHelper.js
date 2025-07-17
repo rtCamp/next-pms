@@ -1,6 +1,5 @@
 import path from "path";
 import fs from "fs";
-
 import { getWeekdayName, getFormattedDate, getDateForWeekday } from "../utils/dateUtils";
 import {
   createTimesheet,
@@ -22,6 +21,7 @@ import { deleteLeave } from "../utils/api/leaveRequests";
 import { getWeekRange } from "../utils/dateUtils";
 import { deleteEmployeeByName } from "./employeeHelper";
 import { deleteUserGroupForEmployee } from "./teamTabHelper";
+
 // Load env variables
 const empID = process.env.EMP_ID;
 const emp2ID = process.env.EMP2_ID;
@@ -116,6 +116,7 @@ export async function updateTimeEntries(testCaseIDs = [], jsonDir) {
     console.log(`✅ Updated Time Entry for ${tc} to ${filePath}`);
   }
 }
+// ------------------------------------------------------------------------------------------
 
 /**
  * Creates timesheet entries for the given testCaseIDs.
@@ -130,7 +131,6 @@ export async function createTimeEntries(testCaseIDs = [], jsonDir) {
   const [tcId] = testCaseIDs;
 
   // 2) Build path to its JSON stub
-  //const filePath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
   const filePath = path.join(jsonDir, `${tcId}.json`);
 
   // 3) Read & parse the stub
@@ -154,6 +154,7 @@ export async function createTimeEntries(testCaseIDs = [], jsonDir) {
   await createTimesheet(payload);
   //console.log(`✅ Timesheet created for TC ${tcId}:`);
 }
+// ------------------------------------------------------------------------------------------
 
 /**
  * Deletes timesheet entries for the given testCaseIDs.
@@ -172,7 +173,6 @@ export const deleteTimeEntries = async (testCaseIDs = [], jsonDir) => {
   const [tcId] = testCaseIDs;
 
   // build path to the per‑TC JSON stub
-  //const filePath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
   const filePath = path.join(jsonDir, `${tcId}.json`);
 
   // read & parse it
@@ -212,6 +212,7 @@ export const deleteTimeEntries = async (testCaseIDs = [], jsonDir) => {
     }
   }
 };
+// ------------------------------------------------------------------------------------------
 
 /**
  * Filters timesheet entries and returns the metadata of the matching time entry.
@@ -256,6 +257,7 @@ export const filterTimesheetEntry = async (opts) => {
 
   return {}; // nothing matched
 };
+// ------------------------------------------------------------------------------------------
 
 /**
  * Creates projects for all testCaseIDs passed in.
@@ -267,7 +269,6 @@ export const createProjectForTestCases = async (testCaseIDs, jsonDir) => {
   const [tcId] = testCaseIDs;
 
   // per‑TC JSON stub path
-  //const stubPath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
   const stubPath = path.join(jsonDir, `${tcId}.json`);
 
   // Read the whole stub object: { "TC4": { … } }
@@ -290,7 +291,6 @@ export const createProjectForTestCases = async (testCaseIDs, jsonDir) => {
     console.error(`Failed to create project for ${tcId} as there is no data.name`);
     return;
   }
-  //const json = await res.json();
   const projectId = res.data.name;
   const customCurrency = res.data.custom_currency;
 
@@ -319,6 +319,7 @@ export const createProjectForTestCases = async (testCaseIDs, jsonDir) => {
   await writeDataToFile(stubPath, { [tcId]: entry });
   console.log(`✅ CREATE PROJECT SUCCESS for ${tcId}  in  (projectId=${projectId})`);
 };
+// ------------------------------------------------------------------------------------------
 
 /**
  * Deletes projects for all testCaseIDs passed in.
@@ -333,7 +334,6 @@ export const deleteProjects = async (testCaseIDs = [], jsonDir) => {
   const [tcId] = testCaseIDs;
 
   // 2) build path to its per‑TC stub
-  //const filePath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
   const filePath = path.join(jsonDir, `${tcId}.json`);
 
   // 3) read that stub
@@ -355,6 +355,7 @@ export const deleteProjects = async (testCaseIDs = [], jsonDir) => {
   await deleteProject(projId);
   //console.log(`🗑️  Deleted project ${projId} for TC ${tcId}`);
 };
+// ------------------------------------------------------------------------------------------
 
 /**
  * Creates tasks for all testCaseIDs passed in.
@@ -368,7 +369,6 @@ export const createTaskForTestCases = async (testCaseIDs, jsonDir) => {
   const [tcId] = testCaseIDs;
 
   // resolve its stub file
-  //const stubPath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
   const stubPath = path.join(jsonDir, `${tcId}.json`);
 
   // read the entire stub (wrapped under the TC key)
@@ -379,7 +379,7 @@ export const createTaskForTestCases = async (testCaseIDs, jsonDir) => {
     return;
   }
 
-  // CREATE
+  // CREATE TASK
   const createRes = await createTask(entry.payloadCreateTask);
   if (!createRes?.data?.name) {
     console.error(`❌ [${tcId}] createTask failed`);
@@ -397,14 +397,14 @@ export const createTaskForTestCases = async (testCaseIDs, jsonDir) => {
     await updateTask(taskID, entry.payloadUpdateTask);
   }
 
-  // LIKE
+  // LIKE TASK
   if (entry.payloadLikeTask) {
     entry.payloadLikeTask.name = taskID;
     const likeRes = await likeTask(taskID, entry.payloadLikeTask.role);
     if (!likeRes || typeof likeRes !== "object") {
       console.error(`❌ [${tcId}] likeTask failed`);
     } else {
-      //console.log(`✅ [${tcId}] liked task ${taskID}`);
+      console.log(`✅ [${tcId}] liked task ${taskID}`);
     }
   }
 
@@ -417,6 +417,7 @@ export const createTaskForTestCases = async (testCaseIDs, jsonDir) => {
   await writeDataToFile(stubPath, { [tcId]: entry });
   console.log(`✅ CREATE TASK SUCCESS FOR: ${testCaseIDs}`);
 };
+// ------------------------------------------------------------------------------------------
 
 /**
  * Deletion of tasks by their name that were created though UI
@@ -447,7 +448,7 @@ export const deleteByTaskName = async () => {
         //console.log("Task found and ID to delete:", taskID);
         await deleteTask(taskID);
       } else {
-        //console.log(`Task "${taskName}" not found in system. Skipping...`);
+        console.log(`Task "${taskName}" not found in system to delete. Skipping...`);
       }
     }
 
@@ -473,9 +474,7 @@ export const deleteTasks = async (testCaseIDs, jsonDir) => {
   const adminCases = new Set(["TC2", "TC92"]);
 
   for (const tcId of testCaseIDs) {
-    //const stubPath = path.resolve(__dirname, "../data/json-files", `${tcId}.json`);
     const stubPath = path.join(jsonDir, `${tcId}.json`);
-
     const fullStub = await readJSONFile(stubPath);
     const entry = fullStub[tcId];
 
@@ -498,34 +497,6 @@ export const deleteTasks = async (testCaseIDs, jsonDir) => {
     }
   }
 };
-
-/*
-export const deleteTasks = async (testCaseIDs) => {
-  // load the shared JSON data
-  const employeeData = await readJSONFile("../data/employee/shared-timesheet.json");
-  const managerTaskData = await readJSONFile("../data/manager/shared-task.json");
-  const managerTeamData = await readJSONFile("../data/manager/shared-team.json");
-
-  // IDs that require admin deletion
-  const adminCases = new Set(["TC2", "TC92"]);
-
-  for (const id of testCaseIDs) {
-    // find the entry in one of the datasets
-    const entry = employeeData[id] || managerTaskData[id] || managerTeamData[id];
-    if (!entry) continue;
-
-    const taskID = entry.payloadDeleteTask?.taskID;
-    if (!taskID) continue;
-
-    // delete with admin if needed
-    if (adminCases.has(id)) {
-      await deleteTask(taskID, "admin");
-    } else {
-      await deleteTask(taskID);
-    }
-  }
-};
-*/
 // ------------------------------------------------------------------------------------------
 
 /**
@@ -553,7 +524,6 @@ export const calculateHourlyBilling = async (testCaseIDs = [], jsonDir) => {
       console.warn(`⚠️ No data found under key "${tcId}" in ${stubPath}`);
       continue;
     }
-
     // 4) Only process if there's a billing payload
     const ratePayload = entry.payloadCalculateBillingRate;
     if (!ratePayload) {
@@ -575,8 +545,6 @@ export const calculateHourlyBilling = async (testCaseIDs = [], jsonDir) => {
 
     // 6) Fetch project financials
     const projRes = await getProjectDetails(ratePayload.project);
-    //const projJson = await projRes.json();
-
     ratePayload.total_billable_amount = projRes.data.total_billable_amount;
     ratePayload.total_costing_amount = projRes.data.total_costing_amount;
     ratePayload.hourly_billing_rate = hourly_billing_rate;
@@ -595,12 +563,9 @@ export const cleanUpProjects = async (data) => {
 
   for (const key in data) {
     const tc = data[key];
-
     // Check if payloadCreateProject exists and project_name is valid
     if (!tc.payloadCreateProject || !tc.payloadCreateProject.project_name) continue;
-
     const projectName = tc.payloadCreateProject.project_name;
-
     // Get Project ID
     const projectRes = await filterApi("Project", [["Project", "project_name", "=", projectName]]);
     const projectId = projectRes?.message?.values?.[0]?.[0];
@@ -610,7 +575,6 @@ export const cleanUpProjects = async (data) => {
     } else if (projectId && projectId !== undefined) {
       console.warn(`\n Obtained ProjectId value for ${key} is       ; `, projectId);
     }
-
     // Get Task IDs
     const taskRes = await filterApi("Task", [["Task", "project", "=", projectId]]);
 
@@ -627,40 +591,32 @@ export const cleanUpProjects = async (data) => {
     // Get Timesheet IDs
     const timesheetRes = await filterApi("Timesheet", [["Timesheet", "parent_project", "=", projectId]], "admin");
     //console.warn(`TMESHEET RESPONSE for ${key} is ; `, timesheetRes);
-
     const valuesRaw = timesheetRes?.message?.values;
     //console.warn(`Actual values for ${key}:`, valuesRaw);
     //console.warn(`Type of values:`, typeof valuesRaw);
     //console.warn(`Is Array:`, Array.isArray(valuesRaw));
-
     const timesheetValues = timesheetRes?.message?.values || [];
     if (Array.isArray(timesheetValues) && timesheetValues.length > 0) {
       console.warn(`OBTAINED TIMESHEET ID FOR ${key} is ; `, timesheetValues);
     }
-
     let timesheetIds = [];
-
     if (Array.isArray(valuesRaw)) {
       // Flatten and filter valid strings only
       timesheetIds = valuesRaw.flat().filter((v) => typeof v === "string");
     }
-
     //console.warn(`TIMESHEET IDs to delete:`, timesheetIds);
-
     // Store collected info
     deletedData.push({
       projectId,
       timesheetIds,
       taskIds,
     });
-
     // Delete Timesheets
     for (const timesheetId of timesheetIds) {
       if (!timesheetId || typeof timesheetId !== "string") {
         console.error(`Invalid timesheetId encountered:`, timesheetId);
         continue;
       }
-
       try {
         //console.log(`Deleting Timesheet: ${timesheetId}`);
         await deleteTimesheetbyID(timesheetId, "admin");
@@ -668,7 +624,6 @@ export const cleanUpProjects = async (data) => {
         console.error(` Failed to delete timesheet ${timesheetId}:`, err.message);
       }
     }
-
     // Delete Tasks
     for (const taskId of taskIds) {
       await deleteTask(taskId);

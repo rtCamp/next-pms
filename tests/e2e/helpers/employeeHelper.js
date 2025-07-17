@@ -1,7 +1,6 @@
 import { readdir } from "fs/promises";
 import path from "path";
 import { getFormattedDate, getYesterdayDate } from "../utils/dateUtils";
-//import teamTemplate from "../data/manager/team";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
 import { addEmployee, deleteEmployee } from "../utils/api/employeeRequests";
 import { deleteAllocation } from "../utils/api/projectRequests";
@@ -38,7 +37,7 @@ export const createEmployees = async (testCaseIDs, jsonDir) => {
 
   // Discover side files in the folder
   const allFiles = await readdir(jsonDir);
-  const sideFiles = allFiles.filter(f => f === "TC39.json" || f === "TC53.json");
+  const sideFiles = allFiles.filter((f) => f === "TC39.json" || f === "TC53.json");
 
   // Load side files into memory
   const sideData = {};
@@ -96,19 +95,17 @@ export const createEmployees = async (testCaseIDs, jsonDir) => {
     const fullPath = path.join(jsonDir, fileName);
     await writeDataToFile(fullPath, sideData[fileName]);
   }
-    console.log("✅ Completed create Employee for ", testCaseIDs);
-
+  console.log("✅ Completed create Employee for ", testCaseIDs);
 };
+// ------------------------------------------------------------------------------------------
 
 /**
  * Delete Employees created for each test case ID
  * @param {string[]} testCaseIDs
  */
-export async function deleteEmployees(testCaseID,jsonDir) {
+export async function deleteEmployees(testCaseID, jsonDir) {
   // Path to this test's JSON file
   const filePath = path.join(jsonDir, `${testCaseID}.json`);
-
-  //const filePath = path.resolve(__dirname, "../data/json-files", `${testCaseID}.json`);
   let testCase;
 
   try {
@@ -117,12 +114,10 @@ export async function deleteEmployees(testCaseID,jsonDir) {
     console.warn(`⚠️ Could not read JSON for ${testCaseID} in createEmployees function: ${err.message}`);
     return;
   }
-
   if (!testCase || !Array.isArray(testCase.createdEmployees)) {
     console.warn(`⚠️ No createdEmployees array found in ${filePath}`);
     return;
   }
-
   for (const emp of testCase.createdEmployees) {
     if (!emp.name) continue;
     try {
@@ -132,8 +127,8 @@ export async function deleteEmployees(testCaseID,jsonDir) {
       console.warn(`⚠️ Failed to delete ${emp.name} for ${testCaseID}: ${err.message}`);
     }
   }
-
 }
+// ------------------------------------------------------------------------------------------
 
 /**
  * Filter the employees by their first name: "Playwright-" and delete them
@@ -166,6 +161,7 @@ export const deleteEmployeeByName = async () => {
     console.warn("No employees found with the given name to delete.");
   }
 };
+// ------------------------------------------------------------------------------------------
 
 export const deleteAllocationsByEmployee = async (projectID, employeeID = employeeId) => {
   const filterResponse = await filterApi(

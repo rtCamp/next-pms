@@ -7,10 +7,6 @@ import * as allure from "allure-js-commons";
 let timesheetPage;
 let sidebar;
 
-//test.use({ storageState: path.resolve(__dirname, "../../auth/employee.json") });
-// switch to employee2 session
-//test.use({ role: 'employee' });
-
 test.describe("Employee : Team Tab", () => {
   test.beforeEach(async ({ page }) => {
     timesheetPage = new TimesheetPage(page);

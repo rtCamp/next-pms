@@ -1,29 +1,18 @@
 import path from "path";
 const { test, expect } = require("../../playwright.fixture.cjs");
-//import { test, expect } from "@playwright/test";
 import { TimesheetPage } from "../../pageObjects/timesheetPage";
 import { readJSONFile } from "../../utils/fileUtils";
-//import data from "../../data/employee/shared-timesheet.json";
 import * as allure from "allure-js-commons";
 
 //Add type hints to help VS Code recognize TimesheetPage
 /** @type {TimesheetPage} */
 let timesheetPage;
 
-// Apply storageState only for this describe block
-//test.use({ storageState: path.resolve(__dirname, "../../auth/employee2.json") });
-// switch to employee2 session
-//test.use({ role: 'employee2' });
-/*
-let TC2data = data.TC2;
-let TC13data = data.TC13;
-*/
 test.describe("Employee 2 : Timesheet", () => {
   // Runs before each test
   test.beforeEach(async ({ page }) => {
     // Instantiate page objects
     timesheetPage = new TimesheetPage(page);
-
     // Switch to Timesheet tab
     await timesheetPage.goto();
   });

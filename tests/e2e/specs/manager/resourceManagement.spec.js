@@ -4,19 +4,14 @@ import { TimelinePage } from "../../pageObjects/resourceManagement/timeline";
 import { TeamPage } from "../../pageObjects/resourceManagement/team";
 import { ProjectPage } from "../../pageObjects/resourceManagement/project";
 import * as allure from "allure-js-commons";
-//import data from "../../data/manager/team";
 import { deleteAllocation } from "../../utils/api/projectRequests";
 import { getFormattedDateNDaysFromToday } from "../../utils/dateUtils";
 import { readJSONFile } from "../../utils/fileUtils";
+
 let timelinePage;
 let teamPage;
 let projectPage;
 let createdAllocations = [];
-
-// Load authentication state from 'manager.json'
-//test.use({ storageState: path.resolve(__dirname, "../../auth/manager.json") });
-// switch to employee2 session
-//test.use({ role: 'manager' });
 
 test.beforeEach(async ({ page }) => {
   timelinePage = new TimelinePage(page);

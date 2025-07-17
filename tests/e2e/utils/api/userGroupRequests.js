@@ -5,6 +5,8 @@ import config from "../../playwright.config";
 
 // Load config variables
 const baseURL = config.use?.baseURL;
+// ------------------------------------------------------------------------------------------
+
 /**
  * Helper function to ensure storage state is loaded for respective roles.
  */
@@ -15,6 +17,8 @@ const loadAuthState = (role) => {
   }
   return filePath;
 };
+// ------------------------------------------------------------------------------------------
+
 /**
  * Helper function to load build the API request
  */
@@ -44,6 +48,7 @@ export const apiRequest = async (endpoint, options = {}, role = "admin") => {
   await requestContext.dispose();
   return responseData;
 };
+// ------------------------------------------------------------------------------------------
 
 /**
  * Get User Group Details Details.
@@ -53,6 +58,7 @@ export const getUserGroupDetails = async () => {
     method: "GET",
   });
 };
+// ------------------------------------------------------------------------------------------
 
 /**
  * Create User Group
@@ -72,6 +78,7 @@ export const createUserGroup = async ({ user, name }) => {
     data: payload,
   });
 };
+// ------------------------------------------------------------------------------------------
 
 /**
  * Delete a User Group

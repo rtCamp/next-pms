@@ -5,6 +5,8 @@ import config from "../../playwright.config";
 
 // Load config variables
 const baseURL = config.use?.baseURL;
+// ------------------------------------------------------------------------------------------
+
 /**
  * Helper function to ensure storage state is loaded for respective roles.
  */
@@ -15,6 +17,8 @@ const loadAuthState = (role) => {
   }
   return filePath;
 };
+// ------------------------------------------------------------------------------------------
+
 /**
  * Helper function to load build the API request
  */
@@ -45,6 +49,8 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   await requestContext.dispose();
   return responseData;
 };
+// ------------------------------------------------------------------------------------------
+
 /**
  * Get Employee Details
  */
@@ -52,6 +58,8 @@ export const getEmployeeDetails = async (empId, role) => {
   const endpoint = `/api/resource/Employee/${empId}`;
   return await apiRequest(endpoint, { method: "GET" }, role);
 };
+// ------------------------------------------------------------------------------------------
+
 /**
  * Create an Employee
  */
@@ -71,6 +79,7 @@ export const addEmployee = async (employeePayload, role) => {
     role
   );
 };
+// ------------------------------------------------------------------------------------------
 
 /**
  * Delete an Employee
@@ -79,6 +88,8 @@ export const deleteEmployee = async (empId, role) => {
   const endpoint = `/api/resource/Employee/${empId}`;
   return await apiRequest(endpoint, { method: "DELETE" }, role);
 };
+// ------------------------------------------------------------------------------------------
+
 /**
  * Update an Employee Details
  */

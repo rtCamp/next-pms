@@ -6,6 +6,7 @@ import { deleteAllocationsByEmployee } from "../../helpers/employeeHelper";
 
 // Base URL from config
 const baseURL = config.use?.baseURL;
+// ------------------------------------------------------------------------------------------
 
 /**
  * Ensure the storage‑state file for the given role exists, and return its path.
@@ -17,6 +18,7 @@ const loadAuthState = (role) => {
   }
   return filePath;
 };
+// ------------------------------------------------------------------------------------------
 
 /**
  * Fire off an API request using Playwright’s requestContext + storageState.
@@ -32,7 +34,7 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
       "Content-Type": "application/json",
       ...(options.headers || {}),
     },
-    data: options.data, //Correct for Playwright
+    data: options.data,
   });
 
   // dispose as soon as we have status
@@ -51,6 +53,7 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   await ctx.dispose();
   return json;
 };
+// ------------------------------------------------------------------------------------------
 
 /**
  * Create a new Project entry.
@@ -68,6 +71,7 @@ export const createProject = async (payload) => {
   ////console.log("Result of create project is: ", result);
   return result;
 };
+// ------------------------------------------------------------------------------------------
 
 /**
  * Delete a Project entry.
@@ -85,6 +89,7 @@ export const deleteProject = async (projectId) => {
     }
   }
 };
+// ------------------------------------------------------------------------------------------
 
 /**
  * Get details of a Project entry.
@@ -92,6 +97,7 @@ export const deleteProject = async (projectId) => {
 export const getProjectDetails = async (projectId) => {
   return await apiRequest(`/api/resource/Project/${projectId}`, { method: "GET" }, "admin");
 };
+// ------------------------------------------------------------------------------------------
 
 /**
  * Delete a Resource Allocation by its ID.

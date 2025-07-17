@@ -31,10 +31,10 @@ module.exports = defineConfig({
   forbidOnly: !!process.env.CI,
 
   /* Retry logic for failed tests */
-  retries: process.env.CI ? 2 : 2, // Retry twice on CI, no retries locally
+  retries: process.env.CI ? 2 : 0, // Retry twice on CI, no retries locally
 
   /* Configure the number of workers for parallel execution */
-  workers: process.env.CI ? 4 : undefined, // Use 4 workers on CI, defaults to the number of CPU cores otherwise
+  workers: process.env.CI ? 7 : undefined, // Use 7 workers on CI, defaults to the number of CPU cores otherwise
 
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
@@ -69,7 +69,7 @@ module.exports = defineConfig({
     },
   },
 
-  /* Configure projects for major browsers */
+  /* Configure projects for specs */
   projects: [
     {
       name: "employee-chromium",
@@ -95,13 +95,6 @@ module.exports = defineConfig({
       use: { ...devices["Desktop Chrome"] },
       metadata: { TEST_ROLE: "manager" },
     },
-
   ],
 
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://127.0.0.1:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
 });

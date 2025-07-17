@@ -5,8 +5,10 @@ import { TimesheetPage } from "../../pageObjects/timesheetPage";
 import { TaskPage } from "../../pageObjects/taskPage";
 import * as allure from "allure-js-commons";
 import { readJSONFile } from "../../utils/fileUtils";
+
 //Add type hints to help VS Code recognize TimesheetPage
 /** @type {TimesheetPage} */
+
 let timesheetPage;
 let taskPage;
 
