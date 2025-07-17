@@ -18,9 +18,6 @@ import { createUserGroupForEmployee } from "../helpers/teamTabHelper";
 const globalSetup = async () => {
   console.log("🚀 Starting global setup...");
 
-  //Create json file to store array of task to be deleted
-  await createJSONFile("../data/manager/tasks-to-delete.json");
-
   // 0) Discover active tests and extract TC IDs
   console.log("🔍 Discovering active tests via list-tests.js...");
   const projectRoot = path.resolve(__dirname, "..");
@@ -63,10 +60,11 @@ const globalSetup = async () => {
 
   // 2) Create and populate JSON stubs for each TC ID
   console.log("📁 Creating JSON stubs for each TC ID...");
+  //Create json file to store array of task to be deleted
+  await createJSONFile(path.resolve(__dirname, "../data/manager/tasks-to-delete.json"), []); // Create empty stub and populate
+
   const jsonDir = path.resolve(__dirname, "../data/json-files");
   await fs.promises.mkdir(jsonDir, { recursive: true });
-
-  // Create empty stub and populate
   for (const tcId of allTCIds) {
     const filePath = path.join(jsonDir, `${tcId}.json`);
     await createJSONFile(filePath, { [tcId]: {} });
