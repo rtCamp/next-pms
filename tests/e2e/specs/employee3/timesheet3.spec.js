@@ -1,7 +1,6 @@
 const { test, expect } = require("../../playwright.fixture.cjs");
 import path from "path";
 import { TimesheetPage } from "../../pageObjects/timesheetPage";
-import { TaskPage } from "../../pageObjects/taskPage";
 import * as allure from "allure-js-commons";
 import { readJSONFile } from "../../utils/fileUtils";
 
@@ -16,7 +15,7 @@ test.describe.serial("Employee3 : Timesheet", () => {
     // Switch to Timesheet tab
     await timesheetPage.goto();
   });
-  
+
   test("TC6: Delete the added time entry from the non-submitted timesheet.  ", async ({ page, jsonDir }) => {
     allure.story("Timesheet");
     const stubPath = path.join(jsonDir, "TC6.json");
