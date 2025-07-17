@@ -4,20 +4,19 @@ import { TimesheetPage } from "../../pageObjects/timesheetPage";
 import { TaskPage } from "../../pageObjects/taskPage";
 import * as allure from "allure-js-commons";
 import { readJSONFile } from "../../utils/fileUtils";
+
 //Add type hints to help VS Code recognize TimesheetPage
 /** @type {TimesheetPage} */
 let timesheetPage;
-
 
 test.describe.serial("Employee3 : Timesheet", () => {
   test.beforeEach(async ({ page }) => {
     // Instantiate page objects
     timesheetPage = new TimesheetPage(page);
-    taskPage = new TaskPage(page);
-
     // Switch to Timesheet tab
     await timesheetPage.goto();
   });
+  
   test("TC6: Delete the added time entry from the non-submitted timesheet.  ", async ({ page, jsonDir }) => {
     allure.story("Timesheet");
     const stubPath = path.join(jsonDir, "TC6.json");
