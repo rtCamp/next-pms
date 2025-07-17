@@ -58,10 +58,8 @@ export const readJSONFile = async (filePath, maxRetries = 5) => {
           },
           stale: 5000, // Consider lock stale after 5 seconds
         });
-      } catch (lockErr) {
-        console.warn(
-          `⚠️ Could not acquire lock for reading (attempt ${attempt}/${maxRetries}): ${absolutePath} ${lockErr}`
-        );
+      } catch {
+        console.warn(`⚠️ Could not acquire lock for reading (attempt ${attempt}/${maxRetries}): ${absolutePath}`);
         // Continue without lock if we can't acquire it
       }
 
@@ -149,8 +147,7 @@ export const writeDataToFile = async (filePath, data, maxRetries = 5) => {
       try {
         const content = await fs.promises.readFile(absolutePath, "utf-8");
         existingData = JSON.parse(content);
-      } catch (readErr) {
-        console.log("Read error:", readErr);
+      } catch {
         // File doesn't exist or is empty, that's okay
       }
 
@@ -236,14 +233,14 @@ export const populateJsonStubs = async (jsonDir, testCaseIDs) => {
     let dataToWrite = {};
 
     // Collect data from all sources
-    for (const [sourceData] of Object.entries(dataSources)) {
+    for (const sourceData of Object.values(dataSources)) {
       if (sourceData[tcId]) {
         // If data exists in this source, add it
         dataToWrite = deepMerge(dataToWrite, { [tcId]: sourceData[tcId] });
       }
     }
 
-    // Write data if found any
+    // Write data if we found any
     if (Object.keys(dataToWrite).length > 0) {
       try {
         await writeDataToFile(filePath, dataToWrite);
