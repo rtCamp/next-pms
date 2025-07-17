@@ -8,6 +8,7 @@ from frappe.utils import (
     nowdate,
 )
 
+from next_pms.api.utils import error_logger
 from next_pms.resource_management.api.utils.query import get_employee_leaves
 from next_pms.timesheet.utils.constant import EMP_TIMESHEET
 
@@ -27,6 +28,7 @@ from .utils import (
 
 
 @frappe.whitelist()
+@error_logger
 def get_timesheet_data(employee: str, start_date=None, max_week: int = 4):
     """Get timesheet data for the given employee for the given number of weeks."""
     if not employee:
@@ -116,6 +118,7 @@ def get_timesheet_data(employee: str, start_date=None, max_week: int = 4):
 
 
 @frappe.whitelist()
+@error_logger
 def save(date: str, description: str, task: str, hours: float = 0, employee: str = None):
     """create time entry in Timesheet Detail child table."""
     if not employee:
@@ -162,6 +165,7 @@ def save(date: str, description: str, task: str, hours: float = 0, employee: str
 
 
 @frappe.whitelist()
+@error_logger
 def delete(parent: str, name: str):
     """Delete single time entry from timesheet doctype."""
     employee = get_employee_from_user()
@@ -178,8 +182,9 @@ def delete(parent: str, name: str):
 
 
 @frappe.whitelist()
+@error_logger
 def submit_for_approval(start_date: str, notes: str = None, employee: str = None, approver: str = None):
-    from next_pms.timesheet.doc_events.timesheet import flush_cache
+    from next_pms.timesheet.doc_events.timesheet import flush_cache, publish_timesheet_update
     from next_pms.timesheet.tasks.reminder_on_approval_request import (
         send_approval_reminder,
     )
@@ -225,9 +230,14 @@ def submit_for_approval(start_date: str, notes: str = None, employee: str = None
             "custom_weekly_approval_status",
             "Approval Pending",
         )
+    frappe.db.commit()  # nosemgrep Need to do as we need to publish status changes.
+
     doc = frappe._dict({"employee": employee, "start_date": start_date, "end_date": end_date})
     flush_cache(doc)
+    publish_timesheet_update(employee=employee, start_date=start_date)
+
     send_approval_reminder(employee, reporting_manager, start_date, end_date, notes)
+
     return _("Timesheet has been sent for Approval to {0}.").format(reporting_manager_name)
 
 
@@ -408,18 +418,18 @@ def get_timesheet(dates: list, employee: str):
 
 @validate_current_employee(ptype="read")
 def get_timesheet_state(employee: str, start_date: str, end_date: str):
-    statuses = frappe.db.get_all(
+    status = frappe.db.get_value(
         "Timesheet",
         {
             "employee": employee,
             "start_date": [">=", getdate(start_date)],
             "end_date": ["<=", getdate(end_date)],
+            "docstatus": ["!=", 2],
         },
         "custom_weekly_approval_status",
     )
-    for status in statuses:
-        if status.custom_weekly_approval_status:
-            return status.custom_weekly_approval_status
+    if status:
+        return status
     return "Not Submitted"
 
 
@@ -479,6 +489,7 @@ def get_timesheet_details(date: str, task: str, employee: str):
         filters={
             "start_date": ["=", getdate(date)],
             "employee": employee,
+            "docstatus": ["=", 0],
         },
         ignore_permissions=employee_has_higher_access(employee, ptype="read"),
     )
@@ -493,6 +504,7 @@ def get_timesheet_details(date: str, task: str, employee: str):
 
 
 @frappe.whitelist()
+@error_logger
 def bulk_update_timesheet_detail(data):
     for entry in data:
         if isinstance(entry, str):

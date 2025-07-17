@@ -75,7 +75,7 @@ export const EmployeeTimesheetTable = ({ employee, teamState }: EmployeeTimeshee
               setIsTaskLogDialogBoxOpen={setIsTaskLogDialogBoxOpen}
               workingFrequency={data?.message.working_frequency}
               workingHour={data?.message.working_hour}
-              cellClassName="cursor-default max-w-20 min-w-20 w-full group text-center hover:bg-slate-100 hover:text-center hover:cursor-default"
+              cellClassName="cursor-default max-w-20 min-w-20 w-full group text-center dark:hover:bg-slate-800 hover:bg-slate-100 hover:text-center hover:cursor-default"
               totalCellClassName="max-w-24 w-full flex justify-end items-center"
               showEmptyCell={true}
             />

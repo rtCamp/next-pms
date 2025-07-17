@@ -51,6 +51,7 @@ declare global {
           roles?: string[];
         };
         currencies?: string[];
+        has_business_unit?: boolean;
         desk_theme?: string;
       };
     };

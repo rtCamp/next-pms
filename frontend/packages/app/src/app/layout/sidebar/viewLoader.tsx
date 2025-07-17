@@ -3,7 +3,7 @@
  */
 import { NavLink } from "react-router-dom";
 import { Typography, Button, Separator } from "@next-pms/design-system/components";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Circle } from "lucide-react";
 /**
  * Internal dependencies.
  */
@@ -72,7 +72,9 @@ const ViewLoader = ({
                     isActive && "bg-primary shadow-md hover:bg-slate-700 dark:hover:bg-secondary dark:bg-foreground"
                   )}
                 >
-                  <span>{view.icon}</span>
+                  <span className="shrink-0">
+                    {view.icon || <Circle className="w-5 h-5 font-bold text-foreground" />}
+                  </span>
                   <Typography
                     variant="p"
                     className={mergeClassNames(

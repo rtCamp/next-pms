@@ -220,6 +220,11 @@ export const projectSlice = createSlice({
     },
     setTag: (state, action: PayloadAction<Array<string>>) => {
       state.tag = action.payload;
+      state.isLoading = true;
+      state.action = "SET";
+      state.start = initialState.start;
+      state.isNeedToFetchDataAfterUpdate = true;
+      state.pageLength = initialState.pageLength;
     },
     refreshData: (state) => {
       const pageLength = state.data.length;

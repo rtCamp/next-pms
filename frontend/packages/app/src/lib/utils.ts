@@ -6,7 +6,7 @@ import { getUTCDateTime, normalizeDate } from "@next-pms/design-system/date";
 import { toast } from "@next-pms/design-system/hooks";
 import { type ClassValue, clsx } from "clsx";
 import { isToday } from "date-fns";
-import { Error } from "frappe-js-sdk/lib/frappe_app/types";
+import { Error as FrappeError } from "frappe-js-sdk/lib/frappe_app/types";
 import { twMerge } from "tailwind-merge";
 /**
  * Internal dependencies.
@@ -51,7 +51,7 @@ export const getSiteName = () => {
   return window.frappe?.boot?.sitename ?? import.meta.env.VITE_SITE_NAME;
 };
 
-export function parseFrappeErrorMsg(error: Error) {
+export function parseFrappeErrorMsg(error: FrappeError) {
   const messages = getErrorMessages(error);
   let message = "";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -132,7 +132,7 @@ export const getHolidayList = (holidays: Array<HolidayProp>) => {
   });
 };
 
-export const getErrorMessages = (error: Error) => {
+export const getErrorMessages = (error: FrappeError) => {
   let eMessages = error?._server_messages
     ? JSON.parse(error?._server_messages)
     : [];
@@ -325,7 +325,7 @@ export const enableSocket = () => {
   } else if (enableSocket === "false") {
     return false;
   } else {
-    return undefined;
+    return true;
   }
 };
 

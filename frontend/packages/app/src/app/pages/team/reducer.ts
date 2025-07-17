@@ -105,6 +105,14 @@ const actionHandlers = {
     hasMore: payload.has_more,
     isLoading: false,
   }),
+  UPDATE_EMP_DATA: (state: TeamState, payload: any) => ({
+    ...state,
+    data: {
+      ...state.data,
+      data: { ...state.data.data, ...payload.data },
+    },
+    isLoading: false,
+  }),
   SET_TIMESHEET: (state: TeamState, payload: any) => ({
     ...state,
     timesheet: payload.timesheet,
@@ -145,6 +153,10 @@ const actionHandlers = {
   SET_HAS_MORE: (state: TeamState, payload: boolean) => ({
     ...state,
     hasMore: payload,
+  }),
+  SET_LOADING: (state: TeamState, payload: boolean) => ({
+    ...state,
+    isLoading: payload,
   }),
   SET_DATE_RANGE: (
     state: TeamState,

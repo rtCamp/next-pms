@@ -29,7 +29,7 @@ import { prettyDate } from "@next-pms/design-system/date";
 import { useToast } from "@next-pms/design-system/hooks";
 import { floatToTime } from "@next-pms/design-system/utils";
 import { useInfiniteScroll } from "@next-pms/hooks";
-import { useFrappeGetCall } from "frappe-react-sdk";
+import { useFrappeGetCall, useFrappeEventListener } from "frappe-react-sdk";
 import { CircleCheck } from "lucide-react";
 /**
  * Internal dependencies.
@@ -76,10 +76,10 @@ const TeamComponent = ({ viewData }: TeamComponentProps) => {
     },
     undefined,
     {
-      revalidateOnFocus: false,
       revalidateOnReconnect: false,
       revalidateIfStale: false,
       revalidateOnMount: false,
+      errorRetryCount: 1,
     }
   );
 
@@ -99,6 +99,8 @@ const TeamComponent = ({ viewData }: TeamComponentProps) => {
       }
     }
     if (error) {
+      dispatch({ type: "SET_HAS_MORE", payload: false });
+      dispatch({ type: "SET_LOADING", payload: false });
       const err = parseFrappeErrorMsg(error);
       toast({
         variant: "destructive",
@@ -107,6 +109,18 @@ const TeamComponent = ({ viewData }: TeamComponentProps) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, error]);
+
+  useFrappeEventListener(`timesheet_info`, (payload) => {
+    const employee = payload.employee;
+    const data = payload.message;
+    if (!Object.prototype.hasOwnProperty.call(teamState.data.data, employee)) {
+      return;
+    }
+    if (!teamState.data.dates[0]?.dates?.includes(payload.date)) {
+      return;
+    }
+    dispatch({ type: "UPDATE_EMP_DATA", payload: data });
+  });
 
   const handleLoadMore = () => {
     if (teamState.isLoading) return;
@@ -208,6 +222,8 @@ const TeamComponent = ({ viewData }: TeamComponentProps) => {
                             </span>
                           </TableCell>
                           {item.data.map((data: dataItem, key) => {
+                            const dateExists = teamState.data.dates.some((item) => item?.dates?.includes(data.date));
+                            if (!dateExists) return <></>;
                             total += data.hour;
                             return (
                               <HoverCard key={`${data.hour}-id-${Math.random()}`} openDelay={1000}>

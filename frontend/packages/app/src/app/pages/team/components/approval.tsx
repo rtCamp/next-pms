@@ -133,7 +133,7 @@ export const Approval = ({ onClose, employee, startDate, endDate, isAprrovalDial
         })
         .filter((date) => {
           const hasTimeOrSubmitted = Object.values(timesheetData.tasks).some((task) =>
-            task.data.some((entry) => getDateFromDateAndTimeString(entry.from_time) === date)
+            task.data.some((entry) => getDateFromDateAndTimeString(entry.from_time) === date && entry.docstatus != 1)
           );
           return hasTimeOrSubmitted;
         });

@@ -122,6 +122,10 @@ export type ViewProps = {
   filters: Record<string, string | number | Array<string>>;
   orderBy: { field: string; order: string };
   columns: Record<string, number | string>;
+  pinnedColumns?: Array<string>;
+  isDefault: boolean;
+  isPublic: boolean;
+  name: string;
 };
 
 export interface CreateViewProps {
@@ -135,4 +139,5 @@ export interface CreateViewProps {
   isDefault: boolean;
   columns: Record<string, number | string>;
   isPublic: boolean;
+  pinnedColumns?: Array<string>;
 }

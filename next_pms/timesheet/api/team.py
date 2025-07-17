@@ -1,8 +1,23 @@
 import json
 
-from frappe import DoesNotExistError, _, get_all, get_doc, get_value, only_for, throw, whitelist
+from frappe import (
+    DoesNotExistError,
+    _,
+    db,
+    enqueue,
+    get_all,
+    get_doc,
+    get_value,
+    log_error,
+    only_for,
+    sendmail,
+    session,
+    throw,
+    whitelist,
+)
 from frappe.utils.data import add_days, getdate
 
+from next_pms.api.utils import error_logger
 from next_pms.resource_management.api.utils.query import get_employee_leaves
 
 from . import filter_employees
@@ -12,10 +27,12 @@ from .utils import employee_has_higher_access, get_holidays, get_week_dates
 
 
 @whitelist()
+@error_logger
 def get_compact_view_data(
     date: str,
     max_week: int = 2,
     employee_name=None,
+    employee_ids: list[str] | str | None = None,
     department=None,
     project=None,
     user_group=None,
@@ -24,8 +41,10 @@ def get_compact_view_data(
     status_filter=None,
     status=None,
     reports_to: str | None = None,
+    by_pass_access_check=False,
 ):
-    only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
+    if not by_pass_access_check:
+        only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
 
     dates = []
     data = {}
@@ -41,15 +60,16 @@ def get_compact_view_data(
     res = {"dates": dates}
 
     employees, total_count = filter_employee_by_timesheet_status(
-        employee_name,
-        department,
-        project,
+        employee_name=employee_name,
+        department=department,
+        project=project,
         user_group=user_group,
         page_length=page_length,
         start=start,
         reports_to=reports_to,
         status=status,
         timesheet_status=status_filter,
+        employee_ids=employee_ids,
         start_date=dates[0].get("start_date"),
         end_date=dates[-1].get("end_date"),
     )
@@ -62,6 +82,7 @@ def get_compact_view_data(
             "employee": ["in", employee_names],
             "start_date": [">=", dates[0].get("start_date")],
             "end_date": ["<=", dates[-1].get("end_date")],
+            "docstatus": ["!=", 2],
         },
         fields=[
             "employee",
@@ -147,12 +168,12 @@ def get_compact_view_data(
     return res
 
 
-@whitelist()
-def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | str | None = None, note: str = ""):
-    from frappe import enqueue
-
+@whitelist(methods=["POST"])
+@error_logger
+def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | None = None, note: str = ""):
     only_for(["Timesheet Manager", "Timesheet User", "Projects Manager"], message=True)
-
+    if not dates:
+        return throw(_("Please select the dates to approve or reject the timesheet."))
     current_week = get_week_dates(dates[0])
     timesheets = get_all(
         "Timesheet",
@@ -170,31 +191,27 @@ def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | s
             exc=DoesNotExistError,
         )
 
-    for timesheet in timesheets:
-        if str(timesheet.start_date) not in dates:
-            continue
-        doc = get_doc("Timesheet", timesheet.name)
-        doc.custom_approval_status = status
-        doc.save(ignore_permissions=employee_has_higher_access(employee, ptype="write"))
-        if status == "Approved":
-            doc.reload()
-            doc.submit()
-
     enqueue(
-        trigger_notification_for_approved_or_rejected_timesheet,
-        enqueue_after_commit=True,
+        _approve_or_reject_timesheet,
         status=status,
         employee=employee,
         dates=dates,
+        timesheets=timesheets,
+        enqueue_after_commit=True,
+        queue="long",
         note=note,
-        job_name="Timesheet Approval Notification",
+        job_name=f"Timesheet Approval for {employee} - {status}",
+        at_front=True,
     )
 
-    return _("Timesheet status updated successfully")
+    return _(
+        "Timesheet approval or rejection has been queued for processing. Please do not make any changes to it. You may continue with other tasks."
+    )
 
 
 def filter_employee_by_timesheet_status(
     employee_name=None,
+    employee_ids: list[str] | str | None = None,
     department=None,
     project=None,
     page_length=10,
@@ -217,6 +234,9 @@ def filter_employee_by_timesheet_status(
     start = int(start)
     page_length = int(page_length)
 
+    if employee_ids and isinstance(employee_ids, str):
+        employee_ids = json.loads(employee_ids)
+
     if not timesheet_status:
         employees, count = filter_employees(
             employee_name,
@@ -227,6 +247,7 @@ def filter_employee_by_timesheet_status(
             start=start,
             user_group=user_group,
             reports_to=reports_to,
+            ids=employee_ids,
         )
 
         return employees, count
@@ -266,6 +287,48 @@ def filter_employee_by_timesheet_status(
         page_length = count - start
 
     return employees, count
+
+
+@error_logger
+def _approve_or_reject_timesheet(
+    timesheets: list,
+    status: str,
+    employee: str,
+    dates: list[str] | None = None,
+    note: str = "",
+):
+    db.begin()
+    try:
+        for timesheet in timesheets:
+            if str(timesheet.start_date) not in dates:
+                continue
+            doc = get_doc("Timesheet", timesheet.name)
+            doc.custom_approval_status = status
+            doc.save(ignore_permissions=employee_has_higher_access(employee, ptype="write"))
+            if status == "Approved":
+                doc.submit()
+
+        enqueue(
+            trigger_notification_for_approved_or_rejected_timesheet,
+            enqueue_after_commit=True,
+            status=status,
+            employee=employee,
+            dates=dates,
+            note=note,
+            job_name="Timesheet Approval Notification",
+        )
+        db.commit()
+    except:  # noqa: E722
+        db.rollback()
+        log_error(title=_("Error in Timesheet Approval"))
+        subject = _("Error in Timesheet Approval")
+        message = _(
+            "An error occurred while processing the timesheet approval for {employee}. Please follow <a href='{link}'>link</a> to check the time-entries."
+        ).format(
+            employee=employee,
+            link=f"/next-pms/team/employee/{employee}?date='{dates[0]}'",
+        )
+        sendmail(recipients=[session.user], subject=subject, message=message)
 
 
 def trigger_notification_for_approved_or_rejected_timesheet(

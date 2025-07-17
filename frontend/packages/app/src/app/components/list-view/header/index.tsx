@@ -45,7 +45,10 @@ export const Header = ({
         className={mergeClassNames("flex items-center max-md:flex-col gap-x-3", className)}
         parentClassName="border-0"
       >
-        <div id="filters" className="flex gap-x-2 max-md:w-full items-center overflow-y-hidden no-scrollbar">
+        <div
+          id="filters"
+          className="flex gap-x-2 max-md:w-full items-center overflow-y-hidden overflow-x-auto no-scrollbar"
+        >
           {filters &&
             filters.map((filter: FilterPops, idx) => {
               if (filter.hide) {

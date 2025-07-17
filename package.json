@@ -1,8 +1,8 @@
 {
-  "name": "frappe-pms",
-  "version": "1.0.0",
+  "name": "next-pms",
+  "version": "0.0.1",
   "main": "index.js",
-  "repository": "git@github.com:rtCamp/frappe-pms.git",
+  "repository": "git@github.com:rtCamp/next-pms.git",
   "author": "rtCamp",
   "license": "AGPLv3",
   "private": true,
@@ -17,7 +17,9 @@
     "allure:prepareCI": "cp -r allure-report-for-count-extraction/history allure-results/history || echo 'No history to copy' ",
     "allure:extract": "allure generate ../allure-results --clean -o ../allure-report-for-count-extraction",
     "allure:prepare": "cp -r ../allure-report-for-count-extraction/history ../allure-results/history || echo 'No history to copy'",
-    "allure:singleHtml": "allure generate ../allure-results --single-file --clean -o ../allure-report"
+    "allure:singleHtml": "allure generate ../allure-results --single-file --clean -o ../allure-report",
+    "visual:test": "npx playwright test tests/visualAutomation/specs/visualAutomation.spec.js --config=tests/visualAutomation/playwright.config.js --workers=1",
+    "visual:test:update": "npx playwright test --update-snapshots tests/visualAutomation/specs/visualAutomation.spec.js --config=tests/visualAutomation/playwright.config.js --workers=1"
   },
   "devDependencies": {
     "@babel/parser": "^7.28.0",

@@ -1,0 +1,105 @@
+name: Visual Regression Tests
+
+on:
+  schedule:
+    - cron: "30 2 * * *" # Runs daily at 8:00 AM UTC
+  workflow_dispatch: # Allows manual trigger
+  pull_request:
+    branches:
+      - develop
+      - main
+
+jobs:
+  run-visual-tests:
+    name: Run Visual Tests
+    runs-on: self-hosted
+    container:
+      image: ubuntu
+
+    env:
+      BASE_URL: ${{ secrets.BASE_URL }}
+
+      REP_MAN_ID: ${{ secrets.REP_MAN_ID }}
+      REP_MAN_EMAIL: ${{ secrets.REP_MAN_EMAIL }}
+      REP_MAN_PASS: ${{ secrets.REP_MAN_PASS }}
+      REP_MAN_NAME: ${{ secrets.REP_MAN_NAME }}
+
+      HETZNER_S3_BUCKET: ${{ secrets.HETZNER_S3_BUCKET }}
+      HETZNER_S3_ACCESS_KEY_ID: ${{ secrets.HETZNER_S3_ACCESS_KEY_ID }}
+      HETZNER_S3_SECRET_ACCESS_KEY: ${{ secrets.HETZNER_S3_SECRET_ACCESS_KEY }}
+      HETZNER_S3_ENDPOINT_URL: ${{ secrets.HETZNER_S3_ENDPOINT_URL }}
+
+      HOME: /root
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Cache npm modules
+        uses: actions/cache@v4
+        with:
+          path: /github/home/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+    
+      - name: Install prerequisites
+        run: |
+          apt-get update
+          apt-get install -y curl sudo
+    
+      - name: Install MinIO Client (mc)
+        run: |
+          curl -fsSL https://dl.min.io/client/mc/release/linux-amd64/mc \
+          -o mc && chmod +x mc && sudo mv mc /usr/local/bin/
+
+      - name: Configure mc alias for Hetzner S3
+        run: |
+          mc alias set hetzner \
+            ${{ env.HETZNER_S3_ENDPOINT_URL }} \
+            ${{ env.HETZNER_S3_ACCESS_KEY_ID }} \
+            ${{ env.HETZNER_S3_SECRET_ACCESS_KEY }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Sync snapshots FROM Hetzner S3 to local
+        run: |
+          if mc ls hetzner/${{ env.HETZNER_S3_BUCKET }}/visual-snapshots/${{ github.ref_name }}/ | grep -q .; then
+            echo "Remote snapshot folder found. Downloading..."
+            mc cp --recursive \
+              hetzner/${{ env.HETZNER_S3_BUCKET }}/visual-snapshots/${{ github.ref_name }}/ \
+              tests/visualAutomation/specs/visualAutomation.spec.js-snapshots
+          else
+            echo "No snapshot folder found in S3 — skipping download."
+          fi
+
+      - name: Run Visual Tests
+        run: npm run visual:test
+
+      - name: Upload visual test results as artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-test-results
+          path: tests/visualAutomation/test-results
+
+      - name: Update Snapshots
+        run: npm run visual:test:update
+
+      - name: Upload updated snapshots to Hetzner S3
+        if: always()
+        run: |
+            echo "Uploading updated snapshots to Hetzner S3..."
+            mc cp --recursive \
+              tests/visualAutomation/specs/visualAutomation.spec.js-snapshots/ \
+              hetzner/${{ env.HETZNER_S3_BUCKET }}/visual-snapshots/${{ github.ref_name }}/
+
