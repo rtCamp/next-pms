@@ -240,7 +240,7 @@ export const populateJsonStubs = async (jsonDir, testCaseIDs) => {
       }
     }
 
-    // Write data if we found any
+    // Write data if found any
     if (Object.keys(dataToWrite).length > 0) {
       try {
         await writeDataToFile(filePath, dataToWrite);
@@ -254,9 +254,6 @@ export const populateJsonStubs = async (jsonDir, testCaseIDs) => {
     }
   }
 };
-
-// Note: You'll need to install the proper-lockfile package:
-// npm install proper-lockfile
 
 export default {
   createJSONFile,
