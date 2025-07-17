@@ -21,7 +21,7 @@ test.describe("Employee 2 : Timesheet", () => {
     allure.story("Timesheet");
     const stubPath = path.join(jsonDir, "TC2.json");
     const data = await readJSONFile(stubPath);
-        const TC2data = data.TC2;
+    const TC2data = data.TC2;
     // Add time entry using "Time" button
     await timesheetPage.addTimeViaTimeButton(TC2data.taskInfo);
 
@@ -37,7 +37,7 @@ test.describe("Employee 2 : Timesheet", () => {
     allure.story("Timesheet");
     const stubPath = path.join(jsonDir, "TC13.json");
     const data = await readJSONFile(stubPath);
-        const TC13data = data.TC13;
+    const TC13data = data.TC13;
     // Apply for leave
     await timesheetPage.applyForLeave(TC13data.leave.desc);
 
@@ -48,5 +48,4 @@ test.describe("Employee 2 : Timesheet", () => {
     const cellText = await timesheetPage.getCellText(TC13data.cell);
     expect(cellText).toContain("8");
   });
-
 });

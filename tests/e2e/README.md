@@ -11,6 +11,7 @@
 - [Test Case Sheet](#test-case-sheet)
 - [Known Issues and Bugs](#known-issues-and-bugs)
 - [Skipped Tests & Reasons](#skipped-tests--reasons)
+- [Test Workflow](#test-workflow)
 - [Test Data & Configuration](#test-data--configuration)
 - [Reporting](#reporting)
 
@@ -122,7 +123,7 @@ project-root/
 │   │   │   │   ├── timesheet.spec.js           # Employee timesheet functionality tests
 │   │   │   ├── employee2/                      # Test cases for employee with data manipulation
 │   │   │   │   ├── timesheet2.spec.js          # Employee2 timesheet functionality tests
-│   │   │   ├── employee3/                      # Test cases for employee3
+│   │   │   ├── employee3/                      # Test cases for employee3 that performs UI operations on timesheet 
 │   │   │   │   ├── timesheet3.spec.js          # Employee3 timesheet functionality tests
 │   │   │   ├── manager/                        # Test cases related to manager
 │   │   │   │   ├── resourceManagement.spec.js  # Manager resource management tests
@@ -164,6 +165,49 @@ project-root/
 
 - Frequently performed and automatable tests for employees and managers have been automated for each tab.
 - Some filter-related tests in the Task and Team tabs have been skipped due to buggy behavior.
+- TC49 has been marked as fixme due to unexpected behavior, it needs to be checked and fixed.
+
+## Test Workflow
+
+When a test run is initiated, the following workflow is executed:
+
+### 1. Pre-Test Phase (Global Setup)
+- **Test Discovery**: The `list-tests.js` script scans all spec files to identify active tests and extract test case IDs (TC numbers)
+- **Authentication State Generation**: Creates API authentication states for all user roles (employee, employee2, employee3, manager, admin) and stores them in the `auth/` directory
+- **Test Data Preparation**: 
+  - Creates JSON stub files for each discovered test case ID in `data/json-files/`
+  - Populates these files with test-specific data using helper functions
+  - Cleans up any orphaned data from previous runs
+- **Data Generation**: For each test case ID, sequentially generates:
+  - Employee records
+  - Time entries and updates
+  - Projects and tasks
+  - Hourly billing calculations
+  - Leave entries
+  - User groups
+
+### 2. Test Execution Phase
+- **Parallel Execution**: Tests run in parallel across multiple workers (7 workers on CI, CPU cores locally)
+- **Project-Based Organization**: Tests are organized by user roles:
+  - `employee-chromium`: Employee-related tests
+  - `employee2-chromium`: Employee tests with UI data manipulation
+  - `employee3-chromium`: Employee3-specific tests
+  - `manager-chromium`: Manager-related tests
+- **Authentication**: Tests use pre-generated authentication states from the `auth/` directory
+- **Data Access**: Tests read from and write to the JSON files created during setup
+- **Retry Logic**: Failed tests are retried up to 2 times on CI environments
+
+### 3. Post-Test Phase (Global Teardown)
+- **Data Cleanup**: Removes test data created during the test run
+- **Task Cleanup**: Deletes tasks created through the UI during testing
+- **Orphan Data Removal**: Cleans up any remaining orphaned data to prevent interference with future test runs
+
+### 4. Reporting
+- **Multiple Formats**: Generates reports in HTML (Playwright), JSON, and Allure formats
+- **Failure Artifacts**: Captures screenshots, videos, and traces for failed tests
+- **Storage**: Reports are stored in `playwright-report/` and `allure-results/` directories
+
+This workflow ensures isolated test execution with proper data management and cleanup, preventing test interference and maintaining consistent test environments.
 
 ## Test Data & Configuration
 

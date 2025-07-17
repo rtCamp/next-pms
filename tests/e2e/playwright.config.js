@@ -96,5 +96,4 @@ module.exports = defineConfig({
       metadata: { TEST_ROLE: "manager" },
     },
   ],
-
 });

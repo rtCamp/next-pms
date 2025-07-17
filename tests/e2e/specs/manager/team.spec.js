@@ -22,7 +22,7 @@ test.describe("Manager: Team Tab", () => {
     await teamPage.goto();
   });
 
-  test("TC38: Validate the search functionality", async ({ page }) => {
+  test("TC38: Validate the search functionality", async () => {
     allure.story("Team");
     await teamPage.searchEmployee(empName);
     const filteredEmployees = await teamPage.getEmployees();

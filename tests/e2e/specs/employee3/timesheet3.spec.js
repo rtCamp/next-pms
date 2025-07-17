@@ -7,7 +7,7 @@ import { readJSONFile } from "../../utils/fileUtils";
 //Add type hints to help VS Code recognize TimesheetPage
 /** @type {TimesheetPage} */
 let timesheetPage;
-let taskPage;
+
 
 test.describe.serial("Employee3 : Timesheet", () => {
   test.beforeEach(async ({ page }) => {

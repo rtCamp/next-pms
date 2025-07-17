@@ -48,7 +48,7 @@ test.describe("Employee : Timesheet", () => {
     expect(cellText).toContain(TC3data.taskInfo.duration);
   });
 
-  test("TC4: Added time and description should be editable. ", async ({ page, jsonDir }) => {
+  test("TC4: Added time and description should be editable. ", async ({ jsonDir }) => {
     allure.story("Timesheet");
     // 1) Build the path to your per‑TC JSON stub
     const stubPath = path.join(jsonDir, "TC4.json");
@@ -93,8 +93,6 @@ test.describe("Employee : Timesheet", () => {
     const cellTooltipText = await timesheetPage.getCellTooltipText(TC5data.cell);
     expect(cellTooltipText).toContain(TC5data.taskInfo.desc);
   });
-
-
 
   test("TC9: Open task details popup", async () => {
     allure.story("Timesheet");
@@ -198,23 +196,22 @@ test.describe("Employee : Timesheet", () => {
     ).toBeCloseTo(employeeHourlyBillingRate, 3);
   });
 
-  test(
-    "TC83: Verify hourly consulting rate when no default billing rate is used for Retainer project   ",
-    async ({ jsonDir }) => {
-      allure.story("Timesheet");
-      const stubPath = path.join(jsonDir, "TC83.json");
-      const data = await readJSONFile(stubPath);
-      const TC83data = data.TC83;
-      //Assertions
-      const total_costing_amount = TC83data.payloadCalculateBillingRate.total_costing_amount;
-      const employeeHourlyBillingRate = TC83data.payloadCalculateBillingRate.hourly_billing_rate;
+  test("TC83: Verify hourly consulting rate when no default billing rate is used for Retainer project   ", async ({
+    jsonDir,
+  }) => {
+    allure.story("Timesheet");
+    const stubPath = path.join(jsonDir, "TC83.json");
+    const data = await readJSONFile(stubPath);
+    const TC83data = data.TC83;
+    //Assertions
+    const total_costing_amount = TC83data.payloadCalculateBillingRate.total_costing_amount;
+    const employeeHourlyBillingRate = TC83data.payloadCalculateBillingRate.hourly_billing_rate;
 
-      expect(
-        total_costing_amount,
-        "Verify the project cost amount and employee CTC amount per hour matches for Retainer Project"
-      ).toBeCloseTo(employeeHourlyBillingRate, 3);
-    }
-  );
+    expect(
+      total_costing_amount,
+      "Verify the project cost amount and employee CTC amount per hour matches for Retainer Project"
+    ).toBeCloseTo(employeeHourlyBillingRate, 3);
+  });
 
   test("TC84: Verify hourly consulting rate when no default billing rate is used for Time and Material project   ", async ({
     jsonDir,
@@ -233,23 +230,22 @@ test.describe("Employee : Timesheet", () => {
     ).toBeCloseTo(employeeHourlyBillingRate, 3);
   });
 
-  test(
-    "TC85: Verify hourly consulting rate when the currency for employee and project are different ",
-    async ({ jsonDir }) => {
-      allure.story("Timesheet");
-      const stubPath = path.join(jsonDir, "TC85.json");
-      const data = await readJSONFile(stubPath);
-      const TC85data = data.TC85;
-      //Assertions
-      const total_costing_amount = TC85data.payloadCalculateBillingRate.total_costing_amount;
-      const employeeHourlyBillingRate = TC85data.payloadCalculateBillingRate.hourly_billing_rate;
+  test("TC85: Verify hourly consulting rate when the currency for employee and project are different ", async ({
+    jsonDir,
+  }) => {
+    allure.story("Timesheet");
+    const stubPath = path.join(jsonDir, "TC85.json");
+    const data = await readJSONFile(stubPath);
+    const TC85data = data.TC85;
+    //Assertions
+    const total_costing_amount = TC85data.payloadCalculateBillingRate.total_costing_amount;
+    const employeeHourlyBillingRate = TC85data.payloadCalculateBillingRate.hourly_billing_rate;
 
-      expect(
-        total_costing_amount,
-        "Verify the project cost amount and employee CTC amount per hour matches when the currency for employee and project are different"
-      ).toBeCloseTo(employeeHourlyBillingRate, 3);
-    }
-  );
+    expect(
+      total_costing_amount,
+      "Verify the project cost amount and employee CTC amount per hour matches when the currency for employee and project are different"
+    ).toBeCloseTo(employeeHourlyBillingRate, 3);
+  });
 
   test("TC86: Billing rate in the timesheet should match the employee's rate from the project billing team child table for Time and Material Project", async ({
     jsonDir,
@@ -351,7 +347,7 @@ test.describe("Employee : Timesheet", () => {
     allure.story("Timesheet");
     const stubPath = path.join(jsonDir, "TC98.json");
     const data = await readJSONFile(stubPath);
-        const TC98data = data.TC98;
+    const TC98data = data.TC98;
     // Import liked tasks
     await timesheetPage.importLikedTasks();
 
@@ -364,7 +360,7 @@ test.describe("Employee : Timesheet", () => {
     allure.story("Timesheet");
     const stubPath = path.join(jsonDir, "TC99.json");
     const data = await readJSONFile(stubPath);
-        const TC99data = data.TC99;
+    const TC99data = data.TC99;
     // Import liked tasks
     await timesheetPage.importLikedTasks();
 
