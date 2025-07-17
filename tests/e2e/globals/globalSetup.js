@@ -18,6 +18,9 @@ import { createUserGroupForEmployee } from "../helpers/teamTabHelper";
 const globalSetup = async () => {
   console.log("🚀 Starting global setup...");
 
+  //Create json file to store array of task to be deleted
+  await createJSONFile("../data/manager/tasks-to-delete.json");
+
   // 0) Discover active tests and extract TC IDs
   console.log("🔍 Discovering active tests via list-tests.js...");
   const projectRoot = path.resolve(__dirname, "..");
