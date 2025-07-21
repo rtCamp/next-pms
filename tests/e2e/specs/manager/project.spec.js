@@ -11,7 +11,6 @@ test.describe("Project Tab", () => {
     projectPage = new ProjectPage(page);
     // go to project page
     await projectPage.goto();
-    await projectPage.page.pause();
   });
 
   test("TC28: Validate search bar functionality", async ({ jsonDir }) => {
