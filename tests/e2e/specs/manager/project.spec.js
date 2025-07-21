@@ -13,7 +13,7 @@ test.describe("Project Tab", () => {
     await projectPage.goto();
   });
 
-  test.only("TC28: Validate search bar functionality", async ({ jsonDir }) => {
+  test("TC28: Validate search bar functionality", async ({ jsonDir }) => {
     allure.story("Project");
 
     const stubPath = path.join(jsonDir, "TC28.json");
