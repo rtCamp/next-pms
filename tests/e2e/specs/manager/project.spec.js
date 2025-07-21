@@ -4,7 +4,7 @@ import { ProjectPage } from "../../pageObjects/projectPage";
 import { readJSONFile } from "../../utils/fileUtils";
 import * as allure from "allure-js-commons";
 
-test.describe.only("Project Tab", () => {
+test.describe("Project Tab", () => {
   /** @type {ProjectPage} */ let projectPage;
 
   test.beforeEach(async ({ page }) => {
