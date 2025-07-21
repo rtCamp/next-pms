@@ -32,7 +32,5 @@ test.describe("Project Tab", () => {
 
     expect(projectListAfterSearch.totalCount).toBe(1);
     expect(projectListAfterSearch.projectNames[0]).toEqual(TC28data.payloadCreateProject.project_name);
-
-    //Search a random keyword and validate the search results
   });
 });
