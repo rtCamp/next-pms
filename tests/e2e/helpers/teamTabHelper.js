@@ -82,35 +82,6 @@ export const randomApprovalStatus = async (
 // ------------------------------------------------------------------------------------------
 
 /**
- * Deletes created employees for provided testCaseIDs.
- * @param {string[]} testCaseIDs  IDs with createdEmployees array
- */
-export const deleteEmployees = async (testCaseIDs = [], jsonDir) => {
-  if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
-
-  for (const tcId of testCaseIDs) {
-    const stubPath = path.join(jsonDir, `${tcId}.json`);
-
-    const fullStub = await readJSONFile(stubPath);
-    const entry = fullStub[tcId];
-    if (!entry?.createdEmployees) continue;
-
-    for (const emp of entry.createdEmployees) {
-      if (!emp.name) continue;
-      try {
-        await deleteEmployee(emp.name, "admin");
-        //console.log(`✅ Deleted employee ${emp.name} for ${tcId}`);
-      } catch (err) {
-        console.error(`❌ Error deleting ${emp.name} for ${tcId}: ${err.message}`);
-      }
-    }
-    // Persist the stub (preserving the TC wrapper)
-    await writeDataToFile(stubPath, { [tcId]: entry });
-  }
-};
-// ------------------------------------------------------------------------------------------
-
-/**
  * Creates a user group for provided testCaseID.
  * @param {string[]} testCaseIDs  IDs to process
  */
