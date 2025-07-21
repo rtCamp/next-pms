@@ -22,6 +22,8 @@
     "visual:test:update": "npx playwright test --update-snapshots tests/visualAutomation/specs/visualAutomation.spec.js --config=tests/visualAutomation/playwright.config.js --workers=1"
   },
   "devDependencies": {
+    "@babel/parser": "^7.28.0",
+    "@babel/traverse": "^7.28.0",
     "@eslint/js": "^8.57.0",
     "@playwright/test": "^1.52.0",
     "allure-commandline": "^2.34.0",
@@ -32,6 +34,7 @@
   },
   "dependencies": {
     "axios": "^1.9.0",
-    "dotenv": "^16.4.7"
+    "dotenv": "^16.4.7",
+    "proper-lockfile": "^4.1.2"
   }
 }

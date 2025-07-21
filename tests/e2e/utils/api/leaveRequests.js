@@ -4,6 +4,7 @@ import fs from "fs";
 import config from "../../playwright.config";
 
 const baseURL = config.use?.baseURL;
+// ------------------------------------------------------------------------------------------
 
 /**
  * Load the storage state for a given role.
@@ -15,6 +16,7 @@ const loadAuthState = (role) => {
   }
   return filePath;
 };
+// ------------------------------------------------------------------------------------------
 
 /**
  * Reusable API request wrapper.

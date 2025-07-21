@@ -25,8 +25,9 @@ allure-history
 tests/e2e/auth/**
 
 # Dynamically generated temp files
-tests/e2e/data/**/shared*
 tests/e2e/data/manager/tasks-to-delete.json
+test-tc-ids.json
+json-files
 
 # Env file
 .env

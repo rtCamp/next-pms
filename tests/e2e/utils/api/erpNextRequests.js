@@ -5,6 +5,8 @@ import config from "../../playwright.config";
 
 // Load config variables
 const baseURL = config.use?.baseURL;
+// ------------------------------------------------------------------------------------------
+
 /**
  * Helper function to ensure storage state is loaded for respective roles.
  */
@@ -15,6 +17,8 @@ const loadAuthState = (role) => {
   }
   return filePath;
 };
+// ------------------------------------------------------------------------------------------
+
 /**
  * Helper function to load build the API request
  */
@@ -43,6 +47,8 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   await requestContext.dispose();
   return responseData;
 };
+// ------------------------------------------------------------------------------------------
+
 /**
  * Get Exchange Rate
  */

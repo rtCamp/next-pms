@@ -1,5 +1,4 @@
 import { deleteByTaskName, readAndCleanAllOrphanData } from "../helpers/timesheetHelper";
-import { deleteEmployees } from "../helpers/employeeHelper";
 // ------------------------------------------------------------------------------------------
 
 /**
@@ -7,10 +6,11 @@ import { deleteEmployees } from "../helpers/employeeHelper";
  */
 const globalTeardown = async () => {
   //Delete the employees
-  await deleteEmployees();
+  //await deleteEmployees();
   //Delete Stale Tasks created through UI
-  await deleteByTaskName();
+
   //Clean up Data
+  await deleteByTaskName();
   await readAndCleanAllOrphanData();
 };
 

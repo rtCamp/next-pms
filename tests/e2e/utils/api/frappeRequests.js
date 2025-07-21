@@ -5,6 +5,7 @@ import config from "../../playwright.config";
 
 // Load config variables
 const baseURL = config.use?.baseURL;
+// ------------------------------------------------------------------------------------------
 
 /**
  * Helper function to ensure storage state is loaded for respective roles.
@@ -16,6 +17,7 @@ const loadAuthState = (role) => {
   }
   return filePath;
 };
+// ------------------------------------------------------------------------------------------
 
 /**
  * Helper function to build and execute an API request.
@@ -71,6 +73,7 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   await requestContext.dispose();
   return responseData;
 };
+// ------------------------------------------------------------------------------------------
 
 /**
  * Filter the Results via Frappe reportview API
@@ -93,6 +96,7 @@ export const filterApi = async (docType, filters, role = "manager") => {
     role
   );
 };
+// ------------------------------------------------------------------------------------------
 
 /**
  * Share a document with a user via form-encoded POST

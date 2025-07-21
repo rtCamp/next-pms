@@ -1,116 +1,107 @@
-import { login } from "./authRequests";
+import { request } from "@playwright/test";
+import path from "path";
+import fs from "fs";
+import config from "../../playwright.config";
 import { deleteAllocationsByEmployee } from "../../helpers/employeeHelper";
-let context; // Global variable for request context
 
-// Helper function to ensure authentication
-const ensureAuth = async () => {
-  if (!context) {
-    const loginResult = await login();
-    context = loginResult.context;
+// Base URL from config
+const baseURL = config.use?.baseURL;
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Ensure the storage‑state file for the given role exists, and return its path.
+ */
+const loadAuthState = (role) => {
+  const filePath = path.resolve(__dirname, `../../auth/${role}-API.json`);
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`Auth state file for ${role} not found: ${filePath}`);
   }
-  return context;
+  return filePath;
 };
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Fire off an API request using Playwright’s requestContext + storageState.
+ * Automatically JSON‑stringifies data, sets headers, and throws on non‑ok.
+ */
+export const apiRequest = async (endpoint, options = {}, role = "manager") => {
+  const authFilePath = loadAuthState(role);
+  const ctx = await request.newContext({ baseURL, storageState: authFilePath });
+
+  const response = await ctx.fetch(endpoint, {
+    method: options.method || "GET",
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+    data: options.data,
+  });
+
+  // dispose as soon as we have status
+  const status = response.status();
+
+  const statusText = response.statusText();
+  ////console.log("---------RESPONSE status text---------", statusText);
+
+  if (!response.ok()) {
+    await ctx.dispose();
+    throw new Error(`API request failed for ${role} @ ${endpoint}: ${status} ${statusText}`);
+  }
+
+  const json = await response.json();
+  ////console.log(`✅ API request SUCCESS for ${role} @ ${endpoint}:`, json);
+  await ctx.dispose();
+  return json;
+};
+// ------------------------------------------------------------------------------------------
 
 /**
  * Create a new Project entry.
  */
-export const createProject = async ({
-  project_name,
-  company,
-  customer,
-  billing_type,
-  currency,
-  custom_billing_type,
-  estimated_costing,
-  custom_project_billing_team,
-  project_type,
-  custom_default_hourly_billing_rate,
-}) => {
-  const ctx = await ensureAuth();
-
-  // Define requestData at the top so it's accessible in the whole function
-  const requestData = {
-    project_name,
-    company,
-    customer,
-    billing_type,
-    currency,
-    ...(project_type !== undefined && { project_type }),
-    ...(custom_billing_type !== undefined && { custom_billing_type }),
-    ...(estimated_costing !== undefined && { estimated_costing }),
-    ...(custom_project_billing_team !== undefined && { custom_project_billing_team }),
-    ...(custom_default_hourly_billing_rate !== undefined && { custom_default_hourly_billing_rate }),
-  };
-
-  const response = await ctx.post(`/api/resource/Project`, {
-    data: requestData,
-  });
-
-  if (!response.ok()) {
-    let errorMessage = `Failed to create project '${project_name}'. Status: ${response.status()}`;
-
-    try {
-      const errorData = await response.json();
-      errorMessage += `\nError Response: ${JSON.stringify(errorData, null, 2)}`;
-    } catch {
-      const rawBody = await response.text();
-      errorMessage += `\nFailed to parse error response as JSON. Raw body: ${rawBody}`;
-    }
-
-    errorMessage += `\nRequest Payload: ${JSON.stringify(requestData, null, 2)}`;
-
-    throw new Error(errorMessage);
-  }
-
-  return response;
+export const createProject = async (payload) => {
+  ////console.log("Payload received in create project is:", payload);
+  const result = await apiRequest(
+    "/api/resource/Project",
+    {
+      method: "POST",
+      data: payload,
+    },
+    "admin"
+  );
+  ////console.log("Result of create project is: ", result);
+  return result;
 };
+// ------------------------------------------------------------------------------------------
 
 /**
  * Delete a Project entry.
+ * On HTTP 417, fall back to deleting allocations first.
  */
 export const deleteProject = async (projectId) => {
-  const ctx = await ensureAuth();
-  const response = await ctx.delete(`/api/resource/Project/${projectId}`);
-
-  if (response.status() === 417) {
-    try {
+  try {
+    await apiRequest(`/api/resource/Project/${projectId}`, { method: "DELETE" }, "admin");
+  } catch (err) {
+    // if the server signals “Expectation Failed” (417), clean up allocations
+    if (err.message.includes("417")) {
       await deleteAllocationsByEmployee(projectId);
-    } catch (error) {
-      console.warn(`Unexpected error while deleting allocation:`, error);
+    } else {
+      throw err;
     }
-  } else if (!response.ok()) {
-    throw new Error(
-      `Failed to get response for Delete project for projectId: ${projectId} . Status: ${response.status()}`
-    );
   }
-  return response;
 };
+// ------------------------------------------------------------------------------------------
 
 /**
- * Get details of a project.
+ * Get details of a Project entry.
  */
 export const getProjectDetails = async (projectId) => {
-  const ctx = await ensureAuth();
-  const response = await ctx.get(`/api/resource/Project/${projectId}`);
-  if (!response.ok()) {
-    throw new Error(
-      `Failed to get response for get project Detials for projectId: ${projectId} . Status: ${response.status()}`
-    );
-  }
-  return response;
+  return await apiRequest(`/api/resource/Project/${projectId}`, { method: "GET" }, "admin");
 };
+// ------------------------------------------------------------------------------------------
 
 /**
- * Delete an allocation using the allocation ID.
+ * Delete a Resource Allocation by its ID.
  */
 export const deleteAllocation = async (allocationId) => {
-  const ctx = await ensureAuth();
-  const response = await ctx.delete(`/api/resource/Resource%20Allocation/${allocationId}`);
-
-  if (!response.ok()) {
-    throw new Error(
-      `Failed to get response for Delete project for projectId: ${allocationId} . Status: ${response.status()}`
-    );
-  }
-  return response;
+  return await apiRequest(`/api/resource/Resource%20Allocation/${allocationId}`, { method: "DELETE" }, "admin");
 };

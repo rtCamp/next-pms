@@ -12,11 +12,13 @@ export class TimelinePage {
     this.searchEmployeeFilter = page.locator("#filters input");
 
     //add allocation modal elements
+    this.modalErrorMessage = page.locator("p[id*='form-item-message']");
     this.selectEmployeeDropdown = page.getByRole("button", { name: "Select Employee" });
     this.selectEmployeeTextField = page.getByPlaceholder("Search Employee");
     this.employeeSelector = page.getByLabel("Suggestions");
     this.customerDropdown = page.getByRole("button", { name: "Search Customer" });
     this.projectDropdown = page.getByRole("button", { name: "Search Google Projects" });
+    this.billableToggle = page.locator("div[id*=':-form-item']");
     this.startDateSelector = page.locator(
       'div[data-state="open"] form > div:nth-child(3) div:nth-child(1) > div:nth-child(2) button'
     );
@@ -31,9 +33,11 @@ export class TimelinePage {
       .locator("div")
       .filter({ hasText: /^End Date\*Today$/ })
       .getByRole("button");
+    this.totalHoursTextField = page.locator('input[name="total_allocated_hours"]');
     this.hoursPerDayTextField = page.locator('input[name="hours_allocated_per_day"]');
     this.noteField = page.getByRole("textbox", { name: "Note" });
     this.createButton = page.getByRole("button", { name: "Create" });
+    this.saveButton = page.getByRole("button", { name: "Save" });
 
     this.deleteAllocationIcon = page.locator(".rct-item ").first();
     this.confirmDeleteButton = page.getByRole("button", { name: "Delete" });
@@ -103,6 +107,7 @@ export class TimelinePage {
    * Sets the number of hours per day for the allocation.
    */
   async setHoursPerDay(hours = "8") {
+    await this.hoursPerDayTextField.fill("");
     await this.hoursPerDayTextField.fill(hours);
   }
 
@@ -118,6 +123,13 @@ export class TimelinePage {
    */
   async clickCreateButton() {
     await this.createButton.click();
+  }
+
+  /**
+   * Clicks the "Save" button to save an allocation.
+   */
+  async clickSaveButton() {
+    await this.saveButton.click();
   }
 
   /**
@@ -169,5 +181,13 @@ export class TimelinePage {
     } catch {
       console.log("Filter already cleared");
     }
+  }
+
+  async clickOnBillableToggle() {
+    await this.billableToggle.click();
+  }
+
+  async getErrorFromAllocationModal() {
+    return await this.modalErrorMessage.textContent();
   }
 }

@@ -6,6 +6,7 @@ ROLES = {
     "Projects Manager",
     "HR User",
     "HR Manager",
+    "Projects User",
 }
 
 
