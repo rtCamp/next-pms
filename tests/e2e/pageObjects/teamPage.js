@@ -240,7 +240,7 @@ export class TeamPage {
     } catch {
       // Spinner never appeared – ignore
     }
-
+    await this.page.waitForTimeout(2000);
     const rows = await this.getEmployeeRows();
 
     for (const row of await rows.all()) {

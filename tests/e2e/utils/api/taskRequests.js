@@ -5,6 +5,8 @@ import config from "../../playwright.config";
 
 // Load config variables
 const baseURL = config.use?.baseURL;
+// ------------------------------------------------------------------------------------------
+
 /**
  * Helper function to ensure storage state is loaded for respective roles.
  */
@@ -15,6 +17,8 @@ const loadAuthState = (role) => {
   }
   return filePath;
 };
+// ------------------------------------------------------------------------------------------
+
 /**
  * Helper function to load build the API request
  */
@@ -44,6 +48,8 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   await requestContext.dispose();
   return responseData;
 };
+// ------------------------------------------------------------------------------------------
+
 /**
  * Create a new Task.
  */
@@ -58,6 +64,8 @@ export const createTask = async ({ subject, project, description, custom_is_bill
     },
   });
 };
+// ------------------------------------------------------------------------------------------
+
 /**
  * Delete a Task.
  */
@@ -70,6 +78,7 @@ export const deleteTask = async (taskID, role) => {
     role
   );
 };
+// ------------------------------------------------------------------------------------------
 
 /**
  * Like a Task.
@@ -88,6 +97,8 @@ export const likeTask = async (taskID, role = "manager") => {
     role
   );
 };
+// ------------------------------------------------------------------------------------------
+
 /**
  * Get Task Details.
  */
@@ -96,6 +107,8 @@ export const getTaskDetails = async (taskID) => {
     method: "GET",
   });
 };
+// ------------------------------------------------------------------------------------------
+
 /**
  * Update a task detail
  */

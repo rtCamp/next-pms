@@ -1,181 +1,153 @@
 import path from "path";
-import { getFormattedDate, getDateForWeekday } from "../utils/dateUtils";
-import managerTeamData from "../data/manager/team";
-import { readJSONFile } from "../utils/fileUtils";
-import { deleteEmployee } from "../utils/api/employeeRequests";
+import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
+import { getFormattedDate, getDateForWeekday, getShortFormattedDate } from "../utils/dateUtils";
 import { getRandomValue } from "../utils/stringUtils";
+//import { deleteEmployee } from "../utils/api/employeeRequests";
 import { submitTimesheetForApproval } from "./timesheetHelper";
 import { actOnTimesheet } from "../utils/api/timesheetRequests";
-import { writeDataToFile } from "../utils/fileUtils";
-import { getShortFormattedDate } from "../utils/dateUtils";
 import { createUserGroup, deleteUserGroup } from "../utils/api/userGroupRequests";
-
-// Define file paths for shared JSON data files
-const managerTeamDataFilePath = path.resolve(__dirname, "../data/manager/shared-team.json"); // File path of the manager team data JSON file
-
-// Global variables to store shared data and reused across functions
-let sharedManagerTeamData;
-
 // ------------------------------------------------------------------------------------------
 
 /**
- * Create a random Approval Status timesheet
+ * Randomly assigns and acts on approval status for provided testCaseIDs.
+ * @param {string[]} testCaseIDs  IDs to process in managerTeamData
+ * @param {string[]} approvalOptions  possible statuses, defaults to pending/rejected
  */
 export const randomApprovalStatus = async (
-  data = managerTeamData,
-  approvalStatus = ["Approval Pending", "Partially Rejected"],
-  testCases = ["TC92"]
+  testCaseIDs,
+  jsonDir,
+  approvalOptions = ["Approval Pending", "Partially Rejected"]
 ) => {
-  //Get a random Approval Status
-  const randomApprStatus = getRandomValue(approvalStatus);
-  console.warn(`Selected RANDOM Approval Status: ${randomApprStatus}`);
+  if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
 
-  const processTestCasesForApprovalStatus = async (data, randomApprStatus, testCases) => {
-    for (const testCaseID of testCases) {
-      const testCase = data[testCaseID];
-      if (!testCase || !testCase.payloadApprovalStatus) {
-        console.warn(`Invalid or missing data for test case: ${testCaseID} in randomApprovalStatus function`);
-        continue;
-      }
-      //Store the random approval status in the json file
-      testCase.payloadApprovalStatus.approvalStatus = randomApprStatus;
+  for (const tcId of testCaseIDs) {
+    const stubPath = path.join(jsonDir, `${tcId}.json`);
 
-      //Submit timesheet for Approval
-      await submitTimesheetForApproval(
-        testCase.payloadApprovalStatus.empId,
-        testCase.payloadApprovalStatus.managerID,
-        testCase.payloadApprovalStatus.employeeAPI
-      );
-      switch (randomApprStatus) {
-        case "Approval Pending":
-          console.warn("CASE: Approval Pending");
-          break;
-
-        case "Partially Rejected":
-          console.warn("CASE: Partially Rejected");
-          //Convert the timesheet entry day to a proper date
-          const formattedDate = getFormattedDate(getDateForWeekday(testCase.cell.col));
-
-          await actOnTimesheet({
-            dates: [formattedDate], // or multiple dates if needed
-            employee: testCase.payloadApprovalStatus.empId,
-            note: "Partial rejecting timesheet via API",
-            status: "Rejected",
-          });
-          break;
-
-        default:
-          console.warn(`Unhandled approval status: ${randomApprStatus}`);
-      }
-    }
-  };
-  await processTestCasesForApprovalStatus(data, randomApprStatus, testCases);
-  await writeDataToFile(managerTeamDataFilePath, managerTeamData);
-};
-// ------------------------------------------------------------------------------------------
-
-/**
- * Delete the employee created in global setup
- */
-export const deleteEmployees = async () => {
-  sharedManagerTeamData = await readJSONFile("../data/manager/shared-team.json");
-  const managerTeamIDs = ["TC91"];
-
-  for (const teamID of managerTeamIDs) {
-    const teamData = sharedManagerTeamData[teamID];
-    if (!teamData || !Array.isArray(teamData.createdEmployees)) continue;
-
-    for (const emp of teamData.createdEmployees) {
-      if (emp.name) {
-        try {
-          //Delete employee
-          await deleteEmployee(emp.name, "admin");
-          console.log(`Deleted employee: ${emp.name}`);
-        } catch (err) {
-          console.error(`Error deleting ${emp.name}: ${err.message}`);
-        }
-      }
-    }
-  }
-};
-// ------------------------------------------------------------------------------------------
-
-/**
- * Create User Group for test cases
- */
-export const createUserGroupForEmployee = async (testCaseID = "TC94") => {
-  // Get user email from environment variable
-  const user = process.env.EMP3_EMAIL;
-
-  if (!user) {
-    console.error("EMP3_EMAIL environment variable is not defined.");
-    return;
-  }
-
-  // Load the latest shared team data
-  const sharedData = await readJSONFile(managerTeamDataFilePath);
-  const testCase = sharedData[testCaseID];
-
-  if (!testCase || !testCase.payloadCreateUserGroup) {
-    console.warn(`No payloadCreateUserGroup found for test case ${testCaseID}`);
-    return;
-  }
-
-  // Generate the user group name like "UserGroup-11Jun" which has today's date
-  const today = new Date();
-  const shortDate = getShortFormattedDate(today); // e.g., "Jun 11"
-  const [month, day] = shortDate.split(" ");
-  const name = `UserGroup-${day}${month}`; // e.g., UserGroup-11Jun
-
-  const updatedPayload = {
-    user,
-    name,
-  };
-
-  try {
-    await createUserGroup(updatedPayload);
-    console.log(`  User group '${name}' created for user '${user}'`);
-
-    //Update the test data file
-    testCase.payloadCreateUserGroup.user_group_members[0].user = user;
-    testCase.payloadCreateUserGroup.__newname = name;
-    testCase.payloadDeleteUserGroup.name = name;
-    await writeDataToFile(managerTeamDataFilePath, sharedData);
-  } catch (err) {
-    console.error(` Failed to create user group: ${err.message}`);
-  }
-};
-// ------------------------------------------------------------------------------------------
-
-/**
- * Delete User Group for test cases
- */
-export const deleteUserGroupForEmployee = async () => {
-  const sharedManagerTeamData = await readJSONFile(managerTeamDataFilePath);
-  const managerTeamIDs = ["TC94"]; // Add more test case IDs here if needed
-
-  for (const teamID of managerTeamIDs) {
-    const teamData = sharedManagerTeamData[teamID];
-
-    if (!teamData || !teamData.payloadDeleteUserGroup || !teamData.payloadDeleteUserGroup.name) {
-      console.warn(`⚠️ Skipping ${teamID} - payloadDeleteUserGroup.name not found.`);
+    // Read the entire stub { "TCn": entry }
+    const fullStub = await readJSONFile(stubPath);
+    const entry = fullStub[tcId];
+    if (!entry) {
+      console.warn(`⚠️ No data under key "${tcId}" in ${stubPath}`);
       continue;
     }
 
-    const groupName = teamData.payloadDeleteUserGroup.name;
+    // Skip if no approval payload
+    if (!entry.payloadApprovalStatus) {
+      console.warn(`Skipping ${tcId}: no payloadApprovalStatus`);
+      continue;
+    }
+
+    // Select a random status
+    const randomStatus = getRandomValue(approvalOptions);
+    console.warn(`Selected RANDOM Approval Status for ${tcId}: ${randomStatus}`);
+
+    // Assign status
+    entry.payloadApprovalStatus.approvalStatus = randomStatus;
+
+    // Submit for approval
+    await submitTimesheetForApproval(
+      entry.payloadApprovalStatus.empId,
+      entry.payloadApprovalStatus.managerID,
+      entry.payloadApprovalStatus.employeeAPI
+    );
+
+    // Additional actions based on status
+    switch (randomStatus) {
+      case "Approval Pending":
+        console.warn(`CASE [${tcId}]: Approval Pending`);
+        break;
+
+      case "Partially Rejected":
+        console.warn(`CASE [${tcId}]: Partially Rejected`);
+        // Convert the timesheet entry day to a proper date
+        const formatted = getFormattedDate(getDateForWeekday(entry.cell.col));
+
+        await actOnTimesheet({
+          dates: [formatted],
+          employee: entry.payloadApprovalStatus.empId,
+          note: "Partial rejecting timesheet via API",
+          status: "Rejected",
+        });
+        break;
+
+      default:
+        console.warn(`Unhandled approval status: ${randomStatus}`);
+    }
+
+    // Persist mutated stub, wrapped under its own TC key
+    await writeDataToFile(stubPath, { [tcId]: entry });
+    //console.log(`✅ Updated approval status for ${tcId} in ${stubPath}`);
+  }
+};
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Creates a user group for provided testCaseID.
+ * @param {string[]} testCaseIDs  IDs to process
+ */
+export const createUserGroupForEmployee = async (testCaseIDs, jsonDir) => {
+  const emp3 = process.env.EMP3_EMAIL;
+  if (!emp3) {
+    console.error("EMP3_EMAIL environment variable is not defined.");
+    return;
+  }
+  if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
+
+  for (const tcId of testCaseIDs) {
+    const stubPath = path.join(jsonDir, `${tcId}.json`);
+    const fullStub = await readJSONFile(stubPath);
+    const entry = fullStub[tcId];
+    if (!entry || !entry.payloadCreateUserGroup) {
+      console.warn(`Skipping ${tcId}: no payloadCreateUserGroup`);
+      continue;
+    }
+
+    // build group name based on today
+    const shortDate = getShortFormattedDate(new Date()); // e.g. "Jun 11"
+    const [month, day] = shortDate.split(" ");
+    const name = `UserGroup-${day}${month}`;
 
     try {
-      await deleteUserGroup(groupName);
-      console.log(`✅ Successfully deleted user group: ${groupName}`);
+      await createUserGroup({ user: emp3, name });
+      //console.log(`✅ Created group '${name}' for '${emp3}' on ${tcId}`);
+
+      // update stub payloads
+      entry.payloadCreateUserGroup.user_group_members[0].user = emp3;
+      entry.payloadCreateUserGroup.__newname = name;
+      entry.payloadDeleteUserGroup.name = name;
+
+      // write back updated stub
+      await writeDataToFile(stubPath, { [tcId]: entry });
+      //console.log(`✏️  Updated user-group stub for ${tcId} in ${stubPath}`);
     } catch (err) {
-      if (
-        (err && err.response && err.response.status === 404) ||
-        (err && typeof err.message === "string" && err.message.includes("404"))
-      ) {
-        console.warn(`⚠️ No data found for deletion of user group: '${groupName}'`);
-      } else {
-        console.error(`❌ Failed to delete user group '${groupName}': ${err.message}`);
-      }
+      console.error(`Failed to create user group for ${tcId}: ${err.message}`);
+    }
+  }
+};
+// ------------------------------------------------------------------------------------------
+
+/**
+ * Always attempts to delete today's user group, named "UserGroup-<day><month>",
+ * e.g. if today is June 11, name = "UserGroup-11Jun".
+ */
+export const deleteUserGroupForEmployee = async () => {
+  // 1) Generate the group name based on today's date
+  const shortDate = getShortFormattedDate(new Date()); // e.g. "Jun 11"
+  const [month, day] = shortDate.split(" ");
+  const groupName = `UserGroup-${day}${month}`;
+
+  // 2) Attempt deletion
+  try {
+    await deleteUserGroup(groupName);
+    console.log(`✅ Deleted user group '${groupName}'`);
+  } catch (err) {
+    const isNotFound =
+      err?.response?.status === 404 || (typeof err.message === "string" && err.message.includes("404"));
+
+    if (isNotFound) {
+      console.warn(`⚠️ No user group found to delete for '${groupName}' (404)`);
+    } else {
+      console.error(`❌ Failed to delete user group '${groupName}': ${err.message}`);
     }
   }
 };

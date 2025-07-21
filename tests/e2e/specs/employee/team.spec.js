@@ -1,13 +1,10 @@
-import path from "path";
-import { test, expect } from "@playwright/test";
+const { test, expect } = require("../../playwright.fixture.cjs");
 import { TimesheetPage } from "../../pageObjects/timesheetPage";
 import { Sidebar } from "../../pageObjects/sidebar";
 import * as allure from "allure-js-commons";
 
 let timesheetPage;
 let sidebar;
-
-test.use({ storageState: path.resolve(__dirname, "../../auth/employee.json") });
 
 test.describe("Employee : Team Tab", () => {
   test.beforeEach(async ({ page }) => {
@@ -18,7 +15,7 @@ test.describe("Employee : Team Tab", () => {
     await timesheetPage.goto();
   });
 
-  test("TC52: Verify the 'Team' tab isn't displayed for an employee.", async ({}) => {
+  test("TC52: Verify the 'Team' tab isn't displayed for an employee.", async () => {
     allure.story("Team");
     const isTeamTabAvailable = await sidebar.isTabAvailable("Team");
     expect(isTeamTabAvailable).toBeFalsy();

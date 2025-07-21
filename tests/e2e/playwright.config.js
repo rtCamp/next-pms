@@ -34,7 +34,10 @@ module.exports = defineConfig({
   retries: process.env.CI ? 2 : 0, // Retry twice on CI, no retries locally
 
   /* Configure the number of workers for parallel execution */
-  workers: process.env.CI ? 4 : undefined, // Use 4 workers on CI, defaults to the number of CPU cores otherwise
+  workers: process.env.CI ? 7 : undefined, // Use 7 workers on CI, defaults to the number of CPU cores otherwise
+
+  // Limit the number of failures on CI to save resources
+  maxFailures: process.env.CI ? 5 : undefined, // Max faliures on CI = 5, no limit locally
 
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
@@ -69,48 +72,31 @@ module.exports = defineConfig({
     },
   },
 
-  /* Configure projects for major browsers */
+  /* Configure projects for specs */
   projects: [
     {
-      name: "chromium",
+      name: "employee-chromium",
+      testDir: "./specs/employee",
       use: { ...devices["Desktop Chrome"] },
+      metadata: { TEST_ROLE: "employee" },
     },
-
-    // {
-    //   name: "firefox",
-    //   use: { ...devices["Desktop Firefox"] },
-    // },
-
-    // {
-    //   name: "webkit",
-    //   use: { ...devices["Desktop Safari"] },
-    // },
-
-    /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    // },
+    {
+      name: "employee2-chromium",
+      testDir: "./specs/employee2",
+      use: { ...devices["Desktop Chrome"] },
+      metadata: { TEST_ROLE: "employee2" },
+    },
+    {
+      name: "employee3-chromium",
+      testDir: "./specs/employee3",
+      use: { ...devices["Desktop Chrome"] },
+      metadata: { TEST_ROLE: "employee3" },
+    },
+    {
+      name: "manager-chromium",
+      testDir: "./specs/manager",
+      use: { ...devices["Desktop Chrome"] },
+      metadata: { TEST_ROLE: "manager" },
+    },
   ],
-
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://127.0.0.1:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
 });

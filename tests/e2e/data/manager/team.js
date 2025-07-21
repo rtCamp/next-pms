@@ -1,10 +1,12 @@
 module.exports = {
+  TC38: {},
   TC39: {
     employees: [process.env.EMP_NAME, process.env.EMP3_NAME],
   },
   TC42: {
     col: "Mon",
   },
+  TC43: {},
   TC45: {
     employee: process.env.EMP3_NAME,
   },
@@ -169,7 +171,7 @@ module.exports = {
   },
   TC92: {
     cell: {
-      rowName: "TC92 Billable Task",
+      rowName: "TC92 Billable Task 01",
       col: "Fri",
     },
 
@@ -204,7 +206,7 @@ module.exports = {
       hours: "1",
     },
     payloadFilterTimeEntry: {
-      subject: "TC92 Billable Task",
+      subject: "TC92 Billable Task 01",
       description: "TC92 - Task added via automation.",
       project_name: "TC92 Project",
       max_week: "1",
