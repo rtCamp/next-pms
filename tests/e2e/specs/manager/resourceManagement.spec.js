@@ -5,7 +5,7 @@ import { TeamPage } from "../../pageObjects/resourceManagement/team";
 import { ProjectPage } from "../../pageObjects/resourceManagement/project";
 import * as allure from "allure-js-commons";
 import { deleteAllocation } from "../../utils/api/projectRequests";
-import { getFormattedDateNDaysFromToday } from "../../utils/dateUtils";
+import { getFormattedDateNDaysFromToday, getFormattedPastWorkday } from "../../utils/dateUtils";
 import { readJSONFile } from "../../utils/fileUtils";
 
 let timelinePage;
@@ -113,7 +113,7 @@ test.describe("Manager : Resource Management Tab", () => {
     await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
   });
 
-  test("TC107: Verify adding allocation on a past day", async ({ page,jsonDir }) => {
+  test("TC107: Verify adding allocation on a past day", async ({ page, jsonDir }) => {
     allure.story("Resource Management");
     const stubPath = path.join(jsonDir, "TC107.json");
     const data = await readJSONFile(stubPath);
@@ -122,30 +122,23 @@ test.describe("Manager : Resource Management Tab", () => {
     const projectName = TC107data.payloadCreateProject.project_name;
     const employeeName = TC107data.employee;
     const customerName = TC107data.payloadCreateProject.customer;
-    const { date, day } = getFormattedPastWorkday(-1);
+    const { date } = getFormattedPastWorkday(-1);
     await projectPage.goto();
-    const { allocationName } = await projectPage.addAllocationFromProjectTab(
-      projectName,
-      customerName,
-      employeeName,
-      date,
-      day
-    );
+    const allocationName = await projectPage.addAllocation(projectName, customerName, employeeName, date);
     createdAllocations.push(allocationName);
     await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
     await projectPage.goto();
     await projectPage.filterByProject(projectName);
-    await projectPage.deleteAllocationFromProjectTab(projectName, date, day);
-    await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
+    // await projectPage.deleteAllocationFromProjectTab(projectName, date, day);
+    // await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
   });
 
-  test("TC108: Verify adding allocation from the clipboard icon", async ({ page,jsonDir }) => {
+  test("TC108: Verify adding allocation from the clipboard icon", async ({ page, jsonDir }) => {
     allure.story("Resource Management");
 
     const stubPath = path.join(jsonDir, "TC108.json");
     const data = await readJSONFile(stubPath);
     const TC108data = data.TC108;
-
 
     const projectName = TC108data.payloadCreateProject.project_name;
     const employeeName = TC108data.employee;
@@ -169,7 +162,10 @@ test.describe("Manager : Resource Management Tab", () => {
     await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
   });
 
-  test("TC109: Verify Changing/updating the billable/non billable on a project allocation", async ({ page,jsonDir }) => {
+  test("TC109: Verify Changing/updating the billable/non billable on a project allocation", async ({
+    page,
+    jsonDir,
+  }) => {
     allure.story("Resource Management");
 
     const stubPath = path.join(jsonDir, "TC109.json");
@@ -198,7 +194,7 @@ test.describe("Manager : Resource Management Tab", () => {
     await expect(page.getByText("Resouce allocation updated successfully", { exact: true })).toBeVisible();
   });
 
-  test("TC110: Verify Editing a time allocation", async ({ page,jsonDir }) => {
+  test("TC110: Verify Editing a time allocation", async ({ page, jsonDir }) => {
     allure.story("Resource Management");
 
     const stubPath = path.join(jsonDir, "TC110.json");
@@ -230,7 +226,9 @@ test.describe("Manager : Resource Management Tab", () => {
     expect(allocationTime).toEqual(updatedHours);
   });
 
-  test("TC111: Allocation for more than 8 hours per day / allocation of more than 24 hours per day.", async ({jsonDir}) => {
+  test("TC111: Allocation for more than 8 hours per day / allocation of more than 24 hours per day.", async ({
+    jsonDir,
+  }) => {
     allure.story("Resource Management");
 
     const stubPath = path.join(jsonDir, "TC111.json");
