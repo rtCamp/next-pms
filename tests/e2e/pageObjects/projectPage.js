@@ -5,8 +5,10 @@ export class ProjectPage {
   constructor(page) {
     this.page = page;
 
-    this.searchBar = page.getByRole("textbox", { name: "Project Name" }); // Adjust selector based on actual DOM
-    this.projectListItems = page.locator("//table//tbody//tr//td[1]//p"); // Adjust selector based on actual DOM
+    //Search bar on project page
+    this.searchBar = page.getByRole("textbox", { name: "Project Name" });
+    //List of projects displayed in the table
+    this.projectListItems = page.locator("//table//tbody//tr//td[1]//p");
   }
 
   /**
