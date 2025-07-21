@@ -112,4 +112,151 @@ test.describe("Manager : Resource Management Tab", () => {
     await projectPage.deleteAllocationFromProjectTab(projectName, date, day);
     await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
   });
+
+  test("TC107: Verify adding allocation on a past day", async ({ page,jsonDir }) => {
+    allure.story("Resource Management");
+    const stubPath = path.join(jsonDir, "TC107.json");
+    const data = await readJSONFile(stubPath);
+    const TC107data = data.TC107;
+
+    const projectName = TC107data.payloadCreateProject.project_name;
+    const employeeName = TC107data.employee;
+    const customerName = TC107data.payloadCreateProject.customer;
+    const { date, day } = getFormattedPastWorkday(-1);
+    await projectPage.goto();
+    const { allocationName } = await projectPage.addAllocationFromProjectTab(
+      projectName,
+      customerName,
+      employeeName,
+      date,
+      day
+    );
+    createdAllocations.push(allocationName);
+    await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
+    await projectPage.goto();
+    await projectPage.filterByProject(projectName);
+    await projectPage.deleteAllocationFromProjectTab(projectName, date, day);
+    await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
+  });
+
+  test("TC108: Verify adding allocation from the clipboard icon", async ({ page,jsonDir }) => {
+    allure.story("Resource Management");
+
+    const stubPath = path.join(jsonDir, "TC108.json");
+    const data = await readJSONFile(stubPath);
+    const TC108data = data.TC108;
+
+
+    const projectName = TC108data.payloadCreateProject.project_name;
+    const employeeName = TC108data.employee;
+    const customerName = TC108data.payloadCreateProject.customer;
+    const { date, day } = getFormattedDateNDaysFromToday(3);
+    await projectPage.goto();
+    const { allocationName } = await projectPage.addAllocationFromProjectTab(
+      projectName,
+      customerName,
+      employeeName,
+      date,
+      day,
+      "4"
+    );
+    createdAllocations.push(allocationName);
+    await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
+    await projectPage.goto();
+    await projectPage.filterByProject(projectName);
+    await projectPage.clickClipboardIcon(projectName, date, day);
+    await projectPage.addAllocationFromProjectTabFromClipboard("8");
+    await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
+  });
+
+  test("TC109: Verify Changing/updating the billable/non billable on a project allocation", async ({ page,jsonDir }) => {
+    allure.story("Resource Management");
+
+    const stubPath = path.join(jsonDir, "TC109.json");
+    const data = await readJSONFile(stubPath);
+    const TC109data = data.TC109;
+
+    const projectName = TC109data.payloadCreateProject.project_name;
+    const employeeName = TC109data.employee;
+    const customerName = TC109data.payloadCreateProject.customer;
+    const { date, day } = getFormattedDateNDaysFromToday(6);
+    await projectPage.goto();
+    const { allocationName } = await projectPage.addAllocationFromProjectTab(
+      projectName,
+      customerName,
+      employeeName,
+      date,
+      day,
+      "4"
+    );
+    createdAllocations.push(allocationName);
+    await projectPage.goto();
+    await projectPage.filterByProject(projectName);
+    await projectPage.clickEditIcon(projectName, date, day);
+    await projectPage.clickOnBillableToggle();
+    await projectPage.clickSaveButton();
+    await expect(page.getByText("Resouce allocation updated successfully", { exact: true })).toBeVisible();
+  });
+
+  test("TC110: Verify Editing a time allocation", async ({ page,jsonDir }) => {
+    allure.story("Resource Management");
+
+    const stubPath = path.join(jsonDir, "TC110.json");
+    const data = await readJSONFile(stubPath);
+    const TC110data = data.TC110;
+
+    const projectName = TC110data.payloadCreateProject.project_name;
+    const employeeName = TC110data.employee;
+    const customerName = TC110data.payloadCreateProject.customer;
+    const updatedHours = "8";
+    const { date, day } = getFormattedDateNDaysFromToday(7);
+    await projectPage.goto();
+    const { allocationName } = await projectPage.addAllocationFromProjectTab(
+      projectName,
+      customerName,
+      employeeName,
+      date,
+      day,
+      "4"
+    );
+    createdAllocations.push(allocationName);
+    await projectPage.goto();
+    await projectPage.filterByProject(projectName);
+    await projectPage.clickEditIcon(projectName, date, day);
+    await projectPage.editAllocationFromProjectTab(updatedHours, updatedHours);
+    await projectPage.clickSaveButton();
+    await expect(page.getByText("Resouce allocation updated successfully", { exact: true })).toBeVisible();
+    let allocationTime = await projectPage.getAllocationFromProjectTab(projectName, date, day);
+    expect(allocationTime).toEqual(updatedHours);
+  });
+
+  test("TC111: Allocation for more than 8 hours per day / allocation of more than 24 hours per day.", async ({jsonDir}) => {
+    allure.story("Resource Management");
+
+    const stubPath = path.join(jsonDir, "TC111.json");
+    const data = await readJSONFile(stubPath);
+    const TC111data = data.TC111;
+
+    const projectName = TC111data.payloadCreateProject.project_name;
+    const employeeName = TC111data.employee;
+    const customerName = TC111data.payloadCreateProject.customer;
+    const updatedHours = "25";
+    const { date, day } = getFormattedDateNDaysFromToday(8);
+    await projectPage.goto();
+    const { allocationName } = await projectPage.addAllocationFromProjectTab(
+      projectName,
+      customerName,
+      employeeName,
+      date,
+      day,
+      "10"
+    );
+    createdAllocations.push(allocationName);
+    await projectPage.goto();
+    await projectPage.filterByProject(projectName);
+    await projectPage.clickEditIcon(projectName, date, day);
+    await projectPage.editAllocationFromProjectTab(updatedHours, updatedHours);
+    const erroMessage = await projectPage.getErrorFromAllocationModal();
+    expect(erroMessage).toEqual("Hour / Day should be less than 24");
+  });
 });
