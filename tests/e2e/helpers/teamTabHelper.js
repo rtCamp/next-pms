@@ -2,7 +2,7 @@ import path from "path";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
 import { getFormattedDate, getDateForWeekday, getShortFormattedDate } from "../utils/dateUtils";
 import { getRandomValue } from "../utils/stringUtils";
-import { deleteEmployee } from "../utils/api/employeeRequests";
+//import { deleteEmployee } from "../utils/api/employeeRequests";
 import { submitTimesheetForApproval } from "./timesheetHelper";
 import { actOnTimesheet } from "../utils/api/timesheetRequests";
 import { createUserGroup, deleteUserGroup } from "../utils/api/userGroupRequests";

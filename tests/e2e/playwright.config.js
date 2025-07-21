@@ -36,6 +36,9 @@ module.exports = defineConfig({
   /* Configure the number of workers for parallel execution */
   workers: process.env.CI ? 7 : undefined, // Use 7 workers on CI, defaults to the number of CPU cores otherwise
 
+  // Limit the number of failures on CI to save resources
+  maxFailures: process.env.CI ? 5 : undefined, // Max faliures on CI = 5, no limit locally
+
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
     ["html", { open: "never", outputFolder: "playwright-report" }],
