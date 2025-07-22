@@ -37,22 +37,29 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
     data: options.data,
   });
 
-  // dispose as soon as we have status
   const status = response.status();
-
   const statusText = response.statusText();
-  ////console.log("---------RESPONSE status text---------", statusText);
 
   if (!response.ok()) {
+    let errorBody;
+    try {
+      errorBody = await response.json();
+      console.error("API Error Details:", errorBody);
+    } catch (e) {
+      errorBody = await response.text();
+      console.error("API Error (non-JSON) Details:", errorBody);
+    }
     await ctx.dispose();
-    throw new Error(`API request failed for ${role} @ ${endpoint}: ${status} ${statusText}`);
+    throw new Error(
+      `API request failed for ${role} @ ${endpoint}: ${status} ${statusText}. Error body: ${JSON.stringify(errorBody)}`
+    );
   }
 
   const json = await response.json();
-  ////console.log(`✅ API request SUCCESS for ${role} @ ${endpoint}:`, json);
   await ctx.dispose();
   return json;
 };
+
 // ------------------------------------------------------------------------------------------
 
 /**

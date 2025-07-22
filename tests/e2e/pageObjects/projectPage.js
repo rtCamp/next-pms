@@ -1,3 +1,5 @@
+import { expect } from "allure-playwright";
+
 export class ProjectPage {
   /**
    * @param {import('@playwright/test').Page} page
@@ -9,6 +11,38 @@ export class ProjectPage {
     this.searchBar = page.getByRole("textbox", { name: "Project Name" });
     //List of projects displayed in the table
     this.projectListItems = page.locator("//table//tbody//tr//td[1]//p");
+
+    //Filter options for project tab
+    this.projectTypeFilter = page.getByRole("button", { name: "Project Type" });
+    this.businessUnitFilter = page.getByRole("button", { name: "Business Unit" });
+    this.billingTypeFilter = page.getByRole("button", { name: "Billing Type" });
+    this.currencyFilter = page.getByRole("button", { name: "Currency" });
+
+    //Filter search bar
+    this.projectTypeSearchBar = page.getByPlaceholder("Project Type");
+    this.businessUnitSearchBar = page.getByPlaceholder("Business Unit");
+    this.billingTypeSearchBar = page.getByPlaceholder("Billing Type");
+    this.currencySearchBar = page.getByPlaceholder("Currency");
+
+    //Filter Clear Selection
+    this.filterClearSelection = page.getByRole("button", { name: "Clear Selection" });
+
+    // Locator for "No results"
+    this.noResultsCell = page.getByRole("cell", { name: "No results" });
+
+    //More Actions
+    this.moreActionsButton = page.getByRole("button", { name: "More Actions" });
+
+    //Create View
+    this.createViewButton = page.getByText("Create View");
+    this.viewNameInput = page.getByRole("textbox", { name: "eg: My custom view" });
+    this.createButton = page.getByRole("button", { name: "Create" });
+
+    //Private Views
+    this.privateViewsButton = page.getByRole("button", { name: "Private Views" });
+
+    //Toast Notification
+    this.toastNotification = (notificationMessage) => page.locator(`//div[text()="${notificationMessage}"]`);
   }
 
   /**
@@ -35,5 +69,100 @@ export class ProjectPage {
     const projectNames = await this.projectListItems.allTextContents();
     const totalCount = projectNames.length;
     return { projectNames, totalCount };
+  }
+
+  /**
+   * Check if the "No results" message is visible.
+   * @returns {Promise<boolean>} - True if "No results" is visible, false otherwise.
+   */
+  async isNoResultsVisible() {
+    return await this.noResultsCell.isVisible();
+  }
+
+  /**
+   * Apply all filters provided.
+   * @param {Object} filters - e.g. { projectType, businessUnit, billingType, currency }
+   */
+  async applyFilters(filters) {
+    if (filters.projectType) {
+      await this.projectTypeFilter.click();
+      await this.projectTypeSearchBar.fill(filters.projectType);
+      await this.page.getByRole("option", { name: filters.projectType }).click();
+      await this.page.keyboard.press("Escape");
+    }
+    if (filters.businessUnit) {
+      await this.businessUnitFilter.click();
+      await this.businessUnitSearchBar.fill(filters.businessUnit);
+      await this.page.getByRole("option", { name: filters.businessUnit }).click();
+      await this.businessUnitSearchBar.press("Escape");
+    }
+    if (filters.billingType) {
+      await this.billingTypeFilter.click();
+      await this.billingTypeSearchBar.fill(filters.billingType);
+      await this.page.getByRole("option", { name: filters.billingType }).click();
+      await this.billingTypeSearchBar.press("Escape");
+    }
+    if (filters.currency) {
+      await this.currencyFilter.click();
+      await this.currencySearchBar.fill(filters.currency);
+      await this.page.getByRole("option", { name: filters.currency }).click();
+      //await this.currencySearchBar.press("Escape");
+    }
+  }
+  /**
+   * Clears all filter dropdowns by clicking on each and selecting 'Clear Selection'
+   */
+  async clearAllFilters() {
+    const filterButtons = [
+      this.projectTypeFilter,
+      this.businessUnitFilter,
+      this.billingTypeFilter,
+      this.currencyFilter,
+    ];
+
+    for (const btn of filterButtons) {
+      await btn.click();
+      // Only click clear if visible (in case dropdown is already clear)
+      if (await this.filterClearSelection.isVisible()) {
+        await this.filterClearSelection.click();
+      }
+      // short wait to ensure UI processed
+      await this.page.waitForTimeout(150);
+    }
+  }
+
+  /**
+   * Create a private view
+   * @param {string} viewName - The name of the view to create.
+   */
+  async createPrivateView(viewName) {
+    await this.moreActionsButton.click();
+    await this.createViewButton.click();
+    await this.viewNameInput.fill(viewName);
+    await this.createButton.click();
+    // Wait for the view to be created and the page to update
+    await this.page.waitForLoadState("networkidle");
+
+    // Check if the view was created successfully from private views
+    await this.privateViewsButton.click();
+    await this.page.getByRole("link").filter({ hasText: viewName }).click();
+    await expect(this.page.getByRole("link").filter({ hasText: viewName })).toBeVisible();
+  }
+  /**
+   * Delete a view by its name.
+   * @param {string} viewName - The name of the view to delete.
+   */
+  async deleteView(viewName, notification) {
+    await this.privateViewsButton.click();
+    //Click on private view button if view name is not visible
+    if (!(await this.page.getByRole("link").filter({ hasText: viewName }).isVisible())) {
+      await this.privateViewsButton.click();
+    }
+    await this.page.getByRole("link").filter({ hasText: viewName }).click();
+    await this.moreActionsButton.click();
+    await this.page.getByText("Delete View").click();
+    // Wait for the deletion confirmation dialog to appear and confirm deletion
+    await this.toastNotification(notification).waitFor({ state: "visible" });
+    await expect(this.toastNotification(notification)).toBeVisible();
   }
 }
