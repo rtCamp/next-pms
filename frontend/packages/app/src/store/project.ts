@@ -184,6 +184,7 @@ export const projectSlice = createSlice({
         orderColumn: string;
         currency: string;
         selectedBillingType: Array<string>;
+        tag: Array<string>;
       }>
     ) => {
       state.selectedProjectType = action.payload.selectedProjectType;
@@ -201,6 +202,7 @@ export const projectSlice = createSlice({
       state.orderColumn = action.payload.orderColumn;
       state.currency = action.payload.currency;
       state.selectedBillingType = action.payload.selectedBillingType;
+      state.tag = action.payload.tag;
     },
     setOrderBy: (
       state,

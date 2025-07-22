@@ -11,6 +11,7 @@ export const createFilter = (projectState: ProjectState) => {
     business_unit: projectState.selectedBusinessUnit,
     currency: projectState.currency,
     billing_type: projectState.selectedBillingType,
+    tag: projectState.tag,
   };
 };
 

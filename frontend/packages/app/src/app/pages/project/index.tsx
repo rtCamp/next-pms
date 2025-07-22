@@ -80,6 +80,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
         currency: viewData.filters.currency ?? "",
         order: (viewData.order_by.order as sortOrder) ?? "desc",
         orderColumn: viewData.order_by.field ?? "modified",
+        tag: viewData.filters.tag ?? [],
       })
     );
     setViewInfo(viewData);
