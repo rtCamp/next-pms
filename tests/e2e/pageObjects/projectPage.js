@@ -106,7 +106,7 @@ export class ProjectPage {
       await this.currencyFilter.click();
       await this.currencySearchBar.fill(filters.currency);
       await this.page.getByRole("option", { name: filters.currency }).click();
-      //await this.currencySearchBar.press("Escape");
+      // The Escape key press is not needed for the currency filter because the dropdown automatically closes after selection.
     }
   }
   /**
