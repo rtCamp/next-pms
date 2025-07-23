@@ -1,4 +1,6 @@
 import { expect } from "allure-playwright";
+import path from "path";
+import { readJSONFile } from "../utils/fileUtils.js";
 
 export class ProjectPage {
   /**
@@ -17,12 +19,17 @@ export class ProjectPage {
     this.businessUnitFilter = page.getByRole("button", { name: "Business Unit" });
     this.billingTypeFilter = page.getByRole("button", { name: "Billing Type" });
     this.currencyFilter = page.getByRole("button", { name: "Currency" });
+    this.statusFilter = page.getByRole("button", { name: "Status" });
 
     //Filter search bar
     this.projectTypeSearchBar = page.getByPlaceholder("Project Type");
     this.businessUnitSearchBar = page.getByPlaceholder("Business Unit");
     this.billingTypeSearchBar = page.getByPlaceholder("Billing Type");
     this.currencySearchBar = page.getByPlaceholder("Currency");
+    this.statusSearchBar = page.getByPlaceholder("Status");
+
+    //Select filter option
+    this.selectFilterOption = (filterOption) => page.getByRole("option", { name: `${filterOption}` });
 
     //Filter Clear Selection
     this.filterClearSelection = page.getByRole("button", { name: "Clear Selection" });
@@ -43,6 +50,44 @@ export class ProjectPage {
 
     //Toast Notification
     this.toastNotification = (notificationMessage) => page.locator(`//div[text()="${notificationMessage}"]`);
+
+    //Project table headers
+    this.projectTableHeader = (headerName) => page.locator("div").filter({ hasText: new RegExp(`^${headerName}$`) });
+
+    // 1. Get the project row by title
+    /*
+    this.projectRow = (projectName) =>
+      page.locator("tr").filter({
+        has: page.getByTitle(projectName),
+      });
+*/
+    this.projectRow = (projectName) => page.locator(`xpath=//p[@title="${projectName}"]/ancestor::tr`);
+
+    this.projectTypeCell = (projectName, projectType) =>
+      this.projectRow(projectName).locator(`xpath=.//p[@title="${projectType}"]`);
+
+    this.statusCell = (projectName, status) =>
+      this.projectRow(projectName).locator(`xpath=.//td//div[normalize-space(text())="${status}"]`);
+
+    this.businessUnitCell = (projectName, businessUnit) =>
+      this.projectRow(projectName).locator(`xpath=.//p[@title="${businessUnit}"]`);
+
+    this.billingTypeCell = (projectName, billingType) =>
+      this.projectRow(projectName).locator(`xpath=.//td//div[normalize-space(text())="${billingType}"]`);
+
+    this.currencyCell = (projectName, currency) =>
+      this.projectRow(projectName).locator(`xpath=.//p[@title="${currency}"]`);
+  }
+  /**
+   * Loads test data from a JSON file.
+   * @param {string} jsonDir - Directory containing JSON files.
+   * @param {string} fileName - Name of the JSON file to load.
+   * @returns {Object} Parsed JSON data.
+   */
+  async loadTestData(jsonDir, fileName) {
+    const stubPath = path.join(jsonDir, fileName);
+    const data = await readJSONFile(stubPath);
+    return data;
   }
 
   /**
@@ -83,50 +128,86 @@ export class ProjectPage {
    * Apply all filters provided.
    * @param {Object} filters - e.g. { projectType, businessUnit, billingType, currency }
    */
+  // Inside your Page Object class
   async applyFilters(filters) {
-    if (filters.projectType) {
-      await this.projectTypeFilter.click();
-      await this.projectTypeSearchBar.fill(filters.projectType);
-      await this.page.getByRole("option", { name: filters.projectType }).click();
-      await this.page.keyboard.press("Escape");
-    }
-    if (filters.businessUnit) {
-      await this.businessUnitFilter.click();
-      await this.businessUnitSearchBar.fill(filters.businessUnit);
-      await this.page.getByRole("option", { name: filters.businessUnit }).click();
-      await this.businessUnitSearchBar.press("Escape");
-    }
-    if (filters.billingType) {
-      await this.billingTypeFilter.click();
-      await this.billingTypeSearchBar.fill(filters.billingType);
-      await this.page.getByRole("option", { name: filters.billingType }).click();
-      await this.billingTypeSearchBar.press("Escape");
-    }
-    if (filters.currency) {
-      await this.currencyFilter.click();
-      await this.currencySearchBar.fill(filters.currency);
-      await this.page.getByRole("option", { name: filters.currency }).click();
-      // The Escape key press is not needed for the currency filter because the dropdown automatically closes after selection.
-    }
-  }
-  /**
-   * Clears all filter dropdowns by clicking on each and selecting 'Clear Selection'
-   */
-  async clearAllFilters() {
-    const filterButtons = [
-      this.projectTypeFilter,
-      this.businessUnitFilter,
-      this.billingTypeFilter,
-      this.currencyFilter,
+    // 1. Define each filter’s locators
+    const configs = [
+      {
+        key: "projectType",
+        button: this.projectTypeFilter,
+        search: this.projectTypeSearchBar,
+      },
+      {
+        key: "status",
+        button: this.statusFilter,
+        search: this.statusSearchBar,
+      },
+      {
+        key: "businessUnit",
+        button: this.businessUnitFilter,
+        search: this.businessUnitSearchBar,
+      },
+      {
+        key: "billingType",
+        button: this.billingTypeFilter,
+        search: this.billingTypeSearchBar,
+      },
+      {
+        key: "currency",
+        button: this.currencyFilter,
+        search: this.currencySearchBar,
+      },
     ];
 
-    for (const btn of filterButtons) {
+    // 2. Loop through each config and apply multi‑select logic
+    for (const { key, button, search } of configs) {
+      const rawValue = filters[key];
+      if (!rawValue) continue;
+
+      // Normalize to array
+      const values = Array.isArray(rawValue) ? rawValue : [rawValue];
+      if (values.length === 0) continue;
+
+      // Open the dropdown
+      await button.click();
+
+      // Fill & select each value
+      for (const v of values) {
+        await search.fill(v);
+        await this.page.getByRole("option", { name: v }).click();
+      }
+      await this.page.keyboard.press("Escape"); // Close the dropdown
+    }
+  }
+
+  /**
+   * Clears specified filter dropdowns by clicking on each and selecting 'Clear Selection'
+   * @param {Array<string>} filtersToClear - Array of filter names like ['projectType', 'currency']
+   */
+  async clearFilters(filtersToClear = []) {
+    const filterMap = {
+      projectType: this.projectTypeFilter,
+      status: this.statusFilter,
+      businessUnit: this.businessUnitFilter,
+      billingType: this.billingTypeFilter,
+      currency: this.currencyFilter,
+    };
+
+    for (const filterName of filtersToClear) {
+      const btn = filterMap[filterName];
+      if (!btn) {
+        console.warn(`Unknown filter: ${filterName}`);
+        continue;
+      }
+
       await btn.click();
-      // Only click clear if visible (in case dropdown is already clear)
+
+      // Only click clear if visible (i.e., filter is actually applied)
       if (await this.filterClearSelection.isVisible()) {
         await this.filterClearSelection.click();
       }
-      // short wait to ensure UI processed
+
+      // Short wait to ensure UI updates
       await this.page.waitForTimeout(150);
     }
   }
@@ -175,5 +256,42 @@ export class ProjectPage {
     await this.page.getByRole("button", { name: "Add Project" }).click();
     await expect(this.toastNotification("Project created successfully")).toBeVisible();
     await expect(this.page.locator("tbody")).toContainText(payload.project_name);
+  }
+  /**
+   * Check if the column header is visible. If not visible, it will include the column header.
+   */
+  async isColumnHeaderVisible(headerName) {
+    const headerLocator = this.projectTableHeader(headerName);
+
+    if (!(await headerLocator.isVisible())) {
+      // If the header is not visible, include it in the table
+      await this.page.getByRole("button", { name: "Columns" }).click();
+      await this.page.getByRole("menuitem", { name: "Add Columns" }).click();
+      await this.page.getByRole("menuitem", { name: headerName, exact: true }).click();
+      await this.page.getByRole("menuitem", { name: "Add Columns" }).press("Escape");
+    }
+    await expect(headerLocator).toBeVisible();
+  }
+  /**
+   * Verifies that all specified column headers are visible.
+   * @param {string[]} columns - Array of column names to check.
+   */
+  async verifyColumnHeaders(columns) {
+    for (const column of columns) {
+      await this.isColumnHeaderVisible(column);
+    }
+  }
+  /**
+   * Applies a single filter and verifies the results.
+   * @param {Object} data - The test data containing filter details.
+   */
+  async applyAndVerifySingleFilter(data) {}
+  /**
+   * Apply multiple filters for Project Type
+   */
+  async applyMultipleFilters(filters) {
+    await this.applyFilters(filters.projectType, filters.projectType2);
+    await this.applyFilters(filters.projectType2);
+    // Add any additional logic to verify the results after applying multiple filters
   }
 }
