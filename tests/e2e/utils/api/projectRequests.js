@@ -45,7 +45,7 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
     try {
       errorBody = await response.json();
       console.error("API Error Details:", errorBody);
-    } catch (e) {
+    } catch {
       errorBody = await response.text();
       console.error("API Error (non-JSON) Details:", errorBody);
     }
