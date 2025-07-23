@@ -601,7 +601,11 @@ export const cleanUpProjects = async (data) => {
     const tc = data[key];
 
     // Find all payloadCreateProject keys: payloadCreateProject, payloadCreateProject2, etc.
-    const createProjectKeys = Object.keys(tc).filter((k) => k.startsWith("payloadCreateProject"));
+    // This will also include createProjectByUI
+    const createProjectKeys = Object.keys(tc).filter(
+      (k) => k.startsWith("payloadCreateProject") || k === "createProjectByUI"
+    );
+
     for (const projectKey of createProjectKeys) {
       const projectPayload = tc[projectKey];
       if (!projectPayload || !projectPayload.project_name) continue;

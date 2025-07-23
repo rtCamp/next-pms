@@ -39,6 +39,16 @@ test.describe("Project Tab", () => {
       TC28data.payloadCreateProject.project_name
     );
   });
+  test("TC29: Create a project using the + Project button", async ({ jsonDir }) => {
+    allure.story("Project");
+
+    const stubPath = path.join(jsonDir, "TC29.json");
+    const data = await readJSONFile(stubPath);
+    const TC29data = data.TC29;
+
+    // Create a project using the + Project button
+    await projectPage.createProject(TC29data.createProjectByUI);
+  });
   test("TC113: Verify multiple filter results for project tab", async ({ jsonDir }) => {
     allure.story("Project");
 

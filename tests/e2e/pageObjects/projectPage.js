@@ -165,4 +165,15 @@ export class ProjectPage {
     await this.toastNotification(notification).waitFor({ state: "visible" });
     await expect(this.toastNotification(notification)).toBeVisible();
   }
+  /**
+   * Create a project using the provided payload.
+   * @param {Object} payload - The project data to create.
+   */
+  async createProject(payload) {
+    await this.page.getByRole("button", { name: "Project", exact: true }).click();
+    await this.page.getByRole("textbox", { name: "New Project" }).fill(payload.project_name);
+    await this.page.getByRole("button", { name: "Add Project" }).click();
+    await expect(this.toastNotification("Project created successfully")).toBeVisible();
+    await expect(this.page.locator("tbody")).toContainText(payload.project_name);
+  }
 }
