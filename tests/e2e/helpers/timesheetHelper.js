@@ -266,13 +266,14 @@ export const filterTimesheetEntry = async (opts) => {
  */
 
 export const createProjectForTestCases = async (testCaseIDs, jsonDir) => {
+  const PROJECT_KEY_REGEX = /^payloadCreateProject(\w*)$/;
+
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
   const [tcId] = testCaseIDs;
 
-  // per‑TC JSON stub path
   const stubPath = path.join(jsonDir, `${tcId}.json`);
 
-  // Read the whole stub object: { "TC4": { … } }
+  // Read the stub
   const fullStub = await readJSONFile(stubPath);
   const entry = fullStub[tcId];
   if (!entry) {
@@ -280,64 +281,91 @@ export const createProjectForTestCases = async (testCaseIDs, jsonDir) => {
     return;
   }
 
-  if (!entry.payloadCreateProject) {
-    console.warn(`⚠️ No payloadCreateProject for ${tcId}`);
+  // 1. Find all keys starting with 'payloadCreateProject'
+  const createProjectKeys = Object.keys(entry).filter((key) => PROJECT_KEY_REGEX.test(key));
+  if (createProjectKeys.length === 0) {
+    console.warn(`⚠️ No payloadCreateProject key for ${tcId}`);
     return;
   }
-  ////console.log("PAYLOAD CREATE PROJECT: ", entry.payloadCreateProject);
-  // Create project
-  const res = await createProject(entry.payloadCreateProject);
-  ////console.log("-------------CREATE PROJECT RES IS--------: ", res);
-  if (!res?.data?.name) {
-    console.error(`Failed to create project for ${tcId} as there is no data.name`);
-    return;
-  }
-  const projectId = res.data.name;
-  const customCurrency = res.data.custom_currency;
 
-  // Share, if needed
-  if (Array.isArray(entry.payloadShareProject)) {
-    for (const sharePayload of entry.payloadShareProject) {
-      await shareProjectWithUser({ ...sharePayload, name: projectId });
+  // For repeated project keys, store their results
+  const createdProjects = {};
+
+  // 2. For each payloadCreateProject*, run creation/mutation logic
+  for (const projectKey of createProjectKeys) {
+    const projectPayload = entry[projectKey];
+    if (!projectPayload) {
+      console.warn(`⚠️ ${projectKey} is empty for ${tcId}`);
+      continue;
     }
+
+    // Create project
+    const res = await createProject(projectPayload);
+    if (!res?.data?.name) {
+      console.error(`Failed to create project for ${tcId} (${projectKey}) as there is no data.name`);
+      continue;
+    }
+    const projectId = res.data.name;
+    const customCurrency = res.data.custom_currency;
+
+    createdProjects[projectKey] = { projectId, customCurrency };
+
+    // Share project, if needed (with the same pattern logic)
+    // e.g., payloadShareProject1, payloadShareProjectABC, etc.
+    const shareKey = projectKey.replace("payloadCreateProject", "payloadShareProject");
+    if (Array.isArray(entry[shareKey])) {
+      for (const sharePayload of entry[shareKey]) {
+        await shareProjectWithUser({ ...sharePayload, name: projectId });
+      }
+    }
+
+    // Mutate the inner stub for keys with corresponding postfix
+    // e.g. payloadDeleteProject1, payloadCreateTask1, payloadCalculateBillingRate1, etc.
+    const postfix = projectKey.slice("payloadCreateProject".length); // "" or "1", "2", "ABC"
+
+    const deleteKey = `payloadDeleteProject${postfix}`;
+    if (entry[deleteKey]) {
+      entry[deleteKey].projectId = projectId;
+    }
+
+    const taskKey = `payloadCreateTask${postfix}`;
+    if (entry[taskKey]) {
+      entry[taskKey].project = projectId;
+    }
+
+    const billingKey = `payloadCalculateBillingRate${postfix}`;
+    if (entry[billingKey]) {
+      Object.assign(entry[billingKey], {
+        project: projectId,
+        custom_currency_for_project: customCurrency,
+      });
+    }
+
+    console.log(`✅ CREATE PROJECT SUCCESS for ${tcId} -> ${projectKey} (projectId=${projectId})`);
   }
 
-  // Mutate the inner stub
-  if (entry.payloadDeleteProject) {
-    entry.payloadDeleteProject.projectId = projectId;
-  }
-  if (entry.payloadCreateTask) {
-    entry.payloadCreateTask.project = projectId;
-  }
-  if (entry.payloadCalculateBillingRate) {
-    Object.assign(entry.payloadCalculateBillingRate, {
-      project: projectId,
-      custom_currency_for_project: customCurrency,
-    });
-  }
-
-  // **Write back** only the wrapped object { "TC4": entry }
+  // Write back updated stub
   await writeDataToFile(stubPath, { [tcId]: entry });
-  console.log(`✅ CREATE PROJECT SUCCESS for ${tcId}  in  (projectId=${projectId})`);
 };
+
 // ------------------------------------------------------------------------------------------
 
 /**
- * Deletes projects for all testCaseIDs passed in.
- * Reads back the shared JSON, then deletes.
+ * Deletes all projects for a given testCaseID, including all suffixed payloadDeleteProject keys.
+ * Handles payloadDeleteProject, payloadDeleteProject2, etc.
  */
 export const deleteProjects = async (testCaseIDs = [], jsonDir) => {
   if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) {
     return;
   }
 
-  // 1) pull out the single ID
+  // Only process the first test case ID
   const [tcId] = testCaseIDs;
 
-  // 2) build path to its per‑TC stub
+  // Path to stub file
   const filePath = path.join(jsonDir, `${tcId}.json`);
 
-  // 3) read that stub
+  // Read stub
   const stub = await readJSONFile(filePath);
   const entry = stub[tcId];
   if (!entry) {
@@ -345,17 +373,24 @@ export const deleteProjects = async (testCaseIDs = [], jsonDir) => {
     return;
   }
 
-  // 4) grab the projectId
-  const projId = entry.payloadDeleteProject?.projectId;
-  if (!projId) {
-    console.warn(`⚠️ No payloadDeleteProject.projectId found for TC ${tcId}`);
+  // Find all payloadDeleteProject keys (e.g., payloadDeleteProject, payloadDeleteProject2, ...)
+  const projectDeleteKeys = Object.keys(entry).filter((key) => key.startsWith("payloadDeleteProject"));
+  if (projectDeleteKeys.length === 0) {
+    console.warn(`⚠️ No payloadDeleteProject key(s) found for TC ${tcId}`);
     return;
   }
 
-  // 5) delete it
-  await deleteProject(projId);
-  //console.log(`🗑️  Deleted project ${projId} for TC ${tcId}`);
+  for (const deleteKey of projectDeleteKeys) {
+    const projId = entry[deleteKey]?.projectId;
+    if (!projId) {
+      console.warn(`⚠️ No ${deleteKey}.projectId found for TC ${tcId}`);
+      continue;
+    }
+    await deleteProject(projId);
+    //console.log(`🗑️  Deleted project ${projId} for TC ${tcId} (${deleteKey})`);
+  }
 };
+
 // ------------------------------------------------------------------------------------------
 
 /**
@@ -564,81 +599,89 @@ export const cleanUpProjects = async (data) => {
 
   for (const key in data) {
     const tc = data[key];
-    // Check if payloadCreateProject exists and project_name is valid
-    if (!tc.payloadCreateProject || !tc.payloadCreateProject.project_name) continue;
-    const projectName = tc.payloadCreateProject.project_name;
-    // Get Project ID
-    const projectRes = await filterApi("Project", [["Project", "project_name", "=", projectName]]);
-    const projectId = projectRes?.message?.values?.[0]?.[0];
 
-    if (!projectId) {
-      continue;
-    } else if (projectId && projectId !== undefined) {
-      console.warn(`\n Obtained ProjectId value for ${key} is       ; `, projectId);
-    }
-    // Get Task IDs
-    const taskRes = await filterApi("Task", [["Task", "project", "=", projectId]]);
+    // Find all payloadCreateProject keys: payloadCreateProject, payloadCreateProject2, etc.
+    // This will also include createProjectByUI
+    const createProjectKeys = Object.keys(tc).filter(
+      (k) => k.startsWith("payloadCreateProject") || k === "createProjectByUI"
+    );
 
-    const taskRaw = taskRes?.message?.values;
-    let taskIds = [];
+    for (const projectKey of createProjectKeys) {
+      const projectPayload = tc[projectKey];
+      if (!projectPayload || !projectPayload.project_name) continue;
+      const projectName = projectPayload.project_name;
 
-    if (Array.isArray(taskRaw)) {
-      taskIds = taskRaw.map((v) => v[0]);
-      console.warn(`OBTAINED TASK for ${key} is: `, taskIds);
-    } else {
-      console.warn(`No tasks found for project ${key}. Skipping task deletion.`);
-    }
+      // Get Project ID by project_name
+      const projectRes = await filterApi("Project", [["Project", "project_name", "=", projectName]]);
+      const projectId = projectRes?.message?.values?.[0]?.[0];
+      if (!projectId) continue;
 
-    // Get Timesheet IDs
-    const timesheetRes = await filterApi("Timesheet", [["Timesheet", "parent_project", "=", projectId]], "admin");
-    //console.warn(`TMESHEET RESPONSE for ${key} is ; `, timesheetRes);
-    const valuesRaw = timesheetRes?.message?.values;
-    //console.warn(`Actual values for ${key}:`, valuesRaw);
-    //console.warn(`Type of values:`, typeof valuesRaw);
-    //console.warn(`Is Array:`, Array.isArray(valuesRaw));
-    const timesheetValues = timesheetRes?.message?.values || [];
-    if (Array.isArray(timesheetValues) && timesheetValues.length > 0) {
-      console.warn(`OBTAINED TIMESHEET ID FOR ${key} is ; `, timesheetValues);
-    }
-    let timesheetIds = [];
-    if (Array.isArray(valuesRaw)) {
-      // Flatten and filter valid strings only
-      timesheetIds = valuesRaw.flat().filter((v) => typeof v === "string");
-    }
-    //console.warn(`TIMESHEET IDs to delete:`, timesheetIds);
-    // Store collected info
-    deletedData.push({
-      projectId,
-      timesheetIds,
-      taskIds,
-    });
-    // Delete Timesheets
-    for (const timesheetId of timesheetIds) {
-      if (!timesheetId || typeof timesheetId !== "string") {
-        console.error(`Invalid timesheetId encountered:`, timesheetId);
-        continue;
+      console.warn(`\n Obtained ProjectId value for ${key} -> ${projectKey} is: ${projectId}`);
+
+      // Get Task IDs for this projectId
+      const taskRes = await filterApi("Task", [["Task", "project", "=", projectId]]);
+      const taskIds = Array.isArray(taskRes?.message?.values) ? taskRes.message.values.map((v) => v[0]) : [];
+
+      if (taskIds.length) {
+        console.warn(`OBTAINED TASK for ${key} -> ${projectKey}:`, taskIds);
       }
-      try {
-        //console.log(`Deleting Timesheet: ${timesheetId}`);
-        await deleteTimesheetbyID(timesheetId, "admin");
-      } catch (err) {
-        console.error(` Failed to delete timesheet ${timesheetId}:`, err.message);
-      }
-    }
-    // Delete Tasks
-    for (const taskId of taskIds) {
-      await deleteTask(taskId);
-    }
 
-    // Delete Project
-    if (projectId) {
-      await deleteProject(projectId);
+      // Get Timesheet IDs for this projectId
+      const timesheetRes = await filterApi("Timesheet", [["Timesheet", "parent_project", "=", projectId]], "admin");
+      const timesheetIds = Array.isArray(timesheetRes?.message?.values)
+        ? timesheetRes.message.values.flat().filter((v) => typeof v === "string")
+        : [];
+
+      if (timesheetIds.length) {
+        console.warn(`OBTAINED TIMESHEET ID FOR ${key} -> ${projectKey}:`, timesheetIds);
+      }
+
+      // Collect deletion info
+      deletedData.push({
+        projectKey,
+        projectName,
+        projectId,
+        taskIds,
+        timesheetIds,
+      });
+
+      // Delete Timesheets
+      for (const timesheetId of timesheetIds) {
+        if (!timesheetId || typeof timesheetId !== "string") {
+          console.error(`Invalid timesheetId encountered:`, timesheetId);
+          continue;
+        }
+        try {
+          await deleteTimesheetbyID(timesheetId, "admin");
+        } catch (err) {
+          console.error(`Failed to delete timesheet ${timesheetId}:`, err.message);
+        }
+      }
+
+      // Delete Tasks
+      for (const taskId of taskIds) {
+        try {
+          await deleteTask(taskId);
+        } catch (err) {
+          console.error(`Failed to delete task ${taskId}:`, err.message);
+        }
+      }
+
+      // Delete Project
+      if (projectId) {
+        try {
+          await deleteProject(projectId);
+        } catch (err) {
+          console.error(`Failed to delete project ${projectId}:`, err.message);
+        }
+      }
     }
   }
 
   //console.log("Cleanup complete. Deleted data:", deletedData);
   return deletedData;
 };
+
 // ------------------------------------------------------------------------------------------
 
 /**
@@ -646,15 +689,20 @@ export const cleanUpProjects = async (data) => {
  */
 export const deleteLeaveOfEmployee = async () => {
   //Fetch Leave ID for employee if any exists
-  const filterResponse = await filterApi("Leave Application", [
-    ["Leave Application", "employee", "=", `${emp2ID}`],
-    ["Leave Application", "status", "=", "Open"],
-  ]);
+  const filterResponse = await filterApi(
+    "Leave Application",
+    [
+      ["Leave Application", "employee", "=", `${emp2ID}`],
+      ["Leave Application", "status", "=", "Open"],
+    ],
+    "admin"
+  );
+
   //Delete leave if leave ID is found in the filter request
   if (filterResponse?.message?.values[0]) {
     const leaveID = filterResponse.message.values[0];
     await deleteLeave(leaveID);
-    console.warn("A leave request for employee was found and deleted");
+    console.warn("✅ A leave request for employee was found and deleted");
   }
 };
 
