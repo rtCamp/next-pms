@@ -3,8 +3,9 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Spinner, useToast } from "@next-pms/design-system/components";
+import { Button, Spinner, useToast } from "@next-pms/design-system/components";
 import { useFrappeGetCall, useFrappeGetDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
+import { Menu } from "lucide-react";
 
 /**
  * Internal dependencies
@@ -14,14 +15,16 @@ import { FieldConfigType } from "@/app/components/form-view/types";
 import { Main } from "@/app/layout/root";
 import { getCurrencySymbol, parseFrappeErrorMsg } from "@/lib/utils";
 import { ProjectDetailHeader } from "./components/header";
+import Sidebar from "./components/sidebar";
 
 const ProjectDetail = () => {
   const { projectId } = useParams();
-  const { data: projectData, error: projectError } = useFrappeGetDoc("Project", projectId);
+  const { data: projectData, error: projectError, mutate: mutateProjectData } = useFrappeGetDoc("Project", projectId);
   const formRef = useRef<{ submitForm: () => void }>(null);
   const [hideSaveChanges, setHideSaveChanges] = useState<boolean>(true);
   const [formData, setFormData] = useState<Record<string, string | number | null>>({});
   const [projectName, setProjectName] = useState<string>("");
+  const [sidebarDrawerOpen, setSidebarDrawerOpen] = useState(false);
 
   const { data, isLoading, error, mutate } = useFrappeGetCall(
     "next_pms.api.get_doc_with_meta",
@@ -78,6 +81,7 @@ const ProjectDetail = () => {
         description: err,
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, updateError, toast, isCompleted, mutate]);
 
   return (
@@ -88,60 +92,82 @@ const ProjectDetail = () => {
         hideSaveChanges={false}
         projectName={projectName}
         formRef={formRef}
+        sidebarToggleButton={
+          <Button
+            variant="ghost"
+            className="md:hidden p-2 px-3 "
+            onClick={() => setSidebarDrawerOpen(true)}
+            aria-label="Open sidebar"
+          >
+            <Menu />
+          </Button>
+        }
       />
-      <Main className="w-full h-full px-0">
-        {isLoading ? (
-          <Spinner isFull />
-        ) : (
-          <FormView
-            docname={projectId as string}
-            doctype={"Project"}
-            tabs={data?.message?.tabs}
-            currencySymbol={getCurrencySymbol(projectData?.custom_currency) || ""}
-            tabHeaderClassName="w-full"
-            tabBodyClassName="xl:w-4/5"
-            onChange={(form_data) => {
-              if ((window?.frappe?.boot?.user?.can_write?.includes("Project") ?? true) && form_data) {
-                setHideSaveChanges(false);
-                setFormData(form_data);
-              } else {
-                setHideSaveChanges(true);
-              }
-            }}
-            onSubmit={async (data) => {
-              const sanitizedFormData = Object.fromEntries(Object.entries(data).filter(([, value]) => value !== ""));
-              await updateDoc("Project", projectId as string, sanitizedFormData);
-            }}
-            formRef={formRef}
-            readOnly={!(window?.frappe?.boot?.user?.can_write?.includes("Project") ?? true)}
-            fieldConfig={
-              {
-                naming_series: { hidden: true },
-                department: { hidden: true },
-                custom_project_documents_url: { hidden: true },
-                custom_3rd_parties: { hidden: true },
-                custom_project_manager_name: { hidden: true },
-                custom_engineering_manager_name: { hidden: true },
-                is_active: { hidden: true },
-                sales_order: { hidden: true },
-                custom_project_size: { readOnly: true },
-                notes: { hidden: true },
-                customer: { readOnly: true },
-                custom_currency: { readOnly: true },
-                custom_sources: { readOnly: true },
-                custom_deal_type: { readOnly: true },
-                project_type: { readOnly: true },
-                custom_restricted_under_nda: { readOnly: true },
-                custom_billing_type: { readOnly: true },
-                users: { hidden: true },
-                monitor_progress: { hidden: true },
-                collect_progress: { hidden: true },
-              } as FieldConfigType
-            }
-            mutateData={mutate}
-          />
-        )}
-      </Main>
+      <div className="flex w-full h-full px-0 min-h-0">
+        <div className="flex-1 min-w-0">
+          <Main className="h-full w-full">
+            {isLoading ? (
+              <Spinner isFull />
+            ) : (
+              <FormView
+                docname={projectId as string}
+                doctype={"Project"}
+                tabs={data?.message?.tabs}
+                currencySymbol={getCurrencySymbol(projectData?.custom_currency) || ""}
+                tabHeaderClassName="w-full"
+                onChange={(form_data) => {
+                  if ((window?.frappe?.boot?.user?.can_write?.includes("Project") ?? true) && form_data) {
+                    setHideSaveChanges(false);
+                    setFormData(form_data);
+                  } else {
+                    setHideSaveChanges(true);
+                  }
+                }}
+                onSubmit={async (data) => {
+                  const sanitizedFormData = Object.fromEntries(
+                    Object.entries(data).filter(([, value]) => value !== "")
+                  );
+                  await updateDoc("Project", projectId as string, sanitizedFormData);
+                }}
+                formRef={formRef}
+                readOnly={!(window?.frappe?.boot?.user?.can_write?.includes("Project") ?? true)}
+                fieldConfig={
+                  {
+                    naming_series: { hidden: true },
+                    department: { hidden: true },
+                    custom_project_documents_url: { hidden: true },
+                    custom_3rd_parties: { hidden: true },
+                    custom_project_manager_name: { hidden: true },
+                    custom_engineering_manager_name: { hidden: true },
+                    is_active: { hidden: true },
+                    sales_order: { hidden: true },
+                    custom_project_size: { readOnly: true },
+                    notes: { hidden: true },
+                    customer: { readOnly: true },
+                    custom_currency: { readOnly: true },
+                    custom_sources: { readOnly: true },
+                    custom_deal_type: { readOnly: true },
+                    project_type: { readOnly: true },
+                    custom_restricted_under_nda: { readOnly: true },
+                    custom_billing_type: { readOnly: true },
+                    users: { hidden: true },
+                    monitor_progress: { hidden: true },
+                    collect_progress: { hidden: true },
+                  } as FieldConfigType
+                }
+                mutateData={mutate}
+              />
+            )}
+          </Main>
+        </div>
+        <Sidebar
+          projectData={projectData}
+          drawerOpen={sidebarDrawerOpen}
+          setDrawerOpen={setSidebarDrawerOpen}
+          projectId={projectId}
+          mutate={mutateProjectData}
+        />
+      </div>
     </>
   );
 };

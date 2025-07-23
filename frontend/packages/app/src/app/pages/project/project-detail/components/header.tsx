@@ -18,6 +18,7 @@ type ProjectDetailHeaderProps = {
   }>;
   projectName: string;
   disabled: boolean;
+  sidebarToggleButton?: React.ReactNode;
 };
 
 export const ProjectDetailHeader = ({
@@ -26,6 +27,7 @@ export const ProjectDetailHeader = ({
   formRef,
   projectName,
   disabled,
+  sidebarToggleButton,
 }: ProjectDetailHeaderProps) => {
   const navigate = useNavigate();
   const onProjectChange = (value: string | string[]) => {
@@ -59,6 +61,7 @@ export const ProjectDetailHeader = ({
             className: "h-10 px-2 py-2",
           },
         ]}
+        customComponents={sidebarToggleButton ? [sidebarToggleButton] : []}
       />
     </>
   );
