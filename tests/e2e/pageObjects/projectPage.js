@@ -287,13 +287,4 @@ export class ProjectPage {
       await this.isColumnHeaderVisible(column);
     }
   }
-
-  /**
-   * Apply multiple filters for Project Type
-   */
-  async applyMultipleFilters(filters) {
-    await this.applyFilters(filters.projectType, filters.projectType2);
-    await this.applyFilters(filters.projectType2);
-    // Add any additional logic to verify the results after applying multiple filters
-  }
 }
