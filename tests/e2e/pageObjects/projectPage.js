@@ -54,13 +54,7 @@ export class ProjectPage {
     //Project table headers
     this.projectTableHeader = (headerName) => page.locator("div").filter({ hasText: new RegExp(`^${headerName}$`) });
 
-    // 1. Get the project row by title
-    /*
-    this.projectRow = (projectName) =>
-      page.locator("tr").filter({
-        has: page.getByTitle(projectName),
-      });
-*/
+    //Project row locators
     this.projectRow = (projectName) => page.locator(`xpath=//p[@title="${projectName}"]/ancestor::tr`);
 
     this.projectTypeCell = (projectName, projectType) =>
