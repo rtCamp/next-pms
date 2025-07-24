@@ -11,7 +11,7 @@ export class ProjectPage {
 
     //Search bar on project page
     this.searchBar = page.getByRole("textbox", { name: "Project Name" });
-    //List of projects displayed in the table
+    //List of projects displayed in the project table
     this.projectListItems = page.locator("//table//tbody//tr//td[1]//p");
 
     //Filter options for project tab
@@ -34,6 +34,12 @@ export class ProjectPage {
     //Filter Clear Selection
     this.filterClearSelection = page.getByRole("button", { name: "Clear Selection" });
 
+    //Sort by Button
+    this.sortByButton = (buttonText) => page.locator(`//button[text()="${buttonText}"]`);
+
+    //Columns Button
+    this.columnsButton = page.getByRole("button", { name: "Columns" });
+
     // Locator for "No results"
     this.noResultsCell = page.getByRole("cell", { name: "No results" });
 
@@ -45,8 +51,19 @@ export class ProjectPage {
     this.viewNameInput = page.getByRole("textbox", { name: "eg: My custom view" });
     this.createButton = page.getByRole("button", { name: "Create" });
 
+    //Delete View
+    this.deleteViewButton = page.getByText("Delete View");
+
     //Private Views
     this.privateViewsButton = page.getByRole("button", { name: "Private Views" });
+
+    //Public views
+    this.publicViewsButton = page.getByRole("button", { name: "Public Views" });
+
+    this.gotoPublicView = (publicViewName) => page.locator(`a[title="${publicViewName}"]`);
+
+    //List of projects displayed in the Retainer public view
+    this.projectListItemsInRetainerView = page.locator("//table//tbody//tr//td[2]//p");
 
     //Toast Notification
     this.toastNotification = (notificationMessage) => page.locator(`//div[text()="${notificationMessage}"]`);
@@ -56,6 +73,8 @@ export class ProjectPage {
 
     //Project row locators
     this.projectRow = (projectName) => page.locator(`xpath=//p[@title="${projectName}"]/ancestor::tr`);
+
+    this.projectNameCell = (projectName) => page.getByText(`${projectName}`, { exact: true });
 
     this.projectTypeCell = (projectName, projectType) =>
       this.projectRow(projectName).locator(`xpath=.//p[@title="${projectType}"]`);
@@ -71,6 +90,11 @@ export class ProjectPage {
 
     this.currencyCell = (projectName, currency) =>
       this.projectRow(projectName).locator(`xpath=.//p[@title="${currency}"]`);
+
+    //Sort data in ascending order
+    this.sortAscending = page.locator('section svg[class*="arrow-down-az"]');
+    //Sort data in descending order
+    this.sortDescending = page.locator('section svg[class*="arrow-down-za"]');
   }
   /**
    * Loads test data from a JSON file.
@@ -241,7 +265,7 @@ export class ProjectPage {
     }
     await this.page.getByRole("link").filter({ hasText: viewName }).click();
     await this.moreActionsButton.click();
-    await this.page.getByText("Delete View").click();
+    await this.deleteViewButton.click();
     // Wait for the deletion confirmation dialog to appear and confirm deletion
     await this.toastNotification(notification).waitFor({ state: "visible" });
     await expect(this.toastNotification(notification)).toBeVisible();
@@ -280,5 +304,13 @@ export class ProjectPage {
     for (const column of columns) {
       await this.isColumnHeaderVisible(column);
     }
+  }
+  /**
+   * Get the list of project names currently displayed in the retainer public view.
+   */
+  async getProjectListInRetainerView() {
+    const projectNames = await this.projectListItemsInRetainerView.allTextContents();
+    const totalCount = projectNames.length;
+    return { projectNames, totalCount };
   }
 }

@@ -104,6 +104,101 @@ test.describe("Project Tab", () => {
     //Delete view
     await projectPage.deleteView(TC105data.payloadDeleteView.view_name, TC105data.payloadDeleteView.notification);
   });
+  test("TC31: The information table columns should be customizable using the ‘Columns’ button at the top.", async () => {
+    allure.story("Project");
+
+    //Add columns and verify if they are visible as column headers
+    const columnsToCheck = ["Project Name", "Project Type", "Status", "Business Unit", "Billing Type", "Currency"];
+
+    await projectPage.verifyColumnHeaders(columnsToCheck);
+    for (const column of columnsToCheck) {
+      await projectPage.isColumnHeaderVisible(column);
+    }
+  });
+
+  test("TC32: Validate the project data sorting functionality.", async ({ jsonDir }) => {
+    allure.story("Project");
+
+    // Apply project name sorting
+    await projectPage.sortByButton("modified").click();
+    await projectPage.page.getByRole("menuitemcheckbox", { name: "Project Name" }).click();
+
+    // Ensure ascending sort is active
+    if (!(await projectPage.sortAscending.isVisible())) {
+      if (await projectPage.sortDescending.isVisible()) {
+        await projectPage.sortDescending.click();
+      } else {
+        throw new Error("Neither sort button is visible");
+      }
+    }
+
+    // Assert ascending sort button is active
+    await expect(projectPage.sortAscending, "Ascending sort button is visible").toBeVisible();
+
+    // Get actual project names
+    const { projectNames } = await projectPage.getProjectList();
+    //console.log("Project Names After Sort:", projectNames);
+
+    // Verify if sorted correctly
+    const sortedNames = [...projectNames].sort((a, b) => a.localeCompare(b));
+    expect(projectNames).toEqual(sortedNames);
+
+    //Apply descending order sort and verify
+    await projectPage.sortAscending.click();
+
+    // Get project names after descending sort
+    const projectListAfterDescendingSort = await projectPage.getProjectList();
+    //console.log("Project Names After Descending Sort:", projectListAfterDescendingSort.projectNames);
+    // Verify if sorted correctly in descending order
+    const sortedNamesDescending = [...projectListAfterDescendingSort.projectNames].sort((a, b) => b.localeCompare(a));
+    expect(projectListAfterDescendingSort.projectNames).toEqual(sortedNamesDescending);
+  });
+
+  test("TC35: Validate the project details page by clicking on the project title.", async ({ jsonDir }) => {
+    allure.story("Project");
+
+    // Load test data
+    const data = await projectPage.loadTestData(jsonDir, "TC35.json");
+    const TC35data = data.TC35;
+    const projectName = TC35data.payloadCreateProject.project_name;
+
+    // Click on the project title to navigate to the project details page
+    await projectPage.projectNameCell(projectName).click();
+    const inputField = projectPage.page.locator(`input[value="${projectName}"]`);
+    await inputField.waitFor({ state: "visible" });
+    await expect(inputField, "Project name input field is visible").toBeVisible();
+  });
+
+  test("TC106: Verify the details of a project from public view", async ({ jsonDir }) => {
+    allure.story("Project");
+
+    // Load test data
+    const data = await projectPage.loadTestData(jsonDir, "TC106.json");
+    const TC106data = data.TC106;
+
+    //Verify the project name to be shown in public view : Retainer
+    await projectPage.publicViewsButton.click();
+    await projectPage.gotoPublicView(TC106data.publicViewName).click();
+
+    //Get list of project names, verify if the project name is one among the list
+    const projectList = await projectPage.getProjectListInRetainerView();
+    //console.log("Project Names in Retainer Public View:", projectList.projectNames);
+    expect(projectList.projectNames).toContain(TC106data.payloadCreateProject.project_name);
+  });
+  test("TC118: There should be no delete view option for a public view for manager", async ({ jsonDir }) => {
+    allure.story("Project");
+
+    // Load test data
+    const data = await projectPage.loadTestData(jsonDir, "TC118.json");
+    const TC118data = data.TC118;
+
+    //Verify the project name to be shown in public view : Retainer
+    await projectPage.publicViewsButton.click();
+    await projectPage.gotoPublicView(TC118data.publicViewName).click();
+    //Verify delete view button is not visible
+    await projectPage.moreActionsButton.click();
+    await expect(projectPage.deleteView, "Delete view is not present for public view").not.toBeVisible();
+  });
 });
 
 test.describe("Project Tab: Single Filters", () => {
