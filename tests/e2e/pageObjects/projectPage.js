@@ -287,11 +287,7 @@ export class ProjectPage {
       await this.isColumnHeaderVisible(column);
     }
   }
-  /**
-   * Applies a single filter and verifies the results.
-   * @param {Object} data - The test data containing filter details.
-   */
-  async applyAndVerifySingleFilter(data) {}
+
   /**
    * Apply multiple filters for Project Type
    */
