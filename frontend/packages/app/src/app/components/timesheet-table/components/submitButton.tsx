@@ -2,7 +2,7 @@
  * External dependencies
  */
 import { Button } from "@next-pms/design-system/components";
-import { CircleCheck, CircleX, Clock3 } from "lucide-react";
+import { CircleCheck, CircleDot, CircleX, Clock3 } from "lucide-react";
 /**
  * Internal dependencies
  */
@@ -42,6 +42,8 @@ export const SubmitButton = ({
           "bg-destructive/20 text-destructive hover:bg-destructive/20 hover:text-destructive border border-destructive/30",
         status == "Approval Pending" &&
           "bg-warning/20 text-warning hover:bg-warning/20 hover:text-warning  border border-warning/30",
+        status === "Processing Timesheet" &&
+          "bg-blue-100 text-blue-700 hover:bg-blue-100 hover:text-blue-700 border border-blue-300 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-600",
         status == "Not Submitted" &&
           totalHours >= expectedWeeklyHours &&
           "bg-yellow-50 text-yellow-600 hover:bg-yellow-50 hover:text-yellow-600 dark:bg-yellow-400/20 border border-yellow-600"
@@ -58,6 +60,7 @@ export const SubmitButton = ({
         {(status == "Rejected" || status == "Partially Rejected") && <CircleX className="stroke-destructive" />}
         {status == "Approval Pending" && <Clock3 className="stroke-warning" />}
         {status == "Not Submitted" && <CircleCheck className="" />}
+        {status == "Processing Timesheet" && <CircleDot className="stroke-blue-600" />}
         {status}
       </span>
     </Button>
