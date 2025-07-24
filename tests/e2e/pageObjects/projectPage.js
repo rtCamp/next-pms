@@ -121,6 +121,8 @@ export class ProjectPage {
    * @returns {Promise<boolean>} - True if "No results" is visible, false otherwise.
    */
   async isNoResultsVisible() {
+    // Wait for the "No results" cell to be present in the DOM
+    await this.noResultsCell.waitFor({ state: "visible", timeout: 50000 });
     return await this.noResultsCell.isVisible();
   }
 
@@ -176,7 +178,11 @@ export class ProjectPage {
         await search.fill(v);
         await this.page.getByRole("option", { name: v }).click();
       }
-      await this.page.keyboard.press("Escape"); // Close the dropdown
+
+      // if filterClearSelection is visible, click it to clear the selection
+      if (await this.filterClearSelection.isVisible()) {
+        await this.page.keyboard.press("Escape");
+      }
     }
   }
 

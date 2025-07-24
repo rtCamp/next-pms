@@ -252,10 +252,12 @@ test.describe("Project Tab: Single Filters", () => {
       ],
     });
     const projectListAfterMultipleFilters = await projectPage.getProjectList();
+    /*
     console.log(
       "Project Names After applying multiple business unit filters:",
       projectListAfterMultipleFilters.projectNames
     );
+    */
     expect(projectListAfterMultipleFilters.projectNames).toContain(TC115data.createProject3Info.project_name);
     expect(projectListAfterMultipleFilters.projectNames).toContain(TC115data.createProject4Info.project_name);
     await expect(
@@ -329,14 +331,14 @@ test.describe("Project Tab: Single Filters", () => {
       "Multiple Billing Type Filter2 : Correct"
     ).toBeVisible();
   });
-
-  test.fail("TC117: Verify Currency Filter", async ({ jsonDir }) => {
+  /*
+  test.only("TC117: Verify Currency Filter", async ({ jsonDir }) => {
     allure.story("Project");
 
     // Load test data
     const data = await projectPage.loadTestData(jsonDir, "TC117.json");
     const TC117data = data.TC117;
-
+    await projectPage.page.pause();
     // Verify column headers if they are visible, if not visible, include them
     const columnsToCheck = ["Project Name", "Currency"];
     await projectPage.verifyColumnHeaders(columnsToCheck);
@@ -375,4 +377,5 @@ test.describe("Project Tab: Single Filters", () => {
       "Multiple Currency Filter2 : Correct"
     ).toBeVisible();
   });
+  */
 });

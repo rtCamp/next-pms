@@ -16,6 +16,7 @@ module.exports = {
       project: "TC47 Project",
       task: "TC47 Billable Task",
       desc: "TC47 - Task added via automation.",
+      toastNotification: "Timesheet updated successfully",
     },
 
     cell: {
