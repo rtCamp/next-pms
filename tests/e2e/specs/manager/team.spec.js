@@ -203,6 +203,28 @@ test.describe("Manager: Team Tab", () => {
     const status = await teamPage.getTimesheetStatus(empName);
     expect(status).toBe("Rejected");
   });
+
+  test("TC112: Verify no results when search does not return any results", async ({ page }) => {
+    allure.story("Team");
+
+    await teamPage.searchEmployee("Negative Test");
+    await expect(page.getByText("No results")).toBeVisible();
+  });
+
+  test("TC113: Validate if saving a view sticks after page refresh", async ({ page }) => {
+    allure.story("Team");
+    test.setTimeout(60000);
+    await teamPage.saveNewView(manName);
+    await expect(page.getByText("View Updated", { exact: true })).toBeVisible();
+    await Promise.all([
+      page.waitForResponse(
+        (resp) =>
+          resp.url().includes("/api/method/next_pms.timesheet.api.team.get_compact_view_data") && resp.status() === 200
+      ),
+      ,
+    ]);
+    await expect(page.url()).toContain("reports-to=%22EMP-");
+  });
 });
 
 test.describe("Manager: Team Tab2", () => {
