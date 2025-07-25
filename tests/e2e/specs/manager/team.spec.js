@@ -221,7 +221,7 @@ test.describe("Manager: Team Tab", () => {
         (resp) =>
           resp.url().includes("/api/method/next_pms.timesheet.api.team.get_compact_view_data") && resp.status() === 200
       ),
-      ,
+      teamPage.goto(),
     ]);
     await expect(page.url()).toContain("reports-to=%22EMP-");
   });
