@@ -211,7 +211,7 @@ test.describe("Manager: Team Tab", () => {
     await expect(page.getByText("No results")).toBeVisible();
   });
 
-  test("TC113: Validate if saving a view sticks after page refresh", async ({ page }) => {
+  test("TC114: Validate if saving a view sticks after page refresh", async ({ page }) => {
     allure.story("Team");
     test.setTimeout(60000);
     await teamPage.saveNewView(manName);
