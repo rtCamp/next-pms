@@ -15,7 +15,7 @@ import { FieldConfigType } from "@/app/components/form-view/types";
 import { Main } from "@/app/layout/root";
 import { getCurrencySymbol, parseFrappeErrorMsg } from "@/lib/utils";
 import { ProjectDetailHeader } from "./components/header";
-import Sidebar from "./components/sidebar";
+import ProjectSidebar from "./components/sidebar";
 
 const ProjectDetail = () => {
   const { projectId } = useParams();
@@ -160,7 +160,7 @@ const ProjectDetail = () => {
             )}
           </Main>
         </div>
-        <Sidebar
+        <ProjectSidebar
           projectData={projectData}
           drawerOpen={sidebarDrawerOpen}
           setDrawerOpen={setSidebarDrawerOpen}
