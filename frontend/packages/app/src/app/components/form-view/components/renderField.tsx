@@ -292,6 +292,7 @@ const getFieldComponent = (
     case "Text Editor":
       return (
         <TextEditor
+          value={field.value as string}
           defaultValue={field.value as string}
           readOnly={isReadOnly || field.read_only === 1}
           onChange={(value) => {
