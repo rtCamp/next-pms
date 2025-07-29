@@ -3,6 +3,7 @@ import json
 from frappe import (
     DoesNotExistError,
     _,
+    _dict,
     db,
     enqueue,
     get_all,
@@ -19,6 +20,7 @@ from frappe.utils.data import add_days, getdate
 
 from next_pms.api.utils import error_logger
 from next_pms.resource_management.api.utils.query import get_employee_leaves
+from next_pms.timesheet.doc_events.timesheet import flush_cache, publish_timesheet_update
 
 from . import filter_employees
 from .employee import get_employee_daily_working_norm, get_employee_working_hours
@@ -183,7 +185,7 @@ def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | N
             "end_date": ["<=", current_week.get("end_date")],
             "docstatus": ["=", 0],
         },
-        ["name", "start_date"],
+        ["name", "start_date", "employee"],
     )
     if not timesheets:
         return throw(
@@ -194,7 +196,16 @@ def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | N
         if str(timesheet.start_date) not in dates:
             continue
         db.set_value("Timesheet", timesheet.name, "custom_approval_status", "Processing Timesheet")
-
+        db.set_value("Timesheet", timesheet.name, "custom_weekly_approval_status", "Processing Timesheet")
+    doc = _dict(
+        {
+            "employee": employee,
+            "start_date": current_week.get("start_date"),
+        }
+    )
+    db.commit()  # nosemgrep Need to do as we need to publish status changes.
+    flush_cache(doc)
+    publish_timesheet_update(employee=employee, start_date=current_week.get("start_date"))
     enqueue(
         _approve_or_reject_timesheet,
         status=status,

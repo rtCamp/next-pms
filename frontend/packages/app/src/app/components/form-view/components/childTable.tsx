@@ -97,7 +97,7 @@ const ChildTable = ({ field, currencySymbol, isReadOnly }: ChildTableProps) => {
           setSelected([]);
           toast({
             variant: "success",
-            description: `Row${data.length > 1 && "s"} deleted successfully`,
+            description: `Row${data.length > 1 ? "s" : ""} deleted successfully`,
           });
         })
         .catch((err) => {

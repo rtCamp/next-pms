@@ -50,7 +50,7 @@ export const SubmitButton = ({
       )}
       onClick={(e) => {
         e.stopPropagation();
-        if (status != "Approved") {
+        if (status != "Approved" && status != "Processing Timesheet") {
           handleClick();
         }
       }}
