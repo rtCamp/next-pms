@@ -143,7 +143,7 @@ module.exports = {
     },
   },
   TC53: {
-    employeesInQE: [process.env.EMP_NAME, process.env.EMP3_NAME, process.env.REP_MAN_NAME],
+    employeesInQE: [process.env.EMP_NAME, process.env.EMP3_NAME],
     employeesInStaging: [
       process.env.EMP_NAME,
       process.env.EMP3_NAME,

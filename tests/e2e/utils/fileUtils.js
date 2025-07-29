@@ -6,6 +6,7 @@ import lockfile from "proper-lockfile";
 import employeeTimesheetData from "../data/employee/timesheet.js";
 import managerTeamData from "../data/manager/team.js";
 import managerTaskData from "../data/manager/task.js";
+import managerProjectData from "../data/manager/project.js";
 
 /**
  * Creates a JSON file with initial data
@@ -226,6 +227,7 @@ export const populateJsonStubs = async (jsonDir, testCaseIDs) => {
     employee: employeeTimesheetData,
     manager_team: managerTeamData,
     manager_task: managerTaskData,
+    manager_project: managerProjectData,
   };
 
   for (const tcId of testCaseIDs) {
