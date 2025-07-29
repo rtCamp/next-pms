@@ -190,6 +190,10 @@ def approve_or_reject_timesheet(employee: str, status: str, dates: list[str] | N
             _("No timesheet found for the given date range."),
             exc=DoesNotExistError,
         )
+    for timesheet in timesheets:
+        if str(timesheet.start_date) not in dates:
+            continue
+        db.set_value("Timesheet", timesheet.name, "custom_approval_status", "Processing Timesheet")
 
     enqueue(
         _approve_or_reject_timesheet,
