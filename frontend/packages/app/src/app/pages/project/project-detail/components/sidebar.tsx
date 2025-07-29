@@ -7,7 +7,7 @@ import React from "react";
  * Internal dependencies
  */
 import Sidebar from "@/app/components/sidebar";
-import Tags from "./tags";
+import Tags from "@/app/components/tags";
 interface ProjectSidebarProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   projectData: any;
@@ -28,7 +28,7 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
 }) => {
   return (
     <Sidebar className={className} drawerOpen={drawerOpen} setDrawerOpen={setDrawerOpen}>
-      <Tags projectData={projectData} projectId={projectId} mutate={mutate} />
+      <Tags userTags={projectData?._user_tags} doctype="Project" docname={projectId || ""} mutate={mutate} />
     </Sidebar>
   );
 };

@@ -8,15 +8,15 @@ import { useFrappeGetDocList, useFrappePostCall } from "frappe-react-sdk";
 import { Minus, Plus, Tag, X } from "lucide-react";
 
 interface TagsProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  projectData: any;
+  userTags?: string;
+  doctype: string;
+  docname: string;
   className?: string;
-  projectId?: string;
   mutate?: () => void;
 }
 
-const Tags: React.FC<TagsProps> = ({ projectData, className, projectId, mutate }) => {
-  const tags: string[] = (projectData?._user_tags || "")
+const Tags: React.FC<TagsProps> = ({ userTags, doctype, docname, className, mutate }) => {
+  const tags: string[] = (userTags || "")
     .split(",")
     .map((tag: string) => tag?.trim())
     .filter((tag: string) => tag.length > 0);
@@ -51,22 +51,22 @@ const Tags: React.FC<TagsProps> = ({ projectData, className, projectId, mutate }
   }, [hideComboBox]);
 
   const handleRemoveTag = async (tagToRemove: string) => {
-    if (!projectId) return;
+    if (!docname) return;
     await call({
       tag: tagToRemove,
-      dt: "Project",
-      dn: projectId,
+      dt: doctype,
+      dn: docname,
     });
     mutate?.();
   };
 
   const handleAddTag = async (value: string | string[]) => {
     const selected = Array.isArray(value) ? value : [value];
-    if (!projectId || !selected[0]) return;
+    if (!docname || !selected[0]) return;
     await addTagCall({
       tag: selected[0],
-      dt: "Project",
-      dn: projectId,
+      dt: doctype,
+      dn: docname,
     });
     setTagSearch("");
     mutate?.();
