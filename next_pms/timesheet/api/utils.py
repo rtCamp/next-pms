@@ -85,7 +85,14 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
     for ts in current_week_timesheet:
         timesheet_by_start_date[ts["start_date"]].append(ts)
 
-    priority = {"Rejected": 4, "Approval Pending": 3, "Approved": 2, "Not Submitted": 1, None: 0}
+    priority = {
+        "Rejected": 5,
+        "Approval Pending": 4,
+        "Approved": 3,
+        "Not Submitted": 2,
+        "Processing Timesheet": 1,
+        None: 0,
+    }
 
     final_status_per_day = {}
 
@@ -106,6 +113,7 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
         "Approved": 0,
         "Rejected": 0,
         "Approval Pending": 0,
+        "Processing Timesheet": 0,
     }
 
     for day_status in final_status_per_day.values():
@@ -118,6 +126,8 @@ def update_weekly_status_of_timesheet(employee: str, date: str):
         week_status = "Rejected"
     elif status_count["Approved"] >= working_days.get("total_working_days"):
         week_status = "Approved"
+    elif status_count["Processing Timesheet"] > 0:
+        week_status = "Processing Timesheet"
     elif status_count["Rejected"] > 0:
         week_status = "Partially Rejected"
     elif status_count["Approved"] > 0:

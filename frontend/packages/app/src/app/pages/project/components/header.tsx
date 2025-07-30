@@ -273,7 +273,7 @@ export const Header = ({
         setTagSearchTerm(searchTerm);
       },
       shouldFilterComboBox: true,
-      isMultiComboBox: false,
+      isMultiComboBox: true,
     },
   ];
   const sortOptions = {

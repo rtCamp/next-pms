@@ -77,8 +77,9 @@ const ChildTable = ({ field, currencySymbol, isReadOnly }: ChildTableProps) => {
   };
 
   const handleAddRow = () => {
+    const newIdx = rows.length > 0 ? rows[rows.length - 1].idx + 1 : 1;
     const newRow: ChildRow = {
-      idx: rows[rows.length - 1].idx + 1,
+      idx: newIdx,
       ...Object.fromEntries(field?.child_meta!.map((m) => [m.fieldname, ""])),
     };
     setRows([...rows, newRow]);
@@ -96,7 +97,7 @@ const ChildTable = ({ field, currencySymbol, isReadOnly }: ChildTableProps) => {
           setSelected([]);
           toast({
             variant: "success",
-            description: `Row${data.length > 1 && "s"} deleted successfully`,
+            description: `Row${data.length > 1 ? "s" : ""} deleted successfully`,
           });
         })
         .catch((err) => {
@@ -130,8 +131,8 @@ const ChildTable = ({ field, currencySymbol, isReadOnly }: ChildTableProps) => {
 
   return (
     <div className="space-y-3">
-      <div className="overflow-auto border rounded-md max-h-64 relative">
-        <table className="caption-bottom text-sm w-full border-separate border-spacing-0 table-fixed">
+      <div className="overflow-x-auto border rounded-md max-h-64 relative">
+        <table className="caption-bottom text-sm w-full border-separate border-spacing-0 table-fixed max-lg:min-w-[40rem]">
           <TableHeader className="sticky top-0">
             <TableRow className="border-b">
               <TableHead className="w-10 min-w-10 h-12 px-0 border-r border-b dark:border-slate-700 dark:bg-slate-950">
@@ -152,6 +153,7 @@ const ChildTable = ({ field, currencySymbol, isReadOnly }: ChildTableProps) => {
                   return (
                     <TableHead
                       key={meta.fieldname}
+                      title={meta.label}
                       className="border-r dark:border-slate-700 px-2 py-1 text-left text-sm truncate font-normal dark:bg-slate-950"
                     >
                       {meta.label}
