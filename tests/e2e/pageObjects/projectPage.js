@@ -210,7 +210,7 @@ export class ProjectPage {
           // Wait a moment for dropdown to close
           await this.page.waitForTimeout(300);
         }
-      } catch (e) {
+      } catch {
         // Skip if not visible or if error
       }
     }

@@ -118,7 +118,7 @@ test.describe("Project Tab", () => {
     }
   });
 
-  test("TC32: Validate the project data sorting functionality.", async ({ jsonDir }) => {
+  test("TC32: Validate the project data sorting functionality.", async () => {
     allure.story("Project");
 
     // Apply project name sorting
