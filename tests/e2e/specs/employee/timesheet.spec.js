@@ -24,7 +24,7 @@ test.describe("Employee : Timesheet", () => {
 
   // ------------------------------------------------------------------------------------------
   //Skipping below test as it needs to be fixed for CI
-  test("TC3: Time should be added using the direct timesheet add buttons.", async ({ page, jsonDir }) => {
+  test.only("TC3: Time should be added using the direct timesheet add buttons.", async ({ page, jsonDir }) => {
     allure.story("Timesheet");
     // 1) Build the path to your per‑TC JSON stub
     const stubPath = path.join(jsonDir, "TC3.json");
