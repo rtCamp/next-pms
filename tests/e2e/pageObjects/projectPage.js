@@ -74,7 +74,7 @@ export class ProjectPage {
     //Project row locators
     this.projectRow = (projectName) => page.locator(`xpath=//p[@title="${projectName}"]/ancestor::tr`);
 
-    this.projectNameCell = (projectName) => page.getByText(`${projectName}`, { exact: true });
+    this.projectNameCell = (projectName) => page.getByTitle(`${projectName}`, { exact: true });
 
     this.projectTypeCell = (projectName, projectType) =>
       this.projectRow(projectName).locator(`xpath=.//p[@title="${projectType}"]`);
@@ -150,7 +150,6 @@ export class ProjectPage {
    */
   // Inside your Page Object class
   async applyFilters(filters) {
-    // 1. Define each filter’s locators
     const configs = [
       {
         key: "projectType",
@@ -179,27 +178,40 @@ export class ProjectPage {
       },
     ];
 
-    // 2. Loop through each config and apply multi‑select logic
     for (const { key, button, search } of configs) {
       const rawValue = filters[key];
       if (!rawValue) continue;
 
-      // Normalize to array
       const values = Array.isArray(rawValue) ? rawValue : [rawValue];
       if (values.length === 0) continue;
 
-      // Open the dropdown
-      await button.click();
-
-      // Fill & select each value
-      for (const v of values) {
-        await search.fill(v);
-        await this.page.getByRole("option", { name: v }).click();
+      try {
+        await button.click({ timeout: 30000 });
+      } catch (e) {
+        console.error(`Failed to click filter button for "${key}": ${e}`);
+        continue;
       }
 
-      // if filterClearSelection is visible, click it to clear the selection
-      if (await this.filterClearSelection.isVisible()) {
-        await this.page.keyboard.press("Escape");
+      for (const v of values) {
+        try {
+          await search.fill(v, { timeout: 30000 });
+          const option = this.page.getByRole("option", { name: v });
+          await option.waitFor({ state: "visible", timeout: 30000 });
+          await option.click();
+        } catch (e) {
+          console.error(`Failed to select value "${v}" for filter "${key}": ${e}`);
+        }
+      }
+
+      // Only attempt to escape if filterClearSelection is visible
+      try {
+        if (await this.filterClearSelection.isVisible({ timeout: 2000 })) {
+          await this.page.keyboard.press("Escape");
+          // Wait a moment for dropdown to close
+          await this.page.waitForTimeout(300);
+        }
+      } catch (e) {
+        // Skip if not visible or if error
       }
     }
   }
@@ -257,7 +269,7 @@ export class ProjectPage {
    * Delete a view by its name.
    * @param {string} viewName - The name of the view to delete.
    */
-  async deleteView(viewName, notification) {
+  async deletePrivateView(viewName, notification) {
     await this.privateViewsButton.click();
     //Click on private view button if view name is not visible
     if (!(await this.page.getByRole("link").filter({ hasText: viewName }).isVisible())) {

@@ -100,9 +100,11 @@ test.describe("Project Tab", () => {
 
     // Create a private view
     await projectPage.createPrivateView(TC105data.payloadCreateView.view_name);
-
     //Delete view
-    await projectPage.deleteView(TC105data.payloadDeleteView.view_name, TC105data.payloadDeleteView.notification);
+    await projectPage.deletePrivateView(
+      TC105data.payloadDeleteView.view_name,
+      TC105data.payloadDeleteView.notification
+    );
   });
   test("TC31: The information table columns should be customizable using the ‘Columns’ button at the top.", async () => {
     allure.story("Project");
@@ -162,6 +164,9 @@ test.describe("Project Tab", () => {
     const TC35data = data.TC35;
     const projectName = TC35data.payloadCreateProject.project_name;
 
+    //Search the project by its title
+    await projectPage.searchProject(projectName);
+
     // Click on the project title to navigate to the project details page
     await projectPage.projectNameCell(projectName).click();
     const inputField = projectPage.page.locator(`input[value="${projectName}"]`);
@@ -197,7 +202,8 @@ test.describe("Project Tab", () => {
     await projectPage.gotoPublicView(TC118data.publicViewName).click();
     //Verify delete view button is not visible
     await projectPage.moreActionsButton.click();
-    await expect(projectPage.deleteView, "Delete view is not present for public view").not.toBeVisible();
+    //Assertion: Verify delete view button is not visible
+    await expect(projectPage.deleteViewButton, "Delete view button is not visible").not.toBeVisible();
   });
 });
 
@@ -433,7 +439,6 @@ test.describe("Project Tab: Single Filters", () => {
     // Load test data
     const data = await projectPage.loadTestData(jsonDir, "TC117.json");
     const TC117data = data.TC117;
-    await projectPage.page.pause();
     // Verify column headers if they are visible, if not visible, include them
     const columnsToCheck = ["Project Name", "Currency"];
     await projectPage.verifyColumnHeaders(columnsToCheck);

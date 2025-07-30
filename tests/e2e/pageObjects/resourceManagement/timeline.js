@@ -98,9 +98,10 @@ export class TimelinePage {
   async addDateRange(formattedDate = this.formattedDate) {
     const dayNumber = formattedDate.split(" ")[1];
     await this.startDateSelector.click();
-    await this.page.getByRole("gridcell", { name: dayNumber, exact: true }).first().click();
+    await this.page.getByRole("gridcell", { name: dayNumber, exact: true }).nth(1).click();
+
     await this.endDateSelector.click();
-    await this.page.getByRole("gridcell", { name: dayNumber, exact: true }).first().click();
+    await this.page.getByRole("gridcell", { name: dayNumber, exact: true }).nth(1).click();
   }
 
   /**

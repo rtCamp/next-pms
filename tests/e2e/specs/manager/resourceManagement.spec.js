@@ -7,8 +7,7 @@ import * as allure from "allure-js-commons";
 import { deleteAllocation } from "../../utils/api/projectRequests";
 import { getFormattedDateNDaysFromToday, getFormattedPastWorkday } from "../../utils/dateUtils";
 import { readJSONFile } from "../../utils/fileUtils";
-
-let timelinePage;
+/** @type {TimelinePage} */ let timelinePage;
 let teamPage;
 let projectPage;
 let createdAllocations = [];
@@ -40,15 +39,18 @@ test.describe("Manager : Resource Management Tab", () => {
     allure.story("Resource Management");
     const stubPath = path.join(jsonDir, "TC102.json");
     const data = await readJSONFile(stubPath);
+
     const TC102data = data.TC102;
     const projectName = TC102data.payloadCreateProject.project_name;
     const employeeName = TC102data.employee;
     const customerName = TC102data.payloadCreateProject.customer;
+
     await timelinePage.goto();
     await timelinePage.isPageVisible();
     const allocationName = await timelinePage.addAllocation(projectName, customerName, employeeName);
     createdAllocations.push(allocationName);
     await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
+
     await timelinePage.goto();
     await timelinePage.filterEmployeeByName(employeeName);
     await timelinePage.deleteAllocation(projectName);
