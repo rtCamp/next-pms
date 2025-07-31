@@ -52,7 +52,7 @@ module.exports = {
     notification: "New Timesheet created successfully.",
     cell: {
       rowName: "Task for TC03",
-      col: "Thu",
+      col: "Fri",
     },
     payloadCreateProject: {
       project_name: "TC03 Project",
