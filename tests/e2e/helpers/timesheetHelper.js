@@ -20,7 +20,7 @@ import { getEmployeeDetails } from "../utils/api/employeeRequests";
 import { filterApi, shareProjectWithUser } from "../utils/api/frappeRequests";
 import { deleteLeave } from "../utils/api/leaveRequests";
 import { getWeekRange } from "../utils/dateUtils";
-import { deleteAllocationsByEmployee, deleteEmployeeByName } from "./employeeHelper";
+import { deleteEmployeeByName } from "./employeeHelper";
 import { deleteUserGroupForEmployee } from "./teamTabHelper";
 
 // Load env variables
