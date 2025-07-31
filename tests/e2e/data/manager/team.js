@@ -359,6 +359,13 @@ module.exports = {
     payloadDeleteProject: {
       projectId: "filled-automatically-from-createProjects",
     },
+    payloadCreateAllocation: {
+      employee: process.env.EMP3_NAME,
+      project_name: "TC108 Project",
+      customer: "Google",
+      start_date: "2023-10-01",
+      end_date: "2023-10-31",
+    },
   },
   TC109: {
     payloadCreateProject: {

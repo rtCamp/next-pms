@@ -8,8 +8,9 @@ import { deleteAllocation } from "../../utils/api/projectRequests";
 import { getFormattedDateNDaysFromToday, getFormattedPastWorkday } from "../../utils/dateUtils";
 import { readJSONFile } from "../../utils/fileUtils";
 /** @type {TimelinePage} */ let timelinePage;
-let teamPage;
-let projectPage;
+/** @type {ProjectPage} */ let projectPage;
+/** @type {TeamPage} */ let teamPage;
+
 let createdAllocations = [];
 
 test.beforeEach(async ({ page }) => {
@@ -20,6 +21,9 @@ test.beforeEach(async ({ page }) => {
 
 // delete allocations after all tests if not deleted through UI
 test.afterAll(async () => {
+  //Print the created allocations array elements
+  console.log("CREATED ALLOCATIONS OVERALL:", createdAllocations);
+
   for (const allocationName of createdAllocations) {
     try {
       await deleteAllocation(allocationName);
@@ -142,9 +146,9 @@ test.describe("Manager : Resource Management Tab", () => {
     const data = await readJSONFile(stubPath);
     const TC108data = data.TC108;
 
-    const projectName = TC108data.payloadCreateProject.project_name;
-    const employeeName = TC108data.employee;
-    const customerName = TC108data.payloadCreateProject.customer;
+    const projectName = TC108data.payloadCreateAllocation.project_name;
+    const employeeName = TC108data.payloadCreateAllocation.employee;
+    const customerName = TC108data.payloadCreateAllocation.customer;
     const { date, day } = getFormattedDateNDaysFromToday(3);
     await projectPage.goto();
     const { allocationName } = await projectPage.addAllocationFromProjectTab(
@@ -155,6 +159,7 @@ test.describe("Manager : Resource Management Tab", () => {
       day,
       "4"
     );
+    //console.log(`Allocation Name: ${allocationName}`);
     createdAllocations.push(allocationName);
     await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
     await projectPage.goto();
