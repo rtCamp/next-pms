@@ -54,6 +54,14 @@ export class TeamPage {
 
     //Toast Notification
     this.toastNotification = (notificationMessage) => page.locator(`//div[text()="${notificationMessage}"]`);
+
+    //Get locator with text
+    this.visibleText = (text) => page.getByText(`${text}`);
+
+    this.table = page.locator("header").first();
+    this.filterElements = page.locator("#filters");
+    this.clearFilterIcons = page.locator("div#filters:nth-child(2) svg");
+    this.saveChanges = page.getByRole("button", { name: "Save changes" });
   }
 
   // --------------------------------------
@@ -448,5 +456,39 @@ export class TeamPage {
     await this.page.getByRole("button", { name: "User Group" }).click();
     await this.page.getByRole("option", { name: userGroupName }).getByRole("checkbox").check();
     await this.page.getByPlaceholder("User Group").press("Escape");
+  }
+
+  /**
+   * Verify if filters are applied
+   */
+  async isFilterApplied() {
+    await this.table.waitFor({ state: "visible" });
+    const count = await this.filterElements.count();
+    return count > 1;
+  }
+
+  /**
+   * Clear Applied filters
+   */
+  async clearFilters() {
+    while ((await this.clearFilterIcons.count()) > 0) {
+      const clearFilterIcon = this.clearFilterIcons.first();
+      await clearFilterIcon.click();
+    }
+  }
+
+  /**
+   * Updates and saves a view
+   */
+  async saveNewView(employeeName) {
+    const filterApplied = await this.isFilterApplied();
+    if (filterApplied) {
+      await this.clearFilters();
+      await this.saveChanges.click();
+      await this.goto();
+    }
+    await this.applyReportsTo(employeeName);
+    await this.selectEmployeeStatus("Active");
+    await this.saveChanges.click();
   }
 }
