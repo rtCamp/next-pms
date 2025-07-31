@@ -239,6 +239,8 @@ export class TaskPage {
    * Checks if the task details dialog with the specified name is visible.
    */
   async isTaskDetailsDialogVisible(name) {
+    // Wait for the dialog to be visible
+    await this.page.getByRole("dialog", { name: name }).waitFor({ state: "visible" });
     return this.page.getByRole("dialog", { name: name }).isVisible();
   }
 

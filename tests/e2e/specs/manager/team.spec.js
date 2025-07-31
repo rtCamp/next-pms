@@ -101,6 +101,7 @@ test.describe("Manager: Team Tab", () => {
       desc: TC47data.taskInfo.desc,
       newDuration: TC47data.taskInfo.duration,
     });
+    await teamPage.toastNotification(TC47data.taskInfo.toastNotification).waitFor({ state: "visible" });
     await page.reload();
     await teamPage.viewNextWeek();
     await teamPage.searchEmployee(empName);
