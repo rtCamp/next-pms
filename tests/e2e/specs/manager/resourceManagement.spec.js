@@ -38,7 +38,7 @@ test.afterAll(async () => {
 });
 
 test.describe("Manager : Resource Management Tab", () => {
-  test("TC56: Validate the search functionality", async ({ page }) => {
+  test("TC56: Validate the search functionality", async () => {
     allure.story("Resource Management");
     await teamPage.goto();
     await teamPage.filterEmployeeByName(employeeName);

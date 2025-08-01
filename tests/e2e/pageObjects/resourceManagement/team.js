@@ -46,7 +46,7 @@ export class TeamPage extends TimelinePage {
    * Navigates to the team page and waits for it to fully load.
    */
   async goto() {
-    const [response] = await Promise.all([
+    await Promise.all([
       this.page.waitForResponse(
         (resp) =>
           resp
@@ -213,7 +213,7 @@ export class TeamPage extends TimelinePage {
     await this.viewsFilterDropdown.click();
     try {
       await this.selectViewOption(view).click();
-    } catch (error) {
+    } catch {
       throw new Error(`View option '${view}' not found in the dropdown.`);
     }
     await this.page.locator("html").click(); // Click outside to close the dropdown
