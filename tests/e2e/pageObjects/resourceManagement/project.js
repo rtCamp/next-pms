@@ -9,11 +9,30 @@ export class ProjectPage extends TimelinePage {
     super(page);
     this.filterByProjectInput = page.getByRole("textbox", { name: "Project Name" });
 
+    //Search bar on project page
+    this.searchBar = page.getByRole("textbox", { name: "Project Name" });
+
+    // filter dropdown
+    this.customerFilter = page.getByRole("button", { name: "Customer" });
+    this.billingTypeFilter = page.getByRole("button", { name: "Billing Type" });
+    this.allocationTypeFilter = page.getByRole("button", { name: "Allocation Type" });
+
+    //Search bar inside filter dropdown
+    this.customerSearchBar = page.getByPlaceholder("Customer");
+    this.billingTypeSearchBar = page.getByPlaceholder("Billing Type");
+    this.allocationTypeSearchBar = page.getByPlaceholder("Allocation Type");
+
+    //Filter Clear Selection
+    this.filterClearSelection = page.getByRole("button", { name: "Clear Selection" });
+
     //table elements
     this.projectTableTitle = page.getByRole("cell", { name: "Projects" });
     this.deleteButton = page.getByRole("img", { name: "Delete" }).first();
     this.editIcon = page.getByRole("img", { name: "Edit" }).first();
     this.clipboardIcon = page.getByRole("img", { name: "Copy" }).first();
+
+    //List of projects displayed in the project table that have title
+    this.projectListItems = page.locator("//h3//td//p[@title]");
   }
 
   /**
@@ -124,5 +143,136 @@ export class ProjectPage extends TimelinePage {
     await this.page.waitForTimeout(1000);
     const allocationTime = await this.page.getByTitle(`${projectName} (${date} - ${day})`).textContent();
     return allocationTime;
+  }
+  /**
+   * Retrieves a list of project titles from the project list items.
+   */
+  async getProjectList() {
+    const titles = [];
+
+    const count = await this.projectListItems.count();
+
+    for (let i = 0; i < Math.min(count, 10); i++) {
+      const title = await this.projectListItems.nth(i).getAttribute("title");
+      titles.push(title);
+    }
+
+    return {
+      totalCount: titles.length,
+      projectNames: titles,
+    };
+  }
+
+  /**
+   * Perform a search using the search bar.
+   * @param {string} query - The search query.
+   */
+  async searchProject(query) {
+    await this.searchBar.fill(query);
+    await this.searchBar.press("Enter"); // Simulate pressing Enter to trigger the search
+    await this.page.waitForLoadState("networkidle"); // Wait for the search results to load
+  }
+  /**
+   * Clears specified filter dropdowns by clicking on each and selecting 'Clear Selection'
+   * If no filters are specified, all filters will be cleared.
+   * @param {Array<string>} filtersToClear - Array of filter names like ['projectType', 'currency']
+   */
+  async clearFilters(filtersToClear) {
+    const filterMap = {
+      customer: this.customerFilter,
+      billingType: this.billingTypeFilter,
+      allocationType: this.allocationTypeFilter,
+    };
+
+    // If no filters specified, default to all filters in the map
+    const filters = filtersToClear?.length ? filtersToClear : Object.keys(filterMap);
+
+    for (const filterName of filters) {
+      const btn = filterMap[filterName];
+      if (!btn) {
+        console.warn(`Unknown filter: ${filterName}`);
+        continue;
+      }
+      await btn.click();
+
+      // Only click clear if visible (i.e., filter is actually applied)
+      if (await this.filterClearSelection.isVisible()) {
+        await this.filterClearSelection.click();
+      }
+      //If the filter button is still visible do filterClearSelection.press("Escape") to close the dropdown
+      if (await this.filterClearSelection.isVisible()) {
+        await this.filterClearSelection.press("Escape");
+      }
+
+      // Short wait to ensure UI updates
+      await this.page.waitForTimeout(150);
+    }
+  }
+  /**
+   * Apply all filters provided.
+   * @param {Object} filters - e.g. { projectType, businessUnit, billingType, currency }
+   */
+  // Inside your Page Object class
+  async applyFilters(filters) {
+    const configs = [
+      {
+        key: "customer",
+        button: this.customerFilter,
+        search: this.customerSearchBar,
+      },
+      {
+        key: "allocationType",
+        button: this.allocationTypeFilter,
+        search: this.allocationTypeSearchBar,
+      },
+      {
+        key: "billingType",
+        button: this.billingTypeFilter,
+        search: this.billingTypeSearchBar,
+      },
+    ];
+
+    for (const { key, button, search } of configs) {
+      const rawValue = filters[key];
+      if (!rawValue) continue;
+
+      const values = Array.isArray(rawValue) ? rawValue : [rawValue];
+      if (values.length === 0) continue;
+
+      try {
+        await button.click({ timeout: 30000 });
+      } catch (e) {
+        console.error(`Failed to click filter button for "${key}": ${e}`);
+        continue;
+      }
+
+      for (const v of values) {
+        try {
+          await search.fill(v, { timeout: 30000 });
+
+          // Conditionally use exact: true if key is "allocationType"
+          const option =
+            key === "allocationType"
+              ? this.page.getByRole("option", { name: v, exact: true })
+              : this.page.getByRole("option", { name: v });
+
+          await option.waitFor({ state: "visible", timeout: 30000 });
+          await option.click();
+        } catch (e) {
+          console.error(`Failed to select value "${v}" for filter "${key}": ${e}`);
+        }
+      }
+
+      // Only attempt to escape if filterClearSelection is visible
+      try {
+        if (await this.filterClearSelection.isVisible({ timeout: 2000 })) {
+          await this.page.keyboard.press("Escape");
+          // Wait a moment for dropdown to close
+          await this.page.waitForTimeout(300);
+        }
+      } catch {
+        // Skip if not visible or if error
+      }
+    }
   }
 }

@@ -333,6 +333,12 @@ export const createProjectForTestCases = async (testCaseIDs, jsonDir) => {
       entry[taskKey].project = projectId;
     }
 
+    //Fill the projectID in the payloadCreateAllocation
+    const allocationKey = `payloadCreateAllocation${postfix}`;
+    if (entry[allocationKey]) {
+      entry[allocationKey].project = projectId;
+    }
+
     const billingKey = `payloadCalculateBillingRate${postfix}`;
     if (entry[billingKey]) {
       Object.assign(entry[billingKey], {
