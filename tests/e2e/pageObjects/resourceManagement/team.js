@@ -1,6 +1,5 @@
 import { TimelinePage } from "./timeline";
 import { expect } from "@playwright/test";
-import { getFormattedDateNDaysFromToday } from "../../utils/dateUtils";
 
 export class TeamPage extends TimelinePage {
   constructor(page) {
@@ -115,7 +114,7 @@ export class TeamPage extends TimelinePage {
   }
 
   async checkIfExtendedResourceAllocationIsVisible() {
-    return this.extendedListResourceAllocation.isVisible({timeout: 5000});
+    return this.extendedListResourceAllocation.isVisible({ timeout: 5000 });
   }
 
   /**

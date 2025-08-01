@@ -76,14 +76,12 @@ test.describe("Manager : Resource Management Tab", () => {
     allure.story("Resource Management");
     await teamPage.goto();
     const currentURL = page.url();
-    let designation = currentURL.includes("erp-qe.rt.gw")
-      ? "Senior Software Engineer"
-      : "Quality Assurance Engineer";
+    let designation = currentURL.includes("erp-qe.rt.gw") ? "Senior Software Engineer" : "Quality Assurance Engineer";
     await teamPage.addfilter("Business Unit", "Polaris");
     await teamPage.addfilter("Designation", designation);
     await teamPage.addfilter("Allocation Type", "Billable");
     await teamPage.addfilter("Skill", "QA");
-    await expect(page.getByText(employeeName)).toBeVisible({timeout: 5000});
+    await expect(page.getByText(employeeName)).toBeVisible({ timeout: 5000 });
     const employeeCount = await teamPage.getEmployeeCountFromTable();
     await teamPage.clearFilters();
     const updatedEmployeeCount = await teamPage.getEmployeeCountFromTable();
@@ -150,7 +148,7 @@ test.describe("Manager : Resource Management Tab", () => {
     await teamPage.clickFirstEmployeeFromTable();
     const ResourceAllocationRowIsVisible = await teamPage.checkIfExtendedResourceAllocationIsVisible();
     await expect(ResourceAllocationRowIsVisible).toBe(true);
-    await expect(page.getByText(projectName)).toBeVisible({timeout: 5000});
+    await expect(page.getByText(projectName)).toBeVisible({ timeout: 5000 });
   });
 
   test("TC102: Verify add Allocation workflow by the Plus button", async ({ page, jsonDir }) => {
