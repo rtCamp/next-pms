@@ -98,9 +98,18 @@ export class TimelinePage {
   async addDateRange(formattedDate = this.formattedDate) {
     const dayNumber = formattedDate.split(" ")[1];
     await this.startDateSelector.click();
-    await this.page.getByRole("gridcell", { name: dayNumber, exact: true }).first().click();
+    await this.page
+      .getByRole("gridcell", { name: dayNumber, exact: true })
+      .filter({ hasNot: this.page.locator(".day-outside") })
+      .first()
+      .click();
+
     await this.endDateSelector.click();
-    await this.page.getByRole("gridcell", { name: dayNumber, exact: true }).first().click();
+    await this.page
+      .getByRole("gridcell", { name: dayNumber, exact: true })
+      .filter({ hasNot: this.page.locator(".day-outside") })
+      .first()
+      .click();
   }
 
   /**

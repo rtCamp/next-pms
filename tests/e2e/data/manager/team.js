@@ -16,6 +16,7 @@ module.exports = {
       project: "TC47 Project",
       task: "TC47 Billable Task",
       desc: "TC47 - Task added via automation.",
+      toastNotification: "Time entry updated successfully.",
     },
 
     cell: {
@@ -357,6 +358,13 @@ module.exports = {
     employee: process.env.EMP3_NAME,
     payloadDeleteProject: {
       projectId: "filled-automatically-from-createProjects",
+    },
+    payloadCreateAllocation: {
+      employee: process.env.EMP3_NAME,
+      project_name: "TC108 Project",
+      customer: "Google",
+      start_date: "2023-10-01",
+      end_date: "2023-10-31",
     },
   },
   TC109: {
