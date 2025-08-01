@@ -39,7 +39,7 @@ test.afterAll(async () => {
 
 test.describe("Manager : Resource Management Tab", () => {
   test("TC56: Validate the search functionality", async ({ page }) => {
-    allure.story("Resource Management - Team View");
+    allure.story("Resource Management");
     await teamPage.goto();
     await teamPage.filterEmployeeByName(employeeName);
     const employeeCount = await teamPage.getEmployeeCountFromTable();
@@ -47,7 +47,7 @@ test.describe("Manager : Resource Management Tab", () => {
   });
 
   test("TC57: The reporting manager filter", async ({ page }) => {
-    allure.story("Resource Management - Team View");
+    allure.story("Resource Management");
     await teamPage.goto();
     const employeeCount = await teamPage.getEmployeeCountFromTable();
     await teamPage.applyReportsTo(adminName);
@@ -59,7 +59,7 @@ test.describe("Manager : Resource Management Tab", () => {
   test("58: The filters should only apply to the results displayed after selecting the reporting manager.", async ({
     page,
   }) => {
-    allure.story("Resource Management - Team View");
+    allure.story("Resource Management");
     await teamPage.goto();
     const employeeCount = await teamPage.getEmployeeCountFromTable();
     await teamPage.applyReportsTo(adminName);
@@ -73,14 +73,17 @@ test.describe("Manager : Resource Management Tab", () => {
   test("TC59: Validate the Business Unit, Designation, and Allocation Type ensuring that the results are checked after clearing all applied filters", async ({
     page,
   }) => {
-    allure.story("Resource Management - Team View");
+    allure.story("Resource Management");
     await teamPage.goto();
+    const currentURL = page.url();
+    let designation = currentURL.includes("erp-qe.rt.gw")
+      ? "Senior Software Engineer"
+      : "Quality Assurance Engineer";
     await teamPage.addfilter("Business Unit", "Polaris");
-    await teamPage.addfilter("Designation", "Quality Assurance Engineer");
+    await teamPage.addfilter("Designation", designation);
     await teamPage.addfilter("Allocation Type", "Billable");
     await teamPage.addfilter("Skill", "QA");
-    await page.waitForTimeout(150);
-    await expect(page.getByText(employeeName)).toBeVisible();
+    await expect(page.getByText(employeeName)).toBeVisible({timeout: 5000});
     const employeeCount = await teamPage.getEmployeeCountFromTable();
     await teamPage.clearFilters();
     const updatedEmployeeCount = await teamPage.getEmployeeCountFromTable();
@@ -88,7 +91,7 @@ test.describe("Manager : Resource Management Tab", () => {
   });
 
   test("TC60: Validate the type of sheet view", async ({ page, jsonDir }) => {
-    allure.story("Resource Management - Team View");
+    allure.story("Resource Management");
     const stubPath = path.join(jsonDir, "TC60.json");
     const data = await readJSONFile(stubPath);
     const TC60data = data.TC60;
@@ -108,7 +111,7 @@ test.describe("Manager : Resource Management Tab", () => {
   });
 
   test("TC61: Validate the Combine Week Hours", async ({ page }) => {
-    allure.story("Resource Management - Team View");
+    allure.story("Resource Management");
     await teamPage.goto();
     await teamPage.clickCombineWeekHoursCheckbox();
     await expect(page.getByText("0 / 40").first()).toBeVisible();
@@ -117,7 +120,7 @@ test.describe("Manager : Resource Management Tab", () => {
   });
 
   test("TC62: Validate the functionality of the ‘Next’ and ‘Previous’ week change buttons.", async ({ page }) => {
-    allure.story("Resource Management - Team View");
+    allure.story("Resource Management");
     await teamPage.goto();
     await page.waitForTimeout(150);
     await expect(page.getByText("This Week").first()).toBeVisible();
@@ -131,7 +134,7 @@ test.describe("Manager : Resource Management Tab", () => {
     page,
     jsonDir,
   }) => {
-    allure.story("Resource Management - Team View");
+    allure.story("Resource Management");
     const stubPath = path.join(jsonDir, "TC68.json");
     const data = await readJSONFile(stubPath);
     const TC68data = data.TC68;
@@ -145,10 +148,9 @@ test.describe("Manager : Resource Management Tab", () => {
     await teamPage.goto();
     await teamPage.filterEmployeeByName(employeeName);
     await teamPage.clickFirstEmployeeFromTable();
-    await page.waitForTimeout(150); // delay for row animation to complete
     const ResourceAllocationRowIsVisible = await teamPage.checkIfExtendedResourceAllocationIsVisible();
     await expect(ResourceAllocationRowIsVisible).toBe(true);
-    await expect(page.getByText(projectName)).toBeVisible();
+    await expect(page.getByText(projectName)).toBeVisible({timeout: 5000});
   });
 
   test("TC102: Verify add Allocation workflow by the Plus button", async ({ page, jsonDir }) => {

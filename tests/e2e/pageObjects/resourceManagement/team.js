@@ -111,11 +111,11 @@ export class TeamPage extends TimelinePage {
    * Fetches the first employee by their name in the table.
    */
   async getFirstEmployeeNameFromTable() {
-    return await this.firstEmployeeFromTable.textContent();
+    return this.firstEmployeeFromTable.textContent();
   }
 
   async checkIfExtendedResourceAllocationIsVisible() {
-    return await this.extendedListResourceAllocation.isVisible();
+    return this.extendedListResourceAllocation.isVisible({timeout: 5000});
   }
 
   /**
@@ -123,7 +123,8 @@ export class TeamPage extends TimelinePage {
    * This is useful for selecting the first employee in the team view.
    */
   async clickFirstEmployeeFromTable() {
-    this.firstEmployeeFromTable.click();
+    await this.page.waitForTimeout(200); // slight delay for the table to load
+    await this.firstEmployeeFromTable.click();
   }
 
   /**
