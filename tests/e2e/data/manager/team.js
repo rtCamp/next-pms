@@ -156,6 +156,42 @@ module.exports = {
       "Shraddha Gore",
     ],
   },
+  TC60: {
+    payloadCreateProject: {
+      project_name: "TC60 Project",
+      company: "rtCamp Solutions Pvt. Ltd.",
+      customer: "Google",
+      custom_billing_type: "Fixed Cost",
+      custom_currency: "INR",
+      project_type: "Fixed Cost",
+      business_unit: "Jupitor",
+      estimated_cost: 360000,
+      custom_default_hourly_billing_rate: 0,
+      custom_project_budget_hours: [],
+    },
+    employee: process.env.EMP3_NAME,
+    payloadDeleteProject: {
+      projectId: "filled-automatically-from-createProjects",
+    },
+  },
+  TC68: {
+    payloadCreateProject: {
+      project_name: "TC68 Project",
+      company: "rtCamp Solutions Pvt. Ltd.",
+      customer: "Google",
+      custom_billing_type: "Fixed Cost",
+      custom_currency: "INR",
+      project_type: "Fixed Cost",
+      business_unit: "Jupitor",
+      estimated_cost: 360000,
+      custom_default_hourly_billing_rate: 0,
+      custom_project_budget_hours: [],
+    },
+    employee: process.env.EMP3_NAME,
+    payloadDeleteProject: {
+      projectId: "filled-automatically-from-createProjects",
+    },
+  },
   TC91: {
     payloadCreateEmployee: {
       first_name: "Playwright-",

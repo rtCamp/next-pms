@@ -10,6 +10,7 @@ export class TimelinePage {
     // header elements
     this.addAllocatioButtton = page.getByRole("button", { name: "add-allocation" });
     this.searchEmployeeFilter = page.locator("#filters input");
+    this.clearFilterIcons = page.locator("div#filters:nth-child(2) svg");
 
     //add allocation modal elements
     this.modalErrorMessage = page.locator("p[id*='form-item-message']");
@@ -189,5 +190,15 @@ export class TimelinePage {
 
   async getErrorFromAllocationModal() {
     return await this.modalErrorMessage.textContent();
+  }
+
+  /**
+   * Clear Applied filters
+   */
+  async clearFilters() {
+    while ((await this.clearFilterIcons.count()) > 0) {
+      const clearFilterIcon = this.clearFilterIcons.first();
+      await clearFilterIcon.click();
+    }
   }
 }
