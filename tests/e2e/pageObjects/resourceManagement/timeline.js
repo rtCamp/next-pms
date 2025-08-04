@@ -97,7 +97,20 @@ export class TimelinePage {
    * Selects a date range for the allocation.
    */
   async addDateRange(formattedDate = this.formattedDate) {
-    const dayNumber = formattedDate.split(" ")[1];
+    let dayNumber;
+    try {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(formattedDate)) {
+        // Handles YYYY-MM-DD format
+        dayNumber = formattedDate.split("-")[2].replace(/^0/, ""); // Extracts the day and removes leading zero
+      } else if (/^[A-Za-z]+\s\d{1,2},\s\d{4}$/.test(formattedDate)) {
+        // Handles "Month Day, Year" format (e.g., "October 5, 2023")
+        dayNumber = formattedDate.split(" ")[1].replace(",", ""); // Extracts the day and removes the comma
+      } else {
+        throw new Error(`Unexpected date format: ${formattedDate}`);
+      }
+    } catch (error) {
+      console.error("Error parsing date:", error.message);
+    }
     await this.startDateSelector.click();
     await this.page.getByRole("gridcell", { name: dayNumber, exact: true }).first().click();
     await this.endDateSelector.click();

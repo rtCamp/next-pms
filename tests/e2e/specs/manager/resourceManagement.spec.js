@@ -5,7 +5,12 @@ import { TeamPage } from "../../pageObjects/resourceManagement/team";
 import { ProjectPage } from "../../pageObjects/resourceManagement/project";
 import * as allure from "allure-js-commons";
 import { deleteAllocation } from "../../utils/api/projectRequests";
-import { getFormattedDateNDaysFromToday, getFormattedPastWorkday } from "../../utils/dateUtils";
+import {
+  getFormattedDateNDaysFromToday,
+  getFormattedPastWorkday,
+  getFormattedDate,
+  getDateForWeekday,
+} from "../../utils/dateUtils";
 import { readJSONFile } from "../../utils/fileUtils";
 
 let timelinePage;
@@ -96,16 +101,18 @@ test.describe("Manager : Resource Management Tab", () => {
     const projectName = TC60data.payloadCreateProject.project_name;
     const employeeName = TC60data.employee;
     const customerName = TC60data.payloadCreateProject.customer;
+    const actualHours = TC60data.payloadCreateTimesheet.hours;
+    const formattedDate = getFormattedDate(getDateForWeekday(TC60data.cell.col));
     await timelinePage.goto();
     await timelinePage.isPageVisible();
-    const allocationName = await timelinePage.addAllocation(projectName, customerName, employeeName);
+    const allocationName = await timelinePage.addAllocation(projectName, customerName, employeeName, formattedDate);
     createdAllocations.push(allocationName);
     await teamPage.goto();
     await teamPage.filterEmployeeByName(employeeName);
     await teamPage.selectView("Actual vs Planned");
-    await expect(page.getByText("0 /").first()).toBeVisible();
+    await expect(page.getByText(`${actualHours} /`).first()).toBeVisible();
     await teamPage.selectView("Planned vs Capacity");
-    await expect(page.locator("body")).not.toContainText("0 /");
+    await expect(page.locator("body")).not.toContainText(`${actualHours} /`);
   });
 
   test("TC61: Validate the Combine Week Hours", async ({ page }) => {
