@@ -116,21 +116,30 @@ export const DataCell = ({ meta, title_field, docType, row, value, currency }: D
     if (SUCCESS_SELECT_VALUES.includes(value)) {
       if (!value) return null;
       return (
-        <Badge className={mergeClassNames("truncate", "bg-success/20 text-success hover:bg-success/20")} variant="success">
+        <Badge
+          className={mergeClassNames("truncate", "bg-success/20 text-success hover:bg-success/20")}
+          variant="success"
+        >
           {value}
         </Badge>
       );
     } else if (FAIL_SELECT_VALUES.includes(value)) {
       if (!value) return null;
       return (
-        <Badge className={mergeClassNames("truncate", "bg-destructive/20 text-destructive hover:bg-destructive/20")} variant="destructive">
+        <Badge
+          className={mergeClassNames("truncate", "bg-destructive/20 text-destructive hover:bg-destructive/20")}
+          variant="destructive"
+        >
           {value}
         </Badge>
       );
     } else if (OPEN_SELECT_VALUES.includes(value)) {
       if (!value) return null;
       return (
-        <Badge className={mergeClassNames("truncate", "bg-warning/20 text-warning hover:bg-warning/20")} variant="warning">
+        <Badge
+          className={mergeClassNames("truncate", "bg-warning/20 text-warning hover:bg-warning/20")}
+          variant="warning"
+        >
           {value}
         </Badge>
       );
@@ -146,7 +155,16 @@ export const DataCell = ({ meta, title_field, docType, row, value, currency }: D
     const val = Number(value);
 
     return (
-      <Badge className={mergeClassNames("truncate", val === 1 ? "bg-success/20 text-success hover:bg-success/20" : "bg-destructive/20 text-destructive hover:bg-destructive/20")} variant={val === 1 ? "success" : "destructive"} title={value}>
+      <Badge
+        className={mergeClassNames(
+          "truncate",
+          val === 1
+            ? "bg-success/20 text-success hover:bg-success/20"
+            : "bg-destructive/20 text-destructive hover:bg-destructive/20"
+        )}
+        variant={val === 1 ? "success" : "destructive"}
+        title={value}
+      >
         {val === 1 ? "Yes" : "No"}
       </Badge>
     );
