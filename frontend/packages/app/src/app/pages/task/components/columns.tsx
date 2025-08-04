@@ -85,7 +85,7 @@ export const getColumn = (
               }}
               title={String(value ?? "")}
               variant="p"
-              className="max-w-sm py-1 truncate cursor-pointer hover:underline"
+              className=" py-1 truncate cursor-pointer hover:underline"
             >
               {value}
             </Typography>

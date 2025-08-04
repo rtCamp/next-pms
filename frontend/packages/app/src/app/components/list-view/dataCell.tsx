@@ -116,21 +116,21 @@ export const DataCell = ({ meta, title_field, docType, row, value, currency }: D
     if (SUCCESS_SELECT_VALUES.includes(value)) {
       if (!value) return null;
       return (
-        <Badge className="truncate" variant="success">
+        <Badge className={mergeClassNames("truncate", "bg-success/20 text-success hover:bg-success/20")} variant="success">
           {value}
         </Badge>
       );
     } else if (FAIL_SELECT_VALUES.includes(value)) {
       if (!value) return null;
       return (
-        <Badge className="truncate" variant="destructive">
+        <Badge className={mergeClassNames("truncate", "bg-destructive/20 text-destructive hover:bg-destructive/20")} variant="destructive">
           {value}
         </Badge>
       );
     } else if (OPEN_SELECT_VALUES.includes(value)) {
       if (!value) return null;
       return (
-        <Badge className="truncate" variant="warning">
+        <Badge className={mergeClassNames("truncate", "bg-warning/20 text-warning hover:bg-warning/20")} variant="warning">
           {value}
         </Badge>
       );
@@ -146,7 +146,7 @@ export const DataCell = ({ meta, title_field, docType, row, value, currency }: D
     const val = Number(value);
 
     return (
-      <Badge className="truncate" variant={val === 1 ? "success" : "destructive"} title={value}>
+      <Badge className={mergeClassNames("truncate", val === 1 ? "bg-success/20 text-success hover:bg-success/20" : "bg-destructive/20 text-destructive hover:bg-destructive/20")} variant={val === 1 ? "success" : "destructive"} title={value}>
         {val === 1 ? "Yes" : "No"}
       </Badge>
     );
@@ -174,15 +174,15 @@ const progressBarColor = (value: number) => {
 
 const selectBadgeColor = (value: string, options: Array<string>) => {
   const colors = [
-    "bg-green-600",
-    "bg-blue-600",
-    "bg-slate-600",
-    "bg-purple-600",
-    "bg-teal-600",
-    "bg-orange-600",
-    "bg-zinc-600",
-    "bg-yellow-600",
-    "bg-gray-600",
+    "bg-success/20 text-success",
+    "bg-blue-600/20 text-blue-900 dark:bg-primary/70",
+    "bg-slate-600/20 text-slate-900 dark:bg-primary/70",
+    "bg-purple-600/20 text-purple-900 dark:bg-primary/70",
+    "bg-teal-600/20 text-teal-900 dark:bg-primary/70",
+    "bg-orange-600/20 text-orange-900 dark:bg-primary/70",
+    "bg-zinc-600/20 text-zinc-900 dark:bg-primary/70",
+    "bg-yellow-600/20 text-yellow-900 dark:bg-primary/70",
+    "bg-gray-600/20 text-gray-900 dark:bg-primary/70",
   ];
 
   const colorMap = options.reduce((acc, option, index) => {
