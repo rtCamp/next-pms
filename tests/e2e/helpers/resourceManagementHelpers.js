@@ -45,7 +45,7 @@ export const createAllocationsForTestCases = async (testCaseIDs, jsonDir) => {
     //save the allocation ID back to the stub for teardown:
     if (res?.data?.name) {
       const deleteKey = allocationKey.replace("payloadCreateAllocation", "payloadDeleteAllocation");
-      entry[deleteKey] = { allocationID: res.data.name };
+      entry[deleteKey] = { allocationId: res.data.name };
       console.log(`✅ Allocation created for ${tcId} (${allocationKey}): ${res.data.name}`);
     } else {
       console.error(`❌ Failed to create allocation for ${tcId} (${allocationKey})`);

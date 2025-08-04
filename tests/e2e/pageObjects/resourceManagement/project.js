@@ -3,7 +3,7 @@
  * Extends the TimelinePage and provides methods for navigating to and verifying the project page.
  */
 import { TimelinePage } from "./timeline";
-
+import { getShortFormattedDate, getWeekdayName } from "../../utils/dateUtils";
 export class ProjectPage extends TimelinePage {
   constructor(page) {
     super(page);
@@ -16,6 +16,21 @@ export class ProjectPage extends TimelinePage {
     this.customerFilter = page.getByRole("button", { name: "Customer" });
     this.billingTypeFilter = page.getByRole("button", { name: "Billing Type" });
     this.allocationTypeFilter = page.getByRole("button", { name: "Allocation Type" });
+    this.sheetViewFilter = page.getByRole("combobox");
+    this.sheetViewFilterText = this.sheetViewFilter.locator("span");
+
+    //Combined Week hours
+    this.combineWeekHoursCheckbox = page.locator("#combineWeekHours");
+
+    // Prev & Next Buttons
+    this.prevButton = page.getByRole("button", { name: "previous-week" });
+    this.nextButton = page.getByRole("button", { name: "next-week" });
+
+    // Header range spans (week ranges)
+    this.weekRangeSpans = page.locator("thead span.text-primary.text-xs");
+
+    // Header day/date cells (day headers)
+    this.dayHeaderSpans = page.locator("thead th > span");
 
     //Search bar inside filter dropdown
     this.customerSearchBar = page.getByPlaceholder("Customer");
@@ -33,6 +48,19 @@ export class ProjectPage extends TimelinePage {
 
     //List of projects displayed in the project table that have title
     this.projectListItems = page.locator("//h3//td//p[@title]");
+
+    //Locator targetting the total hours text field in the allocation modal
+    this.projectNameWithDate = (projectName, startDate) => {
+      const dateObj = new Date(startDate);
+      const shortDate = getShortFormattedDate(dateObj); // e.g., "Aug 4"
+      const day = getWeekdayName(dateObj); // e.g., "Mon"
+      const fullTitle = `${projectName} (${shortDate} - ${day})`;
+
+      return this.page.locator(`td p[title="${fullTitle}"]`);
+    };
+
+    //Spinner
+    this.spinner = page.locator("svg.animate-spin");
   }
 
   /**
@@ -145,11 +173,21 @@ export class ProjectPage extends TimelinePage {
     return allocationTime;
   }
   /**
+   * Wait for Spinner to disappear
+   */
+  async waitForSpinnerTodisappear() {
+    // Wait for spinner to disappear
+    if (await this.spinner.isVisible().catch(() => false)) {
+      await this.spinner.waitFor({ state: "hidden" });
+    }
+  }
+
+  /**
    * Retrieves a list of project titles from the project list items.
    */
   async getProjectList() {
     const titles = [];
-
+    await this.waitForSpinnerTodisappear();
     const count = await this.projectListItems.count();
 
     for (let i = 0; i < Math.min(count, 10); i++) {
@@ -274,5 +312,47 @@ export class ProjectPage extends TimelinePage {
         // Skip if not visible or if error
       }
     }
+  }
+  /**
+   * Select view as either planned or Actual vs Planned based on the parameter
+   * @param {string} view - "planned" or "actual_vs_planned"
+   */
+
+  async chooseSheetView(view) {
+    const currentView = await this.sheetViewFilterText.textContent();
+
+    if (currentView.trim() !== view) {
+      // Open the dropdown
+      await this.sheetViewFilter.click();
+
+      // Click the correct option based on the view passed
+      if (view === "Planned") {
+        await this.page.getByRole("option", { name: "Planned", exact: true }).click();
+      } else if (view === "Actual vs Planned") {
+        await this.page.getByRole("option", { name: "Actual vs Planned" }).click();
+      } else {
+        throw new Error(`Unknown sheet view: ${view}`);
+      }
+    }
+  }
+  async getVisibleWeekRanges() {
+    const count = await this.weekRangeSpans.count();
+    const ranges = [];
+    for (let i = 0; i < count; i++) {
+      let val = await this.weekRangeSpans.nth(i).textContent();
+      ranges.push(val.trim());
+    }
+    return ranges;
+  }
+
+  async getVisibleDayHeaders() {
+    // Collect only those spans that are direct children of th (day/date headers)
+    const count = await this.dayHeaderSpans.count();
+    const days = [];
+    for (let i = 0; i < count; i++) {
+      let val = await this.dayHeaderSpans.nth(i).textContent();
+      days.push(val.trim());
+    }
+    return days;
   }
 }

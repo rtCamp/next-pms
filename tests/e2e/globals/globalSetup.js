@@ -95,11 +95,11 @@ const globalSetup = async () => {
     await updateTimeEntries([tcId], jsonDir);
     await createProjectForTestCases([tcId], jsonDir);
     await createTaskForTestCases([tcId], jsonDir);
+    await createAllocationsForTestCases([tcId], jsonDir);
     await createTimeEntries([tcId], jsonDir);
     await calculateHourlyBilling([tcId], jsonDir);
     await updateLeaveEntries([tcId], jsonDir);
     await createUserGroupForEmployee([tcId], jsonDir);
-    await createAllocationsForTestCases([tcId], jsonDir);
   }
 
   console.log("✅ Data generation completed for all TC IDs! Global setup done.");

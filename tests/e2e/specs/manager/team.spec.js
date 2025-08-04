@@ -40,13 +40,14 @@ test.describe("Manager: Team Tab", () => {
     for (const expectedEmployee of TC39data.employees) {
       expect(employees).toContain(expectedEmployee);
     }
-  });
+  }); 
 
   test("TC42: Validate Next/Previous week change buttons", async ({ jsonDir }) => {
     allure.story("Team");
     const stubPath = path.join(jsonDir, "TC42.json");
     const data = await readJSONFile(stubPath);
     const TC42data = data.TC42;
+    
     await teamPage.viewNextWeek();
     const nextColDate = await teamPage.getColDate(TC42data.col);
     await teamPage.viewNextWeek();

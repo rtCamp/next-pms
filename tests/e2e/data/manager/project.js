@@ -1,4 +1,4 @@
-import { getFormattedDate } from "../../utils/dateUtils";
+import { getFormattedDate, getWeekRange } from "../../utils/dateUtils";
 const today = new Date();
 
 module.exports = {
@@ -147,6 +147,62 @@ module.exports = {
       allocationId: "filled-automatically-from-createAllocation",
     },
   },
+  TC74: {
+    cell: {
+      rowName: "TC74 Project",
+      col: "Mon",
+    },
+    payloadCreateProject: {
+      project_name: "TC74 Project",
+      company: "rtCamp Solutions Pvt. Ltd.",
+      customer: "Google",
+      billing_type: "Fixed Cost",
+      currency: "INR",
+      project_type: "Fixed Cost",
+      business_unit: "Jupitor",
+      estimated_cost: 235000,
+      custom_default_hourly_billing_rate: 300,
+      custom_project_budget_hours: [],
+    },
+    payloadDeleteProject: {
+      projectId: "filled-automatically-from-createProjects",
+    },
+    payloadCreateTask: {
+      subject: "TC74 Billable Task",
+      project: "filled-automatically-from-createProjects",
+      description: "Task for TC74 created through automation",
+      custom_is_billable: 1,
+    },
+    payloadDeleteTask: {
+      taskID: "filled-automatically-from-createTasks",
+    },
+    payloadCreateTimesheet: {
+      task: "filled-automatically-from-createTasks",
+      description: "<p>TC74 - Task added via automation.</p>",
+      hours: "2",
+    },
+    payloadFilterTimeEntry: {
+      subject: "TC74 Billable Task",
+      description: "TC74 - Task added via automation.",
+      project_name: "TC74 Project",
+      max_week: "1",
+    },
+    payloadCreateAllocation: {
+      allocation_end_date: getWeekRange().friday,
+      allocation_start_date: getWeekRange().monday,
+      customer: "Google",
+      employee: process.env.EMP3_ID,
+      hours_allocated_per_day: "1",
+      is_billable: 1,
+      note: "",
+      project: "filled-automatically-from-createProjects",
+      total_allocated_hours: "01",
+      repeat_till_week_count: 0,
+    },
+    payloadDeleteAllocation: {
+      allocationId: "filled-automatically-from-createAllocation",
+    },
+  },
   TC76: {
     infoPayloadCreateProject: {
       project_name: "TC73 Project: Fixed Cost",
@@ -196,6 +252,7 @@ module.exports = {
       repeat_till_week_count: 0,
     },
   },
+  TC77: {},
   TC78: {
     infoPayloadCreateProject: {
       project_name: "TC73 Project: Fixed Cost",
