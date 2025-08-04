@@ -157,6 +157,10 @@ module.exports = {
     ],
   },
   TC60: {
+    cell: {
+      rowName: "Task for TC60",
+      col: "Tue",
+    },
     payloadCreateProject: {
       project_name: "TC60 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
@@ -172,6 +176,20 @@ module.exports = {
     employee: process.env.EMP3_NAME,
     payloadDeleteProject: {
       projectId: "filled-automatically-from-createProjects",
+    },
+    payloadCreateTask: {
+      subject: "Task for TC60",
+      project: "filled-automatically-from-createProjects",
+      description: "Task for TC60 created through automation",
+      custom_is_billable: 1,
+    },
+    payloadDeleteTask: {
+      taskID: "filled-automatically-from-createTasks",
+    },
+    payloadCreateTimesheet: {
+      task: "filled-automatically-from-createTasks",
+      description: "<p>TC60 - Task added via automation.</p>",
+      hours: "5",
     },
   },
   TC68: {

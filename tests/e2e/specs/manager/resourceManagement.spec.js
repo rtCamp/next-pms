@@ -12,7 +12,7 @@ let timelinePage;
 let teamPage;
 let projectPage;
 let createdAllocations = [];
-let adminName = process.env.REP_MAN_NAME;
+let managerName = process.env.REP_MAN_NAME;
 let employeeName = process.env.EMP3_NAME;
 
 test.beforeEach(async ({ page }) => {
@@ -50,7 +50,7 @@ test.describe("Manager : Resource Management Tab", () => {
     allure.story("Resource Management");
     await teamPage.goto();
     const employeeCount = await teamPage.getEmployeeCountFromTable();
-    await teamPage.applyReportsTo(adminName);
+    await teamPage.applyReportsTo(managerName);
     const updatedEmployeeCount = await teamPage.getEmployeeCountFromTable();
     await expect(updatedEmployeeCount).toBeLessThan(employeeCount);
     await expect(page.getByText(employeeName)).toBeVisible();
@@ -62,7 +62,7 @@ test.describe("Manager : Resource Management Tab", () => {
     allure.story("Resource Management");
     await teamPage.goto();
     const employeeCount = await teamPage.getEmployeeCountFromTable();
-    await teamPage.applyReportsTo(adminName);
+    await teamPage.applyReportsTo(managerName);
     await teamPage.addfilter("Business Unit", "Polaris");
     await page.waitForTimeout(150); // slight delay for filters to apply
     const updatedEmployeeCount = await teamPage.getEmployeeCountFromTable();

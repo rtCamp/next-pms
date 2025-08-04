@@ -58,7 +58,7 @@ export async function updateTimeEntries(testCaseIDs = [], jsonDir) {
       let employeeID;
       if (testCaseID === "TC2") {
         employeeID = emp2ID;
-      } else if (["TC6", "TC7", "TC92"].includes(testCaseID)) {
+      } else if (["TC6", "TC7", "TC92", "TC60"].includes(testCaseID)) {
         employeeID = emp3ID;
       } else {
         employeeID = empID;
