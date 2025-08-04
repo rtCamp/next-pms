@@ -280,7 +280,8 @@ test.describe("Manager : Resource Management Tab", () => {
     await projectPage.goto();
     await projectPage.filterByProject(projectName);
     await projectPage.clickClipboardIcon(projectName, date, day);
-    await projectPage.addAllocationFromProjectTabFromClipboard("8");
+    const { updatedAllocationName } = await projectPage.addAllocationFromProjectTabFromClipboard("8");
+    createdAllocations.push(updatedAllocationName);
     await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
   });
 
