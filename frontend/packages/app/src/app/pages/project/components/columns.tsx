@@ -144,10 +144,10 @@ export const getColumnInfo = (
           {tags.map((tag) => (
             <Badge
               key={tag}
-              className="cursor-pointer hover:bg-slate-300/80 bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700"
+              className="cursor-pointer hover:bg-slate-300/80 bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 max-w-26"
               variant="secondary"
             >
-              {tag}
+              <p className="flex-shrink truncate">{tag}</p>
             </Badge>
           ))}
         </div>

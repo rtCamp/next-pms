@@ -257,10 +257,10 @@ const getFieldComponent = (
           <Input
             type="text"
             step="any"
-            value={Number(value).toFixed(2)}
+            value={value}
             onChange={(e) => handleChange(parseFloat(e.target.value) || 0)}
             disabled={isReadOnly}
-            className="!border-none rounded-none focus-visible:outline-none h-auto focus-visible:ring-0 !px-0 text-sm !py-1"
+            className="!border-none rounded-none focus-visible:outline-none h-auto focus-visible:ring-0 !px-0 text-sm !py-1 focus-visible:ring-offset-0"
           />
         </div>
       );

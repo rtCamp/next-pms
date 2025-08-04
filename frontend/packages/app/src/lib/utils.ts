@@ -195,11 +195,47 @@ export const canCreate = (doctype: string) => {
   return window.frappe?.boot?.user?.can_create?.includes(doctype) ?? true;
 };
 
-export const currencyFormat = (currency: string) => {
-  return new Intl.NumberFormat("en-IN", {
+export const currencyFormat = (currency: string = "INR"): Intl.NumberFormat => {
+  // Currency-specific locale settings
+  const localeSettings: Record<string, string> = {
+    AED: "ar-AE", // UAE Dirham
+    AUD: "en-AU", // Australian Dollar
+    CHF: "de-CH", // Swiss Franc
+    CNY: "zh-CN", // Chinese Yuan
+    EUR: "de-DE", // Euro (German format)
+    GBP: "en-GB", // British Pound
+    INR: "en-IN", // Indian Rupee
+    JPY: "ja-JP", // Japanese Yen
+    USD: "en-US", // US Dollar
+  };
+
+  const locale = localeSettings[currency] || "en-IN";
+
+  const options: Intl.NumberFormatOptions = {
     style: "currency",
-    currency: currency,
-  });
+    currency: currency || "INR",
+    currencyDisplay: "symbol",
+  };
+
+  const zeroDecimalCurrencies = ["JPY", "KRW", "VND", "IDR"];
+  if (zeroDecimalCurrencies.includes(currency)) {
+    options.maximumFractionDigits = 0;
+    options.minimumFractionDigits = 0;
+  } else {
+    // Default to 2 decimal places
+    options.minimumFractionDigits = 2;
+    options.maximumFractionDigits = 2;
+  }
+
+  try {
+    return new Intl.NumberFormat(locale, options);
+  } catch (e) {
+    console.error(`Error formatting currency (${currency}):`, e);
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: currency || "INR",
+    });
+  }
 };
 
 export const getBgCsssForToday = (date: string) => {

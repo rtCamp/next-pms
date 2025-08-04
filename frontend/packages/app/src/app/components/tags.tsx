@@ -123,11 +123,12 @@ const Tags: React.FC<TagsProps> = ({ userTags, doctype, docname, className, muta
                   key={tag}
                   aria-disabled={loading}
                   className={mergeClassNames(
-                    "px-2 rounded-full bg-muted text-foreground hover:bg-muted/80 py-1 text-xs flex items-center gap-1",
+                    "px-2 rounded-full bg-muted text-foreground hover:bg-muted/80 py-1 text-xs flex items-center gap-1 truncate",
                     loading && "opacity-50 pointer-events-none"
                   )}
                 >
-                  {tag} <X className="w-3 h-3 cursor-pointer" onClick={() => handleRemoveTag(tag)} />
+                  <p className="flex-shrink truncate">{tag}</p>{" "}
+                  <X className="w-3 h-3 flex-shrink-0 flex-grow cursor-pointer" onClick={() => handleRemoveTag(tag)} />
                 </Badge>
               ))}
             </div>
