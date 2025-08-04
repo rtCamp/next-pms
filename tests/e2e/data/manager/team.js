@@ -158,19 +158,19 @@ module.exports = {
   },
   TC60: {
     cell: {
-      rowName: "Task for TC60",
+      rowName: "TC60 Project",
       col: "Tue",
     },
     payloadCreateProject: {
       project_name: "TC60 Project",
       company: "rtCamp Solutions Pvt. Ltd.",
       customer: "Google",
-      custom_billing_type: "Fixed Cost",
-      custom_currency: "INR",
+      billing_type: "Fixed Cost",
+      currency: "INR",
       project_type: "Fixed Cost",
       business_unit: "Jupitor",
-      estimated_cost: 360000,
-      custom_default_hourly_billing_rate: 0,
+      estimated_cost: 235000,
+      custom_default_hourly_billing_rate: 300,
       custom_project_budget_hours: [],
     },
     employee: process.env.EMP3_NAME,
@@ -178,7 +178,7 @@ module.exports = {
       projectId: "filled-automatically-from-createProjects",
     },
     payloadCreateTask: {
-      subject: "Task for TC60",
+      subject: "TC60 Billable Task",
       project: "filled-automatically-from-createProjects",
       description: "Task for TC60 created through automation",
       custom_is_billable: 1,
@@ -190,6 +190,12 @@ module.exports = {
       task: "filled-automatically-from-createTasks",
       description: "<p>TC60 - Task added via automation.</p>",
       hours: "5",
+    },
+    payloadFilterTimeEntry: {
+      subject: "TC60 Billable Task",
+      description: "TC60 - Task added via automation.",
+      project_name: "TC60 Project",
+      max_week: "1",
     },
   },
   TC68: {
