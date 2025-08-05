@@ -106,9 +106,18 @@ export class TimelinePage {
       dayNumber = formattedDate.split(" ")[1].replace(",", ""); // Extracts the day and removes the comma
     }
     await this.startDateSelector.click();
-    await this.page.getByRole("gridcell", { name: dayNumber, exact: true }).first().click();
+    await this.page
+      .getByRole("gridcell", { name: dayNumber, exact: true })
+      .filter({ hasNot: this.page.locator(".day-outside") })
+      .first()
+      .click();
+
     await this.endDateSelector.click();
-    await this.page.getByRole("gridcell", { name: dayNumber, exact: true }).first().click();
+    await this.page
+      .getByRole("gridcell", { name: dayNumber, exact: true })
+      .filter({ hasNot: this.page.locator(".day-outside") })
+      .first()
+      .click();
   }
 
   /**

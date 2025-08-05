@@ -13,7 +13,7 @@ import managerTeamData from "../data/manager/team";
 import managerTaskData from "../data/manager/task";
 import managerProjectData from "../data/manager/project";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
-import { createProject, deleteProject, getProjectDetails } from "../utils/api/projectRequests";
+import { createProject, deleteAllocation, deleteProject, getProjectDetails } from "../utils/api/projectRequests";
 import { createTask, deleteTask, likeTask, updateTask } from "../utils/api/taskRequests";
 import { getExchangeRate } from "../utils/api/erpNextRequests";
 import { getEmployeeDetails } from "../utils/api/employeeRequests";
@@ -592,7 +592,8 @@ export const calculateHourlyBilling = async (testCaseIDs = [], jsonDir) => {
 };
 
 /**
- * Delete all the leaves,tasks and time entries associated with the project and delete the project itself
+ * Delete all the leaves, tasks, time entries, resource allocations associated with the project,
+ * and delete the project itself.
  */
 export const cleanUpProjects = async (data) => {
   const deletedData = [];
@@ -600,8 +601,7 @@ export const cleanUpProjects = async (data) => {
   for (const key in data) {
     const tc = data[key];
 
-    // Find all payloadCreateProject keys: payloadCreateProject, payloadCreateProject2, etc.
-    // This will also include createProjectByUI
+    // Find all project creation keys
     const createProjectKeys = Object.keys(tc).filter(
       (k) => k.startsWith("payloadCreateProject") || k === "createProjectByUI"
     );
@@ -609,6 +609,7 @@ export const cleanUpProjects = async (data) => {
     for (const projectKey of createProjectKeys) {
       const projectPayload = tc[projectKey];
       if (!projectPayload || !projectPayload.project_name) continue;
+
       const projectName = projectPayload.project_name;
 
       // Get Project ID by project_name
@@ -616,14 +617,14 @@ export const cleanUpProjects = async (data) => {
       const projectId = projectRes?.message?.values?.[0]?.[0];
       if (!projectId) continue;
 
-      console.warn(`\n Obtained ProjectId value for ${key} -> ${projectKey} is: ${projectId}`);
+      console.warn(`\nObtained ProjectId value for ${key} -> ${projectKey} is: ${projectId}`);
 
       // Get Task IDs for this projectId
       const taskRes = await filterApi("Task", [["Task", "project", "=", projectId]]);
       const taskIds = Array.isArray(taskRes?.message?.values) ? taskRes.message.values.map((v) => v[0]) : [];
 
       if (taskIds.length) {
-        console.warn(`OBTAINED TASK for ${key} -> ${projectKey}:`, taskIds);
+        console.warn(`OBTAINED TASKS for ${key} -> ${projectKey}:`, taskIds);
       }
 
       // Get Timesheet IDs for this projectId
@@ -633,7 +634,30 @@ export const cleanUpProjects = async (data) => {
         : [];
 
       if (timesheetIds.length) {
-        console.warn(`OBTAINED TIMESHEET ID FOR ${key} -> ${projectKey}:`, timesheetIds);
+        console.warn(`OBTAINED TIMESHEET IDS FOR ${key} -> ${projectKey}:`, timesheetIds);
+      }
+
+      // Get Resource Allocation IDs for this projectId
+      const allocationRes = await filterApi("Resource Allocation", [
+        ["Resource Allocation", "project", "=", projectId],
+      ]);
+      let allocationIds = [];
+
+      if (
+        allocationRes &&
+        typeof allocationRes.message === "object" &&
+        !Array.isArray(allocationRes.message) &&
+        Array.isArray(allocationRes.message.keys) &&
+        Array.isArray(allocationRes.message.values)
+      ) {
+        const nameIndex = allocationRes.message.keys.indexOf("name");
+        if (nameIndex >= 0) {
+          allocationIds = allocationRes.message.values.map((row) => row[nameIndex]);
+        }
+      }
+
+      if (allocationIds.length) {
+        console.warn(`OBTAINED ALLOCATION IDS FOR ${key} -> ${projectKey}:`, allocationIds);
       }
 
       // Collect deletion info
@@ -643,6 +667,7 @@ export const cleanUpProjects = async (data) => {
         projectId,
         taskIds,
         timesheetIds,
+        allocationIds,
       });
 
       // Delete Timesheets
@@ -667,6 +692,19 @@ export const cleanUpProjects = async (data) => {
         }
       }
 
+      // Delete Resource Allocations
+      for (const allocationId of allocationIds) {
+        if (!allocationId || typeof allocationId !== "string") {
+          console.error(`Invalid allocationId encountered:`, allocationId);
+          continue;
+        }
+        try {
+          await deleteAllocation(allocationId);
+        } catch (err) {
+          console.error(`Failed to delete resource allocation ${allocationId}:`, err.message);
+        }
+      }
+
       // Delete Project
       if (projectId) {
         try {
@@ -678,7 +716,6 @@ export const cleanUpProjects = async (data) => {
     }
   }
 
-  //console.log("Cleanup complete. Deleted data:", deletedData);
   return deletedData;
 };
 

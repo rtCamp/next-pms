@@ -14,9 +14,11 @@ import {
 import { readJSONFile } from "../../utils/fileUtils";
 import teamData from "../../data/manager/team";
 
-let timelinePage;
-let teamPage;
-let projectPage;
+/** @type {TimelinePage} */ let timelinePage;
+/** @type {ProjectPage} */ let projectPage;
+/** @type {TeamPage} */ let teamPage;
+
+
 let createdAllocations = [];
 let managerName = process.env.REP_MAN_NAME;
 let employeeName = process.env.EMP3_NAME;
@@ -29,6 +31,9 @@ test.beforeEach(async ({ page }) => {
 
 // delete allocations after all tests if not deleted through UI
 test.afterAll(async () => {
+  //Print the created allocations array elements
+  console.log("CREATED ALLOCATIONS OVERALL:", createdAllocations);
+
   for (const allocationName of createdAllocations) {
     try {
       await deleteAllocation(allocationName);
@@ -165,15 +170,18 @@ test.describe("Manager : Resource Management Tab", () => {
     allure.story("Resource Management");
     const stubPath = path.join(jsonDir, "TC102.json");
     const data = await readJSONFile(stubPath);
+
     const TC102data = data.TC102;
     const projectName = TC102data.payloadCreateProject.project_name;
     const employeeName = TC102data.employee;
     const customerName = TC102data.payloadCreateProject.customer;
+
     await timelinePage.goto();
     await timelinePage.isPageVisible();
     const allocationName = await timelinePage.addAllocation(projectName, customerName, employeeName);
     createdAllocations.push(allocationName);
     await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
+
     await timelinePage.goto();
     await timelinePage.filterEmployeeByName(employeeName);
     await timelinePage.deleteAllocation(projectName);
@@ -265,9 +273,9 @@ test.describe("Manager : Resource Management Tab", () => {
     const data = await readJSONFile(stubPath);
     const TC108data = data.TC108;
 
-    const projectName = TC108data.payloadCreateProject.project_name;
-    const employeeName = TC108data.employee;
-    const customerName = TC108data.payloadCreateProject.customer;
+    const projectName = TC108data.payloadCreateAllocation.project_name;
+    const employeeName = TC108data.payloadCreateAllocation.employee;
+    const customerName = TC108data.payloadCreateAllocation.customer;
     const { date, day } = getFormattedDateNDaysFromToday(3);
     await projectPage.goto();
     const { allocationName } = await projectPage.addAllocationFromProjectTab(
@@ -278,6 +286,7 @@ test.describe("Manager : Resource Management Tab", () => {
       day,
       "4"
     );
+    //console.log(`Allocation Name: ${allocationName}`);
     createdAllocations.push(allocationName);
     await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
     await projectPage.goto();

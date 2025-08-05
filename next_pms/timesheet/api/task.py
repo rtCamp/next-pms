@@ -3,7 +3,7 @@ import datetime
 import frappe
 from frappe.query_builder import Case, DocType
 from frappe.query_builder import functions as fn
-from frappe.utils import getdate
+from frappe.utils import add_days, getdate, now_datetime
 from pypika import Criterion, Order
 
 from . import get_count
@@ -17,6 +17,7 @@ def get_task_list(
     projects=None,
     status: list | str = None,
     fields: list | str = None,
+    filter_recent: bool = False,
 ):
     import json
 
@@ -90,21 +91,37 @@ def get_task_list(
     if status:
         tasks = tasks.where(doctype.status.isin(status))
         filter.update({"status": ["in", status]})
+
     if page_length:
         tasks = tasks.limit(page_length)
 
-    #  We need to order the tasks based on the user's liked tasks.
-    tasks = (
-        tasks.offset(start).orderby(
-            Case()
-            .when(
-                fn.Function("INSTR", doctype._liked_by, f'"{frappe.session.user}"') > 0,
-                1,
-            )
-            .else_(0),
-            order=Order.desc,
+    order_conditions = []
+
+    # If filter_recent is True, we will order the tasks based on the recent worked tasks First.
+    # This will help in showing the tasks that the user has worked on recently at the top.
+    if filter_recent:
+        recent_worked_tasks = get_recent_log_tasks()
+        order_conditions = []
+        if recent_worked_tasks:
+            order_conditions.append(Case().when(doctype.name.isin(recent_worked_tasks), 1).else_(0))
+
+    order_conditions.append(
+        Case()
+        .when(
+            fn.Function("INSTR", doctype._liked_by, f'"{frappe.session.user}"') > 0,
+            1,
         )
-    ).run(as_dict=True)
+        .else_(0)
+    )
+    # Since we can not hide closed tasks, as user might need to add time against it,
+    # We can deprioritize the closed tasks.
+    order_conditions.append(Case().when(doctype.status.isin(["Open", "Working"]), 1).else_(0))
+
+    tasks = tasks.offset(start).orderby(
+        *order_conditions,
+        order=Order.desc,
+    )
+    tasks = tasks.run(as_dict=True)
 
     count = get_count(
         doctype="Task",
@@ -180,8 +197,6 @@ def get_task(task: str, start_date: str | datetime.date, end_date: str | datetim
         "status": task.status,
         "worked_by": result,
         "name": task.name,
-        #  Check if task DocType has custom_github_issue_link field
-        #  If yes, then create github link else it will be blank.
         "gh_link": task.custom_github_issue_link if task.meta.has_field("custom_github_issue_link") else "",
     }
 
@@ -254,3 +269,14 @@ def get_liked_tasks():
     from next_pms.timesheet.api.app import get_liked_documents
 
     return get_liked_documents("Task", fields=["project.project_name"])
+
+
+def get_recent_log_tasks():
+    return frappe.get_all(
+        "Timesheet Detail",
+        filters={
+            "owner": frappe.session.user,
+            "creation": [">=", add_days(now_datetime(), -7)],
+        },
+        pluck="task",
+    )
