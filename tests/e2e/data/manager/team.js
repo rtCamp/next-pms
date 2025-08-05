@@ -198,6 +198,9 @@ module.exports = {
       max_week: "1",
     },
   },
+  TC61: {
+    weeklyTime: "0 / 40",
+  },
   TC68: {
     payloadCreateProject: {
       project_name: "TC68 Project",

@@ -12,6 +12,7 @@ import {
   getDateForWeekday,
 } from "../../utils/dateUtils";
 import { readJSONFile } from "../../utils/fileUtils";
+import teamData from "../../data/manager/team";
 
 let timelinePage;
 let teamPage;
@@ -117,11 +118,13 @@ test.describe("Manager : Resource Management Tab", () => {
 
   test("TC61: Validate the Combine Week Hours", async ({ page }) => {
     allure.story("Resource Management");
+    const TC61 = teamData.TC61;
+    const weeklyTime = TC61.weeklyTime;
     await teamPage.goto();
     await teamPage.clickCombineWeekHoursCheckbox();
-    await expect(page.getByText("0 / 40").first()).toBeVisible();
+    await expect(page.getByText(`${weeklyTime}`).first()).toBeVisible();
     await teamPage.clickCombineWeekHoursCheckbox();
-    await expect(page.locator("body")).not.toContainText("0 / 40");
+    await expect(page.locator("body")).not.toContainText(`${weeklyTime}`);
   });
 
   test("TC62: Validate the functionality of the ‘Next’ and ‘Previous’ week change buttons.", async ({ page }) => {
