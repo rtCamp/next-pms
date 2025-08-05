@@ -18,7 +18,6 @@ import teamData from "../../data/manager/team";
 /** @type {ProjectPage} */ let projectPage;
 /** @type {TeamPage} */ let teamPage;
 
-
 let createdAllocations = [];
 let managerName = process.env.REP_MAN_NAME;
 let employeeName = process.env.EMP3_NAME;
