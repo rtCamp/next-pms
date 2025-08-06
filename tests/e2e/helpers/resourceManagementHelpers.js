@@ -1,6 +1,6 @@
 import path from "path";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
-import { deleteAllocation, deleteProject, getProjectDetails } from "../utils/api/projectRequests";
+import { deleteAllocation } from "../utils/api/projectRequests";
 import { createAllocation } from "../utils/api/resourceManagementRequests";
 
 // ------------------------------------------------------------------------------------------

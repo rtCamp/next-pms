@@ -207,9 +207,6 @@ test.describe("Resource Management : Project Tab", () => {
   });
   test("TC77: Validate Next/Previous week change buttons", async ({ jsonDir }) => {
     allure.story("Resource Management : Project Tab");
-    const stubPath = path.join(jsonDir, "TC77.json");
-    const data = await readJSONFile(stubPath);
-    const TC77data = data.TC77;
 
     await projectPage.clearFilters();
 

@@ -2,7 +2,6 @@ import { request } from "@playwright/test";
 import path from "path";
 import fs from "fs";
 import config from "../../playwright.config";
-import { deleteAllocationsByEmployee } from "../../helpers/employeeHelper";
 
 // Base URL from config
 const baseURL = config.use?.baseURL;

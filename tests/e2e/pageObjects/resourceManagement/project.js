@@ -370,7 +370,7 @@ export class ProjectPage extends TimelinePage {
     }
     return days;
   }
-  async verifyEmployeeUnderProject(projectName, employeeName) {
+  async verifyEmployeeUnderProject(projectName) {
     //Click on project name
     await this.page.getByRole("button", { name: `${projectName}` }).click();
   }
