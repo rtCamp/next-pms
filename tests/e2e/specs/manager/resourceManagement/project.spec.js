@@ -3,7 +3,7 @@ import path from "path";
 import { ProjectPage } from "../../../pageObjects/resourceManagement/project";
 import * as allure from "allure-js-commons";
 import { readJSONFile } from "../../../utils/fileUtils";
-import { getFormattedDate, getShortFormattedDate, getDateForWeekday } from "../../../utils/dateUtils";
+import { getFormattedDate } from "../../../utils/dateUtils";
 /** @type {ProjectPage} */
 let projectPage;
 test.describe("Resource Management : Project Tab -> Filters", () => {
@@ -12,7 +12,7 @@ test.describe("Resource Management : Project Tab -> Filters", () => {
     await projectPage.goto();
   });
 
-  test("TC73: Validate the customer filter on RM project tab", async ({ page, jsonDir }) => {
+  test("TC73: Validate the customer filter on RM project tab", async ({ jsonDir }) => {
     allure.story("Resource Management : Project Tab");
 
     // Load test data from JSON stub file
@@ -41,7 +41,7 @@ test.describe("Resource Management : Project Tab -> Filters", () => {
     expect(projectListAfterFilter.projectNames).toEqual([projectNameAfterCustomerFilter]);
   });
 
-  test("TC76: Validate the billing type filter on RM project tab", async ({ page, jsonDir }) => {
+  test("TC76: Validate the billing type filter on RM project tab", async ({ jsonDir }) => {
     allure.story("Resource Management : Project Tab");
 
     // Load billing type test data
@@ -71,7 +71,7 @@ test.describe("Resource Management : Project Tab -> Filters", () => {
     expect(projectListAfterBillingFilter.projectNames).toEqual([projectNameAfterBillingFilter]);
   });
 
-  test("TC78: Validate the allocation type filter on RM project tab", async ({ page, jsonDir }) => {
+  test("TC78: Validate the allocation type filter on RM project tab", async ({ jsonDir }) => {
     allure.story("Resource Management : Project Tab");
 
     const stubPath = path.join(jsonDir, "TC78.json");
@@ -114,7 +114,7 @@ test.describe("Resource Management : Project Tab -> Filters", () => {
     await expect(projectPage.employeeNameCell(TC79data.employeeName)).toBeVisible();
   });
 
-  test("TC80: Validate multiple filters on RM project tab", async ({ page, jsonDir }) => {
+  test("TC80: Validate multiple filters on RM project tab", async ({ jsonDir }) => {
     allure.story("Resource Management : Project Tab");
 
     const stubPath = path.join(jsonDir, "TC80.json");
@@ -146,7 +146,7 @@ test.describe("Resource Management : Project Tab", () => {
     projectPage = new ProjectPage(page);
     await projectPage.goto();
   });
-  test("TC74: Validate the type of sheet view from the top menu and select field", async ({ page, jsonDir }) => {
+  test("TC74: Validate the type of sheet view from the top menu and select field", async ({ jsonDir }) => {
     allure.story("Resource Management : Project Tab");
 
     // Load test data from JSON stub file
