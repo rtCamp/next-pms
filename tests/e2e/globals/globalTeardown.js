@@ -8,9 +8,6 @@ import { deleteUserGroupForEmployee } from "../helpers/teamTabHelper";
  * Global teardown function to delete the stale test data after running tests.
  */
 const globalTeardown = async () => {
-  //Delete the employees
-  //await deleteEmployees();
-  //Delete Stale Tasks created through UI
   // Locate and read test-tc-ids.json
   const projectRoot = path.resolve(__dirname, "..");
   const tcJsonPath = path.join(projectRoot, "test-tc-ids.json");
@@ -28,7 +25,7 @@ const globalTeardown = async () => {
   await deleteByTaskName();
   await readAndCleanAllOrphanData();
 
-  // Example: Pass allTCIds to your cleanup function
+  //Pass allTCIds to cleanup function
   await deleteUserGroupForEmployee(allTCIds, path.resolve(projectRoot, "data/json-files"));
 };
 

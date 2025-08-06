@@ -82,14 +82,14 @@ export const deleteAllocationsForTestCases = async (testCaseIDs, jsonDir) => {
   }
 
   for (const deleteKey of deleteAllocKeys) {
-    const allocationID = entry[deleteKey]?.allocationID;
-    if (!allocationID) {
-      console.warn(`⚠️ No allocationID found in ${deleteKey} for ${tcId}`);
+    const allocationId = entry[deleteKey]?.allocationId;
+    if (!allocationId) {
+      console.warn(`⚠️ No allocationId found in ${deleteKey} for ${tcId}`);
       continue;
     }
 
     try {
-      await deleteAllocation(allocationID);
+      await deleteAllocation(allocationId);
       console.log(`🗑️  Allocation deleted for ${tcId} (${deleteKey}): ${allocationID}`);
     } catch (err) {
       console.error(`❌ Failed to delete allocation for ${tcId} (${deleteKey}): ${err.message}`);

@@ -258,12 +258,6 @@ test.describe("Project Tab: Single Filters", () => {
     await projectPage.applyFilters({
       projectType: [TC112data.payloadCreateProject.project_type, TC112data.payloadCreateProject2.project_type],
     });
-    const projectListAfterMultipleFilters = await projectPage.getProjectList();
-    //console.log("Project Names After applying multiple filters:", projectListAfterMultipleFilters.projectNames);
-    //Print all project names
-    console.log("TC112 : Project Names After applying multiple filters:", projectListAfterMultipleFilters.projectNames);
-    //expect(projectListAfterMultipleFilters.projectNames).toContain(TC112data.payloadCreateProject.project_name);
-    //expect(projectListAfterMultipleFilters.projectNames).toContain(TC112data.payloadCreateProject2.project_name);
 
     await expect(
       projectPage.projectTypeCell(

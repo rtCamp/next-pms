@@ -205,7 +205,7 @@ test.describe("Resource Management : Project Tab", () => {
     ).toHaveText(TC74data.payloadCreateTimesheet.hours + " / " + expectedCombinedHours.toString());
     await projectPage.combineWeekHoursCheckbox.uncheck();
   });
-  test("TC77: Validate Next/Previous week change buttons", async ({ jsonDir }) => {
+  test("TC77: Validate Next/Previous week change buttons", async ({}) => {
     allure.story("Resource Management : Project Tab");
 
     await projectPage.clearFilters();

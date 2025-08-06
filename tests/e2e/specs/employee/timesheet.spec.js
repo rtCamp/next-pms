@@ -11,6 +11,7 @@ import { readJSONFile } from "../../utils/fileUtils";
 
 let timesheetPage;
 let taskPage;
+const TIME_ENTRIES_UPDATED_MSG = "Time entries updated successfully.";
 
 test.describe("Employee : Timesheet", () => {
   test.beforeEach(async ({ page }) => {
@@ -57,7 +58,7 @@ test.describe("Employee : Timesheet", () => {
     await timesheetPage.addTimeRow(TC5data.cell, { duration: TC5data.taskInfo.duration, desc: TC5data.taskInfo.desc });
 
     //Verify notification
-    await expect(timesheetPage.toastNotification("Time entries updated successfully.")).toBeVisible();
+    await expect(timesheetPage.toastNotification(TIME_ENTRIES_UPDATED_MSG)).toBeVisible();
     // Reload page to ensure changes are reflected
     await page.reload();
 
