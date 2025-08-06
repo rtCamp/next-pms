@@ -159,6 +159,69 @@ module.exports = {
       "Shraddha Gore",
     ],
   },
+  TC60: {
+    cell: {
+      rowName: "TC60 Project",
+      col: "Tue",
+    },
+    payloadCreateProject: {
+      project_name: "TC60 Project",
+      company: "rtCamp Solutions Pvt. Ltd.",
+      customer: "Google",
+      billing_type: "Fixed Cost",
+      currency: "INR",
+      project_type: "Fixed Cost",
+      business_unit: "Jupitor",
+      estimated_cost: 235000,
+      custom_default_hourly_billing_rate: 300,
+      custom_project_budget_hours: [],
+    },
+    employee: process.env.EMP3_NAME,
+    payloadDeleteProject: {
+      projectId: "filled-automatically-from-createProjects",
+    },
+    payloadCreateTask: {
+      subject: "TC60 Billable Task",
+      project: "filled-automatically-from-createProjects",
+      description: "Task for TC60 created through automation",
+      custom_is_billable: 1,
+    },
+    payloadDeleteTask: {
+      taskID: "filled-automatically-from-createTasks",
+    },
+    payloadCreateTimesheet: {
+      task: "filled-automatically-from-createTasks",
+      description: "<p>TC60 - Task added via automation.</p>",
+      hours: "5",
+    },
+    payloadFilterTimeEntry: {
+      subject: "TC60 Billable Task",
+      description: "TC60 - Task added via automation.",
+      project_name: "TC60 Project",
+      max_week: "1",
+    },
+  },
+  TC61: {
+    weeklyTime: "0 / 40",
+  },
+  TC68: {
+    payloadCreateProject: {
+      project_name: "TC68 Project",
+      company: "rtCamp Solutions Pvt. Ltd.",
+      customer: "Google",
+      custom_billing_type: "Fixed Cost",
+      custom_currency: "INR",
+      project_type: "Fixed Cost",
+      business_unit: "Jupitor",
+      estimated_cost: 360000,
+      custom_default_hourly_billing_rate: 0,
+      custom_project_budget_hours: [],
+    },
+    employee: process.env.EMP3_NAME,
+    payloadDeleteProject: {
+      projectId: "filled-automatically-from-createProjects",
+    },
+  },
   TC91: {
     payloadCreateEmployee: {
       first_name: "Playwright-",

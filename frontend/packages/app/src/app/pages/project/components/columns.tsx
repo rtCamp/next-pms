@@ -81,7 +81,14 @@ export const getColumnInfo = (
         } else if (meta.fieldname === "status") {
           return (
             <Badge
-              className="truncate"
+              className={mergeClassNames(
+                "truncate",
+                value === "Open"
+                  ? "bg-warning/20 text-warning hover:bg-warning/20"
+                  : value === "Completed"
+                  ? "bg-success/20 text-success hover:bg-success/20"
+                  : "bg-destructive/20 text-destructive hover:bg-destructive/20"
+              )}
               variant={value === "Open" ? "warning" : value === "Completed" ? "success" : "destructive"}
             >
               {value}
@@ -90,7 +97,14 @@ export const getColumnInfo = (
         } else if (meta.fieldname === "priority") {
           return (
             <Badge
-              className="truncate"
+              className={mergeClassNames(
+                "truncate",
+                value === "Low"
+                  ? "bg-success/20 text-success hover:bg-success/20"
+                  : value === "Medium"
+                  ? "bg-warning/20 text-warning hover:bg-warning/20"
+                  : "bg-destructive/20 text-destructive hover:bg-destructive/20"
+              )}
               variant={value === "Low" ? "success" : value === "Medium" ? "warning" : "destructive"}
             >
               {value}
@@ -144,10 +158,10 @@ export const getColumnInfo = (
           {tags.map((tag) => (
             <Badge
               key={tag}
-              className="cursor-pointer hover:bg-slate-300/80 bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700"
+              className="cursor-pointer hover:bg-slate-300/80 bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 max-w-26"
               variant="secondary"
             >
-              {tag}
+              <p className="flex-shrink truncate">{tag}</p>
             </Badge>
           ))}
         </div>

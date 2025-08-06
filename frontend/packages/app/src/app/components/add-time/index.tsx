@@ -183,6 +183,7 @@ const AddTime = ({
         search: searchTask,
         projects: selectedProject,
         page_length: 100,
+        filter_recent: true,
       })
       .then((res) => {
         setTask(res.message.task);

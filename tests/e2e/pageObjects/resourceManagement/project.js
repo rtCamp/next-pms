@@ -155,7 +155,19 @@ export class ProjectPage extends TimelinePage {
     this.totalHoursTextField.fill("");
     this.totalHoursTextField.fill(totalAllocatedHours);
     await this.setHoursPerDay(hoursPerDay);
-    await this.clickCreateButton();
+    // Wait for the allocation API response and click the create button in parallel
+    const [response] = await Promise.all([
+      this.page.waitForResponse(
+        (response) =>
+          response.url().includes("/api/method/next_pms.resource_management.api.allocation.handle_allocation") &&
+          response.status() === 200
+      ),
+      this.clickCreateButton(),
+    ]);
+
+    const responseBody = await response.json();
+    const updatedAllocationName = responseBody.message.name;
+    return { updatedAllocationName };
   }
 
   /**

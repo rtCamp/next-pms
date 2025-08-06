@@ -314,12 +314,8 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow className="px-3" key={row.id} data-state={row.getIsSelected() && "selected"}>
-                    {row.getVisibleCells().map((cell, cellIndex) => {
+                    {row.getVisibleCells().map((cell) => {
                       const isPinned = cell.column.getIsPinned() === "left";
-                      // Attach ref to the first unpinned cell for infinite scroll
-                      const visibleCells = row.getVisibleCells();
-                      const firstUnpinnedIndex = visibleCells.findIndex((c) => c.column.getIsPinned() !== "left");
-                      const needToAddRef = projectState.hasMore && cellIndex === firstUnpinnedIndex && !isPinned;
 
                       return (
                         <TableCell
@@ -334,7 +330,6 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
                             left: isPinned ? cell.column.getStart("left") : undefined,
                             zIndex: isPinned ? 1 : undefined,
                           }}
-                          ref={needToAddRef ? cellRef : null}
                         >
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </TableCell>
@@ -351,8 +346,8 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
               )}
 
               {projectState?.data && projectState.hasMore && (
-                <TableRow className="p-0">
-                  <TableCell colSpan={viewData.rows.length} className="text-center p-0">
+                <TableRow className="p-0 w-full !px-0" ref={cellRef}>
+                  <TableCell colSpan={viewData.rows.length + 1} className="text-center w-full !py-0">
                     <Skeleton className="h-10 w-full" />
                   </TableCell>
                 </TableRow>
