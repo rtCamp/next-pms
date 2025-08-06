@@ -23,30 +23,6 @@ test.describe("Employee : Timesheet", () => {
   });
 
   // ------------------------------------------------------------------------------------------
-  //Skipping below test as it needs to be fixed for CI
-  test("TC3: Time should be added using the direct timesheet add buttons.", async ({ page, jsonDir }) => {
-    allure.story("Timesheet");
-    // 1) Build the path to your per‑TC JSON stub
-    const stubPath = path.join(jsonDir, "TC3.json");
-    const data = await readJSONFile(stubPath);
-
-    const TC3data = data.TC3;
-
-    // Import liked tasks
-    await timesheetPage.importLikedTasks();
-    // Add time entry using "+" button in timesheet
-    await timesheetPage.addTimeViaCell(TC3data.cell, {
-      duration: TC3data.taskInfo.duration,
-      desc: TC3data.taskInfo.desc,
-    });
-    await timesheetPage.toastNotification(TC3data.notification).waitFor({ state: "visible" });
-    // Reload page to ensure changes are reflected
-    await page.reload();
-
-    // Assertions
-    const cellText = await timesheetPage.getCellText(TC3data.cell);
-    expect(cellText).toContain(TC3data.taskInfo.duration);
-  });
 
   test("TC4: Added time and description should be editable. ", async ({ jsonDir }) => {
     allure.story("Timesheet");

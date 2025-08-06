@@ -146,9 +146,9 @@ test.describe("Manager : Resource Management Tab", () => {
     const data = await readJSONFile(stubPath);
     const TC108data = data.TC108;
 
-    const projectName = TC108data.payloadCreateAllocation.project_name;
-    const employeeName = TC108data.payloadCreateAllocation.employee;
-    const customerName = TC108data.payloadCreateAllocation.customer;
+    const projectName = TC108data.infoPayloadCreateAllocation.project_name;
+    const employeeName = TC108data.infoPayloadCreateAllocation.employee;
+    const customerName = TC108data.infoPayloadCreateAllocation.customer;
     const { date, day } = getFormattedDateNDaysFromToday(3);
     await projectPage.goto();
     const { allocationName } = await projectPage.addAllocationFromProjectTab(

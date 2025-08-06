@@ -67,6 +67,15 @@ module.exports = {
       projectId: "filled-automatically-from-createProjects",
     },
   },
+  TC36: {
+    payloadCreateView: {
+      view_name: "TC105: Playwright-view",
+    },
+    payloadDeleteView: {
+      view_name: "TC105: Playwright-view",
+      notification: "View deleted successfully",
+    },
+  },
   TC72: {
     payloadCreateProject: {
       project_name: "TC72 Project",
@@ -300,6 +309,39 @@ module.exports = {
       note: "",
       total_allocated_hours: "01",
       repeat_till_week_count: 0,
+    },
+  },
+  TC79: {
+    payloadCreateProject: {
+      project_name: "TC79 Project",
+      company: "rtCamp Solutions Pvt. Ltd.",
+      customer: "Google",
+      billing_type: "Fixed Cost",
+      currency: "INR",
+      project_type: "Fixed Cost",
+      business_unit: "Jupitor",
+      estimated_cost: 235000,
+      custom_default_hourly_billing_rate: 300,
+      custom_project_budget_hours: [],
+    },
+    payloadDeleteProject: {
+      projectId: "filled-automatically-from-createProjects",
+    },
+    employeeName: process.env.EMP3_NAME,
+    payloadCreateAllocation: {
+      allocation_end_date: getWeekRange().monday,
+      allocation_start_date: getWeekRange().monday,
+      customer: "Google",
+      employee: process.env.EMP3_ID,
+      hours_allocated_per_day: "1",
+      is_billable: 1,
+      note: "",
+      project: "filled-automatically-from-createProjects",
+      total_allocated_hours: "01",
+      repeat_till_week_count: 0,
+    },
+    payloadDeleteAllocation: {
+      allocationId: "filled-automatically-from-createAllocation",
     },
   },
   TC80: {

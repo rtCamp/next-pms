@@ -22,11 +22,8 @@ test.describe("Resource Management : Project Tab -> Filters", () => {
 
     await projectPage.clearFilters(); // Clear any existing filters
     await projectPage.searchBar.fill(TC73data.payloadCreateProject.project_name); // Search for the project
-await projectPage.page.waitForTimeout(5000); // Mandatory wait to ensure the project is loaded
-
-
-
-
+    //Wait until the project name is displayed in the table
+    await projectPage.waitForOnlyOneElement(projectPage.projectListItems);
     // Capture project list before applying the customer filter
     const projectListBeforeFilter = await projectPage.getProjectList();
 
@@ -54,7 +51,9 @@ await projectPage.page.waitForTimeout(5000); // Mandatory wait to ensure the pro
 
     await projectPage.clearFilters();
     await projectPage.searchBar.fill(TC76data.infoPayloadCreateProject.project_name); // Search for the project
-    await projectPage.page.pause();
+    //Wait until the project name is displayed in the table
+    await projectPage.waitForOnlyOneElement(projectPage.projectListItems);
+
     // Capture project list before applying billing type filter
     const projectListBeforeBillingFilter = await projectPage.getProjectList();
 
@@ -96,6 +95,23 @@ await projectPage.page.waitForTimeout(5000); // Mandatory wait to ensure the pro
     // Assert that filtered list contains expected project name
     const projectNameAfterAllocationFilter = TC78data.infoPayloadCreateProject2.project_name;
     expect(projectListAfterAllocationFilter.projectNames).toEqual([projectNameAfterAllocationFilter]);
+  });
+  test("TC79: Validate the project-allocated employee list by clicking on the project name", async ({ jsonDir }) => {
+    allure.story("Resource Management : Project Tab");
+
+    const stubPath = path.join(jsonDir, "TC79.json");
+    const data = await readJSONFile(stubPath);
+    const TC79data = data.TC79;
+
+    await projectPage.clearFilters();
+    // Search for the project using the project name from test data
+    await projectPage.searchBar.fill(TC79data.payloadCreateProject.project_name);
+
+    // Click on the project name to view allocated employees
+    await projectPage.projectNameCell(TC79data.payloadCreateProject.project_name).click();
+
+    // Assert that the allocated employees are displayed correctly
+    await expect(projectPage.employeeNameCell(TC79data.employeeName)).toBeVisible();
   });
 
   test("TC80: Validate multiple filters on RM project tab", async ({ page, jsonDir }) => {

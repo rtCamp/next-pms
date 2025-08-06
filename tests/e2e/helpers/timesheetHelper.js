@@ -58,7 +58,7 @@ export async function updateTimeEntries(testCaseIDs = [], jsonDir) {
 
       // determine employee ID
       let employeeID;
-      if (testCaseID === "TC2") {
+      if (["TC2", "TC3"].includes(testCaseID)) {
         employeeID = emp2ID;
       } else if (["TC6", "TC7", "TC74", "TC92"].includes(testCaseID)) {
         employeeID = emp3ID;
@@ -778,7 +778,6 @@ export const readAndCleanAllOrphanData = async () => {
   await deleteLeaveOfEmployee();
   await deleteEmployeeByName();
   await cleanUpProjects(mergedData);
-  await deleteUserGroupForEmployee();
 };
 /**
  * Submits timesheet for Approval for an employee

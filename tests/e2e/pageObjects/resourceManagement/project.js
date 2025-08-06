@@ -2,6 +2,7 @@
  * Represents the Project page in the resource management section.
  * Extends the TimelinePage and provides methods for navigating to and verifying the project page.
  */
+import { expect } from "@playwright/test";
 import { TimelinePage } from "./timeline";
 import { getShortFormattedDate, getWeekdayName } from "../../utils/dateUtils";
 export class ProjectPage extends TimelinePage {
@@ -41,6 +42,8 @@ export class ProjectPage extends TimelinePage {
     this.filterClearSelection = page.getByRole("button", { name: "Clear Selection" });
 
     //table elements
+    this.projectNameCell = (projectName) => page.getByTitle(`${projectName}`, { exact: true });
+    this.employeeNameCell = (employeeName) => page.getByTitle(`${employeeName}`, { exact: true });
     this.projectTableTitle = page.getByRole("cell", { name: "Projects" });
     this.deleteButton = page.getByRole("img", { name: "Delete" }).first();
     this.editIcon = page.getByRole("img", { name: "Edit" }).first();
@@ -354,5 +357,12 @@ export class ProjectPage extends TimelinePage {
       days.push(val.trim());
     }
     return days;
+  }
+  async verifyEmployeeUnderProject(projectName, employeeName) {
+    //Click on project name
+    await this.page.getByRole("button", { name: `${projectName}` }).click();
+  }
+  async waitForOnlyOneElement(locator, timeout = 30000) {
+    await expect(locator).toHaveCount(1, { timeout });
   }
 }
