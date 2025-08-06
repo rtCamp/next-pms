@@ -407,7 +407,7 @@ module.exports = {
       custom_default_hourly_billing_rate: 0,
       custom_project_budget_hours: [],
     },
-    employee: process.env.EMP3_NAME,
+    employee: process.env.EMP_NAME,
     payloadDeleteProject: {
       projectId: "filled-automatically-from-createProjects",
     },
