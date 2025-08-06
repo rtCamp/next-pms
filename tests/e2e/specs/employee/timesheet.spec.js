@@ -56,6 +56,8 @@ test.describe("Employee : Timesheet", () => {
     // Add time entry
     await timesheetPage.addTimeRow(TC5data.cell, { duration: TC5data.taskInfo.duration, desc: TC5data.taskInfo.desc });
 
+    //Verify notification
+    await expect(timesheetPage.toastNotification("Time entries updated successfully.")).toBeVisible();
     // Reload page to ensure changes are reflected
     await page.reload();
 
