@@ -14,6 +14,7 @@ import {
 import { updateLeaveEntries } from "../helpers/leaveHelper";
 import { createEmployees } from "../helpers/employeeHelper";
 import { createUserGroupForEmployee } from "../helpers/teamTabHelper";
+import { createAllocationsForTestCases } from "../helpers/resourceManagementHelpers";
 
 const globalSetup = async () => {
   console.log("🚀 Starting global setup...");
@@ -94,6 +95,7 @@ const globalSetup = async () => {
     await updateTimeEntries([tcId], jsonDir);
     await createProjectForTestCases([tcId], jsonDir);
     await createTaskForTestCases([tcId], jsonDir);
+    await createAllocationsForTestCases([tcId], jsonDir);
     await createTimeEntries([tcId], jsonDir);
     await calculateHourlyBilling([tcId], jsonDir);
     await updateLeaveEntries([tcId], jsonDir);

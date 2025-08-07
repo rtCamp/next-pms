@@ -1,3 +1,5 @@
+import { getWeekRange } from "../../utils/dateUtils";
+
 module.exports = {
   TC38: {},
   TC39: {
@@ -61,7 +63,8 @@ module.exports = {
   },
   TC49: {
     reason: "TC49 - Timesheet rejected via automation.",
-    notification: "Timesheet status updated successfully",
+    notification:
+      "Timesheet approval or rejection has been queued for processing. Please do not make any changes to it. You may continue with other tasks.",
     cell: {
       rowName: "TC49 Billable Task",
       col: "Fri",
@@ -156,6 +159,69 @@ module.exports = {
       "Renish Vimalbhai Surani",
       "Shraddha Gore",
     ],
+  },
+  TC60: {
+    cell: {
+      rowName: "TC60 Project",
+      col: "Tue",
+    },
+    payloadCreateProject: {
+      project_name: "TC60 Project",
+      company: "rtCamp Solutions Pvt. Ltd.",
+      customer: "Google",
+      billing_type: "Fixed Cost",
+      currency: "INR",
+      project_type: "Fixed Cost",
+      business_unit: "Jupitor",
+      estimated_cost: 235000,
+      custom_default_hourly_billing_rate: 300,
+      custom_project_budget_hours: [],
+    },
+    employee: process.env.EMP3_NAME,
+    payloadDeleteProject: {
+      projectId: "filled-automatically-from-createProjects",
+    },
+    payloadCreateTask: {
+      subject: "TC60 Billable Task",
+      project: "filled-automatically-from-createProjects",
+      description: "Task for TC60 created through automation",
+      custom_is_billable: 1,
+    },
+    payloadDeleteTask: {
+      taskID: "filled-automatically-from-createTasks",
+    },
+    payloadCreateTimesheet: {
+      task: "filled-automatically-from-createTasks",
+      description: "<p>TC60 - Task added via automation.</p>",
+      hours: "5",
+    },
+    payloadFilterTimeEntry: {
+      subject: "TC60 Billable Task",
+      description: "TC60 - Task added via automation.",
+      project_name: "TC60 Project",
+      max_week: "1",
+    },
+  },
+  TC61: {
+    weeklyTime: "0 / 40",
+  },
+  TC68: {
+    payloadCreateProject: {
+      project_name: "TC68 Project",
+      company: "rtCamp Solutions Pvt. Ltd.",
+      customer: "Google",
+      custom_billing_type: "Fixed Cost",
+      custom_currency: "INR",
+      project_type: "Fixed Cost",
+      business_unit: "Jupitor",
+      estimated_cost: 360000,
+      custom_default_hourly_billing_rate: 0,
+      custom_project_budget_hours: [],
+    },
+    employee: process.env.EMP3_NAME,
+    payloadDeleteProject: {
+      projectId: "filled-automatically-from-createProjects",
+    },
   },
   TC91: {
     payloadCreateEmployee: {
@@ -270,6 +336,47 @@ module.exports = {
       name: "filled-automatically-from-createUserGroupForEmployee",
     },
   },
+  TC95: {
+    payloadCreateProject: {
+      project_name: "TC95 Project",
+      company: "rtCamp Solutions Pvt. Ltd.",
+      customer: "Google",
+      custom_billing_type: "Fixed Cost",
+      custom_currency: "INR",
+      project_type: "Fixed Cost",
+      business_unit: "Jupitor",
+      estimated_cost: 360000,
+      custom_default_hourly_billing_rate: 0,
+      custom_project_budget_hours: [],
+    },
+    employee: process.env.EMP3_NAME,
+    payloadDeleteProject: {
+      projectId: "filled-automatically-from-createProjects",
+    },
+    payloadShareProject: [
+      {
+        doctype: "Project",
+        name: "filled-automatically-from-createProjects",
+        user: process.env.EMP3_EMAIL,
+        readValue: 1,
+        writeValue: 1,
+        submitValue: 0,
+        shareValue: 0,
+        notifyValue: 1,
+      },
+    ],
+    payloadCreateUserGroup: {
+      user_group_members: [
+        {
+          user: "filled-automatically-from-createUserGroupForEmployee",
+        },
+      ],
+      __newname: "filled-automatically-from-createUserGroupForEmployee",
+    },
+    payloadDeleteUserGroup: {
+      name: "filled-automatically-from-createUserGroupForEmployee",
+    },
+  },
   TC102: {
     payloadCreateProject: {
       project_name: "TC102 Project",
@@ -301,7 +408,7 @@ module.exports = {
       custom_default_hourly_billing_rate: 0,
       custom_project_budget_hours: [],
     },
-    employee: process.env.EMP3_NAME,
+    employee: process.env.EMP_NAME,
     payloadDeleteProject: {
       projectId: "filled-automatically-from-createProjects",
     },
@@ -359,12 +466,12 @@ module.exports = {
     payloadDeleteProject: {
       projectId: "filled-automatically-from-createProjects",
     },
-    payloadCreateAllocation: {
+    infoPayloadCreateAllocation: {
       employee: process.env.EMP3_NAME,
       project_name: "TC108 Project",
       customer: "Google",
-      start_date: "2023-10-01",
-      end_date: "2023-10-31",
+      start_date: getWeekRange().monday,
+      end_date: getWeekRange().friday,
     },
   },
   TC109: {

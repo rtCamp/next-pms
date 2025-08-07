@@ -10,6 +10,7 @@ export class TimelinePage {
     // header elements
     this.addAllocatioButtton = page.getByRole("button", { name: "add-allocation" });
     this.searchEmployeeFilter = page.locator("#filters input");
+    this.clearFilterIcons = page.locator("div#filters:nth-child(2) svg");
 
     //add allocation modal elements
     this.modalErrorMessage = page.locator("p[id*='form-item-message']");
@@ -96,7 +97,14 @@ export class TimelinePage {
    * Selects a date range for the allocation.
    */
   async addDateRange(formattedDate = this.formattedDate) {
-    const dayNumber = formattedDate.split(" ")[1];
+    let dayNumber;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(formattedDate)) {
+      // Handles YYYY-MM-DD format
+      dayNumber = formattedDate.split("-")[2].replace(/^0/, ""); // Extracts the day and removes leading zero
+    } else {
+      // Handles date format like June 15
+      dayNumber = formattedDate.split(" ")[1].replace(",", ""); // Extracts the day and removes the comma
+    }
     await this.startDateSelector.click();
     await this.page
       .getByRole("gridcell", { name: dayNumber, exact: true })
@@ -198,5 +206,15 @@ export class TimelinePage {
 
   async getErrorFromAllocationModal() {
     return await this.modalErrorMessage.textContent();
+  }
+
+  /**
+   * Clear Applied filters
+   */
+  async clearFilters() {
+    while ((await this.clearFilterIcons.count()) > 0) {
+      const clearFilterIcon = this.clearFilterIcons.first();
+      await clearFilterIcon.click();
+    }
   }
 }
