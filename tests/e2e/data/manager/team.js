@@ -63,7 +63,8 @@ module.exports = {
   },
   TC49: {
     reason: "TC49 - Timesheet rejected via automation.",
-    notification: "Timesheet status updated successfully",
+    notification:
+      "Timesheet approval or rejection has been queued for processing. Please do not make any changes to it. You may continue with other tasks.",
     cell: {
       rowName: "TC49 Billable Task",
       col: "Fri",

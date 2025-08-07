@@ -203,11 +203,12 @@ test.describe("Manager: Team Tab", () => {
     expect(employees).toContain(TC95data.employee);
   });
 
-  test.fixme("TC49: Reject timesheet for employee", async ({ page, jsonDir }) => {
+  test("TC49: Reject timesheet for employee", async ({ page, jsonDir }) => {
     allure.story("Team");
     const stubPath = path.join(jsonDir, "TC49.json");
     const data = await readJSONFile(stubPath);
     const TC49data = data.TC49;
+
     await teamPage.viewNextWeek();
     await teamPage.rejectTimesheet({
       employee: empName,
