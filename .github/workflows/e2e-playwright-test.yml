@@ -12,8 +12,8 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' }}
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
 jobs:
   get-branch:
