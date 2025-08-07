@@ -67,6 +67,11 @@ export class TeamPage extends TimelinePage {
    */
   async addAllocationFromTeamTab(projectName, customerName, employeeName, date, day) {
     await this.filterEmployeeByName(employeeName);
+    await expect(this.page.locator(`//tr[1]//p[@title="${employeeName}"]`)).toBeVisible({ timeout: 30000 });
+
+    await expect(this.page.locator(`//tr[1]//p[@title="${employeeName}"]`)).toHaveAttribute("title", employeeName, {
+      timeout: 30000,
+    });
     await this.page.waitForTimeout(1000); // added to avoid flaky test
 
     let allotmentDate = date;

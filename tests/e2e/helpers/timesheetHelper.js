@@ -21,7 +21,6 @@ import { filterApi, shareProjectWithUser } from "../utils/api/frappeRequests";
 import { deleteLeave } from "../utils/api/leaveRequests";
 import { getWeekRange } from "../utils/dateUtils";
 import { deleteEmployeeByName } from "./employeeHelper";
-import { deleteUserGroupForEmployee } from "./teamTabHelper";
 
 // Load env variables
 const empID = process.env.EMP_ID;
@@ -45,6 +44,7 @@ export async function updateTimeEntries(testCaseIDs = [], jsonDir) {
   // split IDs
   const empTCs = testCaseIDs.filter((tc) => tc in employeeTimesheetData);
   const mgrTCs = testCaseIDs.filter((tc) => tc in managerTeamData);
+  const mgrProjectTCs = testCaseIDs.filter((tc) => tc in managerProjectData);
 
   // core update logic
   const updateEntries = (data, tcs) => {
@@ -54,11 +54,12 @@ export async function updateTimeEntries(testCaseIDs = [], jsonDir) {
     for (const testCaseID of tcs) {
       const entry = data[testCaseID];
       if (!entry?.cell?.col) continue;
-      // determine employee ID based on test case
+
+      // determine employee ID
       let employeeID;
-      if (testCaseID === "TC2") {
+      if (["TC2", "TC3"].includes(testCaseID)) {
         employeeID = emp2ID;
-      } else if (["TC6", "TC7", "TC92", "TC60"].includes(testCaseID)) {
+      } else if (["TC6", "TC7", "TC74", "TC92", "TC60"].includes(testCaseID)) {
         employeeID = emp3ID;
       } else {
         employeeID = empID;
@@ -81,24 +82,25 @@ export async function updateTimeEntries(testCaseIDs = [], jsonDir) {
   // apply updates
   updateEntries(employeeTimesheetData, empTCs);
   updateEntries(managerTeamData, mgrTCs);
+  updateEntries(managerProjectData, mgrProjectTCs);
 
-  // write per-TC files
+  // write employee data
   for (const tc of empTCs) {
     const payload = employeeTimesheetData[tc];
     if (!payload) continue;
-    const filePath = path.join(jsonDir, `${tc}.json`);
 
+    const filePath = path.join(jsonDir, `${tc}.json`);
     await writeDataToFile(filePath, { [tc]: payload });
-    console.log(`✅ Updated Time Entry  for ${tc} to ${filePath}`);
+    console.log(`✅ Updated Time Entry for ${tc} to ${filePath}`);
   }
 
-  for (const tc of mgrTCs) {
-    const newPayload = managerTeamData[tc];
-    if (!newPayload) continue;
+  // write function for merging existing data
+  const mergeAndWrite = async (tc, dataMap) => {
+    const newPayload = dataMap[tc];
+    if (!newPayload) return;
 
     const filePath = path.join(jsonDir, `${tc}.json`);
 
-    // 🧩 Merge with existing JSON file
     let existingData = {};
     try {
       const raw = await fs.promises.readFile(filePath, "utf-8");
@@ -107,7 +109,6 @@ export async function updateTimeEntries(testCaseIDs = [], jsonDir) {
       console.warn(`⚠️ Could not read existing data for ${tc}:`, e.message);
     }
 
-    // Merge: existingData[tc] merged with newPayload
     const mergedEntry = {
       ...(existingData[tc] || {}),
       ...newPayload,
@@ -115,8 +116,19 @@ export async function updateTimeEntries(testCaseIDs = [], jsonDir) {
 
     await writeDataToFile(filePath, { [tc]: mergedEntry });
     console.log(`✅ Updated Time Entry for ${tc} to ${filePath}`);
+  };
+
+  // write manager team data
+  for (const tc of mgrTCs) {
+    await mergeAndWrite(tc, managerTeamData);
+  }
+
+  // write manager project data
+  for (const tc of mgrProjectTCs) {
+    await mergeAndWrite(tc, managerProjectData);
   }
 }
+
 // ------------------------------------------------------------------------------------------
 
 /**
@@ -331,6 +343,12 @@ export const createProjectForTestCases = async (testCaseIDs, jsonDir) => {
     const taskKey = `payloadCreateTask${postfix}`;
     if (entry[taskKey]) {
       entry[taskKey].project = projectId;
+    }
+
+    //Fill the projectID in the payloadCreateAllocation
+    const allocationKey = `payloadCreateAllocation${postfix}`;
+    if (entry[allocationKey]) {
+      entry[allocationKey].project = projectId;
     }
 
     const billingKey = `payloadCalculateBillingRate${postfix}`;
@@ -759,7 +777,6 @@ export const readAndCleanAllOrphanData = async () => {
   await deleteLeaveOfEmployee();
   await deleteEmployeeByName();
   await cleanUpProjects(mergedData);
-  await deleteUserGroupForEmployee();
 };
 /**
  * Submits timesheet for Approval for an employee

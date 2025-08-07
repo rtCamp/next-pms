@@ -105,7 +105,9 @@ export const createUserGroupForEmployee = async (testCaseIDs, jsonDir) => {
     // build group name based on today
     const shortDate = getShortFormattedDate(new Date()); // e.g. "Jun 11"
     const [month, day] = shortDate.split(" ");
-    const name = `UserGroup-${day}${month}`;
+    let randomString = [...Array(5)].map(() => String.fromCharCode(97 + Math.floor(Math.random() * 26))).join("");
+
+    const name = `UserGroup-${day}${month}-${randomString}`;
 
     try {
       await createUserGroup({ user: emp3, name });
@@ -130,24 +132,38 @@ export const createUserGroupForEmployee = async (testCaseIDs, jsonDir) => {
  * Always attempts to delete today's user group, named "UserGroup-<day><month>",
  * e.g. if today is June 11, name = "UserGroup-11Jun".
  */
-export const deleteUserGroupForEmployee = async () => {
-  // 1) Generate the group name based on today's date
-  const shortDate = getShortFormattedDate(new Date()); // e.g. "Jun 11"
-  const [month, day] = shortDate.split(" ");
-  const groupName = `UserGroup-${day}${month}`;
+export const deleteUserGroupForEmployee = async (testCaseIDs, jsonDir) => {
+  if (!Array.isArray(testCaseIDs) || testCaseIDs.length === 0) return;
 
-  // 2) Attempt deletion
-  try {
-    await deleteUserGroup(groupName);
-    console.log(`✅ Deleted user group '${groupName}'`);
-  } catch (err) {
-    const isNotFound =
-      err?.response?.status === 404 || (typeof err.message === "string" && err.message.includes("404"));
+  for (const tcId of testCaseIDs) {
+    const stubPath = path.join(jsonDir, `${tcId}.json`);
+    let fullStub;
 
-    if (isNotFound) {
-      console.warn(`⚠️ No user group found to delete for '${groupName}' (404)`);
-    } else {
-      console.error(`❌ Failed to delete user group '${groupName}': ${err.message}`);
+    try {
+      fullStub = await readJSONFile(stubPath);
+    } catch (e) {
+      console.warn(`⚠️ Failed to read stub for ${tcId}: ${e.message}`);
+      continue;
+    }
+
+    const entry = fullStub[tcId];
+    if (!entry || !entry.payloadDeleteUserGroup) {
+      console.warn(`Skipping ${tcId}: no payload for deleting user group`);
+      continue;
+    }
+
+    const groupName = entry.payloadDeleteUserGroup.name;
+    if (!groupName) {
+      console.warn(`⚠️ No group name found for ${tcId} in ${stubPath}`);
+      continue;
+    }
+
+    try {
+      console.warn(`Attempting to delete user group '${groupName}' for ${tcId}`);
+      await deleteUserGroup(groupName);
+      console.log(`✅ Deleted user group '${groupName}' for ${tcId}`);
+    } catch (e) {
+      console.warn(`❌ Failed to delete group '${groupName}' for ${tcId}: ${e.message}`);
     }
   }
 };

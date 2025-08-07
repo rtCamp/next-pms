@@ -154,6 +154,16 @@ export class TeamPage {
     await this.rejectTimesheetModal.getByPlaceholder("Add a note").fill(reason);
     await this.rejectTimesheetModal.getByRole("button", { name: "Reject" }).click();
     await this.toastNotification(notification).waitFor({ state: "visible" });
+
+    // Wait until rejected symbol is shown
+    const cellInfo = { employee: employee, rowName: "employee header", col: "status" };
+    const cell = await this.getCell(cellInfo);
+
+    await expect(cell.locator("svg")).toHaveAttribute(
+      "class",
+      /stroke-destructive/,
+      { timeout: 30000 } // waits up to 30 seconds
+    );
   }
 
   // --------------------------------------
