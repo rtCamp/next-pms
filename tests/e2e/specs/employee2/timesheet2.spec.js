@@ -32,6 +32,29 @@ test.describe("Employee 2 : Timesheet", () => {
     const cellText = await timesheetPage.getCellText(TC2data.cell);
     expect(cellText).toContain(TC2data.taskInfo.duration);
   });
+  test("TC3: Time should be added using the direct timesheet add buttons.", async ({ page, jsonDir }) => {
+    allure.story("Timesheet");
+    // 1) Build the path to your per‑TC JSON stub
+    const stubPath = path.join(jsonDir, "TC3.json");
+    const data = await readJSONFile(stubPath);
+
+    const TC3data = data.TC3;
+
+    // Import liked tasks
+    await timesheetPage.importLikedTasks();
+    // Add time entry using "+" button in timesheet
+    await timesheetPage.addTimeViaCell(TC3data.cell, {
+      duration: TC3data.taskInfo.duration,
+      desc: TC3data.taskInfo.desc,
+    });
+    await timesheetPage.toastNotification(TC3data.notification).waitFor({ state: "visible" });
+    // Reload page to ensure changes are reflected
+    await page.reload();
+
+    // Assertions
+    const cellText = await timesheetPage.getCellText(TC3data.cell);
+    expect(cellText).toContain(TC3data.taskInfo.duration);
+  });
 
   test("TC13: Verify an employee can apply for leave via Timesheet tab.   ", async ({ jsonDir }) => {
     allure.story("Timesheet");

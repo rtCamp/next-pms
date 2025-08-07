@@ -47,6 +47,7 @@ test.describe("Manager: Team Tab", () => {
     const stubPath = path.join(jsonDir, "TC42.json");
     const data = await readJSONFile(stubPath);
     const TC42data = data.TC42;
+
     await teamPage.viewNextWeek();
     const nextColDate = await teamPage.getColDate(TC42data.col);
     await teamPage.viewNextWeek();
@@ -188,11 +189,26 @@ test.describe("Manager: Team Tab", () => {
     await teamPage.checkUserGroup(TC94data.payloadCreateUserGroup.__newname);
     await expect(teamPage.employeeNameInTable(TC94data.employeeName)).toBeVisible();
   });
-  test.fixme("TC49: Reject timesheet for employee", async ({ page, jsonDir }) => {
+
+  test("TC95: Verify multiple filters at a time", async ({ jsonDir }) => {
+    allure.story("Team");
+    const stubPath = path.join(jsonDir, "TC95.json");
+    const data = await readJSONFile(stubPath);
+    const TC95data = data.TC95;
+
+    //Verify that the expected employee is displayed when project and user group filters are applied.
+    await teamPage.checkProjectStatus(TC95data.payloadCreateProject.project_name);
+    await teamPage.checkUserGroup(TC95data.payloadCreateUserGroup.__newname);
+    const employees = await teamPage.getEmployees();
+    expect(employees).toContain(TC95data.employee);
+  });
+
+  test("TC49: Reject timesheet for employee", async ({ page, jsonDir }) => {
     allure.story("Team");
     const stubPath = path.join(jsonDir, "TC49.json");
     const data = await readJSONFile(stubPath);
     const TC49data = data.TC49;
+
     await teamPage.viewNextWeek();
     await teamPage.rejectTimesheet({
       employee: empName,

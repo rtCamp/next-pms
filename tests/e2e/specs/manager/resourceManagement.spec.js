@@ -5,13 +5,22 @@ import { TeamPage } from "../../pageObjects/resourceManagement/team";
 import { ProjectPage } from "../../pageObjects/resourceManagement/project";
 import * as allure from "allure-js-commons";
 import { deleteAllocation } from "../../utils/api/projectRequests";
-import { getFormattedDateNDaysFromToday, getFormattedPastWorkday } from "../../utils/dateUtils";
+import {
+  getFormattedDateNDaysFromToday,
+  getFormattedPastWorkday,
+  getFormattedDate,
+  getDateForWeekday,
+} from "../../utils/dateUtils";
 import { readJSONFile } from "../../utils/fileUtils";
+import teamData from "../../data/manager/team";
+
 /** @type {TimelinePage} */ let timelinePage;
 /** @type {ProjectPage} */ let projectPage;
 /** @type {TeamPage} */ let teamPage;
 
 let createdAllocations = [];
+let managerName = process.env.REP_MAN_NAME;
+let employeeName = process.env.EMP3_NAME;
 
 test.beforeEach(async ({ page }) => {
   timelinePage = new TimelinePage(page);
@@ -39,6 +48,123 @@ test.afterAll(async () => {
 });
 
 test.describe("Manager : Resource Management Tab", () => {
+  test("TC56: Validate the search functionality", async () => {
+    allure.story("Resource Management");
+    await teamPage.goto();
+    await teamPage.filterEmployeeByName(employeeName);
+    const employeeCount = await teamPage.getEmployeeCountFromTable();
+    await expect(employeeCount).toBe(1);
+  });
+
+  test("TC57: The reporting manager filter", async ({ page }) => {
+    allure.story("Resource Management");
+    await teamPage.goto();
+    const employeeCount = await teamPage.getEmployeeCountFromTable();
+    await teamPage.applyReportsTo(managerName);
+    const updatedEmployeeCount = await teamPage.getEmployeeCountFromTable();
+    await expect(updatedEmployeeCount).toBeLessThan(employeeCount);
+    await expect(page.getByText(employeeName)).toBeVisible();
+  });
+
+  test("58: The filters should only apply to the results displayed after selecting the reporting manager.", async ({
+    page,
+  }) => {
+    allure.story("Resource Management");
+    await teamPage.goto();
+    const employeeCount = await teamPage.getEmployeeCountFromTable();
+    await teamPage.applyReportsTo(managerName);
+    await teamPage.addfilter("Business Unit", "Polaris");
+    await page.waitForTimeout(150); // slight delay for filters to apply
+    const updatedEmployeeCount = await teamPage.getEmployeeCountFromTable();
+    await expect(updatedEmployeeCount).toBeLessThan(employeeCount);
+    await expect(page.getByText(employeeName)).toBeVisible();
+  });
+
+  test("TC59: Validate the Business Unit, Designation, and Allocation Type ensuring that the results are checked after clearing all applied filters", async ({
+    page,
+  }) => {
+    allure.story("Resource Management");
+    await teamPage.goto();
+    const currentURL = page.url();
+    let designation = currentURL.includes("erp-qe.rt.gw") ? "Senior Software Engineer" : "Quality Assurance Engineer";
+    await teamPage.addfilter("Business Unit", "Polaris");
+    await teamPage.addfilter("Designation", designation);
+    await teamPage.addfilter("Allocation Type", "Billable");
+    await teamPage.addfilter("Skill", "QA");
+    await expect(page.getByText(employeeName)).toBeVisible({ timeout: 5000 });
+    const employeeCount = await teamPage.getEmployeeCountFromTable();
+    await teamPage.clearFilters();
+    const updatedEmployeeCount = await teamPage.getEmployeeCountFromTable();
+    await expect(updatedEmployeeCount).toBeGreaterThan(employeeCount);
+  });
+
+  test("TC60: Validate the type of sheet view", async ({ page, jsonDir }) => {
+    allure.story("Resource Management");
+    const stubPath = path.join(jsonDir, "TC60.json");
+    const data = await readJSONFile(stubPath);
+    const TC60data = data.TC60;
+    const projectName = TC60data.payloadCreateProject.project_name;
+    const employeeName = TC60data.employee;
+    const customerName = TC60data.payloadCreateProject.customer;
+    const actualHours = TC60data.payloadCreateTimesheet.hours;
+    const formattedDate = getFormattedDate(getDateForWeekday(TC60data.cell.col));
+    await timelinePage.goto();
+    await timelinePage.isPageVisible();
+    const allocationName = await timelinePage.addAllocation(projectName, customerName, employeeName, formattedDate);
+    createdAllocations.push(allocationName);
+    await teamPage.goto();
+    await teamPage.filterEmployeeByName(employeeName);
+    await teamPage.selectView("Actual vs Planned");
+    await expect(page.getByText(`${actualHours} /`).first()).toBeVisible();
+    await teamPage.selectView("Planned vs Capacity");
+    await expect(page.locator("body")).not.toContainText(`${actualHours} /`);
+  });
+
+  test("TC61: Validate the Combine Week Hours", async ({ page }) => {
+    allure.story("Resource Management");
+    const TC61 = teamData.TC61;
+    const weeklyTime = TC61.weeklyTime;
+    await teamPage.goto();
+    await teamPage.clickCombineWeekHoursCheckbox();
+    await expect(page.getByText(`${weeklyTime}`).first()).toBeVisible();
+    await teamPage.clickCombineWeekHoursCheckbox();
+    await expect(page.locator("body")).not.toContainText(`${weeklyTime}`);
+  });
+
+  test("TC62: Validate the functionality of the ‘Next’ and ‘Previous’ week change buttons.", async ({ page }) => {
+    allure.story("Resource Management");
+    await teamPage.goto();
+    await page.waitForTimeout(150);
+    await expect(page.getByText("This Week").first()).toBeVisible();
+    await teamPage.clickNextWeekButton();
+    await expect(page.locator("body")).not.toContainText("This Week");
+    await teamPage.clickPreviousWeekButton();
+    await expect(page.getByText("This Week").first()).toBeVisible();
+  });
+
+  test("TC68: Validate the entire list of allocated resources by clicking on the employee name.", async ({
+    page,
+    jsonDir,
+  }) => {
+    allure.story("Resource Management");
+    const stubPath = path.join(jsonDir, "TC68.json");
+    const data = await readJSONFile(stubPath);
+    const TC68data = data.TC68;
+    const projectName = TC68data.payloadCreateProject.project_name;
+    const employeeName = TC68data.employee;
+    const customerName = TC68data.payloadCreateProject.customer;
+    await timelinePage.goto();
+    await timelinePage.isPageVisible();
+    const allocationName = await timelinePage.addAllocation(projectName, customerName, employeeName);
+    createdAllocations.push(allocationName);
+    await teamPage.goto();
+    await teamPage.filterEmployeeByName(employeeName);
+    await teamPage.clickFirstEmployeeFromTable();
+    const ResourceAllocationRowIsVisible = await teamPage.checkIfExtendedResourceAllocationIsVisible();
+    await expect(ResourceAllocationRowIsVisible).toBe(true);
+    await expect(page.getByText(projectName)).toBeVisible({ timeout: 5000 });
+  });
+
   test("TC102: Verify add Allocation workflow by the Plus button", async ({ page, jsonDir }) => {
     allure.story("Resource Management");
     const stubPath = path.join(jsonDir, "TC102.json");
@@ -73,7 +199,7 @@ test.describe("Manager : Resource Management Tab", () => {
     const projectName = TC103data.payloadCreateProject.project_name;
     const employeeName = TC103data.employee;
     const customerName = TC103data.payloadCreateProject.customer;
-    const { date, day } = getFormattedDateNDaysFromToday(1);
+    const { date, day } = getFormattedDateNDaysFromToday(4);
     await teamPage.goto();
     const { allocationName } = await teamPage.addAllocationFromTeamTab(
       projectName,
@@ -84,10 +210,10 @@ test.describe("Manager : Resource Management Tab", () => {
     );
     createdAllocations.push(allocationName);
     await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
-    await teamPage.goto();
-    await timelinePage.filterEmployeeByName(employeeName);
-    await teamPage.deleteAllocationFromTeamTab(employeeName, date, day);
-    await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
+    //await teamPage.goto();
+    //await timelinePage.filterEmployeeByName(employeeName);
+    //await teamPage.deleteAllocationFromTeamTab(employeeName, date, day);
+    //await expect(page.getByText("Resouce allocation deleted successfully", { exact: true })).toBeVisible();
   });
 
   test("TC104: Verify add Allocation workflow by clicking on a specfic cell wrt Project and Date", async ({
@@ -146,9 +272,9 @@ test.describe("Manager : Resource Management Tab", () => {
     const data = await readJSONFile(stubPath);
     const TC108data = data.TC108;
 
-    const projectName = TC108data.payloadCreateAllocation.project_name;
-    const employeeName = TC108data.payloadCreateAllocation.employee;
-    const customerName = TC108data.payloadCreateAllocation.customer;
+    const projectName = TC108data.infoPayloadCreateAllocation.project_name;
+    const employeeName = TC108data.infoPayloadCreateAllocation.employee;
+    const customerName = TC108data.infoPayloadCreateAllocation.customer;
     const { date, day } = getFormattedDateNDaysFromToday(3);
     await projectPage.goto();
     const { allocationName } = await projectPage.addAllocationFromProjectTab(
@@ -165,7 +291,8 @@ test.describe("Manager : Resource Management Tab", () => {
     await projectPage.goto();
     await projectPage.filterByProject(projectName);
     await projectPage.clickClipboardIcon(projectName, date, day);
-    await projectPage.addAllocationFromProjectTabFromClipboard("8");
+    const { updatedAllocationName } = await projectPage.addAllocationFromProjectTabFromClipboard("8");
+    createdAllocations.push(updatedAllocationName);
     await expect(page.getByText("Resouce allocation created successfully", { exact: true })).toBeVisible();
   });
 

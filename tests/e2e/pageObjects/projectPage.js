@@ -129,6 +129,7 @@ export class ProjectPage {
    * Get the list of project names currently displayed.
    */
   async getProjectList() {
+    await this.page.waitForLoadState("networkidle");
     const projectNames = await this.projectListItems.allTextContents();
     const totalCount = projectNames.length;
     return { projectNames, totalCount };
