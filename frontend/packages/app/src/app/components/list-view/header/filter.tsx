@@ -26,7 +26,7 @@ import EmployeeCombo from "@/app/components/employeeComboBox";
 import ComboBoxWrapper from "@/app/components/list-view/header/comboBoxWrapper";
 import type { FilterPops } from "@/app/components/list-view/types";
 import ProjectComboBox from "@/app/pages/project/project-detail/components/projectComboBox";
-import { mergeClassNames } from "@/lib/utils";
+import { getCurrencySymbol, mergeClassNames } from "@/lib/utils";
 
 /**
  * Filter component is responsible for rendering the filter section of the list view or pages.
@@ -104,6 +104,8 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
     return <ComboBoxWrapper filter={filter} handleChangeWrapper={handleChangeWrapper} />;
   }
   if (filter.type == "select-list") {
+    const isCurrencyFilter = filter.queryParameterName === "currency";
+
     return (
       <ComboBox
         value={filter.value as string[]}
@@ -113,21 +115,27 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
         showSelected={false}
         onSelect={handleChangeWrapper}
         rightIcon={
-          filter?.isMultiComboBox
+          isCurrencyFilter
+            ? null
+            : filter?.isMultiComboBox
             ? ((filter.value as string[])?.length ?? 0) > 0 && (
                 <Badge className="p-0 justify-center w-5 h-5">{(filter.value as string[]).length}</Badge>
               )
             : (filter.value?.toString()?.length ?? 0) > 0 && <Badge className="p-0 justify-center w-5 h-5">1</Badge>
         }
         leftIcon={
-          <Funnel
-            className={mergeClassNames(
-              "h-4 w-4",
-              filter?.isMultiComboBox
-                ? (filter.value as string[])?.length != 0 && "fill-primary"
-                : (filter.value?.toString()?.length ?? 0) > 0 && "fill-primary"
-            )}
-          />
+          isCurrencyFilter ? (
+            <span className="font-bold">{getCurrencySymbol(filter.value as string)}</span>
+          ) : (
+            <Funnel
+              className={mergeClassNames(
+                "h-4 w-4",
+                filter?.isMultiComboBox
+                  ? (filter.value as string[])?.length != 0 && "fill-primary"
+                  : (filter.value?.toString()?.length ?? 0) > 0 && "fill-primary"
+              )}
+            />
+          )
         }
         data={
           filter.data?.map((d: { value: string; label: string; disabled?: boolean }) => ({

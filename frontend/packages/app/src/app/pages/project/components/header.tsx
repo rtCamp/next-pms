@@ -234,23 +234,6 @@ export const Header = ({
     },
     {
       type: "select-list" as FilterPops["type"],
-      queryParameterName: "currency",
-      label: "Currency",
-      value: projectState.currency,
-      data: user.currencies.map((currency) => ({
-        label: currency,
-        value: currency,
-      })),
-      queryParameterDefault: projectState.currency,
-      handleChange: handleCurrencyChange,
-      handleDelete: useCallback(() => {
-        dispatch(setCurrency(""));
-      }, [dispatch]),
-      shouldFilterComboBox: true,
-      isMultiComboBox: false,
-    },
-    {
-      type: "select-list" as FilterPops["type"],
       queryParameterName: "tag",
       label: "Tag",
       value: projectState.tag,
@@ -274,6 +257,23 @@ export const Header = ({
       },
       shouldFilterComboBox: true,
       isMultiComboBox: true,
+    },
+    {
+      type: "select-list" as FilterPops["type"],
+      queryParameterName: "currency",
+      label: "Currency",
+      value: projectState.currency,
+      data: user.currencies.map((currency) => ({
+        label: currency,
+        value: currency,
+      })),
+      queryParameterDefault: projectState.currency,
+      handleChange: handleCurrencyChange,
+      handleDelete: useCallback(() => {
+        dispatch(setCurrency(""));
+      }, [dispatch]),
+      shouldFilterComboBox: true,
+      isMultiComboBox: false,
     },
   ];
   const sortOptions = {
