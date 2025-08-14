@@ -49,6 +49,7 @@ export interface ProjectData {
   gross_margin: number;
   per_gross_margin: number;
   status: Status;
+  custom_industry?: string;
 }
 
 export interface ProjectState {
@@ -71,6 +72,7 @@ export interface ProjectState {
   action: "SET" | "UPDATE";
   tag: Array<string>;
   isAddProjectDialogOpen: boolean;
+  selectedIndustry: Array<string>;
 }
 
 export const initialState: ProjectState = {
@@ -93,6 +95,7 @@ export const initialState: ProjectState = {
   action: "SET",
   tag: [],
   isAddProjectDialogOpen: false,
+  selectedIndustry: [],
 };
 
 export const projectSlice = createSlice({
@@ -165,6 +168,14 @@ export const projectSlice = createSlice({
       state.start = initialState.start;
       state.isNeedToFetchDataAfterUpdate = true;
     },
+    setSelectedIndustry: (state, action: PayloadAction<Array<string>>) => {
+      state.selectedIndustry = action.payload;
+      state.isLoading = true;
+      state.action = "SET";
+      state.start = initialState.start;
+      state.isNeedToFetchDataAfterUpdate = true;
+      state.pageLength = initialState.pageLength;
+    },
     setCurrency: (state, action: PayloadAction<string>) => {
       state.currency = action.payload;
       state.isLoading = true;
@@ -185,6 +196,7 @@ export const projectSlice = createSlice({
         currency: string;
         selectedBillingType: Array<string>;
         tag: Array<string>;
+        selectedIndustry: Array<string>;
       }>
     ) => {
       state.selectedProjectType = action.payload.selectedProjectType;
@@ -203,6 +215,7 @@ export const projectSlice = createSlice({
       state.currency = action.payload.currency;
       state.selectedBillingType = action.payload.selectedBillingType;
       state.tag = action.payload.tag;
+      state.selectedIndustry = action.payload.selectedIndustry;
     },
     setOrderBy: (
       state,
@@ -257,6 +270,7 @@ export const {
   setReFetchData,
   setTag,
   setIsAddProjectDialogOpen,
+  setSelectedIndustry,
 } = projectSlice.actions;
 
 export default projectSlice.reducer;

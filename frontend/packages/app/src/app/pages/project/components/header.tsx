@@ -23,6 +23,7 @@ import {
   setSelectedBusinessUnit,
   setSelectedProjectType,
   setSelectedStatus,
+  setSelectedIndustry,
   setTag,
   Status,
 } from "@/store/project";
@@ -106,6 +107,14 @@ export const Header = ({
 
     [dispatch]
   );
+  const handleIndustryChange = useCallback(
+    (filters: string | string[]) => {
+      const normalizedFilters = Array.isArray(filters) ? filters : [filters];
+      dispatch(setSelectedIndustry(normalizedFilters));
+    },
+
+    [dispatch]
+  );
   const handleCurrencyChange = useCallback(
     (filters: string | string[]) => {
       const normalizedFilters = Array.isArray(filters) ? filters[0] : filters;
@@ -117,7 +126,8 @@ export const Header = ({
   const handleSortChange = (order: sortOrder, orderColumn: string) => {
     dispatch(setOrderBy({ order, orderColumn }));
   };
-  const [tagSearchTerm, setTagSearchTerm] = useState("");
+  const [tagSearchTerm, setTagSearchTerm] = useState<string>("");
+  const [industrySearch, setIndustrySearch] = useState<string>("");
 
   const { data: tagData, mutate: mutateTagData } = useFrappeGetDocList("Tag", {
     filters: [["name", "like", `%${tagSearchTerm}%`]],
@@ -231,6 +241,33 @@ export const Header = ({
       handleDelete: handleBillingTypeChange,
       shouldFilterComboBox: true,
       isMultiComboBox: true,
+    },
+    {
+      type: "select-search" as FilterPops["type"],
+      queryParameterName: "industry",
+      label: "Industry",
+      value: projectState.selectedIndustry,
+      apiCall: {
+        url: "frappe.client.get_list",
+        filters: {
+          doctype: "Industry Type",
+          fields: ["name"],
+          or_filters: [["name", "like", `%${industrySearch}%`]],
+          limit_page_length: 5,
+        },
+        options: {
+          revalidateOnFocus: false,
+          revalidateIfStale: false,
+        },
+      },
+      queryParameterDefault: projectState.selectedIndustry,
+      handleChange: handleIndustryChange,
+      handleDelete: handleIndustryChange,
+      shouldFilterComboBox: true,
+      isMultiComboBox: true,
+      onComboSearch: (searchTerm: string) => {
+        setIndustrySearch(searchTerm);
+      },
     },
     {
       type: "select-list" as FilterPops["type"],
