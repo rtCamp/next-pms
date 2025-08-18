@@ -12,12 +12,18 @@ def has_bu_field():
     )
 
 
+@frappe.whitelist()
+def has_industry_field():
+    return frappe.get_meta("Project").has_field("custom_industry")
+
+
 @whitelist()
 def get_data(user: str = None):
     return {
         "roles": get_current_user_roles(user),
         "currencies": get_currencies(),
         "has_business_unit": has_bu_field(),
+        "has_industry": has_industry_field(),
     }
 
 

@@ -52,6 +52,7 @@ declare global {
         };
         currencies?: string[];
         has_business_unit?: boolean;
+        has_industry?: boolean;
         desk_theme?: string;
       };
     };
