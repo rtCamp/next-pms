@@ -44,14 +44,19 @@ def on_update(doc, method=None):
 
     doc.update_task_and_project()
     update_weekly_status_of_timesheet(doc.employee, getdate(doc.start_date))
-
-    publish_timesheet_update(doc.employee, doc.start_date)
+    # The attribute ignore_backdated_validation is only available when re-caclulating
+    # the timesheets, hence publish events when it is false
+    if not doc.ignore_backdated_validation:
+        publish_timesheet_update(doc.employee, doc.start_date)
 
 
 def after_delete(doc, method=None):
     doc.update_task_and_project()
     flush_cache(doc)
-    publish_timesheet_update(doc.employee, doc.start_date)
+    # The attribute ignore_backdated_validation is only available when re-caclulating
+    # the timesheets, hence publish events when it is false
+    if not doc.ignore_backdated_validation:
+        publish_timesheet_update(doc.employee, doc.start_date)
 
 
 def before_validate(doc, method=None):
@@ -65,7 +70,10 @@ def before_submit(doc, method=None):
 
 def on_cancel(doc, method=None):
     flush_cache(doc)
-    publish_timesheet_update(doc.employee, doc.start_date)
+    # The attribute ignore_backdated_validation is only available when re-caclulating
+    # the timesheets, hence publish events when it is false
+    if not doc.ignore_backdated_validation:
+        publish_timesheet_update(doc.employee, doc.start_date)
 
 
 #  Custom Methods for Timesheet DocType events
@@ -115,7 +123,7 @@ def validate_dates(doc):
     from next_pms.resource_management.api.utils.query import get_employee_leaves
     from next_pms.timesheet.api.employee import get_employee_from_user
 
-    if frappe.session.user == "Administrator":
+    if frappe.session.user == "Administrator" or doc.ignore_backdated_validation:
         return
     #  Do not allow the time entry for more then one day.
     if date_diff(doc.end_date, doc.start_date) > 0:

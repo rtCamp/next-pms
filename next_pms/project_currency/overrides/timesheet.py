@@ -8,6 +8,8 @@ from next_pms.utils.employee import get_employee_salary
 
 
 class TimesheetOverwrite(Timesheet):
+    ignore_backdated_validation = False
+
     def calculate_hours(self):
         return
 
