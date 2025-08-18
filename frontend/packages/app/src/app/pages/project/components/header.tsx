@@ -377,9 +377,16 @@ export const Header = ({
       className: "h-10 px-2 py-2",
     },
   ];
-  if (!user.hasBuField) {
-    filters = filters.filter((filter) => filter.queryParameterName !== "business-unit");
-  }
+
+  filters = filters.filter((filter) => {
+    if (filter.queryParameterName === "business-unit" && !user.hasBuField) {
+      return false;
+    }
+    if (filter.queryParameterName === "industry" && !user.hasIndustryField) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <ListViewHeader
