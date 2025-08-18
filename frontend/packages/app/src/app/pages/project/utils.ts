@@ -12,6 +12,7 @@ export const createFilter = (projectState: ProjectState) => {
     currency: projectState.currency,
     billing_type: projectState.selectedBillingType,
     tag: projectState.tag,
+    industry: projectState.selectedIndustry,
   };
 };
 
@@ -40,6 +41,9 @@ export const getFilter = (projectState: ProjectState) => {
       "in",
       projectState.selectedBillingType,
     ]);
+  }
+  if (projectState.selectedIndustry.length > 0) {
+    filters.push(["custom_industry", "in", projectState.selectedIndustry]);
   }
   if (projectState.tag.length > 0) {
     projectState.tag.forEach((tag) => {

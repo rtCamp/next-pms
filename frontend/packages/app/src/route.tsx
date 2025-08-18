@@ -13,7 +13,7 @@ import { TIMESHEET, HOME, TEAM, TASK, PROJECT, RESOURCE_MANAGEMENT, ROLES } from
 import { UserContext } from "@/lib/UserProvider";
 import { default as Layout } from "./app/layout";
 import { RootState } from "./store";
-import { setCurrency, setHasBuField } from "./store/user";
+import { setCurrency, setHasBuField, setHasIndustryField } from "./store/user";
 import { setRole } from "./store/user";
 import { setViews } from "./store/view";
 /**
@@ -72,6 +72,7 @@ const AuthenticatedRoute = () => {
         dispatch(setRole(res.message.roles));
         dispatch(setCurrency(res.message.currencies));
         dispatch(setHasBuField(res.message.has_business_unit));
+        dispatch(setHasIndustryField(res.message.has_industry));
       });
     }
     if (views.views.length < 1) {
