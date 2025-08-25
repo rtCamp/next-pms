@@ -11,13 +11,15 @@ import { KeyedMutator } from "swr";
 import { mergeClassNames } from "@/lib/utils";
 import FieldRenderer from "./components/fieldRenderer";
 import { FormContextProvider, useFormContext } from "./context";
-import { Field, FieldConfigType } from "./types";
+import { CustomTab, Field, FieldConfigType } from "./types";
 
 type FormViewProps = {
   docname: string;
   doctype: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mutateData: KeyedMutator<any>;
   tabs: Record<string, Array<Field>>;
+  customTabs?: Record<string, CustomTab>;
   readOnly?: boolean;
   currencySymbol?: string;
   tabHeaderClassName?: string;
@@ -50,6 +52,7 @@ const FormView = ({
   doctype,
   mutateData,
   tabs,
+  customTabs,
   currencySymbol,
   onChange,
   onSubmit,
@@ -67,6 +70,7 @@ const FormView = ({
           doctype={doctype}
           mutateData={mutateData}
           tabs={tabs}
+          customTabs={customTabs}
           currencySymbol={currencySymbol}
           tabHeaderClassName={tabHeaderClassName}
           tabBodyClassName={tabBodyClassName}
@@ -86,6 +90,7 @@ const FormViewWrapper = ({
   doctype,
   mutateData,
   tabs,
+  customTabs = {},
   currencySymbol,
   onChange,
   onSubmit,
@@ -132,19 +137,24 @@ const FormViewWrapper = ({
         </div>
 
         {Object.keys(tabs ?? {})?.map((tab) => {
+          const isCustomTab = customTabs[tab] && customTabs[tab].isCustom;
           return (
             <TabsContent key={tab} value={tab} className="space-y-4 focus-visible:ring-0">
-              <FieldRenderer
-                fields={tabs[tab]}
-                tabs={tabs}
-                readOnly={readOnly}
-                onChange={onChange}
-                onSubmit={onSubmit}
-                currencySymbol={currencySymbol}
-                fieldConfig={fieldConfig}
-                ref={formRef}
-                className={tabBodyClassName}
-              />
+              {isCustomTab ? (
+                <div className={tabBodyClassName}>{customTabs[tab].component}</div>
+              ) : (
+                <FieldRenderer
+                  fields={tabs[tab]}
+                  tabs={tabs}
+                  readOnly={readOnly}
+                  onChange={onChange}
+                  onSubmit={onSubmit}
+                  currencySymbol={currencySymbol}
+                  fieldConfig={fieldConfig}
+                  ref={formRef}
+                  className={tabBodyClassName}
+                />
+              )}
             </TabsContent>
           );
         })}
