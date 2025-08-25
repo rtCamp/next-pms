@@ -69,6 +69,7 @@ jobs:
       image: ubuntu:24.04
     environment: Stage # Retrive secrets from 'Stage' environment
     env:
+      TZ: Asia/Kolkata
       BASE_URL: ${{ secrets.BASE_URL }}
 
       ADMIN_ID: ${{ secrets.ADMIN_ID }}
