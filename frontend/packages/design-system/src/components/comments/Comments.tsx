@@ -1,0 +1,98 @@
+/**
+ * External dependencies.
+ */
+import * as React from "react";
+/**
+ * Internal dependencies.
+ */
+import { mergeClassNames } from "../../utils";
+import Separator from "../separator";
+import Typography from "../typography";
+import CommentFormSimple from "./CommentInput";
+import CommentsList from "./CommentsList";
+import type { Comment } from "./types";
+import type { User } from "../text-editor";
+
+export interface CommentsProps {
+  comments: Comment[];
+  onDelete?: (commentId: string) => void;
+  onUpdate?: (commentId: string, newContent: string) => void;
+  onSubmit?: (content: string) => void;
+  isLoading?: boolean;
+  isSubmitting?: boolean;
+  emptyMessage?: string;
+  placeholder?: string;
+  className?: string;
+  maxHeight?: string;
+  showForm?: boolean;
+  title?: string;
+  onFetchUsers?: (query: string) => Promise<User[]> | User[];
+  enableMentions?: boolean;
+  mentionClassName?: string;
+}
+
+const Comments = React.forwardRef<HTMLDivElement, CommentsProps>(
+  (
+    {
+      comments,
+      onDelete,
+      onUpdate,
+      onSubmit,
+      isLoading = false,
+      isSubmitting = false,
+      emptyMessage = "No comments yet",
+      placeholder = "Write a comment...",
+      className,
+      maxHeight = "400px",
+      showForm = true,
+      title = "Comments",
+      onFetchUsers,
+      enableMentions = false,
+      mentionClassName,
+      ...props
+    },
+    ref
+  ) => {
+    return (
+      <div ref={ref} className={mergeClassNames("space-y-4", className)} {...props}>
+        <div className="flex items-center justify-between">
+          <Typography variant="h4" className="font-semibold">
+            {title}
+          </Typography>
+          <Typography variant="small" className="text-muted-foreground">
+            {comments.length} {comments.length === 1 ? "comment" : "comments"}
+          </Typography>
+        </div>
+
+        {showForm && onSubmit && (
+          <>
+            <CommentFormSimple
+              onSubmit={onSubmit}
+              isSubmitting={isSubmitting}
+              placeholder={placeholder}
+              onFetchUsers={onFetchUsers}
+              enableMentions={enableMentions}
+              mentionClassName={mentionClassName}
+            />
+            <Separator />
+          </>
+        )}
+
+        <CommentsList
+          comments={comments}
+          onDelete={onDelete}
+          onUpdate={onUpdate}
+          isLoading={isLoading}
+          emptyMessage={emptyMessage}
+          maxHeight={maxHeight}
+          onFetchUsers={onFetchUsers}
+          enableMentions={enableMentions}
+        />
+      </div>
+    );
+  }
+);
+
+Comments.displayName = "Comments";
+
+export default Comments;

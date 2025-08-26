@@ -1,0 +1,36 @@
+export interface Comment {
+  id: string;
+  userImageUrl: string;
+  userName: string;
+  content: string;
+  createdAt: string | Date;
+  updatedAt?: string | Date;
+  canEdit?: boolean;
+  canDelete?: boolean;
+}
+
+export interface CommentItemProps {
+  comment: Comment;
+  onDelete?: (commentId: string) => void;
+  onUpdate?: (commentId: string, newContent: string) => void;
+  isEditing?: boolean;
+  onEditModeChange?: (commentId: string, isEditing: boolean) => void;
+  className?: string;
+}
+
+export interface CommentsListProps {
+  comments: Comment[];
+  onDelete?: (commentId: string) => void;
+  onUpdate?: (commentId: string, newContent: string) => void;
+  isLoading?: boolean;
+  emptyMessage?: string;
+  className?: string;
+  maxHeight?: string;
+}
+
+export interface CommentFormProps {
+  onSubmit: (content: string) => void | Promise<void>;
+  isSubmitting?: boolean;
+  placeholder?: string;
+  className?: string;
+}

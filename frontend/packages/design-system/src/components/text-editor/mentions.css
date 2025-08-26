@@ -1,0 +1,128 @@
+/* Mention styling for TextEditor - Flexible base styles */
+.mention {
+  /* Base mention styles - can be overridden by Tailwind classes */
+  text-decoration: none;
+  display: inline-block;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Fallback styles when Tailwind classes are not present */
+.mention:not([class*="bg-"]):not([class*="text-"]) {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: rgb(29, 78, 216);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-weight: 600;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  white-space: nowrap;
+  font-size: 0.95em;
+}
+
+.mention:not([class*="bg-"]):hover {
+  background-color: rgba(59, 130, 246, 0.25);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+/* Ensure mentions in all Quill editors are styled properly - High specificity */
+.ql-editor .mention,
+.ql-editor span.mention,
+div[data-quill] .mention,
+div[data-quill] span.mention,
+.ql-container .mention,
+.ql-container span.mention,
+[class*="ql-editor"] .mention,
+[class*="ql-editor"] span.mention {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  color: rgb(29, 78, 216) !important;
+  padding: 2px 6px !important;
+  border-radius: 6px !important;
+  font-weight: 600 !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  white-space: nowrap !important;
+  font-size: 0.95em !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+}
+
+.ql-editor .mention:hover,
+.ql-editor span.mention:hover,
+div[data-quill] .mention:hover,
+div[data-quill] span.mention:hover,
+.ql-container .mention:hover,
+.ql-container span.mention:hover,
+[class*="ql-editor"] .mention:hover,
+[class*="ql-editor"] span.mention:hover {
+  background-color: rgba(59, 130, 246, 0.25) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Make sure mentions are not editable as individual characters */
+.ql-editor .mention {
+  user-select: all !important;
+}
+
+/* Custom class for mention handling - Maximum specificity */
+html .ql-editor span.mention,
+html body .ql-editor span.mention,
+html body div .ql-editor span.mention {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  color: rgb(29, 78, 216) !important;
+  padding: 2px 6px !important;
+  border-radius: 6px !important;
+  font-weight: 600 !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  white-space: nowrap !important;
+  font-size: 0.95em !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+}
+
+/* Force mention appearance with even higher specificity */
+[class*="ql-"] span[class="mention"],
+[class*="ql-"] span[class~="mention"],
+span.mention,
+span[class="mention"],
+span[data-mention="true"] {
+  background: rgba(59, 130, 246, 0.15) !important;
+  color: rgb(29, 78, 216) !important;
+  padding: 2px 6px !important;
+  border-radius: 6px !important;
+  font-weight: 600 !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  white-space: nowrap !important;
+  font-size: 0.95em !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+}
+
+/* Specifically target mentions in comment areas */
+form span.mention,
+div[class*="comment"] span.mention,
+div[class*="border"] span.mention {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  color: rgb(29, 78, 216) !important;
+  padding: 2px 6px !important;
+  border-radius: 6px !important;
+  font-weight: 600 !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  white-space: nowrap !important;
+}
+
+.ql-editor span.mention:hover {
+  background-color: rgba(59, 130, 246, 0.25) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Ensure mention spans behave as atomic units */
+.ql-editor span.mention * {
+  pointer-events: none !important;
+}
+
+/* Prevent text selection within mentions */
+.ql-editor span.mention {
+  -webkit-user-select: all !important;
+  -moz-user-select: all !important;
+  -ms-user-select: all !important;
+  user-select: all !important;
+}
