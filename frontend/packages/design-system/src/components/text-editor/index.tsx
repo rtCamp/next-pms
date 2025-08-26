@@ -15,7 +15,7 @@ import ImageResize from "quill-image-resize-module-react";
 
 import PlainClipboard from "./clipboard";
 import { TextEditorProps, User } from "./types";
-import { mergeClassNames, preProcessLink } from "../../utils";
+import { deBounce, mergeClassNames, preProcessLink } from "../../utils";
 
 Quill.register("modules/imageResize", ImageResize);
 Quill.register("modules/clipboard", PlainClipboard, true);
@@ -72,6 +72,22 @@ const TextEditor = ({
     };
   }
 
+  const debouncedFetchUsers = useCallback(
+    deBounce(async (searchTerm: string) => {
+      if (!onFetchUsers) return;
+      try {
+        const users = await onFetchUsers(searchTerm);
+        setMentionUsers(users);
+        setSelectedMentionIndex(0);
+        setShowMentions(true);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        setShowMentions(false);
+      }
+    }, 300),
+    [onFetchUsers]
+  );
+
   const detectMention = useCallback(
     async (editor: ReactQuill.UnprivilegedEditor) => {
       if (!enableMentions || !onFetchUsers) return;
@@ -123,17 +139,9 @@ const TextEditor = ({
         });
       }
 
-      try {
-        const users = await onFetchUsers(searchTerm);
-        setMentionUsers(users);
-        setSelectedMentionIndex(0);
-        setShowMentions(true);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        setShowMentions(false);
-      }
+      debouncedFetchUsers(searchTerm);
     },
-    [enableMentions, onFetchUsers]
+    [enableMentions, debouncedFetchUsers]
   );
 
   const selectMention = useCallback(
