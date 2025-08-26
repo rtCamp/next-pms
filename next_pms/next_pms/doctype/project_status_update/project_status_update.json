@@ -5,18 +5,13 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "name1",
+  "title",
   "description",
   "status",
   "project",
   "comments"
  ],
  "fields": [
-  {
-   "fieldname": "name1",
-   "fieldtype": "Data",
-   "label": "Name"
-  },
   {
    "fieldname": "description",
    "fieldtype": "Text Editor",
@@ -39,12 +34,17 @@
    "fieldtype": "Table",
    "label": "Comments",
    "options": "Project Comments"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-25 16:56:29.368359",
+ "modified": "2025-08-26 10:38:03.946440",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "Project Status Update",
@@ -64,7 +64,9 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "title"
 }
