@@ -8,7 +8,7 @@
  "field_order": [
   "user",
   "comment",
-  "creation_at",
+  "created_at",
   "modified_at"
  ],
  "fields": [
@@ -24,9 +24,9 @@
    "label": "Comment"
   },
   {
-   "fieldname": "creation_at",
-   "fieldtype": "Datetime",
-   "label": "Created At"
+    "fieldname": "created_at",
+    "fieldtype": "Datetime",
+    "label": "Created At"
   },
   {
    "fieldname": "modified_at",
@@ -38,7 +38,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-08-26 11:17:16.208254",
+ "modified": "2025-08-26 17:12:38.275040",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "Project Comments",
