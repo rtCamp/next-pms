@@ -167,7 +167,7 @@ const TextEditor = ({
         setTimeout(() => {
           try {
             const currentHtml = editor.root.innerHTML;
-            const mentionHtml = `<span class="mention ${mentionClassName}" data-id="${user.id}" data-value="${user.value}" data-mention="true">${mentionText}</span>`;
+            const mentionHtml = `<span class="mention ${mentionClassName}" data-type="mention" data-id="${user.id}" data-value="${user.value}" data-label="${user.value}" data-mention="true">${mentionText}</span>`;
             const updatedHtml = currentHtml.replace(
               new RegExp(mentionText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"),
               mentionHtml

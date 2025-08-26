@@ -2,7 +2,9 @@ from typing import Any
 
 import frappe
 from frappe import _
+from frappe.desk.notifications import extract_mentions
 from frappe.utils import now
+from frappe.utils.user import get_user_fullname
 
 
 @frappe.whitelist()
@@ -229,6 +231,18 @@ def add_comment_to_project_status_update(name: str, comment: str, user: str = No
 
         doc.save()
 
+        try:
+            notify_mentions(
+                content=comment,
+                project_status_update=name,
+                context_type="comment",
+                context_id=f"{name}-comment-{len(doc.comments)}",
+            )
+        except Exception as e:
+            frappe.log_error(
+                _("Failed to send mention notifications: {0}").format(str(e)), "Mention Notification Error"
+            )
+
         return get_project_status_update_details(doc.name)
 
     except Exception:
@@ -261,6 +275,18 @@ def update_comment_in_project_status_update(name: str, comment_idx: int, comment
         doc.comments[comment_idx].comment = comment
         doc.comments[comment_idx].modified_at = now()
         doc.save()
+
+        try:
+            notify_mentions(
+                content=comment,
+                project_status_update=name,
+                context_type="comment_update",
+                context_id=f"{name}-comment-{comment_idx + 1}",
+            )
+        except Exception as e:
+            frappe.log_error(
+                _("Failed to send mention notifications: {0}").format(str(e)), "Mention Notification Error"
+            )
 
         return get_project_status_update_details(doc.name)
 
@@ -346,3 +372,139 @@ def get_project_status_update_details(name: str) -> dict[str, Any]:
         "modified_by": doc.modified_by,
         "docstatus": doc.docstatus,
     }
+
+
+def notify_mentions(
+    content: str,
+    project_status_update: str = None,
+    project: str = None,
+    context_type: str = "comment",
+    context_id: str = None,
+) -> dict[str, Any]:
+    """
+    Send notifications to mentioned users in project status updates or comments
+
+    Args:
+        content (str): The content containing mentions (HTML format)
+        project_status_update (str, optional): Project Status Update document name
+        project (str, optional): Project document name
+        context_type (str, optional): Type of context (project_status_update, comment, etc.)
+        context_id (str, optional): ID of the specific context
+
+    Returns:
+        Dict[str, Any]: Notification results
+    """
+    try:
+        mentioned_users = extract_mentions(content)
+
+        if not mentioned_users:
+            return {"success": True, "message": "No mentions found", "mentioned_users": [], "notifications_sent": 0}
+
+        current_user = frappe.session.user
+        current_user_name = get_user_fullname(current_user)
+
+        doc_name = project_status_update or project or context_id
+        doc_type = "Project Status Update" if project_status_update else "Project"
+
+        if project_status_update and frappe.db.exists("Project Status Update", project_status_update):
+            status_update_doc = frappe.get_doc("Project Status Update", project_status_update)
+            project_name = status_update_doc.project
+            update_title = status_update_doc.title
+            notification_context = f"project status update '{update_title}'"
+        elif project and frappe.db.exists("Project", project):
+            project_doc = frappe.get_doc("Project", project)
+            project_name = project_doc.name
+            notification_context = f"project '{project_doc.project_name or project}'"
+        else:
+            project_name = project or "Unknown Project"
+            notification_context = "project update"
+
+        notifications_sent = 0
+        notification_results = []
+
+        for user_email in mentioned_users:
+            try:
+                if user_email == current_user:
+                    continue
+
+                if not frappe.db.exists("User", user_email):
+                    notification_results.append({"user": user_email, "status": "failed", "reason": "User not found"})
+                    continue
+
+                notification_doc = frappe.get_doc(
+                    {
+                        "doctype": "Notification Log",
+                        "subject": f"You were mentioned in {notification_context}",
+                        "for_user": user_email,
+                        "type": "Mention",
+                        "document_type": doc_type,
+                        "document_name": doc_name,
+                        "from_user": current_user,
+                        "email_content": f"""
+                        <p>{current_user_name} mentioned you in {notification_context}:</p>
+                        <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #007bff; margin: 10px 0;">
+                            {content}
+                        </div>
+                        <p>Click to view the full update.</p>
+                    """,
+                        "read": 0,
+                    }
+                )
+
+                notification_doc.insert(ignore_permissions=True)
+
+                # Send email notification (optional)
+                try:
+                    frappe.sendmail(
+                        recipients=[user_email],
+                        subject=f"You were mentioned in {notification_context}",
+                        message=f"""
+                            <p>Hi,</p>
+                            <p>{current_user_name} mentioned you in {notification_context}:</p>
+                            <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #007bff; margin: 10px 0;">
+                                {content}
+                            </div>
+                            <p>You can view the full update in the project management system.</p>
+                            <p>Best regards,<br>Project Management Team</p>
+                        """,
+                        now=True,
+                    )
+
+                    notification_results.append(
+                        {"user": user_email, "status": "success", "notification_id": notification_doc.name}
+                    )
+                    notifications_sent += 1
+
+                except Exception as email_error:
+                    frappe.log_error(f"Failed to send email to {user_email}: {email_error!s}")
+                    notification_results.append(
+                        {
+                            "user": user_email,
+                            "status": "partial",
+                            "notification_id": notification_doc.name,
+                            "reason": "Email failed but notification created",
+                        }
+                    )
+                    notifications_sent += 1
+
+            except Exception as user_error:
+                frappe.log_error(_("Failed to notify user {0}: {1}").format(user_email, str(user_error)))
+                notification_results.append({"user": user_email, "status": "failed", "reason": str(user_error)})
+
+        return {
+            "success": True,
+            "message": f"Processed mentions for {len(mentioned_users)} users",
+            "mentioned_users": mentioned_users,
+            "notifications_sent": notifications_sent,
+            "notification_results": notification_results,
+            "context": {
+                "type": context_type,
+                "document_type": doc_type,
+                "document_name": doc_name,
+                "project": project_name,
+            },
+        }
+
+    except Exception as e:
+        frappe.log_error(_("Error in notify_mentions: {0}").format(str(e)))
+        frappe.throw(_("Failed to process mentions: {0}").format(str(e)))
