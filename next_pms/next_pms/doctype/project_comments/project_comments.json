@@ -7,7 +7,9 @@
  "engine": "InnoDB",
  "field_order": [
   "user",
-  "comment"
+  "comment",
+  "creation_at",
+  "modified_at"
  ],
  "fields": [
   {
@@ -20,13 +22,23 @@
    "fieldname": "comment",
    "fieldtype": "Text Editor",
    "label": "Comment"
+  },
+  {
+   "fieldname": "creation_at",
+   "fieldtype": "Datetime",
+   "label": "Created At"
+  },
+  {
+   "fieldname": "modified_at",
+   "fieldtype": "Datetime",
+   "label": "Modified At"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-08-25 20:44:40.038940",
+ "modified": "2025-08-26 11:17:16.208254",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "Project Comments",
