@@ -7,6 +7,7 @@ export interface Comment {
   updatedAt?: string | Date;
   canEdit?: boolean;
   canDelete?: boolean;
+  owner?: string;
 }
 
 export interface CommentItemProps {

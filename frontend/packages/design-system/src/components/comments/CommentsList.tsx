@@ -11,7 +11,7 @@ import Spinner from "../spinner";
 import Typography from "../typography";
 import CommentItem from "./CommentItem";
 import type { CommentsListProps } from "./types";
-import type { User } from "../text-editor";
+import type { User } from "../text-editor/types";
 
 interface CommentsListExtendedProps extends CommentsListProps {
   onFetchUsers?: (query: string) => Promise<User[]> | User[];
@@ -27,7 +27,6 @@ const CommentsList = React.forwardRef<HTMLDivElement, CommentsListExtendedProps>
       isLoading = false,
       emptyMessage = "No comments yet",
       className,
-      maxHeight = "400px",
       onFetchUsers,
       enableMentions = false,
       ...props
@@ -59,7 +58,7 @@ const CommentsList = React.forwardRef<HTMLDivElement, CommentsListExtendedProps>
     }
 
     return (
-      <div ref={ref} className={mergeClassNames("space-y-4", className)} style={{ maxHeight }} {...props}>
+      <div ref={ref} className={mergeClassNames("space-y-4 h-full", className)} {...props}>
         <div className="overflow-y-auto h-full space-y-4">
           {comments.map((comment) => (
             <CommentItem

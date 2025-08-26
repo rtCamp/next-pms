@@ -11,7 +11,7 @@ import Typography from "../typography";
 import CommentFormSimple from "./CommentInput";
 import CommentsList from "./CommentsList";
 import type { Comment } from "./types";
-import type { User } from "../text-editor";
+import type { User } from "../text-editor/types";
 
 export interface CommentsProps {
   comments: Comment[];
@@ -43,7 +43,6 @@ const Comments = React.forwardRef<HTMLDivElement, CommentsProps>(
       emptyMessage = "No comments yet",
       placeholder = "Write a comment...",
       className,
-      maxHeight = "400px",
       showForm = true,
       title = "Comments",
       onFetchUsers,
@@ -54,7 +53,7 @@ const Comments = React.forwardRef<HTMLDivElement, CommentsProps>(
     ref
   ) => {
     return (
-      <div ref={ref} className={mergeClassNames("space-y-4", className)} {...props}>
+      <div ref={ref} className={mergeClassNames("space-y-4 h-full", className)} {...props}>
         <div className="flex items-center justify-between">
           <Typography variant="h4" className="font-semibold">
             {title}
@@ -84,7 +83,6 @@ const Comments = React.forwardRef<HTMLDivElement, CommentsProps>(
           onUpdate={onUpdate}
           isLoading={isLoading}
           emptyMessage={emptyMessage}
-          maxHeight={maxHeight}
           onFetchUsers={onFetchUsers}
           enableMentions={enableMentions}
         />

@@ -107,12 +107,12 @@ const FormViewWrapper = ({
     setDocname(docname);
     setDoctype(doctype);
     setMutateData(() => mutateData);
-  }, [docname, doctype, mutateData]);
+  }, [docname, doctype, mutateData, setDocname, setDoctype, setMutateData]);
 
   return (
     <div className="w-full">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full relative">
-        <div className="border-b pt-1 sticky top-0 bg-background z-10 overflow-x-auto no-scrollbar px-2">
+        <div className="border-b pt-1 sticky top-0 bg-background z-50 overflow-x-auto no-scrollbar px-2">
           <TabsList
             className={mergeClassNames(
               "flex h-10 w-full justify-start rounded-none bg-transparent p-0",

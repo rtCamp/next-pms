@@ -39,7 +39,7 @@ const CommentForm = React.forwardRef<HTMLFormElement, CommentFormProps>(
           onChange={(e) => setContent(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="min-h-[80px] resize-none"
+          className="min-h-20 resize-none"
           disabled={isSubmitting}
         />
         <div className="flex justify-between items-center">

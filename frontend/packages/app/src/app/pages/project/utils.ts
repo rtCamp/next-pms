@@ -1,7 +1,13 @@
 /**
+ * External dependencies.
+ */
+import { type Comment } from "@next-pms/design-system/components";
+
+/**
  * Internal dependencies.
  */
 import { ProjectState } from "@/store/project";
+import { ProjectComment } from "./types";
 
 export const createFilter = (projectState: ProjectState) => {
   return {
@@ -59,4 +65,52 @@ export const getValidUserTagsValues = (input: string) => {
     .split(",") // Split by comma
     .map((value) => value.trim()) // Trim whitespace around values
     .filter((value) => value !== "" && value !== "null"); // Exclude empty and 'null' values
+};
+
+export const convertProjectCommentToComment = (
+  projectComment: ProjectComment,
+  currentUser?: string
+): Comment => {
+  return {
+    id: projectComment.idx.toString(),
+    userImageUrl: projectComment.user_image || "",
+    userName: projectComment.user_full_name,
+    content: projectComment.comment,
+    createdAt: projectComment.created_at,
+    updatedAt:
+      projectComment.modified_at !== projectComment.created_at
+        ? projectComment.modified_at
+        : undefined,
+    canEdit: projectComment.user === currentUser,
+    canDelete: projectComment.user === currentUser,
+    owner: projectComment.owner,
+  };
+};
+
+export const getInitials = (name: string) => {
+  return name
+    .split(" ")
+    .map((word) => word.charAt(0))
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+};
+
+export const getTimeAgo = (dateString: string) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInMs = now.getTime() - date.getTime();
+  const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+  const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+  const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+
+  if (diffInDays > 0) {
+    return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
+  } else if (diffInHours > 0) {
+    return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
+  } else if (diffInMinutes > 0) {
+    return `${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""} ago`;
+  } else {
+    return "Just now";
+  }
 };

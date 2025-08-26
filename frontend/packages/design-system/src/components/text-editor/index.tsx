@@ -2,10 +2,9 @@
  * External dependencies.
  */
 import { useEffect, useState, useRef, useCallback } from "react";
-import ReactQuill, { Quill, type ReactQuillProps } from "react-quill";
+import ReactQuill, { Quill } from "react-quill";
 import { DeltaStatic, Sources } from "quill";
 import "react-quill/dist/quill.snow.css";
-import "./mentions.css";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import ImageResize from "quill-image-resize-module-react";
@@ -15,22 +14,8 @@ import ImageResize from "quill-image-resize-module-react";
  */
 
 import PlainClipboard from "./clipboard";
+import { TextEditorProps, User } from "./types";
 import { mergeClassNames, preProcessLink } from "../../utils";
-export interface User {
-  id: string;
-  value: string;
-}
-
-export interface TextEditorProps extends ReactQuillProps {
-  allowImageUpload?: boolean;
-  allowVideoUpload?: boolean;
-  className?: string;
-  hideToolbar?: boolean;
-  onChange: (value: string) => void;
-  enableMentions?: boolean;
-  onFetchUsers?: (query: string) => Promise<User[]> | User[];
-  mentionClassName?: string;
-}
 
 Quill.register("modules/imageResize", ImageResize);
 Quill.register("modules/clipboard", PlainClipboard, true);
@@ -174,25 +159,16 @@ const TextEditor = ({
         setTimeout(() => {
           try {
             const currentHtml = editor.root.innerHTML;
-            console.log("Current HTML before replacement:", currentHtml);
-
             const mentionHtml = `<span class="mention ${mentionClassName}" data-id="${user.id}" data-value="${user.value}" data-mention="true">${mentionText}</span>`;
-
             const updatedHtml = currentHtml.replace(
               new RegExp(mentionText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"),
               mentionHtml
             );
-
-            console.log("Updated HTML after replacement:", updatedHtml);
-
             editor.root.innerHTML = updatedHtml;
-
             const event = new Event("input", { bubbles: true });
             editor.root.dispatchEvent(event);
-
             const newContent = editor.root.innerHTML;
             onChange(newContent);
-
             const mentionElements = editor.root.querySelectorAll('span.mention, span[data-mention="true"]');
             mentionElements.forEach((span) => {
               const htmlSpan = span as HTMLElement;
@@ -339,7 +315,6 @@ const TextEditor = ({
     if (quillRef.current && enableMentions) {
       const editorHtml = quillRef.current.getEditor().root.innerHTML;
       actualHtml = editorHtml;
-      console.log("Editor HTML content:", editorHtml);
     }
 
     const formattedValue = formatHtml(actualHtml);
@@ -403,7 +378,7 @@ const TextEditor = ({
         ref={quillRef}
         {...Props}
         className={mergeClassNames(
-          "border rounded-md border-input [&>div:first-child]:border-t-0 [&>div:first-child]:border-r-0 [&>div:first-child]:border-l-0 [&>div:first-child]:border-input [&>div:first-child]:border-bottom [&>div:last-child]:border-none text-foreground bg-background whitespace-normal",
+          "border p-2 rounded-md border-input [&>div:first-child]:border-t-0 [&>div:first-child]:border-r-0 [&>div:first-child]:border-l-0 [&>div:first-child]:border-input [&>div:first-child]:border-bottom [&>div:last-child]:border-none text-foreground bg-background whitespace-normal",
           hideToolbar && "border-none !resize-none [&_.ql-editor]:min-h-0 [&_.ql-editor]:p-2",
           !hideToolbar && "break-all",
           className
@@ -418,7 +393,7 @@ const TextEditor = ({
       {/* Custom Mention Dropdown */}
       {showMentions && mentionUsers.length > 0 && (
         <div
-          className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto min-w-64"
+          className="fixed z-50 bg-background border border-foreground/10 rounded-lg shadow-lg max-h-48 overflow-y-auto min-w-64"
           style={{
             top: mentionPosition.top,
             left: mentionPosition.left,
@@ -428,8 +403,8 @@ const TextEditor = ({
             <div
               key={user.id}
               className={mergeClassNames(
-                "px-3 py-2 cursor-pointer flex items-center gap-2 hover:bg-gray-50",
-                index === selectedMentionIndex && "bg-blue-50 text-blue-700"
+                "px-3 py-2 cursor-pointer flex items-center gap-2 hover:bg-foreground/10",
+                index === selectedMentionIndex && "bg-blue-50 text-blue-700 hover:bg-blue-50"
               )}
               onMouseDown={(e) => {
                 e.preventDefault();

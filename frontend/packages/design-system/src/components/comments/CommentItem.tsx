@@ -13,7 +13,7 @@ import Button from "../button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../dropdown-menu";
 import TextEditor from "../text-editor";
 import type { CommentItemProps } from "./types";
-import type { User } from "../text-editor";
+import type { User } from "../text-editor/types";
 import Typography from "../typography";
 
 interface CommentItemExtendedProps extends CommentItemProps {
@@ -88,7 +88,7 @@ const CommentItem = React.forwardRef<HTMLDivElement, CommentItemExtendedProps>(
       <div
         ref={ref}
         className={mergeClassNames(
-          "flex gap-3 p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200",
+          "flex gap-3 p-4 bg-background border rounded-lg shadow-sm hover:shadow-md transition-all duration-200",
           className
         )}
         {...props}
@@ -100,18 +100,23 @@ const CommentItem = React.forwardRef<HTMLDivElement, CommentItemExtendedProps>(
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <div className="flex items-center gap-2 flex-wrap">
-              <Typography variant="small" className="font-medium">
-                {comment.userName}
-              </Typography>
-              <Typography variant="small" className="text-muted-foreground">
-                {formatDate(comment.createdAt)}
-              </Typography>
-              {comment.updatedAt && comment.updatedAt !== comment.createdAt && (
-                <Typography variant="small" className="text-muted-foreground italic">
-                  (edited)
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Typography variant="small" className="font-medium">
+                  {comment.userName}
                 </Typography>
-              )}
+                <Typography variant="small" className="text-muted-foreground">
+                  {formatDate(comment.createdAt)}
+                </Typography>
+                {comment.updatedAt && comment.updatedAt !== comment.createdAt && (
+                  <Typography variant="small" className="text-muted-foreground italic">
+                    (edited)
+                  </Typography>
+                )}
+              </div>
+              <Typography variant="small" className="font-medium text-muted-foreground">
+                {comment.owner}
+              </Typography>
             </div>
 
             {showActions && !isLocalEditing && (
@@ -124,13 +129,16 @@ const CommentItem = React.forwardRef<HTMLDivElement, CommentItemExtendedProps>(
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   {comment.canEdit && onUpdate && (
-                    <DropdownMenuItem onClick={handleEdit}>
+                    <DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
                       <Edit className="mr-2 h-4 w-4" />
                       Edit
                     </DropdownMenuItem>
                   )}
                   {comment.canDelete && onDelete && (
-                    <DropdownMenuItem onClick={handleDelete} className="text-destructive">
+                    <DropdownMenuItem
+                      onClick={handleDelete}
+                      className="text-destructive cursor-pointer hover:bg-muted hover:text-destructive"
+                    >
                       <Trash2 className="mr-2 h-4 w-4" />
                       Delete
                     </DropdownMenuItem>
@@ -143,7 +151,7 @@ const CommentItem = React.forwardRef<HTMLDivElement, CommentItemExtendedProps>(
           <div className="mt-2">
             {isLocalEditing ? (
               <div className="space-y-2">
-                <div className="border border-gray-200 rounded-lg overflow-hidden focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+                <div className="border border-foreground/50 rounded-lg overflow-hidden focus-within:border-foreground/50 focus-within:ring-1 focus-within:ring-foreground/50">
                   <TextEditor
                     value={editContent}
                     onChange={setEditContent}

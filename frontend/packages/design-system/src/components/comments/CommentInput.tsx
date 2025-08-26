@@ -12,7 +12,7 @@ import Button from "../button";
 import Spinner from "../spinner";
 import TextEditor from "../text-editor";
 import type { CommentFormProps } from "./types";
-import type { User } from "../text-editor";
+import type { User } from "../text-editor/types";
 
 interface CommentFormSimpleProps extends CommentFormProps {
   onFetchUsers?: (query: string) => Promise<User[]> | User[];
@@ -77,7 +77,7 @@ const CommentFormSimple = React.forwardRef<HTMLFormElement, CommentFormSimplePro
         onKeyDown={handleKeyDown}
         {...props}
       >
-        <div className="border border-gray-200 rounded-lg overflow-hidden focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+        <div className="border rounded-lg overflow-hidden focus-within:border-foreground/50 focus-within:ring-1 focus-within:ring-foreground/50">
           <TextEditor
             value={content}
             onChange={setContent}

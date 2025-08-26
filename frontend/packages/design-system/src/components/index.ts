@@ -153,11 +153,8 @@ export {
 export { Tabs, TabsList, TabsTrigger, TabsContent } from "./tabs";
 
 export { DeleteConfirmationDialog } from "./confirmation-dialog";
-export {
-  default as TextEditor,
-  type TextEditorProps,
-  type User,
-} from "./text-editor";
+export { default as TextEditor } from "./text-editor";
+export { type TextEditorProps, type User } from "./text-editor/types";
 
 export {
   Comments,
