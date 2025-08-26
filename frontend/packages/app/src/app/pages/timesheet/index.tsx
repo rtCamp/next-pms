@@ -48,6 +48,7 @@ function Timesheet() {
 
   const [startDateParam, setStartDateParam] = useQueryParam<string>("date", "");
   const user = useSelector((state: RootState) => state.user);
+  const hasContractorRole = user.roles.some((role: string) => role === "Contractor");
   const [timesheet, dispatch] = useReducer(reducer, initialState);
   const dailyWorkingHour = expectatedHours(user.workingHours, user.workingFrequency);
   const { data, isLoading, error, mutate } = useFrappeGetCall("next_pms.timesheet.api.timesheet.get_timesheet_data", {
@@ -173,27 +174,32 @@ function Timesheet() {
   return (
     <>
       <Header className="justify-end gap-x-3">
-        <Button variant="outline" onClick={handleAddLeave} title="Add Time">
-          <Plus />
-          Leave
-        </Button>
+        {!hasContractorRole && (
+          <Button variant="outline" onClick={handleAddLeave} title="Add Time">
+            <Plus />
+            Leave
+          </Button>
+        )}
+
         <Button onClick={handleAddTime} title="Add Time">
           <Plus />
           Time
         </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline">
-              <EllipsisVertical />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="mr-2 [&_div]:cursor-pointer  [&_div]:gap-x-2">
-            <DropdownMenuItem onClick={handleImportTaskFromGoogleCalendar}>
-              <CalendarArrowDown />
-              <Typography variant="p">Import Events From Google Calendar</Typography>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {!hasContractorRole && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <EllipsisVertical />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="mr-2 [&_div]:cursor-pointer  [&_div]:gap-x-2">
+              <DropdownMenuItem onClick={handleImportTaskFromGoogleCalendar}>
+                <CalendarArrowDown />
+                <Typography variant="p">Import Events From Google Calendar</Typography>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </Header>
 
       {isLoading && Object.keys(timesheet.data?.data).length == 0 ? (

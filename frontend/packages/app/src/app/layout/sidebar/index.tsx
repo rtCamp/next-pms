@@ -44,6 +44,8 @@ const Sidebar = () => {
   });
 
   const hasPmRole = user.roles.some((role: string) => ROLES.includes(role));
+  const hasContractorRole = user.roles.some((role: string) => role === "Contractor");
+
   const privateViews = viewInfo.views.filter(
     (view: ViewData) => view.user === user.user && !view.default && !view.public
   );
@@ -88,7 +90,7 @@ const Sidebar = () => {
       to: RESOURCE_MANAGEMENT,
       label: "Resource Management",
       key: "resource-management",
-      isPmRoute: false,
+      isPmRoute: hasContractorRole ? true : false,
       children: [
         {
           to: RESOURCE_MANAGEMENT + "/timeline",
