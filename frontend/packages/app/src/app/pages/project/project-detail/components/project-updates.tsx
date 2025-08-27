@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
   Skeleton,
   useToast,
+  Badge,
 } from "@next-pms/design-system/components";
 import type { User } from "@next-pms/design-system/components";
 import { FrappeError, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
@@ -107,7 +108,7 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
 
     if (!titleToSave.trim()) {
       toast({
-        description: "Title is required",
+        description: "Project Update title is required",
         variant: "destructive",
       });
       return;
@@ -133,7 +134,10 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
           convertProjectCommentToComment(comment, user.user)
         );
         setComments(convertedComments);
-
+        toast({
+          description: "Project Status Update saved successfully",
+          variant: "success",
+        });
         refetchProjectUpdate();
       }
     } catch (error) {
@@ -332,9 +336,9 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
                   <p className="text-xs text-gray-400 text-wrap">{projectUpdate?.owner}</p>
                 </div>
               </div>
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+              <Badge variant={projectUpdate?.status === "Publish" ? "default" : "outline"}>
                 {projectUpdate?.status}
-              </span>
+              </Badge>
             </div>
           </div>
         )}
@@ -446,54 +450,65 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
                   <X className="h-4 w-4 mr-2" />
                   Cancel
                 </Button>
-                <DropdownMenu open={isOpenSaveChanges} onOpenChange={setIsOpenSaveChanges}>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      className=" px-6"
-                      disabled={isSaving || (editingTitle ? !editTitle.trim() : !editDescription.trim())}
-                    >
-                      <Send className="h-4 w-4 mr-2" />
-                      {isSaving ? "Saving..." : "Save"}
-                      {isOpenSaveChanges ? (
-                        <ChevronUp className="ml-5 h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="ml-5 h-4 w-4" />
-                      )}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => handleSave("Draft")}
-                      className="cursor-pointer"
-                      disabled={isSaving}
-                    >
-                      <div className="flex flex-col">
-                        <span className="font-medium">Save as Draft</span>
-                        <span className="text-xs text-muted-foreground">Save without publishing</span>
-                      </div>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => handleSave("Review")}
-                      className="cursor-pointer"
-                      disabled={isSaving}
-                    >
-                      <div className="flex flex-col">
-                        <span className="font-medium">Review</span>
-                        <span className="text-xs text-muted-foreground">Submit for review</span>
-                      </div>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => handleSave("Publish")}
-                      className="cursor-pointer"
-                      disabled={isSaving}
-                    >
-                      <div className="flex flex-col">
-                        <span className="font-medium">Publish Now</span>
-                        <span className="text-xs text-muted-foreground">Make public immediately</span>
-                      </div>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                {projectUpdate?.status === "Publish" ? (
+                  <Button
+                    className=" px-6"
+                    disabled={isSaving || (editingTitle ? !editTitle.trim() : !editDescription.trim())}
+                    onClick={() => handleSave("Publish")}
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    {isSaving ? "Saving..." : "Save"}
+                  </Button>
+                ) : (
+                  <DropdownMenu open={isOpenSaveChanges} onOpenChange={setIsOpenSaveChanges}>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        className=" px-6"
+                        disabled={isSaving || (editingTitle ? !editTitle.trim() : !editDescription.trim())}
+                      >
+                        <Send className="h-4 w-4 mr-2" />
+                        {isSaving ? "Saving..." : "Save"}
+                        {isOpenSaveChanges ? (
+                          <ChevronUp className="ml-5 h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="ml-5 h-4 w-4" />
+                        )}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => handleSave("Draft")}
+                        className="cursor-pointer"
+                        disabled={isSaving}
+                      >
+                        <div className="flex flex-col">
+                          <span className="font-medium">Save as Draft</span>
+                          <span className="text-xs text-muted-foreground">Save without publishing</span>
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleSave("Review")}
+                        className="cursor-pointer"
+                        disabled={isSaving}
+                      >
+                        <div className="flex flex-col">
+                          <span className="font-medium">Review</span>
+                          <span className="text-xs text-muted-foreground">Submit for review</span>
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleSave("Publish")}
+                        className="cursor-pointer"
+                        disabled={isSaving}
+                      >
+                        <div className="flex flex-col">
+                          <span className="font-medium">Publish Now</span>
+                          <span className="text-xs text-muted-foreground">Make public immediately</span>
+                        </div>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
             )}
           </div>
