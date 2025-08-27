@@ -9,6 +9,8 @@
   "description",
   "status",
   "project",
+  "last_edited_at",
+  "last_edited_by",
   "comments"
  ],
  "fields": [
@@ -39,13 +41,24 @@
    "fieldname": "title",
    "fieldtype": "Data",
    "label": "Title"
+  },
+  {
+   "fieldname": "last_edited_at",
+   "fieldtype": "Datetime",
+   "label": "Last Edited At"
+  },
+  {
+   "fieldname": "last_edited_by",
+   "fieldtype": "Link",
+   "label": "Last Edited By",
+   "options": "User"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-26 10:38:03.946440",
- "modified_by": "Administrator",
+ "modified": "2025-08-27 20:21:45.502777",
+ "modified_by": "aanchal.singh@rtcamp.com",
  "module": "Next PMS",
  "name": "Project Status Update",
  "owner": "Administrator",
