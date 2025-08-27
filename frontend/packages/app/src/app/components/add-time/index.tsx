@@ -3,6 +3,7 @@
  */
 import { useCallback, useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useSelector } from "react-redux";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   useToast,
@@ -37,6 +38,7 @@ import { z } from "zod";
 import EmployeeCombo from "@/app/components/employeeComboBox";
 import { mergeClassNames, expectatedHours, parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetSchema } from "@/schema/timesheet";
+import { RootState } from "@/store";
 import type { TaskData } from "@/types";
 import TimeSelector from "./time-selector";
 import type { AddTimeProps } from "./type";
@@ -68,6 +70,7 @@ const AddTime = ({
   task = "",
   project = "",
 }: AddTimeProps) => {
+  const user = useSelector((state: RootState) => state.user);
   const { call } = useContext(FrappeContext) as FrappeConfig;
   const { call: save } = useFrappePostCall("next_pms.timesheet.api.timesheet.save");
   const [searchTask, setSearchTask] = useState(task);
@@ -203,6 +206,7 @@ const AddTime = ({
     doctype: "Project",
     fields: ["name", "project_name"],
     limit_page_length: "null",
+    filters: user.roles.includes("Contractor") ? { name: "proj-0344" } : null,
   });
 
   const { data: perDayEmpHours, mutate: mutatePerDayHrs } = useFrappeGetCall(

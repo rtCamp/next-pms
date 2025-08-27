@@ -2,7 +2,7 @@
  * External dependencies
  */
 import { useCallback, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useToast } from "@next-pms/design-system/components";
 import { useFrappePostCall } from "frappe-react-sdk";
 import { Plus } from "lucide-react";
@@ -12,6 +12,7 @@ import { Plus } from "lucide-react";
 import { Header as ListViewHeader } from "@/app/components/list-view/header";
 import { FilterPops, ButtonProps } from "@/app/components/list-view/types";
 import { parseFrappeErrorMsg } from "@/lib/utils";
+import { RootState } from "@/store";
 import { updateView } from "@/store/view";
 import { TaskStatusType } from "@/types/task";
 import { createFilter, getFilter } from "../utils";
@@ -28,6 +29,7 @@ export const Header = ({
   taskState,
   taskDispatch,
 }: HeaderProps) => {
+  const user = useSelector((state: RootState) => state.user);
   const [projectSearch, setProjectSeach] = useState<string>("");
   const { toast } = useToast();
   const dispatch = useDispatch();
@@ -100,6 +102,7 @@ export const Header = ({
             ["name", "like", `%${projectSearch}%`],
             ["project_name", "like", `%${projectSearch}%`],
           ],
+          filters: user.roles.includes("Contractor") ? { name: "proj-0344" } : null,
         },
         options: {
           revalidateOnFocus: false,

@@ -21,6 +21,12 @@ def get_task_list(
 ):
     import json
 
+    roles = frappe.get_roles()
+
+    if "Contractor" in roles and frappe.session.user != "Administrator":
+        # TODO: Needs to change this afterwards
+        projects = ["proj-0344"]
+
     frappe.has_permission(doctype="Project", throw=True)
     search_filter = {}
     if isinstance(projects, str):
