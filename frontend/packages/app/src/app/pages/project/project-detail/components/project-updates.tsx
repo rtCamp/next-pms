@@ -422,11 +422,11 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
                     Created {getTimeAgo(projectUpdate?.creation)}
                   </Typography>
                 </div>
-                {projectUpdate?.modified && projectUpdate?.modified !== projectUpdate?.creation && (
+                {projectUpdate?.last_edited_at && (
                   <div className="flex gap-1 w-full">
                     <Edit3 className="h-4 w-4 text-foreground/70" />
                     <Typography variant="p" className="text-foreground/70 max-md:text-xs">
-                      Last edited {getTimeAgo(projectUpdate?.modified)}
+                      Last edited {getTimeAgo(projectUpdate?.last_edited_at)}
                     </Typography>
                   </div>
                 )}

@@ -46,6 +46,8 @@ def save_project_status_update(
             doc.title = title
             doc.description = description or ""
             doc.status = status
+            doc.last_edited_at = now()
+            doc.last_edited_by = frappe.session.user
 
             if comments is not None:
                 doc.comments = []
@@ -364,6 +366,8 @@ def get_project_status_update_details(name: str) -> dict[str, Any]:
         "comments": comments_with_details,
         "creation": doc.creation,
         "modified": doc.modified,
+        "last_edited_at": doc.last_edited_at,
+        "last_edited_by": doc.last_edited_by,
         "owner": doc.owner,
         "modified_by": doc.modified_by,
         "docstatus": doc.docstatus,

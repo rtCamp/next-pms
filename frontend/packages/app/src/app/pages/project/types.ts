@@ -45,6 +45,8 @@ export interface ProjectUpdate {
   owner: string;
   modified_by: string;
   docstatus: number;
+  last_edited_at: string;
+  last_edited_by: string;
 }
 
 export interface ProjectComment {
