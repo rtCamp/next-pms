@@ -31,6 +31,7 @@ const CommentItem = React.forwardRef<HTMLDivElement, CommentItemExtendedProps>(
       onEditModeChange,
       className,
       onFetchUsers,
+      mentionClassName,
       enableMentions = false,
       ...props
     },
@@ -159,6 +160,7 @@ const CommentItem = React.forwardRef<HTMLDivElement, CommentItemExtendedProps>(
                     hideToolbar={true}
                     enableMentions={enableMentions}
                     onFetchUsers={onFetchUsers}
+                    mentionClassName={mentionClassName}
                     className="border-0 focus:ring-0 focus:border-0 [&_.ql-editor]:min-h-[80px] [&_.ql-editor]:p-3 [&_.ql-container]:border-0"
                   />
                 </div>

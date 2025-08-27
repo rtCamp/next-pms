@@ -17,8 +17,47 @@ import PlainClipboard from "./clipboard";
 import { TextEditorProps, User } from "./types";
 import { deBounce, mergeClassNames, preProcessLink } from "../../utils";
 
+const Inline = Quill.import("blots/inline");
+
+class MentionBlot extends Inline {
+  static blotName = "mention";
+  static className = "mention";
+  static tagName = "SPAN";
+
+  static create(value: { id?: string; value?: string; label?: string; className?: string }) {
+    const node = super.create() as HTMLElement;
+    node.setAttribute("data-mention", "true");
+    if (value?.id) node.setAttribute("data-id", String(value.id));
+    if (value?.value) node.setAttribute("data-value", String(value.value));
+    if (value?.label) node.setAttribute("data-label", String(value.label));
+    node.className = `mention ${value?.className ?? ""}`.trim();
+    return node;
+  }
+
+  static formats(node: HTMLElement) {
+    return {
+      id: node.getAttribute("data-id") || "",
+      value: node.getAttribute("data-value") || "",
+      label: node.getAttribute("data-label") || "",
+    };
+  }
+
+  format(name: string, value: unknown) {
+    if (name === MentionBlot.blotName && value && typeof value === "object") {
+      const val = value as { id?: string; value?: string; label?: string; className?: string };
+      if (val.id) (this.domNode as HTMLElement).setAttribute("data-id", String(val.id));
+      if (val.value) (this.domNode as HTMLElement).setAttribute("data-value", String(val.value));
+      if (val.label) (this.domNode as HTMLElement).setAttribute("data-label", String(val.label));
+      return;
+    }
+    super.format(name, value);
+  }
+}
+
 Quill.register("modules/imageResize", ImageResize);
 Quill.register("modules/clipboard", PlainClipboard, true);
+Quill.register(MentionBlot);
+
 const TextEditor = ({
   allowImageUpload = false,
   allowVideoUpload = false,
@@ -141,7 +180,7 @@ const TextEditor = ({
 
       debouncedFetchUsers(searchTerm);
     },
-    [enableMentions, debouncedFetchUsers]
+    [enableMentions, debouncedFetchUsers, onFetchUsers]
   );
 
   const selectMention = useCallback(
@@ -161,7 +200,7 @@ const TextEditor = ({
 
         editor.deleteText(startIndex, replaceLength);
 
-        const mentionText = `@${user.value}`;
+        const mentionText = `${user.value}`;
         editor.insertText(startIndex, mentionText + " ", "user");
 
         setTimeout(() => {
@@ -234,7 +273,7 @@ const TextEditor = ({
 
       while ((match = mentionRegex.exec(htmlContent)) !== null) {
         const mentionValue = match[2];
-        const fullMentionText = `@${mentionValue}`;
+        const fullMentionText = `${mentionValue}`;
         mentions.push({
           value: mentionValue,
           fullText: fullMentionText,
@@ -340,6 +379,41 @@ const TextEditor = ({
   };
 
   useEffect(() => {
+    if (!enableMentions || !quillRef.current) return;
+    const quill = quillRef.current.getEditor();
+
+    quill.clipboard.addMatcher("span", (node, delta) => {
+      const element = node as HTMLElement;
+      const isMention =
+        element.classList.contains("mention") ||
+        element.getAttribute("data-mention") === "true" ||
+        element.hasAttribute("data-value");
+
+      if (isMention) {
+        const label = element.getAttribute("data-label") || element.textContent || "";
+        const valueAttr = element.getAttribute("data-value") || label;
+        const idAttr = element.getAttribute("data-id") || valueAttr;
+        return new (Quill.import("delta"))().insert(label, {
+          mention: { id: idAttr, value: valueAttr, label },
+        });
+      }
+      return delta;
+    });
+
+    try {
+      const root = quill.root;
+      const spans = root.querySelectorAll('span.mention, span[data-mention="true"], span[data-value]');
+      spans.forEach((span) => {
+        const el = span as HTMLElement;
+        el.className = `mention ${mentionClassName}`;
+        if (!el.getAttribute("data-mention")) el.setAttribute("data-mention", "true");
+      });
+    } catch (error) {
+      console.error("Error in mention styling:", error);
+    }
+  }, [enableMentions, mentionClassName]);
+
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (showMentions) {
         handleMentionKeyDown(event);
@@ -392,7 +466,7 @@ const TextEditor = ({
           className
         )}
         theme="snow"
-        formats={undefined}
+        formats={["bold", "italic", "color", "list", "indent", "align", "link", "mention"]}
         modules={modules}
         onChange={handleChange}
         value={editorValue}

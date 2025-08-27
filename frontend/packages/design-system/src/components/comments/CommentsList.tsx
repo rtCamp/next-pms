@@ -29,6 +29,7 @@ const CommentsList = React.forwardRef<HTMLDivElement, CommentsListExtendedProps>
       className,
       onFetchUsers,
       enableMentions = false,
+      mentionClassName,
       ...props
     },
     ref
@@ -70,6 +71,7 @@ const CommentsList = React.forwardRef<HTMLDivElement, CommentsListExtendedProps>
               onEditModeChange={handleEditModeChange}
               onFetchUsers={onFetchUsers}
               enableMentions={enableMentions}
+              mentionClassName={mentionClassName}
             />
           ))}
         </div>

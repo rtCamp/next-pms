@@ -17,6 +17,7 @@ export interface CommentItemProps {
   isEditing?: boolean;
   onEditModeChange?: (commentId: string, isEditing: boolean) => void;
   className?: string;
+  mentionClassName?: string;
 }
 
 export interface CommentsListProps {
@@ -27,6 +28,7 @@ export interface CommentsListProps {
   emptyMessage?: string;
   className?: string;
   maxHeight?: string;
+  mentionClassName?: string;
 }
 
 export interface CommentFormProps {

@@ -8,7 +8,7 @@ import * as React from "react";
 import { mergeClassNames } from "../../utils";
 import Separator from "../separator";
 import Typography from "../typography";
-import CommentFormSimple from "./CommentInput";
+import CommentInput from "./CommentInput";
 import CommentsList from "./CommentsList";
 import type { Comment } from "./types";
 import type { User } from "../text-editor/types";
@@ -65,7 +65,7 @@ const Comments = React.forwardRef<HTMLDivElement, CommentsProps>(
 
         {showForm && onSubmit && (
           <>
-            <CommentFormSimple
+            <CommentInput
               onSubmit={onSubmit}
               isSubmitting={isSubmitting}
               placeholder={placeholder}
@@ -85,6 +85,7 @@ const Comments = React.forwardRef<HTMLDivElement, CommentsProps>(
           emptyMessage={emptyMessage}
           onFetchUsers={onFetchUsers}
           enableMentions={enableMentions}
+          mentionClassName={mentionClassName}
         />
       </div>
     );
