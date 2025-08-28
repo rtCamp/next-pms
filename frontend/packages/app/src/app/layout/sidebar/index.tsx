@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
 import { useLocation } from "react-router-dom";
@@ -84,7 +84,9 @@ const Sidebar = () => {
       key: "task",
       isPmRoute: false,
     },
-    {
+  ];
+  if (!user.roles.includes("Contractor") || user.userName == "Administrator") {
+    routes.push({
       to: RESOURCE_MANAGEMENT,
       label: "Resource Management",
       key: "resource-management",
@@ -109,15 +111,16 @@ const Sidebar = () => {
           icon: FolderKanban,
         },
       ],
-    },
-  ];
+    });
+  }
   const toggleNestedRoutes = (key: string) => {
     setOpenRoutes((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const handleSidebarCollapse = () => {
+  const handleSidebarCollapse = useCallback(() => {
     dispatch(setSidebarCollapsed(checkIsMobile()));
-  };
+  }, [dispatch]);
+
   useEffect(() => {
     setLocalStorage("next-pms:isSidebarCollapsed", user.isSidebarCollapsed);
   }, [user.isSidebarCollapsed]);
@@ -127,7 +130,7 @@ const Sidebar = () => {
     }
     window.addEventListener("resize", handleSidebarCollapse);
     return () => window.removeEventListener("resize", handleSidebarCollapse);
-  }, []);
+  }, [dispatch, handleSidebarCollapse]);
 
   return (
     <ErrorFallback>

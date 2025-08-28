@@ -46,15 +46,19 @@ export interface DocMetaProps {
 declare global {
   interface Window {
     frappe: {
-      boot: {
-        user: {
-          roles: string[];
+      boot?: {
+        user?: {
+          roles?: string[];
+          can_create: string[];
         };
         currencies?: string[];
         has_business_unit?: boolean;
         has_industry?: boolean;
         desk_theme?: string;
         views: ViewState["views"];
+        is_calendar_setup: boolean;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        global_filters: { [key: string]: Array<any> };
       };
     };
   }
