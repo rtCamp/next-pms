@@ -146,6 +146,11 @@ def filter_project_list(project_name=None, customer=None, billing_type=None, pag
 
 
 def resource_api_permissions_check():
+    if "Contractor" in frappe.get_roles() and frappe.session.user != "Administrator":
+        frappe.throw(
+            frappe._("You don't have permission to access this resource"),
+            frappe.PermissionError,
+        )
     frappe.only_for(["Projects Manager", "Projects User", "Employee"], message=True)
 
     roles = frappe.get_roles()
