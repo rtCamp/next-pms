@@ -72,7 +72,7 @@ export const convertProjectCommentToComment = (
   currentUser?: string
 ): Comment => {
   return {
-    id: projectComment.idx.toString(),
+    name: projectComment.name,
     userImageUrl: projectComment.user_image || "",
     userName: projectComment.user_full_name,
     content: projectComment.comment,

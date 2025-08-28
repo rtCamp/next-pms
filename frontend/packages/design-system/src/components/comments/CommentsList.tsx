@@ -16,6 +16,7 @@ import type { User } from "../text-editor/types";
 interface CommentsListExtendedProps extends CommentsListProps {
   onFetchUsers?: (query: string) => Promise<User[]> | User[];
   enableMentions?: boolean;
+  activeCommentName?: string;
 }
 
 const CommentsList = React.forwardRef<HTMLDivElement, CommentsListExtendedProps>(
@@ -24,12 +25,14 @@ const CommentsList = React.forwardRef<HTMLDivElement, CommentsListExtendedProps>
       comments,
       onDelete,
       onUpdate,
+      onShare,
       isLoading = false,
       emptyMessage = "No comments yet",
       className,
       onFetchUsers,
       enableMentions = false,
       mentionClassName,
+      activeCommentName,
       ...props
     },
     ref
@@ -63,11 +66,13 @@ const CommentsList = React.forwardRef<HTMLDivElement, CommentsListExtendedProps>
         <div className="overflow-y-auto h-full space-y-4">
           {comments.map((comment) => (
             <CommentItem
-              key={comment.id}
+              activeCommentName={activeCommentName}
+              key={comment.name}
               comment={comment}
               onDelete={onDelete}
               onUpdate={onUpdate}
-              isEditing={editingCommentId === comment.id}
+              onShare={onShare}
+              isEditing={editingCommentId === comment.name}
               onEditModeChange={handleEditModeChange}
               onFetchUsers={onFetchUsers}
               enableMentions={enableMentions}

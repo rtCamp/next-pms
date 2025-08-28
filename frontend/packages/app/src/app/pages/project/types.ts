@@ -50,7 +50,7 @@ export interface ProjectUpdate {
 }
 
 export interface ProjectComment {
-  idx: number;
+  name: string;
   user: string;
   user_full_name: string;
   user_image: string;

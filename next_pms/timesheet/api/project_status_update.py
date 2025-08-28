@@ -240,7 +240,9 @@ def add_comment_to_project_status_update(name: str, comment: str, user: str = No
         doc.save()
 
         try:
-            notify_mentions(content=comment, project_status_update=name, context_type="comment")
+            notify_mentions(
+                content=comment, comment_name=doc.comments[-1].name, project_status_update=name, context_type="comment"
+            )
         except Exception as e:
             frappe.log_error(
                 _("Failed to process mention notifications: {0}").format(str(e)), "Mention Notification Error"
@@ -254,67 +256,92 @@ def add_comment_to_project_status_update(name: str, comment: str, user: str = No
 
 
 @frappe.whitelist()
-def update_comment_in_project_status_update(name: str, comment_idx: int, comment: str) -> dict[str, Any]:
+def update_comment_in_project_status_update(
+    name: str,
+    comment: str = "",
+    comment_name: str | None = None,
+) -> dict[str, Any]:
     """
     Update a specific comment in a Project Status Update
 
     Args:
         name (str): Project Status Update document name
-        comment_idx (int): Comment row index
         comment (str): Updated comment text
+        comment_name (str | None): Child row name of the comment
 
     Returns:
         Dict[str, Any]: Updated document data
     """
     try:
+        if not comment_name:
+            frappe.throw(_("Comment name is required"))
+
         if not frappe.db.exists("Project Status Update", name):
             frappe.throw(_("Project Status Update '{name}' does not exist"))
 
         doc = frappe.get_doc("Project Status Update", name)
 
-        if comment_idx < 0 or comment_idx >= len(doc.comments):
-            frappe.throw(_("Invalid comment index"))
+        target_row = None
+        for row in doc.comments:
+            if row.name == comment_name:
+                target_row = row
+                break
 
-        doc.comments[comment_idx].comment = comment
-        doc.comments[comment_idx].modified_at = now()
+        target_row.comment = comment
+        target_row.modified_at = now()
         doc.save()
 
         try:
-            notify_mentions(content=comment, project_status_update=name, context_type="comment_update")
+            notify_mentions(
+                content=comment,
+                comment_name=target_row.name,
+                project_status_update=name,
+                context_type="comment_update",
+            )
         except Exception as e:
             frappe.log_error(
-                _("Failed to process mention notifications: {0}").format(str(e)), "Mention Notification Error"
+                _("Failed to process mention notifications: {0}").format(str(e)),
+                "Mention Notification Error",
             )
 
         return get_project_status_update_details(doc.name)
 
-    except Exception:
-        frappe.log_error(_("Error updating comment: {e!s}"))
-        frappe.throw(_("Failed to update comment: {e!s}"))
+    except Exception as e:
+        frappe.log_error(_("Error updating comment: {0}").format(str(e)))
+        frappe.throw(_("Failed to update comment: {0}").format(str(e)))
 
 
 @frappe.whitelist()
-def delete_comment_from_project_status_update(name: str, comment_idx: int) -> dict[str, Any]:
+def delete_comment_from_project_status_update(name: str, comment_name: str) -> dict[str, Any]:
     """
     Delete a specific comment from a Project Status Update
 
     Args:
         name (str): Project Status Update document name
-        comment_idx (int): Comment row index
+        comment_name (str): Comment row name
 
     Returns:
         Dict[str, Any]: Updated document data
     """
     try:
+        if not comment_name:
+            frappe.throw(_("Comment name is required"))
+
         if not frappe.db.exists("Project Status Update", name):
             frappe.throw(_("Project Status Update '{name}' does not exist"))
 
         doc = frappe.get_doc("Project Status Update", name)
 
-        if comment_idx < 0 or comment_idx >= len(doc.comments):
-            frappe.throw(_("Invalid comment index"))
+        target_row = None
+        for row in doc.comments:
+            if row.name == comment_name:
+                target_row = row
+                break
 
-        doc.remove(doc.comments[comment_idx])
+        if not target_row:
+            frappe.throw(_("Comment with name '{0}' not found").format(comment_name))
+
+        doc.remove(target_row)
         doc.save()
 
         return get_project_status_update_details(doc.name)
@@ -341,7 +368,7 @@ def get_project_status_update_details(name: str) -> dict[str, Any]:
         user_doc = frappe.get_doc("User", comment.user) if comment.user else None
 
         comment_data = {
-            "idx": comment.idx,
+            "name": comment.name,
             "user": comment.user,
             "user_full_name": user_doc.full_name if user_doc else comment.user,
             "user_image": user_doc.user_image if user_doc else None,
@@ -376,6 +403,7 @@ def get_project_status_update_details(name: str) -> dict[str, Any]:
 
 def notify_mentions(
     content: str,
+    comment_name: str = None,
     project_status_update: str = None,
     context_type: str = "comment",
 ) -> dict[str, Any]:
@@ -451,7 +479,9 @@ def notify_mentions(
                 notification_doc.insert(ignore_permissions=True)
 
                 try:
-                    project_url = frappe.utils.get_url(f"/next-pms/project/{project_name}")
+                    project_url = frappe.utils.get_url(
+                        f"/next-pms/project/{project_name}?tab=Project+Updates&cid={comment_name}"
+                    )
                     send_html_email(
                         user_email,
                         f"You were mentioned in {notification_context}",
@@ -513,7 +543,7 @@ def send_publish_notifications(project: str, title: str):
         if not users:
             return
 
-        project_url = frappe.utils.get_url(f"/next-pms/project/{project}")
+        project_url = frappe.utils.get_url(f"/next-pms/project/{project}?tab=Project+Updates")
 
         for user in users:
             send_project_publish_email(user, title, project, project_url)

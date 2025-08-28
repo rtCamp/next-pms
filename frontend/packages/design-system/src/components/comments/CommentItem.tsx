@@ -3,7 +3,7 @@
  */
 import * as React from "react";
 import { useState } from "react";
-import { MoreVertical, Edit, Trash2, Check, X } from "lucide-react";
+import { MoreHorizontal, Edit, Trash2, Check, X, Forward } from "lucide-react";
 /**
  * Internal dependencies.
  */
@@ -19,6 +19,7 @@ import Typography from "../typography";
 interface CommentItemExtendedProps extends CommentItemProps {
   onFetchUsers?: (query: string) => Promise<User[]> | User[];
   enableMentions?: boolean;
+  activeCommentName?: string;
 }
 
 const CommentItem = React.forwardRef<HTMLDivElement, CommentItemExtendedProps>(
@@ -27,12 +28,14 @@ const CommentItem = React.forwardRef<HTMLDivElement, CommentItemExtendedProps>(
       comment,
       onDelete,
       onUpdate,
+      onShare,
       isEditing = false,
       onEditModeChange,
       className,
       onFetchUsers,
       mentionClassName,
       enableMentions = false,
+      activeCommentName,
       ...props
     },
     ref
@@ -58,13 +61,13 @@ const CommentItem = React.forwardRef<HTMLDivElement, CommentItemExtendedProps>(
 
     const handleEdit = () => {
       setIsLocalEditing(true);
-      onEditModeChange?.(comment.id, true);
+      onEditModeChange?.(comment.name, true);
     };
 
     const handleCancelEdit = () => {
       setEditContent(comment.content);
       setIsLocalEditing(false);
-      onEditModeChange?.(comment.id, false);
+      onEditModeChange?.(comment.name, false);
     };
 
     const handleSaveEdit = () => {
@@ -73,24 +76,42 @@ const CommentItem = React.forwardRef<HTMLDivElement, CommentItemExtendedProps>(
       const plainText = tempDiv.textContent || tempDiv.innerText || "";
 
       if (plainText.trim() && editContent !== comment.content) {
-        onUpdate?.(comment.id, editContent.trim());
+        onUpdate?.(comment.name, editContent.trim());
       }
       setIsLocalEditing(false);
-      onEditModeChange?.(comment.id, false);
+      onEditModeChange?.(comment.name, false);
     };
 
     const handleDelete = () => {
-      onDelete?.(comment.id);
+      onDelete?.(comment.name);
     };
 
     const showActions = (comment.canEdit || comment.canDelete) && (onUpdate || onDelete);
 
+    React.useEffect(() => {
+      if (activeCommentName === comment.name) {
+        const element = document.getElementById(comment?.name);
+        if (element) {
+          element.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+        }
+      }
+    }, [activeCommentName, comment.name]);
+
+    const handleShareComment = () => {
+      onShare?.(comment.name);
+    };
+
     return (
       <div
+        id={comment.name}
         ref={ref}
         className={mergeClassNames(
           "flex gap-3 p-4 bg-background border rounded-lg shadow-sm hover:shadow-md transition-all duration-200",
-          className
+          className,
+          activeCommentName === comment.name && "blinking-border"
         )}
         {...props}
       >
@@ -119,40 +140,45 @@ const CommentItem = React.forwardRef<HTMLDivElement, CommentItemExtendedProps>(
                 {comment.owner}
               </Typography>
             </div>
-
-            {showActions && !isLocalEditing && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-auto p-1">
-                    <MoreVertical className="h-4 w-4" />
-                    <span className="sr-only">Comment actions</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {comment.canEdit && onUpdate && (
-                    <DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
-                      <Edit className="mr-2 h-4 w-4" />
-                      Edit
-                    </DropdownMenuItem>
-                  )}
-                  {comment.canDelete && onDelete && (
-                    <DropdownMenuItem
-                      onClick={handleDelete}
-                      className="text-destructive cursor-pointer hover:bg-muted hover:text-destructive"
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+            <div className="flex items-center gap-2">
+              <Button onClick={handleShareComment} variant="ghost" size="sm" className="h-auto p-1">
+                <Forward className="scale-x-[-1]" />
+                <span className="sr-only">Share</span>
+              </Button>
+              {showActions && !isLocalEditing && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-auto p-1">
+                      <MoreHorizontal className="" />
+                      <span className="sr-only">Comment actions</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {comment.canEdit && onUpdate && (
+                      <DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit
+                      </DropdownMenuItem>
+                    )}
+                    {comment.canDelete && onDelete && (
+                      <DropdownMenuItem
+                        onClick={handleDelete}
+                        className="text-destructive cursor-pointer hover:bg-muted hover:text-destructive"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
           </div>
 
           <div className="mt-2">
             {isLocalEditing ? (
               <div className="space-y-2">
-                <div className="border border-foreground/50 rounded-lg overflow-hidden focus-within:border-foreground/50 focus-within:ring-1 focus-within:ring-foreground/50">
+                <div className="border rounded-lg overflow-hidden focus-within:border-foreground/50 focus-within:ring-1 focus-within:ring-foreground/50">
                   <TextEditor
                     value={editContent}
                     onChange={setEditContent}

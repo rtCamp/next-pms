@@ -1,5 +1,5 @@
 export interface Comment {
-  id: string;
+  name: string;
   userImageUrl: string;
   userName: string;
   content: string;
@@ -14,6 +14,7 @@ export interface CommentItemProps {
   comment: Comment;
   onDelete?: (commentId: string) => void;
   onUpdate?: (commentId: string, newContent: string) => void;
+  onShare?: (commentId: string) => void;
   isEditing?: boolean;
   onEditModeChange?: (commentId: string, isEditing: boolean) => void;
   className?: string;
@@ -24,6 +25,7 @@ export interface CommentsListProps {
   comments: Comment[];
   onDelete?: (commentId: string) => void;
   onUpdate?: (commentId: string, newContent: string) => void;
+  onShare?: (commentId: string) => void;
   isLoading?: boolean;
   emptyMessage?: string;
   className?: string;

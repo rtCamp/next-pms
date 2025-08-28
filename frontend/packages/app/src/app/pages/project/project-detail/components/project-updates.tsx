@@ -3,6 +3,7 @@
  */
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
+import { useSearchParams } from "react-router-dom";
 import {
   Input,
   TextEditor,
@@ -29,6 +30,7 @@ import { Calendar, Send, Edit3, X, ChevronDown, ChevronUp } from "lucide-react";
  * Internal dependencies
  */
 import { mergeClassNames, parseFrappeErrorMsg } from "@/lib/utils";
+import { copyToClipboard } from "@/lib/utils";
 import { RootState } from "@/store";
 import { ProjectComment, ProjectUpdate } from "../../types";
 import { convertProjectCommentToComment, getInitials, getTimeAgo } from "../../utils";
@@ -41,6 +43,8 @@ interface ProjectUpdatesProps {
 const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
   const { toast } = useToast();
   const user = useSelector((state: RootState) => state.user);
+  const [searchParams] = useSearchParams();
+
   const [isOpenSaveChanges, setIsOpenSaveChanges] = useState(false);
   const [projectUpdate, setProjectUpdate] = useState<ProjectUpdate | null>(null);
   const [editingTitle, setEditingTitle] = useState(false);
@@ -204,13 +208,12 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
     if (!projectUpdate) return;
 
     try {
-      const comment = projectUpdate.comments.find((c) => c.idx.toString() === commentId);
+      const comment = projectUpdate.comments.find((c) => c.name === commentId);
       if (!comment) return;
 
-      const commentIdx = comment.idx - 1;
       const result = await updateComment({
         name: projectUpdate.name,
-        comment_idx: commentIdx,
+        comment_name: comment.name,
         comment: newContent,
       });
 
@@ -236,13 +239,12 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
     if (!projectUpdate) return;
 
     try {
-      const comment = projectUpdate.comments.find((c) => c.idx.toString() === commentId);
+      const comment = projectUpdate.comments.find((c) => c.name === commentId);
       if (!comment) return;
 
-      const commentIdx = comment.idx - 1; // Convert to 0-based index
       const result = await deleteComment({
         name: projectUpdate.name,
-        comment_idx: commentIdx,
+        comment_name: comment.name,
       });
 
       if (result?.message) {
@@ -261,6 +263,10 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
       });
       console.error("Error deleting comment:", err);
     }
+  };
+
+  const handleShareComment = (commentId: string) => {
+    copyToClipboard(`${window.location.origin}/next-pms/project/${projectId}?tab=Project Updates&cid=${commentId}`);
   };
 
   const handleFetchUsers = async (searchTerm: string): Promise<User[]> => {
@@ -518,9 +524,11 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
           <div className="mx-8 max-md:mx-3 mb-4">
             <Comments
               comments={comments}
+              activeCommentName={searchParams.get("cid") ?? ""}
               onSubmit={handleCommentSubmit}
               onUpdate={handleCommentUpdate}
               onDelete={handleCommentDelete}
+              onShare={handleShareComment}
               isSubmitting={isSubmittingComment || isAddingComment || isUpdatingComment || isDeletingComment}
               title="Comments"
               placeholder="Share your thoughts on this project update..."

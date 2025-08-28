@@ -18,6 +18,7 @@ export interface CommentsProps {
   onDelete?: (commentId: string) => void;
   onUpdate?: (commentId: string, newContent: string) => void;
   onSubmit?: (content: string) => void;
+  onShare?: (commentId: string) => void;
   isLoading?: boolean;
   isSubmitting?: boolean;
   emptyMessage?: string;
@@ -29,6 +30,7 @@ export interface CommentsProps {
   onFetchUsers?: (query: string) => Promise<User[]> | User[];
   enableMentions?: boolean;
   mentionClassName?: string;
+  activeCommentName?: string;
 }
 
 const Comments = React.forwardRef<HTMLDivElement, CommentsProps>(
@@ -38,6 +40,7 @@ const Comments = React.forwardRef<HTMLDivElement, CommentsProps>(
       onDelete,
       onUpdate,
       onSubmit,
+      onShare,
       isLoading = false,
       isSubmitting = false,
       emptyMessage = "No comments yet",
@@ -48,6 +51,7 @@ const Comments = React.forwardRef<HTMLDivElement, CommentsProps>(
       onFetchUsers,
       enableMentions = false,
       mentionClassName,
+      activeCommentName,
       ...props
     },
     ref
@@ -78,9 +82,11 @@ const Comments = React.forwardRef<HTMLDivElement, CommentsProps>(
         )}
 
         <CommentsList
+          activeCommentName={activeCommentName}
           comments={comments}
           onDelete={onDelete}
           onUpdate={onUpdate}
+          onShare={onShare}
           isLoading={isLoading}
           emptyMessage={emptyMessage}
           onFetchUsers={onFetchUsers}
