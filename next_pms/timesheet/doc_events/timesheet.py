@@ -287,7 +287,12 @@ def publish_timesheet_update(employee, start_date):
         after_commit=True,
         room=get_site_room(),
     )
-
+    publish_realtime(
+        f"timesheet_update::{employee}",
+        {"message": data},
+        after_commit=True,
+        user=frappe.session.user,
+    )
     res = get_compact_view_data(
         date=get_date_str(start_date),
         max_week=2,
@@ -299,6 +304,12 @@ def publish_timesheet_update(employee, start_date):
         {"message": res, "employee": employee, "date": get_date_str(start_date)},
         after_commit=True,
         room=get_site_room(),
+    )
+    publish_realtime(
+        "timesheet_info",
+        {"message": res, "employee": employee, "date": get_date_str(start_date)},
+        after_commit=True,
+        user=frappe.session.user,
     )
 
 
