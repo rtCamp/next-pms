@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { RefObject, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@next-pms/design-system/components";
 import { KeyedMutator } from "swr";
 
@@ -100,7 +101,16 @@ const FormViewWrapper = ({
   formRef,
   fieldConfig = {},
 }: FormViewProps) => {
-  const [activeTab, setActiveTab] = useState(Object.keys(tabs ?? {})[0]);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(() => {
+    const tabFromQuery = searchParams.get("tab");
+    const availableTabs = Object.keys(tabs ?? {});
+    if (tabFromQuery && availableTabs.includes(tabFromQuery)) {
+      return tabFromQuery;
+    }
+    return availableTabs[0] || "";
+  });
+
   const { setDoctype, setDocname, setMutateData } = useFormContext();
 
   useEffect(() => {
@@ -109,9 +119,30 @@ const FormViewWrapper = ({
     setMutateData(() => mutateData);
   }, [docname, doctype, mutateData, setDocname, setDoctype, setMutateData]);
 
+  useEffect(() => {
+    const tabFromQuery = searchParams.get("tab");
+    const availableTabs = Object.keys(tabs ?? {});
+
+    if (tabFromQuery && availableTabs.includes(tabFromQuery)) {
+      setActiveTab(tabFromQuery);
+    } else if (availableTabs.length > 0 && activeTab !== availableTabs[0]) {
+      setActiveTab(availableTabs[0]);
+      const newSearchParams = new URLSearchParams(searchParams.toString());
+      newSearchParams.set("tab", availableTabs[0]);
+      setSearchParams(newSearchParams);
+    }
+  }, [searchParams, tabs, activeTab, setSearchParams]);
+
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+    newSearchParams.set("tab", newTab);
+    setSearchParams(newSearchParams);
+  };
+
   return (
     <div className="w-full">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full relative">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full relative">
         <div className="border-b pt-1 sticky top-0 bg-background z-50 overflow-x-auto no-scrollbar px-2">
           <TabsList
             className={mergeClassNames(
