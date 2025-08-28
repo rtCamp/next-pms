@@ -3,11 +3,12 @@
  */
 import * as React from "react";
 import { useState } from "react";
-import { MoreHorizontal, Edit, Trash2, Check, X, Forward } from "lucide-react";
+import { MoreHorizontal, Edit, Trash2, Save, X, Forward } from "lucide-react";
 /**
  * Internal dependencies.
  */
 import { mergeClassNames } from "../../utils";
+import { formatDate } from "../../utils/date";
 import { Avatar, AvatarFallback, AvatarImage } from "../avatar";
 import Button from "../button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../dropdown-menu";
@@ -42,22 +43,6 @@ const CommentItem = React.forwardRef<HTMLDivElement, CommentItemExtendedProps>(
   ) => {
     const [editContent, setEditContent] = useState(comment.content);
     const [isLocalEditing, setIsLocalEditing] = useState(isEditing);
-
-    const formatDate = (date: string | Date): string => {
-      const dateObj = typeof date === "string" ? new Date(date) : date;
-      const now = new Date();
-      const diffMs = now.getTime() - dateObj.getTime();
-      const diffMins = Math.floor(diffMs / (1000 * 60));
-      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-      if (diffMins < 1) return "Just now";
-      if (diffMins < 60) return `${diffMins}m ago`;
-      if (diffHours < 24) return `${diffHours}h ago`;
-      if (diffDays < 7) return `${diffDays}d ago`;
-
-      return dateObj.toLocaleDateString();
-    };
 
     const handleEdit = () => {
       setIsLocalEditing(true);
@@ -200,7 +185,7 @@ const CommentItem = React.forwardRef<HTMLDivElement, CommentItemExtendedProps>(
                     onClick={handleSaveEdit}
                     disabled={!editContent.trim() || editContent === comment.content}
                   >
-                    <Check className="mr-1 h-3 w-3" />
+                    <Save className="mr-1 h-3 w-3" />
                     Save
                   </Button>
                 </div>

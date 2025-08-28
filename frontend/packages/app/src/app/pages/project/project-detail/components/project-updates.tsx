@@ -4,6 +4,7 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useSearchParams } from "react-router-dom";
+import { formatDate } from "@next-pms/design-system";
 import {
   Input,
   TextEditor,
@@ -24,7 +25,7 @@ import {
 } from "@next-pms/design-system/components";
 import type { User } from "@next-pms/design-system/components";
 import { FrappeError, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
-import { Calendar, Send, Edit3, X, ChevronDown, ChevronUp } from "lucide-react";
+import { Calendar, Edit3, X, ChevronDown, ChevronUp, Save } from "lucide-react";
 
 /**
  * Internal dependencies
@@ -33,7 +34,7 @@ import { mergeClassNames, parseFrappeErrorMsg } from "@/lib/utils";
 import { copyToClipboard } from "@/lib/utils";
 import { RootState } from "@/store";
 import { ProjectComment, ProjectUpdate } from "../../types";
-import { convertProjectCommentToComment, getInitials, getTimeAgo } from "../../utils";
+import { convertProjectCommentToComment, getInitials } from "../../utils";
 
 interface ProjectUpdatesProps {
   projectId?: string;
@@ -253,6 +254,10 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
           convertProjectCommentToComment(comment, user.user)
         );
         setComments(convertedComments);
+        toast({
+          description: "Comment deleted successfully",
+          variant: "success",
+        });
         refetchProjectUpdate();
       }
     } catch (error) {
@@ -425,14 +430,14 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
                 <div className="flex gap-1 w-full">
                   <Calendar className="h-4 w-4 text-foreground/70" />
                   <Typography variant="p" className="text-foreground/70 max-md:text-xs">
-                    Created {getTimeAgo(projectUpdate?.creation)}
+                    Created {formatDate(projectUpdate?.creation)}
                   </Typography>
                 </div>
                 {projectUpdate?.last_edited_at && (
                   <div className="flex gap-1 w-full">
                     <Edit3 className="h-4 w-4 text-foreground/70" />
                     <Typography variant="p" className="text-foreground/70 max-md:text-xs">
-                      Last edited {getTimeAgo(projectUpdate?.last_edited_at)}
+                      Last edited {formatDate(projectUpdate?.last_edited_at)}
                     </Typography>
                   </div>
                 )}
@@ -462,7 +467,7 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
                     disabled={isSaving || (editingTitle ? !editTitle.trim() : !editDescription.trim())}
                     onClick={() => handleSave("Publish")}
                   >
-                    <Send className="h-4 w-4 mr-2" />
+                    <Save className="mr-2" />
                     {isSaving ? "Saving..." : "Save"}
                   </Button>
                 ) : (
@@ -472,7 +477,7 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
                         className=" px-6"
                         disabled={isSaving || (editingTitle ? !editTitle.trim() : !editDescription.trim())}
                       >
-                        <Send className="h-4 w-4 mr-2" />
+                        <Save className="mr-2" />
                         {isSaving ? "Saving..." : "Save"}
                         {isOpenSaveChanges ? (
                           <ChevronUp className="ml-5 h-4 w-4" />
