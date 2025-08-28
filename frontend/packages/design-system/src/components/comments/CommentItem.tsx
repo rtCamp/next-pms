@@ -107,12 +107,12 @@ const CommentItem = React.forwardRef<HTMLDivElement, CommentItemExtendedProps>(
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <div className="flex flex-col">
+            <div className="flex flex-col truncate max-md:max-w-[8rem]">
               <div className="flex items-center gap-2 flex-wrap">
-                <Typography variant="small" className="font-medium">
+                <Typography title={comment.userName} variant="small" className="font-medium truncate ">
                   {comment.userName}
                 </Typography>
-                <Typography variant="small" className="text-muted-foreground">
+                <Typography title={formatDate(comment.createdAt)} variant="small" className="text-muted-foreground ">
                   {formatDate(comment.createdAt)}
                 </Typography>
                 {comment.updatedAt && comment.updatedAt !== comment.createdAt && (
@@ -121,7 +121,7 @@ const CommentItem = React.forwardRef<HTMLDivElement, CommentItemExtendedProps>(
                   </Typography>
                 )}
               </div>
-              <Typography variant="small" className="font-medium text-muted-foreground">
+              <Typography title={comment.owner} variant="small" className="font-medium text-muted-foreground">
                 {comment.owner}
               </Typography>
             </div>

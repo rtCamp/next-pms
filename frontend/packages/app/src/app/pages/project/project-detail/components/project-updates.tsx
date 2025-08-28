@@ -342,9 +342,21 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
                     {getInitials(projectUpdate?.owner_full_name || "")}
                   </AvatarFallback>
                 </Avatar>
-                <div>
-                  <p className="font-semibold text-sm text-foreground">{projectUpdate?.owner_full_name}</p>
-                  <p className="text-xs text-gray-400 text-wrap">{projectUpdate?.owner}</p>
+                <div className="flex flex-col max-md:max-w-[10rem]">
+                  <Typography
+                    title={projectUpdate?.owner_full_name}
+                    variant="p"
+                    className="font-semibold text-foreground truncate"
+                  >
+                    {projectUpdate?.owner_full_name}
+                  </Typography>
+                  <Typography
+                    title={projectUpdate?.owner}
+                    variant="small"
+                    className="text-muted-foreground text-wrap truncate"
+                  >
+                    {projectUpdate?.owner}
+                  </Typography>
                 </div>
               </div>
               <Badge variant={projectUpdate?.status === "Publish" ? "default" : "outline"}>

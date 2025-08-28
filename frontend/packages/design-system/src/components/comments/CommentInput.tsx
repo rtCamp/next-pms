@@ -91,7 +91,7 @@ const CommentFormSimple = React.forwardRef<HTMLFormElement, CommentFormSimplePro
         </div>
 
         <div className="flex justify-between items-center">
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm max-md:text-xs text-muted-foreground">
             Press <kbd className="px-1 py-0.5 text-xs bg-muted rounded">Ctrl</kbd> +{" "}
             <kbd className="px-1 py-0.5 text-xs bg-muted rounded">Enter</kbd> to submit
           </div>
