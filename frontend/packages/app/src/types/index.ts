@@ -1,5 +1,5 @@
 import { TaskStatusType } from "./task";
-
+import { type ViewState } from "../store/view";
 export type Employee = {
   name: string;
   image: string;
@@ -45,15 +45,16 @@ export interface DocMetaProps {
 }
 declare global {
   interface Window {
-    frappe?: {
-      boot?: {
-        user?: {
-          roles?: string[];
+    frappe: {
+      boot: {
+        user: {
+          roles: string[];
         };
         currencies?: string[];
         has_business_unit?: boolean;
         has_industry?: boolean;
         desk_theme?: string;
+        views: ViewState["views"];
       };
     };
   }
