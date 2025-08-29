@@ -336,9 +336,9 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
           <div className="px-8 max-md:px-3 py-6 pb-3 border-b border-foreground/10">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
-                <Avatar className="h-9 w-9 ring-2 ring-foreground/70">
+                <Avatar className="size-10 max-md:size-8">
                   <AvatarImage src={projectUpdate?.owner_image} alt={projectUpdate?.owner_full_name} />
-                  <AvatarFallback className="bg-background text-foreground font-semibold">
+                  <AvatarFallback className="text-foreground font-semibold">
                     {getInitials(projectUpdate?.owner_full_name || "")}
                   </AvatarFallback>
                 </Avatar>
