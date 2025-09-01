@@ -173,27 +173,32 @@ function Timesheet() {
   return (
     <>
       <Header className="justify-end gap-x-3">
-        <Button variant="outline" onClick={handleAddLeave} title="Add Time">
-          <Plus />
-          Leave
-        </Button>
+        {window.frappe?.boot?.user?.can_create.includes("Leave Application") && (
+          <Button variant="outline" onClick={handleAddLeave} title="Add Time">
+            <Plus />
+            Leave
+          </Button>
+        )}
+
         <Button onClick={handleAddTime} title="Add Time">
           <Plus />
           Time
         </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline">
-              <EllipsisVertical />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="mr-2 [&_div]:cursor-pointer  [&_div]:gap-x-2">
-            <DropdownMenuItem onClick={handleImportTaskFromGoogleCalendar}>
-              <CalendarArrowDown />
-              <Typography variant="p">Import Events From Google Calendar</Typography>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {window.frappe?.boot?.is_calendar_setup && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <EllipsisVertical />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="mr-2 [&_div]:cursor-pointer  [&_div]:gap-x-2">
+              <DropdownMenuItem onClick={handleImportTaskFromGoogleCalendar}>
+                <CalendarArrowDown />
+                <Typography variant="p">Import Events From Google Calendar</Typography>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </Header>
 
       {isLoading && Object.keys(timesheet.data?.data).length == 0 ? (

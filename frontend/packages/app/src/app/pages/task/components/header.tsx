@@ -96,6 +96,7 @@ export const Header = ({
         filters: {
           doctype: "Project",
           fields: ["name", "project_name as label"],
+          filters: window.frappe?.boot?.global_filters.project,
           or_filters: [
             ["name", "like", `%${projectSearch}%`],
             ["project_name", "like", `%${projectSearch}%`],

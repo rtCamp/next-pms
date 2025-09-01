@@ -202,6 +202,7 @@ const AddTime = ({
   const { data: projects, isLoading: isProjectLoading } = useFrappeGetCall("frappe.client.get_list", {
     doctype: "Project",
     fields: ["name", "project_name"],
+    filters: window.frappe?.boot?.global_filters.project,
     limit_page_length: "null",
   });
 
