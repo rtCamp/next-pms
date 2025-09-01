@@ -70,6 +70,7 @@ const ProjectComboBox = ({
       ...(debouncedSearch ? [["project_name", "like", `%${debouncedSearch}%`]] : []),
       ...(status ? [["status", "=", status]] : []),
       ...(value && !debouncedSearch ? [["name", "=", value]] : []),
+      ...(window.frappe?.boot?.global_filters.project || []),
     ],
     limit: length,
     orderBy: { field: "creation", order: "desc" },

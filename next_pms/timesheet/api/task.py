@@ -7,6 +7,7 @@ from frappe.utils import add_days, getdate, now_datetime
 from pypika import Criterion, Order
 
 from . import get_count
+from .project import get_project_filter_for_contractor
 
 
 @frappe.whitelist()
@@ -46,10 +47,16 @@ def get_task_list(
         if "project_name" in field_list:
             field_list.remove("project_name")
     #  Limit the task fetched based on the projects the user has access to.
-    if projects:
-        projects = frappe.get_list("Project", pluck="name", filters={"name": ["in", projects]})
-    else:
-        projects = frappe.get_list("Project", pluck="name")
+    allowed_projects = get_project_filter_for_contractor(only_list=True)
+    project_filters = {}
+
+    if allowed_projects:
+        if projects:
+            project_filters["name"] = ["in", list(set(allowed_projects).intersection(set(projects)))]
+        else:
+            project_filters["name"] = ["in", allowed_projects]
+
+    projects = frappe.get_list("Project", pluck="name", filters=project_filters)
 
     filter = {"project": ["in", projects]}
     if not projects:

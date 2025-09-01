@@ -1,5 +1,6 @@
 import json
 
+import frappe
 from erpnext.accounts.report.utils import get_rate_as_at
 from frappe import get_list, get_meta, whitelist
 from frappe.utils import flt, getdate
@@ -13,6 +14,7 @@ def get_projects(
     currency=None,
     fields=None,
     filters=None,
+    or_filters=None,
     start=0,
     order_by="modified desc",
 ):
@@ -28,6 +30,10 @@ def get_projects(
     if "custom_currency" not in fields:
         fields.append("custom_currency")
 
+    if not filters:
+        filters = get_project_filter_for_contractor()
+    else:
+        filters += get_project_filter_for_contractor()
     project_lists = get_list(
         "Project",
         fields=fields,
@@ -35,12 +41,17 @@ def get_projects(
         limit_start=start,
         limit=limit,
         order_by=order_by,
+        or_filters=or_filters,
     )
-    count = get_count("Project", filters=filters)
+    count = get_count("Project", filters=filters, or_filters=or_filters)
+    has_more = int(start) + int(limit) < count
+
+    if not limit:
+        has_more = False
     if not currency or len(currency) == 0:
         return {
             "data": project_lists,
-            "has_more": int(start) + int(limit) < count,
+            "has_more": has_more,
             "total_count": count,
         }
 
@@ -58,7 +69,7 @@ def get_projects(
 
     return {
         "data": project_lists,
-        "has_more": int(start) + int(limit) < count,
+        "has_more": has_more,
         "total_count": count,
     }
 
@@ -75,3 +86,13 @@ def get_currency_fields(meta_fields):
 def convert(value, rate):
     converted_value = flt(value) * (rate or 1)
     return converted_value
+
+
+def get_project_filter_for_contractor(only_list=False):
+    if "Contractor" in frappe.get_roles() and frappe.session.user != "Administrator":
+        names = frappe.share.get_shared("Project", frappe.session.user, filters=[["everyone", "!=", True]])
+        if only_list:
+            return names
+        return [["name", "in", names]]
+
+    return []

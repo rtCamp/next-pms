@@ -80,8 +80,7 @@ const AuthenticatedRoute = () => {
         dispatch(setViews(res.message));
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [call, dispatch, user.roles.length, views.views.length]);
 
   if (isLoading) {
     return <></>;
