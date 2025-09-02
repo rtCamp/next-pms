@@ -380,7 +380,7 @@ def get_project_status_update_details(name: str) -> dict[str, Any]:
         }
         comments_with_details.append(comment_data)
 
-    owner_doc = frappe.get_doc("User", doc.owner) if doc.owner else None
+    owner_data = frappe.db.get_value("User", doc.owner, ["full_name", "user_image"]) if doc.owner else None
 
     return {
         "name": doc.name,
@@ -388,8 +388,8 @@ def get_project_status_update_details(name: str) -> dict[str, Any]:
         "description": doc.description,
         "status": doc.status,
         "project": doc.project,
-        "owner_full_name": owner_doc.full_name if owner_doc else doc.owner,
-        "owner_image": owner_doc.user_image if owner_doc and owner_doc.user_image else "",
+        "owner_full_name": owner_data[0] if owner_data else doc.owner,
+        "owner_image": owner_data[1] if owner_data and owner_data[1] else "",
         "comments": comments_with_details,
         "creation": doc.creation,
         "modified": doc.modified,
