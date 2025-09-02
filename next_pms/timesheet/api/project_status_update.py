@@ -6,6 +6,8 @@ from frappe.desk.notifications import extract_mentions
 from frappe.utils import now
 from frappe.utils.user import get_user_fullname
 
+from next_pms.api.utils import error_logger
+
 ROLES = {
     "Projects Manager",
     "Projects User",
@@ -13,6 +15,7 @@ ROLES = {
 
 
 @frappe.whitelist()
+@error_logger
 def save_project_status_update(
     project: str,
     title: str,
@@ -75,20 +78,14 @@ def save_project_status_update(
             if status == "Publish":
                 should_enqueue_publish_notification = True
         if should_enqueue_publish_notification:
-            try:
-                enqueue(
-                    send_publish_notifications,
-                    project=project,
-                    title=title,
-                    enqueue_after_commit=True,
-                    queue="short",
-                    job_name=f"Publish Notifications for Project Status Update {doc.name}",
-                )
-            except Exception as e:
-                frappe.log_error(
-                    _("Failed to enqueue publish notifications: {0}").format(str(e)),
-                    "Publish Notification Enqueue Error",
-                )
+            enqueue(
+                send_publish_notifications,
+                project=project,
+                title=title,
+                enqueue_after_commit=True,
+                queue="short",
+                job_name=f"Publish Notifications for Project Status Update {doc.name}",
+            )
 
         return get_project_status_update_details(doc.name)
 
@@ -98,6 +95,7 @@ def save_project_status_update(
 
 
 @frappe.whitelist()
+@error_logger
 def create_project_status_update(
     project: str, title: str, description: str = None, status: str = "Draft", comments: list[dict] = None
 ) -> dict[str, Any]:
@@ -108,6 +106,7 @@ def create_project_status_update(
 
 
 @frappe.whitelist()
+@error_logger
 def get_project_status_update(name: str) -> dict[str, Any]:
     """
     Get a specific Project Status Update by name
@@ -118,18 +117,14 @@ def get_project_status_update(name: str) -> dict[str, Any]:
     Returns:
         Dict[str, Any]: Project Status Update data with comments
     """
-    try:
-        if not frappe.db.exists("Project Status Update", name):
-            frappe.throw(_("Project Status Update '{name}' does not exist"))
+    if not frappe.db.exists("Project Status Update", name):
+        frappe.throw(_("Project Status Update '{name}' does not exist"))
 
-        return get_project_status_update_details(name)
-
-    except Exception:
-        frappe.log_error(_("Error fetching project status update: {e!s}"))
-        frappe.throw(_("Failed to fetch project status update: {e!s}"))
+    return get_project_status_update_details(name)
 
 
 @frappe.whitelist()
+@error_logger
 def get_project_status_updates_by_project(project: str) -> list[dict[str, Any]]:
     """
     Get all Project Status Updates for a specific project
@@ -140,40 +135,37 @@ def get_project_status_updates_by_project(project: str) -> list[dict[str, Any]]:
     Returns:
         List[Dict[str, Any]]: List of Project Status Updates
     """
-    try:
-        if not frappe.db.exists("Project", project):
-            frappe.throw(_("Project '{project}' does not exist"))
 
-        updates = frappe.get_all(
-            "Project Status Update",
-            filters={"project": project},
-            fields=[
-                "name",
-                "title",
-                "description",
-                "status",
-                "project",
-                "creation",
-                "modified",
-                "owner",
-                "modified_by",
-            ],
-            order_by="creation desc",
-        )
+    if not frappe.db.exists("Project", project):
+        frappe.throw(_("Project '{project}' does not exist"))
 
-        detailed_updates = []
-        for update in updates:
-            detailed_update = get_project_status_update_details(update.name)
-            detailed_updates.append(detailed_update)
+    updates = frappe.get_all(
+        "Project Status Update",
+        filters={"project": project},
+        fields=[
+            "name",
+            "title",
+            "description",
+            "status",
+            "project",
+            "creation",
+            "modified",
+            "owner",
+            "modified_by",
+        ],
+        order_by="creation desc",
+    )
 
-        return detailed_updates
+    detailed_updates = []
+    for update in updates:
+        detailed_update = get_project_status_update_details(update.name)
+        detailed_updates.append(detailed_update)
 
-    except Exception:
-        frappe.log_error(_("Error fetching project status updates: {e!s}"))
-        frappe.throw(_("Failed to fetch project status updates: {e!s}"))
+    return detailed_updates
 
 
 @frappe.whitelist()
+@error_logger
 def update_project_status_update(
     name: str, title: str = None, description: str = None, status: str = None
 ) -> dict[str, Any]:
@@ -189,29 +181,25 @@ def update_project_status_update(
     Returns:
         Dict[str, Any]: Updated document data
     """
-    try:
-        if not frappe.db.exists("Project Status Update", name):
-            frappe.throw(_("Project Status Update '{name}' does not exist"))
+    if not frappe.db.exists("Project Status Update", name):
+        frappe.throw(_("Project Status Update '{name}' does not exist"))
 
-        doc = frappe.get_doc("Project Status Update", name)
+    doc = frappe.get_doc("Project Status Update", name)
 
-        if title is not None:
-            doc.title = title
-        if description is not None:
-            doc.description = description
-        if status is not None:
-            doc.status = status
+    if title is not None:
+        doc.title = title
+    if description is not None:
+        doc.description = description
+    if status is not None:
+        doc.status = status
 
-        doc.save()
+    doc.save()
 
-        return get_project_status_update_details(doc.name)
-
-    except Exception:
-        frappe.log_error(_("Error updating project status update: {e!s}"))
-        frappe.throw(_("Failed to update project status update: {e!s}"))
+    return get_project_status_update_details(doc.name)
 
 
 @frappe.whitelist()
+@error_logger
 def add_comment_to_project_status_update(name: str, comment: str, user: str = None) -> dict[str, Any]:
     """
     Add a comment to a Project Status Update
@@ -224,40 +212,37 @@ def add_comment_to_project_status_update(name: str, comment: str, user: str = No
     Returns:
         Dict[str, Any]: Updated document data
     """
-    try:
-        if not frappe.db.exists("Project Status Update", name):
-            frappe.throw(_("Project Status Update '{name}' does not exist"))
 
-        doc = frappe.get_doc("Project Status Update", name)
+    if not frappe.db.exists("Project Status Update", name):
+        frappe.throw(_("Project Status Update '{name}' does not exist"))
 
-        comment_row = doc.append("comments", {})
-        comment_row.user = user or frappe.session.user
-        comment_row.comment = comment
-        current_time = now()
-        comment_row.created_at = current_time
-        comment_row.modified_at = current_time
+    doc = frappe.get_doc("Project Status Update", name)
 
-        doc.save()
+    comment_row = doc.append("comments", {})
+    comment_row.user = user or frappe.session.user
+    comment_row.comment = comment
+    current_time = now()
+    comment_row.created_at = current_time
+    comment_row.modified_at = current_time
 
-        enqueue(
-            notify_mentions,
-            content=comment,
-            comment_name=doc.comments[-1].name,
-            project_status_update=name,
-            context_type="comment",
-            queue="short",
-            enqueue_after_commit=True,
-            job_name=f"Mention Notifications for Comment {doc.comments[-1].name}",
-        )
+    doc.save()
 
-        return get_project_status_update_details(doc.name)
+    enqueue(
+        notify_mentions,
+        content=comment,
+        comment_name=doc.comments[-1].name,
+        project_status_update=name,
+        context_type="comment",
+        queue="short",
+        enqueue_after_commit=True,
+        job_name=f"Mention Notifications for Comment {doc.comments[-1].name}",
+    )
 
-    except Exception:
-        frappe.log_error(_("Error adding comment: {e!s}"))
-        frappe.throw(_("Failed to add comment: {e!s}"))
+    return get_project_status_update_details(doc.name)
 
 
 @frappe.whitelist()
+@error_logger
 def update_comment_in_project_status_update(
     name: str,
     comment: str = "",
@@ -274,44 +259,41 @@ def update_comment_in_project_status_update(
     Returns:
         Dict[str, Any]: Updated document data
     """
-    try:
-        if not comment_name:
-            frappe.throw(_("Comment name is required"))
 
-        if not frappe.db.exists("Project Status Update", name):
-            frappe.throw(_("Project Status Update '{name}' does not exist"))
+    if not comment_name:
+        frappe.throw(_("Comment name is required"))
 
-        doc = frappe.get_doc("Project Status Update", name)
+    if not frappe.db.exists("Project Status Update", name):
+        frappe.throw(_("Project Status Update '{name}' does not exist"))
 
-        target_row = None
-        for row in doc.comments:
-            if row.name == comment_name:
-                target_row = row
-                break
+    doc = frappe.get_doc("Project Status Update", name)
 
-        target_row.comment = comment
-        target_row.modified_at = now()
-        doc.save()
+    target_row = None
+    for row in doc.comments:
+        if row.name == comment_name:
+            target_row = row
+            break
 
-        enqueue(
-            notify_mentions,
-            content=comment,
-            comment_name=target_row.name,
-            project_status_update=name,
-            context_type="comment_update",
-            enqueue_after_commit=True,
-            queue="short",
-            job_name=f"Mention Notifications for Comment Update {target_row.name}",
-        )
+    target_row.comment = comment
+    target_row.modified_at = now()
+    doc.save()
 
-        return get_project_status_update_details(doc.name)
+    enqueue(
+        notify_mentions,
+        content=comment,
+        comment_name=target_row.name,
+        project_status_update=name,
+        context_type="comment_update",
+        enqueue_after_commit=True,
+        queue="short",
+        job_name=f"Mention Notifications for Comment Update {target_row.name}",
+    )
 
-    except Exception as e:
-        frappe.log_error(_("Error updating comment: {0}").format(str(e)))
-        frappe.throw(_("Failed to update comment: {0}").format(str(e)))
+    return get_project_status_update_details(doc.name)
 
 
 @frappe.whitelist()
+@error_logger
 def delete_comment_from_project_status_update(name: str, comment_name: str) -> dict[str, Any]:
     """
     Delete a specific comment from a Project Status Update
@@ -323,32 +305,28 @@ def delete_comment_from_project_status_update(name: str, comment_name: str) -> d
     Returns:
         Dict[str, Any]: Updated document data
     """
-    try:
-        if not comment_name:
-            frappe.throw(_("Comment name is required"))
 
-        if not frappe.db.exists("Project Status Update", name):
-            frappe.throw(_("Project Status Update '{name}' does not exist"))
+    if not comment_name:
+        frappe.throw(_("Comment name is required"))
 
-        doc = frappe.get_doc("Project Status Update", name)
+    if not frappe.db.exists("Project Status Update", name):
+        frappe.throw(_("Project Status Update '{name}' does not exist"))
 
-        target_row = None
-        for row in doc.comments:
-            if row.name == comment_name:
-                target_row = row
-                break
+    doc = frappe.get_doc("Project Status Update", name)
 
-        if not target_row:
-            frappe.throw(_("Comment with name '{0}' not found").format(comment_name))
+    target_row = None
+    for row in doc.comments:
+        if row.name == comment_name:
+            target_row = row
+            break
 
-        doc.remove(target_row)
-        doc.save()
+    if not target_row:
+        frappe.throw(_("Comment with name '{0}' not found").format(comment_name))
 
-        return get_project_status_update_details(doc.name)
+    doc.remove(target_row)
+    doc.save()
 
-    except Exception:
-        frappe.log_error(_("Error deleting comment: {e!s}"))
-        frappe.throw(_("Failed to delete comment: {e!s}"))
+    return get_project_status_update_details(doc.name)
 
 
 def get_project_status_update_details(name: str) -> dict[str, Any]:
@@ -418,112 +396,92 @@ def notify_mentions(
     Returns:
         Dict[str, Any]: Notification results
     """
-    try:
-        mentioned_users = extract_mentions(content)
 
-        if not mentioned_users:
-            return {"message": "No mentions found"}
+    mentioned_users = extract_mentions(content)
 
-        current_user = frappe.session.user
-        current_user_name = get_user_fullname(current_user)
+    if not mentioned_users:
+        return {"message": "No mentions found"}
 
-        doc_name = project_status_update
-        doc_type = "Project Status Update" if project_status_update else "Project"
-        project_name = None
+    current_user = frappe.session.user
+    current_user_name = get_user_fullname(current_user)
 
-        if project_status_update and frappe.db.exists("Project Status Update", project_status_update):
-            status_update_doc = frappe.get_doc("Project Status Update", project_status_update)
-            project_name = status_update_doc.project
-            update_title = status_update_doc.title
-            notification_context = f"project status update '{update_title}'"
-        else:
-            return {"message": "No project status update found"}
+    doc_name = project_status_update
+    doc_type = "Project Status Update" if project_status_update else "Project"
+    project_name = None
 
-        for user_email in mentioned_users:
-            try:
-                if user_email == current_user:
-                    continue
+    if project_status_update and frappe.db.exists("Project Status Update", project_status_update):
+        status_update_doc = frappe.get_doc("Project Status Update", project_status_update)
+        project_name = status_update_doc.project
+        update_title = status_update_doc.title
+        notification_context = f"project status update '{update_title}'"
+    else:
+        return {"message": "No project status update found"}
 
-                if not frappe.db.exists("User", user_email):
-                    continue
+    for user_email in mentioned_users:
+        if user_email == current_user:
+            continue
 
-                project_url = frappe.utils.get_url(
-                    f"/next-pms/project/{project_name}?tab=Project+Updates&cid={comment_name}"
-                )
-                notification_doc = frappe.get_doc(
+        if not frappe.db.exists("User", user_email):
+            continue
+
+        project_url = frappe.utils.get_url(f"/next-pms/project/{project_name}?tab=Project+Updates&cid={comment_name}")
+        notification_doc = frappe.get_doc(
+            {
+                "doctype": "Notification Log",
+                "subject": f"You were mentioned in {notification_context}",
+                "for_user": user_email,
+                "type": "Mention",
+                "document_type": doc_type,
+                "document_name": doc_name,
+                "from_user": current_user,
+                "email_content": frappe.render_template(
+                    "next_pms/timesheet/templates/project_status_update/mention_notification.html",
                     {
-                        "doctype": "Notification Log",
-                        "subject": f"You were mentioned in {notification_context}",
-                        "for_user": user_email,
-                        "type": "Mention",
-                        "document_type": doc_type,
-                        "document_name": doc_name,
-                        "from_user": current_user,
-                        "email_content": frappe.render_template(
-                            "next_pms/timesheet/templates/project_status_update/mention_notification.html",
-                            {
-                                "current_user_name": current_user_name,
-                                "notification_context": notification_context,
-                                "content": content,
-                                "project_url": project_url,
-                            },
-                        ),
-                        "read": 0,
-                    }
-                )
+                        "current_user_name": current_user_name,
+                        "notification_context": notification_context,
+                        "content": content,
+                        "project_url": project_url,
+                    },
+                ),
+                "read": 0,
+            }
+        )
 
-                notification_doc.insert(ignore_permissions=True)
+        notification_doc.insert(ignore_permissions=True)
 
-            except Exception as user_error:
-                frappe.log_error(_("Failed to notify user {0}: {1}").format(user_email, str(user_error)))
-
-        return {
-            "message": f"Notifications sent successfully to {len(mentioned_users)} users",
-        }
-
-    except Exception as e:
-        frappe.log_error(_("Error in notify_mentions: {0}").format(str(e)))
-        frappe.throw(_("Failed to process mentions: {0}").format(str(e)))
+    return {
+        "message": f"Notifications sent successfully to {len(mentioned_users)} users",
+    }
 
 
 def send_publish_notifications(project: str, title: str):
     """Send email notifications to employees with specified roles"""
-    try:
-        users = get_users_with_roles(ROLES)
+    users = get_users_with_roles(ROLES)
+    if not users:
+        return
+    project_url = frappe.utils.get_url(f"/next-pms/project/{project}?tab=Project+Updates")
 
-        if not users:
-            return
-
-        project_url = frappe.utils.get_url(f"/next-pms/project/{project}?tab=Project+Updates")
-
-        for user in users:
-            send_project_publish_email(user, title, project, project_url)
-
-    except Exception as e:
-        frappe.log_error(_("Error sending project publish notifications: {0}").format(str(e)), f"Project: {project}")
+    for user in users:
+        send_project_publish_email(user, title, project, project_url)
 
 
 def send_project_publish_email(user, title, project_name, project_url):
-    try:
-        user_doc = frappe.get_doc("User", user)
-        if not user_doc.enabled or not user_doc.email:
-            return
+    user_doc = frappe.get_doc("User", user)
+    if not user_doc.enabled or not user_doc.email:
+        return
 
-        subject = f"Project Status Update '{title}' has been published"
+    subject = f"Project Status Update '{title}' has been published"
 
-        message = frappe.render_template(
-            "next_pms/timesheet/templates/project_status_update/publish_notification.html",
-            {
-                "user_doc": user_doc,
-                "project_name": project_name,
-                "project_url": project_url,
-            },
-        )
+    message = frappe.render_template(
+        "next_pms/timesheet/templates/project_status_update/publish_notification.html",
+        {
+            "user_doc": user_doc,
+            "project_name": project_name,
+            "project_url": project_url,
+        },
+    )
 
-        send_html_email(user_doc.email, subject, message)
-
-    except Exception as e:
-        frappe.log_error(_("Error sending email to user {0}: {1}").format(user, str(e)), f"Project: {project_name}")
+    send_html_email(user_doc.email, subject, message)
 
 
 def send_html_email(recipient: str, subject: str, html_message: str) -> None:
