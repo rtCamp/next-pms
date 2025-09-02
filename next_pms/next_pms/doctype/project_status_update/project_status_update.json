@@ -1,6 +1,6 @@
 {
  "actions": [],
- "allow_rename": 1,
+ "allow_rename": 0,
  "creation": "2025-08-25 12:12:22.154396",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -58,7 +58,7 @@
  "index_web_pages_for_search": 1,
  "links": [],
  "modified": "2025-08-27 20:21:45.502777",
- "modified_by": "aanchal.singh@rtcamp.com",
+ "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "Project Status Update",
  "owner": "Administrator",
