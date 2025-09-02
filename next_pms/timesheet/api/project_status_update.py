@@ -459,13 +459,15 @@ def notify_mentions(
                         "document_type": doc_type,
                         "document_name": doc_name,
                         "from_user": current_user,
-                        "email_content": f"""
-                            <p>{current_user_name} mentioned you in {notification_context}:</p>
-                            <div style=\"background-color: #f8f9fa; padding: 15px; border-left: 4px solid #007bff; margin: 10px 0;\">
-                                {content}
-                            </div>
-                            <p>You can view the full update in the <a href=\"{project_url}\" target=\"_blank\" rel=\"noopener noreferrer\">Next PMS</a>.</p>
-                        """,
+                        "email_content": frappe.render_template(
+                            "next_pms/timesheet/templates/project_status_update/mention_notification.html",
+                            {
+                                "current_user_name": current_user_name,
+                                "notification_context": notification_context,
+                                "content": content,
+                                "project_url": project_url,
+                            },
+                        ),
                         "read": 0,
                     }
                 )
