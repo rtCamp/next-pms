@@ -199,7 +199,6 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
         description: err,
         variant: "destructive",
       });
-      console.error("Error submitting comment:", err);
     } finally {
       setIsSubmittingComment(false);
     }
@@ -232,7 +231,6 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
         description: err,
         variant: "destructive",
       });
-      console.error("Error updating comment:", err);
     }
   };
 
@@ -266,7 +264,6 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
         description: err,
         variant: "destructive",
       });
-      console.error("Error deleting comment:", err);
     }
   };
 
@@ -314,15 +311,15 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
         <div className="w-full bg-background p-8 flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <div className="flex gap-2 w-3/4 max-md:w-full mb-4">
-              <Skeleton className="h-8 w-8 bg-gray-200 rounded-full"></Skeleton>
-              <Skeleton className="h-8 bg-gray-200 w-full rounded"></Skeleton>
+              <Skeleton className="h-8 w-8 rounded-full"></Skeleton>
+              <Skeleton className="h-8 w-full rounded"></Skeleton>
             </div>
-            <Skeleton className="h-4 bg-gray-200 rounded w-1/2 mb-8"></Skeleton>
+            <Skeleton className="h-4 rounded w-1/2 mb-8"></Skeleton>
           </div>
           <div className="space-y-3">
-            <Skeleton className="h-6 bg-gray-200 rounded"></Skeleton>
-            <Skeleton className="h-6 bg-gray-200 rounded w-5/6"></Skeleton>
-            <Skeleton className="h-6 bg-gray-200 rounded w-4/6"></Skeleton>
+            <Skeleton className="h-6 rounded"></Skeleton>
+            <Skeleton className="h-6 rounded w-5/6"></Skeleton>
+            <Skeleton className="h-6 rounded w-4/6"></Skeleton>
           </div>
         </div>
       </div>
