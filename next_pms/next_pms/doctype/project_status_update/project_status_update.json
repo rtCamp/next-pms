@@ -1,6 +1,5 @@
 {
  "actions": [],
- "allow_rename": 0,
  "creation": "2025-08-25 12:12:22.154396",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -57,7 +56,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-27 20:21:45.502777",
+ "modified": "2025-09-02 11:48:59.633410",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "Project Status Update",
@@ -72,6 +71,20 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1,
+   "select": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Projects Manager",
+   "select": 1,
    "share": 1,
    "write": 1
   }
