@@ -511,12 +511,14 @@ def send_project_publish_email(user, title, project_name, project_url):
 
         subject = f"Project Status Update '{title}' has been published"
 
-        message = f"""
-        <p>Hello {user_doc.full_name or user_doc.name},</p>
-        <p>The Project Status Update for Project <strong>{project_name}</strong> has been published and is now available for review.</p>
-        <p>Please click the link below to view the project updates:</p>
-        <p><a href="{project_url}" target="_blank" rel="noopener noreferrer">View Project Status Update</a></p>
-        """
+        message = frappe.render_template(
+            "next_pms/timesheet/templates/project_status_update/publish_notification.html",
+            {
+                "user_doc": user_doc,
+                "project_name": project_name,
+                "project_url": project_url,
+            },
+        )
 
         send_html_email(user_doc.email, subject, message)
 
