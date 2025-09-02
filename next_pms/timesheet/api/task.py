@@ -55,6 +55,8 @@ def get_task_list(
             project_filters["name"] = ["in", list(set(allowed_projects).intersection(set(projects)))]
         else:
             project_filters["name"] = ["in", allowed_projects]
+    else:
+        project_filters["name"] = ["in", projects]
 
     projects = frappe.get_list("Project", pluck="name", filters=project_filters)
 
