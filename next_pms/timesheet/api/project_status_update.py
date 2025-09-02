@@ -365,13 +365,13 @@ def get_project_status_update_details(name: str) -> dict[str, Any]:
 
     comments_with_details = []
     for comment in doc.comments:
-        user_doc = frappe.get_doc("User", comment.user) if comment.user else None
+        user_data = frappe.db.get_value("User", comment.user, ["full_name", "user_image"]) if comment.user else None
 
         comment_data = {
             "name": comment.name,
             "user": comment.user,
-            "user_full_name": user_doc.full_name if user_doc else comment.user,
-            "user_image": user_doc.user_image if user_doc else None,
+            "user_full_name": user_data[0] if user_data else comment.user,
+            "user_image": user_data[1] if user_data else None,
             "comment": comment.comment,
             "created_at": comment.created_at,
             "modified_at": comment.modified_at,
