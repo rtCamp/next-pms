@@ -422,7 +422,7 @@ def notify_mentions(
         mentioned_users = extract_mentions(content)
 
         if not mentioned_users:
-            return {"success": True, "message": "No mentions found", "mentioned_users": [], "notifications_sent": 0}
+            return {"message": "No mentions found"}
 
         current_user = frappe.session.user
         current_user_name = get_user_fullname(current_user)
@@ -437,15 +437,7 @@ def notify_mentions(
             update_title = status_update_doc.title
             notification_context = f"project status update '{update_title}'"
         else:
-            return {
-                "success": True,
-                "message": "No project status update found",
-                "mentioned_users": [],
-                "notifications_sent": 0,
-            }
-
-        notifications_sent = 0
-        notification_results = []
+            return {"message": "No project status update found"}
 
         for user_email in mentioned_users:
             try:
@@ -453,7 +445,6 @@ def notify_mentions(
                     continue
 
                 if not frappe.db.exists("User", user_email):
-                    notification_results.append({"user": user_email, "status": "failed", "reason": "User not found"})
                     continue
 
                 project_url = frappe.utils.get_url(
@@ -480,27 +471,12 @@ def notify_mentions(
                 )
 
                 notification_doc.insert(ignore_permissions=True)
-                notification_results.append(
-                    {"user": user_email, "status": "success", "notification_id": notification_doc.name}
-                )
-                notifications_sent += 1
 
             except Exception as user_error:
                 frappe.log_error(_("Failed to notify user {0}: {1}").format(user_email, str(user_error)))
-                notification_results.append({"user": user_email, "status": "failed", "reason": str(user_error)})
 
         return {
-            "success": True,
-            "message": f"Processed mentions for {len(mentioned_users)} users",
-            "mentioned_users": mentioned_users,
-            "notifications_sent": notifications_sent,
-            "notification_results": notification_results,
-            "context": {
-                "type": context_type,
-                "document_type": doc_type,
-                "document_name": doc_name,
-                "project": project_name,
-            },
+            "message": f"Notifications sent successfully to {len(mentioned_users)} users",
         }
 
     except Exception as e:
