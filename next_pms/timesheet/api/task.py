@@ -47,16 +47,25 @@ def get_task_list(
         if "project_name" in field_list:
             field_list.remove("project_name")
     #  Limit the task fetched based on the projects the user has access to.
-    allowed_projects = get_project_filter_for_contractor(only_list=True)
     project_filters = {}
 
-    if allowed_projects:
-        if projects:
-            project_filters["name"] = ["in", list(set(allowed_projects).intersection(set(projects)))]
-        else:
-            project_filters["name"] = ["in", allowed_projects]
+    allowed_projects = set(get_project_filter_for_contractor(only_list=True) or [])
+    input_projects = set(projects or [])
+
+    if allowed_projects and input_projects:
+        # intersection of allowed and requested
+        filtered_projects = list(allowed_projects & input_projects)
+    elif allowed_projects:
+        # only allowed
+        filtered_projects = list(allowed_projects)
+    elif input_projects:
+        # no restriction, but user passed explicit projects
+        filtered_projects = list(input_projects)
     else:
-        project_filters["name"] = ["in", projects]
+        filtered_projects = []
+
+    if filtered_projects:
+        project_filters["name"] = ["in", filtered_projects]
 
     projects = frappe.get_list("Project", pluck="name", filters=project_filters)
 

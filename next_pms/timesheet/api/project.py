@@ -90,7 +90,7 @@ def convert(value, rate):
 
 def get_project_filter_for_contractor(only_list=False):
     if "Contractor" in frappe.get_roles() and frappe.session.user != "Administrator":
-        names = frappe.share.get_shared("Project", frappe.session.user, filters=[["everyone", "!=", True]])
+        names = frappe.share.get_shared("Project", frappe.session.user, filters=[["everyone", "=", False]])
         if only_list:
             return names
         return [["name", "in", names]]
