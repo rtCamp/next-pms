@@ -141,7 +141,7 @@ export class ProjectPage {
    */
   async isNoResultsVisible() {
     // Wait for the "No results" cell to be present in the DOM
-    await this.noResultsCell.waitFor({ state: "visible", timeout: 50000 });
+    await expect(this.noResultsCell).toBeVisible({ timeout: 10000 });
     return await this.noResultsCell.isVisible();
   }
 
