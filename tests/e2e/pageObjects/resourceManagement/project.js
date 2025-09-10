@@ -84,6 +84,8 @@ export class ProjectPage extends TimelinePage {
    * Filters the project table by the given project name.
    */
   async filterByProject(projectName) {
+    //wait until filterByProjectInput is visible
+    await this.filterByProjectInput.waitFor({ state: "visible" });
     await this.filterByProjectInput.click();
     await this.filterByProjectInput.fill(projectName);
     await this.page.waitForTimeout(1000); // added to avoid flaky test

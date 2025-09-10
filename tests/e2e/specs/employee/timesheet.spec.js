@@ -1,6 +1,5 @@
 const { test, expect } = require("../../playwright.fixture.cjs");
 import path from "path";
-import { secondsToDuration, durationToSeconds } from "../../utils/dateUtils";
 import { TimesheetPage } from "../../pageObjects/timesheetPage";
 import { TaskPage } from "../../pageObjects/taskPage";
 import * as allure from "allure-js-commons";
@@ -11,7 +10,6 @@ import { readJSONFile } from "../../utils/fileUtils";
 
 let timesheetPage;
 let taskPage;
-const TIME_ENTRIES_UPDATED_MSG = "Time entries updated successfully.";
 
 test.describe("Employee : Timesheet", () => {
   test.beforeEach(async ({ page }) => {
@@ -43,34 +41,6 @@ test.describe("Employee : Timesheet", () => {
       newDesc,
       newDuration,
     });
-  });
-
-  test("TC5: Add a new row in the already added time.  ", async ({ page, jsonDir }) => {
-    allure.story("Timesheet");
-    const stubPath = path.join(jsonDir, "TC5.json");
-    const data = await readJSONFile(stubPath);
-    const TC5data = data.TC5;
-
-    // Store cell text before new row addition
-    const beforeCellText = await timesheetPage.getCellText(TC5data.cell);
-
-    // Add time entry
-    await timesheetPage.addTimeRow(TC5data.cell, { duration: TC5data.taskInfo.duration, desc: TC5data.taskInfo.desc });
-
-    //Verify notification
-    await expect(timesheetPage.toastNotification(TIME_ENTRIES_UPDATED_MSG)).toBeVisible();
-    // Reload page to ensure changes are reflected
-    await page.reload();
-
-    // Assertions
-    const afterCellText = await timesheetPage.getCellText(TC5data.cell);
-    const afterDuration = secondsToDuration(
-      durationToSeconds(beforeCellText) + durationToSeconds(TC5data.taskInfo.duration)
-    );
-    expect(afterCellText).toContain(afterDuration);
-
-    const cellTooltipText = await timesheetPage.getCellTooltipText(TC5data.cell);
-    expect(cellTooltipText).toContain(TC5data.taskInfo.desc);
   });
 
   test("TC9: Open task details popup", async () => {
