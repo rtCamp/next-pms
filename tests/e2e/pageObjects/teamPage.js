@@ -215,6 +215,7 @@ export class TeamPage {
   async updateDurationOfTimeEntry({ date, project, task, desc, newDuration }) {
     const row = await this.getTimeEntryRow({ date: date, project: project, task: task, desc: desc });
     await row.getByRole("textbox").fill(newDuration);
+    await row.waitForTimeout(5000);
     await row.click();
   }
 
