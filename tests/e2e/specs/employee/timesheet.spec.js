@@ -43,8 +43,6 @@ test.describe("Employee : Timesheet", () => {
     });
   });
 
-
-
   test("TC9: Open task details popup", async () => {
     allure.story("Timesheet");
     // Import liked tasks
