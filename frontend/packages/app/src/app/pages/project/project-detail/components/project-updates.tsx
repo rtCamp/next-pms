@@ -422,16 +422,6 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
                         </div>
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onClick={() => handleSave("Review")}
-                        className="cursor-pointer"
-                        disabled={isSaving}
-                      >
-                        <div className="flex flex-col">
-                          <span className="font-medium">Review</span>
-                          <span className="text-xs text-muted-foreground">Submit for review</span>
-                        </div>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
                         onClick={() => handleSave("Publish")}
                         className="cursor-pointer"
                         disabled={isSaving}
