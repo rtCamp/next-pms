@@ -56,7 +56,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-09-02 11:48:59.633410",
+ "modified": "2025-09-16 13:11:12.458477",
  "modified_by": "Administrator",
  "module": "Next PMS",
  "name": "Project Status Update",
@@ -94,5 +94,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "title"
+ "title_field": "title",
+ "track_changes": 1
 }
