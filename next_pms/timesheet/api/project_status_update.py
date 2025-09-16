@@ -82,6 +82,7 @@ def save_project_status_update(
                 send_publish_notifications,
                 project=project,
                 title=title,
+                name=doc.name,
                 enqueue_after_commit=True,
                 queue="short",
                 job_name=f"Publish Notifications for Project Status Update {doc.name}",
@@ -454,12 +455,12 @@ def notify_mentions(
     }
 
 
-def send_publish_notifications(project: str, title: str):
+def send_publish_notifications(project: str, title: str, name: str):
     """Send email notifications to employees with specified roles"""
     users = get_users_with_roles(ROLES)
     if not users:
         return
-    project_url = frappe.utils.get_url(f"/next-pms/project/{project}?tab=Project+Updates")
+    project_url = frappe.utils.get_url(f"/next-pms/project/{project}?tab=Project+Updates&puid={name}")
 
     for user in users:
         send_project_publish_email(user, title, project, project_url)
@@ -478,6 +479,7 @@ def send_project_publish_email(user, title, project_name, project_url):
             "user_doc": user_doc,
             "project_name": project_name,
             "project_url": project_url,
+            "title": title,
         },
     )
 
