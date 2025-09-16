@@ -266,13 +266,20 @@ const TextEditor = ({
       const textBeforeCursor = fullText.slice(0, currentIndex);
 
       const htmlContent = quill.root.innerHTML;
-      const mentionRegex = /<span[^>]*class="[^"]*mention[^"]*"[^>]*data-value="([^"]*)"[^>]*>@([^<]*)<\/span>/g;
+      // Match mention spans regardless of whether inner text includes '@'
+      // Capture groups:
+      // 1: data-value (if present)
+      // 2: inner text of the span
+      const mentionRegex = /<span[^>]*class="[^"]*mention[^"]*"[^>]*data-value="([^"]*)"[^>]*>([^<]*)<\/span>/g;
 
       let match;
       const mentions = [];
 
       while ((match = mentionRegex.exec(htmlContent)) !== null) {
-        const mentionValue = match[2];
+        // Prefer inner text; fallback to data-value
+        const innerText = match[2] ?? "";
+        const dataValue = match[1] ?? innerText;
+        const mentionValue = innerText || dataValue;
         const fullMentionText = `${mentionValue}`;
         mentions.push({
           value: mentionValue,

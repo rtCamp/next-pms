@@ -589,7 +589,7 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
         )}
 
         {!isEditing && projectUpdates.length === 0 && (
-          <div className="px-8 max-md:px-3 py-12 text-center">
+          <div className="mt-24 flex justify-center items-center flex-col">
             <Typography variant="h3" className="text-xl font-semibold text-foreground mb-2">
               No Project Updates Yet
             </Typography>
