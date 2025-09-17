@@ -14,6 +14,9 @@ import {
   CommandList,
   useToast,
   Spinner,
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
 } from "@next-pms/design-system/components";
 import { useFrappeGetCall } from "frappe-react-sdk";
 import { ArrowRight } from "lucide-react";
@@ -51,9 +54,9 @@ const LinkField = ({ field, value, isReadOnly, onSelect, popoverClassName }: Lin
 
   const didSelectRef = useRef(false);
 
-  const [filteredOptions, setFilteredOptions] = useState<Array<Record<"name" | "full_name" | "employee_name", string>>>(
-    []
-  );
+  const [filteredOptions, setFilteredOptions] = useState<
+    Array<Record<"name" | "full_name" | "employee_name" | "user_image", string>>
+  >([]);
 
   const handleSelect = (val: string) => {
     didSelectRef.current = true;
@@ -118,7 +121,7 @@ const LinkField = ({ field, value, isReadOnly, onSelect, popoverClassName }: Lin
           popoverClassName
         )}
       >
-        <Command>
+        <Command shouldFilter={false}>
           <CommandInput
             placeholder={`Search ${field?.link?.doctype ? field.link.doctype : field.options}`}
             value={input}
@@ -149,9 +152,9 @@ interface LinkFieldOptionsProps {
   field: Field;
   input: string;
   setFilteredOptions: React.Dispatch<
-    React.SetStateAction<Array<Record<"name" | "full_name" | "employee_name", string>>>
+    React.SetStateAction<Array<Record<"name" | "full_name" | "employee_name" | "user_image", string>>>
   >;
-  filteredOptions: Array<Record<"name" | "full_name" | "employee_name", string>>;
+  filteredOptions: Array<Record<"name" | "full_name" | "employee_name" | "user_image", string>>;
   onSelect: (val: string) => void;
 }
 
@@ -167,7 +170,11 @@ const LinkFieldOptions = ({ field, input, setFilteredOptions, filteredOptions, o
     doctype: field.options,
     fields: [
       "name",
-      ...(field.options === "User" ? ["full_name"] : field.options === "Employee" ? ["employee_name"] : []),
+      ...(field.options === "User"
+        ? ["full_name", "user_image"]
+        : field.options === "Employee"
+        ? ["employee_name"]
+        : []),
     ],
     filters: [["name", "like", `%${input}%`]],
     limit_page_length: 20,
@@ -201,16 +208,20 @@ const LinkFieldOptions = ({ field, input, setFilteredOptions, filteredOptions, o
   return (
     <>
       {filteredOptions.map((option) => (
-        <CommandItem
-          className="cursor-pointer flex flex-col items-start"
-          key={option.name}
-          onSelect={() => onSelect(option.name)}
-        >
-          <Typography variant="p" className={option.full_name || (option.employee_name && "font-semibold")}>
-            {option.name}
-          </Typography>
-          {option.full_name && <Typography variant="p">{option.full_name}</Typography>}
-          {option.employee_name && <Typography variant="p">{option.employee_name}</Typography>}
+        <CommandItem className="cursor-pointer flex gap-2" key={option.name} onSelect={() => onSelect(option.name)}>
+          {field.options === "User" && (
+            <Avatar className="size-8">
+              <AvatarImage src={option.user_image} />
+              <AvatarFallback>{option?.name?.charAt(0)?.toUpperCase()}</AvatarFallback>
+            </Avatar>
+          )}
+          <div className="flex flex-col items-start">
+            <Typography variant="p" className={option.full_name || (option.employee_name && "font-semibold")}>
+              {option.name}
+            </Typography>
+            {option.full_name && <Typography variant="p">{option.full_name}</Typography>}
+            {option.employee_name && <Typography variant="p">{option.employee_name}</Typography>}
+          </div>
         </CommandItem>
       ))}
     </>
