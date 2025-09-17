@@ -1,7 +1,8 @@
 /**
  * External dependencies.
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { deBounce } from "@next-pms/design-system";
 import {
   Typography,
   Popover,
@@ -47,9 +48,12 @@ interface LinkFieldProps {
 const LinkField = ({ field, value, isReadOnly, onSelect, popoverClassName }: LinkFieldProps) => {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState(value);
+  const [debouncedInput, setDebouncedInput] = useState(value);
+  const debouncedSetInput = useMemo(() => deBounce((val: string) => setDebouncedInput(val), 300), []);
 
   useEffect(() => {
     setInput(value);
+    setDebouncedInput(value);
   }, [value]);
 
   const didSelectRef = useRef(false);
@@ -125,14 +129,17 @@ const LinkField = ({ field, value, isReadOnly, onSelect, popoverClassName }: Lin
           <CommandInput
             placeholder={`Search ${field?.link?.doctype ? field.link.doctype : field.options}`}
             value={input}
-            onValueChange={setInput}
+            onValueChange={(nextVal) => {
+              setInput(nextVal);
+              debouncedSetInput(nextVal);
+            }}
           />
           <CommandList>
             <CommandGroup>
               {open && (
                 <LinkFieldOptions
                   field={field}
-                  input={input}
+                  input={debouncedInput}
                   setFilteredOptions={setFilteredOptions}
                   filteredOptions={filteredOptions}
                   onSelect={handleSelect}
