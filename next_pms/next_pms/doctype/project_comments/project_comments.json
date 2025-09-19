@@ -1,0 +1,51 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2025-08-25 12:22:30.110887",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "user",
+  "comment",
+  "created_at",
+  "modified_at"
+ ],
+ "fields": [
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User"
+  },
+  {
+   "fieldname": "comment",
+   "fieldtype": "Text Editor",
+   "label": "Comment"
+  },
+  {
+    "fieldname": "created_at",
+    "fieldtype": "Datetime",
+    "label": "Created At"
+  },
+  {
+   "fieldname": "modified_at",
+   "fieldtype": "Datetime",
+   "label": "Modified At"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-08-26 17:12:38.275040",
+ "modified_by": "Administrator",
+ "module": "Next PMS",
+ "name": "Project Comments",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

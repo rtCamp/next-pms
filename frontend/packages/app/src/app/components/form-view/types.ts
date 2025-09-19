@@ -1,3 +1,5 @@
+import React from "react";
+
 export type Field = {
   fieldtype: string;
   label?: string;
@@ -37,5 +39,11 @@ export interface ChildMetaField {
 
 export interface ChildRow {
   idx: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
+
+export type CustomTab = {
+  component: React.ReactNode;
+  isCustom: boolean;
+};

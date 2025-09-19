@@ -30,3 +30,33 @@ export type AddProjectType = {
   project_template: string | null;
   company: string;
 };
+
+export interface ProjectUpdate {
+  name: string;
+  title: string;
+  description: string;
+  status: "Draft" | "Review" | "Publish";
+  project: string;
+  owner_full_name: string;
+  owner_image: string;
+  comments: ProjectComment[];
+  creation: string;
+  modified: string;
+  owner: string;
+  modified_by: string;
+  docstatus: number;
+  last_edited_at: string;
+  last_edited_by: string;
+}
+
+export interface ProjectComment {
+  name: string;
+  user: string;
+  user_full_name: string;
+  user_image: string;
+  comment: string;
+  created_at: string;
+  modified_at: string;
+  owner: string;
+  modified_by: string;
+}

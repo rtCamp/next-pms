@@ -5,6 +5,9 @@ import {
   isYesterday,
   parseISO,
   startOfWeek,
+  differenceInMinutes,
+  differenceInHours,
+  differenceInDays,
 } from "date-fns";
 
 export const Months = [
@@ -130,4 +133,21 @@ export const getDisplayDate = (date: Date): string => {
   if (isToday(utcDate)) return "Today";
   if (isYesterday(utcDate)) return "Yesterday";
   return format(utcDate, "MMM d");
+};
+
+export const formatDate = (date: string | Date): string => {
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+  const now = new Date();
+
+  const diffMins = differenceInMinutes(now, dateObj);
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+
+  const diffHours = differenceInHours(now, dateObj);
+  if (diffHours < 24) return `${diffHours}h ago`;
+
+  const diffDays = differenceInDays(now, dateObj);
+  if (diffDays < 7) return `${diffDays}d ago`;
+
+  return format(dateObj, "P");
 };

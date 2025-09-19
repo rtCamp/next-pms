@@ -2,6 +2,7 @@
  * External dependencies.
  */
 import { RefObject, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@next-pms/design-system/components";
 import { KeyedMutator } from "swr";
 
@@ -11,13 +12,15 @@ import { KeyedMutator } from "swr";
 import { mergeClassNames } from "@/lib/utils";
 import FieldRenderer from "./components/fieldRenderer";
 import { FormContextProvider, useFormContext } from "./context";
-import { Field, FieldConfigType } from "./types";
+import { CustomTab, Field, FieldConfigType } from "./types";
 
 type FormViewProps = {
   docname: string;
   doctype: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mutateData: KeyedMutator<any>;
   tabs: Record<string, Array<Field>>;
+  customTabs?: Record<string, CustomTab>;
   readOnly?: boolean;
   currencySymbol?: string;
   tabHeaderClassName?: string;
@@ -50,6 +53,7 @@ const FormView = ({
   doctype,
   mutateData,
   tabs,
+  customTabs,
   currencySymbol,
   onChange,
   onSubmit,
@@ -67,6 +71,7 @@ const FormView = ({
           doctype={doctype}
           mutateData={mutateData}
           tabs={tabs}
+          customTabs={customTabs}
           currencySymbol={currencySymbol}
           tabHeaderClassName={tabHeaderClassName}
           tabBodyClassName={tabBodyClassName}
@@ -86,6 +91,7 @@ const FormViewWrapper = ({
   doctype,
   mutateData,
   tabs,
+  customTabs = {},
   currencySymbol,
   onChange,
   onSubmit,
@@ -95,19 +101,49 @@ const FormViewWrapper = ({
   formRef,
   fieldConfig = {},
 }: FormViewProps) => {
-  const [activeTab, setActiveTab] = useState(Object.keys(tabs ?? {})[0]);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(() => {
+    const tabFromQuery = searchParams.get("tab");
+    const availableTabs = Object.keys(tabs ?? {});
+    if (tabFromQuery && availableTabs.includes(tabFromQuery)) {
+      return tabFromQuery;
+    }
+    return availableTabs[0] || "";
+  });
+
   const { setDoctype, setDocname, setMutateData } = useFormContext();
 
   useEffect(() => {
     setDocname(docname);
     setDoctype(doctype);
     setMutateData(() => mutateData);
-  }, [docname, doctype, mutateData]);
+  }, [docname, doctype, mutateData, setDocname, setDoctype, setMutateData]);
+
+  useEffect(() => {
+    const tabFromQuery = searchParams.get("tab");
+    const availableTabs = Object.keys(tabs ?? {});
+
+    if (tabFromQuery && availableTabs.includes(tabFromQuery)) {
+      setActiveTab(tabFromQuery);
+    } else if (availableTabs.length > 0 && activeTab !== availableTabs[0]) {
+      setActiveTab(availableTabs[0]);
+      const newSearchParams = new URLSearchParams(searchParams.toString());
+      newSearchParams.set("tab", availableTabs[0]);
+      setSearchParams(newSearchParams);
+    }
+  }, [searchParams, tabs, activeTab, setSearchParams]);
+
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+    newSearchParams.set("tab", newTab);
+    setSearchParams(newSearchParams);
+  };
 
   return (
     <div className="w-full">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full relative">
-        <div className="border-b pt-1 sticky top-0 bg-background z-10 overflow-x-auto no-scrollbar px-2">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full relative">
+        <div className="border-b pt-1 sticky top-0 bg-background z-50 overflow-x-auto no-scrollbar px-2">
           <TabsList
             className={mergeClassNames(
               "flex h-10 w-full justify-start rounded-none bg-transparent p-0",
@@ -132,19 +168,24 @@ const FormViewWrapper = ({
         </div>
 
         {Object.keys(tabs ?? {})?.map((tab) => {
+          const isCustomTab = customTabs[tab] && customTabs[tab].isCustom;
           return (
             <TabsContent key={tab} value={tab} className="space-y-4 focus-visible:ring-0">
-              <FieldRenderer
-                fields={tabs[tab]}
-                tabs={tabs}
-                readOnly={readOnly}
-                onChange={onChange}
-                onSubmit={onSubmit}
-                currencySymbol={currencySymbol}
-                fieldConfig={fieldConfig}
-                ref={formRef}
-                className={tabBodyClassName}
-              />
+              {isCustomTab ? (
+                <div className={tabBodyClassName}>{customTabs[tab].component}</div>
+              ) : (
+                <FieldRenderer
+                  fields={tabs[tab]}
+                  tabs={tabs}
+                  readOnly={readOnly}
+                  onChange={onChange}
+                  onSubmit={onSubmit}
+                  currencySymbol={currencySymbol}
+                  fieldConfig={fieldConfig}
+                  ref={formRef}
+                  className={tabBodyClassName}
+                />
+              )}
             </TabsContent>
           );
         })}
