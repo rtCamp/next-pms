@@ -66,6 +66,7 @@ export const ResourceAllocationCard = ({
       allocation_start_date: resourceAllocation.allocation_start_date,
       allocation_end_date: resourceAllocation.allocation_end_date,
       is_billable: resourceAllocation.is_billable == 1,
+      is_tentative: resourceAllocation.is_tentative,
       customer: resourceAllocation.customer,
       total_allocated_hours: getFormatedStringValue(resourceAllocation.total_allocated_hours),
       hours_allocated_per_day: getFormatedStringValue(resourceAllocation.hours_allocated_per_day),
@@ -89,6 +90,7 @@ export const ResourceAllocationCard = ({
       allocation_start_date: resourceAllocation.allocation_start_date,
       allocation_end_date: resourceAllocation.allocation_end_date,
       is_billable: resourceAllocation.is_billable == 1,
+      is_tentative: resourceAllocation.is_tentative,
       customer: resourceAllocation.customer,
       total_allocated_hours: getFormatedStringValue(resourceAllocation.total_allocated_hours),
       hours_allocated_per_day: getFormatedStringValue(resourceAllocation.hours_allocated_per_day),
@@ -146,16 +148,23 @@ export const ResourceAllocationCard = ({
               {resourceAllocation.hours_allocated_per_day} {"hours / day)"}
             </Typography>
           </div>
-          <Typography
-            className={mergeClassNames(
-              "text-xs font-semibold",
-              resourceAllocation.is_billable
-                ? "bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent"
-                : "text-yellow-500"
+          <div className="flex items-center gap-2">
+            <Typography
+              className={mergeClassNames(
+                "text-xs font-semibold",
+                resourceAllocation.is_billable
+                  ? "bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent"
+                  : "text-yellow-500"
+              )}
+            >
+              {resourceAllocation.is_billable ? "Billable ($)" : "Non-billable"}
+            </Typography>
+            {resourceAllocation.is_tentative && (
+              <Typography variant="small" className="italic text-muted-foreground">
+                (Tentative)
+              </Typography>
             )}
-          >
-            {resourceAllocation.is_billable ? "Billable ($)" : "Non-billable"}
-          </Typography>
+          </div>
 
           {resourceAllocation.note && (
             <div className="note-section mt-2 flex items-center gap-1 w-11/12" title={"Note"}>

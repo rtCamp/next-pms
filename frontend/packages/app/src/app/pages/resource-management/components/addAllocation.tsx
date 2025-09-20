@@ -24,6 +24,7 @@ import {
   ComboBox,
   DatePicker,
   Typography,
+  Checkbox,
 } from "@next-pms/design-system/components";
 import { getFormatedDate, getUTCDateTime } from "@next-pms/design-system/date";
 import { mergeClassNames } from "@next-pms/design-system/utils";
@@ -78,6 +79,7 @@ const AddResourceAllocations = ({
       allocation_start_date: resourceAllocationForm.allocation_start_date,
       allocation_end_date: resourceAllocationForm.allocation_end_date,
       note: resourceAllocationForm.note,
+      is_tentative: resourceAllocationForm.is_tentative,
       repeat_till_week_count: 0,
     },
     mode: "onSubmit",
@@ -359,6 +361,7 @@ const AddResourceAllocations = ({
       allocation_end_date: data.allocation_end_date,
       is_billable: data.is_billable ? 1 : 0,
       note: data.note,
+      status: data.is_tentative ? "Tentative" : "Confirmed",
     };
     if (resourceDialogState.isNeedToEdit) {
       return handleCreateAndUpdateOfallocation({ allocation: { ...doctypeDoc, name: resourceAllocationForm.name } });
@@ -591,6 +594,21 @@ const AddResourceAllocations = ({
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="is_tentative"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-3 shadow-sm">
+                  <FormControl>
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Tentative</FormLabel>
+                  </div>
+                </FormItem>
+              )}
+            />
 
             {!resourceDialogState.isNeedToEdit && (
               <div>
