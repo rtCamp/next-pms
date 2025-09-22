@@ -84,7 +84,7 @@ const ResourceTeamTableCellComponent = ({
   const hasTentativeAllocation = useMemo(
     () =>
       employeeSingleDay.employee_resource_allocation_for_given_date?.some(
-        (alloc: any) => alloc.is_tentative
+        (alloc: AllocationDataProps) => alloc.is_tentative
       ),
     [employeeSingleDay.employee_resource_allocation_for_given_date]
   );

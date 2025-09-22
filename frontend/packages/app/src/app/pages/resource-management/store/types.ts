@@ -227,7 +227,7 @@ export type EmployeeResourceProps = {
   total_allocated_hours: number;
   total_worked_hours: number;
   total_working_hours: number;
-  employee_resource_allocation_for_given_date: EmployeeAllocationForDateProps[];
+  employee_resource_allocation_for_given_date: AllocationDataProps[];
   is_on_leave: boolean;
   total_leave_hours: number;
   total_allocation_count: number;
