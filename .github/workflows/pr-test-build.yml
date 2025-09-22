@@ -12,7 +12,7 @@ concurrency:
 jobs:
   build:
     name: "Frontend Build Test"
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     container:
       image: node:18
     defaults:
