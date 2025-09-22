@@ -80,6 +80,7 @@ export type AllocationDataProps = {
   note: string;
   name: string;
   employee_name: string;
+  is_tentative: boolean;
 };
 
 export type ProjectAllWeekDataProps = {

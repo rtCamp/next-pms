@@ -29,6 +29,7 @@ const DefaultAllocationData: AllocationDataProps = {
   hours_allocated_per_day: "0",
   allocation_start_date: "",
   allocation_end_date: "",
+  is_tentative: false,
   note: "",
   name: "",
 };
@@ -74,6 +75,7 @@ const ResourceContextProvider = ({ children }: ContextProviderProps) => {
       customer_name: getFormatedStringValue(updatedData.customer_name) as string,
       total_allocated_hours: updatedData.total_allocated_hours,
       hours_allocated_per_day: updatedData.hours_allocated_per_day,
+      is_tentative: updatedData.is_tentative,
       allocation_start_date: getFormatedStringValue(updatedData.allocation_start_date) as string,
       allocation_end_date: getFormatedStringValue(updatedData.allocation_end_date) as string,
       note: updatedData.note,
