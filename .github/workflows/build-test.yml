@@ -1,4 +1,6 @@
 name: Bench Build Test
+permissions:
+  contents: read
 
 on:
   pull_request:
@@ -9,7 +11,7 @@ concurrency:
 
 jobs:
   Bench-Build-Test:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     container:
       image: docker.io/frappe/bench:latest
       options: --user root

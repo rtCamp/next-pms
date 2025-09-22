@@ -81,6 +81,14 @@ const ResourceTeamTableCellComponent = ({
 
   const cellBackGroundColor = useMemo(() => getCellBackGroundColor(allocationPercentage), [allocationPercentage]);
 
+  const hasTentativeAllocation = useMemo(
+    () =>
+      employeeSingleDay.employee_resource_allocation_for_given_date?.some(
+        (alloc: AllocationDataProps) => alloc.is_tentative
+      ),
+    [employeeSingleDay.employee_resource_allocation_for_given_date]
+  );
+
   const onCellClick = useCallback(() => {
     updateDialogState({ isShowDialog: true, isNeedToEdit: false });
     updateAllocationData({
@@ -97,6 +105,7 @@ const ResourceTeamTableCellComponent = ({
       customer: "",
       customer_name: "",
       name: "",
+      is_tentative: false,
     });
   }, [allocationType, employee, employeeSingleDay.date, employee_name, updateAllocationData, updateDialogState]);
 
@@ -190,7 +199,8 @@ const ResourceTeamTableCellComponent = ({
         cellClassName={mergeClassNames(
           getTableCellClass(rowCount, midIndex),
           cellBackGroundColor,
-          getTodayDateCellClass(employeeSingleDay.date)
+          getTodayDateCellClass(employeeSingleDay.date),
+          hasTentativeAllocation && "italic"
         )}
         value={
           tableView.view === "planned-vs-capacity"
@@ -222,6 +232,7 @@ const ResourceTeamTableCellComponent = ({
     employeeAllocations,
     customer,
     onSubmit,
+    hasTentativeAllocation,
   ]);
 
   return combinedWeekCell || emptyDayCell || leaveDayCell || hoverCardCell;

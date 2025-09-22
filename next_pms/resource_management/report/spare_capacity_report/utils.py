@@ -45,6 +45,8 @@ def get_employee_filters(filters=None, has_bu_field=False):
     if filters.get("business_unit") and has_bu_field:
         employee_filters[BU_FIELD_NAME] = ["in", filters["business_unit"]]
 
+    if filters.get("company"):
+        employee_filters["company"] = filters["company"]
     return employee_filters
 
 

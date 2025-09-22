@@ -19,3 +19,4 @@ next_pms.resource_management.patches.update_resource_allocation_permissions
 next_pms.resource_management.patches.add_resource_reminder_template
 next_pms.timesheet.patches.add_index
 next_pms.timesheet.patches.remove_custom_fields
+next_pms.resource_management.patches.update_resource_allocation_status

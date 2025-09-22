@@ -113,6 +113,7 @@ def get_resource_management_team_view_data(
             "modified_by",
             "modified",
             "creation",
+            "status",
         ],
         "employee",
         [employee.name for employee in employees],
@@ -247,6 +248,7 @@ def get_resource_management_team_view_data(
                                     "name": resource_allocation.name,
                                     "date": date,
                                     "total_worked_hours_resource_allocation": total_worked_hours_resource_allocation,
+                                    "is_tentative": resource_allocation.get("status") == "Tentative",
                                 }
                             )
 
