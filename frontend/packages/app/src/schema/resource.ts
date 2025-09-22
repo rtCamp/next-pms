@@ -12,6 +12,7 @@ export const ResourceAllocationSchema = z
     hours_allocated_per_day: z.string(),
     total_allocated_hours: z.string().optional(),
     is_billable: z.boolean(),
+    is_tentative: z.boolean().optional(),
     repeat_till_week_count: z.number().optional(),
     allocation_start_date: z
       .string({
