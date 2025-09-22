@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Button, Spinner, useToast } from "@next-pms/design-system/components";
 import { useFrappeGetCall, useFrappeGetDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
@@ -15,6 +15,7 @@ import { FieldConfigType } from "@/app/components/form-view/types";
 import { Main } from "@/app/layout/root";
 import { getCurrencySymbol, parseFrappeErrorMsg } from "@/lib/utils";
 import { ProjectDetailHeader } from "./components/header";
+import ProjectUpdates from "./components/project-updates";
 import ProjectSidebar from "./components/sidebar";
 
 const ProjectDetail = () => {
@@ -84,6 +85,28 @@ const ProjectDetail = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, updateError, toast, isCompleted, mutate]);
 
+  const customTabs = useMemo(
+    () => ({
+      "Project Updates": {
+        component: <ProjectUpdates projectId={projectId} />,
+        isCustom: true,
+      },
+    }),
+    [projectId]
+  );
+
+  const Tabs = useMemo(
+    () => ({
+      ...(data?.message?.tabs || {}),
+      ...Object.keys(customTabs).reduce((acc, key) => {
+        acc[key] = [];
+        return acc;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      }, {} as Record<string, any[]>),
+    }),
+    [data?.message?.tabs, customTabs]
+  );
+
   return (
     <>
       <ProjectDetailHeader
@@ -112,7 +135,8 @@ const ProjectDetail = () => {
               <FormView
                 docname={projectId as string}
                 doctype={"Project"}
-                tabs={data?.message?.tabs}
+                tabs={Tabs}
+                customTabs={customTabs}
                 currencySymbol={getCurrencySymbol(projectData?.custom_currency) || ""}
                 tabHeaderClassName="w-full"
                 onChange={(form_data) => {

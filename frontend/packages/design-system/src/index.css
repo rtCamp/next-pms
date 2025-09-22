@@ -72,31 +72,33 @@
   width: 1rem;
   height: 1rem;
 }
-.ql-formats > span {
+
+.ql-formats>span {
   color: hsl(var(--foreground)) !important;
 }
 
-.ql-formats > span svg polyline,
-.ql-formats > span svg line {
+.ql-formats>span svg polyline,
+.ql-formats>span svg line {
   stroke: hsl(var(--foreground)) !important;
 }
 
-.ql-formats > span svg:hover polyline,
-.ql-formats > span svg:hover line,
-.ql-formats > span svg:hover rect {
+.ql-formats>span svg:hover polyline,
+.ql-formats>span svg:hover line,
+.ql-formats>span svg:hover rect {
   stroke: hsl(210, 100%, 50%) !important;
 }
 
 .ql-formats button svg path,
 .ql-formats button svg line,
 .ql-formats button svg polyline,
-.ql-formats > button svg rect {
+.ql-formats>button svg rect {
   stroke: hsl(var(--foreground)) !important;
 }
+
 .ql-formats button svg:hover path,
 .ql-formats button svg:hover line,
 .ql-formats button svg:hover polyline,
-.ql-formats > button svg:hover rect {
+.ql-formats>button svg:hover rect {
   stroke: hsl(210, 100%, 50%) !important;
 }
 
@@ -105,20 +107,24 @@
   color: hsl(var(--foreground)) !important;
   border: none !important;
 }
+
 .ql-picker-item {
   color: hsl(var(--foreground)) !important;
 }
+
 .ql-picker-item:hover {
   color: #83838f !important;
 }
 
 .ql-container {
-  height: 300px; /* Set fixed height for editor content */
+  height: 300px;
+  /* Set fixed height for editor content */
   overflow-y: auto;
 }
 
 .ql-editor {
-  min-height: 200px; /* Set minimum height for editor */
+  min-height: 200px;
+  /* Set minimum height for editor */
 }
 
 .ql-toolbar {
@@ -126,8 +132,26 @@
   top: 0;
   z-index: 10;
   background: hsl(var(--background));
-  padding: 2px !important;  
+  padding: 2px !important;
 }
+
 .ql-editor.ql-blank::before {
   color: hsl(var(--foreground)) !important;
+}
+
+@keyframes border-blink-animation {
+
+  0%{
+    border-color: transparent;
+  }
+
+  25%,
+  50%,
+  75% {
+    border-color: #3b82f6;
+  }
+}
+
+.blinking-border {
+  animation: border-blink-animation 2s linear 6;
 }
