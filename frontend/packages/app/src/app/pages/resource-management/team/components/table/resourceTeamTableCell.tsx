@@ -105,6 +105,7 @@ const ResourceTeamTableCellComponent = ({
       customer: "",
       customer_name: "",
       name: "",
+      is_tentative: false,
     });
   }, [allocationType, employee, employeeSingleDay.date, employee_name, updateAllocationData, updateDialogState]);
 
