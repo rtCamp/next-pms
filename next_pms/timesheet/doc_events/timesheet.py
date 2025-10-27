@@ -123,13 +123,16 @@ def validate_dates(doc):
     from next_pms.resource_management.api.utils.query import get_employee_leaves
     from next_pms.timesheet.api.employee import get_employee_from_user
 
-    if frappe.session.user == "Administrator" or doc.ignore_backdated_validation:
+    frappe_roles = set(get_roles())
+    ignore_roles = frappe.get_all("Timesheet Role", pluck="role")
+
+    roles_to_ignore = frappe_roles.intersection(ignore_roles)
+    if frappe.session.user == "Administrator" or doc.ignore_backdated_validation or roles_to_ignore:
         return
     #  Do not allow the time entry for more then one day.
     if date_diff(doc.end_date, doc.start_date) > 0:
         throw(_("Timesheet should not exceed more than one day."))
 
-    frappe_roles = set(get_roles())
     today_date = getdate(today())
     date_gap = date_diff(doc.start_date, today_date)
 

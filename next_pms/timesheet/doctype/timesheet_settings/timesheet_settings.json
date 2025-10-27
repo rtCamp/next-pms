@@ -8,6 +8,7 @@
   "allow_backdated_entries",
   "allow_backdated_entries_till_employee",
   "allow_backdated_entries_till_manager",
+  "ignored_role",
   "column_break_cypz",
   "allow_future_entries",
   "reminder_setting_section",
@@ -199,12 +200,20 @@
    "label": "Designations",
    "mandatory_depends_on": "eval:doc.send_missing_allocation_reminder",
    "options": "Employee Department"
+  },
+  {
+   "depends_on": "eval:doc.allow_backdated_entries",
+   "description": "Roles to be ignored for back-dated validation",
+   "fieldname": "ignored_role",
+   "fieldtype": "Table MultiSelect",
+   "label": "Ignored Role",
+   "options": "Timesheet Role"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-05-28 17:38:14.745342",
+ "modified": "2025-10-27 17:38:39.008638",
  "modified_by": "Administrator",
  "module": "Timesheet",
  "name": "Timesheet Settings",
@@ -221,6 +230,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
