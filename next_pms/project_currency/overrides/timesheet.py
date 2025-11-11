@@ -109,6 +109,33 @@ class TimesheetOverwrite(Timesheet):
         if not self.parent_project:
             return frappe.throw(frappe._("Project is not defined in Timesheet."))
 
+        # Check if there's a specific Activity Cost defined for this employee and activity type
+        activity_cost_rate = None
+        for time_log in self.time_logs:
+            if time_log.activity_type:
+                activity_cost = frappe.db.get_value(
+                    "Activity Cost",
+                    {
+                        "employee": self.employee,
+                        "activity_type": time_log.activity_type,
+                    },
+                    ["costing_rate", "currency"],
+                    as_dict=True,
+                )
+                
+                if activity_cost and activity_cost.costing_rate:
+                    # Convert activity cost to target currency if needed
+                    activity_cost_currency = activity_cost.currency or frappe.defaults.get_global_default("currency")
+                    if currency and activity_cost_currency != currency:
+                        exchange_rate = get_exchange_rate(activity_cost_currency, currency, self.start_date)
+                        activity_cost_rate = flt(activity_cost.costing_rate) * flt(exchange_rate)
+                    else:
+                        activity_cost_rate = flt(activity_cost.costing_rate)
+                    
+                    # If activity cost is found, use it and return
+                    return activity_cost_rate
+
+        # Fall back to CTC-based calculation if no Activity Cost is defined
         employee_salary, employee_currency = 0, ""
         #  DO NOT REMOVE
         #  Below code is used to fetch the employee's salary based on the timesheet's date,
