@@ -22,6 +22,16 @@ import { deleteLeave } from "../utils/api/leaveRequests";
 import { getWeekRange } from "../utils/dateUtils";
 import { deleteEmployeeByName } from "./employeeHelper";
 
+// Remove all HTML tags (repeatedly) from a string
+function stripHtmlTags(input) {
+  let prev;
+  do {
+    prev = input;
+    input = input.replace(/<[^>]+>/g, "");
+  } while (input !== prev);
+  return input;
+}
+
 // Load env variables
 const empID = process.env.EMP_ID;
 const emp2ID = process.env.EMP2_ID;
@@ -244,7 +254,7 @@ export const filterTimesheetEntry = async (opts) => {
   //console.dir(data, { depth: null, colors: true });
 
   // strip HTML from your input `description`
-  const searchText = (description || "").replace(/<[^>]+>/g, "");
+  const searchText = stripHtmlTags(description || "");
 
   for (const week of Object.values(data)) {
     for (const task of Object.values(week.tasks)) {
@@ -252,7 +262,7 @@ export const filterTimesheetEntry = async (opts) => {
 
       // look for an entry whose no‑HTML description _exactly_ matches your searchText
       const match = (task.data || []).find((e) => {
-        const noHtml = (e.description || "").replace(/<[^>]+>/g, "");
+        const noHtml = stripHtmlTags(e.description || "");
         ////console.log("NO HTML TEXT IS:", noHtml);
         return (
           noHtml === searchText && // exact match on full string

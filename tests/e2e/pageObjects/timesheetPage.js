@@ -3,6 +3,20 @@ import { expect } from "@playwright/test";
 /**
  * TimesheetPage class handles interactions with the timesheet page.
  */
+/**
+ * Removes all HTML tags from a string by repeatedly applying the regex until no tags remain.
+ * @param {string} input
+ * @returns {string}
+ */
+function removeHtmlTags(input) {
+  let previous;
+  do {
+    previous = input;
+    input = input.replace(/<[^>]*>?/gm, "");
+  } while (input !== previous);
+  return input;
+}
+
 export class TimesheetPage {
   /**
    * Initializes the TeamPage object.
@@ -397,8 +411,8 @@ export class TimesheetPage {
    */
   async updateTimeRow(cellInfo, { desc, newDesc, newDuration }) {
     const cell = await this.getCell(cellInfo);
-    // Strip HTML tags from newDesc.
-    const plainTextDesc = desc.replace(/<[^>]*>?/gm, "");
+    // Strip HTML tags from desc.
+    const plainTextDesc = removeHtmlTags(desc);
 
     await this.openCell(cell);
     await this.addHours("data.0.hours").fill(newDuration);
