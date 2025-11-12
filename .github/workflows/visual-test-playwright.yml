@@ -9,11 +9,12 @@ on:
       - develop
       - main
 
+permissions:
+  contents: read
+
 jobs:
   run-visual-tests:
     name: Run Visual Tests
-    permissions:
-      contents: read
     runs-on: self-hosted
     container:
       image: ubuntu
