@@ -4,13 +4,14 @@ permissions:
 # Controls when the workflow will run
 on:
   pull_request_review:
-    types: [submitted] # Trigger when a PR review is submitted
+    types: [ submitted ] # Trigger when a PR review is submitted
 
   #Triggers at 5 AM IST every day
   schedule:
-    - cron: "30 23 * * *"
+  - cron: "30 23 * * *"
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+
 
 concurrency:
   group: ${{ github.workflow }}
@@ -25,29 +26,29 @@ jobs:
     outputs:
       branch_name: ${{ steps.get_branch.outputs.branch_name }}
     steps:
-      - name: Install dependencies
-        run: |
-          apt-get update
-          apt-get install -y curl jq
+    - name: Install dependencies
+      run: |
+        apt-get update
+        apt-get install -y curl jq
 
-      - name: Get branch name
-        id: get_branch
-        run: |
-          pr_number="${GITHUB_REF#refs/pull/}"
-          pr_number="${pr_number%/merge}"
+    - name: Get branch name
+      id: get_branch
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        pr_number="${GITHUB_REF#refs/pull/}"
+        pr_number="${pr_number%/merge}"
 
-          echo "PR Number: $pr_number"
-          # Use GitHub API with curl instead of gh CLI
-          branch_name=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/$GITHUB_REPOSITORY/pulls/$pr_number" | jq -r .head.ref)
+        echo "PR Number: $pr_number"
+        # Use GitHub API with curl instead of gh CLI
+        branch_name=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+          "https://api.github.com/repos/$GITHUB_REPOSITORY/pulls/$pr_number" | jq -r .head.ref)
 
-          echo "Branch name: $branch_name"
-          echo "branch_name=$branch_name" >> $GITHUB_OUTPUT
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        echo "Branch name: $branch_name"
+        echo "branch_name=$branch_name" >> $GITHUB_OUTPUT
 
   deploy:
-    needs: [get-branch]
+    needs: [ get-branch ]
     if: github.event_name != 'workflow_dispatch'
     uses: rtCamp/erp-rtcamp/.github/workflows/deploy-erp-qe.rt.gw.yml@main
     with:
@@ -62,7 +63,7 @@ jobs:
       SSH_USER: frappe
       RTBOT_TOKEN: ${{ secrets.RTBOT_TOKEN }}
   test:
-    needs: [deploy]
+    needs: [ deploy ]
     if: |
       (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule') || success()
     runs-on: self-hosted
@@ -104,370 +105,390 @@ jobs:
       HETZNER_S3_ENDPOINT_URL: ${{ secrets.HETZNER_S3_ENDPOINT_URL }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      # Setup Node.js
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: "frontend/.nvmrc"
+    # Setup Node.js
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: "frontend/.nvmrc"
 
-      - name: Cache npm modules
-        uses: actions/cache@v4
-        with:
-          path: /github/home/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+    - name: Cache npm modules
+      uses: actions/cache@v4
+      with:
+        path: /github/home/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
 
-      - name: Verify Node & npm
-        run: |
-          which node
-          which npm
-          node --version
-          npm --version
+    - name: Verify Node & npm
+      run: |
+        which node
+        which npm
+        node --version
+        npm --version
 
-      - name: Install prerequisites
-        run: |
-          apt-get update
-          apt-get install -y curl sudo
+    - name: Install prerequisites
+      run: |
+        apt-get update
+        apt-get install -y curl sudo
 
-      - name: Sanitize branch name
-        shell: bash
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            # PR → use the source branch name
-            RAW_BRANCH="${{ github.head_ref }}"
-          else
-            # workflow_dispatch or schedule → use whatever ref we were on
-            RAW_BRANCH="${GITHUB_REF#refs/heads/}"
-          fi
+    - name: Sanitize branch name
+      shell: bash
+      env:
+        EVENT_NAME: ${{ github.event_name }}
+        HEAD_REF: ${{ github.head_ref }}
+      run: |
+        if [ "$EVENT_NAME" = "pull_request" ]; then
+          # PR → use the source branch name
+          RAW_BRANCH="$HEAD_REF"
+        else
+          # workflow_dispatch or schedule → use whatever ref we were on
+          RAW_BRANCH="${GITHUB_REF#refs/heads/}"
+        fi
 
-          SAFE_BRANCH="${RAW_BRANCH//\//-}"
-          echo "SANITIZED_REF=${SAFE_BRANCH}" >> $GITHUB_ENV
-          echo "→ Restoring/uploading history under key: ${SAFE_BRANCH}"
+        SAFE_BRANCH="${RAW_BRANCH//\//-}"
+        echo "SANITIZED_REF=${SAFE_BRANCH}" >> $GITHUB_ENV
+        echo "→ Restoring/uploading history under key: ${SAFE_BRANCH}"
 
-      - name: Debug—print refs
-        run: |
-          echo "EVENT_NAME = ${{ github.event_name }}"
-          echo "GITHUB_REF = $GITHUB_REF"
-          echo "SANITIZED_REF = $SANITIZED_REF"
+    - name: Debug—print refs
+      env:
+        EVENT_NAME: ${{ github.event_name }}
+      run: |
+        echo "EVENT_NAME = $EVENT_NAME"
+        echo "GITHUB_REF = $GITHUB_REF"
+        echo "SANITIZED_REF = $SANITIZED_REF"
 
-      - name: Create local allure-history/history folder
-        run: mkdir -p allure-history/history
+    - name: Create local allure-history/history folder
+      run: mkdir -p allure-history/history
 
-      - name: Install MinIO Client (mc)
-        run: |
-          curl -fsSL https://dl.min.io/client/mc/release/linux-amd64/mc \
-            -o mc && chmod +x mc && sudo mv mc /usr/local/bin/
+    - name: Install MinIO Client (mc)
+      run: |
+        curl -fsSL https://dl.min.io/client/mc/release/linux-amd64/mc \
+          -o mc && chmod +x mc && sudo mv mc /usr/local/bin/
 
-      - name: Configure mc alias for Hetzner S3
-        run: |
-          mc alias set hetzner \
-            ${{ env.HETZNER_S3_ENDPOINT_URL }} \
-            ${{ env.HETZNER_S3_ACCESS_KEY_ID }} \
-            ${{ env.HETZNER_S3_SECRET_ACCESS_KEY }}
+    - name: Configure mc alias for Hetzner S3
+      env:
+        S3_ENDPOINT: ${{ env.HETZNER_S3_ENDPOINT_URL }}
+        S3_ACCESS_KEY: ${{ env.HETZNER_S3_ACCESS_KEY_ID }}
+        S3_SECRET_KEY: ${{ env.HETZNER_S3_SECRET_ACCESS_KEY }}
+      run: |
+        mc alias set hetzner \
+          "$S3_ENDPOINT" \
+          "$S3_ACCESS_KEY" \
+          "$S3_SECRET_KEY"
 
-      - name: Restore Allure history for this branch (mc)
-        run: |
-          if mc ls hetzner/${{ env.HETZNER_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/ | grep -q .; then
-            echo "Restoring previous Allure history..."
-            mc cp --recursive \
-              hetzner/${{ env.HETZNER_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/ \
-              allure-history/history/
-          else
-            echo "No Allure history to restore for branch '${{ env.SANITIZED_REF }}'."
-          fi
-
-      - name: Check Local History Directory After History Download
-        run: ls -la allure-history/history
-
-      # Install dependencies
-      - name: Install dependencies
-        run: |
-          npm ci
-          cd tests/e2e/
-          npx playwright install --with-deps
-
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: "temurin"
-          java-version: "17"
-
-      - name: Run e2e Tests.
-        run: |
-          cd tests/e2e/
-          npm run e2e:tests --
-
-      - name: Restore previous Allure history into results
-        if: always()
-        run: |
-          mkdir -p allure-results/history
-          cp -R allure-history/history/* allure-results/history/ || echo "No previous history to restore"
-
-      - name: Generate Allure (for count extraction)
-        if: always()
-        run: |
-          cd tests/e2e
-          # clean & generate for count-extraction
-          npm run allure:report
-
-      - name: Merge history into results
-        if: always()
-        run: |
-
-          cp -R allure-report-for-count-extraction/history/* allure-results/history/
-
-      - name: Generate single-file Allure HTML
-        if: always()
-        run: |
-          cd tests/e2e
-          npm run allure:htmlReport
-
-      - name: Upload updated Allure history for this branch (mc)
-        if: always()
-        run: |
+    - name: Restore Allure history for this branch (mc)
+      env:
+        S3_BUCKET: ${{ env.HETZNER_S3_BUCKET }}
+        BRANCH_REF: ${{ env.SANITIZED_REF }}
+      run: |
+        if mc ls hetzner/$S3_BUCKET/$BRANCH_REF/history/ | grep -q .; then
+          echo "Restoring previous Allure history..."
           mc cp --recursive \
-            allure-results/history/ \
-            hetzner/${{ env.HETZNER_S3_BUCKET }}/${{ env.SANITIZED_REF }}/history/
+            hetzner/$S3_BUCKET/$BRANCH_REF/history/ \
+            allure-history/history/
+        else
+          echo "No Allure history to restore for branch '$BRANCH_REF'."
+        fi
 
-      - name: Extract test results
-        if: ${{ success() || failure() }}
-        run: |
-          # Install jq
-          apt-get update && apt-get install -y jq
+    - name: Check Local History Directory After History Download
+      run: ls -la allure-history/history
 
-          # Path to the Allure summary file
-          SUMMARY_FILE="allure-report-for-count-extraction/widgets/summary.json"
+    # Install dependencies
+    - name: Install dependencies
+      run: |
+        npm ci
+        cd tests/e2e/
+        npx playwright install --with-deps
 
-          # Check if the summary file exists
-          if [ ! -f "$SUMMARY_FILE" ]; then
-            echo "Error: Allure summary file not found at $SUMMARY_FILE"
-            exit 1
-          fi
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: "temurin"
+        java-version: "17"
 
-          # Extract passed and failed test counts using jq
-          PASSED_COUNT=$(jq '.statistic.passed' "$SUMMARY_FILE" || echo 0)
-          FAILED_COUNT=$(jq '.statistic.failed' "$SUMMARY_FILE" || echo 0)
-          BROKEN_COUNT=$(jq '.statistic.broken' "$SUMMARY_FILE" || echo 0)
-          SKIPPED_COUNT=$(jq '.statistic.skipped' "$SUMMARY_FILE" || echo 0)
-          UNKNOWN_COUNT=$(jq '.statistic.unknown' "$SUMMARY_FILE" || echo 0)
-          TOTAL_COUNT=$(jq '.statistic.total' "$SUMMARY_FILE" || echo 0)
+    - name: Run e2e Tests.
+      run: |
+        cd tests/e2e/
+        npm run e2e:tests --
 
-          # Output and export them as GitHub environment variables
-          echo "Actual Count of Total Tests: $TOTAL_COUNT"
+    - name: Restore previous Allure history into results
+      if: always()
+      run: |
+        mkdir -p allure-results/history
+        cp -R allure-history/history/* allure-results/history/ || echo "No previous history to restore"
 
-          # Optionally set them as output variables
-          echo "passed_count=$PASSED_COUNT" >> $GITHUB_ENV
-          echo "failed_count=$FAILED_COUNT" >> $GITHUB_ENV
-          echo "broken_count=$BROKEN_COUNT" >> $GITHUB_ENV
-          echo "skipped_count=$SKIPPED_COUNT" >> $GITHUB_ENV
-          echo "unknown_count=$UNKNOWN_COUNT" >> $GITHUB_ENV
-          echo "total_count=$TOTAL_COUNT" >> $GITHUB_ENV
+    - name: Generate Allure (for count extraction)
+      if: always()
+      run: |
+        cd tests/e2e
+        # clean & generate for count-extraction
+        npm run allure:report
 
-          TOTAL=$((PASSED_COUNT + FAILED_COUNT + BROKEN_COUNT + SKIPPED_COUNT + UNKNOWN_COUNT))
-          # Set environment variables
-          echo "TOTAL=$TOTAL" >> $GITHUB_ENV
+    - name: Merge history into results
+      if: always()
+      run: |
+        
+        cp -R allure-report-for-count-extraction/history/* allure-results/history/
 
-      - name: Display counts
-        if: ${{ success() || failure() }}
-        run: |
-          echo "Actual Total Tests: ${{ env.total_count }}"
-          echo "Passed Tests: ${{ env.passed_count }}"
-          echo "Failed Tests: ${{ env.failed_count }}"
-          echo "Broken Tests: ${{ env.broken_count }}"
-          echo "Skipped Tests: ${{ env.skipped_count }}"
-          echo "Unknown Tests: ${{ env.unknown_count }}"
+    - name: Generate single-file Allure HTML
+      if: always()
+      run: |
+        cd tests/e2e
+        npm run allure:htmlReport
 
-      - name: Debug – show saved history
-        if: always()
-        run: |
-          echo "PWD: $(pwd)"
-          echo "Root contents:"
-          ls -1
-          echo "Contents of allure-history/:"
-          ls -R allure-history || echo "(not found or empty)"
+    - name: Upload updated Allure history for this branch (mc)
+      if: always()
+      env:
+        S3_BUCKET: ${{ env.HETZNER_S3_BUCKET }}
+        BRANCH_REF: ${{ env.SANITIZED_REF }}
+      run: |
+        mc cp --recursive \
+          allure-results/history/ \
+          hetzner/$S3_BUCKET/$BRANCH_REF/history/
 
-      - name: Upload Allure Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: Allure-report
-          path: allure-report
+    - name: Extract test results
+      if: ${{ success() || failure() }}
+      run: |
+        # Install jq
+        apt-get update && apt-get install -y jq
 
-      - name: Zip Allure Report
-        if: ${{ success() || failure() }}
-        run: |
-          apt-get update && apt-get install -y zip
-          REPORT_DIR="allure-report"
-          OUTPUT_ZIP="report.zip"
+        # Path to the Allure summary file
+        SUMMARY_FILE="allure-report-for-count-extraction/widgets/summary.json"
 
-          if [ -d "$REPORT_DIR" ]; then
-            echo "Zipping Allure report..."
-            cd "$(dirname "$REPORT_DIR")"
-            zip -r "$OUTPUT_ZIP" "$(basename "$REPORT_DIR")"
-          else
-            echo "Error - Allure Report not found in $REPORT_DIR"
-            exit 1
-          fi
+        # Check if the summary file exists
+        if [ ! -f "$SUMMARY_FILE" ]; then
+          echo "Error: Allure summary file not found at $SUMMARY_FILE"
+          exit 1
+        fi
 
-      - name: Set the email body message for pull request merge or schedule message
-        if: ${{ success() || failure() }}
-        run: |
-          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
-            echo "message=<p>For the latest pull request merge titled <b><a href='${{ github.event.pull_request.html_url }}'> ${{ github.event.pull_request.title }}</a></b>, the E2E automation tests have been executed on the staging environment. Below is the summary:</p>" >> $GITHUB_ENV
-          else
-            echo "message=<p>This is to inform you that the scheduled E2E automation tests have been executed on the staging environment. Below is the summary::</p>" >> $GITHUB_ENV
-          fi
+        # Extract passed and failed test counts using jq
+        PASSED_COUNT=$(jq '.statistic.passed' "$SUMMARY_FILE" || echo 0)
+        FAILED_COUNT=$(jq '.statistic.failed' "$SUMMARY_FILE" || echo 0)
+        BROKEN_COUNT=$(jq '.statistic.broken' "$SUMMARY_FILE" || echo 0)
+        SKIPPED_COUNT=$(jq '.statistic.skipped' "$SUMMARY_FILE" || echo 0)
+        UNKNOWN_COUNT=$(jq '.statistic.unknown' "$SUMMARY_FILE" || echo 0)
+        TOTAL_COUNT=$(jq '.statistic.total' "$SUMMARY_FILE" || echo 0)
 
-      - name: Send Report via Email
-        if: ${{ success() || failure() }}
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          username: ${{ secrets.QA_WORKFLOW_EMAIL }}
-          password: ${{ secrets.QA_WORKFLOW_EMAIL_PASSWORD }}
-          subject: Test Automation Report - Next PMS
-          html_body: |
-            <html>
-              <head>
-                <style>
-                  body {
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    color: #333;
-                    margin: 0;
-                    padding: 0;
-                    background-color: #f9f9f9;
-                  }
-                  .container {
-                    width: 80%;
-                    max-width: 600px;
-                    margin: 20px auto;
-                    background: #fff;
-                    border: 1px solid #ddd;
-                    border-radius: 8px;
-                    padding: 20px;
-                  }
-                  .header {
-                    text-align: center;
-                    padding-bottom: 20px;
-                    border-bottom: 1px solid #ddd;
-                  }
-                  .header h1 {
-                    margin: 0;
-                    color: #333;
-                  }
-                  .content {
-                    margin-top: 20px;
-                  }
-                  .content p {
-                    margin: 0 0 10px;
-                  }
-                  .content ul {
-                    list-style: none;
-                    padding: 0;
-                  }
-                  .content li {
-                    padding: 8px 0;
-                    border-bottom: 1px solid #eee;
-                  }
-                  .content li:last-child {
-                    border-bottom: none;
-                  }
-                  .chart-container {
-                    margin: 20px 0;
-                    text-align: center;
-                  }
-                  .chart-title {
-                    margin-bottom: 10px;
-                    font-weight: bold;
-                  }
-                  .chart-container img {
-                    max-width: 100%;
-                    height: 240px;
-                  }
-                  .footer {
-                    margin-top: 20px;
-                    text-align: left;
-                    font-size: 0.9em;
-                    color: #777;
-                  }
-                  .footer p {
-                    margin: 5px 0;
-                  }
-                  .footer a {
-                    color: #007bff;
-                    text-decoration: none;
-                  }
-                  .footer a:hover {
-                    text-decoration: underline;
-                  }
-                  .content a {
+        # Output and export them as GitHub environment variables
+        echo "Actual Count of Total Tests: $TOTAL_COUNT"
 
-                    text-decoration: none;
-                  }
-                  .content a:hover {
-                    text-decoration: underline; /* Underline on hover */
-                  }
-                   table {
-                  width: 100%;
-                  border-collapse: collapse;
+        # Optionally set them as output variables
+        echo "passed_count=$PASSED_COUNT" >> $GITHUB_ENV
+        echo "failed_count=$FAILED_COUNT" >> $GITHUB_ENV
+        echo "broken_count=$BROKEN_COUNT" >> $GITHUB_ENV
+        echo "skipped_count=$SKIPPED_COUNT" >> $GITHUB_ENV
+        echo "unknown_count=$UNKNOWN_COUNT" >> $GITHUB_ENV
+        echo "total_count=$TOTAL_COUNT" >> $GITHUB_ENV
+
+        TOTAL=$((PASSED_COUNT + FAILED_COUNT + BROKEN_COUNT + SKIPPED_COUNT + UNKNOWN_COUNT))
+        # Set environment variables
+        echo "TOTAL=$TOTAL" >> $GITHUB_ENV
+
+    - name: Display counts
+      if: ${{ success() || failure() }}
+      run: |
+        echo "Actual Total Tests: ${{ env.total_count }}"
+        echo "Passed Tests: ${{ env.passed_count }}"
+        echo "Failed Tests: ${{ env.failed_count }}"
+        echo "Broken Tests: ${{ env.broken_count }}"
+        echo "Skipped Tests: ${{ env.skipped_count }}"
+        echo "Unknown Tests: ${{ env.unknown_count }}"
+
+    - name: Debug – show saved history
+      if: always()
+      run: |
+        echo "PWD: $(pwd)"
+        echo "Root contents:"
+        ls -1
+        echo "Contents of allure-history/:"
+        ls -R allure-history || echo "(not found or empty)"
+
+    - name: Upload Allure Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: Allure-report
+        path: allure-report
+
+    - name: Zip Allure Report
+      if: ${{ success() || failure() }}
+      run: |
+        apt-get update && apt-get install -y zip
+        REPORT_DIR="allure-report"
+        OUTPUT_ZIP="report.zip"
+
+        if [ -d "$REPORT_DIR" ]; then
+          echo "Zipping Allure report..."
+          cd "$(dirname "$REPORT_DIR")"
+          zip -r "$OUTPUT_ZIP" "$(basename "$REPORT_DIR")"
+        else
+          echo "Error - Allure Report not found in $REPORT_DIR"
+          exit 1
+        fi
+
+    - name: Set the email body message for pull request merge or schedule message
+      if: ${{ success() || failure() }}
+      env:
+        PR_TITLE: ${{ github.event.pull_request.title }}
+        PR_URL: ${{ github.event.pull_request.html_url }}
+      run: |
+        if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+          echo "message=<p>For the latest pull request merge titled <b><a href='$PR_URL'> $PR_TITLE</a></b>, the E2E automation tests have been executed on the staging environment. Below is the summary:</p>" >> $GITHUB_ENV
+        else
+          echo "message=<p>This is to inform you that the scheduled E2E automation tests have been executed on the staging environment. Below is the summary::</p>" >> $GITHUB_ENV
+        fi
+
+    - name: Send Report via Email
+      if: ${{ success() || failure() }}
+      uses: dawidd6/action-send-mail@v3
+      env:
+        RUN_ID: ${{ github.run_id }}
+      with:
+        server_address: smtp.gmail.com
+        server_port: 587
+        username: ${{ secrets.QA_WORKFLOW_EMAIL }}
+        password: ${{ secrets.QA_WORKFLOW_EMAIL_PASSWORD }}
+        subject: Test Automation Report - Next PMS
+        html_body: |
+          <html>
+            <head>
+              <style>
+                body {
+                  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                  color: #333;
+                  margin: 0;
+                  padding: 0;
+                  background-color: #f9f9f9;
+                }
+                .container {
+                  width: 80%;
+                  max-width: 600px;
+                  margin: 20px auto;
+                  background: #fff;
+                  border: 1px solid #ddd;
+                  border-radius: 8px;
+                  padding: 20px;
+                }
+                .header {
+                  text-align: center;
+                  padding-bottom: 20px;
+                  border-bottom: 1px solid #ddd;
+                }
+                .header h1 {
+                  margin: 0;
+                  color: #333;
+                }
+                .content {
+                  margin-top: 20px;
+                }
+                .content p {
+                  margin: 0 0 10px;
+                }
+                .content ul {
+                  list-style: none;
+                  padding: 0;
+                }
+                .content li {
+                  padding: 8px 0;
+                  border-bottom: 1px solid #eee;
+                }
+                .content li:last-child {
+                  border-bottom: none;
+                }
+                .chart-container {
                   margin: 20px 0;
-                  background-color: #ffffff;
-                  border-radius: 5px;
-                  overflow: hidden;
-                  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                  text-align: center;
                 }
-                th, td {
-                  border: 1px solid #dddddd;
-                  padding: 12px;
+                .chart-title {
+                  margin-bottom: 10px;
+                  font-weight: bold;
+                }
+                .chart-container img {
+                  max-width: 100%;
+                  height: 240px;
+                }
+                .footer {
+                  margin-top: 20px;
                   text-align: left;
+                  font-size: 0.9em;
+                  color: #777;
                 }
-                th {
-                  background-color: #4CAF50;
-                  color: white;
+                .footer p {
+                  margin: 5px 0;
                 }
-                tr:nth-child(even) {
-                  background-color: #f2f2f2;
+                .footer a {
+                  color: #007bff;
+                  text-decoration: none;
                 }
-                tr:hover {
-                  background-color: #ddd;
+                .footer a:hover {
+                  text-decoration: underline;
                 }
-                </style>
-              </head>
-              <body>
-                <div class="container">
-                  <div class="header">
-                    <h1>Test Automation Report</h1>
-                  </div>
-                  <div class="content">
-                    <p>Hi Team,</p>
-                    ${{ env.message }}
-                    <p><b>Automation Test Summary:</b></p>
-                    <ul>
-                      <li><b>Total Tests:</b> ${{ env.TOTAL }}</li>
-                      <li><b>Tests Passed:</b> ${{ env.passed_count }}</li>
-                      <li><b>Tests Failed:</b> ${{ env.failed_count }}</li>
-                      <li><b>Test Broken:</b> ${{env.broken_count }}</li>
-                    </ul>
-                  </div>
+                .content a {
 
-              <p>To view videos and other report assets to track failure, visit the <a href="https://github.com/rtcamp/next-pms/actions/runs/${{ github.run_id }}#artifacts">GitHub Actions Artifacts</a>.</p>
-              <p>To view the build details and see what changes have been merged, visit the build link:</p><a href="https://github.com/rtcamp/next-pms/actions/runs/${{ github.run_id }}">Build Details</a>
-              <p>If you have any questions, please feel free to revert back.</p>
-                  <div class="footer">
-                    <p>Best regards,</p>
-                    <p>QA Team</p>
-                  </div>
+                  text-decoration: none;
+                }
+                .content a:hover {
+                  text-decoration: underline; /* Underline on hover */
+                }
+                 table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+                background-color: #ffffff;
+                border-radius: 5px;
+                overflow: hidden;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+              }
+              th, td {
+                border: 1px solid #dddddd;
+                padding: 12px;
+                text-align: left;
+              }
+              th {
+                background-color: #4CAF50;
+                color: white;
+              }
+              tr:nth-child(even) {
+                background-color: #f2f2f2;
+              }
+              tr:hover {
+                background-color: #ddd;
+              }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>Test Automation Report</h1>
                 </div>
-              </body>
-            </html>
-          to: bots-erp-rtcamp-com-aaaajmbbbavnlkxccfuvoqjqsy@rtcamp.slack.com
-          from: no-reply@gmail.com
+                <div class="content">
+                  <p>Hi Team,</p>
+                  ${{ env.message }}
+                  <p><b>Automation Test Summary:</b></p>
+                  <ul>
+                    <li><b>Total Tests:</b> ${{ env.TOTAL }}</li>
+                    <li><b>Tests Passed:</b> ${{ env.passed_count }}</li>
+                    <li><b>Tests Failed:</b> ${{ env.failed_count }}</li>
+                    <li><b>Test Broken:</b> ${{env.broken_count }}</li>
+                  </ul>
+                </div>
 
-      - name: Cleanup
-        if: ${{ always() }}
-        uses: rtCamp/action-cleanup@master
+            <p>To view videos and other report assets to track failure, visit the <a href="https://github.com/rtcamp/next-pms/actions/runs/${{ env.RUN_ID }}#artifacts">GitHub Actions Artifacts</a>.</p>
+            <p>To view the build details and see what changes have been merged, visit the build link:</p><a href="https://github.com/rtcamp/next-pms/actions/runs/${{ env.RUN_ID }}">Build Details</a>
+            <p>If you have any questions, please feel free to revert back.</p>
+                <div class="footer">
+                  <p>Best regards,</p>
+                  <p>QA Team</p>
+                </div>
+              </div>
+            </body>
+          </html>
+        to: bots-erp-rtcamp-com-aaaajmbbbavnlkxccfuvoqjqsy@rtcamp.slack.com
+        from: no-reply@gmail.com
+
+    - name: Cleanup
+      if: ${{ always() }}
+      uses: rtCamp/action-cleanup@master
