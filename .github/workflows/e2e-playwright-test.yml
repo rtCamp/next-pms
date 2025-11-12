@@ -316,9 +316,12 @@ jobs:
 
       - name: Set the email body message for pull request merge or schedule message
         if: ${{ success() || failure() }}
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
         run: |
           if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
-            echo "message=<p>For the latest pull request merge titled <b><a href='${{ github.event.pull_request.html_url }}'> ${{ github.event.pull_request.title }}</a></b>, the E2E automation tests have been executed on the staging environment. Below is the summary:</p>" >> $GITHUB_ENV
+            echo "message=<p>For the latest pull request merge titled <b><a href='$PR_URL'> $PR_TITLE</a></b>, the E2E automation tests have been executed on the staging environment. Below is the summary:</p>" >> $GITHUB_ENV
           else
             echo "message=<p>This is to inform you that the scheduled E2E automation tests have been executed on the staging environment. Below is the summary::</p>" >> $GITHUB_ENV
           fi
