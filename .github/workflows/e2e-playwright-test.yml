@@ -8,7 +8,7 @@ on:
 
   #Triggers at 5 AM IST every day
   schedule:
-  - cron: "30 23 * * *"
+    - cron: "30 23 * * *"
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -230,7 +230,6 @@ jobs:
     - name: Merge history into results
       if: always()
       run: |
-        
         cp -R allure-report-for-count-extraction/history/* allure-results/history/
 
     - name: Generate single-file Allure HTML
