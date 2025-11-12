@@ -230,7 +230,6 @@ jobs:
     - name: Merge history into results
       if: always()
       run: |
-        
         cp -R allure-report-for-count-extraction/history/* allure-results/history/
 
     - name: Generate single-file Allure HTML
