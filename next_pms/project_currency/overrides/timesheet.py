@@ -71,7 +71,9 @@ class TimesheetOverwrite(Timesheet):
 
         for data in self.time_logs:
             costing_rate = self.get_activity_costing_rate(currency=self.currency, activity_type=data.activity_type)
-            base_costing_rate = self.get_activity_costing_rate(currency=frappe.defaults.get_global_default("currency"), activity_type=data.activity_type)
+            base_costing_rate = self.get_activity_costing_rate(
+                currency=frappe.defaults.get_global_default("currency"), activity_type=data.activity_type
+            )
             costing_hours = data.billing_hours or data.hours or 0
 
             if costing_rate:
@@ -120,7 +122,7 @@ class TimesheetOverwrite(Timesheet):
                 ["costing_rate", "currency"],
                 as_dict=True,
             )
-            
+
             if activity_cost and activity_cost.costing_rate:
                 # Convert activity cost to target currency if needed
                 activity_cost_currency = activity_cost.currency or frappe.defaults.get_global_default("currency")
