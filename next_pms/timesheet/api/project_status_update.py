@@ -457,6 +457,8 @@ def notify_mentions(
 
 def send_publish_notifications(project: str, title: str, name: str):
     """Send email notifications to employees with specified roles"""
+    # Disabling email notifications on project updates
+    return
     users = get_users_with_roles(ROLES)
     if not users:
         return
