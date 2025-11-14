@@ -1,6 +1,6 @@
 {
   "name": "next-pms",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "main": "index.js",
   "repository": "git@github.com:rtCamp/next-pms.git",
   "author": "rtCamp",
@@ -10,7 +10,7 @@
     "dev": "cd frontend && npm run dev",
     "build": "cd frontend && npm install && npm run build",
     "e2e:tests": "npx playwright test --config=tests/e2e/playwright.config.js",
-    "lint:precommit": "eslint --fix --config .eslint.config.cjs",
+    "lint:precommit": "eslint --fix --config eslint.config.js",
     "allure:report": "allure generate allure-results --clean -o allure-report-for-count-extraction",
     "allure:serve": "allure serve allure-results",
     "allure:htmlReport": "allure generate allure-results --single-file --clean -o allure-report",
