@@ -2,6 +2,7 @@
   "name": "next-pms",
   "version": "0.1.0",
   "main": "index.js",
+  "type": "module",
   "repository": "git@github.com:rtCamp/next-pms.git",
   "author": "rtCamp",
   "license": "AGPLv3",
