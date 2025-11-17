@@ -36,9 +36,12 @@ def get_context(context):
     boot["is_calendar_setup"] = is_google_calendar_enabled()
     boot["global_filters"] = get_global_filters()
     boot_json = frappe.as_json(boot, indent=None, separators=(",", ":"))
-
-    boot_json = re.sub(r"\<script[^<]*\</script\>", "", boot_json, flags=re.DOTALL | re.IGNORECASE)
-    boot_json = re.sub(r"</script\>", "", boot_json, flags=re.DOTALL | re.IGNORECASE)
+    boot_json = re.sub(
+        r"<script\b[^>]*>.*?</script\s*>",
+        "",
+        boot_json,
+        flags=re.DOTALL | re.IGNORECASE,
+    )
 
     boot_json = json.dumps(boot_json)
 
