@@ -75,8 +75,12 @@ def get_boot():
     boot["app_name"] = "Next PMS"
     boot["global_filters"] = get_global_filters()
     boot_json = frappe.as_json(boot, indent=None, separators=(",", ":"))
-    boot_json = re.sub(r"\<script[^<]*\</script\>", "", boot_json, flags=re.DOTALL | re.IGNORECASE)
-    boot_json = re.sub(r"</script\>", "", boot_json, flags=re.DOTALL | re.IGNORECASE)
+    boot_json = re.sub(
+        r"<script\b[^>]*>.*?</script\s*>",
+        "",
+        boot_json,
+        flags=re.DOTALL | re.IGNORECASE,
+    )
     boot_json = json.dumps(boot_json)
     return boot_json
 
