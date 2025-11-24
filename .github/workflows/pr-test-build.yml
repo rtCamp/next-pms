@@ -1,4 +1,6 @@
 name: PR Frontend Build Test
+permissions:
+  contents: read
 
 on:
   pull_request:
