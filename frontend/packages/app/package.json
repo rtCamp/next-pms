@@ -18,7 +18,7 @@
     "@reduxjs/toolkit": "^2.2.6",
     "@tanstack/react-table": "^8.20.5",
     "emoji-picker-react": "^4.12.0",
-    "frappe-react-sdk": "^1.11.0",
+    "frappe-react-sdk": "^1.13.0",
     "lodash": "^4.17.21",
     "lucide-react": "^0.408.0",
     "moment": "^2.30.1",

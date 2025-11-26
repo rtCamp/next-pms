@@ -9,9 +9,6 @@ from next_pms.timesheet.doctype.pms_view_setting.pms_view_setting import get_vie
 
 no_cache = 1
 
-SCRIPT_TAG_PATTERN = re.compile(r"\<script[^<]*\</script\>")
-CLOSING_SCRIPT_TAG_PATTERN = re.compile(r"</script\>")
-
 
 def get_context(context):
     csrf_token = frappe.sessions.get_csrf_token()
@@ -39,9 +36,13 @@ def get_context(context):
     boot["is_calendar_setup"] = is_google_calendar_enabled()
     boot["global_filters"] = get_global_filters()
     boot_json = frappe.as_json(boot, indent=None, separators=(",", ":"))
-    boot_json = SCRIPT_TAG_PATTERN.sub("", boot_json)
+    boot_json = re.sub(
+        r"<script\b[^>]*>.*?</script\s*>",
+        "",
+        boot_json,
+        flags=re.DOTALL | re.IGNORECASE,
+    )
 
-    boot_json = CLOSING_SCRIPT_TAG_PATTERN.sub("", boot_json)
     boot_json = json.dumps(boot_json)
 
     context.update(
@@ -74,9 +75,12 @@ def get_boot():
     boot["app_name"] = "Next PMS"
     boot["global_filters"] = get_global_filters()
     boot_json = frappe.as_json(boot, indent=None, separators=(",", ":"))
-    boot_json = SCRIPT_TAG_PATTERN.sub("", boot_json)
-
-    boot_json = CLOSING_SCRIPT_TAG_PATTERN.sub("", boot_json)
+    boot_json = re.sub(
+        r"<script\b[^>]*>.*?</script\s*>",
+        "",
+        boot_json,
+        flags=re.DOTALL | re.IGNORECASE,
+    )
     boot_json = json.dumps(boot_json)
     return boot_json
 
