@@ -49,8 +49,10 @@ class TimesheetOverwrite(Timesheet):
         if not self.customer:
             self.customer = frappe.db.get_value("Project", self.parent_project, "customer")
 
-        if not self.company:
-            self.company = frappe.db.get_value("Project", self.parent_project, "company")
+        self.company = frappe.db.get_value("Project", self.parent_project, "company")
+
+        # if not self.company:
+        #     self.company = frappe.db.get_value("Employee", self.employee, "company")
 
         if self.customer:
             self.currency = frappe.db.get_value("Customer", self.customer, "default_currency")
