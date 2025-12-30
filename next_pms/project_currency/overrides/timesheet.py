@@ -107,6 +107,12 @@ class TimesheetOverwrite(Timesheet):
                     data.base_billing_rate = base_billing_rate
                     data.base_billing_amount = data.base_billing_rate * hours
 
+            if not data.is_billable:
+                data.billing_rate = 0
+                data.billing_amount = 0
+                data.base_billing_rate = 0
+                data.base_billing_amount = 0
+
     def get_activity_costing_rate(self, currency=None):
         if not self.parent_project:
             return frappe.throw(frappe._("Project is not defined in Timesheet."))
