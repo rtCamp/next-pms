@@ -4,14 +4,14 @@
 import { useCallback, useRef } from "react";
 
 interface InfiniteScrollProps {
-    isLoading?: boolean;
-    hasMore: boolean;
-    next: () => unknown;
-    threshold?: number;
-    root?: Element | Document | null;
-    rootMargin?: string;
-    reverse?: boolean;
-    children?: React.ReactNode;
+  isLoading?: boolean;
+  hasMore: boolean;
+  next: () => unknown;
+  threshold?: number;
+  root?: Element | Document | null;
+  rootMargin?: string;
+  reverse?: boolean;
+  children?: React.ReactNode;
 }
 
 /**
@@ -26,42 +26,45 @@ interface InfiniteScrollProps {
  * @returns React.Ref
  */
 function useInfiniteScroll({
-    isLoading,
-    hasMore,
-    next,
-    threshold = 0.5,
-    root = null,
-    rootMargin = "0px",
+  isLoading = false,
+  hasMore,
+  next,
+  threshold = 0.02,
+  root = null,
+  rootMargin = "0px",
 }: InfiniteScrollProps) {
-    const observer = useRef<IntersectionObserver>();
-    const observerRef = useCallback(
-        (element: HTMLElement | null) => {
-            let safeThreshold = threshold;
-            if (threshold < 0 || threshold > 1) {
-                safeThreshold = 1;
-            }
+  const observer = useRef<IntersectionObserver | null>(null);
+  const isFetchingRef = useRef(false);
 
-            if (isLoading) return;
-            if (observer.current) observer.current.disconnect();
-            if (!element) return;
+  const observerRef = useCallback(
+    (element: HTMLElement | null) => {
+      if (!element) return;
 
-            observer.current = new IntersectionObserver(
-                (entries) => {
-                    if (
-                        (entries[0].isIntersecting || entries[0].intersectionRatio > 0) &&
-                        hasMore
-                    ) {
-                        next();
-                    }
-                },
-                { threshold: safeThreshold, root, rootMargin }
-            );
-            observer.current.observe(element);
+      observer.current?.disconnect();
+
+      observer.current = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting && hasMore && !isFetchingRef.current) {
+            isFetchingRef.current = true;
+            next();
+          }
         },
-        [hasMore, isLoading, next, threshold, root, rootMargin]
-    );
+        {
+          root,
+          rootMargin,
+          threshold,
+        }
+      );
 
-    return observerRef;
+      observer.current.observe(element);
+    },
+    [hasMore, next, threshold, root, rootMargin]
+  );
+  if (!isLoading) {
+    isFetchingRef.current = false;
+  }
+
+  return observerRef;
 }
 
 export { useInfiniteScroll };
