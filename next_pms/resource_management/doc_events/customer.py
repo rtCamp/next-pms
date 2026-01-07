@@ -11,4 +11,4 @@ def validate_abbr(doc, method=None):
         frappe.throw(frappe._("Abbreviation is mandatory"))
 
     if frappe.db.get_value("Customer", {"custom_abbr": doc.custom_abbr, "name": ["!=", doc.name]}):
-        frappe.throw(frappe._("Abbreviation already used for another company"))
+        frappe.throw(frappe._("Abbreviation already used for another customer"))
