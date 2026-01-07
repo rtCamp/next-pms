@@ -36,7 +36,7 @@ website_redirects = [
 ]
 # include js, css files in header of desk.html
 # app_include_css = "/assets/next_pms/css/next_pms.css"
-# app_include_js = "/assets/next_pms/js/next_pms.js"
+app_include_js = "/assets/next_pms/js/customer_quickentry.js"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/next_pms/css/next_pms.css"
@@ -57,6 +57,7 @@ doctype_js = {
     "Timesheet": "public/js/timesheet.js",
     "Employee": "public/js/employee.js",
     "Project": "public/js/project.js",
+    "Customer": "public/js/customer.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}

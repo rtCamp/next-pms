@@ -49,8 +49,10 @@ class TimesheetOverwrite(Timesheet):
         if not self.customer:
             self.customer = frappe.db.get_value("Project", self.parent_project, "customer")
 
-        if not self.company:
-            self.company = frappe.db.get_value("Project", self.parent_project, "company")
+        self.company = frappe.db.get_value("Project", self.parent_project, "company")
+
+        # if not self.company:
+        #     self.company = frappe.db.get_value("Employee", self.employee, "company")
 
         if self.customer:
             self.currency = frappe.db.get_value("Customer", self.customer, "default_currency")
@@ -104,6 +106,12 @@ class TimesheetOverwrite(Timesheet):
                 if base_billing_rate or custom_billing_type == "Time and Material":
                     data.base_billing_rate = base_billing_rate
                     data.base_billing_amount = data.base_billing_rate * hours
+
+            if not data.is_billable:
+                data.billing_rate = 0
+                data.billing_amount = 0
+                data.base_billing_rate = 0
+                data.base_billing_amount = 0
 
     def get_activity_costing_rate(self, currency=None):
         if not self.parent_project:
