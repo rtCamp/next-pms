@@ -29,7 +29,7 @@ function useInfiniteScroll({
   isLoading = false,
   hasMore,
   next,
-  threshold = 0,
+  threshold = 0.02,
   root = null,
   rootMargin = "0px",
 }: InfiniteScrollProps) {
