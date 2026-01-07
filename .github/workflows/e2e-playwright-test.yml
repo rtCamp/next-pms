@@ -8,7 +8,7 @@ on:
 
   #Triggers at 5 AM IST every day
   schedule:
-    - cron: "30 23 * * *"
+    - cron: "30 2 * * *"
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -71,6 +71,7 @@ jobs:
       image: ubuntu:24.04
     environment: Stage # Retrive secrets from 'Stage' environment
     env:
+      TZ: Asia/Kolkata
       BASE_URL: ${{ secrets.BASE_URL }}
 
       ADMIN_ID: ${{ secrets.ADMIN_ID }}
