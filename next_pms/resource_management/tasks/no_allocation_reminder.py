@@ -7,7 +7,7 @@ from next_pms.resource_management.api.utils.query import (
 )
 from next_pms.utils.employee import generate_flat_tree
 
-SKIP_WEEKDAYS = [5, 6]  # Saturday and Sunday
+SKIP_WEEKENDS = [5, 6]  # Saturday and Sunday
 
 
 def send_reminder():
@@ -38,6 +38,13 @@ def send_reminder():
     next_monday = add_days(date, (7 - weekday) % 7 + 0)
     next_sunday = add_days(date, (7 - weekday) % 7 + 6)
 
+    employee_names = list(employees.keys())
+    for emp, data in employees.items():
+        for child in data.get("childrens", []):
+            employee_names.append(child.get("name"))
+
+    employee_names = list(set(employee_names))
+
     allocations = get_allocation_list_for_employee_for_given_range(
         columns=[
             "name",
@@ -56,10 +63,31 @@ def send_reminder():
             "creation",
         ],
         value_key="employee",
-        values=list(employees.keys()),
+        values=employee_names,
         start_date=next_monday,
         end_date=next_sunday,
     )
+
+    allocation_map = {}
+    for alloc in allocations:
+        emp = alloc.get("employee")
+        if emp not in allocation_map:
+            allocation_map[emp] = []
+        allocation_map[emp].append(alloc)
+
+    leaves = get_employee_leaves(
+        employee=tuple(employee_names),
+        start_date=next_monday,
+        end_date=next_sunday,
+    )
+
+    leave_map = {}
+    for leave in leaves:
+        emp = leave.employee
+        if emp not in leave_map:
+            leave_map[emp] = []
+        leave_map[emp].append(leave)
+
     for employee, data in employees.items():
         if not data.get("childrens"):
             continue
@@ -74,23 +102,19 @@ def send_reminder():
             _end_date = next_sunday
             if r_employee.get("designation") not in designations:
                 continue
+
+            emp_name = r_employee.get("name")
             emp_missing_allocations = {
-                "employee": r_employee.get("name"),
+                "employee": emp_name,
                 "employee_name": r_employee.get("employee_name"),
                 "designation": r_employee.get("designation"),
                 "dates": [],
             }
-            employee_allocations = [
-                allocation for allocation in allocations if allocation.get("employee") == r_employee.get("name")
-            ]
-            leaves = get_employee_leaves(
-                employee=r_employee.get("name"),
-                start_date=next_monday,
-                end_date=next_sunday,
-            )
+            leaves = leave_map.get(emp_name, [])
+            employee_allocations = allocation_map.get(emp_name, [])
 
             while _start_date <= _end_date:
-                if _start_date.weekday() in SKIP_WEEKDAYS:
+                if _start_date.weekday() in SKIP_WEEKENDS:
                     _start_date = add_days(_start_date, 1)
                     continue
                 if not employee_allocations and not leaves:
