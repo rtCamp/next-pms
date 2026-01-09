@@ -312,14 +312,27 @@ def _approve_or_reject_timesheet(
     dates: list[str] | None = None,
     note: str = "",
 ):
+    if not dates:
+        return
+
+    # Convert dates to set for O(1) lookup
+    dates_set = set(dates)
+
+    # Filter timesheets first (no DB query)
+    timesheets_to_process = [ts for ts in timesheets if str(ts.start_date) in dates_set]
+
+    if not timesheets_to_process:
+        return
+
     db.begin()
     try:
-        for timesheet in timesheets:
-            if str(timesheet.start_date) not in dates:
-                continue
+        # Calculate permission once instead of per timesheet
+        has_permission = employee_has_higher_access(employee, ptype="write")
+
+        for timesheet in timesheets_to_process:
             doc = get_doc("Timesheet", timesheet.name)
             doc.custom_approval_status = status
-            doc.save(ignore_permissions=employee_has_higher_access(employee, ptype="write"))
+            doc.save(ignore_permissions=has_permission)
             if status == "Approved":
                 doc.submit()
 
