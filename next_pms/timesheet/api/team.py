@@ -350,11 +350,12 @@ def _approve_or_reject_timesheet(
         db.rollback()
         log_error(title=_("Error in Timesheet Approval"))
         subject = _("Error in Timesheet Approval")
+        date_param = f"?date='{dates[0]}'" if dates else ""
         message = _(
             "An error occurred while processing the timesheet approval for {employee}. Please follow <a href='{link}'>link</a> to check the time-entries."
         ).format(
             employee=employee,
-            link=f"/next-pms/team/employee/{employee}?date='{dates[0]}'",
+            link=f"/next-pms/team/employee/{employee}{date_param}",
         )
         sendmail(recipients=[session.user], subject=subject, message=message)
 
