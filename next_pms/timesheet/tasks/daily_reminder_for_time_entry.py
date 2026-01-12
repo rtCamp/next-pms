@@ -1,8 +1,5 @@
 import frappe
 from frappe.utils import add_days, datetime, getdate
-from hrms.hr.utils import get_holiday_list_for_employee
-
-from next_pms.timesheet.api.employee import get_employee_daily_working_norm
 
 
 def send_reminder():
@@ -19,8 +16,11 @@ def send_reminder():
     employees = frappe.get_all(
         "Employee",
         filters={"status": "Active", "department": ["in", allowed_departments]},
-        fields="*",
+        fields=["name", "employee_name", "user_id", "holiday_list", "custom_working_hours", "custom_work_schedule"],
     )
+
+    if not employees:
+        return
 
     email_message = ""
     if reminder_template.use_html:
@@ -30,18 +30,83 @@ def send_reminder():
 
     email_subject = reminder_template.subject
 
+    employee_names = [e.name for e in employees]
+
+    # Batch fetch all holiday lists
+    holiday_lists = set(e.holiday_list for e in employees if e.holiday_list)
+    holidays_on_date = set()
+    if holiday_lists:
+        holidays = frappe.get_all(
+            "Holiday",
+            filters={"parent": ["in", list(holiday_lists)], "holiday_date": date},
+            pluck="parent",
+        )
+        holidays_on_date = set(holidays)
+
+    # Batch fetch leaves for all employees on this date
+    leave_map = {}
+    leaves = frappe.db.sql(
+        """
+        SELECT employee, half_day, half_day_date
+        FROM `tabLeave Application`
+        WHERE %(date)s BETWEEN from_date AND to_date
+        AND employee IN %(employees)s
+        AND status IN ('Approved', 'Open')
+        """,
+        {"date": date, "employees": employee_names},
+        as_dict=True,
+    )
+
+    for leave in leaves:
+        if leave.employee not in leave_map:
+            leave_map[leave.employee] = []
+        leave_map[leave.employee].append(leave)
+
+    # Batch fetch timesheets for all employees on this date
+    timesheets = frappe.get_all(
+        "Timesheet",
+        filters={"employee": ["in", employee_names], "start_date": date, "end_date": date},
+        fields=["employee", "total_hours"],
+    )
+    timesheet_map = {}
+    for ts in timesheets:
+        if ts.employee not in timesheet_map:
+            timesheet_map[ts.employee] = 0
+        timesheet_map[ts.employee] += ts.total_hours
+
+    # Now process employees without additional queries
     for employee in employees:
-        daily_norm = get_employee_daily_working_norm(employee.name)
-        if is_holiday_or_leave(date, employee.name, daily_norm):
+        daily_norm = calculate_daily_norm(employee)
+
+        # Check holiday
+        if employee.holiday_list in holidays_on_date:
             continue
-        hour = reported_time_by_employee(employee.name, date, daily_norm)
-        if hour >= daily_norm:
+
+        # Check leave
+        emp_leaves = leave_map.get(employee.name, [])
+        is_full_day_leave = False
+        leave_hours = 0
+        for leave in emp_leaves:
+            if leave.half_day and getdate(leave.half_day_date) == date:
+                leave_hours += daily_norm / 2
+            else:
+                is_full_day_leave = True
+                break
+
+        if is_full_day_leave:
             continue
+
+        # Calculate reported hours
+        total_hours = leave_hours + timesheet_map.get(employee.name, 0)
+        if total_hours >= daily_norm:
+            continue
+
+        # Send reminder
         user = employee.user_id
         args = {
             "date": date,
             "employee": employee,
-            "hour": hour,
+            "hour": total_hours,
             "daily_norm": daily_norm,
         }
         message = frappe.render_template(email_message, args)
@@ -53,75 +118,10 @@ def send_mail(recipients, subject, message):
     frappe.sendmail(recipients=recipients, subject=subject, message=message)
 
 
-def reported_time_by_employee(employee: str, date: datetime.date, daily_norm: int) -> int:
-    total_hours = 0
-    leave_info = get_leave_info(employee, date, daily_norm)
-    total_hours += leave_info.get("hours")
-    if_exists = frappe.db.exists(
-        "Timesheet",
-        {
-            "employee": employee,
-            "start_date": date,
-        },
-    )
-    if not if_exists:
-        return total_hours
-
-    timesheets = frappe.get_all(
-        "Timesheet",
-        filters={
-            "employee": employee,
-            "start_date": date,
-            "end_date": date,
-        },
-        fields=["total_hours"],
-    )
-    total_hours += sum(timesheet.total_hours for timesheet in timesheets)
-    return total_hours
-
-
-def is_holiday_or_leave(date: datetime.date, employee: str, daily_norm: int) -> bool:
-    holiday_list = get_holiday_list_for_employee(employee)
-    is_holiday = frappe.db.exists(
-        "Holiday",
-        {
-            "holiday_date": date,
-            "parent": holiday_list,
-        },
-    )
-    if is_holiday:
-        return True
-    leave_info = get_leave_info(employee, date, daily_norm)
-    is_leave = leave_info.get("is_leave")
-    is_half_day = leave_info.get("is_half_day")
-    if is_leave and not is_half_day:
-        return True
-    return False
-
-
-def get_leave_info(employee: str, date: datetime.date, daily_norm: int) -> bool:
-    # nosemgrep
-    leaves = frappe.db.sql(
-        """
-        SELECT *
-        FROM `tabLeave Application`
-        WHERE %(date)s BETWEEN from_date AND to_date AND employee = %(employee)s AND status IN ('Approved', 'Open')
-        """,
-        values={"date": date, "employee": employee},
-        as_dict=True,
-    )
-
-    if not leaves:
-        return {"is_leave": False, "is_half_day": False, "hours": 0}
-    leave_hours = 0
-    for leave in leaves:
-        if leave.half_day and getdate(leave.half_day_date) == date:
-            leave_hours += daily_norm / 2
-        else:
-            leave_hours += daily_norm
-
-    return {
-        "is_leave": leave_hours > 0,
-        "is_half_day": leave_hours < daily_norm,
-        "hours": leave_hours,
-    }
+def calculate_daily_norm(employee):
+    """Calculate daily norm from already-fetched employee fields."""
+    working_hour = employee.custom_working_hours or 8
+    working_frequency = employee.custom_work_schedule or "Per Day"
+    if working_frequency != "Per Day":
+        return working_hour / 5
+    return working_hour
