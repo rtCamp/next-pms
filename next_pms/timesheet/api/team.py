@@ -126,10 +126,15 @@ def get_compact_view_data(
         SELECT employee, from_date, to_date, half_day, half_day_date
         FROM `tabLeave Application`
         WHERE employee IN %(employees)s
-        AND status IN ('Approved', 'Open')
-        AND from_date <= %(end_date)s
-        AND to_date >= %(start_date)s
+        AND (
+            (from_date <= %(start_date)s AND to_date >= %(start_date)s)
+            OR (from_date >= %(start_date)s AND to_date <= %(end_date)s)
+            OR (from_date <= %(end_date)s AND to_date >= %(end_date)s)
+            OR (from_date <= %(start_date)s AND to_date >= %(end_date)s)
+        )
         AND (docstatus = 1 OR docstatus = 0)
+        AND (status = 'Approved' OR status = 'Open')
+        ORDER BY employee, from_date, to_date
     """,
         {
             "employees": employee_names,
@@ -151,7 +156,7 @@ def get_compact_view_data(
         filters={"name": ["in", employee_names]},
         fields=["name", "holiday_list"],
     )
-    holiday_list_names = list({e.holiday_list for e in emp_holiday_lists if e.holiday_list})
+    holiday_list_names = {e.holiday_list for e in emp_holiday_lists if e.holiday_list}
 
     # Fetch holidays for all holiday lists in date range
     holidays_by_list = {}
@@ -159,7 +164,7 @@ def get_compact_view_data(
         holidays = get_all(
             "Holiday",
             filters={
-                "parent": ["in", holiday_list_names],
+                "parent": ["in", list(holiday_list_names)],
                 "holiday_date": ["between", [start_date, end_date]],
             },
             fields=["parent", "holiday_date", "weekly_off"],
@@ -256,8 +261,8 @@ def batch_get_timesheet_states(employee_names, start_date, end_date):
         "Timesheet",
         filters={
             "employee": ["in", employee_names],
-            "start_date": [">=", getdate(start_date)],
-            "end_date": ["<=", getdate(end_date)],
+            "start_date": [">=", start_date],
+            "end_date": ["<=", end_date],
             "docstatus": ["!=", 2],
         },
         fields=["employee", "custom_weekly_approval_status"],
@@ -267,7 +272,7 @@ def batch_get_timesheet_states(employee_names, start_date, end_date):
     # If an employee has multiple timesheets, return the first one found
     states = {}
     for ts in timesheets:
-        if ts.employee not in states and ts.custom_weekly_approval_status:
+        if ts.employee not in states and ts.custom_weekly_approval_status is not None:
             states[ts.employee] = ts.custom_weekly_approval_status
 
     return states
