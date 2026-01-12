@@ -84,16 +84,15 @@ def send_reminder():
 
         # Check leave
         emp_leaves = leave_map.get(employee.name, [])
-        is_full_day_leave = False
         leave_hours = 0
         for leave in emp_leaves:
             if leave.half_day and getdate(leave.half_day_date) == date:
                 leave_hours += daily_norm / 2
             else:
-                is_full_day_leave = True
-                break
+                leave_hours += daily_norm
 
-        if is_full_day_leave:
+        # If total leave hours >= daily_norm, it's effectively a full-day leave
+        if leave_hours >= daily_norm:
             continue
 
         # Calculate reported hours
