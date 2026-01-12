@@ -24,6 +24,9 @@ from next_pms.timesheet.doc_events.timesheet import flush_cache, publish_timeshe
 from . import filter_employees
 from .utils import employee_has_higher_access, get_week_dates
 
+# Constants
+WORK_DAYS_PER_WEEK = 5
+
 
 @whitelist()
 @error_logger
@@ -185,7 +188,7 @@ def get_compact_view_data(
         working_hour = emp_work.get("custom_working_hours") or default_hours
         working_frequency = emp_work.get("custom_work_schedule") or "Per Day"
 
-        daily_working_hours = working_hour / 5 if working_frequency != "Per Day" else working_hour
+        daily_working_hours = working_hour / WORK_DAYS_PER_WEEK if working_frequency != "Per Day" else working_hour
 
         local_data = {
             **employee,
@@ -252,7 +255,12 @@ def get_compact_view_data(
 
 
 def batch_get_timesheet_states(employee_names, start_date, end_date):
-    """Batch fetch timesheet states for all employees."""
+    """Batch fetch timesheet states for all employees.
+    
+    Returns a dictionary mapping employee names to their timesheet status.
+    If an employee has no timesheets or all their timesheets have None status,
+    they won't be in the returned dict (caller will use "Not Submitted" as default).
+    """
     if not employee_names:
         return {}
 
@@ -269,7 +277,7 @@ def batch_get_timesheet_states(employee_names, start_date, end_date):
     )
 
     # Build a map of employee to their status
-    # If an employee has multiple timesheets, return the first one found
+    # If an employee has multiple timesheets, use the first non-None status found
     states = {}
     for ts in timesheets:
         if ts.employee not in states and ts.custom_weekly_approval_status is not None:
