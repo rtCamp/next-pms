@@ -358,7 +358,7 @@ def get_timesheet(dates: list, employee: str):
     """
     data = {}
     total_hours = 0
-    
+
     # Get parent timesheet names first
     timesheet_names = frappe.get_all(
         "Timesheet",
@@ -370,10 +370,10 @@ def get_timesheet(dates: list, employee: str):
         pluck="name",
         ignore_permissions=employee_has_higher_access(employee, ptype="read"),
     )
-    
+
     if not timesheet_names:
         return [data, total_hours]
-    
+
     # Fetch all timesheet detail records with needed fields in one query
     timesheet_logs = frappe.get_all(
         "Timesheet Detail",
@@ -382,7 +382,7 @@ def get_timesheet(dates: list, employee: str):
         },
         fields=ALLOWED_TIMESHET_DETAIL_FIELDS,
     )
-    
+
     if not timesheet_logs:
         return [data, total_hours]
 
