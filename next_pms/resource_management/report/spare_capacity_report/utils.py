@@ -24,6 +24,9 @@ def get_employee_fields(has_bu_field=False):
         "employee_name",
         "ctc",
         "salary_currency as currency",
+        "custom_working_hours",
+        "custom_work_schedule",
+        "holiday_list",
     ]
     if has_bu_field:
         fields.append(BU_FIELD_NAME)
