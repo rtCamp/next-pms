@@ -1,9 +1,9 @@
+import frappe
 from frappe import get_doc, render_template, sendmail
 from frappe.utils import add_days, get_weekday, getdate
 
 from next_pms.resource_management.api.utils.query import (
     get_allocation_list_for_employee_for_given_range,
-    get_employee_leaves,
 )
 from next_pms.utils.employee import generate_flat_tree
 
@@ -34,10 +34,17 @@ def send_reminder():
     employees = employees.get("with_children", [])
     if not employees:
         return
-    args = []
+
     next_monday = add_days(date, (7 - weekday) % 7 + 0)
     next_sunday = add_days(date, (7 - weekday) % 7 + 6)
 
+    # Get all employee names (managers + their children)
+    all_employee_names = set(employees.keys())
+    for emp, data in employees.items():
+        for child in data.get("childrens", []):
+            all_employee_names.add(child.get("name"))
+
+    # Batch fetch allocations for all employees
     allocations = get_allocation_list_for_employee_for_given_range(
         columns=[
             "name",
@@ -56,10 +63,55 @@ def send_reminder():
             "creation",
         ],
         value_key="employee",
-        values=list(employees.keys()),
+        values=list(all_employee_names),
         start_date=next_monday,
         end_date=next_sunday,
     )
+
+    # Build allocation map: employee -> list of allocations
+    allocation_map = {}
+    for alloc in allocations:
+        emp = alloc.get("employee")
+        if emp not in allocation_map:
+            allocation_map[emp] = []
+        allocation_map[emp].append(alloc)
+
+    # Batch fetch leaves for all employees
+    leaves = frappe.db.sql("""
+        SELECT employee, from_date, to_date
+        FROM `tabLeave Application`
+        WHERE employee IN %(employees)s
+        AND status IN ('Approved', 'Open')
+        AND (docstatus = 1 OR docstatus = 0)
+        AND (
+            (from_date <= %(start_date)s AND to_date >= %(start_date)s)
+            OR (from_date >= %(start_date)s AND to_date <= %(end_date)s)
+            OR (from_date <= %(end_date)s AND to_date >= %(end_date)s)
+            OR (from_date <= %(start_date)s AND to_date >= %(end_date)s)
+        )
+    """, {
+        "employees": list(all_employee_names),
+        "start_date": next_monday,
+        "end_date": next_sunday
+    }, as_dict=True)
+
+    # Build leave map: employee -> list of (from_date, to_date) tuples
+    leave_map = {}
+    for leave in leaves:
+        emp = leave.employee
+        if emp not in leave_map:
+            leave_map[emp] = []
+        leave_map[emp].append((leave.from_date, leave.to_date))
+
+    # Pre-generate all dates for the week
+    week_dates = []
+    current = next_monday
+    while current <= next_sunday:
+        if current.weekday() not in SKIP_WEEKDAYS:
+            week_dates.append(current)
+        current = add_days(current, 1)
+
+    args = []
     for employee, data in employees.items():
         if not data.get("childrens"):
             continue
@@ -70,42 +122,39 @@ def send_reminder():
             "missing_allocations": [],
         }
         for r_employee in data.get("childrens"):
-            _start_date = next_monday
-            _end_date = next_sunday
             if r_employee.get("designation") not in designations:
                 continue
+
+            emp_name = r_employee.get("name")
             emp_missing_allocations = {
-                "employee": r_employee.get("name"),
+                "employee": emp_name,
                 "employee_name": r_employee.get("employee_name"),
                 "designation": r_employee.get("designation"),
                 "dates": [],
             }
-            employee_allocations = [
-                allocation for allocation in allocations if allocation.get("employee") == r_employee.get("name")
-            ]
-            leaves = get_employee_leaves(
-                employee=r_employee.get("name"),
-                start_date=next_monday,
-                end_date=next_sunday,
-            )
 
-            while _start_date <= _end_date:
-                if _start_date.weekday() in SKIP_WEEKDAYS:
-                    _start_date = add_days(_start_date, 1)
-                    continue
-                if not employee_allocations and not leaves:
-                    emp_missing_allocations["dates"].append(_start_date.strftime("%Y-%m-%d"))
-                    _start_date = add_days(_start_date, 1)
-                    continue
-                if not employee_allocations or not any(
-                    allocation.get("allocation_start_date") <= _start_date <= allocation.get("allocation_end_date")
-                    for allocation in employee_allocations
-                ):
-                    if not leaves or not any(
-                        leave.get("from_date") <= _start_date <= leave.get("to_date") for leave in leaves
-                    ):
-                        emp_missing_allocations["dates"].append(_start_date.strftime("%Y-%m-%d"))
-                _start_date = add_days(_start_date, 1)
+            # Get allocations and leaves for this employee from the maps
+            employee_allocations = allocation_map.get(emp_name, [])
+            employee_leaves = leave_map.get(emp_name, [])
+
+            # Check each date in the week
+            for date_to_check in week_dates:
+                # Check if there's an allocation for this date
+                has_allocation = any(
+                    alloc.get("allocation_start_date") <= date_to_check <= alloc.get("allocation_end_date")
+                    for alloc in employee_allocations
+                )
+
+                # Check if there's a leave for this date
+                has_leave = any(
+                    from_date <= date_to_check <= to_date
+                    for from_date, to_date in employee_leaves
+                )
+
+                # If no allocation and no leave, add to missing allocations
+                if not has_allocation and not has_leave:
+                    emp_missing_allocations["dates"].append(date_to_check.strftime("%Y-%m-%d"))
+
             if emp_missing_allocations["dates"]:
                 arg["missing_allocations"].append(emp_missing_allocations)
 
