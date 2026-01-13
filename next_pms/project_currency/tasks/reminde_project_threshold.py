@@ -177,7 +177,13 @@ def calculate_threshold(project, project_budget):
 
         # Use the last budget entry
         latest_budget = project_budget[-1]
-        if not latest_budget.hours_purchased or latest_budget.hours_purchased == 0:
+        
+        # Validate that we have valid numeric values for calculation
+        if (
+            not latest_budget.hours_purchased
+            or latest_budget.hours_purchased <= 0
+            or latest_budget.consumed_hours is None
+        ):
             return None
 
         threshold = (latest_budget.consumed_hours * 100) / latest_budget.hours_purchased
