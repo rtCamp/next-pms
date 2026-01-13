@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import frappe
 from frappe import get_doc, render_template, sendmail
 from frappe.utils import add_days, get_weekday, getdate
@@ -69,12 +71,9 @@ def send_reminder():
     )
 
     # Build allocation map: employee -> list of allocations
-    allocation_map = {}
+    allocation_map = defaultdict(list)
     for alloc in allocations:
-        emp = alloc.get("employee")
-        if emp not in allocation_map:
-            allocation_map[emp] = []
-        allocation_map[emp].append(alloc)
+        allocation_map[alloc.get("employee")].append(alloc)
 
     # Batch fetch leaves for all employees
     leaves = frappe.db.sql("""
@@ -96,12 +95,9 @@ def send_reminder():
     }, as_dict=True)
 
     # Build leave map: employee -> list of (from_date, to_date) tuples
-    leave_map = {}
+    leave_map = defaultdict(list)
     for leave in leaves:
-        emp = leave.employee
-        if emp not in leave_map:
-            leave_map[emp] = []
-        leave_map[emp].append((leave.from_date, leave.to_date))
+        leave_map[leave.employee].append((leave.from_date, leave.to_date))
 
     # Pre-generate all dates for the week
     week_dates = []
