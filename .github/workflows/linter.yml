@@ -24,7 +24,7 @@ jobs:
           apt-get install -y python3-pip git  # Python + Git in Node.js container
           python3 -m pip install pre-commit --break-system-packages  # Main tool
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - run: |
           git config --global --add safe.directory $GITHUB_WORKSPACE
