@@ -30,6 +30,9 @@ from .utils import (
 @frappe.whitelist()
 @error_logger
 def get_timesheet_data(employee: str, start_date=None, max_week: int = 4):
+
+    
+
     """Get timesheet data for the given employee for the given number of weeks."""
     if not employee:
         employee = get_employee_from_user(throw_exception=frappe.session.user != "Administrator")
@@ -333,70 +336,72 @@ def update_timesheet_detail(
     return _("Time entry updated successfully.")
 
 
+
 def get_timesheet(dates: list, employee: str):
     from next_pms.timesheet.utils.constant import ALLOWED_TIMESHET_DETAIL_FIELDS
 
-    """Return the time entry from Timesheet Detail child table based on the list of dates and for the given employee.
-    example:
-        {
-            "Task 1": {
-                "name": "TS-00001",
-                "data": [
-                    {
-                        "task": "Task 1",
-                        "name": "TS-00001",
-                        "hours": 8,
-                        "description": "Task 1 description",
-                        "from_time": "2021-08-01",
-                        "to_time": "2021-08-01",
-                    },
-                    ...
-                ]
-            },
-            ...
-        }
-    """
     data = {}
     total_hours = 0
-    timesheet_logs = frappe.get_list(
+
+    # 1️⃣ Get all Timesheet names in one query
+    timesheet_names = frappe.get_all(
         "Timesheet",
         filters={
             "employee": employee,
             "start_date": ["in", dates],
             "docstatus": ["!=", 2],
         },
-        fields=["time_logs.name"],
+        pluck="name",
         ignore_permissions=employee_has_higher_access(employee, ptype="read"),
     )
+
+    if not timesheet_names:
+        return [data, total_hours]
+
+    # 2️⃣ Get all Timesheet Detail rows in one query
+    timesheet_logs = frappe.get_all(
+        "Timesheet Detail",
+        filters={"parent": ["in", timesheet_names]},
+        fields=list(set(ALLOWED_TIMESHET_DETAIL_FIELDS + ["task", "hours"])),
+    )
+
     if not timesheet_logs:
         return [data, total_hours]
-    timesheet_logs = [frappe.get_doc("Timesheet Detail", ts.name) for ts in timesheet_logs]
 
-    task_ids = [ts.task for ts in timesheet_logs if ts.task]
-    task_details = frappe.get_all(
-        "Task",
-        filters={"name": ["in", task_ids]},
-        fields=[
-            "name",
-            "subject",
-            "project.project_name as project_name",
-            "project",
-            "custom_is_billable",
-            "expected_time",
-            "actual_time",
-            "status",
-            "_liked_by",
-        ],
-    )
-    task_details_dict = {task["name"]: task for task in task_details}
+    # 3️⃣ Collect all Task IDs
+    task_ids = list(set(ts["task"] for ts in timesheet_logs if ts.get("task")))
+
+    task_details_dict = {}
+    if task_ids:
+        task_details = frappe.get_all(
+            "Task",
+            filters={"name": ["in", task_ids]},
+            fields=[
+                "name",
+                "subject",
+                "project.project_name as project_name",
+                "project",
+                "custom_is_billable",
+                "expected_time",
+                "actual_time",
+                "status",
+                "_liked_by",
+            ],
+        )
+        task_details_dict = {task["name"]: task for task in task_details}
+
+    # 4️⃣ Build response
     for log in timesheet_logs:
-        total_hours += log.hours
-        if not log.task:
+        total_hours += log.get("hours", 0)
+
+        task_name = log.get("task")
+        if not task_name:
             continue
-        task = task_details_dict.get(log.task)
+
+        task = task_details_dict.get(task_name)
         if not task:
             continue
-        task_name = task["name"]
+
         if task_name not in data:
             data[task_name] = {
                 "name": task_name,
@@ -411,11 +416,13 @@ def get_timesheet(dates: list, employee: str):
                 "_liked_by": task["_liked_by"],
             }
 
-        data[task_name]["data"].append({field: log.get(field) for field in ALLOWED_TIMESHET_DETAIL_FIELDS})
-
+        data[task_name]["data"].append(
+            {field: log.get(field) for field in ALLOWED_TIMESHET_DETAIL_FIELDS}
+        )
     return [data, total_hours]
+    
 
-
+    
 @validate_current_employee(ptype="read")
 def get_timesheet_state(employee: str, start_date: str, end_date: str):
     status = frappe.db.get_value(
