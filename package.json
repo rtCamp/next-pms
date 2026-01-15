@@ -28,7 +28,7 @@
     "@eslint/js": "^9.39.2",
     "@playwright/test": "^1.57.0",
     "allure-commandline": "^2.36.0",
-    "allure-playwright": "^3.2.1",
+    "allure-playwright": "^3.4.5",
     "eslint": "^9.18.0",
     "eslint-plugin-import": "^2.31.0",
     "playwright": "^1.56.1"
