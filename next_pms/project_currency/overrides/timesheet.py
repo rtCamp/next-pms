@@ -46,8 +46,7 @@ class TimesheetOverwrite(Timesheet):
         if not self.parent_project:
             return frappe.throw(frappe._("The timesheet does not include the project. Project is mandatory."))
 
-        if not self.customer:
-            self.customer = frappe.db.get_value("Project", self.parent_project, "customer")
+        self.customer = frappe.db.get_value("Project", self.parent_project, "customer")
 
         self.company = frappe.db.get_value("Project", self.parent_project, "company")
 
