@@ -10,13 +10,13 @@ from . import get_count
 
 @whitelist()
 def get_projects(
-    limit=20,
-    currency=None,
-    fields=None,
-    filters=None,
-    or_filters=None,
-    start=0,
-    order_by="modified desc",
+    limit: int = 20,
+    currency: str | None = None,
+    fields: str | list | None = None,
+    filters: str | list | None = None,
+    or_filters: str | list | None = None,
+    start: int = 0,
+    order_by: str = "modified desc",
 ):
     meta = get_meta("Project")
     if isinstance(fields, str):

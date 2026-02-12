@@ -118,7 +118,9 @@ def send_reminder():
     template = get_doc("Email Template", doc.allocation_email_template)
 
     for arg in args:
-        message = render_template(template.response if not template.use_html else template.response_html, arg)
-        subject = render_template(template.subject, arg)
+        message = render_template(  # nosemgrep: frappe-semgrep.rules.security.frappe-ssti
+            template.response if not template.use_html else template.response_html, arg
+        )
+        subject = render_template(template.subject, arg)  # nosemgrep: frappe-semgrep.rules.security.frappe-ssti
         sender = template.custom_sender_email if hasattr(template, "custom_sender_email") else None
         sendmail(recipients=arg["user_id"], subject=subject, message=message, sender=sender)

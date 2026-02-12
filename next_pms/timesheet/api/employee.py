@@ -24,7 +24,7 @@ def get_data():
 
 
 @frappe.whitelist()
-def get_employee_from_user(user=None, throw_exception=False):
+def get_employee_from_user(user: str | None = None, throw_exception: bool = False):
     user = frappe.session.user
     employee = frappe.db.get_value("Employee", {"user_id": user})
     if not employee and throw_exception:
@@ -74,7 +74,7 @@ def get_employee_weekly_working_norm(employee: str) -> int:
 
 
 @frappe.whitelist()
-def get_employee(filters=None, fieldname=None):
+def get_employee(filters: str | dict | None = None, fieldname: str | list | None = None):
     import json
 
     if not fieldname:
@@ -91,15 +91,15 @@ def get_employee(filters=None, fieldname=None):
 
 @frappe.whitelist()
 def get_employee_list(
-    employee_name=None,
-    department=None,
-    project=None,
-    page_length=None,
-    start=0,
-    status=None,
-    user_group=None,
+    employee_name: str | None = None,
+    department: str | None = None,
+    project: str | None = None,
+    page_length: int | None = None,
+    start: int = 0,
+    status: str | list | None = None,
+    user_group: str | None = None,
     reports_to: str | None = None,
-    ignore_default_filters=False,
+    ignore_default_filters: bool = False,
 ):
     from . import filter_employees
 

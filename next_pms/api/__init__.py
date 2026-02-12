@@ -71,7 +71,7 @@ def get_user_calendar_events(start_date: datetime, end_date: datetime):
 
 
 @frappe.whitelist()
-def get_doc_with_meta(doctype, docname):
+def get_doc_with_meta(doctype: str, docname: str):
     """Fetch all fields (excluding non-data fields) and their values categorized under respective tabs."""
 
     doc = frappe.get_doc(doctype, docname)
