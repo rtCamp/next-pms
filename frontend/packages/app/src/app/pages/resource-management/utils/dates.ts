@@ -18,7 +18,7 @@ import type { DateProps } from "../store/types";
 function getDatesArrays(
   startDate: string,
   weeks: number,
-  ignoreWeekends: boolean = true
+  ignoreWeekends: boolean = true,
 ) {
   const dates = [];
   const start = startOfWeek(getUTCDateTime(startDate), {
@@ -60,7 +60,7 @@ function getDatesArrays(
     datesObject.key = key
       ? key
       : `${getMonthKey(datesObject.start_date)} - ${getMonthKey(
-          datesObject.end_date
+          datesObject.end_date,
         )}`;
 
     dates.push(datesObject);

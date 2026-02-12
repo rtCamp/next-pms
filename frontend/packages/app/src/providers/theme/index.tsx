@@ -15,7 +15,9 @@ const ThemeProvider = ({
   storageKey = "next-pms-ui-theme",
   ...props
 }: ThemeProviderProps) => {
-  const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem(storageKey) as Theme) || defaultTheme);
+  const [theme, setTheme] = useState<Theme>(
+    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme,
+  );
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -23,7 +25,10 @@ const ThemeProvider = ({
     root.classList.remove("light", "dark");
 
     if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+        .matches
+        ? "dark"
+        : "light";
 
       root.classList.add(systemTheme);
       return;
@@ -34,7 +39,8 @@ const ThemeProvider = ({
 
   const value = {
     theme,
-    isDarkThemeOnSystem: window.matchMedia("(prefers-color-scheme: dark)").matches,
+    isDarkThemeOnSystem: window.matchMedia("(prefers-color-scheme: dark)")
+      .matches,
     setTheme: (theme: Theme) => {
       localStorage.setItem(storageKey, theme);
       setTheme(theme);

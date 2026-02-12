@@ -29,8 +29,12 @@ interface ChildTableProps {
 }
 
 const ChildTable = ({ field, currencySymbol, isReadOnly }: ChildTableProps) => {
-  const [rows, setRows] = useState<ChildRow[]>((field?.value as ChildRow[]) || []);
-  const [selected, setSelected] = useState<Array<Record<string, string | number>>>([]);
+  const [rows, setRows] = useState<ChildRow[]>(
+    (field?.value as ChildRow[]) || [],
+  );
+  const [selected, setSelected] = useState<
+    Array<Record<string, string | number>>
+  >([]);
   const [lastSelectedIdx, setLastSelectedIdx] = useState<number | null>(null);
   const [editingRow, setEditingRow] = useState<ChildRow | null>(null);
   const [editedValues, setEditedValues] = useState<Partial<ChildRow>>({});
@@ -48,7 +52,10 @@ const ChildTable = ({ field, currencySymbol, isReadOnly }: ChildTableProps) => {
     if (e?.shiftKey && lastSelectedIdx !== null) {
       const currentIndex = rows.findIndex((r) => r.idx === row.idx);
       const lastIndex = rows.findIndex((r) => r.idx === lastSelectedIdx);
-      const [start, end] = [Math.min(currentIndex, lastIndex), Math.max(currentIndex, lastIndex)];
+      const [start, end] = [
+        Math.min(currentIndex, lastIndex),
+        Math.max(currentIndex, lastIndex),
+      ];
 
       const rangeToToggle = rows.slice(start, end + 1);
 
@@ -56,7 +63,9 @@ const ChildTable = ({ field, currencySymbol, isReadOnly }: ChildTableProps) => {
 
       if (allSelected) {
         // Deselect the entire range
-        setSelected((prev) => prev.filter((r) => !rangeToToggle.includes(r as ChildRow)));
+        setSelected((prev) =>
+          prev.filter((r) => !rangeToToggle.includes(r as ChildRow)),
+        );
       } else {
         // Select missing ones in the range
         setSelected((prev) => Array.from(new Set([...prev, ...rangeToToggle])));
@@ -89,9 +98,13 @@ const ChildTable = ({ field, currencySymbol, isReadOnly }: ChildTableProps) => {
     const data = selected.filter((row) => row.name).map((row) => row.name);
     const filteredData = rows.filter((item) => !data.includes(item.name));
     if (data.length > 0) {
-      await updateDoc(selected[0].parenttype as string, selected[0].parent as string, {
-        [selected[0].parentfield]: [...filteredData],
-      })
+      await updateDoc(
+        selected[0].parenttype as string,
+        selected[0].parent as string,
+        {
+          [selected[0].parentfield]: [...filteredData],
+        },
+      )
         .then(() => {
           setRows(rows.filter((r) => !selected.some((s) => s.idx === r.idx)));
           setSelected([]);
@@ -120,7 +133,11 @@ const ChildTable = ({ field, currencySymbol, isReadOnly }: ChildTableProps) => {
 
   const handleSaveEdit = () => {
     if (editingRow) {
-      setRows((prev) => prev.map((row) => (row.idx === editingRow.idx ? { ...row, ...editedValues } : row)));
+      setRows((prev) =>
+        prev.map((row) =>
+          row.idx === editingRow.idx ? { ...row, ...editedValues } : row,
+        ),
+      );
       setEditingRow(null);
     }
   };
@@ -157,18 +174,25 @@ const ChildTable = ({ field, currencySymbol, isReadOnly }: ChildTableProps) => {
                       className="border-r dark:border-slate-700 px-2 py-1 text-left text-sm truncate font-normal dark:bg-slate-950"
                     >
                       {meta.label}
-                      {meta.reqd === 1 && <span className="text-red-400 ml-1">*</span>}
+                      {meta.reqd === 1 && (
+                        <span className="text-red-400 ml-1">*</span>
+                      )}
                     </TableHead>
                   );
                 })}
-              {!(isReadOnly || field.read_only === 1) && <TableHead className="w-8 dark:bg-slate-950" />}
+              {!(isReadOnly || field.read_only === 1) && (
+                <TableHead className="w-8 dark:bg-slate-950" />
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows.length === 0 ? (
               <TableRow className="hover:!bg-transparent">
                 <TableCell
-                  colSpan={field?.child_meta!.filter((obj) => obj.in_list_view === 1).length + 3}
+                  colSpan={
+                    field?.child_meta!.filter((obj) => obj.in_list_view === 1)
+                      .length + 3
+                  }
                   className="text-center py-4"
                 >
                   <div className="flex flex-col items-center justify-center text-muted-foreground gap-2">
@@ -187,7 +211,10 @@ const ChildTable = ({ field, currencySymbol, isReadOnly }: ChildTableProps) => {
                     handleEdit(row);
                   }}
                 >
-                  <TableCell onClick={(e) => e.stopPropagation()} className="border-r border-b px-0">
+                  <TableCell
+                    onClick={(e) => e.stopPropagation()}
+                    className="border-r border-b px-0"
+                  >
                     <div
                       className="w-full flex justify-center items-center
                 "
@@ -201,16 +228,21 @@ const ChildTable = ({ field, currencySymbol, isReadOnly }: ChildTableProps) => {
                       />
                     </div>
                   </TableCell>
-                  <TableCell className="text-center font-mono border-r px-2">{row.idx}</TableCell>
+                  <TableCell className="text-center font-mono border-r px-2">
+                    {row.idx}
+                  </TableCell>
                   {field
                     ?.child_meta!.filter((obj) => obj.in_list_view === 1)
                     .map((meta) => (
-                      <TableCell key={meta.fieldname} className="border-r px-2 max-w-xs truncate">
+                      <TableCell
+                        key={meta.fieldname}
+                        className="border-r px-2 max-w-xs truncate"
+                      >
                         {meta.fieldtype === "Link" ? (
                           <a
                             target="_blank"
                             href={`/app/${meta.options.toLowerCase().replace(/[_\s]/g, "-")}/${encodeURIComponent(
-                              row[meta.fieldname]
+                              row[meta.fieldname],
                             )}`}
                             onClick={(e) => e.stopPropagation()}
                             title={String(row[meta.fieldname] ?? "")}
@@ -220,7 +252,10 @@ const ChildTable = ({ field, currencySymbol, isReadOnly }: ChildTableProps) => {
                           </a>
                         ) : meta.fieldtype == "Check" ? (
                           <span className="w-full flex justify-center items-center">
-                            <Checkbox className="pointer-events-none" checked={row[meta.fieldname] === 1} />
+                            <Checkbox
+                              className="pointer-events-none"
+                              checked={row[meta.fieldname] === 1}
+                            />
                           </span>
                         ) : meta.fieldtype == "Currency" ? (
                           <span className="block truncate">
@@ -228,7 +263,10 @@ const ChildTable = ({ field, currencySymbol, isReadOnly }: ChildTableProps) => {
                             {String(row[meta.fieldname] ?? "")}
                           </span>
                         ) : (
-                          <span title={String(row[meta.fieldname] ?? "")} className="block truncate">
+                          <span
+                            title={String(row[meta.fieldname] ?? "")}
+                            className="block truncate"
+                          >
                             {String(row[meta.fieldname] ?? "")}
                           </span>
                         )}

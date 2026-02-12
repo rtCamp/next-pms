@@ -33,26 +33,46 @@ const ResourceTimLineHeaderSection = ({ viewData }: { viewData: ViewData }) => {
   const [reportingNameParam] = useQueryParam<string>("reports-to", "");
   const [allocationTypeParam] = useQueryParam<string[]>("allocation-type", []);
   const [designationParam] = useQueryParam<string[]>("designation", []);
-  const [skillSearchParam, setSkillSearchParam] = useQueryParam<Skill[]>("skill-search", []);
+  const [skillSearchParam, setSkillSearchParam] = useQueryParam<Skill[]>(
+    "skill-search",
+    [],
+  );
   const { toast } = useToast();
 
-  const { permission: resourceAllocationPermission } = useContextSelector(ResourceFormContext, (value) => value.state);
+  const { permission: resourceAllocationPermission } = useContextSelector(
+    ResourceFormContext,
+    (value) => value.state,
+  );
 
-  const { updatePermission, updateDialogState } = useContextSelector(ResourceFormContext, (value) => value.actions);
+  const { updatePermission, updateDialogState } = useContextSelector(
+    ResourceFormContext,
+    (value) => value.actions,
+  );
 
-  const { data: employee } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee", {
-    filters: { name: reportingNameParam || viewData.filters.reportingManager },
-  });
+  const { data: employee } = useFrappeGetCall(
+    "next_pms.timesheet.api.employee.get_employee",
+    {
+      filters: {
+        name: reportingNameParam || viewData.filters.reportingManager,
+      },
+    },
+  );
 
-  const { filters, hasViewUpdated } = useContextSelector(TimeLineContext, (value) => value.state);
-  const { updateFilters, setHasViewUpdated } = useContextSelector(TimeLineContext, (value) => value.actions);
+  const { filters, hasViewUpdated } = useContextSelector(
+    TimeLineContext,
+    (value) => value.state,
+  );
+  const { updateFilters, setHasViewUpdated } = useContextSelector(
+    TimeLineContext,
+    (value) => value.actions,
+  );
 
   const { call, loading } = useFrappePostCall(
-    "next_pms.resource_management.api.permission.get_user_resources_permissions"
+    "next_pms.resource_management.api.permission.get_user_resources_permissions",
   );
 
   const { call: updateView } = useFrappePostCall(
-    "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view"
+    "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view",
   );
   const user = useSelector((state: RootState) => state.user);
   useEffect(() => {
@@ -105,13 +125,23 @@ const ResourceTimLineHeaderSection = ({ viewData }: { viewData: ViewData }) => {
   const updateData = () => {
     updateFilters({
       businessUnit:
-        businessUnitParam && businessUnitParam.length > 0 ? businessUnitParam : viewData.filters.businessUnit,
+        businessUnitParam && businessUnitParam.length > 0
+          ? businessUnitParam
+          : viewData.filters.businessUnit,
       employeeName: employeeNameParam || viewData.filters.employeeName,
       reportingManager: reportingNameParam || viewData.filters.reportingManager,
-      designation: designationParam && designationParam.length > 0 ? designationParam : viewData.filters.designation,
+      designation:
+        designationParam && designationParam.length > 0
+          ? designationParam
+          : viewData.filters.designation,
       allocationType:
-        allocationTypeParam && allocationTypeParam.length > 0 ? allocationTypeParam : viewData.filters.allocationType,
-      skillSearch: skillSearchParam && skillSearchParam.length > 0 ? skillSearchParam : viewData.filters.skillSearch,
+        allocationTypeParam && allocationTypeParam.length > 0
+          ? allocationTypeParam
+          : viewData.filters.allocationType,
+      skillSearch:
+        skillSearchParam && skillSearchParam.length > 0
+          ? skillSearchParam
+          : viewData.filters.skillSearch,
       isShowMonth: viewData.filters.isShowMonth,
     });
   };
@@ -164,7 +194,9 @@ const ResourceTimLineHeaderSection = ({ viewData }: { viewData: ViewData }) => {
         prev_data = prev_data!.filter((obj) => skills.includes(obj.name));
         updateFilters({ skillSearch: prev_data });
       },
-      value: filters.skillSearch?.map((obj) => obj.name + " " + obj.operator + " " + obj.proficiency * 5),
+      value: filters.skillSearch?.map(
+        (obj) => obj.name + " " + obj.operator + " " + obj.proficiency * 5,
+      ),
       hide: !resourceAllocationPermission.write,
       customFilterComponent: (
         <SkillSearch
@@ -262,7 +294,9 @@ const ResourceTimLineHeaderSection = ({ viewData }: { viewData: ViewData }) => {
   ];
 
   if (!user.hasBuField) {
-    sectionFilters = sectionFilters.filter((filter) => filter.queryParameterName !== "business-unit");
+    sectionFilters = sectionFilters.filter(
+      (filter) => filter.queryParameterName !== "business-unit",
+    );
   }
   return (
     <Header

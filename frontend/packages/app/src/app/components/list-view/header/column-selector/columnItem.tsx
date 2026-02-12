@@ -2,7 +2,10 @@
  * External dependencies
  */
 import { useDrag, useDrop } from "react-dnd";
-import { Typography, DropdownMenuItem } from "@next-pms/design-system/components";
+import {
+  Typography,
+  DropdownMenuItem,
+} from "@next-pms/design-system/components";
 import { GripVertical, X } from "lucide-react";
 /**
  * Internal dependencies
@@ -19,7 +22,13 @@ import type { ColumnItemProps } from "./types";
  * @param {Function} props.onDrop - The function to handle the drop event.
  * @returns React.FC
  */
-const ColumnItem = ({ id, onColumnHide, reOrder, label, onDrop }: ColumnItemProps) => {
+const ColumnItem = ({
+  id,
+  onColumnHide,
+  reOrder,
+  label,
+  onDrop,
+}: ColumnItemProps) => {
   const [{ isDragging }, dragRef] = useDrag({
     type: "COLUMN",
     item: { id },
@@ -55,7 +64,7 @@ const ColumnItem = ({ id, onColumnHide, reOrder, label, onDrop }: ColumnItemProp
       <span
         className={mergeClassNames(
           "w-full flex justify-between gap-x-2 items-center opacity-100",
-          isDragging && "opacity-50"
+          isDragging && "opacity-50",
         )}
       >
         <Typography className="flex gap-x-2 items-center">

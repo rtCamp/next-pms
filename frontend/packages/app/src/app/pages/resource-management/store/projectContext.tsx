@@ -82,12 +82,17 @@ const defaulProjectState: ProjectContextProps = {
 const ProjectContext = createContext<ProjectContextProps>(defaulProjectState);
 
 const ProjectContextProvider = ({ children }: ContextProviderProps) => {
-  const [projectData, setProjectData] = useState<ResourceProjectDataProps>(defaultData);
+  const [projectData, setProjectData] =
+    useState<ResourceProjectDataProps>(defaultData);
   const [filters, setFilters] = useState<ResourceProjectFilter>(defaultFilters);
   const [tableView, setTableView] = useState<TableViewProps>(defaultTableView);
-  const [apiController, setApiController] = useState<APIController>(defaultApiController);
+  const [apiController, setApiController] =
+    useState<APIController>(defaultApiController);
 
-  const updateProjectData = (updatedProjectData: ResourceProjectDataProps, type: "SET" | "UPDATE" = "SET") => {
+  const updateProjectData = (
+    updatedProjectData: ResourceProjectDataProps,
+    type: "SET" | "UPDATE" = "SET",
+  ) => {
     if (!updatedProjectData || updatedProjectData.dates.length === 0) {
       return;
     }
@@ -106,18 +111,37 @@ const ProjectContextProvider = ({ children }: ContextProviderProps) => {
       });
     }
 
-    setApiController({ ...apiController, isNeedToFetchDataAfterUpdate: false, isLoading: false });
+    setApiController({
+      ...apiController,
+      isNeedToFetchDataAfterUpdate: false,
+      isLoading: false,
+    });
   };
 
   const setStart = (start: number) => {
     setFilters({ ...filters, start });
-    setApiController({ ...apiController, isLoading: true, isNeedToFetchDataAfterUpdate: true, action: "UPDATE" });
+    setApiController({
+      ...apiController,
+      isLoading: true,
+      isNeedToFetchDataAfterUpdate: true,
+      action: "UPDATE",
+    });
   };
 
   const updateFilter = (updatedFilters: OptionalResourceProjectFilters) => {
-    setFilters((prev) => ({ ...prev, ...updatedFilters, start: 0, maxWeek: defaultFilters.maxWeek }));
+    setFilters((prev) => ({
+      ...prev,
+      ...updatedFilters,
+      start: 0,
+      maxWeek: defaultFilters.maxWeek,
+    }));
     updateProjectData(defaultData);
-    setApiController({ ...apiController, isLoading: true, isNeedToFetchDataAfterUpdate: true, action: "SET" });
+    setApiController({
+      ...apiController,
+      isLoading: true,
+      isNeedToFetchDataAfterUpdate: true,
+      action: "SET",
+    });
   };
 
   const updateTableView = (updatedTableView: TableViewProps) => {
@@ -130,8 +154,18 @@ const ProjectContextProvider = ({ children }: ContextProviderProps) => {
 
   const setMaxWeek = (maxWeek: number) => {
     if (maxWeek === filters.maxWeek) return;
-    setFilters({ ...filters, maxWeek, start: 0, pageLength: defaultFilters.pageLength });
-    setApiController({ ...apiController, isLoading: true, isNeedToFetchDataAfterUpdate: true, action: "SET" });
+    setFilters({
+      ...filters,
+      maxWeek,
+      start: 0,
+      pageLength: defaultFilters.pageLength,
+    });
+    setApiController({
+      ...apiController,
+      isLoading: true,
+      isNeedToFetchDataAfterUpdate: true,
+      action: "SET",
+    });
   };
 
   const setDates = (dates: DateProps[]) => {
@@ -146,7 +180,12 @@ const ProjectContextProvider = ({ children }: ContextProviderProps) => {
       pageLength: defaultFilters.pageLength,
       maxWeek: defaultFilters.maxWeek,
     });
-    setApiController({ ...apiController, isLoading: true, isNeedToFetchDataAfterUpdate: true, action: "SET" });
+    setApiController({
+      ...apiController,
+      isLoading: true,
+      isNeedToFetchDataAfterUpdate: true,
+      action: "SET",
+    });
   };
 
   const resetState = () => {

@@ -4,27 +4,37 @@ export class TimelinePage {
   constructor(page) {
     this.page = page;
     this.currentDate = new Date();
-    this.dayOfWeek = this.currentDate.toLocaleDateString("en-US", { weekday: "short" }); // Thu
+    this.dayOfWeek = this.currentDate.toLocaleDateString("en-US", {
+      weekday: "short",
+    }); // Thu
     this.formattedDate = getFormattedCurrentDate(); // June 12
 
     // header elements
-    this.addAllocatioButtton = page.getByRole("button", { name: "add-allocation" });
+    this.addAllocatioButtton = page.getByRole("button", {
+      name: "add-allocation",
+    });
     this.searchEmployeeFilter = page.locator("#filters input");
     this.clearFilterIcons = page.locator("div#filters:nth-child(2) svg");
 
     //add allocation modal elements
     this.modalErrorMessage = page.locator("p[id*='form-item-message']");
-    this.selectEmployeeDropdown = page.getByRole("button", { name: "Select Employee" });
+    this.selectEmployeeDropdown = page.getByRole("button", {
+      name: "Select Employee",
+    });
     this.selectEmployeeTextField = page.getByPlaceholder("Search Employee");
     this.employeeSelector = page.getByLabel("Suggestions");
-    this.customerDropdown = page.getByRole("button", { name: "Search Customer" });
-    this.projectDropdown = page.getByRole("button", { name: "Search Google Projects" });
+    this.customerDropdown = page.getByRole("button", {
+      name: "Search Customer",
+    });
+    this.projectDropdown = page.getByRole("button", {
+      name: "Search Google Projects",
+    });
     this.billableToggle = page.locator("div[id*=':-form-item']");
     this.startDateSelector = page.locator(
-      'div[data-state="open"] form > div:nth-child(3) div:nth-child(1) > div:nth-child(2) button'
+      'div[data-state="open"] form > div:nth-child(3) div:nth-child(1) > div:nth-child(2) button',
     );
     this.endDateSelector = page.locator(
-      'div[data-state="open"] form > div:nth-child(3) div:nth-child(2) > div:nth-child(2) button'
+      'div[data-state="open"] form > div:nth-child(3) div:nth-child(2) > div:nth-child(2) button',
     );
     this.startDateWithToday = page
       .locator("div")
@@ -34,8 +44,12 @@ export class TimelinePage {
       .locator("div")
       .filter({ hasText: /^End Date\*Today$/ })
       .getByRole("button");
-    this.totalHoursTextField = page.locator('input[name="total_allocated_hours"]');
-    this.hoursPerDayTextField = page.locator('input[name="hours_allocated_per_day"]');
+    this.totalHoursTextField = page.locator(
+      'input[name="total_allocated_hours"]',
+    );
+    this.hoursPerDayTextField = page.locator(
+      'input[name="hours_allocated_per_day"]',
+    );
     this.noteField = page.getByRole("textbox", { name: "Note" });
     this.createButton = page.getByRole("button", { name: "Create" });
     this.saveButton = page.getByRole("button", { name: "Save" });
@@ -51,7 +65,9 @@ export class TimelinePage {
    * Navigates to the timeline page and waits for it to fully load.
    */
   async goto() {
-    await this.page.goto("/next-pms/resource-management/timeline", { waitUntil: "domcontentloaded" });
+    await this.page.goto("/next-pms/resource-management/timeline", {
+      waitUntil: "domcontentloaded",
+    });
   }
 
   /**
@@ -89,7 +105,9 @@ export class TimelinePage {
    */
   async selectProject(customerName, projectName) {
     await this.projectDropdown.click();
-    await this.page.getByPlaceholder(`Search ${customerName} Projects`).fill(projectName);
+    await this.page
+      .getByPlaceholder(`Search ${customerName} Projects`)
+      .fill(projectName);
     await this.page.getByRole("option", { name: projectName }).click();
   }
 
@@ -161,8 +179,12 @@ export class TimelinePage {
    * Delete the allocation added.
    */
   async deleteAllocation(projectName) {
-    await this.page.getByTitle(`${projectName} ${this.formattedDate} (8 hours/day)`).click();
-    await this.page.getByTitle(`${projectName} ${this.formattedDate} (8 hours/day)`).click();
+    await this.page
+      .getByTitle(`${projectName} ${this.formattedDate} (8 hours/day)`)
+      .click();
+    await this.page
+      .getByTitle(`${projectName} ${this.formattedDate} (8 hours/day)`)
+      .click();
     await this.confirmDeleteButton.click();
   }
 
@@ -181,8 +203,11 @@ export class TimelinePage {
     const [response] = await Promise.all([
       this.page.waitForResponse(
         (response) =>
-          response.url().includes("/api/method/next_pms.resource_management.api.allocation.handle_allocation") &&
-          response.status() === 200
+          response
+            .url()
+            .includes(
+              "/api/method/next_pms.resource_management.api.allocation.handle_allocation",
+            ) && response.status() === 200,
       ),
       this.clickCreateButton(),
     ]);

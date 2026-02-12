@@ -47,7 +47,9 @@ export const Header = ({
   const { toast } = useToast();
 
   // frappe-call for updating view
-  const { call } = useFrappePostCall("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view");
+  const { call } = useFrappePostCall(
+    "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view",
+  );
   // Handle save changes
   const handleSaveChanges = () => {
     call({
@@ -74,7 +76,7 @@ export const Header = ({
     (text: string) => {
       dispatch(setSearch(text.trim()));
     },
-    [dispatch]
+    [dispatch],
   );
 
   const handleProjectTypeChange = useCallback(
@@ -82,14 +84,14 @@ export const Header = ({
       const normalizedFilters = Array.isArray(filters) ? filters : [filters];
       dispatch(setSelectedProjectType(normalizedFilters));
     },
-    [dispatch]
+    [dispatch],
   );
   const handleStatusChange = useCallback(
     (filters: string | string[]) => {
       const normalizedFilters = Array.isArray(filters) ? filters : [filters];
       dispatch(setSelectedStatus(normalizedFilters as Status[]));
     },
-    [dispatch]
+    [dispatch],
   );
   const handleBuChange = useCallback(
     (filters: string | string[]) => {
@@ -97,7 +99,7 @@ export const Header = ({
       dispatch(setSelectedBusinessUnit(normalizedFilters));
     },
 
-    [dispatch]
+    [dispatch],
   );
   const handleBillingTypeChange = useCallback(
     (filters: string | string[]) => {
@@ -105,7 +107,7 @@ export const Header = ({
       dispatch(setSelectedBilingType(normalizedFilters as Status[]));
     },
 
-    [dispatch]
+    [dispatch],
   );
   const handleIndustryChange = useCallback(
     (filters: string | string[]) => {
@@ -113,7 +115,7 @@ export const Header = ({
       dispatch(setSelectedIndustry(normalizedFilters));
     },
 
-    [dispatch]
+    [dispatch],
   );
   const handleCurrencyChange = useCallback(
     (filters: string | string[]) => {
@@ -121,7 +123,7 @@ export const Header = ({
       dispatch(setCurrency(normalizedFilters ?? ""));
     },
 
-    [dispatch]
+    [dispatch],
   );
   const handleSortChange = (order: sortOrder, orderColumn: string) => {
     dispatch(setOrderBy({ order, orderColumn }));
@@ -287,7 +289,7 @@ export const Header = ({
         (tag: string[]) => {
           dispatch(setTag(tag));
         },
-        [dispatch]
+        [dispatch],
       ),
       onSearch: (searchTerm: string) => {
         setTagSearchTerm(searchTerm);
@@ -332,7 +334,9 @@ export const Header = ({
       totalCount: projectState.totalCount,
       orderBy: `${projectState.orderColumn}  ${projectState.order}`,
       fields: columnOrder.reduce((acc: { [key: string]: string }, value) => {
-        const m = meta.fields.find((field: { fieldname: string }) => field.fieldname === value);
+        const m = meta.fields.find(
+          (field: { fieldname: string }) => field.fieldname === value,
+        );
         if (m) {
           acc[value] = m?.label ?? value;
         }

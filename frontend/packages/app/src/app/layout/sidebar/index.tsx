@@ -5,7 +5,11 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
 import { useLocation } from "react-router-dom";
-import { ErrorFallback, Typography, Button } from "@next-pms/design-system/components";
+import {
+  ErrorFallback,
+  Typography,
+  Button,
+} from "@next-pms/design-system/components";
 import {
   ArrowLeftToLine,
   ChevronDown,
@@ -22,7 +26,15 @@ import {
 /**
  * Internal dependencies.
  */
-import { HOME, PROJECT, RESOURCE_MANAGEMENT, ROLES, TASK, TEAM, TIMESHEET } from "@/lib/constant";
+import {
+  HOME,
+  PROJECT,
+  RESOURCE_MANAGEMENT,
+  ROLES,
+  TASK,
+  TEAM,
+  TIMESHEET,
+} from "@/lib/constant";
 import { setLocalStorage } from "@/lib/storage";
 import { checkIsMobile, mergeClassNames } from "@/lib/utils";
 import { setSidebarCollapsed } from "@/store/user";
@@ -45,9 +57,12 @@ const Sidebar = () => {
 
   const hasPmRole = user.roles.some((role: string) => ROLES.includes(role));
   const privateViews = viewInfo.views.filter(
-    (view: ViewData) => view.user === user.user && !view.default && !view.public
+    (view: ViewData) =>
+      view.user === user.user && !view.default && !view.public,
   );
-  const publicViews = viewInfo.views.filter((view: ViewData) => view.public && !view.default);
+  const publicViews = viewInfo.views.filter(
+    (view: ViewData) => view.public && !view.default,
+  );
   const routes: Array<Route> = [
     {
       to: HOME,
@@ -137,11 +152,14 @@ const Sidebar = () => {
       <aside
         className={mergeClassNames(
           "bg-slate-100  w-1/5   px-4 py-4 flex flex-col dark:bg-background border-r",
-          user.isSidebarCollapsed && "w-16 items-center"
+          user.isSidebarCollapsed && "w-16 items-center",
         )}
       >
         <div
-          className={mergeClassNames("flex shrink-0 gap-x-2 items-center", !user.isSidebarCollapsed && "px-2")}
+          className={mergeClassNames(
+            "flex shrink-0 gap-x-2 items-center",
+            !user.isSidebarCollapsed && "px-2",
+          )}
           id="app-logo"
         >
           <img
@@ -154,7 +172,7 @@ const Sidebar = () => {
             variant="h5"
             className={mergeClassNames(
               "transition-all cursor-pointer duration-300 truncate  max-md:hidden",
-              user.isSidebarCollapsed && "hidden"
+              user.isSidebarCollapsed && "hidden",
             )}
           >
             Next PMS
@@ -172,7 +190,7 @@ const Sidebar = () => {
                     title={route.label}
                     className={mergeClassNames(
                       "flex items-center gap-x-2 justify-start w-full text-left p-2 hover:bg-slate-200 rounded-lg dark:hover:bg-secondary",
-                      user.isSidebarCollapsed && "hidden"
+                      user.isSidebarCollapsed && "hidden",
                     )}
                     onClick={() => toggleNestedRoutes(route.key)}
                   >
@@ -183,7 +201,10 @@ const Sidebar = () => {
                     )}
                     <Typography
                       variant="p"
-                      className={mergeClassNames("  truncate", user.isSidebarCollapsed && "hidden")}
+                      className={mergeClassNames(
+                        "  truncate",
+                        user.isSidebarCollapsed && "hidden",
+                      )}
                     >
                       {route.label}
                     </Typography>
@@ -192,7 +213,7 @@ const Sidebar = () => {
                     className={mergeClassNames(
                       "flex flex-col gap-y-1",
                       openRoutes[route.key] ? "flex" : "hidden",
-                      user.isSidebarCollapsed ? "flex" : "pl-2"
+                      user.isSidebarCollapsed ? "flex" : "pl-2",
                     )}
                   >
                     {route.children.map((child: NestedRoute) => {
@@ -207,15 +228,17 @@ const Sidebar = () => {
                           <div
                             className={mergeClassNames(
                               "flex w-full p-2 rounded-lg items-center  hover:bg-slate-200 text-primary gap-x-2 max-md:justify-center dark:hover:bg-secondary",
-                              isChildActive && "bg-primary shadow-md hover:bg-slate-700 ",
-                              !user.isSidebarCollapsed && "pl-3"
+                              isChildActive &&
+                                "bg-primary shadow-md hover:bg-slate-700 ",
+                              !user.isSidebarCollapsed && "pl-3",
                             )}
                           >
                             {child.icon && (
                               <child.icon
                                 className={mergeClassNames(
                                   "shrink-0 stroke-primary h-4 w-4",
-                                  isChildActive && "stroke-background dark:group-hover:stroke-foreground"
+                                  isChildActive &&
+                                    "stroke-background dark:group-hover:stroke-foreground",
                                 )}
                               />
                             )}
@@ -224,7 +247,7 @@ const Sidebar = () => {
                               className={mergeClassNames(
                                 "text-background  dark:group-hover:text-foreground truncate",
                                 !isChildActive && "text-primary",
-                                user.isSidebarCollapsed && "hidden"
+                                user.isSidebarCollapsed && "hidden",
                               )}
                             >
                               {child.label}
@@ -236,19 +259,25 @@ const Sidebar = () => {
                   </div>
                 </React.Fragment>
               ) : (
-                <NavLink to={route.to} key={route.key} title={route.label} className="  flex items-center h-9 group">
+                <NavLink
+                  to={route.to}
+                  key={route.key}
+                  title={route.label}
+                  className="  flex items-center h-9 group"
+                >
                   {({ isActive }) => (
                     <div
                       className={mergeClassNames(
                         "flex w-full pl-2 rounded-lg items-center p-2 hover:bg-slate-200 dark:hover:bg-secondary  gap-x-2 max-md:justify-center  ",
                         isActive &&
-                          "bg-primary shadow-md hover:bg-slate-700 dark:hover:bg-secondary dark:bg-foreground "
+                          "bg-primary shadow-md hover:bg-slate-700 dark:hover:bg-secondary dark:bg-foreground ",
                       )}
                     >
                       <route.icon
                         className={mergeClassNames(
                           "shrink-0 stroke-primary h-4 w-4",
-                          isActive && "stroke-background  dark:group-hover:stroke-foreground"
+                          isActive &&
+                            "stroke-background  dark:group-hover:stroke-foreground",
                         )}
                       />
                       <Typography
@@ -256,7 +285,7 @@ const Sidebar = () => {
                         className={mergeClassNames(
                           "text-background  dark:group-hover:text-foreground",
                           !isActive && "text-primary ",
-                          user.isSidebarCollapsed && "hidden"
+                          user.isSidebarCollapsed && "hidden",
                         )}
                       >
                         {route.label}
@@ -287,18 +316,25 @@ const Sidebar = () => {
           />
         </div>
         <div className="grow"></div>
-        <div className={mergeClassNames("flex justify-between items-center", user.isSidebarCollapsed && "flex-col")}>
+        <div
+          className={mergeClassNames(
+            "flex justify-between items-center",
+            user.isSidebarCollapsed && "flex-col",
+          )}
+        >
           <UserNavigation user={user} />
 
           <Button
             variant="ghost"
             className="justify-end shrink-0 gap-x-2 max-md:hidden   h-6"
-            onClick={() => dispatch(setSidebarCollapsed(!user.isSidebarCollapsed))}
+            onClick={() =>
+              dispatch(setSidebarCollapsed(!user.isSidebarCollapsed))
+            }
           >
             <ArrowLeftToLine
               className={mergeClassNames(
                 "stroke-primary h-4 w-4 transition-all duration-600",
-                user.isSidebarCollapsed && "rotate-180"
+                user.isSidebarCollapsed && "rotate-180",
               )}
             />
           </Button>

@@ -17,7 +17,10 @@ test.describe.serial("Employee3 : Timesheet", () => {
     // Switch to Timesheet tab
     await timesheetPage.goto();
   });
-  test("TC5: Add a new row in the already added time.  ", async ({ page, jsonDir }) => {
+  test("TC5: Add a new row in the already added time.  ", async ({
+    page,
+    jsonDir,
+  }) => {
     allure.story("Timesheet");
     const stubPath = path.join(jsonDir, "TC5.json");
     const data = await readJSONFile(stubPath);
@@ -27,25 +30,36 @@ test.describe.serial("Employee3 : Timesheet", () => {
     const beforeCellText = await timesheetPage.getCellText(TC5data.cell);
 
     // Add time entry
-    await timesheetPage.addTimeRow(TC5data.cell, { duration: TC5data.taskInfo.duration, desc: TC5data.taskInfo.desc });
+    await timesheetPage.addTimeRow(TC5data.cell, {
+      duration: TC5data.taskInfo.duration,
+      desc: TC5data.taskInfo.desc,
+    });
 
     //Verify notification
-    await expect(timesheetPage.toastNotification(TIME_ENTRIES_UPDATED_MSG)).toBeVisible();
+    await expect(
+      timesheetPage.toastNotification(TIME_ENTRIES_UPDATED_MSG),
+    ).toBeVisible();
     // Reload page to ensure changes are reflected
     await page.reload();
 
     // Assertions
     const afterCellText = await timesheetPage.getCellText(TC5data.cell);
     const afterDuration = secondsToDuration(
-      durationToSeconds(beforeCellText) + durationToSeconds(TC5data.taskInfo.duration)
+      durationToSeconds(beforeCellText) +
+        durationToSeconds(TC5data.taskInfo.duration),
     );
     expect(afterCellText).toContain(afterDuration);
 
-    const cellTooltipText = await timesheetPage.getCellTooltipText(TC5data.cell);
+    const cellTooltipText = await timesheetPage.getCellTooltipText(
+      TC5data.cell,
+    );
     expect(cellTooltipText).toContain(TC5data.taskInfo.desc);
   });
 
-  test("TC6: Delete the added time entry from the non-submitted timesheet.  ", async ({ page, jsonDir }) => {
+  test("TC6: Delete the added time entry from the non-submitted timesheet.  ", async ({
+    page,
+    jsonDir,
+  }) => {
     allure.story("Timesheet");
     const stubPath = path.join(jsonDir, "TC6.json");
     const data = await readJSONFile(stubPath);
@@ -54,7 +68,9 @@ test.describe.serial("Employee3 : Timesheet", () => {
     await timesheetPage.importLikedTasks();
 
     // Delete time entry
-    await timesheetPage.deleteTimeRow(TC6data.cell, { desc: TC6data.taskInfo.desc });
+    await timesheetPage.deleteTimeRow(TC6data.cell, {
+      desc: TC6data.taskInfo.desc,
+    });
 
     // Reload page to ensure changes are reflected
     await page.reload();

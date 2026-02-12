@@ -6,7 +6,11 @@ import { Button } from "@next-pms/design-system/components";
 /**
  * Internal dependencies
  */
-import type { HeaderProps, FilterPops, ButtonProps } from "@/app/components/list-view/types";
+import type {
+  HeaderProps,
+  FilterPops,
+  ButtonProps,
+} from "@/app/components/list-view/types";
 import { Header as RootHeader } from "@/app/layout/root";
 import { mergeClassNames } from "@/lib/utils";
 import Action from "./action";
@@ -42,7 +46,10 @@ export const Header = ({
   return (
     <div className="border-b">
       <RootHeader
-        className={mergeClassNames("flex items-center max-md:flex-col gap-x-3", className)}
+        className={mergeClassNames(
+          "flex items-center max-md:flex-col gap-x-3",
+          className,
+        )}
         parentClassName="border-0"
       >
         <div
@@ -54,7 +61,12 @@ export const Header = ({
               if (filter.hide) {
                 return <React.Fragment key={idx}></React.Fragment>;
               }
-              return <Filter filter={filter} key={filter.queryParameterName ?? idx} />;
+              return (
+                <Filter
+                  filter={filter}
+                  key={filter.queryParameterName ?? idx}
+                />
+              );
             })}
         </div>
         <div className="flex gap-x-2">
@@ -89,7 +101,9 @@ export const Header = ({
           )}
           {(showColumnSelector || showSort || showActions) && (
             <section className="flex gap-x-2 items-center py-2">
-              {showColumnSelector && columnSelector?.fieldMeta && <ColumnSelector {...columnSelector} />}
+              {showColumnSelector && columnSelector?.fieldMeta && (
+                <ColumnSelector {...columnSelector} />
+              )}
               {showSort && sort && <Sort {...sort} />}
               {showActions && actionProps && <Action {...actionProps} />}
             </section>

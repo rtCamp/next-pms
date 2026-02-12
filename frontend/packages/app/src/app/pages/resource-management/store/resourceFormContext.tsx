@@ -16,7 +16,10 @@ import type {
   ResourceFormContextProps,
 } from "./types";
 
-const DefaultDialogState: DialogStateProps = { isShowDialog: false, isNeedToEdit: false };
+const DefaultDialogState: DialogStateProps = {
+  isShowDialog: false,
+  isNeedToEdit: false,
+};
 const DefaultAllocationData: AllocationDataProps = {
   employee: "",
   employee_name: "",
@@ -55,9 +58,13 @@ const ResourceFormContext = createContext<ResourceFormContextProps>({
 });
 
 const ResourceContextProvider = ({ children }: ContextProviderProps) => {
-  const [dialogState, setDialogState] = useState<DialogStateProps>(DefaultDialogState);
-  const [allocationData, setAllocationData] = useState<AllocationDataProps>(DefaultAllocationData);
-  const [permission, setPermission] = useState<PermissionProps>(DefaultPermission);
+  const [dialogState, setDialogState] =
+    useState<DialogStateProps>(DefaultDialogState);
+  const [allocationData, setAllocationData] = useState<AllocationDataProps>(
+    DefaultAllocationData,
+  );
+  const [permission, setPermission] =
+    useState<PermissionProps>(DefaultPermission);
 
   const updateDialogState = (value: DialogStateProps) => {
     setDialogState({ ...dialogState, ...value });
@@ -72,12 +79,18 @@ const ResourceContextProvider = ({ children }: ContextProviderProps) => {
       project: getFormatedStringValue(updatedData.project) as string,
       project_name: getFormatedStringValue(updatedData.project_name) as string,
       customer: getFormatedStringValue(updatedData.customer) as string,
-      customer_name: getFormatedStringValue(updatedData.customer_name) as string,
+      customer_name: getFormatedStringValue(
+        updatedData.customer_name,
+      ) as string,
       total_allocated_hours: updatedData.total_allocated_hours,
       hours_allocated_per_day: updatedData.hours_allocated_per_day,
       is_tentative: updatedData.is_tentative,
-      allocation_start_date: getFormatedStringValue(updatedData.allocation_start_date) as string,
-      allocation_end_date: getFormatedStringValue(updatedData.allocation_end_date) as string,
+      allocation_start_date: getFormatedStringValue(
+        updatedData.allocation_start_date,
+      ) as string,
+      allocation_end_date: getFormatedStringValue(
+        updatedData.allocation_end_date,
+      ) as string,
       note: updatedData.note,
       name: getFormatedStringValue(updatedData.name) as string,
     }));

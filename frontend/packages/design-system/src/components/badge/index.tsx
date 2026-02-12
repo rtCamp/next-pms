@@ -9,9 +9,17 @@ import { type VariantProps } from "class-variance-authority";
 import { badgeVariants } from "./badgeVariants";
 import { mergeClassNames } from "../../utils";
 
-export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof badgeVariants> {}
+export interface BadgeProps
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof badgeVariants> {}
 
 const Badge = ({ className, variant, ...props }: BadgeProps) => {
-  return <div className={mergeClassNames(badgeVariants({ variant }), className)} {...props} />;
+  return (
+    <div
+      className={mergeClassNames(badgeVariants({ variant }), className)}
+      {...props}
+    />
+  );
 };
 export default Badge;

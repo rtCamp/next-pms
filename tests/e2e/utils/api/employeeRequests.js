@@ -24,7 +24,10 @@ const loadAuthState = (role) => {
  */
 export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   const authFilePath = loadAuthState(role);
-  const requestContext = await request.newContext({ baseURL, storageState: authFilePath });
+  const requestContext = await request.newContext({
+    baseURL,
+    storageState: authFilePath,
+  });
   const response = await requestContext.fetch(endpoint, {
     ...options,
     postData: options.data ? JSON.stringify(options.data) : undefined, // Transform to json format
@@ -42,7 +45,7 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
     throw new Error(
       `API request failed for ${role} with endpoint type ${
         options.method
-      } and endpoint ${endpoint}: ${response.status()} ${response.statusText()}`
+      } and endpoint ${endpoint}: ${response.status()} ${response.statusText()}`,
     );
   }
 
@@ -76,7 +79,7 @@ export const addEmployee = async (employeePayload, role) => {
       method: "POST",
       data: employeePayload,
     },
-    role
+    role,
   );
 };
 // ------------------------------------------------------------------------------------------
@@ -101,6 +104,6 @@ export const updateEmployee = async (empId, employeePayload, role) => {
       method: "PUT",
       data: employeePayload,
     },
-    role
+    role,
   );
 };

@@ -21,7 +21,13 @@ export type DatePickerProp = CalendarProps & {
   onDateChange?: (date: Date) => void;
 };
 
-const DatePicker = ({ date, disabled, onDateChange, disabledDates, ...props }: DatePickerProp) => {
+const DatePicker = ({
+  date,
+  disabled,
+  onDateChange,
+  disabledDates,
+  ...props
+}: DatePickerProp) => {
   const [pickerDate, setPickerDate] = useState<Date>();
   const [isOpen, setIsOpen] = useState(false);
   useEffect(() => {
@@ -44,15 +50,27 @@ const DatePicker = ({ date, disabled, onDateChange, disabledDates, ...props }: D
     <div>
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
-          <Button variant="outline" className="justify-between w-full" disabled={disabled}>
-            <Typography variant="p">{pickerDate ? getDisplayDate(pickerDate) : "Pick any date"}</Typography>
+          <Button
+            variant="outline"
+            className="justify-between w-full"
+            disabled={disabled}
+          >
+            <Typography variant="p">
+              {pickerDate ? getDisplayDate(pickerDate) : "Pick any date"}
+            </Typography>
             <CalendarIcon className=" stroke-slate-400" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="z-[1000]">
           {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
           {/* @ts-expect-error */}
-          <Calendar mode="single" selected={pickerDate} onSelect={onDateSelect} disabled={disabledDates} {...props} />
+          <Calendar
+            mode="single"
+            selected={pickerDate}
+            onSelect={onDateSelect}
+            disabled={disabledDates}
+            {...props}
+          />
         </PopoverContent>
       </Popover>
     </div>

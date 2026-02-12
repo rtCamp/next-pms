@@ -2,13 +2,22 @@
  * External dependencies
  */
 import { useCallback, useEffect, useState } from "react";
-import { ErrorFallback, Table, TableBody } from "@next-pms/design-system/components";
+import {
+  ErrorFallback,
+  Table,
+  TableBody,
+} from "@next-pms/design-system/components";
 /**
  * Internal dependencies
  */
 import { TaskLog } from "@/app/pages/task/components/taskLog";
 import { LIKED_TASK_KEY } from "@/lib/constant";
-import { getLocalStorage, hasKeyInLocalStorage, removeFromLikedTask, setLikedTask } from "@/lib/storage";
+import {
+  getLocalStorage,
+  hasKeyInLocalStorage,
+  removeFromLikedTask,
+  setLikedTask,
+} from "@/lib/storage";
 import { expectatedHours, getHolidayList } from "@/lib/utils";
 import { TaskDataProps } from "@/types/timesheet";
 import { Header } from "./components/header";
@@ -44,18 +53,27 @@ export const TimesheetTable = ({
   const setTaskInLocalStorage = () => {
     setLikedTask(LIKED_TASK_KEY, task_date_range_key, likedTaskData!);
     setFilteredLikedTasks(
-      likedTaskData?.filter((likedTask: { name: string }) => !Object.keys(tasks).includes(likedTask.name))
+      likedTaskData?.filter(
+        (likedTask: { name: string }) =>
+          !Object.keys(tasks).includes(likedTask.name),
+      ),
     );
   };
 
-  const liked_tasks = has_liked_task ? getLocalStorage(LIKED_TASK_KEY)[task_date_range_key] ?? [] : [];
+  const liked_tasks = has_liked_task
+    ? (getLocalStorage(LIKED_TASK_KEY)[task_date_range_key] ?? [])
+    : [];
 
   const [filteredLikedTasks, setFilteredLikedTasks] = useState(
-    liked_tasks.filter((likedTask: { name: string }) => !Object.keys(tasks).includes(likedTask.name))
+    liked_tasks.filter(
+      (likedTask: { name: string }) =>
+        !Object.keys(tasks).includes(likedTask.name),
+    ),
   );
   useEffect(() => {
     const filteredLikedTasks = liked_tasks.filter(
-      (likedTask: { name: string }) => !Object.keys(tasks).includes(likedTask.name)
+      (likedTask: { name: string }) =>
+        !Object.keys(tasks).includes(likedTask.name),
     );
     setFilteredLikedTasks(filteredLikedTasks);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -74,7 +92,11 @@ export const TimesheetTable = ({
   return (
     <ErrorFallback>
       {isTaskLogDialogBoxOpen && (
-        <TaskLog task={selectedTask} isOpen={isTaskLogDialogBoxOpen} onOpenChange={setIsTaskLogDialogBoxOpen} />
+        <TaskLog
+          task={selectedTask}
+          isOpen={isTaskLogDialogBoxOpen}
+          onOpenChange={setIsTaskLogDialogBoxOpen}
+        />
       )}
       <Table>
         <Header

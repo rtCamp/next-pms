@@ -30,7 +30,7 @@ const DialogOverlay = React.forwardRef<
     /* No found way to pass value hear (https://github.com/shadmergeClassNames-ui/ui/discussions/3784)*/
     className={mergeClassNames(
       "fixed inset-0 z-[1000] bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 overflow-y-auto max-h-screen w-full grid place-items-center",
-      className
+      className,
     )}
     {...props}
   />
@@ -47,7 +47,7 @@ const DialogContent = React.forwardRef<
         ref={ref}
         className={mergeClassNames(
           "z-[1000] relative grid w-full max-w-lg gap-4 bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-lg md:w-full",
-          className
+          className,
         )}
         {...props}
       >
@@ -62,14 +62,29 @@ const DialogContent = React.forwardRef<
 ));
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
-const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={mergeClassNames("flex flex-col space-y-1.5 text-center sm:text-left", className)} {...props} />
+const DialogHeader = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={mergeClassNames(
+      "flex flex-col space-y-1.5 text-center sm:text-left",
+      className,
+    )}
+    {...props}
+  />
 );
 DialogHeader.displayName = "DialogHeader";
 
-const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+const DialogFooter = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={mergeClassNames("flex flex-col-reverse sm:flex-row justify-start sm:space-x-2", className)}
+    className={mergeClassNames(
+      "flex flex-col-reverse sm:flex-row justify-start sm:space-x-2",
+      className,
+    )}
     {...props}
   />
 );
@@ -81,7 +96,10 @@ const DialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={mergeClassNames("text-lg font-semibold leading-none tracking-tight", className)}
+    className={mergeClassNames(
+      "text-lg font-semibold leading-none tracking-tight",
+      className,
+    )}
     {...props}
   />
 ));

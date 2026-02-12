@@ -24,19 +24,37 @@ export const Header = ({ teamState, dispatch, viewData }: HeaderProps) => {
   const [statusParam] = useQueryParam<string[]>("status", []);
   const [employeeNameParam] = useQueryParam<string>("employee-name", "");
   const [reportsToParam] = useQueryParam<string>("reports-to", "");
-  const [employeeStatusParam] = useQueryParam<Array<string>>("emp-status", viewData.filters.status);
-  const { data: employee } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee", {
-    filters: { name: reportsToParam || viewData.filters.reportsTo },
-  });
+  const [employeeStatusParam] = useQueryParam<Array<string>>(
+    "emp-status",
+    viewData.filters.status,
+  );
+  const { data: employee } = useFrappeGetCall(
+    "next_pms.timesheet.api.employee.get_employee",
+    {
+      filters: { name: reportsToParam || viewData.filters.reportsTo },
+    },
+  );
   const { toast } = useToast();
   useEffect(() => {
     const payload = {
-      project: projectParam && projectParam.length > 0 ? projectParam : viewData.filters.project,
-      userGroup: userGroupParam && userGroupParam.length > 0 ? userGroupParam : viewData.filters.userGroup,
-      statusFilter: statusParam && statusParam.length > 0 ? statusParam : viewData.filters.statusFilter,
+      project:
+        projectParam && projectParam.length > 0
+          ? projectParam
+          : viewData.filters.project,
+      userGroup:
+        userGroupParam && userGroupParam.length > 0
+          ? userGroupParam
+          : viewData.filters.userGroup,
+      statusFilter:
+        statusParam && statusParam.length > 0
+          ? statusParam
+          : viewData.filters.statusFilter,
       employeeName: employeeNameParam || viewData.filters.employeeName,
       reportsTo: reportsToParam || viewData.filters.reportsTo,
-      status: employeeStatusParam && employeeStatusParam.length > 0 ? employeeStatusParam : viewData.filters.status,
+      status:
+        employeeStatusParam && employeeStatusParam.length > 0
+          ? employeeStatusParam
+          : viewData.filters.status,
     };
     dispatch({ type: "SET_FILTERS", payload: payload });
   }, [
@@ -54,14 +72,14 @@ export const Header = ({ teamState, dispatch, viewData }: HeaderProps) => {
     (text: string) => {
       dispatch({ type: "SET_EMPLOYEE_NAME", payload: text.trim() });
     },
-    [dispatch]
+    [dispatch],
   );
   const handleReportsToChange = useCallback(
     (value: string | string[]) => {
       dispatch({ type: "SET_ACTION", payload: "SET" });
       dispatch({ type: "SET_REPORTS_TO", payload: value as string });
     },
-    [dispatch]
+    [dispatch],
   );
   const handleStatusChange = useCallback(
     (filters: string | string[]) => {
@@ -69,25 +87,25 @@ export const Header = ({ teamState, dispatch, viewData }: HeaderProps) => {
       dispatch({ type: "SET_STATUS_FILTER", payload: normalizedFilters });
     },
 
-    [dispatch]
+    [dispatch],
   );
   const handleEmployeeStatusChange = useCallback(
     (value: string | string[]) => {
       dispatch({ type: "SET_STATUS", payload: value as string[] });
     },
-    [dispatch]
+    [dispatch],
   );
   const handleProjectChange = useCallback(
     (value: string | string[]) => {
       dispatch({ type: "SET_PROJECT", payload: value as string[] });
     },
-    [dispatch]
+    [dispatch],
   );
   const handleUserGroupChange = useCallback(
     (value: string | string[]) => {
       dispatch({ type: "SET_USER_GROUP", payload: value as string[] });
     },
-    [dispatch]
+    [dispatch],
   );
   const handleprevWeek = useCallback(() => {
     const date = getFormatedDate(addDays(teamState.weekDate, -7));
@@ -100,7 +118,7 @@ export const Header = ({ teamState, dispatch, viewData }: HeaderProps) => {
   }, [dispatch, teamState.weekDate]);
 
   const { call: updateView } = useFrappePostCall(
-    "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view"
+    "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view",
   );
 
   useEffect(() => {

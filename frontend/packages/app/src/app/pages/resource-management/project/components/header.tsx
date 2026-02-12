@@ -30,33 +30,47 @@ import type { PermissionProps } from "../../store/types";
  */
 const ResourceProjectHeaderSection = ({ viewData }: { viewData: ViewData }) => {
   const [projectNameParam] = useQueryParam<string>("project-name", "");
-  const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParam<boolean>(
-    "combine-week-hours",
-    viewData.filters.combineWeekHours || false
-  );
+  const [combineWeekHoursParam, setCombineWeekHoursParam] =
+    useQueryParam<boolean>(
+      "combine-week-hours",
+      viewData.filters.combineWeekHours || false,
+    );
   const [reportingNameParam] = useQueryParam<string>("reports-to", "");
   const [customerNameParam] = useQueryParam<string[]>("customer", []);
   const [allocationTypeParam] = useQueryParam<string[]>("allocation-type", []);
-  const [billingType, setBillingTypeParam] = useQueryParam<string[]>("billing-type", []);
-  const [viewParam, setViewParam] = useQueryParam<string>("view-type", viewData.filters.view || "");
+  const [billingType, setBillingTypeParam] = useQueryParam<string[]>(
+    "billing-type",
+    [],
+  );
+  const [viewParam, setViewParam] = useQueryParam<string>(
+    "view-type",
+    viewData.filters.view || "",
+  );
   const { toast } = useToast();
 
-  const { projectData, tableView, filters, hasViewUpdated } = useContextSelector(
-    ProjectContext,
-    (value) => value.state
-  );
+  const { projectData, tableView, filters, hasViewUpdated } =
+    useContextSelector(ProjectContext, (value) => value.state);
 
-  const { updateFilter, updateTableView, setWeekDate, setCombineWeekHours, setHasViewUpdated } = useContextSelector(
-    ProjectContext,
-    (value) => value.actions
-  );
+  const {
+    updateFilter,
+    updateTableView,
+    setWeekDate,
+    setCombineWeekHours,
+    setHasViewUpdated,
+  } = useContextSelector(ProjectContext, (value) => value.actions);
   const user = useSelector((state: RootState) => state.user);
-  const { permission: resourceAllocationPermission } = useContextSelector(ResourceFormContext, (value) => value.state);
+  const { permission: resourceAllocationPermission } = useContextSelector(
+    ResourceFormContext,
+    (value) => value.state,
+  );
 
-  const { updatePermission, updateDialogState } = useContextSelector(ResourceFormContext, (value) => value.actions);
+  const { updatePermission, updateDialogState } = useContextSelector(
+    ResourceFormContext,
+    (value) => value.actions,
+  );
 
   const { call, loading } = useFrappePostCall(
-    "next_pms.resource_management.api.permission.get_user_resources_permissions"
+    "next_pms.resource_management.api.permission.get_user_resources_permissions",
   );
 
   useEffect(() => {
@@ -94,13 +108,22 @@ const ResourceProjectHeaderSection = ({ viewData }: { viewData: ViewData }) => {
     }
     updateFilter({
       projectName: projectNameParam || viewData.filters.projectName,
-      customer: customerNameParam && customerNameParam.length > 0 ? customerNameParam : viewData.filters.customer,
+      customer:
+        customerNameParam && customerNameParam.length > 0
+          ? customerNameParam
+          : viewData.filters.customer,
       reportingManager: reportingNameParam || viewData.filters.reportingManager,
       allocationType:
-        allocationTypeParam && allocationTypeParam.length > 0 ? allocationTypeParam : viewData.filters.allocationType,
+        allocationTypeParam && allocationTypeParam.length > 0
+          ? allocationTypeParam
+          : viewData.filters.allocationType,
       billingType: currentBillingType,
     });
-    updateTableView({ ...tableView, combineWeekHours: combineWeekHoursParam, view: currentViewParam });
+    updateTableView({
+      ...tableView,
+      combineWeekHours: combineWeekHoursParam,
+      view: currentViewParam,
+    });
   };
 
   const handlePrevWeek = useCallback(() => {
@@ -116,15 +139,26 @@ const ResourceProjectHeaderSection = ({ viewData }: { viewData: ViewData }) => {
   const handleWeekViewChange = useCallback(() => {
     setCombineWeekHoursParam(!tableView.combineWeekHours);
     setCombineWeekHours(!tableView.combineWeekHours);
-  }, [setCombineWeekHours, setCombineWeekHoursParam, tableView.combineWeekHours]);
+  }, [
+    setCombineWeekHours,
+    setCombineWeekHoursParam,
+    tableView.combineWeekHours,
+  ]);
 
   const { call: updateView } = useFrappePostCall(
-    "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view"
+    "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view",
   );
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { start, weekDate, employeeWeekDate, maxWeek, pageLength, ...viewFilters } = filters;
+    const {
+      start,
+      weekDate,
+      employeeWeekDate,
+      maxWeek,
+      pageLength,
+      ...viewFilters
+    } = filters;
 
     if (
       !_.isEqual(viewData.filters, {
@@ -142,11 +176,22 @@ const ResourceProjectHeaderSection = ({ viewData }: { viewData: ViewData }) => {
 
   const handleSaveChanges = () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { start, weekDate, employeeWeekDate, maxWeek, pageLength, ...viewFilters } = filters;
+    const {
+      start,
+      weekDate,
+      employeeWeekDate,
+      maxWeek,
+      pageLength,
+      ...viewFilters
+    } = filters;
     updateView({
       view: {
         ...viewData,
-        filters: { ...viewFilters, view: tableView.view, combineWeekHours: tableView.combineWeekHours },
+        filters: {
+          ...viewFilters,
+          view: tableView.view,
+          combineWeekHours: tableView.combineWeekHours,
+        },
       },
     })
       .then(() => {
@@ -288,7 +333,9 @@ const ResourceProjectHeaderSection = ({ viewData }: { viewData: ViewData }) => {
     },
   ];
   if (!user.hasBuField) {
-    sectionFilters = sectionFilters.filter((filter) => filter.queryParameterName !== "business-unit");
+    sectionFilters = sectionFilters.filter(
+      (filter) => filter.queryParameterName !== "business-unit",
+    );
   }
   return (
     <Header
@@ -317,12 +364,16 @@ const ResourceProjectHeaderSection = ({ viewData }: { viewData: ViewData }) => {
         {
           title: "previous-week",
           handleClick: handlePrevWeek,
-          icon: () => <ChevronLeftIcon className="w-4 max-md:w-3 h-4 max-md:h-3" />,
+          icon: () => (
+            <ChevronLeftIcon className="w-4 max-md:w-3 h-4 max-md:h-3" />
+          ),
         },
         {
           title: "next-week",
           handleClick: handleNextWeek,
-          icon: () => <ChevronRight className="w-4 max-md:w-3 h-4 max-md:h-3" />,
+          icon: () => (
+            <ChevronRight className="w-4 max-md:w-3 h-4 max-md:h-3" />
+          ),
         },
       ]}
       showFilterValue

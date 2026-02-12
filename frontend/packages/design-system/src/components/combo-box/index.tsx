@@ -8,14 +8,26 @@ import { Check } from "lucide-react";
  * Internal Dependencies
  */
 import { mergeClassNames, deBounce } from "../../utils";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../command";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "../command";
 import { Button, Checkbox, Spinner } from "../index";
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 import { default as Typography } from "../typography";
 
 export type ComboBoxProp = {
   isOpen?: boolean;
-  data?: Array<{ label: string; value: string; disabled?: boolean; description?: string }>;
+  data?: Array<{
+    label: string;
+    value: string;
+    disabled?: boolean;
+    description?: string;
+  }>;
   onSelect?: (value: string | string[]) => void;
   disabled?: boolean;
   label: string;
@@ -52,9 +64,11 @@ const ComboBox = ({
   onClick,
   isLoading,
 }: ComboBoxProp) => {
-  const [selectedValues, setSelectedValues] = useState<string[]>(typeof value === "string" ? [value] : value ?? []);
+  const [selectedValues, setSelectedValues] = useState<string[]>(
+    typeof value === "string" ? [value] : (value ?? []),
+  );
   useEffect(() => {
-    setSelectedValues(typeof value === "string" ? [value] : value ?? []);
+    setSelectedValues(typeof value === "string" ? [value] : (value ?? []));
   }, [value]);
   const [open, setOpen] = useState(isOpen);
   const clearFilter = () => {
@@ -109,7 +123,11 @@ const ComboBox = ({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className={mergeClassNames("justify-between w-full text-slate-400", hasValue && "text-primary", className)}
+          className={mergeClassNames(
+            "justify-between w-full text-slate-400",
+            hasValue && "text-primary",
+            className,
+          )}
           disabled={disabled}
           onClick={onClick}
         >
@@ -133,7 +151,11 @@ const ComboBox = ({
           }}
         >
           <CommandInput placeholder={label} onValueChange={onInputChange} />
-          {isLoading ? <Spinner className="py-6" /> : <CommandEmpty>No data found.</CommandEmpty>}
+          {isLoading ? (
+            <Spinner className="py-6" />
+          ) : (
+            <CommandEmpty>No data found.</CommandEmpty>
+          )}
           <CommandGroup>
             <CommandList>
               {data.length != 0 &&
@@ -149,7 +171,12 @@ const ComboBox = ({
                       value={item.value}
                     >
                       {!isMulti ? (
-                        <Check className={mergeClassNames("mr-2 h-4 w-4", isActive ? "opacity-100" : "opacity-0")} />
+                        <Check
+                          className={mergeClassNames(
+                            "mr-2 h-4 w-4",
+                            isActive ? "opacity-100" : "opacity-0",
+                          )}
+                        />
                       ) : (
                         <Checkbox checked={isActive} />
                       )}
@@ -169,7 +196,11 @@ const ComboBox = ({
                 })}
             </CommandList>
           </CommandGroup>
-          <Button variant="ghost" onClick={clearFilter} className="border-t rounded-none font-normal w-full">
+          <Button
+            variant="ghost"
+            onClick={clearFilter}
+            className="border-t rounded-none font-normal w-full"
+          >
             Clear Selection
           </Button>
         </Command>

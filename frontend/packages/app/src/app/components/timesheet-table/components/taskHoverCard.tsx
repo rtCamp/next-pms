@@ -39,10 +39,14 @@ export const TaskHoverCard = ({
   const user = useSelector((state: RootState) => state.user);
   const [taskLiked, setTaskedLiked] = useState(false);
   useEffect(() => {
-    setTaskedLiked(likedTaskData.some((obj: TaskDataProps) => obj.name === name) || false);
+    setTaskedLiked(
+      likedTaskData.some((obj: TaskDataProps) => obj.name === name) || false,
+    );
   }, [taskData, likedTaskData]);
 
-  const { call: toggleLikeCall } = useFrappePostCall("frappe.desk.like.toggle_like");
+  const { call: toggleLikeCall } = useFrappePostCall(
+    "frappe.desk.like.toggle_like",
+  );
   const { toast } = useToast();
 
   const handleLike = (e: React.MouseEvent<SVGSVGElement>) => {
@@ -94,7 +98,7 @@ export const TaskHoverCard = ({
                 <Heart
                   className={mergeClassNames(
                     "hover:cursor-pointer shrink-0",
-                    taskLiked && "fill-destructive stroke-destructive"
+                    taskLiked && "fill-destructive stroke-destructive",
                   )}
                   data-task={name}
                   data-liked-by={taskData?._liked_by}
@@ -103,7 +107,10 @@ export const TaskHoverCard = ({
               )}
             </Typography>
 
-            <Typography variant="small" className="text-primary/80 whitespace-nowrap text-ellipsis overflow-hidden ">
+            <Typography
+              variant="small"
+              className="text-primary/80 whitespace-nowrap text-ellipsis overflow-hidden "
+            >
               {taskData?.project_name}
             </Typography>
           </HoverCardTrigger>
@@ -114,7 +121,10 @@ export const TaskHoverCard = ({
         <span className="flex gap-x-2">
           <div>
             <Typography>{taskData.subject}</Typography>
-            <Typography variant="small" className="text-primary/80 whitespace-nowrap text-ellipsis overflow-hidden ">
+            <Typography
+              variant="small"
+              className="text-primary/80 whitespace-nowrap text-ellipsis overflow-hidden "
+            >
               {taskData.project_name}
             </Typography>
           </div>
@@ -131,8 +141,9 @@ export const TaskHoverCard = ({
           <Typography>Actual Time</Typography>
           <Typography
             className={mergeClassNames(
-              taskData.actual_time > taskData.expected_time && "text-destructive",
-              taskData.actual_time < taskData.expected_time && "text-success"
+              taskData.actual_time > taskData.expected_time &&
+                "text-destructive",
+              taskData.actual_time < taskData.expected_time && "text-success",
             )}
           >
             {floatToTime(taskData.actual_time)}

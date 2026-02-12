@@ -4,7 +4,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Button, Spinner, useToast } from "@next-pms/design-system/components";
-import { useFrappeGetCall, useFrappeGetDoc, useFrappeUpdateDoc } from "frappe-react-sdk";
+import {
+  useFrappeGetCall,
+  useFrappeGetDoc,
+  useFrappeUpdateDoc,
+} from "frappe-react-sdk";
 import { Menu } from "lucide-react";
 
 /**
@@ -20,10 +24,16 @@ import ProjectSidebar from "./components/sidebar";
 
 const ProjectDetail = () => {
   const { projectId } = useParams();
-  const { data: projectData, error: projectError, mutate: mutateProjectData } = useFrappeGetDoc("Project", projectId);
+  const {
+    data: projectData,
+    error: projectError,
+    mutate: mutateProjectData,
+  } = useFrappeGetDoc("Project", projectId);
   const formRef = useRef<{ submitForm: () => void }>(null);
   const [hideSaveChanges, setHideSaveChanges] = useState<boolean>(true);
-  const [formData, setFormData] = useState<Record<string, string | number | null>>({});
+  const [formData, setFormData] = useState<
+    Record<string, string | number | null>
+  >({});
   const [projectName, setProjectName] = useState<string>("");
   const [sidebarDrawerOpen, setSidebarDrawerOpen] = useState(false);
 
@@ -38,7 +48,7 @@ const ProjectDetail = () => {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       revalidateIfStale: false,
-    }
+    },
   );
 
   const { toast } = useToast();
@@ -63,7 +73,12 @@ const ProjectDetail = () => {
     }
   }, [error, mutate, toast]);
 
-  const { updateDoc, loading, error: updateError, isCompleted } = useFrappeUpdateDoc();
+  const {
+    updateDoc,
+    loading,
+    error: updateError,
+    isCompleted,
+  } = useFrappeUpdateDoc();
 
   useEffect(() => {
     if (isCompleted) {
@@ -92,19 +107,22 @@ const ProjectDetail = () => {
         isCustom: true,
       },
     }),
-    [projectId]
+    [projectId],
   );
 
   const Tabs = useMemo(
     () => ({
       ...(data?.message?.tabs || {}),
-      ...Object.keys(customTabs).reduce((acc, key) => {
-        acc[key] = [];
-        return acc;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      }, {} as Record<string, any[]>),
+      ...Object.keys(customTabs).reduce(
+        (acc, key) => {
+          acc[key] = [];
+          return acc;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        },
+        {} as Record<string, any[]>,
+      ),
     }),
-    [data?.message?.tabs, customTabs]
+    [data?.message?.tabs, customTabs],
   );
 
   return (
@@ -137,10 +155,18 @@ const ProjectDetail = () => {
                 doctype={"Project"}
                 tabs={Tabs}
                 customTabs={customTabs}
-                currencySymbol={getCurrencySymbol(projectData?.custom_currency) || ""}
+                currencySymbol={
+                  getCurrencySymbol(projectData?.custom_currency) || ""
+                }
                 tabHeaderClassName="w-full"
                 onChange={(form_data) => {
-                  if ((window?.frappe?.boot?.user?.can_write?.includes("Project") ?? true) && form_data) {
+                  if (
+                    (window?.frappe?.boot?.user?.can_write?.includes(
+                      "Project",
+                    ) ??
+                      true) &&
+                    form_data
+                  ) {
                     setHideSaveChanges(false);
                     setFormData(form_data);
                   } else {
@@ -149,12 +175,22 @@ const ProjectDetail = () => {
                 }}
                 onSubmit={async (data) => {
                   const sanitizedFormData = Object.fromEntries(
-                    Object.entries(data).filter(([, value]) => value !== "")
+                    Object.entries(data).filter(([, value]) => value !== ""),
                   );
-                  await updateDoc("Project", projectId as string, sanitizedFormData);
+                  await updateDoc(
+                    "Project",
+                    projectId as string,
+                    sanitizedFormData,
+                  );
                 }}
                 formRef={formRef}
-                readOnly={!(window?.frappe?.boot?.user?.can_write?.includes("Project") ?? true)}
+                readOnly={
+                  !(
+                    window?.frappe?.boot?.user?.can_write?.includes(
+                      "Project",
+                    ) ?? true
+                  )
+                }
                 fieldConfig={
                   {
                     naming_series: { hidden: true },

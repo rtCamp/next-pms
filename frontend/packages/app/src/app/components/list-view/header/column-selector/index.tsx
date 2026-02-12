@@ -36,7 +36,12 @@ import ColumnItem from "./columnItem";
  * @param {Function} props.setColumnOrder - Function to set the column order.
  * @param {Array} props.columnOrder - The order of the columns.
  */
-const ColumnSelector = ({ fieldMeta, onColumnHide, setColumnOrder, columnOrder }: ColumnSelectorProps) => {
+const ColumnSelector = ({
+  fieldMeta,
+  onColumnHide,
+  setColumnOrder,
+  columnOrder,
+}: ColumnSelectorProps) => {
   const [localOrder, setLocalOrder] = useState<string[]>([]);
 
   useEffect(() => {
@@ -44,14 +49,19 @@ const ColumnSelector = ({ fieldMeta, onColumnHide, setColumnOrder, columnOrder }
   }, [columnOrder]);
 
   const fieldMap = useMemo(
-    () => localOrder.map((row) => fieldMeta.find((f) => f.fieldname === row) || null).filter((d) => d !== null),
-    [localOrder, fieldMeta]
+    () =>
+      localOrder
+        .map((row) => fieldMeta.find((f) => f.fieldname === row) || null)
+        .filter((d) => d !== null),
+    [localOrder, fieldMeta],
   );
 
   const fields = useMemo(
     () =>
-      fieldMeta.filter((d) => !NO_VALUE_FIELDS.includes(d.fieldtype)).filter((d) => !localOrder.includes(d.fieldname)),
-    [fieldMeta, localOrder]
+      fieldMeta
+        .filter((d) => !NO_VALUE_FIELDS.includes(d.fieldtype))
+        .filter((d) => !localOrder.includes(d.fieldname)),
+    [fieldMeta, localOrder],
   );
 
   const handleColumnAdd = useCallback(
@@ -59,7 +69,7 @@ const ColumnSelector = ({ fieldMeta, onColumnHide, setColumnOrder, columnOrder }
       setLocalOrder((old) => [...old, fieldname]);
       setColumnOrder((old) => [...old, fieldname]);
     },
-    [setColumnOrder]
+    [setColumnOrder],
   );
 
   const handleDrop = useCallback(() => {

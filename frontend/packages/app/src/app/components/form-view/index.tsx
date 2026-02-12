@@ -3,7 +3,12 @@
  */
 import { RefObject, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@next-pms/design-system/components";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@next-pms/design-system/components";
 import { KeyedMutator } from "swr";
 
 /**
@@ -142,12 +147,16 @@ const FormViewWrapper = ({
 
   return (
     <div className="w-full">
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full relative">
+      <Tabs
+        value={activeTab}
+        onValueChange={handleTabChange}
+        className="w-full relative"
+      >
         <div className="border-b pt-1 sticky top-0 bg-background z-50 overflow-x-auto no-scrollbar px-2">
           <TabsList
             className={mergeClassNames(
               "flex h-10 w-full justify-start rounded-none bg-transparent p-0",
-              tabHeaderClassName
+              tabHeaderClassName,
             )}
           >
             {Object.keys(tabs ?? {})
@@ -170,9 +179,15 @@ const FormViewWrapper = ({
         {Object.keys(tabs ?? {})?.map((tab) => {
           const isCustomTab = customTabs[tab] && customTabs[tab].isCustom;
           return (
-            <TabsContent key={tab} value={tab} className="space-y-4 focus-visible:ring-0">
+            <TabsContent
+              key={tab}
+              value={tab}
+              className="space-y-4 focus-visible:ring-0"
+            >
               {isCustomTab ? (
-                <div className={tabBodyClassName}>{customTabs[tab].component}</div>
+                <div className={tabBodyClassName}>
+                  {customTabs[tab].component}
+                </div>
               ) : (
                 <FieldRenderer
                   fields={tabs[tab]}

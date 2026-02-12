@@ -88,7 +88,7 @@ const viewSlice = createSlice({
     },
     updateView: (state, action: PayloadAction<ViewData>) => {
       const index = state.views.findIndex(
-        (v) => v.name === action.payload.name
+        (v) => v.name === action.payload.name,
       );
       const updatedView = action.payload;
       if (typeof action.payload.filters == "string") {

@@ -12,7 +12,12 @@ import { EditTime } from "./editTime";
 import ImportFromGoogleCalendarDialog from "./importFromGoogleCalendarDialog";
 import type { FooterProps } from "./types";
 
-export const Footer = ({ timesheet, user, dispatch, callback }: FooterProps) => {
+export const Footer = ({
+  timesheet,
+  user,
+  dispatch,
+  callback,
+}: FooterProps) => {
   const onOpenChange = useCallback(() => {
     dispatch({ type: "SET_DIALOG_STATE", payload: false });
   }, [dispatch]);
@@ -46,7 +51,9 @@ export const Footer = ({ timesheet, user, dispatch, callback }: FooterProps) => 
           user={user}
         />
       )}
-      {timesheet.isAprrovalDialogOpen && <Approval user={user} dispatch={dispatch} timesheetState={timesheet} />}
+      {timesheet.isAprrovalDialogOpen && (
+        <Approval user={user} dispatch={dispatch} timesheetState={timesheet} />
+      )}
       {timesheet.isLeaveDialogOpen && (
         <AddLeave
           employee={user.employee}
@@ -65,7 +72,10 @@ export const Footer = ({ timesheet, user, dispatch, callback }: FooterProps) => 
         <ImportFromGoogleCalendarDialog
           open={timesheet.isImportFromGoogleCalendarDialogOpen}
           onOpenChange={(date) => {
-            dispatch({ type: "SET_IMPORT_FROM_GOOGLE_CALENDAR_DIALOG_STATE", payload: false });
+            dispatch({
+              type: "SET_IMPORT_FROM_GOOGLE_CALENDAR_DIALOG_STATE",
+              payload: false,
+            });
             callback();
             if (date) {
               dispatch({ type: "SET_WEEK_DATE", payload: date });

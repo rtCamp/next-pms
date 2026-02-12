@@ -46,7 +46,8 @@ test.describe("Manager : Task", () => {
     await taskPage.openTaskDetails(taskName);
 
     // Assertions
-    const isTaskDetailsDialogVisible = await taskPage.isTaskDetailsDialogVisible(taskName);
+    const isTaskDetailsDialogVisible =
+      await taskPage.isTaskDetailsDialogVisible(taskName);
     expect(isTaskDetailsDialogVisible).toBeTruthy();
   });
 
@@ -115,11 +116,14 @@ test.describe("Manager : Task", () => {
     await taskPage.openTaskDetails(TC24data.taskInfo.task);
 
     // Assertions to verify that created task is visible
-    const isTaskDetailsDialogVisible = await taskPage.isTaskDetailsDialogVisible(TC24data.taskInfo.task);
+    const isTaskDetailsDialogVisible =
+      await taskPage.isTaskDetailsDialogVisible(TC24data.taskInfo.task);
     expect(isTaskDetailsDialogVisible).toBeTruthy();
   });
 
-  test("TC25: Verify the billable status of a billable task.    ", async ({ jsonDir }) => {
+  test("TC25: Verify the billable status of a billable task.    ", async ({
+    jsonDir,
+  }) => {
     allure.story("Task");
     const stubPath = path.join(jsonDir, "TC25.json");
     const data = await readJSONFile(stubPath);
@@ -131,11 +135,15 @@ test.describe("Manager : Task", () => {
     await taskPage.searchTask(TC25data.payloadCreateTask.subject);
 
     // Assertions
-    const isTaskBillable = await taskPage.isTaskBillable(TC25data.payloadCreateTask.subject);
+    const isTaskBillable = await taskPage.isTaskBillable(
+      TC25data.payloadCreateTask.subject,
+    );
     expect(isTaskBillable).toBeTruthy();
   });
 
-  test("TC26: Verify the billable status of a non-billable task.    ", async ({ jsonDir }) => {
+  test("TC26: Verify the billable status of a non-billable task.    ", async ({
+    jsonDir,
+  }) => {
     allure.story("Task");
     const stubPath = path.join(jsonDir, "TC26.json");
     const data = await readJSONFile(stubPath);
@@ -147,7 +155,9 @@ test.describe("Manager : Task", () => {
     await taskPage.searchTask(TC26data.payloadCreateTask.subject);
 
     // Assertions
-    const isTaskBillable = await taskPage.isTaskBillable(TC26data.payloadCreateTask.subject);
+    const isTaskBillable = await taskPage.isTaskBillable(
+      TC26data.payloadCreateTask.subject,
+    );
     expect(isTaskBillable).toBeFalsy();
   });
 });

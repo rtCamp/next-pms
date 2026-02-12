@@ -59,13 +59,19 @@ const DeleteConfirmationDialog = ({
       <DialogContent className="sm:max-w-[425px] z-[1000]">
         <DialogHeader>
           <DialogDescription>
-            <Typography className="text-xl mb-2 mt-3 font-semibold">{title}</Typography>
+            <Typography className="text-xl mb-2 mt-3 font-semibold">
+              {title}
+            </Typography>
             <Typography className="text-sm">{description}</Typography>
           </DialogDescription>
         </DialogHeader>
 
         <DialogFooter>
-          <Button className="outline-none" variant="destructive" onClick={onDelete}>
+          <Button
+            className="outline-none"
+            variant="destructive"
+            onClick={onDelete}
+          >
             {isLoading ? (
               <LoaderCircle className="animate-spin w-4 h-4 outline-none" />
             ) : (
@@ -73,7 +79,12 @@ const DeleteConfirmationDialog = ({
             )}
             Delete
           </Button>
-          <Button type="button" className="outline-none" variant="secondary" onClick={onCancel}>
+          <Button
+            type="button"
+            className="outline-none"
+            variant="secondary"
+            onClick={onCancel}
+          >
             <X className="w-4 h-4" />
             Cancel
           </Button>

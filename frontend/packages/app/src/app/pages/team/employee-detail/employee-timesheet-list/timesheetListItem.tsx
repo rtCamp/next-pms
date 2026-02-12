@@ -1,8 +1,16 @@
 /**
  * External dependencies
  */
-import { Button, Checkbox, TextEditor, Typography } from "@next-pms/design-system/components";
-import { getDateFromDateAndTimeString, prettyDate } from "@next-pms/design-system/date";
+import {
+  Button,
+  Checkbox,
+  TextEditor,
+  Typography,
+} from "@next-pms/design-system/components";
+import {
+  getDateFromDateAndTimeString,
+  prettyDate,
+} from "@next-pms/design-system/date";
 import { floatToTime, preProcessLink } from "@next-pms/design-system/utils";
 import { CircleDollarSign, PencilIcon } from "lucide-react";
 /**
@@ -41,7 +49,12 @@ export const EmployeeTimesheetListItem = ({
 }: EmployeeTimesheetListItemProps) => {
   return (
     <div key={index} className="flex flex-col">
-      <div className={mergeClassNames("bg-muted rounded p-1  flex items-center gap-x-2", className)}>
+      <div
+        className={mergeClassNames(
+          "bg-muted rounded p-1  flex items-center gap-x-2",
+          className,
+        )}
+      >
         {showCheckbox && (
           <Checkbox
             checked={isCheckboxChecked}
@@ -56,7 +69,7 @@ export const EmployeeTimesheetListItem = ({
             "max-md:text-wrap",
             isTimeExtended == 0 && "text-destructive",
             isTimeExtended && "text-success",
-            isTimeExtended == 2 && "text-warning"
+            isTimeExtended == 2 && "text-warning",
           )}
         >
           {floatToTime(totalHours)}h
@@ -71,7 +84,11 @@ export const EmployeeTimesheetListItem = ({
         )}
         {hasLeave && !isHoliday && (
           <Typography variant="p" className="max-md:text-wrap text-primary/60">
-            ({isHalfDayLeave && totalHours != dailyWorkingHour ? "Half day leave" : "Full Day Leave"})
+            (
+            {isHalfDayLeave && totalHours != dailyWorkingHour
+              ? "Half day leave"
+              : "Full Day Leave"}
+            )
           </Typography>
         )}
       </div>
@@ -101,7 +118,12 @@ export const EmployeeTimesheetListItem = ({
               />
               <div className="flex gap-x-2 justify-between items-center lg:flex-row w-full ">
                 <div className="items-center flex gap-1">
-                  <div className={mergeClassNames("flex flex-col max-w-full lg:max-w-52", taskClassName)}>
+                  <div
+                    className={mergeClassNames(
+                      "flex flex-col max-w-full lg:max-w-52",
+                      taskClassName,
+                    )}
+                  >
                     <div className="flex justify-center items-center gap-1">
                       <Typography
                         variant="p"
@@ -114,10 +136,12 @@ export const EmployeeTimesheetListItem = ({
                         title={task.is_billable == 1 ? "Billable task" : ""}
                         className={mergeClassNames(
                           task.is_billable === 1 && "cursor-pointer",
-                          "w-6 flex justify-center flex-none"
+                          "w-6 flex justify-center flex-none",
                         )}
                       >
-                        {task.is_billable === 1 && <CircleDollarSign className="size-4 stroke-success" />}
+                        {task.is_billable === 1 && (
+                          <CircleDollarSign className="size-4 stroke-success" />
+                        )}
                       </div>
                     </div>
                     <Typography
@@ -136,7 +160,10 @@ export const EmployeeTimesheetListItem = ({
                   }}
                   title="Edit Timesheet"
                   variant="ghost"
-                  className={mergeClassNames("size-7 group", hideEdit && "hidden")}
+                  className={mergeClassNames(
+                    "size-7 group",
+                    hideEdit && "hidden",
+                  )}
                 >
                   <PencilIcon className="size-3 text-slate-500 group-hover:text-foreground" />
                 </Button>

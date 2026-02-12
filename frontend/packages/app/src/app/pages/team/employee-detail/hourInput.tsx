@@ -22,7 +22,13 @@ import type { HourInputprops } from "./types";
  *
  * @returns {JSX.Element} The HourInput component.
  */
-export const HourInput = ({ data, employee, disabled = false, className, callback }: HourInputprops): JSX.Element => {
+export const HourInput = ({
+  data,
+  employee,
+  disabled = false,
+  className,
+  callback,
+}: HourInputprops): JSX.Element => {
   const [hour, setHour] = useState(String(floatToTime(data.hours)));
   const [prevHour, setPrevHour] = useState(String(floatToTime(data.hours)));
   const inputRef = useRef<HTMLInputElement>(null);

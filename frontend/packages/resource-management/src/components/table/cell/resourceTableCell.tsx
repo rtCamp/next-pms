@@ -1,7 +1,12 @@
 /**
  * External dependencies.
  */
-import { HoverCardContent, TableCell, HoverCard, HoverCardTrigger } from "@next-pms/design-system/components";
+import {
+  HoverCardContent,
+  TableCell,
+  HoverCard,
+  HoverCardTrigger,
+} from "@next-pms/design-system/components";
 import { TableContext } from "@next-pms/resource-management/store";
 import { useContextSelector } from "use-context-selector";
 /**
@@ -36,24 +41,44 @@ const ResourceTableCell = ({
   value,
   style,
 }: ResourceTableProps) => {
-  const { tableProperties } = useContextSelector(TableContext, (value) => value.state);
-  const { getCellWidthString } = useContextSelector(TableContext, (value) => value.actions);
+  const { tableProperties } = useContextSelector(
+    TableContext,
+    (value) => value.state,
+  );
+  const { getCellWidthString } = useContextSelector(
+    TableContext,
+    (value) => value.actions,
+  );
 
   const mergeCellClassName = mergeClassNames(
     "cursor-pointer text-xs flex px-2 py-2 w-16 justify-center items-center",
-    cellClassName
+    cellClassName,
   );
 
-  const inlineStyle = { width: getCellWidthString(tableProperties.cellWidth), ...style };
+  const inlineStyle = {
+    width: getCellWidthString(tableProperties.cellWidth),
+    ...style,
+  };
 
   if (type == "hovercard") {
     return (
       <HoverCard openDelay={200}>
-        <HoverCardTrigger asChild className="w-full h-full cursor-pointer text-center ">
-          <TableCell ref={ref} className={mergeCellClassName} style={inlineStyle}>
+        <HoverCardTrigger
+          asChild
+          className="w-full h-full cursor-pointer text-center "
+        >
+          <TableCell
+            ref={ref}
+            className={mergeCellClassName}
+            style={inlineStyle}
+          >
             {CellContent && <CellContent />}
 
-            <TableCellContent title={title} className={cellTypographyClassName} value={value} />
+            <TableCellContent
+              title={title}
+              className={cellTypographyClassName}
+              value={value}
+            />
           </TableCell>
         </HoverCardTrigger>
         <HoverCardContent className="min-w-72 max-w-96 p-0">
@@ -67,7 +92,11 @@ const ResourceTableCell = ({
     return (
       <TableCell ref={ref} className={mergeCellClassName} style={inlineStyle}>
         {CellContent && <CellContent />}
-        <TableCellContent title={title} className={cellTypographyClassName} value={value} />
+        <TableCellContent
+          title={title}
+          className={cellTypographyClassName}
+          value={value}
+        />
       </TableCell>
     );
   }

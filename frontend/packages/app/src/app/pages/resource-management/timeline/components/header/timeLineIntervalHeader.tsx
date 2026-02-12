@@ -1,7 +1,11 @@
 /**
  * External dependencies.
  */
-import { getMonthKey, getMonthYearKey, getTodayDate } from "@next-pms/design-system";
+import {
+  getMonthKey,
+  getMonthYearKey,
+  getTodayDate,
+} from "@next-pms/design-system";
 import { TableHead, Typography } from "@next-pms/design-system/components";
 import { startOfWeek } from "date-fns";
 
@@ -10,9 +14,16 @@ import { startOfWeek } from "date-fns";
  */
 import { mergeClassNames } from "@/lib/utils";
 import { getDayKeyOfMoment } from "../../../utils/dates";
-import type { ResourceAllocationItemProps, TimeLineHeaderFunctionProps } from "../../types";
+import type {
+  ResourceAllocationItemProps,
+  TimeLineHeaderFunctionProps,
+} from "../../types";
 
-const TimeLineIntervalHeader = ({ getIntervalProps, intervalContext, data }: TimeLineHeaderFunctionProps) => {
+const TimeLineIntervalHeader = ({
+  getIntervalProps,
+  intervalContext,
+  data,
+}: TimeLineHeaderFunctionProps) => {
   const { interval } = intervalContext;
   const { startTime, endTime } = interval;
   const start = startOfWeek(getTodayDate(), {
@@ -22,7 +33,10 @@ const TimeLineIntervalHeader = ({ getIntervalProps, intervalContext, data }: Tim
   const getKey = () => {
     const keys = { week: "Week", month: "Month", year: "Year" };
 
-    if (start.getTime() >= startTime.toDate().getTime() && start.getTime() <= endTime.toDate().getTime()) {
+    if (
+      start.getTime() >= startTime.toDate().getTime() &&
+      start.getTime() <= endTime.toDate().getTime()
+    ) {
       if (data.unit === "week") {
         return `This ${keys[data.unit]}`;
       }
@@ -32,7 +46,7 @@ const TimeLineIntervalHeader = ({ getIntervalProps, intervalContext, data }: Tim
     }
 
     return `${getMonthKey(getDayKeyOfMoment(startTime))} - ${getMonthKey(
-      getDayKeyOfMoment(endTime.add("-1", "days"))
+      getDayKeyOfMoment(endTime.add("-1", "days")),
     )}`;
   };
 
@@ -49,7 +63,9 @@ const TimeLineIntervalHeader = ({ getIntervalProps, intervalContext, data }: Tim
   return (
     <TableHead
       {...headerProps}
-      className={mergeClassNames("h-full pb-2 pt-1 px-0 text-center truncate cursor-pointer border-r border-gray-300")}
+      className={mergeClassNames(
+        "h-full pb-2 pt-1 px-0 text-center truncate cursor-pointer border-r border-gray-300",
+      )}
     >
       <Typography variant="small">{getKey()}</Typography>
     </TableHead>

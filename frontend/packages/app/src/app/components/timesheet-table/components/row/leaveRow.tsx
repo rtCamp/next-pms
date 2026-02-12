@@ -2,7 +2,11 @@
  * External dependencies
  */
 import { floatToTime } from "@next-pms/design-system";
-import { TableCell, TableRow, Typography } from "@next-pms/design-system/components";
+import {
+  TableCell,
+  TableRow,
+  Typography,
+} from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies
@@ -70,7 +74,9 @@ export const LeaveRow = ({
   });
 
   // Check if there are any leaves
-  const hasLeaves = leaveData.some(({ data, isHoliday, hour = 0 }) => (data || isHoliday) && hour > 0);
+  const hasLeaves = leaveData.some(
+    ({ data, isHoliday, hour = 0 }) => (data || isHoliday) && hour > 0,
+  );
 
   if (!hasLeaves) {
     return <></>;
@@ -85,9 +91,16 @@ export const LeaveRow = ({
       {leaveData.map(({ date, data, hour, isHoliday }) => (
         <TableCell
           key={date}
-          className={mergeClassNames("text-center px-2", dataCellClassName, getBgCsssForToday(date))}
+          className={mergeClassNames(
+            "text-center px-2",
+            dataCellClassName,
+            getBgCsssForToday(date),
+          )}
         >
-          <Typography variant="p" className={isHoliday ? "text-primary" : "text-warning"}>
+          <Typography
+            variant="p"
+            className={isHoliday ? "text-primary" : "text-warning"}
+          >
             {hour && hour != 0 ? floatToTime(hour) : ""}
           </Typography>
         </TableCell>
@@ -98,7 +111,11 @@ export const LeaveRow = ({
         </Typography>
       </TableCell>
       {showEmptyCell && (
-        <TableCell className={mergeClassNames("flex max-w-20 w-full justify-center items-center")}></TableCell>
+        <TableCell
+          className={mergeClassNames(
+            "flex max-w-20 w-full justify-center items-center",
+          )}
+        ></TableCell>
       )}
     </TableRow>
   );

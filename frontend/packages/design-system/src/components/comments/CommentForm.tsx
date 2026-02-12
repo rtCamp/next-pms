@@ -14,7 +14,16 @@ import type { CommentFormProps } from "./types";
 import Spinner from "../spinner";
 
 const CommentForm = React.forwardRef<HTMLFormElement, CommentFormProps>(
-  ({ onSubmit, isSubmitting = false, placeholder = "Write a comment...", className, ...props }, ref) => {
+  (
+    {
+      onSubmit,
+      isSubmitting = false,
+      placeholder = "Write a comment...",
+      className,
+      ...props
+    },
+    ref,
+  ) => {
     const [content, setContent] = useState("");
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -33,7 +42,12 @@ const CommentForm = React.forwardRef<HTMLFormElement, CommentFormProps>(
     };
 
     return (
-      <form ref={ref} onSubmit={handleSubmit} className={mergeClassNames("space-y-3", className)} {...props}>
+      <form
+        ref={ref}
+        onSubmit={handleSubmit}
+        className={mergeClassNames("space-y-3", className)}
+        {...props}
+      >
         <TextArea
           value={content}
           onChange={(e) => setContent(e.target.value)}
@@ -44,10 +58,16 @@ const CommentForm = React.forwardRef<HTMLFormElement, CommentFormProps>(
         />
         <div className="flex justify-between items-center">
           <div className="text-sm text-muted-foreground">
-            Press <kbd className="px-1 py-0.5 text-xs bg-muted rounded">Ctrl</kbd> +{" "}
-            <kbd className="px-1 py-0.5 text-xs bg-muted rounded">Enter</kbd> to submit
+            Press{" "}
+            <kbd className="px-1 py-0.5 text-xs bg-muted rounded">Ctrl</kbd> +{" "}
+            <kbd className="px-1 py-0.5 text-xs bg-muted rounded">Enter</kbd> to
+            submit
           </div>
-          <Button type="submit" disabled={!content.trim() || isSubmitting} size="sm">
+          <Button
+            type="submit"
+            disabled={!content.trim() || isSubmitting}
+            size="sm"
+          >
             {isSubmitting ? (
               <>
                 <Spinner className="mr-1 h-3 w-3" />
@@ -63,7 +83,7 @@ const CommentForm = React.forwardRef<HTMLFormElement, CommentFormProps>(
         </div>
       </form>
     );
-  }
+  },
 );
 
 CommentForm.displayName = "CommentForm";

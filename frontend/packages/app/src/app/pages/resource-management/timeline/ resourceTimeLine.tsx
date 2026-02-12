@@ -32,18 +32,27 @@ import { getIsBillableValue } from "../utils/helper";
 
 const ResourceTimeLineView = () => {
   return (
-    <CustomViewWrapper label="ResourceTimelineView" createFilter={createFilter({} as TimeLineContextState)}>
+    <CustomViewWrapper
+      label="ResourceTimelineView"
+      createFilter={createFilter({} as TimeLineContextState)}
+    >
       {({ viewData }) => <ResourceTimeLineViewComponent viewData={viewData} />}
     </CustomViewWrapper>
   );
 };
 
-const ResourceTimeLineViewComponent = ({ viewData }: ResourceTimeLineViewComponentProps) => {
+const ResourceTimeLineViewComponent = ({
+  viewData,
+}: ResourceTimeLineViewComponentProps) => {
   const { toast } = useToast();
-  const { apiControler, employees, customer, allocations, filters, allocationData } = useContextSelector(
-    TimeLineContext,
-    (value) => value.state
-  );
+  const {
+    apiControler,
+    employees,
+    customer,
+    allocations,
+    filters,
+    allocationData,
+  } = useContextSelector(TimeLineContext, (value) => value.state);
 
   const {
     updateApiControler,
@@ -54,13 +63,13 @@ const ResourceTimeLineViewComponent = ({ viewData }: ResourceTimeLineViewCompone
     setAllocationData,
   } = useContextSelector(TimeLineContext, (value) => value.actions);
 
-  const { permission: resourceAllocationPermission, dialogState: resourceDialogState } = useContextSelector(
-    ResourceFormContext,
-    (value) => value.state
-  );
+  const {
+    permission: resourceAllocationPermission,
+    dialogState: resourceDialogState,
+  } = useContextSelector(ResourceFormContext, (value) => value.state);
 
   const { call: fetchData } = useFrappePostCall(
-    "next_pms.resource_management.api.team.get_resource_management_team_view_data"
+    "next_pms.resource_management.api.team.get_resource_management_team_view_data",
   );
 
   const user = useSelector((state: RootState) => state.user);
@@ -79,14 +88,17 @@ const ResourceTimeLineViewComponent = ({ viewData }: ResourceTimeLineViewCompone
           reports_to: filters.reportingManager,
           designation: JSON.stringify(filters.designation),
           is_billable: getIsBillableValue(filters.allocationType as string[]),
-          skills: filters?.skillSearch && filters?.skillSearch?.length > 0 ? JSON.stringify(filters.skillSearch) : "[]",
+          skills:
+            filters?.skillSearch && filters?.skillSearch?.length > 0
+              ? JSON.stringify(filters.skillSearch)
+              : "[]",
         };
         return newReqBody;
       }
 
       return newReqBody;
     },
-    [resourceAllocationPermission.write, filters]
+    [resourceAllocationPermission.write, filters],
   );
 
   const handleApiCall = useCallback(
@@ -106,7 +118,7 @@ const ResourceTimeLineViewComponent = ({ viewData }: ResourceTimeLineViewCompone
         return null;
       }
     },
-    [fetchData, getFilterApiBody, toast]
+    [fetchData, getFilterApiBody, toast],
   );
 
   const handleDelete = useCallback(
@@ -117,18 +129,20 @@ const ResourceTimeLineViewComponent = ({ viewData }: ResourceTimeLineViewCompone
         isNeedToDelete: true,
       });
     },
-    [setAllocationData]
+    [setAllocationData],
   );
 
   const filterApiData = useCallback(
     (data: ResourceTimeLineDataProps) => {
       const updatedData = { ...data };
 
-      updatedData.employees = updatedData.employees.map((employee: ResourceAllocationEmployeeProps) => ({
-        ...employee,
-        id: employee.name,
-        title: employee.employee_name,
-      }));
+      updatedData.employees = updatedData.employees.map(
+        (employee: ResourceAllocationEmployeeProps) => ({
+          ...employee,
+          id: employee.name,
+          title: employee.employee_name,
+        }),
+      );
 
       updatedData.resource_allocations = updatedData.resource_allocations.map(
         (allocation: ResourceAllocationTimeLineProps) => ({
@@ -136,9 +150,11 @@ const ResourceTimeLineViewComponent = ({ viewData }: ResourceTimeLineViewCompone
           id: allocation.name,
           group: allocation.employee,
           title: allocation.name,
-          start_time: getUTCDateTime(allocation.allocation_start_date).getTime(),
+          start_time: getUTCDateTime(
+            allocation.allocation_start_date,
+          ).getTime(),
           end_time: getUTCDateTime(allocation.allocation_end_date).setDate(
-            getUTCDateTime(allocation.allocation_end_date).getDate() + 1
+            getUTCDateTime(allocation.allocation_end_date).getDate() + 1,
           ),
           customerData: {
             ...updatedData.customer[allocation.customer],
@@ -147,24 +163,28 @@ const ResourceTimeLineViewComponent = ({ viewData }: ResourceTimeLineViewCompone
           onDelete: handleDelete,
           isShowMonth: filters.isShowMonth,
           type: "allocation",
-        })
+        }),
       );
 
-      updatedData.leaves = updatedData.leaves.map((leave: ResourceAllocationTimeLineProps) => ({
-        ...leave,
-        id: leave.name,
-        group: leave.employee,
-        title: leave.name,
-        start_time: getUTCDateTime(leave.from_date).getTime(),
-        end_time: getUTCDateTime(leave.to_date).setDate(getUTCDateTime(leave.to_date).getDate() + 1),
-        canDelete: false,
-        isShowMonth: filters.isShowMonth,
-        type: "leave",
-      }));
+      updatedData.leaves = updatedData.leaves.map(
+        (leave: ResourceAllocationTimeLineProps) => ({
+          ...leave,
+          id: leave.name,
+          group: leave.employee,
+          title: leave.name,
+          start_time: getUTCDateTime(leave.from_date).getTime(),
+          end_time: getUTCDateTime(leave.to_date).setDate(
+            getUTCDateTime(leave.to_date).getDate() + 1,
+          ),
+          canDelete: false,
+          isShowMonth: filters.isShowMonth,
+          type: "leave",
+        }),
+      );
 
       return updatedData;
     },
-    [filters, handleDelete, resourceAllocationPermission.delete]
+    [filters, handleDelete, resourceAllocationPermission.delete],
   );
 
   const loadIntialData = useCallback(async () => {
@@ -194,8 +214,14 @@ const ResourceTimeLineViewComponent = ({ viewData }: ResourceTimeLineViewCompone
 
   const handleFormSubmit = useCallback(
     (
-      oldData: ResourceAllocationTimeLineProps | AllocationDataProps | undefined = undefined,
-      newData: ResourceAllocationTimeLineProps | AllocationDataProps | undefined = undefined
+      oldData:
+        | ResourceAllocationTimeLineProps
+        | AllocationDataProps
+        | undefined = undefined,
+      newData:
+        | ResourceAllocationTimeLineProps
+        | AllocationDataProps
+        | undefined = undefined,
     ) => {
       if (!oldData || !newData) return;
       const employeeList = [];
@@ -218,15 +244,33 @@ const ResourceTimeLineViewComponent = ({ viewData }: ResourceTimeLineViewCompone
       }).then((res) => {
         if (res.message) {
           const updatedAllocations = allocations.filter(
-            (allocation) => allocation.employee != oldData.employee && allocation.employee != newData.employee
+            (allocation) =>
+              allocation.employee != oldData.employee &&
+              allocation.employee != newData.employee,
           );
           const filterData = filterApiData(res.message);
-          setAllocationsData([...updatedAllocations, ...filterData.leaves, ...filterData.resource_allocations], "Set");
+          setAllocationsData(
+            [
+              ...updatedAllocations,
+              ...filterData.leaves,
+              ...filterData.resource_allocations,
+            ],
+            "Set",
+          );
           setCustomerData({ ...customer, ...filterData.customer });
         }
       });
     },
-    [allocations, customer, fetchData, filterApiData, filters, isEmployeeExits, setAllocationsData, setCustomerData]
+    [
+      allocations,
+      customer,
+      fetchData,
+      filterApiData,
+      filters,
+      isEmployeeExits,
+      setAllocationsData,
+      setCustomerData,
+    ],
   );
 
   useEffect(() => {
@@ -234,20 +278,33 @@ const ResourceTimeLineViewComponent = ({ viewData }: ResourceTimeLineViewCompone
       loadIntialData();
       updateApiControler({ isNeedToFetchDataAfterUpdate: false });
     }
-  }, [loadIntialData, apiControler.isNeedToFetchDataAfterUpdate, updateApiControler]);
+  }, [
+    loadIntialData,
+    apiControler.isNeedToFetchDataAfterUpdate,
+    updateApiControler,
+  ]);
 
   useEffect(() => {
     if (allocationData.isNeedToDelete) {
       handleFormSubmit(allocationData.old, allocationData.new);
       setAllocationData({ isNeedToDelete: false });
     }
-  }, [allocationData.isNeedToDelete, allocationData.new, allocationData.old, handleFormSubmit, setAllocationData]);
+  }, [
+    allocationData.isNeedToDelete,
+    allocationData.new,
+    allocationData.old,
+    handleFormSubmit,
+    setAllocationData,
+  ]);
 
   useEffect(() => {
     // This way will make sure the timeline width changes when the user collapses the sidebar.
     setTimeout(() => {
-      const container = document.querySelector<HTMLDivElement>(".react-calendar-timeline");
-      const scrollContainer = document.querySelector<HTMLDivElement>(".rct-scroll");
+      const container = document.querySelector<HTMLDivElement>(
+        ".react-calendar-timeline",
+      );
+      const scrollContainer =
+        document.querySelector<HTMLDivElement>(".rct-scroll");
       const sidebar = document.querySelector<HTMLDivElement>(".rct-sidebar");
 
       if (container && scrollContainer && sidebar) {
@@ -266,7 +323,9 @@ const ResourceTimeLineViewComponent = ({ viewData }: ResourceTimeLineViewCompone
         <ResourceTimeLine handleFormSubmit={handleFormSubmit} />
       )}
 
-      {resourceDialogState.isShowDialog && <AddResourceAllocations onSubmit={handleFormSubmit} />}
+      {resourceDialogState.isShowDialog && (
+        <AddResourceAllocations onSubmit={handleFormSubmit} />
+      )}
     </>
   );
 };

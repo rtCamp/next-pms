@@ -9,7 +9,15 @@ import { useContextSelector } from "use-context-selector";
 /**
  * Internal dependencies.
  */
-import { TIMESHEET, HOME, TEAM, TASK, PROJECT, RESOURCE_MANAGEMENT, ROLES } from "@/lib/constant";
+import {
+  TIMESHEET,
+  HOME,
+  TEAM,
+  TASK,
+  PROJECT,
+  RESOURCE_MANAGEMENT,
+  ROLES,
+} from "@/lib/constant";
 import { UserContext } from "@/lib/UserProvider";
 import { default as Layout } from "./app/layout";
 import { RootState } from "./store";
@@ -23,8 +31,12 @@ const Timesheet = lazy(() => import("@/app/pages/timesheet"));
 const Home = lazy(() => import("@/app/pages/home"));
 const Team = lazy(() => import("@/app/pages/team"));
 const ResourceTeam = lazy(() => import("@/app/pages/resource-management/team"));
-const ResourceProject = lazy(() => import("@/app/pages/resource-management/project"));
-const ResourceTimeLine = lazy(() => import("@/app/pages/resource-management/timeline"));
+const ResourceProject = lazy(
+  () => import("@/app/pages/resource-management/project"),
+);
+const ResourceTimeLine = lazy(
+  () => import("@/app/pages/resource-management/timeline"),
+);
 const EmployeeDetail = lazy(() => import("@/app/pages/team/employee-detail"));
 const Task = lazy(() => import("@/app/pages/task"));
 const Project = lazy(() => import("@/app/pages/project"));
@@ -41,7 +53,10 @@ export function Router() {
           <Route path={HOME} element={<Home />} />
           <Route path={TEAM}>
             <Route path={`${TEAM}/`} element={<Team />} />
-            <Route path={`${TEAM}/employee/:id?`} element={<EmployeeDetail />} />
+            <Route
+              path={`${TEAM}/employee/:id?`}
+              element={<EmployeeDetail />}
+            />
           </Route>
           <Route path={PROJECT}>
             <Route path={`${PROJECT}/`} element={<Project />} />
@@ -49,9 +64,18 @@ export function Router() {
           </Route>
         </Route>
         <Route path={TASK} element={<Task />} />
-        <Route path={`${RESOURCE_MANAGEMENT}/timeline`} element={<ResourceTimeLine />} />
-        <Route path={`${RESOURCE_MANAGEMENT}/team`} element={<ResourceTeam />} />
-        <Route path={`${RESOURCE_MANAGEMENT}/project`} element={<ResourceProject />} />
+        <Route
+          path={`${RESOURCE_MANAGEMENT}/timeline`}
+          element={<ResourceTimeLine />}
+        />
+        <Route
+          path={`${RESOURCE_MANAGEMENT}/team`}
+          element={<ResourceTeam />}
+        />
+        <Route
+          path={`${RESOURCE_MANAGEMENT}/project`}
+          element={<ResourceProject />}
+        />
       </Route>
       <Route path={TASK} element={<Task />} />
       <Route path="*" element={<NotFound />} />
@@ -60,7 +84,10 @@ export function Router() {
 }
 
 const AuthenticatedRoute = () => {
-  const { currentUser, isLoading } = useContextSelector(UserContext, (value) => value.state);
+  const { currentUser, isLoading } = useContextSelector(
+    UserContext,
+    (value) => value.state,
+  );
   const { call } = useContext(FrappeContext) as FrappeConfig;
   const user = useSelector((state: RootState) => state.user);
   const views = useSelector((state: RootState) => state.view);
@@ -76,9 +103,13 @@ const AuthenticatedRoute = () => {
       });
     }
     if (views.views.length < 1) {
-      call.get("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.get_views").then((res) => {
-        dispatch(setViews(res.message));
-      });
+      call
+        .get(
+          "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.get_views",
+        )
+        .then((res) => {
+          dispatch(setViews(res.message));
+        });
     }
   }, [call, dispatch, user.roles.length, views.views.length]);
 

@@ -23,7 +23,9 @@ test.describe("Employee : Timesheet", () => {
 
   // ------------------------------------------------------------------------------------------
 
-  test("TC4: Added time and description should be editable. ", async ({ jsonDir }) => {
+  test("TC4: Added time and description should be editable. ", async ({
+    jsonDir,
+  }) => {
     allure.story("Timesheet");
     // 1) Build the path to your per‑TC JSON stub
     const stubPath = path.join(jsonDir, "TC4.json");
@@ -51,7 +53,8 @@ test.describe("Employee : Timesheet", () => {
     const randomTask = await timesheetPage.openRandomTaskDetails();
 
     // Assertions
-    const isTaskDetailsDialogVisible = await timesheetPage.isTaskDetailsDialogVisible(randomTask);
+    const isTaskDetailsDialogVisible =
+      await timesheetPage.isTaskDetailsDialogVisible(randomTask);
     expect(isTaskDetailsDialogVisible).toBeTruthy();
   });
 
@@ -61,14 +64,18 @@ test.describe("Employee : Timesheet", () => {
     await timesheetPage.clickonTimesheetStatus();
 
     // Assertions
-    const isSubmitForApprovalModalVisible = await timesheetPage.isSubmitForApprovalModalVisible();
+    const isSubmitForApprovalModalVisible =
+      await timesheetPage.isSubmitForApprovalModalVisible();
     expect(isSubmitForApprovalModalVisible).toBeTruthy();
 
-    const isReviewTimesheetPaneVisible = await timesheetPage.isReviewTimesheetPaneVisible();
+    const isReviewTimesheetPaneVisible =
+      await timesheetPage.isReviewTimesheetPaneVisible();
     expect(isReviewTimesheetPaneVisible).toBeFalsy();
   });
 
-  test("TC12: Verify the 'Import liked tasks' option.   ", async ({ jsonDir }) => {
+  test("TC12: Verify the 'Import liked tasks' option.   ", async ({
+    jsonDir,
+  }) => {
     allure.story("Timesheet");
 
     const stubPath = path.join(jsonDir, "TC12.json");
@@ -85,7 +92,9 @@ test.describe("Employee : Timesheet", () => {
     expect(tasks.sort()).toEqual(expect.arrayContaining(TC12data.tasks.sort()));
   });
 
-  test("TC14: Verify the billable status of a billable task.", async ({ jsonDir }) => {
+  test("TC14: Verify the billable status of a billable task.", async ({
+    jsonDir,
+  }) => {
     allure.story("Timesheet");
     const stubPath = path.join(jsonDir, "TC14.json");
     const data = await readJSONFile(stubPath);
@@ -94,11 +103,15 @@ test.describe("Employee : Timesheet", () => {
     await timesheetPage.importLikedTasks();
 
     // Assertions
-    const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC14data.cell);
+    const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(
+      TC14data.cell,
+    );
     expect(isTimeEntryBillable).toBeTruthy();
   });
 
-  test("TC15: Verify the billable status of a non-billable task.   ", async ({ jsonDir }) => {
+  test("TC15: Verify the billable status of a non-billable task.   ", async ({
+    jsonDir,
+  }) => {
     allure.story("Timesheet");
 
     const stubPath = path.join(jsonDir, "TC15.json");
@@ -109,7 +122,9 @@ test.describe("Employee : Timesheet", () => {
     await timesheetPage.importLikedTasks();
 
     // Assertions
-    const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC15data.cell);
+    const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(
+      TC15data.cell,
+    );
     expect(isTimeEntryBillable).toBeFalsy();
   });
 
@@ -126,7 +141,9 @@ test.describe("Employee : Timesheet", () => {
     await taskPage.searchTask(TC23data.payloadCreateTask.subject);
     await taskPage.clickClockIcon();
     await taskPage.addTime("8", TC23data.payloadCreateTask.description);
-    await expect(page.getByText("New Timesheet created successfully.", { exact: true })).toBeVisible();
+    await expect(
+      page.getByText("New Timesheet created successfully.", { exact: true }),
+    ).toBeVisible();
   });
 
   test("TC82: Verify hourly consulting rate when no default billing rate is used for Fixed cost project   ", async ({
@@ -137,11 +154,13 @@ test.describe("Employee : Timesheet", () => {
     const data = await readJSONFile(stubPath);
     const TC82data = data.TC82;
     //Assertions
-    const total_costing_amount = TC82data.payloadCalculateBillingRate.total_costing_amount;
-    const employeeHourlyBillingRate = TC82data.payloadCalculateBillingRate.hourly_billing_rate;
+    const total_costing_amount =
+      TC82data.payloadCalculateBillingRate.total_costing_amount;
+    const employeeHourlyBillingRate =
+      TC82data.payloadCalculateBillingRate.hourly_billing_rate;
     expect(
       total_costing_amount,
-      "Verify the project cost amount and employee CTC amount per hour matches for Fixed Cost Project"
+      "Verify the project cost amount and employee CTC amount per hour matches for Fixed Cost Project",
     ).toBeCloseTo(employeeHourlyBillingRate, 3);
   });
 
@@ -153,12 +172,14 @@ test.describe("Employee : Timesheet", () => {
     const data = await readJSONFile(stubPath);
     const TC83data = data.TC83;
     //Assertions
-    const total_costing_amount = TC83data.payloadCalculateBillingRate.total_costing_amount;
-    const employeeHourlyBillingRate = TC83data.payloadCalculateBillingRate.hourly_billing_rate;
+    const total_costing_amount =
+      TC83data.payloadCalculateBillingRate.total_costing_amount;
+    const employeeHourlyBillingRate =
+      TC83data.payloadCalculateBillingRate.hourly_billing_rate;
 
     expect(
       total_costing_amount,
-      "Verify the project cost amount and employee CTC amount per hour matches for Retainer Project"
+      "Verify the project cost amount and employee CTC amount per hour matches for Retainer Project",
     ).toBeCloseTo(employeeHourlyBillingRate, 3);
   });
 
@@ -170,12 +191,14 @@ test.describe("Employee : Timesheet", () => {
     const data = await readJSONFile(stubPath);
     const TC84data = data.TC84;
     //Assertions
-    const total_costing_amount = TC84data.payloadCalculateBillingRate.total_costing_amount;
-    const employeeHourlyBillingRate = TC84data.payloadCalculateBillingRate.hourly_billing_rate;
+    const total_costing_amount =
+      TC84data.payloadCalculateBillingRate.total_costing_amount;
+    const employeeHourlyBillingRate =
+      TC84data.payloadCalculateBillingRate.hourly_billing_rate;
 
     expect(
       total_costing_amount,
-      "Verify the project cost amount and employee CTC amount per hour matches for Time and Material Project"
+      "Verify the project cost amount and employee CTC amount per hour matches for Time and Material Project",
     ).toBeCloseTo(employeeHourlyBillingRate, 3);
   });
 
@@ -187,12 +210,14 @@ test.describe("Employee : Timesheet", () => {
     const data = await readJSONFile(stubPath);
     const TC85data = data.TC85;
     //Assertions
-    const total_costing_amount = TC85data.payloadCalculateBillingRate.total_costing_amount;
-    const employeeHourlyBillingRate = TC85data.payloadCalculateBillingRate.hourly_billing_rate;
+    const total_costing_amount =
+      TC85data.payloadCalculateBillingRate.total_costing_amount;
+    const employeeHourlyBillingRate =
+      TC85data.payloadCalculateBillingRate.hourly_billing_rate;
 
     expect(
       total_costing_amount,
-      "Verify the project cost amount and employee CTC amount per hour matches when the currency for employee and project are different"
+      "Verify the project cost amount and employee CTC amount per hour matches when the currency for employee and project are different",
     ).toBeCloseTo(employeeHourlyBillingRate, 3);
   });
 
@@ -204,69 +229,92 @@ test.describe("Employee : Timesheet", () => {
     const data = await readJSONFile(stubPath);
     const TC86data = data.TC86;
     //Assertions
-    const total_billable_amount = TC86data.payloadCalculateBillingRate.total_billable_amount;
-    const hourly_billing_rate = TC86data.payloadCreateProject.custom_project_billing_team[0].hourly_billing_rate;
+    const total_billable_amount =
+      TC86data.payloadCalculateBillingRate.total_billable_amount;
+    const hourly_billing_rate =
+      TC86data.payloadCreateProject.custom_project_billing_team[0]
+        .hourly_billing_rate;
     expect(
       total_billable_amount,
-      "Verify the billing rate for the employee should match the value provided in project billing team child table"
+      "Verify the billing rate for the employee should match the value provided in project billing team child table",
     ).toEqual(hourly_billing_rate);
   });
 
-  test("TC87: Verify Default Hourly Billing Rate for Fixed Cost project", async ({ jsonDir }) => {
+  test("TC87: Verify Default Hourly Billing Rate for Fixed Cost project", async ({
+    jsonDir,
+  }) => {
     allure.story("Timesheet");
     const stubPath = path.join(jsonDir, "TC87.json");
     const data = await readJSONFile(stubPath);
     const TC87data = data.TC87;
     //Assertions
-    const total_billable_amount = TC87data.payloadCalculateBillingRate.total_billable_amount;
-    const custom_default_hourly_billing_rate = TC87data.payloadCreateProject.custom_default_hourly_billing_rate;
-    expect(total_billable_amount, "Verify Default Hourly Billing Rate is considered for Fixed Cost project").toEqual(
-      custom_default_hourly_billing_rate
-    );
+    const total_billable_amount =
+      TC87data.payloadCalculateBillingRate.total_billable_amount;
+    const custom_default_hourly_billing_rate =
+      TC87data.payloadCreateProject.custom_default_hourly_billing_rate;
+    expect(
+      total_billable_amount,
+      "Verify Default Hourly Billing Rate is considered for Fixed Cost project",
+    ).toEqual(custom_default_hourly_billing_rate);
   });
 
-  test("TC88: Verify Default Hourly Billing Rate for Retainer project", async ({ jsonDir }) => {
+  test("TC88: Verify Default Hourly Billing Rate for Retainer project", async ({
+    jsonDir,
+  }) => {
     allure.story("Timesheet");
     const stubPath = path.join(jsonDir, "TC88.json");
     const data = await readJSONFile(stubPath);
     const TC88data = data.TC88;
     //Assertions
-    const total_billable_amount = TC88data.payloadCalculateBillingRate.total_billable_amount;
-    const custom_default_hourly_billing_rate = TC88data.payloadCreateProject.custom_default_hourly_billing_rate;
-    expect(total_billable_amount, "Verify Default Hourly Billing Rate is considered for Retainer project").toEqual(
-      custom_default_hourly_billing_rate
-    );
+    const total_billable_amount =
+      TC88data.payloadCalculateBillingRate.total_billable_amount;
+    const custom_default_hourly_billing_rate =
+      TC88data.payloadCreateProject.custom_default_hourly_billing_rate;
+    expect(
+      total_billable_amount,
+      "Verify Default Hourly Billing Rate is considered for Retainer project",
+    ).toEqual(custom_default_hourly_billing_rate);
   });
 
-  test("TC89: Verify Default Hourly Billing Rate for Time and Material project", async ({ jsonDir }) => {
+  test("TC89: Verify Default Hourly Billing Rate for Time and Material project", async ({
+    jsonDir,
+  }) => {
     allure.story("Timesheet");
     const stubPath = path.join(jsonDir, "TC89.json");
     const data = await readJSONFile(stubPath);
     const TC89data = data.TC89;
     //Assertions
-    const total_billable_amount = TC89data.payloadCalculateBillingRate.total_billable_amount;
-    const custom_default_hourly_billing_rate = TC89data.payloadCreateProject.custom_default_hourly_billing_rate;
+    const total_billable_amount =
+      TC89data.payloadCalculateBillingRate.total_billable_amount;
+    const custom_default_hourly_billing_rate =
+      TC89data.payloadCreateProject.custom_default_hourly_billing_rate;
     expect(
       total_billable_amount,
-      "Verify Default Hourly Billing Rate is considered for Time and Material project"
+      "Verify Default Hourly Billing Rate is considered for Time and Material project",
     ).toEqual(custom_default_hourly_billing_rate);
   });
 
-  test("TC90: Billing rate to be three times costing rate", async ({ jsonDir }) => {
+  test("TC90: Billing rate to be three times costing rate", async ({
+    jsonDir,
+  }) => {
     allure.story("Timesheet");
     const stubPath = path.join(jsonDir, "TC90.json");
     const data = await readJSONFile(stubPath);
     const TC90data = data.TC90;
     //Assertions
-    const total_billable_amount = TC90data.payloadCalculateBillingRate.total_billable_amount;
-    const custom_default_hourly_billing_rate = TC90data.payloadCalculateBillingRate.total_costing_amount;
-    expect(total_billable_amount, "Billing rate to be three times the costing rate").toBeCloseTo(
-      3 * custom_default_hourly_billing_rate,
-      1
-    );
+    const total_billable_amount =
+      TC90data.payloadCalculateBillingRate.total_billable_amount;
+    const custom_default_hourly_billing_rate =
+      TC90data.payloadCalculateBillingRate.total_costing_amount;
+    expect(
+      total_billable_amount,
+      "Billing rate to be three times the costing rate",
+    ).toBeCloseTo(3 * custom_default_hourly_billing_rate, 1);
   });
 
-  test("TC96: Verify Time entry for a Billable task under a Retainer project", async ({ jsonDir }) => {
+  test("TC96: Verify Time entry for a Billable task under a Retainer project", async ({
+    jsonDir,
+  }) => {
     allure.story("Timesheet");
     const stubPath = path.join(jsonDir, "TC96.json");
     const data = await readJSONFile(stubPath);
@@ -275,11 +323,15 @@ test.describe("Employee : Timesheet", () => {
     await timesheetPage.importLikedTasks();
 
     // Assertions
-    const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC96data.cell);
+    const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(
+      TC96data.cell,
+    );
     expect(isTimeEntryBillable).toBeTruthy();
   });
 
-  test("TC97: Verify Time entry for a Billable task under a Time and Material project", async ({ jsonDir }) => {
+  test("TC97: Verify Time entry for a Billable task under a Time and Material project", async ({
+    jsonDir,
+  }) => {
     allure.story("Timesheet");
     const stubPath = path.join(jsonDir, "TC97.json");
     const data = await readJSONFile(stubPath);
@@ -288,11 +340,15 @@ test.describe("Employee : Timesheet", () => {
     await timesheetPage.importLikedTasks();
 
     // Assertions
-    const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC97data.cell);
+    const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(
+      TC97data.cell,
+    );
     expect(isTimeEntryBillable).toBeTruthy();
   });
 
-  test("TC98: Verify Time entry for a Billable task under a Non-Billable project", async ({ jsonDir }) => {
+  test("TC98: Verify Time entry for a Billable task under a Non-Billable project", async ({
+    jsonDir,
+  }) => {
     allure.story("Timesheet");
     const stubPath = path.join(jsonDir, "TC98.json");
     const data = await readJSONFile(stubPath);
@@ -301,11 +357,15 @@ test.describe("Employee : Timesheet", () => {
     await timesheetPage.importLikedTasks();
 
     // Assertions
-    const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC98data.cell);
+    const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(
+      TC98data.cell,
+    );
     expect(isTimeEntryBillable).toBeTruthy();
   });
 
-  test("TC99: Verify Time entry for a Non-Billable task under a Fixed Cost project", async ({ jsonDir }) => {
+  test("TC99: Verify Time entry for a Non-Billable task under a Fixed Cost project", async ({
+    jsonDir,
+  }) => {
     allure.story("Timesheet");
     const stubPath = path.join(jsonDir, "TC99.json");
     const data = await readJSONFile(stubPath);
@@ -314,11 +374,15 @@ test.describe("Employee : Timesheet", () => {
     await timesheetPage.importLikedTasks();
 
     // Assertions
-    const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC99data.cell);
+    const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(
+      TC99data.cell,
+    );
     expect(isTimeEntryBillable).toBeFalsy();
   });
 
-  test("TC100: Verify Time entry for a Non-Billable task under a Retainer project", async ({ jsonDir }) => {
+  test("TC100: Verify Time entry for a Non-Billable task under a Retainer project", async ({
+    jsonDir,
+  }) => {
     allure.story("Timesheet");
     const stubPath = path.join(jsonDir, "TC100.json");
     const data = await readJSONFile(stubPath);
@@ -327,11 +391,15 @@ test.describe("Employee : Timesheet", () => {
     await timesheetPage.importLikedTasks();
 
     // Assertions
-    const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC100data.cell);
+    const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(
+      TC100data.cell,
+    );
     expect(isTimeEntryBillable).toBeFalsy();
   });
 
-  test("TC101: Verify Time entry for a Non-Billable task under a Time and Material project", async ({ jsonDir }) => {
+  test("TC101: Verify Time entry for a Non-Billable task under a Time and Material project", async ({
+    jsonDir,
+  }) => {
     allure.story("Timesheet");
     const stubPath = path.join(jsonDir, "TC101.json");
     const data = await readJSONFile(stubPath);
@@ -340,7 +408,9 @@ test.describe("Employee : Timesheet", () => {
     await timesheetPage.importLikedTasks();
 
     // Assertions
-    const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(TC101data.cell);
+    const isTimeEntryBillable = await timesheetPage.isTimeEntryBillable(
+      TC101data.cell,
+    );
     expect(isTimeEntryBillable).toBeFalsy();
   });
 });

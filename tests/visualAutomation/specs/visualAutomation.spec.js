@@ -37,9 +37,13 @@ test.describe("Visual Automation", () => {
   });
 
   test.describe("Manager Tests", () => {
-    test.use({ storageState: path.resolve(__dirname, "../../e2e/auth/manager.json") });
+    test.use({
+      storageState: path.resolve(__dirname, "../../e2e/auth/manager.json"),
+    });
 
-    test("Verify visual tests for Timesheet page as manager", async ({ page }) => {
+    test("Verify visual tests for Timesheet page as manager", async ({
+      page,
+    }) => {
       await page.goto(URLS.TIMESHEET);
       await visualCheck(page, "manager-timesheet-page.png");
     });
@@ -49,7 +53,9 @@ test.describe("Visual Automation", () => {
       await visualCheck(page, "manager-team-page.png");
     });
 
-    test("Verify visual tests for Project page as manager", async ({ page }) => {
+    test("Verify visual tests for Project page as manager", async ({
+      page,
+    }) => {
       await page.goto(URLS.PROJECT);
       await visualCheck(page, "manager-project-page.png");
     });
@@ -59,17 +65,23 @@ test.describe("Visual Automation", () => {
       await visualCheck(page, "manager-task-page.png");
     });
 
-    test("Verify visual tests for Resource Management >> Timeline page as manager", async ({ page }) => {
+    test("Verify visual tests for Resource Management >> Timeline page as manager", async ({
+      page,
+    }) => {
       await page.goto(URLS.RESOURCE_MANAGEMENT_TIMELINE);
       await visualCheck(page, "manager-resource-management-timeline-page.png");
     });
 
-    test("Verify visual tests for Resource Management >> Team page as manager", async ({ page }) => {
+    test("Verify visual tests for Resource Management >> Team page as manager", async ({
+      page,
+    }) => {
       await page.goto(URLS.RESOURCE_MANAGEMENT_TEAM);
       await visualCheck(page, "manager-resource-management-team-page.png");
     });
 
-    test("Verify visual tests for Resource Management >> Project page as manager", async ({ page }) => {
+    test("Verify visual tests for Resource Management >> Project page as manager", async ({
+      page,
+    }) => {
       await page.goto(URLS.RESOURCE_MANAGEMENT_PROJECT);
       await visualCheck(page, "manager-resource-management-project-page.png");
     });

@@ -53,12 +53,12 @@ function useInfiniteScroll({
           root,
           rootMargin,
           threshold,
-        }
+        },
       );
 
       observer.current.observe(element);
     },
-    [hasMore, next, threshold, root, rootMargin]
+    [hasMore, next, threshold, root, rootMargin],
   );
   if (!isLoading) {
     isFetchingRef.current = false;

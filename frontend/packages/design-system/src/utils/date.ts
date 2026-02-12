@@ -67,12 +67,12 @@ export const getDayDiff = (startString: string, endString: string): number => {
 export const checkInRange = (
   start: string,
   weeks: number,
-  dateString: string
+  dateString: string,
 ) => {
   const startDate = getFormatedDate(
     startOfWeek(getUTCDateTime(start), {
       weekStartsOn: 1,
-    })
+    }),
   );
 
   const endDate = getNextDate(startDate, weeks);
@@ -103,7 +103,7 @@ export const prettyDate = (dateString: string, isLong: boolean = false) => {
 };
 
 export const getDateFromDateAndTimeString = (
-  dateTimeString: string
+  dateTimeString: string,
 ): string => {
   // Split the date and time parts exa: '2024-05-08 00:00:00'
   const parts = dateTimeString.split(" ");

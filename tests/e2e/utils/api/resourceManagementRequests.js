@@ -51,8 +51,8 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
     await ctx.dispose();
     throw new Error(
       `API request failed for ${role} @ ${endpoint} in the resource management with status as: ${status} ${statusText}. Error body: ${JSON.stringify(
-        errorBody
-      )}`
+        errorBody,
+      )}`,
     );
   }
 
@@ -74,7 +74,7 @@ export const createAllocation = async (payload) => {
       method: "POST",
       data: payload,
     },
-    "manager"
+    "manager",
   );
   //console.log("Result of create allocation is: ", result);
   return result;
@@ -85,5 +85,9 @@ export const createAllocation = async (payload) => {
  * Delete a Resource Allocation by its ID.
  */
 export const deleteAllocation = async (allocationId) => {
-  return await apiRequest(`/api/resource/Resource%20Allocation/${allocationId}`, { method: "DELETE" }, "admin");
+  return await apiRequest(
+    `/api/resource/Resource%20Allocation/${allocationId}`,
+    { method: "DELETE" },
+    "admin",
+  );
 };

@@ -12,7 +12,11 @@ import {
   TabsTrigger,
   Typography,
 } from "@next-pms/design-system/components";
-import { getFormatedDate, getTodayDate, getUTCDateTime } from "@next-pms/design-system/date";
+import {
+  getFormatedDate,
+  getTodayDate,
+  getUTCDateTime,
+} from "@next-pms/design-system/date";
 import { useToast } from "@next-pms/design-system/hooks";
 import { useQueryParam } from "@next-pms/hooks";
 import { addDays } from "date-fns";
@@ -85,12 +89,15 @@ const EmployeeDetail = (): JSX.Element => {
       errorRetryCount: 1,
       revalidateOnFocus: false,
       revalidateIfStale: false,
-    }
+    },
   );
 
   useEffect(() => {
     if (data) {
-      if (teamState.timesheetData.data && Object.keys(teamState.timesheetData.data).length > 0) {
+      if (
+        teamState.timesheetData.data &&
+        Object.keys(teamState.timesheetData.data).length > 0
+      ) {
         dispatch({ type: "UPDATE_TIMESHEET_DATA", payload: data.message });
       } else {
         dispatch({ type: "SET_TIMESHEET_DATA", payload: data.message });
@@ -120,7 +127,11 @@ const EmployeeDetail = (): JSX.Element => {
   }, [dispatch, id]);
 
   const handleLoadData = () => {
-    if (teamState.timesheetData.data == undefined || Object.keys(teamState.timesheetData.data).length == 0) return;
+    if (
+      teamState.timesheetData.data == undefined ||
+      Object.keys(teamState.timesheetData.data).length == 0
+    )
+      return;
     const lastKey = Object.keys(teamState.timesheetData.data).pop();
     if (!lastKey) return;
     const obj = teamState.timesheetData.data[lastKey];
@@ -132,14 +143,20 @@ const EmployeeDetail = (): JSX.Element => {
   useFrappeEventListener(`timesheet_update::${id}`, (payload) => {
     const res = payload.message;
     const key = Object.keys(res.data)[0];
-    if (!Object.prototype.hasOwnProperty.call(teamState.timesheetData.data, key)) {
+    if (
+      !Object.prototype.hasOwnProperty.call(teamState.timesheetData.data, key)
+    ) {
       return;
     }
     dispatch({ type: "UPDATE_TIMESHEET_DATA", payload: res });
   });
   return (
     <>
-      <EmployeeDetailHeader state={teamState} dispatch={dispatch} employeeId={id as string} />
+      <EmployeeDetailHeader
+        state={teamState}
+        dispatch={dispatch}
+        employeeId={id as string}
+      />
       <Main className="w-full h-full overflow-y-auto">
         <Tabs defaultValue="timesheet" className="relative">
           <div className="flex gap-x-4 pt-3 px-0 sticky top-0 z-10 transition-shadow duration-300 backdrop-blur-sm bg-background">
@@ -147,17 +164,24 @@ const EmployeeDetail = (): JSX.Element => {
               <TabsTrigger value="timesheet">Timesheet</TabsTrigger>
               <TabsTrigger value="time">Time</TabsTrigger>
             </TabsList>
-            <Button title="Add Time" className="float-right mb-1 px-3" onClick={handleAddTime}>
+            <Button
+              title="Add Time"
+              className="float-right mb-1 px-3"
+              onClick={handleAddTime}
+            >
               <Plus /> Time
             </Button>
           </div>
 
-          {isLoading && Object.keys(teamState.timesheetData.data).length == 0 ? (
+          {isLoading &&
+          Object.keys(teamState.timesheetData.data).length == 0 ? (
             <Spinner isFull />
           ) : (
             <>
               {Object.keys(teamState.timesheetData.data).length == 0 ? (
-                <Typography className="flex items-center justify-center">No Data</Typography>
+                <Typography className="flex items-center justify-center">
+                  No Data
+                </Typography>
               ) : (
                 <InfiniteScroll
                   isLoading={isLoading}

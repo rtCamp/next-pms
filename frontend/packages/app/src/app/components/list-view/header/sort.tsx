@@ -36,7 +36,9 @@ const Sort = ({ fieldMeta, orderBy, field, onSortChange }: SortProps) => {
     setOrderColumn(field);
   }, [orderBy, field]);
 
-  const colMap = Object.fromEntries(fieldMeta.map((meta) => [meta.fieldname, meta.label ?? meta.fieldname]));
+  const colMap = Object.fromEntries(
+    fieldMeta.map((meta) => [meta.fieldname, meta.label ?? meta.fieldname]),
+  );
 
   const handleColumnChange = (key: string) => {
     if (key === orderColumn) return;

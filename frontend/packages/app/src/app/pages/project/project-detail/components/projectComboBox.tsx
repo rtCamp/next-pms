@@ -67,7 +67,9 @@ const ProjectComboBox = ({
   const { data: projects } = useFrappeGetDocList("Project", {
     fields: ["name", "project_name"],
     filters: [
-      ...(debouncedSearch ? [["project_name", "like", `%${debouncedSearch}%`]] : []),
+      ...(debouncedSearch
+        ? [["project_name", "like", `%${debouncedSearch}%`]]
+        : []),
       ...(status ? [["status", "=", status]] : []),
       ...(value && !debouncedSearch ? [["name", "=", value]] : []),
       ...(window.frappe?.boot?.global_filters.project || []),
@@ -122,7 +124,7 @@ const ProjectComboBox = ({
           disabled={disabled}
           className={mergeClassNames(
             "items-center w-full gap-x-4 px-2 justify-between [&[data-state=open]>svg]:rotate-180 truncate",
-            className
+            className,
           )}
         >
           {project ? (
@@ -138,12 +140,19 @@ const ProjectComboBox = ({
             </Typography>
           )}
 
-          <ChevronDown size={24} className="w-4 h-4 shrink-0 transition-transform duration-400" />
+          <ChevronDown
+            size={24}
+            className="w-4 h-4 shrink-0 transition-transform duration-400"
+          />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0 z-[1000]">
         <Command shouldFilter={false}>
-          <CommandInput placeholder="Search Project" value={search} onValueChange={onInputChange} />
+          <CommandInput
+            placeholder="Search Project"
+            value={search}
+            onValueChange={onInputChange}
+          />
           <CommandEmpty>No data.</CommandEmpty>
           <CommandGroup>
             <CommandList>
@@ -158,14 +167,23 @@ const ProjectComboBox = ({
                     className="flex gap-x-2 text-primary font-normal cursor-pointer"
                     value={item.project_name}
                   >
-                    <Check className={mergeClassNames("mr-2 h-4 w-4", isActive ? "opacity-100" : "opacity-0")} />
+                    <Check
+                      className={mergeClassNames(
+                        "mr-2 h-4 w-4",
+                        isActive ? "opacity-100" : "opacity-0",
+                      )}
+                    />
                     <Typography variant="p">{item.project_name}</Typography>
                   </CommandItem>
                 );
               })}
             </CommandList>
           </CommandGroup>
-          <Button variant="ghost" onClick={resetState} className="border-t rounded-none font-normal w-full">
+          <Button
+            variant="ghost"
+            onClick={resetState}
+            className="border-t rounded-none font-normal w-full"
+          >
             Clear Selection
           </Button>
         </Command>

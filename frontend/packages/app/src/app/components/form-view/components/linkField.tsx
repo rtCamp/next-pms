@@ -45,11 +45,20 @@ interface LinkFieldProps {
  * @param onSelect Function triggered when a item is selected from the combo-box, returns a selected item string
  * @returns A JSX Component
  */
-const LinkField = ({ field, value, isReadOnly, onSelect, popoverClassName }: LinkFieldProps) => {
+const LinkField = ({
+  field,
+  value,
+  isReadOnly,
+  onSelect,
+  popoverClassName,
+}: LinkFieldProps) => {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState(value);
   const [debouncedInput, setDebouncedInput] = useState(value);
-  const debouncedSetInput = useMemo(() => deBounce((val: string) => setDebouncedInput(val), 300), []);
+  const debouncedSetInput = useMemo(
+    () => deBounce((val: string) => setDebouncedInput(val), 300),
+    [],
+  );
 
   useEffect(() => {
     setInput(value);
@@ -84,7 +93,7 @@ const LinkField = ({ field, value, isReadOnly, onSelect, popoverClassName }: Lin
       <div
         className={mergeClassNames(
           "group flex items-center gap-1 h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm  justify-between",
-          isReadOnly && "border-gray-100 text-gray-400 dark:border-input"
+          isReadOnly && "border-gray-100 text-gray-400 dark:border-input",
         )}
       >
         <Typography className="shrink-0">{input}</Typography>
@@ -109,7 +118,11 @@ const LinkField = ({ field, value, isReadOnly, onSelect, popoverClassName }: Lin
         >
           <Typography className="shrink-0">{input}</Typography>
           {input && (
-            <a href={field.link?.route} target="_blank" onClick={(e) => e.stopPropagation()}>
+            <a
+              href={field.link?.route}
+              target="_blank"
+              onClick={(e) => e.stopPropagation()}
+            >
               <ArrowRight
                 className="h-4 w-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground"
                 aria-hidden="true"
@@ -122,7 +135,7 @@ const LinkField = ({ field, value, isReadOnly, onSelect, popoverClassName }: Lin
         align="start"
         className={mergeClassNames(
           "z-[1000000] p-0 w-full max-md:min-w-[250px] max-lg:min-w-[450px] lg:min-w-[400px]",
-          popoverClassName
+          popoverClassName,
         )}
       >
         <Command shouldFilter={false}>
@@ -159,9 +172,15 @@ interface LinkFieldOptionsProps {
   field: Field;
   input: string;
   setFilteredOptions: React.Dispatch<
-    React.SetStateAction<Array<Record<"name" | "full_name" | "employee_name" | "user_image", string>>>
+    React.SetStateAction<
+      Array<
+        Record<"name" | "full_name" | "employee_name" | "user_image", string>
+      >
+    >
   >;
-  filteredOptions: Array<Record<"name" | "full_name" | "employee_name" | "user_image", string>>;
+  filteredOptions: Array<
+    Record<"name" | "full_name" | "employee_name" | "user_image", string>
+  >;
   onSelect: (val: string) => void;
 }
 
@@ -170,22 +189,31 @@ interface LinkFieldOptionsProps {
  * @description This component renders set of CommandItems
  * @returns A JSX Component
  */
-const LinkFieldOptions = ({ field, input, setFilteredOptions, filteredOptions, onSelect }: LinkFieldOptionsProps) => {
+const LinkFieldOptions = ({
+  field,
+  input,
+  setFilteredOptions,
+  filteredOptions,
+  onSelect,
+}: LinkFieldOptionsProps) => {
   const { toast } = useToast();
 
-  const { data, isLoading, error } = useFrappeGetCall("frappe.client.get_list", {
-    doctype: field.options,
-    fields: [
-      "name",
-      ...(field.options === "User"
-        ? ["full_name", "user_image"]
-        : field.options === "Employee"
-        ? ["employee_name"]
-        : []),
-    ],
-    filters: [["name", "like", `%${input}%`]],
-    limit_page_length: 20,
-  });
+  const { data, isLoading, error } = useFrappeGetCall(
+    "frappe.client.get_list",
+    {
+      doctype: field.options,
+      fields: [
+        "name",
+        ...(field.options === "User"
+          ? ["full_name", "user_image"]
+          : field.options === "Employee"
+            ? ["employee_name"]
+            : []),
+      ],
+      filters: [["name", "like", `%${input}%`]],
+      limit_page_length: 20,
+    },
+  );
 
   useEffect(() => {
     if (data?.message) {
@@ -215,19 +243,34 @@ const LinkFieldOptions = ({ field, input, setFilteredOptions, filteredOptions, o
   return (
     <>
       {filteredOptions.map((option) => (
-        <CommandItem className="cursor-pointer flex gap-2" key={option.name} onSelect={() => onSelect(option.name)}>
+        <CommandItem
+          className="cursor-pointer flex gap-2"
+          key={option.name}
+          onSelect={() => onSelect(option.name)}
+        >
           {field.options === "User" && (
             <Avatar className="size-8">
               <AvatarImage src={option.user_image} />
-              <AvatarFallback>{option?.name?.charAt(0)?.toUpperCase()}</AvatarFallback>
+              <AvatarFallback>
+                {option?.name?.charAt(0)?.toUpperCase()}
+              </AvatarFallback>
             </Avatar>
           )}
           <div className="flex flex-col items-start">
-            <Typography variant="p" className={option.full_name || (option.employee_name && "font-semibold")}>
+            <Typography
+              variant="p"
+              className={
+                option.full_name || (option.employee_name && "font-semibold")
+              }
+            >
               {option.name}
             </Typography>
-            {option.full_name && <Typography variant="p">{option.full_name}</Typography>}
-            {option.employee_name && <Typography variant="p">{option.employee_name}</Typography>}
+            {option.full_name && (
+              <Typography variant="p">{option.full_name}</Typography>
+            )}
+            {option.employee_name && (
+              <Typography variant="p">{option.employee_name}</Typography>
+            )}
           </div>
         </CommandItem>
       ))}

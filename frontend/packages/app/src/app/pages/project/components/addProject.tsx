@@ -45,11 +45,16 @@ type AddProjectProps = {
   dispatch: React.Dispatch<any>;
   meta: DocMetaProps;
 };
-export const AddProject = ({ project, mutate, dispatch, meta }: AddProjectProps) => {
+export const AddProject = ({
+  project,
+  mutate,
+  dispatch,
+  meta,
+}: AddProjectProps) => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [namingSeries, setNamingSeries] = useState<Record<string, any>>(
-    meta?.fields?.filter((item) => item.fieldname === "naming_series")[0]
+    meta?.fields?.filter((item) => item.fieldname === "naming_series")[0],
   );
   const { toast } = useToast();
 
@@ -67,7 +72,9 @@ export const AddProject = ({ project, mutate, dispatch, meta }: AddProjectProps)
 
   useEffect(() => {
     if (meta?.fields) {
-      setNamingSeries(meta?.fields?.filter((item) => item.fieldname === "naming_series")[0]);
+      setNamingSeries(
+        meta?.fields?.filter((item) => item.fieldname === "naming_series")[0],
+      );
     }
   }, [meta]);
 
@@ -77,30 +84,34 @@ export const AddProject = ({ project, mutate, dispatch, meta }: AddProjectProps)
     }
   }, [namingSeries, form]);
 
-  const { data: companies, isLoading: isCompanyLoading } = useFrappeGetCall("frappe.client.get_list", {
-    doctype: "Company",
-    fields: ["name"],
-    limit_page_length: "null",
-  });
+  const { data: companies, isLoading: isCompanyLoading } = useFrappeGetCall(
+    "frappe.client.get_list",
+    {
+      doctype: "Company",
+      fields: ["name"],
+      limit_page_length: "null",
+    },
+  );
 
   useEffect(() => {
     if (companies?.message) {
       form.setValue("company", companies?.message[0].name);
     }
   }, [companies, form]);
-  const { data: from_templates, isLoading: isFromTemplateLoading } = useFrappeGetCall(
-    "frappe.client.get_list",
-    {
-      doctype: "Project Template",
-      fields: ["name"],
-      limit_page_length: "null",
-    },
-    undefined,
-    {
-      errorRetryCount: 0,
-      shouldRetryOnError: false,
-    }
-  );
+  const { data: from_templates, isLoading: isFromTemplateLoading } =
+    useFrappeGetCall(
+      "frappe.client.get_list",
+      {
+        doctype: "Project Template",
+        fields: ["name"],
+        limit_page_length: "null",
+      },
+      undefined,
+      {
+        errorRetryCount: 0,
+        shouldRetryOnError: false,
+      },
+    );
 
   const {
     formState: { isDirty, isValid },
@@ -141,11 +152,19 @@ export const AddProject = ({ project, mutate, dispatch, meta }: AddProjectProps)
   };
   const handleSeriesChange = (value: string | string[]) => {
     const seriesValue = Array.isArray(value) ? value[0] : value;
-    form.setValue("naming_series", seriesValue, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+    form.setValue("naming_series", seriesValue, {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
   };
   const handleCompanyChange = (value: string | string[]) => {
     const companyValue = Array.isArray(value) ? value[0] : value;
-    form.setValue("company", companyValue, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+    form.setValue("company", companyValue, {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
   };
   const handleFromTemplateChange = (value: string | string[]) => {
     const fromTemplateValue = Array.isArray(value) ? value[0] : value;
@@ -155,14 +174,27 @@ export const AddProject = ({ project, mutate, dispatch, meta }: AddProjectProps)
       shouldTouch: true,
     });
   };
-  const handleProjectChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
-    form.setValue("project_name", event.target.value, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+  const handleProjectChange: React.ChangeEventHandler<HTMLInputElement> = (
+    event,
+  ) => {
+    form.setValue("project_name", event.target.value, {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
   };
 
   return (
     <>
-      <Dialog onOpenChange={closeAddTaskDialog} open={project.isAddProjectDialogOpen}>
-        <DialogContent aria-description="" aria-describedby="" className="max-w-xl">
+      <Dialog
+        onOpenChange={closeAddTaskDialog}
+        open={project.isAddProjectDialogOpen}
+      >
+        <DialogContent
+          aria-description=""
+          aria-describedby=""
+          className="max-w-xl"
+        >
           <DialogHeader className="pb-2">
             <DialogTitle>Add Project</DialogTitle>
             <Separator />
@@ -184,13 +216,21 @@ export const AddProject = ({ project, mutate, dispatch, meta }: AddProjectProps)
                             label="Search Naming Series"
                             showSelected
                             shouldFilter
-                            value={form.getValues("naming_series") ? [form.getValues("naming_series")] : []}
-                            data={namingSeries?.options?.split("\n")?.map((item: string) => ({
-                              label: item,
-                              value: item,
-                            }))}
+                            value={
+                              form.getValues("naming_series")
+                                ? [form.getValues("naming_series")]
+                                : []
+                            }
+                            data={namingSeries?.options
+                              ?.split("\n")
+                              ?.map((item: string) => ({
+                                label: item,
+                                value: item,
+                              }))}
                             onSelect={handleSeriesChange}
-                            rightIcon={<Search className="tasksstroke-slate-400" />}
+                            rightIcon={
+                              <Search className="tasksstroke-slate-400" />
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -235,14 +275,20 @@ export const AddProject = ({ project, mutate, dispatch, meta }: AddProjectProps)
                             showSelected
                             shouldFilter
                             value={
-                              form.getValues("project_template") ? [form.getValues("project_template") as string] : []
+                              form.getValues("project_template")
+                                ? [form.getValues("project_template") as string]
+                                : []
                             }
-                            data={from_templates?.message?.map((item: { name: string }) => ({
-                              label: item.name,
-                              value: item.name,
-                            }))}
+                            data={from_templates?.message?.map(
+                              (item: { name: string }) => ({
+                                label: item.name,
+                                value: item.name,
+                              }),
+                            )}
                             onSelect={handleFromTemplateChange}
-                            rightIcon={<Search className="tasksstroke-slate-400" />}
+                            rightIcon={
+                              <Search className="tasksstroke-slate-400" />
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -260,13 +306,21 @@ export const AddProject = ({ project, mutate, dispatch, meta }: AddProjectProps)
                             label="Search Company"
                             showSelected
                             shouldFilter
-                            value={form.getValues("company") ? [form.getValues("company")] : []}
-                            data={companies?.message?.map((item: { name: string }) => ({
-                              label: item.name,
-                              value: item.name,
-                            }))}
+                            value={
+                              form.getValues("company")
+                                ? [form.getValues("company")]
+                                : []
+                            }
+                            data={companies?.message?.map(
+                              (item: { name: string }) => ({
+                                label: item.name,
+                                value: item.name,
+                              }),
+                            )}
                             onSelect={handleCompanyChange}
-                            rightIcon={<Search className="tasksstroke-slate-400" />}
+                            rightIcon={
+                              <Search className="tasksstroke-slate-400" />
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -277,10 +331,19 @@ export const AddProject = ({ project, mutate, dispatch, meta }: AddProjectProps)
                   <DialogFooter className="sm:justify-start pt-2 w-full">
                     <div className="flex gap-x-4 w-full">
                       <Button disabled={isSubmitting || !isDirty || !isValid}>
-                        {isSubmitting ? <LoaderCircle className="animate-spin w-4 h-4" /> : <Save />}
+                        {isSubmitting ? (
+                          <LoaderCircle className="animate-spin w-4 h-4" />
+                        ) : (
+                          <Save />
+                        )}
                         Add Project
                       </Button>
-                      <Button variant="secondary" type="button" onClick={closeAddTaskDialog} disabled={isSubmitting}>
+                      <Button
+                        variant="secondary"
+                        type="button"
+                        onClick={closeAddTaskDialog}
+                        disabled={isSubmitting}
+                      >
                         <X />
                         Cancel
                       </Button>

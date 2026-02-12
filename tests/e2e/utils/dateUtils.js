@@ -61,7 +61,10 @@ export const durationToSeconds = (duration) => {
   } else if (!duration.includes(":")) {
     return parseInt(duration) * 3600;
   } else {
-    return parseInt(duration.split(":")[0]) * 3600 + parseInt(duration.split(":")[1]) * 60;
+    return (
+      parseInt(duration.split(":")[0]) * 3600 +
+      parseInt(duration.split(":")[1]) * 60
+    );
   }
 };
 
