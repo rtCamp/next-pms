@@ -117,9 +117,8 @@ const ProjectDetail = () => {
         (acc, key) => {
           acc[key] = [];
           return acc;
-           
         },
-        {} as Record<string, any[]>,
+        {} as Record<string, unknown[]>,
       ),
     }),
     [data?.message?.tabs, customTabs],

@@ -1,12 +1,12 @@
-export const setLocalStorage = (key: string, value: any) => {
+export const setLocalStorage = (key: string, value: unknown) => {
   try {
     if (typeof value === "object") {
       localStorage.setItem(key, JSON.stringify(value));
     } else {
-      localStorage.setItem(key, value);
+      localStorage.setItem(key, value as string);
     }
     return true;
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 };

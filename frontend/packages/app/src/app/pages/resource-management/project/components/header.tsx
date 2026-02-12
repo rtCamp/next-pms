@@ -150,13 +150,12 @@ const ResourceProjectHeaderSection = ({ viewData }: { viewData: ViewData }) => {
   );
 
   useEffect(() => {
-     
     const {
-      start,
-      weekDate,
-      employeeWeekDate,
-      maxWeek,
-      pageLength,
+      start: _,
+      weekDate: __,
+      employeeWeekDate: ___,
+      maxWeek: ____,
+      pageLength: _____,
       ...viewFilters
     } = filters;
 
@@ -175,13 +174,12 @@ const ResourceProjectHeaderSection = ({ viewData }: { viewData: ViewData }) => {
   }, [filters, viewData, tableView.view, tableView.combineWeekHours]);
 
   const handleSaveChanges = () => {
-     
     const {
-      start,
-      weekDate,
-      employeeWeekDate,
-      maxWeek,
-      pageLength,
+      start: _,
+      weekDate: __,
+      employeeWeekDate: ___,
+      maxWeek: ____,
+      pageLength: _____,
       ...viewFilters
     } = filters;
     updateView({
