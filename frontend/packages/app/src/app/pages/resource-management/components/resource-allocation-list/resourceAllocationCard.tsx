@@ -1,10 +1,18 @@
 /**
  * External dependencies.
  */
-import { Avatar, AvatarFallback, AvatarImage, Typography } from "@next-pms/design-system/components";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  Typography,
+} from "@next-pms/design-system/components";
 import { prettyDate } from "@next-pms/design-system/date";
 import { mergeClassNames } from "@next-pms/design-system/utils";
-import { getFilterValue, getFormatedStringValue } from "@next-pms/resource-management/utils";
+import {
+  getFilterValue,
+  getFormatedStringValue,
+} from "@next-pms/resource-management/utils";
 import { Clipboard, Pencil } from "lucide-react";
 import { useContextSelector } from "use-context-selector";
 
@@ -45,13 +53,22 @@ export const ResourceAllocationCard = ({
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
   onAddButtonClick?: () => void;
 }) => {
-  const customerData: ResourceCustomerProps = customer[resourceAllocation.customer];
+  const customerData: ResourceCustomerProps =
+    customer[resourceAllocation.customer];
 
-  const { permission: resourceAllocationPermission } = useContextSelector(ResourceFormContext, (value) => value.state);
+  const { permission: resourceAllocationPermission } = useContextSelector(
+    ResourceFormContext,
+    (value) => value.state,
+  );
 
-  const { updateDialogState, updateAllocationData } = useContextSelector(ResourceFormContext, (value) => value.actions);
+  const { updateDialogState, updateAllocationData } = useContextSelector(
+    ResourceFormContext,
+    (value) => value.actions,
+  );
 
-  const { date: startDate } = prettyDate(resourceAllocation.allocation_start_date);
+  const { date: startDate } = prettyDate(
+    resourceAllocation.allocation_start_date,
+  );
   const { date: endDate } = prettyDate(resourceAllocation.allocation_end_date);
 
   const handleResourceAllocationEdit = () => {
@@ -68,8 +85,12 @@ export const ResourceAllocationCard = ({
       is_billable: resourceAllocation.is_billable == 1,
       is_tentative: resourceAllocation.is_tentative,
       customer: resourceAllocation.customer,
-      total_allocated_hours: getFormatedStringValue(resourceAllocation.total_allocated_hours),
-      hours_allocated_per_day: getFormatedStringValue(resourceAllocation.hours_allocated_per_day),
+      total_allocated_hours: getFormatedStringValue(
+        resourceAllocation.total_allocated_hours,
+      ),
+      hours_allocated_per_day: getFormatedStringValue(
+        resourceAllocation.hours_allocated_per_day,
+      ),
       note: getFormatedStringValue(resourceAllocation.note),
       project_name: resourceAllocation.project_name,
       customer_name: customerData.name,
@@ -92,8 +113,12 @@ export const ResourceAllocationCard = ({
       is_billable: resourceAllocation.is_billable == 1,
       is_tentative: resourceAllocation.is_tentative,
       customer: resourceAllocation.customer,
-      total_allocated_hours: getFormatedStringValue(resourceAllocation.total_allocated_hours),
-      hours_allocated_per_day: getFormatedStringValue(resourceAllocation.hours_allocated_per_day),
+      total_allocated_hours: getFormatedStringValue(
+        resourceAllocation.total_allocated_hours,
+      ),
+      hours_allocated_per_day: getFormatedStringValue(
+        resourceAllocation.hours_allocated_per_day,
+      ),
       note: getFormatedStringValue(resourceAllocation.note),
       project_name: resourceAllocation.project_name,
       customer_name: customerData.name,
@@ -102,14 +127,23 @@ export const ResourceAllocationCard = ({
   };
 
   return (
-    <div className={mergeClassNames("flex flex-col gap-2 relative mt-2 w-full", isLastItem && "mb-2")}>
+    <div
+      className={mergeClassNames(
+        "flex flex-col gap-2 relative mt-2 w-full",
+        isLastItem && "mb-2",
+      )}
+    >
       <div className="w-full flex flex-col items-center gap-2 px-4 py-2">
         <div className="flex gap-1 items-center w-full">
           <Avatar className="w-6 h-6">
             <AvatarImage src={decodeURIComponent(customerData?.image)} />
             <AvatarFallback>{getInitials(customerData.name[0])}</AvatarFallback>
           </Avatar>
-          <Typography variant="small" className="font-semibold" title={customerData?.name}>
+          <Typography
+            variant="small"
+            className="font-semibold"
+            title={customerData?.name}
+          >
             {getFilterValue(customerData?.name, 15)}
           </Typography>
         </div>
@@ -119,7 +153,11 @@ export const ResourceAllocationCard = ({
               <Typography variant="small" className=" text-muted-foreground">
                 {resourceAllocation.employee}
               </Typography>
-              <Typography variant="small" className=" text-muted-foreground" title={resourceAllocation.employee_name}>
+              <Typography
+                variant="small"
+                className=" text-muted-foreground"
+                title={resourceAllocation.employee_name}
+              >
                 {"("}
                 {getFilterValue(resourceAllocation.employee_name, 15)}
                 {")"}
@@ -131,7 +169,11 @@ export const ResourceAllocationCard = ({
                 <Typography variant="small" className=" text-muted-foreground">
                   {resourceAllocation.project}
                 </Typography>
-                <Typography variant="small" className=" text-muted-foreground" title={resourceAllocation.project_name}>
+                <Typography
+                  variant="small"
+                  className=" text-muted-foreground"
+                  title={resourceAllocation.project_name}
+                >
                   {"("}
                   {getFilterValue(resourceAllocation.project_name, 15)}
                   {")"}
@@ -154,21 +196,30 @@ export const ResourceAllocationCard = ({
                 "text-xs font-semibold",
                 resourceAllocation.is_billable
                   ? "bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent"
-                  : "text-yellow-500"
+                  : "text-yellow-500",
               )}
             >
               {resourceAllocation.is_billable ? "Billable ($)" : "Non-billable"}
             </Typography>
             {resourceAllocation.is_tentative && (
-              <Typography variant="small" className="italic text-muted-foreground">
+              <Typography
+                variant="small"
+                className="italic text-muted-foreground"
+              >
                 (Tentative)
               </Typography>
             )}
           </div>
 
           {resourceAllocation.note && (
-            <div className="note-section mt-2 flex items-center gap-1 w-11/12" title={"Note"}>
-              <Typography variant="small" className=" text-gray-600 dark:text-primary italic">
+            <div
+              className="note-section mt-2 flex items-center gap-1 w-11/12"
+              title={"Note"}
+            >
+              <Typography
+                variant="small"
+                className=" text-gray-600 dark:text-primary italic"
+              >
                 Note : {getFilterValue(resourceAllocation.note, 150)}
               </Typography>
             </div>
@@ -207,7 +258,10 @@ export const ResourceAllocationCard = ({
           userName={resourceAllocation.modified_by}
           avatar={resourceAllocation?.modified_by_avatar}
           timestamp={new Date(resourceAllocation.modified)}
-          newDoc={new Date(resourceAllocation.modified).getTime() === new Date(resourceAllocation.creation).getTime()}
+          newDoc={
+            new Date(resourceAllocation.modified).getTime() ===
+            new Date(resourceAllocation.creation).getTime()
+          }
         />
       )}
     </div>

@@ -32,13 +32,23 @@ import { parseFrappeErrorMsg } from "@/lib/utils";
 import { TimesheetApprovalSchema } from "@/schema/timesheet";
 import type { ApprovalProps } from "./types";
 
-export const Approval = ({ onClose, user, timesheetState, dispatch }: ApprovalProps) => {
+export const Approval = ({
+  onClose,
+  user,
+  timesheetState,
+  dispatch,
+}: ApprovalProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  const { call } = useFrappePostCall("next_pms.timesheet.api.timesheet.submit_for_approval");
-  const { data } = useFrappeGetCall("next_pms.timesheet.api.get_employee_with_role", {
-    role: ["Projects Manager", "Projects User"],
-  });
+  const { call } = useFrappePostCall(
+    "next_pms.timesheet.api.timesheet.submit_for_approval",
+  );
+  const { data } = useFrappeGetCall(
+    "next_pms.timesheet.api.get_employee_with_role",
+    {
+      role: ["Projects Manager", "Projects User"],
+    },
+  );
   const form = useForm<z.infer<typeof TimesheetApprovalSchema>>({
     resolver: zodResolver(TimesheetApprovalSchema),
     defaultValues: {
@@ -80,7 +90,10 @@ export const Approval = ({ onClose, user, timesheetState, dispatch }: ApprovalPr
       });
   };
   return (
-    <Dialog open={timesheetState.isAprrovalDialogOpen} onOpenChange={handleOpen}>
+    <Dialog
+      open={timesheetState.isAprrovalDialogOpen}
+      onOpenChange={handleOpen}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
@@ -123,10 +136,12 @@ export const Approval = ({ onClose, user, timesheetState, dispatch }: ApprovalPr
                         onSelect={(value) => {
                           form.setValue("approver", value[0]);
                         }}
-                        data={data?.message?.map((item: { name: string; employee_name: string }) => ({
-                          value: item.name,
-                          label: item.employee_name,
-                        }))}
+                        data={data?.message?.map(
+                          (item: { name: string; employee_name: string }) => ({
+                            value: item.name,
+                            label: item.employee_name,
+                          }),
+                        )}
                         shouldFilter
                         showSelected
                       />
@@ -138,7 +153,11 @@ export const Approval = ({ onClose, user, timesheetState, dispatch }: ApprovalPr
             />
             <DialogFooter className="sm:justify-start mt-6">
               <Button disabled={isSubmitting}>
-                {isSubmitting ? <LoaderCircle className="animate-spin" /> : <Send />}
+                {isSubmitting ? (
+                  <LoaderCircle className="animate-spin" />
+                ) : (
+                  <Send />
+                )}
                 Submit For Approval
               </Button>
             </DialogFooter>

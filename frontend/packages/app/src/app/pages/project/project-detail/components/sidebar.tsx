@@ -27,8 +27,17 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
   mutate,
 }) => {
   return (
-    <Sidebar className={className} drawerOpen={drawerOpen} setDrawerOpen={setDrawerOpen}>
-      <Tags userTags={projectData?._user_tags} doctype="Project" docname={projectId || ""} mutate={mutate} />
+    <Sidebar
+      className={className}
+      drawerOpen={drawerOpen}
+      setDrawerOpen={setDrawerOpen}
+    >
+      <Tags
+        userTags={projectData?._user_tags}
+        doctype="Project"
+        docname={projectId || ""}
+        mutate={mutate}
+      />
     </Sidebar>
   );
 };

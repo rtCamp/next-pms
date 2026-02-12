@@ -36,12 +36,21 @@ const TableInformationCellContent = ({
   cellRef?: React.RefObject<HTMLTableCellElement>;
   onClick?: () => void;
 }) => {
-  const { tableProperties } = useContextSelector(TableContext, (value) => value.state);
-  const { getCellWidthString } = useContextSelector(TableContext, (value) => value.actions);
+  const { tableProperties } = useContextSelector(
+    TableContext,
+    (value) => value.state,
+  );
+  const { getCellWidthString } = useContextSelector(
+    TableContext,
+    (value) => value.actions,
+  );
 
   return (
     <TableCell
-      className={mergeClassNames("overflow-hidden sticky left-0 align-super h-full", cellClassName)}
+      className={mergeClassNames(
+        "overflow-hidden sticky left-0 align-super h-full",
+        cellClassName,
+      )}
       onClick={onClick}
       style={{ width: getCellWidthString(tableProperties.firstCellWidth) }}
       ref={cellRef}
@@ -50,7 +59,7 @@ const TableInformationCellContent = ({
         variant="p"
         className={mergeClassNames(
           "flex gap-x-2 items-center font-normal text-[13px] hover:underline w-full cursor-pointer",
-          cellTypographyClassName
+          cellTypographyClassName,
         )}
         title={value}
       >

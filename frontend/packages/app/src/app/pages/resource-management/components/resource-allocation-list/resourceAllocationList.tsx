@@ -43,24 +43,36 @@ export const ResourceAllocationList = ({
   onButtonClick?: () => void;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const resourceAllocationPermission = useContextSelector(ResourceFormContext, (value) => value.state.permission);
+  const resourceAllocationPermission = useContextSelector(
+    ResourceFormContext,
+    (value) => value.state.permission,
+  );
 
   return (
-    <div className={mergeClassNames("flex flex-col items-center overflow-y-auto max-h-60")}>
-      {resourceAllocationList.map((resourceAllocation: ResourceAllocationProps, index: number) => (
-        <ResourceAllocationCard
-          key={resourceAllocation.name}
-          resourceAllocation={
-            employeeAllocations
-              ? { ...resourceAllocation, ...employeeAllocations[resourceAllocation.name] }
-              : resourceAllocation
-          }
-          customer={customer}
-          viewType={viewType}
-          isLastItem={index == resourceAllocationList.length - 1}
-          onSubmit={onSubmit}
-        />
-      ))}
+    <div
+      className={mergeClassNames(
+        "flex flex-col items-center overflow-y-auto max-h-60",
+      )}
+    >
+      {resourceAllocationList.map(
+        (resourceAllocation: ResourceAllocationProps, index: number) => (
+          <ResourceAllocationCard
+            key={resourceAllocation.name}
+            resourceAllocation={
+              employeeAllocations
+                ? {
+                    ...resourceAllocation,
+                    ...employeeAllocations[resourceAllocation.name],
+                  }
+                : resourceAllocation
+            }
+            customer={customer}
+            viewType={viewType}
+            isLastItem={index == resourceAllocationList.length - 1}
+            onSubmit={onSubmit}
+          />
+        ),
+      )}
       {resourceAllocationPermission.write && onButtonClick && (
         <Button
           title={"Add Resource Allocation"}

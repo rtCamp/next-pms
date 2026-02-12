@@ -10,8 +10,15 @@ import { useContextSelector } from "use-context-selector";
  * Internal dependencies.
  */
 import { EmptyTableBody } from "../../../components/empty";
-import { defaultEmployeeDayData, TeamContext } from "../../../store/teamContext";
-import type { AllocationDataProps, DateProps, EmployeeDataProps } from "../../../store/types";
+import {
+  defaultEmployeeDayData,
+  TeamContext,
+} from "../../../store/teamContext";
+import type {
+  AllocationDataProps,
+  DateProps,
+  EmployeeDataProps,
+} from "../../../store/types";
 import { ResourceExpandView } from "../expand-view";
 import { ResourceTeamTableCell } from "./resourceTeamTableCell";
 import { RowCellComponentProps } from "../types";
@@ -27,7 +34,10 @@ const ResourceTeamTableBody = ({
 }: {
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const teamData = useContextSelector(TeamContext, (value) => value.state.teamData);
+  const teamData = useContextSelector(
+    TeamContext,
+    (value) => value.state.teamData,
+  );
 
   const data = teamData.data;
   const dates = teamData.dates;
@@ -39,7 +49,12 @@ const ResourceTeamTableBody = ({
   return (
     <TableBody>
       {data.map((employeeData) => (
-        <MemoizedRow key={employeeData.employee_name} employeeData={employeeData} dates={dates} onSubmit={onSubmit} />
+        <MemoizedRow
+          key={employeeData.employee_name}
+          employeeData={employeeData}
+          dates={dates}
+          onSubmit={onSubmit}
+        />
       ))}
     </TableBody>
   );
@@ -144,7 +159,9 @@ const MemoizedRow = memo(function MemoizedRow({
   };
 
   const RowExpandView = useCallback(() => {
-    return <ResourceExpandView employeeData={employeeData} onSubmit={onSubmit} />;
+    return (
+      <ResourceExpandView employeeData={employeeData} onSubmit={onSubmit} />
+    );
   }, [employeeData, onSubmit]);
 
   return (

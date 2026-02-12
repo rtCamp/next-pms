@@ -2,7 +2,10 @@ import { expect } from "@playwright/test";
 import path from "path";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
 
-const TASK_TRACKER_PATH = path.resolve(__dirname, "../data/manager/tasks-to-delete.json");
+const TASK_TRACKER_PATH = path.resolve(
+  __dirname,
+  "../data/manager/tasks-to-delete.json",
+);
 
 /**
  * TaskPage class handles interactions with the task page.
@@ -17,9 +20,12 @@ export class TaskPage {
 
     // Header Filters
     this.searchInput = page.getByPlaceholder("Subject").first();
-    this.getSearchInputByValue = (taskName) => page.getByRole("textbox", { value: taskName });
+    this.getSearchInputByValue = (taskName) =>
+      page.getByRole("textbox", { value: taskName });
     this.saveButton = page.getByRole("button", { name: "Save changes" });
-    this.columnsButton = page.getByRole("button").filter({ has: page.locator("//p[text()='Columns']") });
+    this.columnsButton = page
+      .getByRole("button")
+      .filter({ has: page.locator("//p[text()='Columns']") });
 
     // Popper Modals
     this.columnMenu = page
@@ -39,14 +45,18 @@ export class TaskPage {
     this.LikeSymbol = (task) => page.locator(`svg[data-task="${task}"]`);
 
     //Success Banner
-    this.successBanner = page.locator('//div[text()="Task Created Successfully"]');
+    this.successBanner = page.locator(
+      '//div[text()="Task Created Successfully"]',
+    );
 
     this.firstClockIcon = page.getByTitle("Add Timesheet").getByRole("img");
 
     //Add Time Modal
     this.timeSpent = page.getByRole("textbox", { name: ":00" });
     this.datePicker = page.getByRole("button", { name: "Today" });
-    this.projectSelector = page.getByRole("button", { name: "Search Projects" });
+    this.projectSelector = page.getByRole("button", {
+      name: "Search Projects",
+    });
     this.tasksSelector = page.getByRole("button", { name: "Search Task" });
     this.commentTextbox = page.getByRole("paragraph").filter({ hasText: /^$/ });
     this.addTimeButton = page.getByRole("button", { name: "Add Time" });
@@ -95,11 +105,17 @@ export class TaskPage {
   async addColumn(name) {
     const columnSelectionMenu = this.page
       .locator("//div[@data-radix-popper-content-wrapper]")
-      .filter({ hasNot: this.page.getByRole("menuitem", { name: "Add Columns" }) });
+      .filter({
+        hasNot: this.page.getByRole("menuitem", { name: "Add Columns" }),
+      });
 
     await this.columnsButton.click();
-    await this.columnMenu.getByRole("menuitem", { name: "Add Columns" }).click();
-    await columnSelectionMenu.locator(`//div[@role='menuitem' and text()='${name}']`).click();
+    await this.columnMenu
+      .getByRole("menuitem", { name: "Add Columns" })
+      .click();
+    await columnSelectionMenu
+      .locator(`//div[@role='menuitem' and text()='${name}']`)
+      .click();
     await this.searchInput.click({ force: true });
   }
 
@@ -108,7 +124,11 @@ export class TaskPage {
    */
   async removeColumn(name) {
     await this.columnsButton.click();
-    await this.columnMenu.getByRole("menuitem", { name: name }).locator("//span").last().click();
+    await this.columnMenu
+      .getByRole("menuitem", { name: name })
+      .locator("//span")
+      .last()
+      .click();
     await this.searchInput.click({ force: true });
   }
 
@@ -187,7 +207,9 @@ export class TaskPage {
    * Return -1 if column is not found.
    */
   async getColIndex(name) {
-    const headerCols = (await this.getHeaderRow()).locator("//p[@class='truncate']");
+    const headerCols = (await this.getHeaderRow()).locator(
+      "//p[@class='truncate']",
+    );
     const count = await headerCols.count();
 
     for (let idx = 0; idx < count; idx++) {
@@ -240,7 +262,9 @@ export class TaskPage {
    */
   async isTaskDetailsDialogVisible(name) {
     // Wait for the dialog to be visible
-    await this.page.getByRole("dialog", { name: name }).waitFor({ state: "visible" });
+    await this.page
+      .getByRole("dialog", { name: name })
+      .waitFor({ state: "visible" });
     return this.page.getByRole("dialog", { name: name }).isVisible();
   }
 
@@ -249,7 +273,9 @@ export class TaskPage {
    */
   async searchAndSelectOption(placeholder, value) {
     const searchButton = this.page.getByRole("button", { name: placeholder });
-    const searchInput = this.page.getByRole("dialog").getByPlaceholder(`${placeholder}`);
+    const searchInput = this.page
+      .getByRole("dialog")
+      .getByPlaceholder(`${placeholder}`);
 
     await searchButton.click();
     await searchInput.fill(value);

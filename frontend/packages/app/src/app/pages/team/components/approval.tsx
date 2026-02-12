@@ -12,7 +12,10 @@ import {
   SheetTitle,
   SheetFooter,
 } from "@next-pms/design-system/components";
-import { getDateFromDateAndTimeString, prettyDate } from "@next-pms/design-system/date";
+import {
+  getDateFromDateAndTimeString,
+  prettyDate,
+} from "@next-pms/design-system/date";
 import { useToast } from "@next-pms/design-system/hooks";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
 import { Check, LoaderCircle } from "lucide-react";
@@ -20,9 +23,19 @@ import { Check, LoaderCircle } from "lucide-react";
 /**
  * Internal dependencies.
  */
-import { calculateExtendedWorkingHour, mergeClassNames, expectatedHours, parseFrappeErrorMsg } from "@/lib/utils";
+import {
+  calculateExtendedWorkingHour,
+  mergeClassNames,
+  expectatedHours,
+  parseFrappeErrorMsg,
+} from "@/lib/utils";
 import type { WorkingFrequency } from "@/types";
-import type { HolidayProp, LeaveProps, NewTimesheetProps, timesheet } from "@/types/timesheet";
+import type {
+  HolidayProp,
+  LeaveProps,
+  NewTimesheetProps,
+  timesheet,
+} from "@/types/timesheet";
 import type { TaskDataItemProps } from "@/types/timesheet";
 import { RejectTimesheet } from "./rejectTimesheet";
 import { EmployeeTimesheetListItem } from "../employee-detail/employee-timesheet-list/timesheetListItem";
@@ -30,21 +43,32 @@ import { getTaskDataForDate, getTimesheetHourForDate } from "../utils";
 import EditTimeSheetListItem from "./editTimeSheetListItem";
 import type { ApprovalProp } from "./types";
 
-export const Approval = ({ onClose, employee, startDate, endDate, isAprrovalDialogOpen }: ApprovalProp) => {
+export const Approval = ({
+  onClose,
+  employee,
+  startDate,
+  endDate,
+  isAprrovalDialogOpen,
+}: ApprovalProp) => {
   const { toast } = useToast();
   const [timesheetData, setTimesheetData] = useState<timesheet>();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isRejecting, setIsRejecting] = useState<boolean>(false);
   const [workingHour, setWorkingHour] = useState<number>(0);
-  const [WorkingFrequency, setWorkingFrequency] = useState<WorkingFrequency>("Per Day");
+  const [WorkingFrequency, setWorkingFrequency] =
+    useState<WorkingFrequency>("Per Day");
   const [holidays, setHoliday] = useState<Array<HolidayProp>>([]);
   const [leaves, setLeave] = useState<LeaveProps[]>([]);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [isAddTimeOpen, setIsAddTimeOpen] = useState(false);
   const [task, setTask] = useState<TaskDataItemProps>({} as TaskDataItemProps);
 
-  const { call } = useFrappePostCall("next_pms.timesheet.api.team.approve_or_reject_timesheet");
-  const { call: updateTime } = useFrappePostCall("next_pms.timesheet.api.timesheet.update_timesheet_detail");
+  const { call } = useFrappePostCall(
+    "next_pms.timesheet.api.team.approve_or_reject_timesheet",
+  );
+  const { call: updateTime } = useFrappePostCall(
+    "next_pms.timesheet.api.timesheet.update_timesheet_detail",
+  );
 
   const handleTimeChange = (value: NewTimesheetProps) => {
     updateTime(value)
@@ -63,12 +87,15 @@ export const Approval = ({ onClose, employee, startDate, endDate, isAprrovalDial
         });
       });
   };
-  const { data, isLoading, error, mutate } = useFrappeGetCall("next_pms.timesheet.api.timesheet.get_timesheet_data", {
-    employee: employee,
-    start_date: startDate,
-    max_week: 1,
-    holiday_with_description: true,
-  });
+  const { data, isLoading, error, mutate } = useFrappeGetCall(
+    "next_pms.timesheet.api.timesheet.get_timesheet_data",
+    {
+      employee: employee,
+      start_date: startDate,
+      max_week: 1,
+      holiday_with_description: true,
+    },
+  );
   const handleOpen = () => {
     if (isRejecting || isSubmitting) return;
     onClose(selectedDates[0]);
@@ -101,7 +128,9 @@ export const Approval = ({ onClose, employee, startDate, endDate, isAprrovalDial
 
   const handleCheckboxChange = (date: string) => {
     setSelectedDates((prevSelectedDates) =>
-      prevSelectedDates.includes(date) ? prevSelectedDates.filter((d) => d !== date) : [...prevSelectedDates, date]
+      prevSelectedDates.includes(date)
+        ? prevSelectedDates.filter((d) => d !== date)
+        : [...prevSelectedDates, date],
     );
   };
   useEffect(() => {
@@ -126,14 +155,25 @@ export const Approval = ({ onClose, employee, startDate, endDate, isAprrovalDial
       const filteredDates = timesheetData.dates
         .filter((date) => {
           const isLeaveDate = leaves.some((leave: LeaveProps) => {
-            return date >= leave.from_date && date <= leave.to_date && leave.half_day == false;
+            return (
+              date >= leave.from_date &&
+              date <= leave.to_date &&
+              leave.half_day == false
+            );
           });
-          const isHoliday = holidays.some((holiday) => holiday.holiday_date === date);
+          const isHoliday = holidays.some(
+            (holiday) => holiday.holiday_date === date,
+          );
           return !isHoliday && !isLeaveDate;
         })
         .filter((date) => {
-          const hasTimeOrSubmitted = Object.values(timesheetData.tasks).some((task) =>
-            task.data.some((entry) => getDateFromDateAndTimeString(entry.from_time) === date && entry.docstatus != 1)
+          const hasTimeOrSubmitted = Object.values(timesheetData.tasks).some(
+            (task) =>
+              task.data.some(
+                (entry) =>
+                  getDateFromDateAndTimeString(entry.from_time) === date &&
+                  entry.docstatus != 1,
+              ),
           );
           return hasTimeOrSubmitted;
         });
@@ -143,7 +183,11 @@ export const Approval = ({ onClose, employee, startDate, endDate, isAprrovalDial
   const dailyWorkingHour = expectatedHours(workingHour, WorkingFrequency);
   return (
     <>
-      <Sheet open={isAprrovalDialogOpen && !isAddTimeOpen} onOpenChange={handleOpen} modal={true}>
+      <Sheet
+        open={isAprrovalDialogOpen && !isAddTimeOpen}
+        onOpenChange={handleOpen}
+        modal={true}
+      >
         <SheetContent className="md:max-w-3xl w-full sm:max-w-full overflow-auto ">
           {isLoading ? (
             <Spinner />
@@ -151,21 +195,36 @@ export const Approval = ({ onClose, employee, startDate, endDate, isAprrovalDial
             <>
               <SheetHeader>
                 <SheetTitle>
-                  Week of {prettyDate(startDate).date} - {prettyDate(endDate).date}
+                  Week of {prettyDate(startDate).date} -{" "}
+                  {prettyDate(endDate).date}
                 </SheetTitle>
               </SheetHeader>
               <div className="flex flex-col gap-y-4 mt-6 ">
                 <div>
                   {timesheetData &&
                     timesheetData.dates.map((date: string, index: number) => {
-                      const matchingTasks = getTaskDataForDate(timesheetData.tasks, date);
-                      const data = getTimesheetHourForDate(date, matchingTasks, holidays, leaves, dailyWorkingHour);
+                      const matchingTasks = getTaskDataForDate(
+                        timesheetData.tasks,
+                        date,
+                      );
+                      const data = getTimesheetHourForDate(
+                        date,
+                        matchingTasks,
+                        holidays,
+                        leaves,
+                        dailyWorkingHour,
+                      );
                       const isChecked = selectedDates.includes(date);
                       const submittedTime = matchingTasks?.some(
                         (timesheet) =>
-                          getDateFromDateAndTimeString(timesheet.from_time) === date && timesheet.docstatus === 1
+                          getDateFromDateAndTimeString(timesheet.from_time) ===
+                            date && timesheet.docstatus === 1,
                       );
-                      const isExtended = calculateExtendedWorkingHour(data.totalHours, workingHour, WorkingFrequency);
+                      const isExtended = calculateExtendedWorkingHour(
+                        data.totalHours,
+                        workingHour,
+                        WorkingFrequency,
+                      );
                       return (
                         <EmployeeTimesheetListItem
                           key={index}
@@ -174,13 +233,16 @@ export const Approval = ({ onClose, employee, startDate, endDate, isAprrovalDial
                           showCheckbox
                           onCheckedChange={handleCheckboxChange}
                           checkboxClassName={mergeClassNames(
-                            submittedTime && "data-[state=checked]:bg-success border-success"
+                            submittedTime &&
+                              "data-[state=checked]:bg-success border-success",
                           )}
                           isCheckboxChecked={isChecked || submittedTime}
                           isCheckboxDisabled={
                             submittedTime ||
                             data.isHoliday ||
-                            (data.hasLeave && !data.isHoliday && matchingTasks.length == 0) ||
+                            (data.hasLeave &&
+                              !data.isHoliday &&
+                              matchingTasks.length == 0) ||
                             matchingTasks.length == 0
                           }
                           tasks={matchingTasks}
@@ -204,8 +266,16 @@ export const Approval = ({ onClose, employee, startDate, endDate, isAprrovalDial
                 <Separator />
               </div>
               <SheetFooter className="sm:justify-start mt-5 flex-col gap-y-4 w-full">
-                <Button onClick={handleApproval} variant="success" disabled={selectedDates.length == 0 || isSubmitting}>
-                  {isSubmitting ? <LoaderCircle className="animate-spin w-4 h-4" /> : <Check />}
+                <Button
+                  onClick={handleApproval}
+                  variant="success"
+                  disabled={selectedDates.length == 0 || isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <LoaderCircle className="animate-spin w-4 h-4" />
+                  ) : (
+                    <Check />
+                  )}
                   Approve
                 </Button>
 

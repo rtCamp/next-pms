@@ -3,8 +3,15 @@
  */
 import { TableRow } from "@next-pms/design-system/components";
 import { mergeClassNames } from "@next-pms/design-system/utils";
-import { ResourceTableCell, TableInformationCellContent } from "@next-pms/resource-management/components";
-import { getTableCellClass, getTableCellRow, getTodayDateCellClass } from "@next-pms/resource-management/utils";
+import {
+  ResourceTableCell,
+  TableInformationCellContent,
+} from "@next-pms/resource-management/components";
+import {
+  getTableCellClass,
+  getTableCellRow,
+  getTodayDateCellClass,
+} from "@next-pms/resource-management/utils";
 
 /**
  * This component is responsible for rendering the empty row.
@@ -21,7 +28,9 @@ const EmptyRow = ({ dates }: { dates: string[] }) => {
           <ResourceTableCell
             key={date}
             type="default"
-            cellClassName={(getTableCellClass(index, 0), getTodayDateCellClass(date))}
+            cellClassName={
+              (getTableCellClass(index, 0), getTodayDateCellClass(date))
+            }
             value="-"
           />
         );

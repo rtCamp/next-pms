@@ -20,12 +20,16 @@ export const createAllocationsForTestCases = async (testCaseIDs, jsonDir) => {
   const fullStub = await readJSONFile(stubPath);
   const entry = fullStub[tcId];
   if (!entry) {
-    console.warn(`⚠️ No data of create allocation for test case ${tcId} in ${stubPath}`);
+    console.warn(
+      `⚠️ No data of create allocation for test case ${tcId} in ${stubPath}`,
+    );
     return;
   }
 
   // Find all allocation keys matching the pattern
-  const allocationKeys = Object.keys(entry).filter((key) => ALLOCATION_KEY_REGEX.test(key));
+  const allocationKeys = Object.keys(entry).filter((key) =>
+    ALLOCATION_KEY_REGEX.test(key),
+  );
 
   if (allocationKeys.length === 0) {
     console.warn(`⚠️ No payloadCreateAllocation key(s) for TC ${tcId}`);
@@ -44,11 +48,18 @@ export const createAllocationsForTestCases = async (testCaseIDs, jsonDir) => {
 
     //save the allocation ID back to the stub for teardown:
     if (res?.data?.name) {
-      const deleteKey = allocationKey.replace("payloadCreateAllocation", "payloadDeleteAllocation");
+      const deleteKey = allocationKey.replace(
+        "payloadCreateAllocation",
+        "payloadDeleteAllocation",
+      );
       entry[deleteKey] = { allocationId: res.data.name };
-      console.log(`✅ Allocation created for ${tcId} (${allocationKey}): ${res.data.name}`);
+      console.log(
+        `✅ Allocation created for ${tcId} (${allocationKey}): ${res.data.name}`,
+      );
     } else {
-      console.error(`❌ Failed to create allocation for ${tcId} (${allocationKey})`);
+      console.error(
+        `❌ Failed to create allocation for ${tcId} (${allocationKey})`,
+      );
     }
   }
 
@@ -74,7 +85,9 @@ export const deleteAllocationsForTestCases = async (testCaseIDs, jsonDir) => {
   }
 
   // Find all delete allocation keys like payloadDeleteAllocation, payloadDeleteAllocation1, etc.
-  const deleteAllocKeys = Object.keys(entry).filter((key) => DELETE_ALLOC_REGEX.test(key));
+  const deleteAllocKeys = Object.keys(entry).filter((key) =>
+    DELETE_ALLOC_REGEX.test(key),
+  );
 
   if (deleteAllocKeys.length === 0) {
     console.warn(`⚠️ No payloadDeleteAllocation key(s) for TC ${tcId}`);
@@ -90,9 +103,13 @@ export const deleteAllocationsForTestCases = async (testCaseIDs, jsonDir) => {
 
     try {
       await deleteAllocation(allocationId);
-      console.log(`🗑️  Allocation deleted for ${tcId} (${deleteKey}): ${allocationID}`);
+      console.log(
+        `🗑️  Allocation deleted for ${tcId} (${deleteKey}): ${allocationID}`,
+      );
     } catch (err) {
-      console.error(`❌ Failed to delete allocation for ${tcId} (${deleteKey}): ${err.message}`);
+      console.error(
+        `❌ Failed to delete allocation for ${tcId} (${deleteKey}): ${err.message}`,
+      );
     }
   }
 };

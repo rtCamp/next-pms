@@ -28,20 +28,30 @@ const TableContext = createContext<{
 });
 
 const TableContextProvider = ({ children }: TableContextProviderProps) => {
-  const [tableProperties, setTableProperties] = useState<TableContextProps>({ cellWidth: 4, firstCellWidth: 16 });
+  const [tableProperties, setTableProperties] = useState<TableContextProps>({
+    cellWidth: 4,
+    firstCellWidth: 16,
+  });
 
   const updateTableCellWidth = useCallback(
     (value: number) => {
-      setTableProperties({ ...tableProperties, cellWidth: value, firstCellWidth: value * 4 });
+      setTableProperties({
+        ...tableProperties,
+        cellWidth: value,
+        firstCellWidth: value * 4,
+      });
     },
-    [tableProperties]
+    [tableProperties],
   );
 
   const getCellWidthString = (value: number) => `${value}rem`;
 
   return (
     <TableContext.Provider
-      value={{ state: { tableProperties }, actions: { updateTableCellWidth, getCellWidthString } }}
+      value={{
+        state: { tableProperties },
+        actions: { updateTableCellWidth, getCellWidthString },
+      }}
     >
       {children}
     </TableContext.Provider>

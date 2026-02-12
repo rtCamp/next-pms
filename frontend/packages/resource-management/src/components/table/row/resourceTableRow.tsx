@@ -58,7 +58,9 @@ const ResourceTableRowComponent = ({
   RowExpandView,
 }: ResourceTeamTableRowProps) => {
   const cellComponent = useMemo(() => {
-    return () => <MemoizedAvatarCell avatar={avatar} avatar_abbr={avatar_abbr} />;
+    return () => (
+      <MemoizedAvatarCell avatar={avatar} avatar_abbr={avatar_abbr} />
+    );
   }, [avatar, avatar_abbr]);
 
   return (
@@ -67,10 +69,13 @@ const ResourceTableRowComponent = ({
         <TableRow
           className={mergeClassNames(
             "[&>h3]:sticky [&>h3]:border-r [&>h3]:border-gray-300 [&>h3]:left-0 [&>h3]:bg-background [&>h3]:z-20",
-            getTableCellRow()
+            getTableCellRow(),
           )}
         >
-          <AccordionTrigger hideChevronDown={true} className="hover:no-underline py-0">
+          <AccordionTrigger
+            hideChevronDown={true}
+            className="hover:no-underline py-0"
+          >
             <TableInformationCellContent
               cellClassName="overflow-hidden flex items-center font-normal hover:underline"
               CellComponent={cellComponent}
@@ -79,7 +84,9 @@ const ResourceTableRowComponent = ({
           </AccordionTrigger>
           <RowComponent />
         </TableRow>
-        <AccordionContent className="pb-0">{RowExpandView && <RowExpandView />}</AccordionContent>
+        <AccordionContent className="pb-0">
+          {RowExpandView && <RowExpandView />}
+        </AccordionContent>
       </AccordionItem>
     </Accordion>
   );

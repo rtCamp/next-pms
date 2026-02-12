@@ -163,7 +163,7 @@ const actionHandlers = {
     payload: {
       dateRange: DateRange;
       isAprrovalDialogOpen: boolean;
-    }
+    },
   ) => ({
     ...state,
     dateRange: payload.dateRange,
@@ -198,8 +198,8 @@ const actionHandlers = {
     const updatedLeaves = payload.leaves.filter(
       (leave) =>
         !new Set(state.timesheetData.leaves.map((leave) => leave.name)).has(
-          leave.name
-        )
+          leave.name,
+        ),
     );
 
     return {
@@ -249,7 +249,7 @@ const actionHandlers = {
       employeeName: string;
       reportsTo: string;
       status: Array<string>;
-    }
+    },
   ) => ({
     ...state,
     project: payload.project,

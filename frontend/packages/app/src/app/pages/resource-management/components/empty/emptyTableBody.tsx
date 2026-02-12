@@ -1,7 +1,11 @@
 /**
  * External dependencies.
  */
-import { TableBody, TableCell, TableRow } from "@next-pms/design-system/components";
+import {
+  TableBody,
+  TableCell,
+  TableRow,
+} from "@next-pms/design-system/components";
 
 /**
  * This component is responsible for rendering the empty table body.

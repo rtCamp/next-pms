@@ -24,7 +24,10 @@ const loadAuthState = (role) => {
  */
 export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   const authFilePath = loadAuthState(role);
-  const requestContext = await request.newContext({ baseURL, storageState: authFilePath });
+  const requestContext = await request.newContext({
+    baseURL,
+    storageState: authFilePath,
+  });
   const response = await requestContext.fetch(endpoint, {
     ...options,
     postData: options.data ? JSON.stringify(options.data) : undefined, // Transform to json format
@@ -41,7 +44,7 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
   } else {
     await requestContext.dispose();
     throw new Error(
-      `API request failed for ${role} and endpoint ${endpoint}: ${response.status()} ${response.statusText()}`
+      `API request failed for ${role} and endpoint ${endpoint}: ${response.status()} ${response.statusText()}`,
     );
   }
 
@@ -53,7 +56,12 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
 /**
  * Create a new Task.
  */
-export const createTask = async ({ subject, project, description, custom_is_billable }) => {
+export const createTask = async ({
+  subject,
+  project,
+  description,
+  custom_is_billable,
+}) => {
   return await apiRequest("/api/resource/Task", {
     method: "POST",
     data: {
@@ -75,7 +83,7 @@ export const deleteTask = async (taskID, role) => {
     {
       method: "DELETE",
     },
-    role
+    role,
   );
 };
 // ------------------------------------------------------------------------------------------
@@ -94,7 +102,7 @@ export const likeTask = async (taskID, role = "manager") => {
         add: "Yes",
       },
     },
-    role
+    role,
   );
 };
 // ------------------------------------------------------------------------------------------

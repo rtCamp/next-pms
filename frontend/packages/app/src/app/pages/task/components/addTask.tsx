@@ -93,20 +93,43 @@ export const AddTask = ({ task, mutate, dispatch }: AddTaskPropType) => {
     dispatch({ type: "SET_ADD_TASK_DIALOG", payload: false });
     mutate();
   };
-  const handleSubjectChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
-    form.setValue("subject", event.target.value, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+  const handleSubjectChange: React.ChangeEventHandler<HTMLInputElement> = (
+    event,
+  ) => {
+    form.setValue("subject", event.target.value, {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
   };
-  const handleTimeChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
-    form.setValue("expected_time", event.target.value, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+  const handleTimeChange: React.ChangeEventHandler<HTMLInputElement> = (
+    event,
+  ) => {
+    form.setValue("expected_time", event.target.value, {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
   };
   const handleProjectChange = (data: string[] | string) => {
-    form.setValue("project", data[0], { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+    form.setValue("project", data[0], {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
   };
 
   return (
     <>
-      <Dialog onOpenChange={closeAddTaskDialog} open={task.isAddTaskDialogBoxOpen}>
-        <DialogContent aria-description="" aria-describedby="" className="max-w-xl">
+      <Dialog
+        onOpenChange={closeAddTaskDialog}
+        open={task.isAddTaskDialogBoxOpen}
+      >
+        <DialogContent
+          aria-description=""
+          aria-describedby=""
+          className="max-w-xl"
+        >
           <DialogHeader className="pb-2">
             <DialogTitle>Add Task</DialogTitle>
             <Separator />
@@ -146,7 +169,10 @@ export const AddTask = ({ task, mutate, dispatch }: AddTaskPropType) => {
                     name="expected_time"
                     render={({ field }) => (
                       <FormItem className="sm:col-span-3">
-                        <FormLabel title="expected time" className="flex gap-2 items-center text-sm truncate">
+                        <FormLabel
+                          title="expected time"
+                          className="flex gap-2 items-center text-sm truncate"
+                        >
                           Expected Time
                         </FormLabel>
                         <FormControl>
@@ -179,13 +205,21 @@ export const AddTask = ({ task, mutate, dispatch }: AddTaskPropType) => {
                           label="Search Project"
                           showSelected
                           shouldFilter
-                          value={form.getValues("project") ? [form.getValues("project")] : []}
-                          data={projects?.message?.map((item: ProjectProps) => ({
-                            label: item.project_name,
-                            value: item.name,
-                          }))}
+                          value={
+                            form.getValues("project")
+                              ? [form.getValues("project")]
+                              : []
+                          }
+                          data={projects?.message?.map(
+                            (item: ProjectProps) => ({
+                              label: item.project_name,
+                              value: item.name,
+                            }),
+                          )}
                           onSelect={handleProjectChange}
-                          rightIcon={<Search className="tasksstroke-slate-400" />}
+                          rightIcon={
+                            <Search className="tasksstroke-slate-400" />
+                          }
                         />
                       </FormControl>
                       <FormMessage />
@@ -215,10 +249,19 @@ export const AddTask = ({ task, mutate, dispatch }: AddTaskPropType) => {
                 <DialogFooter className="sm:justify-start pt-2 w-full">
                   <div className="flex gap-x-4 w-full">
                     <Button disabled={isSubmitting || !isDirty || !isValid}>
-                      {isSubmitting ? <LoaderCircle className="animate-spin w-4 h-4" /> : <Save />}
+                      {isSubmitting ? (
+                        <LoaderCircle className="animate-spin w-4 h-4" />
+                      ) : (
+                        <Save />
+                      )}
                       Add Task
                     </Button>
-                    <Button variant="secondary" type="button" onClick={closeAddTaskDialog} disabled={isSubmitting}>
+                    <Button
+                      variant="secondary"
+                      type="button"
+                      onClick={closeAddTaskDialog}
+                      disabled={isSubmitting}
+                    >
                       <X />
                       Cancel
                     </Button>

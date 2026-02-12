@@ -14,14 +14,20 @@ import { TaskLog } from "@/app/pages/task/components/taskLog";
 import { expectatedHours } from "@/lib/utils";
 import type { EmployeeTimesheerTableProps } from "./types";
 
-export const EmployeeTimesheetTable = ({ employee, teamState }: EmployeeTimesheerTableProps) => {
+export const EmployeeTimesheetTable = ({
+  employee,
+  teamState,
+}: EmployeeTimesheerTableProps) => {
   const [isTaskLogDialogBoxOpen, setIsTaskLogDialogBoxOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<string>("");
-  const { data, isLoading } = useFrappeGetCall("next_pms.timesheet.api.timesheet.get_timesheet_data", {
-    employee: employee,
-    start_date: teamState.weekDate,
-    max_week: 1,
-  });
+  const { data, isLoading } = useFrappeGetCall(
+    "next_pms.timesheet.api.timesheet.get_timesheet_data",
+    {
+      employee: employee,
+      start_date: teamState.weekDate,
+      max_week: 1,
+    },
+  );
   if (isLoading) {
     return <Spinner />;
   }
@@ -32,7 +38,11 @@ export const EmployeeTimesheetTable = ({ employee, teamState }: EmployeeTimeshee
   return (
     <>
       {isTaskLogDialogBoxOpen && (
-        <TaskLog task={selectedTask} isOpen={isTaskLogDialogBoxOpen} onOpenChange={setIsTaskLogDialogBoxOpen} />
+        <TaskLog
+          task={selectedTask}
+          isOpen={isTaskLogDialogBoxOpen}
+          onOpenChange={setIsTaskLogDialogBoxOpen}
+        />
       )}
       <div className="w-full flex">
         <Table className="lg:[&_tr]:pr-0">
@@ -47,7 +57,10 @@ export const EmployeeTimesheetTable = ({ employee, teamState }: EmployeeTimeshee
                 dataCellClassName="max-w-20 min-w-20 w-full text-center"
                 totalCellClassName="max-w-24 w-full items-center justify-end flex"
                 showEmptyCell={true}
-                expectedHours={expectatedHours(data?.message.working_hour, data?.message.working_frequency)}
+                expectedHours={expectatedHours(
+                  data?.message.working_hour,
+                  data?.message.working_frequency,
+                )}
               />
             )}
             {Object.keys(timesheetData.tasks).length == 0 && (

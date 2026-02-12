@@ -2,7 +2,7 @@ export const getDefaultView = (
   fields: Array<string>,
   docType: string,
   label: string,
-  route: string
+  route: string,
 ) => {
   const columns = Object.fromEntries(fields.map((value) => [value, 150]));
   const view = {

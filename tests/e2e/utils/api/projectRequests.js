@@ -51,7 +51,7 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
     }
     await ctx.dispose();
     throw new Error(
-      `API request failed for ${role} @ ${endpoint}: ${status} ${statusText}. Error body: ${JSON.stringify(errorBody)}`
+      `API request failed for ${role} @ ${endpoint}: ${status} ${statusText}. Error body: ${JSON.stringify(errorBody)}`,
     );
   }
 
@@ -73,7 +73,7 @@ export const createProject = async (payload) => {
       method: "POST",
       data: payload,
     },
-    "admin"
+    "admin",
   );
   ////console.log("Result of create project is: ", result);
   return result;
@@ -86,7 +86,11 @@ export const createProject = async (payload) => {
  */
 export const deleteProject = async (projectId) => {
   try {
-    await apiRequest(`/api/resource/Project/${projectId}`, { method: "DELETE" }, "admin");
+    await apiRequest(
+      `/api/resource/Project/${projectId}`,
+      { method: "DELETE" },
+      "admin",
+    );
   } catch (err) {
     // if the server signals “Expectation Failed” (417), clean up allocations
     if (err.message.includes("417")) {
@@ -102,7 +106,11 @@ export const deleteProject = async (projectId) => {
  * Get details of a Project entry.
  */
 export const getProjectDetails = async (projectId) => {
-  return await apiRequest(`/api/resource/Project/${projectId}`, { method: "GET" }, "admin");
+  return await apiRequest(
+    `/api/resource/Project/${projectId}`,
+    { method: "GET" },
+    "admin",
+  );
 };
 // ------------------------------------------------------------------------------------------
 
@@ -110,5 +118,9 @@ export const getProjectDetails = async (projectId) => {
  * Delete a Resource Allocation by its ID.
  */
 export const deleteAllocation = async (allocationId) => {
-  return await apiRequest(`/api/resource/Resource%20Allocation/${allocationId}`, { method: "DELETE" }, "admin");
+  return await apiRequest(
+    `/api/resource/Resource%20Allocation/${allocationId}`,
+    { method: "DELETE" },
+    "admin",
+  );
 };

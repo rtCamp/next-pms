@@ -71,7 +71,7 @@ interface ResourceAllocationTimeLineProps extends ResourceAllocationProps {
   isShowMonth?: boolean;
   onDelete?: (
     oldData: AllocationDataProps,
-    newData: AllocationDataProps
+    newData: AllocationDataProps,
   ) => void;
   type: "allocation" | "leave";
 }
@@ -111,7 +111,7 @@ interface ResourceTimeLineItemProps {
   item: ResourceAllocationTimeLineProps;
   itemContext: ItemContext;
   getItemProps: (
-    itemProps: ResourceAllocationItemProps
+    itemProps: ResourceAllocationItemProps,
   ) => ResourceAllocationItemProps;
   getResizeProps: () => { left: object; right: object };
 }
@@ -119,7 +119,7 @@ interface ResourceTimeLineItemProps {
 interface ResourceTimeLineProps {
   handleFormSubmit: (
     oldData: ResourceAllocationTimeLineProps,
-    newData: ResourceAllocationTimeLineProps
+    newData: ResourceAllocationTimeLineProps,
   ) => void;
 }
 

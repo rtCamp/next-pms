@@ -47,7 +47,9 @@ const SkillSearch = ({
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [skills, setSkills] = useState<SkillData[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSkills, setSelectedSkills] = useState<Skill[]>(skillSearch || []);
+  const [selectedSkills, setSelectedSkills] = useState<Skill[]>(
+    skillSearch || [],
+  );
 
   const { data } = useFrappeGetCall(
     "frappe.client.get_list",
@@ -58,7 +60,7 @@ const SkillSearch = ({
       limit_page_length: 20,
     },
     undefined,
-    { revalidateOnMount: false }
+    { revalidateOnMount: false },
   );
 
   useEffect(() => {
@@ -86,18 +88,28 @@ const SkillSearch = ({
   };
 
   const removeSkill = (skillId: string) => {
-    const updatedSkills = selectedSkills.filter((skill) => skill.name !== skillId);
+    const updatedSkills = selectedSkills.filter(
+      (skill) => skill.name !== skillId,
+    );
     setSelectedSkills(updatedSkills);
   };
 
   const updateSkillComparison = (skillId: string, operator: string) => {
-    setSelectedSkills(selectedSkills.map((skill) => (skill.name === skillId ? { ...skill, operator } : skill)));
+    setSelectedSkills(
+      selectedSkills.map((skill) =>
+        skill.name === skillId ? { ...skill, operator } : skill,
+      ),
+    );
   };
 
   const updateSkillProficiency = (skillId: string, stars: number) => {
     // Convert stars to proficiency value (e.g., 1 star = 0.2, 5 stars = 1.0)
     const proficiency = stars / 5;
-    setSelectedSkills(selectedSkills.map((skill) => (skill.name === skillId ? { ...skill, proficiency } : skill)));
+    setSelectedSkills(
+      selectedSkills.map((skill) =>
+        skill.name === skillId ? { ...skill, proficiency } : skill,
+      ),
+    );
   };
 
   const handleSearchClick = () => {
@@ -125,11 +137,20 @@ const SkillSearch = ({
     >
       <PopoverTrigger asChild>
         <Button variant="outline" className="border-dashed gap-x-2">
-          <Funnel className={mergeClassNames("h-4 w-4", skillSearch!.length > 0 && "fill-primary")} />
+          <Funnel
+            className={mergeClassNames(
+              "h-4 w-4",
+              skillSearch!.length > 0 && "fill-primary",
+            )}
+          />
           <Typography variant="p" className="truncate max-w-md">
             Skill
           </Typography>
-          {skillSearch!.length > 0 && <Badge className="p-0 justify-center w-5 h-5">{skillSearch?.length}</Badge>}
+          {skillSearch!.length > 0 && (
+            <Badge className="p-0 justify-center w-5 h-5">
+              {skillSearch?.length}
+            </Badge>
+          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 z-[1000]">
@@ -145,14 +166,17 @@ const SkillSearch = ({
               value={searchQuery}
               deBounceValue={300}
               callback={(e) => setSearchQuery(e.target.value)}
-              className={mergeClassNames("w-full min-w-full", skills.length > 0 && "[&>input]:rounded-b-none")}
+              className={mergeClassNames(
+                "w-full min-w-full",
+                skills.length > 0 && "[&>input]:rounded-b-none",
+              )}
             />
             {/* Skill suggestion */}
             {skills.length > 0 && (
               <div
                 className={mergeClassNames(
                   "absolute z-10 w-full max-h-[200px] overflow-y-auto rounded-md border bg-background shadow-md",
-                  skills.length > 0 && "border-t-0 rounded-t-none"
+                  skills.length > 0 && "border-t-0 rounded-t-none",
                 )}
               >
                 {skills.map((skill) => (
@@ -182,7 +206,12 @@ const SkillSearch = ({
                 </div>
 
                 {/* Operator Select Menu */}
-                <Select value={skill.operator} onValueChange={(value) => updateSkillComparison(skill.name, value)}>
+                <Select
+                  value={skill.operator}
+                  onValueChange={(value) =>
+                    updateSkillComparison(skill.name, value)
+                  }
+                >
                   <SelectTrigger className="w-10 flex justify-center items-center [&>svg]:hidden bg-gray-100 dark:bg-background h-full text-sm p-1 px-2">
                     <SelectValue />
                   </SelectTrigger>
@@ -211,7 +240,7 @@ const SkillSearch = ({
                           rating <= Math.round(skill.proficiency * 5)
                             ? "fill-yellow-400 text-yellow-400"
                             : "fill-gray-200 text-gray-200",
-                          "transition-colors"
+                          "transition-colors",
                         )}
                       />
                     </button>
@@ -233,7 +262,11 @@ const SkillSearch = ({
           {/* popover footer */}
           <div className="sm:justify-start w-full">
             <div className="flex justify-start gap-x-2 w-full">
-              <Button className="h-8" disabled={!(selectedSkills.length > 0)} onClick={handleSearchClick}>
+              <Button
+                className="h-8"
+                disabled={!(selectedSkills.length > 0)}
+                onClick={handleSearchClick}
+              >
                 <Search className="w-4 h-4" />
                 Search
               </Button>

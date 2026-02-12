@@ -41,7 +41,10 @@ import { getCurrencySymbol, mergeClassNames } from "@/lib/utils";
  * @returns React.FC
  */
 export const Filter = ({ filter }: { filter: FilterPops }) => {
-  const [, setQueryParam] = useQueryParam(filter.queryParameterName ?? "", filter.queryParameterDefault ?? "");
+  const [, setQueryParam] = useQueryParam(
+    filter.queryParameterName ?? "",
+    filter.queryParameterDefault ?? "",
+  );
 
   const handleChangeWrapper = (value: string | CheckedState | string[]) => {
     /* Make sure to update query parameters based on changes. */
@@ -78,7 +81,10 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
         status={filter.employeeComboStatus ?? []}
         onSelect={handleChangeWrapper}
         employeeName={filter?.employeeName}
-        className={mergeClassNames("border-dashed min-w-48 w-full max-w-48", filter.className)}
+        className={mergeClassNames(
+          "border-dashed min-w-48 w-full max-w-48",
+          filter.className,
+        )}
       />
     );
   }
@@ -101,7 +107,12 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
     if (!filter.apiCall) {
       return <></>;
     }
-    return <ComboBoxWrapper filter={filter} handleChangeWrapper={handleChangeWrapper} />;
+    return (
+      <ComboBoxWrapper
+        filter={filter}
+        handleChangeWrapper={handleChangeWrapper}
+      />
+    );
   }
   if (filter.type == "select-list") {
     const isCurrencyFilter = filter.queryParameterName === "currency";
@@ -118,31 +129,40 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
           isCurrencyFilter
             ? null
             : filter?.isMultiComboBox
-            ? ((filter.value as string[])?.length ?? 0) > 0 && (
-                <Badge className="p-0 justify-center w-5 h-5">{(filter.value as string[]).length}</Badge>
-              )
-            : (filter.value?.toString()?.length ?? 0) > 0 && <Badge className="p-0 justify-center w-5 h-5">1</Badge>
+              ? ((filter.value as string[])?.length ?? 0) > 0 && (
+                  <Badge className="p-0 justify-center w-5 h-5">
+                    {(filter.value as string[]).length}
+                  </Badge>
+                )
+              : (filter.value?.toString()?.length ?? 0) > 0 && (
+                  <Badge className="p-0 justify-center w-5 h-5">1</Badge>
+                )
         }
         leftIcon={
           isCurrencyFilter ? (
-            <span className="font-bold">{getCurrencySymbol(filter.value as string)}</span>
+            <span className="font-bold">
+              {getCurrencySymbol(filter.value as string)}
+            </span>
           ) : (
             <Funnel
               className={mergeClassNames(
                 "h-4 w-4",
                 filter?.isMultiComboBox
                   ? (filter.value as string[])?.length != 0 && "fill-primary"
-                  : (filter.value?.toString()?.length ?? 0) > 0 && "fill-primary"
+                  : (filter.value?.toString()?.length ?? 0) > 0 &&
+                      "fill-primary",
               )}
             />
           )
         }
         data={
-          filter.data?.map((d: { value: string; label: string; disabled?: boolean }) => ({
-            label: d.label,
-            value: d.value,
-            disabled: d.disabled,
-          })) ?? []
+          filter.data?.map(
+            (d: { value: string; label: string; disabled?: boolean }) => ({
+              label: d.label,
+              value: d.value,
+              disabled: d.disabled,
+            }),
+          ) ?? []
         }
         onSearch={filter?.onSearch}
         className="text-primary border-dashed gap-x-2 font-normal w-fit"
@@ -151,7 +171,10 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
   }
   if (filter.type == "select") {
     return (
-      <Select value={filter.value as string} onValueChange={handleChangeWrapper}>
+      <Select
+        value={filter.value as string}
+        onValueChange={handleChangeWrapper}
+      >
         <SelectTrigger className="max-w-44 min-w-44">
           <SelectValue placeholder="Select a view type" />
         </SelectTrigger>
@@ -177,7 +200,9 @@ export const Filter = ({ filter }: { filter: FilterPops }) => {
         <Checkbox
           id="combineWeekHours"
           checked={filter.value as CheckedState}
-          onClick={(e) => handleChangeWrapper((e.target as HTMLInputElement).checked)}
+          onClick={(e) =>
+            handleChangeWrapper((e.target as HTMLInputElement).checked)
+          }
         />
         <label
           htmlFor="terms"

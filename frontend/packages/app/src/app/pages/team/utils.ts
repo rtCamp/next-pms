@@ -44,13 +44,13 @@ export const getTaskDataForDate = (tasks: TaskProps, date: string) => {
       task.data
         .filter(
           (taskItem: TaskDataItemProps) =>
-            getDateFromDateAndTimeString(taskItem.from_time) === date
+            getDateFromDateAndTimeString(taskItem.from_time) === date,
         )
         .map((taskItem: TaskDataItemProps) => ({
           ...taskItem,
           subject: task.subject,
           project_name: task.project_name,
-        }))
+        })),
   );
   return data;
 };
@@ -60,11 +60,11 @@ export const getTimesheetHourForDate = (
   tasks: Array<TaskDataItemProps>,
   holidays: Array<HolidayProp>,
   leaves: Array<LeaveProps>,
-  dailyWorkingHour: number
+  dailyWorkingHour: number,
 ) => {
   let totalHours = tasks.reduce((sum, task) => sum + task.hours, 0);
   const holiday = holidays.find(
-    (holiday) => typeof holiday !== "string" && holiday.holiday_date === date
+    (holiday) => typeof holiday !== "string" && holiday.holiday_date === date,
   );
   const isHoliday = !!holiday;
   const leave = leaves.filter((data: LeaveProps) => {

@@ -40,7 +40,8 @@ export const ItemAllocationActionDialog = ({
               Are you sure you want to move or copy this allocation?
             </Typography>
             <Typography className="text-sm">
-              This action will either move or copy the given allocation. Please confirm your choice.
+              This action will either move or copy the given allocation. Please
+              confirm your choice.
             </Typography>
           </DialogDescription>
         </DialogHeader>

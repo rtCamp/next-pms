@@ -5,7 +5,12 @@ import { AllocationItemRender } from "./allocationItemRender";
 import { LeaveItemRender } from "./leaveItemRender";
 import type { ResourceTimeLineItemProps } from "../../types";
 
-const ResourceTimeLineItem = ({ item, itemContext, getItemProps, getResizeProps }: ResourceTimeLineItemProps) => {
+const ResourceTimeLineItem = ({
+  item,
+  itemContext,
+  getItemProps,
+  getResizeProps,
+}: ResourceTimeLineItemProps) => {
   if (item.type == "leave") {
     return (
       <LeaveItemRender

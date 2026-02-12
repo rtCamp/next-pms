@@ -42,7 +42,13 @@ import { LeaveSchema } from "@/schema/timesheet";
 import { LeaveInfo } from "./leaveInfo";
 import type { LeaveTimeProps } from "./types";
 
-const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSuccess }: LeaveTimeProps) => {
+const AddLeave = ({
+  employee,
+  employeeName,
+  open = false,
+  onOpenChange,
+  onSuccess,
+}: LeaveTimeProps) => {
   const { toast } = useToast();
   const { createDoc, loading, isCompleted } = useFrappeCreateDoc();
 
@@ -60,7 +66,7 @@ const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSucces
     {
       employee: selectedEmployee,
       date: postingDate,
-    }
+    },
   );
 
   useEffect(() => {
@@ -162,7 +168,10 @@ const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSucces
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpen}>
-        <DialogContent className="max-w-xl " onPointerDownOutside={event?.preventDefault}>
+        <DialogContent
+          className="max-w-xl "
+          onPointerDownOutside={event?.preventDefault}
+        >
           <DialogHeader>
             <DialogTitle className="flex gap-x-2">Add Leave</DialogTitle>
             <Separator />
@@ -178,7 +187,9 @@ const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSucces
                     name="employee"
                     render={() => (
                       <FormItem className="w-full space-y-1">
-                        <FormLabel className="flex gap-2 items-center text-sm">Employee</FormLabel>
+                        <FormLabel className="flex gap-2 items-center text-sm">
+                          Employee
+                        </FormLabel>
                         <FormControl>
                           <EmployeeCombo
                             onSelect={onEmployeeChange}
@@ -196,9 +207,14 @@ const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSucces
                       name="from_date"
                       render={({ field }) => (
                         <FormItem className="w-full space-y-1">
-                          <FormLabel className="flex gap-2 items-center text-sm">From</FormLabel>
+                          <FormLabel className="flex gap-2 items-center text-sm">
+                            From
+                          </FormLabel>
                           <FormControl>
-                            <DatePicker date={field.value} onDateChange={handleFromDateChange} />
+                            <DatePicker
+                              date={field.value}
+                              onDateChange={handleFromDateChange}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -209,9 +225,14 @@ const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSucces
                       name="to_date"
                       render={({ field }) => (
                         <FormItem className="w-full space-y-1">
-                          <FormLabel className="flex gap-2 items-center text-sm">To</FormLabel>
+                          <FormLabel className="flex gap-2 items-center text-sm">
+                            To
+                          </FormLabel>
                           <FormControl>
-                            <DatePicker date={field.value} onDateChange={handleToDateChange} />
+                            <DatePicker
+                              date={field.value}
+                              onDateChange={handleToDateChange}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -226,9 +247,14 @@ const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSucces
                       showSelected
                       shouldFilter
                       value={selectedLeaveType}
-                      data={leaveType.map((item) => ({ label: item, value: item }))}
+                      data={leaveType.map((item) => ({
+                        label: item,
+                        value: item,
+                      }))}
                       onSelect={handleLeaveChange}
-                      rightIcon={<Search className="h-4 w-4 stroke-slate-400" />}
+                      rightIcon={
+                        <Search className="h-4 w-4 stroke-slate-400" />
+                      }
                     />
                   </FormItem>
                   <FormField
@@ -283,11 +309,15 @@ const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSucces
                           <FormControl>
                             <Select
                               onValueChange={(value) => {
-                                form.setValue("custom_first_halfsecond_half", value, {
-                                  shouldValidate: true,
-                                  shouldDirty: true,
-                                  shouldTouch: true,
-                                });
+                                form.setValue(
+                                  "custom_first_halfsecond_half",
+                                  value,
+                                  {
+                                    shouldValidate: true,
+                                    shouldDirty: true,
+                                    shouldTouch: true,
+                                  },
+                                );
                               }}
                               defaultValue="First Half"
                             >
@@ -295,8 +325,12 @@ const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSucces
                                 <SelectValue placeholder="Select Half" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="First Half">First Half</SelectItem>
-                                <SelectItem value="Second Half">Second Half</SelectItem>
+                                <SelectItem value="First Half">
+                                  First Half
+                                </SelectItem>
+                                <SelectItem value="Second Half">
+                                  Second Half
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                           </FormControl>
@@ -309,11 +343,21 @@ const AddLeave = ({ employee, employeeName, open = false, onOpenChange, onSucces
               </div>
               <DialogFooter className="sm:justify-start w-full pt-3">
                 <div className="flex gap-x-4 w-full">
-                  <Button disabled={!isDirty || !isValid || (loading && !isCompleted)}>
-                    {loading && !isCompleted ? <LoaderCircle className="animate-spin " /> : <Save />}
+                  <Button
+                    disabled={!isDirty || !isValid || (loading && !isCompleted)}
+                  >
+                    {loading && !isCompleted ? (
+                      <LoaderCircle className="animate-spin " />
+                    ) : (
+                      <Save />
+                    )}
                     Add Leave
                   </Button>
-                  <Button variant="secondary" type="button" onClick={handleOpen}>
+                  <Button
+                    variant="secondary"
+                    type="button"
+                    onClick={handleOpen}
+                  >
                     <X className="w-4 h-4" />
                     Cancel
                   </Button>

@@ -37,7 +37,13 @@ import { LockKeyhole, LockOpen } from "lucide-react";
 import ViewWrapper from "@/app/components/list-view/viewWrapper";
 import { mergeClassNames, parseFrappeErrorMsg } from "@/lib/utils";
 import { RootState } from "@/store";
-import { setProjectData, setStart, setFilters, setReFetchData, updateProjectData } from "@/store/project";
+import {
+  setProjectData,
+  setStart,
+  setFilters,
+  setReFetchData,
+  updateProjectData,
+} from "@/store/project";
 import { ViewData } from "@/store/view";
 import type { sortOrder } from "@/types";
 import { AddProject } from "./components/addProject";
@@ -50,7 +56,9 @@ const Project = () => {
   const docType = "Project";
   return (
     <ViewWrapper docType={docType}>
-      {({ viewData, meta }) => <ProjectTable viewData={viewData} meta={meta.message} />}
+      {({ viewData, meta }) => (
+        <ProjectTable viewData={viewData} meta={meta.message} />
+      )}
     </ViewWrapper>
   );
 };
@@ -60,11 +68,16 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [hasViewUpdated, setHasViewUpdated] = useState(false);
-  const [colSizing, setColSizing] = useState<ColumnSizingState>(viewData.columns ?? {});
+  const [colSizing, setColSizing] = useState<ColumnSizingState>(
+    viewData.columns ?? {},
+  );
   const [columnOrder, setColumnOrder] = useState<string[]>(viewData.rows ?? []);
   const projectState = useSelector((state: RootState) => state.project);
   const dispatch = useDispatch();
-  const [pinnedColumns, setPinnedColumns] = useState<{ left: string[]; right: string[] }>({
+  const [pinnedColumns, setPinnedColumns] = useState<{
+    left: string[];
+    right: string[];
+  }>({
     left: viewData.pinnedColumns || [],
     right: [],
   });
@@ -82,7 +95,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
         orderColumn: viewData.order_by.field ?? "modified",
         tag: viewData.filters.tag ?? [],
         selectedIndustry: viewData.filters.industry ?? [],
-      })
+      }),
     );
     setViewInfo(viewData);
     setColSizing(viewData.columns);
@@ -111,7 +124,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
       revalidateOnReconnect: false,
       revalidateIfStale: false,
       revalidateOnMount: false,
-    }
+    },
   );
 
   useEffect(() => {
@@ -182,7 +195,7 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
     meta.title_field,
     meta.doctype,
     projectState.currency,
-    navigate
+    navigate,
   );
 
   const table = useReactTable({
@@ -249,7 +262,10 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
         <Spinner isFull />
       ) : (
         <>
-          <Table className="[&_td]:px-4 [&_th]:px-4 [&_th]:py-2 table-fixed" style={{ width: table.getTotalSize() }}>
+          <Table
+            className="[&_td]:px-4 [&_th]:px-4 [&_th]:py-2 table-fixed"
+            style={{ width: table.getTotalSize() }}
+          >
             <TableHeader className="border-t-0 sticky top-0 z-10">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
@@ -257,14 +273,17 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
                     const column = header.column;
                     const columnId = column.id;
                     const isPinned = column.getIsPinned() === "left";
-                    const leftPosition = isPinned ? column.getStart("left") : undefined;
+                    const leftPosition = isPinned
+                      ? column.getStart("left")
+                      : undefined;
 
                     return (
                       <TableHead
                         key={header.id}
                         className={mergeClassNames(
                           "group relative hover:cursor-col-resize",
-                          isPinned && "sticky z-10 bg-slate-200 dark:bg-gray-900"
+                          isPinned &&
+                            "sticky z-10 bg-slate-200 dark:bg-gray-900",
                         )}
                         style={{
                           userSelect: "none",
@@ -292,16 +311,23 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
                               }
                             }}
                           >
-                            {isPinned ? <LockKeyhole className="h-4 w-4" /> : <LockOpen className="h-4 w-4" />}
+                            {isPinned ? (
+                              <LockKeyhole className="h-4 w-4" />
+                            ) : (
+                              <LockOpen className="h-4 w-4" />
+                            )}
                           </Button>
                           <span className="w-full truncate">
-                            {flexRender(header.column.columnDef.header, header.getContext())}
+                            {flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
                           </span>
                           <Separator
                             orientation="vertical"
                             className={mergeClassNames(
                               "group-hover:w-[3px] dark:bg-primary cursor-col-resize shrink-0",
-                              isPinned && "bg-slate-300"
+                              isPinned && "bg-slate-300",
                             )}
                           />
                         </div>
@@ -314,7 +340,11 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
             <TableBody>
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
-                  <TableRow className="px-3" key={row.id} data-state={row.getIsSelected() && "selected"}>
+                  <TableRow
+                    className="px-3"
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
                     {row.getVisibleCells().map((cell) => {
                       const isPinned = cell.column.getIsPinned() === "left";
 
@@ -323,16 +353,22 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
                           key={cell.id}
                           className={mergeClassNames(
                             "overflow-hidden",
-                            isPinned && "sticky z-1 bg-slate-100 dark:bg-gray-900"
+                            isPinned &&
+                              "sticky z-1 bg-slate-100 dark:bg-gray-900",
                           )}
                           style={{
                             width: cell.column.getSize(),
                             minWidth: cell.column.columnDef.minSize,
-                            left: isPinned ? cell.column.getStart("left") : undefined,
+                            left: isPinned
+                              ? cell.column.getStart("left")
+                              : undefined,
                             zIndex: isPinned ? 1 : undefined,
                           }}
                         >
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
                         </TableCell>
                       );
                     })}
@@ -340,7 +376,10 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
                 ))
               ) : (
                 <TableRow className="w-full">
-                  <TableCell colSpan={viewData.rows.length + 1} className="h-24 text-center">
+                  <TableCell
+                    colSpan={viewData.rows.length + 1}
+                    className="h-24 text-center"
+                  >
                     No results
                   </TableCell>
                 </TableRow>
@@ -348,7 +387,10 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
 
               {projectState?.data && projectState.hasMore && (
                 <TableRow className="p-0 w-full !px-0" ref={cellRef}>
-                  <TableCell colSpan={viewData.rows.length + 1} className="text-center w-full !py-0">
+                  <TableCell
+                    colSpan={viewData.rows.length + 1}
+                    className="text-center w-full !py-0"
+                  >
                     <Skeleton className="h-10 w-full" />
                   </TableCell>
                 </TableRow>
@@ -356,7 +398,12 @@ const ProjectTable = ({ viewData, meta }: ProjectProps) => {
             </TableBody>
           </Table>
           {projectState.isAddProjectDialogOpen && (
-            <AddProject meta={meta} project={projectState} dispatch={dispatch} mutate={mutate} />
+            <AddProject
+              meta={meta}
+              project={projectState}
+              dispatch={dispatch}
+              mutate={mutate}
+            />
           )}
         </>
       )}

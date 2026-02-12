@@ -2,7 +2,12 @@
  * External dependencies.
  */
 import { LegacyRef } from "react";
-import { TableHead, TableHeader, TableRow, Typography } from "@next-pms/design-system/components";
+import {
+  TableHead,
+  TableHeader,
+  TableRow,
+  Typography,
+} from "@next-pms/design-system/components";
 import { prettyDate, getUTCDateTime } from "@next-pms/design-system/date";
 import { isToday } from "date-fns";
 import { useContextSelector } from "use-context-selector";
@@ -30,15 +35,21 @@ const ResourceTableHeader = ({
   dateToAddHeaderRef,
   isLoading,
 }: ResourceTableHeaderProps) => {
-  const { tableProperties } = useContextSelector(TableContext, (value) => value.state);
-  const { getCellWidthString } = useContextSelector(TableContext, (value) => value.actions);
+  const { tableProperties } = useContextSelector(
+    TableContext,
+    (value) => value.state,
+  );
+  const { getCellWidthString } = useContextSelector(
+    TableContext,
+    (value) => value.actions,
+  );
 
   return (
     <TableHeader className="border-t-0 sticky top-0 z-30">
       <TableRow className="flex items-center flex-shrink-0">
         <TableHead
           className={mergeClassNames(
-            "flex items-center sticky left-0 bg-slate-50 dark:bg-muted h-[81px] w-full z-30 border-r border-gray-300"
+            "flex items-center sticky left-0 bg-slate-50 dark:bg-muted h-[81px] w-full z-30 border-r border-gray-300",
           )}
           style={{ width: getCellWidthString(tableProperties.firstCellWidth) }}
         >
@@ -53,9 +64,11 @@ const ResourceTableHeader = ({
                   variant="small"
                   className={mergeClassNames(
                     "py-2 text-center truncate cursor-pointer border-r border-gray-300",
-                    weekIndex == 0 && "border-l"
+                    weekIndex == 0 && "border-l",
                   )}
-                  style={{ width: getCellWidthString(tableProperties.cellWidth * 5) }}
+                  style={{
+                    width: getCellWidthString(tableProperties.cellWidth * 5),
+                  }}
                 >
                   {date.key}
                 </Typography>
@@ -72,7 +85,9 @@ const ResourceTableHeader = ({
                     index={index}
                     isLoading={isLoading}
                     weekIndex={weekIndex}
-                    style={{ width: getCellWidthString(tableProperties.cellWidth) }}
+                    style={{
+                      width: getCellWidthString(tableProperties.cellWidth),
+                    }}
                     cellHeaderRef={cellHeaderRef}
                     dateToAddHeaderRef={dateToAddHeaderRef}
                   />
@@ -114,7 +129,7 @@ const TableHeaderCell = ({
       key={date}
       className={mergeClassNames(
         getTableCellClass(index, weekIndex),
-        "text-xs flex flex-col px-2 py-2 justify-center items-center"
+        "text-xs flex flex-col px-2 py-2 justify-center items-center",
       )}
       style={style}
       ref={date == dateToAddHeaderRef ? cellHeaderRef : null}
@@ -123,7 +138,7 @@ const TableHeaderCell = ({
         variant="p"
         className={mergeClassNames(
           "text-slate-600 text-[11px] dark:text-primary/80",
-          isToday(getUTCDateTime(date)) && "font-semibold dark:text-primary"
+          isToday(getUTCDateTime(date)) && "font-semibold dark:text-primary",
         )}
       >
         {day}
@@ -132,7 +147,7 @@ const TableHeaderCell = ({
         variant="small"
         className={mergeClassNames(
           "text-slate-500 text-[11px] max-lg:text-[0.65rem] dark:text-primary/60",
-          isToday(getUTCDateTime(date)) && "font-semibold dark:text-primary"
+          isToday(getUTCDateTime(date)) && "font-semibold dark:text-primary",
         )}
       >
         {dateStr}

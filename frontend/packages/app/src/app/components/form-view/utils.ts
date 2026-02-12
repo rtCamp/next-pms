@@ -7,7 +7,7 @@ import { ChildMetaField, ChildRow } from "./types";
 export const enrichChildMeta = (
   childMeta: ChildMetaField[],
   values: ChildRow[],
-  name: string
+  name: string,
 ) => {
   const matchedValue = values.find((v) => v.name === name);
 
@@ -20,7 +20,7 @@ export const enrichChildMeta = (
       route: `/app/${field.options
         ?.toLowerCase()
         .replace(/[_\s]/g, "-")}/${encodeURIComponent(
-        matchedValue[field.fieldname]
+        matchedValue[field.fieldname],
       )}`,
     },
   }));

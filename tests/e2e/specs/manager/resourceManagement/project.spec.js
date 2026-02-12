@@ -12,7 +12,9 @@ test.describe("Resource Management : Project Tab -> Filters", () => {
     await projectPage.goto();
   });
 
-  test("TC73: Validate the customer filter on RM project tab", async ({ jsonDir }) => {
+  test("TC73: Validate the customer filter on RM project tab", async ({
+    jsonDir,
+  }) => {
     allure.story("Resource Management : Project Tab");
 
     // Load test data from JSON stub file
@@ -21,14 +23,18 @@ test.describe("Resource Management : Project Tab -> Filters", () => {
     const TC73data = data.TC73;
 
     await projectPage.clearFilters(); // Clear any existing filters
-    await projectPage.searchBar.fill(TC73data.payloadCreateProject.project_name); // Search for the project
+    await projectPage.searchBar.fill(
+      TC73data.payloadCreateProject.project_name,
+    ); // Search for the project
     //Wait until the project name is displayed in the table
     await projectPage.waitForOnlyOneElement(projectPage.projectListItems);
     // Capture project list before applying the customer filter
     const projectListBeforeFilter = await projectPage.getProjectList();
 
     // Apply filter by customer name from test data
-    await projectPage.applyFilters({ customer: TC73data.payloadCreateAllocation2.customer });
+    await projectPage.applyFilters({
+      customer: TC73data.payloadCreateAllocation2.customer,
+    });
 
     // Capture project list after filter is applied
     const projectListAfterFilter = await projectPage.getProjectList();
@@ -37,11 +43,16 @@ test.describe("Resource Management : Project Tab -> Filters", () => {
     expect(projectListAfterFilter).toEqual(projectListBeforeFilter);
 
     // Assert that the filtered project list contains the expected project name
-    const projectNameAfterCustomerFilter = TC73data.payloadCreateProject.project_name;
-    expect(projectListAfterFilter.projectNames).toEqual([projectNameAfterCustomerFilter]);
+    const projectNameAfterCustomerFilter =
+      TC73data.payloadCreateProject.project_name;
+    expect(projectListAfterFilter.projectNames).toEqual([
+      projectNameAfterCustomerFilter,
+    ]);
   });
 
-  test("TC76: Validate the billing type filter on RM project tab", async ({ jsonDir }) => {
+  test("TC76: Validate the billing type filter on RM project tab", async ({
+    jsonDir,
+  }) => {
     allure.story("Resource Management : Project Tab");
 
     // Load billing type test data
@@ -50,7 +61,9 @@ test.describe("Resource Management : Project Tab -> Filters", () => {
     const TC76data = data.TC76;
 
     await projectPage.clearFilters();
-    await projectPage.searchBar.fill(TC76data.infoPayloadCreateProject.project_name); // Search for the project
+    await projectPage.searchBar.fill(
+      TC76data.infoPayloadCreateProject.project_name,
+    ); // Search for the project
     //Wait until the project name is displayed in the table
     await projectPage.waitForOnlyOneElement(projectPage.projectListItems);
 
@@ -58,20 +71,29 @@ test.describe("Resource Management : Project Tab -> Filters", () => {
     const projectListBeforeBillingFilter = await projectPage.getProjectList();
 
     // Apply billing type filter from test data
-    await projectPage.applyFilters({ billingType: TC76data.infoPayloadCreateProject.custom_billing_type });
+    await projectPage.applyFilters({
+      billingType: TC76data.infoPayloadCreateProject.custom_billing_type,
+    });
 
     // Capture project list after filter is applied
     const projectListAfterBillingFilter = await projectPage.getProjectList();
 
     // Assert that the filter results are same as before filter results
-    expect(projectListAfterBillingFilter).toEqual(projectListBeforeBillingFilter);
+    expect(projectListAfterBillingFilter).toEqual(
+      projectListBeforeBillingFilter,
+    );
 
     // Assert that project list contains project associated with the billing type filter
-    const projectNameAfterBillingFilter = TC76data.infoPayloadCreateProject.project_name;
-    expect(projectListAfterBillingFilter.projectNames).toEqual([projectNameAfterBillingFilter]);
+    const projectNameAfterBillingFilter =
+      TC76data.infoPayloadCreateProject.project_name;
+    expect(projectListAfterBillingFilter.projectNames).toEqual([
+      projectNameAfterBillingFilter,
+    ]);
   });
 
-  test("TC78: Validate the allocation type filter on RM project tab", async ({ jsonDir }) => {
+  test("TC78: Validate the allocation type filter on RM project tab", async ({
+    jsonDir,
+  }) => {
     allure.story("Resource Management : Project Tab");
 
     const stubPath = path.join(jsonDir, "TC78.json");
@@ -80,7 +102,9 @@ test.describe("Resource Management : Project Tab -> Filters", () => {
 
     await projectPage.clearFilters();
     // Search for the project using the project name from test data
-    await projectPage.searchBar.fill(TC78data.infoPayloadCreateProject2.project_name);
+    await projectPage.searchBar.fill(
+      TC78data.infoPayloadCreateProject2.project_name,
+    );
 
     // Determine allocation type based on 'is_billable' flag from test data
     const billableStatus = TC78data.infoPayloadCreateAllocation2.is_billable;
@@ -93,10 +117,15 @@ test.describe("Resource Management : Project Tab -> Filters", () => {
     const projectListAfterAllocationFilter = await projectPage.getProjectList();
 
     // Assert that filtered list contains expected project name
-    const projectNameAfterAllocationFilter = TC78data.infoPayloadCreateProject2.project_name;
-    expect(projectListAfterAllocationFilter.projectNames).toEqual([projectNameAfterAllocationFilter]);
+    const projectNameAfterAllocationFilter =
+      TC78data.infoPayloadCreateProject2.project_name;
+    expect(projectListAfterAllocationFilter.projectNames).toEqual([
+      projectNameAfterAllocationFilter,
+    ]);
   });
-  test("TC79: Validate the project-allocated employee list by clicking on the project name", async ({ jsonDir }) => {
+  test("TC79: Validate the project-allocated employee list by clicking on the project name", async ({
+    jsonDir,
+  }) => {
     allure.story("Resource Management : Project Tab");
 
     const stubPath = path.join(jsonDir, "TC79.json");
@@ -105,16 +134,24 @@ test.describe("Resource Management : Project Tab -> Filters", () => {
 
     await projectPage.clearFilters();
     // Search for the project using the project name from test data
-    await projectPage.searchBar.fill(TC79data.payloadCreateProject.project_name);
+    await projectPage.searchBar.fill(
+      TC79data.payloadCreateProject.project_name,
+    );
 
     // Click on the project name to view allocated employees
-    await projectPage.projectNameCell(TC79data.payloadCreateProject.project_name).click();
+    await projectPage
+      .projectNameCell(TC79data.payloadCreateProject.project_name)
+      .click();
 
     // Assert that the allocated employees are displayed correctly
-    await expect(projectPage.employeeNameCell(TC79data.employeeName)).toBeVisible();
+    await expect(
+      projectPage.employeeNameCell(TC79data.employeeName),
+    ).toBeVisible();
   });
 
-  test("TC80: Validate multiple filters on RM project tab", async ({ jsonDir }) => {
+  test("TC80: Validate multiple filters on RM project tab", async ({
+    jsonDir,
+  }) => {
     allure.story("Resource Management : Project Tab");
 
     const stubPath = path.join(jsonDir, "TC80.json");
@@ -122,7 +159,9 @@ test.describe("Resource Management : Project Tab -> Filters", () => {
     const TC80data = data.TC80;
 
     await projectPage.clearFilters();
-    await projectPage.searchBar.fill(TC80data.infoPayloadCreateProject.project_name); // Search for the project
+    await projectPage.searchBar.fill(
+      TC80data.infoPayloadCreateProject.project_name,
+    ); // Search for the project
     // Determine allocation type filter value based on test data
     const billableStatus = TC80data.infoPayloadCreateAllocation2.is_billable;
     const allocationType = billableStatus === 1 ? "Billable" : "Non-Billable";
@@ -138,7 +177,9 @@ test.describe("Resource Management : Project Tab -> Filters", () => {
     const projectListAfterMultipleFilters = await projectPage.getProjectList();
 
     // Assert filtered list contains the expected project name
-    expect(projectListAfterMultipleFilters.projectNames).toEqual([TC80data.infoPayloadCreateProject.project_name]);
+    expect(projectListAfterMultipleFilters.projectNames).toEqual([
+      TC80data.infoPayloadCreateProject.project_name,
+    ]);
   });
 });
 test.describe("Resource Management : Project Tab", () => {
@@ -146,7 +187,9 @@ test.describe("Resource Management : Project Tab", () => {
     projectPage = new ProjectPage(page);
     await projectPage.goto();
   });
-  test("TC74: Validate the type of sheet view from the top menu and select field", async ({ jsonDir }) => {
+  test("TC74: Validate the type of sheet view from the top menu and select field", async ({
+    jsonDir,
+  }) => {
     allure.story("Resource Management : Project Tab");
 
     // Load test data from JSON stub file
@@ -158,7 +201,9 @@ test.describe("Resource Management : Project Tab", () => {
     await projectPage.clearFilters();
 
     //Search the Project
-    await projectPage.searchBar.fill(TC74data.payloadCreateProject.project_name);
+    await projectPage.searchBar.fill(
+      TC74data.payloadCreateProject.project_name,
+    );
 
     //1.1 Planned view
     await projectPage.chooseSheetView("Planned");
@@ -166,20 +211,26 @@ test.describe("Resource Management : Project Tab", () => {
     await expect(
       projectPage.projectNameWithDate(
         TC74data.payloadCreateProject.project_name,
-        TC74data.payloadCreateAllocation.allocation_start_date
+        TC74data.payloadCreateAllocation.allocation_start_date,
       ),
-      "Verify if the Planned hour = 1"
+      "Verify if the Planned hour = 1",
     ).toHaveText(TC74data.payloadCreateAllocation.hours_allocated_per_day);
 
     //1.2 Verify combined weekly hour for the Planned view
     await projectPage.combineWeekHoursCheckbox.check();
-    const wednesdayDate = new Date(TC74data.payloadCreateAllocation.allocation_start_date);
+    const wednesdayDate = new Date(
+      TC74data.payloadCreateAllocation.allocation_start_date,
+    );
     wednesdayDate.setDate(wednesdayDate.getDate() + 2); // Move to Wednesday
     const formattedWednesday = getFormattedDate(wednesdayDate); // Format as YYYY-MM-DD
-    const expectedCombinedHours = TC74data.payloadCreateAllocation.hours_allocated_per_day * 5;
+    const expectedCombinedHours =
+      TC74data.payloadCreateAllocation.hours_allocated_per_day * 5;
     await expect(
-      projectPage.projectNameWithDate(TC74data.payloadCreateProject.project_name, formattedWednesday),
-      "combined weekly hour for the Planned view is correct"
+      projectPage.projectNameWithDate(
+        TC74data.payloadCreateProject.project_name,
+        formattedWednesday,
+      ),
+      "combined weekly hour for the Planned view is correct",
     ).toHaveText(expectedCombinedHours.toString());
     await projectPage.combineWeekHoursCheckbox.uncheck();
 
@@ -188,21 +239,30 @@ test.describe("Resource Management : Project Tab", () => {
 
     //Assertion : Verify if the Actual vs Planned hours
     const actual_vs_planned_hours =
-      TC74data.payloadCreateTimesheet.hours + " / " + TC74data.payloadCreateAllocation.hours_allocated_per_day;
+      TC74data.payloadCreateTimesheet.hours +
+      " / " +
+      TC74data.payloadCreateAllocation.hours_allocated_per_day;
     await expect(
       projectPage.projectNameWithDate(
         TC74data.payloadCreateProject.project_name,
-        TC74data.payloadCreateAllocation.allocation_start_date
+        TC74data.payloadCreateAllocation.allocation_start_date,
       ),
-      "Actual vs Planned hours is shown correctly"
+      "Actual vs Planned hours is shown correctly",
     ).toHaveText(actual_vs_planned_hours);
 
     //2.2 Verify combined weekly hour for the Actual vs Planned view
     await projectPage.combineWeekHoursCheckbox.check();
     await expect(
-      projectPage.projectNameWithDate(TC74data.payloadCreateProject.project_name, formattedWednesday),
-      "combined weekly hour for the Actual vs Planned view is correct"
-    ).toHaveText(TC74data.payloadCreateTimesheet.hours + " / " + expectedCombinedHours.toString());
+      projectPage.projectNameWithDate(
+        TC74data.payloadCreateProject.project_name,
+        formattedWednesday,
+      ),
+      "combined weekly hour for the Actual vs Planned view is correct",
+    ).toHaveText(
+      TC74data.payloadCreateTimesheet.hours +
+        " / " +
+        expectedCombinedHours.toString(),
+    );
     await projectPage.combineWeekHoursCheckbox.uncheck();
   });
   test("TC77: Validate Next/Previous week change buttons", async ({}) => {

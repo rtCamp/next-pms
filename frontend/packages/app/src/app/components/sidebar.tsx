@@ -2,7 +2,11 @@
  * External dependencies
  */
 import React, { useEffect } from "react";
-import { Sheet, SheetContent, SheetTitle } from "@next-pms/design-system/components";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+} from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies
@@ -16,23 +20,38 @@ interface SidebarProps {
   setDrawerOpen?: (open: boolean) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ children, className, drawerOpen, setDrawerOpen }) => {
+const Sidebar: React.FC<SidebarProps> = ({
+  children,
+  className,
+  drawerOpen,
+  setDrawerOpen,
+}) => {
   return (
     <>
       <DesktopSidebar className={className}>{children}</DesktopSidebar>
-      <MobileDrawer className={className} drawerOpen={drawerOpen} setDrawerOpen={setDrawerOpen}>
+      <MobileDrawer
+        className={className}
+        drawerOpen={drawerOpen}
+        setDrawerOpen={setDrawerOpen}
+      >
         {children}
       </MobileDrawer>
     </>
   );
 };
 
-const DesktopSidebar = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+const DesktopSidebar = ({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => {
   return (
     <aside
       className={mergeClassNames(
         "hidden md:flex min-w-sm h-full lg:max-w-72 max-lg:max-w-60 w-full bg-background border-l border-border flex-col gap-4",
-        className
+        className,
       )}
       style={{ position: "relative" }}
     >
@@ -67,7 +86,14 @@ const MobileDrawer = ({
     <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
       <SheetTitle className="sr-only">Sidebar</SheetTitle>
       <SheetContent side="right" className="max-w-sm px-0">
-        <div className={mergeClassNames("flex flex-col gap-2 h-full overflow-y-auto mt-2", className)}>{children}</div>
+        <div
+          className={mergeClassNames(
+            "flex flex-col gap-2 h-full overflow-y-auto mt-2",
+            className,
+          )}
+        >
+          {children}
+        </div>
       </SheetContent>
     </Sheet>
   );

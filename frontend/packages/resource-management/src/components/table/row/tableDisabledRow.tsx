@@ -6,7 +6,11 @@ import { TableRow } from "@next-pms/design-system/components";
 /**
  * Internal dependencies.
  */
-import { mergeClassNames, getTableCellClass, getTodayDateCellClass } from "../../../utils";
+import {
+  mergeClassNames,
+  getTableCellClass,
+  getTodayDateCellClass,
+} from "../../../utils";
 import { ResourceTableCell, TableInformationCellContent } from "../cell";
 
 /**
@@ -33,7 +37,12 @@ const TableDisabledRow = ({
   cellClassName?: string;
 }) => {
   return (
-    <TableRow className={mergeClassNames("flex items-center w-full border-0", className)}>
+    <TableRow
+      className={mergeClassNames(
+        "flex items-center w-full border-0",
+        className,
+      )}
+    >
       <TableInformationCellContent
         cellClassName={mergeClassNames("pl-12", informationCellClassName)}
         value="Time Off"
@@ -48,7 +57,7 @@ const TableDisabledRow = ({
               getTableCellClass(index, 0),
               "bg-gray-200 dark:bg-muted",
               getTodayDateCellClass(date),
-              cellClassName
+              cellClassName,
             )}
             value={data && data[date] ? data[date] : "-"}
           />

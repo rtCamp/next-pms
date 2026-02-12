@@ -24,8 +24,21 @@ import {
   Spinner,
 } from "@next-pms/design-system/components";
 import type { User } from "@next-pms/design-system/components";
-import { FrappeError, useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
-import { Calendar, Edit3, X, ChevronDown, ChevronUp, Save, Forward, MoreHorizontal } from "lucide-react";
+import {
+  FrappeError,
+  useFrappeGetCall,
+  useFrappePostCall,
+} from "frappe-react-sdk";
+import {
+  Calendar,
+  Edit3,
+  X,
+  ChevronDown,
+  ChevronUp,
+  Save,
+  Forward,
+  MoreHorizontal,
+} from "lucide-react";
 
 /**
  * Internal dependencies
@@ -68,23 +81,23 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-    }
+    },
   );
 
   const { call: saveProjectUpdate, loading: isSaving } = useFrappePostCall(
-    "next_pms.timesheet.api.project_status_update.save_project_status_update"
+    "next_pms.timesheet.api.project_status_update.save_project_status_update",
   );
 
   const { call: addComment, loading: isAddingComment } = useFrappePostCall(
-    "next_pms.timesheet.api.project_status_update.add_comment_to_project_status_update"
+    "next_pms.timesheet.api.project_status_update.add_comment_to_project_status_update",
   );
 
   const { call: updateComment, loading: isUpdatingComment } = useFrappePostCall(
-    "next_pms.timesheet.api.project_status_update.update_comment_in_project_status_update"
+    "next_pms.timesheet.api.project_status_update.update_comment_in_project_status_update",
   );
 
   const { call: deleteComment, loading: isDeletingComment } = useFrappePostCall(
-    "next_pms.timesheet.api.project_status_update.delete_comment_from_project_status_update"
+    "next_pms.timesheet.api.project_status_update.delete_comment_from_project_status_update",
   );
 
   const { call: fetchUsersAPI } = useFrappePostCall("frappe.client.get_list");
@@ -113,7 +126,10 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
     }
 
     try {
-      const finalStatus = editingUpdateId && currentUpdate?.status === "Publish" ? currentUpdate.status : statusToSave;
+      const finalStatus =
+        editingUpdateId && currentUpdate?.status === "Publish"
+          ? currentUpdate.status
+          : statusToSave;
 
       const result = await saveProjectUpdate({
         project: projectId,
@@ -129,7 +145,9 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
           setIsCreatingNew(false);
         } else if (editingUpdateId) {
           setProjectUpdates((prev) =>
-            prev.map((update) => (update.name === editingUpdateId ? result.message : update))
+            prev.map((update) =>
+              update.name === editingUpdateId ? result.message : update,
+            ),
           );
           setEditingUpdateId(null);
         }
@@ -172,11 +190,15 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
     setIsCreatingNew(true);
   };
 
-  const handleCommentSubmit = async (content: string, projectUpdateId?: string): Promise<void> => {
+  const handleCommentSubmit = async (
+    content: string,
+    projectUpdateId?: string,
+  ): Promise<void> => {
     // Use the provided projectUpdateId or find the current update being viewed
     const currentUpdate = projectUpdateId
       ? projectUpdates.find((update) => update.name === projectUpdateId)
-      : projectUpdates.find((update) => update.name === editingUpdateId) || projectUpdates[0];
+      : projectUpdates.find((update) => update.name === editingUpdateId) ||
+        projectUpdates[0];
     if (!currentUpdate) return;
 
     setIsSubmittingComment(true);
@@ -189,7 +211,9 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
 
       if (result?.message) {
         setProjectUpdates((prev) =>
-          prev.map((update) => (update.name === currentUpdate.name ? result.message : update))
+          prev.map((update) =>
+            update.name === currentUpdate.name ? result.message : update,
+          ),
         );
         refetchProjectUpdate();
       }
@@ -204,10 +228,15 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
     }
   };
 
-  const handleCommentUpdate = async (commentId: string, newContent: string, projectUpdateId?: string) => {
+  const handleCommentUpdate = async (
+    commentId: string,
+    newContent: string,
+    projectUpdateId?: string,
+  ) => {
     const currentUpdate = projectUpdateId
       ? projectUpdates.find((update) => update.name === projectUpdateId)
-      : projectUpdates.find((update) => update.name === editingUpdateId) || projectUpdates[0];
+      : projectUpdates.find((update) => update.name === editingUpdateId) ||
+        projectUpdates[0];
     if (!currentUpdate) return;
 
     try {
@@ -222,7 +251,9 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
 
       if (result?.message) {
         setProjectUpdates((prev) =>
-          prev.map((update) => (update.name === currentUpdate.name ? result.message : update))
+          prev.map((update) =>
+            update.name === currentUpdate.name ? result.message : update,
+          ),
         );
         refetchProjectUpdate();
       }
@@ -235,10 +266,14 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
     }
   };
 
-  const handleCommentDelete = async (commentId: string, projectUpdateId?: string) => {
+  const handleCommentDelete = async (
+    commentId: string,
+    projectUpdateId?: string,
+  ) => {
     const currentUpdate = projectUpdateId
       ? projectUpdates.find((update) => update.name === projectUpdateId)
-      : projectUpdates.find((update) => update.name === editingUpdateId) || projectUpdates[0];
+      : projectUpdates.find((update) => update.name === editingUpdateId) ||
+        projectUpdates[0];
     if (!currentUpdate) return;
 
     try {
@@ -252,7 +287,9 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
 
       if (result?.message) {
         setProjectUpdates((prev) =>
-          prev.map((update) => (update.name === currentUpdate.name ? result.message : update))
+          prev.map((update) =>
+            update.name === currentUpdate.name ? result.message : update,
+          ),
         );
         toast({
           description: "Comment deleted successfully",
@@ -270,12 +307,14 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
   };
 
   const handleShareComment = (commentId: string) => {
-    copyToClipboard(`${window.location.origin}/next-pms/project/${projectId}?tab=Project Updates&cid=${commentId}`);
+    copyToClipboard(
+      `${window.location.origin}/next-pms/project/${projectId}?tab=Project Updates&cid=${commentId}`,
+    );
   };
 
   const handleShareProjectUpdate = (projectUpdateId: string) => {
     copyToClipboard(
-      `${window.location.origin}/next-pms/project/${projectId}?tab=Project Updates&puid=${projectUpdateId}`
+      `${window.location.origin}/next-pms/project/${projectId}?tab=Project Updates&puid=${projectUpdateId}`,
     );
   };
 
@@ -346,7 +385,9 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
     );
   }
 
-  const currentUpdate = projectUpdates.find((update) => update.name === editingUpdateId) || projectUpdates[0];
+  const currentUpdate =
+    projectUpdates.find((update) => update.name === editingUpdateId) ||
+    projectUpdates[0];
   const isEditing = editingUpdateId !== null || isCreatingNew;
 
   return (
@@ -354,7 +395,11 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
       <div className="w-full">
         {projectUpdates.length > 0 && !isEditing && (
           <div className="px-5 max-md:px-3 py-4 border-b">
-            <Button onClick={handleCreateNew} className="w-full" variant="outline">
+            <Button
+              onClick={handleCreateNew}
+              className="w-full"
+              variant="outline"
+            >
               <Edit3 className="mr-2" />
               Add New Project Update
             </Button>
@@ -367,7 +412,9 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
               <div className="group">
                 <Input
                   value={editData.title}
-                  onChange={(e) => setEditData((prev) => ({ ...prev, title: e.target.value }))}
+                  onChange={(e) =>
+                    setEditData((prev) => ({ ...prev, title: e.target.value }))
+                  }
                   className="text-4xl max-md:text-xl font-bold border-0 border-b-2 focus-visible:border-foreground rounded-none px-0 bg-transparent focus:ring-0 focus-visible:ring-0 shadow-none md:text-3xl"
                   placeholder="Enter project title..."
                   autoFocus
@@ -379,7 +426,9 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
               <div className="bg-background mx-8 max-md:mx-3 mt-3 rounded-lg border overflow-hidden focus-within:border-foreground focus-within:ring-1 focus-within:ring-foreground">
                 <TextEditor
                   value={editData.description}
-                  onChange={(value) => setEditData((prev) => ({ ...prev, description: value }))}
+                  onChange={(value) =>
+                    setEditData((prev) => ({ ...prev, description: value }))
+                  }
                   placeholder="Start writing your project update..."
                   className="min-h-[30rem] border-0"
                 />
@@ -388,7 +437,11 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
 
             <div className="mx-8 max-md:mx-3 mt-6 border-t border-foreground/10 pt-6 max-md:mb-6">
               <div className="flex items-center justify-end gap-3">
-                <Button variant="outline" disabled={isSaving} onClick={handleCancel}>
+                <Button
+                  variant="outline"
+                  disabled={isSaving}
+                  onClick={handleCancel}
+                >
                   <X className="mr-2" />
                   Cancel
                 </Button>
@@ -398,16 +451,34 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
                     disabled={isSaving || !editData.title.trim()}
                     onClick={() => handleSave("Publish")}
                   >
-                    {isSaving ? <Spinner className="mr-2 size-4" /> : <Save className="mr-2" />}
+                    {isSaving ? (
+                      <Spinner className="mr-2 size-4" />
+                    ) : (
+                      <Save className="mr-2" />
+                    )}
                     Save
                   </Button>
                 ) : (
-                  <DropdownMenu open={isOpenSaveChanges} onOpenChange={setIsOpenSaveChanges}>
+                  <DropdownMenu
+                    open={isOpenSaveChanges}
+                    onOpenChange={setIsOpenSaveChanges}
+                  >
                     <DropdownMenuTrigger asChild>
-                      <Button className="px-6" disabled={isSaving || !editData.title.trim()}>
-                        {isSaving ? <Spinner className="mr-2 size-4" /> : <Save className="mr-2" />}
+                      <Button
+                        className="px-6"
+                        disabled={isSaving || !editData.title.trim()}
+                      >
+                        {isSaving ? (
+                          <Spinner className="mr-2 size-4" />
+                        ) : (
+                          <Save className="mr-2" />
+                        )}
                         Save
-                        {isOpenSaveChanges ? <ChevronUp className="ml-5" /> : <ChevronDown className="ml-5" />}
+                        {isOpenSaveChanges ? (
+                          <ChevronUp className="ml-5" />
+                        ) : (
+                          <ChevronDown className="ml-5" />
+                        )}
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
@@ -418,7 +489,9 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
                       >
                         <div className="flex flex-col">
                           <span className="font-medium">Save as Draft</span>
-                          <span className="text-xs text-muted-foreground">Save without publishing</span>
+                          <span className="text-xs text-muted-foreground">
+                            Save without publishing
+                          </span>
                         </div>
                       </DropdownMenuItem>
                       <DropdownMenuItem
@@ -428,7 +501,9 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
                       >
                         <div className="flex flex-col">
                           <span className="font-medium">Publish Now</span>
-                          <span className="text-xs text-muted-foreground">Make public immediately</span>
+                          <span className="text-xs text-muted-foreground">
+                            Make public immediately
+                          </span>
                         </div>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -451,7 +526,10 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
                   <div className="flex items-center gap-2 justify-between mb-6">
                     <div className="flex items-center gap-4">
                       <Avatar className="size-10 max-md:size-8 shrink-0">
-                        <AvatarImage src={update.owner_image} alt={update.owner_full_name} />
+                        <AvatarImage
+                          src={update.owner_image}
+                          alt={update.owner_full_name}
+                        />
                         <AvatarFallback className="text-foreground font-semibold">
                           {getInitials(update.owner_full_name || "")}
                         </AvatarFallback>
@@ -474,7 +552,13 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
                       </div>
                     </div>
                     <div className="flex items-center gap-3 max-md:gap-1 shrink-0">
-                      <Badge variant={update.status === "Publish" ? "default" : "outline"}>{update.status}</Badge>
+                      <Badge
+                        variant={
+                          update.status === "Publish" ? "default" : "outline"
+                        }
+                      >
+                        {update.status}
+                      </Badge>
                       <div className="hidden md:flex items-center gap-1">
                         <Button
                           variant="ghost"
@@ -500,7 +584,12 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
                       <div className="md:hidden">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-auto p-2" disabled={isSaving}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-auto p-2"
+                              disabled={isSaving}
+                            >
                               <MoreHorizontal />
                               <span className="sr-only">More options</span>
                             </Button>
@@ -515,7 +604,9 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
                               Edit
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => handleShareProjectUpdate(update.name)}
+                              onClick={() =>
+                                handleShareProjectUpdate(update.name)
+                              }
                               className="cursor-pointer"
                             >
                               <Forward className="mr-2 scale-x-[-1]" />
@@ -529,7 +620,10 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
                 </div>
 
                 <div className="px-8 max-md:px-3 pb-6">
-                  <Typography variant="h2" className="text-2xl max-md:text-xl font-bold text-foreground mb-4">
+                  <Typography
+                    variant="h2"
+                    className="text-2xl max-md:text-xl font-bold text-foreground mb-4"
+                  >
                     {update.title}
                   </Typography>
                   <div className="prose max-w-none">
@@ -548,14 +642,20 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
                   <div className="flex items-center gap-6 text-sm text-gray-500">
                     <div className="flex gap-1">
                       <Calendar className="text-foreground/70" />
-                      <Typography variant="p" className="text-foreground/70 max-md:text-xs">
+                      <Typography
+                        variant="p"
+                        className="text-foreground/70 max-md:text-xs"
+                      >
                         Created {formatDate(update.creation)}
                       </Typography>
                     </div>
                     {update.last_edited_at && (
                       <div className="flex gap-1">
                         <Edit3 className="text-foreground/70" />
-                        <Typography variant="p" className="text-foreground/70 max-md:text-xs">
+                        <Typography
+                          variant="p"
+                          className="text-foreground/70 max-md:text-xs"
+                        >
                           Last edited {formatDate(update.last_edited_at)}
                         </Typography>
                       </div>
@@ -566,14 +666,25 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
                 <div className="px-8 max-md:px-3 pb-6">
                   <Comments
                     comments={update.comments.map((comment: ProjectComment) =>
-                      convertProjectCommentToComment(comment, user.user)
+                      convertProjectCommentToComment(comment, user.user),
                     )}
                     activeCommentName={searchParams.get("cid") ?? ""}
-                    onSubmit={(content) => handleCommentSubmit(content, update.name)}
-                    onUpdate={(commentId, newContent) => handleCommentUpdate(commentId, newContent, update.name)}
-                    onDelete={(commentId) => handleCommentDelete(commentId, update.name)}
+                    onSubmit={(content) =>
+                      handleCommentSubmit(content, update.name)
+                    }
+                    onUpdate={(commentId, newContent) =>
+                      handleCommentUpdate(commentId, newContent, update.name)
+                    }
+                    onDelete={(commentId) =>
+                      handleCommentDelete(commentId, update.name)
+                    }
                     onShare={handleShareComment}
-                    isSubmitting={isSubmittingComment || isAddingComment || isUpdatingComment || isDeletingComment}
+                    isSubmitting={
+                      isSubmittingComment ||
+                      isAddingComment ||
+                      isUpdatingComment ||
+                      isDeletingComment
+                    }
                     title="Comments"
                     emptyMessage="No comments for this project update"
                     placeholder="Share your thoughts on this project update..."
@@ -590,7 +701,10 @@ const ProjectUpdates = ({ projectId, className }: ProjectUpdatesProps) => {
 
         {!isEditing && projectUpdates.length === 0 && (
           <div className="mt-24 flex justify-center items-center flex-col">
-            <Typography variant="h3" className="text-xl font-semibold text-foreground mb-2">
+            <Typography
+              variant="h3"
+              className="text-xl font-semibold text-foreground mb-2"
+            >
               No Project Updates Yet
             </Typography>
             <Typography variant="p" className="text-muted-foreground mb-6">

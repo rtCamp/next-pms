@@ -12,7 +12,18 @@ export class TeamPage {
     this.page = page;
 
     // Column Index Map
-    this.dayIndexObj = { member: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6, sun: 7, total: 8, status: 9 };
+    this.dayIndexObj = {
+      member: 0,
+      mon: 1,
+      tue: 2,
+      wed: 3,
+      thu: 4,
+      fri: 5,
+      sat: 6,
+      sun: 7,
+      total: 8,
+      status: 9,
+    };
 
     // Header Filters
     this.searchInput = page.getByPlaceholder("Employee Name");
@@ -24,7 +35,8 @@ export class TeamPage {
     this.projectFilterSearchBar = page.getByPlaceholder("Project");
 
     //employeeStatus Filter Dialog
-    this.selectEmpStatus = (empStatus) => page.locator(`//div[@data-value="${empStatus}"]`);
+    this.selectEmpStatus = (empStatus) =>
+      page.locator(`//div[@data-value="${empStatus}"]`);
     this.clearSelection = page.getByRole("button", { name: "Clear Selection" });
 
     // Prev & Next Buttons
@@ -50,10 +62,12 @@ export class TeamPage {
     this.spinner = page.locator("svg.animate-spin");
 
     // Employee Name in the table
-    this.employeeNameInTable = (employeeName) => page.locator(`//p[text()="${employeeName}"]`);
+    this.employeeNameInTable = (employeeName) =>
+      page.locator(`//p[text()="${employeeName}"]`);
 
     //Toast Notification
-    this.toastNotification = (notificationMessage) => page.locator(`//div[text()="${notificationMessage}"]`);
+    this.toastNotification = (notificationMessage) =>
+      page.locator(`//div[text()="${notificationMessage}"]`);
 
     //Get locator with text
     this.visibleText = (text) => page.getByText(`${text}`);
@@ -79,7 +93,9 @@ export class TeamPage {
    * Performs a search and selection within a modal based on a placeholder text.
    */
   async searchAndSelectOption(placeholder, value) {
-    const searchInput = this.page.getByRole("dialog").getByPlaceholder(`${placeholder}`);
+    const searchInput = this.page
+      .getByRole("dialog")
+      .getByPlaceholder(`${placeholder}`);
 
     await searchInput.fill(value);
     await this.page.waitForTimeout(1000);
@@ -152,17 +168,23 @@ export class TeamPage {
     await this.openReviewTimesheetPane(employee);
     await this.actOnTimeEntry("Reject");
     await this.rejectTimesheetModal.getByPlaceholder("Add a note").fill(reason);
-    await this.rejectTimesheetModal.getByRole("button", { name: "Reject" }).click();
+    await this.rejectTimesheetModal
+      .getByRole("button", { name: "Reject" })
+      .click();
     await this.toastNotification(notification).waitFor({ state: "visible" });
 
     // Wait until rejected symbol is shown
-    const cellInfo = { employee: employee, rowName: "employee header", col: "status" };
+    const cellInfo = {
+      employee: employee,
+      rowName: "employee header",
+      col: "status",
+    };
     const cell = await this.getCell(cellInfo);
 
     await expect(cell.locator("svg")).toHaveAttribute(
       "class",
       /stroke-destructive/,
-      { timeout: 30000 } // waits up to 30 seconds
+      { timeout: 30000 }, // waits up to 30 seconds
     );
   }
 
@@ -181,7 +203,11 @@ export class TeamPage {
    * Opens the 'Review Timesheet' pane for a specified employee.
    */
   async openReviewTimesheetPane(employee) {
-    const cell = await this.getCell({ employee: employee, rowName: "employee header", col: "status" });
+    const cell = await this.getCell({
+      employee: employee,
+      rowName: "employee header",
+      col: "status",
+    });
     await cell.click();
   }
 
@@ -189,7 +215,9 @@ export class TeamPage {
    * Retrieves the time entry section for the specified date.
    */
   async getTimeEntrySection(date) {
-    return this.reviewTimesheetPane.locator(`//p[contains(text(),'${date}')]/parent::div/parent::div`);
+    return this.reviewTimesheetPane.locator(
+      `//p[contains(text(),'${date}')]/parent::div/parent::div`,
+    );
   }
 
   /**
@@ -197,7 +225,7 @@ export class TeamPage {
    */
   async getTimeEntryRow({ date, project, task, desc }) {
     return this.reviewTimesheetPane.locator(
-      `//div[.//p[contains(text(), '${task}')] and .//span[contains(text(), '${project}')] and .//p[contains(text(), '${desc}')] and preceding-sibling::div//p[contains(text(), '${date}')]]`
+      `//div[.//p[contains(text(), '${task}')] and .//span[contains(text(), '${project}')] and .//p[contains(text(), '${desc}')] and preceding-sibling::div//p[contains(text(), '${date}')]]`,
     );
   }
 
@@ -213,7 +241,12 @@ export class TeamPage {
    * Updates duration of the specified time entry.
    */
   async updateDurationOfTimeEntry({ date, project, task, desc, newDuration }) {
-    const row = await this.getTimeEntryRow({ date: date, project: project, task: task, desc: desc });
+    const row = await this.getTimeEntryRow({
+      date: date,
+      project: project,
+      task: task,
+      desc: desc,
+    });
     await row.getByRole("textbox").fill(newDuration);
     await expect(row.getByRole("textbox")).toBeEnabled({ timeout: 5000 });
     await row.click();
@@ -223,7 +256,9 @@ export class TeamPage {
    * Performs an action on a time entry by clicking the corresponding button.
    */
   async actOnTimeEntry(action) {
-    await this.reviewTimesheetPane.getByRole("button", { name: action }).click();
+    await this.reviewTimesheetPane
+      .getByRole("button", { name: action })
+      .click();
   }
 
   // --------------------------------------
@@ -276,7 +311,9 @@ export class TeamPage {
    */
   async isEmployeeTimesheetVisible(name) {
     return this.parentTable
-      .locator(`//p[text()='${name}']//ancestor::div[@data-state and @data-orientation='vertical']//table`)
+      .locator(
+        `//p[text()='${name}']//ancestor::div[@data-state and @data-orientation='vertical']//table`,
+      )
       .isVisible();
   }
 
@@ -287,7 +324,7 @@ export class TeamPage {
     await this.parentTable.waitFor({ state: "visible" });
 
     return this.parentTable.locator(
-      `//p[text()='${name}']//ancestor::div[@data-state and @data-orientation='vertical']`
+      `//p[text()='${name}']//ancestor::div[@data-state and @data-orientation='vertical']`,
     );
   }
 
@@ -305,7 +342,11 @@ export class TeamPage {
    * Retrieves the timesheet status of a given employee by analyzing the status icon's class attributes.
    */
   async getTimesheetStatus(name) {
-    const cellInfo = { employee: name, rowName: "employee header", col: "status" };
+    const cellInfo = {
+      employee: name,
+      rowName: "employee header",
+      col: "status",
+    };
     const cell = await this.getCell(cellInfo);
     const classList = await cell.locator("svg").getAttribute("class");
 
@@ -433,7 +474,10 @@ export class TeamPage {
 
     // If any selection is made, clear it
     if (/^\d+$/.test(numberText?.trim())) {
-      console.warn("Number is displayed for the employee status:", numberText.trim());
+      console.warn(
+        "Number is displayed for the employee status:",
+        numberText.trim(),
+      );
       await this.employeeStatus.click();
       await this.clearSelection.click();
       await expect(numberLocator).toHaveCount(0);
@@ -465,7 +509,10 @@ export class TeamPage {
    */
   async checkUserGroup(userGroupName) {
     await this.page.getByRole("button", { name: "User Group" }).click();
-    await this.page.getByRole("option", { name: userGroupName }).getByRole("checkbox").check();
+    await this.page
+      .getByRole("option", { name: userGroupName })
+      .getByRole("checkbox")
+      .check();
     await this.page.getByPlaceholder("User Group").press("Escape");
   }
 

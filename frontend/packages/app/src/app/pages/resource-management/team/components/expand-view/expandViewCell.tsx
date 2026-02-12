@@ -3,7 +3,10 @@
  */
 import { prettyDate } from "@next-pms/design-system/date";
 import { ResourceTableCell } from "@next-pms/resource-management/components";
-import { getTableCellClass, getTodayDateCellClass } from "@next-pms/resource-management/utils";
+import {
+  getTableCellClass,
+  getTodayDateCellClass,
+} from "@next-pms/resource-management/utils";
 import { useContextSelector } from "use-context-selector";
 
 /**
@@ -53,16 +56,26 @@ const ExpandViewCell = ({
   weekIndex: number;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const { updateAllocationData, updateDialogState } = useContextSelector(ResourceFormContext, (value) => value.actions);
+  const { updateAllocationData, updateDialogState } = useContextSelector(
+    ResourceFormContext,
+    (value) => value.actions,
+  );
 
-  const { teamData, filters, tableView } = useContextSelector(TeamContext, (value) => value.state);
+  const { teamData, filters, tableView } = useContextSelector(
+    TeamContext,
+    (value) => value.state,
+  );
 
   const { date: dateStr, day } = prettyDate(date);
   const title = project_name + " (" + dateStr + " - " + day + ")";
 
-  const total_allocated_hours = allocationsData ? allocationsData.total_allocated_hours : 0;
+  const total_allocated_hours = allocationsData
+    ? allocationsData.total_allocated_hours
+    : 0;
 
-  const total_worked_hours = allocationsData ? allocationsData.total_worked_hours_resource_allocation : 0;
+  const total_worked_hours = allocationsData
+    ? allocationsData.total_worked_hours_resource_allocation
+    : 0;
 
   const onCellClick = () => {
     updateDialogState({
@@ -75,7 +88,8 @@ const ExpandViewCell = ({
       project: project,
       allocation_start_date: date,
       allocation_end_date: date,
-      is_billable: getIsBillableValue(filters.allocationType as string[]) != "0",
+      is_billable:
+        getIsBillableValue(filters.allocationType as string[]) != "0",
       customer: customer_name,
       total_allocated_hours: "0",
       hours_allocated_per_day: "0",
@@ -90,7 +104,10 @@ const ExpandViewCell = ({
     return (
       <EmptyTableCell
         title={title}
-        cellClassName={mergeClassNames(getTableCellClass(index, weekIndex), getTodayDateCellClass(date))}
+        cellClassName={mergeClassNames(
+          getTableCellClass(index, weekIndex),
+          getTodayDateCellClass(date),
+        )}
         onCellClick={onCellClick}
         value={"-"}
       />
@@ -102,9 +119,13 @@ const ExpandViewCell = ({
       key={index}
       type="hovercard"
       title={title}
-      cellClassName={mergeClassNames(getTableCellClass(index, weekIndex), getTodayDateCellClass(date))}
+      cellClassName={mergeClassNames(
+        getTableCellClass(index, weekIndex),
+        getTodayDateCellClass(date),
+      )}
       value={
-        tableView.view == "planned-vs-capacity" || tableView.view == "customer-view"
+        tableView.view == "planned-vs-capacity" ||
+        tableView.view == "customer-view"
           ? total_allocated_hours
           : `${total_worked_hours} / ${total_allocated_hours}`
       }

@@ -38,7 +38,7 @@ export const initialState: HomeState = {
 const actionHandlers: {
   [K in Action["type"]]: (
     state: HomeState,
-    action: Extract<Action, { type: K }>
+    action: Extract<Action, { type: K }>,
   ) => HomeState;
 } = {
   SET_DATA: (state, action) => ({

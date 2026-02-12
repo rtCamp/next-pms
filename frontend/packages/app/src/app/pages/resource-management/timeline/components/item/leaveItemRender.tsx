@@ -11,8 +11,15 @@ import { CalendarX } from "lucide-react";
 import { mergeClassNames } from "@/lib/utils";
 import type { ResourceTimeLineItemProps } from "../../types";
 
-const LeaveItemRender = ({ item: leave, itemContext, getItemProps }: ResourceTimeLineItemProps) => {
-  const dayDiff = getDayDiff(leave.from_date as string, leave.to_date as string);
+const LeaveItemRender = ({
+  item: leave,
+  itemContext,
+  getItemProps,
+}: ResourceTimeLineItemProps) => {
+  const dayDiff = getDayDiff(
+    leave.from_date as string,
+    leave.to_date as string,
+  );
 
   const { date: startDate } = prettyDate(leave.from_date as string);
   const { date: endDate } = prettyDate(leave.to_date as string);
@@ -20,7 +27,8 @@ const LeaveItemRender = ({ item: leave, itemContext, getItemProps }: ResourceTim
   let itemProps = getItemProps(leave.itemProps);
 
   const getTitle = (isNeedFullTitle = false) => {
-    const dayLabel = leave.total_leave_days && leave?.total_leave_days <= 1 ? "day" : "days";
+    const dayLabel =
+      leave.total_leave_days && leave?.total_leave_days <= 1 ? "day" : "days";
     const title = `${startDate} - ${endDate} (${leave.total_leave_days} ${dayLabel})`;
 
     if (isNeedFullTitle) {
@@ -49,7 +57,8 @@ const LeaveItemRender = ({ item: leave, itemContext, getItemProps }: ResourceTim
       border: "1px solid #d1d5db",
       borderWidth: 0,
       borderRightWidth: 0,
-      overflow: dayDiff <= (leave.isShowMonth ? 30 * 3 : 10) ? "hidden" : "visible",
+      overflow:
+        dayDiff <= (leave.isShowMonth ? 30 * 3 : 10) ? "hidden" : "visible",
     },
   };
 
@@ -57,7 +66,7 @@ const LeaveItemRender = ({ item: leave, itemContext, getItemProps }: ResourceTim
     <div style={itemProps.style} title={getTitle(true)}>
       <div
         className={mergeClassNames(
-          "rct-item-content bg-[rgba(211,211,211,0.58)] dark:bg-[rgba(55,65,81,0.58)] rounded border border-solid border-[#d1d5db] dark:border-[#374151]"
+          "rct-item-content bg-[rgba(211,211,211,0.58)] dark:bg-[rgba(55,65,81,0.58)] rounded border border-solid border-[#d1d5db] dark:border-[#374151]",
         )}
         style={
           title
@@ -70,7 +79,10 @@ const LeaveItemRender = ({ item: leave, itemContext, getItemProps }: ResourceTim
         }
       >
         <div
-          className={mergeClassNames("flex justify-start gap-[2px] h-full w-full justify-center", title && "px-2")}
+          className={mergeClassNames(
+            "flex justify-start gap-[2px] h-full w-full justify-center",
+            title && "px-2",
+          )}
           style={{
             alignItems: "center",
             maxHeight: itemContext.dimensions.height,
@@ -79,7 +91,7 @@ const LeaveItemRender = ({ item: leave, itemContext, getItemProps }: ResourceTim
           <CalendarX
             className={mergeClassNames(
               "z-[1000] text-gray-500 shrink-0 dark:text-gray-300 cusror-pointer w-4 h-4",
-              title && "mr-1"
+              title && "mr-1",
             )}
             size={16}
             strokeWidth={2}
@@ -88,7 +100,9 @@ const LeaveItemRender = ({ item: leave, itemContext, getItemProps }: ResourceTim
           {title && (
             <Typography
               variant="small"
-              className={mergeClassNames("text-[12px] truncate overflow-hidden block text-gray-600 dark:text-gray-300")}
+              className={mergeClassNames(
+                "text-[12px] truncate overflow-hidden block text-gray-600 dark:text-gray-300",
+              )}
             >
               {title}
             </Typography>

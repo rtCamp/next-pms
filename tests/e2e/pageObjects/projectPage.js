@@ -16,7 +16,9 @@ export class ProjectPage {
 
     //Filter options for project tab
     this.projectTypeFilter = page.getByRole("button", { name: "Project Type" });
-    this.businessUnitFilter = page.getByRole("button", { name: "Business Unit" });
+    this.businessUnitFilter = page.getByRole("button", {
+      name: "Business Unit",
+    });
     this.billingTypeFilter = page.getByRole("button", { name: "Billing Type" });
     this.currencyFilter = page.getByRole("button", { name: "Currency" });
     this.statusFilter = page.getByRole("button", { name: "Status" });
@@ -29,13 +31,17 @@ export class ProjectPage {
     this.statusSearchBar = page.getByPlaceholder("Status");
 
     //Select filter option
-    this.selectFilterOption = (filterOption) => page.getByRole("option", { name: `${filterOption}` });
+    this.selectFilterOption = (filterOption) =>
+      page.getByRole("option", { name: `${filterOption}` });
 
     //Filter Clear Selection
-    this.filterClearSelection = page.getByRole("button", { name: "Clear Selection" });
+    this.filterClearSelection = page.getByRole("button", {
+      name: "Clear Selection",
+    });
 
     //Sort by Button
-    this.sortByButton = (buttonText) => page.locator(`//button[text()="${buttonText}"]`);
+    this.sortByButton = (buttonText) =>
+      page.locator(`//button[text()="${buttonText}"]`);
 
     //Columns Button
     this.columnsButton = page.getByRole("button", { name: "Columns" });
@@ -48,45 +54,64 @@ export class ProjectPage {
 
     //Create View
     this.createViewButton = page.getByText("Create View");
-    this.viewNameInput = page.getByRole("textbox", { name: "eg: My custom view" });
+    this.viewNameInput = page.getByRole("textbox", {
+      name: "eg: My custom view",
+    });
     this.createButton = page.getByRole("button", { name: "Create" });
 
     //Delete View
     this.deleteViewButton = page.getByText("Delete View");
 
     //Private Views
-    this.privateViewsButton = page.getByRole("button", { name: "Private Views" });
+    this.privateViewsButton = page.getByRole("button", {
+      name: "Private Views",
+    });
 
     //Public views
     this.publicViewsButton = page.getByRole("button", { name: "Public Views" });
 
-    this.gotoPublicView = (publicViewName) => page.locator(`a[title="${publicViewName}"]`);
+    this.gotoPublicView = (publicViewName) =>
+      page.locator(`a[title="${publicViewName}"]`);
 
     //List of projects displayed in the Retainer public view
-    this.projectListItemsInRetainerView = page.locator("//table//tbody//tr//td[2]//p");
+    this.projectListItemsInRetainerView = page.locator(
+      "//table//tbody//tr//td[2]//p",
+    );
 
     //Toast Notification
-    this.toastNotification = (notificationMessage) => page.locator(`//div[text()="${notificationMessage}"]`);
+    this.toastNotification = (notificationMessage) =>
+      page.locator(`//div[text()="${notificationMessage}"]`);
 
     //Project table headers
-    this.projectTableHeader = (headerName) => page.locator("div").filter({ hasText: new RegExp(`^${headerName}$`) });
+    this.projectTableHeader = (headerName) =>
+      page.locator("div").filter({ hasText: new RegExp(`^${headerName}$`) });
 
     //Project row locators
-    this.projectRow = (projectName) => page.locator(`xpath=//p[@title="${projectName}"]/ancestor::tr`);
+    this.projectRow = (projectName) =>
+      page.locator(`xpath=//p[@title="${projectName}"]/ancestor::tr`);
 
-    this.projectNameCell = (projectName) => page.getByTitle(`${projectName}`, { exact: true });
+    this.projectNameCell = (projectName) =>
+      page.getByTitle(`${projectName}`, { exact: true });
 
     this.projectTypeCell = (projectName, projectType) =>
-      this.projectRow(projectName).locator(`xpath=.//p[@title="${projectType}"]`);
+      this.projectRow(projectName).locator(
+        `xpath=.//p[@title="${projectType}"]`,
+      );
 
     this.statusCell = (projectName, status) =>
-      this.projectRow(projectName).locator(`xpath=.//td//div[normalize-space(text())="${status}"]`);
+      this.projectRow(projectName).locator(
+        `xpath=.//td//div[normalize-space(text())="${status}"]`,
+      );
 
     this.businessUnitCell = (projectName, businessUnit) =>
-      this.projectRow(projectName).locator(`xpath=.//p[@title="${businessUnit}"]`);
+      this.projectRow(projectName).locator(
+        `xpath=.//p[@title="${businessUnit}"]`,
+      );
 
     this.billingTypeCell = (projectName, billingType) =>
-      this.projectRow(projectName).locator(`xpath=.//td//div[normalize-space(text())="${billingType}"]`);
+      this.projectRow(projectName).locator(
+        `xpath=.//td//div[normalize-space(text())="${billingType}"]`,
+      );
 
     this.currencyCell = (projectName, currency) =>
       this.projectRow(projectName).locator(`xpath=.//p[@title="${currency}"]`);
@@ -112,7 +137,9 @@ export class ProjectPage {
    * Navigates to the project page and waits for it to fully load.
    */
   async goto() {
-    await this.page.goto("/next-pms/project", { waitUntil: "domcontentloaded" });
+    await this.page.goto("/next-pms/project", {
+      waitUntil: "domcontentloaded",
+    });
   }
 
   /**
@@ -200,7 +227,9 @@ export class ProjectPage {
           await option.waitFor({ state: "visible", timeout: 30000 });
           await option.click();
         } catch (e) {
-          console.error(`Failed to select value "${v}" for filter "${key}": ${e}`);
+          console.error(
+            `Failed to select value "${v}" for filter "${key}": ${e}`,
+          );
         }
       }
 
@@ -264,7 +293,9 @@ export class ProjectPage {
     // Check if the view was created successfully from private views
     await this.privateViewsButton.click();
     await this.page.getByRole("link").filter({ hasText: viewName }).click();
-    await expect(this.page.getByRole("link").filter({ hasText: viewName })).toBeVisible();
+    await expect(
+      this.page.getByRole("link").filter({ hasText: viewName }),
+    ).toBeVisible();
   }
   /**
    * Delete a view by its name.
@@ -273,7 +304,12 @@ export class ProjectPage {
   async deletePrivateView(viewName, notification) {
     await this.privateViewsButton.click();
     //Click on private view button if view name is not visible
-    if (!(await this.page.getByRole("link").filter({ hasText: viewName }).isVisible())) {
+    if (
+      !(await this.page
+        .getByRole("link")
+        .filter({ hasText: viewName })
+        .isVisible())
+    ) {
       await this.privateViewsButton.click();
     }
     await this.page.getByRole("link").filter({ hasText: viewName }).click();
@@ -288,11 +324,19 @@ export class ProjectPage {
    * @param {Object} payload - The project data to create.
    */
   async createProject(payload) {
-    await this.page.getByRole("button", { name: "Project", exact: true }).click();
-    await this.page.getByRole("textbox", { name: "New Project" }).fill(payload.project_name);
+    await this.page
+      .getByRole("button", { name: "Project", exact: true })
+      .click();
+    await this.page
+      .getByRole("textbox", { name: "New Project" })
+      .fill(payload.project_name);
     await this.page.getByRole("button", { name: "Add Project" }).click();
-    await expect(this.toastNotification("Project created successfully")).toBeVisible();
-    await expect(this.page.locator("tbody")).toContainText(payload.project_name);
+    await expect(
+      this.toastNotification("Project created successfully"),
+    ).toBeVisible();
+    await expect(this.page.locator("tbody")).toContainText(
+      payload.project_name,
+    );
   }
   /**
    * Check if the column header is visible. If not visible, it will include the column header.
@@ -304,8 +348,12 @@ export class ProjectPage {
       // If the header is not visible, include it in the table
       await this.page.getByRole("button", { name: "Columns" }).click();
       await this.page.getByRole("menuitem", { name: "Add Columns" }).click();
-      await this.page.getByRole("menuitem", { name: headerName, exact: true }).click();
-      await this.page.getByRole("menuitem", { name: "Add Columns" }).press("Escape");
+      await this.page
+        .getByRole("menuitem", { name: headerName, exact: true })
+        .click();
+      await this.page
+        .getByRole("menuitem", { name: "Add Columns" })
+        .press("Escape");
     }
     await expect(headerLocator).toBeVisible();
   }
@@ -322,7 +370,8 @@ export class ProjectPage {
    * Get the list of project names currently displayed in the retainer public view.
    */
   async getProjectListInRetainerView() {
-    const projectNames = await this.projectListItemsInRetainerView.allTextContents();
+    const projectNames =
+      await this.projectListItemsInRetainerView.allTextContents();
     const totalCount = projectNames.length;
     return { projectNames, totalCount };
   }

@@ -20,7 +20,10 @@ interface CommentFormSimpleProps extends CommentFormProps {
   mentionClassName?: string;
 }
 
-const CommentFormSimple = React.forwardRef<HTMLFormElement, CommentFormSimpleProps>(
+const CommentFormSimple = React.forwardRef<
+  HTMLFormElement,
+  CommentFormSimpleProps
+>(
   (
     {
       onSubmit,
@@ -32,7 +35,7 @@ const CommentFormSimple = React.forwardRef<HTMLFormElement, CommentFormSimplePro
       mentionClassName,
       ...props
     },
-    ref
+    ref,
   ) => {
     const [content, setContent] = useState("");
 
@@ -92,10 +95,16 @@ const CommentFormSimple = React.forwardRef<HTMLFormElement, CommentFormSimplePro
 
         <div className="flex justify-between items-center">
           <div className="text-sm max-md:text-xs text-muted-foreground">
-            Press <kbd className="px-1 py-0.5 text-xs bg-muted rounded">Ctrl</kbd> +{" "}
-            <kbd className="px-1 py-0.5 text-xs bg-muted rounded">Enter</kbd> to submit
+            Press{" "}
+            <kbd className="px-1 py-0.5 text-xs bg-muted rounded">Ctrl</kbd> +{" "}
+            <kbd className="px-1 py-0.5 text-xs bg-muted rounded">Enter</kbd> to
+            submit
           </div>
-          <Button type="submit" disabled={!hasContent() || isSubmitting} size="sm">
+          <Button
+            type="submit"
+            disabled={!hasContent() || isSubmitting}
+            size="sm"
+          >
             {isSubmitting ? (
               <>
                 <Spinner className="mr-1 h-3 w-3" />
@@ -111,7 +120,7 @@ const CommentFormSimple = React.forwardRef<HTMLFormElement, CommentFormSimplePro
         </div>
       </form>
     );
-  }
+  },
 );
 
 CommentFormSimple.displayName = "CommentFormSimple";

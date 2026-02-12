@@ -37,7 +37,9 @@ export const createEmployees = async (testCaseIDs, jsonDir) => {
 
   // Discover side files in the folder
   const allFiles = await readdir(jsonDir);
-  const sideFiles = allFiles.filter((f) => f === "TC39.json" || f === "TC53.json");
+  const sideFiles = allFiles.filter(
+    (f) => f === "TC39.json" || f === "TC53.json",
+  );
 
   // Load side files into memory
   const sideData = {};
@@ -56,7 +58,9 @@ export const createEmployees = async (testCaseIDs, jsonDir) => {
       custom_reporting_manager: managerName,
       reports_to: managerId,
       leave_approver: managerMail,
-      ...(status === "Left" && { relieving_date: getFormattedDate(new Date()) }),
+      ...(status === "Left" && {
+        relieving_date: getFormattedDate(new Date()),
+      }),
     };
 
     try {
@@ -111,7 +115,9 @@ export async function deleteEmployees(testCaseID, jsonDir) {
   try {
     testCase = await readJSONFile(filePath);
   } catch (err) {
-    console.warn(`⚠️ Could not read JSON for ${testCaseID} in createEmployees function: ${err.message}`);
+    console.warn(
+      `⚠️ Could not read JSON for ${testCaseID} in createEmployees function: ${err.message}`,
+    );
     return;
   }
   if (!testCase || !Array.isArray(testCase.createdEmployees)) {
@@ -124,7 +130,9 @@ export async function deleteEmployees(testCaseID, jsonDir) {
       await deleteEmployee(emp.name, "admin");
       //console.log(`🗑 Deleted ${emp.name} for ${testCaseID}`);
     } catch (err) {
-      console.warn(`⚠️ Failed to delete ${emp.name} for ${testCaseID}: ${err.message}`);
+      console.warn(
+        `⚠️ Failed to delete ${emp.name} for ${testCaseID}: ${err.message}`,
+      );
     }
   }
 }
@@ -135,7 +143,11 @@ export async function deleteEmployees(testCaseID, jsonDir) {
  */
 export const deleteEmployeeByName = async () => {
   // Fetch Employees
-  const employeeRes = await filterApi("Employee", [["Employee", "employee_name", "like", "Playwright-%"]], "admin");
+  const employeeRes = await filterApi(
+    "Employee",
+    [["Employee", "employee_name", "like", "Playwright-%"]],
+    "admin",
+  );
 
   const employeeValues = employeeRes?.message?.values || [];
 
@@ -163,14 +175,17 @@ export const deleteEmployeeByName = async () => {
 };
 // ------------------------------------------------------------------------------------------
 
-export const deleteAllocationsByEmployee = async (projectID, employeeID = employeeId) => {
+export const deleteAllocationsByEmployee = async (
+  projectID,
+  employeeID = employeeId,
+) => {
   const filterResponse = await filterApi(
     "Resource Allocation",
     [
       ["Resource Allocation", "employee", "=", employeeID],
       ["Resource Allocation", "project", "=", projectID],
     ],
-    "admin"
+    "admin",
   );
   //console.log(filterResponse.message?.values?.length);
   if (filterResponse.message?.values?.length > 0) {

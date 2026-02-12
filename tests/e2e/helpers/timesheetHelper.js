@@ -1,6 +1,10 @@
 import path from "path";
 import fs from "fs";
-import { getWeekdayName, getFormattedDate, getDateForWeekday } from "../utils/dateUtils";
+import {
+  getWeekdayName,
+  getFormattedDate,
+  getDateForWeekday,
+} from "../utils/dateUtils";
 import {
   createTimesheet,
   getTimesheetDetails,
@@ -13,8 +17,18 @@ import managerTeamData from "../data/manager/team";
 import managerTaskData from "../data/manager/task";
 import managerProjectData from "../data/manager/project";
 import { readJSONFile, writeDataToFile } from "../utils/fileUtils";
-import { createProject, deleteAllocation, deleteProject, getProjectDetails } from "../utils/api/projectRequests";
-import { createTask, deleteTask, likeTask, updateTask } from "../utils/api/taskRequests";
+import {
+  createProject,
+  deleteAllocation,
+  deleteProject,
+  getProjectDetails,
+} from "../utils/api/projectRequests";
+import {
+  createTask,
+  deleteTask,
+  likeTask,
+  updateTask,
+} from "../utils/api/taskRequests";
 import { getExchangeRate } from "../utils/api/erpNextRequests";
 import { getEmployeeDetails } from "../utils/api/employeeRequests";
 import { filterApi, shareProjectWithUser } from "../utils/api/frappeRequests";
@@ -38,7 +52,10 @@ const emp2ID = process.env.EMP2_ID;
 const emp3ID = process.env.EMP3_ID;
 
 // Define file paths for shared JSON data files
-const TASK_TRACKER_PATH = path.resolve(__dirname, "../data/manager/tasks-to-delete.json");
+const TASK_TRACKER_PATH = path.resolve(
+  __dirname,
+  "../data/manager/tasks-to-delete.json",
+);
 
 // ------------------------------------------------------------------------------------------
 
@@ -69,7 +86,9 @@ export async function updateTimeEntries(testCaseIDs = [], jsonDir) {
       let employeeID;
       if (["TC2", "TC3"].includes(testCaseID)) {
         employeeID = emp2ID;
-      } else if (["TC5", "TC6", "TC7", "TC74", "TC92", "TC60"].includes(testCaseID)) {
+      } else if (
+        ["TC5", "TC6", "TC7", "TC74", "TC92", "TC60"].includes(testCaseID)
+      ) {
         employeeID = emp3ID;
       } else {
         employeeID = empID;
@@ -231,7 +250,9 @@ export const deleteTimeEntries = async (testCaseIDs = [], jsonDir) => {
 
     // any special-case logging you still want
     if (entry.project_name === "TC02 Project") {
-      console.warn(`RESPONSE OF DELETE TIMESHEET FOR TC02: ${entry.project_name}`);
+      console.warn(
+        `RESPONSE OF DELETE TIMESHEET FOR TC02: ${entry.project_name}`,
+      );
     }
   }
 };
@@ -243,10 +264,15 @@ export const deleteTimeEntries = async (testCaseIDs = [], jsonDir) => {
  * Optional params: start_date, max_week.
  */
 export const filterTimesheetEntry = async (opts) => {
-  const { subject, description, project_name, from_time, employee, max_week } = opts;
+  const { subject, description, project_name, from_time, employee, max_week } =
+    opts;
 
   // fetch & unwrap…
-  const res = await getTimesheetDetails({ employee, start_date: from_time, max_week });
+  const res = await getTimesheetDetails({
+    employee,
+    start_date: from_time,
+    max_week,
+  });
   const json = res && typeof res.json === "function" ? await res.json() : res;
   const data = json.message.data;
   //console.dir(json.message, { depth: null, colors: true });
@@ -304,7 +330,9 @@ export const createProjectForTestCases = async (testCaseIDs, jsonDir) => {
   }
 
   // 1. Find all keys starting with 'payloadCreateProject'
-  const createProjectKeys = Object.keys(entry).filter((key) => PROJECT_KEY_REGEX.test(key));
+  const createProjectKeys = Object.keys(entry).filter((key) =>
+    PROJECT_KEY_REGEX.test(key),
+  );
   if (createProjectKeys.length === 0) {
     console.warn(`⚠️ No payloadCreateProject key for ${tcId}`);
     return;
@@ -324,7 +352,9 @@ export const createProjectForTestCases = async (testCaseIDs, jsonDir) => {
     // Create project
     const res = await createProject(projectPayload);
     if (!res?.data?.name) {
-      console.error(`Failed to create project for ${tcId} (${projectKey}) as there is no data.name`);
+      console.error(
+        `Failed to create project for ${tcId} (${projectKey}) as there is no data.name`,
+      );
       continue;
     }
     const projectId = res.data.name;
@@ -334,7 +364,10 @@ export const createProjectForTestCases = async (testCaseIDs, jsonDir) => {
 
     // Share project, if needed (with the same pattern logic)
     // e.g., payloadShareProject1, payloadShareProjectABC, etc.
-    const shareKey = projectKey.replace("payloadCreateProject", "payloadShareProject");
+    const shareKey = projectKey.replace(
+      "payloadCreateProject",
+      "payloadShareProject",
+    );
     if (Array.isArray(entry[shareKey])) {
       for (const sharePayload of entry[shareKey]) {
         await shareProjectWithUser({ ...sharePayload, name: projectId });
@@ -369,7 +402,9 @@ export const createProjectForTestCases = async (testCaseIDs, jsonDir) => {
       });
     }
 
-    console.log(`✅ CREATE PROJECT SUCCESS for ${tcId} -> ${projectKey} (projectId=${projectId})`);
+    console.log(
+      `✅ CREATE PROJECT SUCCESS for ${tcId} -> ${projectKey} (projectId=${projectId})`,
+    );
   }
 
   // Write back updated stub
@@ -402,7 +437,9 @@ export const deleteProjects = async (testCaseIDs = [], jsonDir) => {
   }
 
   // Find all payloadDeleteProject keys (e.g., payloadDeleteProject, payloadDeleteProject2, ...)
-  const projectDeleteKeys = Object.keys(entry).filter((key) => key.startsWith("payloadDeleteProject"));
+  const projectDeleteKeys = Object.keys(entry).filter((key) =>
+    key.startsWith("payloadDeleteProject"),
+  );
   if (projectDeleteKeys.length === 0) {
     console.warn(`⚠️ No payloadDeleteProject key(s) found for TC ${tcId}`);
     return;
@@ -504,15 +541,22 @@ export const deleteByTaskName = async () => {
     for (const taskName of tasksToBeDeleted) {
       console.warn("Checking for task:", taskName);
 
-      const filterResponse = await filterApi("Task", [["Task", "subject", "=", taskName]]);
-      console.warn("Response for getting TASK BY NAME IN DELETION OF TASK IS:", filterResponse);
+      const filterResponse = await filterApi("Task", [
+        ["Task", "subject", "=", taskName],
+      ]);
+      console.warn(
+        "Response for getting TASK BY NAME IN DELETION OF TASK IS:",
+        filterResponse,
+      );
 
       if (filterResponse.message?.values?.length) {
         const taskID = filterResponse.message.values[0];
         //console.log("Task found and ID to delete:", taskID);
         await deleteTask(taskID);
       } else {
-        console.log(`Task "${taskName}" not found in system to delete. Skipping...`);
+        console.log(
+          `Task "${taskName}" not found in system to delete. Skipping...`,
+        );
       }
     }
 
@@ -557,7 +601,9 @@ export const deleteTasks = async (testCaseIDs, jsonDir) => {
         //console.log(`🗑️  [${tcId}] deleted task ${taskID}`);
       }
     } catch (err) {
-      console.error(`❌ [${tcId}] Failed to delete task ${taskID}: ${err.message}`);
+      console.error(
+        `❌ [${tcId}] Failed to delete task ${taskID}: ${err.message}`,
+      );
     }
   }
 };
@@ -597,7 +643,10 @@ export const calculateHourlyBilling = async (testCaseIDs = [], jsonDir) => {
     // 5) Determine hourly rate, converting currency if needed
     let hourly_billing_rate;
     if (employee_currency !== ratePayload.custom_currency_for_project) {
-      const convertRes = await getExchangeRate(employee_currency, ratePayload.custom_currency_for_project);
+      const convertRes = await getExchangeRate(
+        employee_currency,
+        ratePayload.custom_currency_for_project,
+      );
 
       const convertedCTC = convertRes.message * employee_CTC;
       //console.log("CONVERTED EMPLOYEE CTC ", convertedCTC);
@@ -631,7 +680,7 @@ export const cleanUpProjects = async (data) => {
 
     // Find all project creation keys
     const createProjectKeys = Object.keys(tc).filter(
-      (k) => k.startsWith("payloadCreateProject") || k === "createProjectByUI"
+      (k) => k.startsWith("payloadCreateProject") || k === "createProjectByUI",
     );
 
     for (const projectKey of createProjectKeys) {
@@ -641,28 +690,45 @@ export const cleanUpProjects = async (data) => {
       const projectName = projectPayload.project_name;
 
       // Get Project ID by project_name
-      const projectRes = await filterApi("Project", [["Project", "project_name", "=", projectName]]);
+      const projectRes = await filterApi("Project", [
+        ["Project", "project_name", "=", projectName],
+      ]);
       const projectId = projectRes?.message?.values?.[0]?.[0];
       if (!projectId) continue;
 
-      console.warn(`\nObtained ProjectId value for ${key} -> ${projectKey} is: ${projectId}`);
+      console.warn(
+        `\nObtained ProjectId value for ${key} -> ${projectKey} is: ${projectId}`,
+      );
 
       // Get Task IDs for this projectId
-      const taskRes = await filterApi("Task", [["Task", "project", "=", projectId]]);
-      const taskIds = Array.isArray(taskRes?.message?.values) ? taskRes.message.values.map((v) => v[0]) : [];
+      const taskRes = await filterApi("Task", [
+        ["Task", "project", "=", projectId],
+      ]);
+      const taskIds = Array.isArray(taskRes?.message?.values)
+        ? taskRes.message.values.map((v) => v[0])
+        : [];
 
       if (taskIds.length) {
         console.warn(`OBTAINED TASKS for ${key} -> ${projectKey}:`, taskIds);
       }
 
       // Get Timesheet IDs for this projectId
-      const timesheetRes = await filterApi("Timesheet", [["Timesheet", "parent_project", "=", projectId]], "admin");
+      const timesheetRes = await filterApi(
+        "Timesheet",
+        [["Timesheet", "parent_project", "=", projectId]],
+        "admin",
+      );
       const timesheetIds = Array.isArray(timesheetRes?.message?.values)
-        ? timesheetRes.message.values.flat().filter((v) => typeof v === "string")
+        ? timesheetRes.message.values
+            .flat()
+            .filter((v) => typeof v === "string")
         : [];
 
       if (timesheetIds.length) {
-        console.warn(`OBTAINED TIMESHEET IDS FOR ${key} -> ${projectKey}:`, timesheetIds);
+        console.warn(
+          `OBTAINED TIMESHEET IDS FOR ${key} -> ${projectKey}:`,
+          timesheetIds,
+        );
       }
 
       // Get Resource Allocation IDs for this projectId
@@ -680,12 +746,17 @@ export const cleanUpProjects = async (data) => {
       ) {
         const nameIndex = allocationRes.message.keys.indexOf("name");
         if (nameIndex >= 0) {
-          allocationIds = allocationRes.message.values.map((row) => row[nameIndex]);
+          allocationIds = allocationRes.message.values.map(
+            (row) => row[nameIndex],
+          );
         }
       }
 
       if (allocationIds.length) {
-        console.warn(`OBTAINED ALLOCATION IDS FOR ${key} -> ${projectKey}:`, allocationIds);
+        console.warn(
+          `OBTAINED ALLOCATION IDS FOR ${key} -> ${projectKey}:`,
+          allocationIds,
+        );
       }
 
       // Collect deletion info
@@ -707,7 +778,10 @@ export const cleanUpProjects = async (data) => {
         try {
           await deleteTimesheetbyID(timesheetId, "admin");
         } catch (err) {
-          console.error(`Failed to delete timesheet ${timesheetId}:`, err.message);
+          console.error(
+            `Failed to delete timesheet ${timesheetId}:`,
+            err.message,
+          );
         }
       }
 
@@ -729,7 +803,10 @@ export const cleanUpProjects = async (data) => {
         try {
           await deleteAllocation(allocationId);
         } catch (err) {
-          console.error(`Failed to delete resource allocation ${allocationId}:`, err.message);
+          console.error(
+            `Failed to delete resource allocation ${allocationId}:`,
+            err.message,
+          );
         }
       }
 
@@ -760,7 +837,7 @@ export const deleteLeaveOfEmployee = async () => {
       ["Leave Application", "employee", "=", `${emp2ID}`],
       ["Leave Application", "status", "=", "Open"],
     ],
-    "admin"
+    "admin",
   );
 
   //Delete leave if leave ID is found in the filter request
@@ -803,6 +880,6 @@ export const submitTimesheetForApproval = async (empId, managerID, role) => {
       approver: managerID,
       employee: empId,
     },
-    (role = role)
+    (role = role),
   );
 };
