@@ -162,8 +162,6 @@ const ResourceTeamHeaderSection = ({ viewData }: { viewData: ViewData }) => {
   );
 
   useEffect(() => {
-     
-     
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const {
       start: _unused1,
@@ -189,8 +187,6 @@ const ResourceTeamHeaderSection = ({ viewData }: { viewData: ViewData }) => {
   }, [filters, viewData, tableView.view, tableView.combineWeekHours]);
 
   const handleSaveChanges = () => {
-     
-     
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const {
       start: _unused1,
