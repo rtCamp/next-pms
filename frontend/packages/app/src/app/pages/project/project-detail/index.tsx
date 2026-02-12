@@ -117,9 +117,8 @@ const ProjectDetail = () => {
         (acc, key) => {
           acc[key] = [];
           return acc;
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         },
-        {} as Record<string, any[]>,
+        {} as Record<string, unknown[]>,
       ),
     }),
     [data?.message?.tabs, customTabs],

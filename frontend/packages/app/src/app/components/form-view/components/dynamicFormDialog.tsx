@@ -28,7 +28,7 @@ import { enrichChildMeta } from "../utils";
 interface DynamicFormDialogProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (values: any) => void;
+  onSubmit: (values: Record<string, unknown>) => void;
   fieldMeta: FieldMeta[];
   value: ChildRow[];
   currencySymbol: string;

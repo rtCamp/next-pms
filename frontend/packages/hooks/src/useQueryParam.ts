@@ -23,7 +23,7 @@ export const useQueryParam = <T>(
       if (value === "null") searchParams.delete(key);
       try {
         JSON.parse(value);
-      } catch (error) {
+      } catch {
         searchParams.delete(key);
       }
     }
