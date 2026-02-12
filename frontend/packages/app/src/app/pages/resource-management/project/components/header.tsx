@@ -150,14 +150,18 @@ const ResourceProjectHeaderSection = ({ viewData }: { viewData: ViewData }) => {
   );
 
   useEffect(() => {
+     
+     
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     const {
-      start: _,
-      weekDate: __,
-      employeeWeekDate: ___,
-      maxWeek: ____,
-      pageLength: _____,
+      start: _unused1,
+      weekDate: _unused2,
+      employeeWeekDate: _unused3,
+      maxWeek: _unused4,
+      pageLength: _unused5,
       ...viewFilters
     } = filters;
+    /* eslint-enable @typescript-eslint/no-unused-vars */
 
     if (
       !_.isEqual(viewData.filters, {
@@ -174,14 +178,18 @@ const ResourceProjectHeaderSection = ({ viewData }: { viewData: ViewData }) => {
   }, [filters, viewData, tableView.view, tableView.combineWeekHours]);
 
   const handleSaveChanges = () => {
+     
+     
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     const {
-      start: _,
-      weekDate: __,
-      employeeWeekDate: ___,
-      maxWeek: ____,
-      pageLength: _____,
+      start: _unused1,
+      weekDate: _unused2,
+      employeeWeekDate: _unused3,
+      maxWeek: _unused4,
+      pageLength: _unused5,
       ...viewFilters
     } = filters;
+    /* eslint-enable @typescript-eslint/no-unused-vars */
     updateView({
       view: {
         ...viewData,

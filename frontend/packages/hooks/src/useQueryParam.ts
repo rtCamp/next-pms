@@ -23,6 +23,7 @@ export const useQueryParam = <T>(
       if (value === "null") searchParams.delete(key);
       try {
         JSON.parse(value);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (_error) {
         searchParams.delete(key);
       }

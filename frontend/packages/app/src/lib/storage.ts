@@ -6,6 +6,7 @@ export const setLocalStorage = (key: string, value: unknown) => {
       localStorage.setItem(key, value as string);
     }
     return true;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_error) {
     return false;
   }
