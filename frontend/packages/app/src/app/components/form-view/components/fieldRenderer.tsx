@@ -77,6 +77,7 @@ const FieldRenderer = forwardRef(
         {} as Record<string, string | number | null>,
       );
       reset(defaultValues);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fields]);
 
     useImperativeHandle(ref, () => ({

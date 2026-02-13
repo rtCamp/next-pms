@@ -41,6 +41,7 @@ export const FormContextProvider = ({ children }: MyProviderProps) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useFormContext = () => {
   const context = useContext(FormContext);
   if (!context) {

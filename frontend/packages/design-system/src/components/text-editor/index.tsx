@@ -148,6 +148,7 @@ const TextEditor = ({
         setShowMentions(false);
       }
     }, 300),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [onFetchUsers],
   );
 
