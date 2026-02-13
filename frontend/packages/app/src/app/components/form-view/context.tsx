@@ -3,7 +3,7 @@
  */
 import { createContext, ReactNode, useContext, useState } from "react";
 
-type MutateFn = (...args: any[]) => void;
+type MutateFn = (...args: unknown[]) => void;
 
 interface FormContextType {
   docname: string;
