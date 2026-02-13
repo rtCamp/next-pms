@@ -24,7 +24,7 @@ jobs:
           apt-get install -y python3-pip git  # Python + Git in Node.js container
           python3 -m pip install pre-commit --break-system-packages  # Main tool
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - run: |
           git config --global --add safe.directory $GITHUB_WORKSPACE
@@ -39,13 +39,13 @@ jobs:
 
 
       - name: Cache pre-commit since we use pre-commit from container
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/pre-commit
           key: pre-commit-3|${{ hashFiles('.pre-commit-config.yaml') }}
 
       - name: Cache npm dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             **/node_modules

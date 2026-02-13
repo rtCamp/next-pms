@@ -21,10 +21,10 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
           node-version-file: 'frontend/.nvmrc'
           cache: 'npm'
@@ -37,7 +37,7 @@ jobs:
           npm_config_cache: ~/.npm
         
       - name: Cache node modules
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
