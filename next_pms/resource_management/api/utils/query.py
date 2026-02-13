@@ -103,29 +103,55 @@ def get_allocation_worked_hours_for_given_projects(project: str, start_date: str
     return total_hours.get("time") or 0.0
 
 
-@redis_cache()
-def get_employee_leaves(employee: str, start_date: str, end_date: str):
-    """Get the total leave days for given employee for given time range."""
+@redis_cache
+def get_employee_leaves(employee: str | tuple, start_date: str, end_date: str):
+    """Get the total leave days for given employee for given time range.
+    Args:
+        employee (str | tuple): employee name or tuple of employee names
+        start_date (str): start date
+        end_date (str): end date
+    Returns:
+        list: list of leave applications
+    """
 
-    # nosemgrep
-    return frappe.db.sql(
-        """
-        SELECT la.from_date, la.to_date, la.half_day, la.half_day_date,la.total_leave_days,la.name,la.leave_type, lt.is_lwp FROM `tabLeave Application` la
-        JOIN `tabLeave Type` lt ON la.leave_type = lt.name
-            WHERE employee = %(employee)s
-            AND (
-                (la.from_date <= %(start_date)s AND la.to_date >= %(start_date)s)
-                OR (la.from_date >= %(start_date)s AND la.to_date <= %(end_date)s)
-                OR (la.from_date <= %(end_date)s AND la.to_date >= %(end_date)s)
-                OR (la.from_date <= %(start_date)s AND la.to_date >= %(end_date)s)
-            )
-            AND (la.docstatus=1 OR la.docstatus=0)
-            AND (la.status = 'Approved' OR la.status = 'Open')
-            ORDER BY la.from_date, la.to_date;
-        """,
-        {"employee": employee, "start_date": start_date, "end_date": end_date},
-        as_dict=True,
-    )  # nosemgrep
+    LeaveApplication = frappe.qb.DocType("Leave Application")
+    LeaveType = frappe.qb.DocType("Leave Type")
+
+    query = (
+        frappe.qb.from_(LeaveApplication)
+        .join(LeaveType)
+        .on(LeaveApplication.leave_type == LeaveType.name)
+        .select(
+            LeaveApplication.from_date,
+            LeaveApplication.to_date,
+            LeaveApplication.half_day,
+            LeaveApplication.half_day_date,
+            LeaveApplication.total_leave_days,
+            LeaveApplication.name,
+            LeaveApplication.leave_type,
+            LeaveType.is_lwp,
+        )
+    )
+    if isinstance(employee, tuple):
+        query = query.where(LeaveApplication.employee.isin(employee))
+    else:
+        query = query.where(LeaveApplication.employee == employee)
+    query = (
+        query.where(
+            ((LeaveApplication.from_date <= start_date) & (LeaveApplication.to_date >= start_date))
+            | ((LeaveApplication.from_date >= start_date) & (LeaveApplication.to_date <= end_date))
+            | ((LeaveApplication.from_date <= end_date) & (LeaveApplication.to_date >= end_date))
+            | ((LeaveApplication.from_date <= start_date) & (LeaveApplication.to_date >= end_date))
+        )
+        .where((LeaveApplication.docstatus == 1) | (LeaveApplication.docstatus == 0))
+        .where((LeaveApplication.status == "Approved") | (LeaveApplication.status == "Open"))
+        .orderby(LeaveApplication.from_date)
+        .orderby(LeaveApplication.to_date)
+    )
+
+    results = query.run(as_dict=True)
+
+    return results
 
 
 def get_allocation_worked_hours_for_given_employee(project: str, employee: str, start_date: str, end_date: str):
