@@ -31,8 +31,20 @@ import type { cellProps } from "./types";
  * @param {string} props.className - Class name for the cell
  */
 
-export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }: cellProps) => {
-  const { hours, description, isTimeBothBillableAndNonBillable, isTimeBillable } = useMemo(() => {
+export const Cell = ({
+  date,
+  data,
+  isHoliday,
+  onCellClick,
+  disabled,
+  className,
+}: cellProps) => {
+  const {
+    hours,
+    description,
+    isTimeBothBillableAndNonBillable,
+    isTimeBillable,
+  } = useMemo(() => {
     let hours = 0;
     let description = "";
     let isTimeBothBillableAndNonBillable = false;
@@ -40,17 +52,37 @@ export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }
 
     if (data) {
       hours = data.reduce((sum, item) => sum + (item.hours || 0), 0);
-      description = data.reduce((desc, item) => desc + (item.description ? item.description + "\n" : ""), "").trim();
+      description = data
+        .reduce(
+          (desc, item) =>
+            desc + (item.description ? item.description + "\n" : ""),
+          "",
+        )
+        .trim();
       isTimeBothBillableAndNonBillable =
-        data.some((item) => item.is_billable === false || item.is_billable === 0) &&
-        data.some((item) => item.is_billable === true || item.is_billable === 1);
-      isTimeBillable = data.every((item) => item.is_billable === true || item.is_billable === 1);
+        data.some(
+          (item) => item.is_billable === false || item.is_billable === 0,
+        ) &&
+        data.some(
+          (item) => item.is_billable === true || item.is_billable === 1,
+        );
+      isTimeBillable = data.every(
+        (item) => item.is_billable === true || item.is_billable === 1,
+      );
     }
 
-    return { hours, description, isTimeBothBillableAndNonBillable, isTimeBillable };
+    return {
+      hours,
+      description,
+      isTimeBothBillableAndNonBillable,
+      isTimeBillable,
+    };
   }, [data]);
 
-  const isDisabled = useMemo(() => disabled || data?.[0]?.docstatus === 1, [disabled, data]);
+  const isDisabled = useMemo(
+    () => disabled || data?.[0]?.docstatus === 1,
+    [disabled, data],
+  );
 
   const handleClick = useCallback(() => {
     if (isDisabled) return;
@@ -75,31 +107,43 @@ export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }
           isDisabled && "cursor-default",
           "hover:h-full hover:bg-accent hover:cursor-pointer",
           getBgCsssForToday(date),
-          className
+          className,
         )}
       >
-        <HoverCardTrigger className={mergeClassNames(isDisabled && "cursor-default")}>
+        <HoverCardTrigger
+          className={mergeClassNames(isDisabled && "cursor-default")}
+        >
           <span className="flex flex-col items-center justify-center ">
             <Typography
               variant="p"
               className={mergeClassNames(
-                isHoliday || (isDisabled && "text-slate-400 dark:text-primary/50"),
-                !hours && !isDisabled && "group-hover:hidden"
+                isHoliday ||
+                  (isDisabled && "text-slate-400 dark:text-primary/50"),
+                !hours && !isDisabled && "group-hover:hidden",
               )}
             >
               {hours > 0 ? floatToTime(hours) : "-"}
             </Typography>
             {(isTimeBothBillableAndNonBillable || isTimeBillable) && (
               <CircleDollarSign
-                className={mergeClassNames(!isDisabled && "group-hover:hidden", isTimeBillable && "stroke-success")}
+                className={mergeClassNames(
+                  !isDisabled && "group-hover:hidden",
+                  isTimeBillable && "stroke-success",
+                )}
               />
             )}
             <PencilLine
-              className={mergeClassNames("text-center hidden", hours > 0 && !isDisabled && "group-hover:block")}
+              className={mergeClassNames(
+                "text-center hidden",
+                hours > 0 && !isDisabled && "group-hover:block",
+              )}
               size={16}
             />
             <CirclePlus
-              className={mergeClassNames("text-center hidden", !hours && !isDisabled && "group-hover:block ")}
+              className={mergeClassNames(
+                "text-center hidden",
+                !hours && !isDisabled && "group-hover:block ",
+              )}
               size={16}
             />
           </span>
@@ -109,7 +153,12 @@ export const Cell = ({ date, data, isHoliday, onCellClick, disabled, className }
             className="text-left whitespace-pre text-wrap w-full max-w-96 max-h-52 overflow-auto hover-content p-0"
             onClick={(e) => e.stopPropagation()}
           >
-            <TextEditor onChange={() => {}} hideToolbar={true} readOnly={true} value={description} />
+            <TextEditor
+              onChange={() => {}}
+              hideToolbar={true}
+              readOnly={true}
+              value={description}
+            />
           </HoverCardContent>
         )}
       </TableCell>

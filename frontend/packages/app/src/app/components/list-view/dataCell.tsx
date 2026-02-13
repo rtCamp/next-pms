@@ -1,7 +1,11 @@
 /**
  * External dependencies
  */
-import { Typography, Badge, Progress } from "@next-pms/design-system/components";
+import {
+  Typography,
+  Badge,
+  Progress,
+} from "@next-pms/design-system/components";
 import { getUTCDateTime } from "@next-pms/design-system/date";
 
 /**
@@ -36,7 +40,14 @@ const SUCCESS_SELECT_VALUES = [
   "Approved",
   "Yes",
 ];
-const FAIL_SELECT_VALUES = ["Failed", "Cancelled", "Rejected", "Inactive", "Disabled", "No"];
+const FAIL_SELECT_VALUES = [
+  "Failed",
+  "Cancelled",
+  "Rejected",
+  "Inactive",
+  "Disabled",
+  "No",
+];
 const OPEN_SELECT_VALUES = ["Open", "Pending", "Draft", "Not Started"];
 
 interface DataCellProps {
@@ -48,13 +59,23 @@ interface DataCellProps {
   value: string;
   currency?: string;
 }
-export const DataCell = ({ meta, title_field, docType, row, value, currency }: DataCellProps) => {
+export const DataCell = ({
+  meta,
+  title_field,
+  docType,
+  row,
+  value,
+  currency,
+}: DataCellProps) => {
   if (!meta) return;
   if (NO_VALUE_FIELDS.includes(meta.fieldtype)) return;
 
   if (meta.fieldtype === "Link") {
     return (
-      <a href={`/app/${meta.options?.toLowerCase().replace(/ /g, "-")}/${value}`} className="hover:underline">
+      <a
+        href={`/app/${meta.options?.toLowerCase().replace(/ /g, "-")}/${value}`}
+        className="hover:underline"
+      >
         <Typography variant="p" className="truncate" title={value}>
           {value}
         </Typography>
@@ -62,13 +83,18 @@ export const DataCell = ({ meta, title_field, docType, row, value, currency }: D
     );
   } else if (meta.fieldtype === "Currency") {
     const formatter = currencyFormat(
-      currency ? currency : row.original?.custom_currency ?? row.original?.currency ?? "INR"
+      currency
+        ? currency
+        : (row.original?.custom_currency ?? row.original?.currency ?? "INR"),
     );
     const val = Number(value);
     return (
       <Typography
         variant="p"
-        className={mergeClassNames("truncate text-right", val < 0 && "text-destructive")}
+        className={mergeClassNames(
+          "truncate text-right",
+          val < 0 && "text-destructive",
+        )}
         title={val.toString()}
       >
         {formatter.format(val)}
@@ -94,7 +120,12 @@ export const DataCell = ({ meta, title_field, docType, row, value, currency }: D
         >
           {per}%
         </Typography>
-        <Progress className="h-2" indicatorClassName={mergeClassNames(color)} value={per} title={per.toString()} />
+        <Progress
+          className="h-2"
+          indicatorClassName={mergeClassNames(color)}
+          value={per}
+          title={per.toString()}
+        />
       </span>
     );
   } else if (NUMBER_FIELDS.includes(meta.fieldtype)) {
@@ -106,7 +137,10 @@ export const DataCell = ({ meta, title_field, docType, row, value, currency }: D
     );
   } else if (meta.fieldname === title_field && row.original.includes("name")) {
     return (
-      <a href={`/app/${docType}/${row.original.name}`} className="hover:underline">
+      <a
+        href={`/app/${docType}/${row.original.name}`}
+        className="hover:underline"
+      >
         <Typography variant="p" className="truncate" title={value}>
           {value}
         </Typography>
@@ -117,7 +151,10 @@ export const DataCell = ({ meta, title_field, docType, row, value, currency }: D
       if (!value) return null;
       return (
         <Badge
-          className={mergeClassNames("truncate", "bg-success/20 text-success hover:bg-success/20")}
+          className={mergeClassNames(
+            "truncate",
+            "bg-success/20 text-success hover:bg-success/20",
+          )}
           variant="success"
         >
           {value}
@@ -127,7 +164,10 @@ export const DataCell = ({ meta, title_field, docType, row, value, currency }: D
       if (!value) return null;
       return (
         <Badge
-          className={mergeClassNames("truncate", "bg-destructive/20 text-destructive hover:bg-destructive/20")}
+          className={mergeClassNames(
+            "truncate",
+            "bg-destructive/20 text-destructive hover:bg-destructive/20",
+          )}
           variant="destructive"
         >
           {value}
@@ -137,7 +177,10 @@ export const DataCell = ({ meta, title_field, docType, row, value, currency }: D
       if (!value) return null;
       return (
         <Badge
-          className={mergeClassNames("truncate", "bg-warning/20 text-warning hover:bg-warning/20")}
+          className={mergeClassNames(
+            "truncate",
+            "bg-warning/20 text-warning hover:bg-warning/20",
+          )}
           variant="warning"
         >
           {value}
@@ -146,7 +189,12 @@ export const DataCell = ({ meta, title_field, docType, row, value, currency }: D
     } else {
       if (!value) return null;
       return (
-        <Badge className={mergeClassNames("truncate", selectBadgeColor(value, meta.options?.split("\n") ?? []))}>
+        <Badge
+          className={mergeClassNames(
+            "truncate",
+            selectBadgeColor(value, meta.options?.split("\n") ?? []),
+          )}
+        >
           {value}
         </Badge>
       );
@@ -160,7 +208,7 @@ export const DataCell = ({ meta, title_field, docType, row, value, currency }: D
           "truncate",
           val === 1
             ? "bg-success/20 text-success hover:bg-success/20"
-            : "bg-destructive/20 text-destructive hover:bg-destructive/20"
+            : "bg-destructive/20 text-destructive hover:bg-destructive/20",
         )}
         variant={val === 1 ? "success" : "destructive"}
         title={value}
@@ -170,7 +218,11 @@ export const DataCell = ({ meta, title_field, docType, row, value, currency }: D
     );
   } else {
     return (
-      <Typography variant="p" className={mergeClassNames("truncate", leftAlignCss(meta.fieldtype))} title={value}>
+      <Typography
+        variant="p"
+        className={mergeClassNames("truncate", leftAlignCss(meta.fieldtype))}
+        title={value}
+      >
         {value}
       </Typography>
     );
@@ -187,7 +239,11 @@ const leftAlignCss = (fieldType: string) => {
 };
 
 const progressBarColor = (value: number) => {
-  return value < 34 ? "bg-destructive" : value < 67 ? "bg-warning" : "bg-success";
+  return value < 34
+    ? "bg-destructive"
+    : value < 67
+      ? "bg-warning"
+      : "bg-success";
 };
 
 const selectBadgeColor = (value: string, options: Array<string>) => {
@@ -203,10 +259,13 @@ const selectBadgeColor = (value: string, options: Array<string>) => {
     "bg-gray-600/20 text-gray-900 dark:bg-primary/70",
   ];
 
-  const colorMap = options.reduce((acc, option, index) => {
-    acc[option] = colors[index % colors.length];
-    return acc;
-  }, {} as Record<string, string>);
+  const colorMap = options.reduce(
+    (acc, option, index) => {
+      acc[option] = colors[index % colors.length];
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
 
   return colorMap[value] || "bg-black";
 };

@@ -18,13 +18,19 @@ import type { HeaderProps } from "./types";
 
 export const Header = ({ homeState, dispatch, viewData }: HeaderProps) => {
   const [employeeNameParam] = useQueryParam<string>("employee-name", "");
-  const [employeeStatusParam] = useQueryParam<Array<string>>("status", viewData.filters.status ?? []);
+  const [employeeStatusParam] = useQueryParam<Array<string>>(
+    "status",
+    viewData.filters.status ?? [],
+  );
   const { toast } = useToast();
 
   useEffect(() => {
     const payload = {
       employeeName: employeeNameParam || viewData.filters.employeeName,
-      status: employeeStatusParam && employeeStatusParam.length > 0 ? employeeStatusParam : viewData.filters.status,
+      status:
+        employeeStatusParam && employeeStatusParam.length > 0
+          ? employeeStatusParam
+          : viewData.filters.status,
     };
     dispatch({ type: "SET_FILTERS", payload });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -34,7 +40,7 @@ export const Header = ({ homeState, dispatch, viewData }: HeaderProps) => {
     (text: string) => {
       dispatch({ type: "SET_EMPLOYEE_NAME", payload: text.trim() });
     },
-    [dispatch]
+    [dispatch],
   );
 
   const handleStatusChange = useCallback(
@@ -42,7 +48,7 @@ export const Header = ({ homeState, dispatch, viewData }: HeaderProps) => {
       const normalizedFilters = Array.isArray(filters) ? filters : [filters];
       dispatch({ type: "SET_STATUS", payload: normalizedFilters });
     },
-    [dispatch]
+    [dispatch],
   );
 
   const handleprevWeek = useCallback(() => {
@@ -56,11 +62,14 @@ export const Header = ({ homeState, dispatch, viewData }: HeaderProps) => {
   }, [dispatch, homeState.weekDate]);
 
   const { call: updateView } = useFrappePostCall(
-    "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view"
+    "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view",
   );
 
   useEffect(() => {
-    const viewFilters = { status: homeState.status, employeeName: homeState.employeeName };
+    const viewFilters = {
+      status: homeState.status,
+      employeeName: homeState.employeeName,
+    };
     if (!_.isEqual(viewData.filters, viewFilters)) {
       dispatch({ type: "SET_HAS_VIEW_UPDATED", payload: true });
     } else {
@@ -69,7 +78,10 @@ export const Header = ({ homeState, dispatch, viewData }: HeaderProps) => {
   }, [homeState.employeeName, homeState.status, viewData, dispatch]);
 
   const handleSaveChanges = () => {
-    const viewFilters = { status: homeState.status, employeeName: homeState.employeeName };
+    const viewFilters = {
+      status: homeState.status,
+      employeeName: homeState.employeeName,
+    };
     updateView({
       view: { ...viewData, filters: viewFilters },
     })

@@ -13,7 +13,12 @@ import {
   DropdownMenuSeparator,
   useToast,
 } from "@next-pms/design-system/components";
-import { useFrappeDeleteDoc, useFrappeUpdateDoc, FrappeContext, FrappeConfig } from "frappe-react-sdk";
+import {
+  useFrappeDeleteDoc,
+  useFrappeUpdateDoc,
+  FrappeContext,
+  FrappeConfig,
+} from "frappe-react-sdk";
 import { Download, EllipsisVertical, Plus, Trash2, Globe } from "lucide-react";
 /**
  * Internal dependencies
@@ -50,7 +55,9 @@ const Action = ({ docType, exportProps, viewProps }: ActionProps) => {
 
   const fetchAllViews = async () => {
     try {
-      const response = await call.post("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.get_views");
+      const response = await call.post(
+        "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.get_views",
+      );
       dispatch(setViews(response.message));
     } catch (error) {
       console.error("Error fetching views:", error);
@@ -102,7 +109,12 @@ const Action = ({ docType, exportProps, viewProps }: ActionProps) => {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="h-10 px-2 " aria-label="More actions">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-10 px-2 "
+            aria-label="More actions"
+          >
             <EllipsisVertical className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
@@ -167,7 +179,14 @@ const Action = ({ docType, exportProps, viewProps }: ActionProps) => {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {exportDialog && <Export doctype={docType} isOpen={exportDialog} setIsOpen={setExportDialog} {...exportProps} />}
+      {exportDialog && (
+        <Export
+          doctype={docType}
+          isOpen={exportDialog}
+          setIsOpen={setExportDialog}
+          {...exportProps}
+        />
+      )}
 
       {createViewDialog && (
         <CreateView

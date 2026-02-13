@@ -1,7 +1,12 @@
 /**
  * External dependencies.
  */
-import { Avatar, AvatarFallback, AvatarImage, Typography } from "@next-pms/design-system/components";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  Typography,
+} from "@next-pms/design-system/components";
 import { format, isYesterday, isToday } from "date-fns";
 
 interface LastUpdatedProps {
@@ -19,7 +24,12 @@ interface LastUpdatedProps {
  * @param avatar User image string .
  * @returns React.FC
  */
-const LastUpdatedInfo = ({ userName, timestamp, avatar, newDoc = false }: LastUpdatedProps) => {
+const LastUpdatedInfo = ({
+  userName,
+  timestamp,
+  avatar,
+  newDoc = false,
+}: LastUpdatedProps) => {
   const initials = userName
     .split(" ")
     .filter(Boolean)
@@ -43,7 +53,11 @@ const LastUpdatedInfo = ({ userName, timestamp, avatar, newDoc = false }: LastUp
         <AvatarFallback>{initials}</AvatarFallback>
       </Avatar>
       <div className="flex flex-col mt-1 items-start w-full">
-        <Typography title={userName} variant="p" className="cursor-pointer font-medium text-[11.5px] truncate w-4/5 ">
+        <Typography
+          title={userName}
+          variant="p"
+          className="cursor-pointer font-medium text-[11.5px] truncate w-4/5 "
+        >
           {userName}
         </Typography>
         <div className="flex items-center gap-1.5">

@@ -9,8 +9,18 @@ import { mergeClassNames } from "@/lib/utils";
  */
 import { InfiniteScrollProps } from "./types";
 
-const InfiniteScroll = ({ children, isLoading, hasMore, verticalLodMore, className }: InfiniteScrollProps) => {
-  const verticalLoderRef = useInfiniteScroll({ isLoading: isLoading, hasMore: hasMore, next: () => verticalLodMore() });
+const InfiniteScroll = ({
+  children,
+  isLoading,
+  hasMore,
+  verticalLodMore,
+  className,
+}: InfiniteScrollProps) => {
+  const verticalLoderRef = useInfiniteScroll({
+    isLoading: isLoading,
+    hasMore: hasMore,
+    next: () => verticalLodMore(),
+  });
 
   return (
     <div>
@@ -18,7 +28,10 @@ const InfiniteScroll = ({ children, isLoading, hasMore, verticalLodMore, classNa
       {hasMore && (
         <div
           ref={verticalLoderRef}
-          className={mergeClassNames("flex flex-col items-start w-screen sticky left-0 h-30", className)}
+          className={mergeClassNames(
+            "flex flex-col items-start w-screen sticky left-0 h-30",
+            className,
+          )}
         >
           <Skeleton className="h-10 w-full rounded-none" />
         </div>

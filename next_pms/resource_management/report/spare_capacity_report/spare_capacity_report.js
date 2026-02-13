@@ -55,9 +55,12 @@ frappe.query_reports["Spare Capacity Report"] = {
           value = `<span style="font-weight: bold;"></span>`;
         }
         if (
-          ["available_capacity", "monthly_salary", "actual_unbilled_cost", "percentage_capacity_available"].includes(
-            column.id
-          ) &&
+          [
+            "available_capacity",
+            "monthly_salary",
+            "actual_unbilled_cost",
+            "percentage_capacity_available",
+          ].includes(column.id) &&
           !aggregate
         ) {
           value = `<span style="font-weight: bold;"></span>`;
@@ -103,7 +106,9 @@ const setup_filters = () => {
     let meta = frappe.get_meta(employeeDoctype);
     const fields = meta.fields;
 
-    const statusField = fields.find((field) => field.fieldtype === "Select" && field.fieldname === "status");
+    const statusField = fields.find(
+      (field) => field.fieldtype === "Select" && field.fieldname === "status",
+    );
     if (statusField) {
       frappe.query_reports["Spare Capacity Report"].filters.push({
         fieldname: "status",
@@ -115,7 +120,9 @@ const setup_filters = () => {
       });
     }
 
-    const buField = fields.find((field) => field.fieldtype === "Link" && field.options === buDoctype);
+    const buField = fields.find(
+      (field) => field.fieldtype === "Link" && field.options === buDoctype,
+    );
     if (buField) {
       frappe.query_reports["Spare Capacity Report"].filters.push({
         fieldname: "business_unit",

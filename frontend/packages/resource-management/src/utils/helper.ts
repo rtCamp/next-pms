@@ -7,7 +7,7 @@
  */
 const getFilterValue = (
   value: string | number | undefined | boolean,
-  lenght: number = 20
+  lenght: number = 20,
 ): string | number | boolean | undefined => {
   if (typeof value !== "string") {
     return value;

@@ -4,19 +4,30 @@
 import { useMemo } from "react";
 import { prettyDate } from "@next-pms/design-system/date";
 import { ResourceTableCell } from "@next-pms/resource-management/components";
-import { getTableCellClass, getTodayDateCellClass, getCellBackGroundColor } from "@next-pms/resource-management/utils";
+import {
+  getTableCellClass,
+  getTodayDateCellClass,
+  getCellBackGroundColor,
+} from "@next-pms/resource-management/utils";
 import { useContextSelector } from "use-context-selector";
 
 /**
  * Internal dependencies.
  */
 import { mergeClassNames } from "@/lib/utils";
-import type { ResourceAllocationObjectProps, ResourceAllocationProps } from "@/types/resource_management";
+import type {
+  ResourceAllocationObjectProps,
+  ResourceAllocationProps,
+} from "@/types/resource_management";
 import { EmptyTableCell } from "../../../components/empty";
 import { ResourceAllocationList } from "../../../components/resource-allocation-list/resourceAllocationList";
 import { ProjectContext } from "../../../store/projectContext";
 import { ResourceFormContext } from "../../../store/resourceFormContext";
-import type { AllocationDataProps, ProjectAllWeekDataProps, ProjectResourceProps } from "../../../store/types";
+import type {
+  AllocationDataProps,
+  ProjectAllWeekDataProps,
+  ProjectResourceProps,
+} from "../../../store/types";
 import { getIsBillableValue } from "../../../utils/helper";
 
 /**
@@ -51,26 +62,42 @@ const ResourceProjectTableCell = ({
   projectAllocations: ResourceAllocationObjectProps;
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const { projectData, tableView, filters } = useContextSelector(ProjectContext, (value) => value.state);
+  const { projectData, tableView, filters } = useContextSelector(
+    ProjectContext,
+    (value) => value.state,
+  );
 
   const customer = projectData.customer;
   const allocationType = filters.allocationType;
 
-  const { updateAllocationData, updateDialogState } = useContextSelector(ResourceFormContext, (value) => value.actions);
+  const { updateAllocationData, updateDialogState } = useContextSelector(
+    ResourceFormContext,
+    (value) => value.actions,
+  );
 
   const allocationPercentage = useMemo(() => {
     if (tableView.combineWeekHours) {
       if (allWeekData[midIndex].total_allocated_hours == 0) {
         return -1;
       }
-      return 100 - (allWeekData[midIndex].total_worked_hours / allWeekData[midIndex].total_allocated_hours) * 100;
+      return (
+        100 -
+        (allWeekData[midIndex].total_worked_hours /
+          allWeekData[midIndex].total_allocated_hours) *
+          100
+      );
     }
 
     if (projectSingleDay.total_allocated_hours == 0) {
       return -1;
     }
 
-    return 100 - (projectSingleDay.total_worked_hours / projectSingleDay.total_allocated_hours) * 100;
+    return (
+      100 -
+      (projectSingleDay.total_worked_hours /
+        projectSingleDay.total_allocated_hours) *
+        100
+    );
   }, [
     allWeekData,
     midIndex,
@@ -154,7 +181,7 @@ const ResourceProjectTableCell = ({
         cellClassName={mergeClassNames(
           getTableCellClass(rowCount, midIndex),
           cellBackGroundColor,
-          getTodayDateCellClass(projectSingleDay.date)
+          getTodayDateCellClass(projectSingleDay.date),
         )}
         value={cellValue}
       />
@@ -168,7 +195,7 @@ const ResourceProjectTableCell = ({
         cellClassName={mergeClassNames(
           getTableCellClass(rowCount, midIndex),
           cellBackGroundColor,
-          getTodayDateCellClass(projectSingleDay.date)
+          getTodayDateCellClass(projectSingleDay.date),
         )}
         value={""}
         onCellClick={onCellClick}
@@ -183,7 +210,7 @@ const ResourceProjectTableCell = ({
       cellClassName={mergeClassNames(
         getTableCellClass(rowCount, midIndex),
         cellBackGroundColor,
-        getTodayDateCellClass(projectSingleDay.date)
+        getTodayDateCellClass(projectSingleDay.date),
       )}
       value={cellValue}
       CustomHoverCardContent={() => {

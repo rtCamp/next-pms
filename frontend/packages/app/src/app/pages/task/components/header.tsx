@@ -33,7 +33,9 @@ export const Header = ({
   const dispatch = useDispatch();
 
   // frappe-call for updating view
-  const { call } = useFrappePostCall("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view");
+  const { call } = useFrappePostCall(
+    "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view",
+  );
 
   // Handle save changes
   const handleSaveChanges = () => {
@@ -63,16 +65,22 @@ export const Header = ({
   const handleProjectChange = useCallback(
     (filters: string | string[]) => {
       const normalizedFilters = Array.isArray(filters) ? filters : [filters];
-      taskDispatch({ type: "SET_SELECTED_PROJECT", payload: normalizedFilters });
+      taskDispatch({
+        type: "SET_SELECTED_PROJECT",
+        payload: normalizedFilters,
+      });
     },
-    [taskDispatch]
+    [taskDispatch],
   );
   const handleStatusChange = useCallback(
     (filters: string | string[]) => {
       const normalizedFilters = Array.isArray(filters) ? filters : [filters];
-      taskDispatch({ type: "SET_SELECTED_STATUS", payload: normalizedFilters as TaskStatusType[] });
+      taskDispatch({
+        type: "SET_SELECTED_STATUS",
+        payload: normalizedFilters as TaskStatusType[],
+      });
     },
-    [taskDispatch]
+    [taskDispatch],
   );
   const filters = [
     {
@@ -150,7 +158,9 @@ export const Header = ({
       totalCount: taskState.total_count,
       orderBy: `${taskState.orderColumn}  ${taskState.order}`,
       fields: columnOrder.reduce((acc: { [key: string]: string }, value) => {
-        const m = meta.fields.find((field: { fieldname: string }) => field.fieldname === value);
+        const m = meta.fields.find(
+          (field: { fieldname: string }) => field.fieldname === value,
+        );
         if (m) {
           acc[value] = m?.label ?? value;
         }

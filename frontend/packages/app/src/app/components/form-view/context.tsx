@@ -3,7 +3,7 @@
  */
 import { createContext, ReactNode, useContext, useState } from "react";
 
-type MutateFn = (...args: any[]) => void;
+type MutateFn = (...args: unknown[]) => void;
 
 interface FormContextType {
   docname: string;
@@ -26,7 +26,16 @@ export const FormContextProvider = ({ children }: MyProviderProps) => {
   const [mutateData, setMutateData] = useState<MutateFn | null>(null);
 
   return (
-    <FormContext.Provider value={{ docname, setDocname, doctype, setDoctype, mutateData, setMutateData }}>
+    <FormContext.Provider
+      value={{
+        docname,
+        setDocname,
+        doctype,
+        setDoctype,
+        mutateData,
+        setMutateData,
+      }}
+    >
       {children}
     </FormContext.Provider>
   );

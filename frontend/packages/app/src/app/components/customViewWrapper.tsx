@@ -22,7 +22,11 @@ type CustomViewWrapperProps = {
   children: (props: { viewData: ViewData }) => JSX.Element;
 };
 
-const CustomViewWrapper = ({ label, createFilter, children }: CustomViewWrapperProps) => {
+const CustomViewWrapper = ({
+  label,
+  createFilter,
+  children,
+}: CustomViewWrapperProps) => {
   const { pathname } = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const views = useSelector((state: RootState) => state.view);
@@ -35,11 +39,15 @@ const CustomViewWrapper = ({ label, createFilter, children }: CustomViewWrapperP
   const view = searchParams.get("view");
 
   const userViews = useMemo(() => {
-    return views.views.filter((v) => v.route === pathname && v.user === user.user);
+    return views.views.filter(
+      (v) => v.route === pathname && v.user === user.user,
+    );
   }, [views, pathname, user]);
 
   useEffect(() => {
-    let viewInfo = view ? views.views.find((v) => v.name === view) : userViews.find((v) => v.default);
+    let viewInfo = view
+      ? views.views.find((v) => v.name === view)
+      : userViews.find((v) => v.default);
 
     if (!viewInfo) {
       searchParams.delete("view");
@@ -51,9 +59,12 @@ const CustomViewWrapper = ({ label, createFilter, children }: CustomViewWrapperP
       const defaultView = getDefaultView(label, "", pathname, createFilter);
 
       call
-        .post("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.create_view", {
-          view: defaultView,
-        })
+        .post(
+          "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.create_view",
+          {
+            view: defaultView,
+          },
+        )
         .then((res) => {
           dispatch(setViews(res.message));
         })

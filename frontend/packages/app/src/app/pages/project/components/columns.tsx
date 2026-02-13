@@ -3,7 +3,11 @@
  * External dependencies.
  */
 import { NavigateFunction } from "react-router-dom";
-import { Typography, Badge, Progress } from "@next-pms/design-system/components";
+import {
+  Typography,
+  Badge,
+  Progress,
+} from "@next-pms/design-system/components";
 import { floatToTime } from "@next-pms/design-system/utils";
 /**
  * Internal dependencies.
@@ -13,7 +17,11 @@ import { mergeClassNames } from "@/lib/utils";
 import type { FieldMeta } from "../types";
 import { getValidUserTagsValues } from "../utils";
 
-const HOUR_FIELD = ["actual_time", "custom_total_hours_purchased", "custom_total_hours_remaining"];
+const HOUR_FIELD = [
+  "actual_time",
+  "custom_total_hours_purchased",
+  "custom_total_hours_remaining",
+];
 
 export const getColumnInfo = (
   fieldMeta: FieldMeta["fields"],
@@ -22,7 +30,7 @@ export const getColumnInfo = (
   title_field: string,
   docType: string,
   currency: string,
-  navigate: NavigateFunction
+  navigate: NavigateFunction,
 ) => {
   const columns = [];
 
@@ -44,7 +52,10 @@ export const getColumnInfo = (
 
         if (meta.fieldtype === "Link") {
           return (
-            <a href={`/app/${meta?.options?.toLowerCase().replace(/ /g, "-")}/${value}`} className="hover:underline">
+            <a
+              href={`/app/${meta?.options?.toLowerCase().replace(/ /g, "-")}/${value}`}
+              className="hover:underline"
+            >
               <Typography variant="p" className="truncate" title={value}>
                 {value}
               </Typography>
@@ -58,7 +69,10 @@ export const getColumnInfo = (
             <span>
               <Typography
                 variant="small"
-                className={mergeClassNames("truncate", per < 0 && "text-destructive")}
+                className={mergeClassNames(
+                  "truncate",
+                  per < 0 && "text-destructive",
+                )}
                 title={per.toString()}
               >
                 {per}%
@@ -86,10 +100,16 @@ export const getColumnInfo = (
                 value === "Open"
                   ? "bg-warning/20 text-warning hover:bg-warning/20"
                   : value === "Completed"
-                  ? "bg-success/20 text-success hover:bg-success/20"
-                  : "bg-destructive/20 text-destructive hover:bg-destructive/20"
+                    ? "bg-success/20 text-success hover:bg-success/20"
+                    : "bg-destructive/20 text-destructive hover:bg-destructive/20",
               )}
-              variant={value === "Open" ? "warning" : value === "Completed" ? "success" : "destructive"}
+              variant={
+                value === "Open"
+                  ? "warning"
+                  : value === "Completed"
+                    ? "success"
+                    : "destructive"
+              }
             >
               {value}
             </Badge>
@@ -102,10 +122,16 @@ export const getColumnInfo = (
                 value === "Low"
                   ? "bg-success/20 text-success hover:bg-success/20"
                   : value === "Medium"
-                  ? "bg-warning/20 text-warning hover:bg-warning/20"
-                  : "bg-destructive/20 text-destructive hover:bg-destructive/20"
+                    ? "bg-warning/20 text-warning hover:bg-warning/20"
+                    : "bg-destructive/20 text-destructive hover:bg-destructive/20",
               )}
-              variant={value === "Low" ? "success" : value === "Medium" ? "warning" : "destructive"}
+              variant={
+                value === "Low"
+                  ? "success"
+                  : value === "Medium"
+                    ? "warning"
+                    : "destructive"
+              }
             >
               {value}
             </Badge>
@@ -154,7 +180,10 @@ export const getColumnInfo = (
       const tags = getValidUserTagsValues(getValue());
 
       return (
-        <div title={tags?.join(", ")} className="no-scrollbar w-full flex gap-1 overflow-x-auto">
+        <div
+          title={tags?.join(", ")}
+          className="no-scrollbar w-full flex gap-1 overflow-x-auto"
+        >
           {tags.map((tag) => (
             <Badge
               key={tag}
@@ -172,13 +201,30 @@ export const getColumnInfo = (
   return columns;
 };
 
-const progressBarColor = (field: string, fieldInfo: Array<string>, row: any, value: number) => {
-  if (field == "custom_percentage_estimated_cost" && fieldInfo.includes("percent_complete")) {
+const progressBarColor = (
+  field: string,
+  fieldInfo: Array<string>,
+  row: any,
+  value: number,
+) => {
+  if (
+    field == "custom_percentage_estimated_cost" &&
+    fieldInfo.includes("percent_complete")
+  ) {
     const perEstimatedCost = row.original["custom_percentage_estimated_cost"];
     const percentComplete = row.original["percent_complete"];
-    const diff = ((percentComplete - perEstimatedCost) / perEstimatedCost) * 100;
-    return perEstimatedCost < percentComplete ? "bg-success" : diff > 0 && diff <= 10 ? "bg-warning" : "bg-destructive";
+    const diff =
+      ((percentComplete - perEstimatedCost) / perEstimatedCost) * 100;
+    return perEstimatedCost < percentComplete
+      ? "bg-success"
+      : diff > 0 && diff <= 10
+        ? "bg-warning"
+        : "bg-destructive";
   } else {
-    return value < 34 ? "bg-destructive" : value < 67 ? "bg-warning" : "bg-success";
+    return value < 34
+      ? "bg-destructive"
+      : value < 67
+        ? "bg-warning"
+        : "bg-success";
   }
 };

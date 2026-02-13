@@ -30,7 +30,10 @@ export const SubmitButton = ({
   const handleClick = () => {
     onApproval?.(start_date, end_date);
   };
-  const expectedWeeklyHours = calculateWeeklyHour(expectedHours, workingFrequency);
+  const expectedWeeklyHours = calculateWeeklyHour(
+    expectedHours,
+    workingFrequency,
+  );
   return (
     <Button
       variant="ghost"
@@ -46,7 +49,7 @@ export const SubmitButton = ({
           "bg-warning/20 text-warning hover:bg-warning/20 hover:text-warning  border border-warning/30",
         status == "Not Submitted" &&
           totalHours >= expectedWeeklyHours &&
-          "bg-yellow-50 text-yellow-600 hover:bg-yellow-50 hover:text-yellow-600 dark:bg-yellow-400/20 border border-yellow-600"
+          "bg-yellow-50 text-yellow-600 hover:bg-yellow-50 hover:text-yellow-600 dark:bg-yellow-400/20 border border-yellow-600",
       )}
       onClick={(e) => {
         e.stopPropagation();
@@ -56,11 +59,17 @@ export const SubmitButton = ({
       }}
     >
       <span>
-        {(status == "Approved" || status == "Partially Approved") && <CircleCheck className="stroke-success" />}
-        {(status == "Rejected" || status == "Partially Rejected") && <CircleX className="stroke-destructive" />}
+        {(status == "Approved" || status == "Partially Approved") && (
+          <CircleCheck className="stroke-success" />
+        )}
+        {(status == "Rejected" || status == "Partially Rejected") && (
+          <CircleX className="stroke-destructive" />
+        )}
         {status == "Approval Pending" && <Clock3 className="stroke-warning" />}
         {status == "Not Submitted" && <CircleCheck className="" />}
-        {status == "Processing Timesheet" && <LoaderCircle className="stroke-warning animate-spin" />}
+        {status == "Processing Timesheet" && (
+          <LoaderCircle className="stroke-warning animate-spin" />
+        )}
         {status}
       </span>
     </Button>

@@ -26,10 +26,22 @@ export class TimesheetPage {
     this.page = page;
 
     // Column Index Map
-    this.dayIndexObj = { task: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6, sun: 7, total: 8 };
+    this.dayIndexObj = {
+      task: 0,
+      mon: 1,
+      tue: 2,
+      wed: 3,
+      thu: 4,
+      fri: 5,
+      sat: 6,
+      sun: 7,
+      total: 8,
+    };
 
     // Header Buttons
-    this.employeeButton = page.locator("//header//button[@aria-haspopup='dialog']");
+    this.employeeButton = page.locator(
+      "//header//button[@aria-haspopup='dialog']",
+    );
     this.leaveButton = page.getByRole("button", { name: "Leave" });
     this.timeButton = page.getByRole("button", { name: "Time" });
 
@@ -42,13 +54,16 @@ export class TimesheetPage {
       has: page.getByRole("button", { name: "Submit For Approval" }),
     });
 
-    this.addHours = (timeEntryCount) => page.locator(`//input[@name="${timeEntryCount}"]`);
+    this.addHours = (timeEntryCount) =>
+      page.locator(`//input[@name="${timeEntryCount}"]`);
 
     this.updateDescription = (timeSheetDescription) =>
       page.locator(
-        `//p[contains(text(),"${timeSheetDescription}")]//parent::div[@data-placeholder="Update your progress"]`
+        `//p[contains(text(),"${timeSheetDescription}")]//parent::div[@data-placeholder="Update your progress"]`,
       );
-    this.insertDescription = page.locator('div.ql-editor.ql-blank[data-placeholder="Update your progress"]');
+    this.insertDescription = page.locator(
+      'div.ql-editor.ql-blank[data-placeholder="Update your progress"]',
+    );
 
     // Review Timesheet Pane (Not a part of this page)
     this.reviewTimesheetPane = page.getByRole("dialog").filter({
@@ -58,18 +73,27 @@ export class TimesheetPage {
     });
 
     // Latest Timesheet Elements
-    this.latestTimesheetDiv = page.locator("//div[@data-orientation='vertical']").first();
-    this.latestTimesheetTitleDiv = this.latestTimesheetDiv.locator("//button[@data-orientation='vertical']");
+    this.latestTimesheetDiv = page
+      .locator("//div[@data-orientation='vertical']")
+      .first();
+    this.latestTimesheetTitleDiv = this.latestTimesheetDiv.locator(
+      "//button[@data-orientation='vertical']",
+    );
     this.latestTimesheetTable = this.latestTimesheetDiv.getByRole("table");
 
     //Success Banner : Deleted Time Entry
-    this.successBanner = page.locator(`//div[text()="Time entry deleted successfully."]`);
+    this.successBanner = page.locator(
+      `//div[text()="Time entry deleted successfully."]`,
+    );
 
     //Toast Notification
-    this.toastNotification = (notificationMessage) => page.locator(`//div[text()="${notificationMessage}"]`);
+    this.toastNotification = (notificationMessage) =>
+      page.locator(`//div[text()="${notificationMessage}"]`);
 
     //Timesheet Description
-    this.descriptionNewEntry = page.locator(`//div[@data-placeholder = "Explain your progress"]`);
+    this.descriptionNewEntry = page.locator(
+      `//div[@data-placeholder = "Explain your progress"]`,
+    );
   }
 
   // --------------------------------------
@@ -80,7 +104,9 @@ export class TimesheetPage {
    * Navigates to the timesheet page and waits for it to fully load.
    */
   async goto() {
-    await this.page.goto("/next-pms/timesheet", { waitUntil: "domcontentloaded" });
+    await this.page.goto("/next-pms/timesheet", {
+      waitUntil: "domcontentloaded",
+    });
   }
 
   /**
@@ -95,7 +121,9 @@ export class TimesheetPage {
    */
   async searchAndSelectOption(placeholder, value) {
     const searchButton = this.page.getByRole("button", { name: placeholder });
-    const searchInput = this.page.getByRole("dialog").getByPlaceholder(`${placeholder}`);
+    const searchInput = this.page
+      .getByRole("dialog")
+      .getByPlaceholder(`${placeholder}`);
 
     await searchButton.click();
     await searchInput.fill(value);
@@ -138,7 +166,9 @@ export class TimesheetPage {
    * Selects an employee and displays their timesheet.
    */
   async selectEmployee(name) {
-    const searchInput = this.page.getByRole("dialog").getByPlaceholder("Search Employee");
+    const searchInput = this.page
+      .getByRole("dialog")
+      .getByPlaceholder("Search Employee");
 
     await this.employeeButton.click();
     await searchInput.fill(name);
@@ -213,7 +243,9 @@ export class TimesheetPage {
    */
   async submitTimesheet() {
     await this.clickonTimesheetStatus();
-    await this.submitTimesheetModal.getByRole("button", { name: "Submit For Approval" }).click();
+    await this.submitTimesheetModal
+      .getByRole("button", { name: "Submit For Approval" })
+      .click();
   }
 
   // --------------------------------------
@@ -251,11 +283,16 @@ export class TimesheetPage {
       case "header":
         return this.latestTimesheetTable.locator("thead").getByRole("row");
       case "duration":
-        return this.latestTimesheetTable.locator("tbody").getByRole("row").first();
+        return this.latestTimesheetTable
+          .locator("tbody")
+          .getByRole("row")
+          .first();
       case "time off":
         return this.latestTimesheetTable.getByRole("row", { name: "Time Off" });
       case "new entry":
-        return this.latestTimesheetTable.locator("//tr[not(contains(@class, 'border-slate'))]").last();
+        return this.latestTimesheetTable
+          .locator("//tr[not(contains(@class, 'border-slate'))]")
+          .last();
       default:
         return this.latestTimesheetTable.getByRole("row", { name: rowName });
     }
@@ -302,7 +339,9 @@ export class TimesheetPage {
     // Iterate through each row to extract the task name from the first cell
     for (const row of await rows.all()) {
       const cell = row.getByRole("cell").first();
-      const task = await cell.locator("//span[@class='truncate']").textContent();
+      const task = await cell
+        .locator("//span[@class='truncate']")
+        .textContent();
       tasks.push(task);
     }
 
@@ -427,11 +466,14 @@ export class TimesheetPage {
   async deleteTimeRow(cellInfo, { desc }) {
     const cell = await this.getCell(cellInfo);
     const row = this.editTimeModal.locator(
-      `//p[contains(text(), '${desc}')]/ancestor::div[contains(@class, 'items-start')]`
+      `//p[contains(text(), '${desc}')]/ancestor::div[contains(@class, 'items-start')]`,
     );
 
     await this.openCell(cell);
-    await row.locator("//button[contains(@class,'bg-destructive')]").first().click();
+    await row
+      .locator("//button[contains(@class,'bg-destructive')]")
+      .first()
+      .click();
     //Assert : Banner to be displayed when a time entry is deleted
     await expect(this.successBanner).toBeVisible();
     await this.editTimeModal.getByRole("button", { name: "Close" }).click();
@@ -445,7 +487,9 @@ export class TimesheetPage {
    * Imports liked tasks into the timesheet by clicking the import button.
    */
   async importLikedTasks() {
-    const button = this.latestTimesheetTable.locator("//span[@title='Import liked tasks']");
+    const button = this.latestTimesheetTable.locator(
+      "//span[@title='Import liked tasks']",
+    );
     await this.page.waitForTimeout(2000);
     await button.waitFor({ state: "visible", timeout: 30000 });
     await button.click();
@@ -459,7 +503,9 @@ export class TimesheetPage {
    * Opens the details dialog of a specified task.
    */
   async openTaskDetails(task) {
-    const taskSpan = this.latestTimesheetTable.locator(`//span[@class='truncate' and text()='${task}']`);
+    const taskSpan = this.latestTimesheetTable.locator(
+      `//span[@class='truncate' and text()='${task}']`,
+    );
 
     await taskSpan.click();
     await this.page.waitForTimeout(2000);

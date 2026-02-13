@@ -6,7 +6,11 @@ import { useSelector, useDispatch } from "react-redux";
 import { useSearchParams } from "react-router-dom";
 import { Spinner } from "@next-pms/design-system/components";
 import { useToast } from "@next-pms/design-system/hooks";
-import { FrappeContext, FrappeConfig, useFrappeGetCall } from "frappe-react-sdk";
+import {
+  FrappeContext,
+  FrappeConfig,
+  useFrappeGetCall,
+} from "frappe-react-sdk";
 /**
  * Internal dependencies
  */
@@ -41,11 +45,15 @@ const ViewWrapper = ({ docType, children }: ViewWrapperProps) => {
     {
       revalidateIfStale: false,
       revalidateOnFocus: false,
-    }
+    },
   );
 
   const defaultFields = useMemo(() => {
-    return meta?.message?.default_fields?.map((field: { fieldname: string }) => field.fieldname) || [];
+    return (
+      meta?.message?.default_fields?.map(
+        (field: { fieldname: string }) => field.fieldname,
+      ) || []
+    );
   }, [meta]);
 
   const userViews = useMemo(() => {
@@ -54,7 +62,9 @@ const ViewWrapper = ({ docType, children }: ViewWrapperProps) => {
 
   useEffect(() => {
     if (!meta) return;
-    let viewInfo = view ? views.views.find((v) => v.name == view) : userViews.find((v) => v.default);
+    let viewInfo = view
+      ? views.views.find((v) => v.name == view)
+      : userViews.find((v) => v.default);
     if (!viewInfo) {
       searchParams.delete("view");
       setSearchParams(searchParams);
@@ -63,9 +73,17 @@ const ViewWrapper = ({ docType, children }: ViewWrapperProps) => {
 
     if (!viewInfo) {
       call
-        .post("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.create_view", {
-          view: getDefaultView(defaultFields, docType, docType, docType.toLowerCase()),
-        })
+        .post(
+          "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.create_view",
+          {
+            view: getDefaultView(
+              defaultFields,
+              docType,
+              docType,
+              docType.toLowerCase(),
+            ),
+          },
+        )
         .then((res) => {
           dispatch(setViews(res.message));
         })

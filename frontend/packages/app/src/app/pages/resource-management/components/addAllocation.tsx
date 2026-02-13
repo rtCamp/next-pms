@@ -30,7 +30,14 @@ import { getFormatedDate, getUTCDateTime } from "@next-pms/design-system/date";
 import { mergeClassNames } from "@next-pms/design-system/utils";
 import { endOfWeek, startOfWeek } from "date-fns";
 import { useFrappeGetCall, useFrappePostCall } from "frappe-react-sdk";
-import { CircleDollarSign, Clock3, LoaderCircle, Save, Search, X } from "lucide-react";
+import {
+  CircleDollarSign,
+  Clock3,
+  LoaderCircle,
+  Save,
+  Search,
+  X,
+} from "lucide-react";
 import { useContextSelector } from "use-context-selector";
 import { z } from "zod";
 
@@ -54,15 +61,22 @@ const AddResourceAllocations = ({
 }: {
   onSubmit: (oldData: AllocationDataProps, data: AllocationDataProps) => void;
 }) => {
-  const { allocationData: resourceAllocationForm, dialogState: resourceDialogState } = useContextSelector(
+  const {
+    allocationData: resourceAllocationForm,
+    dialogState: resourceDialogState,
+  } = useContextSelector(ResourceFormContext, (value) => value.state);
+
+  const { resetState } = useContextSelector(
     ResourceFormContext,
-    (value) => value.state
+    (value) => value.actions,
   );
 
-  const { resetState } = useContextSelector(ResourceFormContext, (value) => value.actions);
-
-  const [projectSearch, setProjectSearch] = useState(resourceAllocationForm.project_name);
-  const [customerSearch, setCustomerSearch] = useState(resourceAllocationForm.customer_name);
+  const [projectSearch, setProjectSearch] = useState(
+    resourceAllocationForm.project_name,
+  );
+  const [customerSearch, setCustomerSearch] = useState(
+    resourceAllocationForm.customer_name,
+  );
   const [enableRepeatOnWeek, setEnableRepeatOnWeek] = useState(false);
 
   const form = useForm<z.infer<typeof ResourceAllocationSchema>>({
@@ -102,12 +116,15 @@ const AddResourceAllocations = ({
     limit_page_length: 20,
   });
 
-  const { data: customers, isLoading: isCustomerLoading } = useFrappeGetCall("frappe.client.get_list", {
-    doctype: "Customer",
-    filters: [["customer_name", "like", `%${customerSearch}%`]],
-    fields: ["name", "customer_name"],
-    limit_page_length: 20,
-  });
+  const { data: customers, isLoading: isCustomerLoading } = useFrappeGetCall(
+    "frappe.client.get_list",
+    {
+      doctype: "Customer",
+      filters: [["customer_name", "like", `%${customerSearch}%`]],
+      fields: ["name", "customer_name"],
+      limit_page_length: 20,
+    },
+  );
 
   const { data: leaveData, mutate: fetchLeaveData } = useFrappeGetCall(
     "next_pms.resource_management.api.team.get_leave_information",
@@ -115,14 +132,15 @@ const AddResourceAllocations = ({
       employee: form.getValues("employee"),
       start_date: form.getValues("allocation_start_date"),
       end_date: form.getValues("allocation_end_date"),
-    }
+    },
   );
 
   const { toast } = useToast();
 
-  const { call: handleCreateAndUpdateOfallocation, loading } = useFrappePostCall(
-    "next_pms.resource_management.api.allocation.handle_allocation"
-  );
+  const { call: handleCreateAndUpdateOfallocation, loading } =
+    useFrappePostCall(
+      "next_pms.resource_management.api.allocation.handle_allocation",
+    );
 
   const handleEmployeeChange = (value: string) => {
     form.setValue("employee", value, {
@@ -137,7 +155,8 @@ const AddResourceAllocations = ({
     if (!value) return;
 
     const projectData = projects?.message?.find(
-      (item: { project_name: string; name: string; customer: string }) => item.name === value
+      (item: { project_name: string; name: string; customer: string }) =>
+        item.name === value,
     );
 
     if (!projectData) return;
@@ -180,7 +199,7 @@ const AddResourceAllocations = ({
   const handleSearchChange = (
     key: ResourceKeys,
     value: string | string[],
-    handleValueChange: (value: string) => void
+    handleValueChange: (value: string) => void,
   ) => {
     if (typeof value === "string") {
       form.setValue(key, value, {
@@ -251,7 +270,9 @@ const AddResourceAllocations = ({
 
   const isNeedToShowLeaveData = useCallback(() => {
     return (
-      form.getValues("employee") && form.getValues("allocation_start_date") && form.getValues("allocation_end_date")
+      form.getValues("employee") &&
+      form.getValues("allocation_start_date") &&
+      form.getValues("allocation_end_date")
     );
   }, [form]);
 
@@ -262,13 +283,17 @@ const AddResourceAllocations = ({
       }
 
       if (isNeedToShowLeaveData()) {
-        let hours_allocated_per_day = parseFloat(form.getValues("hours_allocated_per_day") as string);
+        let hours_allocated_per_day = parseFloat(
+          form.getValues("hours_allocated_per_day") as string,
+        );
 
         if (!hours_allocated_per_day) {
           hours_allocated_per_day = 0;
         }
 
-        let total_allocated_hours = parseFloat(form.getValues("total_allocated_hours") as string);
+        let total_allocated_hours = parseFloat(
+          form.getValues("total_allocated_hours") as string,
+        );
 
         if (!total_allocated_hours) {
           total_allocated_hours = 0;
@@ -278,12 +303,14 @@ const AddResourceAllocations = ({
           if (hours_allocated_per_day) {
             return form.setValue(
               "total_allocated_hours",
-              getRoundOfValue(hours_allocated_per_day * leaveData.message.total_working_days).toString(),
+              getRoundOfValue(
+                hours_allocated_per_day * leaveData.message.total_working_days,
+              ).toString(),
               {
                 shouldValidate: true,
                 shouldDirty: true,
                 shouldTouch: true,
-              }
+              },
             );
           }
 
@@ -291,12 +318,14 @@ const AddResourceAllocations = ({
             if (leaveData.message.total_working_days) {
               return form.setValue(
                 "hours_allocated_per_day",
-                getRoundOfValue(total_allocated_hours / leaveData.message.total_working_days).toString(),
+                getRoundOfValue(
+                  total_allocated_hours / leaveData.message.total_working_days,
+                ).toString(),
                 {
                   shouldValidate: true,
                   shouldDirty: true,
                   shouldTouch: true,
-                }
+                },
               );
             } else {
               return form.setValue("hours_allocated_per_day", "0", {
@@ -309,23 +338,27 @@ const AddResourceAllocations = ({
         } else if (needToSet == "total") {
           return form.setValue(
             "total_allocated_hours",
-            getRoundOfValue(hours_allocated_per_day * leaveData.message.total_working_days).toString(),
+            getRoundOfValue(
+              hours_allocated_per_day * leaveData.message.total_working_days,
+            ).toString(),
             {
               shouldValidate: true,
               shouldDirty: true,
               shouldTouch: true,
-            }
+            },
           );
         } else {
           if (leaveData.message.total_working_days) {
             return form.setValue(
               "hours_allocated_per_day",
-              getRoundOfValue(total_allocated_hours / leaveData.message.total_working_days).toString(),
+              getRoundOfValue(
+                total_allocated_hours / leaveData.message.total_working_days,
+              ).toString(),
               {
                 shouldValidate: true,
                 shouldDirty: true,
                 shouldTouch: true,
-              }
+              },
             );
           } else {
             return form.setValue("hours_allocated_per_day", "0", {
@@ -337,7 +370,7 @@ const AddResourceAllocations = ({
         }
       }
     },
-    [form, isNeedToShowLeaveData, leaveData]
+    [form, isNeedToShowLeaveData, leaveData],
   );
 
   const handleOpen = (open: boolean): void => {
@@ -349,7 +382,9 @@ const AddResourceAllocations = ({
     }
   };
 
-  const getAllocationApi = (data: AllocationDataProps & { repeat_till_week_count: number }) => {
+  const getAllocationApi = (
+    data: AllocationDataProps & { repeat_till_week_count: number },
+  ) => {
     const doctypeDoc = {
       doctype: "Resource Allocation",
       employee: data.employee,
@@ -364,7 +399,9 @@ const AddResourceAllocations = ({
       status: data.is_tentative ? "Tentative" : "Confirmed",
     };
     if (resourceDialogState.isNeedToEdit) {
-      return handleCreateAndUpdateOfallocation({ allocation: { ...doctypeDoc, name: resourceAllocationForm.name } });
+      return handleCreateAndUpdateOfallocation({
+        allocation: { ...doctypeDoc, name: resourceAllocationForm.name },
+      });
     }
     return handleCreateAndUpdateOfallocation({
       allocation: doctypeDoc,
@@ -372,7 +409,9 @@ const AddResourceAllocations = ({
     });
   };
 
-  const handleSubmit = (data: AllocationDataProps & { repeat_till_week_count: number }) => {
+  const handleSubmit = (
+    data: AllocationDataProps & { repeat_till_week_count: number },
+  ) => {
     if (!data) {
       return;
     }
@@ -426,7 +465,10 @@ const AddResourceAllocations = ({
         </DialogHeader>
         <Form {...form}>
           {/* @ts-expect-error : form.handleSubmit has a type mismatch issue. */}
-          <form className="flex flex-col gap-y-4" onSubmit={form.handleSubmit(handleSubmit)}>
+          <form
+            className="flex flex-col gap-y-4"
+            onSubmit={form.handleSubmit(handleSubmit)}
+          >
             <FormField
               control={form.control}
               name="employee"
@@ -461,7 +503,11 @@ const AddResourceAllocations = ({
                         isLoading={isCustomerLoading}
                         label="Search Customer"
                         onSelect={(value) => {
-                          handleSearchChange("customer", value, setCustomerSearch);
+                          handleSearchChange(
+                            "customer",
+                            value,
+                            setCustomerSearch,
+                          );
                           fetchProjects();
                           form.setValue("project", "", {
                             shouldValidate: true,
@@ -476,16 +522,21 @@ const AddResourceAllocations = ({
                         showSelected
                         shouldFilter
                         value={
-                          form.getValues("customer") && form.getValues("customer").length > 0
+                          form.getValues("customer") &&
+                          form.getValues("customer").length > 0
                             ? [form.getValues("customer")]
                             : []
                         }
-                        data={customers?.message?.map((item: { customer_name: string; name: string }) => ({
-                          label: item.customer_name,
-                          value: item.name,
-                          disabled: false,
-                        }))}
-                        rightIcon={<Search className="!h-4 !w-4 stroke-slate-400" />}
+                        data={customers?.message?.map(
+                          (item: { customer_name: string; name: string }) => ({
+                            label: item.customer_name,
+                            value: item.name,
+                            disabled: false,
+                          }),
+                        )}
+                        rightIcon={
+                          <Search className="!h-4 !w-4 stroke-slate-400" />
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -512,16 +563,21 @@ const AddResourceAllocations = ({
                       showSelected
                       shouldFilter
                       value={
-                        form.getValues("project") && form.getValues("project").length > 0
+                        form.getValues("project") &&
+                        form.getValues("project").length > 0
                           ? [form.getValues("project")]
                           : []
                       }
-                      data={projects?.message?.map((item: { project_name: string; name: string }) => ({
-                        label: item.project_name,
-                        value: item.name,
-                        disabled: false,
-                      }))}
-                      rightIcon={<Search className="h-4 w-4 stroke-slate-400" />}
+                      data={projects?.message?.map(
+                        (item: { project_name: string; name: string }) => ({
+                          label: item.project_name,
+                          value: item.name,
+                          disabled: false,
+                        }),
+                      )}
+                      rightIcon={
+                        <Search className="h-4 w-4 stroke-slate-400" />
+                      }
                     />
                   </FormItem>
                 )}
@@ -537,7 +593,9 @@ const AddResourceAllocations = ({
                       <div
                         className={mergeClassNames(
                           "flex items-center justify-center cursor-pointer rounded-sm py-3 px-1",
-                          field.value ? "bg-gradient-to-r from-green-400 to-green-600" : "bg-yellow-500"
+                          field.value
+                            ? "bg-gradient-to-r from-green-400 to-green-600"
+                            : "bg-yellow-500",
                         )}
                         onClick={() =>
                           form.setValue("is_billable", !field.value, {
@@ -567,7 +625,9 @@ const AddResourceAllocations = ({
                     <FormControl>
                       <DatePicker
                         date={field.value}
-                        onDateChange={(date: Date) => handleDateChange("allocation_start_date", date)}
+                        onDateChange={(date: Date) =>
+                          handleDateChange("allocation_start_date", date)
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -586,7 +646,9 @@ const AddResourceAllocations = ({
                     <FormControl>
                       <DatePicker
                         date={field.value}
-                        onDateChange={(date: Date) => handleDateChange("allocation_end_date", date)}
+                        onDateChange={(date: Date) =>
+                          handleDateChange("allocation_end_date", date)
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -601,7 +663,10 @@ const AddResourceAllocations = ({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-3 shadow-sm">
                   <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>Tentative</FormLabel>
@@ -619,7 +684,9 @@ const AddResourceAllocations = ({
                     <FormItem className="w-full space-y-1">
                       <FormControl>
                         <div className="flex items-center w-full gap-1">
-                          <Typography variant="p">Repeat weekly for </Typography>
+                          <Typography variant="p">
+                            Repeat weekly for{" "}
+                          </Typography>
 
                           <Input
                             placeholder="0"
@@ -629,11 +696,15 @@ const AddResourceAllocations = ({
                             onChange={(e) => {
                               const number = parseInt(e.target.value);
                               if (number) {
-                                form.setValue("repeat_till_week_count", number, {
-                                  shouldValidate: true,
-                                  shouldDirty: true,
-                                  shouldTouch: true,
-                                });
+                                form.setValue(
+                                  "repeat_till_week_count",
+                                  number,
+                                  {
+                                    shouldValidate: true,
+                                    shouldDirty: true,
+                                    shouldTouch: true,
+                                  },
+                                );
                               } else {
                                 form.setValue("repeat_till_week_count", 0, {
                                   shouldValidate: true,
@@ -672,11 +743,15 @@ const AddResourceAllocations = ({
                             type="text"
                             {...field}
                             onChange={(e) => {
-                              form.setValue("total_allocated_hours", handleNumberInputValue(String(e.target.value)), {
-                                shouldValidate: true,
-                                shouldDirty: true,
-                                shouldTouch: true,
-                              });
+                              form.setValue(
+                                "total_allocated_hours",
+                                handleNumberInputValue(String(e.target.value)),
+                                {
+                                  shouldValidate: true,
+                                  shouldDirty: true,
+                                  shouldTouch: true,
+                                },
+                              );
                               handleHoursAutoComplete("per_day");
                             }}
                           />
@@ -720,11 +795,15 @@ const AddResourceAllocations = ({
                             type="text"
                             {...field}
                             onChange={(e) => {
-                              form.setValue("hours_allocated_per_day", handleNumberInputValue(String(e.target.value)), {
-                                shouldValidate: true,
-                                shouldDirty: true,
-                                shouldTouch: true,
-                              });
+                              form.setValue(
+                                "hours_allocated_per_day",
+                                handleNumberInputValue(String(e.target.value)),
+                                {
+                                  shouldValidate: true,
+                                  shouldDirty: true,
+                                  shouldTouch: true,
+                                },
+                              );
                               handleHoursAutoComplete("total");
                             }}
                           />
@@ -758,8 +837,18 @@ const AddResourceAllocations = ({
             />
             <DialogFooter className="sm:justify-start w-full pt-3">
               <div className="flex gap-x-4 w-full">
-                <Button disabled={!form.formState.isDirty || !form.formState.isValid || loading}>
-                  {loading ? <LoaderCircle className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
+                <Button
+                  disabled={
+                    !form.formState.isDirty ||
+                    !form.formState.isValid ||
+                    loading
+                  }
+                >
+                  {loading ? (
+                    <LoaderCircle className="animate-spin w-4 h-4" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
                   {resourceDialogState.isNeedToEdit ? "Save" : "Create"}
                 </Button>
                 <Button

@@ -71,7 +71,7 @@ const EmployeeCombo = ({
     undefined,
     {
       revalidateIfStale: false,
-    }
+    },
   );
   const onEmployeeChange = (name: string) => {
     setSelectedValues(name);
@@ -85,7 +85,9 @@ const EmployeeCombo = ({
   };
   useEffect(() => {
     if (!employees) return;
-    const res = employees?.message.data.find((item: Employee) => item.name === selectedValues);
+    const res = employees?.message.data.find(
+      (item: Employee) => item.name === selectedValues,
+    );
     setEmployee(res);
   }, [employees, selectedValues]);
 
@@ -116,7 +118,7 @@ const EmployeeCombo = ({
           disabled={disabled}
           className={mergeClassNames(
             "items-center w-full gap-x-4 px-2 justify-between [&[data-state=open]>svg]:rotate-180 truncate",
-            className
+            className,
           )}
         >
           {employee ? (
@@ -135,13 +137,24 @@ const EmployeeCombo = ({
             </Typography>
           )}
 
-          <ChevronDown size={24} className="w-4 h-4 shrink-0 transition-transform duration-400" />
+          <ChevronDown
+            size={24}
+            className="w-4 h-4 shrink-0 transition-transform duration-400"
+          />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0 z-[1000]">
         <Command shouldFilter={false}>
-          <CommandInput placeholder="Search Employee" value={search} onValueChange={onInputChange} />
-          {isLoading ? <Spinner className="py-6" /> : <CommandEmpty>No data found.</CommandEmpty>}
+          <CommandInput
+            placeholder="Search Employee"
+            value={search}
+            onValueChange={onInputChange}
+          />
+          {isLoading ? (
+            <Spinner className="py-6" />
+          ) : (
+            <CommandEmpty>No data found.</CommandEmpty>
+          )}
           <CommandGroup>
             <CommandList>
               {!isLoading &&
@@ -156,9 +169,17 @@ const EmployeeCombo = ({
                       className="flex gap-x-2 text-primary font-normal cursor-pointer"
                       value={item.employee_name}
                     >
-                      <Check className={mergeClassNames("mr-2 h-4 w-4", isActive ? "opacity-100" : "opacity-0")} />
+                      <Check
+                        className={mergeClassNames(
+                          "mr-2 h-4 w-4",
+                          isActive ? "opacity-100" : "opacity-0",
+                        )}
+                      />
                       <Avatar>
-                        <AvatarImage src={item.image} alt={item.employee_name} />
+                        <AvatarImage
+                          src={item.image}
+                          alt={item.employee_name}
+                        />
                         <AvatarFallback>{item.employee_name[0]}</AvatarFallback>
                       </Avatar>
                       <Typography variant="p">{item.employee_name}</Typography>
@@ -167,7 +188,11 @@ const EmployeeCombo = ({
                 })}
             </CommandList>
           </CommandGroup>
-          <Button variant="ghost" onClick={resetState} className="border-t rounded-none font-normal w-full">
+          <Button
+            variant="ghost"
+            onClick={resetState}
+            className="border-t rounded-none font-normal w-full"
+          >
             Clear Selection
           </Button>
         </Command>

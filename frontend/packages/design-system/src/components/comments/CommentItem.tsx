@@ -11,7 +11,12 @@ import { mergeClassNames } from "../../utils";
 import { formatDate } from "../../utils/date";
 import { Avatar, AvatarFallback, AvatarImage } from "../avatar";
 import Button from "../button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../dropdown-menu";
 import TextEditor from "../text-editor";
 import type { CommentItemProps } from "./types";
 import type { User } from "../text-editor/types";
@@ -39,7 +44,7 @@ const CommentItem = React.forwardRef<HTMLDivElement, CommentItemExtendedProps>(
       activeCommentName,
       ...props
     },
-    ref
+    ref,
   ) => {
     const [editContent, setEditContent] = useState(comment.content);
     const [isLocalEditing, setIsLocalEditing] = useState(isEditing);
@@ -71,7 +76,8 @@ const CommentItem = React.forwardRef<HTMLDivElement, CommentItemExtendedProps>(
       onDelete?.(comment.name);
     };
 
-    const showActions = (comment.canEdit || comment.canDelete) && (onUpdate || onDelete);
+    const showActions =
+      (comment.canEdit || comment.canDelete) && (onUpdate || onDelete);
 
     React.useEffect(() => {
       if (activeCommentName === comment.name) {
@@ -96,7 +102,7 @@ const CommentItem = React.forwardRef<HTMLDivElement, CommentItemExtendedProps>(
         className={mergeClassNames(
           "flex gap-3 p-4 bg-background border rounded-lg shadow-sm hover:shadow-md transition-all duration-200",
           className,
-          activeCommentName === comment.name && "blinking-border"
+          activeCommentName === comment.name && "blinking-border",
         )}
         {...props}
       >
@@ -109,24 +115,45 @@ const CommentItem = React.forwardRef<HTMLDivElement, CommentItemExtendedProps>(
           <div className="flex items-start justify-between gap-2">
             <div className="flex flex-col truncate max-md:max-w-[8rem]">
               <div className="flex items-center gap-2 flex-wrap">
-                <Typography title={comment.userName} variant="small" className="font-medium truncate ">
+                <Typography
+                  title={comment.userName}
+                  variant="small"
+                  className="font-medium truncate "
+                >
                   {comment.userName}
                 </Typography>
-                <Typography title={formatDate(comment.createdAt)} variant="small" className="text-muted-foreground ">
+                <Typography
+                  title={formatDate(comment.createdAt)}
+                  variant="small"
+                  className="text-muted-foreground "
+                >
                   {formatDate(comment.createdAt)}
                 </Typography>
-                {comment.updatedAt && comment.updatedAt !== comment.createdAt && (
-                  <Typography variant="small" className="text-muted-foreground italic">
-                    (edited)
-                  </Typography>
-                )}
+                {comment.updatedAt &&
+                  comment.updatedAt !== comment.createdAt && (
+                    <Typography
+                      variant="small"
+                      className="text-muted-foreground italic"
+                    >
+                      (edited)
+                    </Typography>
+                  )}
               </div>
-              <Typography title={comment.owner} variant="small" className="font-medium text-muted-foreground">
+              <Typography
+                title={comment.owner}
+                variant="small"
+                className="font-medium text-muted-foreground"
+              >
                 {comment.owner}
               </Typography>
             </div>
             <div className="flex items-center gap-2">
-              <Button onClick={handleShareComment} variant="ghost" size="sm" className="h-auto p-1">
+              <Button
+                onClick={handleShareComment}
+                variant="ghost"
+                size="sm"
+                className="h-auto p-1"
+              >
                 <Forward className="scale-x-[-1]" />
                 <span className="sr-only">Share</span>
               </Button>
@@ -140,7 +167,10 @@ const CommentItem = React.forwardRef<HTMLDivElement, CommentItemExtendedProps>(
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     {comment.canEdit && onUpdate && (
-                      <DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
+                      <DropdownMenuItem
+                        onClick={handleEdit}
+                        className="cursor-pointer"
+                      >
                         <Edit className="mr-2 h-4 w-4" />
                         Edit
                       </DropdownMenuItem>
@@ -176,14 +206,20 @@ const CommentItem = React.forwardRef<HTMLDivElement, CommentItemExtendedProps>(
                   />
                 </div>
                 <div className="flex justify-end gap-2">
-                  <Button variant="outline" size="sm" onClick={handleCancelEdit}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCancelEdit}
+                  >
                     <X className="mr-1 h-3 w-3" />
                     Cancel
                   </Button>
                   <Button
                     size="sm"
                     onClick={handleSaveEdit}
-                    disabled={!editContent.trim() || editContent === comment.content}
+                    disabled={
+                      !editContent.trim() || editContent === comment.content
+                    }
                   >
                     <Save className="mr-1 h-3 w-3" />
                     Save
@@ -199,7 +235,7 @@ const CommentItem = React.forwardRef<HTMLDivElement, CommentItemExtendedProps>(
         </div>
       </div>
     );
-  }
+  },
 );
 
 CommentItem.displayName = "CommentItem";

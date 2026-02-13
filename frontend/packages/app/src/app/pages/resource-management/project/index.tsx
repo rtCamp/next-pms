@@ -18,9 +18,19 @@ import { ResourceProjectHeaderSection } from "./components/header";
 import { getIsBillableValue } from "../utils/helper";
 import { ResourceProjectTable } from "./components/table";
 import { createFilter } from "./utils";
-import { ProjectContext, ProjectContextProvider } from "../store/projectContext";
-import { ResourceContextProvider, ResourceFormContext } from "../store/resourceFormContext";
-import type { AllocationDataProps, ProjectDataProps, ResourceProject } from "../store/types";
+import {
+  ProjectContext,
+  ProjectContextProvider,
+} from "../store/projectContext";
+import {
+  ResourceContextProvider,
+  ResourceFormContext,
+} from "../store/resourceFormContext";
+import type {
+  AllocationDataProps,
+  ProjectDataProps,
+  ResourceProject,
+} from "../store/types";
 
 const ResourceProjectViewWrapper = () => {
   return (
@@ -43,24 +53,35 @@ interface ResourceProjectViewComponentProps {
  */
 const ResourceProjectView = () => {
   return (
-    <CustomViewWrapper label="ResourceProjectView" createFilter={createFilter({} as ResourceProject)}>
+    <CustomViewWrapper
+      label="ResourceProjectView"
+      createFilter={createFilter({} as ResourceProject)}
+    >
       {({ viewData }) => <ResourceProjectViewComponent viewData={viewData} />}
     </CustomViewWrapper>
   );
 };
 
-const ResourceProjectViewComponent = ({ viewData }: ResourceProjectViewComponentProps) => {
+const ResourceProjectViewComponent = ({
+  viewData,
+}: ResourceProjectViewComponentProps) => {
   const { toast } = useToast();
-  const { permission: resourceAllocationPermission, dialogState: resourceAllocationDialogState } = useContextSelector(
-    ResourceFormContext,
-    (value) => value.state
+  const {
+    permission: resourceAllocationPermission,
+    dialogState: resourceAllocationDialogState,
+  } = useContextSelector(ResourceFormContext, (value) => value.state);
+  const { projectData, filters, apiController } = useContextSelector(
+    ProjectContext,
+    (value) => value.state,
   );
-  const { projectData, filters, apiController } = useContextSelector(ProjectContext, (value) => value.state);
 
-  const { updateProjectData, setReFetchData } = useContextSelector(ProjectContext, (value) => value.actions);
+  const { updateProjectData, setReFetchData } = useContextSelector(
+    ProjectContext,
+    (value) => value.actions,
+  );
 
   const { call: fetchSingleRecord } = useFrappePostCall(
-    "next_pms.resource_management.api.project.get_resource_management_project_view_data"
+    "next_pms.resource_management.api.project.get_resource_management_project_view_data",
   );
 
   const { data, isLoading, isValidating, error, mutate } = useFrappeGetCall(
@@ -84,7 +105,12 @@ const ResourceProjectViewComponent = ({ viewData }: ResourceProjectViewComponent
           start: filters.start,
         },
     "next_pms.resource_management.api.project.get_resource_management_project_view_data_resource_project_page",
-    { revalidateOnFocus: false, revalidateOnReconnect: false, revalidateIfStale: false, revalidateOnMount: false }
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      revalidateIfStale: false,
+      revalidateOnMount: false,
+    },
   );
 
   const onFormSubmit = useCallback(
@@ -98,7 +124,9 @@ const ResourceProjectViewComponent = ({ viewData }: ResourceProjectViewComponent
         const newProject = res.message?.data;
         if (newProject && newProject.length > 0) {
           const updatedData = projectData.data.map((item) => {
-            const index = newProject.findIndex((project: ProjectDataProps) => project.name == item.name);
+            const index = newProject.findIndex(
+              (project: ProjectDataProps) => project.name == item.name,
+            );
             if (index != -1) {
               return newProject[index];
             }
@@ -108,7 +136,14 @@ const ResourceProjectViewComponent = ({ viewData }: ResourceProjectViewComponent
         }
       });
     },
-    [fetchSingleRecord, filters.weekDate, filters.maxWeek, filters.allocationType, projectData, updateProjectData]
+    [
+      fetchSingleRecord,
+      filters.weekDate,
+      filters.maxWeek,
+      filters.allocationType,
+      projectData,
+      updateProjectData,
+    ],
   );
 
   useEffect(() => {
@@ -116,7 +151,12 @@ const ResourceProjectViewComponent = ({ viewData }: ResourceProjectViewComponent
       mutate();
       setReFetchData(false);
     }
-  }, [data, mutate, apiController.isNeedToFetchDataAfterUpdate, setReFetchData]);
+  }, [
+    data,
+    mutate,
+    apiController.isNeedToFetchDataAfterUpdate,
+    setReFetchData,
+  ]);
 
   useEffect(() => {
     if (data) {
@@ -145,12 +185,17 @@ const ResourceProjectViewComponent = ({ viewData }: ResourceProjectViewComponent
         <Spinner isFull />
       ) : (
         <ResourceProjectTable
-          dateToAddHeaderRef={getNextDate(filters.weekDate, filters.maxWeek - 1)}
+          dateToAddHeaderRef={getNextDate(
+            filters.weekDate,
+            filters.maxWeek - 1,
+          )}
           onSubmit={onFormSubmit}
         />
       )}
 
-      {resourceAllocationDialogState.isShowDialog && <AddResourceAllocations onSubmit={onFormSubmit} />}
+      {resourceAllocationDialogState.isShowDialog && (
+        <AddResourceAllocations onSubmit={onFormSubmit} />
+      )}
     </>
   );
 };

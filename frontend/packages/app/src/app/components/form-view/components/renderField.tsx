@@ -41,29 +41,39 @@ const RenderField = (
   onChange?: (values: Record<string, any>) => void,
   readOnly?: boolean,
   currencySymbol?: string,
-  fieldConfig?: FieldConfigType
+  fieldConfig?: FieldConfigType,
 ) => {
   const { theme } = useContext(ThemeProviderContext);
   if (!field.label) return null;
   const isRequired = field.reqd === 1 || field.reqd === "1";
   const isReadOnly =
-    readOnly || fieldConfig?.[field.fieldname]?.readOnly || field.read_only === 1 || field.read_only === "1";
+    readOnly ||
+    fieldConfig?.[field.fieldname]?.readOnly ||
+    field.read_only === 1 ||
+    field.read_only === "1";
   return (
     <div className="space-y-2 p-1" key={field.label}>
       {field.fieldtype !== "Check" ? (
         <>
           <label className="text-sm">
-            {field.label} {isRequired && <span className="text-red-500">*</span>}
+            {field.label}{" "}
+            {isRequired && <span className="text-red-500">*</span>}
           </label>
           <Controller
             name={field.fieldname}
             control={control}
             defaultValue={field.value || ""}
             rules={{ required: isRequired ? "This field is required" : false }}
-            render={({ field: { onChange: handleChange, value }, fieldState: { error } }) => {
+            render={({
+              field: { onChange: handleChange, value },
+              fieldState: { error },
+            }) => {
               const handleFieldChange = (newValue: any) => {
                 handleChange(newValue);
-                const updatedFormData = { ...control._formValues, [field.fieldname as string]: newValue };
+                const updatedFormData = {
+                  ...control._formValues,
+                  [field.fieldname as string]: newValue,
+                };
                 onChange?.(updatedFormData);
               };
 
@@ -75,7 +85,7 @@ const RenderField = (
                     value,
                     isReadOnly as boolean,
                     currencySymbol as string,
-                    theme
+                    theme,
                   )}
                   {error && (
                     <Typography variant="p" className="text-xs text-red-500">
@@ -98,11 +108,19 @@ const RenderField = (
               name={field.fieldname}
               control={control}
               defaultValue={field.value || ""}
-              rules={{ required: isRequired ? "This field is required" : false }}
-              render={({ field: { onChange: handleChange, value }, fieldState: { error } }) => {
+              rules={{
+                required: isRequired ? "This field is required" : false,
+              }}
+              render={({
+                field: { onChange: handleChange, value },
+                fieldState: { error },
+              }) => {
                 const handleFieldChange = (newValue: any) => {
                   handleChange(newValue);
-                  const updatedFormData = { ...control._formValues, [field.fieldname as string]: newValue };
+                  const updatedFormData = {
+                    ...control._formValues,
+                    [field.fieldname as string]: newValue,
+                  };
                   onChange?.(updatedFormData);
                 };
 
@@ -114,7 +132,7 @@ const RenderField = (
                       value,
                       isReadOnly as boolean,
                       currencySymbol as string,
-                      theme
+                      theme,
                     )}
                     {error && (
                       <Typography variant="p" className="text-xs text-red-500">
@@ -126,7 +144,8 @@ const RenderField = (
               }}
             />
             <label htmlFor={field.fieldname} className="text-sm">
-              {field.label} {isRequired && <span className="text-red-500">*</span>}
+              {field.label}{" "}
+              {isRequired && <span className="text-red-500">*</span>}
             </label>
           </div>
         </>
@@ -150,12 +169,17 @@ const getFieldComponent = (
   value: any,
   isReadOnly: boolean,
   currencySymbol: string,
-  theme: string
+  theme: string,
 ) => {
   switch (field.fieldtype) {
     case "Select":
       return (
-        <Select onValueChange={handleChange} defaultValue={value} value={value} disabled={isReadOnly}>
+        <Select
+          onValueChange={handleChange}
+          defaultValue={value}
+          value={value}
+          disabled={isReadOnly}
+        >
           <SelectTrigger className="disabled:bg-transparent">
             <SelectValue placeholder="Select an option" />
           </SelectTrigger>
@@ -167,7 +191,11 @@ const getFieldComponent = (
               (field?.options || "").split("\n").map((option, idx) => {
                 const trimmedOption = option.trim();
                 return trimmedOption !== "" ? (
-                  <SelectItem className="cursor-pointer" key={idx} value={trimmedOption}>
+                  <SelectItem
+                    className="cursor-pointer"
+                    key={idx}
+                    value={trimmedOption}
+                  >
                     {trimmedOption}
                   </SelectItem>
                 ) : null;
@@ -248,10 +276,15 @@ const getFieldComponent = (
         <div
           className={mergeClassNames(
             "flex items-center gap-1 h-10 w-full rounded-md border border-input bg-background px-3 py-2 ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm text-sm",
-            isReadOnly && "border-gray-100 dark:border-input"
+            isReadOnly && "border-gray-100 dark:border-input",
           )}
         >
-          <Typography className={mergeClassNames("shrink-0 ", isReadOnly && "text-gray-400")}>
+          <Typography
+            className={mergeClassNames(
+              "shrink-0 ",
+              isReadOnly && "text-gray-400",
+            )}
+          >
             {currencySymbol}
           </Typography>
           <Input
@@ -288,7 +321,13 @@ const getFieldComponent = (
         />
       );
     case "Table":
-      return <ChildTable isReadOnly={isReadOnly} field={field} currencySymbol={currencySymbol} />;
+      return (
+        <ChildTable
+          isReadOnly={isReadOnly}
+          field={field}
+          currencySymbol={currencySymbol}
+        />
+      );
     case "Text Editor":
       return (
         <TextEditor

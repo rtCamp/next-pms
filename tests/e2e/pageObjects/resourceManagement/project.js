@@ -8,7 +8,9 @@ import { getShortFormattedDate, getWeekdayName } from "../../utils/dateUtils";
 export class ProjectPage extends TimelinePage {
   constructor(page) {
     super(page);
-    this.filterByProjectInput = page.getByRole("textbox", { name: "Project Name" });
+    this.filterByProjectInput = page.getByRole("textbox", {
+      name: "Project Name",
+    });
 
     //Search bar on project page
     this.searchBar = page.getByRole("textbox", { name: "Project Name" });
@@ -16,7 +18,9 @@ export class ProjectPage extends TimelinePage {
     // filter dropdown
     this.customerFilter = page.getByRole("button", { name: "Customer" });
     this.billingTypeFilter = page.getByRole("button", { name: "Billing Type" });
-    this.allocationTypeFilter = page.getByRole("button", { name: "Allocation Type" });
+    this.allocationTypeFilter = page.getByRole("button", {
+      name: "Allocation Type",
+    });
     this.sheetViewFilter = page.getByRole("combobox");
     this.sheetViewFilterText = this.sheetViewFilter.locator("span");
 
@@ -39,11 +43,15 @@ export class ProjectPage extends TimelinePage {
     this.allocationTypeSearchBar = page.getByPlaceholder("Allocation Type");
 
     //Filter Clear Selection
-    this.filterClearSelection = page.getByRole("button", { name: "Clear Selection" });
+    this.filterClearSelection = page.getByRole("button", {
+      name: "Clear Selection",
+    });
 
     //table elements
-    this.projectNameCell = (projectName) => page.getByTitle(`${projectName}`, { exact: true });
-    this.employeeNameCell = (employeeName) => page.getByTitle(`${employeeName}`, { exact: true });
+    this.projectNameCell = (projectName) =>
+      page.getByTitle(`${projectName}`, { exact: true });
+    this.employeeNameCell = (employeeName) =>
+      page.getByTitle(`${employeeName}`, { exact: true });
     this.projectTableTitle = page.getByRole("cell", { name: "Projects" });
     this.deleteButton = page.getByRole("img", { name: "Delete" }).first();
     this.editIcon = page.getByRole("img", { name: "Edit" }).first();
@@ -70,7 +78,9 @@ export class ProjectPage extends TimelinePage {
    * Navigates to the project page and waits for it to fully load.
    */
   async goto() {
-    await this.page.goto("/next-pms/resource-management/project", { waitUntil: "domcontentloaded" });
+    await this.page.goto("/next-pms/resource-management/project", {
+      waitUntil: "domcontentloaded",
+    });
   }
 
   /**
@@ -94,14 +104,23 @@ export class ProjectPage extends TimelinePage {
   /**
    * Adds an allocation for a specific employee by clicking on their cell and filling the allocation form.
    */
-  async addAllocationFromProjectTab(projectName, customerName, employeeName, date, day, allocation = "8") {
+  async addAllocationFromProjectTab(
+    projectName,
+    customerName,
+    employeeName,
+    date,
+    day,
+    allocation = "8",
+  ) {
     if (!(await this.filterByProjectInput.isVisible())) {
       await this.filterByProject(projectName);
     }
     let allotmentDate = date;
     let allotmentDay = day;
 
-    await this.page.getByTitle(`${projectName} (${allotmentDate} - ${allotmentDay})`).click();
+    await this.page
+      .getByTitle(`${projectName} (${allotmentDate} - ${allotmentDay})`)
+      .click();
     await this.selectEmployee(employeeName);
     await this.selectCustomer(customerName);
     await this.selectProject(customerName, projectName);
@@ -111,8 +130,11 @@ export class ProjectPage extends TimelinePage {
     const [response] = await Promise.all([
       this.page.waitForResponse(
         (response) =>
-          response.url().includes("/api/method/next_pms.resource_management.api.allocation.handle_allocation") &&
-          response.status() === 200
+          response
+            .url()
+            .includes(
+              "/api/method/next_pms.resource_management.api.allocation.handle_allocation",
+            ) && response.status() === 200,
       ),
       this.clickCreateButton(),
     ]);
@@ -153,7 +175,10 @@ export class ProjectPage extends TimelinePage {
   /**
    * Add a allocated time on a add allocation modal
    */
-  async addAllocationFromProjectTabFromClipboard(hoursPerDay, totalAllocatedHours = "100") {
+  async addAllocationFromProjectTabFromClipboard(
+    hoursPerDay,
+    totalAllocatedHours = "100",
+  ) {
     this.totalHoursTextField.fill("");
     this.totalHoursTextField.fill(totalAllocatedHours);
     await this.setHoursPerDay(hoursPerDay);
@@ -161,8 +186,11 @@ export class ProjectPage extends TimelinePage {
     const [response] = await Promise.all([
       this.page.waitForResponse(
         (response) =>
-          response.url().includes("/api/method/next_pms.resource_management.api.allocation.handle_allocation") &&
-          response.status() === 200
+          response
+            .url()
+            .includes(
+              "/api/method/next_pms.resource_management.api.allocation.handle_allocation",
+            ) && response.status() === 200,
       ),
       this.clickCreateButton(),
     ]);
@@ -186,7 +214,9 @@ export class ProjectPage extends TimelinePage {
    */
   async getAllocationFromProjectTab(projectName, date, day) {
     await this.page.waitForTimeout(1000);
-    const allocationTime = await this.page.getByTitle(`${projectName} (${date} - ${day})`).textContent();
+    const allocationTime = await this.page
+      .getByTitle(`${projectName} (${date} - ${day})`)
+      .textContent();
     return allocationTime;
   }
   /**
@@ -240,7 +270,9 @@ export class ProjectPage extends TimelinePage {
     };
 
     // If no filters specified, default to all filters in the map
-    const filters = filtersToClear?.length ? filtersToClear : Object.keys(filterMap);
+    const filters = filtersToClear?.length
+      ? filtersToClear
+      : Object.keys(filterMap);
 
     for (const filterName of filters) {
       const btn = filterMap[filterName];
@@ -314,7 +346,9 @@ export class ProjectPage extends TimelinePage {
           await option.waitFor({ state: "visible", timeout: 30000 });
           await option.click();
         } catch (e) {
-          console.error(`Failed to select value "${v}" for filter "${key}": ${e}`);
+          console.error(
+            `Failed to select value "${v}" for filter "${key}": ${e}`,
+          );
         }
       }
 
@@ -344,9 +378,13 @@ export class ProjectPage extends TimelinePage {
 
       // Click the correct option based on the view passed
       if (view === "Planned") {
-        await this.page.getByRole("option", { name: "Planned", exact: true }).click();
+        await this.page
+          .getByRole("option", { name: "Planned", exact: true })
+          .click();
       } else if (view === "Actual vs Planned") {
-        await this.page.getByRole("option", { name: "Actual vs Planned" }).click();
+        await this.page
+          .getByRole("option", { name: "Actual vs Planned" })
+          .click();
       } else {
         throw new Error(`Unknown sheet view: ${view}`);
       }

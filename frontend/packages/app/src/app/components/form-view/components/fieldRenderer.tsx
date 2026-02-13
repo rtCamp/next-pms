@@ -3,13 +3,22 @@
  */
 import { forwardRef, useEffect, useImperativeHandle } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@next-pms/design-system/components";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@next-pms/design-system/components";
 import _ from "lodash";
 
 /**
  * Internal dependencies.
  */
-import { evaluateDependsOn, mapFieldsToObject, mergeClassNames } from "@/lib/utils";
+import {
+  evaluateDependsOn,
+  mapFieldsToObject,
+  mergeClassNames,
+} from "@/lib/utils";
 import RenderField from "./renderField";
 import { Field, FieldConfigType, Section } from "../types";
 
@@ -29,14 +38,29 @@ type FieldRendererProps = {
  * @description This component renders fields of the form-view section-wise, while respecting depends_on conditions.
  */
 const FieldRenderer = forwardRef(
-  ({ fields, onChange, onSubmit, readOnly, currencySymbol, fieldConfig, className, tabs }: FieldRendererProps, ref) => {
+  (
+    {
+      fields,
+      onChange,
+      onSubmit,
+      readOnly,
+      currencySymbol,
+      fieldConfig,
+      className,
+      tabs,
+    }: FieldRendererProps,
+    ref,
+  ) => {
     const { control, handleSubmit, reset } = useForm();
 
     const handleChange = (values: Record<string, string | number | null>) => {
-      const defaultValues = fields.reduce((acc, field) => {
-        acc[field.fieldname] = field.value || "";
-        return acc;
-      }, {} as Record<string, string | number | null>);
+      const defaultValues = fields.reduce(
+        (acc, field) => {
+          acc[field.fieldname] = field.value || "";
+          return acc;
+        },
+        {} as Record<string, string | number | null>,
+      );
       if (!_.isEqual(defaultValues, values)) {
         onChange?.(values);
       } else {
@@ -45,10 +69,13 @@ const FieldRenderer = forwardRef(
     };
 
     useEffect(() => {
-      const defaultValues = fields.reduce((acc, field) => {
-        acc[field.fieldname] = field.value || "";
-        return acc;
-      }, {} as Record<string, string | number | null>);
+      const defaultValues = fields.reduce(
+        (acc, field) => {
+          acc[field.fieldname] = field.value || "";
+          return acc;
+        },
+        {} as Record<string, string | number | null>,
+      );
       reset(defaultValues);
     }, [fields]);
 
@@ -77,7 +104,9 @@ const FieldRenderer = forwardRef(
         field.depends_on &&
         !evaluateDependsOn(
           field.depends_on,
-          Object.keys(formData).length > 0 ? formData : mapFieldsToObject(Object.values(tabs).flat())
+          Object.keys(formData).length > 0
+            ? formData
+            : mapFieldsToObject(Object.values(tabs).flat()),
         )
       ) {
         return; // Skip rendering if dependency is not met
@@ -130,9 +159,18 @@ const FieldRenderer = forwardRef(
         className="divide-y"
       >
         {filteredSections.map((section, index) => (
-          <div key={index} className={mergeClassNames("px-4", !section.title && "pb-4")}>
+          <div
+            key={index}
+            className={mergeClassNames("px-4", !section.title && "pb-4")}
+          >
             {section.title ? (
-              <Accordion type="single" collapsible key={index} className={className} defaultValue={String(index)}>
+              <Accordion
+                type="single"
+                collapsible
+                key={index}
+                className={className}
+                defaultValue={String(index)}
+              >
                 <AccordionItem value={String(index)} className="border-0">
                   <AccordionTrigger className="hover:no-underline justify-normal-overide !gap-2 focus-visible:ring-0 focus-visible:outline-none">
                     {section.title}
@@ -140,12 +178,24 @@ const FieldRenderer = forwardRef(
                   <AccordionContent className="!w-full">
                     <div
                       className="flex flex-col lg:grid gap-4"
-                      style={{ gridTemplateColumns: `repeat(${section.columns.length}, minmax(0, 1fr))` }}
+                      style={{
+                        gridTemplateColumns: `repeat(${section.columns.length}, minmax(0, 1fr))`,
+                      }}
                     >
                       {section.columns.map((column, colIndex) => (
-                        <div key={colIndex} className="space-y-4 overflow-hidden">
+                        <div
+                          key={colIndex}
+                          className="space-y-4 overflow-hidden"
+                        >
                           {column.map((field) =>
-                            RenderField(field, control, handleChange, readOnly, currencySymbol, fieldConfig)
+                            RenderField(
+                              field,
+                              control,
+                              handleChange,
+                              readOnly,
+                              currencySymbol,
+                              fieldConfig,
+                            ),
                           )}
                         </div>
                       ))}
@@ -159,12 +209,21 @@ const FieldRenderer = forwardRef(
                   <h2 className="text-lg font-semibold my-3"></h2>
                   <div
                     className="flex flex-col lg:grid gap-4"
-                    style={{ gridTemplateColumns: `repeat(${section.columns.length}, minmax(0, 1fr))` }}
+                    style={{
+                      gridTemplateColumns: `repeat(${section.columns.length}, minmax(0, 1fr))`,
+                    }}
                   >
                     {section.columns.map((column, colIndex) => (
                       <div key={colIndex} className="space-y-4 overflow-hidden">
                         {column.map((field) =>
-                          RenderField(field, control, handleChange, readOnly, currencySymbol, fieldConfig)
+                          RenderField(
+                            field,
+                            control,
+                            handleChange,
+                            readOnly,
+                            currencySymbol,
+                            fieldConfig,
+                          ),
                         )}
                       </div>
                     ))}
@@ -176,7 +235,7 @@ const FieldRenderer = forwardRef(
         ))}
       </form>
     );
-  }
+  },
 );
 
 export default FieldRenderer;

@@ -61,7 +61,10 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
       responseBody,
     };
 
-    console.error("❌ API Request Debug Info:", JSON.stringify(debugInfo, null, 2));
+    console.error(
+      "❌ API Request Debug Info:",
+      JSON.stringify(debugInfo, null, 2),
+    );
 
     throw new Error(
       `API request failed:\n` +
@@ -71,7 +74,7 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
         `  Status    : ${response.status()} ${response.statusText()}\n` +
         `  Payload   : ${postData || "N/A"}\n` +
         `  Response  : ${responseBody || "No response body"}\n\n` +
-        `💡 Suggestion: Check if the endpoint is correct and accessible for the given role.\n`
+        `💡 Suggestion: Check if the endpoint is correct and accessible for the given role.\n`,
     );
   }
 };
@@ -80,7 +83,10 @@ export const apiRequest = async (endpoint, options = {}, role = "manager") => {
 /**
  * Create a new timesheet entry.
  */
-export const createTimesheet = async ({ task, description, hours, date, employee }, role = "manager") => {
+export const createTimesheet = async (
+  { task, description, hours, date, employee },
+  role = "manager",
+) => {
   const endpoint = `/api/method/next_pms.timesheet.api.timesheet.save`;
   const options = {
     method: "POST",
@@ -128,7 +134,10 @@ export const deleteTimesheet = async ({ parent, name }, role = "manager") => {
  * Get timesheet details for the specified employee.
  * Optional params: start_date, max_week.
  */
-export const getTimesheetDetails = async ({ employee, start_date, max_week }, role = "manager") => {
+export const getTimesheetDetails = async (
+  { employee, start_date, max_week },
+  role = "manager",
+) => {
   const queryParams = new URLSearchParams({ employee });
 
   if (start_date) queryParams.append("start_date", start_date);
@@ -146,7 +155,10 @@ export const getTimesheetDetails = async ({ employee, start_date, max_week }, ro
 /**
  * Submit Timesheet for the specified employee.
  */
-export const submitTimesheet = async ({ start_date, end_date, notes, approver, employee }, role) => {
+export const submitTimesheet = async (
+  { start_date, end_date, notes, approver, employee },
+  role,
+) => {
   const endpoint = `/api/method/next_pms.timesheet.api.timesheet.submit_for_approval`;
   const options = {
     method: "POST",
@@ -162,7 +174,10 @@ export const submitTimesheet = async ({ start_date, end_date, notes, approver, e
 };
 // ------------------------------------------------------------------------------------------
 
-export const actOnTimesheet = async ({ dates, employee, note, status }, role = "manager") => {
+export const actOnTimesheet = async (
+  { dates, employee, note, status },
+  role = "manager",
+) => {
   const endpoint = `/api/method/next_pms.timesheet.api.team.approve_or_reject_timesheet`;
   const options = {
     method: "POST",

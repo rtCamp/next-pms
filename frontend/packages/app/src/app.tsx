@@ -3,8 +3,15 @@
  */
 import { Suspense } from "react";
 import { Provider } from "react-redux";
-import { RouterProvider, createBrowserRouter, createRoutesFromElements } from "react-router-dom";
-import { ErrorFallback, TooltipProvider } from "@next-pms/design-system/components";
+import {
+  RouterProvider,
+  createBrowserRouter,
+  createRoutesFromElements,
+} from "react-router-dom";
+import {
+  ErrorFallback,
+  TooltipProvider,
+} from "@next-pms/design-system/components";
 
 /**
  * Internal dependencies.

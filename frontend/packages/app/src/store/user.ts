@@ -90,7 +90,7 @@ const userSlice = createSlice({
       action: PayloadAction<{
         workingHours: number;
         workingFrequency: WorkingFrequency;
-      }>
+      }>,
     ) => {
       state.workingHours = action.payload.workingHours;
       state.workingFrequency = action.payload.workingFrequency;

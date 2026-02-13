@@ -7,7 +7,7 @@ import type { TimesheetState } from "./components/types";
 
 export const validateDate = (
   startDateParam: string,
-  timesheet: TimesheetState
+  timesheet: TimesheetState,
 ) => {
   if (!startDateParam) {
     return true;

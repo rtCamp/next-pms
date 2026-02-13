@@ -17,7 +17,11 @@ import {
   Separator,
   useToast,
 } from "@next-pms/design-system/components";
-import { getTodayDate, getFormatedDate, prettyDate } from "@next-pms/design-system/date";
+import {
+  getTodayDate,
+  getFormatedDate,
+  prettyDate,
+} from "@next-pms/design-system/date";
 import { floatToTime } from "@next-pms/design-system/utils";
 import { addDays } from "date-fns";
 import { useFrappeGetCall } from "frappe-react-sdk";
@@ -30,14 +34,19 @@ import type { Employee, LogData, TaskLogProps } from "./types";
 
 export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
   const { toast } = useToast();
-  const [startDate, setStartDate] = useState<string>(getFormatedDate(addDays(getTodayDate(), -15)));
+  const [startDate, setStartDate] = useState<string>(
+    getFormatedDate(addDays(getTodayDate(), -15)),
+  );
   const endDate = getTodayDate();
   const [selectedMap, setSelectedMap] = useState<string>("15");
-  const { data, isLoading, error } = useFrappeGetCall("next_pms.timesheet.api.task.get_task", {
-    task: task,
-    start_date: startDate,
-    end_date: endDate,
-  });
+  const { data, isLoading, error } = useFrappeGetCall(
+    "next_pms.timesheet.api.task.get_task",
+    {
+      task: task,
+      start_date: startDate,
+      end_date: endDate,
+    },
+  );
   const dateMap = [
     { label: "Last 7 days", value: "7" },
     { label: "Last 15 days", value: "15" },
@@ -92,15 +101,30 @@ export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
         ) : (
           <>
             <DialogHeader className="space-y-0">
-              <DialogTitle title={data?.message.subject} className="flex items-center gap-x-2">
+              <DialogTitle
+                title={data?.message.subject}
+                className="flex items-center gap-x-2"
+              >
                 {data?.message.gh_link && data?.message.gh_link.length > 0 ? (
-                  <a href={data?.message.gh_link} target="_blank" className="hover:underline">
-                    <Typography variant="h2" className="max-w-sm truncate" title={data?.message.subject}>
+                  <a
+                    href={data?.message.gh_link}
+                    target="_blank"
+                    className="hover:underline"
+                  >
+                    <Typography
+                      variant="h2"
+                      className="max-w-sm truncate"
+                      title={data?.message.subject}
+                    >
                       {data?.message.subject}
                     </Typography>
                   </a>
                 ) : (
-                  <Typography variant="h2" className="max-w-sm truncate" title={data?.message.subject}>
+                  <Typography
+                    variant="h2"
+                    className="max-w-sm truncate"
+                    title={data?.message.subject}
+                  >
                     {data?.message.subject}
                   </Typography>
                 )}
@@ -109,23 +133,34 @@ export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
               </DialogTitle>
               <div className="flex justify-between max-w-full">
                 <div className="flex gap-x-2 w-4/5 overflow-hidden">
-                  <Typography as="span" className="flex items-center gap-x-1 shrink-0">
+                  <Typography
+                    as="span"
+                    className="flex items-center gap-x-1 shrink-0"
+                  >
                     Time:
                     <Typography
                       variant="p"
                       className={mergeClassNames(
                         "font-semibold",
-                        data?.message.actual_time > data?.message.expected_time && "text-destructive",
-                        data?.message.actual_time < data?.message.expected_time && "text-success"
+                        data?.message.actual_time >
+                          data?.message.expected_time && "text-destructive",
+                        data?.message.actual_time <
+                          data?.message.expected_time && "text-success",
                       )}
                     >
                       {floatToTime(data?.message.actual_time)}h
                     </Typography>
                   </Typography>
 
-                  <Typography as="span" className="flex items-center gap-x-1 shrink-0">
+                  <Typography
+                    as="span"
+                    className="flex items-center gap-x-1 shrink-0"
+                  >
                     Estimate:
-                    <Typography variant="p" className={mergeClassNames("font-semibold")}>
+                    <Typography
+                      variant="p"
+                      className={mergeClassNames("font-semibold")}
+                    >
                       {floatToTime(data?.message.expected_time)}h
                     </Typography>
                   </Typography>
@@ -151,14 +186,22 @@ export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
                       if (typeof value === "string") {
                         setSelectedMap(value);
                         const date = value;
-                        setStartDate(getFormatedDate(addDays(getTodayDate(), -parseInt(date))));
+                        setStartDate(
+                          getFormatedDate(
+                            addDays(getTodayDate(), -parseInt(date)),
+                          ),
+                        );
                       } else {
                         if (value.length === 0) {
                           setDefault();
                         } else {
                           setSelectedMap(value[0]);
                           const date = value[0];
-                          setStartDate(getFormatedDate(addDays(getTodayDate(), -parseInt(date))));
+                          setStartDate(
+                            getFormatedDate(
+                              addDays(getTodayDate(), -parseInt(date)),
+                            ),
+                          );
                         }
                       }
                     }}
@@ -172,9 +215,15 @@ export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
                 <section id="worked_by">
                   <div className="flex gap-x-4 overflow-x-auto no-scrollbar">
                     {data?.message.worked_by?.map((employee: Employee) => (
-                      <div key={employee.employee} className="flex items-center gap-x-2 shrink-0">
+                      <div
+                        key={employee.employee}
+                        className="flex items-center gap-x-2 shrink-0"
+                      >
                         <Avatar className="w-6 h-6">
-                          <AvatarImage src={employee.image} alt={employee.employee_name} />
+                          <AvatarImage
+                            src={employee.image}
+                            alt={employee.employee_name}
+                          />
                           <AvatarFallback>
                             <Typography variant="p" className="font-semibold">
                               {employee.employee_name[0]}
@@ -182,7 +231,9 @@ export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
                           </AvatarFallback>
                         </Avatar>
                         <span>
-                          <Typography variant="p">{employee.employee_name}</Typography>
+                          <Typography variant="p">
+                            {employee.employee_name}
+                          </Typography>
                           <Typography variant="p" className="font-semibold">
                             {floatToTime(employee.total_hour)}h
                           </Typography>
@@ -199,41 +250,63 @@ export const TaskLog = ({ task, isOpen, onOpenChange }: TaskLogProps) => {
               <Spinner />
             ) : (
               <>
-                <section id="log" className="max-h-96 overflow-y-auto no-scrollbar flex flex-col gap-3">
+                <section
+                  id="log"
+                  className="max-h-96 overflow-y-auto no-scrollbar flex flex-col gap-3"
+                >
                   <>
                     {logs &&
-                      Object.entries(logs.message as Record<string, LogData[]>).map(([key, value], index: number) => {
+                      Object.entries(
+                        logs.message as Record<string, LogData[]>,
+                      ).map(([key, value], index: number) => {
                         return (
                           <div key={index}>
                             {/* eslint-disable-next-line @typescript-eslint/no-unused-vars */}
                             {value.map((log: LogData, i: number) => {
                               const employee = data?.message.worked_by?.find(
-                                (emp: Employee) => emp.employee === log.employee
+                                (emp: Employee) =>
+                                  emp.employee === log.employee,
                               );
                               return (
                                 <div className="border-b border-dashed p-2 bg-gray-50 dark:bg-muted/30 ">
                                   <div className="flex justify-between w-full">
                                     <span className="flex gap-x-2 items-start">
                                       <Avatar className="w-6 h-6">
-                                        <AvatarImage src={employee?.image} alt={employee?.employee_name} />
+                                        <AvatarImage
+                                          src={employee?.image}
+                                          alt={employee?.employee_name}
+                                        />
                                         <AvatarFallback>
-                                          <Typography variant="p" className="font-semibold">
+                                          <Typography
+                                            variant="p"
+                                            className="font-semibold"
+                                          >
                                             {employee?.employee_name[0]}
                                           </Typography>
                                         </AvatarFallback>
                                       </Avatar>
-                                      <Typography variant="p">{employee?.employee_name}</Typography>
-                                      <Typography variant="p">{prettyDate(key).date}</Typography>
+                                      <Typography variant="p">
+                                        {employee?.employee_name}
+                                      </Typography>
+                                      <Typography variant="p">
+                                        {prettyDate(key).date}
+                                      </Typography>
                                     </span>
-                                    <Typography variant="p">{floatToTime(log.hours)}h</Typography>
+                                    <Typography variant="p">
+                                      {floatToTime(log.hours)}h
+                                    </Typography>
                                   </div>
-                                  {log.description.map((description: string) => (
-                                    <div
-                                      key={description}
-                                      className="pl-8 py-1 rounded pb-0 w-full overflow-x-auto ql-editor min-h-0"
-                                      dangerouslySetInnerHTML={{ __html: description }}
-                                    ></div>
-                                  ))}
+                                  {log.description.map(
+                                    (description: string) => (
+                                      <div
+                                        key={description}
+                                        className="pl-8 py-1 rounded pb-0 w-full overflow-x-auto ql-editor min-h-0"
+                                        dangerouslySetInnerHTML={{
+                                          __html: description,
+                                        }}
+                                      ></div>
+                                    ),
+                                  )}
                                 </div>
                               );
                             })}

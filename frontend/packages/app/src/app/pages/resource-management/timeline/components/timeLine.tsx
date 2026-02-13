@@ -2,7 +2,11 @@
  * External dependencies.
  */
 import { useState } from "react";
-import Timeline, { DateHeader, SidebarHeader, TimelineHeaders } from "react-calendar-timeline";
+import Timeline, {
+  DateHeader,
+  SidebarHeader,
+  TimelineHeaders,
+} from "react-calendar-timeline";
 import {
   mergeClassNames,
   getDayDiff,
@@ -24,7 +28,11 @@ import { useContextSelector } from "use-context-selector";
  */
 import type { ResourceAllocationProps } from "@/types/resource_management";
 import ResourceTimeLineGroup from "./group";
-import type { ResourceAllocationEmployeeProps, ResourceAllocationTimeLineProps, ResourceTimeLineProps } from "../types";
+import type {
+  ResourceAllocationEmployeeProps,
+  ResourceAllocationTimeLineProps,
+  ResourceTimeLineProps,
+} from "../types";
 import { TimeLineDateHeader, TimeLineIntervalHeader } from "./header";
 import { ResourceTimeLineItem, ItemAllocationActionDialog } from "./item";
 import { ResourceFormContext } from "../../store/resourceFormContext";
@@ -32,19 +40,35 @@ import { TimeLineContext } from "../../store/timeLineContext";
 import { getDayKeyOfMoment } from "../../utils/dates";
 
 const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
-  const { tableProperties } = useContextSelector(TableContext, (value) => value.state);
-  const { getCellWidthString } = useContextSelector(TableContext, (value) => value.actions);
-  const { employees, allocations, allocationData, filters } = useContextSelector(
-    TimeLineContext,
-    (value) => value.state
+  const { tableProperties } = useContextSelector(
+    TableContext,
+    (value) => value.state,
   );
-  const { getAllocationWithID, updateAllocation, getEmployeeWithIndex, setAllocationData, getEmployeeWithID } =
-    useContextSelector(TimeLineContext, (value) => value.actions);
-  const { permission: resourceAllocationPermission } = useContextSelector(ResourceFormContext, (value) => value.state);
+  const { getCellWidthString } = useContextSelector(
+    TableContext,
+    (value) => value.actions,
+  );
+  const { employees, allocations, allocationData, filters } =
+    useContextSelector(TimeLineContext, (value) => value.state);
+  const {
+    getAllocationWithID,
+    updateAllocation,
+    getEmployeeWithIndex,
+    setAllocationData,
+    getEmployeeWithID,
+  } = useContextSelector(TimeLineContext, (value) => value.actions);
+  const { permission: resourceAllocationPermission } = useContextSelector(
+    ResourceFormContext,
+    (value) => value.state,
+  );
 
-  const { updateDialogState, updateAllocationData } = useContextSelector(ResourceFormContext, (value) => value.actions);
+  const { updateDialogState, updateAllocationData } = useContextSelector(
+    ResourceFormContext,
+    (value) => value.actions,
+  );
 
-  const [showItemAllocationActionDialog, setShowItemAllocationActionDialog] = useState(false);
+  const [showItemAllocationActionDialog, setShowItemAllocationActionDialog] =
+    useState(false);
 
   const start = startOfWeek(getTodayDate(), {
     weekStartsOn: 1,
@@ -63,8 +87,12 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
     let classNames = ["border-0"];
 
     if (filters.isShowMonth) {
-      const currentMonth = getMonthYearKey(getDayKeyOfMoment(moment(startTime)));
-      const nextMonth = getMonthYearKey(getDayKeyOfMoment(moment(startTime).add(-1, "days")));
+      const currentMonth = getMonthYearKey(
+        getDayKeyOfMoment(moment(startTime)),
+      );
+      const nextMonth = getMonthYearKey(
+        getDayKeyOfMoment(moment(startTime).add(-1, "days")),
+      );
 
       if (currentMonth !== nextMonth) {
         return [" border-0 border-r border-gray-300 opacity-80"];
@@ -108,7 +136,10 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
     return createAllocations("Resource Allocation", doctypeDoc);
   };
 
-  const updateAllocationApi = (allocation: ResourceAllocationTimeLineProps, needsStateRefresh: boolean = true) => {
+  const updateAllocationApi = (
+    allocation: ResourceAllocationTimeLineProps,
+    needsStateRefresh: boolean = true,
+  ) => {
     let updatedAllocation = allocation;
 
     if (needsStateRefresh) {
@@ -122,7 +153,7 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
         if (!needsStateRefresh) {
           handleFormSubmit(
             allocationData.old as ResourceAllocationTimeLineProps,
-            allocationData.new as ResourceAllocationTimeLineProps
+            allocationData.new as ResourceAllocationTimeLineProps,
           );
         }
         toast({
@@ -138,12 +169,17 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
       });
   };
 
-  const setResourceAllocationData = (resourceAllocation: ResourceAllocationProps) => {
+  const setResourceAllocationData = (
+    resourceAllocation: ResourceAllocationProps,
+  ) => {
     if (!resourceAllocationPermission.write) {
       return;
     }
 
-    updateDialogState({ isShowDialog: true, isNeedToEdit: resourceAllocation.name ? true : false });
+    updateDialogState({
+      isShowDialog: true,
+      isNeedToEdit: resourceAllocation.name ? true : false,
+    });
 
     updateAllocationData({
       employee: resourceAllocation.employee,
@@ -153,28 +189,45 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
       allocation_end_date: resourceAllocation.allocation_end_date,
       is_billable: resourceAllocation.is_billable == 1,
       customer: resourceAllocation.customer,
-      total_allocated_hours: getFormatedStringValue(resourceAllocation.total_allocated_hours),
-      hours_allocated_per_day: getFormatedStringValue(resourceAllocation.hours_allocated_per_day),
+      total_allocated_hours: getFormatedStringValue(
+        resourceAllocation.total_allocated_hours,
+      ),
+      hours_allocated_per_day: getFormatedStringValue(
+        resourceAllocation.hours_allocated_per_day,
+      ),
       note: getFormatedStringValue(resourceAllocation.note),
       project_name: resourceAllocation.project_name,
-      customer_name: resourceAllocation?.customerData ? resourceAllocation?.customerData?.name : "",
+      customer_name: resourceAllocation?.customerData
+        ? resourceAllocation?.customerData?.name
+        : "",
       name: resourceAllocation.name,
     });
   };
 
-  const onItemMove = (itemId: string, dragTime: number, newGroupOrder: number) => {
+  const onItemMove = (
+    itemId: string,
+    dragTime: number,
+    newGroupOrder: number,
+  ) => {
     if (!resourceAllocationPermission.write) {
       return;
     }
 
-    const allocation: ResourceAllocationTimeLineProps | undefined = getAllocationWithID(itemId);
+    const allocation: ResourceAllocationTimeLineProps | undefined =
+      getAllocationWithID(itemId);
     if (!allocation) {
       return;
     }
     const newStartData: string = getDayKeyOfMoment(moment(dragTime));
-    const diffOfDays = getDayDiff(allocation.allocation_start_date, allocation.allocation_end_date);
-    const newEndData: string = getDayKeyOfMoment(moment(dragTime).add(diffOfDays, "days"));
-    const employee: ResourceAllocationEmployeeProps | -1 = getEmployeeWithIndex(newGroupOrder);
+    const diffOfDays = getDayDiff(
+      allocation.allocation_start_date,
+      allocation.allocation_end_date,
+    );
+    const newEndData: string = getDayKeyOfMoment(
+      moment(dragTime).add(diffOfDays, "days"),
+    );
+    const employee: ResourceAllocationEmployeeProps | -1 =
+      getEmployeeWithIndex(newGroupOrder);
 
     if (employee == -1) {
       return;
@@ -185,14 +238,20 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
       allocation_start_date: newStartData,
       allocation_end_date: newEndData,
       start_time: getUTCDateTime(newStartData).getTime(),
-      end_time: getUTCDateTime(newEndData).setDate(getUTCDateTime(newEndData).getDate() + 1),
+      end_time: getUTCDateTime(newEndData).setDate(
+        getUTCDateTime(newEndData).getDate() + 1,
+      ),
       employee: employee.name,
       employee_name: employee.employee_name,
       group: employee.name,
     };
 
     if (employee.name !== allocation.employee) {
-      setAllocationData({ old: allocation, new: updatedAllocation, isNeedToDelete: false });
+      setAllocationData({
+        old: allocation,
+        new: updatedAllocation,
+        isNeedToDelete: false,
+      });
       setShowItemAllocationActionDialog(true);
       return;
     }
@@ -220,12 +279,17 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
     });
   };
 
-  const onItemResize = (itemId: string, time: number, edge: "left" | "right") => {
+  const onItemResize = (
+    itemId: string,
+    time: number,
+    edge: "left" | "right",
+  ) => {
     if (!resourceAllocationPermission.write) {
       return;
     }
 
-    const allocation: ResourceAllocationTimeLineProps | undefined = getAllocationWithID(itemId);
+    const allocation: ResourceAllocationTimeLineProps | undefined =
+      getAllocationWithID(itemId);
 
     if (!allocation) {
       return;
@@ -247,7 +311,9 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
       allocation_start_date: newStartData,
       allocation_end_date: newEndData,
       start_time: getUTCDateTime(newStartData).getTime(),
-      end_time: getUTCDateTime(newEndData).setDate(getUTCDateTime(newEndData).getDate() + 1),
+      end_time: getUTCDateTime(newEndData).setDate(
+        getUTCDateTime(newEndData).getDate() + 1,
+      ),
     });
   };
 
@@ -313,7 +379,11 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
               return (
                 <TableHead
                   className={mergeClassNames("flex items-center ")}
-                  style={{ width: getCellWidthString(tableProperties.firstCellWidth - 0.05) }}
+                  style={{
+                    width: getCellWidthString(
+                      tableProperties.firstCellWidth - 0.05,
+                    ),
+                  }}
                 >
                   Members
                 </TableHead>
@@ -327,7 +397,11 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
                 intervalRenderer={TimeLineIntervalHeader}
                 headerData={{ unit: "month", showYear: true }}
               />
-              <DateHeader unit="month" intervalRenderer={TimeLineIntervalHeader} headerData={{ unit: "month" }} />
+              <DateHeader
+                unit="month"
+                intervalRenderer={TimeLineIntervalHeader}
+                headerData={{ unit: "month" }}
+              />
             </>
           ) : (
             <>
@@ -352,11 +426,20 @@ const ResourceTimeLine = ({ handleFormSubmit }: ResourceTimeLineProps) => {
       {showItemAllocationActionDialog && (
         <ItemAllocationActionDialog
           handleMove={() => {
-            updateAllocationApi(allocationData.new as ResourceAllocationTimeLineProps, false);
+            updateAllocationApi(
+              allocationData.new as ResourceAllocationTimeLineProps,
+              false,
+            );
             setShowItemAllocationActionDialog(false);
           }}
           handleCopy={() => {
-            updateAllocationApi({ ...allocationData.new, name: "" } as ResourceAllocationTimeLineProps, false);
+            updateAllocationApi(
+              {
+                ...allocationData.new,
+                name: "",
+              } as ResourceAllocationTimeLineProps,
+              false,
+            );
             setShowItemAllocationActionDialog(false);
           }}
           handleCancel={() => {

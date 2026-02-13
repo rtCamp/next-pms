@@ -34,7 +34,9 @@ export const CreateView = ({
   setIsOpen,
   pinnedColumns,
 }: CreateViewProps) => {
-  const { call } = useFrappePostCall("next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.create_view");
+  const { call } = useFrappePostCall(
+    "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.create_view",
+  );
   const user = useSelector((state: RootState) => state.user);
   const [label, setLabel] = useState("");
   const dispatch = useDispatch();
@@ -72,13 +74,20 @@ export const CreateView = ({
           <DialogTitle>Create View</DialogTitle>
         </DialogHeader>
         <div className="flex gap-x-2">
-          <Button onClick={() => setOpenEmoji(!openEmoji)} className="w-10 p-0" variant="outline">
+          <Button
+            onClick={() => setOpenEmoji(!openEmoji)}
+            className="w-10 p-0"
+            variant="outline"
+          >
             {selectedEmoji}
           </Button>
           {openEmoji && (
             <EmojiPicker
               lazyLoadEmojis={true}
-              previewConfig={{ showPreview: false, defaultEmoji: selectedEmoji }}
+              previewConfig={{
+                showPreview: false,
+                defaultEmoji: selectedEmoji,
+              }}
               emojiStyle={EmojiStyle.NATIVE}
               className="absolute mt-11 h-80 overflow-y-auto dark:bg-accent"
               onEmojiClick={(event) => {

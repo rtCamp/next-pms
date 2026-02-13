@@ -43,14 +43,14 @@ const actionHandlers = {
   }),
   SET_DATE_RANGE: (
     state: TimesheetState,
-    payload: { start_date: string; end_date: string }
+    payload: { start_date: string; end_date: string },
   ): TimesheetState => ({
     ...state,
     dateRange: payload,
   }),
   SET_TIMESHEET: (
     state: TimesheetState,
-    payload: TimesheetState["timesheet"]
+    payload: TimesheetState["timesheet"],
   ): TimesheetState => ({
     ...state,
     timesheet: payload,
@@ -61,28 +61,28 @@ const actionHandlers = {
   }),
   SET_DIALOG_STATE: (
     state: TimesheetState,
-    payload: boolean
+    payload: boolean,
   ): TimesheetState => ({
     ...state,
     isDialogOpen: payload,
   }),
   SET_APPROVAL_DIALOG_STATE: (
     state: TimesheetState,
-    payload: boolean
+    payload: boolean,
   ): TimesheetState => ({
     ...state,
     isAprrovalDialogOpen: payload,
   }),
   SET_LEAVE_DIALOG_STATE: (
     state: TimesheetState,
-    payload: boolean
+    payload: boolean,
   ): TimesheetState => ({
     ...state,
     isLeaveDialogOpen: payload,
   }),
   SET_EDIT_DIALOG_STATE: (
     state: TimesheetState,
-    payload: boolean
+    payload: boolean,
   ): TimesheetState => ({
     ...state,
     isEditDialogOpen: payload,
@@ -91,10 +91,10 @@ const actionHandlers = {
   APPEND_DATA: (state: TimesheetState, payload: DataProp): TimesheetState => {
     const newData = { ...state.data.data, ...payload.data };
     const existingLeaveIds = new Set(
-      state.data.leaves.map((leave) => leave.name)
+      state.data.leaves.map((leave) => leave.name),
     );
     const newLeaves = payload.leaves.filter(
-      (leave) => !existingLeaveIds.has(leave.name)
+      (leave) => !existingLeaveIds.has(leave.name),
     );
 
     return {
@@ -110,7 +110,7 @@ const actionHandlers = {
   RESET_STATE: (): TimesheetState => initialState,
   SET_IMPORT_FROM_GOOGLE_CALENDAR_DIALOG_STATE: (
     state: TimesheetState,
-    payload: boolean
+    payload: boolean,
   ): TimesheetState => ({
     ...state,
     isImportFromGoogleCalendarDialogOpen: payload,
@@ -119,7 +119,7 @@ const actionHandlers = {
 
 export const reducer = (
   state: TimesheetState,
-  action: Action
+  action: Action,
 ): TimesheetState => {
   const handler = actionHandlers[action.type];
   if (handler) {

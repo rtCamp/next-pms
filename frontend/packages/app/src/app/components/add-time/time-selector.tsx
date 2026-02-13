@@ -28,17 +28,22 @@ interface TimeSelectorProps {
 }
 const TimeSelector = ({ onClick }: TimeSelectorProps) => {
   const [shouldOpen, setShouldOpen] = useState(false);
-  const time = [...(getLocalStorage("customTime") || []), ...CustomTime].sort((a, b) => {
-    const timeA = a.split(":").map(Number);
-    const timeB = b.split(":").map(Number);
-    return timeA[0] * 60 + timeA[1] - (timeB[0] * 60 + timeB[1]);
-  });
+  const time = [...(getLocalStorage("customTime") || []), ...CustomTime].sort(
+    (a, b) => {
+      const timeA = a.split(":").map(Number);
+      const timeB = b.split(":").map(Number);
+      return timeA[0] * 60 + timeA[1] - (timeB[0] * 60 + timeB[1]);
+    },
+  );
   return (
     <>
       <AddCustomTime setOpen={setShouldOpen} isOpen={shouldOpen} />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className=" border-0 hover:bg-transparent group">
+          <Button
+            variant="ghost"
+            className=" border-0 hover:bg-transparent group"
+          >
             <Clock3 className="stroke-slate-400 group-hover:stroke-primary" />
           </Button>
         </DropdownMenuTrigger>
@@ -77,7 +82,9 @@ const AddCustomTime = ({
   setOpen: (value: React.SetStateAction<boolean>) => void;
 }) => {
   const customTime = getLocalStorage("customTime") || [];
-  const handleAddCustomTime = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleAddCustomTime = (
+    event: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
     if (event.key != "Enter") return;
     let time = event.currentTarget.value.trim();
     if (!time.includes(":")) {
@@ -96,7 +103,11 @@ const AddCustomTime = ({
         <DialogHeader>
           <DialogTitle>Add Custom Time</DialogTitle>
         </DialogHeader>
-        <Input placeholder="Enter custom time(01:00 or 1)" required onKeyDown={handleAddCustomTime} />
+        <Input
+          placeholder="Enter custom time(01:00 or 1)"
+          required
+          onKeyDown={handleAddCustomTime}
+        />
         <Typography variant="small">Press Enter to save</Typography>
       </DialogContent>
     </Dialog>

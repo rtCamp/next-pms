@@ -19,7 +19,10 @@ interface CommentsListExtendedProps extends CommentsListProps {
   activeCommentName?: string;
 }
 
-const CommentsList = React.forwardRef<HTMLDivElement, CommentsListExtendedProps>(
+const CommentsList = React.forwardRef<
+  HTMLDivElement,
+  CommentsListExtendedProps
+>(
   (
     {
       comments,
@@ -35,9 +38,11 @@ const CommentsList = React.forwardRef<HTMLDivElement, CommentsListExtendedProps>
       activeCommentName,
       ...props
     },
-    ref
+    ref,
   ) => {
-    const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+    const [editingCommentId, setEditingCommentId] = useState<string | null>(
+      null,
+    );
 
     const handleEditModeChange = (commentId: string, isEditing: boolean) => {
       setEditingCommentId(isEditing ? commentId : null);
@@ -45,7 +50,14 @@ const CommentsList = React.forwardRef<HTMLDivElement, CommentsListExtendedProps>
 
     if (isLoading) {
       return (
-        <div ref={ref} className={mergeClassNames("flex items-center justify-center p-8", className)} {...props}>
+        <div
+          ref={ref}
+          className={mergeClassNames(
+            "flex items-center justify-center p-8",
+            className,
+          )}
+          {...props}
+        >
           <Spinner />
         </div>
       );
@@ -53,7 +65,14 @@ const CommentsList = React.forwardRef<HTMLDivElement, CommentsListExtendedProps>
 
     if (!comments.length) {
       return (
-        <div ref={ref} className={mergeClassNames("flex items-center justify-center p-8", className)} {...props}>
+        <div
+          ref={ref}
+          className={mergeClassNames(
+            "flex items-center justify-center p-8",
+            className,
+          )}
+          {...props}
+        >
           <Typography variant="p" className="text-muted-foreground">
             {emptyMessage}
           </Typography>
@@ -62,7 +81,11 @@ const CommentsList = React.forwardRef<HTMLDivElement, CommentsListExtendedProps>
     }
 
     return (
-      <div ref={ref} className={mergeClassNames("space-y-4 h-full", className)} {...props}>
+      <div
+        ref={ref}
+        className={mergeClassNames("space-y-4 h-full", className)}
+        {...props}
+      >
         <div className="overflow-y-auto h-full space-y-4">
           {comments.map((comment) => (
             <CommentItem
@@ -82,7 +105,7 @@ const CommentsList = React.forwardRef<HTMLDivElement, CommentsListExtendedProps>
         </div>
       </div>
     );
-  }
+  },
 );
 
 CommentsList.displayName = "CommentsList";

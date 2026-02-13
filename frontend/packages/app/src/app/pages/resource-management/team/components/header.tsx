@@ -35,33 +35,57 @@ const ResourceTeamHeaderSection = ({ viewData }: { viewData: ViewData }) => {
   const [reportingNameParam] = useQueryParam<string>("reports-to", "");
   const [allocationTypeParam] = useQueryParam<string[]>("allocation-type", []);
   const [designationParam] = useQueryParam<string[]>("designation", []);
-  const [viewParam, setViewParam] = useQueryParam<string>("view-type", viewData.filters.view || "");
-  const user = useSelector((state: RootState) => state.user);
-  const [combineWeekHoursParam, setCombineWeekHoursParam] = useQueryParam<boolean>(
-    "combine-week-hours",
-    viewData.filters.combineWeekHours || false
+  const [viewParam, setViewParam] = useQueryParam<string>(
+    "view-type",
+    viewData.filters.view || "",
   );
-  const [skillSearchParam, setSkillSearchParam] = useQueryParam<Skill[]>("skill-search", []);
+  const user = useSelector((state: RootState) => state.user);
+  const [combineWeekHoursParam, setCombineWeekHoursParam] =
+    useQueryParam<boolean>(
+      "combine-week-hours",
+      viewData.filters.combineWeekHours || false,
+    );
+  const [skillSearchParam, setSkillSearchParam] = useQueryParam<Skill[]>(
+    "skill-search",
+    [],
+  );
   const { toast } = useToast();
 
-  const { teamData, filters, tableView, hasViewUpdated } = useContextSelector(TeamContext, (value) => value.state);
-
-  const { updateFilter, setWeekDate, setCombineWeekHours, updateTableView, setHasViewUpdated } = useContextSelector(
+  const { teamData, filters, tableView, hasViewUpdated } = useContextSelector(
     TeamContext,
-    (value) => value.actions
+    (value) => value.state,
   );
 
-  const { permission: resourceAllocationPermission } = useContextSelector(ResourceFormContext, (value) => value.state);
+  const {
+    updateFilter,
+    setWeekDate,
+    setCombineWeekHours,
+    updateTableView,
+    setHasViewUpdated,
+  } = useContextSelector(TeamContext, (value) => value.actions);
 
-  const { updatePermission, updateDialogState } = useContextSelector(ResourceFormContext, (value) => value.actions);
+  const { permission: resourceAllocationPermission } = useContextSelector(
+    ResourceFormContext,
+    (value) => value.state,
+  );
+
+  const { updatePermission, updateDialogState } = useContextSelector(
+    ResourceFormContext,
+    (value) => value.actions,
+  );
 
   const { call, loading } = useFrappePostCall(
-    "next_pms.resource_management.api.permission.get_user_resources_permissions"
+    "next_pms.resource_management.api.permission.get_user_resources_permissions",
   );
 
-  const { data: employee } = useFrappeGetCall("next_pms.timesheet.api.employee.get_employee", {
-    filters: { name: reportingNameParam || viewData.filters.reportingManager },
-  });
+  const { data: employee } = useFrappeGetCall(
+    "next_pms.timesheet.api.employee.get_employee",
+    {
+      filters: {
+        name: reportingNameParam || viewData.filters.reportingManager,
+      },
+    },
+  );
 
   useEffect(() => {
     if (!resourceAllocationPermission.isNeedToSetPermission) {
@@ -88,22 +112,40 @@ const ResourceTeamHeaderSection = ({ viewData }: { viewData: ViewData }) => {
     }
     updateFilter({
       businessUnit:
-        businessUnitParam && businessUnitParam.length > 0 ? businessUnitParam : viewData.filters.businessUnit,
+        businessUnitParam && businessUnitParam.length > 0
+          ? businessUnitParam
+          : viewData.filters.businessUnit,
       employeeName: employeeNameParam || viewData.filters.employeeName,
       reportingManager: reportingNameParam || viewData.filters.reportingManager,
-      designation: designationParam && designationParam.length > 0 ? designationParam : viewData.filters.designation,
+      designation:
+        designationParam && designationParam.length > 0
+          ? designationParam
+          : viewData.filters.designation,
       allocationType:
-        allocationTypeParam && allocationTypeParam.length > 0 ? allocationTypeParam : viewData.filters.allocationType,
-      skillSearch: skillSearchParam && skillSearchParam.length > 0 ? skillSearchParam : viewData.filters.skillSearch,
+        allocationTypeParam && allocationTypeParam.length > 0
+          ? allocationTypeParam
+          : viewData.filters.allocationType,
+      skillSearch:
+        skillSearchParam && skillSearchParam.length > 0
+          ? skillSearchParam
+          : viewData.filters.skillSearch,
     });
 
-    updateTableView({ ...tableView, view: CurrentViewParam, combineWeekHours: combineWeekHoursParam });
+    updateTableView({
+      ...tableView,
+      view: CurrentViewParam,
+      combineWeekHours: combineWeekHoursParam,
+    });
   };
 
   const handleWeekViewChange = useCallback(() => {
     setCombineWeekHoursParam(!tableView.combineWeekHours);
     setCombineWeekHours(!tableView.combineWeekHours);
-  }, [setCombineWeekHours, setCombineWeekHoursParam, tableView.combineWeekHours]);
+  }, [
+    setCombineWeekHours,
+    setCombineWeekHoursParam,
+    tableView.combineWeekHours,
+  ]);
 
   const handlePrevWeek = useCallback(() => {
     const date = getFormatedDate(addDays(teamData.dates[0].start_date, -3));
@@ -116,12 +158,20 @@ const ResourceTeamHeaderSection = ({ viewData }: { viewData: ViewData }) => {
   }, [setWeekDate, teamData.dates]);
 
   const { call: updateView } = useFrappePostCall(
-    "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view"
+    "next_pms.timesheet.doctype.pms_view_setting.pms_view_setting.update_view",
   );
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { start, weekDate, employeeWeekDate, maxWeek, pageLength, ...viewFilters } = filters;
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    const {
+      start: _unused1,
+      weekDate: _unused2,
+      employeeWeekDate: _unused3,
+      maxWeek: _unused4,
+      pageLength: _unused5,
+      ...viewFilters
+    } = filters;
+    /* eslint-enable @typescript-eslint/no-unused-vars */
     if (
       !_.isEqual(viewData.filters, {
         ...viewFilters,
@@ -137,12 +187,24 @@ const ResourceTeamHeaderSection = ({ viewData }: { viewData: ViewData }) => {
   }, [filters, viewData, tableView.view, tableView.combineWeekHours]);
 
   const handleSaveChanges = () => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { start, weekDate, employeeWeekDate, maxWeek, pageLength, ...viewFilters } = filters;
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    const {
+      start: _unused1,
+      weekDate: _unused2,
+      employeeWeekDate: _unused3,
+      maxWeek: _unused4,
+      pageLength: _unused5,
+      ...viewFilters
+    } = filters;
+    /* eslint-enable @typescript-eslint/no-unused-vars */
     updateView({
       view: {
         ...viewData,
-        filters: { ...viewFilters, view: tableView.view, combineWeekHours: tableView.combineWeekHours },
+        filters: {
+          ...viewFilters,
+          view: tableView.view,
+          combineWeekHours: tableView.combineWeekHours,
+        },
       },
     })
       .then(() => {
@@ -211,7 +273,9 @@ const ResourceTeamHeaderSection = ({ viewData }: { viewData: ViewData }) => {
         prev_data = prev_data!.filter((obj) => skills.includes(obj.name));
         updateFilter({ skillSearch: prev_data });
       },
-      value: filters.skillSearch?.map((obj) => obj.name + " " + obj.operator + " " + obj.proficiency * 5),
+      value: filters.skillSearch?.map(
+        (obj) => obj.name + " " + obj.operator + " " + obj.proficiency * 5,
+      ),
       hide: !resourceAllocationPermission.write,
       customFilterComponent: (
         <SkillSearch
@@ -340,7 +404,9 @@ const ResourceTeamHeaderSection = ({ viewData }: { viewData: ViewData }) => {
   ];
 
   if (!user.hasBuField) {
-    sectionFilters = sectionFilters.filter((filter) => filter.queryParameterName !== "business-unit");
+    sectionFilters = sectionFilters.filter(
+      (filter) => filter.queryParameterName !== "business-unit",
+    );
   }
   return (
     <Header
@@ -369,12 +435,16 @@ const ResourceTeamHeaderSection = ({ viewData }: { viewData: ViewData }) => {
         {
           title: "previous-week",
           handleClick: handlePrevWeek,
-          icon: () => <ChevronLeftIcon className="w-4 max-md:w-3 h-4 max-md:h-3" />,
+          icon: () => (
+            <ChevronLeftIcon className="w-4 max-md:w-3 h-4 max-md:h-3" />
+          ),
         },
         {
           title: "next-week",
           handleClick: handleNextWeek,
-          icon: () => <ChevronRight className="w-4 max-md:w-3 h-4 max-md:h-3" />,
+          icon: () => (
+            <ChevronRight className="w-4 max-md:w-3 h-4 max-md:h-3" />
+          ),
         },
       ]}
       showFilterValue
