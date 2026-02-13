@@ -26,16 +26,16 @@
     "@babel/parser": "^7.28.0",
     "@babel/traverse": "^7.28.6",
     "@eslint/js": "^9.39.2",
-    "@playwright/test": "^1.57.0",
+    "@playwright/test": "^1.58.0",
     "allure-commandline": "^2.36.0",
-    "allure-playwright": "^3.2.1",
+    "allure-playwright": "^3.4.5",
     "eslint": "^9.18.0",
-    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-import": "^2.32.0",
     "playwright": "^1.56.1"
   },
   "dependencies": {
-    "axios": "^1.11.0",
-    "dotenv": "^16.4.7",
+    "dotenv": "^17.2.3",
+    "axios": "^1.13.5",
     "proper-lockfile": "^4.1.2"
   }
 }
